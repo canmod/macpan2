@@ -7,7 +7,18 @@ data <- list(
 )
   
 compile("TMBlist.cpp")
-dyn.load(dynlib("TMBlist"))
+dd <- dyn.load(dynlib("TMBlist"))
+dlls <- getLoadedDLLs()
+getDLLRegisteredRoutines(dd)
+## hmmm ...
+
+## debug(MakeADFun)
 obj <- MakeADFun(data = data,
-                 parameters = list(x=1),
+                 parameters = list(),
                  DLL = "TMBlist")
+
+## current status
+## crashes R unpredictably
+##  sometimes? prints debugging statements, sometimes doesn't
+## crashes on "retape(set.defaults = TRUE)" (i.e. first call to
+##   DLL ...)
