@@ -1,19 +1,8 @@
 #' Generate an Arithmetic Expression Parser
 #'
-#' @param valid_funcs character vector with names of valid functions
+#' @param parser_name character vector with names of valid functions
 #' @param valid_vars character vector with names of valid variables
-#' @param
 #'
-#'
-#' @return A function that accepts a call or list of expressions, and returns
-#' a data frame with rows representing the nodes of the parse tree
-#' and the following columns \describe{
-#'   \item{x}{name of the function, variable, or literal}
-#'   \item{n}{number of arguments if \code{x} is a function, zero otherwise}
-#'   \item{i}{row index giving the node corresponding to the first argument
-#'            of the function -- zero if \code{x} is not a function}
-#'   \item{q}{boolean indicating if the node corresponds to a literal}
-#' }
 #' @export
 make_expr_parser = function(
     parser_name = 'parse_expr',
@@ -123,9 +112,15 @@ finalizer_index = function(x) {
   # convert character identifiers to integers
   x_char = unlist(lapply(x$x, as.character))
   x_int = integer(length(x$x))
-  x_int[is_func] = find_vec_indices(x_char[is_func], names(valid_funcs))
-  x_int[is_var] = find_vec_indices(x_char[is_var], names(valid_vars))
-  x_int[is_literal] = seq_along(valid_literals)
+  if (any(is_func)) {
+    x_int[is_func] = find_vec_indices(x_char[is_func], names(valid_funcs))
+  }
+  if (any(is_var)) {
+    x_int[is_var] = find_vec_indices(x_char[is_var], names(valid_vars))
+  }
+  if (any(is_literal)) {
+    x_int[is_literal] = seq_along(valid_literals)
+  }
   x$x = x_int
 
   McMasterPandemic::nlist(

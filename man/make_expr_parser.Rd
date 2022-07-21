@@ -7,20 +7,9 @@
 make_expr_parser(parser_name = "parse_expr", finalizer = force)
 }
 \arguments{
-\item{valid_funcs}{character vector with names of valid functions}
+\item{parser_name}{character vector with names of valid functions}
 
 \item{valid_vars}{character vector with names of valid variables}
-}
-\value{
-A function that accepts a call or list of expressions, and returns
-a data frame with rows representing the nodes of the parse tree
-and the following columns \describe{
-\item{x}{name of the function, variable, or literal}
-\item{n}{number of arguments if \code{x} is a function, zero otherwise}
-\item{i}{row index giving the node corresponding to the first argument
-of the function -- zero if \code{x} is not a function}
-\item{q}{boolean indicating if the node corresponds to a literal}
-}
 }
 \description{
 Generate an Arithmetic Expression Parser
