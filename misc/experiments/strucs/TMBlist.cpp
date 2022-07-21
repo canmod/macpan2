@@ -7,9 +7,10 @@ Type objective_function<Type>::operator() ()
 {
 
   std::cout << "a\n";
-  
+
   SEXP MatrixList(getListElement(TMB_OBJECTIVE_PTR -> data, "MatrixList"));
   SEXP VectorList(getListElement(TMB_OBJECTIVE_PTR -> data, "VectorList"));
+  PARAMETER(theta);
 
   std::cout << "b\n";
   // for (int i = 0; i<(int)Rf_length(MatrixList); i++) {
@@ -17,9 +18,11 @@ Type objective_function<Type>::operator() ()
     vector<Type> v(asVector<Type>(VECTOR_ELT(VectorList, 0)));
 
     std::cout << "c\n";
-    vector<Type> v2 = m * v;
+    //vector<Type> v2 = m * v * theta;
+    Type yy = m.coeff(0, 0) * v[0] * theta;
 
     std::cout << "d\n";
     //}
-  return 0;
+  //Type yy = 0;
+  return yy;
 }
