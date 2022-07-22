@@ -5,10 +5,17 @@ compile('structured_expressions.cpp')
 dyn.load(dynlib("structured_expressions"))
 
 parser = make_expr_parser('parser', finalizer_index)
-valid_funcs = nlist(`+`, `-`, `*`, `/`, `^`, `(`)
+valid_funcs = nlist(`+`, `-`, `*`, `/`, `^`, `(`, `c`, `matrix`, `%*%`, `sum`)
 valid_vars = list(beta = 0.1, I = 30)
 
+# this first expression will work immediately, but doesn't include
+# matrix operations:
 expr = ~ beta * I / 100
+
+# this second expression will not work until `c`, `matrix`, `sum`,
+# and `%*%` are implemented:
+# expr = ~ sum(matrix(c(beta, I, beta, I), 2, 2) %*% c(1 / 2, 0.123))
+
 parsed_expr = parser(expr)
 
 data_args = list(
@@ -27,5 +34,10 @@ f = MakeADFun(
   DLL = 'structured_expressions'
 )
 
+# these two should be the same:
 f$fn()
+with(valid_vars, eval(expr[[2]]))
+
+# this is the gradient of f$fn()
 f$gr()
+
