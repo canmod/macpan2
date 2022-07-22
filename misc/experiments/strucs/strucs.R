@@ -1,13 +1,18 @@
+##########################################################
+# Example of passing several vectors from R to C++ 
+#     The number of vectors are flexible
+#     These vectors don't have the same length
+# Multiple matrices can be passed in the same way
+##########################################################
 library(TMB)
 set.seed(1L)
 n = 10
+
 a = list(
   data = list(
-    #Y = rnorm(n),
-    #x = rnorm(n)
-    Yx = list(Y = rnorm(n), x = rnorm(n))
+    # These vectors (w or w/o names) are packed into a list
+    Yx = list(Y = rnorm(5), x = rnorm(10), rnorm(3))
     #MatrixList = list(matrix(0, 1, 1), matrix(1, 2, 2)),
-    #vec = c(c(1, 2, 3), c(1, 2))
   ),
   param = list(
     a = as.numeric(0),
@@ -17,5 +22,10 @@ a = list(
 )
 compile('strucs.cpp')
 dyn.load(dynlib("strucs"))
+
+a$data
+print("===== before MakeADFun =====")
 f = MakeADFun(data = a$data, parameters = a$param, DLL = 'strucs')
-optim(f$par, f$fn)
+print("===== after MakeADFun =====")
+
+#optim(f$par, f$fn)

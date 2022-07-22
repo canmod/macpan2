@@ -12,17 +12,23 @@
 
 template<class Type>
 struct ll {
-  vector<Type> Y;
-  vector<Type> x;
+  // below is a vector of vectors that passed from R
+  vector<vector<Type>> vectors;
+  
   ll(SEXP ii){ // Constructor
-    Y = asVector<Type>(getListElement(ii,"Y"));
-    x = asVector<Type>(getListElement(ii,"x"));
+    // Get elements by their names
+    //Y = asVector<Type>(getListElement(ii,"Y"));
+    //x = asVector<Type>(getListElement(ii,"x"));
+
+    // Get elements by their indices
+    int n = length(ii);
+    vector<vector<Type>> vs(n);
+    vectors = vs;
+
+    for (int i = 0; i < n; i++) 
+      vectors[i] = asVector<Type>(VECTOR_ELT(ii, i));
   }
 };
-
-// struct numeric_vector_indexer {
-//
-// };
 
 template<class Type>
 Type objective_function<Type>::operator() ()
@@ -33,12 +39,15 @@ Type objective_function<Type>::operator() ()
   //DATA_VECTOR(Y);
   //DATA_VECTOR(x);
   DATA_STRUCT(Yx, ll);
-  //DATA_STRUCT(numeric_vectors, numeric_vector_indexer);
+  for (int i=0; i<Yx.vectors.size(); i++) {
+    std::cout << "i = " << i << std::endl;
+    std::cout << "vector = " << Yx.vectors[i] << std::endl;
+  }
 
   PARAMETER(a);
   PARAMETER(b);
   PARAMETER(logSigma);
   ADREPORT(exp(2*logSigma));
-  Type nll = -sum(dnorm(Yx.Y, a+b*Yx.x, exp(logSigma), true));
+  Type nll = -sum(dnorm(Yx.vectors[0], a+b*Yx.vectors[1], exp(logSigma), true));
   return nll;
 }
