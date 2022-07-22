@@ -7,10 +7,50 @@
 make_expr_parser(parser_name = "parse_expr", finalizer = force)
 }
 \arguments{
-\item{parser_name}{character vector with names of valid functions}
+\item{parser_name}{Name of the parsing function as a character
+string.}
 
-\item{valid_vars}{character vector with names of valid variables}
+\item{finalizer}{Function used to post-process a parsed formula.
+The default is the identity finalizer, which returns the parsed
+formula itself.  Other good choices are \code{\link{finalizer_char}},
+which can be used to understand how the formula has been parsed,
+and \code{\link{finalizer_index}}, which can be passed to the C++ engine.
+
+The result of this function is another function that takes a single
+argument, \code{x}.  This resulting function is recursive.  The \code{x}
+argument should be a one-sided formula the first time this recursive
+function is called.  In subsequent evaluations of the recursion, \code{x}
+will be a list with the following structure.  When \code{x} is a formula,
+it must contain a named list of functions called \code{valid_funcs} and
+a named list of variables called \code{valid_vars}.
+
+\describe{
+\item{x}{list of names and numeric objects that represent each
+leaf of the parse tree}
+\item{n}{integer vector the same length as \code{x} that give the
+number of arguments of the associated functions in \code{x} or \code{0}
+otherwise}
+\item{i}{index identifying the element of \code{x} corresponding to the
+first argument of the associated function or \code{0} if this is not
+a function}
+\item{valid_funcs}{named list of valid functions that was extracted
+from the environment of the formula being parsed}
+\item{valid_vars}{named list of default values of valid variables extracted
+from the environment of the formula being parsed}
+\item{input_expr_as_string}{the input formula stored as a string}
+}}
 }
 \description{
 Generate an Arithmetic Expression Parser
+}
+\examples{
+parser = make_expr_parser('parser', finalizer_char)
+foi = ~ beta * I / 100
+valid_funcs = setNames(
+  list(`*`, `/`),
+  c("*", "/")
+)
+valid_vars = list(beta = 0.1, I = 30)
+parser(foi)
+
 }

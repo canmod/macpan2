@@ -1,12 +1,51 @@
 #' Generate an Arithmetic Expression Parser
 #'
-#' @param parser_name character vector with names of valid functions
-#' @param valid_vars character vector with names of valid variables
+#' @param parser_name Name of the parsing function as a character
+#' string.
+#' @param finalizer Function used to post-process a parsed formula.
+#' The default is the identity finalizer, which returns the parsed
+#' formula itself.  Other good choices are \code{\link{finalizer_char}},
+#' which can be used to understand how the formula has been parsed,
+#' and \code{\link{finalizer_index}}, which can be passed to the C++ engine.
+#'
+#' The result of this function is another function that takes a single
+#' argument, \code{x}.  This resulting function is recursive.  The \code{x}
+#' argument should be a one-sided formula the first time this recursive
+#' function is called.  In subsequent evaluations of the recursion, \code{x}
+#' will be a list with the following structure.  When \code{x} is a formula,
+#' it must contain a named list of functions called \code{valid_funcs} and
+#' a named list of variables called \code{valid_vars}.
+#'
+#' \describe{
+#'   \item{x}{list of names and numeric objects that represent each
+#'   leaf of the parse tree}
+#'   \item{n}{integer vector the same length as \code{x} that give the
+#'   number of arguments of the associated functions in \code{x} or \code{0}
+#'   otherwise}
+#'   \item{i}{index identifying the element of \code{x} corresponding to the
+#'   first argument of the associated function or \code{0} if this is not
+#'   a function}
+#'   \item{valid_funcs}{named list of valid functions that was extracted
+#'   from the environment of the formula being parsed}
+#'   \item{valid_vars}{named list of default values of valid variables extracted
+#'   from the environment of the formula being parsed}
+#'   \item{input_expr_as_string}{the input formula stored as a string}
+#' }
+#'
+#' @examples
+#' parser = make_expr_parser('parser', finalizer_char)
+#' foi = ~ beta * I / 100
+#' valid_funcs = setNames(
+#'   list(`*`, `/`),
+#'   c("*", "/")
+#' )
+#' valid_vars = list(beta = 0.1, I = 30)
+#' parser(foi)
 #'
 #' @export
 make_expr_parser = function(
     parser_name = 'parse_expr',
-    finalizer = force
+    finalizer = force  # the identity finalizer is the default
   ) {
 
   is_name_or_number = function(x) {
@@ -16,13 +55,20 @@ make_expr_parser = function(
   # convert a formula to the initial state of a list that could be
   # recursively parsed using parse_expr
   formula_to_parsing_list = function(x) {
-    stopifnot(as.character(x[[1]]) == '~')
-    stopifnot(length(x) == 2L)
+    stopifnot(
+      "formulas are the only calls that can be parsed" =
+        as.character(x[[1]]) == '~'
+    )
+    stopifnot(
+      "only one-sided formulas can be parsed" =
+        length(x) == 2L
+    )
     valid = as.list(environment(x))
     list(
       x = list(x), n = 0L, i = 0L,
       valid_funcs = valid$valid_funcs,
-      valid_vars = valid$valid_vars
+      valid_vars = valid$valid_vars,
+      input_expr_as_string = as.character(x)[2L]
     )
   }
 
@@ -113,10 +159,18 @@ finalizer_index = function(x) {
   x_char = unlist(lapply(x$x, as.character))
   x_int = integer(length(x$x))
   if (any(is_func)) {
-    x_int[is_func] = find_vec_indices(x_char[is_func], names(valid_funcs))
+    x_int[is_func] = get_indices(x_char[is_func]
+      , vec = names(valid_funcs)
+      , vec_type = "functions"
+      , expr_as_string = x$input_expr_as_string
+    )
   }
   if (any(is_var)) {
-    x_int[is_var] = find_vec_indices(x_char[is_var], names(valid_vars))
+    x_int[is_var] = get_indices(x_char[is_var]
+      , vec = names(valid_vars)
+      , vec_type = "variables"
+      , expr_as_string = x$input_expr_as_string
+    )
   }
   if (any(is_literal)) {
     x_int[is_literal] = seq_along(valid_literals)
@@ -126,5 +180,25 @@ finalizer_index = function(x) {
   McMasterPandemic::nlist(
     parse_table = as.data.frame(x),
     valid_funcs, valid_vars, valid_literals
+  )
+}
+
+get_indices <- function(x, vec, vec_type, expr_as_string) {
+  if(!is.character(vec)) vec = names(vec)
+  missing_items = x[!x %in% vec]
+  if(length(missing_items) > 0L) {
+    stop(
+      "\nthe expression given by:\n",
+      expr_as_string, "\n\n",
+      "contained the following ", vec_type, ":\n",
+      paste0(missing_items, collapse = " "), "\n\n",
+      " that were not found in the list of available ", vec_type, ":\n",
+      paste0(vec, collapse = " ") # TODO: smarter pasting when this list gets big
+    )
+  }
+  (x
+    %>% as.character()
+    %>% outer(vec, "==")
+    %>% apply(1, which)
   )
 }
