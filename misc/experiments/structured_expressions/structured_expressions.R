@@ -10,13 +10,17 @@ valid_vars = list(beta = 0.1, I = 30)
 
 # this first expression will work immediately, but doesn't include
 # matrix operations:
-expr = ~ beta * I / 100
+#expr = ~ beta * I / 100
 
 # this second expression will not work until `c`, `matrix`, `sum`,
 # and `%*%` are implemented:
-# expr = ~ sum(matrix(c(beta, I, beta, I), 2, 2) %*% c(1 / 2, 0.123))
+expr = ~ sum(matrix(c(beta, I, beta, I), 2, 2) %*% c(1 / 2, 0.123))
 
 parsed_expr = parser(expr)
+
+parsed_expr$parse_table
+parsed_expr$valid_literals
+parsed_expr$valid_vars
 
 data_args = list(
   parse_table_x = parsed_expr$parse_table$x,
