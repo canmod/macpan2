@@ -57,7 +57,7 @@ sapply(names(test_cases), eval_test_case, simplify = FALSE)
 
 # -----------------------------------
 # CHOOSE TEST CASE
-case_name = "bilinear"
+case_name = "dimensional_inconsistency_error"
 # test case options are:
 print(names(test_cases))
 # -----------------------------------
@@ -67,7 +67,7 @@ expr = test_cases[[case_name]]$expr
 parsed_expr = parser(expr)
 
 parsed_expr$parse_table
-parsed_expr$valid_literals
+parsed_expr$valid_literals	# could be empty list() in the case there is no literals in the expr
 parsed_expr$valid_vars
 
 data_args = list(

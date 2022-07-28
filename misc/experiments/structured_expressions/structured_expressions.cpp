@@ -15,6 +15,68 @@
 //   matrix as mxn matrix
 // so that we can unified the definition of function EvalExpr
 
+// suppose we replace matrix<Type> with a struct abc
+// 
+//struct abc {
+//    char type; // 0: scalar, 1: vector, 2: matrix
+//    union {
+//        Type scale;
+//        vector<Type> vec;
+//        matrix<Type> mat;
+//    } data;
+//};
+
+template<class Type>
+void Test(
+    const matrix<Type>& scalar,
+    const matrix<Type>& vec1,
+    const matrix<Type>& vec2,
+    const matrix<Type>& mat
+)
+{
+    std::cout << "begin of test ===============" << std::endl;
+
+    std::cout << "scalar = " << scalar << std::endl;
+    std::cout << "vec1 = " << vec1 << std::endl;
+    std::cout << "vec2 = " << vec2 << std::endl;
+    std::cout << "mat = " << mat << std::endl;
+
+    std::cout << "vec1.transpose() = " << vec1.transpose() << std::endl;
+
+    // +,-,*, / between scalar and non-scaler (should be element-wise operations)
+    // You have to convert non-scalar to Eigen::Array before the operation to enable elsement-wise operations
+    std::cout << "mat - scalar = " << mat.array() - scalar.coeff(0,0) << std::endl;
+    std::cout << "scalar - mat = " << scalar.coeff(0,0) - mat.array() << std::endl;
+
+    std::cout << "vec1 - scalar = " << vec1.array() - scalar.coeff(0,0) << std::endl;
+    std::cout << "scalar - vec1 = " << scalar.coeff(0,0) - vec1.array() << std::endl;
+
+    std::cout << "mat * scalar = " << mat.array() * scalar.coeff(0,0) << std::endl;
+    std::cout << "scalar * mat = " << scalar.coeff(0,0) * mat.array() << std::endl;
+
+    std::cout << "vec1 * scalar = " << vec1.array() * scalar.coeff(0,0) << std::endl;
+    std::cout << "scalar * vec1 = " << scalar.coeff(0,0) * vec1.array() << std::endl;
+
+    // +,- between non-scalars with unmatched dimensions take the shape of the second operand.
+    // The first operand is trimmed or expanded to the shape of the second. 
+    // In the case of expansion, undefined elements are filled with zeros
+    std::cout << "vec1 - vec2 = " << vec1 - vec2 << std::endl;
+    std::cout << "vec2 + vec1 = " << vec2 + vec1 << std::endl;
+    
+    std::cout << "vec1 - mat = " << vec1 - mat << std::endl;
+    std::cout << "mat + vec1.transpose() = " << mat + vec1.transpose() << std::endl;
+
+    // *, / between non-scalars with unmatched dimensions (invalid)
+
+    // *, / between non-scalars with matched dimensions 
+    std::cout << "vec1 * vec1.transpose() = " << vec1 * vec1.transpose() << std::endl;
+    std::cout << "vec1.transpose() * vec1 = " << vec1.transpose() * vec1 << std::endl;
+
+    std::cout << "vec1 * vec2.transpose() = " << vec1 * vec2.transpose() << std::endl;
+ 
+    std::cout << "end of test =================" << std::endl;
+}
+
 template<class Type>
 matrix<Type> EvalExpr(
     const vector<int>& table_x,
@@ -25,6 +87,27 @@ matrix<Type> EvalExpr(
     int row = 0
 )
 {
+    // Just for testing
+    matrix<Type> scalar = matrix<Type>::Zero(1,1);
+    scalar.coeffRef(0,0) = 10;
+
+    matrix<Type> vector1(3,1);
+    for (int i=0; i<3; i++)
+        vector1.coeffRef(i,0) = i + 1;
+
+    matrix<Type> vector2(5,1);
+    for (int i=0; i<5; i++)
+        vector2.coeffRef(i,0) = i + 10;
+
+    matrix<Type> mat(5,2);
+    for (int i=0; i<5; i++) {
+        mat.coeffRef(i,0) = i + 20;
+        mat.coeffRef(i,1) = i + 25;
+    }
+
+    Test(scalar, vector1, vector2, mat);
+
+    // 
     matrix<Type> m;
     Type sum;
     int rows, cols;
@@ -71,6 +154,7 @@ matrix<Type> EvalExpr(
                         std::cout << r[0] << " ^ " << r[1] << " = " << pow(r[0].array(), r[1].coeff(0,0)).matrix() << std::endl << std::endl;
                     #endif
                     return pow(r[0].array(), r[1].coeff(0,0)).matrix();
+                    //return r[0].pow(r[1].coeff(0,0));
                 case 6: // (
                     return r[0];
                 case 7: // c
@@ -111,6 +195,16 @@ matrix<Type> EvalExpr(
                     
                     #ifdef MP_VERBOSE
                         std::cout << "sum(" << r[0] << ", ..., " << r[n-1] << ") = " << m << std::endl << std::endl;
+                    #endif
+                    return m;
+                case 11: // rep
+                    rows = CppAD::Integer(r[1].coeff(0,0));
+                    m = matrix<Type>::Zero(rows,1);
+                    for (int i=0; i<rows; i++)
+                        m.coeffRef(i,0) = r[0].coeff(0,0);
+
+                    #ifdef MP_VERBOSE
+                        std::cout << "rep(" << r[0] << ", " << r[1] << ") = " << m << std::endl << std::endl;
                     #endif
                     return m;
                 default:
