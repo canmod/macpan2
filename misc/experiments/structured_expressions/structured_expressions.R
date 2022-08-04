@@ -34,6 +34,10 @@ expr = ~ beta * I / 100
 expr = ~ sum(matrix(c(beta, I, beta, I), 2, 2) %*% c(1 / 2, 0.123))
 
 test_cases = list(
+  guan_test = list(
+    expr = ~ matrix(3.2*c(beta, beta, I) - 2*rep(beta, 3), 1, 3) %*% (matrix(c(beta, beta, beta, beta, beta, beta), 3, 2)-matrix(rep(5.0, 3), 3, 1))  %*% matrix(c(I, I), 2, 1),
+    expected = -28235.76
+  ),
   bilinear = list(
     expr = ~ c(beta, beta, I) %*% matrix(c(beta, beta, beta, beta, beta, beta), 3, 2) %*% c(I, I),
     expected = 181.2
@@ -57,7 +61,7 @@ sapply(names(test_cases), eval_test_case, simplify = FALSE)
 
 # -----------------------------------
 # CHOOSE TEST CASE
-case_name = "dimensional_inconsistency_error"
+case_name = "guan_test"
 # test case options are:
 print(names(test_cases))
 # -----------------------------------
