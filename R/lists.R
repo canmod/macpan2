@@ -15,14 +15,16 @@ nlist <- function(...) {
 #' Index a Named List of Character Vectors
 #' @export
 ilist = function(x) {
-  setNames(
-    mapply(
-      list,
-      var_type_index = unlist(mapply(rep, seq_along(x), each = unlist(lapply(unname(x), length)))),
-      var_index = unlist(lapply(unname(x), seq_along)),
-      SIMPLIFY = FALSE
-    ),
-    unlist(unname(x))
+  x = lapply(x, names)
+  nms = unlist(unname(x))
+  var_type_index = setNames(
+    unlist(mapply(rep, seq_along(x), each = unlist(lapply(unname(x), length)))),
+    nms
   )
+  var_index = setNames(
+    unlist(lapply(unname(x), seq_along)),
+    nms
+  )
+  nlist(var_type_index, var_index)
 }
 

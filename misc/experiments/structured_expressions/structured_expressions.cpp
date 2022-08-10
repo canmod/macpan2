@@ -16,7 +16,7 @@
 // so that we can unified the definition of function EvalExpr
 
 // suppose we replace matrix<Type> with a struct abc
-// 
+//
 //struct abc {
 //    char type; // 0: scalar, 1: vector, 2: matrix
 //    union {
@@ -58,22 +58,22 @@ void Test(
     std::cout << "scalar * vec1 = " << scalar.coeff(0,0) * vec1.array() << std::endl;
 
     // +,- between non-scalars with unmatched dimensions take the shape of the second operand.
-    // The first operand is trimmed or expanded to the shape of the second. 
+    // The first operand is trimmed or expanded to the shape of the second.
     // In the case of expansion, undefined elements are filled with zeros
     std::cout << "vec1 - vec2 = " << vec1 - vec2 << std::endl;
     std::cout << "vec2 + vec1 = " << vec2 + vec1 << std::endl;
-    
+
     std::cout << "vec1 - mat = " << vec1 - mat << std::endl;
     std::cout << "mat + vec1.transpose() = " << mat + vec1.transpose() << std::endl;
 
     // *, / between non-scalars with unmatched dimensions (invalid)
 
-    // *, / between non-scalars with matched dimensions 
+    // *, / between non-scalars with matched dimensions
     std::cout << "vec1 * vec1.transpose() = " << vec1 * vec1.transpose() << std::endl;
     std::cout << "vec1.transpose() * vec1 = " << vec1.transpose() * vec1 << std::endl;
 
     std::cout << "vec1 * vec2.transpose() = " << vec1 * vec2.transpose() << std::endl;
- 
+
     std::cout << "end of test =================" << std::endl;
 }
 
@@ -107,7 +107,7 @@ matrix<Type> EvalExpr(
 
     Test(scalar, vector1, vector2, mat);
 
-    // 
+    //
     matrix<Type> m;
     Type sum;
     int rows, cols;
@@ -123,7 +123,7 @@ matrix<Type> EvalExpr(
             return m;
         default:
             int n = table_n[row];
-            vector<matrix<Type>> r(n);
+            vector<matrix<Type> > r(n);
             for (int i=0; i<n; i++)
                 r[i] = EvalExpr(table_x, table_n, table_i, valid_vars, valid_literals, table_i[row]-1+i);
 
@@ -179,20 +179,20 @@ matrix<Type> EvalExpr(
                     cols = CppAD::Integer(r[2].coeff(0,0));
 
                     m.resize(rows, cols);
- 
+
                    #ifdef MP_VERBOSE
                         std::cout << "matrix(" << r[0] << ") in shape of [" << rows << ", " << cols << "] = " \
                                   << m << std::endl << std::endl;
                     #endif
- 
-                    return m; 
-		case 10: // sum
+
+                    return m;
+		            case 10: // sum
                     m = matrix<Type>::Zero(1,1);
                     sum = 0.0;
                     for (int i=0; i<n; i++)
                         sum += r[i].sum();
                     m.coeffRef(0,0) = sum;
-                    
+
                     #ifdef MP_VERBOSE
                         std::cout << "sum(" << r[0] << ", ..., " << r[n-1] << ") = " << m << std::endl << std::endl;
                     #endif

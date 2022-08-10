@@ -48,10 +48,6 @@ make_expr_parser = function(
     finalizer = force  # the identity finalizer is the default
   ) {
 
-  is_name_or_number = function(x) {
-    is.name(x) | is.numeric(x)
-  }
-
   # convert a formula to the initial state of a list that could be
   # recursively parsed using parse_expr
   formula_to_parsing_list = function(x) {
@@ -131,7 +127,6 @@ finalizer_char = function(x) {
 
 #' @export
 finalizer_index = function(x) {
-  find_vec_indices = McMasterPandemic:::find_vec_indices
   valid_funcs = x$valid_funcs
   valid_vars = x$valid_vars
   x$valid_funcs = x$valid_vars = NULL
@@ -183,7 +178,7 @@ finalizer_index = function(x) {
   )
 }
 
-get_indices <- function(x, vec, vec_type, expr_as_string) {
+get_indices = function(x, vec, vec_type, expr_as_string) {
   if(!is.character(vec)) vec = names(vec)
   missing_items = x[!x %in% vec]
   if(length(missing_items) > 0L) {
@@ -196,9 +191,13 @@ get_indices <- function(x, vec, vec_type, expr_as_string) {
       paste0(vec, collapse = " ") # TODO: smarter pasting when this list gets big
     )
   }
-  (x
-    %>% as.character()
-    %>% outer(vec, "==")
-    %>% apply(1, which)
+  apply(
+    outer(
+      as.character(x),
+      vec,
+      "=="
+    ),
+    1,
+    which
   )
 }

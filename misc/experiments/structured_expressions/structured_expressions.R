@@ -49,6 +49,26 @@ test_cases = list(
   dimensional_inconsistency_error = list(
     expr = ~ matrix(c(beta, I), 2, 1) %*% matrix(c(beta, I, beta, I), 2, 2),
     expected = "ERROR"
+  ),
+  scalar_times_vector = list(
+    expr = ~ sum(I * c(0.5, beta)),
+    expected = 18
+  ),
+  scalar_times_matrix = list(
+    expr = ~ sum(I * matrix(c(0.5, beta, I, 0.6), 2, 2)),
+    expected = 936
+  ),
+  no_literals = list(
+    expr = ~ I,
+    expected = 30
+  ),
+  row_times_column = list(
+    expr = ~ sum(matrix(c(1, beta), 1, 2) * matrix(c(1, beta), 2, 1)),
+    expected = "ERROR"
+  ),
+  row_times_vector = list(
+    expr = ~ sum(matrix(c(1, beta), 1, 2) * c(1, beta)),
+    expected = 1.01
   )
 )
 
@@ -57,7 +77,7 @@ sapply(names(test_cases), eval_test_case, simplify = FALSE)
 
 # -----------------------------------
 # CHOOSE TEST CASE
-case_name = "dimensional_inconsistency_error"
+case_name = "scalar_times_vector"
 # test case options are:
 print(names(test_cases))
 # -----------------------------------
