@@ -80,7 +80,7 @@ public:
                 return m;
             default:
                 int n = table_n[row];
-                vector<matrix<Type>> r(n);
+                vector<matrix<Type> > r(n);
                 for (int i=0; i<n; i++)
                     r[i] = EvalExpr(table_x, table_n, table_i, valid_vars, valid_literals, table_i[row]-1+i);
 
