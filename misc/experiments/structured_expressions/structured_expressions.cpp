@@ -59,6 +59,7 @@ public:
         const vector<int>& table_x,
         const vector<int>& table_n,
         const vector<int>& table_i,
+        // const vector<int>& table_is_bin_op,
         const vector<Type>& valid_vars,
         const vector<Type>& valid_literals,
         int row = 0
@@ -85,7 +86,7 @@ public:
                     r[i] = EvalExpr(table_x, table_n, table_i, valid_vars, valid_literals, table_i[row]-1+i);
 
                 // Check dimensions compatibility. If needed, expand one operand to make its dimensions compatible with the other
-                if (table_x[row]<6) { // elementwise operations + - * / ^
+                if (table_x[row]<6) { // elementwise operations + - * / ^  maybe we want this? if(table_is_bin_op)
                     if (r[0].rows()==r[1].rows()) {
                         if (r[0].cols()!=r[1].cols()) {
                             if (r[0].cols()==1) { // vector vs matrix or scalar vs vector
@@ -250,15 +251,32 @@ Type objective_function<Type>::operator() ()
   DATA_IVECTOR(parse_table_i);
   DATA_VECTOR(valid_literals);
   PARAMETER_VECTOR(valid_vars);
+  // DATA_STRUCT(valid_vars);
+  // PARAMETER_VECTOR(params);
+  // DATA_IVECTOR(param_var_id);
+  // DATA_IVECTOR(param_row_id);
+  // DATA_IVECTOR(param_col_id);
+
+  // for (i in 1:length(params)) {
+  //   valid_vars[param_var_id[i-1]][param_row_id[i-1], param_col_id[i-1]] = params[i]
+  // }
+
+
 
   ExprEvaluator<Type> exprEvaluator;
-  matrix<Type> result = exprEvaluator.EvalExpr(parse_table_x, parse_table_n, parse_table_i, valid_vars, valid_literals);
+  matrix<Type> result = exprEvaluator.EvalExpr(
+    parse_table_x,
+    parse_table_n,
+    parse_table_i,
+    valid_vars,
+    valid_literals
+  );
 
   int error_code = exprEvaluator.GetErrorCode();
   REPORT(error_code);
+  REPORT(result);
   if (error_code)
       return 0.0;
   else
-      return result.coeff(0, 0);
-  //return EvalExpr(parse_table_x, parse_table_n, parse_table_i, valid_vars, valid_literals);
+      return result.sum();
 }
