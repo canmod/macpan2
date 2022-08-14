@@ -39,6 +39,22 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 template<class Type>
+struct ListOfMatrices {
+  // below is a vector of vectors that passed from R
+  vector<matrix<Type>> vectors;
+
+  ListOfMatrices(SEXP ii){ // Constructor
+    // Get elements by their indices
+    int n = length(ii);
+    vector<matrix<Type>> vs(n);
+    vectors = vs;
+
+    for (int i = 0; i < n; i++)
+      vectors[i] = asMatrix<Type>(VECTOR_ELT(ii, i));
+  }
+};
+
+template<class Type>
 class ExprEvaluator {
 public:
     ExprEvaluator() {
@@ -52,7 +68,7 @@ public:
     {
         error_code = code;
         strcpy(error_message, message);
-        std::cout << "ERROR: " << message << std::endl;
+        std::cout << "MACPAN ERROR: " << message << std::endl;
     };
 
     matrix<Type> EvalExpr(
@@ -60,7 +76,8 @@ public:
         const vector<int>& table_n,
         const vector<int>& table_i,
         // const vector<int>& table_is_bin_op,
-        const vector<Type>& valid_vars,
+        //const vector<Type>& valid_vars,
+        const ListOfMatrices<Type>& valid_vars,
         const vector<Type>& valid_literals,
         int row = 0
     )
@@ -76,8 +93,9 @@ public:
                 return m;
             case 0: // In current version, there are only scalar variables.
                     // We will need to split the case into 3 cases when vector and matrix variables are introduced.
-                m = matrix<Type>::Zero(1,1);
-                m.coeffRef(0,0) = valid_vars[table_x[row]-1];
+                //m = matrix<Type>::Zero(1,1);
+                //m.coeffRef(0,0) = valid_vars[table_x[row]-1];
+                m = valid_vars.vectors[table_x[row]-1];
                 return m;
             default:
                 int n = table_n[row];
@@ -250,7 +268,10 @@ Type objective_function<Type>::operator() ()
   DATA_IVECTOR(parse_table_n);
   DATA_IVECTOR(parse_table_i);
   DATA_VECTOR(valid_literals);
-  PARAMETER_VECTOR(valid_vars);
+//  DATA_VECTOR(valid_vars);
+  DATA_STRUCT(valid_vars, ListOfMatrices);
+  PARAMETER_VECTOR(params);
+
   // DATA_STRUCT(valid_vars);
   // PARAMETER_VECTOR(params);
   // DATA_IVECTOR(param_var_id);

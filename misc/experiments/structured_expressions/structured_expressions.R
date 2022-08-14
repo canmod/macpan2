@@ -48,7 +48,7 @@ valid_funcs = nlist(
   `rep`    # rep(beta, 3) == c(beta, beta, beta)
 )
 
-valid_vars = list(beta = 0.1, I = 30)
+valid_vars = list(beta = 0.1, I = 30, vec1 = c(0.1, 0.1, 30))
 
 test_cases = list(
   really_simple = list(
@@ -58,6 +58,17 @@ test_cases = list(
   guan_test = list(
     expr = ~
       matrix(3.2*c(beta, beta, I) - 2*rep(beta, 3), 1, 3) %*%
+      (
+        matrix(rep(beta, 6), 3, 2) -
+        matrix(rep(5.0, 3), 3, 1)
+      ) %*%
+      matrix(c(I, I), 2, 1),
+    expected = matrix(-28235.76, 1, 1)
+  ),
+  # guan_test2 is equivalent to guan_test --- vec1 = c(beta, beta, I)
+  guan_test2 = list(
+    expr = ~
+      matrix(3.2*vec1 - 2*rep(beta, 3), 1, 3) %*%
       (
         matrix(rep(beta, 6), 3, 2) -
         matrix(rep(5.0, 3), 3, 1)
@@ -119,14 +130,25 @@ eval_test_case_with_cpp_parser = function(test_case) {
   parsed_expr = try(parser(expr))
   if (class(parsed_expr) == "try-error") return("ERROR")
 
+  # Convert elements of valid_vars int matrices
+  nValidVars = length(parsed_expr$valid_vars)
+  valid_vars_as_matrix = list()
+  for (i in 1:nValidVars) {
+    valid_vars_as_matrix[[i]] = as.matrix(parsed_expr$valid_vars[[i]])
+  }
+
+  print(valid_vars_as_matrix)
+
   data_args = list(
     parse_table_x = parsed_expr$parse_table$x,
     parse_table_n = parsed_expr$parse_table$n,
     parse_table_i = parsed_expr$parse_table$i,
-    valid_literals = as.numeric(unlist(parsed_expr$valid_literals))
+    valid_literals = as.numeric(unlist(parsed_expr$valid_literals)),
+    valid_vars = valid_vars_as_matrix
   )
+  
   param_args = list(
-    valid_vars = unlist(parsed_expr$valid_vars)
+    params = unlist(valid_vars)
   )
 
   f = try(MakeADFun(
@@ -163,12 +185,19 @@ evaluate_test_case = function(
   nlist(cpp_answer, exp_answer, r_answer)
 }
 
-outputs = lapply(test_cases, evaluate_test_case, "values")
-data.frame(
-  r_parser = unlist(lapply(test_cases, evaluate_test_case, "compare_with_r_parser")),
-  expectations = unlist(lapply(test_cases, evaluate_test_case, "compare_with_expectations")),
-  expect_error = unlist(lapply(lapply(lapply(test_cases, getElement, 'expected'), `all.equal`, "ERROR"), isTRUE))
-)
+
+################################################################################
+# Evaluate single test case
+print("Test begins ...")
+eval_test_case_with_cpp_parser(test_cases$guan_test2)
+print("Test ends.")
+
+#outputs = lapply(test_cases, evaluate_test_case, "values")
+#data.frame(
+#  r_parser = unlist(lapply(test_cases, evaluate_test_case, "compare_with_r_parser")),
+#  expectations = unlist(lapply(test_cases, evaluate_test_case, "compare_with_expectations")),
+#  expect_error = unlist(lapply(lapply(lapply(test_cases, getElement, 'expected'), `all.equal`, "ERROR"), isTRUE))
+#)
 
 
 # rough notes on how to handle matrix-valued valid_vars:
