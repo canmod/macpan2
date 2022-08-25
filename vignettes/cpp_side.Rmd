@@ -1,6 +1,8 @@
 ---
 title: "The C++ Side of McMasterPandemic"
-output: rmarkdown::html_vignette
+output: 
+  rmarkdown::html_vignette:
+    toc: true
 vignette: >
   %\VignetteIndexEntry{the_cpp_side_of_macpan}
   %\VignetteEngine{knitr::rmarkdown}
@@ -14,17 +16,17 @@ knitr::opts_chunk$set(
 )
 ```
 
-## Input Variables (must-have)
+## Variables
 
 A list of numerical scalars, vectors, and matrices are passed as input variables from R to C++. Scalars are passed as 1-by-1 matrices and vectors as n-by-1, so that all input variables are actually matrices. Missing values are not allowed in any variable. On the R side these variables are all associated with a unique name, and on the C++ side each of these names is associated with a 0-based index. All indices in this spec are 0-based.
 
 The input variables are passed in using the `DATA_STRUCT(vars)` TMB macro, with an associated C++ `struct` for extracting the component matrices by index.
 
-## Parameters (must-have)
+## Parameters
 
 A vector of parameters is passed to C++ using the following TMB macro: `PARAMETER_VECTOR(params)`. This vector becomes the argument of the objective funtion, and can therefore be optimized using a non-linear optimizer or simulated using MCMC.
 
-The values in this parameter vector are used to update certain elements in the variables within `vars`. The elements to be updated are described on the R side by a data frame with one row for every variable element to be replaced. This data frame is constructed in R and passed to C++ -- it contains the following columns.
+The values in this parameter vector are used to update certain elements in the matrix-valued variables within `vars`. The elements to be updated are described on the R side by a data frame with one row for every variable element to be replaced. This data frame is constructed in R and passed to C++ -- it contains the following columns.
 
 * `DATA_IVECTOR(p_par_id)` -- indices into the `params` vector giving the parameter to use when updating each element in `vars` that is to be updated
 * `DATA_IVECTOR(p_var_id)` -- indices into `vars` giving the variables with elements to be replaced by parameters
@@ -33,30 +35,80 @@ The values in this parameter vector are used to update certain elements in the v
 
 After these vectors are read into C++, a loop is executed over the rows of this table that replaces the associated `vars` elements with `params` elements.
 
-## Random Effects (must-have)
-
-A vector of random effects is passed to TMB using the following TMB macro: `PARAMETER_VECTOR(random)`. This vector becomes the random effects that will be integrated out using a Laplace approximation, and is treated similarly to `params` in that it is associated with a data frame describing what elements in `vars` should be replaced. The names of the columns of this table are:
+A vector of random effect parameters is also passed to TMB using the following TMB macro: `PARAMETER_VECTOR(random)`. This `random` vector becomes the random effects that will be integrated out using a Laplace approximation, and is treated similarly to `params` in that it is associated with a data frame describing what elements in `vars` should be replaced. The names of the columns of this table are:
 
 * `DATA_IVECTOR(r_par_id)`
 * `DATA_IVECTOR(r_var_id)`
 * `DATA_IVECTOR(r_row_id)`
 * `DATA_IVECTOR(r_col_id)`
 
-## Derived Variables (must-have)
+Our implied convention is that `p` stands for 'fixed Parameters' and `r` for 'Random parameters'.
 
-The updating of the variables in `vars` by replacing elements of `vars` with elements of `params` and `random` is the only time these input `vars` are updated. After this point, new information in `vars` can only be created by adding new variables. We refer to these new variables that were not passed in from R as derived variables.
+## Simulations
 
-Each derived variable is defined on the R side with a name that is different from all other input and derived variables and an expression, which is described in detail in the next section. Each expression can depend on any number of the variables that come before the associated derived variable in `vars`. Therefore, the variables in `vars` must be sorted such that each derived variable appears after all of its dependencies.
+After the input variables are updated using `params` and `random`, the variables in `vars` can be modified. We refer to this process of modification as simulation. There are three phases to the simulation process.
 
-## Expressions (must-have)
+1. Before the simulation loop
+2. During the simulation loop
+3. After the simulation loop
 
-Each expression is the right-hand-side of an R formula involving the following three types of objects.
+Simulation time is measured in dimensionless iterations in C++, and is indexed by an integer, `t`, such that `0 <= t <= T+1`, where `T` is the number of simulation iterations. The value of each variable at `t = 0` is the value of that variable just before the first iteration of the simulation loop begins. The value of each variable at `0 < t < T+1` is the value of the variable at the very end of the `t`th iteration of the simulation loop. The value of each variable at `t = T+1` is the value of the variable at the end of the simulation.
 
-* Names of variables in the model
-* Names of functions that are currently allowed by the engine (see the section on Function Definitions for more information)
+This time-indexing system is used for two purposes.
+
+1. To optionally return the simulation history to the user
+2. For variable modifications that depend on past values
+
+The user can opt in and out of these uses on a per-variable basis, by specifying two vectors that have one element per variable.
+
+* `DATA_IVECTOR(vars_save_hist)`
+    * Equals `0` if the variable is overwritten at each simulation iteration, `t`
+    * Equals `1` if all values of the variable are saved
+* `DATA_IVECTOR(vars_return)`
+    * Equals `0` if the variable is not returned to the R side at the end of the simulation
+    * Equals `1` otherwise
+
+## Expressions
+
+The mathematical details of how variables are modified during the simulation process is controlled on the R side by supplying expressions. Each expression is the right-hand-side of an R formula involving the following three types of objects.
+
+* Names of variables in `vars`
+* Names of functions that are currently allowed by the engine
 * Numeric literals (e.g. `3.14`)
 
-### Parse Table (must-have)
+A simulation is the sequential evaluation of these expressions in a user-specified order. Each expression may be evaluated at any number of the three simulation phases -- before, during, and after the simulation loop. For example, some expressions may only be evaluated before the simulation begins whereas others may be evaluated before, after, and at every iteration.
+
+Each mathematical expression can be used by C++ in several ways depending on ...???  Information on how each expression should be used is passed to C++ using a set of vectors. Each of these vectors is the same length, with one element per expression.
+
+* `DATA_IVECTOR(expr_count_output_vars)`
+    * Number of derived variable matrices produced by the expression
+    * Typically this will be `1`, but multiple return values are possible (see section below on Lists of Matrices)
+* `DATA_IVECTOR(expr_derived_var_id)`
+    * Index into `vars` identifying the first derived variable produced by the expression
+* `DATA_IVECTOR(expr_ord_pre_sim)`
+    * Integer giving the order with which expressions are evaluated before the simulation loop begins
+    * A value of `1` indicates that the expression is evaluated first
+    * Values of `0` indicate that the expression is not evaluated before the simulation begins
+    * Values greater than `0` can only occur once
+* `DATA_IVECTOR(expr_ord_sim)`
+    * Integer giving the order with which expressions are evaluated throughout the simulation loop
+    * A value of `1` indicates that the expression is evaluated first
+    * Values of `0` indicate that the expression is not evaluated during the simulation loops
+    * Values greater than `0` can only occur once
+* `DATA_IVECTOR(expr_ord_post_sim)`
+    * Integer giving the order with which expressions are evaluated after the simulation loop ends
+    * A value of `1` indicates that the expression is evaluated first
+    * Values of `0` indicate that the expression is not evaluated after the simulation ends
+    * Values greater than `0` can only occur once
+* `DATA_IVECTOR(expr_sim_block)`
+    * Index associated with a particular simulation block
+    * Expressions in a simulation block must be adjacent with respect to `expr_ord_pre_sim`, `expr_ord_sim`, and `DATA_IVECTOR(expr_ord_post_sim)`
+    * A value of `-1` indicates that the expression is to be evaluated outside of a simulation block
+    * Note that if an expression is evaluated in simulation blocks and is returned to the user through `vars_return == 1`, then it must also be returned within a simulation block
+* `DATA_IVECTOR(expr_num_ptable_rows)`
+    * Number of rows associated with each expression in the parse table (see section on Parse Tables)
+
+## Parse Tables
 
 Each expression is parsed into a table of numbers that represents the expression and can be passed to C++. Each row in this table corresponds to a step in the process of evaluating the expression. These steps correspond to one of three types of things, identified by column `n`:
 
@@ -66,7 +118,7 @@ Each expression is parsed into a table of numbers that represents the expression
 
 If the row does correspond to a function, then column `n` gives the number of arguments in that function.
 
-The column, `x`, gives an index for looking up the specific instance of each of these three types of entities. For example, if `n == 0` then the `x` column gives the index into the `valid_vars` list for getting the appropriate variable. If `n == -1` then `x` gives an index into `valid_literals` and if `n > 0` `x` gives an index into `valid_funcs`. The `i` column is only relevant for functions, and indicates the row of the table representing the first argument to that function.
+The column, `x`, gives an index for looking up the specific instance of each of these three types of entities. For example, if `n == 0` then the `x` column gives the index into the `vars` list for getting the appropriate variable. If `n == -1` then `x` gives an index into `literals` and if `n > 0` `x` gives an index into a list of valid functions. The `i` column is only relevant for functions, and indicates the row of the table representing the first argument to that function.
 
 This table is processed on the C++ side with a recursive function that either:
 
@@ -76,25 +128,25 @@ This table is processed on the C++ side with a recursive function that either:
 
 The parse tables for all expressions are concatenated row-wise and passed to C++ as a set of three vectors of equal length.
 
-* `DATA_IVECTOR(parse_table_n)`
-* `DATA_IVECTOR(parse_table_x)`
-* `DATA_IVECTOR(parse_table_i)`
+* `DATA_IVECTOR(ptable_n)`
+* `DATA_IVECTOR(ptable_x)`
+* `DATA_IVECTOR(ptable_i)`
 
-The first three vectors correspond to `n`, `x`, and `i` as discussed in this section. The fourth vector corresponds to an integer vector identifying the index into `vars` within which the resulting derived variable should be placed.
+The first three vectors correspond to `n`, `x`, and `i` as discussed in this section.
 
-To relate each derived variable to a set of rows in this concatenated parse table, a fourth integer vector is passed with one element for each derived variable-expression pair, `DATA_IVECTOR(vars_to_exprs)`. The elements of this vector contain the number of parse table rows associated with each expression.  derived variable. The ordering of the elements is consistent with the ordering of the concatenation of the individual parse tables.
+The `expr_num_ptable_rows` vector is used to relate each expression to a set of rows in this concatenated parse table. The elements of this vector contain the number of parse table rows associated with each expression. The ordering of the elements is consistent with the ordering of the concatenation of the individual parse tables, and so row indices are not necessary.
 
-### Function Definitions (must-have)
+## Function Definitions
 
-### Valid Literals (must-have)
+## Valid Literals
 
-A global list of valid literals for all expressions is passed to C++ as a numeric vector, `DATA_VECTOR(valid_literals)`.
+A global list of valid literals for all expressions is passed to C++ as a numeric vector, `DATA_VECTOR(literals)`.
 
-### Lists of Matrices (should-have)
+## Lists of Matrices
 
 It is also possible to create several derived variables using the same expression. This is achieved by choosing an appropriate function at the root of the parse tree. Such a function is special in that it returns a list of matrices instead of a single matrix. An example might be a function to return both the dominant eigenvector and eigenvalue of an input matrix.
 
-In order to make lists of matrices a consistent concept, we need to introduce five additional special functions -- `list`, `map`, `reduce`, `select`, and `extract`.
+In order to make lists of matrices a consistent concept, we need to introduce five additional special functions: `list`, `map`, `reduce`, `select`, and `extract`.
 
 The `list` function takes an arbitrary number of matrices and returns a list of matrices. This list of matrices can be passed to the one of the following four functions.
 
@@ -132,23 +184,4 @@ An example of a reducing function is one that returns the first matrix in the in
 
 TODO: modify the parse table definitions to accommodate map-reduce-select functionality.
 
-### Phases of Evaluation and Saving Simulation History
-
-Each simulation is broken into three phases of evaluation, depending on whether the evaluation takes place (1) before, (2) during, or (3) after the simulation loop. Expressions evaluated during the simulation loop are evaluated at every iteration.
-
-The full simulation history of iterated expressions may optionally be saved. There are generally two reasons to save the simulation history.
-
-1. To return to the user through the `REPORT` and/or `SIMULATE` macros (see section below on Returning Information from C++ to R)
-2. For subsequent expressions that depend on past values
-
-## Returning Information from C++ to R
-
-### Objective Function Return Value
-
-### Derived and Modified Variables
-
-`REPORT` macro ...
-
-### Random Perturbations of Variables
-
-`SIMULATE` macro ...
+## Evaluating the Objective Function
