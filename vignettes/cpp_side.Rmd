@@ -22,11 +22,15 @@ knitr::opts_chunk$set(
 This document assumes a solid understanding of [template model builder](https://kaskr.github.io/adcomp/_book/Introduction.html).
 
 
-## Variables
+## Matrices
 
-A list of numerical scalars, vectors, and matrices are passed as input variables from R to C++. Scalars are passed as 1-by-1 matrices and vectors as n-by-1, so that all input variables are actually matrices. Missing values are not allowed in any variable. On the R side these variables are all associated with a unique name, and on the C++ side each of these names is associated with a 0-based index. All indices in this spec are 0-based.
+A list of numerical scalars, vectors, and matrices are passed as input variables from R to C++. Scalars are passed as 1-by-1 matrices and vectors as n-by-1, so that all of these numerical variables are actually matrices.
 
-The input variables are passed in using the `DATA_STRUCT(vars)` TMB macro, with an associated C++ `struct` for extracting the component matrices by index.
+Treating all numerical objects as matrices might seem strange, but it is similar to how R treats all numerical objects as vectors. In this way, R matrices are vectors with dimensions. We are just extending this logic and requiring that all vectors have dimensions. We are more restrictive than R however by not allowing multidimensional arrays.
+
+Missing values are not allowed in any matrix. On the R side these variables are all associated with a unique name, and on the C++ side each of these names is associated with a 0-based index. All indices in this spec are 0-based.
+
+These matrices are passed in using the `DATA_STRUCT(mats)` TMB macro, with an associated C++ `struct` for extracting the component matrices by index.
 
 
 ## Parameters
@@ -36,19 +40,19 @@ Two vectors of parameters are passed to C++.
 * `PARAMETER_VECTOR(params)` -- this vector becomes the argument of the objective function, and can therefore be optimized using a non-linear optimizer or simulated using MCMC
 * `PARAMETER_VECTOR(random)` -- this vector becomes the random effects that will be integrated out of the objective function using a Laplace approximation
 
-The values in these parameter vectors are used to update certain elements in the matrix-valued variables within `vars`. The elements to be updated are described on the R side by two data frames with one row for every variable element to be replaced. These data frame are constructed in R and passed to C++. The columns for the data frame associated with `params` are the following.
+The values in these parameter vectors are used to update certain elements in the matrix-valued variables within `mats`. The elements to be updated are described on the R side by two data frames with one row for every matrix element to be replaced. These data frame are constructed in R and passed to C++. The columns for the data frame associated with `params` are the following.
 
-* `DATA_IVECTOR(p_par_id)` -- indices into the `params` vector giving the parameter to use when updating each element in `vars` that is to be updated
-* `DATA_IVECTOR(p_var_id)` -- indices into `vars` giving the variables with elements to be replaced by parameters
-* `DATA_IVECTOR(p_row_id)` -- indices of the rows within each variable associated with an element to be replaced by parametes
-* `DATA_IVECTOR(p_col_id)` -- indices of the columns within each variable associated with an element to be replaced by parameters
+* `DATA_IVECTOR(p_par_id)` -- indices into the `params` vector giving the parameter to use when updating each element in `mats` that is to be updated
+* `DATA_IVECTOR(p_mat_id)` -- indices into `mats` giving the matrices with elements to be replaced by parameters
+* `DATA_IVECTOR(p_row_id)` -- indices of the rows within each matrix associated with an element to be replaced by parametes
+* `DATA_IVECTOR(p_col_id)` -- indices of the columns within each matrix associated with an element to be replaced by parameters
 
-After these vectors are read into C++, a loop is executed over the rows of this table that replaces the associated `vars` elements with `params` elements.
+After these vectors are read into C++, a loop is executed over the rows of this table that replaces the associated `mats` elements with `params` elements.
 
-The `random` vector is treated similarly to `params` in that it is associated with a data frame describing what elements in `vars` should be replaced. The names of the columns of this table are:
+The `random` vector is treated similarly to `params` in that it is associated with a data frame describing what elements in `mats` should be replaced. The names of the columns of this table are:
 
 * `DATA_IVECTOR(r_par_id)`
-* `DATA_IVECTOR(r_var_id)`
+* `DATA_IVECTOR(r_mat_id)`
 * `DATA_IVECTOR(r_row_id)`
 * `DATA_IVECTOR(r_col_id)`
 
@@ -57,34 +61,34 @@ Our implied convention is that `p` stands for 'fixed Parameters' and `r` for 'Ra
 
 ## Simulations
 
-After the input variables are updated using `params` and `random`, the variables in `vars` can be modified. We refer to this process of modification as simulation. There are three phases to the simulation process.
+After the input matrices in `mats` are updated using `params` and `random`, the these matrices can be modified. We refer to this process of modification as simulation. There are three phases to the simulation process.
 
 1. Before the simulation loop
 2. During the simulation loop
 3. After the simulation loop
 
-Simulation time is measured in dimensionless iterations in C++, and is indexed by an integer, `t`, such that `0 <= t <= T+1`, where `T` is the number of simulation iterations. The value of each variable at `t = 0` is the value of that variable just before the first iteration of the simulation loop begins. The value of each variable at `0 < t < T+1` is the value of the variable at the very end of the `t`th iteration of the simulation loop. The value of each variable at `t = T+1` is the value of the variable at the end of the simulation.
+Simulation time is measured in dimensionless iterations, and is indexed by an integer, `t`, such that `0 <= t <= T+1`, where `T` is the number of iterations of the loop. The value of each matrix at `t = 0` is the value of that matrix just before the first iteration of the simulation loop begins. The value of each matrix at `0 < t < T+1` is the value of the matrix at the very end of the `t`th iteration of the simulation loop. The value of each matrix at `t = T+1` is the value of the matrix at the end of the simulation.
 
 This time-indexing system is used for two purposes.
 
 1. To optionally return the simulation history to the user
-2. For variable modifications that depend on past values
+2. For matrix modifications that depend on past values
 
-The user can opt in and out of these uses on a per-variable basis, by specifying two vectors that have one element per variable.
+The user can opt in and out of these uses on a per-matrix basis, by specifying two vectors that have one element per matrix.
 
-* `DATA_IVECTOR(vars_save_hist)`
-    * Equals `0` if the variable is overwritten at each simulation iteration, `t`
-    * Equals `1` if all values of the variable are saved
-* `DATA_IVECTOR(vars_return)`
-    * Equals `0` if the variable is not returned to the R side at the end of the simulation
+* `DATA_IVECTOR(mats_save_hist)`
+    * Equals `0` if the matrix is overwritten at each simulation iteration, `t`
+    * Equals `1` if all computed values of the matrix are saved
+* `DATA_IVECTOR(mats_return)`
+    * Equals `0` if the matrix is not returned to the R side at the end of the simulation
     * Equals `1` otherwise
 
 
 ## Expressions
 
-The mathematical details of how variables are modified during the simulation process is controlled on the R side by supplying expressions. Each expression is the right-hand-side of an R formula involving the following three types of objects.
+The mathematical details of how matrices are modified during the simulation process is controlled on the R side by supplying expressions. Each expression is the right-hand-side of an R formula involving the following three types of objects.
 
-* Names of variables in `vars`
+* Names of matrices in `mats`
 * Names of functions that are currently allowed by the engine
 * Numeric literals (e.g. `3.14`)
 
@@ -92,11 +96,12 @@ A simulation is the sequential evaluation of these expressions in a user-specifi
 
 Each mathematical expression can be used by C++ in several ways. Information on how each expression should be used is passed to C++ using a set of vectors. Each of these vectors is the same length, with one element per expression.
 
-* `DATA_IVECTOR(expr_count_output_vars)`
-    * Number of derived variable matrices produced by the expression
+* `DATA_IVECTOR(expr_output_count)`
+    * Number of matrices modified by the expression
     * Typically this will be `1`, but multiple return values are possible (see section below on [Lists of Matrices])
-* `DATA_IVECTOR(expr_derived_var_id)`
-    * Index into `vars` identifying the first derived variable produced by the expression
+* `DATA_IVECTOR(expr_output_id)`
+    * Index into `mats` identifying the first matrix produced by the expression
+    * Matrices that are modified by the same function must be sequentially grouped together in `mats` (Implementation question: this is a genuine limitation and may be worth avoiding?)
 * `DATA_IVECTOR(expr_ord_pre_sim)`
     * Integer giving the order with which expressions are evaluated before the simulation loop begins
     * A value of `1` indicates that the expression is evaluated first
@@ -114,10 +119,11 @@ Each mathematical expression can be used by C++ in several ways. Information on 
     * Values greater than `0` can only occur once
 * `DATA_IVECTOR(expr_sim_block)`
     * Index associated with a particular simulation block
-    * Expressions in a simulation block must be adjacent with respect to `expr_ord_pre_sim`, `expr_ord_sim`, and `DATA_IVECTOR(expr_ord_post_sim)`
-    * A value of `-1` indicates that the expression is to be evaluated outside of a simulation block
+    * A simulation block is a set of expressions that are evaluated within a `SIMULATE` macro within TMB
+    * Expressions in a simulation block must be adjacent with respect to all relevant orderings (`expr_ord_pre_sim`, `expr_ord_sim`, and `expr_ord_post_sim`)
+    * A value of `-1` indicates that the expression is to be evaluated outside of a simulation block (we expect this to be the standard case)
     * Note that if an expression is evaluated in simulation blocks and is returned to the user through `vars_return == 1`, then it must also be returned within a simulation block
-* `DATA_IVECTOR(expr_num_ptable_rows)`
+* `DATA_IVECTOR(expr_num_p_table_rows)`
     * Number of rows associated with each expression in the parse table (see section on [Parse Tables])
 
 
@@ -126,31 +132,31 @@ Each mathematical expression can be used by C++ in several ways. Information on 
 Each expression is parsed into a table of numbers that represents the expression and can be passed to C++. Each row in this table corresponds to a step in the process of evaluating the expression. These steps correspond to one of three types of things, identified by column `n`:
 
 1. A function -- if `n > 0` -- see section on [Function Definitions]
-2. A variable -- if `n == 0` -- see section on [Variables]
+2. A matrix -- if `n == 0` -- see section on [Matrices]
 3. A literal -- if `n == -1` -- see section on [Literals]
 
 If the row does correspond to a function, then column `n` gives the number of arguments in that function.
 
-The column, `x`, gives an index for looking up the specific instance of each of these three types of entities. For example, if `n == 0` then the `x` column gives the index into the `vars` list for getting the appropriate variable. If `n == -1` then `x` gives an index into `literals` and if `n > 0` `x` gives an index into a list of valid functions. The `i` column is only relevant for functions, and indicates the row of the table representing the first argument to that function.
+The column, `x`, gives an index for looking up the specific instance of each of these three types of entities. For example, if `n == 0` then the `x` column gives the index into the `mats` list for getting the appropriate matrix If `n == -1` then `x` gives an index into `literals` and if `n > 0` `x` gives an index into a list of valid functions. The `i` column is only relevant for functions, and indicates the row of the table representing the first argument to that function.
 
 This table is processed on the C++ side with a recursive function that either:
 
-* for function rows: looks up a valid function from a list of function definitions, and recursively calls itself
-* for variable rows: looks up and returns a variable in the `vars` list
-* for literal rows: looks up and returns a literal from a list of valid literals
+* for rows associated with functions: looks up a valid function from a list of function definitions, and recursively calls itself
+* for rows associated with matrices: looks up and returns a matrix in the `mats` list
+* for rows associated with literals: looks up and returns a literal from a list of valid literals
 
 The parse tables for all expressions are concatenated row-wise and passed to C++ as a set of three vectors of equal length.
 
-* `DATA_IVECTOR(ptable_n)`
-* `DATA_IVECTOR(ptable_x)`
-* `DATA_IVECTOR(ptable_i)`
+* `DATA_IVECTOR(p_table_n)`
+* `DATA_IVECTOR(p_table_x)`
+* `DATA_IVECTOR(p_table_i)`
 
 The first three vectors correspond to `n`, `x`, and `i` as discussed in this section.
 
-The `expr_num_ptable_rows` vector (defined above in the section on [Expressions]) is used to relate each expression to a set of rows in this concatenated parse table. The elements of this vector contain the number of parse table rows associated with each expression. The ordering of the elements is consistent with the ordering of the concatenation of the individual parse tables, and so row indices are not necessary.
+The `expr_num_p_table_rows` vector (defined above in the section on [Expressions]) is used to relate each expression to a set of rows in this concatenated parse table. The elements of this vector contain the number of parse table rows associated with each expression. The ordering of the elements is consistent with the ordering of the concatenation of the individual parse tables, and so row indices are not necessary.
 
 
-## Valid Literals
+## Literals
 
 A global list of valid literals for all expressions is passed to C++ as a numeric vector, `DATA_VECTOR(literals)`.
 
@@ -166,48 +172,74 @@ Extending functionality of the engine will typically involve simply adding funct
 
 ## Lists of Matrices
 
-It is also possible to create several derived variables using the same expression. This is achieved by choosing an appropriate function at the root of the parse tree. Such a function is special in that it returns a list of matrices instead of a single matrix. An example might be a function to return both the dominant eigenvector and eigenvalue of an input matrix.
+It was briefly introduced in the section on [Expressions] that it is possible to modify several matrices using the same expression. This is achieved by choosing an appropriate function at the root of the parse tree. Such a function is special in that it would return a list of matrices instead of a single matrix. An example might be a function to return both the dominant eigenvector and eigenvalue of an input matrix.
 
-In order to make lists of matrices a consistent concept, we need to introduce five additional special functions: `list`, `map`, `reduce`, `select`, and `extract`.
+In order to make lists of matrices a consistent concept, we need to introduce five additional special functions: `list`, `extract`, `select`, `map`, and `reduce`.
 
 The `list` function takes an arbitrary number of matrices and returns a list of matrices. This list of matrices can be passed to the one of the following four functions.
 
 The `extract` function takes the following arguments.
 
-1. A list of matrices
-2. A one-by-one matrix with a single integer
+1. `l` -- A list of matrices
+2. `i` -- A one-by-one matrix with a single integer
 
-The return value of `extract` is the matrix associated with the element indexed by the second input argument.
+The return value of `extract` is the `i`th matrix in `l`.
 
 The `select` function takes the following arguments.
 
-1. A list of matrices
-2. A matrix of integers
+1. `l` -- A list of matrices
+2. `i` -- A matrix of integers
 
-The return value of `select` is another list of matrices with the elements of the input list that are indexed by the indices in the matrix of integers. The output list is sorted in the (row-major) order in which they appear in the input matrix of integers.
+The return value of `select` is another list of matrices with the elements of `l` that are indexed by the elements of `i`. The output list is sorted in the (row-major) order in which they appear in `i`.
 
 The `map` function takes the following arguments.
 
-1. A list of matrices
-2. A function that accepts one matrix and returns one matrix
+1. `l` -- A list of matrices
+2. `f` -- A function that accepts one matrix and returns one matrix
 
-The return value of `map` is another list with the results of applying the input function to each matrix in the input list.
+The return value of `map` is another list with the results of applying `f` to each matrix in `l`.
 
 An example of a mapping function is one that returns the row sums of a matrix. When such a function is passed to `map`, the `map` function would return a list of vectors each containing the row sums of the corresponding matrix in the input list.
 
 The `reduce` function takes the following arguments.
 
-1. A list of matrices
-2. A function that accepts several matrices and returns one matrix
+1. `l` -- A list of matrices
+2. `f` -- A function that accepts several matrices and returns one matrix
 
-The return value of `reduce` is the matrix returned by applying the input function to the input list.
+The return value of `reduce` is the matrix returned by passing all of the matrices in `l` to `f`
 
 An example of a reducing function is one that returns the first matrix in the input list. Another example is one that flattens all matrices in the list and concatenates them.
 
 TODO: modify the parse table definitions to accommodate lists of matrices.
 
+
 ## Time Lags
 
+To be able to refer to past times for matrices that have their simulation history saved, we have four more special functions: `extract_time`, `extract_lag`, `select_time`, and `select_lag`.
+
+The `extract_time` and `extract_lag` functions each take the following arguments.
+
+1. `m` -- A matrix in `mats`
+2. `i` -- A one-by-one matrix with a single integer
+
+The return value of `extract_time` is the value of `m` at iteration `i`. The return value of `extract_lag` is similar but returns the value of `m` at iteration `t-i`.
+
+The `select_time` and `select_lag` functions each take the following arguments.
+
+1. `m` -- A matrix in `mats`
+2. `i` -- A matrix of integers
+
+The return value of `select_time` is a list of the values of `m` at each iteration given by the elements of `i`. The return value of `select_lag` is similar but returns a list of values at iterations given by `t-i`.
+
+For all four of these functions, if `m` does not refer to a matrix that has a saved simulation history than an error is returned.
 
 
 ## Objective Function
+
+The return value of the objective function is an expression that could depend on the values of all the matrices at the end of the simulation and the entire saved simulation history. This expression is passed as a parse table.
+
+* `DATA_IVECTOR(o_table_n)`
+* `DATA_IVECTOR(o_table_x)`
+* `DATA_IVECTOR(o_table_i)`
+
+The implied convention here is that `o` is for 'Objective function parse table' and `p` is for 'matrix Parse table'.
