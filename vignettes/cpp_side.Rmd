@@ -16,17 +16,27 @@ knitr::opts_chunk$set(
 )
 ```
 
+
+## Prerequisites
+
+This document assumes a solid understanding of [template model builder](https://kaskr.github.io/adcomp/_book/Introduction.html).
+
+
 ## Variables
 
 A list of numerical scalars, vectors, and matrices are passed as input variables from R to C++. Scalars are passed as 1-by-1 matrices and vectors as n-by-1, so that all input variables are actually matrices. Missing values are not allowed in any variable. On the R side these variables are all associated with a unique name, and on the C++ side each of these names is associated with a 0-based index. All indices in this spec are 0-based.
 
 The input variables are passed in using the `DATA_STRUCT(vars)` TMB macro, with an associated C++ `struct` for extracting the component matrices by index.
 
+
 ## Parameters
 
-A vector of parameters is passed to C++ using the following TMB macro: `PARAMETER_VECTOR(params)`. This vector becomes the argument of the objective funtion, and can therefore be optimized using a non-linear optimizer or simulated using MCMC.
+Two vectors of parameters are passed to C++.
 
-The values in this parameter vector are used to update certain elements in the matrix-valued variables within `vars`. The elements to be updated are described on the R side by a data frame with one row for every variable element to be replaced. This data frame is constructed in R and passed to C++ -- it contains the following columns.
+* `PARAMETER_VECTOR(params)` -- this vector becomes the argument of the objective function, and can therefore be optimized using a non-linear optimizer or simulated using MCMC
+* `PARAMETER_VECTOR(random)` -- this vector becomes the random effects that will be integrated out of the objective function using a Laplace approximation
+
+The values in these parameter vectors are used to update certain elements in the matrix-valued variables within `vars`. The elements to be updated are described on the R side by two data frames with one row for every variable element to be replaced. These data frame are constructed in R and passed to C++. The columns for the data frame associated with `params` are the following.
 
 * `DATA_IVECTOR(p_par_id)` -- indices into the `params` vector giving the parameter to use when updating each element in `vars` that is to be updated
 * `DATA_IVECTOR(p_var_id)` -- indices into `vars` giving the variables with elements to be replaced by parameters
@@ -35,7 +45,7 @@ The values in this parameter vector are used to update certain elements in the m
 
 After these vectors are read into C++, a loop is executed over the rows of this table that replaces the associated `vars` elements with `params` elements.
 
-A vector of random effect parameters is also passed to TMB using the following TMB macro: `PARAMETER_VECTOR(random)`. This `random` vector becomes the random effects that will be integrated out using a Laplace approximation, and is treated similarly to `params` in that it is associated with a data frame describing what elements in `vars` should be replaced. The names of the columns of this table are:
+The `random` vector is treated similarly to `params` in that it is associated with a data frame describing what elements in `vars` should be replaced. The names of the columns of this table are:
 
 * `DATA_IVECTOR(r_par_id)`
 * `DATA_IVECTOR(r_var_id)`
@@ -43,6 +53,7 @@ A vector of random effect parameters is also passed to TMB using the following T
 * `DATA_IVECTOR(r_col_id)`
 
 Our implied convention is that `p` stands for 'fixed Parameters' and `r` for 'Random parameters'.
+
 
 ## Simulations
 
@@ -68,6 +79,7 @@ The user can opt in and out of these uses on a per-variable basis, by specifying
     * Equals `0` if the variable is not returned to the R side at the end of the simulation
     * Equals `1` otherwise
 
+
 ## Expressions
 
 The mathematical details of how variables are modified during the simulation process is controlled on the R side by supplying expressions. Each expression is the right-hand-side of an R formula involving the following three types of objects.
@@ -78,11 +90,11 @@ The mathematical details of how variables are modified during the simulation pro
 
 A simulation is the sequential evaluation of these expressions in a user-specified order. Each expression may be evaluated at any number of the three simulation phases -- before, during, and after the simulation loop. For example, some expressions may only be evaluated before the simulation begins whereas others may be evaluated before, after, and at every iteration.
 
-Each mathematical expression can be used by C++ in several ways depending on ...???  Information on how each expression should be used is passed to C++ using a set of vectors. Each of these vectors is the same length, with one element per expression.
+Each mathematical expression can be used by C++ in several ways. Information on how each expression should be used is passed to C++ using a set of vectors. Each of these vectors is the same length, with one element per expression.
 
 * `DATA_IVECTOR(expr_count_output_vars)`
     * Number of derived variable matrices produced by the expression
-    * Typically this will be `1`, but multiple return values are possible (see section below on Lists of Matrices)
+    * Typically this will be `1`, but multiple return values are possible (see section below on [Lists of Matrices])
 * `DATA_IVECTOR(expr_derived_var_id)`
     * Index into `vars` identifying the first derived variable produced by the expression
 * `DATA_IVECTOR(expr_ord_pre_sim)`
@@ -106,15 +118,16 @@ Each mathematical expression can be used by C++ in several ways depending on ...
     * A value of `-1` indicates that the expression is to be evaluated outside of a simulation block
     * Note that if an expression is evaluated in simulation blocks and is returned to the user through `vars_return == 1`, then it must also be returned within a simulation block
 * `DATA_IVECTOR(expr_num_ptable_rows)`
-    * Number of rows associated with each expression in the parse table (see section on Parse Tables)
+    * Number of rows associated with each expression in the parse table (see section on [Parse Tables])
+
 
 ## Parse Tables
 
 Each expression is parsed into a table of numbers that represents the expression and can be passed to C++. Each row in this table corresponds to a step in the process of evaluating the expression. These steps correspond to one of three types of things, identified by column `n`:
 
-1. A function -- if `n > 0`
-2. A variable -- if `n == 0`
-3. A literal -- if `n == -1`
+1. A function -- if `n > 0` -- see section on [Function Definitions]
+2. A variable -- if `n == 0` -- see section on [Variables]
+3. A literal -- if `n == -1` -- see section on [Literals]
 
 If the row does correspond to a function, then column `n` gives the number of arguments in that function.
 
@@ -134,13 +147,22 @@ The parse tables for all expressions are concatenated row-wise and passed to C++
 
 The first three vectors correspond to `n`, `x`, and `i` as discussed in this section.
 
-The `expr_num_ptable_rows` vector is used to relate each expression to a set of rows in this concatenated parse table. The elements of this vector contain the number of parse table rows associated with each expression. The ordering of the elements is consistent with the ordering of the concatenation of the individual parse tables, and so row indices are not necessary.
+The `expr_num_ptable_rows` vector (defined above in the section on [Expressions]) is used to relate each expression to a set of rows in this concatenated parse table. The elements of this vector contain the number of parse table rows associated with each expression. The ordering of the elements is consistent with the ordering of the concatenation of the individual parse tables, and so row indices are not necessary.
 
-## Function Definitions
 
 ## Valid Literals
 
 A global list of valid literals for all expressions is passed to C++ as a numeric vector, `DATA_VECTOR(literals)`.
+
+
+## Function Definitions
+
+The functions that are used in each [Expression] must be in a valid list of functions defined on the C++ side. Most of these functions will have analogues on the R side to make it as easy as possible for R users to reason about their expressions.
+
+Valid functions take one or more matrix-valued arguments and return a single matrix (although see the section on [Lists of Matrices] and [Time Lags] for exceptions). The number of arguments does not need to be known when the model is defined, but some functions may optionally require a predefined number of arguments.
+
+Extending functionality of the engine will typically involve simply adding function definitions to the list of valid functions.
+
 
 ## Lists of Matrices
 
@@ -182,6 +204,10 @@ The return value of `reduce` is the matrix returned by applying the input functi
 
 An example of a reducing function is one that returns the first matrix in the input list. Another example is one that flattens all matrices in the list and concatenates them.
 
-TODO: modify the parse table definitions to accommodate map-reduce-select functionality.
+TODO: modify the parse table definitions to accommodate lists of matrices.
 
-## Evaluating the Objective Function
+## Time Lags
+
+
+
+## Objective Function
