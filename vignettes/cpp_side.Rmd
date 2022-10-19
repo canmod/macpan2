@@ -83,6 +83,7 @@ The user can opt in and out of these uses on a per-matrix basis, by specifying t
     * Equals `0` if the matrix is not returned to the R side at the end of the simulation
     * Equals `1` otherwise
 
+The number of iterations, `T`, is passed to TMB as `DATA_INTEGER(time_steps)`.
 
 ## Expressions
 
@@ -92,7 +93,7 @@ The mathematical details of how matrices are modified during the simulation proc
 * Names of functions that are currently allowed by the engine
 * Numeric literals (e.g. `3.14`)
 
-A simulation is the sequential evaluation of these expressions in a user-specified order. Each expression may be evaluated at any number of the three simulation phases -- before, during, and after the simulation loop. For example, some expressions may only be evaluated before the simulation begins whereas others may be evaluated before, after, and at every iteration.
+A simulation is the sequential evaluation of these expressions in a user-specified order. Each expression may be evaluated during one of the three simulation phases -- before, during, and after the simulation loop. Expressions evaluated before and after the simulation loop are evaluated only once, whereas those evaluated during the loop are evaluated at every iteration. The phase of each expression is controlled by the `DATA_IVECTOR(eval_schedule)` vector described at the end of this section.
 
 Each mathematical expression can be used by C++ in several ways. Information on how each expression should be used is passed to C++ using a set of vectors. Each of these vectors is the same length, with one element per expression.
 
@@ -101,31 +102,19 @@ Each mathematical expression can be used by C++ in several ways. Information on 
     * Typically this will be `1`, but multiple return values are possible (see section below on [Lists of Matrices])
 * `DATA_IVECTOR(expr_output_id)`
     * Index into `mats` identifying the first matrix produced by the expression
-    * Matrices that are modified by the same function must be sequentially grouped together in `mats` (Implementation question: this is a genuine limitation and may be worth avoiding?)
-* `DATA_IVECTOR(expr_ord_pre_sim)`
-    * Integer giving the order with which expressions are evaluated before the simulation loop begins
-    * A value of `1` indicates that the expression is evaluated first
-    * Values of `0` indicate that the expression is not evaluated before the simulation begins
-    * Values greater than `0` can only occur once
-* `DATA_IVECTOR(expr_ord_sim)`
-    * Integer giving the order with which expressions are evaluated throughout the simulation loop
-    * A value of `1` indicates that the expression is evaluated first
-    * Values of `0` indicate that the expression is not evaluated during the simulation loops
-    * Values greater than `0` can only occur once
-* `DATA_IVECTOR(expr_ord_post_sim)`
-    * Integer giving the order with which expressions are evaluated after the simulation loop ends
-    * A value of `1` indicates that the expression is evaluated first
-    * Values of `0` indicate that the expression is not evaluated after the simulation ends
-    * Values greater than `0` can only occur once
+    * Matrices that are modified by the same function must be sequentially grouped together in `mats`
 * `DATA_IVECTOR(expr_sim_block)`
     * Index associated with a particular simulation block
     * A simulation block is a set of expressions that are evaluated within a `SIMULATE` macro within TMB
-    * Expressions in a simulation block must be adjacent with respect to all relevant orderings (`expr_ord_pre_sim`, `expr_ord_sim`, and `expr_ord_post_sim`)
+    * Expressions in a simulation block must be grouped together
     * A value of `-1` indicates that the expression is to be evaluated outside of a simulation block (we expect this to be the standard case)
-    * Note that if an expression is evaluated in simulation blocks and is returned to the user through `vars_return == 1`, then it must also be returned within a simulation block
+    * Note that if an expression is evaluated in simulation blocks and is returned to the user through `mats_return == 1`, then it must also be returned within a simulation block
 * `DATA_IVECTOR(expr_num_p_table_rows)`
     * Number of rows associated with each expression in the parse table (see section on [Parse Tables])
 
+Each expression is evaluated in the order in which it appears in this vectors.
+
+The `DATA_IVECTOR(eval_schedule)` vector gives the phase in which each of these expressions should be evaluated. This vector has three elements giving the number of expressions to evaluate before, during, and after the simulation loop. In particular the first `eval_schedule[0]` expressions are evaluated before the simulation loop, the next `eval_schedule[1]` expressions are evaluated at every iteration of the simulation loop, and the next `eval_schedule[2]` expressions are evaluated after the simulation loop.
 
 ## Parse Tables
 
@@ -259,8 +248,3 @@ The return value of the objective function is an expression that could depend on
 * `DATA_IVECTOR(o_table_i)`
 
 The implied convention here is that `o` is for 'Objective function parse table' and `p` is for 'matrix Parse table'.
-
-
-## R-Side Representation
-
-
