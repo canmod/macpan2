@@ -4,7 +4,7 @@ output:
   rmarkdown::html_vignette:
     toc: true
 vignette: >
-  %\VignetteIndexEntry{the_cpp_side_of_macpan}
+  %\VignetteIndexEntry{The C++ Side of McMasterPandemic}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -59,9 +59,9 @@ The `random` vector is treated similarly to `params` in that it is associated wi
 Our implied convention is that `p` stands for 'fixed Parameters' and `r` for 'Random parameters'.
 
 
-## Simulations
+## Trajectory Simulation
 
-After the input matrices in `mats` are updated using `params` and `random`, the these matrices can be modified. We refer to this process of modification as simulation. There are three phases to the simulation process.
+After the input matrices in `mats` are updated using `params` and `random`, the these matrices can be modified. We refer to this process of modification as trajectory simulation. There are three phases to the trajectory simulation process.
 
 1. Before the simulation loop
 2. During the simulation loop
@@ -169,6 +169,22 @@ Valid functions take one or more matrix-valued arguments and return a single mat
 
 Extending functionality of the engine will typically involve simply adding function definitions to the list of valid functions.
 
+Function definitions should be grouped into types if several functions require similar processing. The main example that we have is element-wise binary operators, including `+`, `*`, `-`, `/`, `^`. These functions all require the same pre-processing to make sure that the matrix dimensions of the two operands are compatible and that compatibility is conveniently defined for the user.
+
+We use the following definition of element-wise binary operators.
+
+* If both operands have the same shape, then do the element-wise operation
+* If one of the operands is a scalar, then do the operation of scalar vs
+  elements of the other operand
+* If one of the operands is a vector, then
+    * If the length of the vector is equal to the corresponding dimension of the
+      other operand, then do row- or column-wise element-vs-element operation.
+    * Otherwise return an error
+* Otherwise return an error
+
+
+TODO: Consider adding a special function for 'running a simulation loop' so that we can do things like put priors on R0. The idea with this use case is that R0 is computed be simulating a special cohort model to produce the kernel, the sum of which is R0. Perhaps what we should do is to allow the user to run `n` simulation loops? Or perhaps another way around this is to add objective functions for two different simulation models.
+
 
 ## Lists of Matrices
 
@@ -231,7 +247,7 @@ The `select_time` and `select_lag` functions each take the following arguments.
 
 The return value of `select_time` is a list of the values of `m` at each iteration given by the elements of `i`. The return value of `select_lag` is similar but returns a list of values at iterations given by `t-i`.
 
-For all four of these functions, if `m` does not refer to a matrix that has a saved simulation history than an error is returned.
+For all four of these functions, if `m` does not refer to a matrix that has a saved simulation history than an error is thrown. Similarly, an error is thrown if any index is out of bounds (i.e. greater than `T+1` or less than `0`.
 
 
 ## Objective Function
@@ -243,3 +259,8 @@ The return value of the objective function is an expression that could depend on
 * `DATA_IVECTOR(o_table_i)`
 
 The implied convention here is that `o` is for 'Objective function parse table' and `p` is for 'matrix Parse table'.
+
+
+## R-Side Representation
+
+
