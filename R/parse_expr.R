@@ -63,8 +63,8 @@ make_expr_parser = function(
     list(
       x = list(x), n = 0L, i = 0L,
       valid_funcs = valid$valid_funcs,
-      valid_vars = valid$valid_vars,
-      input_expr_as_string = as.character(x)[2L]
+      valid_vars = valid$valid_vars
+      #input_expr_as_string = as.character(x)[2L]
     )
   }
 
@@ -129,7 +129,8 @@ finalizer_char = function(x) {
 finalizer_index = function(x) {
   valid_funcs = x$valid_funcs
   valid_vars = x$valid_vars
-  x$valid_funcs = x$valid_vars = NULL
+  valid_literals = as.numeric(x$valid_literals)
+  x$valid_funcs = x$valid_vars = x$valid_literals = NULL
 
   # remove the tilde function, which is in the first position,
   # and adjust the indices in i accordingly
@@ -147,7 +148,7 @@ finalizer_index = function(x) {
   is_var = (!is_func) & (!is_literal)
 
   # identify literals with -1 in the 'number of arguments'
-  valid_literals = x$x[is_literal]
+  new_valid_literals = as.numeric(x$x[is_literal])
   x$n[is_literal] = -1L
 
   # convert character identifiers to integers
@@ -158,6 +159,7 @@ finalizer_index = function(x) {
       , vec = names(valid_funcs)
       , vec_type = "functions"
       , expr_as_string = x$input_expr_as_string
+      , zero_based = FALSE
     )
   }
   if (any(is_var)) {
@@ -165,10 +167,12 @@ finalizer_index = function(x) {
       , vec = names(valid_vars)
       , vec_type = "variables"
       , expr_as_string = x$input_expr_as_string
+      , zero_based = TRUE
     )
   }
   if (any(is_literal)) {
-    x_int[is_literal] = seq_along(valid_literals)
+    x_int[is_literal] = length(valid_literals) + seq_along(new_valid_literals) - 1L
+    valid_literals = c(valid_literals, new_valid_literals)
   }
   x$x = x_int
 
@@ -178,10 +182,10 @@ finalizer_index = function(x) {
   )
 }
 
-get_indices = function(x, vec, vec_type, expr_as_string) {
-  if(!is.character(vec)) vec = names(vec)
+get_indices = function(x, vec, vec_type, expr_as_string, zero_based = FALSE) {
+  if (!is.character(vec)) vec = names(vec)
   missing_items = x[!x %in% vec]
-  if(length(missing_items) > 0L) {
+  if (length(missing_items) > 0L) {
     stop(
       "\nthe expression given by:\n",
       expr_as_string, "\n\n",
@@ -191,7 +195,7 @@ get_indices = function(x, vec, vec_type, expr_as_string) {
       paste0(vec, collapse = " ") # TODO: smarter pasting when this list gets big
     )
   }
-  apply(
+  one_based = apply(
     outer(
       as.character(x),
       vec,
@@ -200,4 +204,6 @@ get_indices = function(x, vec, vec_type, expr_as_string) {
     1,
     which
   )
+  if (zero_based) return(one_based - 1L)
+  return(one_based)
 }

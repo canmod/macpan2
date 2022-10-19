@@ -25,6 +25,9 @@ setClass(
     if (length(object@time_varying) != 1L) {
       return("time_varying must be a single boolean value")
     }
+    if (!has_valid_names(object@var_list)) {
+      return("all variables in variable lists must be uniquely named")
+    }
     TRUE
   }
 )
@@ -99,10 +102,14 @@ setClass(
     if (!all(unlist(lapply(object@type_list, is, "var_type")))) {
       return("Type list must only contain type objects")
     }
-    nms = names(object@type_list)
+    nms = names(object)
+    var_nms = unlist(dimnames(object))
     if (is.null(nms)) return("types need names")
     if (any(duplicated(nms))) return("type names need to be unique")
     if (any(nchar(nms) == 0L)) return("blank type names are not allowed")
+    if (any(duplicated(var_nms))) {
+      return("variable names need to be unique across the entire model")
+    }
   }
 )
 
@@ -126,6 +133,15 @@ setMethod(
 )
 
 #' @export
+setMethod("names", c(x = "var_type"), function(x) {names(x@var_list)})
+
+#' @export
+setMethod("names", c(x = "model_vars"), function(x) {names(x@type_list)})
+
+#' @export
+setMethod("dimnames", c(x = "model_vars"), function(x) {lapply(x@type_list, names)})
+
+#' @export
 as.list.var_type = function(x, ...) {
   x@var_list
 }
@@ -133,6 +149,15 @@ as.list.var_type = function(x, ...) {
 #' @export
 as.list.model_vars = function(x, ...) {
   lapply(x@type_list, as.list)
+}
+
+#' @export
+matrix_list = function(x) {
+  sapply(
+    unclassify(x),
+    as.matrix,
+    simplify = FALSE
+  )
 }
 
 #' @export
@@ -155,9 +180,9 @@ eval_expr = function(x, valid_vars, valid_funcs) {
     # so that we fail if those objects are not present
     enclos = emptyenv()
   )
-  if (!is_scalar(y)) {
-    stop("only scalars are allowed")
-  }
+  # if (!is_scalar(y)) {
+  #   stop("only scalars are allowed")
+  # }
   y
 }
 

@@ -31,6 +31,11 @@ setClass('decomp_mat', contains = 'decomp')
 decomp = function(form_obj) {
   cls = sub('form', 'decomp', class(form_obj))
   parse_expr = make_expr_parser(finalizer = finalizer_index)
+
+  # the parse_expr recursive function needs itself in its own environment
+  env = environment(parse_expr)
+  assign('parse_expr', parse_expr, envir = env)
+
   l = lapply(form_obj@l, parse_expr)
   new(cls, l = l, d = form_obj@d)
 }

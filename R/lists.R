@@ -1,10 +1,10 @@
 #' Self Naming List
 #' @export
-nlist <- function(...) {
-    L <- list(...)
-    snm <- vapply(substitute(list(...)), deparse, character(1))[-1]
+nlist = function(...) {
+    L = list(...)
+    snm = vapply(substitute(list(...)), deparse, character(1))[-1]
     if (is.null(nm <- names(L))) {
-        nm <- snm
+        nm = snm
     }
     if (any(nonames <- nm == "")) {
         nm[nonames] <- snm[nonames]

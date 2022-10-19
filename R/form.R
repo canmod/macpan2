@@ -6,6 +6,9 @@ setClass('form', representation(l = "list", d = 'integer'),
     if (!all(unlist(lapply(object@l, is_one_sided_formula)))) {
       return('every element of l slot must be a one sided formula')
     }
+    if (!all(unlist(lapply(lapply(object@l, environment), is_form_env)))) {
+      return('invalid formula environment')
+    }
   }
 )
 
@@ -36,11 +39,10 @@ is_one_sided_formula = function(x) {
 }
 
 #' @export
-form = function(symb_obj, valid_vars, valid_funcs) {
-  e = list2env(list(valid_vars = valid_vars, valid_funcs = valid_funcs))
+form = function(symb_obj, env) {
   l = lapply(lapply(symb_obj@v, tildify), as.formula)
-  for(i in seq_along(l)) {
-    environment(l[[i]]) = e
+  for (i in seq_along(l)) {
+    environment(l[[i]]) = env
   }
   cls = sub('symb', 'form', class(symb_obj))
   new(cls, l = l, d = symb_obj@d)
