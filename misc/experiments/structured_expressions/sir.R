@@ -38,7 +38,6 @@ correct_answer = function() {
     nlist(state, N, foi)
   )
 }
-correct_answer()
 
 input_mats = list(
   state = c(1 - 1e-2, 1e-2, 0),
@@ -201,8 +200,11 @@ parameter_args = nlist(params, random)
 # # 9          0        -1        -1  ## 0
 # # 10         1        -1        -1  ## 1
 
-tmb_function = TMB::MakeADFun(
+
+tmb_function = try(TMB::MakeADFun(
   data_args, parameter_args,
   DLL = 'structured_expressions'
-)
-tmb_output = tmb_function$report()
+))
+
+correct_answer()  ## expected result
+tmb_output = try(tmb_function$report())  ## actual result
