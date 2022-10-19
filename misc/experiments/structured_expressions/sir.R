@@ -183,6 +183,12 @@ data_args = c(
 )
 parameter_args = nlist(params, random)
 
+print("data args ...")
+print(data_args)
+
+print("parameter args ...")
+print(parameter_args)
+
 # foi_expr
 # cc = c(0, cumsum(data_args$expr_num_p_table_rows))
 # j = 2L
@@ -206,5 +212,8 @@ tmb_function = try(TMB::MakeADFun(
   DLL = 'structured_expressions'
 ))
 
+print("correct answer ...")
 correct_answer()  ## expected result
+
+print("actual answer ...")
 tmb_output = try(tmb_function$report())  ## actual result
