@@ -90,7 +90,7 @@ valid_literals = c(valid_literals, flowmat$valid_literals)
 state_update_expr = ~ state - rowSums(flowmat) + colSums(flowmat)
 state_update = parse_expr(state_update_expr)
 
-mats = valid_vars
+mats = lapply(valid_vars, as.matrix)
 
 parse_tables = list(
   N = N$parse_table,
