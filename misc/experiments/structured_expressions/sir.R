@@ -1,6 +1,9 @@
 library(macpan2)
 library(TMB)
 
+compile('macpan2.cpp')
+dyn.load(dynlib("macpan2"))
+
 correct_answer = function() {
 
   ## matrices
@@ -209,7 +212,7 @@ print(parameter_args)
 
 tmb_function = try(TMB::MakeADFun(
   data_args, parameter_args,
-  DLL = 'structured_expressions'
+  DLL = 'macpan2'
 ))
 
 print("correct answer ...")
