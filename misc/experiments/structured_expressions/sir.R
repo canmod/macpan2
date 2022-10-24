@@ -154,8 +154,8 @@ mats_config = list(
   )
 )
 
-params = 0.3
-random = numeric(0L)
+params = c(0.3)
+random = c(0.0) # numeric(0L)
 
 params_index = list(
   p_par_id = 0,
@@ -165,13 +165,13 @@ params_index = list(
 )
 
 random_index = list(
-  r_par_id = integer(0L),
-  r_mat_id = integer(0L),
-  r_row_id = integer(0L),
-  r_col_id = integer(0L)
+  r_par_id = 0, #integer(0L),
+  r_mat_id = 0, #integer(0L),
+  r_row_id = 0, #integer(0L),
+  r_col_id = 0  #integer(0L)
 )
 
-time_steps = 2L
+time_steps = c(2) #2L
 
 data_args = c(
   list(mats = unname(mats)),
