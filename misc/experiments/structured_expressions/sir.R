@@ -112,7 +112,9 @@ parse_table$p_table_i = unlist(mapply(
   lapply(lapply(parse_tables, getElement, "i"), function(x) x - 1L),
   c(0, cumsum(lapply(parse_tables[-length(parse_tables)], nrow)))
 ), use.names = FALSE)
-parse_table$p_table_i
+## hack to switch p_table_x to zero-based indexing.
+## todo: fix properly in package r code
+parse_table$p_table_x[parse_table$p_table_n > 0L] = parse_table$p_table_x[parse_table$p_table_n > 0L] - 1L
 
 
 literals = valid_literals
