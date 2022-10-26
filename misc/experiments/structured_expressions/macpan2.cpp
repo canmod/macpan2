@@ -66,7 +66,8 @@ public:
         strcpy(error_message, "None");
     };
 
-    unsigned char GetError() { return error_code; };
+    unsigned char GetErrorCode() { return error_code; };
+    const char* GetErrorMessage() { return error_message; };
 
     void SetError(unsigned char code, const char* message)
     {
@@ -223,7 +224,6 @@ public:
 
                         m.resize(rows, cols);
 
-                        std::cout << "matrix func: row to p table = " <<  row << std::endl;
                         #ifdef MP_VERBOSE
                             std::cout << "matrix(" << r[0] << ") reshaped into [" << rows << ", " << cols << "] = " \
                                       << m << std::endl << std::endl;
@@ -261,15 +261,24 @@ public:
                     case 12: // rowSums
                         //m = matrix<Type>::Zero(r[0].rows(), 1);
                         m = r[0].rowwise().sum().matrix();
+                        #ifdef MP_VERBOSE
+                            std::cout << "rowSums(" << r[0] << ") = " << m << std::endl << std::endl;
+                        #endif
                         return m;
                     case 13: // colSums
                         m = r[0].colwise().sum().matrix();
+                        #ifdef MP_VERBOSE
+                            std::cout << "colSums(" << r[0] << ") = " << m << std::endl << std::endl;
+                        #endif
                         return m;
                     case 14: // [
                         m = matrix<Type>::Zero(1,1);
                         rowIndex = CppAD::Integer(r[1].coeff(0,0));
                         colIndex = CppAD::Integer(r[2].coeff(0,0));
                         m.coeffRef(0,0) = r[0].coeff(rowIndex, colIndex);
+                        return m;
+                    case 15: // t or transpose
+                        m = r[0].transpose(); 
                         return m;
                     default:
                         SetError(5, "invalid operator in arithmatic expression");
@@ -393,7 +402,7 @@ Type objective_function<Type>::operator() ()
             p_table_row
         );
 
-        if (exprEvaluator.GetError()) return 0.0;
+        if (exprEvaluator.GetErrorCode()) return 0.0;
 
         mats.m_matrices[expr_output_id[expr_index+i]] = result;
 
@@ -409,7 +418,7 @@ Type objective_function<Type>::operator() ()
         p_table_row2 = p_table_row;
         std::cout << "simulation step --- " << k << std::endl;
         for (int i=0; i<eval_schedule[1]; i++) {
-            std::cout << "during simulation --- " << i << std::endl;
+            std::cout << "Eval expression --- " << i << std::endl;
             matrix<Type> result = exprEvaluator.EvalExpr(
                 p_table_x,
                 p_table_n,
@@ -419,7 +428,7 @@ Type objective_function<Type>::operator() ()
                 p_table_row2
             );
 
-            if (exprEvaluator.GetError()) return 0.0;
+            if (exprEvaluator.GetErrorCode()) return 0.0;
             std::cout << "result = " << result << std::endl;
 
             mats.m_matrices[expr_output_id[expr_index+i]] = result;
