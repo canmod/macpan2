@@ -44,12 +44,12 @@
 template<class Type>
 struct ListOfMatrices {
     // below is a vector of matrices that passed from R
-    vector<matrix<Type>> m_matrices;
+    vector<matrix<Type> > m_matrices;
 
     ListOfMatrices(SEXP ii){ // Constructor
         // Get elements by their indices
         int n = length(ii);
-        vector<matrix<Type>> vs(n);
+        vector<matrix<Type> > vs(n);
         m_matrices = vs;
 
         for (int i = 0; i < n; i++) {
@@ -66,21 +66,19 @@ public:
         strcpy(error_message, "None");
     };
 
-    unsigned char GetErrorCode() { return error_code; };
+    unsigned char GetError() { return error_code; };
 
     void SetError(unsigned char code, const char* message)
     {
         error_code = code;
         strcpy(error_message, message);
-        std::cout << "MACPAN ERROR: " << message << std::endl;
+        std::cout << "MACPAN ERROR #" << (int) code << ": " << message << std::endl;
     };
 
     matrix<Type> EvalExpr(
         const vector<int>& table_x,
         const vector<int>& table_n,
         const vector<int>& table_i,
-        // const vector<int>& table_is_bin_op,
-        //const vector<Type>& valid_vars,
         const ListOfMatrices<Type>& valid_vars,
         const vector<Type>& valid_literals,
         int row = 0
@@ -89,6 +87,8 @@ public:
         matrix<Type> m;
         Type sum, s;
         int rows, cols, rowIndex, colIndex;
+
+        if (error_code) return m; // Check if error has already happened at some point of the recursive call.
 
         switch (table_n[row]) {
             case -1: // literals
@@ -104,8 +104,10 @@ public:
             default:
                 int n = table_n[row];
                 vector<matrix<Type> > r(n);
-                for (int i=0; i<n; i++)
+                for (int i=0; i<n; i++) {
                     r[i] = EvalExpr(table_x, table_n, table_i, valid_vars, valid_literals, table_i[row]+i);
+                    if (error_code) return m;
+                }
 
                 // Check dimensions compatibility. If needed, expand one operand to make its dimensions compatible with the other
                 if (table_x[row]+1<6) { // elementwise operations + - * / ^  maybe we want this? if(table_is_bin_op)
@@ -159,9 +161,12 @@ public:
                                 r[1] = r[0];
                                 r[1].setConstant(s);
                             }
-                            else
+                            else {
                                 SetError(3, "The two operands do not have the same number of columns or rows");
                                 //Rf_error("The dimensions of the two operands are not equal to each other");
+                                std::cout << r[0].rows() << " x " << r[0].cols() << std::endl;
+                                std::cout << r[1].rows() << " x " << r[1].cols() << std::endl;
+                            }
                         }
                     }
                 }
@@ -218,6 +223,7 @@ public:
 
                         m.resize(rows, cols);
 
+                        std::cout << "matrix func: row to p table = " <<  row << std::endl;
                         #ifdef MP_VERBOSE
                             std::cout << "matrix(" << r[0] << ") reshaped into [" << rows << ", " << cols << "] = " \
                                       << m << std::endl << std::endl;
@@ -361,19 +367,70 @@ Type objective_function<Type>::operator() ()
     // 2 Replace some of elements of some matrices with parameters
     n = p_par_id.size();
     for (int i=0; i<n; i++)
-        mats.m_matrices[p_mat_id[i]].coeffRef(p_row_id[i], p_col_id[i]) = p_par_id[i];
+        mats.m_matrices[p_mat_id[i]].coeffRef(p_row_id[i], p_col_id[i]) = params[p_par_id[i]];
 
     n = r_par_id.size();
     for (int i=0; i<n; i++)
-        mats.m_matrices[r_mat_id[i]].coeffRef(r_row_id[i], r_col_id[i]) = r_par_id[i];
+        mats.m_matrices[r_mat_id[i]].coeffRef(r_row_id[i], r_col_id[i]) = random[r_par_id[i]];
+
+    //////////////////////////////////
+    // Define an expression evaluator
+    ExprEvaluator<Type> exprEvaluator;
+    //////////////////////////////////
 
     // 3 Pre-simulation
+    int expr_index = 0;
+    int p_table_row = 0;
 
+    for (int i=0; i<eval_schedule[0]; i++) {
+       std::cout << "in pre-simulation --- " << i << std::endl;
+        matrix<Type> result = exprEvaluator.EvalExpr(
+            p_table_x,
+            p_table_n,
+            p_table_i,
+            mats,
+            literals,
+            p_table_row
+        );
+
+        if (exprEvaluator.GetError()) return 0.0;
+
+        mats.m_matrices[expr_output_id[expr_index+i]] = result;
+
+        p_table_row += expr_num_p_table_rows[i];
+    }
+        
 
     // 4 During simulation
+    expr_index += eval_schedule[0];
 
+    int p_table_row2;
+    for (int k=0; k<time_steps; k++) {
+        p_table_row2 = p_table_row;
+        std::cout << "simulation step --- " << k << std::endl;
+        for (int i=0; i<eval_schedule[1]; i++) {
+            std::cout << "during simulation --- " << i << std::endl;
+            matrix<Type> result = exprEvaluator.EvalExpr(
+                p_table_x,
+                p_table_n,
+                p_table_i,
+                mats,
+                literals,
+                p_table_row2
+            );
+
+            if (exprEvaluator.GetError()) return 0.0;
+            std::cout << "result = " << result << std::endl;
+
+            mats.m_matrices[expr_output_id[expr_index+i]] = result;
+
+            p_table_row2 += expr_num_p_table_rows[i];
+        }
+    }
+    p_table_row = p_table_row2;
 
     // 5 Post-simulation
+    expr_index += eval_schedule[1];
 
     // 6 Calc the return of the objective function
 
