@@ -54,22 +54,25 @@ valid_funcs = nlist(
   `c`, `matrix`,
   `%*%`, `sum`, `rep`,
   `rowSums`, `colSums`,
-  `[`
+  `[`, `t`
 )
 
 valid_vars = lapply(input_mats, as.matrix)
 valid_literals = numeric(0L)
+literals_list = list()
 parse_expr = make_expr_parser(finalizer = finalizer_index)
 
 N_expr = ~ sum(state)
 N = parse_expr(N_expr)
 valid_vars = c(valid_vars, list(N = 0))
-valid_literals = c(valid_literals, N$valid_literals)
+literals_list = c(literals_list, list(N$valid_literals))
+#valid_literals = c(valid_literals, N$valid_literals)
 
 foi_expr = ~ beta * state[1, 0] / N
 foi = parse_expr(foi_expr)  # zero-based indexing row 1, column 0
 valid_vars = c(valid_vars, list(foi = 0))
-valid_literals = c(valid_literals, foi$valid_literals)
+literals_list = c(literals_list, list(foi$valid_literals))
+#valid_literals = c(valid_literals, foi$valid_literals)
 
 ratemat_expr = ~ matrix(
   c(
@@ -80,15 +83,21 @@ ratemat_expr = ~ matrix(
 )
 ratemat = parse_expr(ratemat_expr)
 valid_vars = c(valid_vars, list(ratemat = matrix(0, 3, 3)))
-valid_literals = c(valid_literals, ratemat$valid_literals)
+literals_list = c(literals_list, list(ratemat$valid_literals))
+#valid_literals = c(valid_literals, ratemat$valid_literals)
 
 flowmat_expr = ~ ratemat * state ## col_multiply
 flowmat = parse_expr(flowmat_expr)
 valid_vars = c(valid_vars, list(flowmat = matrix(0, 3, 3)))
-valid_literals = c(valid_literals, flowmat$valid_literals)
+literals_list = c(literals_list, list(flowmat$valid_literals))
+#valid_literals = c(valid_literals, flowmat$valid_literals)
 
-state_update_expr = ~ state - rowSums(flowmat) + colSums(flowmat)
+state_update_expr = ~ state - rowSums(flowmat) + t(colSums(flowmat))
 state_update = parse_expr(state_update_expr)
+literals_list = c(literals_list, list(state_update$valid_literals))
+
+literal_offsets = c(0, cumsum(vapply(literals_list, length, integer(1L)))[-length(literals_list)])
+literals = unlist(literals_list)
 
 mats = lapply(valid_vars, as.matrix)
 
@@ -100,24 +109,35 @@ parse_tables = list(
   state = state_update$parse_table
 )
 
+parse_table_offsets = c(0, cumsum(lapply(parse_tables[-length(parse_tables)], nrow)))
+
 parse_table = setNames(
   as.list(do.call(rbind, parse_tables)),
   c("p_table_x", "p_table_n", "p_table_i")
 )
 parse_table$p_table_i = unlist(mapply(
-  function(x, y) {
-    x[x != -1L] = x[x != -1L] + y
-    x
+  function(ii, y) {
+    ii[ii != -1L] = ii[ii != -1L] + y
+    ii
   },
   lapply(lapply(parse_tables, getElement, "i"), function(x) x - 1L),
-  c(0, cumsum(lapply(parse_tables[-length(parse_tables)], nrow)))
+  parse_table_offsets
+), use.names = FALSE)
+parse_table$p_table_x = unlist(mapply(
+  function(xx, nn, y) {
+    xx[nn == -1L] = xx[nn == -1L] + y
+    xx[nn == 0L] = xx[nn == 0L]
+    xx[nn > 0L] = xx[nn > 0L] - 1L
+    xx
+  },
+  lapply(parse_tables, getElement, "x"),
+  lapply(parse_tables, getElement, "n"),
+  literal_offsets
 ), use.names = FALSE)
 ## hack to switch p_table_x to zero-based indexing.
 ## todo: fix properly in package r code
-parse_table$p_table_x[parse_table$p_table_n > 0L] = parse_table$p_table_x[parse_table$p_table_n > 0L] - 1L
+#parse_table$p_table_x[parse_table$p_table_n > 0L] = parse_table$p_table_x[parse_table$p_table_n > 0L] - 1L
 
-
-literals = valid_literals
 
 
 expr_index = list(
