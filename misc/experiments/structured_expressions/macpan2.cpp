@@ -10,6 +10,9 @@
 #include <cppad/local/cond_exp.hpp>
 
 ////////////////////////////////////////////////////////////////////////////////
+// Macpan2 is redesigned architecture. The spec is 
+// https://canmod.net/misc/cpp_side.html
+//
 // Operands in a math expression and its intermediate/final results are all
 // generalized as matrices, i.e.,
 //   scalar as 1x1 matrix
@@ -40,21 +43,19 @@
 
 template<class Type>
 struct ListOfMatrices {
-  // below is a vector of vectors that passed from R
-  vector<matrix<Type>> vectors;
+    // below is a vector of matrices that passed from R
+    vector<matrix<Type>> m_matrices;
 
-  ListOfMatrices(SEXP ii){ // Constructor
-    // Get elements by their indices
-    int n = length(ii);
-    vector<matrix<Type>> vs(n);
-    vectors = vs;
+    ListOfMatrices(SEXP ii){ // Constructor
+        // Get elements by their indices
+        int n = length(ii);
+        vector<matrix<Type>> vs(n);
+        m_matrices = vs;
 
-    for (int i = 0; i < n; i++) {
-      //std::cout << "i = " << i << std::endl;
-      //std::cout << "Mat = " << VECTOR_ELT(ii, i) << std::endl;
-      vectors[i] = asMatrix<Type>(VECTOR_ELT(ii, i));
+        for (int i = 0; i < n; i++) {
+            m_matrices[i] = asMatrix<Type>(VECTOR_ELT(ii, i));
+        }
     }
-  }
 };
 
 template<class Type>
@@ -87,27 +88,27 @@ public:
     {
         matrix<Type> m;
         Type sum, s;
-        int rows, cols;
+        int rows, cols, rowIndex, colIndex;
 
         switch (table_n[row]) {
             case -1: // literals
                 m = matrix<Type>::Zero(1,1);
-                m.coeffRef(0,0) = valid_literals[table_x[row]-1];
+                m.coeffRef(0,0) = valid_literals[table_x[row]];
                 return m;
             case 0: // In current version, there are only scalar variables.
                     // We will need to split the case into 3 cases when vector and matrix variables are introduced.
                 //m = matrix<Type>::Zero(1,1);
-                //m.coeffRef(0,0) = valid_vars[table_x[row]-1];
-                m = valid_vars.vectors[table_x[row]-1];
+                //m.coeffRef(0,0) = valid_vars[table_x[row]];
+                m = valid_vars.m_matrices[table_x[row]];
                 return m;
             default:
                 int n = table_n[row];
                 vector<matrix<Type> > r(n);
                 for (int i=0; i<n; i++)
-                    r[i] = EvalExpr(table_x, table_n, table_i, valid_vars, valid_literals, table_i[row]-1+i);
+                    r[i] = EvalExpr(table_x, table_n, table_i, valid_vars, valid_literals, table_i[row]+i);
 
                 // Check dimensions compatibility. If needed, expand one operand to make its dimensions compatible with the other
-                if (table_x[row]<6) { // elementwise operations + - * / ^  maybe we want this? if(table_is_bin_op)
+                if (table_x[row]+1<6) { // elementwise operations + - * / ^  maybe we want this? if(table_is_bin_op)
                     if (r[0].rows()==r[1].rows()) {
                         if (r[0].cols()!=r[1].cols()) {
                             if (r[0].cols()==1) { // vector vs matrix or scalar vs vector
@@ -164,7 +165,7 @@ public:
                         }
                     }
                 }
-                else if (table_x[row]==9) { // %*% matrix multiplication
+                else if (table_x[row]+1==9) { // %*% matrix multiplication
                     if (r[0].cols()!=r[1].rows())
                         SetError(4, "The two operands are not compatible to do matrix multiplication");
                         //Rf_error("The two operands are not compatible to do matrix multiplication");
@@ -172,7 +173,7 @@ public:
 
                 if (error_code) return m; // early return
 
-                switch(table_x[row]) {
+                switch(table_x[row]+1) {
                     case 1: // +
                         #ifdef MP_VERBOSE
                             std::cout << r[0] << " + " << r[1] << " = " << r[0]+r[1] << std::endl << std::endl;
@@ -251,6 +252,19 @@ public:
                             std::cout << "rep(" << r[0] << ", " << r[1] << ") = " << m << std::endl << std::endl;
                         #endif
                         return m;
+                    case 12: // rowSums
+                        //m = matrix<Type>::Zero(r[0].rows(), 1);
+                        m = r[0].rowwise().sum().matrix();
+                        return m;
+                    case 13: // colSums
+                        m = r[0].colwise().sum().matrix();
+                        return m;
+                    case 14: // [
+                        m = matrix<Type>::Zero(1,1);
+                        rowIndex = CppAD::Integer(r[1].coeff(0,0));
+                        colIndex = CppAD::Integer(r[2].coeff(0,0));
+                        m.coeffRef(0,0) = r[0].coeff(rowIndex, colIndex);
+                        return m;
                     default:
                         SetError(5, "invalid operator in arithmatic expression");
                         //Rf_error("invalid operator in arithmatic expression");
@@ -268,96 +282,102 @@ private:
 template<class Type>
 Type objective_function<Type>::operator() ()
 {
-  std::cout << "============== objective_function =============" << std::endl;
+    std::cout << "============== objective_function =============" << std::endl;
 
-  // 1 Get all data and parameters from the R side
-  // Parameters themselves
-  PARAMETER_VECTOR(params);
-  std::cout << "params = " << params << std::endl;
+    // 1 Get all data and parameters from the R side
+    // Parameters themselves
+    PARAMETER_VECTOR(params);
+    std::cout << "params = " << params << std::endl;
 
-  PARAMETER_VECTOR(random);
-  std::cout << "random = " << random << std::endl;
+    PARAMETER_VECTOR(random);
+    std::cout << "random = " << random << std::endl;
 
-  // Matrices
-  DATA_STRUCT(mats, ListOfMatrices);
-  int n = mats.vectors.size();
-  for (int i = 0; i < n; i++)
-    std::cout << "mats = " << mats.vectors[i] << std::endl;
+    // Matrices
+    DATA_STRUCT(mats, ListOfMatrices);
+    int n = mats.m_matrices.size();
+    for (int i = 0; i < n; i++)
+        std::cout << "mats = " << mats.m_matrices[i] << std::endl;
 
-  // Parameters replacements
-  DATA_IVECTOR(p_par_id);
-  DATA_IVECTOR(p_mat_id);
-  DATA_IVECTOR(p_row_id);
-  DATA_IVECTOR(p_col_id);
-  std::cout << "p_par_id = " << p_par_id << std::endl;
-  std::cout << "p_mat_id = " << p_mat_id << std::endl;
-  std::cout << "p_row_id = " << p_row_id << std::endl;
-  std::cout << "p_col_id = " << p_col_id << std::endl;
+    // Parameters replacements
+    DATA_IVECTOR(p_par_id);
+    DATA_IVECTOR(p_mat_id);
+    DATA_IVECTOR(p_row_id);
+    DATA_IVECTOR(p_col_id);
+    std::cout << "p_par_id = " << p_par_id << std::endl;
+    std::cout << "p_mat_id = " << p_mat_id << std::endl;
+    std::cout << "p_row_id = " << p_row_id << std::endl;
+    std::cout << "p_col_id = " << p_col_id << std::endl;
 
-  DATA_IVECTOR(r_par_id);
-  DATA_IVECTOR(r_mat_id);
-  DATA_IVECTOR(r_row_id);
-  DATA_IVECTOR(r_col_id);
-  std::cout << "r_par_id = " << r_par_id << std::endl;
-  std::cout << "r_mat_id = " << r_mat_id << std::endl;
-  std::cout << "r_row_id = " << r_row_id << std::endl;
-  std::cout << "r_col_id = " << r_col_id << std::endl;
+    DATA_IVECTOR(r_par_id);
+    DATA_IVECTOR(r_mat_id);
+    DATA_IVECTOR(r_row_id);
+    DATA_IVECTOR(r_col_id);
+    std::cout << "r_par_id = " << r_par_id << std::endl;
+    std::cout << "r_mat_id = " << r_mat_id << std::endl;
+    std::cout << "r_row_id = " << r_row_id << std::endl;
+    std::cout << "r_col_id = " << r_col_id << std::endl;
 
-  // Trajectory simulation
-  DATA_INTEGER(time_steps)
-  std::cout << "time_steps = " << time_steps << std::endl;
+    // Trajectory simulation
+    DATA_INTEGER(time_steps)
+    std::cout << "time_steps = " << time_steps << std::endl;
 
-  DATA_IVECTOR(mats_save_hist);
-  DATA_IVECTOR(mats_return);
-  std::cout << "mats_save_hist = " << mats_save_hist << std::endl;
-  std::cout << "mats_return = " << mats_return << std::endl;
+    DATA_IVECTOR(mats_save_hist);
+    DATA_IVECTOR(mats_return);
+    std::cout << "mats_save_hist = " << mats_save_hist << std::endl;
+    std::cout << "mats_return = " << mats_return << std::endl;
 
-  // Expressions
-  DATA_IVECTOR(eval_schedule)
-  std::cout << "eval_schedule = " << eval_schedule << std::endl;
+    // Expressions
+    DATA_IVECTOR(eval_schedule)
+    std::cout << "eval_schedule = " << eval_schedule << std::endl;
 
-  DATA_IVECTOR(expr_output_count);
-  DATA_IVECTOR(expr_output_id);
-  DATA_IVECTOR(expr_sim_block);
-  DATA_IVECTOR(expr_num_p_table_rows);
+    DATA_IVECTOR(expr_output_count);
+    DATA_IVECTOR(expr_output_id);
+    DATA_IVECTOR(expr_sim_block);
+    DATA_IVECTOR(expr_num_p_table_rows);
 
-  std::cout << "expr_output_count = " << expr_output_count << std::endl;
-  std::cout << "expr_output_id = " << expr_output_id << std::endl;
-  std::cout << "expr_sim_block = " << expr_sim_block << std::endl;
-  std::cout << "expr_num_p_table_rows = " << expr_num_p_table_rows << std::endl;
+    std::cout << "expr_output_count = " << expr_output_count << std::endl;
+    std::cout << "expr_output_id = " << expr_output_id << std::endl;
+    std::cout << "expr_sim_block = " << expr_sim_block << std::endl;
+    std::cout << "expr_num_p_table_rows = " << expr_num_p_table_rows << std::endl;
 
-  // Parse Tables
-  DATA_IVECTOR(p_table_x);
-  DATA_IVECTOR(p_table_n);
-  DATA_IVECTOR(p_table_i);
+    // Parse Tables
+    DATA_IVECTOR(p_table_x);
+    DATA_IVECTOR(p_table_n);
+    DATA_IVECTOR(p_table_i);
 
-  std::cout << "p_table_x = " << p_table_x << std::endl;
-  std::cout << "p_table_n = " << p_table_n << std::endl;
-  std::cout << "p_table_i = " << p_table_i << std::endl;
+    std::cout << "p_table_x = " << p_table_x << std::endl;
+    std::cout << "p_table_n = " << p_table_n << std::endl;
+    std::cout << "p_table_i = " << p_table_i << std::endl;
 
-  // Literals
-  DATA_VECTOR(literals);
-  std::cout << "literals = " << literals << std::endl;
+    // Literals
+    DATA_VECTOR(literals);
+    std::cout << "literals = " << literals << std::endl;
 
-  // Objective function return
-  //DATA_IVECTOR(o_table_n)
-  //DATA_IVECTOR(o_table_x)
-  //DATA_IVECTOR(o_table_i)
+    // Objective function return
+    //DATA_IVECTOR(o_table_n)
+    //DATA_IVECTOR(o_table_x)
+    //DATA_IVECTOR(o_table_i)
 
-  // 2 Replace some of elements of some matrices with parameters
-  
+    // 2 Replace some of elements of some matrices with parameters
+    n = p_par_id.size();
+    for (int i=0; i<n; i++)
+        mats.m_matrices[p_mat_id[i]].coeffRef(p_row_id[i], p_col_id[i]) = p_par_id[i];
 
-  // 3 Pre-simulation
+    n = r_par_id.size();
+    for (int i=0; i<n; i++)
+        mats.m_matrices[r_mat_id[i]].coeffRef(r_row_id[i], r_col_id[i]) = r_par_id[i];
+
+    // 3 Pre-simulation
 
 
-  // 4 During simulation
+    // 4 During simulation
 
 
-  // 5 Post-simulation
+    // 5 Post-simulation
 
-  // 6 Calc the return of the objective function
+    // 6 Calc the return of the objective function
 
-  return 0.0;
+    return 0.0;
 
   /*
   DATA_IVECTOR(parse_table_x);
