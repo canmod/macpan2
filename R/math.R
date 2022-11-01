@@ -11,26 +11,28 @@ SymbolicMath = function() {
   `{` = `{`
   `=` = `=`
   `$` = `$`
-  wrap = function(x) paste("(", x, ")", sep = "")
+  wrap = function(x) paste("(", force(x), ")", sep = "")
   csv = function(...) {
     wrap(paste0(as.character(list(...)), collapse = ", "))
   }
   is_wrapped = function(x) {
-    #print(x)
+    x = force(x)
     x = str2lang(x)
-    #print(x)
     if (!is.symbol(x)) x = x[[1L]]
-    #print(x)
     x = as.character(x)
-    #print(x)
     x == "("
   }
   fwrap = function(f, x) {
-
+    f = force(f)
+    x = force(x)
     if (is_wrapped(x)) return(paste(f, x, sep = ""))
     paste(f, "(", x, ")", sep = "")
   }
-  bwrap = function(x, i) paste(x, "[", i, "]", sep = "")
+  bwrap = function(x, i) {
+    x = force(x)
+    i = force(i)
+    paste(x, "[", i, "]", sep = "")
+  }
   binop = function(op, x, y) wrap(paste(x, y, sep = op))
 
   ## 1. all functions in self take string (i.e. length-1 character vector)

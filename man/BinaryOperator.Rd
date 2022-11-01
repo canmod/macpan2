@@ -16,8 +16,9 @@ They do not have any ... arguments}
 A binary operator consistent with the \code{C++} engine.
 }
 \description{
-Convert a function that represents a binary operator
-into one that is consistent with the \code{C++} engine.
+Convert a function that represents an elementwise binary
+operator into one that is consistent with the \code{C++}
+engine.
 }
 \examples{
 set.seed(1L)
