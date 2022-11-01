@@ -6,17 +6,26 @@
 # csv(letters)
 # as.character(unlist(list(c("a", "b"), "c")))
 
+Math = function() {
+  self = Unclean()
+  self$`{` = get("{", envir = baseenv())
+  self$force = get("force", envir = baseenv())
+  self$`$` = get("$", envir = baseenv())
+  self$`=` = get("=", envir = baseenv())
+  return_object(self, "Math")
+}
+
 SymbolicMath = function() {
   self = Unclean()
-  `{` = `{`
-  `=` = `=`
-  `$` = `$`
-  wrap = function(x) paste("(", force(x), ")", sep = "")
+  wrap = function(x) {
+    force(x)
+    paste("(", x, ")", sep = "")
+  }
   csv = function(...) {
     wrap(paste0(as.character(list(...)), collapse = ", "))
   }
   is_wrapped = function(x) {
-    x = force(x)
+    force(x)
     x = str2lang(x)
     if (!is.symbol(x)) x = x[[1L]]
     x = as.character(x)
@@ -65,23 +74,7 @@ SymbolicMath = function() {
 
 NumericMath = function() {
   self = Unclean()
-  `{` = `{`
-  `=` = `=`
-  `$` = `$`
-  self$`+` = `+`
-  self$`-` = `-`
-  self$`*` = `*`  ## TODO: define this so that it works like the C++ side
-  self$`/` = `/`
-  self$`^` = `^`
-  self$`(` = `(`
-  self$`c` = `c`
-  self$`matrix` = `matrix`
-  self$`%*%` = `%*%`
-  self$`sum` = `sum`
-  self$`rep` = `rep`
-  self$`rowSums` = `rowSums`
-  self$`colSums` = `colSums`
-  self$`[` = `[`
+  #self$`*` = BinaryOperator(`*`)
   return_object(self, "NumericMath")
 }
 
