@@ -7,10 +7,7 @@
 BinaryOperator(operator)
 }
 \arguments{
-\item{operator}{A binary operator. Valid binary operations have the following characteristics.
-They are functions.
-They have exactly two arguments.
-They do not have any ... arguments}
+\item{operator}{A binary operator. r binop_validity_message}
 }
 \value{
 A binary operator consistent with the \code{C++} engine.

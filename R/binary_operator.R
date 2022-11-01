@@ -27,7 +27,7 @@ valid_binop = ValidityMessager(
 #' operator into one that is consistent with the \code{C++}
 #' engine.
 #'
-#' @param operator A binary operator. `r binop_validity_message`
+#' @param operator A binary operator. r binop_validity_message
 #' @return A binary operator consistent with the \code{C++} engine.
 #' @examples
 #' set.seed(1L)

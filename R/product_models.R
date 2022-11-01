@@ -70,7 +70,7 @@ LabelledPartitions = function(...) {
 #'
 #' @param ... Vectors giving partitions that describe a set of model
 #' variables. The elements of each vector provides a label for
-#' each variable. `r labelled_partitions_validity_message`.
+#' each variable. r labelled_partitions_validity_message.
 #'
 #' @return Object of class \code{ModelVars}.
 #'

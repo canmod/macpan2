@@ -91,7 +91,7 @@ allowed_math_functions = paste0(
 #' These objects allow for both numeric and symbolic
 #' evaluations of the expressions. Only the following functions
 #' can be used to construct mathematical expressions:
-#' `r allowed_math_functions`. There are two alternative
+#' r allowed_math_functions. There are two alternative
 #' constructors. \code{MathExpressionFromFunc} takes a numerical
 #' function and returns a \code{MathExpression} object.
 #' \code{MathExpressionFromString} takes a character vector giving
@@ -101,12 +101,12 @@ allowed_math_functions = paste0(
 #' @param math_function Function that takes any number of named
 #' \code{\link{numeric}} arguments and returns a \code{\link{numeric}}
 #' object. The only functions that can be used in this function include
-#' `r allowed_math_functions`.
+#' r allowed_math_functions.
 #' @param arguments Character vector of the names of the arguments of
 #' the mathematical expression.
 #' @param string String representing the expression, referring only to
 #' the names of the arguments and the names of the following functions:
-#' `r allowed_math_functions`.
+#' r allowed_math_functions.
 #'
 #' @field string String representing the mathematical expression.
 #' @field arguments Character vector of the names of the arguments of

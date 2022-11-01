@@ -14,21 +14,21 @@ MathExpressionFromStrings(arguments, string)
 \item{math_function}{Function that takes any number of named
 \code{\link{numeric}} arguments and returns a \code{\link{numeric}}
 object. The only functions that can be used in this function include
-\code{\link{}}.}
+r allowed_math_functions.}
 
 \item{arguments}{Character vector of the names of the arguments of
 the mathematical expression.}
 
 \item{string}{String representing the expression, referring only to
 the names of the arguments and the names of the following functions:
-\code{\link{}}.}
+r allowed_math_functions.}
 }
 \description{
 Construct objects for representing mathematical expressions.
 These objects allow for both numeric and symbolic
 evaluations of the expressions. Only the following functions
 can be used to construct mathematical expressions:
-\code{\link{}}. There are two alternative
+r allowed_math_functions. There are two alternative
 constructors. \code{MathExpressionFromFunc} takes a numerical
 function and returns a \code{MathExpression} object.
 \code{MathExpressionFromString} takes a character vector giving

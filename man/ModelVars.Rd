@@ -9,13 +9,7 @@ ModelVars(...)
 \arguments{
 \item{...}{Vectors giving partitions that describe a set of model
 variables. The elements of each vector provides a label for
-each variable. Valid partitions have the following characteristics.
-All partition vectors are character vectors.
-All partition vectors have the same positive length.
-All partition vectors have a unique name.
-But no partition vectors have names for their elements.
-No elements in partition vectors can be blank strings.
-But they can be missing with NA..}
+each variable. r labelled_partitions_validity_message.}
 }
 \value{
 Object of class \code{ModelVars}.
@@ -72,7 +66,7 @@ like this is easier with the \code{\link{VarsProduct}} function.
   ModelVars(vax = c("n", "y"))
 )$data_frame
 #> function() as.data.frame(self$partitions)
-#> <bytecode: 0x7f909de87fd8>
-#> <environment: 0x7f906e65b5a0>
+#> <bytecode: 0x7fd0c087d8b0>
+#> <environment: 0x7fd0b0b654b0>
 }\if{html}{\out{</div>}}
 }
