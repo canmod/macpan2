@@ -15,6 +15,10 @@ valid <- list(
     ),
     "missing stuff"
   ),
+  num_mat = ValidityMessager(
+    All(is.numeric, is.matrix),
+    "not a numeric matrix"
+  ),
   list_char_eq_len = ValidityMessager(
     All(
       is.list,

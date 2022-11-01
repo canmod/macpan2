@@ -1,3 +1,36 @@
+# is_matrix_like = oor::ValidityMessager(
+#   test_function = oor::Any(
+#     oor::TestPipeline(
+#       oor::Summarizer(class),
+#       oor::Is("Mat")
+#     ),
+#     oor::All(
+#       is.numeric,
+#       oor::TestPipeline(
+#         oor::Summarizer(dim, length),
+#         oor::TestRange(0L, 2L)
+#       )
+#     )
+#   ),
+#   "Not a matrix-like object.",
+#   "Matrix-like objects need to ...",
+#   "  - be numeric vectors",
+#   "  - have no dim attribute or a dim attribute with two or fewer dimensions"
+# )
+
+# is_matrix_like$assert("a")
+#
+# Mat = function(matrix_like) {
+#   self = Base()
+#   self$.matrix_like = is_matrix_like$assert(matrix_like)
+#   return_object(self, "Mat")
+# }
+#
+# Mats = function(...) {
+#   self = Base()
+#   self$
+# }
+
 #
 #
 #

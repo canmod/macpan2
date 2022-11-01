@@ -1,8 +1,16 @@
+labelled_partitions_validity_message = paste(
+  "Valid partitions have the following characteristics.",
+  "   All partition vectors are character vectors.",
+  "   All partition vectors have the same positive length.",
+  "   All partition vectors have a unique name.",
+  "   But no partition vectors have names for their elements.",
+  "   No elements in partition vectors can be blank strings.",
+  "   But they can be missing with NA.",
+  sep = "\n"
+)
 
-#' @export
-ModelVars = function(...) {
-  self = Base()
-  valid_model_labels = ValidityMessager(
+LabelledPartitions = function(...) {
+  valid_labelled_partitions = ValidityMessager(
     All(
       MappedAllTest(is.character),
 
@@ -13,80 +21,141 @@ ModelVars = function(...) {
       ## (question: should we allow one variable or not?)
       TestPipeline(MappedSummarizer(length), MappedAllTest(Not(TestRange(0L, 0L)))),
 
-      ## bound the number of characters that is allowed in labels
+      ## bound the number of characters that is allowed in partitions
       TestPipeline(MappedSummarizer(nchar), MappedAllTest(Not(TestRange(0L, 0L)))),
 
       TestPipeline(MappedSummarizer(length), TestHomo()),
       TestPipeline(Summarizer(names, is.null), TestFalse()),
       TestPipeline(Summarizer(names, duplicated, any), TestFalse())
     ),
-    "\nInvalid model labels passed to ModelVars.",
-    "Valid labels have the following characteristics:",
-    "  - all label vectors are character vectors",
-    "  - all label vectors have the same positive length",
-    "  - all label vectors have a unique name",
-    "  - but no label vectors have names for their elements",
-    "  - no elements in label vectors can be blank strings",
-    "  - but they can be missing with NA"
+    "\nInvalid labelled partitions passed to ModelVars.",
+    labelled_partitions_validity_message
   )
-  valid_variable_names = ValidityMessager(
-    TestPipeline(Summarizer(duplicated, any), TestFalse()),
-    "\nInvalid variable names.",
-    "Please supply labels that uniquely identify each variable."
-  )
-  self$labels = valid_model_labels$assert(list(...))
-  self$n_variables = function() length(self$labels[[1L]])
-  self$n_labels = function() length(self$labels)
+  self = Base()
+  self$partitions = valid_labelled_partitions$assert(list(...))
+  return_object(self, "LabelledPartitions")
+}
+
+#' Model Variables
+#'
+#' Construct an object for containing and operating on lists
+#' of model variables. These lists are represented by a set
+#' of `n` character vectors that are all the same length. The `i`th
+#' element of the `j`th character vector provides one of `n` partitions
+#' for identifying the `i`th variable.
+#'
+#' Often the character vectors relate to a specific sub-model (or
+#' factor model in the terminology of product models). For example,
+#' the following set of model variables is a product of two factor
+#' models, `si` and `vax`:
+#'
+#' ```{r}
+#' ModelVars(
+#'   si = c("S", "I", "S", "I"),
+#'   vax = c("n", "n", "y", "y")
+#' )$data_frame()
+#' ```
+#'
+#' The first two states are the `S` and `I` compartments for
+#' unvaccinated individuals and the last two are for those who
+#' are vaccinated. Constructing variable lists for product models
+#' like this is easier with the \code{\link{VarsProduct}} function.
+#'
+#' ```{r}
+#' VarsProduct(
+#'   ModelVars(si = c("S", "I")),
+#'   ModelVars(vax = c("n", "y"))
+#' )$data_frame
+#' ```
+#'
+#' @param ... Vectors giving partitions that describe a set of model
+#' variables. The elements of each vector provides a label for
+#' each variable. `r model_vars_validity_message`.
+#'
+#' @return Object of class \code{ModelVars}.
+#'
+#' ## Methods
+#'
+#' * `$data_frame()`: Return a data frame representation of the model
+#' variable partitions with one row for each variable and one column for
+#' each label.
+#' * `$filter(...)`: Return a new `ModelVars` object containing the
+#' subset of variables expressed by the filter in `...` (note: the
+#' format of the filtering arguments are not finalized)
+#' * `$factor_to_product_map(factor_label, filter_partitions, vertex)`:
+#' Return a named list of strings with names giving the partitions
+#' for variables associated with the factor_label ...
+#'
+#' ## Method Arguments
+#'
+#' TODO maybe
+#'
+#' @export
+ModelVars = function(...) {
+  self = LabelledPartitions(...)
+  self$n_variables = function() length(self$partitions[[1L]])
+  self$n_partitions = function() length(self$partitions)
   self$filter = function(...) {
     l = list(...)
-    filter_condition_matrix = vapply(names(l), function(label_nm) {
-        self$labels[[label_nm]] %in% l[[label_nm]]
+    filter_condition_matrix = vapply(names(l), function(partition_nm) {
+        self$partitions[[partition_nm]] %in% l[[partition_nm]]
       }, logical(self$n_variables()))
     keepers = apply(filter_condition_matrix, 1L, all)
-    filtered_variables = sapply(self$labels, `[`, keepers, simplify = FALSE)
+    filtered_variables = sapply(self$partitions, `[`, keepers, simplify = FALSE)
     do.call(ModelVars, filtered_variables)
   }
-  self$filter_as_product = function(edge_factor, vertex_factor, vertex) {
-    product_model_subset = self$split(vertex_factor)[[vertex]]
+  self$factor_to_product_map = function(factor_partition, ...) {
+    filter_partitions = names(list(...))
+    filter_var_name = valid$char1$assert(ModelVars(...)$var_names())
+
+    ## seems wasteful but self$split is memoised, so subsequent calls
+    ## just look in the cache of memos.
+    product_model_subset = self$split(filter_partitions)[[filter_var_name]]
+
     setNames(
       as.list(product_model_subset$var_names()),
-      product_model_subset$labels[[edge_factor]]
+      product_model_subset$partitions[[factor_partition]]
     )
   }
-  self$data_frame = function() as.data.frame(self$labels)
-  self$var_names = function() Reduce(LabelMultiply()$direct, self$labels)
-  self$subset_var_names = function(label_names) {
-    Reduce(LabelMultiply()$direct, self$labels[label_names])
+  self$data_frame = function() as.data.frame(self$partitions)
+  self$var_names = function() Reduce(LabelMultiply()$direct, self$partitions)
+  self$subset_var_names = function(partition_names) {
+    Reduce(LabelMultiply()$direct, self$partitions[partition_names])
   }
-  self$split = memoise::memoise(function(labels_to_split_on) {
+  self$split = memoise::memoise(function(partitions_to_split_on) {
     lapply(
       split(
         self$data_frame(),
-        self$subset_var_names(labels_to_split_on)
+        self$subset_var_names(partitions_to_split_on)
       ),
       do.call,
       what = ModelVars
     )
   })
+  valid_variable_names = ValidityMessager(
+    TestPipeline(Summarizer(duplicated, any), TestFalse()),
+    "\nInvalid variable names.",
+    "Please supply partitions that uniquely identify each variable."
+  )
   valid_variable_names$check(self$var_names())
   return_object(self, "ModelVars")
 }
 dim.ModelVars = function(x) {
-  c(x$n_variables(), x$n_labels())
+  c(x$n_variables(), x$n_partitions())
 }
 
 #' @export
 VarsFactor = function(model_vars) {
   ## alternative constructor
-  factor_label = LabelMultiply()$prod(names(model_vars$labels))
-  do.call(ModelVars, setNames(list(model_vars$var_names()), factor_label))
+  factor_partition = LabelMultiply()$prod(names(model_vars$partitions))
+  do.call(ModelVars, setNames(list(model_vars$var_names()), factor_partition))
 }
 
 #' @export
 VarsProduct = function(model_vars_1, model_vars_2) {
   ## alternative constructor
-  l1 = model_vars_1$labels
-  l2 = model_vars_2$labels
+  l1 = model_vars_1$partitions
+  l2 = model_vars_2$partitions
   n1 = model_vars_1$n_variables()
   n2 = model_vars_2$n_variables()
   do.call(ModelVars, c(
@@ -114,24 +183,28 @@ EdgeFactor = function(from, to, rate) {
 #' @export
 EdgeProduct = function(edge
       , vertices
-      , edge_label
-      , vertex_label
+      , edge_partition
+      , vertex_partition
       , product_model_vars
   ) {
   self = Base()
   self$edge = edge
   self$vertices = valid$char$assert(vertices)
-  self$edge_label = valid$char1$assert(edge_label)
-  self$vertex_label = valid$char1$assert(vertex_label)
+  self$edge_partition = valid$char1$assert(edge_partition)
+  self$vertex_partition = valid$char1$assert(vertex_partition)
   self$product_model_vars = product_model_vars
   self$rate_per_vertex = function(vertex) {
 
+    map_arguments = c(
+      list(factor_partitions = self$edge_partition),
+      setNames(self$vertex_partition, vertex)
+    )
+
     ## compute the map that takes factor model variables into
     ## the product model variables (i.e. a filter function)
-    product_to_factor_map = self$product_model_vars$filter_as_product(
-      self$edge_label,
-      self$vertex_label,
-      vertex
+    product_to_factor_map = do.call(
+      self$product_model_vars$factor_to_product_map,
+      map_arguments
     )
 
     ## apply the map that takes factor model variables into
@@ -155,27 +228,27 @@ EdgeProduct = function(edge
 }
 
 #' @export
-EdgeMatcher = function(from, to, labels_to_match) {
+EdgeMatcher = function(from, to, partitions_to_match) {
   self = Base()
   df_from = from$data_frame()
   df_to = to$data_frame()
-  from_nms = names(df_from)[!names(df_from) %in% labels_to_match]
-  to_nms = names(df_from)[!names(df_to) %in% labels_to_match]
-  n = length(labels_to_match)
-  common_indices = seq_along(labels_to_match)
+  from_nms = names(df_from)[!names(df_from) %in% partitions_to_match]
+  to_nms = names(df_from)[!names(df_to) %in% partitions_to_match]
+  n = length(partitions_to_match)
+  common_indices = seq_along(partitions_to_match)
   from_indices = c(common_indices, seq_len(ncol(df_from) - n) + n)
   to_indices = c(common_indices, seq_len(ncol(df_to) - n) + ncol(from))
   df_edge = merge(
     df_from, df_to,
-    by = labels_to_match
+    by = partitions_to_match
   )
   self$from = do.call(
     ModelVars,
-    setNames(df_edge[, from_indices, drop = FALSE], c(labels_to_match, from_nms))[names(df_from)]
+    setNames(df_edge[, from_indices, drop = FALSE], c(partitions_to_match, from_nms))[names(df_from)]
   )
   self$to = do.call(
     ModelVars,
-    setNames(df_edge[, to_indices, drop = FALSE], c(labels_to_match, to_nms))[names(df_to)]
+    setNames(df_edge[, to_indices, drop = FALSE], c(partitions_to_match, to_nms))[names(df_to)]
   )
   return_object(self, "ModelEdge")
 }
@@ -194,11 +267,12 @@ foi = EdgeFactor(
   to = "I",
   rate = function(S, I, R, beta) beta * I / (S + I + R)
 )
+foi$rate$symbolic_function("well", "that", "is", "go")
 foi_vax = EdgeProduct(
   edge = foi,
   vertices = c("unvax", "vax"),
-  edge_label = "sir",
-  vertex_label = "vax",
+  edge_partition = "sir",
+  vertex_partition = "vax",
   product_model_vars = sir_vax_vars
 )
 foi_vax$rate_per_vertex("vax")
@@ -207,7 +281,7 @@ foi_vax$rates()
 foi_vax$rate()
 
 
-sir_vax_vars$filter_as_product(edge_factor = "sir", vertex_factor = "vax", vertex = "unvax")
+sir_vax_vars$factor_to_product_map(factor_partition = "sir", filter_partitions = "vax", vertex = "unvax")
 
 
 }

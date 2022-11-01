@@ -116,6 +116,8 @@ Each expression is evaluated in the order in which it appears in this vectors.
 
 The `DATA_IVECTOR(eval_schedule)` vector gives the phase in which each of these expressions should be evaluated. This vector has three elements giving the number of expressions to evaluate before, during, and after the simulation loop. In particular the first `eval_schedule[0]` expressions are evaluated before the simulation loop, the next `eval_schedule[1]` expressions are evaluated at every iteration of the simulation loop, and the next `eval_schedule[2]` expressions are evaluated after the simulation loop.
 
+Inputs are invalid if the sum of the elements of `eval_schedule` does not equal the number of elements in each of `expr_output_count`, `expr_output_id`, `expr_sim_block`, and `expr_num_p_table_rows`.
+
 ## Parse Tables
 
 Each expression is parsed into a table of numbers that represents the expression and can be passed to C++. Each row in this table corresponds to a step in the process of evaluating the expression. These steps correspond to one of three types of things, identified by column `n`:
