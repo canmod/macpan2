@@ -42,7 +42,12 @@ SymbolicMath = function() {
     i = force(i)
     paste(x, "[", i, "]", sep = "")
   }
-  binop = function(op, x, y) wrap(paste(x, y, sep = op))
+  binop = function(op, x, y) {
+    force(x)
+    force(y)
+    force(op)
+    wrap(paste(x, y, sep = op))
+  }
 
   ## 1. all functions in self take string (i.e. length-1 character vector)
   ## arguments and return strings
@@ -55,10 +60,18 @@ SymbolicMath = function() {
   ## thinking that option #1 is best, because it is easier for me to
   ## think about scalars and i don't think that it should be an issue
   ## to package these things up into whatever vector/matrix we want
-  self$`+` = function(x, y) binop(" + ", x, y)
+  self$`+` = function(x, y) {
+    force(x)
+    force(y)
+    binop(" + ", x, y)
+  }
   self$`-` = function(x, y) binop(" - ", x, y)
   self$`*` = function(x, y) binop(" * ", x, y)
-  self$`/` = function(x, y) binop(" / ", x, y)
+  self$`/` = function(x, y) {
+    force(x)
+    force(y)
+    binop(" / ", x, y)
+  }
   self$`^` = function(x, y) binop(" ^ ", x, y)
   self$`(` = function(x) wrap(x)
   self$`c` = function(...) fwrap("c", csv(...))
