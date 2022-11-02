@@ -61,7 +61,7 @@ Our implied convention is that `p` stands for 'fixed Parameters' and `r` for 'Ra
 
 ## Trajectory Simulation
 
-After the input matrices in `mats` are updated using `params` and `random`, the these matrices can be modified. We refer to this process of modification as trajectory simulation. There are three phases to the trajectory simulation process.
+After the input matrices in `mats` are updated using `params` and `random`, these matrices can be modified. We refer to this process of modification as trajectory simulation. There are three phases to the trajectory simulation process.
 
 1. Before the simulation loop
 2. During the simulation loop

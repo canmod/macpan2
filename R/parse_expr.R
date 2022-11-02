@@ -1,3 +1,8 @@
+is_name_or_number = function(x) {
+  is.name(x) | is.numeric(x)
+}
+
+
 #' Generate an Arithmetic Expression Parser
 #'
 #' @param parser_name Name of the parsing function as a character
@@ -119,12 +124,20 @@ make_expr_parser = function(
   }
 }
 
+#' Finalizers
+#' @param x Raw parsed expression.
+#' @name finalizer
+NULL
 
+#' @describeIn finalizer Finalize parsed expression so that the parse table is
+#' a little more human readable.
 #' @export
 finalizer_char = function(x) {
   data.frame(x = unlist(lapply(x$x, as.character)), n = x$n, i = x$i)
 }
 
+#' @describeIn finalizer Finalize parsed expression so that the parse table can
+#' be passed to the C++ engine.
 #' @export
 finalizer_index = function(x) {
   valid_funcs = x$valid_funcs

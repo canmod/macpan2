@@ -145,14 +145,12 @@ dim.ModelVars = function(x) {
   c(x$n_variables(), x$n_partitions())
 }
 
-#' @export
 VarsFactor = function(model_vars) {
   ## alternative constructor
   factor_partition = LabelMultiply()$prod(names(model_vars$partitions))
   do.call(ModelVars, setNames(list(model_vars$var_names()), factor_partition))
 }
 
-#' @export
 VarsProduct = function(model_vars_1, model_vars_2) {
   ## alternative constructor
   l1 = model_vars_1$partitions
@@ -165,7 +163,6 @@ VarsProduct = function(model_vars_1, model_vars_2) {
   ))
 }
 
-#' @export
 EdgeFactor = function(from, to, rate) {
   self = Base()
   self$from = valid$char1$assert(from)
@@ -181,7 +178,7 @@ EdgeFactor = function(from, to, rate) {
   return_object(self, "EdgeFactor")
 }
 
-#' @export
+
 EdgeProduct = function(edge
       , vertices
       , edge_partition
@@ -228,7 +225,6 @@ EdgeProduct = function(edge
   return_object(self, "EdgeProduct")
 }
 
-#' @export
 EdgeMatcher = function(from, to, partitions_to_match) {
   self = Base()
   df_from = from$data_frame()

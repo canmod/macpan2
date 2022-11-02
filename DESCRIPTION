@@ -1,19 +1,23 @@
 Package: macpan2
 Title: Fast and Flexible Compartmental Modelling
 Version: 0.0.0.9000
-Authors@R: 
-    person("Steve", "Walker", , "swalk@mcmaster.ca", role = c("aut", "cre"))
+Authors@R: c(
+  person("Ben","Bolker",email="bolker@mcmaster.ca",role=c("aut","cre")),
+  person("Weiguang Guan", rol="ctb"))
 Description: What the package does (one paragraph).
 License: GPL-3
-Encoding: UTF-8
-LazyData: true
-Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.1.9000
-Imports: memoise, oor
+Imports: 
+    memoise,
+    oor
 Suggests: 
     knitr,
     rmarkdown,
     testthat (>= 3.0.0)
-VignetteBuilder: knitr
-Config/testthat/edition: 3
+VignetteBuilder: 
+    knitr
 Additional_repositories: https://canmod.github.io/drat
+Config/testthat/edition: 3
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.1

@@ -1,5 +1,5 @@
 #' @importFrom oor ValidityMessager
-#' @importFrom oor All Not Is
+#' @importFrom oor All Any Not Is
 #' @importFrom oor TestTrue TestFalse
 #' @importFrom oor TestPipeline Summarizer
 #' @importFrom oor MappedAllTest MappedAnyTest MappedSummarizer
@@ -45,5 +45,9 @@ valid <- list(
   func = ValidityMessager(
     is.function,
     "not a function"
+  ),
+  name_or_num = ValidityMessager(
+    Any(is.name, is.numeric),
+    "neither name nor number"
   )
 )

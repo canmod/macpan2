@@ -48,7 +48,11 @@ BinaryOperator = function(operator) {
     ## simple case of operands
     ## with the same shape
     eq = dim(x) == dim(y)
-    if (all(eq)) return(op(x, y))
+    scal_x = all(dim(x) == 1L)
+    scal_y = all(dim(y) == 1L)
+    if (scal_x) dim(x) = NULL
+    if (scal_y) dim(y) = NULL
+    if (all(eq) | scal_x | scal_y) return(op(x, y))
 
     ## for non-commutative
     ## operations we swap the order

@@ -64,6 +64,13 @@ LabelMultiply = function(times = "_", add = ", ") {
   return_object(self, "LabelMultiply")
 }
 
+#' Label Wrapper
+#'
+#' Construct an object with a \code{wrap} method, which parenthetically wraps
+#' the elements of a string vector.
+#'
+#' @param open Openning parenthesis symbol.
+#' @param close Closing parenthesis symbol.
 #' @export
 LabelWrapper = function(open = "(", close = ")") {
   self = Base()

@@ -1,4 +1,4 @@
-#' @export
+
 read_example <- function(
     example = c(
       "seir", "twostrain"
