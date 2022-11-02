@@ -1,22 +1,13 @@
 # Symbolic Math
 #
-# Create object with functions that overides
+# Create object with functions that overrides
 #
 
 # csv(letters)
 # as.character(unlist(list(c("a", "b"), "c")))
 
-Math = function() {
-  self = Unclean()
-  self$`{` = get("{", envir = baseenv())
-  self$force = get("force", envir = baseenv())
-  self$`$` = get("$", envir = baseenv())
-  self$`=` = get("=", envir = baseenv())
-  return_object(self, "Math")
-}
-
 SymbolicMath = function() {
-  self = Unclean()
+  self = Base(baseenv)
   wrap = function(x) {
     force(x)
     paste("(", x, ")", sep = "")
@@ -86,17 +77,16 @@ SymbolicMath = function() {
 }
 
 NumericMath = function() {
-  self = Unclean()
+  self = Base(baseenv())
   #self$`*` = BinaryOperator(`*`)
   return_object(self, "NumericMath")
 }
 
-symbolic_math = SymbolicMath()
-numeric_math = NumericMath()
-allowed_math_functions = paste0(
-    paste("\\code{\\link{", names(numeric_math), "}}", sep = ""),
-  collapse = ", "
-)
+MathOverrider = function(math_function, function_environment) {
+  self = Base()
+  self$evaluate = math_function
+  return_facade(self, function_environment, "MathOverrider")
+}
 
 #' Math Expression
 #'
@@ -141,6 +131,32 @@ allowed_math_functions = paste0(
 #' @name MathExpression
 #' @export
 MathExpressionFromFunc = function(math_function) {
+  self = Base()
+  self$arguments = names(formals(args(math_function)))
+  self$numeric = MathOverrider(math_function, NumericMath())
+  self$symbolic = MathOverrider(math_function, SymbolicMath())
+  self$string = do.call(
+    self$symbolic$evaluate,
+    as.list(self$arguments)
+  )
+  return_object(self, "MathExpression")
+}
+# xx = MathExpression(function(x, y) {z = x / y; z^2})
+# xx$arguments
+# xx$string
+# xx$numeric$evaluate(1, 2)
+# xx$symbolic$evaluate(1, 2)
+#
+# xx = MathOverrider(function(x, y) x / y, macpan2:::NumericMath())
+# xx$math_function(1, 2)
+
+# symbolic_math = SymbolicMath()
+# numeric_math = NumericMath()
+# allowed_math_functions = paste0(
+#     paste("\\code{\\link{", names(numeric_math), "}}", sep = ""),
+#   collapse = ", "
+# )
+MathExpression = function(math_function) {
   symbolic_math = SymbolicMath()
   numeric_math = NumericMath()
 

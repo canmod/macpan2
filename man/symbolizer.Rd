@@ -12,7 +12,7 @@ a numeric output}
 }
 \description{
 Convert a numeric function into one that can symbolically
-manipulate strings as though they were mathemtical symbols.
+manipulate strings as though they were mathematical symbols.
 }
 \details{
 Only certain functions are allowed to be utilized in the

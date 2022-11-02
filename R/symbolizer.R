@@ -1,7 +1,7 @@
 #' Symbolizer
 #'
 #' Convert a numeric function into one that can symbolically
-#' manipulate strings as though they were mathemtical symbols.
+#' manipulate strings as though they were mathematical symbols.
 #'
 #' Only certain functions are allowed to be utilized in the
 #' mathematical function. See the examples for how to get
