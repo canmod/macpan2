@@ -1,0 +1,10 @@
+param,strain,recov_a,recov_b,R_history,vax_status,severity,default_value,notes
+beta,a,,,,,,0.21,
+beta,b,,,,,,0.26,
+C,,,,,,mild,1,
+C,,,,,,severe,1.2,
+VE,,no,no,00,vax,,0.1,
+VE,,no,yes,01,vax,,0.2,
+VE,,yes,no,10,vax,,0.25,
+VE,,yes,yes,11,vax,,0.6,
+VE,,,,,unvax,,0,
