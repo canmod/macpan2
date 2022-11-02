@@ -5,3 +5,9 @@
 inst/doc
 *.o
 *.so
+*.DS_Store
+*.Rproj
+*.sh
+*.log
+*.html
+*.R
