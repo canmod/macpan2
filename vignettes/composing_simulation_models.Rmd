@@ -1,0 +1,90 @@
+---
+title: "Composing Related Simulation Models"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{Composing Related Simulation Models}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Introduction
+
+After defining an epidemiological model users often want to compute quantities that summarize it. Examples include simple single-number quantities like R0, Gbar, and r, as well as more elaborate objects like the stable compartment distribution of the linearized model. 
+
+Methods for computing these summaries for arbitrary models is a deep research area, making it difficult to include in general purpose software. However, it is always (too strong?) possible to use brute force simulation methods for approximating their values. It is this simulation approach that we take in McMasterPandemic.
+
+Our approach is to modify the focal model so that simulations from the modified model can be used to approximate summaries of the focal model. For example, one could scale population size to 1 with zeros in all compartments except one exposed category. Simulations from such cohort models will generate a force of infection time-series, and it turns out that the sum of any finite length of this time-series is an approximation to R0.
+
+Sometimes these summaries are computed for descriptive purposes, but here we focus on their use in semi-automatically refining calibrations. For example, calibrations can often be improved by including prior information about model parameters and using Bayesian estimation. It can be easier to get prior information on summaries like R0 than on model parameters. In such a case one might want to regularize calibrations using these priors on R0.
+
+As another example, it helps to initialize the state vector of a simulation model by using the eigenvector of a linearization of the focal model. Because the eigenvector is often interpretable as a stable compartment distribution, unrealistic model fluctuations near the beginning of an epidemic are often minimized.
+
+Another use case of model composition occurs during online forecasting. Here forecasts are made every `n` days, and each forecast is for an `n`-day period. Between forecasts the model can be improved. One simple way to carry the information in previous forecasts forward to the next forecasting model is to use the final value of the state vector as the initial value in the new model.
+
+In all of these cases, we start with a focal model and generate several related models for computing summaries like R0, eigenvectors, and final state vectors. Then we combine the outputs of these models to produce improved calibrations of the focal model.
+
+## Notation and Theory
+
+As we are developing general modelling software, we need a general theory with few assumptions. A trajectory model is a model that does the following.
+
+1. Takes a parameter vector, $\theta$, and initial state vector, $x$
+2. Simulates changes to $x$, referred to as trajectories
+3. Compares the simulations to observed time-series, $y$
+4. Returns an objective function that measures the deviation between the simulated trajectories and observed time-series
+
+Each trajectory model contains two functions.
+
+1. A function, $g(\theta; x)$, of the parameter and initial state vector, and returns the final state vector
+2. The objective function, $f(\theta; x; y)$
+
+We will often omit $y$ for notational compactness and simply write $f(\theta; x)$. 
+
+One may estimate $\theta$ as $\hat{\theta}$ by optimizing $f$ over $\theta$ for a given $x$ and $y$. In this strategy $x$ must be assumed. Of course the user is free to try to jointly calibrate both $\theta$ and $x$. We represent this approach mathematically by assuming that $\theta$ can be used to determine $x$. In these cases where $x$ is determined by $\theta$, we omit $x$ and write the final state vector and objective functions as $g(\theta)$ and $f(\theta)$. In practice however, there is often not enough information in the observed time series to take this approach. Furthermore, this approach can be computationally slow.
+
+Here we discuss alternatives to naive calibration approaches that use only a single trajectory model. These alternatives make use of compositions and combinations of several related trajectory models. In these approaches there is a focal trajectory model, which is the focus of inference and forecasting. This focal model is able to generate one or more models that can be used to improve calibrations of the focal model.
+
+
+## Online Forecasting
+
+Consider a sequence of trajectory models that result in the following sequence of objective functions, $f_1(\theta_1;x_1), ..., f_n(\theta_n;x_n)$. For simplicity, assume that each model has the same state space but potentially different parameter spaces. Let the final state of model $i$ be $g_i(\theta_i;x_i)$. Assume that time is split up into $n+1$ equally-sized and adjacent intervals and that $\theta_i$ is calibrated on data from the $i$th interval and model $i$ is used to forecast the data in interval $i+1$.
+
+A simple mechanism for setting the initial state vector for all models after $i = 1$ is to set the the objective function of the $i+1$th model as $f_{i+1}(\theta_{i+1};x_{i+1} = g_i(\hat{\theta}_i;x_i))$, where $\hat{\theta}_i$ is the calibrated parameter vector for model $i$. This objective function is fast to evaluate relative to an objective function that needs to calibrate the initial state vector.
+
+This procedure will not work well if the forecasts are not sufficiently accurate over each forecast period. However, it can be improved upon by fitting the $i$th model again after the forecasted data have been observed, and using the final state predicted by that model as the initial state for the next forecasting model.
+
+## Eigenvector State Initialization
+
+The previous online forecasting setup did not consider how to determine the initial state vector, $x_1$, of the first model. An approach to achieving this is to initialize the state vector using the eigenvector of a linearized version of the model. To construct the objective function for fitting such a model assume that there are two trajectory models on the same parameter and state space. Let the initial state of the focal model be given by $x$ and the (possibly modified) eigenvector of the (possibly modified) linearized model be given by $g_0(\theta)$. Further let the objective function of the focal model be $f(\theta;x)$.
+
+To avoid needing to specify or fit a reasonable value for $x$ at each calibration step, one could use the following modified objective function, $h(\theta) = f(\theta|x = g_0(\theta))$.
+
+There is a hidden computational difficulty here however. In McMasterPandemic we use TMB as the computational engine. TMB-generated objective functions assume that 
+
+
+## Priors on R0
+
+To construct an objective function, $f(\theta)$ with this prior component one needs two related trajectory models, each of which returns a scalar-valued function of the model parameters, $\theta$.
+
+1. The focal model function, $g(\theta)$, returns the negative log likelihood
+2. The cohort model function, $h(\theta)$, approximates R0 and returns the negative log prior density of this value
+
+The overall objective function is then given by $f(\theta) = g(\theta) + h(\theta)$, which is fast to evaluate to the extent that $g$ and $h$ are fast to evaluate.
+
+
+## Regenerating Versus Reparameterizing Models
+
+This framework can be used to model an important computational reality when using TMB, which we do in McMasterPandemic. When we want to change the initial state vector we can do it either by regenerating the model with a new initial state, or by reparameterizing the model so that changes in the parameter vector induce changes in the initial state.
+
+In TMB, objective functions and simulation functions can only take one parameter vector. In our notation, we model this parameter vector as $\theta$. For models that require regeneration, $f(\theta;x)$, we assume that $x$ is a constant feature of the model. To change $x$ means recreating all model objects including $f$ and $g$ and this can be much slower than reparameterizing the model, particularly when we want to iteratively make changes to the state vector. Models that do not have an explicit initial state, $f(\theta)$, assume that the initial state can be changed by passing a different parameter vector, $\theta$, which is faster than the case where the model objects need to be iteratively regenerated.
+
+In the use cases above, we used the regeneration approach. But we can modify any of these to use reparameterization
+.
