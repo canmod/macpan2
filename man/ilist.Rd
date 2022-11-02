@@ -6,6 +6,9 @@
 \usage{
 ilist(x)
 }
+\arguments{
+\item{x}{Named list of character vectors}
+}
 \description{
 Index a Named List of Character Vectors
 }

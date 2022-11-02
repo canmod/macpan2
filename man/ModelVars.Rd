@@ -59,14 +59,14 @@ models, \code{si} and \code{vax}:
 The first two states are the \code{S} and \code{I} compartments for
 unvaccinated individuals and the last two are for those who
 are vaccinated. Constructing variable lists for product models
-like this is easier with the \code{\link{VarsProduct}} function.
+like this is easier with the \code{VarsProduct} function.
 
 \if{html}{\out{<div class="sourceCode r">}}\preformatted{VarsProduct(
   ModelVars(si = c("S", "I")),
   ModelVars(vax = c("n", "y"))
 )$data_frame
 #> function() as.data.frame(self$partitions)
-#> <bytecode: 0x7f95f6aec6c0>
-#> <environment: 0x7f95b6653990>
+#> <bytecode: 0x7f7ee7dddf80>
+#> <environment: 0x7f7ea776ccc0>
 }\if{html}{\out{</div>}}
 }

@@ -10,12 +10,12 @@ params_default(model)
 params_default(model) <- value
 }
 \arguments{
-\item{model}{\code{\link{flexmodel}} object}
+\item{model}{\code{flexmodel} object}
 
 \item{value}{object the same type and format as \code{model$params}
 \code{new_params} will be merged with \code{model$params}}
 }
 \description{
 Get and set current default value for the parameter vector of
-a \code{\link{flexmodel}}
+a \code{flexmodel}
 }

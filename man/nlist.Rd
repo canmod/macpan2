@@ -6,6 +6,9 @@
 \usage{
 nlist(...)
 }
+\arguments{
+\item{...}{Objects to put into the list}
+}
 \description{
 Self Naming List
 }

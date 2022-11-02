@@ -1,3 +1,10 @@
+#' @importFrom oor ValidityMessager
+#' @importFrom oor All Not Is
+#' @importFrom oor TestTrue TestFalse
+#' @importFrom oor TestPipeline Summarizer
+#' @importFrom oor MappedAllTest MappedAnyTest MappedSummarizer
+#' @importFrom oor TestHomo TestRange TestSubset
+#' @importFrom oor Base Unclean return_object return_facade
 valid <- list(
   char = ValidityMessager(is.character, "not a character vector"),
   char1 = ValidityMessager(

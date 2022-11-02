@@ -1,9 +1,9 @@
 #' Default Parameter Vector
 #'
 #' Get and set current default value for the parameter vector of
-#' a \code{\link{flexmodel}}
+#' a \code{flexmodel}
 #'
-#' @param model \code{\link{flexmodel}} object
+#' @param model \code{flexmodel} object
 #' @export
 params_default = function(model) {
   UseMethod("params_default")

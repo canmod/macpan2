@@ -59,7 +59,7 @@ LabelledPartitions = function(...) {
 #' The first two states are the `S` and `I` compartments for
 #' unvaccinated individuals and the last two are for those who
 #' are vaccinated. Constructing variable lists for product models
-#' like this is easier with the \code{\link{VarsProduct}} function.
+#' like this is easier with the \code{VarsProduct} function.
 #'
 #' ```{r}
 #' VarsProduct(
@@ -90,6 +90,7 @@ LabelledPartitions = function(...) {
 #'
 #' TODO maybe
 #'
+#' @importFrom oor ValidityMessager
 #' @export
 ModelVars = function(...) {
   self = LabelledPartitions(...)

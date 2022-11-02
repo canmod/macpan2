@@ -6,7 +6,7 @@ binop_validity_message = paste(
   sep = "\n"
 )
 
-valid_binop = ValidityMessager(
+valid_binop = oor::ValidityMessager(
   All(
     is.function,
     TestPipeline(
