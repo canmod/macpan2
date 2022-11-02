@@ -1,0 +1,263 @@
+---
+output:
+  html_document: default
+  pdf_document: default
+---
+# General Compartmental Models
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+library(macpan2)
+library(McMasterPandemic)
+```
+
+## Kinds of Variables
+
+The general compartmental model has the following kinds of variables.
+
+| Variable Type | Symbol | Time | Calibration | Description |
+|:--- |:- |:-- |:-- |:---------- |
+| States |  $S$ | Varying | indirectly | Population sizes of each compartment |
+| Fixed parameters |  $\beta$ | Constant | fixed | Quantities that influence the simulations and/or calibrations and could possibly be calibrated to observed data |
+| Random parameters |  $b$ | Constant | random | Similar to the fixed effect parameters but with optional random perturbations in simulations and forecasts, and that are integrated out during optimizations and calibrations |
+| Time-varying parameters | $B$ | Varying | indirectly | Vectors with length given by the number of simulation iterations that are determined by the values of the fixed and random effect parameters |
+| Time-constant flow rates |  $\rho$ | Constant | indirectly | Per-capital rates of flow from one compartment to the other (e.g. force of infection) -- note that flows arising from these flow rates are perfectly balanced in that the numbers of individuals flowing from a particular compartment exactly balance the numbers flowing to a set of compartments |
+| Time-varying flow rates |  $R$ | Varying | indirectly |  Like time-constant flow rates but varying in simulation time |
+| Time-constant asymmetric flows |  $F$ |  Varying | indirectly | Flows of individuals that are not perfectly balance (e.g. birth) and/or not easily expressible as per-capita rates (e.g. exogenous inputs through migration) |
+| Time-varying asymmetric flows |  $\phi$ |  Constant | indirectly | Like time-constant asymmetric flows but varying in simulation time |
+| Time-series data |  $D$ | Varying | no | Variables that are observed for the purposes of modifying the dynamics (e.g. numbers of vaccines administered at each time-step) and/or for comparing to simulated variables in loss functions used to calibrate parameters |
+| Time-varying derived variables |  $V$ |  Varying | indirectly | Expressions of any of the other variables in order to keep track of particular dynamical quantities (e.g. cumulative number of infected individuals), to compare with observed time-series data, and/or to store the results of intermediate computations that will be used several times |
+| Time-constant derived variables | $v$ | Constant | indirectly | Like $V$ but constant in time and computed before the simulation starts |
+| Literals |  $\lambda$ |  Constant | no | Numerical constants that the user has implicitly declared by using symbols like `1`, `-10`, or `3.14` in their model definition expressions |
+| Loss |  $L$ | Varying | indirectly |  Values quantifying the difference between an observed time-series component and a simulated component |
+| Priors/regularizers |  $\pi$ | Constant | indirectly | Values quantifying the difference between time-constant variables and prior expectations |
+| Random effect densities |  $d$ | Constant | indirectly | Values quantifying the difference between a random-effect parameter and the center of its distribution |
+
+This table indicates whether each type of variable is time-varying or time-constant. The time-constant variables have lowercase symbols and are stored as a vector with one element per variable. The time-varying variables have uppercase symbols and are stored as a matrix with one column per variable and one row per time step.
+
+There are three ways to collect these variables into more complex structures.
+
+| Structure Type | Description |
+|:-  |:- |
+| Scalar | Collection of one value |
+| Vector | Ordered collection of $n$ values |
+| Matrix | Ordered table of values with $n$ rows and $m$ columns |
+
+
+The user is allowed to supply numerical constant values in any one of these types of structure.  Each structure type gets its own collection of constants.
+
+## Simulation History
+
+Even though not all variables are time-varying, it is convenient store all variables of every type in a single matrix, $H$, called the simulation history, where each column is a variable and each row is a time step. The values for time-constant variables are simply repeated over the rows. This matrix is convenient because any computation can be expressed in exactly the same way.
+
+$$
+H_{ti} = f(H_t)
+$$
+
+where $H_{ti}$ is the value of the $i$th variable at time-step $t$, $H_t$ is the matrix containing the first $t$ rows of $H$ and $f$ is a scalar-valued function of a matrix-valued argument chosen from a list of valid functions.
+
+$$
+H_\text{out} = f(H_1, ..., H_n)
+$$
+
+where $H_\text{out}$, $H_1$, ..., and $H_n$ are blocks of $H$.
+
+```{c, eval=FALSE, echo=FALSE}
+simulation_history[current_iteration, output_component_index] = 
+  particular_function(vector_of_input_component_indices)
+```
+
+The implementation of $H$ should be a class that has the same interface as a matrix, but with an implementation that can be optimized as we get more experience with the most common use-cases. The first implementation of this class could just literally be a matrix. We might also want to add to the matrix interface by allowing developers to extract each particular variable type (e.g. just give the fixed-effect parameters, $\beta$).
+
+## General Expressions
+
+
+
+We take a simple example involving a force of infection in a population of 100 people.
+
+```{r}
+foi = ~ beta * I / 100
+```
+
+This expression is composed of two functions, `*` and `/`, and two variables, `beta` and `I`.  Let's suppose that we have lists of these valid components.
+```{r}
+valid_funcs = nlist(`*`, `/`)
+valid_vars = list(beta = 0.1, I = 30)
+```
+
+With this information we can produce the following table.
+```{r, echo=FALSE}
+parse_expr = make_expr_parser(finalizer = finalizer_index)
+```
+```{r}
+parse_expr(foi)$parse_table
+```
+
+This table is a parsed version of the `foi` expression that is easier to consume on the `C++` side. Each row in this table corresponds to a step in the process of evaluating this expression. These steps correspond to one of three things:
+
+1. A function -- if `n > 0`
+2. A variable -- if `n == 0`
+3. A literal -- if `n == -1`
+
+If the row does correspond to a function, then column `n` gives the number of arguments in that function.
+
+The first column, `x`, gives an index for looking up the specific instance of each of these three types of entities. For example, if `n == 0` then the `x` column gives the index into the `valid_vars` list for getting the appropriate variable. If `n == -1` then `x` gives an index into `valid_literals` and if `n > 0` `x` gives an index into `valid_funcs`. The `i` column is only relevant for functions, and indicates the row of the table representing the first argument to that function.
+
+Working through this table gives the following set of steps.
+
+* Row 1:
+    * Type == function
+    * Function == `/`
+    * Two arguments starting on Row 2
+* Row 2:
+    * Type == function
+    * Function == `*`
+    * Two arguments starting on Row 4
+* Row 4:
+    * Type == variable
+    * Value = `beta = 0.1`
+    * On to next argument of function in Row 2
+* Row 5:
+    * Type == variable
+    * Value = `I = 30`
+    * Back to function in Row 2
+* Row 2:
+    * Evaluation function
+    * Return value = `0.1 * 30 = 3`
+    * On to next argument of function in Row 1
+* Row 3:
+    * Type == literal
+    * Value = `100`
+    * Back to function in Row 1
+* Row 1:
+    * Evaluate function
+    * Return value = `3 / 100 = 0.03`
+
+In this example we are using a limited number of operations but the design allows for easy extension to a greater list of valid functions. We will describe such cases below in the details of the simulation algorithm, but before getting to these details we provide a high-level overview.
+
+## Simulation Algorithm Overview
+
+1. Before simulation loop
+    1. Compute the prior density of $\beta$ and random effect density of $b$ -- optionally simulate from these densities
+    2. Inverse-transform the time-constant parameters, $\beta$ and $b$
+    3. Time-varying parameters, $B$, are computed and stored
+    4. Disease-free simulations (used for things like initializing the state variables and computing epidemiological summaries like $R_0$, $\bar{G}$, and $r$)
+    5. Initialize state variables
+2. Each simulation iteration
+    1. Flow rates, $R$ and $\rho$, asymmetric flows, $F$ and $\phi$, and derived variables, $V$ are updated in a user-specified order
+    2. State variables, $S$, are updated using an integration strategy (e.g. difference equations, Runge-Kutta, Euler-multinomial process error, hazard correction)
+    3. Loss, $L$, and derived variables, $V$, are updated in a user-specified order
+3. After simulation loop
+    1. Simulation history, $H$, is saved in the simulation report and optionally the sum of $L$ and the prior and random-effect densities is returned
+
+## Before Simulation Loop
+
+### Priors and Random Effect Densities
+
+```{r}
+
+```
+
+### Inverse-Transforms
+
+
+
+### Time-Varying Parameters
+
+The $i$th time-varying parameter is computed in the following way.
+
+$$
+\text{link}(B_i) = X_i \beta_{\{i\}} + Z_i b_{\{i\}}
+$$
+
+where $B_i$ is the $i$th column of $B$, $X_i$ and $Z_i$ are model matrices associated with the $i$th time-varying parameter, $\beta_{\{i\}}$ and $b_{\{i\}}$ are vectors containing the elements of $\beta$ and $b$ that determine the time-variation of $B_i$, and $\text{link}$ is a link function such as $\log$ or $\text{logit}$. Note that although the elements of $b_{\{i\}}$ are referred to as time-constant, it may very well be the case that each element is conceptually associated with a particular iteration in the simulation history.
+
+### Initial State Variables
+
+## Each Simulation Iteration
+
+### Update Flows and Derived Variables
+
+### Update State Variables
+
+### Update Loss and Derived Variables
+
+## After Simulation Loop
+
+
+## Rate Equations Under Model Structure
+
+(OUT-OF-DATE -- continued here: https://www.overleaf.com/project/62c47733b38f39223ce3d7ec)
+
+Structured models contain multiple sub-models. For example, an SEIR model and a vaccination status model can combine to produce a structured model where each SEIR box is split into two boxes -- unvaccinated and vaccinated. This additional model structure could potentially require variation of parameters over the vaccination categories. For example, recovery rate might be different for vaccinated and unvaccinated individuals.
+
+To get more specific consider the three rates in the base SEIR model. These rates are the force of infection,
+
+$$
+S \rightarrow E = \frac{\beta I}{N}
+$$
+
+inverse latency period,
+
+$$
+E \rightarrow I = \alpha
+$$
+
+and recovery rate,
+$$
+I \rightarrow R = \gamma
+$$
+
+When we add vaccination, the rates $\text{state_from} \rightarrow \text{state_to}$ become vectors of length equal to the number of vaccination statuses. This means that the rate equations need to become vector equations.  For latency and recovery we have two simple options -- have a vector with constant rates or have different rates for each vaccination status.
+
+The force of infection case is more difficult. The $\beta$ parameter can still be handled in this simple way of just collecting different values for different vaccination statuses in a vector. But now $I$ is also a vector, containing one element for each status. So we need to decide how to combine them -- element-wise multiplication, inner product, something else? We could get even more complex by providing a different value of $\beta$ for each combination of $S$ and $I$, which would produce a matrix of $\beta$ values. This matrix would give the transmission rate from infected individuals of a particular vaccination status to susceptible individuals of a potentially different vaccination status.
+
+To start writing down these different possible models we need some matrix and vector notation. At a high-level we want to compute the vector-valued force of infection, $y$, as a function of the vector of state variables, $x$, and the parameters, $\theta$.
+
+$$
+y = f(x, \theta)
+$$
+
+The force of infection vector, $y$, has structure and is indexed by vaccination status. So for example, $y_U$ and $y_V$ are the forces of infection for unvaccinated and vaccinated individuals respectively.
+
+The state vector, $x$, also has structure and is indexed by both epidemiological and vaccination status. So for example $x_{S,U}$ is the element of $x$ giving the numbers of unvaccinated susceptible individuals. Even though we could use two indices to define a matrix of states, we choose to keep it as a vector with two indices -- this decision will hopefully become clear when we generalize the theory. We also abuse this notation by defining $x_{\text{from}}$ and $x_{\text{to}}$ to be the vectors of from-to pairs of states involved in a particular mechanism of state transition. We can continue this strategy to identify the states involved in the indirect effects. In even this simple case there are two different sets of indirect effects. The first set is the effect of $x_{I,U}$ and $x_{I,V}$ on the forces of infection. We can refer to these states collectively as the vector, $x_I$. The second set is the effect of all states in the denominator, but we already have a way to refer to all states as $x$. In summary we have four subsets of the state vector involved in the calculation of the force of infection vector: $x_{\text{from}}$, $x_{\text{to}}$, $x_I$, and $x$.
+
+The structure of the parameter vector, $\theta$, is more complex, and is determined by the structure of the subsets of $x$ involved in the force of infection calculation. These subsets are defined by the index sets. 
+
+$$
+\text{from} = \{\{S,U\};\{S,V\}\}
+$$
+$$
+\text{to} = \{\{E,U\};\{E,V\}\}
+$$
+$$
+I = \{\{I,U\};\{I,V\}\}
+$$
+and the set of all state variable indices
+$$
+\Omega = \{\{S,U\};\{S,V\};\{E,U\};\{E,V\};\{I,U\};\{I,V\};\{R,U\};\{R,V\}\}
+$$
+
+There is only one parameter from the base SEIR sub-model associated with the force of infection, and that is $\beta$. There are a few options for structuring $\beta$ and these depend on what the modeller believes about how the transmission rate varies and how it influences transmission. Here we list four options for mathematical completeness, but understand that some of these options are biologically unrealistic.
+
+1. $\beta$ is a scalar
+    * this scalar is used in both forces of infection
+    * the product $\beta I$ is then also a scalar given by $\beta (x_{I,U} + x_{I,V})$
+2. $\beta = \beta_\text{from}$ is a vector
+    * this vector is over the $\text{from}$ index set (or equivalently over $\text{to}$)
+    * the product $\beta I$ is then a vector $\beta_{from} (x_{I,U} + x_{I,V})$
+3. $\beta = \beta_I$ is a vector
+    * this vector is over the $I$ index set
+    * this is the unrealistic case because vaccination typically modifies succeptibility and not infectivity
+    * the product $\beta I$ is a scalar given by the inner product $<\beta_I, x_I>$
+    * importantly it is not a vector given by the linear combination $\beta_{I,U} x_{I,U} + \beta_{I,V} x_{I,V}$, because this linear combination is over the index set of the indirect effect and not the forces of infection themselves (we will generalize this idea of separating index sets that vary along the from/to states from those that vary along one of the index sets describing indirect effects)
+4. $\beta = \beta_{\text{from},I}$ is a matrix
+    * this matrix has rows that vary over $\text{from}$ and columns that vary over $I$
+    * the product $\beta I$ is a matrix times a vector $\beta_{\text{from}, I} x_I$
+
+Now we deal with the denominator, which is a sum of the state variables. This can be handled in a similar manner to the product $\beta I$, but without all of the cases. There is only a single case because there are not any parameters associated with this component of the rate equation, and it is the possible structures associated with the parameter $\beta$ that generated the four different cases. In particular the denominator is the sum of all the elements of the state vector, $x_{S,U} + x_{S,V} + x_{E,U} + x_{E,V} + x_{I,U} + x_{I,V} + x_{R,U} + x_{R,V}$.
+
+We have discussed one mechanism in detail -- the force of infection in an SEIRxVAX model. In general, we define a mechanism as a related set of flows between boxes. For each mechanism we have a vector-valued flow rate, $y$. In cases where the flow rate is constant for all flows in the mechanism, we will sometimes treat $y$ as a scalar where convenient. For each mechanism we also have a set of indices of $\text{from}$ compartment and another set of the same length of the $\text{to}$ compartments. Both of these sets can have parameter vectors over them. For each mechanism we can also define any number of index sets, $\text{indirect_i}$, over the compartments for representing indirect effects of any other compartment on the flow rates. We can associate parameter vectors over any of these indirect effect index sets. We can also associate matrices of parameters or state variables with rows over either the $\text{from}$ or $\text{to}$ index sets and columns over an indirect effect index set. Finally we can also define tensors of parameters or state variables over any number of these index sets, but these tensors must be flattened into a matrix by associating the index sets associated with indirect effects into a single set for defining the columns of the matrix.
+
+
+
+What kind of interface do we need for defining these index sets?

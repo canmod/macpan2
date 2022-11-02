@@ -1,0 +1,61 @@
+---
+title: "usecases"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{usecases}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(macpan2)
+```
+
+## List of Use-Cases
+
+Out-of-context it is easy to write down the use-cases, so here they are.  The real (combinatorial) difficulties come when use-cases are mixed in ways that were not considered.
+
+* Flow definition
+  * Define unstructured flows
+  * Define product model flows
+  * Edit product model flows
+* Parameter variation
+  * Define time-variation of parameters
+  * Define product model parameter variation
+* State variable initialization
+  * Default state
+  * Eigenvector
+* Integration
+  * Time step unit
+  * Hazard step
+  * ODE solvers
+* Simulation
+  * Deterministic
+  * Parameter uncertainty
+  * Observation error
+  * Process error
+  * Include initial state
+  * Include time dimension
+* Trajectory processing 
+  * Lagged differencing
+  * Uneven lagged differencing
+  * Convolutions
+* Calibration
+  * Likelihood
+  * Priors
+  * Parameter transformations
+  
+  
+  
+## Existing Tensions
+
+### Observation error and parameter uncertainty
+
+

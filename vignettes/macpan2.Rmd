@@ -1,0 +1,136 @@
+# macpan2
+
+## Model Structure
+
+We start with a base SEIR model with no structure. This model requires state and parameter data frames.
+
+```{r, echo=FALSE, message=FALSE}
+library(macpan2)
+seir_state = read_example("seir", "state")
+seir_param = read_example("seir", "param")
+seir_state
+seir_param
+```
+
+The force of infection could be specified like this.
+
+```{r, eval=FALSE}
+rate(from = S, to = E, formula = ~ beta * I / sum(state[]))
+```
+
+This line of code says that individuals in state `S` move to state `E` at a per-capita rate given by the `formula` argument. The notation `state[]` denotes a vector containing all states, and `sum(state[])` is the sum of all states. If we wanted for some reason to sum over just two states we could do `sum(state[S, R])`. We can also use this more general notation to write the following equivalent, but more explicit, code.
+
+```{r, eval=FALSE}
+rate(
+  from = state[S], 
+  to = state[E], 
+  formula = ~ param[beta] * state[I] / sum(state[])
+)
+```
+
+
+## Building up a Complex Model out of Component Sub-Models
+
+```{r, eval=FALSE}
+model_definitions = (
+  
+  # seir -------------
+  base_model(
+    sub_model_name = "seir",
+    state_names = c("S", "E", "I", "R"),
+    folder = "path/to/important/project"
+  )
+  %>% default_params(
+    alpha = 0.1, 
+    beta = 0.2,
+    gamma = 0.4
+  )
+  %>% define_flows(
+    label = "foi", 
+    from = "S", to = "E", 
+    rate = ~ beta * I / sum(state)
+  )
+  %>% define_flows(
+    label = "getting_infective",
+    from = "E", to = "I", rate = ~ alpha
+  )
+  %>% define_flows(
+    label = "recovery",
+    from = "I", to = "R", rate = ~ gamma
+  )
+  
+  # seir with symptom status ----------
+  %>% expand_subset(
+    sub_model_name = "symptoms",
+    state_names = c("asymp", "presymp", "mild", "severe"),
+    expanded_subset = ~ I
+  )
+  %>% default_params(
+    C = 1, # relative severity-dependent transmission
+    mu = 0.95, # proportion ot cases that are mild
+    expr_rate = 1/7, # called gamma_a in ICU1.csv
+    sigma = 1/3, # 1/time-in-exposed-class
+  )
+  %>% structure_params(
+    gamma ~ symptoms[asymp, mild], # only asymp/mild directly recover
+    C ~ symptoms[asymp, presymp, mild, severe] # symptoms for short
+  )
+  # splitting flows from 1-to-1 in the base model to 1-to-2.
+  # equivalent to saying:
+  # presymp -> mild at expr_rate * mu
+  # presymp -> severe at expr_rate * (1 - mu)
+  %>% split_new_flow(
+    label = "symptom_expression",
+    # error if this isn't a 1-to-2 flow
+    from = "presymp", to = "I[mild, severe]", 
+    base_rate = ~ expr_rate,
+    split_prob = ~ mu
+  )
+  %>% adjust_flows(
+    label = "foi",
+    rate = ~ C * beta * I / sum(state),
+    I + C ~ indirect(symptoms)
+  )
+  %>% split_existing_flow(
+    label = "getting_infective",
+    from = "E", to = "I[asymp, presymp]",
+    base_rate = ~ sigma,
+    split_prob = ~ alpha
+  )
+  %>% adjust_flows(
+    label = "recovery",
+    from = "I[asymp, mild]", to = "R",
+  )
+  
+  # multi-strain seir with severity -------
+  %>% expand_strains(
+    strain, 
+    infected = state[E, I], 
+    not_infected = state[S, R],
+    concurrent_infections = 1L
+  )
+  
+  # multi-strain seir with severity and vaccination -------
+  %>% expand_full(
+    model_name = "vax",
+    state_names = c("unvax", "vax")
+  )
+)
+```
+
+```{r eval=FALSE}
+new_model_version(model_definitions, version_level = "minor")
+```
+
+Each step in these pipelines adds rows and columns to the state and parameter tables. One file is saved in `path/to/important/project` for each model expansion.
+
+
+## Engine Spec
+
+Let $y_{ti}$ be the `simulation_history` matrix with rows, $t$, representing time-points and columns, $i$, representing simulated variables. There are different types of simulated variables that come in the following order.
+
+1. state variables -- numbers of individuals in each compartment
+2. parameters (should these only be time-varying parameters??)
+3. 
+
+Let $\theta_{tj}$ be the value of the $j$th parameter at time $t$. We write the parameter vector at a particular time, $t$, as $\theta_t$.

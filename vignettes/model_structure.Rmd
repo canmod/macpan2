@@ -1,0 +1,34 @@
+# Model Structure
+
+Public health modellers to seek to integrate the current scientific understanding of emerging infectious diseases in a way that will have policy impact. This goal requires working quickly to produce high quality forecasts and scenario exploration, because all else being equal public health policies can have the biggest impact if they are implemented as early as possible. However, the speed with which modellers work typically trades off with model quality. It is therefore of interest to develop tools that make it easier for modellers to achieve the same quality at faster speeds.
+
+A reasonable way to attempt to soften this speed-quality tradeoff is to build infectious disease models incrementally. Information is scarce early in an epidemic, and so models in this scenario should be simple to reflect ignorance. As serious epidemics progress, more information is gathered and policy choices require fast input from scientists. Public health modellers will then need to quickly add complexity to their models if they are to be relevant to policy. Proceeding in this way over time can result in models that are extremely complex, but often much of the complexity is no longer relevant. This added complexity makes it more difficult to add new features to the model that are of current high priority. Therefore, we believe that modellers need tools that will make it as easy as possible to flexibly add or remove model features.
+
+Our goal is to build software that makes it as easy as possible for modellers to work in this iterative fashion. We believe that such software should be flexible and transparent, but with good defaults. For most situations the user should be able to add or remove complexity without needing to specify the details. The user should then be free to change the defaults and observe the effect of these changes. However, we argue here that designing such software is a genuinely hard problem. But, as we argued above, it is a problem worth making progress on. Here we develop a framework for managing compartmental model complexity, so that we have a solid basis for building consistent and intuitive software.
+
+Our framework assumes that complex models can be built by combining simpler sub-models. For example, we might combine an SI model with a vaccination model. The SI model has two states -- susceptible, S, and infected, I -- and the vaccination model also has two states -- unvaccinated, U, and vaccinated, V.  A standard way to combine these models would be to break up the S and I boxes into two boxes each, one for unvaccinated and another for vaccinated individuals.  This combined model would contain the following four states, S_U, S_V, I_U, and I_V. This particular model combination could be referred to as a product of models, a concept introduced by Worden et al, because each state in the first sub-model is multiplied one time for each state in the second.
+
+Here we cast the Worden product model approach in a rigorous mathematical setting, evaluate this theory by testing whether it is applicable to various concrete and complex models, and then propose extensions to the theory so that it can be applied more broadly. The extensions that we propose will allow for more operations on compartmental model space such as exponentiation, addition, and subtraction.
+
+An atomic model is a set of compartments connected by directed edges, each 
+
+$$
+\text{FOI}_i = (1-\epsilon_i) * \beta_i * 
+\frac{\sum_{j \in \text{marginal(severity)}}
+\text{var}(\text{state = I})_{ij} *
+\text{var}(\text{param = c})_{ij}}{N}
+$$
+Such that $i \in \text{edge}$
+
+
+$\epsilon$ -- Vaccine efficacy
+
+
+```
+FOI = beta * VE * I * C / state
+```
+
+```
+FOI = beta * I / state
+```
+

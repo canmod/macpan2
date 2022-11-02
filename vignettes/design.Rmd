@@ -1,0 +1,247 @@
+---
+title: "design"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{design}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(macpan2)
+```
+
+## Class Components
+
+* flexmodel
+* flexmodel_to_simulate
+* flexmodel_obs_error
+* flexmodel_calibrated
+* flexmodel_optim
+* flexmodel_nlminb
+* flexmodel_uncertainty
+* flexmodel_bbmle
+* flexmodel_to_calibrate
+* flexmodel_timevar
+* flexmodel_condensable
+
+## Class Combinations
+
+* flexmodel -- insufficient information to build a TMB function (e.g. no rates)
+* flexmodel,flexmodel_to_simulate
+* flexmodel,flexmodel_to_simulate,flexmodel_obs_error
+* flexmodel,flexmodel_to_simulate,flexmodel_calibrated
+* flexmodel,flexmodel_to_simulate,flexmodel_calibrated,flexmodel_optim
+* flexmodel,flexmodel_to_simulate,flexmodel_calibrated,flexmodel_nlminb
+* flexmodel,flexmodel_to_simulate,flexmodel_calibrated,flexmodel_uncertainty
+* flexmodel,flexmodel_to_simulate,flexmodel_calibrated,flexmodel_uncertainty,flexmodel_bbmle
+* flexmodel,flexmodel_condensable,flexmodel_to_simulate
+* flexmodel,flexmodel_condensable,flexmodel_to_simulate,flexmodel_obs_error
+* flexmodel,flexmodel_condensable,flexmodel_to_simulate,flexmodel_calibrated
+* flexmodel,flexmodel_condensable,flexmodel_to_simulate,flexmodel_calibrated,flexmodel_optim
+* flexmodel,flexmodel_condensable,flexmodel_to_simulate,flexmodel_calibrated,flexmodel_nlminb
+* flexmodel,flexmodel_condensable,flexmodel_to_simulate,flexmodel_calibrated,flexmodel_uncertainty
+* flexmodel,flexmodel_condensable,flexmodel_to_simulate,flexmodel_calibrated,flexmodel_uncertainty,flexmodel_bbmle
+* flexmodel,flexmodel_to_calibrate
+* flexmodel,flexmodel_timevar
+* flexmodel,flexmodel_timevar,flexmodel_to_simulate
+* flexmodel,flexmodel_timevar,flexmodel_to_simulate,flexmodel_obs_error
+* flexmodel,flexmodel_timevar,flexmodel_to_simulate,flexmodel_calibrated
+* flexmodel,flexmodel_timevar,flexmodel_to_simulate,flexmodel_calibrated,flexmodel_optim
+* flexmodel,flexmodel_timevar,flexmodel_to_simulate,flexmodel_calibrated,flexmodel_nlminb
+* flexmodel,flexmodel_timevar,flexmodel_to_simulate,flexmodel_calibrated,flexmodel_uncertainty
+* flexmodel,flexmodel_timevar,flexmodel_to_simulate,flexmodel_calibrated,flexmodel_uncertainty,flexmodel_bbmle
+* flexmodel,flexmodel_timevar,flexmodel_condensable,flexmodel_to_simulate
+* flexmodel,flexmodel_timevar,flexmodel_condensable,flexmodel_to_simulate,flexmodel_obs_error
+* flexmodel,flexmodel_timevar,flexmodel_condensable,flexmodel_to_simulate,flexmodel_calibrated
+* flexmodel,flexmodel_timevar,flexmodel_condensable,flexmodel_to_simulate,flexmodel_calibrated,flexmodel_optim
+* flexmodel,flexmodel_timevar,flexmodel_condensable,flexmodel_to_simulate,flexmodel_calibrated,flexmodel_nlminb
+* flexmodel,flexmodel_timevar,flexmodel_condensable,flexmodel_to_simulate,flexmodel_calibrated,flexmodel_uncertainty
+* flexmodel,flexmodel_timevar,flexmodel_condensable,flexmodel_to_simulate,flexmodel_calibrated,flexmodel_uncertainty,flexmodel_bbmle
+* flexmodel,flexmodel_timevar,flexmodel_to_calibrate
+
+## Model Object Optional Items
+
+* tv -- Time varying parameters
+* loss -- Loss parameters
+* obs -- Observed data
+* opt -- Opt parameter specs
+* tv_opt -- TV Opt parameter specs
+* fit -- Optimizer objects
+
+## Combinations of Optional Items
+
+* tv_opt -> tv
+* fit -> 
+
+## Parameters
+
+* Defaults vs initial values
+* Untransformed vs transformed
+* Not fitted vs to-be-fitted vs fitted
+* Full parameter vectors vs objective function arguments
+* Dynamical vs loss/distributional vs trajectory processing vs time-varying multipliers
+* With uncertainty vs not
+* Sample matrix vs vector
+
+## Simulation
+
+* Condensed vs all
+* Include initial state vs not
+* Observation error vs process error vs neither vs both
+* With vs without parameter uncertainty
+* One sample vs n samples vs ensemble
+* Include observed values for comparison vs not
+* With extended end-date vs not
+
+
+## Options
+
+```{r utilities, echo = FALSE}
+capitalize_first = function(v) {
+  substr(v, 1L, 1L) = toupper(substr(v, 1L, 1L))
+  v
+}
+collapse_class_attr = function(model_classes) {
+  abstract_classes = unlist(lapply(model_classes, getElement, 1L))
+  implemented_classes = unlist(lapply(model_classes, getElement, 2L))
+  camal_classes = paste(
+    abstract_classes, 
+    capitalize_first(implemented_classes), 
+    sep = ""
+  )
+  paste(camal_classes, collapse = "_")
+}
+has_only_lowercase = function(v) {
+  if (!is.character(v)) return(FALSE)
+  grepl('^[a-z]*$', v)
+}
+assert_length2_classes = function(model_classes) {
+  if (!all(unlist(lapply(model_classes, length)) == 2L)) {
+    stop("developer msg: all components must have length-2 classes")
+  }
+}
+assert_lowercase_classes = function(model_classes) {
+  if (!all(unlist(lapply(model_classes, has_only_lowercase)))) {
+    stop("developer msg: all component class names must use only lowercase letters")
+  }
+}
+```
+
+### S3 Multiple Dispatch
+
+#### Abstraction
+
+A compartmental model object is a list of objects of different S3 classes, such as `params`, `state`, and `rates`. Each of these S3 classes has an abstract definition, with other classes that implement these abstractions.
+```{r abstract}
+m = structure(
+  list(
+    params = structure(NA, 'params', 'params_null'),
+    state = structure(NA, 'state', 'state_null'),
+    rates = structure(NA, 'rates', 'rates_null')
+  ),
+  class = 'compartmental'
+)
+```
+
+#### Instantiation
+
+An abstraction can be instantiated using length-two class attributes, where the first element in the class attribute is the abstract class.
+```{r instantiation}
+m = structure(
+  list(
+    params = structure(
+      c(beta = 0.1, gamma = 0.8), 
+      class = c('params', 'numeric')
+    ),
+    state = structure(
+      c(S = 99, I = 1, R = 0), 
+      class = c('state', 'numeric')
+    ),
+    rates = structure(
+      list(
+        list(from = "S", to = "I", rate = "beta * I * (1/N)"),
+        list(from = "I", to = "R", rate = "gamma")
+      ), 
+      class = c('rates', 'triple')
+    )
+  ),
+  class = 'compartmental'
+)
+```
+
+#### Interface
+
+As an example interface we choose something simple to do: concatenate the state and parameter vectors together.
+```{r user_interface}
+state_params = function(model) {
+  model_subset = make_model_subset(model, c('state', 'params'))
+  state_params_internal(model_subset)
+}
+```
+All interfaces have these two required lines:
+
+1. Construction of the model subset, which does two things:
+  * Returns a version of `model` with only the elements that are required in principle to do the computation
+  * Attaches a special S3 class attribute to the result, indicating what types of `state` and `param` objects are contained in `model`
+2. Operate on the subset with a generic S3 function that will dispatch the appropriate method based on the class of `model_subset`
+
+#### Internal Generics
+
+```{r}
+state_params_internal = function(model_subset) {
+  UseMethod("state_params_internal")
+}
+```
+
+#### Internal Methods
+
+```{r}
+state_params_internal.stateNumeric_paramsNumeric = 
+  function(model_subset) {
+    c(model_subset$state, model_subset$params)
+  }
+```
+
+#### Custom Object Infrastructure
+
+
+
+```{r}
+make_model_subset = function(model, subset) {
+  model_subset = model[subset]
+  model_classes = lapply(model_subset, class)
+  assert_length2_classes(model_classes)
+  assert_lowercase_classes(model_classes)
+  structure(
+    model_subset,
+    class = collapse_class_attr(model_classes)
+  )
+}
+```
+
+
+```{r}
+state_params(m)
+```
+
+
+```{r, eval = FALSE}
+dated_simulation_history = function(model) {
+  model$simhist = simulation_history(model)
+  model_subset = make_model_subset(model, c('dates', 'simhist'))
+  dated_simulation_history_internal(model_subset)
+}
+```
+
+
+## Design Details
+
+
