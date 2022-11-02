@@ -1,4 +1,7 @@
 #' Self Naming List
+#'
+#' @param ... Objects to put into the list
+#'
 #' @export
 nlist = function(...) {
     L = list(...)
@@ -13,6 +16,9 @@ nlist = function(...) {
 }
 
 #' Index a Named List of Character Vectors
+#'
+#' @param x Named list of character vectors
+#'
 #' @export
 ilist = function(x) {
   x = lapply(x, names)

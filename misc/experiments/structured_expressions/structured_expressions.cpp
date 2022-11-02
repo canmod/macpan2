@@ -41,12 +41,12 @@
 template<class Type>
 struct ListOfMatrices {
   // below is a vector of vectors that passed from R
-  vector<matrix<Type>> vectors;
+  vector<matrix<Type> > vectors;
 
   ListOfMatrices(SEXP ii){ // Constructor
     // Get elements by their indices
     int n = length(ii);
-    vector<matrix<Type>> vs(n);
+    vector<matrix<Type> > vs(n);
     vectors = vs;
 
     for (int i = 0; i < n; i++)

@@ -4,9 +4,9 @@
 #' string.
 #' @param finalizer Function used to post-process a parsed formula.
 #' The default is the identity finalizer, which returns the parsed
-#' formula itself.  Other good choices are \code{\link{finalizer_char}},
+#' formula itself.  Other good choices are \code{finalizer_char},
 #' which can be used to understand how the formula has been parsed,
-#' and \code{\link{finalizer_index}}, which can be passed to the C++ engine.
+#' and \code{finalizer_index}, which can be passed to the C++ engine.
 #'
 #' The result of this function is another function that takes a single
 #' argument, \code{x}.  This resulting function is recursive.  The \code{x}
@@ -176,7 +176,7 @@ finalizer_index = function(x) {
   }
   x$x = x_int
 
-  McMasterPandemic::nlist(
+  nlist(
     parse_table = as.data.frame(x),
     valid_funcs, valid_vars, valid_literals
   )

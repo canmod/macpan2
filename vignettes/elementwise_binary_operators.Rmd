@@ -1,0 +1,115 @@
+---
+title: "Elementwise Binary Operations in the McMasterPandemic Engine"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{Elementwise Binary Operations in the McMasterPandemic Engine}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+library(macpan2)
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+set.seed(1L)
+```
+
+## The Problem
+
+In the `C++` engine every variable is a matrix.  In this simple situation where every variable is a matrix, elementwise binary operations can be defined to have very convenient properties.  The problem is that these properties are not standard in `R`, probably because it is not the case that all numeric variables are matrices.  Differences between standard `R` mathematical functions and the McMasterPandemic `C++` engine make it more difficult to test the engine.  This document describes how to use `R` so that elementwise binary operators are comparable with those in the engine.
+
+Consider the following three related matrices.
+```{r}
+A = matrix(rnorm(6), 3, 2)  # 3 by 2 matrix
+x = matrix(rnorm(3))        # 3 by 1 matrix
+y = t(rnorm(2))             # 1 by 2 matrix
+```
+
+They relate together in that `A` and `x` have the same number of rows, and `A` and `y` have the same number of columns. Note that although they are dimensionally related, these three objects are of different shape in that `x` and `y` have only one column and row respectively, whereas `A` has more than one row and column.
+
+Because of these relationships we might naturally want to multiply every column of `A` by the column vector `x`, but in `R` we get the following error.
+```{r}
+try(A * x)
+```
+Here we define rigorously what convenient properties we expect of elementwise binary operators when all variables are matrices, and show how to convert elementwise binary operators in `R` into operators that have these properties.
+
+## Definition of an Elementwise Binary Operator in the C++ Engine
+
+Consider a generic binary operator, $\otimes$, that operates on two scalars to produce a third. We can overload this operator to take two matrices, $x$ and $y$, and return a third matrix, $z$.
+$$
+z = x \otimes y
+$$
+The elements of $z$ are given by the following expression.
+$$
+z_{i,j} = \cases{ \begin{array}{lll}
+  x_{i,j} \otimes y_{i,j} & \text{if } n(x) = n(y) & \text{and } m(x) = m(y) \\
+  x_{i,j} \otimes y_{i,1} & \text{if } n(x) = n(y) & \text{and } m(y) = 1 \\
+  x_{i,j} \otimes y_{1,j} & \text{if } n(y) = 1 & \text{and } m(x) = m(y) \\
+  x_{i,1} \otimes y_{i,j} & \text{if } n(x) = n(y) & \text{and } m(x) = 1 \\
+  x_{1,j} \otimes y_{i,j} & \text{if } n(x) = 1 & \text{and } m(x) = m(y) \\
+\end{array}}
+$$
+Where the functions $n()$ and $m()$ give the numbers of rows and columns respectively.
+
+## Forcing a Binary Operator in R to have these Properties
+
+We consider two matrix-valued operands, `x` and `y`, and a standard binary operator, `op` (e.g. `+`), in R.
+
+### Step 1
+
+If the operands have the same shape then just do the operation.
+```{r, eval=FALSE}
+eq = dim(x) == dim(y)
+if (all(eq)) return(op(x, y))
+```
+This works because most R numeric operations are vectorized anyways.
+
+### Step 2
+
+If `x` has either one row or one column, define the operation with the arguments swapped otherwise keep the operator unchanged.
+```{r, eval=FALSE}
+vec_x = any(dim(x) == 1L)
+op1 = op
+if (vec_x) op1 = function(x, y) op(y, x)
+```
+
+### Step 3
+
+Apply the [base-R `sweep` function](https://search.r-project.org/R/refmans/base/html/sweep.html), making sure that the most matrix-like operand comes first.
+```{r, eval=FALSE}
+if (any(eq) & vec_x) return(sweep(y, which(eq), x, op1))
+if (any(eq))         return(sweep(x, which(eq), y, op1))
+```
+
+### Implementation and Examples
+
+The `BinaryOperator` constructor uses this algorithm.
+```{r}
+times = BinaryOperator(`*`)
+pow = BinaryOperator(`^`)
+```
+
+Here are some examples.
+```{r}
+(A = matrix(1:6, 3, 2))
+(x = matrix(1:3, 3))
+(y = matrix(1:2, 1))
+times(A, x)
+pow(A, y)
+```
+
+If we tried to do these operations naively, the R engine would complain.
+```{r}
+try(A * x)
+try(A ^ y)
+```
+
+Note that this algorithm does the right thing for both commutative (e.g. `*`) and non-commutative (e.g. `^`) operators.
+```{r}
+identical(times(A, x), times(x, A))
+identical(pow(A, x), pow(x, A))
+```
