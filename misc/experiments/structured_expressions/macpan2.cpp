@@ -85,7 +85,7 @@ public:
         int row = 0
     )
     {
-        matrix<Type> m;
+        matrix<Type> m, m2;
         Type sum, s;
         int rows, cols, rowIndex, colIndex;
 
@@ -122,9 +122,12 @@ public:
                             }
                             else if (r[1].cols()==1) { // vector vs matrix or scalar vs vector
                                 m = r[1];
+                                std::cout << "m = " << m << std::endl;
                                 r[1] = r[0]; // for the shape
+                                std::cout << "r[1] = " << r[1] << std::endl;
                                 for (int i=0; i<r[1].cols(); i++)
                                     r[1].col(i) = m.col(0);
+                                std::cout << "r[1] = " << r[1] << std::endl;
                             }
                             else
                                 SetError(1, "The two operands do not have the same number of columns");
@@ -194,12 +197,14 @@ public:
                         #ifdef MP_VERBOSE
                             std::cout << r[0] << " .* " << r[1] << " = " << r[0].array()*r[1].array() << std::endl << std::endl;
                         #endif
-                        return r[0].array()*r[1].array();   // r[0].cwiseProduct(r[1]);
+                        //return r[0].array()*r[1].array();   // doesn't work
+                        return r[0].cwiseProduct(r[1]);
                     case 4: // /
                         #ifdef MP_VERBOSE
                             std::cout << r[0] << " ./ " << r[1] << " = " << r[0].array()/r[1].array() << std::endl << std::endl;
                         #endif
-                        return r[0].array()/r[1].array();   // r[0].cwiseQuotient(r[1]);
+                        // return r[0].array()/r[1].array();  // doesn't work 
+                        return r[0].cwiseQuotient(r[1]);
                     case 5: // ^
                         #ifdef MP_VERBOSE
                             std::cout << r[0] << " ^ " << r[1] << " = " << pow(r[0].array(), r[1].coeff(0,0)).matrix() << std::endl << std::endl;
@@ -224,12 +229,15 @@ public:
 
                         m.resize(rows, cols);
 
+                        // m2 = m.transpose(); // m = m.transpose() doesn't work !!!
+                        m2 = m;
+
                         #ifdef MP_VERBOSE
                             std::cout << "matrix(" << r[0] << ") reshaped into [" << rows << ", " << cols << "] = " \
-                                      << m << std::endl << std::endl;
+                                      << m2 << std::endl << std::endl;
                         #endif
 
-                        return m;
+                        return m2;
 
                     case 9: // %*%
                         #ifdef MP_VERBOSE
@@ -298,6 +306,8 @@ template<class Type>
 Type objective_function<Type>::operator() ()
 {
     std::cout << "============== objective_function =============" << std::endl;
+
+    std::setprecision(9); // Set the precision of std::cout
 
     // 1 Get all data and parameters from the R side
     // Parameters themselves
@@ -372,7 +382,7 @@ Type objective_function<Type>::operator() ()
     //DATA_IVECTOR(o_table_n)
     //DATA_IVECTOR(o_table_x)
     //DATA_IVECTOR(o_table_i)
-
+/*
     // 2 Replace some of elements of some matrices with parameters
     n = p_par_id.size();
     for (int i=0; i<n; i++)
@@ -381,7 +391,7 @@ Type objective_function<Type>::operator() ()
     n = r_par_id.size();
     for (int i=0; i<n; i++)
         mats.m_matrices[r_mat_id[i]].coeffRef(r_row_id[i], r_col_id[i]) = random[r_par_id[i]];
-
+*/
     //////////////////////////////////
     // Define an expression evaluator
     ExprEvaluator<Type> exprEvaluator;
@@ -429,11 +439,14 @@ Type objective_function<Type>::operator() ()
             );
 
             if (exprEvaluator.GetErrorCode()) return 0.0;
-            std::cout << "result = " << result << std::endl;
 
             mats.m_matrices[expr_output_id[expr_index+i]] = result;
 
             p_table_row2 += expr_num_p_table_rows[i];
+
+            int n = mats.m_matrices.size();
+            for (int ii = 0; ii < n; ii++)
+                std::cout << "mats = " << mats.m_matrices[ii] << std::endl;
         }
     }
     p_table_row = p_table_row2;
