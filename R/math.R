@@ -86,7 +86,12 @@ NumericMath = function() {
 
 MathOverrider = function(math_function, function_environment) {
   self = Base()
-  self$evaluate = math_function
+  self$math_function = math_function
+  self$evaluate = function(...) {
+    l = list(...)
+    l = lapply(l, force)
+    do.call(self$math_function, l)
+  }
   return_facade(self, function_environment, "MathOverrider")
 }
 
