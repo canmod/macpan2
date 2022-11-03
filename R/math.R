@@ -8,36 +8,36 @@
 
 SymbolicMath = function() {
   self = Base(baseenv())
-  wrap = function(x) {
+  self$wrap = function(x) {
     force(x)
     paste("(", x, ")", sep = "")
   }
-  csv = function(...) {
-    wrap(paste0(as.character(list(...)), collapse = ", "))
+  self$csv = function(...) {
+    self$wrap(paste0(as.character(list(...)), collapse = ", "))
   }
-  is_wrapped = function(x) {
+  self$is_wrapped = function(x) {
     force(x)
     x = str2lang(x)
     if (!is.symbol(x)) x = x[[1L]]
     x = as.character(x)
     x == "("
   }
-  fwrap = function(f, x) {
+  self$fwrap = function(f, x) {
     f = force(f)
     x = force(x)
-    if (is_wrapped(x)) return(paste(f, x, sep = ""))
+    if (self$is_wrapped(x)) return(paste(f, x, sep = ""))
     paste(f, "(", x, ")", sep = "")
   }
-  bwrap = function(x, i) {
+  self$bwrap = function(x, i) {
     x = force(x)
     i = force(i)
     paste(x, "[", i, "]", sep = "")
   }
-  binop = function(op, x, y) {
+  self$binop = function(op, x, y) {
     force(x)
     force(y)
     force(op)
-    wrap(paste(x, y, sep = op))
+    self$wrap(paste(x, y, sep = op))
   }
 
   ## 1. all functions in self take string (i.e. length-1 character vector)
@@ -54,25 +54,25 @@ SymbolicMath = function() {
   self$`+` = function(x, y) {
     force(x)
     force(y)
-    binop(" + ", x, y)
+    self$binop(" + ", x, y)
   }
-  self$`-` = function(x, y) binop(" - ", x, y)
-  self$`*` = function(x, y) binop(" * ", x, y)
+  self$`-` = function(x, y) self$binop(" - ", x, y)
+  self$`*` = function(x, y) self$binop(" * ", x, y)
   self$`/` = function(x, y) {
     force(x)
     force(y)
-    binop(" / ", x, y)
+    self$binop(" / ", x, y)
   }
-  self$`^` = function(x, y) binop(" ^ ", x, y)
-  self$`(` = function(x) wrap(x)
-  self$`c` = function(...) fwrap("c", csv(...))
-  self$`matrix` = function(x, i, j) fwrap("matrix", csv(x, i, j))
-  self$`%*%` = function(x, y) binop(" %*% ", x, y)
-  self$`sum` = function(...) fwrap("sum", csv(...))
-  self$`rep` = function(x, n) fwrap("rep", csv(x, n))
-  self$`rowSums` = function(x) fwrap("rowSums", x)
-  self$`colSums` = function(x) fwrap("colSums", x)
-  self$`[` = function(x, ...) bwrap(x, csv(...))
+  self$`^` = function(x, y) self$binop(" ^ ", x, y)
+  self$`(` = function(x) self$wrap(x)
+  self$`c` = function(...) self$fwrap("c", self$csv(...))
+  self$`matrix` = function(x, i, j) self$fwrap("matrix", self$csv(x, i, j))
+  self$`%*%` = function(x, y) self$binop(" %*% ", x, y)
+  self$`sum` = function(...) self$fwrap("sum", self$csv(...))
+  self$`rep` = function(x, n) self$fwrap("rep", self$csv(x, n))
+  self$`rowSums` = function(x) self$fwrap("rowSums", x)
+  self$`colSums` = function(x) self$fwrap("colSums", x)
+  self$`[` = function(x, ...) self$bwrap(x, self$csv(...))
   return_object(self, "SymbolicMath")
 }
 
