@@ -89,7 +89,9 @@ MathOverrider = function(math_function, function_environment) {
   self$math_function = math_function
   self$evaluate = function(...) {
     l = list(...)
-    l = lapply(l, force)
+    for (i in seq_along(l)) {
+      force(l[[i]])
+    }
     do.call(self$math_function, l)
   }
   return_facade(self, function_environment, "MathOverrider")
@@ -139,7 +141,7 @@ MathOverrider = function(math_function, function_environment) {
 #' @export
 MathExpressionFromFunc = function(math_function) {
   self = Base()
-  self$arguments = names(formals(args(math_function)))
+  self$arguments = force(names(formals(args(math_function))))
   self$numeric = MathOverrider(math_function, NumericMath())
   self$symbolic = MathOverrider(math_function, SymbolicMath())
   self$string = do.call(
