@@ -5,5 +5,9 @@
 <!-- badges: end -->
 
 ```
-remotes::github_install("canmod/macpan2")
+remotes::install_github("canmod/macpan2")
 ```
+
+https://canmod.net/misc/cpp_side
+https://canmod.net/misc/elementwise_binary_operators
+https://canmod.net/misc/composing_simulation_models
