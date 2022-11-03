@@ -7,7 +7,7 @@
 # as.character(unlist(list(c("a", "b"), "c")))
 
 SymbolicMath = function() {
-  self = Base(baseenv)
+  self = Base(baseenv())
   wrap = function(x) {
     force(x)
     paste("(", x, ")", sep = "")
@@ -81,6 +81,8 @@ NumericMath = function() {
   #self$`*` = BinaryOperator(`*`)
   return_object(self, "NumericMath")
 }
+
+#' @importFrom oor return_facade
 
 MathOverrider = function(math_function, function_environment) {
   self = Base()
