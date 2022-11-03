@@ -8,6 +8,8 @@
 remotes::install_github("canmod/macpan2")
 ```
 
-https://canmod.net/misc/cpp_side
-https://canmod.net/misc/elementwise_binary_operators
-https://canmod.net/misc/composing_simulation_models
+[Engine specs](https://canmod.net/misc/cpp_side)
+
+[Binary operator specs](https://canmod.net/misc/elementwise_binary_operators)
+
+[Notes on the composition of simulation models](https://canmod.net/misc/composing_simulation_models)
