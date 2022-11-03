@@ -6,8 +6,78 @@
 # csv(letters)
 # as.character(unlist(list(c("a", "b"), "c")))
 
+# SymbolicMath = function() {
+#   self = Base(baseenv())
+#   self$wrap = function(x) {
+#     force(x)
+#     paste("(", x, ")", sep = "")
+#   }
+#   self$csv = function(...) {
+#     self$wrap(paste0(as.character(list(...)), collapse = ", "))
+#   }
+#   self$is_wrapped = function(x) {
+#     force(x)
+#     x = str2lang(x)
+#     if (!is.symbol(x)) x = x[[1L]]
+#     x = as.character(x)
+#     x == "("
+#   }
+#   self$fwrap = function(f, x) {
+#     f = force(f)
+#     x = force(x)
+#     if (self$is_wrapped(x)) return(paste(f, x, sep = ""))
+#     paste(f, "(", x, ")", sep = "")
+#   }
+#   self$bwrap = function(x, i) {
+#     x = force(x)
+#     i = force(i)
+#     paste(x, "[", i, "]", sep = "")
+#   }
+#   self$binop = function(op, x, y) {
+#     force(x)
+#     force(y)
+#     force(op)
+#     self$wrap(paste(x, y, sep = op))
+#   }
+#
+#   ## 1. all functions in self take string (i.e. length-1 character vector)
+#   ## arguments and return strings
+#   ##
+#   ## OR
+#   ##
+#   ## 2. all functions in self take character vector arguments and return
+#   ## character vectors
+#   ##
+#   ## thinking that option #1 is best, because it is easier for me to
+#   ## think about scalars and i don't think that it should be an issue
+#   ## to package these things up into whatever vector/matrix we want
+#   self$`+` = function(x, y) {
+#     force(x)
+#     force(y)
+#     self$binop(" + ", x, y)
+#   }
+#   self$`-` = function(x, y) self$binop(" - ", x, y)
+#   self$`*` = function(x, y) self$binop(" * ", x, y)
+#   self$`/` = function(x, y) {
+#     force(x)
+#     force(y)
+#     self$binop(" / ", x, y)
+#   }
+#   self$`^` = function(x, y) self$binop(" ^ ", x, y)
+#   self$`(` = function(x) self$wrap(x)
+#   self$`c` = function(...) self$fwrap("c", self$csv(...))
+#   self$`matrix` = function(x, i, j) self$fwrap("matrix", self$csv(x, i, j))
+#   self$`%*%` = function(x, y) self$binop(" %*% ", x, y)
+#   self$`sum` = function(...) self$fwrap("sum", self$csv(...))
+#   self$`rep` = function(x, n) self$fwrap("rep", self$csv(x, n))
+#   self$`rowSums` = function(x) self$fwrap("rowSums", x)
+#   self$`colSums` = function(x) self$fwrap("colSums", x)
+#   self$`[` = function(x, ...) self$bwrap(x, self$csv(...))
+#   return_object(self, "SymbolicMath")
+# }
+
 SymbolicMath = function() {
-  self = Base(baseenv())
+  self = list()
   self$wrap = function(x) {
     force(x)
     paste("(", x, ")", sep = "")
@@ -73,7 +143,8 @@ SymbolicMath = function() {
   self$`rowSums` = function(x) self$fwrap("rowSums", x)
   self$`colSums` = function(x) self$fwrap("colSums", x)
   self$`[` = function(x, ...) self$bwrap(x, self$csv(...))
-  return_object(self, "SymbolicMath")
+  list2env(self)
+  #return_object(self, "SymbolicMath")
 }
 
 NumericMath = function() {
@@ -86,14 +157,15 @@ NumericMath = function() {
 
 MathOverrider = function(math_function, function_environment) {
   self = Base()
-  self$math_function = math_function
-  self$evaluate = function(...) {
-    l = list(...)
-    for (i in seq_along(l)) {
-      force(l[[i]])
-    }
-    do.call(self$math_function, l)
-  }
+  self$evaluate = math_function
+  # self$math_function = math_function
+  # self$evaluate = function(...) {
+  #   l = list(...)
+  #   for (i in seq_along(l)) {
+  #     force(l[[i]])
+  #   }
+  #   do.call(self$math_function, l)
+  # }
   return_facade(self, function_environment, "MathOverrider")
 }
 
@@ -144,6 +216,7 @@ MathExpressionFromFunc = function(math_function) {
   self$arguments = force(names(formals(args(math_function))))
   self$numeric = MathOverrider(math_function, NumericMath())
   self$symbolic = MathOverrider(math_function, SymbolicMath())
+  #environment(self$symbolic$evaluate) = list2env(as.list(environment()))
   self$string = do.call(
     self$symbolic$evaluate,
     as.list(self$arguments)
