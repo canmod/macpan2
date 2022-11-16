@@ -23,12 +23,12 @@ correct_answer = function() {
     foi = beta * state[2] / N
     ratemat = matrix(
       c(
-          0,   0,     0,
-          foi, 0,     0,
-          0,   gamma, 0
-      ), 3, 3
+          0, foi, 0,
+          0, 0,   gamma,
+          0, 0,   0
+      ), 3, 3, byrow = TRUE
     )
-    flowmat = sweep(ratemat, 2, state, "*")
+    flowmat = sweep(ratemat, 1, state, "*")
     state = state - rowSums(flowmat) + colSums(flowmat)
     state_hist = c(state_hist, list(as.matrix(state)))
     N_hist = c(N_hist, list(as.matrix(N)))
@@ -242,3 +242,53 @@ correct_answer()  ## expected result
 
 print("actual answer ...")
 tmb_output = try(tmb_function$report())  ## actual result
+
+#  correct_answer()
+# $state
+# $state[[1]]
+#      [,1]
+# [1,] 0.99
+# [2,] 0.01
+# [3,] 0.00
+#
+# $state[[2]]
+#         [,1]
+# [1,] 0.98703
+# [2,] 0.01097
+# [3,] 0.00200
+#
+# $state[[3]]
+#            [,1]
+# [1,] 0.98378168
+# [2,] 0.01202432
+# [3,] 0.00419400
+#
+#
+# $N
+# $N[[1]]
+#      [,1]
+# [1,]    1
+#
+# $N[[2]]
+#      [,1]
+# [1,]    1
+#
+# $N[[3]]
+#      [,1]
+# [1,]    1
+#
+#
+# $foi
+# $foi[[1]]
+#      [,1]
+# [1,]    0
+#
+# $foi[[2]]
+#       [,1]
+# [1,] 0.003
+#
+# $foi[[3]]
+#          [,1]
+# [1,] 0.003291
+#
+#
