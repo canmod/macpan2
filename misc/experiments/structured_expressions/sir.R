@@ -4,11 +4,10 @@ library(TMB)
 compile('macpan2.cpp')
 dyn.load(dynlib("macpan2"))
 
-correct_answer = function() {
+correct_answer = function(beta = 0.3) {
 
   ## matrices
   state = c(1 - 1e-2, 1e-2, 0)
-  beta = 0.3
   gamma = 0.2
   N = 1
   foi = 0
@@ -177,7 +176,7 @@ mats_config = list(
 )
 
 params = c(0.3)
-random = c(0.0) # numeric(0L)
+random = numeric(0L)
 
 params_index = list(
   p_par_id = 0,
@@ -187,10 +186,10 @@ params_index = list(
 )
 
 random_index = list(
-  r_par_id = 0, #integer(0L),
-  r_mat_id = 0, #integer(0L),
-  r_row_id = 0, #integer(0L),
-  r_col_id = 0  #integer(0L)
+  r_par_id = integer(0L),
+  r_mat_id = integer(0L),
+  r_row_id = integer(0L),
+  r_col_id = integer(0L)
 )
 
 time_steps = c(2) #2L
@@ -242,6 +241,11 @@ correct_answer()  ## expected result
 
 print("actual answer ...")
 tmb_output = try(tmb_function$report())  ## actual result
+
+
+correct_answer(0.1)
+tmb_function$report(0.1)
+
 
 #  correct_answer()
 # $state
