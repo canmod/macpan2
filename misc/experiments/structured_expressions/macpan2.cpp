@@ -493,6 +493,7 @@ Type objective_function<Type>::operator() ()
 
     simulation_history[time_steps+1] = mats;
 
+#ifdef MP_VERBOSE
     std::cout << "Simulation history ..." << std::endl;
     int m = simulation_history.size();
     for (int t=0; t<m; t++) {
@@ -502,8 +503,31 @@ Type objective_function<Type>::operator() ()
         for (int i = 0; i < n; i++)
             std::cout << "mats = " << mats.m_matrices[i] << std::endl;
     }
+#endif
 
-    // 6 Calc the return of the objective function
+    // 6 Report either the post-simulation matrices or the entire simulation history of matrices
+    // NOTE: The following code section has an issue --- each REPORT overwrite its predecessor so 
+    //       only the last one survives in the end. 
+    // TMB allows of multiple REPORTs, but they must
+    // have different variable names (need to talk with Steve about the names of these variables) 
+    for (int i=0; i<mats_return.size(); i++) {
+        if (mats_return[i]==1) {
+            if (mats_save_hist[i]==0) { // Report the last one
+                REPORT(mats.m_matrices[i]);
+            }
+            else { // Report the whole simulation history
+                int hist_len = time_steps+2;
+                int nRows = mats.m_matrices[i].rows();
+                int nCols = mats.m_matrices[i].cols();
+                matrix<Type> hist(nRows, hist_len*nCols);
+                for (int k=0; k<hist_len; k++)
+                    hist.block(0, k*nCols, nRows, nCols) = simulation_history[k].m_matrices[i];
+                REPORT(hist);
+            }
+        }
+    }
+
+    // 7 Calc the return of the objective function
 
     return 0.0;
 
