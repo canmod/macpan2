@@ -146,7 +146,7 @@ expr_index = list(
     1L,
     which
   ) - 1L,
-  expr_sim_block = rep(-1L, length(parse_tables)),
+  expr_sim_block = rep(0L, length(parse_tables)),
   expr_num_p_table_rows = vapply(
     parse_tables,
     nrow,
