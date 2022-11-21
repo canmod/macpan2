@@ -56,6 +56,20 @@ struct ListOfMatrices {
             m_matrices[i] = asMatrix<Type>(VECTOR_ELT(ii, i));
         }
     }
+
+    ListOfMatrices() { // Default Constructor
+    }
+
+    // Copy constructor 
+    ListOfMatrices(const ListOfMatrices& another) {
+        m_matrices = another.m_matrices;
+    }
+    
+    // Overload assign operator
+    ListOfMatrices & operator=(const ListOfMatrices& another) {
+        m_matrices = another.m_matrices;
+        return *this;
+    }
 };
 
 template<class Type>
@@ -382,7 +396,7 @@ Type objective_function<Type>::operator() ()
     //DATA_IVECTOR(o_table_n)
     //DATA_IVECTOR(o_table_x)
     //DATA_IVECTOR(o_table_i)
-/*
+
     // 2 Replace some of elements of some matrices with parameters
     n = p_par_id.size();
     for (int i=0; i<n; i++)
@@ -391,11 +405,14 @@ Type objective_function<Type>::operator() ()
     n = r_par_id.size();
     for (int i=0; i<n; i++)
         mats.m_matrices[r_mat_id[i]].coeffRef(r_row_id[i], r_col_id[i]) = random[r_par_id[i]];
-*/
+
     //////////////////////////////////
     // Define an expression evaluator
     ExprEvaluator<Type> exprEvaluator;
     //////////////////////////////////
+
+    // Simulation history
+    vector<ListOfMatrices<Type> > simulation_history(time_steps+2);
 
     // 3 Pre-simulation
     int expr_index = 0;
@@ -419,6 +436,7 @@ Type objective_function<Type>::operator() ()
         p_table_row += expr_num_p_table_rows[i];
     }
         
+    simulation_history[0] = mats;
 
     // 4 During simulation
     expr_index += eval_schedule[0];
@@ -448,13 +466,68 @@ Type objective_function<Type>::operator() ()
             for (int ii = 0; ii < n; ii++)
                 std::cout << "mats = " << mats.m_matrices[ii] << std::endl;
         }
+        simulation_history[k+1] = mats;
     }
     p_table_row = p_table_row2;
 
     // 5 Post-simulation
     expr_index += eval_schedule[1];
 
-    // 6 Calc the return of the objective function
+    for (int i=0; i<eval_schedule[2]; i++) {
+       std::cout << "in post-simulation --- " << i << std::endl;
+        matrix<Type> result = exprEvaluator.EvalExpr(
+            p_table_x,
+            p_table_n,
+            p_table_i,
+            mats,
+            literals,
+            p_table_row
+        );
+
+        if (exprEvaluator.GetErrorCode()) return 0.0;
+
+        mats.m_matrices[expr_output_id[expr_index+i]] = result;
+
+        p_table_row += expr_num_p_table_rows[i];
+    }
+
+    simulation_history[time_steps+1] = mats;
+
+#ifdef MP_VERBOSE
+    std::cout << "Simulation history ..." << std::endl;
+    int m = simulation_history.size();
+    for (int t=0; t<m; t++) {
+        std::cout << "----- t = " << t << std::endl;
+        ListOfMatrices<Type> mats = simulation_history[t];
+        int n = mats.m_matrices.size();
+        for (int i = 0; i < n; i++)
+            std::cout << "mats = " << mats.m_matrices[i] << std::endl;
+    }
+#endif
+
+    // 6 Report either the post-simulation matrices or the entire simulation history of matrices
+    // NOTE: The following code section has an issue --- each REPORT overwrite its predecessor so 
+    //       only the last one survives in the end. 
+    // TMB allows of multiple REPORTs, but they must
+    // have different variable names (need to talk with Steve about the names of these variables) 
+    for (int i=0; i<mats_return.size(); i++) {
+        if (mats_return[i]==1) {
+            if (mats_save_hist[i]==0) { // Report the last one
+                REPORT(mats.m_matrices[i]);
+            }
+            else { // Report the whole simulation history
+                int hist_len = time_steps+2;
+                int nRows = mats.m_matrices[i].rows();
+                int nCols = mats.m_matrices[i].cols();
+                matrix<Type> hist(nRows, hist_len*nCols);
+                for (int k=0; k<hist_len; k++)
+                    hist.block(0, k*nCols, nRows, nCols) = simulation_history[k].m_matrices[i];
+                REPORT(hist);
+            }
+        }
+    }
+
+    // 7 Calc the return of the objective function
 
     return 0.0;
 
