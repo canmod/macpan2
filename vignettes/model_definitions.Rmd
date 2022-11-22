@@ -63,54 +63,56 @@ The `variables` component is a data frame with one row for each variable in the 
 For example, here is a standard SEIR model list of variables.
 
 ```{r, echo = FALSE}
-data.frame(epi = c("S", "E", "I", "R", "beta", "alpha", "gamma"))
+data.frame(Epi = c("S", "E", "I", "R", "beta", "alpha", "gamma"))
 ```
 
-This example has a single labelled partition, `epi`. This partition uniquely identifies each variable and so we do not need other partitions to comply with the uniqueness requirement.  Still, it is often convenient to add other partitions to refer to multiple variables at the same time. For example it might help to distinguish between state variables and parameters and also between infected states and non-infected states.
+This example has a single labelled partition, `Epi`. This partition uniquely identifies each variable and so we do not need other partitions to comply with the uniqueness requirement.  Still, it is often convenient to add other partitions to refer to multiple variables at the same time. For example it might help to distinguish between state variables and parameters and also between infected states and non-infected states.
 
 ```{r, echo = FALSE}
 data.frame(
-  type = c(
+  Type = c(
     rep("state", 4), 
     rep("param", 3)
   ),
-  infect = c(
+  Infect = c(
     "not_infected", "infected", "infected", "not_infected", 
     "", "", ""
   ),
-  epi = c(
+  Epi = c(
     "S", "E", "I", "R", 
     "beta", "alpha", "gamma"
   )
 )
 ```
 
-We emphasize that the list with the single `epi` partition did not violate this spec, as it is not required to add a partition to make a distinction between state variables and parameters. The spec makes this distinction in the [Edge Variables and Flow Rates] component. In this example, the addition of the `type` and `infect` partitions are for convenience. The point is that the user is free to add any number of partitions even if they are not required for uniqueness.
+We emphasize that the list with the single `Epi` partition did not violate this spec, as it is not required to add a partition to make a distinction between state variables and parameters. The spec makes this distinction in the [Edge Variables and Flow Rates] component. In this example, the addition of the `Type` and `Infect` partitions are for convenience. The point is that the user is free to add any number of partitions even if they are not required for uniqueness.
 
-Non-empty labels must contain only letters, numbers, underscores, and must start with a letter. Empty labels are zero-length strings that can be used to indicate that some partitions are over a subset of the variables. The purpose for these naming rules is to facilitate the construction of [Variable Names] that can be inverted to reproduce the `variables` list.
+Non-empty labels must contain only letters, numbers, underscores, and must start with a letter. Empty labels are zero-length strings that can be used to indicate that some partitions are not applicable to some variables. The purpose for these naming rules is to facilitate the construction of [Variable Names] that can be inverted to reproduce the `variables` list.
 
-There is a component, `settings$necessary_partitions`, which is a character vector of the names of the partitions that are used to uniquely identify each variable. In the previous example with `type`, `infect`, and `epi` partitions we have `settings$necessary_partitions = "epi"`. We refer to the labels associated with necessary partitions as necessary labels. Every variable must have at least one non-empty necessary label. The necessary partitions are used to generate [Variable Names].
+By convention we use [UpperCamelCase](https://en.wikipedia.org/wiki/Camel_case) for partition names and a modified form of  [snake_case](https://en.wikipedia.org/wiki/Snake_case) for labels. Our modification of snake case allows for single uppercase letters in order to accommodate the convension in epidemiology for using single uppercase letters to refer to state variables. For example, `S`, `I`, and `R`, as well as `I_mild` and `I_severe`, would be consistent with our modified snake case style.
+
+There is a component, `settings$necessary_partitions`, which is a character vector of the names of the partitions that are used to uniquely identify each variable. In the previous example with `Type`, `Infect`, and `Epi` partitions we have `settings$necessary_partitions = "Epi"`. We refer to the labels associated with necessary partitions as necessary labels. Every variable must have at least one non-empty necessary label. The necessary partitions are used to generate [Variable Names].
 
 
 ## Atomic and Non-Atomic Models
 
-We refer to models with exactly one necessary partition as atomic. One may combine two atomic models to get another model with two necessary labelled partitions. We will not be precise about how to combine models, as this document focuses on data structure specifications. Instead we describe simple examples to build an intuition for defining a data structure that will be expressive enough to represent many different combinations of models.
-
-An example combination of atomic models is the SEIR model stratified by the states of an atomic vaccination model with the following required partition.
+We refer to models with exactly one necessary partition as atomic. One may combine two atomic models to get another model with two necessary labelled partitions. An example combination of atomic models is the SEIR model stratified by the states of an atomic vaccination model with necessary partition, `Vax`.
 
 ```{r, echo = FALSE}
-data.frame(vax = c("unvax", "vax", "dose_rate"))
+Vax = data.frame(Vax = c("unvax", "vax", "dose_rate"))
+Vax
 ```
 
 In this atomic model `unvax` and `vax` are state variables representing the numbers of individuals who are unvaccinated and vaccinated. The `dose_rate` variable is a parameter giving the proportion of unvaccinated individuals who receive a vaccination each day.
 
-We combine these two atomic models to produce a non-atomic model with the following necessary partitions.
+We combine these two atomic models to produce a non-atomic model with necessary partitions, `Epi` and `Vax`.
 
 ```{r, echo = FALSE}
-data.frame(
-  epi = c(rep(c("S", "E", "I", "R", "beta"), 2), "alpha", "gamma", ""),
-  vax = c(rep(c("unvax", "vax"), each = 5), "", "", "dose_rate")
+seir_vax = data.frame(
+  Epi = c(rep(c("S", "E", "I", "R", "beta"), 2), "alpha", "gamma", ""),
+  Vax = c(rep(c("unvax", "vax"), each = 5), "", "", "dose_rate")
 )
+seir_vax
 ```
 
 Note here that the state variables, `S`, `E`, `I`, and `R`, as well as the transmission rate, `beta`, are stratified by vaccination status, but the latency and recovery parameters, `alpha` and `gamma`, are not stratified indicating that latency and recovery is not influenced by vaccination status. Similarly the `dose_rate` is also not stratified by epidemiological state.
@@ -124,8 +126,6 @@ data.frame(
   vax = c(rep(c("unvax", "vax"), each = 6), "", "", "", "dose_rate")
 )
 ```
-
-The label `"all"` is not allowed, as it has a special meaning described below.  (TODO -- verify that "all" should not be a part of the spec, but rather a conventional use of derived variables)
 
 Note that we do not provide a column for the numeric quantity of each variable because this document is about defining model structure. By working with pure model structure objects, we can combine different atomic models to more easily produce models with more structure. When it comes time to use a model, the [computational engine](https://canmod.net/misc/cpp_side) can be used to associate model variables with numerical quantities.
 
