@@ -125,11 +125,12 @@ Note here that the state variables, `S`, `E`, `I`, and `R`, as well as the trans
 Consider one more example with different symptomatic statuses, where infectious individuals have either mild or severe symptoms and these different statuses recover at different rates.
 
 ```{r, echo = FALSE}
-data.frame(
+EpiSympVax = data.frame(
   Epi = c(rep(c("S", "E", "I", "I", "R", "beta"), 2), "alpha", "gamma", "gamma", ""),
   Symp = c(rep(c("", "", "mild", "severe", "", ""), 2), "", "mild", "severe", ""),
   Vax = c(rep(c("unvax", "vax"), each = 6), "", "", "", "dose_rate")
 )
+EpiSympVax
 ```
 
 
@@ -183,15 +184,15 @@ In this section we describe a data structure for representing mathematical expre
 
 Each derived variable must be represented by a row in the `variables` list. Derived variables are distinguished from input variables by being associated with an element in a list, `derivations`. This list contains objects that describe how to compute each derived variable. Each object contains the following components.
 
-* `group_partition` [optional] -- The name of a partition set to use for filtering and grouping the variables so that (1) only a subset of variables are utilized in order to produce the derived variables and (2) a set of derived variables can be produced at the same time by producing one derived variable per group. When `group_partition` is `NULL` or missing, All variables are potentially utilized by a single derived variable.
-* `group_names` [required if `group_partition` is neither `NULL` nor missing] -- A vector of variable names with respect to the `group_partition`, each of which will define a single group. The `group_names` also determine the labels of variables that distinguish groups from each other. There are three use cases.
-    * `group_names` and `group_partition` are both `NULL` and/or missing -- All variables are potentially utilized by a single derived variable
+* `group_partition` [optional] -- The name of a partition set to use for filtering and grouping the variables so that (1) only a subset of variables are utilized in order to produce the derived variables and (2) a set of derived variables can be produced at the same time by producing one derived variable per group. When `group_partition` is missing, all variables are potentially utilized by a single derived variable.
+* `group_names` [required if `group_partition` is not missing] -- A vector of variable names with respect to the `group_partition`, each of which will define a single group. The `group_names` also determine the labels of variables that distinguish groups from each other. There are three use cases.
+    * `group_names` and `group_partition` are both missing -- All variables are potentially utilized by a single derived variable
     * `length(group_names) == 1L` -- A filtered subset of variables get utilized by a single derived variable
     * `length(group_names) == n` -- The variables in each of `n` groups are used to produce one of `n` derived variables
 * `output_partition` [required] -- The name of a partition set to use for declaring the labels of the derived variables within each group (see `group_partition` and `group_names` for producing one derived variable per group). 
-* `output_names` [required] -- A vector of variable names with respect to the `output_partition`, each of which will determine the labels associated with the `output_partition` of each derived variable within its group. If `group_names` are `NULL` then `output_names` must be a single variable name with respect to the `output_partition` for determining the labels for the derived variable. Otherwise, the `i`th element of `output_names` determines the labels for the derived variable produced by the `i`th element of `group_names`.
+* `output_names` [required] -- A vector of variable names with respect to the `output_partition`, each of which will determine the labels associated with the `output_partition` of each derived variable within its group. If `group_names` are missing then `output_names` must be a single variable name with respect to the `output_partition` for determining the labels for the derived variable. Otherwise, the `i`th element of `output_names` determines the labels for the derived variable produced by the `i`th element of `group_names`.
 * `input_partition` [required] -- The name of a partition set to use for matching variables to arguments in the `math_function`. Every variable name with respect to the `input_partition` must be both unique and exist within each group.
-* `input_names_dots` [optional] -- A vector of variable names with respect to the `input_partition` for finding variables to pass to a `...` argument in `math_function`, if it exists.
+* `input_names_dots` [required if `math_function` has a `...` argument] -- A vector of variable names with respect to the `input_partition` for finding variables to pass to a `...` argument in `math_function`, if it exists.
 * `math_function` [required] -- A mathematical function for producing one derived variable per group. The names of the arguments of this function are a subset of variable names with respect to the `input_partition` and optionally a `...` argument.
 
 The spec for this component will be hard to understand on first reading. To understand it better we provide several examples designed to justify and clarify the description in the above bullet list.
@@ -203,8 +204,6 @@ Epi
 The force of infection for this model can be represented as follows.
 ```{r eval = FALSE}
 list(
-  group_partition = NULL,
-  group_names = NULL,
   output_partition = "Epi",
   output_names = "foi",
   input_partition = "Epi",
@@ -213,7 +212,7 @@ list(
   }
 )
 ```
-Because this is an [atomic model](#atomic-and-non-atomic-models), we do not need to specify `group_partition` or `group_names`. Again because this is a simple atomic example, by specifying `output_partition = "Epi"` and `output_names "foi"`, we are really just saying that the name of the output variable is `"foi"`. More technically we would say that the derived variable will have the label `"foi"` in the `"Epi"` partition. The `input_partition` and `math_function` go together. The `math_function` describes how to compute the derived variable, `foi`, in terms of other variables. The `input_partition` gives the name of a [partition set](#partition-sets) to use for matching model variables to the arguments of this function. For example, the argument list contains `S`, which is a label in the `Epi` partition set.
+Because this is an [atomic model](#atomic-and-non-atomic-models), by specifying `output_partition = "Epi"` and `output_names "foi"`, we are really just saying that the name of the output variable is `"foi"`. More technically we would say that the derived variable will have the label `"foi"` in the `"Epi"` partition. The `input_partition` and `math_function` go together. The `math_function` describes how to compute the derived variable, `foi`, in terms of other variables. The `input_partition` gives the name of a [partition set](#partition-sets) to use for matching model variables to the arguments of this function. For example, the argument list contains `S`, which is a label in the `Epi` partition set.
 
 This description may seem unnecessarily complex, but it is useful for representing more complex models as we will see. Also remember that this is a spec for a data structure and not a user interface -- it is likely that a user interface for specifying this component would make it much simpler to do so.
 
@@ -224,7 +223,7 @@ seir_vax = data.frame(
   Location = c(rep(c("montreal", "toronto"), each = 5), "", "", "dose_rate")
 )
 ```
-In this new model, the functional form of the force of infection remains constant and we simply update some of the [partition sets and variable names](#partition-sets).
+In this new model, the functional form of the force of infection remains constant and we simply update and add some of the [partition sets and variable names](#partition-sets).
 ```{r eval = FALSE}
 list(
   group_partition = "Location",
@@ -237,12 +236,25 @@ list(
 ```
 This will define expressions to produce derived variables called `foi.montreal` and `foi.toronto`. To get this list we did the following.
 
-1. Add geographical grouping information to specify how to stratify the force of infection.
+1. Added geographical grouping information to specify how to stratify the force of infection.
 2. Repeat the entry in `output_names` once for each location.
 
-For some model products it is not appropriate ...
-
-To complete the model product the user may choose to add a derived variable that takes the sum of all of the `epi == "foi"` variables.
+This model product assumes that individuals in Toronto cannot be infected by individuals in Montreal. This is a reasonable assumption for this spatial stratification, but in models where the stratification does not isolate compartments from each other we need to add an additional derived variable that sums the force of infection components over the strata. Consider for example the SEIR model stratified by vaccination status.
+```{r echo = FALSE}
+seir_vax
+```
+We can compute the force of infection components just as we did for the spatial model.
+```{r eval = FALSE}
+list(
+  group_partition = "Vax",
+  group_names = c("unvax", "vax"),
+  output_partition = "Epi",
+  output_names = c("foi", "foi"),
+  input_partition = "Epi",
+  math_function = function(S, E, I, R, beta) I * beta / sum(S, E, I, R)
+)
+```
+But to complete the model product we must add a derived variable that takes the sum of all of the `Epi == "foi"` variables.
 ```{r eval = FALSE}
 list(
   grouping_partition = NULL,
@@ -254,7 +266,12 @@ list(
   math_function = function(...) sum(...)
 )
 ```
-This will produce a single derived variable called `foi.total`, which can be used for so-called Worden-Porco modified products. To do a Worden-Porco naive product the individual components, `foi.vax` and `foi.unvax` could be used. The naive product would make more sense in a spatial model where `foi.toronto` and `foi.montreal` should be used separately to govern the rate of infection within each city. In general, the modified product is more appropriate when strata are isolated from each other and the naive product makes more sense when they are isolated.
+This will produce a single derived variable called `foi.total`, which can be used as the force of infection for all vaccination strata.
+
+There are other operations on model space besides model products. Another such operation is to convert a single compartment into several compartments. An example of this operation is breaking the infectious compartment into several symptomatic states.
+```{r echo = FALSE}
+EpiSympVax
+```
 
 ```{r eval = FALSE}
 list(
