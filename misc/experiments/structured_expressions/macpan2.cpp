@@ -419,15 +419,29 @@ Type objective_function<Type>::operator() ()
     int p_table_row = 0;
 
     for (int i=0; i<eval_schedule[0]; i++) {
-       std::cout << "in pre-simulation --- " << i << std::endl;
-        matrix<Type> result = exprEvaluator.EvalExpr(
-            p_table_x,
-            p_table_n,
-            p_table_i,
-            mats,
-            literals,
-            p_table_row
-        );
+        std::cout << "in pre-simulation --- " << i << std::endl;
+        matrix<Type> result;
+        if (expr_sim_block[i]==1) {
+            SIMULATE {
+                result  = exprEvaluator.EvalExpr(
+                    p_table_x,
+                    p_table_n,
+                    p_table_i,
+                    mats,
+                    literals,
+                    p_table_row
+                );
+            }
+        }
+        else 
+            result  = exprEvaluator.EvalExpr(
+                p_table_x,
+                p_table_n,
+                p_table_i,
+                mats,
+                literals,
+                p_table_row
+            );
 
         if (exprEvaluator.GetErrorCode()) return 0.0;
 
@@ -447,14 +461,28 @@ Type objective_function<Type>::operator() ()
         std::cout << "simulation step --- " << k << std::endl;
         for (int i=0; i<eval_schedule[1]; i++) {
             std::cout << "Eval expression --- " << i << std::endl;
-            matrix<Type> result = exprEvaluator.EvalExpr(
-                p_table_x,
-                p_table_n,
-                p_table_i,
-                mats,
-                literals,
-                p_table_row2
-            );
+            matrix<Type> result;
+            if (expr_sim_block[i]==1) {
+                SIMULATE {
+                    result = exprEvaluator.EvalExpr(
+                        p_table_x,
+                        p_table_n,
+                        p_table_i,
+                        mats,
+                        literals,
+                        p_table_row2
+                   );
+                }
+            }
+            else 
+                result = exprEvaluator.EvalExpr(
+                    p_table_x,
+                    p_table_n,
+                    p_table_i,
+                    mats,
+                    literals,
+                    p_table_row2
+               );
 
             if (exprEvaluator.GetErrorCode()) return 0.0;
 
@@ -474,15 +502,29 @@ Type objective_function<Type>::operator() ()
     expr_index += eval_schedule[1];
 
     for (int i=0; i<eval_schedule[2]; i++) {
-       std::cout << "in post-simulation --- " << i << std::endl;
-        matrix<Type> result = exprEvaluator.EvalExpr(
-            p_table_x,
-            p_table_n,
-            p_table_i,
-            mats,
-            literals,
-            p_table_row
-        );
+        std::cout << "in post-simulation --- " << i << std::endl;
+        matrix<Type> result;
+        if (expr_sim_block[i]==1) {
+            SIMULATE {
+                result = exprEvaluator.EvalExpr(
+                    p_table_x,
+                    p_table_n,
+                    p_table_i,
+                    mats,
+                    literals,
+                    p_table_row
+                );
+            }
+        }
+        else
+            result  = exprEvaluator.EvalExpr(
+                p_table_x,
+                p_table_n,
+                p_table_i,
+                mats,
+                literals,
+                p_table_row
+            );
 
         if (exprEvaluator.GetErrorCode()) return 0.0;
 
