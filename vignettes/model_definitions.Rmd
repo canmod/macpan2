@@ -388,10 +388,11 @@ Notice that all state variables appear in this table, and that it contains no pa
 A more interesting example is the following `Epi`-by-`Vax` model.
 
 ```{r, echo = FALSE}
-seir_vax = data.frame(
+sir_vax = data.frame(
   Epi = c(rep(c("S", "I", "R", "beta"), 2), "alpha", "gamma", "foi", ""),
   Vax = c(rep(c("unvax", "vax"), each = 4), "", "", "", "dose_rate")
 )
+sir_vax
 ```
 ```{r, echo = FALSE}
 data.frame(
@@ -400,7 +401,8 @@ data.frame(
   flow_component = c(
     rep(c("foi.total", "gamma."), 2L),
     rep(".dose_rate", 3L)
-  )
+  ),
+  component_type = "rate"
 )
 ```
 
