@@ -21,9 +21,19 @@ knitr::opts_chunk$set(
 
 This document assumes knowledge of compartmental epidemic models, as we will not be defining terms and symbols that we consider to be widely understood by mathematical epidemiologists.
 
+## Compartmental Model
+
+A compartmental model is a named list of the following three components.
+
+1. `variables` -- A data frame describing the variables in the model.
+2. `derivations` -- A list of instructions on how to update the `variables` at each iteration of a model simulation.
+3. `flows` -- A data frame describing what variables are state variables and the magnitude of flows to and from compartments.
+
+The following sections describe each of these components in more detail.
+
 ## Variables, Partitions, and Atomic Models
 
-Compartmental models in McMasterPandemic are defined by a set of components. The `variables` component is a data frame with one row for each variable in the model and one column for each labelled partition of the variables. A labelled partition is a character vector of labels that describes the variables. Each row of this data frame must be unique so that it uniquely identifies each variable.
+The `variables` component is a data frame with one row for each variable in the model and one column for each labelled partition of the variables. A labelled partition is a character vector of labels that describes the variables. Each row of this data frame must be unique so that it uniquely identifies each variable.
 
 For example, here is a standard SEIR model list of variables.
 
