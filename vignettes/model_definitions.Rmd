@@ -21,6 +21,30 @@ knitr::opts_chunk$set(
 
 This document assumes knowledge of compartmental epidemic models. We will not be defining terms and symbols that we consider to be widely understood by mathematical epidemiologists.
 
+## Document Goals
+
+This document describes a specification for a data structure to represent compartmental models. The goal of this document is not to define a spec for a user interface for constructing compartmental models. Instead, we define the data structure here so that interfaces for creating instances of compartmental models can be designed without needing to grapple with issues of how to represent and store model definitions.
+
+## User Stories
+
+This spec design has been guided by several high-level user stories, which we outline briefly.
+
+> As a modeller, I want to use software that provides an
+> extensive set of modelling capabilities, so that I can
+> address specific and changing public health needs.
+
+> As a modeller, I want to build complex models out of
+> simpler -- easier to understand -- modular sub-models,
+> so that I can more easily modify the structure of my
+> model as public health needs change.
+
+> As a developer, I want to be able to quickly add a new
+> modelling capability, so that I can support public
+> health modellers in as timely a manner as possible.
+
+These and other [user-stories](https://canmod.github.io/macpan-book/index.html#vision-and-direction) were developed by working with public-health modellers during the COVID-19 pandemic in Canada.
+
+
 ## Compartmental Models
 
 A compartmental model is a named list of the following three components.
@@ -70,7 +94,7 @@ There is a component, `settings$necessary_partitions`, which is a character vect
 
 ## Atomic and Non-Atomic Models
 
-We refer to models with exactly one necessary partition as atomic models. One may combine two atomic models to get another model with two labelled partitions. We will not be precise about how to combine models, as this document focuses on data structure specifications. Instead we describe simple examples to build an intuition for defining a data structure that will be expressive enough to represent many different combinations of models.
+We refer to models with exactly one necessary partition as atomic. One may combine two atomic models to get another model with two necessary labelled partitions. We will not be precise about how to combine models, as this document focuses on data structure specifications. Instead we describe simple examples to build an intuition for defining a data structure that will be expressive enough to represent many different combinations of models.
 
 An example combination of atomic models is the SEIR model stratified by the states of an atomic vaccination model with the following required partition.
 
