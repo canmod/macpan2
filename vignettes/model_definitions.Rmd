@@ -52,7 +52,7 @@ A compartmental model is a named list of the following three components.
 1. `variables` -- A data frame describing the variables in the model.
 2. `derivations` -- A list of instructions on how to update the `variables` at each iteration of a model simulation.
 3. `flows` -- A data frame describing what variables are state variables and the magnitudes of flows to and from compartments.
-4. `settings` -- A named list of elements the determine how components 1-3 are used by the software.
+4. `settings` -- A named list of elements that determine how components 1-3 are used by the software.
 
 The following sections describe each of these components in more detail.
 
@@ -171,7 +171,7 @@ m$Epi.Vax = paste(m$Epi, m$Vax, sep = ".")
 m
 ```
 
-The ability to refer to multiple variables with a single name is useful in many circumstances. Typically such non-unique names are unique within groups of variables. For example, `Epi.Symp == `"I.mild"` is unique within `Vax == "vax"` and within `Vax == "unvax"`.
+The ability to refer to multiple variables with a single name is useful in many circumstances. Typically such non-unique names are unique within groups of variables. For example, `Epi.Symp == "I.mild"` is unique within `Vax == "vax"` and within `Vax == "unvax"`.
 
 As the examples above have illustrated, the name of a partition set is the dot-delimited concatenation of the names of the partitions in the set. For example, `Epi.Symp` is the name of the partition set containing the `Epi` and `Symp` partitions.
 
