@@ -87,11 +87,15 @@ data.frame(
 
 We emphasize that the list with the single `Epi` partition did not violate this spec, as it is not required to add a partition to make a distinction between state variables and parameters. The spec makes this distinction in the [Edge Variables and Flow Rates] component. In this example, the addition of the `Type` and `Infect` partitions are for convenience. The point is that the user is free to add any number of partitions even if they are not required for uniqueness.
 
+Note that we do not provide a column for the numeric quantity of each variable because this is a spec for a compartmental model data structure. By working with pure model structure objects, we can combine different atomic models to more easily produce models with more structure. When it comes time to use a model, the [computational engine](https://canmod.net/misc/cpp_side) can be used to associate model variables with numerical quantities.
+
 Non-empty labels must contain only letters, numbers, underscores, and must start with a letter. Empty labels are zero-length strings that can be used to indicate that some partitions are not applicable to some variables. The purpose for these naming rules is to facilitate the construction of [Variable Names] that can be inverted to reproduce the `variables` list.
 
 By convention we use [UpperCamelCase](https://en.wikipedia.org/wiki/Camel_case) for partition names and a modified form of  [snake_case](https://en.wikipedia.org/wiki/Snake_case) for labels. Our modification of snake case allows for single uppercase letters in order to accommodate the convention in epidemiology for using single uppercase letters to refer to state variables. For example, `S`, `I`, and `R`, as well as `I_mild` and `I_severe`, would be consistent with our modified snake case style.
 
-There is a component, `settings$required_partitions`, which is a character vector of the names of the partitions that are used to uniquely identify each variable. In the previous example with `Type`, `Infect`, and `Epi` partitions we have `settings$required_partitions = "Epi"`. We refer to the labels associated with required partitions as required labels. Every variable must have at least one non-empty required label. The required partitions are used to generate [Variable Names].
+## Required Partitions
+
+There is a component, `settings$required_partitions`, which is a character vector of the names of the partitions that are used to uniquely identify each variable. In the previous example with `Type`, `Infect`, and `Epi` partitions we have `settings$required_partitions == "Epi"`. We refer to the labels associated with required partitions as required labels. Every variable must have at least one non-empty required label. The required partitions are used to generate [Variable Names].
 
 
 ## Atomic and Non-Atomic Models
@@ -121,55 +125,53 @@ Consider one more example with different symptomatic statuses, where infectious 
 
 ```{r, echo = FALSE}
 data.frame(
-  epi = c(rep(c("S", "E", "I", "I", "R", "beta"), 2), "alpha", "gamma", "gamma", ""),
-  symp = c(rep(c("", "", "mild", "severe", "", ""), 2), "", "mild", "severe", ""),
-  vax = c(rep(c("unvax", "vax"), each = 6), "", "", "", "dose_rate")
+  Epi = c(rep(c("S", "E", "I", "I", "R", "beta"), 2), "alpha", "gamma", "gamma", ""),
+  Symp = c(rep(c("", "", "mild", "severe", "", ""), 2), "", "mild", "severe", ""),
+  Vax = c(rep(c("unvax", "vax"), each = 6), "", "", "", "dose_rate")
 )
 ```
-
-Note that we do not provide a column for the numeric quantity of each variable because this document is about defining model structure. By working with pure model structure objects, we can combine different atomic models to more easily produce models with more structure. When it comes time to use a model, the [computational engine](https://canmod.net/misc/cpp_side) can be used to associate model variables with numerical quantities.
 
 
 ## Variable Names
 
 Although each row of the `variables` list provides a unique identifier for each variable, it is convenient to be able to combine the required labels into a single string. We call this string the variable name.
 
-The name of a variable is the dot-delimited concatenation of the labels in `required_partitions` associated with the variable. For example, the following table contains the labelled partitions of the `epi`-by-`symp`-by-`vax` variable list with a fourth column giving the variable names.
+The name of a variable is the dot-delimited concatenation of the partitions in `settings$required_partitions` associated with the variable. For example, the following table contains the labelled partitions of the `Epi`-by-`Symp`-by-`Vax` variable list with a fourth column giving the variable names.
 ```{r, echo = FALSE}
 m = data.frame(
-  epi = c(rep(c("S", "E", "I", "I", "R", "beta"), 2), "alpha", "gamma", "gamma", ""),
-  symp = c(rep(c("", "", "mild", "severe", "", ""), 2), "", "mild", "severe", ""),
-  vax = c(rep(c("unvax", "vax"), each = 6), "", "", "", "dose_rate")
+  Epi = c(rep(c("S", "E", "I", "I", "R", "beta"), 2), "alpha", "gamma", "gamma", ""),
+  Symp = c(rep(c("", "", "mild", "severe", "", ""), 2), "", "mild", "severe", ""),
+  Vax = c(rep(c("unvax", "vax"), each = 6), "", "", "", "dose_rate")
 )
 m$variable_names = Namer()$names(m)
 m
 ```
 This choice of a dot delimiter leads to syntactically valid R names even if the name begins with one or more dot. Because dots are not allowed in the labels themselves, this delimiter also makes parsing the labels into their respective partitions unambiguous. Note that it is impossible to have names with all dots because all variables must have at least one non-blank label. 
 
-The biggest downside to the choice of a dot delimiter is that it conflicts with the tidyverse style, which requires using dots only to specify S3 method dispatch. The reason for this guideline is to reduce the chances of ambiguity when the S3 machinery searches for methods. This disadvantage is in our opinion outweighed by the advantages that we list above, because model variables will not be involved in S3 dispatch.
+The biggest downside to the choice of a dot delimiter is that it conflicts with the [tidyverse style](https://style.tidyverse.org/syntax.html), which requires using dots only to specify S3 method dispatch. The reason for this guideline is to reduce the chances of ambiguity when the S3 machinery searches for methods. This disadvantage is in our opinion outweighed by the advantages that we list above, because model variables will not be involved in S3 dispatch.
 
-A vector of variable names can be combined with a vector of partition names to reproduce the `variables` list. This fact allows us to choose either the labelled partitions or names representations depending on convenience or necessity.
-
-By dropping a label from a name one may denote several variables. For example, the name `S.` refers to both `S.unvax` and `S.vax`. Note however that if a name already contains a missing label (e.g. `gamma.`) then this name refers only to a single variable. To avoid this ambiguity the user may use the special reserved label, `"all"`, to denote several variables. For example, `S.all` refers to both `S.unvax` and `S.vax`. We also have a special aggregating label, `"sum"` that is reserved. For example, `S.sum` means `S.unvax + S.vax`.
+Variable names are invertible, in that a vector of variable names can be combined with a vector of partition names to reproduce the associated labelled partitions. This fact allows us to choose either the labelled partitions or names representation depending on convenience or necessity.
 
 
 ## Partition Sets
 
 The `required_paritions` component is a set of partitions that are used to uniquely identify each variable and to generate invertible variable names. The user is free to define other `partition_sets` so that they can refer to groups of variables by name. These sets can be used to filter the variables for a specific purpose. Such `partition_sets` are useful when combining models.
 
-Variable names can be used with respect to a particular partition set. Variable names with respect to some partition sets do not uniquely identify each variable. For example, `epi.symp == "I.mild"` occurs twice in the following example.
+Variable names can be used with respect to a particular partition set. Variable names with respect to some partition sets do not uniquely identify each variable. For example, `Epi.Symp == "I.mild"` occurs twice in the following example.
 ```{r echo = FALSE}
 m = data.frame(
-  epi = c(rep(c("S", "E", "I", "I", "R", "beta"), 2), "alpha", "gamma", "gamma", ""),
-  symp = c(rep(c("", "", "mild", "severe", "", ""), 2), "", "mild", "severe", ""),
-  vax = c(rep(c("unvax", "vax"), each = 6), "", "", "", "dose_rate")
+  Epi = c(rep(c("S", "E", "I", "I", "R", "beta"), 2), "alpha", "gamma", "gamma", ""),
+  Symp = c(rep(c("", "", "mild", "severe", "", ""), 2), "", "mild", "severe", ""),
+  Vax = c(rep(c("unvax", "vax"), each = 6), "", "", "", "dose_rate")
 )
-m$epi.symp = paste(m$epi, m$symp, sep = ".")
-m$epi.vax = paste(m$epi, m$vax, sep = ".")
+m$Epi.Symp = paste(m$Epi, m$Symp, sep = ".")
+m$Epi.Vax = paste(m$Epi, m$Vax, sep = ".")
 m
 ```
 
-The ability to refer to multiple variables with a single name is useful in many circumstances.
+The ability to refer to multiple variables with a single name is useful in many circumstances. Typically such non-unique names are unique within groups of variables. For example, `Epi.Symp == `"I.mild"` is unique within `Vax == "vax"` and within `Vax == "unvax"`.
+
+As the examples above have illustrated, the name of a partition set is the dot-delimited concatenation of the names of the partitions in the set. For example, `Epi.Symp` is the name of the partition set containing the `Epi` and `Symp` partitions.
 
 
 ## Derived Variables (getting less comprehensible again)
