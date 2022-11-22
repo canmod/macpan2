@@ -13,5 +13,3 @@ remotes::install_github("canmod/macpan2")
 [Binary operator specs](https://canmod.net/misc/elementwise_binary_operators)
 
 [Notes on the composition of simulation models](https://canmod.net/misc/composing_simulation_models)
-
-Testing
