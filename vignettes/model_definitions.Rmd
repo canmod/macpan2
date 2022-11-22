@@ -63,7 +63,8 @@ The `variables` component is a data frame with one row for each variable in the 
 For example, here is a standard SEIR model list of variables.
 
 ```{r, echo = FALSE}
-data.frame(Epi = c("S", "E", "I", "R", "beta", "alpha", "gamma"))
+Epi = data.frame(Epi = c("S", "E", "I", "R", "beta", "alpha", "gamma"))
+Epi
 ```
 
 This example has a single labelled partition, `Epi`. This partition uniquely identifies each variable and so we do not need other partitions to comply with the uniqueness requirement.  Still, it is often convenient to add other partitions to refer to multiple variables at the same time. For example it might help to distinguish between state variables and parameters and also between infected states and non-infected states.
@@ -193,19 +194,34 @@ Each derived variable must be represented by a row in the `variables` list. Deri
 * `input_names_dots` -- A vector of variable names with respect to the `input_partition` for finding variables to pass to a `...` argument in `math_function`, if it exists.
 * `math_function` -- A mathematical function for producing one derived variable per group. The names of the arguments of this function are a subset of variable names with respect to the `input_partition` and optionally a `...` argument.
 
+The spec for this component will be hard to understand on first reading, but we believe that it is designed well. To understand it better we provide several examples designed to justify and clarify the description in the above bullet list.
 
+We begin with defining the force of infection for an SEIR model with the following variable list.
+```{r}
+Epi
+```
+The force of infection for this model can be represented as follows.
 ```{r eval = FALSE}
 list(
-  grouping_partition = NULL,
-  grouping_names = NULL,
-  output_partition = "epi",
+  group_partition = NULL,
+  group_names = NULL,
+  output_partition = "Epi",
   output_names = "foi",
-  input_partition = "epi",
-  math_function = function(S, E, I, R, beta) I * beta / sum(S, E, I, R)
+  input_partition = "Epi",
+  math_function = function(S, E, I, R, beta) {
+    I * beta / sum(S, E, I, R)
+  }
 )
 ```
+Because this is an [atomic model](#atomic-model), we do not need to specify a `group_partition` or `group_names`. Again because this is a simple atomic example, the `output_partition = "Epi"` and `output_names "foi"` really just says that the name of the output variable is `"foi"`. More technically we would say that the derived variable will have the label `"foi"` in the `"Epi"` partition. The `input_partition` and `math_function` go together. The `math_function` describes how to compute the derived variable, `foi`, in terms of other variables. The `input_partition` gives the name of a [Partition Set] to use for matching model variables to the arguments of this function. For example, the argument list contains `S`, which is a label in the `Epi` partition set.
 
-Updating derived variable specifications when taking model products is reasonably straightforward with this data structure. For example, if we stratify `S`, `E`, `I`, `R`, and `beta` by vaccination status, then all that we need to do is update the grouping factor partition set.
+This description may seem unnecessarily complex, but it is useful for representing more complex models as we will see. Also remember that this is a spec for a data structure and not a user interface -- it is likely that a user interface for constructing this component would make it much simpler to specify.
+
+Updating derived variable specifications when taking model products is reasonably straightforward with this data structure. For example, consider stratifying `S`, `E`, `I`, `R`, and `beta` by vaccination status.
+```{r echo = FALSE}
+seir_vax
+```
+In this new model, all that we need to do is update the group partition set from the previous atomic SEIR model.
 ```{r eval = FALSE}
 list(
   grouping_partition = "vax",
