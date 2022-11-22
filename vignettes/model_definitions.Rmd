@@ -183,18 +183,18 @@ In this section we describe a data structure for representing mathematical expre
 
 Each derived variable must be represented by a row in the `variables` list. Derived variables are distinguished from input variables by being associated with an element in a list, `derivations`. This list contains objects that describe how to compute each derived variable. Each object contains the following components.
 
-* `group_partition` -- The name of a partition set to use for filtering and grouping the variables so that (1) only a subset of variables are utilized in order to produce the derived variables and (2) a set of derived variables can be produced at the same time by producing one derived variable per group. There are three main cases:
-    * `group_partition` is `NULL` -- All variables are potentially utilized by a single derived variable
-    * `length(group_partition) == 1L` -- A filtered subset of variables get utilized by a single derived variable
-    * `length(group_partition) == n` -- The variables in each of `n` groups are used to produce one of `n` derived variables
-* `group_names` -- A vector of variable names with respect to the `group_partition`, each of which will define a single group.
-* `output_partition` -- The name of a partition set to use for declaring the names of the derived variables.
-* `output_names` -- A vector of variable names with respect to the `output_partition`, each of which will define the name of a derived variable. If `group_names` are `NULL` then `output_names` must be a single variable name with respect to the `output_partition` for determining the labels for the derived variable. Otherwise, the `i`th element of `output_names` determines the labels for the derived variable produced by the `i`th element of `group_names`.
-* `input_partition` -- The name of a partition set to use for matching variables to arguments in the `math_function`. Every variable name with respect to the `input_partition` must be both unique and exist within each group.
-* `input_names_dots` -- A vector of variable names with respect to the `input_partition` for finding variables to pass to a `...` argument in `math_function`, if it exists.
-* `math_function` -- A mathematical function for producing one derived variable per group. The names of the arguments of this function are a subset of variable names with respect to the `input_partition` and optionally a `...` argument.
+* `group_partition` [optional] -- The name of a partition set to use for filtering and grouping the variables so that (1) only a subset of variables are utilized in order to produce the derived variables and (2) a set of derived variables can be produced at the same time by producing one derived variable per group. When `group_partition` is `NULL` or missing, All variables are potentially utilized by a single derived variable.
+* `group_names` [required if `group_partition` is neither `NULL` nor missing] -- A vector of variable names with respect to the `group_partition`, each of which will define a single group. The `group_names` also determine the labels of variables that distinguish groups from each other. There are three use cases.
+    * `group_names` and `group_partition` are both `NULL` and/or missing -- All variables are potentially utilized by a single derived variable
+    * `length(group_names) == 1L` -- A filtered subset of variables get utilized by a single derived variable
+    * `length(group_names) == n` -- The variables in each of `n` groups are used to produce one of `n` derived variables
+* `output_partition` [required] -- The name of a partition set to use for declaring the labels of the derived variables within each group (see `group_partition` and `group_names` for producing one derived variable per group). 
+* `output_names` [required] -- A vector of variable names with respect to the `output_partition`, each of which will determine the labels associated with the `output_partition` of each derived variable within its group. If `group_names` are `NULL` then `output_names` must be a single variable name with respect to the `output_partition` for determining the labels for the derived variable. Otherwise, the `i`th element of `output_names` determines the labels for the derived variable produced by the `i`th element of `group_names`.
+* `input_partition` [required] -- The name of a partition set to use for matching variables to arguments in the `math_function`. Every variable name with respect to the `input_partition` must be both unique and exist within each group.
+* `input_names_dots` [optional] -- A vector of variable names with respect to the `input_partition` for finding variables to pass to a `...` argument in `math_function`, if it exists.
+* `math_function` [required] -- A mathematical function for producing one derived variable per group. The names of the arguments of this function are a subset of variable names with respect to the `input_partition` and optionally a `...` argument.
 
-The spec for this component will be hard to understand on first reading, but we believe that it is designed well. To understand it better we provide several examples designed to justify and clarify the description in the above bullet list.
+The spec for this component will be hard to understand on first reading. To understand it better we provide several examples designed to justify and clarify the description in the above bullet list.
 
 We begin with defining the force of infection for an SEIR model with the following variable list.
 ```{r echo = FALSE}
@@ -213,26 +213,36 @@ list(
   }
 )
 ```
-Because this is an [atomic model](#atomic-and-non-atomic-models), we do not need to specify a `group_partition` or `group_names`. Again because this is a simple atomic example, the `output_partition = "Epi"` and `output_names "foi"` really just says that the name of the output variable is `"foi"`. More technically we would say that the derived variable will have the label `"foi"` in the `"Epi"` partition. The `input_partition` and `math_function` go together. The `math_function` describes how to compute the derived variable, `foi`, in terms of other variables. The `input_partition` gives the name of a [Partition Set] to use for matching model variables to the arguments of this function. For example, the argument list contains `S`, which is a label in the `Epi` partition set.
+Because this is an [atomic model](#atomic-and-non-atomic-models), we do not need to specify `group_partition` or `group_names`. Again because this is a simple atomic example, by specifying `output_partition = "Epi"` and `output_names "foi"`, we are really just saying that the name of the output variable is `"foi"`. More technically we would say that the derived variable will have the label `"foi"` in the `"Epi"` partition. The `input_partition` and `math_function` go together. The `math_function` describes how to compute the derived variable, `foi`, in terms of other variables. The `input_partition` gives the name of a [partition set](#partition-sets) to use for matching model variables to the arguments of this function. For example, the argument list contains `S`, which is a label in the `Epi` partition set.
 
-This description may seem unnecessarily complex, but it is useful for representing more complex models as we will see. Also remember that this is a spec for a data structure and not a user interface -- it is likely that a user interface for constructing this component would make it much simpler to specify.
+This description may seem unnecessarily complex, but it is useful for representing more complex models as we will see. Also remember that this is a spec for a data structure and not a user interface -- it is likely that a user interface for specifying this component would make it much simpler to do so.
 
-Updating derived variable specifications when taking model products is reasonably straightforward with this data structure. For example, consider stratifying `S`, `E`, `I`, `R`, and `beta` by vaccination status.
+Updating derived variable specifications when taking model products is reasonably straightforward with this data structure. For example, consider stratifying `S`, `E`, `I`, `R`, and `beta` by geographic location.
 ```{r echo = FALSE}
-seir_vax
+seir_vax = data.frame(
+  Epi = c(rep(c("S", "E", "I", "R", "beta"), 2), "alpha", "gamma", ""),
+  Location = c(rep(c("montreal", "toronto"), each = 5), "", "", "dose_rate")
+)
 ```
-In this new model, all that we need to do is update the group partition set from the previous atomic SEIR model.
+In this new model, the functional form of the force of infection remains constant and we simply update some of the [partition sets and variable names](#partition-sets).
 ```{r eval = FALSE}
 list(
-  grouping_partition = "vax",
-  grouping_names = c("unvax", "vax"),
-  output_partition = "epi",
+  group_partition = "Location",
+  group_names = c("montreal", "toronto"),
+  output_partition = "Epi",
   output_names = c("foi", "foi"),
-  input_partition = "epi",
+  input_partition = "Epi",
   math_function = function(S, E, I, R, beta) I * beta / sum(S, E, I, R)
 )
 ```
-This will define expressions to produce derived variables called `foi.vax` and `foi.unvax`. To complete the model product the user may choose to add a derived variable that takes the sum of all of the `epi == "foi"` variables.
+This will define expressions to produce derived variables called `foi.montreal` and `foi.toronto`. To get this list we did the following.
+
+1. Add geographical grouping information to specify how to stratify the force of infection.
+2. Repeat the entry in `output_names` once for each location.
+
+For some model products it is not appropriate ...
+
+To complete the model product the user may choose to add a derived variable that takes the sum of all of the `epi == "foi"` variables.
 ```{r eval = FALSE}
 list(
   grouping_partition = NULL,
