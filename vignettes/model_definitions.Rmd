@@ -231,7 +231,9 @@ list(
   output_partition = "Epi",
   output_names = c("foi", "foi"),
   input_partition = "Epi",
-  math_function = function(S, E, I, R, beta) I * beta / sum(S, E, I, R)
+  math_function = function(S, E, I, R, beta) {
+    I * beta / sum(S, E, I, R)
+  }
 )
 ```
 This will define expressions to produce derived variables called `foi.montreal` and `foi.toronto`. To get this list we did the following.
@@ -251,14 +253,14 @@ list(
   output_partition = "Epi",
   output_names = c("foi", "foi"),
   input_partition = "Epi",
-  math_function = function(S, E, I, R, beta) I * beta / sum(S, E, I, R)
+  math_function = function(S, E, I, R, beta) {
+    I * beta / sum(S, E, I, R)
+  }
 )
 ```
 But to complete the model product we must add a derived variable that takes the sum of all of the `Epi == "foi"` variables.
 ```{r eval = FALSE}
 list(
-  grouping_partition = NULL,
-  grouping_names = NULL,
   output_partition = "epi.vax",
   output_names = "foi.total",
   input_partition = "epi.vax",
@@ -270,16 +272,23 @@ This will produce a single derived variable called `foi.total`, which can be use
 
 There are other operations on model space besides model products. Another such operation is to convert a single compartment into several compartments. An example of this operation is breaking the infectious compartment into several symptomatic states.
 ```{r echo = FALSE}
-EpiSympVax
+EpiSympVax$Shape = "scalar"
+rbind(
+  EpiSympVax, 
+  data.frame(
+    Epi = "C", Symp = "", Vax = "", 
+    Shape = "vector"
+  )
+)
 ```
-
+Notice the `"Shape"` partition that identifies the shape of the variable -- in this case either `"scalar"` or `"vector"`. The vector-valued variable collects 
 ```{r eval = FALSE}
 list(
-  group_partition = "epi",
-  group_names = "C", ## group is effectively acting as a filter here
-  output_partition = "shape",
-  output_names = "vec",
-  input_partition = "symp",
+  group_partition = "Epi",
+  group_names = "C",
+  output_partition = "Shape",
+  output_names = "vector",
+  input_partition = "Symp",
   input_names_dots = c("mild", "severe"),
   math_function = function(...) c(...)
 )
@@ -344,7 +353,20 @@ expressions$foi$symbolic$evaluate(
 
 ## Flow between Compartments
 
-We have another data frame, `flows`, describing which variable pairs are connected by flows. There are two columns in this data frame, `from` and `to`, and the rows give pairs of variable names. The variable identified by the `i`th row of `from` flows into `to` in model simulations.
+We have another data frame, `flows`, with rows describing how individuals flow between pairs of compartments. There are four columns in this data frame, `from`, `to`, `rate_component`, and `component_type`. 
+
+* `from` -- The [variable name](#variable-names) of the compartment from which individuals are flowing.
+* `to` -- The [variable name](#variable-names) of the compartment to which individuals are flowing.
+* `flow_component` -- The name of the variable governing the magnitude of the flow.
+* `component_type` -- A type describing the way in which the magnitude of flow is quantified. The following options are available.
+    * `"rate"` -- The flow from `from` and to `to` equals `from * flow_component`.
+    * `"absolute"` -- The flow from `from` and to `to` equals `flow_component`.
+    * `"rate_inflow"` -- The flow to `to` equals `from * flow_component`.
+    * `"rate_outflow"` -- The flow from `from` equals `from * flow_component`.
+    * `"absolute_inflow"` -- The flow to `to` equals `flow_component`.
+    * `"absolute_outflow"` -- The flow from `from` equals `flow_component`.
+    
+
 
 For example, consider this SIR model.
 
@@ -368,6 +390,11 @@ data.frame(
   to = c("I.unvax", "R.unvax", "I.vax", "R.vax", "S.vax", "I.vax", "R.vax")
 )
 ```
+
+## Compressed Flow Data Format
+
+
+
 
 ## Model of Flow along Edges (nowhere near comprehensible)
 
