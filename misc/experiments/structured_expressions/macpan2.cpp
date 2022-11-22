@@ -1,6 +1,7 @@
 #define EIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS
 #include <Eigen/Eigen>
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <vector>
 #include <map>
@@ -77,7 +78,7 @@ class ExprEvaluator {
 public:
     ExprEvaluator() {
         error_code = 0;	// non-zero means error has occurred; otherwise, no error
-        strcpy(error_message, "None");
+        strcpy(error_message, "OK");
     };
 
     unsigned char GetErrorCode() { return error_code; };
@@ -103,7 +104,7 @@ public:
         Type sum, s;
         int rows, cols, rowIndex, colIndex;
 
-        if (error_code) return m; // Check if error has already happened at some point of the recursive call.
+        if (GetErrorCode()) return m; // Check if error has already happened at some point of the recursive call.
 
         switch (table_n[row]) {
             case -1: // literals
@@ -121,7 +122,7 @@ public:
                 vector<matrix<Type> > r(n);
                 for (int i=0; i<n; i++) {
                     r[i] = EvalExpr(table_x, table_n, table_i, valid_vars, valid_literals, table_i[row]+i);
-                    if (error_code) return m;
+                    if (GetErrorCode()) return m;
                 }
 
                 // Check dimensions compatibility. If needed, expand one operand to make its dimensions compatible with the other
@@ -194,7 +195,7 @@ public:
                         //Rf_error("The two operands are not compatible to do matrix multiplication");
                 }
 
-                if (error_code) return m; // early return
+                if (GetErrorCode()) return m; // early return
 
                 switch(table_x[row]+1) {
                     case 1: // +
@@ -315,11 +316,28 @@ private:
     char error_message[256];
 };
 
+#define REPORT_ERROR { \
+    int error = exprEvaluator.GetErrorCode(); \
+    REPORT(error); \
+ \
+    logfile.open (LOG_FILE_NAME, std::ios_base::app); \
+    logfile << "Error code = " << error << std::endl; \
+    logfile << "Error message = " << exprEvaluator.GetErrorMessage() << std::endl; \
+    logfile.close(); \
+}
+
+const char LOG_FILE_NAME[] = "macpan2.log";
+
 // "main" function
 template<class Type>
 Type objective_function<Type>::operator() ()
 {
     std::cout << "============== objective_function =============" << std::endl;
+
+    std::ofstream logfile;
+    logfile.open (LOG_FILE_NAME);
+    logfile << "======== log file of MacPan2 ========\n";
+    logfile.close();
 
     std::setprecision(9); // Set the precision of std::cout
 
@@ -443,7 +461,10 @@ Type objective_function<Type>::operator() ()
                 p_table_row
             );
 
-        if (exprEvaluator.GetErrorCode()) return 0.0;
+        if (exprEvaluator.GetErrorCode()) {
+            REPORT_ERROR
+            return 0.0;
+        }
 
         mats.m_matrices[expr_output_id[expr_index+i]] = result;
 
@@ -484,8 +505,10 @@ Type objective_function<Type>::operator() ()
                     p_table_row2
                );
 
-            if (exprEvaluator.GetErrorCode()) return 0.0;
-
+            if (exprEvaluator.GetErrorCode()) {
+                REPORT_ERROR
+                return 0.0;
+            }
             mats.m_matrices[expr_output_id[expr_index+i]] = result;
 
             p_table_row2 += expr_num_p_table_rows[i];
@@ -526,7 +549,10 @@ Type objective_function<Type>::operator() ()
                 p_table_row
             );
 
-        if (exprEvaluator.GetErrorCode()) return 0.0;
+        if (exprEvaluator.GetErrorCode()) {
+            REPORT_ERROR
+            return 0.0;
+        }
 
         mats.m_matrices[expr_output_id[expr_index+i]] = result;
 
@@ -572,6 +598,7 @@ Type objective_function<Type>::operator() ()
     REPORT(mats_returned)
 
     // 7 Calc the return of the objective function
+    REPORT_ERROR
 
     return 0.0;
 
