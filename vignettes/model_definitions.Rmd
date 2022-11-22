@@ -218,10 +218,11 @@ This description may seem unnecessarily complex, but it is useful for representi
 
 Updating derived variable specifications when taking model products is reasonably straightforward with this data structure. For example, consider stratifying `S`, `E`, `I`, `R`, and `beta` by geographic location.
 ```{r echo = FALSE}
-seir_vax = data.frame(
-  Epi = c(rep(c("S", "E", "I", "R", "beta"), 2), "alpha", "gamma", ""),
-  Location = c(rep(c("montreal", "toronto"), each = 5), "", "", "dose_rate")
+seir_location = data.frame(
+  Epi = c(rep(c("S", "E", "I", "R", "beta"), 2), "alpha", "gamma", "", ""),
+  Location = c(rep(c("montreal", "toronto"), each = 5), "", "", "montreal_to_toronto_rate", "toronto_to_montreal_rate")
 )
+seir_location
 ```
 In this new model, the functional form of the force of infection remains constant and we simply update and add some of the [partition sets and variable names](#partition-sets).
 ```{r eval = FALSE}
