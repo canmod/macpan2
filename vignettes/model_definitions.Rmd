@@ -89,14 +89,14 @@ We emphasize that the list with the single `Epi` partition did not violate this 
 
 Non-empty labels must contain only letters, numbers, underscores, and must start with a letter. Empty labels are zero-length strings that can be used to indicate that some partitions are not applicable to some variables. The purpose for these naming rules is to facilitate the construction of [Variable Names] that can be inverted to reproduce the `variables` list.
 
-By convention we use [UpperCamelCase](https://en.wikipedia.org/wiki/Camel_case) for partition names and a modified form of  [snake_case](https://en.wikipedia.org/wiki/Snake_case) for labels. Our modification of snake case allows for single uppercase letters in order to accommodate the convension in epidemiology for using single uppercase letters to refer to state variables. For example, `S`, `I`, and `R`, as well as `I_mild` and `I_severe`, would be consistent with our modified snake case style.
+By convention we use [UpperCamelCase](https://en.wikipedia.org/wiki/Camel_case) for partition names and a modified form of  [snake_case](https://en.wikipedia.org/wiki/Snake_case) for labels. Our modification of snake case allows for single uppercase letters in order to accommodate the convention in epidemiology for using single uppercase letters to refer to state variables. For example, `S`, `I`, and `R`, as well as `I_mild` and `I_severe`, would be consistent with our modified snake case style.
 
-There is a component, `settings$necessary_partitions`, which is a character vector of the names of the partitions that are used to uniquely identify each variable. In the previous example with `Type`, `Infect`, and `Epi` partitions we have `settings$necessary_partitions = "Epi"`. We refer to the labels associated with necessary partitions as necessary labels. Every variable must have at least one non-empty necessary label. The necessary partitions are used to generate [Variable Names].
+There is a component, `settings$required_partitions`, which is a character vector of the names of the partitions that are used to uniquely identify each variable. In the previous example with `Type`, `Infect`, and `Epi` partitions we have `settings$required_partitions = "Epi"`. We refer to the labels associated with required partitions as required labels. Every variable must have at least one non-empty required label. The required partitions are used to generate [Variable Names].
 
 
 ## Atomic and Non-Atomic Models
 
-We refer to models with exactly one necessary partition as atomic. One may combine two atomic models to get another model with two necessary labelled partitions. An example combination of atomic models is the SEIR model stratified by the states of an atomic vaccination model with necessary partition, `Vax`.
+We refer to models with exactly one required partition as atomic. One may combine two atomic models to get another model with two required labelled partitions. An example combination of atomic models is the SEIR model stratified by the states of an atomic vaccination model with required partition, `Vax`.
 
 ```{r, echo = FALSE}
 Vax = data.frame(Vax = c("unvax", "vax", "dose_rate"))
@@ -105,7 +105,7 @@ Vax
 
 In this atomic model `unvax` and `vax` are state variables representing the numbers of individuals who are unvaccinated and vaccinated. The `dose_rate` variable is a parameter giving the proportion of unvaccinated individuals who receive a vaccination each day.
 
-We combine these two atomic models to produce a non-atomic model with necessary partitions, `Epi` and `Vax`.
+We combine these two atomic models to produce a non-atomic model with required partitions, `Epi` and `Vax`.
 
 ```{r, echo = FALSE}
 seir_vax = data.frame(
@@ -155,7 +155,7 @@ By dropping a label from a name one may denote several variables. For example, t
 
 ## Partition Sets
 
-The `necessary_paritions` component is a set of partitions that are used to uniquely identify each variable and to generate invertible variable names. The user is free to define other `partition_sets` so that they can refer to groups of variables by name. These sets can be used to filter the variables for a specific purpose. Such `partition_sets` are useful when combining models.
+The `required_paritions` component is a set of partitions that are used to uniquely identify each variable and to generate invertible variable names. The user is free to define other `partition_sets` so that they can refer to groups of variables by name. These sets can be used to filter the variables for a specific purpose. Such `partition_sets` are useful when combining models.
 
 Variable names can be used with respect to a particular partition set. Variable names with respect to some partition sets do not uniquely identify each variable. For example, `epi.symp == "I.mild"` occurs twice in the following example.
 ```{r echo = FALSE}
