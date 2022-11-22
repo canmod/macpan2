@@ -547,15 +547,15 @@ Type objective_function<Type>::operator() ()
     }
 #endif
 
-    // 6 Report either the post-simulation matrices or the entire simulation history of matrices
-    // NOTE: The following code section has an issue --- each REPORT overwrite its predecessor so 
-    //       only the last one survives in the end. 
-    // TMB allows of multiple REPORTs, but they must
-    // have different variable names (need to talk with Steve about the names of these variables) 
+    // 6 Report a vector of matrices, each of which is
+    //   either the post-simulation matrices or the entire simulation history of matrices
+    vector<matrix<Type> > mats_returned(mats_return.sum());
+
+    int r = 0;
     for (int i=0; i<mats_return.size(); i++) {
         if (mats_return[i]==1) {
             if (mats_save_hist[i]==0) { // Report the last one
-                REPORT(mats.m_matrices[i]);
+                mats_returned[r++] = mats.m_matrices[i];
             }
             else { // Report the whole simulation history
                 int hist_len = time_steps+2;
@@ -564,10 +564,12 @@ Type objective_function<Type>::operator() ()
                 matrix<Type> hist(nRows, hist_len*nCols);
                 for (int k=0; k<hist_len; k++)
                     hist.block(0, k*nCols, nRows, nCols) = simulation_history[k].m_matrices[i];
-                REPORT(hist);
+                mats_returned[r++] = hist;
             }
         }
     }
+
+    REPORT(mats_returned)
 
     // 7 Calc the return of the objective function
 
