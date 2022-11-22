@@ -365,29 +365,42 @@ We have another data frame, `flows`, with rows describing how individuals flow b
     * `"rate_outflow"` -- The flow from `from` equals `from * flow_component`.
     * `"absolute_inflow"` -- The flow to `to` equals `flow_component`.
     * `"absolute_outflow"` -- The flow from `from` equals `flow_component`.
-    
-
 
 For example, consider this SIR model.
 
 ```{r, echo = FALSE}
-data.frame(epi = c("S", "I", "R", "beta", "gamma"))
+data.frame(epi = c("S", "I", "R", "beta", "gamma", "foi"))
 ```
 
 We would have the following `flows` component.
 
 ```{r, echo = FALSE}
-data.frame(from = c("S", "I"), to = c("I", "R"))
+data.frame(
+  from = c("S", "I"), 
+  to = c("I", "R"),
+  flow_component = c("foi", "gamma"),
+  component_type = "rate"
+)
 ```
 
-Notice that all state variables appear in this table, and that it contains no parameters. This is the mechanism for encoding whether a model component is a state variables or a parameter.
+Notice that all state variables appear in this table, and that it contains no parameters. This is the mechanism for encoding whether a model variable is a state variables or a parameter.
 
-A more interesting example is an `epi`-by-`vax` model.
+A more interesting example is the following `Epi`-by-`Vax` model.
 
+```{r, echo = FALSE}
+seir_vax = data.frame(
+  Epi = c(rep(c("S", "I", "R", "beta"), 2), "alpha", "gamma", "foi", ""),
+  Vax = c(rep(c("unvax", "vax"), each = 4), "", "", "", "dose_rate")
+)
+```
 ```{r, echo = FALSE}
 data.frame(
   from = c("S.unvax", "I.unvax", "S.vax", "I.vax", "S.unvax", "I.unvax", "R.unvax"),
-  to = c("I.unvax", "R.unvax", "I.vax", "R.vax", "S.vax", "I.vax", "R.vax")
+  to = c("I.unvax", "R.unvax", "I.vax", "R.vax", "S.vax", "I.vax", "R.vax"),
+  flow_component = c(
+    rep(c("foi.total", "gamma."), 2L),
+    rep(".dose_rate", 3L)
+  )
 )
 ```
 
