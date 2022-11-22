@@ -282,74 +282,30 @@ EpiSymp
 ```
 Notice the `"Type"` partition that indicates the different forms with which the symptomatic-status-structured variables are represented. Here the scalar components of `I` and `infectiousness` can be referred to, or one can refer to vectors that contain all components. The components are `I.mild.component`, `I.severe.component`, `infectiousness.mild.component`, and `infectiousness.severe.component`. The vectors are `I..vector` and `infectiousness..vector`. The variable `I..effective` refers to the the weighted sum given by the inner product of `I..vector` and `infectiousness..vector`.
 
-Constructing the derived variables for this model requires the following definitions.
+Here we assume that the `component` types are input variables, and that we derive the other `I` and `infectiousness` variables with the following definitions.
 ```{r eval = FALSE}
 list(
-  group_partition = "Epi",
-  group_names = "infectiousness",
-  output_partition = "Shape",
-  output_names = "vector",
+  group_partition = "Epi.Type",
+  group_names = c("I.vector", "infectiousness.vector"),
+  output_partition = "Epi.Type",
+  output_names = c("I.vector", "infectiousness.vector"),
   input_partition = "Symp",
   input_names_dots = c("mild", "severe"),
   math_function = function(...) c(...)
 )
 list(
-  group_partition = "epi.symp.vax",
-  group_names = c("I.mild.unvax", "I.mild.vax", "I.severe.unvax", "I.severe.vax"),
-  output_partition = "epi.matrix",
-  output_names = "I.matrix",
-  input_partition = "epi.symp.vax.shape",
-  input_names_dots = c("I.mild.unvax.", "I.mild.vax.", "I.severe.unvax.", "I.severe.vax."),
-  math_function = function(C.vec, ...) {
-    data = unlist(list(...))
-    matrix(data, nrow = length(C.vec))
+  group_partition = "Type",
+  group_names = "vector",
+  output_partition = "Epi",
+  output_names = "foi",
+  input_partition = "Epi",
+  math_function = function(I, infectiousness) {
+    sum(I * infectiousness)
   }
 )
 ```
 
-```{r eval = FALSE}
-list(
-  grouping_partition = "epi.vax",
-  grouping_names = c("I.unvax", "I.vax"),
-  output_partition = "epi.symp",
-  output_names = "I.effective",
-  input_partition = "epi.symp",
-  input_names_dots = c("I.mild", "I.severe", "C.mild", "C.severe"),
-  math_function = function(...) sum(...)
-)
-```
-
-```{r eval = FALSE}
-list(
-  grouping_partition = "vax",
-  grouping_names = c("unvax", "vax"),
-  output_partition = "epi.vax",
-  output_names = c("foi.unvax", "foi.vax"),
-  input_partition = "epi.symp",
-  math_function = function(S., E., I.any, R., beta.) I.any * beta. / sum(S., E., I.any, R.)
-)
-```
-
-
-that take input variables and other derived variables as arguments and return a derived variable either numerically or symbolically. The numerical version is required when running simulations or fitting models to data, whereas the symbolic version is required when combining models.
-
-
-The ordering of the `expressions` list must be topologically sorted so that the dependencies of each expression must appear earlier in the list. This topological sorting requirement presents a technical challenge when models are combined, as it becomes necessary to be able to merge lists of `expressions` so that they remain topologically sorted.
-
-
-One could use such an `expressions` list to update a symbolic expression for the atomic SEIR model so that applies to a single stratum in an `epi`-by-`vax` model. For example, here we find the component of the force of infection due to the unvaccinated individuals.
-```{r eval=FALSE}
-expressions$foi$symbolic$evaluate(
-  I = "I.unvax",
-  N = expressions$N$symbolic$evaluate(
-    S = "S.unvax",
-    E = "E.unvax",
-    I = "I.unvax",
-    R = "R.unvax"
-  ),
-  beta = "beta.unvax"
-)
-```
+The ordering of the `derivations` list must be topologically sorted so that the dependencies of each expression appear earlier in the list. This topological sorting requirement presents a technical challenge when models are combined, as it becomes necessary to be able to merge lists of `derivations` so that they remain topologically sorted.
 
 
 ## Flow between Compartments
