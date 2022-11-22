@@ -197,7 +197,7 @@ Each derived variable must be represented by a row in the `variables` list. Deri
 The spec for this component will be hard to understand on first reading, but we believe that it is designed well. To understand it better we provide several examples designed to justify and clarify the description in the above bullet list.
 
 We begin with defining the force of infection for an SEIR model with the following variable list.
-```{r}
+```{r echo = FALSE}
 Epi
 ```
 The force of infection for this model can be represented as follows.
@@ -213,7 +213,7 @@ list(
   }
 )
 ```
-Because this is an [atomic model](#atomic-model), we do not need to specify a `group_partition` or `group_names`. Again because this is a simple atomic example, the `output_partition = "Epi"` and `output_names "foi"` really just says that the name of the output variable is `"foi"`. More technically we would say that the derived variable will have the label `"foi"` in the `"Epi"` partition. The `input_partition` and `math_function` go together. The `math_function` describes how to compute the derived variable, `foi`, in terms of other variables. The `input_partition` gives the name of a [Partition Set] to use for matching model variables to the arguments of this function. For example, the argument list contains `S`, which is a label in the `Epi` partition set.
+Because this is an [atomic model](#atomic-and-non-atomic-models), we do not need to specify a `group_partition` or `group_names`. Again because this is a simple atomic example, the `output_partition = "Epi"` and `output_names "foi"` really just says that the name of the output variable is `"foi"`. More technically we would say that the derived variable will have the label `"foi"` in the `"Epi"` partition. The `input_partition` and `math_function` go together. The `math_function` describes how to compute the derived variable, `foi`, in terms of other variables. The `input_partition` gives the name of a [Partition Set] to use for matching model variables to the arguments of this function. For example, the argument list contains `S`, which is a label in the `Epi` partition set.
 
 This description may seem unnecessarily complex, but it is useful for representing more complex models as we will see. Also remember that this is a spec for a data structure and not a user interface -- it is likely that a user interface for constructing this component would make it much simpler to specify.
 
