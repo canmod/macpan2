@@ -104,11 +104,9 @@ Each mathematical expression can be used by C++ in several ways. Information on 
     * Index into `mats` identifying the first matrix produced by the expression
     * Matrices that are modified by the same function must be sequentially grouped together in `mats`
 * `DATA_IVECTOR(expr_sim_block)`
-    * Index associated with a particular simulation block
-    * A simulation block is a set of expressions that are evaluated within a `SIMULATE` macro within TMB
-    * Expressions in a simulation block must be grouped together
-    * A value of `-1` indicates that the expression is to be evaluated outside of a simulation block (we expect this to be the standard case)
-    * Note that if an expression is evaluated in simulation blocks and is returned to the user through `mats_return == 1`, then it must also be returned within a simulation block
+    * Identifies whether or not the expression should be evaluated inside a `SIMULATE` macro within TMB
+    * A value of `0` indicates that the expression is to be evaluated without the `SIMULATE` macro (we expect this to be the standard case), whereas a value of `1` indicates evaluation inside a `SIMULATE` macro
+    * Note that if an expression is evaluated in a `SIMULATE` macro and is returned to the user through `mats_return == 1`, then it must also be returned within the `SIMULATE` macro
 * `DATA_IVECTOR(expr_num_p_table_rows)`
     * Number of rows associated with each expression in the parse table (see section on [Parse Tables])
 

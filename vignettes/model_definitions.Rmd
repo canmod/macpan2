@@ -1,0 +1,535 @@
+---
+title: "Model Definitions in McMasterPandemic"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{Model Definitions in McMasterPandemic}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+library(macpan2)
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Prerequisites
+
+This document assumes knowledge of compartmental epidemic models, as we will not be defining terms and symbols that we consider to be widely understood by mathematical epidemiologists.
+
+## Variables, Partitions, and Atomic Models
+
+Compartmental models in McMasterPandemic are defined by a set of components. The `variables` component is a data frame with one row for each variable in the model and one column for each labelled partition of the variables. A labelled partition is a character vector of labels that describes the variables. Each row of this data frame must be unique so that it uniquely identifies each variable.
+
+For example, here is a standard SEIR model list of variables.
+
+```{r, echo = FALSE}
+data.frame(epi = c("S", "E", "I", "R", "beta", "alpha", "gamma"))
+```
+
+This example has a single labelled partition, `epi`. This partition uniquely identifies each variable and so we do not need other partitions. Sometimes it is convenient to add other partitions to refer to multiple variables at the same time. For example it might help to distinguish between state variables and parameters and also between infected states and non-infected states.
+
+```{r, echo = FALSE}
+data.frame(
+  type = c(
+    rep("state", 4), 
+    rep("param", 3)
+  ),
+  infect = c(
+    "not_infected", "infected", "infected", "not_infected", 
+    "", "", ""
+  ),
+  epi = c(
+    "S", "E", "I", "R", 
+    "beta", "alpha", "gamma"
+  )
+)
+```
+
+Note that the list with the single `epi` partition was not invalid, as this spec does not require a partition to make a distinction between state variables and parameters. The spec makes this distinction in the [Edge Variables and Flow Rates] component. In this example, the addition of the `type` and `infect` partitions are for convenience. The point is that the user is free to add any number of partitions even if they are not required for uniqueness.
+
+Non-empty labels must contain only letters, numbers, underscores, and must start with a letter. Empty labels are zero-length strings that can be used to indicate that some partitions are over a subset of the variables.
+
+There is an additional model component called `necessary_partitions`, which is a character vector of the names of the partitions that are used to uniquely identify each variable. In the previous example with `type`, `infect`, and `epi` partitions we have `necessary_partitions = "epi"`. We refer to the labels associated with necessary partitions as necessary labels. Every variable must have at least one non-empty necessary label. The necessary partitions are used to generate [Variable Names]. The `necessary_partitions` component is a sub-component of the [Partition Sets] component.
+
+We refer to models with exactly one necessary partition as atomic models. One may combine two atomic models to get another model with two labelled partitions. We will not be precise about how to combine models, as this document focuses on data structure specifications. Instead we describe simple examples to build an intuition for defining a data structure that will be expressive enough to represent many different combinations of models.
+
+
+## Variables and Partitions in Non-Atomic Models
+
+An example combination of atomic models is the SEIR model stratified by the states of an atomic vaccination model with the following required partition.
+
+```{r, echo = FALSE}
+data.frame(vax = c("unvax", "vax", "dose_rate"))
+```
+
+In this atomic model `unvax` and `vax` are state variables representing the numbers of individuals who are unvaccinated and vaccinated. The `dose_rate` variable is a parameter giving the proportion of unvaccinated individuals who receive a vaccination each day.
+
+We combine these two atomic models to produce a non-atomic model with the following necessary partitions.
+
+```{r, echo = FALSE}
+data.frame(
+  epi = c(rep(c("S", "E", "I", "R", "beta"), 2), "alpha", "gamma", ""),
+  vax = c(rep(c("unvax", "vax"), each = 5), "", "", "dose_rate")
+)
+```
+
+Note here that the state variables, `S`, `E`, `I`, and `R`, as well as the transmission rate, `beta`, are stratified by vaccination status, but the latency and recovery parameters, `alpha` and `gamma`, are not stratified indicating that latency and recovery is not influenced by vaccination status. Similarly the `dose_rate` is also not stratified by epidemiological state.
+
+Consider one more example with different symptomatic statuses, where infectious individuals have either mild or severe symptoms and these different statuses recover at different rates.
+
+```{r, echo = FALSE}
+data.frame(
+  epi = c(rep(c("S", "E", "I", "I", "R", "beta"), 2), "alpha", "gamma", "gamma", ""),
+  symp = c(rep(c("", "", "mild", "severe", "", ""), 2), "", "mild", "severe", ""),
+  vax = c(rep(c("unvax", "vax"), each = 6), "", "", "", "dose_rate")
+)
+```
+
+The label `"all"` is not allowed, as it has a special meaning described below.  (TODO -- verify that "all" should not be a part of the spec, but rather a conventional use of derived variables)
+
+Note that we do not provide a column for the numeric quantity of each variable because this document is about defining model structure. By working with pure model structure objects, we can combine different atomic models to more easily produce models with more structure. When it comes time to use a model, the [computational engine](https://canmod.net/misc/cpp_side) can be used to associate model variables with numerical quantities.
+
+
+## Variable Names
+
+Although each row of the `variables` list provides a unique identifier for each variable, it is convenient to be able to combine the required labels into a single string. We call this string the variable name.
+
+The name of a variable is the dot-delimited concatenation of the labels in `required_partitions` associated with the variable. For example, the following table contains the labelled partitions of the `epi`-by-`symp`-by-`vax` variable list with a fourth column giving the variable names.
+```{r, echo = FALSE}
+m = data.frame(
+  epi = c(rep(c("S", "E", "I", "I", "R", "beta"), 2), "alpha", "gamma", "gamma", ""),
+  symp = c(rep(c("", "", "mild", "severe", "", ""), 2), "", "mild", "severe", ""),
+  vax = c(rep(c("unvax", "vax"), each = 6), "", "", "", "dose_rate")
+)
+m$variable_names = Namer()$names(m)
+m
+```
+This choice of a dot delimiter leads to syntactically valid R names even if the name begins with one or more dot. Because dots are not allowed in the labels themselves, this delimiter also makes parsing the labels into their respective partitions unambiguous. Note that it is impossible to have names with all dots because all variables must have at least one non-blank label. 
+
+The biggest downside to the choice of a dot delimiter is that it conflicts with the tidyverse style, which requires using dots only to specify S3 method dispatch. The reason for this guideline is to reduce the chances of ambiguity when the S3 machinery searches for methods. This disadvantage is in our opinion outweighed by the advantages that we list above, because model variables will not be involved in S3 dispatch.
+
+A vector of variable names can be combined with a vector of partition names to reproduce the `variables` list. This fact allows us to choose either the labelled partitions or names representations depending on convenience or necessity.
+
+By dropping a label from a name one may denote several variables. For example, the name `S.` refers to both `S.unvax` and `S.vax`. Note however that if a name already contains a missing label (e.g. `gamma.`) then this name refers only to a single variable. To avoid this ambiguity the user may use the special reserved label, `"all"`, to denote several variables. For example, `S.all` refers to both `S.unvax` and `S.vax`. We also have a special aggregating label, `"sum"` that is reserved. For example, `S.sum` means `S.unvax + S.vax`.
+
+
+## Partition Sets
+
+The `necessary_paritions` component is a set of partitions that are used to uniquely identify each variable and to generate invertible variable names. The user is free to define other `partition_sets` so that they can refer to groups of variables by name. These sets can be used to filter the variables for a specific purpose. Such `partition_sets` are useful when combining models.
+
+Variable names can be used with respect to a particular partition set. Variable names with respect to some partition sets do not uniquely identify each variable. For example, `epi.symp == "I.mild"` occurs twice in the following example.
+```{r echo = FALSE}
+m = data.frame(
+  epi = c(rep(c("S", "E", "I", "I", "R", "beta"), 2), "alpha", "gamma", "gamma", ""),
+  symp = c(rep(c("", "", "mild", "severe", "", ""), 2), "", "mild", "severe", ""),
+  vax = c(rep(c("unvax", "vax"), each = 6), "", "", "", "dose_rate")
+)
+m$epi.symp = paste(m$epi, m$symp, sep = ".")
+m$epi.vax = paste(m$epi, m$vax, sep = ".")
+m
+```
+
+The ability to refer to multiple variables with a single name is useful in many circumstances.
+
+
+## Derived Variables (getting less comprehensible again)
+
+Although the input variables should in principle be sufficient for defining flow between compartments, it is often convenient to define flow in terms of derived variables that depend on the inputs. For example, the force of infection in a standard SEIR model has the sum of all of the state variables in the denominator, and so one might want to define this sum, `N`, as a derived variable. Another use of derived variables is to compute summarizing quantities such as $\mathcal{R}_0$.
+
+Each derived variable must be represented by a row in the `variables` list. Derived variables are distinguished from input variables by being associated with an element in a named list, `derivations`, of objects that describe how to compute each derived variable.
+
+There are several ways to represent a derivation. The most generic representation has the following components.
+
+* `group_partition` -- The name of a partition set to use for filtering and grouping the variables so that (1) only a subset of variables are utilized in order to produce the derived variables and (2) a set of derived variables can be produced at the same time by producing one derived variable per group. There are three main cases:
+    * `group_partition` is `NULL` -- All variables are potentially utilized by a single derived variable
+    * `length(group_partition) == 1L` -- A filtered subset of variables get utilized by a single derived variable
+    * `length(group_partition) == n` -- The variables in each of `n` groups are used to produce one of `n` derived variables
+* `group_names` -- A vector of variable names with respect to the `group_partition`, each of which will define a single group.
+* `output_partition` -- The name of a partition set to use for declaring the names of the derived variables.
+* `output_names` -- A vector of variable names with respect to the `output_partition`, each of which will define the name of a derived variable. If `group_names` are `NULL` then `output_names` must be a single variable name with respect to the `output_partition` for determining the labels for the derived variable. Otherwise, the `i`th element of `output_names` determines the labels for the derived variable produced by the `i`th element of `group_names`.
+* `input_partition` -- The name of a partition set to use for matching variables to arguments in the `math_function`. Every variable name with respect to the `input_partition` must be both unique and exist within each group.
+* `input_names_dots` -- A vector of variable names with respect to the `input_partition` for finding variables to pass to a `...` argument in `math_function`, if it exists.
+* `math_function` -- A mathematical function for producing one derived variable per group. The names of the arguments of this function are a subset of variable names with respect to the `input_partition` and optionally a `...` argument.
+
+
+```{r eval = FALSE}
+list(
+  grouping_partition = NULL,
+  grouping_names = NULL,
+  output_partition = "epi",
+  output_names = "foi",
+  input_partition = "epi",
+  math_function = function(S, E, I, R, beta) I * beta / sum(S, E, I, R)
+)
+```
+
+Updating derived variable specifications when taking model products is reasonably straightforward with this data structure. For example, if we stratify `S`, `E`, `I`, `R`, and `beta` by vaccination status, then all that we need to do is update the grouping factor partition set.
+```{r eval = FALSE}
+list(
+  grouping_partition = "vax",
+  grouping_names = c("unvax", "vax"),
+  output_partition = "epi",
+  output_names = c("foi", "foi"),
+  input_partition = "epi",
+  math_function = function(S, E, I, R, beta) I * beta / sum(S, E, I, R)
+)
+```
+This will define expressions to produce derived variables called `foi.vax` and `foi.unvax`. To complete the model product the user may choose to add a derived variable that takes the sum of all of the `epi == "foi"` variables.
+```{r eval = FALSE}
+list(
+  grouping_partition = NULL,
+  grouping_names = NULL,
+  output_partition = "epi.vax",
+  output_names = "foi.total",
+  input_partition = "epi.vax",
+  input_names_dots = c("foi.unvax", "foi.vax"),
+  math_function = function(...) sum(...)
+)
+```
+This will produce a single derived variable called `foi.total`, which can be used for so-called Worden-Porco modified products. To do a Worden-Porco naive product the individual components, `foi.vax` and `foi.unvax` could be used. The naive product would make more sense in a spatial model where `foi.toronto` and `foi.montreal` should be used separately to govern the rate of infection within each city. In general, the modified product is more appropriate when strata are isolated from each other and the naive product makes more sense when they are isolated.
+
+```{r eval = FALSE}
+list(
+  group_partition = "epi",
+  group_names = "C", ## group is effectively acting as a filter here
+  output_partition = "shape",
+  output_names = "vec",
+  input_partition = "symp",
+  input_names_dots = c("mild", "severe"),
+  math_function = function(...) c(...)
+)
+list(
+  group_partition = "epi.symp.vax",
+  group_names = c("I.mild.unvax", "I.mild.vax", "I.severe.unvax", "I.severe.vax"),
+  output_partition = "epi.matrix",
+  output_names = "I.matrix",
+  input_partition = "epi.symp.vax.shape",
+  input_names_dots = c("I.mild.unvax.", "I.mild.vax.", "I.severe.unvax.", "I.severe.vax."),
+  math_function = function(C.vec, ...) {
+    data = unlist(list(...))
+    matrix(data, nrow = length(C.vec))
+  }
+)
+```
+
+```{r eval = FALSE}
+list(
+  grouping_partition = "epi.vax",
+  grouping_names = c("I.unvax", "I.vax"),
+  output_partition = "epi.symp",
+  output_names = "I.effective",
+  input_partition = "epi.symp",
+  input_names_dots = c("I.mild", "I.severe", "C.mild", "C.severe"),
+  math_function = function(...) sum(...)
+)
+```
+
+```{r eval = FALSE}
+list(
+  grouping_partition = "vax",
+  grouping_names = c("unvax", "vax"),
+  output_partition = "epi.vax",
+  output_names = c("foi.unvax", "foi.vax"),
+  input_partition = "epi.symp",
+  math_function = function(S., E., I.any, R., beta.) I.any * beta. / sum(S., E., I.any, R.)
+)
+```
+
+
+
+that take input variables and other derived variables as arguments and return a derived variable either numerically or symbolically. The numerical version is required when running simulations or fitting models to data, whereas the symbolic version is required when combining models.
+
+Take the example of the sum, `N`, of state variables in an SEIR model.
+```{r}
+N = MathExpressionFromFunc(function(S, E, I, R) {
+  sum(S, E, I, R)
+})
+```
+This object could be used to compute the numerical sum.
+```{r}
+N$numeric$evaluate(S = 1, E = 2, I = 3, R = 4)
+```
+It could also be used to compute the symbolic sum, for example the sum of epidemiological states within a vaccinated layer.
+```{r}
+N$symbolic$evaluate(S = "S.vax", E = "E.vax", I = "I.vax", R = "R.vax")
+```
+
+In general each element of the named `expressions` list is an object with two methods and two fields.
+
+* The `self$numeric$evaluate` method evaluates the derived variable, `self`, numerically for a set of numerical inputs
+* The `self$symbolic$evaluate` method evaluates the derived variable, `self`, symbolically for a set of string inputs
+* The `self$arguments` field gives a character vector with the names of the arguments of the derived variable, `self`
+* The `self$string` field gives a string representation of the function that computes the derived variable, `self`
+
+The names of the elements of the `expressions` list correspond to the names of the derived variables, and these names can be inverted to identify a row in the `variables` list. The names of the arguments of the expressions must also be invertible in order to identify a row in the `variables` list. Note that this construction implies that derived variables have empty labels in all non-required partitions.
+
+The ordering of the `expressions` list must be topologically sorted so that the dependencies of each expression must appear earlier in the list. This topological sorting requirement presents a technical challenge when models are combined, as it becomes necessary to be able to merge lists of `expressions` so that they remain topologically sorted.
+
+For example, consider the `N` example above in a variety of contexts. The simplest `variables` list would look like this.
+
+```{r, echo = FALSE}
+data.frame(epi = c("S", "E", "I", "R", "beta", "alpha", "gamma", "N"))
+```
+
+And the `expressions` list would look like this.
+
+```{r, echo = FALSE}
+foi = MathExpressionFromFunc(function(I, N, beta) {
+  I * beta / N
+})
+expressions = nlist(N, foi)
+expressions
+```
+
+One could use such an `expressions` list to update a symbolic expression for the atomic SEIR model so that applies to a single stratum in an `epi`-by-`vax` model. For example, here we find the component of the force of infection due to the unvaccinated individuals.
+```{r}
+expressions$foi$symbolic$evaluate(
+  I = "I.unvax",
+  N = expressions$N$symbolic$evaluate(
+    S = "S.unvax",
+    E = "E.unvax",
+    I = "I.unvax",
+    R = "R.unvax"
+  ),
+  beta = "beta.unvax"
+)
+```
+
+```{r, echo = FALSE}
+data.frame(
+  epi = c(
+    rep(c("S", "E", "I", "I", "R", "beta"), 2), 
+    "alpha", "gamma", "gamma",
+    "N", "N", "foi", "foi",
+    ""
+  ),
+  symp = c(
+    rep(c("", "", "mild", "severe", "", ""), 2), 
+    "", "mild", "severe", 
+    "", "", "", "",
+    ""
+  ),
+  vax = c(
+    rep(c("unvax", "vax"), each = 6)
+    , "", "", "", 
+    "unvax", "vax", "unvax", "vax",
+    "dose_rate"
+  )
+)
+```
+
+
+ROUGH NOTE: There are different types of derived variables that are produced in different ways. Under the hood they are all based on math expressions, but from the user's perspective they are distinct. The first is just the most general math expression of the variable names. The second is to identify non-required partitions that get used to collect variables into vectors and maybe matrices (e.g. the state vector). The third is to aggregate over non-required partitions (e.g. sum of state variables).
+
+## Variable Collections
+
+
+
+
+## Aggregated Variables
+
+
+Sometimes it is not convenient to construct a generic function to do a task that is better thought of as an aggregation of existing variables. For example one may want to sum over all of the variables along a particular stratum. This is a task that 
+
+
+## Edge Variables and Flow Rates
+
+We have another data frame, `edge_variables`, describing which variable pairs are connected by flows. There are two columns in this data frame, `from` and `to`, and the rows give pairs of variable names. The variable identified by the `i`th row of `from` flows into `to` in model simulations.
+
+For example, consider this SIR model.
+
+```{r, echo = FALSE}
+data.frame(epi = c("S", "I", "R", "beta", "gamma"))
+```
+
+We would have the following `edge_variables` component.
+
+```{r, echo = FALSE}
+data.frame(from = c("S", "I"), to = c("I", "R"))
+```
+
+Notice that all state variables appear in this table, and that it contains no parameters. This is the mechanism for encoding whether a model component is a state variables or a parameter.
+
+A more interesting example is an `epi`-by-`vax` model.
+
+```{r, echo = FALSE}
+data.frame(
+  from = c("S.unvax", "I.unvax", "S.vax", "I.vax", "S.unvax", "I.unvax", "R.unvax"),
+  to = c("I.unvax", "R.unvax", "I.vax", "R.vax", "S.vax", "I.vax", "R.vax")
+)
+```
+
+## Model of Flow along Edges (nowhere near comprehensible)
+
+The flow for each edge of an atomic model is given by an atomic flow function, which take model variables as arguments. For example, 
+
+The flow for each edge is given by the inner product of two vectors ...
+
+In the SEIR model there are three edges -- exposure, symptom expression, and recovery.
+
+Each model has a set of atomic functions of model variables. These atomic functions are applied to compute the flow along model edges.
+
+Each edge is associated with an atomic flow function
+
+
+## Operations on Model Space
+
+### Example Atomic Models
+
+```{r}
+sir = list(
+  variables = data.frame(
+    type = c("state", "state", "state", "params", "params", "derived", "derived"),
+    epi = c("S", "I", "R", "beta", "gamma", "N", "foi")
+  ),
+  expressions = list(
+    N = list(
+      arguments = c(".state"),
+      expression = "sum(.state)"
+    )
+  )
+)
+sir
+```
+
+```{r}
+seir = list(
+  variables = data.frame(
+    epi = c(
+      "S", "E", "I", "R", 
+      "beta", "alpha", "gamma", 
+      "state", "N", "foi"
+    )
+  ),
+  expressions = list(
+    state = function(S, E, I, R) c(S, E, I, R),
+    N = function(state) sum(state),
+    foi = function(I, beta, N) I * beta / N
+  ),
+  edges = data.frame(
+    from = c("S", "E", "I"),
+    to = c("E", "I", "R"),
+    flow_component = c("foi", "alpha", "gamma"),
+    component_type = c("rate", "rate", "rate")
+  )
+)
+seir
+```
+
+```{r}
+vaccination = list(
+  variables = data.frame(vax = c("unvax", "vax", "dose_rate")),
+  expressions = list(),
+  edges = data.frame(
+    from = "unvax", 
+    to = "vax",
+    flow_component = "dose_rate",
+    component_type = "rate"
+  )
+)
+vaccination
+```
+
+```{r}
+symptom_level = list(
+  variables = data.frame(
+    sev = c("mild", "severe", "effective", "Cm", "Cs")
+  ),
+  expressions = list(
+    effective = function(mild, severe, Cm, Cs) {
+      Cm * mild + Cs * severe
+    }
+  ),
+  edges = list()
+)
+symptom_level
+```
+
+### Types of Operations
+
+#### Product
+
+1. All states get the Cartesian product
+2. The user can decide what parameters to stratify (or not stratify?)
+3. Derived variables are checked in order to make sure that either all of their arguments are stratified or none of them are
+    a. If all (any??) arguments are stratified, then the derived variable is stratified
+    b. Else if no arguments are stratified, then the derived variable is not stratified
+    c. Otherwise throw an error
+4. Edges are stratified
+5. If the `flow_component` is stratified, the user must choose between one of the following
+    a. Sum over the strata to get a total `flow_component` that is used for each stratum of the edge
+    b. Match the strata of the edges to the strata of the flow components
+
+A product of `seir` and `vaccination` is the following.
+
+```{r}
+epi_states = c("S", "E", "I", "R")
+vax_states = c("unvax", "vax")
+epi_params_var = "beta"
+epi_params_const = c("alpha", "gamma")
+vax_params_const = "dose_rate"
+epi_derived_var = c("state", "N", "foi")
+seir_x_vaccination = list(
+  variables = data.frame(
+    epi = c(
+      rep(epi_states, times = length(vax_states)),
+      rep(epi_params_var, times = length(vax_states)),
+      epi_params_const,
+      rep("", length(vax_params_const)),
+      rep(epi_derived_var, times = length(vax_states))
+    ),
+    vax = c(
+      rep(vax_states, each = length(epi_states)),
+      rep(vax_states, each = length(epi_params_var)),
+      rep("", length(epi_params_const)),
+      vax_params_const,
+      rep(vax_states, each = length(epi_derived_var))
+    )
+  ),
+  expressions = list(
+    ## each of these expressions is actually two expressions,
+    ## one for each vaccination stratum.
+    state. = function(S., E., I., R.) c(S., E., I., R.),
+    N. = function(state.) sum(state.),
+    foi. = function(I., beta., N.) I. * beta. / N.
+  ),
+  edges = data.frame(
+    from = c(
+      "S.unvax", "S.vax",
+      "E.unvax", "E.vax", 
+      "I.unvax", "I.vax", 
+      "S.unvax", "E.unvax", "I.unvax", "R.unvax"
+    ),
+    to = c(
+      "E.unvax", "E.vax",
+      "I.unvax", "I.vax", 
+      "R.unvax", "R.vax",
+      "S.vax", "E.vax", "I.vax", "R.vax"
+    ),
+    flow_component = c(
+      "foi.sum", "foi.sum", ## note use of the special 'sum' label
+      "alpha.", "alpha.",
+      "gamma.", "gamma.",
+      ".dose_rate", ".dose_rate", ".dose_rate", ".dose_rate"
+    ),
+    component_type = "rate"
+  )
+)
+seir_x_vaccination
+```
+
+
+#### Compartment expansion
+
+* A compartment in one model is selected
+* Another model of compartment sub-types is used to expand this compartment
+* 
+
+
+
+

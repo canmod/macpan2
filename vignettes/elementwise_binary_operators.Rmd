@@ -46,13 +46,13 @@ $$
 The elements of $z$ are given by the following expression.
 $$
 z_{i,j} = \cases{ \begin{array}{lll}
-  x_{i,j} \otimes y_{i,j} & \text{if } n(x) = n(y) & \text{and } m(x) = m(y) \\
-  x_{i,j} \otimes y_{i,1} & \text{if } n(x) = n(y) & \text{and } m(y) = 1 \\
-  x_{i,j} \otimes y_{1,j} & \text{if } n(y) = 1 & \text{and } m(x) = m(y) \\
-  x_{i,1} \otimes y_{i,j} & \text{if } n(x) = n(y) & \text{and } m(x) = 1 \\
-  x_{1,j} \otimes y_{i,j} & \text{if } n(x) = 1 & \text{and } m(x) = m(y) \\
-  x_{1,1} \otimes y_{i,j} & \text{if } n(x) = m(x) = 1 \\
-  x_{i,j} \otimes y_{1,1} & \text{if } n(y) = m(y) = 1 \\
+  x_{i,j} \otimes y_{i,j} & \text{if } n(x) = n(y) & \text{and } m(x) = m(y) & \text{Standard Hadamard product} \\
+  x_{i,j} \otimes y_{i,1} & \text{if } n(x) = n(y) & \text{and } m(y) = 1 & \text{Each matrix column times a column vector} \\
+  x_{i,j} \otimes y_{1,j} & \text{if } n(y) = 1 & \text{and } m(x) = m(y) & \text{Each matrix row times a row vector} \\
+  x_{i,1} \otimes y_{i,j} & \text{if } n(x) = n(y) & \text{and } m(x) = 1 & \text{Column vector times each matrix column} \\
+  x_{1,j} \otimes y_{i,j} & \text{if } n(x) = 1 & \text{and } m(x) = m(y) & \text{Row vector times each matrix row} \\
+  x_{1,1} \otimes y_{i,j} & \text{if } n(x) = m(x) = 1  & & \text{Scalar times a matrix, vector or scalar} \\
+  x_{i,j} \otimes y_{1,1} & \text{if } n(y) = m(y) = 1 & & \text{Matrix, vector or scalar times a scalar} \\
 \end{array}}
 $$
 Where the functions $n()$ and $m()$ give the numbers of rows and columns respectively.
