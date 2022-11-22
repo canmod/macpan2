@@ -386,7 +386,6 @@ data.frame(
 Notice that all state variables appear in this table, and that it contains no parameters. This is the mechanism for encoding whether a model variable is a state variables or a parameter.
 
 A more interesting example is the following `Epi`-by-`Vax` model.
-
 ```{r, echo = FALSE}
 sir_vax = data.frame(
   Epi = c(rep(c("S", "I", "R", "beta"), 2), "alpha", "gamma", "foi", ""),
@@ -394,6 +393,7 @@ sir_vax = data.frame(
 )
 sir_vax
 ```
+The `flows` data frame for these variables could look like the following.
 ```{r, echo = FALSE}
 data.frame(
   from = c("S.unvax", "I.unvax", "S.vax", "I.vax", "S.unvax", "I.unvax", "R.unvax"),
@@ -408,175 +408,4 @@ data.frame(
 
 ## Compressed Flow Data Format
 
-
-
-
-## Model of Flow along Edges (nowhere near comprehensible)
-
-The flow for each edge of an atomic model is given by an atomic flow function, which take model variables as arguments. For example, 
-
-The flow for each edge is given by the inner product of two vectors ...
-
-In the SEIR model there are three edges -- exposure, symptom expression, and recovery.
-
-Each model has a set of atomic functions of model variables. These atomic functions are applied to compute the flow along model edges.
-
-Each edge is associated with an atomic flow function
-
-
-## Operations on Model Space
-
-### Example Atomic Models
-
-```{r}
-sir = list(
-  variables = data.frame(
-    type = c("state", "state", "state", "params", "params", "derived", "derived"),
-    epi = c("S", "I", "R", "beta", "gamma", "N", "foi")
-  ),
-  expressions = list(
-    N = list(
-      arguments = c(".state"),
-      expression = "sum(.state)"
-    )
-  )
-)
-sir
-```
-
-```{r}
-seir = list(
-  variables = data.frame(
-    epi = c(
-      "S", "E", "I", "R", 
-      "beta", "alpha", "gamma", 
-      "state", "N", "foi"
-    )
-  ),
-  expressions = list(
-    state = function(S, E, I, R) c(S, E, I, R),
-    N = function(state) sum(state),
-    foi = function(I, beta, N) I * beta / N
-  ),
-  edges = data.frame(
-    from = c("S", "E", "I"),
-    to = c("E", "I", "R"),
-    flow_component = c("foi", "alpha", "gamma"),
-    component_type = c("rate", "rate", "rate")
-  )
-)
-seir
-```
-
-```{r}
-vaccination = list(
-  variables = data.frame(vax = c("unvax", "vax", "dose_rate")),
-  expressions = list(),
-  edges = data.frame(
-    from = "unvax", 
-    to = "vax",
-    flow_component = "dose_rate",
-    component_type = "rate"
-  )
-)
-vaccination
-```
-
-```{r}
-symptom_level = list(
-  variables = data.frame(
-    sev = c("mild", "severe", "effective", "Cm", "Cs")
-  ),
-  expressions = list(
-    effective = function(mild, severe, Cm, Cs) {
-      Cm * mild + Cs * severe
-    }
-  ),
-  edges = list()
-)
-symptom_level
-```
-
-### Types of Operations
-
-#### Product
-
-1. All states get the Cartesian product
-2. The user can decide what parameters to stratify (or not stratify?)
-3. Derived variables are checked in order to make sure that either all of their arguments are stratified or none of them are
-    a. If all (any??) arguments are stratified, then the derived variable is stratified
-    b. Else if no arguments are stratified, then the derived variable is not stratified
-    c. Otherwise throw an error
-4. Edges are stratified
-5. If the `flow_component` is stratified, the user must choose between one of the following
-    a. Sum over the strata to get a total `flow_component` that is used for each stratum of the edge
-    b. Match the strata of the edges to the strata of the flow components
-
-A product of `seir` and `vaccination` is the following.
-
-```{r}
-epi_states = c("S", "E", "I", "R")
-vax_states = c("unvax", "vax")
-epi_params_var = "beta"
-epi_params_const = c("alpha", "gamma")
-vax_params_const = "dose_rate"
-epi_derived_var = c("state", "N", "foi")
-seir_x_vaccination = list(
-  variables = data.frame(
-    epi = c(
-      rep(epi_states, times = length(vax_states)),
-      rep(epi_params_var, times = length(vax_states)),
-      epi_params_const,
-      rep("", length(vax_params_const)),
-      rep(epi_derived_var, times = length(vax_states))
-    ),
-    vax = c(
-      rep(vax_states, each = length(epi_states)),
-      rep(vax_states, each = length(epi_params_var)),
-      rep("", length(epi_params_const)),
-      vax_params_const,
-      rep(vax_states, each = length(epi_derived_var))
-    )
-  ),
-  expressions = list(
-    ## each of these expressions is actually two expressions,
-    ## one for each vaccination stratum.
-    state. = function(S., E., I., R.) c(S., E., I., R.),
-    N. = function(state.) sum(state.),
-    foi. = function(I., beta., N.) I. * beta. / N.
-  ),
-  edges = data.frame(
-    from = c(
-      "S.unvax", "S.vax",
-      "E.unvax", "E.vax", 
-      "I.unvax", "I.vax", 
-      "S.unvax", "E.unvax", "I.unvax", "R.unvax"
-    ),
-    to = c(
-      "E.unvax", "E.vax",
-      "I.unvax", "I.vax", 
-      "R.unvax", "R.vax",
-      "S.vax", "E.vax", "I.vax", "R.vax"
-    ),
-    flow_component = c(
-      "foi.sum", "foi.sum", ## note use of the special 'sum' label
-      "alpha.", "alpha.",
-      "gamma.", "gamma.",
-      ".dose_rate", ".dose_rate", ".dose_rate", ".dose_rate"
-    ),
-    component_type = "rate"
-  )
-)
-seir_x_vaccination
-```
-
-
-#### Compartment expansion
-
-* A compartment in one model is selected
-* Another model of compartment sub-types is used to expand this compartment
-* 
-
-
-
-
+TODO
