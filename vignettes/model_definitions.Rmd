@@ -126,9 +126,9 @@ Consider one more example with different symptomatic statuses, where infectious 
 
 ```{r, echo = FALSE}
 EpiSympVax = data.frame(
-  Epi = c(rep(c("S", "E", "I", "I", "R", "beta"), 2), "alpha", "gamma", "gamma", ""),
-  Symp = c(rep(c("", "", "mild", "severe", "", ""), 2), "", "mild", "severe", ""),
-  Vax = c(rep(c("unvax", "vax"), each = 6), "", "", "", "dose_rate")
+  Epi = c(rep(c("S", "E", "I", "I", "R", "beta"), 2), "alpha", "gamma", "gamma", "infectiousness", "infectiousness", ""),
+  Symp = c(rep(c("", "", "mild", "severe", "", ""), 2), "", "mild", "severe", "mild", "severe", ""),
+  Vax = c(rep(c("unvax", "vax"), each = 6), "", "", "", "", "", "dose_rate")
 )
 EpiSympVax
 ```
@@ -271,22 +271,22 @@ list(
 ```
 This will produce a single derived variable called `foi.total`, which can be used as the force of infection for all vaccination strata.
 
-There are other operations on model space besides model products. Another such operation is to convert a single compartment into several compartments. An example of this operation is breaking the infectious compartment into several symptomatic states.
+There are other operations on model space besides model products. Another such operation is to convert a single compartment into several compartments. An example of this operation is breaking the infectious compartment into several symptomatic states. In this case we might want to  each of which could have different degrees of infectiousness.
 ```{r echo = FALSE}
-EpiSympVax$Shape = "scalar"
-rbind(
-  EpiSympVax, 
-  data.frame(
-    Epi = "C", Symp = "", Vax = "", 
-    Shape = "vector"
-  )
+EpiSymp = data.frame(
+  Epi = c("S", "E", "I", "I", "I", "I", "R", "beta", "alpha", "gamma", "gamma", "infectiousness", "infectiousness", "infectiousness", "foi"),
+  Symp = c("", "", "mild", "severe", "", "", "", "", "", "mild", "severe", "mild", "severe", "", ""),
+  Type = c("", "", "component", "component", "vector", "effective", rep("", 5L), "component", "component", "vector", "")
 )
+EpiSymp
 ```
-Notice the `"Shape"` partition that identifies the shape of the variable -- in this case either `"scalar"` or `"vector"`. The vector-valued variable collects 
+Notice the `"Type"` partition that indicates the different forms with which the symptomatic-status-structured variables are represented. Here the scalar components of `I` and `infectiousness` can be referred to, or one can refer to vectors that contain all components. The components are `I.mild.component`, `I.severe.component`, `infectiousness.mild.component`, and `infectiousness.severe.component`. The vectors are `I..vector` and `infectiousness..vector`. The variable `I..effective` refers to the the weighted sum given by the inner product of `I..vector` and `infectiousness..vector`.
+
+Constructing the derived variables for this model requires the following definitions.
 ```{r eval = FALSE}
 list(
   group_partition = "Epi",
-  group_names = "C",
+  group_names = "infectiousness",
   output_partition = "Shape",
   output_names = "vector",
   input_partition = "Symp",
