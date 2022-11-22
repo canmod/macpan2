@@ -174,13 +174,13 @@ The ability to refer to multiple variables with a single name is useful in many 
 As the examples above have illustrated, the name of a partition set is the dot-delimited concatenation of the names of the partitions in the set. For example, `Epi.Symp` is the name of the partition set containing the `Epi` and `Symp` partitions.
 
 
-## Derived Variables (getting less comprehensible again)
+## Derived Variables
 
-Although the input variables should in principle be sufficient for defining flow between compartments, it is often convenient to define flow in terms of derived variables that depend on the inputs. For example, the force of infection in a standard SEIR model has the sum of all of the state variables in the denominator, and so one might want to define this sum, `N`, as a derived variable. Another use of derived variables is to compute summarizing quantities such as $\mathcal{R}_0$.
+Now that we have a solid mechanism for representing, referring to, and grouping model variables, we can begin to consider defining [Flow between Compartments]. When the rate of flow from one compartment to another is given by a model parameter (e.g. recovery rate, `gamma`), then it is straightforward to describe the flow between those compartments (e.g. `I` to `R`). However, when the flow rate is a function of parameters and state variables (e.g. force of infection), we first need to define how to compute such a rate.
 
-Each derived variable must be represented by a row in the `variables` list. Derived variables are distinguished from input variables by being associated with an element in a named list, `derivations`, of objects that describe how to compute each derived variable.
+In this section we describe a data structure for representing mathematical expressions for deriving model variables that must be recomputed at each iteration of a simulation. Flow rates such as the force of infection is an example of such a derived variable. There are many other examples, including sums of groups of (e.g. vaccinated) compartments, model summaries such as $\mathcal{R}_0$, and convolutions of infected compartments for modelling under-reporting and reporting delays.
 
-There are several ways to represent a derivation. The most generic representation has the following components.
+Each derived variable must be represented by a row in the `variables` list. Derived variables are distinguished from input variables by being associated with an element in a list, `derivations`. This list contains objects that describe how to compute each derived variable. Each object contains the following components.
 
 * `group_partition` -- The name of a partition set to use for filtering and grouping the variables so that (1) only a subset of variables are utilized in order to produce the derived variables and (2) a set of derived variables can be produced at the same time by producing one derived variable per group. There are three main cases:
     * `group_partition` is `NULL` -- All variables are potentially utilized by a single derived variable
@@ -278,53 +278,14 @@ list(
 ```
 
 
-
 that take input variables and other derived variables as arguments and return a derived variable either numerically or symbolically. The numerical version is required when running simulations or fitting models to data, whereas the symbolic version is required when combining models.
 
-Take the example of the sum, `N`, of state variables in an SEIR model.
-```{r}
-N = MathExpressionFromFunc(function(S, E, I, R) {
-  sum(S, E, I, R)
-})
-```
-This object could be used to compute the numerical sum.
-```{r}
-N$numeric$evaluate(S = 1, E = 2, I = 3, R = 4)
-```
-It could also be used to compute the symbolic sum, for example the sum of epidemiological states within a vaccinated layer.
-```{r}
-N$symbolic$evaluate(S = "S.vax", E = "E.vax", I = "I.vax", R = "R.vax")
-```
-
-In general each element of the named `expressions` list is an object with two methods and two fields.
-
-* The `self$numeric$evaluate` method evaluates the derived variable, `self`, numerically for a set of numerical inputs
-* The `self$symbolic$evaluate` method evaluates the derived variable, `self`, symbolically for a set of string inputs
-* The `self$arguments` field gives a character vector with the names of the arguments of the derived variable, `self`
-* The `self$string` field gives a string representation of the function that computes the derived variable, `self`
-
-The names of the elements of the `expressions` list correspond to the names of the derived variables, and these names can be inverted to identify a row in the `variables` list. The names of the arguments of the expressions must also be invertible in order to identify a row in the `variables` list. Note that this construction implies that derived variables have empty labels in all non-required partitions.
 
 The ordering of the `expressions` list must be topologically sorted so that the dependencies of each expression must appear earlier in the list. This topological sorting requirement presents a technical challenge when models are combined, as it becomes necessary to be able to merge lists of `expressions` so that they remain topologically sorted.
 
-For example, consider the `N` example above in a variety of contexts. The simplest `variables` list would look like this.
-
-```{r, echo = FALSE}
-data.frame(epi = c("S", "E", "I", "R", "beta", "alpha", "gamma", "N"))
-```
-
-And the `expressions` list would look like this.
-
-```{r, echo = FALSE}
-foi = MathExpressionFromFunc(function(I, N, beta) {
-  I * beta / N
-})
-expressions = nlist(N, foi)
-expressions
-```
 
 One could use such an `expressions` list to update a symbolic expression for the atomic SEIR model so that applies to a single stratum in an `epi`-by-`vax` model. For example, here we find the component of the force of infection due to the unvaccinated individuals.
-```{r}
+```{r eval=FALSE}
 expressions$foi$symbolic$evaluate(
   I = "I.unvax",
   N = expressions$N$symbolic$evaluate(
@@ -337,46 +298,10 @@ expressions$foi$symbolic$evaluate(
 )
 ```
 
-```{r, echo = FALSE}
-data.frame(
-  epi = c(
-    rep(c("S", "E", "I", "I", "R", "beta"), 2), 
-    "alpha", "gamma", "gamma",
-    "N", "N", "foi", "foi",
-    ""
-  ),
-  symp = c(
-    rep(c("", "", "mild", "severe", "", ""), 2), 
-    "", "mild", "severe", 
-    "", "", "", "",
-    ""
-  ),
-  vax = c(
-    rep(c("unvax", "vax"), each = 6)
-    , "", "", "", 
-    "unvax", "vax", "unvax", "vax",
-    "dose_rate"
-  )
-)
-```
 
+## Flow between Compartments
 
-ROUGH NOTE: There are different types of derived variables that are produced in different ways. Under the hood they are all based on math expressions, but from the user's perspective they are distinct. The first is just the most general math expression of the variable names. The second is to identify non-required partitions that get used to collect variables into vectors and maybe matrices (e.g. the state vector). The third is to aggregate over non-required partitions (e.g. sum of state variables).
-
-## Variable Collections
-
-
-
-
-## Aggregated Variables
-
-
-Sometimes it is not convenient to construct a generic function to do a task that is better thought of as an aggregation of existing variables. For example one may want to sum over all of the variables along a particular stratum. This is a task that 
-
-
-## Edge Variables and Flow Rates
-
-We have another data frame, `edge_variables`, describing which variable pairs are connected by flows. There are two columns in this data frame, `from` and `to`, and the rows give pairs of variable names. The variable identified by the `i`th row of `from` flows into `to` in model simulations.
+We have another data frame, `flows`, describing which variable pairs are connected by flows. There are two columns in this data frame, `from` and `to`, and the rows give pairs of variable names. The variable identified by the `i`th row of `from` flows into `to` in model simulations.
 
 For example, consider this SIR model.
 
@@ -384,7 +309,7 @@ For example, consider this SIR model.
 data.frame(epi = c("S", "I", "R", "beta", "gamma"))
 ```
 
-We would have the following `edge_variables` component.
+We would have the following `flows` component.
 
 ```{r, echo = FALSE}
 data.frame(from = c("S", "I"), to = c("I", "R"))
