@@ -195,6 +195,8 @@ Each derived variable must be represented by a row in the `variables` list. Deri
 * `input_names_dots` [required if `math_function` has a `...` argument] -- A vector of variable names with respect to the `input_partition` for finding variables to pass to a `...` argument in `math_function`, if it exists.
 * `math_function` [required] -- A mathematical function for producing one derived variable per group. The names of the arguments of this function are a subset of variable names with respect to the `input_partition` and optionally a `...` argument.
 
+TODO: Perhaps this should be a 'compressed' data format for `derivations`, and the simple `derived_var_name = function(...) ...` should be used as the base case? The compressed format can be used to form the basis of an interface design?
+
 The spec for this component will be hard to understand on first reading. To understand it better we provide several examples designed to justify and clarify the description in the above bullet list.
 
 We begin with defining the force of infection for an SEIR model with the following variable list.
@@ -296,12 +298,18 @@ list(
 list(
   group_partition = "Type",
   group_names = "vector",
-  output_partition = "Epi",
-  output_names = "foi",
+  output_partition = "Epi.Type",
+  output_names = "I.effective",
   input_partition = "Epi",
   math_function = function(I, infectiousness) {
     sum(I * infectiousness)
   }
+)
+list(
+  output_partition = "Epi",
+  output_names = "foi",
+  input_partition = "Epi",
+  math_function = function(S, E, I, R)
 )
 ```
 
@@ -363,6 +371,6 @@ data.frame(
 )
 ```
 
-## Compressed Flow Data Format
+## Compressed Data Format for Flows
 
 TODO
