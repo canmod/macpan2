@@ -47,12 +47,13 @@ These and other [user-stories](https://canmod.github.io/macpan-book/index.html#v
 
 ## Compartmental Models
 
-A compartmental model is a named list of the following three components.
+A compartmental model is a named list of the following four components.
 
 1. `variables` -- A data frame describing the variables in the model.
 2. `derivations` -- A list of instructions on how to update the `variables` at each iteration of a model simulation.
 3. `flows` -- A data frame describing what variables are state variables and the magnitudes of flows to and from compartments.
 4. `settings` -- A named list of elements that determine how components 1-3 are used by the software.
+
 
 The following sections describe each of these components in more detail.
 
@@ -86,7 +87,7 @@ data.frame(
 )
 ```
 
-We emphasize that the list with the single `Epi` partition did not violate this spec, as it is not required to add a partition to make a distinction between state variables and parameters. The spec makes this distinction in the [Edge Variables and Flow Rates] component. In this example, the addition of the `Type` and `Infect` partitions are for convenience. The point is that the user is free to add any number of partitions even if they are not required for uniqueness.
+We emphasize that the list with the single `Epi` partition did not violate this spec, as it is not required to add a partition to make a distinction between state variables and parameters. The spec makes this distinction in the `settings` component under [Variable Roles]. In this example, the addition of the `Type` and `Infect` partitions are for convenience. The point is that the user is free to add any number of partitions even if they are not required for uniqueness.
 
 Note that we do not provide a column for the numeric quantity of each variable because this is a spec for a compartmental model data structure. By working with pure model structure objects, we can combine different atomic models to more easily produce models with more structure. When it comes time to use a model, the [computational engine](https://canmod.net/misc/cpp_side) can be used to associate model variables with numerical quantities.
 
@@ -153,6 +154,14 @@ This choice of a dot delimiter leads to syntactically valid R names even if the 
 The biggest downside to the choice of a dot delimiter is that it conflicts with the [tidyverse style](https://style.tidyverse.org/syntax.html), which requires using dots only to specify S3 method dispatch. The reason for this guideline is to reduce the chances of ambiguity when the S3 machinery searches for methods. This disadvantage is in our opinion outweighed by the advantages that we list above, because model variables will not be involved in S3 dispatch.
 
 Variable names are invertible, in that a vector of variable names can be combined with a vector of partition names to reproduce the associated labelled partitions. This fact allows us to choose either the labelled partitions or names representation depending on convenience or necessity.
+
+
+## Variable Roles
+
+[Variable Names] are used in lists that identify variables with specific roles in the model. There are two such lists in the `settings` component.
+
+* `settings$state_variables` -- Character vector giving names of variables, each of which tracks the number of individuals in a compartment.
+* `settings$flow_variables` -- Character vector giving names of variables, each of which determines the magnitude of flow between one or more pairs of compartments.
 
 
 ## Partition Sets
@@ -273,12 +282,13 @@ list(
 ```
 This will produce a single derived variable called `foi.total`, which can be used as the force of infection for all vaccination strata.
 
-There are other operations on model space besides model products. Another such operation is to convert a single compartment into several compartments. An example of this operation is breaking the infectious compartment into several symptomatic states. In this case we might want to  each of which could have different degrees of infectiousness.
+There are other operations on model space besides model products. Another such operation is to convert a single compartment into several compartments. An example of this operation is to break up the infectious compartment into several symptomatic states.
 ```{r echo = FALSE}
 EpiSymp = data.frame(
   Epi = c("S", "E", "I", "I", "I", "I", "R", "beta", "alpha", "gamma", "gamma", "infectiousness", "infectiousness", "infectiousness", "foi"),
+  EpiEffective = c("S", "E", "", "", "", "I", "R", "beta", "alpha", "gamma", "gamma", "", "", "", "foi"),
   Symp = c("", "", "mild", "severe", "", "", "", "", "", "mild", "severe", "mild", "severe", "", ""),
-  Type = c("", "", "component", "component", "vector", "effective", rep("", 5L), "component", "component", "vector", "")
+  Type = c("", "", "component", "component", "vector", rep("", 6L), "component", "component", "vector", "")
 )
 EpiSymp
 ```
@@ -287,19 +297,32 @@ Notice the `"Type"` partition that indicates the different forms with which the 
 Here we assume that the `component` types are input variables, and that we derive the other `I` and `infectiousness` variables with the following definitions.
 ```{r eval = FALSE}
 list(
-  group_partition = "Epi.Type",
-  group_names = c("I.vector", "infectiousness.vector"),
+  group_partition = "Epi.Symp",
+  group_names = c("I.mild", "I.severe", "infectiousness.mild", "infectiousness.severe"),
   output_partition = "Epi.Type",
   output_names = c("I.vector", "infectiousness.vector"),
   input_partition = "Symp",
   input_names_dots = c("mild", "severe"),
   math_function = function(...) c(...)
 )
+# list(
+#   #group_partition = "Epi",
+#   #group_names = c("I", "I", "infectiousness.mild", "infectiousness.severe"),
+#   output_partition = "Epi.EpiEffective",
+#   output_names = "I.I",
+#   input_partition = "Epi.Symp",
+#   input_names_dots = c("I.mild", "I.severe", "infectiousness.mild", "infectiousness.severe"),
+#   math_function = function(...) {
+#     l = unlist(list(...))
+#     n = length(l)
+#     sum(l[1:(n/2)] * l[((n/2)+1):n])
+#   }
+# )
 list(
   group_partition = "Type",
   group_names = "vector",
-  output_partition = "Epi.Type",
-  output_names = "I.effective",
+  output_partition = "EpiEffective",
+  output_names = "I",
   input_partition = "Epi",
   math_function = function(I, infectiousness) {
     sum(I * infectiousness)
