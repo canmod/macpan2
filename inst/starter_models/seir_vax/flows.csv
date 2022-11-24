@@ -1,0 +1,5 @@
+from,to,flow,type,from_partition,to_partition,flow_partition,from_to_partition,from_flow_partition,to_flow_partition
+S,E,foi,rate,Epi,Epi,Epi,Vax,,
+E,I,alpha,rate,Epi,Epi,Epi,Vax,,
+I,R,gamma,rate,Epi,Epi,Epi,Vax,,
+unvax,vax,dose_rate,rate,Vax,Vax,Vax,Epi,,

@@ -1,0 +1,7 @@
+[
+  {
+    "required_partitions" : ["Vax"],
+    "state_variables" : ["unvax", "vax"],
+    "flow_component_variables" : ["dose_rate"]
+  }
+]

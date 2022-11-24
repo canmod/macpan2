@@ -1,0 +1,12 @@
+[
+  {
+    "output_names" : ["N"],
+    "arguments" : ["S", "E", "I", "R"],
+    "expression" : "sum(S, E, I, R)"
+  },
+  {
+    "output_names" : ["foi"],
+    "arguments" : ["I", "beta", "N"],
+    "expression" : "I * beta / N"
+  }
+]

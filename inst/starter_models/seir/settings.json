@@ -1,0 +1,7 @@
+[
+  {
+    "required_partitions" : ["Epi"],
+    "state_variables" : ["S", "E", "I", "R"],
+    "rate_component_variables" : ["foi", "alpha", "gamma"]
+  }
+]

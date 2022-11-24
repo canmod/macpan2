@@ -1,0 +1,7 @@
+[
+  {
+    "required_partitions" : ["Epi"],
+    "state_variables" : ["S", "I", "R"],
+    "flow_component_variables" : ["foi", "gamma"]
+  }
+]

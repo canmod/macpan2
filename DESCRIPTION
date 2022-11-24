@@ -3,12 +3,14 @@ Title: Fast and Flexible Compartmental Modelling
 Version: 0.0.0.9000
 Authors@R: c(
   person("Ben","Bolker",email="bolker@mcmaster.ca",role=c("aut","cre")),
-  person("Weiguang Guan", rol="ctb"))
+  person("Weiguang Guan", rol="ctb"),
+  person("Darren Flynn-Primrose", rol="aut"))
 Description: What the package does (one paragraph).
 License: GPL-3
 Imports: 
     memoise,
-    oor
+    oor,
+    jsonlite
 Suggests: 
     knitr,
     rmarkdown,

@@ -1,0 +1,18 @@
+[
+  {
+    "required_partitions" : ["Epi","Symp","SympStruc"],
+    "state_variables" : [
+      "S..unstructured",
+      "E..unstructured",
+      "I.mild.unstructured",
+      "I.severe.unstructured",
+      "R..unstructured"
+    ],
+    "flow_variables" : [
+      "alpha..unstructured", 
+      "gamma.mild.component", 
+      "gamma.severe.component",
+      "foi..unstructured"
+    ]
+  }
+]

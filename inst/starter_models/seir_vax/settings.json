@@ -1,0 +1,12 @@
+[
+  {
+    "required_partitions" : ["Epi", "Vax"],
+    "state_variables" : [
+      "S.unvax", "E.unvax", "I.unvax", "R.unvax",
+      "S.vax", "E.vax", "I.vax", "R.vax"
+    ],
+    "flow_variables" : [
+      "foi.unvax", "foi.vax", "alpha.", "gamma."
+    ]
+  }
+]

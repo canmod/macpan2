@@ -1,0 +1,43 @@
+[
+  {
+    "group_partition" : "Epi.SympStruc",
+    "group_names" : ["I.component", "infectiousness.component"],
+    "output_partition" : "Epi.SympStruc",
+    "output_names" : ["I.vector", "infectiousness.vector"],
+    "input_partition" : "Symp",
+    "argument_dots" : ["mild", "severe"],
+    "expression" : "c(mild, severe)"
+  },
+  {
+    "group_partition" : "SympStruc",
+    "group_names" : ["vector"],
+    "output_partition" : "Epi.SympStruc",
+    "output_names" : ["I.effective"],
+    "input_partition" : "Epi",
+    "arguments" : ["I", "infectiousness"],
+    "expression" : "sum(I * infectiousness)"
+  },
+  {
+    "output_partition" : "Epi.SympStruc",
+    "output_names" : ["I.total"],
+    "input_partition" : "Epi.SympStruc",
+    "arguments" : ["I.vector"],
+    "expression" : "sum(I.vector)"
+  },
+  {
+    "filter_partition" : "SympStruc",
+    "filter_names" : ["unstructured", "total"],
+    "output_partition" : "Epi",
+    "output_names" : ["N"],
+    "input_partition" : ["Epi"],
+    "arguments" : ["S", "E", "I", "R"],
+    "expression" : "sum(S, E, I, R)"
+  },
+  {
+    "filter_partition" : "SympStruc",
+    "filter_names" : ["unstructured", "effective"],
+    "output_names" : ["foi"],
+    "arguments" : ["I", "beta", "N"],
+    "expression" : "I * beta / N"
+  }
+]
