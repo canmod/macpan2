@@ -49,10 +49,10 @@ These and other [user-stories](https://canmod.github.io/macpan-book/index.html#v
 
 A compartmental model is a named list of the following four components.
 
-1. `variables` -- A data frame describing the variables in the model.
-2. `derivations` -- A list of instructions on how to update the `variables` at each iteration of a model simulation.
-3. `flows` -- A data frame describing what variables are state variables and the magnitudes of flows to and from compartments.
-4. `settings` -- A named list of elements that determine how components 1-3 are used by the software.
+1. `variables` -- A CSV file describing the variables in the model.
+2. `derivations` -- JSON file with an array of instructions on how to update the `variables` at each iteration of a model simulation.
+3. `flows` -- A CSV file describing what variables are state variables and the magnitudes of flows to and from compartments.
+4. `settings` -- A JSON file with an object of elements that determine how components 1-3 are used by the software.
 
 
 The following sections describe each of these components in more detail.
@@ -162,6 +162,8 @@ Variable names are invertible, in that a vector of variable names can be combine
 
 * `settings$state_variables` -- Character vector giving names of variables, each of which tracks the number of individuals in a compartment.
 * `settings$flow_variables` -- Character vector giving names of variables, each of which determines the magnitude of flow between one or more pairs of compartments.
+
+All state variables and flow variables must be scalars.
 
 
 ## Partition Sets
@@ -345,14 +347,14 @@ We have another data frame, `flows`, with rows describing how individuals flow b
 
 * `from` -- The [variable name](#variable-names) of the compartment from which individuals are flowing.
 * `to` -- The [variable name](#variable-names) of the compartment to which individuals are flowing.
-* `flow_component` -- The name of the variable governing the magnitude of the flow.
-* `component_type` -- A type describing the way in which the magnitude of flow is quantified. The following options are available.
-    * `"rate"` -- The flow from `from` and to `to` equals `from * flow_component`.
-    * `"absolute"` -- The flow from `from` and to `to` equals `flow_component`.
-    * `"rate_inflow"` -- The flow to `to` equals `from * flow_component`.
-    * `"rate_outflow"` -- The flow from `from` equals `from * flow_component`.
-    * `"absolute_inflow"` -- The flow to `to` equals `flow_component`.
-    * `"absolute_outflow"` -- The flow from `from` equals `flow_component`.
+* `flow` -- The name of the variable governing the magnitude of the flow.
+* `flow_type` -- A type describing the way in which the magnitude of flow is quantified. The following options are available.
+    * `"rate"` -- The flow from `from` and to `to` equals `from * flow`.
+    * `"absolute"` -- The flow from `from` and to `to` equals `flow`.
+    * `"rate_inflow"` -- The flow to `to` equals `from * flow`.
+    * `"rate_outflow"` -- The flow from `from` equals `from * flow`.
+    * `"absolute_inflow"` -- The flow to `to` equals `flow`.
+    * `"absolute_outflow"` -- The flow from `from` equals `flow`.
 
 For example, consider this SIR model.
 
@@ -394,6 +396,68 @@ data.frame(
 )
 ```
 
-## Compressed Data Format for Flows
+## Flows in Structured Models
 
-TODO
+Structured models can have a large number of flows making the above `flows` data structure very long. For example, an SEIR model with three symptomatic status', five vaccination status', in 30 geographic locations would have over 750 flows depending on the details of the vaccination and geographic models. The length of the list is not in-and-of-itself the main problem with this data structure. A bigger problem is that the data structure does not preserve the model structure, making it difficult to visualize the underlying simplicity. For example, if the model structure was preserved in the `flows` data it would be possible to automatically construct box diagrams for communicating the simplicity of a seemingly complex compartmental model.
+
+On the other hand, the benefit of the more explicit data structure in [Flows between Compartments] is that it is easy to read each line. For example, the following line clearly tells me that unvaccinated exposed individuals flow to unvaccinated infectious individuals with mild symptoms at a rate that is independent of both vaccination status and symptomatic status.
+```{r echo = FALSE}
+data.frame(from = "E..unvax", to = "I.mild.unvax", flow = "alpha..", flow_type = "rate")
+```
+
+In this section we add more columns to the data structure for encoding model structure. These additional columns make it possible to shorten the list and retain model structure information, at the cost of making the meaning of each line more difficult to decode. However, if required, as we will see, the structured version can always be converted to the simpler but longer unstructured version. But it is not possible to go from unstructured to structured.
+
+The first three additional columns contain partition sets to resolve the names in `from`, `to`, and `flow`.  Consider the following example.
+```{r echo = FALSE}
+data.frame(
+  from = "S", to = "E", flow = "foi", flow_type = "rate",
+  from_partition = "Epi",
+  to_partition = "Epi",
+  flow_partition = "Epi"
+)
+```
+Consider this example within the context of an SEIR model stratified by two vaccination status'. In this case this data structure does not allow us to distinguish between models where `S.unvax` flows only to `E.unvax` from one where it is also allowed to flow to `E.vax`. To address this problem, we need three more partition columns for matching up valid `S`-`E` pairs. The following table provides an example of this.
+```{r echo = FALSE}
+data.frame(
+  from = "S", to = "E", flow = "foi", flow_type = "rate",
+  from_partition = "Epi",
+  to_partition = "Epi",
+  flow_partition = "Epi",
+  from_to_partition = "Vax",
+  from_flow_partition = "",
+  to_flow_partition = ""
+)
+```
+
+
+## File Formats
+
+Both CSV files have the following format.
+
+* Column delimiter is a comma.
+* There are no quotes anywhere in the file.
+* There are no special missing value tokens.
+* The first row gives the names of the partitions.
+* There are no row names.
+
+Additionally, the only characters that are allowed in this file are uppercase and lowercase letters, digits, underscores, and commas. The presence of any other character is sufficient to invalidate the file.
+
+The `settings.json` file contains a single object with the following key-value pairs.
+
+* `required_partitions` -- array of strings
+* `state_variables` -- array of strings
+* `flow_variables` -- array of strings
+
+The `derivations.json` file contains a single array of objects. Each of these objects has the following required key-value pairs.
+
+* `output_names` -- array of strings
+* `expression` -- string
+
+Each of these objects has the following optional key-value pairs, although some of these optional pairs become required given the existence of others.
+
+* `group_partition` -- string
+* `output_partition` -- string
+* `input_partition` -- string
+* `group_names` -- array of strings
+* `input_names` -- array of strings
+* `input_dots` -- array of strings
