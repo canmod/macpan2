@@ -47,19 +47,19 @@ These and other [user-stories](https://canmod.github.io/macpan-book/index.html#v
 
 ## Compartmental Models
 
-A compartmental model is a named list of the following four components.
+A compartmental model is a directory with the following four files.
 
 1. `variables` -- A CSV file describing the variables in the model.
 2. `derivations` -- JSON file with an array of instructions on how to update the `variables` at each iteration of a model simulation.
 3. `flows` -- A CSV file describing what variables are state variables and the magnitudes of flows to and from compartments.
-4. `settings` -- A JSON file with an object of elements that determine how components 1-3 are used by the software.
+4. `settings` -- A JSON file with an object of elements that determine how files 1-3 are used by the software.
 
 
-The following sections describe each of these components in more detail.
+The following sections describe each of these files in more detail.
 
 ## Variables and Partitions
 
-The `variables` component is a data frame with one row for each variable in the model and one column for each labelled partition of the variables. A labelled partition is a character vector of labels that describes the variables. Each row of this data frame must be unique so that it uniquely identifies each variable.
+The `variables.csv` file is a data frame with one row for each variable in the model and one column for each labelled partition of the variables. A labelled partition is a character vector of labels that describes the variables. Each row of this data frame must be unique so that it uniquely identifies each variable.
 
 For example, here is a standard SEIR model list of variables.
 
@@ -87,7 +87,7 @@ data.frame(
 )
 ```
 
-We emphasize that the list with the single `Epi` partition did not violate this spec, as it is not required to add a partition to make a distinction between state variables and parameters. The spec makes this distinction in the `settings` component under [Variable Roles]. In this example, the addition of the `Type` and `Infect` partitions are for convenience. The point is that the user is free to add any number of partitions even if they are not required for uniqueness.
+We emphasize that the list with the single `Epi` partition did not violate this spec, as it is not required to add a partition to make a distinction between state variables and parameters. The spec makes this distinction in the `settings` file under [Variable Roles]. In this example, the addition of the `Type` and `Infect` partitions are for convenience. The point is that the user is free to add any number of partitions even if they are not required for uniqueness.
 
 Note that we do not provide a column for the numeric quantity of each variable because this is a spec for a compartmental model data structure. By working with pure model structure objects, we can combine different atomic models to more easily produce models with more structure. When it comes time to use a model, the [computational engine](https://canmod.net/misc/cpp_side) can be used to associate model variables with numerical quantities.
 
@@ -158,7 +158,7 @@ Variable names are invertible, in that a vector of variable names can be combine
 
 ## Variable Roles
 
-[Variable Names] are used in lists that identify variables with specific roles in the model. There are two such lists in the `settings` component.
+[Variable Names] are used in lists that identify variables with specific roles in the model. There are two such lists in the `settings.json` file.
 
 * `settings$state_variables` -- Character vector giving names of variables, each of which tracks the number of individuals in a compartment.
 * `settings$flow_variables` -- Character vector giving names of variables, each of which determines the magnitude of flow between one or more pairs of compartments.
@@ -208,7 +208,7 @@ Each derived variable must be represented by a row in the `variables` list. Deri
 
 TODO: Perhaps this should be a 'compressed' data format for `derivations`, and the simple `derived_var_name = function(...) ...` should be used as the base case? The compressed format can be used to form the basis of an interface design?
 
-The spec for this component will be hard to understand on first reading. To understand it better we provide several examples designed to justify and clarify the description in the above bullet list.
+The spec for this file will be hard to understand on first reading. To understand it better we provide several examples designed to justify and clarify the description in the above bullet list.
 
 We begin with defining the force of infection for an SEIR model with the following variable list.
 ```{r echo = FALSE}
@@ -362,7 +362,7 @@ For example, consider this SIR model.
 data.frame(epi = c("S", "I", "R", "beta", "gamma", "foi"))
 ```
 
-We would have the following `flows` component.
+We would have the following `flows.csv` file.
 
 ```{r, echo = FALSE}
 data.frame(
