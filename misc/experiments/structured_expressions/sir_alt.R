@@ -87,7 +87,7 @@ I_update_expr = ~I +S*foi - I*gamma
 I_update = parse_expr(I_update_expr)
 literals_list = c(literals_list, list(I_update$valid_literals))
 
-R_update_expr = ~R - I*gamma
+R_update_expr = ~R + I*gamma
 R_update = parse_expr(R_update_expr)
 literals_list=c(literals_list, list(R_update$valid_literals))
 
