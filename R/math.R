@@ -315,6 +315,25 @@ MathExpressionFromFunc = function(math_function) {
   )
   return_object(self, "MathExpression")
 }
+
+#' @rdname MathExpression
+#' @export
+MathExpressionFromStrings = function(expression_string, argument_strings, include_dots = FALSE) {
+  self = Base()
+  math_function = function() {}
+  if (include_dots) argument_strings = c(argument_strings, "...")
+  blank_args = rep(list(quote(expr = )), length(argument_strings))
+  formals(math_function) = setNames(blank_args, argument_strings)
+  body(math_function) = parse(text = expression_string)
+  self$arguments = argument_strings
+  self$numeric = MathOverrider(math_function, NumericMath())
+  self$symbolic = MathOverrider(math_function, SymbolicMath())
+  self$string = do.call(
+    self$symbolic$evaluate,
+    as.list(self$arguments)
+  )
+  return_object(self, "MathExpression")
+}
 # xx = MathExpression(function(x, y) {z = x / y; z^2})
 # xx$arguments
 # xx$string
@@ -357,24 +376,23 @@ MathExpression = function(math_function) {
   return_object(self, "MathExpression")
 }
 
-#' @rdname MathExpression
-#' @export
-MathExpressionFromStrings = function(arguments, string) {
-  symbolic_math = SymbolicMath()
-  numeric_math = NumericMath()
-  self = Unclean()
 
-  self$string = valid$char1$assert(string)
-  self$arguments = valid$char$assert(arguments)
-
-  math_function = function() {}
-  blank_args = rep(list(quote(expr = )), length(arguments))
-  formals(math_function) = setNames(blank_args, arguments)
-  body(math_function) = parse(text = string)
-  self$numeric_function = math_function
-  self$symbolic_function = math_function
-  environment(self$numeric_function) = numeric_overider
-  environment(self$symbolic_function) = symbolic_overider
-
-  return_object(self, "MathExpression")
-}
+# MathExpressionFromStrings = function(arguments, string) {
+#   symbolic_math = SymbolicMath()
+#   numeric_math = NumericMath()
+#   self = Unclean()
+#
+#   self$string = valid$char1$assert(string)
+#   self$arguments = valid$char$assert(arguments)
+#
+#   math_function = function() {}
+#   blank_args = rep(list(quote(expr = )), length(arguments))
+#   formals(math_function) = setNames(blank_args, arguments)
+#   body(math_function) = parse(text = string)
+#   self$numeric_function = math_function
+#   self$symbolic_function = math_function
+#   environment(self$numeric_function) = numeric_overider
+#   environment(self$symbolic_function) = symbolic_overider
+#
+#   return_object(self, "MathExpression")
+# }

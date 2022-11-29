@@ -1,0 +1,57 @@
+[
+  {
+    "group_partition" : "Epi.SympStruc.Vax",
+    "group_names" : [
+      "I.component.unvax", "I.component.vax",
+      "infectiousness.component.unvax", "infectiousness.component.vax"
+    ],
+    "output_partition" : "Epi.SympStruc.Vax",
+    "output_names" : [
+      "I.vector.unvax", "I.vector.vax",
+      "infectiousness.vector.unvax", "infectiousness.vector.vax"
+    ],
+    "input_partition" : "Symp",
+    "argument_dots" : ["mild", "severe"],
+    "expression" : "c(...)"
+  },
+  {
+    "group_partition" : "SympStruc.Vax",
+    "group_names" : ["vector.unvax", "vector.vax"],
+    "output_partition" : "Epi.SympStruc",
+    "output_names" : ["I.effective"],
+    "input_partition" : "Epi",
+    "arguments" : ["I", "infectiousness"],
+    "expression" : "sum(I * infectiousness)"
+  },
+  {
+    "group_partition" : "Vax",
+    "group_names" : ["unvax", "vax"],
+    "output_partition" : "Epi.SympStruc",
+    "output_names" : ["I.total"],
+    "input_partition" : "Epi.SympStruc",
+    "arguments" : ["I.vector"],
+    "expression" : "sum(I.vector)"
+  },
+  {
+    "filter_partition" : "SympStruc",
+    "filter_names" : ["unstructured", "total"],
+    "group_partition" : "Vax",
+    "group_names" : ["unvax", "vax"],
+    "output_partition" : "Epi",
+    "output_names" : ["N"],
+    "input_partition" : ["Epi"],
+    "arguments" : ["S", "E", "I", "R"],
+    "expression" : "sum(S, E, I, R)"
+  },
+  {
+    "filter_partition" : "SympStruc",
+    "filter_names" : ["unstructured", "effective"],
+    "group_partition" : "Vax",
+    "group_names" : ["unvax", "vax"],
+    "output_partition" : "Epi.Vax",
+    "output_names" : ["foi.unvax", "foi.vax"],
+    "input_partition" : "Epi",
+    "arguments" : ["I", "beta", "N"],
+    "expression" : "I * beta / N"
+  }
+]

@@ -1,5 +1,6 @@
 {
   "required_partitions" : ["Epi"],
+  "null_partition" : "Null",
   "state_variables" : ["S", "I", "R"],
-  "flow_component_variables" : ["foi", "gamma"]
+  "flow_variables" : ["foi", "gamma"]
 }

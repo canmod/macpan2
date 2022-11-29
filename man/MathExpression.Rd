@@ -8,7 +8,11 @@
 \usage{
 MathExpressionFromFunc(math_function)
 
-MathExpressionFromStrings(arguments, string)
+MathExpressionFromStrings(
+  expression_string,
+  argument_strings,
+  include_dots = FALSE
+)
 }
 \arguments{
 \item{math_function}{Function that takes any number of named

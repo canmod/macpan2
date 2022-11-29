@@ -1,15 +1,16 @@
 {
   "required_partitions" : ["Epi","Symp","SympStruc"],
+  "null_partition" : "Null",
   "state_variables" : [
     "S..unstructured",
     "E..unstructured",
-    "I.mild.unstructured",
-    "I.severe.unstructured",
+    "I.mild.component",
+    "I.severe.component",
     "R..unstructured"
   ],
   "flow_variables" : [
-    "alpha..unstructured", 
-    "gamma.mild.component", 
+    "alpha..unstructured",
+    "gamma.mild.component",
     "gamma.severe.component",
     "foi..unstructured"
   ]

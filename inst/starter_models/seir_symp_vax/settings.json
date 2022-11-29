@@ -1,0 +1,24 @@
+{
+  "required_partitions" : ["Epi","Symp","SympStruc", "Vax"],
+  "null_partition" : ["Null"],
+  "state_variables" : [
+    "S..unstructured.unvax",
+    "E..unstructured.unvax",
+    "I.mild.component.unvax",
+    "I.severe.component.unvax",
+    "R..unstructured.unvax",
+    "S..unstructured.vax",
+    "E..unstructured.vax",
+    "I.mild.component.vax",
+    "I.severe.component.vax",
+    "R..unstructured.vax"
+  ],
+  "flow_variables" : [
+    "alpha..unstructured.",
+    "gamma.mild.component.",
+    "gamma.severe.component.",
+    "foi..unstructured.unvax",
+    "foi..unstructured.vax",
+    "..unstructured.dose_rate"
+  ]
+}

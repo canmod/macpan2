@@ -1,10 +1,11 @@
 {
   "required_partitions" : ["Epi", "Vax"],
+  "null_partition" : "Null",
   "state_variables" : [
     "S.unvax", "E.unvax", "I.unvax", "R.unvax",
     "S.vax", "E.vax", "I.vax", "R.vax"
   ],
   "flow_variables" : [
-    "foi.unvax", "foi.vax", "alpha.", "gamma."
+    "foi.unvax", "foi.vax", "alpha.", "gamma.", ".dose_rate"
   ]
 }
