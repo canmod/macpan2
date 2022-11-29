@@ -278,11 +278,12 @@ MathOverrider = function(math_function, function_environment) {
 #' \code{\link{numeric}} arguments and returns a \code{\link{numeric}}
 #' object. The only functions that can be used in this function include
 #' r allowed_math_functions.
-#' @param arguments Character vector of the names of the arguments of
+#' @param argument_strings Character vector of the names of the arguments of
 #' the mathematical expression.
-#' @param string String representing the expression, referring only to
+#' @param expression_string String representing the expression, referring only to
 #' the names of the arguments and the names of the following functions:
 #' r allowed_math_functions.
+#' @param include_dots Does the expression expect three dots?
 #'
 #' @field string String representing the mathematical expression.
 #' @field arguments Character vector of the names of the arguments of

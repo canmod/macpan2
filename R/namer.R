@@ -182,6 +182,8 @@ FilterBlanksNotSpecial = function() {
   return_object(self, "Filter")
 }
 
+#' Filter Matching Blanks to Everything
+#'
 #' @export
 FilterAlwaysMatchBlanks = function() {
   self = FilterTraits()
@@ -197,6 +199,8 @@ FilterAlwaysMatchBlanks = function() {
   return_object(self, "Filter")
 }
 
+#' Filter to a Unique and Sorted Partition Set
+#'
 #' @export
 FilterUniqueAndSort = function() {
   self = FilterTraits()

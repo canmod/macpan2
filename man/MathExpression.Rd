@@ -20,12 +20,14 @@ MathExpressionFromStrings(
 object. The only functions that can be used in this function include
 r allowed_math_functions.}
 
-\item{arguments}{Character vector of the names of the arguments of
-the mathematical expression.}
-
-\item{string}{String representing the expression, referring only to
+\item{expression_string}{String representing the expression, referring only to
 the names of the arguments and the names of the following functions:
 r allowed_math_functions.}
+
+\item{argument_strings}{Character vector of the names of the arguments of
+the mathematical expression.}
+
+\item{include_dots}{Does the expression expect three dots?}
 }
 \description{
 Construct objects for representing mathematical expressions.
