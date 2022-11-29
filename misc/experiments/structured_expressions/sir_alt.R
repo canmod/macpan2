@@ -5,30 +5,27 @@ compile('macpan2.cpp')
 dyn.load(dynlib("macpan2"))
 
 correct_answer = function(beta = 0.3) {
-  
-  S = 1-1e-2
-  I=1e-2
-  R=0
+
+  S = 1 - 1e-2
+  I = 1e-2
+  R = 0
   gamma = 0.2
   N = 1
   foi = 0
-  
+
   S_hist = list(as.matrix(S))
   I_hist = list(as.matrix(I))
   R_hist = list(as.matrix(R))
   N_hist = list(as.matrix(N))
   foi_hist = list(as.matrix(foi))
   for (i in 1:2) {
+    N = S + I + R
+    foi = beta * I / N
 
-    N = S+I+R
+    S = S - S * foi
+    I = I + S * foi - I * gamma
+    R = R + I * gamma
 
-    foi = beta*I/N
-
-    
-    S = S - S*foi
-    I = I + S*foi - I*gamma
-    R = R + I*gamma
-    
     S_hist = c(S_hist, list(as.matrix(S)))
     I_hist = c(I_hist, list(as.matrix(I)))
     R_hist = c(R_hist, list(as.matrix(R)))
@@ -47,9 +44,9 @@ correct_answer = function(beta = 0.3) {
 
 
 input_mats = list(
-  S = 1-1e-2,
-  I=1e-2,
-  R=0,
+  S = 1 - 1e-2,
+  I = 1e-2,
+  R = 0,
   beta = 0.3,
   gamma = 0.2
 )
@@ -167,7 +164,7 @@ random = numeric(0L)
 
 params_index = list(
   p_par_id = 0,
-  p_mat_id = 1,
+  p_mat_id = 3,
   p_row_id = 0,
   p_col_id = 0
 )
@@ -206,7 +203,7 @@ tmb_function = try(TMB::MakeADFun(
 ))
 
 print("correct answer ...")
-correct_answer()  ## expected result
+correct_answer()$S  ## expected result
 
 print("actual answer ...")
 tmb_output = try(tmb_function$report())  ## actual result
