@@ -42,6 +42,26 @@
 //         2 We need to add "transpose" and "flatten" operators
 ////////////////////////////////////////////////////////////////////////////////
 
+////////////////////////////////////////////////////////////////////////////////
+// Functions we support
+enum macpan2_func {
+    MP2_ADD = 1,
+    MP2_SUBTRACT = 2,
+    MP2_MULTIPLY = 3,
+    MP2_DIVIDE = 4,
+    MP2_POWER = 5,
+    MP2_ROUND_BRACKET = 6,
+    MP2_COMBINE = 7,
+    MP2_MATRIX = 8,
+    MP2_MATRIX_MULTIPLY = 9,
+    MP2_SUM = 10,
+    MP2_REPLICATE = 11,
+    MP2_ROWSUMS = 12,
+    MP2_COLSUMS = 13,
+    MP2_SQUARE_BRACKET = 14,
+    MP2_TRANSPOSE = 15
+};
+
 template<class Type>
 struct ListOfMatrices {
     // below is a vector of matrices that passed from R
@@ -193,37 +213,37 @@ public:
                 if (GetErrorCode()) return m; // early return
 
                 switch(table_x[row]+1) {
-                    case 1: // +
+                    case MP2_ADD: // +
                         #ifdef MP_VERBOSE
                             std::cout << r[0] << " + " << r[1] << " = " << r[0]+r[1] << std::endl << std::endl;
                         #endif
                         return r[0]+r[1];
-                    case 2: // -
+                    case MP2_SUBTRACT: // -
                         #ifdef MP_VERBOSE
                             std::cout << r[0] << " - " << r[1] << " = " << r[0]-r[1] << std::endl << std::endl;
                         #endif
                         return r[0]-r[1];
-                    case 3: // *
+                    case MP2_MULTIPLY: // *
                         #ifdef MP_VERBOSE
                             std::cout << r[0] << " .* " << r[1] << " = " << r[0].array()*r[1].array() << std::endl << std::endl;
                         #endif
                         //return r[0].array()*r[1].array();   // doesn't work
                         return r[0].cwiseProduct(r[1]);
-                    case 4: // /
+                    case MP2_DIVIDE: // /
                         #ifdef MP_VERBOSE
                             std::cout << r[0] << " ./ " << r[1] << " = " << r[0].array()/r[1].array() << std::endl << std::endl;
                         #endif
                         // return r[0].array()/r[1].array();  // doesn't work 
                         return r[0].cwiseQuotient(r[1]);
-                    case 5: // ^
+                    case MP2_POWER: // ^
                         #ifdef MP_VERBOSE
                             std::cout << r[0] << " ^ " << r[1] << " = " << pow(r[0].array(), r[1].coeff(0,0)).matrix() << std::endl << std::endl;
                         #endif
                         return pow(r[0].array(), r[1].array()).matrix();
                         //return r[0].pow(r[1].coeff(0,0));
-                    case 6: // (
+                    case MP2_ROUND_BRACKET: // (
                         return r[0];
-                    case 7: // c
+                    case MP2_COMBINE: // c
                         m = matrix<Type>::Zero(n,1);
                         for (int i=0; i<n; i++)
                             m.coeffRef(i,0) = r[i].coeff(0,0);
@@ -231,7 +251,7 @@ public:
                             std::cout << "c(" << r[0] << ", ...," << r[n-1] << ") = " << m << std::endl << std::endl;
                         #endif
                         return m;
-                    case 8: // matrix
+                    case MP2_MATRIX: // matrix
                         m = r[0];
 
                         rows = CppAD::Integer(r[1].coeff(0,0));
@@ -249,13 +269,13 @@ public:
 
                         return m2;
 
-                    case 9: // %*%
+                    case MP2_MATRIX_MULTIPLY: // %*%
                         #ifdef MP_VERBOSE
                             std::cout << r[0] << " %*% " << r[1] << " = " << r[0]*r[1] << std::endl << std::endl;
                         #endif
                         return r[0]*r[1];
 
-                    case 10: // sum
+                    case MP2_SUM: // sum
                         m = matrix<Type>::Zero(1,1);
                         sum = 0.0;
                         for (int i=0; i<n; i++)
@@ -266,7 +286,7 @@ public:
                             std::cout << "sum(" << r[0] << ", ..., " << r[n-1] << ") = " << m << std::endl << std::endl;
                         #endif
                         return m;
-                    case 11: // rep
+                    case MP2_REPLICATE: // rep
                         rows = CppAD::Integer(r[1].coeff(0,0));
                         m = matrix<Type>::Constant(rows,1, r[0].coeff(0,0));
                         //for (int i=0; i<rows; i++)
@@ -276,26 +296,26 @@ public:
                             std::cout << "rep(" << r[0] << ", " << r[1] << ") = " << m << std::endl << std::endl;
                         #endif
                         return m;
-                    case 12: // rowSums
+                    case MP2_ROWSUMS: // rowSums
                         //m = matrix<Type>::Zero(r[0].rows(), 1);
                         m = r[0].rowwise().sum().matrix();
                         #ifdef MP_VERBOSE
                             std::cout << "rowSums(" << r[0] << ") = " << m << std::endl << std::endl;
                         #endif
                         return m;
-                    case 13: // colSums
+                    case MP2_COLSUMS: // colSums
                         m = r[0].colwise().sum().matrix();
                         #ifdef MP_VERBOSE
                             std::cout << "colSums(" << r[0] << ") = " << m << std::endl << std::endl;
                         #endif
                         return m;
-                    case 14: // [
+                    case MP2_SQUARE_BRACKET: // [
                         m = matrix<Type>::Zero(1,1);
                         rowIndex = CppAD::Integer(r[1].coeff(0,0));
                         colIndex = CppAD::Integer(r[2].coeff(0,0));
                         m.coeffRef(0,0) = r[0].coeff(rowIndex, colIndex);
                         return m;
-                    case 15: // t or transpose
+                    case MP2_TRANSPOSE: // t or transpose
                         m = r[0].transpose(); 
                         return m;
                     default:
