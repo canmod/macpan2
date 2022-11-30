@@ -146,7 +146,7 @@ public:
                 }
 
                 // Check dimensions compatibility. If needed, expand one operand to make its dimensions compatible with the other
-                if (table_x[row]+1<6) { // elementwise operations + - * / ^  maybe we want this? if(table_is_bin_op)
+                if (table_x[row]+1<6 && table_n[row]==2) { // elementwise operations + - * / ^ 
                     if (r[0].rows()==r[1].rows()) {
                         if (r[0].cols()!=r[1].cols()) {
                             if (r[0].cols()==1) { // vector vs matrix or scalar vs vector
@@ -222,7 +222,10 @@ public:
                         #ifdef MP_VERBOSE
                             std::cout << r[0] << " - " << r[1] << " = " << r[0]-r[1] << std::endl << std::endl;
                         #endif
-                        return r[0]-r[1];
+                        if (table_n[row]==1)
+                            return -r[0];
+                        else
+                            return r[0]-r[1];
                     case MP2_MULTIPLY: // *
                         #ifdef MP_VERBOSE
                             std::cout << r[0] << " .* " << r[1] << " = " << r[0].array()*r[1].array() << std::endl << std::endl;
