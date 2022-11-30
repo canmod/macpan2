@@ -207,7 +207,7 @@ correct_answer()$S  ## expected result
 
 print("actual answer ...")
 tmb_output = try(tmb_function$report())  ## actual result
-
+print(tmb_output)
 
 #correct_answer(0.1)
 #tmb_function$report(0.1)

@@ -137,12 +137,9 @@ public:
                             }
                             else if (r[1].cols()==1) { // vector vs matrix or scalar vs vector
                                 m = r[1];
-                                std::cout << "m = " << m << std::endl;
                                 r[1] = r[0]; // for the shape
-                                std::cout << "r[1] = " << r[1] << std::endl;
                                 for (int i=0; i<r[1].cols(); i++)
                                     r[1].col(i) = m.col(0);
-                                std::cout << "r[1] = " << r[1] << std::endl;
                             }
                             else
                                 SetError(1, "The two operands do not have the same number of columns");
@@ -183,8 +180,6 @@ public:
                             else {
                                 SetError(3, "The two operands do not have the same number of columns or rows");
                                 //Rf_error("The dimensions of the two operands are not equal to each other");
-                                std::cout << r[0].rows() << " x " << r[0].cols() << std::endl;
-                                std::cout << r[1].rows() << " x " << r[1].cols() << std::endl;
                             }
                         }
                     }
@@ -343,77 +338,90 @@ Type objective_function<Type>::operator() ()
 
     // 1 Get all data and parameters from the R side
     // Parameters themselves
+    int n;
+
     PARAMETER_VECTOR(params);
-    std::cout << "params = " << params << std::endl;
 
     PARAMETER_VECTOR(random);
-    std::cout << "random = " << random << std::endl;
 
     // Matrices
     DATA_STRUCT(mats, ListOfMatrices);
-    int n = mats.m_matrices.size();
-    for (int i = 0; i < n; i++)
-        std::cout << "mats = " << mats.m_matrices[i] << std::endl;
 
     // Parameters replacements
     DATA_IVECTOR(p_par_id);
     DATA_IVECTOR(p_mat_id);
     DATA_IVECTOR(p_row_id);
     DATA_IVECTOR(p_col_id);
-    std::cout << "p_par_id = " << p_par_id << std::endl;
-    std::cout << "p_mat_id = " << p_mat_id << std::endl;
-    std::cout << "p_row_id = " << p_row_id << std::endl;
-    std::cout << "p_col_id = " << p_col_id << std::endl;
 
     DATA_IVECTOR(r_par_id);
     DATA_IVECTOR(r_mat_id);
     DATA_IVECTOR(r_row_id);
     DATA_IVECTOR(r_col_id);
-    std::cout << "r_par_id = " << r_par_id << std::endl;
-    std::cout << "r_mat_id = " << r_mat_id << std::endl;
-    std::cout << "r_row_id = " << r_row_id << std::endl;
-    std::cout << "r_col_id = " << r_col_id << std::endl;
 
     // Trajectory simulation
     DATA_INTEGER(time_steps)
-    std::cout << "time_steps = " << time_steps << std::endl;
 
     DATA_IVECTOR(mats_save_hist);
     DATA_IVECTOR(mats_return);
-    std::cout << "mats_save_hist = " << mats_save_hist << std::endl;
-    std::cout << "mats_return = " << mats_return << std::endl;
 
     // Expressions
     DATA_IVECTOR(eval_schedule)
-    std::cout << "eval_schedule = " << eval_schedule << std::endl;
 
     DATA_IVECTOR(expr_output_count);
     DATA_IVECTOR(expr_output_id);
     DATA_IVECTOR(expr_sim_block);
     DATA_IVECTOR(expr_num_p_table_rows);
 
-    std::cout << "expr_output_count = " << expr_output_count << std::endl;
-    std::cout << "expr_output_id = " << expr_output_id << std::endl;
-    std::cout << "expr_sim_block = " << expr_sim_block << std::endl;
-    std::cout << "expr_num_p_table_rows = " << expr_num_p_table_rows << std::endl;
-
     // Parse Tables
     DATA_IVECTOR(p_table_x);
     DATA_IVECTOR(p_table_n);
     DATA_IVECTOR(p_table_i);
 
-    std::cout << "p_table_x = " << p_table_x << std::endl;
-    std::cout << "p_table_n = " << p_table_n << std::endl;
-    std::cout << "p_table_i = " << p_table_i << std::endl;
-
     // Literals
     DATA_VECTOR(literals);
-    std::cout << "literals = " << literals << std::endl;
 
     // Objective function return
     //DATA_IVECTOR(o_table_n)
     //DATA_IVECTOR(o_table_x)
     //DATA_IVECTOR(o_table_i)
+
+    #ifdef MP_VERBOSE
+    std::cout << "params = " << params << std::endl;
+
+    std::cout << "random = " << random << std::endl;
+
+    n = mats.m_matrices.size();
+    for (int i = 0; i < n; i++)
+        std::cout << "mats = " << mats.m_matrices[i] << std::endl;
+
+    std::cout << "p_par_id = " << p_par_id << std::endl;
+    std::cout << "p_mat_id = " << p_mat_id << std::endl;
+    std::cout << "p_row_id = " << p_row_id << std::endl;
+    std::cout << "p_col_id = " << p_col_id << std::endl;
+
+    std::cout << "r_par_id = " << r_par_id << std::endl;
+    std::cout << "r_mat_id = " << r_mat_id << std::endl;
+    std::cout << "r_row_id = " << r_row_id << std::endl;
+    std::cout << "r_col_id = " << r_col_id << std::endl;
+
+    std::cout << "time_steps = " << time_steps << std::endl;
+
+    std::cout << "mats_save_hist = " << mats_save_hist << std::endl;
+    std::cout << "mats_return = " << mats_return << std::endl;
+
+    std::cout << "eval_schedule = " << eval_schedule << std::endl;
+
+    std::cout << "expr_output_count = " << expr_output_count << std::endl;
+    std::cout << "expr_output_id = " << expr_output_id << std::endl;
+    std::cout << "expr_sim_block = " << expr_sim_block << std::endl;
+    std::cout << "expr_num_p_table_rows = " << expr_num_p_table_rows << std::endl;
+
+    std::cout << "p_table_x = " << p_table_x << std::endl;
+    std::cout << "p_table_n = " << p_table_n << std::endl;
+    std::cout << "p_table_i = " << p_table_i << std::endl;
+    
+    std::cout << "literals = " << literals << std::endl;
+    #endif
 
     // 2 Replace some of elements of some matrices with parameters
     n = p_par_id.size();
@@ -437,7 +445,9 @@ Type objective_function<Type>::operator() ()
     int p_table_row = 0;
 
     for (int i=0; i<eval_schedule[0]; i++) {
+        #ifdef MP_VERBOSE
         std::cout << "in pre-simulation --- " << i << std::endl;
+        #endif
         matrix<Type> result;
         if (expr_sim_block[i]==1) {
             SIMULATE {
@@ -479,9 +489,13 @@ Type objective_function<Type>::operator() ()
     int p_table_row2;
     for (int k=0; k<time_steps; k++) {
         p_table_row2 = p_table_row;
+        #ifdef MP_VERBOSE
         std::cout << "simulation step --- " << k << std::endl;
+        #endif
         for (int i=0; i<eval_schedule[1]; i++) {
+            #ifdef MP_VERBOSE
             std::cout << "Eval expression --- " << i << std::endl;
+            #endif
             matrix<Type> result;
             if (expr_sim_block[i]==1) {
                 SIMULATE {
@@ -513,9 +527,11 @@ Type objective_function<Type>::operator() ()
 
             p_table_row2 += expr_num_p_table_rows[i];
 
+            #ifdef MP_VERBOSE
             int n = mats.m_matrices.size();
             for (int ii = 0; ii < n; ii++)
                 std::cout << "mats = " << mats.m_matrices[ii] << std::endl;
+            #endif
         }
         simulation_history[k+1] = mats;
     }
@@ -525,7 +541,9 @@ Type objective_function<Type>::operator() ()
     expr_index += eval_schedule[1];
 
     for (int i=0; i<eval_schedule[2]; i++) {
+        #ifdef MP_VERBOSE
         std::cout << "in post-simulation --- " << i << std::endl;
+        #endif
         matrix<Type> result;
         if (expr_sim_block[i]==1) {
             SIMULATE {
