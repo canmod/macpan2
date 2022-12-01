@@ -329,9 +329,23 @@ public:
                     case MP2_EXTRACT_TIME:
                         matIndex = index2mats[0]; // m
                         rowIndex = CppAD::Integer(r[1].coeff(0,0)); // time i
-                        return hist[rowIndex].m_matrices[matIndex];    
+                        if (rowIndex<t && rowIndex>=0)
+                            return hist[rowIndex].m_matrices[matIndex];   
+                        else {
+                            SetError(5, "Cannot extract time >= t (current time step) OR < 0");
+                            return m;
+                        } 
+                    case MP2_EXTRACT_LAG:
+                        matIndex = index2mats[0]; // m
+                        rowIndex = CppAD::Integer(r[1].coeff(0,0)); // time i
+                        if (rowIndex>0 && t-rowIndex>=0)
+                            return hist[t-rowIndex].m_matrices[matIndex];
+                        else {
+                            SetError(6, "Cannot extract lag (<=0) OR > t (current time step)");
+                            return m;
+                        }
                     default:
-                        SetError(5, "invalid operator in arithmatic expression");
+                        SetError(255, "invalid operator in arithmatic expression");
                         //Rf_error("invalid operator in arithmatic expression");
                         return m;
                 }
@@ -664,42 +678,4 @@ Type objective_function<Type>::operator() ()
 
     return 0.0;
 
-  /*
-  DATA_IVECTOR(parse_table_x);
-  DATA_IVECTOR(parse_table_n);
-  DATA_IVECTOR(parse_table_i);
-  DATA_VECTOR(valid_literals);
-//  DATA_VECTOR(valid_vars);
-  DATA_STRUCT(valid_vars, ListOfMatrices);
-  PARAMETER_VECTOR(params);
-
-  // DATA_STRUCT(valid_vars);
-  // PARAMETER_VECTOR(params);
-  // DATA_IVECTOR(param_var_id);
-  // DATA_IVECTOR(param_row_id);
-  // DATA_IVECTOR(param_col_id);
-
-  // for (i in 1:length(params)) {
-  //   valid_vars[param_var_id[i-1]][param_row_id[i-1], param_col_id[i-1]] = params[i]
-  // }
-
-
-
-  ExprEvaluator<Type> exprEvaluator;
-  matrix<Type> result = exprEvaluator.EvalExpr(
-    parse_table_x,
-    parse_table_n,
-    parse_table_i,
-    valid_vars,
-    valid_literals
-  );
-
-  int error_code = exprEvaluator.GetErrorCode();
-  REPORT(error_code);
-  REPORT(result);
-  if (error_code)
-      return 0.0;
-  else
-      return result.sum();
-  */
 }
