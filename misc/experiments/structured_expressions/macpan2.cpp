@@ -42,6 +42,30 @@
 //         2 We need to add "transpose" and "flatten" operators
 ////////////////////////////////////////////////////////////////////////////////
 
+////////////////////////////////////////////////////////////////////////////////
+// Functions we support
+enum macpan2_func {
+    MP2_ADD = 1,
+    MP2_SUBTRACT = 2,
+    MP2_MULTIPLY = 3,
+    MP2_DIVIDE = 4,
+    MP2_POWER = 5,
+    MP2_ROUND_BRACKET = 6,
+    MP2_COMBINE = 7,
+    MP2_MATRIX = 8,
+    MP2_MATRIX_MULTIPLY = 9,
+    MP2_SUM = 10,
+    MP2_REPLICATE = 11,
+    MP2_ROWSUMS = 12,
+    MP2_COLSUMS = 13,
+    MP2_SQUARE_BRACKET = 14,
+    MP2_TRANSPOSE = 15,
+    MP2_EXTRACT_TIME = 16,
+    MP2_EXTRACT_LAG = 17,
+    MP2_SELECT_TIME = 18,
+    MP2_SELECT_LAG = 19
+};
+
 template<class Type>
 struct ListOfMatrices {
     // below is a vector of matrices that passed from R
@@ -92,6 +116,8 @@ public:
     };
 
     matrix<Type> EvalExpr(
+        const vector<ListOfMatrices<Type> >& hist,
+        int t,
         const vector<int>& table_x,
         const vector<int>& table_n,
         const vector<int>& table_i,
@@ -102,7 +128,7 @@ public:
     {
         matrix<Type> m, m2;
         Type sum, s;
-        int rows, cols, rowIndex, colIndex;
+        int rows, cols, rowIndex, colIndex, matIndex;
 
         if (GetErrorCode()) return m; // Check if error has already happened at some point of the recursive call.
 
@@ -111,22 +137,21 @@ public:
                 m = matrix<Type>::Zero(1,1);
                 m.coeffRef(0,0) = valid_literals[table_x[row]];
                 return m;
-            case 0: // In current version, there are only scalar variables.
-                    // We will need to split the case into 3 cases when vector and matrix variables are introduced.
-                //m = matrix<Type>::Zero(1,1);
-                //m.coeffRef(0,0) = valid_vars[table_x[row]];
+            case 0: 
                 m = valid_vars.m_matrices[table_x[row]];
                 return m;
             default:
                 int n = table_n[row];
                 vector<matrix<Type> > r(n);
+                vector<int> index2mats(n);
                 for (int i=0; i<n; i++) {
-                    r[i] = EvalExpr(table_x, table_n, table_i, valid_vars, valid_literals, table_i[row]+i);
+                    r[i] = EvalExpr(hist, t, table_x, table_n, table_i, valid_vars, valid_literals, table_i[row]+i);
+                    index2mats[i] = table_x[table_i[row]+i];
                     if (GetErrorCode()) return m;
                 }
 
                 // Check dimensions compatibility. If needed, expand one operand to make its dimensions compatible with the other
-                if (table_x[row]+1<6) { // elementwise operations + - * / ^  maybe we want this? if(table_is_bin_op)
+                if (table_x[row]+1<6 && table_n[row]==2) { // elementwise operations + - * / ^ 
                     if (r[0].rows()==r[1].rows()) {
                         if (r[0].cols()!=r[1].cols()) {
                             if (r[0].cols()==1) { // vector vs matrix or scalar vs vector
@@ -193,37 +218,40 @@ public:
                 if (GetErrorCode()) return m; // early return
 
                 switch(table_x[row]+1) {
-                    case 1: // +
+                    case MP2_ADD: // +
                         #ifdef MP_VERBOSE
                             std::cout << r[0] << " + " << r[1] << " = " << r[0]+r[1] << std::endl << std::endl;
                         #endif
                         return r[0]+r[1];
-                    case 2: // -
+                    case MP2_SUBTRACT: // -
                         #ifdef MP_VERBOSE
                             std::cout << r[0] << " - " << r[1] << " = " << r[0]-r[1] << std::endl << std::endl;
                         #endif
-                        return r[0]-r[1];
-                    case 3: // *
+                        if (table_n[row]==1)
+                            return -r[0];
+                        else
+                            return r[0]-r[1];
+                    case MP2_MULTIPLY: // *
                         #ifdef MP_VERBOSE
                             std::cout << r[0] << " .* " << r[1] << " = " << r[0].array()*r[1].array() << std::endl << std::endl;
                         #endif
                         //return r[0].array()*r[1].array();   // doesn't work
                         return r[0].cwiseProduct(r[1]);
-                    case 4: // /
+                    case MP2_DIVIDE: // /
                         #ifdef MP_VERBOSE
                             std::cout << r[0] << " ./ " << r[1] << " = " << r[0].array()/r[1].array() << std::endl << std::endl;
                         #endif
                         // return r[0].array()/r[1].array();  // doesn't work 
                         return r[0].cwiseQuotient(r[1]);
-                    case 5: // ^
+                    case MP2_POWER: // ^
                         #ifdef MP_VERBOSE
                             std::cout << r[0] << " ^ " << r[1] << " = " << pow(r[0].array(), r[1].coeff(0,0)).matrix() << std::endl << std::endl;
                         #endif
                         return pow(r[0].array(), r[1].array()).matrix();
                         //return r[0].pow(r[1].coeff(0,0));
-                    case 6: // (
+                    case MP2_ROUND_BRACKET: // (
                         return r[0];
-                    case 7: // c
+                    case MP2_COMBINE: // c
                         m = matrix<Type>::Zero(n,1);
                         for (int i=0; i<n; i++)
                             m.coeffRef(i,0) = r[i].coeff(0,0);
@@ -231,7 +259,7 @@ public:
                             std::cout << "c(" << r[0] << ", ...," << r[n-1] << ") = " << m << std::endl << std::endl;
                         #endif
                         return m;
-                    case 8: // matrix
+                    case MP2_MATRIX: // matrix
                         m = r[0];
 
                         rows = CppAD::Integer(r[1].coeff(0,0));
@@ -249,13 +277,13 @@ public:
 
                         return m2;
 
-                    case 9: // %*%
+                    case MP2_MATRIX_MULTIPLY: // %*%
                         #ifdef MP_VERBOSE
                             std::cout << r[0] << " %*% " << r[1] << " = " << r[0]*r[1] << std::endl << std::endl;
                         #endif
                         return r[0]*r[1];
 
-                    case 10: // sum
+                    case MP2_SUM: // sum
                         m = matrix<Type>::Zero(1,1);
                         sum = 0.0;
                         for (int i=0; i<n; i++)
@@ -266,7 +294,7 @@ public:
                             std::cout << "sum(" << r[0] << ", ..., " << r[n-1] << ") = " << m << std::endl << std::endl;
                         #endif
                         return m;
-                    case 11: // rep
+                    case MP2_REPLICATE: // rep
                         rows = CppAD::Integer(r[1].coeff(0,0));
                         m = matrix<Type>::Constant(rows,1, r[0].coeff(0,0));
                         //for (int i=0; i<rows; i++)
@@ -276,30 +304,48 @@ public:
                             std::cout << "rep(" << r[0] << ", " << r[1] << ") = " << m << std::endl << std::endl;
                         #endif
                         return m;
-                    case 12: // rowSums
+                    case MP2_ROWSUMS: // rowSums
                         //m = matrix<Type>::Zero(r[0].rows(), 1);
                         m = r[0].rowwise().sum().matrix();
                         #ifdef MP_VERBOSE
                             std::cout << "rowSums(" << r[0] << ") = " << m << std::endl << std::endl;
                         #endif
                         return m;
-                    case 13: // colSums
+                    case MP2_COLSUMS: // colSums
                         m = r[0].colwise().sum().matrix();
                         #ifdef MP_VERBOSE
                             std::cout << "colSums(" << r[0] << ") = " << m << std::endl << std::endl;
                         #endif
                         return m;
-                    case 14: // [
+                    case MP2_SQUARE_BRACKET: // [
                         m = matrix<Type>::Zero(1,1);
                         rowIndex = CppAD::Integer(r[1].coeff(0,0));
                         colIndex = CppAD::Integer(r[2].coeff(0,0));
                         m.coeffRef(0,0) = r[0].coeff(rowIndex, colIndex);
                         return m;
-                    case 15: // t or transpose
+                    case MP2_TRANSPOSE: // t or transpose
                         m = r[0].transpose(); 
                         return m;
+                    case MP2_EXTRACT_TIME:
+                        matIndex = index2mats[0]; // m
+                        rowIndex = CppAD::Integer(r[1].coeff(0,0)); // time i
+                        if (rowIndex<t && rowIndex>=0)
+                            return hist[rowIndex].m_matrices[matIndex];   
+                        else {
+                            SetError(5, "Cannot extract time >= t (current time step) OR < 0");
+                            return m;
+                        } 
+                    case MP2_EXTRACT_LAG:
+                        matIndex = index2mats[0]; // m
+                        rowIndex = CppAD::Integer(r[1].coeff(0,0)); // time i
+                        if (rowIndex>0 && t-rowIndex>=0)
+                            return hist[t-rowIndex].m_matrices[matIndex];
+                        else {
+                            SetError(6, "Cannot extract lag (<=0) OR > t (current time step)");
+                            return m;
+                        }
                     default:
-                        SetError(5, "invalid operator in arithmatic expression");
+                        SetError(255, "invalid operator in arithmatic expression");
                         //Rf_error("invalid operator in arithmatic expression");
                         return m;
                 }
@@ -452,6 +498,8 @@ Type objective_function<Type>::operator() ()
         if (expr_sim_block[i]==1) {
             SIMULATE {
                 result  = exprEvaluator.EvalExpr(
+                    simulation_history,
+                    0,
                     p_table_x,
                     p_table_n,
                     p_table_i,
@@ -463,6 +511,8 @@ Type objective_function<Type>::operator() ()
         }
         else 
             result  = exprEvaluator.EvalExpr(
+                simulation_history,
+                0,
                 p_table_x,
                 p_table_n,
                 p_table_i,
@@ -500,6 +550,8 @@ Type objective_function<Type>::operator() ()
             if (expr_sim_block[i]==1) {
                 SIMULATE {
                     result = exprEvaluator.EvalExpr(
+                        simulation_history,
+                        k+1,
                         p_table_x,
                         p_table_n,
                         p_table_i,
@@ -511,6 +563,8 @@ Type objective_function<Type>::operator() ()
             }
             else 
                 result = exprEvaluator.EvalExpr(
+                    simulation_history,
+                    k+1,
                     p_table_x,
                     p_table_n,
                     p_table_i,
@@ -548,6 +602,8 @@ Type objective_function<Type>::operator() ()
         if (expr_sim_block[i]==1) {
             SIMULATE {
                 result = exprEvaluator.EvalExpr(
+                    simulation_history,
+                    time_steps+1,
                     p_table_x,
                     p_table_n,
                     p_table_i,
@@ -559,6 +615,8 @@ Type objective_function<Type>::operator() ()
         }
         else
             result  = exprEvaluator.EvalExpr(
+                simulation_history,
+                time_steps+1,
                 p_table_x,
                 p_table_n,
                 p_table_i,
@@ -620,42 +678,4 @@ Type objective_function<Type>::operator() ()
 
     return 0.0;
 
-  /*
-  DATA_IVECTOR(parse_table_x);
-  DATA_IVECTOR(parse_table_n);
-  DATA_IVECTOR(parse_table_i);
-  DATA_VECTOR(valid_literals);
-//  DATA_VECTOR(valid_vars);
-  DATA_STRUCT(valid_vars, ListOfMatrices);
-  PARAMETER_VECTOR(params);
-
-  // DATA_STRUCT(valid_vars);
-  // PARAMETER_VECTOR(params);
-  // DATA_IVECTOR(param_var_id);
-  // DATA_IVECTOR(param_row_id);
-  // DATA_IVECTOR(param_col_id);
-
-  // for (i in 1:length(params)) {
-  //   valid_vars[param_var_id[i-1]][param_row_id[i-1], param_col_id[i-1]] = params[i]
-  // }
-
-
-
-  ExprEvaluator<Type> exprEvaluator;
-  matrix<Type> result = exprEvaluator.EvalExpr(
-    parse_table_x,
-    parse_table_n,
-    parse_table_i,
-    valid_vars,
-    valid_literals
-  );
-
-  int error_code = exprEvaluator.GetErrorCode();
-  REPORT(error_code);
-  REPORT(result);
-  if (error_code)
-      return 0.0;
-  else
-      return result.sum();
-  */
 }
