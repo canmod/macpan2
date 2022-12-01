@@ -5,7 +5,7 @@ compile('macpan2.cpp')
 dyn.load(dynlib("macpan2"))
 
 correct_answer = function(){
-  
+
   # S = 1-1e-2
   # E = 1e-2
   # Ia = 0
@@ -19,7 +19,7 @@ correct_answer = function(){
   # R = 0
   # D = 0
   state = c(1-1e-2, 1e-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-  
+
   alpha = 0.39
   beta0 = 1
   Ca = 2/3
@@ -41,18 +41,18 @@ correct_answer = function(){
   iso_m = 0
   iso_s = 0
   nonhosp_mort = 0
-  
+
   N = 1
   foi = 0
 
   state_hist = list(as.matrix(state))
   N_hist = list(as.matrix(N))
   foi_hist = list(as.matrix(foi))
-  
-  
+
+
   ratemat = matrix(0, 12, 12)
   flowmat = matrix(0, 12, 12)
-  
+
   EIa = alpha*sigma
   EIp = (1-alpha)*sigma
   IaR = gamma_a
@@ -67,8 +67,8 @@ correct_answer = function(){
   ICUdD = psi2
   H2R = psi3
   HR = rho
-  
-  
+
+
   for(i in 1:2){
     N = sum(head(state, -1))
     foi = state[3] * (beta0) * (1 / N) * (Ca) +
@@ -91,15 +91,15 @@ correct_answer = function(){
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
       ), 12, 12, byrow = TRUE
     )
-    
+
     flowmat = sweep(ratemat, 1, state, "*")
-    state = state - rowsums(flowmat) + colsums(flowmat)
+    state = state - rowSums(flowmat) + colSums(flowmat)
     state_hist = c(state_hist, list(as.matrix(state)))
     N_hist = c(N_hist, list(as.matrix(N)))
     foi_hist = c(foi_hist, list(as.matrix(foi)))
-    
+
   }
-  
+
   state = state_hist
   N = N_hist
   foi = foi_hist
@@ -218,11 +218,15 @@ HR = parse_expr(HR_expr)
 valid_vars = c(valid_vars, list(HR = 0))
 literals_list = c(literals_list, list(HR$valid_literals))
 
+# --- simulation loop
+
+# expr 15 (1-based)
 N_expr = ~ sum(state)-state[11, 0]
 N = parse_expr(N_expr)
 valid_vars = c(valid_vars, list(N = 0))
 literals_list = c(literals_list, list(N$valid_literals))
 
+# expr 16 (1-based)
 foi_expr = ~ state[2, 0] * beta0 * Ca / N  +
   state[3, 0] * beta0 * Cp / N +
   state[4, 0] * beta0 * Cm / N * (1 - iso_m) +
@@ -332,58 +336,20 @@ expr_index = list(
 eval_schedule = c(14, 5, 0)
 
 mats_config = list(
-  mats_save_hist = c(
-    EIa = FALSE,
-    EIp = FALSE,
-    IaR = FALSE,
-    IpIm = FALSE,
-    IpIs = FALSE,
-    ImR = FALSE,
-    IsH = FALSE,
-    IsICUs = FALSE,
-    IsICUd = FALSE,
-    IsD = FALSE,
-    ICUsH2 = FALSE,
-    ICUdD = FALSE,
-    H2R = FALSE,
-    HR = FALSE,
-    N = TRUE,
-    foi = TRUE,
-    ratemat = FALSE,
-    flowmat = FALSE,
-    state = TRUE
-  ),
-  mats_return = c(
-    EIa = FALSE,
-    EIp = FALSE,
-    IaR = FALSE,
-    IpIm = FALSE,
-    IpIs = FALSE,
-    ImR = FALSE,
-    IsH = FALSE,
-    IsICUs = FALSE,
-    IsICUd = FALSE,
-    IsD = FALSE,
-    ICUsH2 = FALSE,
-    ICUdD = FALSE,
-    H2R = FALSE,
-    HR = FALSE,
-    N = TRUE,
-    foi = TRUE,
-    ratemat = FALSE,
-    flowmat = FALSE,
-    state = TRUE
-  )
+  mats_save_hist = logical(length(valid_vars)),
+  mats_return = logical(length(valid_vars))
 )
+mats_config$mats_save_hist[match(c("N", "foi", "state"), names(valid_vars))] = TRUE
+mats_config$mats_return[match(c("N", "foi", "state"), names(valid_vars))] = TRUE
 
-params = numeric(0L)
+params = 1.0
 random = numeric(0L)
 
 params_index = list(
-  p_par_id = integer(0L),
-  p_mat_id = integer(0L),
-  p_row_id = integer(0L),
-  p_col_id = integer(0L)
+  p_par_id = 0L,
+  p_mat_id = 2L,
+  p_row_id = 0L,
+  p_col_id = 0L
 )
 
 random_index = list(
