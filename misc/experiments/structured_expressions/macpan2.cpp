@@ -59,7 +59,11 @@ enum macpan2_func {
     MP2_ROWSUMS = 12,
     MP2_COLSUMS = 13,
     MP2_SQUARE_BRACKET = 14,
-    MP2_TRANSPOSE = 15
+    MP2_TRANSPOSE = 15,
+    MP2_EXTRACT_TIME = 16,
+    MP2_EXTRACT_LAG = 17,
+    MP2_SELECT_TIME = 18,
+    MP2_SELECT_LAG = 19
 };
 
 template<class Type>
@@ -112,6 +116,8 @@ public:
     };
 
     matrix<Type> EvalExpr(
+        const vector<ListOfMatrices<Type> >& hist,
+        int t,
         const vector<int>& table_x,
         const vector<int>& table_n,
         const vector<int>& table_i,
@@ -122,7 +128,7 @@ public:
     {
         matrix<Type> m, m2;
         Type sum, s;
-        int rows, cols, rowIndex, colIndex;
+        int rows, cols, rowIndex, colIndex, matIndex;
 
         if (GetErrorCode()) return m; // Check if error has already happened at some point of the recursive call.
 
@@ -131,17 +137,16 @@ public:
                 m = matrix<Type>::Zero(1,1);
                 m.coeffRef(0,0) = valid_literals[table_x[row]];
                 return m;
-            case 0: // In current version, there are only scalar variables.
-                    // We will need to split the case into 3 cases when vector and matrix variables are introduced.
-                //m = matrix<Type>::Zero(1,1);
-                //m.coeffRef(0,0) = valid_vars[table_x[row]];
+            case 0: 
                 m = valid_vars.m_matrices[table_x[row]];
                 return m;
             default:
                 int n = table_n[row];
                 vector<matrix<Type> > r(n);
+                vector<int> index2mats(n);
                 for (int i=0; i<n; i++) {
-                    r[i] = EvalExpr(table_x, table_n, table_i, valid_vars, valid_literals, table_i[row]+i);
+                    r[i] = EvalExpr(hist, t, table_x, table_n, table_i, valid_vars, valid_literals, table_i[row]+i);
+                    index2mats[i] = table_x[table_i[row]+i];
                     if (GetErrorCode()) return m;
                 }
 
@@ -321,6 +326,10 @@ public:
                     case MP2_TRANSPOSE: // t or transpose
                         m = r[0].transpose(); 
                         return m;
+                    case MP2_EXTRACT_TIME:
+                        matIndex = index2mats[0]; // m
+                        rowIndex = CppAD::Integer(r[1].coeff(0,0)); // time i
+                        return hist[rowIndex].m_matrices[matIndex];    
                     default:
                         SetError(5, "invalid operator in arithmatic expression");
                         //Rf_error("invalid operator in arithmatic expression");
@@ -475,6 +484,8 @@ Type objective_function<Type>::operator() ()
         if (expr_sim_block[i]==1) {
             SIMULATE {
                 result  = exprEvaluator.EvalExpr(
+                    simulation_history,
+                    0,
                     p_table_x,
                     p_table_n,
                     p_table_i,
@@ -486,6 +497,8 @@ Type objective_function<Type>::operator() ()
         }
         else 
             result  = exprEvaluator.EvalExpr(
+                simulation_history,
+                0,
                 p_table_x,
                 p_table_n,
                 p_table_i,
@@ -523,6 +536,8 @@ Type objective_function<Type>::operator() ()
             if (expr_sim_block[i]==1) {
                 SIMULATE {
                     result = exprEvaluator.EvalExpr(
+                        simulation_history,
+                        k+1,
                         p_table_x,
                         p_table_n,
                         p_table_i,
@@ -534,6 +549,8 @@ Type objective_function<Type>::operator() ()
             }
             else 
                 result = exprEvaluator.EvalExpr(
+                    simulation_history,
+                    k+1,
                     p_table_x,
                     p_table_n,
                     p_table_i,
@@ -571,6 +588,8 @@ Type objective_function<Type>::operator() ()
         if (expr_sim_block[i]==1) {
             SIMULATE {
                 result = exprEvaluator.EvalExpr(
+                    simulation_history,
+                    time_steps+1,
                     p_table_x,
                     p_table_n,
                     p_table_i,
@@ -582,6 +601,8 @@ Type objective_function<Type>::operator() ()
         }
         else
             result  = exprEvaluator.EvalExpr(
+                simulation_history,
+                time_steps+1,
                 p_table_x,
                 p_table_n,
                 p_table_i,
