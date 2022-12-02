@@ -390,3 +390,5 @@ correct_answer()  ## expected result
 
 print("actual answer ...")
 tmb_output = try(tmb_function$report())  ## actual result
+print(tmb_output)
+

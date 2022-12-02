@@ -493,6 +493,7 @@ Type objective_function<Type>::operator() ()
     for (int i=0; i<eval_schedule[0]; i++) {
         #ifdef MP_VERBOSE
         std::cout << "in pre-simulation --- " << i << std::endl;
+        std::cout << "expr_num_p_table_rows[i] " << expr_num_p_table_rows[i] << std::endl;
         #endif
         matrix<Type> result;
         if (expr_sim_block[i]==1) {
@@ -545,6 +546,7 @@ Type objective_function<Type>::operator() ()
         for (int i=0; i<eval_schedule[1]; i++) {
             #ifdef MP_VERBOSE
             std::cout << "Eval expression --- " << i << std::endl;
+            std::cout << "expr_num_p_table_rows[i] " << expr_num_p_table_rows[expr_index+i] << std::endl;
             #endif
             matrix<Type> result;
             if (expr_sim_block[i]==1) {
@@ -579,7 +581,7 @@ Type objective_function<Type>::operator() ()
             }
             mats.m_matrices[expr_output_id[expr_index+i]] = result;
 
-            p_table_row2 += expr_num_p_table_rows[i];
+            p_table_row2 += expr_num_p_table_rows[expr_index+i];
 
             #ifdef MP_VERBOSE
             int n = mats.m_matrices.size();
@@ -597,6 +599,7 @@ Type objective_function<Type>::operator() ()
     for (int i=0; i<eval_schedule[2]; i++) {
         #ifdef MP_VERBOSE
         std::cout << "in post-simulation --- " << i << std::endl;
+        std::cout << "expr_num_p_table_rows[i] " << expr_num_p_table_rows[expr_index+i] << std::endl;
         #endif
         matrix<Type> result;
         if (expr_sim_block[i]==1) {
@@ -632,7 +635,7 @@ Type objective_function<Type>::operator() ()
 
         mats.m_matrices[expr_output_id[expr_index+i]] = result;
 
-        p_table_row += expr_num_p_table_rows[i];
+        p_table_row += expr_num_p_table_rows[expr_index+i];
     }
 
     simulation_history[time_steps+1] = mats;
@@ -664,6 +667,7 @@ Type objective_function<Type>::operator() ()
                 int nRows = mats.m_matrices[i].rows();
                 int nCols = mats.m_matrices[i].cols();
                 matrix<Type> hist(nRows, hist_len*nCols);
+                std::cout << "reporting mats[" << i << "] of shape " << nRows << ", " << nCols << std::endl;
                 for (int k=0; k<hist_len; k++)
                     hist.block(0, k*nCols, nRows, nCols) = simulation_history[k].m_matrices[i];
                 mats_returned[r++] = hist;
