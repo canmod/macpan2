@@ -185,7 +185,7 @@ mats_config = list(
 #  p_col_id = integer(0L)
 #)
 
-params = 1.0
+params = 0.2
 random = numeric(0L)
 
 params_index = list(
