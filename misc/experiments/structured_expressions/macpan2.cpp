@@ -166,10 +166,11 @@ public:
                                 for (int i=0; i<r[1].cols(); i++)
                                     r[1].col(i) = m.col(0);
                             }
-                            else
+                            else {
                                 SetError(1, "The two operands do not have the same number of columns");
+                                return m;
                                 //Rf_error("The two operands do not have the same number of columns");
-
+                            }
                         }
                         // else: do nothing
                     }
@@ -187,9 +188,11 @@ public:
                                 for (int i=0; i<r[1].rows(); i++)
                                     r[1].row(i) = m.row(0);
                             }
-                            else
+                            else {
                                 SetError(2, "The two operands do not have the same number of rows");
+                                return m;
                                 // Rf_error("The two operands do not have the same number of rows");
+                            }
                         }
                         else { // no dimensions are equal
                             if (r[0].rows()==1 && r[0].cols()==1) { // scalar vs non-scalar
@@ -204,15 +207,18 @@ public:
                             }
                             else {
                                 SetError(3, "The two operands do not have the same number of columns or rows");
+                                return m;
                                 //Rf_error("The dimensions of the two operands are not equal to each other");
                             }
                         }
                     }
                 }
                 else if (table_x[row]+1==9) { // %*% matrix multiplication
-                    if (r[0].cols()!=r[1].rows())
+                    if (r[0].cols()!=r[1].rows()) {
                         SetError(4, "The two operands are not compatible to do matrix multiplication");
+                        return m;
                         //Rf_error("The two operands are not compatible to do matrix multiplication");
+                    }
                 }
 
                 if (GetErrorCode()) return m; // early return
@@ -233,7 +239,7 @@ public:
                             return r[0]-r[1];
                     case MP2_MULTIPLY: // *
                         #ifdef MP_VERBOSE
-                            std::cout << r[0] << " .* " << r[1] << " = " << r[0].array()*r[1].array() << std::endl << std::endl;
+                            std::cout << r[0] << " .* " << r[1] << " = " << r[0].cwiseProduct(r[1]) << std::endl << std::endl;
                         #endif
                         //return r[0].array()*r[1].array();   // doesn't work
                         return r[0].cwiseProduct(r[1]);
@@ -671,6 +677,7 @@ Type objective_function<Type>::operator() ()
                 for (int k=0; k<hist_len; k++)
                     hist.block(0, k*nCols, nRows, nCols) = simulation_history[k].m_matrices[i];
                 mats_returned[r++] = hist;
+                std::cout << "mats_returned[" << r-1 << "] = " << hist << std::endl;
             }
         }
     }
@@ -680,6 +687,6 @@ Type objective_function<Type>::operator() ()
     // 7 Calc the return of the objective function
     REPORT_ERROR
 
+    std::cout << "======== end of objective function ========" << std::endl;
     return 0.0;
-
 }
