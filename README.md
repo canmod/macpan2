@@ -5,6 +5,7 @@
 <!-- badges: end -->
 
 ```
+remotes::install_github("canmod/oor")
 remotes::install_github("canmod/macpan2")
 ```
 
