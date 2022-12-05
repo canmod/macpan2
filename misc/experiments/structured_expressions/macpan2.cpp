@@ -673,11 +673,11 @@ Type objective_function<Type>::operator() ()
                 int nRows = mats.m_matrices[i].rows();
                 int nCols = mats.m_matrices[i].cols();
                 matrix<Type> hist(nRows, hist_len*nCols);
-                std::cout << "reporting mats[" << i << "] of shape " << nRows << ", " << nCols << std::endl;
+                //std::cout << "reporting mats[" << i << "] of shape " << nRows << ", " << nCols << std::endl;
                 for (int k=0; k<hist_len; k++)
                     hist.block(0, k*nCols, nRows, nCols) = simulation_history[k].m_matrices[i];
                 mats_returned[r++] = hist;
-                std::cout << "mats_returned[" << r-1 << "] = " << hist << std::endl;
+                //std::cout << "mats_returned[" << r-1 << "] = " << hist << std::endl;
             }
         }
     }
