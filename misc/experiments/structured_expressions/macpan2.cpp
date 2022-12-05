@@ -11,7 +11,7 @@
 #include <cppad/local/cond_exp.hpp>
 
 ////////////////////////////////////////////////////////////////////////////////
-// Macpan2 is redesigned architecture. The spec is 
+// Macpan2 is redesigned architecture. The spec is
 // https://canmod.net/misc/cpp_side.html
 //
 // Operands in a math expression and its intermediate/final results are all
@@ -43,28 +43,27 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
-// Functions we support
-enum macpan2_func {
-    MP2_ADD = 1,
-    MP2_SUBTRACT = 2,
-    MP2_MULTIPLY = 3,
-    MP2_DIVIDE = 4,
-    MP2_POWER = 5,
-    MP2_ROUND_BRACKET = 6,
-    MP2_COMBINE = 7,
-    MP2_MATRIX = 8,
-    MP2_MATRIX_MULTIPLY = 9,
-    MP2_SUM = 10,
-    MP2_REPLICATE = 11,
-    MP2_ROWSUMS = 12,
-    MP2_COLSUMS = 13,
-    MP2_SQUARE_BRACKET = 14,
-    MP2_TRANSPOSE = 15,
-    MP2_EXTRACT_TIME = 16,
-    MP2_EXTRACT_LAG = 17,
+enum macpan2_func { // functions we support
+    MP2_ADD = 1, // `+`
+    MP2_SUBTRACT = 2, // `-`
+    MP2_MULTIPLY = 3, // `*`
+    MP2_DIVIDE = 4, // `/`
+    MP2_POWER = 5, // `^`
+    MP2_ROUND_BRACKET = 6, // `(`
+    MP2_COMBINE = 7, // `c`
+    MP2_MATRIX = 8, // `matrix`
+    MP2_MATRIX_MULTIPLY = 9, // `%*%`
+    MP2_SUM = 10, // `sum`
+    MP2_REPLICATE = 11, // `rep`
+    MP2_ROWSUMS = 12, // `rowSums`
+    MP2_COLSUMS = 13, // `colSums`
+    MP2_SQUARE_BRACKET = 14, // `[`
+    MP2_TRANSPOSE = 15, // `t`
+    MP2_EXTRACT_TIME = 16, // `extract_time`
+    MP2_EXTRACT_LAG = 17, // `extract_lag`
     MP2_SELECT_TIME = 18,
     MP2_SELECT_LAG = 19
-};
+}; // functions we support
 
 template<class Type>
 struct ListOfMatrices {
@@ -85,11 +84,11 @@ struct ListOfMatrices {
     ListOfMatrices() { // Default Constructor
     }
 
-    // Copy constructor 
+    // Copy constructor
     ListOfMatrices(const ListOfMatrices& another) {
         m_matrices = another.m_matrices;
     }
-    
+
     // Overload assign operator
     ListOfMatrices & operator=(const ListOfMatrices& another) {
         m_matrices = another.m_matrices;
@@ -137,7 +136,7 @@ public:
                 m = matrix<Type>::Zero(1,1);
                 m.coeffRef(0,0) = valid_literals[table_x[row]];
                 return m;
-            case 0: 
+            case 0:
                 m = valid_vars.m_matrices[table_x[row]];
                 return m;
             default:
@@ -151,7 +150,7 @@ public:
                 }
 
                 // Check dimensions compatibility. If needed, expand one operand to make its dimensions compatible with the other
-                if (table_x[row]+1<6 && table_n[row]==2) { // elementwise operations + - * / ^ 
+                if (table_x[row]+1<6 && table_n[row]==2) { // elementwise operations + - * / ^
                     if (r[0].rows()==r[1].rows()) {
                         if (r[0].cols()!=r[1].cols()) {
                             if (r[0].cols()==1) { // vector vs matrix or scalar vs vector
@@ -247,7 +246,7 @@ public:
                         #ifdef MP_VERBOSE
                             std::cout << r[0] << " ./ " << r[1] << " = " << r[0].array()/r[1].array() << std::endl << std::endl;
                         #endif
-                        // return r[0].array()/r[1].array();  // doesn't work 
+                        // return r[0].array()/r[1].array();  // doesn't work
                         return r[0].cwiseQuotient(r[1]);
                     case MP2_POWER: // ^
                         #ifdef MP_VERBOSE
@@ -330,17 +329,17 @@ public:
                         m.coeffRef(0,0) = r[0].coeff(rowIndex, colIndex);
                         return m;
                     case MP2_TRANSPOSE: // t or transpose
-                        m = r[0].transpose(); 
+                        m = r[0].transpose();
                         return m;
                     case MP2_EXTRACT_TIME:
                         matIndex = index2mats[0]; // m
                         rowIndex = CppAD::Integer(r[1].coeff(0,0)); // time i
                         if (rowIndex<t && rowIndex>=0)
-                            return hist[rowIndex].m_matrices[matIndex];   
+                            return hist[rowIndex].m_matrices[matIndex];
                         else {
                             SetError(5, "Cannot extract time >= t (current time step) OR < 0");
                             return m;
-                        } 
+                        }
                     case MP2_EXTRACT_LAG:
                         matIndex = index2mats[0]; // m
                         rowIndex = CppAD::Integer(r[1].coeff(0,0)); // time i
@@ -471,7 +470,7 @@ Type objective_function<Type>::operator() ()
     std::cout << "p_table_x = " << p_table_x << std::endl;
     std::cout << "p_table_n = " << p_table_n << std::endl;
     std::cout << "p_table_i = " << p_table_i << std::endl;
-    
+
     std::cout << "literals = " << literals << std::endl;
     #endif
 
@@ -516,7 +515,7 @@ Type objective_function<Type>::operator() ()
                 );
             }
         }
-        else 
+        else
             result  = exprEvaluator.EvalExpr(
                 simulation_history,
                 0,
@@ -537,7 +536,7 @@ Type objective_function<Type>::operator() ()
 
         p_table_row += expr_num_p_table_rows[i];
     }
-        
+
     simulation_history[0] = mats;
 
     // 4 During simulation
@@ -569,7 +568,7 @@ Type objective_function<Type>::operator() ()
                    );
                 }
             }
-            else 
+            else
                 result = exprEvaluator.EvalExpr(
                     simulation_history,
                     k+1,
