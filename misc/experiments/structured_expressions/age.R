@@ -4,48 +4,51 @@ library(TMB)
 compile('macpan2.cpp')
 dyn.load(dynlib("macpan2"))
 
-correct_answer = function() {
+correct_answer = function(){
+  number_of_groups = 5
+  life_expectancy = 95
+  population = 1
   
-  ## matrices
-  state = c(1 - 1e-2, 1e-2, 0)
-  gamma = 0.2
-  beta = 0.3
-  N = 1
-  foi = 0
-  ratemat = matrix(0, 3, 3)
-  flowmat = matrix(0, 3, 3)
+  ageing_rate = 5/(95*365)
+  birth_rate = 0.01
+  death_rate = 0.01
   
+  state = rep(population/number_of_groups, number_of_groups)
   state_hist = list(as.matrix(state))
-  N_hist = list(as.matrix(N))
-  foi_hist = list(as.matrix(foi))
-  for (i in 1:2) {
-    N = sum(state)
-    foi = beta * state[2] / N
-    ratemat = matrix(
-      c(
-        0, foi, 0,
-        0, 0,   gamma,
-        0, 0,   0
-      ), 3, 3, byrow = TRUE
-    )
-    flowmat = sweep(ratemat, 1, state, "*")
-    state = state - rowSums(flowmat) + colSums(flowmat)
-    state_hist = c(state_hist, list(as.matrix(state)))
-    N_hist = c(N_hist, list(as.matrix(N)))
-    foi_hist = c(foi_hist, list(as.matrix(foi)))
+  
+  ratemat = matrix(0, number_of_groups, number_of_groups)
+  for(i in 1:(number_of_groups-1)){
+    ratemat[i, i+1] = ageing_rate
   }
-  state = state_hist
-  N = N_hist
-  foi = foi_hist
-  return(
-    nlist(state, N, foi)
-  )
+  
+  for(i in 1:2){
+  flowmat = sweep(ratemat, 1, state, "*")
+  state = state - rowSums(flowmat) + colSums(flowmat)
+  state[1] = state[1]+sum(state)*birth_rate
+  state[number_of_groups] = state[number_of_groups] - state[number_of_groups]*death_rate
+  
+  state_hist = c(state_hist, list(as.matrix(state)))
+  }
+  
+  return(nlist(state_hist))
 }
 
+population = 1
+number_of_groups = 5# minimum of 3
+life_expectancy = 95
+ageing_rate = number_of_groups/(life_expectancy*365)
+birth_rate = 0.01
+death_rate = 0.01
+state = rep(population/number_of_groups, number_of_groups)
+
 input_mats = list(
-  state = c(1 - 1e-2, 1e-2, 0),
-  beta = 0.3,
-  gamma = 0.2
+  number_of_groups = number_of_groups,#minimum of 3
+  life_expectancy = life_expectancy,
+  population = population,
+  ageing_rate = ageing_rate,
+  birth_rate = birth_rate,
+  death_rate = death_rate,
+  state = state
 )
 
 valid_funcs = nlist(
@@ -62,37 +65,32 @@ valid_literals = numeric(0L)
 literals_list = list()
 parse_expr = make_expr_parser(finalizer = finalizer_index)
 
-N_expr = ~ sum(state)
-N = parse_expr(N_expr)
-valid_vars = c(valid_vars, list(N = 0))
-literals_list = c(literals_list, list(N$valid_literals))
-#valid_literals = c(valid_literals, N$valid_literals)
 
-foi_expr = ~ beta * state[1, 0] / N
-foi = parse_expr(foi_expr)  # zero-based indexing row 1, column 0
-valid_vars = c(valid_vars, list(foi = 0))
-literals_list = c(literals_list, list(foi$valid_literals))
-#valid_literals = c(valid_literals, foi$valid_literals)
+ratemat_rhs = matrix(0, number_of_groups, number_of_groups)
+for(i in 1:(number_of_groups-1)){
+  ratemat_rhs[i, i+1] = ageing_rate
+}
+valid_vars = c(valid_vars, list(ratemat_rhs=as.matrix(ratemat_rhs)))
 
-ratemat_expr = ~ matrix(
-  c(
-    0,   0,     0,
-    foi, 0,     0,
-    0,   gamma, 0
-  ), 3, 3
-)
+ratemat_expr = ~ratemat_rhs
 ratemat = parse_expr(ratemat_expr)
-valid_vars = c(valid_vars, list(ratemat = matrix(0, 3, 3)))
+valid_vars = c(valid_vars, list(ratemat = matrix(0, number_of_groups, number_of_groups)))
 literals_list = c(literals_list, list(ratemat$valid_literals))
-#valid_literals = c(valid_literals, ratemat$valid_literals)
 
-flowmat_expr = ~ ratemat * state ## col_multiply
+flowmat_expr = ~ratemat * state
 flowmat = parse_expr(flowmat_expr)
-valid_vars = c(valid_vars, list(flowmat = matrix(0, 3, 3)))
+valid_vars = c(valid_vars, list(flowmat = matrix(0, number_of_groups, number_of_groups)))
 literals_list = c(literals_list, list(flowmat$valid_literals))
-#valid_literals = c(valid_literals, flowmat$valid_literals)
 
-state_update_expr = ~ state - rowSums(flowmat) + t(colSums(flowmat))
+vital_dynamics_rhs = c(birth_rate, rep(0, number_of_groups-1))*sum(state) - c(rep(0, number_of_groups-1), death_rate)*state[number_of_groups-1]
+valid_vars = c(valid_vars, list(vital_dynamics_rhs = vital_dynamics_rhs))
+
+vital_dynamics_expr = ~vital_dynamics_rhs
+vital_dynamics = parse_expr(vital_dynamics_expr)
+valid_vars = c(valid_vars, list(vital_dynamics = rep(0, number_of_groups)))
+literals_list = c(literals_list, list(vital_dynamics$valid_literals))
+
+state_update_expr = ~ state - rowSums(flowmat) + t(colSums(flowmat)) + vital_dynamics
 state_update = parse_expr(state_update_expr)
 literals_list = c(literals_list, list(state_update$valid_literals))
 
@@ -102,12 +100,12 @@ literals = unlist(literals_list)
 mats = lapply(valid_vars, as.matrix)
 
 parse_tables = list(
-  N = N$parse_table,
-  foi = foi$parse_table,
   ratemat = ratemat$parse_table,
   flowmat = flowmat$parse_table,
+  vital_dynamics = vital_dynamics$parse_table,
   state = state_update$parse_table
 )
+
 
 parse_table_offsets = c(0, cumsum(lapply(parse_tables[-length(parse_tables)], nrow)))
 
@@ -134,10 +132,6 @@ parse_table$p_table_x = unlist(mapply(
   lapply(parse_tables, getElement, "n"),
   literal_offsets
 ), use.names = FALSE)
-## hack to switch p_table_x to zero-based indexing.
-
-
-
 
 expr_index = list(
   expr_output_count = rep(1L, length(parse_tables)),
@@ -155,27 +149,16 @@ expr_index = list(
   )
 )
 
-## zero expressions before sims
-## five expressions during sims
-## zero expressions after sims
-eval_schedule = c(0, 5, 0)
+eval_schedule = c(0, 4, 0)
 
 mats_config = list(
-  mats_save_hist = c(
-    state = TRUE,
-    beta = FALSE, gamma = FALSE,
-    N = TRUE, foi = TRUE,
-    ratemat = FALSE, flowmat = FALSE
-  ),
-  mats_return = c(
-    state = TRUE,
-    beta = FALSE, gamma = FALSE,
-    N = TRUE, foi = TRUE,
-    ratemat = FALSE, flowmat = FALSE
-  )
+  mats_save_hist = logical(length(valid_vars)),
+  mats_return = logical(length(valid_vars))
 )
+mats_config$mats_save_hist[match(c("state"), names(valid_vars))] = TRUE
+mats_config$mats_return[match(c("state"), names(valid_vars))] = TRUE
 
-params = 0.2
+params = 0.1
 random = numeric(0L)
 
 params_index = list(
@@ -184,16 +167,6 @@ params_index = list(
   p_row_id = integer(0L),
   p_col_id = integer(0L)
 )
-
-# params = 0.2
-# random = numeric(0L)
-# 
-# params_index = list(
-#   p_par_id = 0L,
-#   p_mat_id = 2L,
-#   p_row_id = 0L,
-#   p_col_id = 0L
-# )
 
 random_index = list(
   r_par_id = integer(0L),
@@ -222,7 +195,6 @@ print(data_args)
 
 print("parameter args ...")
 print(parameter_args)
-
 
 tmb_function = try(TMB::MakeADFun(
   data_args, parameter_args,
