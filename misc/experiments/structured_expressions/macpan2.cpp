@@ -62,7 +62,9 @@ enum macpan2_func { // functions we support
     MP2_EXTRACT_TIME = 16, // `extract_time`
     MP2_EXTRACT_LAG = 17, // `extract_lag`
     MP2_SELECT_TIME = 18,
-    MP2_SELECT_LAG = 19
+    MP2_SELECT_LAG = 19,
+    MP2_COLON = 20,
+    MP2_CONVOLUTION = 21
 }; // functions we support
 
 template<class Type>
@@ -254,6 +256,17 @@ public:
                         #endif
                         return pow(r[0].array(), r[1].array()).matrix();
                         //return r[0].pow(r[1].coeff(0,0));
+                    case MP2_COLON: // :
+                        m = matrix<Type>::Zero(1,1);
+                        rowIndex = CppAD::Integer(r[0].coeff(0,0));
+                        colIndex = CppAD::Integer(r[1].coeff(0,0));
+                        m = matrix<Type>::Zero(colIndex-rowIndex+1,1);
+                        for (int i=rowIndex; i<=colIndex; i++)
+                            m.coeffRef(i-rowIndex,0) = i;
+                        #ifdef MP_VERBOSE
+                            std::cout << rowIndex << ":" << colIndex << " = " << m << std::endl << std::endl;
+                        #endif
+                        return m;
                     case MP2_ROUND_BRACKET: // (
                         return r[0];
                     case MP2_COMBINE: // c
