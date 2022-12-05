@@ -175,25 +175,25 @@ mats_config = list(
   )
 )
 
-#params = numeric(0L)
-#random = numeric(0L)
-
-#params_index = list(
-#  p_par_id = integer(0L),
-#  p_mat_id = integer(0L),
-#  p_row_id = integer(0L),
-#  p_col_id = integer(0L)
-#)
-
 params = 0.2
 random = numeric(0L)
 
 params_index = list(
-  p_par_id = 0L,
-  p_mat_id = 2L,
-  p_row_id = 0L,
-  p_col_id = 0L
+  p_par_id = integer(0L),
+  p_mat_id = integer(0L),
+  p_row_id = integer(0L),
+  p_col_id = integer(0L)
 )
+
+# params = 0.2
+# random = numeric(0L)
+# 
+# params_index = list(
+#   p_par_id = 0L,
+#   p_mat_id = 2L,
+#   p_row_id = 0L,
+#   p_col_id = 0L
+# )
 
 random_index = list(
   r_par_id = integer(0L),
