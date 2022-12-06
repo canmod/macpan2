@@ -1,3 +1,14 @@
+---
+title: "McMasterPandemic Arithmetic Engine"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{McMasterPandemic Arithmetic Engine}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
 # Arithmetic Engine
 
 ## Specs
