@@ -362,6 +362,33 @@ public:
                             SetError(6, "Cannot extract lag (<=0) OR > t (current time step)");
                             return m;
                         }
+                    case MP2_SELECT_LAG:
+                        r[1] = -r[1];
+                        r[1].array() += t+0.1f; // make sure round(float) correctly works
+                    case MP2_SELECT_TIME:
+                        matIndex = index2mats[0]; // m
+                        colIndex = 0; // acting as count of legitimate time steps to select
+                        for (int i=0; i<r[1].size(); i++) {
+                            rowIndex = CppAD::Integer(r[1].coeff(i,0)); 
+                            if (rowIndex<t && rowIndex>=0)
+                                colIndex++;
+                        }
+                        if (colIndex>0) {
+                            colIndex = 0;
+                            rows = hist[0].m_matrices[matIndex].rows();
+                            cols = hist[0].m_matrices[matIndex].cols();
+                            m = matrix<Type>::Zero(colIndex*rows, cols);
+                            for (int i=0; i<r[1].size(); i++) {
+                                rowIndex = CppAD::Integer(r[1].coeff(i,0));
+                                if (rowIndex<t && rowIndex>=0) {
+                                    m.block(colIndex*rows, 0, rows, cols) = hist[rowIndex].m_matrices[matIndex];
+                                    colIndex++;
+                                }
+                            }
+                        }
+                        
+                        return m; // empty matrix (if colIndex==0) or non-empty one (otherwise)
+
                     default:
                         SetError(255, "invalid operator in arithmatic expression");
                         //Rf_error("invalid operator in arithmatic expression");
