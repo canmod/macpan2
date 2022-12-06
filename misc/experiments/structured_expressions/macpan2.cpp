@@ -344,6 +344,8 @@ public:
                     case MP2_TRANSPOSE: // t or transpose
                         m = r[0].transpose();
                         return m;
+                    case MP2_EXTRACT_LAG:
+                        r[1].coeffRef(0,0) = t+0.1-r[1].coeff(0,0);
                     case MP2_EXTRACT_TIME:
                         matIndex = index2mats[0]; // m
                         rowIndex = CppAD::Integer(r[1].coeff(0,0)); // time i
@@ -353,15 +355,15 @@ public:
                             SetError(5, "Cannot extract time >= t (current time step) OR < 0");
                             return m;
                         }
-                    case MP2_EXTRACT_LAG:
-                        matIndex = index2mats[0]; // m
-                        rowIndex = CppAD::Integer(r[1].coeff(0,0)); // time i
-                        if (rowIndex>0 && t-rowIndex>=0)
-                            return hist[t-rowIndex].m_matrices[matIndex];
-                        else {
-                            SetError(6, "Cannot extract lag (<=0) OR > t (current time step)");
-                            return m;
-                        }
+                    //case MP2_EXTRACT_LAG:
+                    //    matIndex = index2mats[0]; // m
+                    //    rowIndex = CppAD::Integer(r[1].coeff(0,0)); // time i
+                    //    if (rowIndex>0 && t-rowIndex>=0)
+                    //        return hist[t-rowIndex].m_matrices[matIndex];
+                    //    else {
+                    //        SetError(6, "Cannot extract lag (<=0) OR > t (current time step)");
+                    //        return m;
+                    //    }
                     case MP2_SELECT_LAG:
                         r[1] = -r[1];
                         r[1].array() += t+0.1f; // make sure round(float) correctly works
