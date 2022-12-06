@@ -73,9 +73,10 @@ enum macpan2_func {
     MP2_EXTRACT_TIME = 16, // extract_time
     MP2_EXTRACT_LAG = 17, // extract_lag
     MP2_SELECT_TIME = 18, // select_time
-    MP2_SELECT_LAG = 19 // select_lag
-    // MP2_COLON = 20,
-    // MP2_CONVOLUTION = 21
+    MP2_SELECT_LAG = 19, // select_lag
+    MP2_COLON = 20, // :
+    MP2_SEQUENCE = 21 // seq
+    // MP2_CONVOLUTION = 22
 
 };
 
@@ -269,14 +270,35 @@ public:
                         return pow(r[0].array(), r[1].array()).matrix();
                         //return r[0].pow(r[1].coeff(0,0));
                     case MP2_COLON: // :
-                        m = matrix<Type>::Zero(1,1);
-                        rowIndex = CppAD::Integer(r[0].coeff(0,0));
-                        colIndex = CppAD::Integer(r[1].coeff(0,0));
-                        m = matrix<Type>::Zero(colIndex-rowIndex+1,1);
-                        for (int i=rowIndex; i<=colIndex; i++)
-                            m.coeffRef(i-rowIndex,0) = i;
+                        int from, to;
+                        from = CppAD::Integer(r[0].coeff(0,0));
+                        to = CppAD::Integer(r[1].coeff(0,0));
+                        if (from>to) {
+                            SetError(6, "Lower bound greater than upper bound in : operation");
+                            return m;
+                        }
+                        m = matrix<Type>::Zero(to-from+1,1);
+                        for (int i=from; i<=to; i++)
+                            m.coeffRef(i-from,0) = i;
                         #ifdef MP_VERBOSE
-                            std::cout << rowIndex << ":" << colIndex << " = " << m << std::endl << std::endl;
+                            std::cout << from << ":" << to << " = " << m << std::endl << std::endl;
+                        #endif
+                        return m;
+                    case MP2_SEQUENCE: // seg
+                        int length, by;
+                        from = CppAD::Integer(r[0].coeff(0,0));
+                        length = CppAD::Integer(r[1].coeff(0,0));
+                        by = CppAD::Integer(r[2].coeff(0,0));
+                        if (length<=0) {
+                            SetError(7, "Sequence length is less than or equal to zero in seq operation");
+                            return m;
+                        }
+                        m = matrix<Type>::Zero(length,1);
+                        for (int i=0; i<length; i++)
+                            m.coeffRef(i-from,0) = from + i*by;
+                        #ifdef MP_VERBOSE
+                            std::cout << "seq(" <<from << ", " << length << ", " << by << ") = " \
+                                      << m << std::endl << std::endl;
                         #endif
                         return m;
                     case MP2_ROUND_BRACKET: // (
