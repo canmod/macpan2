@@ -48,14 +48,16 @@ input_mats = list(
   gamma = 0.2
 )
 
-valid_funcs = nlist(
-  `+`, `-`, `*`, `/`, `^`,
-  `(`,
-  `c`, `matrix`,
-  `%*%`, `sum`, `rep`,
-  `rowSums`, `colSums`,
-  `[`, `t`
-)
+# valid_funcs = nlist(
+#   `+`, `-`, `*`, `/`, `^`,
+#   `(`,
+#   `c`, `matrix`,
+#   `%*%`, `sum`, `rep`,
+#   `rowSums`, `colSums`,
+#   `[`, `t`
+# )
+
+valid_funcs = macpan2:::valid_funcs
 
 valid_vars = lapply(input_mats, as.matrix)
 valid_literals = numeric(0L)
@@ -175,7 +177,7 @@ mats_config = list(
   )
 )
 
-params = 0.2
+params = 0.1
 random = numeric(0L)
 
 params_index = list(

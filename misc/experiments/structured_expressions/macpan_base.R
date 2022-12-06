@@ -133,14 +133,16 @@ input_mats = list(
   nonhosp_mort = 0
 )
 
-valid_funcs = nlist(
-  `+`, `-`, `*`, `/`, `^`,
-  `(`,
-  `c`, `matrix`,
-  `%*%`, `sum`, `rep`,
-  `rowSums`, `colSums`,
-  `[`, `t`
-)
+# valid_funcs = nlist(
+#   `+`, `-`, `*`, `/`, `^`,
+#   `(`,
+#   `c`, `matrix`,
+#   `%*%`, `sum`, `rep`,
+#   `rowSums`, `colSums`,
+#   `[`, `t`
+# )
+
+valid_funcs = macpan2:::valid_funcs
 
 valid_vars = lapply(input_mats, as.matrix)
 valid_literals = numeric(0L)
