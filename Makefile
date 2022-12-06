@@ -6,7 +6,7 @@ VERSION = 0.0.0.9000
 all: R/enum.R doc-update pkg-build pkg-install
 
 
-make R/enum.R: misc/experiments/structured_expressions/macpan2.cpp
+R/enum.R: misc/experiments/structured_expressions/macpan2.cpp
 	echo "## Auto-generated - do not edit by hand" > $@
 	echo "valid_funcs = c(" >> $@
 	grep "$(ENUM_RE)" $^ | sed 's/$(ENUM_RE)$(SED_RE)/  \"\2\"\1/' >> $@
