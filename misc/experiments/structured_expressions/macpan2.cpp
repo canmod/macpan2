@@ -62,7 +62,9 @@ enum macpan2_func { // functions we support
     MP2_EXTRACT_TIME = 16, // `extract_time`
     MP2_EXTRACT_LAG = 17, // `extract_lag`
     MP2_SELECT_TIME = 18,
-    MP2_SELECT_LAG = 19
+    MP2_SELECT_LAG = 19,
+    MP2_COLON = 20,
+    MP2_CONVOLUTION = 21
 }; // functions we support
 
 template<class Type>
@@ -254,6 +256,17 @@ public:
                         #endif
                         return pow(r[0].array(), r[1].array()).matrix();
                         //return r[0].pow(r[1].coeff(0,0));
+                    case MP2_COLON: // :
+                        m = matrix<Type>::Zero(1,1);
+                        rowIndex = CppAD::Integer(r[0].coeff(0,0));
+                        colIndex = CppAD::Integer(r[1].coeff(0,0));
+                        m = matrix<Type>::Zero(colIndex-rowIndex+1,1);
+                        for (int i=rowIndex; i<=colIndex; i++)
+                            m.coeffRef(i-rowIndex,0) = i;
+                        #ifdef MP_VERBOSE
+                            std::cout << rowIndex << ":" << colIndex << " = " << m << std::endl << std::endl;
+                        #endif
+                        return m;
                     case MP2_ROUND_BRACKET: // (
                         return r[0];
                     case MP2_COMBINE: // c
@@ -331,6 +344,8 @@ public:
                     case MP2_TRANSPOSE: // t or transpose
                         m = r[0].transpose();
                         return m;
+                    case MP2_EXTRACT_LAG:
+                        r[1].coeffRef(0,0) = t+0.1-r[1].coeff(0,0);
                     case MP2_EXTRACT_TIME:
                         matIndex = index2mats[0]; // m
                         rowIndex = CppAD::Integer(r[1].coeff(0,0)); // time i
@@ -340,15 +355,42 @@ public:
                             SetError(5, "Cannot extract time >= t (current time step) OR < 0");
                             return m;
                         }
-                    case MP2_EXTRACT_LAG:
+                    //case MP2_EXTRACT_LAG:
+                    //    matIndex = index2mats[0]; // m
+                    //    rowIndex = CppAD::Integer(r[1].coeff(0,0)); // time i
+                    //    if (rowIndex>0 && t-rowIndex>=0)
+                    //        return hist[t-rowIndex].m_matrices[matIndex];
+                    //    else {
+                    //        SetError(6, "Cannot extract lag (<=0) OR > t (current time step)");
+                    //        return m;
+                    //    }
+                    case MP2_SELECT_LAG:
+                        r[1] = -r[1];
+                        r[1].array() += t+0.1f; // make sure round(float) correctly works
+                    case MP2_SELECT_TIME:
                         matIndex = index2mats[0]; // m
-                        rowIndex = CppAD::Integer(r[1].coeff(0,0)); // time i
-                        if (rowIndex>0 && t-rowIndex>=0)
-                            return hist[t-rowIndex].m_matrices[matIndex];
-                        else {
-                            SetError(6, "Cannot extract lag (<=0) OR > t (current time step)");
-                            return m;
+                        colIndex = 0; // acting as count of legitimate time steps to select
+                        for (int i=0; i<r[1].size(); i++) {
+                            rowIndex = CppAD::Integer(r[1].coeff(i,0)); 
+                            if (rowIndex<t && rowIndex>=0)
+                                colIndex++;
                         }
+                        if (colIndex>0) {
+                            colIndex = 0;
+                            rows = hist[0].m_matrices[matIndex].rows();
+                            cols = hist[0].m_matrices[matIndex].cols();
+                            m = matrix<Type>::Zero(colIndex*rows, cols);
+                            for (int i=0; i<r[1].size(); i++) {
+                                rowIndex = CppAD::Integer(r[1].coeff(i,0));
+                                if (rowIndex<t && rowIndex>=0) {
+                                    m.block(colIndex*rows, 0, rows, cols) = hist[rowIndex].m_matrices[matIndex];
+                                    colIndex++;
+                                }
+                            }
+                        }
+                        
+                        return m; // empty matrix (if colIndex==0) or non-empty one (otherwise)
+
                     default:
                         SetError(255, "invalid operator in arithmatic expression");
                         //Rf_error("invalid operator in arithmatic expression");
