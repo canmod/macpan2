@@ -43,29 +43,41 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
-enum macpan2_func { // functions we support
-    MP2_ADD = 1, // `+`
-    MP2_SUBTRACT = 2, // `-`
-    MP2_MULTIPLY = 3, // `*`
-    MP2_DIVIDE = 4, // `/`
-    MP2_POWER = 5, // `^`
-    MP2_ROUND_BRACKET = 6, // `(`
-    MP2_COMBINE = 7, // `c`
-    MP2_MATRIX = 8, // `matrix`
-    MP2_MATRIX_MULTIPLY = 9, // `%*%`
-    MP2_SUM = 10, // `sum`
-    MP2_REPLICATE = 11, // `rep`
-    MP2_ROWSUMS = 12, // `rowSums`
-    MP2_COLSUMS = 13, // `colSums`
-    MP2_SQUARE_BRACKET = 14, // `[`
-    MP2_TRANSPOSE = 15, // `t`
-    MP2_EXTRACT_TIME = 16, // `extract_time`
-    MP2_EXTRACT_LAG = 17, // `extract_lag`
-    MP2_SELECT_TIME = 18,
-    MP2_SELECT_LAG = 19,
-    MP2_COLON = 20,
-    MP2_CONVOLUTION = 21
-}; // functions we support
+// Functions we Support
+// Please follow exactly the format below when adding a new function.
+// If an entry in this enum does not have an associated case in the
+// switch(table_x[row]+1) statement, then it _must_ be commented out.
+// An analogous R-side list can be automatically produced using the
+// package makefile. The ordering of the functions must follow their
+// associated integers, and the integers must increase from 1 with no
+// gaps. Therefore, you should add any new functions at the end,
+// although it is possible to change the order of the functions as
+// long as the integers increase from 1 without gaps as long as the
+// R/enum.R file is regenerated.
+enum macpan2_func {
+    MP2_ADD = 1, // +
+    MP2_SUBTRACT = 2, // -
+    MP2_MULTIPLY = 3, // *
+    MP2_DIVIDE = 4, // /
+    MP2_POWER = 5, // ^
+    MP2_ROUND_BRACKET = 6, // (
+    MP2_COMBINE = 7, // c
+    MP2_MATRIX = 8, // matrix
+    MP2_MATRIX_MULTIPLY = 9, // %*%
+    MP2_SUM = 10, // sum
+    MP2_REPLICATE = 11, // rep
+    MP2_ROWSUMS = 12, // rowSums
+    MP2_COLSUMS = 13, // colSums
+    MP2_SQUARE_BRACKET = 14, // [
+    MP2_TRANSPOSE = 15, // t
+    MP2_EXTRACT_TIME = 16, // extract_time
+    MP2_EXTRACT_LAG = 17, // extract_lag
+    MP2_SELECT_TIME = 18, // select_time
+    MP2_SELECT_LAG = 19 // select_lag
+    // MP2_COLON = 20,
+    // MP2_CONVOLUTION = 21
+
+};
 
 template<class Type>
 struct ListOfMatrices {
@@ -371,7 +383,7 @@ public:
                         matIndex = index2mats[0]; // m
                         colIndex = 0; // acting as count of legitimate time steps to select
                         for (int i=0; i<r[1].size(); i++) {
-                            rowIndex = CppAD::Integer(r[1].coeff(i,0)); 
+                            rowIndex = CppAD::Integer(r[1].coeff(i,0));
                             if (rowIndex<t && rowIndex>=0)
                                 colIndex++;
                         }
@@ -388,7 +400,7 @@ public:
                                 }
                             }
                         }
-                        
+
                         return m; // empty matrix (if colIndex==0) or non-empty one (otherwise)
 
                     default:

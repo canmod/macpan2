@@ -16,6 +16,8 @@ valid_funcs = c(
   "[",
   "t",
   "extract_time",
-  "extract_lag"
+  "extract_lag",
+  "select_time",
+  "select_lag"
 )
 valid_funcs = setNames(as.list(valid_funcs), valid_funcs)
