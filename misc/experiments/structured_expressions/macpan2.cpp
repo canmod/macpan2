@@ -44,7 +44,10 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 // Functions we Support
-// Please follow exactly the format below when adding a new function.
+// Please follow exactly the format below when adding a new function:
+//   MP2_CPP_CASE_NAME = {case number}, // {R function name}
+// Note that the last entry does not have the comma that follows
+// {case number}.
 // If an entry in this enum does not have an associated case in the
 // switch(table_x[row]+1) statement, then it _must_ be commented out.
 // An analogous R-side list can be automatically produced using the
@@ -76,7 +79,9 @@ enum macpan2_func {
     MP2_SELECT_LAG = 19, // select_lag
     MP2_COLON = 20, // :
     MP2_SEQUENCE = 21, // seq
-    MP2_CONVOLUTION = 22 // Convolution
+    MP2_CONVOLUTION = 22, // convolution
+    MP2_CBIND = 23, // cbind
+    MP2_RBIND = 24 // rbind
 };
 
 template<class Type>
@@ -283,7 +288,7 @@ public:
                             std::cout << from << ":" << to << " = " << m << std::endl << std::endl;
                         #endif
                         return m;
-                    case MP2_SEQUENCE: // seg
+                    case MP2_SEQUENCE: // seq
                         int length, by;
                         from = CppAD::Integer(r[0].coeff(0,0));
                         length = CppAD::Integer(r[1].coeff(0,0));
@@ -450,6 +455,26 @@ public:
                             SetError(7, "Either empty or non-column vector used as kernel in convolution");
                             return m;
                         }
+                    case MP2_CBIND:
+                        rows = r[0].rows();
+                        // std::cout << "rows: " << rows << std::endl;
+                        // std::cout << "n: " << n << std::endl;
+                        cols = n; // one column for each of the n arguments
+                        m = matrix<Type>::Zero(rows, cols);
+                        for (int i=0; i<cols; i++) {
+                            m.col(i) = r[i].col(0);
+                        }
+                        return m;
+                    case MP2_RBIND:
+                        cols = r[0].cols();
+                        // std::cout << "rows: " << rows << std::endl;
+                        // std::cout << "n: " << n << std::endl;
+                        rows = n; // one row for each of the n arguments
+                        m = matrix<Type>::Zero(rows, cols);
+                        for (int i=0; i<rows; i++) {
+                            m.row(i) = r[i].row(0);
+                        }
+                        return m;
                     default:
                         SetError(255, "invalid operator in arithmatic expression");
                         //Rf_error("invalid operator in arithmatic expression");

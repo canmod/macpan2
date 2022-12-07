@@ -18,6 +18,11 @@ valid_funcs = c(
   "extract_time",
   "extract_lag",
   "select_time",
-  "select_lag"
+  "select_lag",
+  ":",
+  "seq",
+  "convolution",
+  "cbind",
+  "rbind"
 )
 valid_funcs = setNames(as.list(valid_funcs), valid_funcs)
