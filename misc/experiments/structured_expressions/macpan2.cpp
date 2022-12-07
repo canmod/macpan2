@@ -75,9 +75,8 @@ enum macpan2_func {
     MP2_SELECT_TIME = 18, // select_time
     MP2_SELECT_LAG = 19, // select_lag
     MP2_COLON = 20, // :
-    MP2_SEQUENCE = 21 // seq
-    // MP2_CONVOLUTION = 22
-
+    MP2_SEQUENCE = 21, // seq
+    MP2_CONVOLUTION = 22 // Convolution
 };
 
 template<class Type>
@@ -425,6 +424,32 @@ public:
 
                         return m; // empty matrix (if colIndex==0) or non-empty one (otherwise)
 
+                    case MP2_CONVOLUTION:
+                        matIndex = index2mats[0]; // m
+                        length = r[1].rows();
+                        if (length>0 && r[1].cols()==1) {
+                            if (t+1<length) {
+                                length = t+1;
+                                r[1] = r[1].block(0, 0, length, 1);
+                            }
+
+                            rows = r[0].rows();
+                            cols = r[0].cols();
+                            m = matrix<Type>::Zero(rows, cols);
+                            for (int i=0; i<rows; i++)
+                                for (int j=0; j<cols; j++) {
+                                    sum = r[1].coeff(0,0) * valid_vars.m_matrices[matIndex].coeff(i,j);
+                                    for (int k=1; k<=t; k++)
+                                        sum = r[1].coeff(k,0) * hist[t-k].m_matrices[matIndex].coeff(i,j);
+
+                                    m.coeffRef(i,j) = sum;
+                                }
+                            return m;
+                        }
+                        else {
+                            SetError(7, "Either empty or non-column vector used as kernel in convolution");
+                            return m;
+                        }
                     default:
                         SetError(255, "invalid operator in arithmatic expression");
                         //Rf_error("invalid operator in arithmatic expression");
