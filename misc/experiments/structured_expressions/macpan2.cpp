@@ -443,7 +443,12 @@ public:
                         cols = n; // one column for each of the n arguments
                         m = matrix<Type>::Zero(rows, cols);
                         for (int i=0; i<cols; i++) {
-                            m.col(i) = r[i].col(0);
+                            if (r[i].rows()==rows)
+                                m.col(i) = r[i].col(0);
+                            else {
+                                SetError(8, "Inconsistent size in cbind function");
+                                return m;
+                            }
                         }
                         return m;
                     case MP2_RBIND:
@@ -453,7 +458,12 @@ public:
                         rows = n; // one row for each of the n arguments
                         m = matrix<Type>::Zero(rows, cols);
                         for (int i=0; i<rows; i++) {
-                            m.row(i) = r[i].row(0);
+                            if (r[i].cols()==cols)
+                                m.row(i) = r[i].row(0);
+                            else {
+                                SetError(9, "Inconsistent size in rbind function");
+                                return m;
+                            }
                         }
                         return m;
                     default:
