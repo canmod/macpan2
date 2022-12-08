@@ -299,7 +299,7 @@ public:
                         }
                         m = matrix<Type>::Zero(length,1);
                         for (int i=0; i<length; i++)
-                            m.coeffRef(i-from,0) = from + i*by;
+                            m.coeffRef(i,0) = from + i*by;
                         #ifdef MP_VERBOSE
                             std::cout << "seq(" <<from << ", " << length << ", " << by << ") = " \
                                       << m << std::endl << std::endl;
