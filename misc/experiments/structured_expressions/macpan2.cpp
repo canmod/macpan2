@@ -73,10 +73,10 @@ enum macpan2_func {
     MP2_COLSUMS = 13, // colSums
     MP2_SQUARE_BRACKET = 14, // [
     MP2_TRANSPOSE = 15, // t
-    MP2_EXTRACT_TIME = 16, // extract_time
-    MP2_EXTRACT_LAG = 17, // extract_lag
-    MP2_SELECT_TIME = 18, // select_time
-    MP2_SELECT_LAG = 19, // select_lag
+    MP2_RBIND_TIME = 16, // rbind_time
+    MP2_RBIND_LAG = 17, // rbind_lag
+    MP2_CBIND_TIME = 18, // cbind_time
+    MP2_CBIND_LAG = 19, // cbind_lag
     MP2_COLON = 20, // :
     MP2_SEQUENCE = 21, // seq
     MP2_CONVOLUTION = 22, // convolution
@@ -382,47 +382,28 @@ public:
                     case MP2_TRANSPOSE: // t or transpose
                         m = r[0].transpose();
                         return m;
-                    case MP2_EXTRACT_LAG:
-                        r[1].coeffRef(0,0) = t+0.1-r[1].coeff(0,0);
-                    case MP2_EXTRACT_TIME:
-                        matIndex = index2mats[0]; // m
-                        rowIndex = CppAD::Integer(r[1].coeff(0,0)); // time i
-                        if (rowIndex<t && rowIndex>=0)
-                            return hist[rowIndex].m_matrices[matIndex];
-                        else {
-                            SetError(5, "Cannot extract time >= t (current time step) OR < 0");
-                            return m;
-                        }
-                    //case MP2_EXTRACT_LAG:
-                    //    matIndex = index2mats[0]; // m
-                    //    rowIndex = CppAD::Integer(r[1].coeff(0,0)); // time i
-                    //    if (rowIndex>0 && t-rowIndex>=0)
-                    //        return hist[t-rowIndex].m_matrices[matIndex];
-                    //    else {
-                    //        SetError(6, "Cannot extract lag (<=0) OR > t (current time step)");
-                    //        return m;
-                    //    }
-                    case MP2_SELECT_LAG:
+                    case MP2_RBIND_LAG:
                         r[1] = -r[1];
                         r[1].array() += t+0.1f; // make sure round(float) correctly works
-                    case MP2_SELECT_TIME:
+                    case MP2_RBIND_TIME:
                         matIndex = index2mats[0]; // m
-                        colIndex = 0; // acting as count of legitimate time steps to select
+                        int rbind_length;
+                        rbind_length = 0; // count of legitimate time steps to select
                         for (int i=0; i<r[1].size(); i++) {
                             rowIndex = CppAD::Integer(r[1].coeff(i,0));
                             if (rowIndex<t && rowIndex>=0)
-                                colIndex++;
+                                rbind_length++;
                         }
-                        if (colIndex>0) {
-                            colIndex = 0;
+                        if (rbind_length>0) {
                             rows = hist[0].m_matrices[matIndex].rows();
                             cols = hist[0].m_matrices[matIndex].cols();
-                            m = matrix<Type>::Zero(colIndex*rows, cols);
+                            m = matrix<Type>::Zero(rbind_length*rows, cols);
+                            rbind_length = 0;
                             for (int i=0; i<r[1].size(); i++) {
                                 rowIndex = CppAD::Integer(r[1].coeff(i,0));
                                 if (rowIndex<t && rowIndex>=0) {
-                                    m.block(colIndex*rows, 0, rows, cols) = hist[rowIndex].m_matrices[matIndex];
-                                    colIndex++;
+                                    m.block(rbind_length*rows, 0, rows, cols) = hist[rowIndex].m_matrices[matIndex];
+                                    rbind_length++;
                                 }
                             }
                         }
