@@ -549,9 +549,9 @@ Type objective_function<Type>::operator() ()
     DATA_VECTOR(literals);
 
     // Objective function return
-    //DATA_IVECTOR(o_table_n)
-    //DATA_IVECTOR(o_table_x)
-    //DATA_IVECTOR(o_table_i)
+    DATA_IVECTOR(o_table_n)
+    DATA_IVECTOR(o_table_x)
+    DATA_IVECTOR(o_table_i)
 
     #ifdef MP_VERBOSE
     std::cout << "params = " << params << std::endl;
