@@ -176,14 +176,14 @@ mats_config = list(
   )
 )
 
-params = c(0.3)
+params = c(0.3, 0.2)
 random = numeric(0L)
 
 params_index = list(
-  p_par_id = integer(0L),
-  p_mat_id = integer(0L),
-  p_row_id = integer(0L),
-  p_col_id = integer(0L)
+  p_par_id = c(0L, 1L),
+  p_mat_id = c(1L, 2L),
+  p_row_id = c(0L, 0L),
+  p_col_id = c(0L, 0L)
 )
 
 random_index = list(
@@ -195,13 +195,20 @@ random_index = list(
 
 time_steps = c(2) #2L
 
-obj_fn_expr = ~ sum(state)
-
-obj_fn_parse_table = setNames(
-  as.list(parse_expr(obj_fn_expr)$parse_table),
-  c("o_table_x", "o_table_n", "o_table_i")
-)
-
+TMBObjectiveFunction = function(parse_table, parsed_literals, existing_literals) {
+  parse_table$i = parse_table$i - 1L
+  parse_table$x[parse_table$n == -1L] = parse_table$x[parse_table$n == -1L] + length(existing_literals)
+  parse_table$x[parse_table$n > 0L] = parse_table$x[parse_table$n > 0L] - 1L
+  list(
+    parse_table = as.list(parse_table),
+    literals = c(existing_literals, parsed_literals)
+  )
+}
+obj_fn_expr = ~ sum(rbind_time(foi, 1:2))
+obj_fn = parse_expr(obj_fn_expr)
+obj_fn_obj = TMBObjectiveFunction(obj_fn$parse_table, obj_fn$valid_literals, literals)
+literals = obj_fn_obj$literals
+obj_fn_parse_table = obj_fn_obj$parse_table
 
 data_args = c(
   list(mats = unname(mats)),
@@ -213,8 +220,11 @@ data_args = c(
   params_index,
   random_index,
   nlist(time_steps),
-  obj_fn_parse_table
+  list(o_table_x = obj_fn_parse_table$x),
+  list(o_table_n = obj_fn_parse_table$n),
+  list(o_table_i = obj_fn_parse_table$i)
 )
+
 
 parameter_args = nlist(params, random)
 
@@ -235,3 +245,6 @@ correct_answer()  ## expected result
 print("actual answer ...")
 tmb_output = try(tmb_function$report())  ## actual result
 tmb_output
+tmb_function$fn()
+tmb_function$gr()
+tmb_function$he()
