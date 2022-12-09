@@ -258,11 +258,14 @@ tmb_function = try(TMB::MakeADFun(
 ))
 
 print("correct answer ...")
-correct_answer()  ## expected result
+correct_answer()  ## expected report
 
 print("actual answer ...")
-tmb_output = try(tmb_function$report())  ## actual result
+tmb_output = try(tmb_function$report())  ## actual report
 
+tmb_function$fn() ## should be 1
+tmb_function$gr() ## should be 0
+tmb_function$he() ## should be 0
 
 # correct_answer(0.1)
 # tmb_function$report(0.1)
