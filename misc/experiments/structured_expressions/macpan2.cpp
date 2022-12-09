@@ -321,6 +321,7 @@ public:
                         rows = CppAD::Integer(r[1].coeff(0,0));
                         cols = CppAD::Integer(r[2].coeff(0,0));
 
+                        //m.conservativeResize(rows, cols); // don't know why this doesn't work
                         m.resize(rows, cols);
 
                         // m2 = m.transpose(); // m = m.transpose() doesn't work !!!
@@ -391,7 +392,7 @@ public:
                         rbind_length = 0; // count of legitimate time steps to select
                         for (int i=0; i<r[1].size(); i++) {
                             rowIndex = CppAD::Integer(r[1].coeff(i,0));
-                            if (rowIndex<t && rowIndex>=0)
+                            if (rowIndex<=t && rowIndex>=0)
                                 rbind_length++;
                         }
                         if (rbind_length>0) {
@@ -403,6 +404,10 @@ public:
                                 rowIndex = CppAD::Integer(r[1].coeff(i,0));
                                 if (rowIndex<t && rowIndex>=0) {
                                     m.block(rbind_length*rows, 0, rows, cols) = hist[rowIndex].m_matrices[matIndex];
+                                    rbind_length++;
+                                }
+                                else if (rowIndex==t) {
+                                    m.block(rbind_length*rows, 0, rows, cols) = valid_vars.m_matrices[matIndex];
                                     rbind_length++;
                                 }
                             }
@@ -529,13 +534,13 @@ Type objective_function<Type>::operator() ()
     // Trajectory simulation
     DATA_INTEGER(time_steps)
 
-    DATA_IVECTOR(mats_save_hist);
+    DATA_IVECTOR(mats_save_hist); // to remove
     DATA_IVECTOR(mats_return);
 
     // Expressions
     DATA_IVECTOR(eval_schedule)
 
-    DATA_IVECTOR(expr_output_count);
+    DATA_IVECTOR(expr_output_count); // to remove
     DATA_IVECTOR(expr_output_id);
     DATA_IVECTOR(expr_sim_block);
     DATA_IVECTOR(expr_num_p_table_rows);
@@ -549,9 +554,9 @@ Type objective_function<Type>::operator() ()
     DATA_VECTOR(literals);
 
     // Objective function return
-    DATA_IVECTOR(o_table_n)
-    DATA_IVECTOR(o_table_x)
-    DATA_IVECTOR(o_table_i)
+    DATA_IVECTOR(o_table_n);
+    DATA_IVECTOR(o_table_x);
+    DATA_IVECTOR(o_table_i);
 
     #ifdef MP_VERBOSE
     std::cout << "params = " << params << std::endl;
@@ -589,6 +594,10 @@ Type objective_function<Type>::operator() ()
     std::cout << "p_table_i = " << p_table_i << std::endl;
 
     std::cout << "literals = " << literals << std::endl;
+
+    std::cout << "o_table_x = " << o_table_x << std::endl;
+    std::cout << "o_table_n = " << o_table_n << std::endl;
+    std::cout << "o_table_i = " << o_table_i << std::endl;
     #endif
 
     // 2 Replace some of elements of some matrices with parameters
@@ -801,8 +810,26 @@ Type objective_function<Type>::operator() ()
     REPORT(mats_returned)
 
     // 7 Calc the return of the objective function
+    matrix<Type> ret;
+    ret = exprEvaluator.EvalExpr(
+              simulation_history,
+              0,
+              o_table_x,
+              o_table_n,
+              o_table_i,
+              mats,
+              literals,
+              0
+          );
+
+    if (exprEvaluator.GetErrorCode()) {
+        REPORT_ERROR;
+        return 0.0;
+    }
+
     REPORT_ERROR
 
     std::cout << "======== end of objective function ========" << std::endl;
-    return 0.0;
+    return ret.coeff(0,0);
+    //return 0.0;
 }
