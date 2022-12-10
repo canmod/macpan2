@@ -396,6 +396,10 @@ public:
                             if (rowIndex<=t && rowIndex>=0)
                                 rbind_length++;
                         }
+                        #ifdef MP_VERBOSE
+                            std::cout << "rbind_time(" << r[1] << ") = " << std::endl;
+                        #endif
+
                         if (rbind_length>0) {
                             rows = hist[0].m_matrices[matIndex].rows();
                             cols = hist[0].m_matrices[matIndex].cols();
@@ -411,6 +415,9 @@ public:
                                     m.block(rbind_length*rows, 0, rows, cols) = valid_vars.m_matrices[matIndex];
                                     rbind_length++;
                                 }
+                                #ifdef MP_VERBOSE
+                                    std::cout << m.block((rbind_length-1)*rows, 0, rows, cols) << std::endl << std::endl;
+                                #endif
                             }
                         }
 
@@ -835,7 +842,7 @@ Type objective_function<Type>::operator() ()
     matrix<Type> ret;
     ret = exprEvaluator.EvalExpr(
               simulation_history,
-              0,
+              time_steps+1,
               o_table_x,
               o_table_n,
               o_table_i,
