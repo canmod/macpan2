@@ -393,7 +393,7 @@ public:
                         rbind_length = 0; // count of legitimate time steps to select
                         for (int i=0; i<r[1].size(); i++) {
                             rowIndex = CppAD::Integer(r[1].coeff(i,0));
-                            if (rowIndex<t && rowIndex>=0)
+                            if (rowIndex<=t && rowIndex>=0)
                                 rbind_length++;
                         }
                         if (rbind_length>0) {
@@ -405,6 +405,10 @@ public:
                                 rowIndex = CppAD::Integer(r[1].coeff(i,0));
                                 if (rowIndex<t && rowIndex>=0) {
                                     m.block(rbind_length*rows, 0, rows, cols) = hist[rowIndex].m_matrices[matIndex];
+                                    rbind_length++;
+                                }
+                                else if (rowIndex==t) {
+                                    m.block(rbind_length*rows, 0, rows, cols) = valid_vars.m_matrices[matIndex];
                                     rbind_length++;
                                 }
                             }
