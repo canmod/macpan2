@@ -145,7 +145,7 @@ public:
         int row = 0
     )
     {
-        matrix<Type> m, m2;
+        matrix<Type> m, m2, step;
         Type sum, s;
         int rows, cols, rowIndex, colIndex, matIndex;
 
@@ -469,8 +469,11 @@ public:
                         }
                         return m;
                     case MP2_TIME_STEP:
+                        std::cout << "here we are" << std::endl;
                         m = matrix<Type>::Zero(1,1);
-                        m.coeffRef(0,0) = t - r[0];
+                        step.coeffRef(0,0) = t;
+                        //m.coeffRef(0,0) = step - r[0];
+                        //std::cout << step << std::endl;
                         return m;
                     default:
                         SetError(255, "invalid operator in arithmatic expression");
