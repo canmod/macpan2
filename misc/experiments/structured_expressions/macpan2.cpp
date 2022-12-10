@@ -81,7 +81,8 @@ enum macpan2_func {
     MP2_SEQUENCE = 21, // seq
     MP2_CONVOLUTION = 22, // convolution
     MP2_CBIND = 23, // cbind
-    MP2_RBIND = 24 // rbind
+    MP2_RBIND = 24, // rbind
+    MP2_TIME_STEP = 25 // time_step
 };
 
 template<class Type>
@@ -144,7 +145,7 @@ public:
         int row = 0
     )
     {
-        matrix<Type> m, m2;
+        matrix<Type> m, m2, step;
         Type sum, s;
         int rows, cols, rowIndex, colIndex, matIndex;
 
@@ -471,6 +472,13 @@ public:
                             }
                         }
                         return m;
+                    case MP2_TIME_STEP:
+                        std::cout << "here we are" << std::endl;
+                        m = matrix<Type>::Zero(1,1);
+                        step.coeffRef(0,0) = t;
+                        //m.coeffRef(0,0) = step - r[0];
+                        //std::cout << step << std::endl;
+                        return m;
                     default:
                         SetError(255, "invalid operator in arithmatic expression");
                         //Rf_error("invalid operator in arithmatic expression");
@@ -546,7 +554,7 @@ Type objective_function<Type>::operator() ()
     // Trajectory simulation
     DATA_INTEGER(time_steps)
 
-    DATA_IVECTOR(mats_save_hist); // to remove
+    DATA_IVECTOR(mats_save_hist);
     DATA_IVECTOR(mats_return);
 
     // Expressions
@@ -627,6 +635,8 @@ Type objective_function<Type>::operator() ()
     //////////////////////////////////
 
     // Simulation history
+    /// each element of this history 'vector' is a list of the matrices
+    /// in the model at a particular point in history
     vector<ListOfMatrices<Type> > simulation_history(time_steps+2);
 
     // 3 Pre-simulation
