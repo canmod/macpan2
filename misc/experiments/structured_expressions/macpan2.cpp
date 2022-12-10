@@ -494,6 +494,18 @@ private:
     logfile.close(); \
 }
 
+// Helper function
+template<class Type>
+void UpdateSimulationHistory(
+    vector<ListOfMatrices<Type> >& hist,
+    int t,
+    ListOfMatrices<Type>& mats,
+    vector<int>& mats_save_hist
+) {
+
+
+}
+
 const char LOG_FILE_NAME[] = "macpan2.log";
 
 // "main" function
