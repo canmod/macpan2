@@ -15,14 +15,15 @@ valid_funcs = c(
   "colSums",
   "[",
   "t",
-  "extract_time",
-  "extract_lag",
-  "select_time",
-  "select_lag",
+  "rbind_time",
+  "rbind_lag",
+  "cbind_time",
+  "cbind_lag",
   ":",
   "seq",
   "convolution",
   "cbind",
-  "rbind"
+  "rbind",
+  "time_step"
 )
 valid_funcs = setNames(as.list(valid_funcs), valid_funcs)
