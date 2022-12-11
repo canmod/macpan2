@@ -5,7 +5,7 @@ compile('macpan2.cpp')
 dyn.load(dynlib("macpan2"))
 
 correct_answer = function(beta = 0.3) {
-  
+
   ## matrices
   state = c(1 - 1e-2, 1e-2, 0)
   gamma = 0.2
@@ -14,7 +14,7 @@ correct_answer = function(beta = 0.3) {
   recrate = 0
   ratemat = matrix(0, 3, 3)
   flowmat = matrix(0, 3, 3)
-  
+
   state_hist = list(as.matrix(state))
   N_hist = list(as.matrix(N))
   foi_hist = list(as.matrix(foi))
@@ -166,12 +166,14 @@ mats_config = list(
     state = TRUE,
     beta = FALSE, gamma = FALSE,
     N = TRUE, foi = TRUE,
+    recrate = TRUE,
     ratemat = FALSE, flowmat = FALSE
   ),
   mats_return = c(
     state = TRUE,
     beta = FALSE, gamma = FALSE,
     N = TRUE, foi = TRUE,
+    recrate = TRUE,
     ratemat = FALSE, flowmat = FALSE
   )
 )
