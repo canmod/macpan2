@@ -415,10 +415,18 @@ public:
                             for (int i=0; i<r[1].size(); i++) {
                                 rowIndex = CppAD::Integer(r[1].coeff(i,0));
                                 if (rowIndex<t && rowIndex>=0) {
+                                    if (hist[rowIndex].m_matrices[matIndex].cols()!=cols) {
+                                        SetError(MP2_RBIND_TIME, "Inconsistent columns in rbind_time (or rbind_lag)");
+                                        return m;
+                                    }
                                     m.block(rbind_length*rows, 0, rows, cols) = hist[rowIndex].m_matrices[matIndex];
                                     rbind_length++;
                                 }
                                 else if (rowIndex==t) {
+                                    if (valid_vars.m_matrices[matIndex].cols()!=cols) {
+                                        SetError(MP2_RBIND_TIME, "Inconsistent columns in rbind_time (or rbind_lag)");
+                                        return m;
+                                    }
                                     m.block(rbind_length*rows, 0, rows, cols) = valid_vars.m_matrices[matIndex];
                                     rbind_length++;
                                 }
