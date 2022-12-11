@@ -586,7 +586,7 @@ Type objective_function<Type>::operator() ()
     // Expressions
     DATA_IVECTOR(eval_schedule)
 
-    DATA_IVECTOR(expr_output_count); // to remove
+    //DATA_IVECTOR(expr_output_count); // to remove
     DATA_IVECTOR(expr_output_id);
     DATA_IVECTOR(expr_sim_block);
     DATA_IVECTOR(expr_num_p_table_rows);
@@ -630,7 +630,7 @@ Type objective_function<Type>::operator() ()
 
     std::cout << "eval_schedule = " << eval_schedule << std::endl;
 
-    std::cout << "expr_output_count = " << expr_output_count << std::endl;
+    //std::cout << "expr_output_count = " << expr_output_count << std::endl;
     std::cout << "expr_output_id = " << expr_output_id << std::endl;
     std::cout << "expr_sim_block = " << expr_sim_block << std::endl;
     std::cout << "expr_num_p_table_rows = " << expr_num_p_table_rows << std::endl;
