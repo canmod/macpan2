@@ -137,6 +137,7 @@ public:
     matrix<Type> EvalExpr(
         const vector<ListOfMatrices<Type> >& hist,
         int t,
+        const vector<int>& mats_save_hist,
         const vector<int>& table_x,
         const vector<int>& table_n,
         const vector<int>& table_i,
@@ -164,7 +165,8 @@ public:
                 vector<matrix<Type> > r(n);
                 vector<int> index2mats(n);
                 for (int i=0; i<n; i++) {
-                    r[i] = EvalExpr(hist, t, table_x, table_n, table_i, valid_vars, valid_literals, table_i[row]+i);
+                    r[i] = EvalExpr(hist, t, mats_save_hist, table_x, table_n, table_i, \
+                                    valid_vars, valid_literals, table_i[row]+i);
                     index2mats[i] = table_x[table_i[row]+i];
                     if (GetErrorCode()) return m;
                 }
@@ -186,7 +188,7 @@ public:
                                     r[1].col(i) = m.col(0);
                             }
                             else {
-                                SetError(1, "The two operands do not have the same number of columns");
+                                SetError(201, "The two operands do not have the same number of columns");
                                 return m;
                                 //Rf_error("The two operands do not have the same number of columns");
                             }
@@ -208,7 +210,7 @@ public:
                                     r[1].row(i) = m.row(0);
                             }
                             else {
-                                SetError(2, "The two operands do not have the same number of rows");
+                                SetError(202, "The two operands do not have the same number of rows");
                                 return m;
                                 // Rf_error("The two operands do not have the same number of rows");
                             }
@@ -225,7 +227,7 @@ public:
                                 r[1].setConstant(s);
                             }
                             else {
-                                SetError(3, "The two operands do not have the same number of columns or rows");
+                                SetError(203, "The two operands do not have the same number of columns or rows");
                                 return m;
                                 //Rf_error("The dimensions of the two operands are not equal to each other");
                             }
@@ -234,7 +236,7 @@ public:
                 }
                 else if (table_x[row]+1==9) { // %*% matrix multiplication
                     if (r[0].cols()!=r[1].rows()) {
-                        SetError(4, "The two operands are not compatible to do matrix multiplication");
+                        SetError(204, "The two operands are not compatible to do matrix multiplication");
                         return m;
                         //Rf_error("The two operands are not compatible to do matrix multiplication");
                     }
@@ -279,7 +281,7 @@ public:
                         from = CppAD::Integer(r[0].coeff(0,0));
                         to = CppAD::Integer(r[1].coeff(0,0));
                         if (from>to) {
-                            SetError(6, "Lower bound greater than upper bound in : operation");
+                            SetError(MP2_COLON, "Lower bound greater than upper bound in : operation");
                             return m;
                         }
                         m = matrix<Type>::Zero(to-from+1,1);
@@ -295,7 +297,7 @@ public:
                         length = CppAD::Integer(r[1].coeff(0,0));
                         by = CppAD::Integer(r[2].coeff(0,0));
                         if (length<=0) {
-                            SetError(7, "Sequence length is less than or equal to zero in seq operation");
+                            SetError(MP2_SEQUENCE, "Sequence length is less than or equal to zero in seq operation");
                             return m;
                         }
                         m = matrix<Type>::Zero(length,1);
@@ -389,6 +391,11 @@ public:
                         r[1].array() += t+0.1f; // make sure round(float) correctly works
                     case MP2_RBIND_TIME:
                         matIndex = index2mats[0]; // m
+                        if (mats_save_hist[matIndex]==0 && !(r[1].size()==1 && CppAD::Integer(r[1].coeff(0,0))==t)) {
+                            SetError(MP2_RBIND_TIME, "Cannot rbind_time (or rbind_lag) a matrix with no history");
+                            return m;
+                        }
+ 
                         int rbind_length;
                         rbind_length = 0; // count of legitimate time steps to select
                         for (int i=0; i<r[1].size(); i++) {
@@ -396,6 +403,10 @@ public:
                             if (rowIndex<=t && rowIndex>=0)
                                 rbind_length++;
                         }
+                        #ifdef MP_VERBOSE
+                            std::cout << "rbind_time(" << r[1] << ") = " << std::endl;
+                        #endif
+
                         if (rbind_length>0) {
                             rows = hist[0].m_matrices[matIndex].rows();
                             cols = hist[0].m_matrices[matIndex].cols();
@@ -404,13 +415,24 @@ public:
                             for (int i=0; i<r[1].size(); i++) {
                                 rowIndex = CppAD::Integer(r[1].coeff(i,0));
                                 if (rowIndex<t && rowIndex>=0) {
+                                    if (hist[rowIndex].m_matrices[matIndex].cols()!=cols) {
+                                        SetError(MP2_RBIND_TIME, "Inconsistent columns in rbind_time (or rbind_lag)");
+                                        return m;
+                                    }
                                     m.block(rbind_length*rows, 0, rows, cols) = hist[rowIndex].m_matrices[matIndex];
                                     rbind_length++;
                                 }
                                 else if (rowIndex==t) {
+                                    if (valid_vars.m_matrices[matIndex].cols()!=cols) {
+                                        SetError(MP2_RBIND_TIME, "Inconsistent columns in rbind_time (or rbind_lag)");
+                                        return m;
+                                    }
                                     m.block(rbind_length*rows, 0, rows, cols) = valid_vars.m_matrices[matIndex];
                                     rbind_length++;
                                 }
+                                #ifdef MP_VERBOSE
+                                    std::cout << m.block((rbind_length-1)*rows, 0, rows, cols) << std::endl << std::endl;
+                                #endif
                             }
                         }
 
@@ -439,7 +461,7 @@ public:
                             return m;
                         }
                         else {
-                            SetError(7, "Either empty or non-column vector used as kernel in convolution");
+                            SetError(MP2_CONVOLUTION, "Either empty or non-column vector used as kernel in convolution");
                             return m;
                         }
                     case MP2_CBIND:
@@ -452,7 +474,7 @@ public:
                             if (r[i].rows()==rows)
                                 m.col(i) = r[i].col(0);
                             else {
-                                SetError(8, "Inconsistent size in cbind function");
+                                SetError(MP2_CBIND, "Inconsistent size in cbind function");
                                 return m;
                             }
                         }
@@ -467,7 +489,7 @@ public:
                             if (r[i].cols()==cols)
                                 m.row(i) = r[i].row(0);
                             else {
-                                SetError(9, "Inconsistent size in rbind function");
+                                SetError(MP2_RBIND, "Inconsistent size in rbind function");
                                 return m;
                             }
                         }
@@ -500,6 +522,22 @@ private:
     logfile << "Error code = " << error << std::endl; \
     logfile << "Error message = " << exprEvaluator.GetErrorMessage() << std::endl; \
     logfile.close(); \
+}
+
+// Helper function
+template<class Type>
+void UpdateSimulationHistory(
+    vector<ListOfMatrices<Type> >& hist,
+    int t,
+    const ListOfMatrices<Type>& mats,
+    const vector<int>& mats_save_hist
+) {
+    ListOfMatrices<Type> ms(mats); 
+    for (int i=0; i<mats_save_hist.size(); i++) 
+        if (mats_save_hist[i]==0) 
+            ms.m_matrices[i] = matrix<Type>::Zero(1,1);
+
+    hist[t] = ms;
 }
 
 const char LOG_FILE_NAME[] = "macpan2.log";
@@ -642,6 +680,7 @@ Type objective_function<Type>::operator() ()
                 result  = exprEvaluator.EvalExpr(
                     simulation_history,
                     0,
+                    mats_save_hist,
                     p_table_x,
                     p_table_n,
                     p_table_i,
@@ -655,6 +694,7 @@ Type objective_function<Type>::operator() ()
             result  = exprEvaluator.EvalExpr(
                 simulation_history,
                 0,
+                mats_save_hist,
                 p_table_x,
                 p_table_n,
                 p_table_i,
@@ -673,7 +713,13 @@ Type objective_function<Type>::operator() ()
         p_table_row += expr_num_p_table_rows[i];
     }
 
-    simulation_history[0] = mats;
+    //simulation_history[0] = mats;
+    UpdateSimulationHistory(
+        simulation_history,
+        0,
+        mats,
+        mats_save_hist
+    );
 
     // 4 During simulation
     expr_index += eval_schedule[0];
@@ -695,6 +741,7 @@ Type objective_function<Type>::operator() ()
                     result = exprEvaluator.EvalExpr(
                         simulation_history,
                         k+1,
+                        mats_save_hist,
                         p_table_x,
                         p_table_n,
                         p_table_i,
@@ -708,6 +755,7 @@ Type objective_function<Type>::operator() ()
                 result = exprEvaluator.EvalExpr(
                     simulation_history,
                     k+1,
+                    mats_save_hist,
                     p_table_x,
                     p_table_n,
                     p_table_i,
@@ -730,7 +778,13 @@ Type objective_function<Type>::operator() ()
                 std::cout << "mats = " << mats.m_matrices[ii] << std::endl;
             #endif
         }
-        simulation_history[k+1] = mats;
+        //simulation_history[k+1] = mats;
+        UpdateSimulationHistory(
+            simulation_history,
+            k+1,
+            mats,
+            mats_save_hist
+        );
     }
     p_table_row = p_table_row2;
 
@@ -748,6 +802,7 @@ Type objective_function<Type>::operator() ()
                 result = exprEvaluator.EvalExpr(
                     simulation_history,
                     time_steps+1,
+                    mats_save_hist,
                     p_table_x,
                     p_table_n,
                     p_table_i,
@@ -761,6 +816,7 @@ Type objective_function<Type>::operator() ()
             result  = exprEvaluator.EvalExpr(
                 simulation_history,
                 time_steps+1,
+                mats_save_hist,
                 p_table_x,
                 p_table_n,
                 p_table_i,
@@ -779,7 +835,13 @@ Type objective_function<Type>::operator() ()
         p_table_row += expr_num_p_table_rows[expr_index+i];
     }
 
-    simulation_history[time_steps+1] = mats;
+    //simulation_history[time_steps+1] = mats;
+    UpdateSimulationHistory(
+        simulation_history,
+        time_steps+1,
+        mats,
+        mats_save_hist
+    );
 
 #ifdef MP_VERBOSE
     std::cout << "Simulation history ..." << std::endl;
@@ -823,7 +885,8 @@ Type objective_function<Type>::operator() ()
     matrix<Type> ret;
     ret = exprEvaluator.EvalExpr(
               simulation_history,
-              0,
+              time_steps+2,
+              mats_save_hist,
               o_table_x,
               o_table_n,
               o_table_i,
