@@ -392,7 +392,7 @@ public:
                     case MP2_RBIND_TIME:
                         matIndex = index2mats[0]; // m
                         if (mats_save_hist[matIndex]==0 && !(r[1].size()==1 && CppAD::Integer(r[1].coeff(0,0))==t)) {
-                            SetError(MP2_RBIND_TIME, "Matrix with no history used");
+                            SetError(MP2_RBIND_TIME, "Cannot rbind_time (or rbind_lag) a matrix with no history");
                             return m;
                         }
  
@@ -877,7 +877,7 @@ Type objective_function<Type>::operator() ()
     matrix<Type> ret;
     ret = exprEvaluator.EvalExpr(
               simulation_history,
-              time_steps+1,
+              time_steps+2,
               mats_save_hist,
               o_table_x,
               o_table_n,
