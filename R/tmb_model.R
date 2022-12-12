@@ -25,9 +25,10 @@ ExprListUtils = function() {
 #' side that gives the name of the matrix being updated, and a right hand side
 #' giving an expression containing only the names of matrices in the model,
 #' functions defined in \code{macpan2.cpp}, and numerical literals (e.g.
-#' \code{3.14}). Names can be provided for the list items, and these names do
-#' not have to be unique. These names are used by the \code{.simulate_exprs}
-#' argument.
+#' \code{3.14}). The available functions are described in
+#' \code{\link{engine_functions}}. Names can be provided for the components of
+#' \code{before}, and these names do not have to be unique.  These names are
+#' used by the \code{.simulate_exprs} argument.
 #' @param during List of formulas to be evaluated at every iteration of the
 #' simulation loop, with the same rules as \code{before}.
 #' @param after List of formulas to be evaluated after the simulation loop,

@@ -30,7 +30,7 @@ is thrown. Currently the following elementwise binary
 operators are available: \code{+}, \code{-}, \code{*}, \code{/}, \code{^}.
 }
 
-\subsection{Integer Sequences}{
+\subsection{Sequences and Repeated Patterns}{
 
 The colon operator works much like the base R version
 \code{\link{:}}. It takes two scalar-valued integers
@@ -41,6 +41,26 @@ The \code{seq} function works like the base R default
 \code{\link{seq}} function, but only allows the
 \code{from}, \code{to}, and \code{by} arguments. These arguments
 must all be scalars.
+
+The \code{\link{rep}} function can be used to repeat
+the elements of a scalar \code{n} times. The following
+arguments are available.
+\itemize{
+\item \code{x} -- A scalar-valued variable to repeat.
+\item \code{times} -- A scalar-valued integer variable giving
+the number of times to repeat \code{x}.
+}
+
+The result is a column vector. This function differs
+from its base R version in that \code{x} must be a scalar,
+otherwise only the first element of \code{x} will be used.
+TODO: Consider allowing generic \code{x}
+}
+
+\subsection{Matrix Multiplication}{
+
+Standard matrix multiplication, \code{\link{\%*\%}},
+is available.
 }
 
 \subsection{Parenthesis}{
@@ -49,11 +69,103 @@ The order of operations can be enforced in the usual
 way with round parentheses, \code{\link{(}}.
 }
 
-\subsection{Combining Elements}{
+\subsection{Reshaping and Combining Matrices}{
 
-TODO -- Before continuing with the roxygen
-we need to group together related functions better.
-For example we should have rbind and cbind up here
-in this section.
+Any number of scalars can be combined into a column
+vector using the \code{\link{c}} function. If
+non-scalars are provided then only the element in
+the first row and column of each input are used.
+TODO: Consider modifying so that \code{c} works more like
+the base R \code{c}, in that it stacks matrix columns.
+
+Column and row vectors of the same length can be
+combined using the \code{\link{cbind}} and
+\code{\link{rbind}} functions respectively
+
+The \code{matrix} function can be used to redefine the
+numbers of rows and columns to use for arranging
+the values of a matrix. It works similarly to
+the base R \code{\link{matrix}} function in that it
+takes the following arguments.
+\itemize{
+\item \code{data} -- A matrix to reshape.
+\item \code{nrow} -- An integer scalar giving the number of
+rows in the output matrix.
+\item \code{ncol} -- An integer scalar giving the number of
+columns in the output matrix.
+}
+
+On the other hand, this function differs substantially
+from the base R version in that it must be filled
+by column and there is no \code{byrow} option.
+
+Matrices can be transposed with the usual
+function, \code{\link{t}}.
+}
+
+\subsection{Summarizing Matrix Values}{
+
+The elements of a matrix can be summed together using
+the standard \code{\link{sum}} function.
+
+The standard \code{\link{rowSums}} and
+\code{\link{colSums}} can be used, but they have
+slightly different behaviour from their base R
+versions. In particular, the \code{rowSums} function
+returns a column vector and the \code{colSums} function
+returns a row vector. If a specific shape is required
+then the transpose \code{\link{t}} function must be
+explicitly used.
+}
+
+\subsection{Extracting Matrix Elements}{
+
+It is possible to extract a single element from a
+matrix using square brackets. Two
+indices must be supplied for both the row and column
+positions. Note that zero-based indexing is used
+so the first element gets index, \code{0}, etc. It is
+currently not possible to extract sub-matrices
+of arbitrary dimensions, but this GitHub issue
+will address this shortcoming when it is completed,
+\url{https://github.com/canmod/macpan2/issues/10}.
+}
+
+\subsection{Accessing Past Values in the Simulation History}{
+
+For matrices with their simulation history saved,
+it is possible to bind the rows or columns of all of
+the versions of such matrices into a single matrix.
+
+There are four versions of this functionality.
+\itemize{
+\item \code{rbind_lag(x, lag)} -- Bind the rows of versions of
+\code{x} that were recorded at the end of all
+simulation iterations corresponding to time lags given
+by integers in \code{lag}.
+\item \code{rbind_time(x, t)} -- Bind the rows of versions of
+\code{x} that were recorded at the end of all
+simulation iterations corresponding to integers in
+\code{t}.
+\item \code{cbind_lag(x, lag)} -- Bind the columns of versions of
+\code{x} that were recorded at the end of all
+simulation iterations corresponding to time lags given
+by integers in \code{lag}. (TODO -- cbind_lag is not developed yet)
+\item \code{cbind_time(x, t)} -- Bind the columns of versions of
+\code{x} that were recorded at the end of all
+simulation iterations corresponding to integers in
+\code{t}. (TODO -- cbind_lag is not developed yet)
+}
+}
+
+\subsection{Convolution}{
+
+One may take the convolution of each element in a
+matrix, x, over simulation time using a kernel, k.
+There are two arguments of this function.
+\itemize{
+\item \code{x} -- The matrix to be convolved.
+\item \code{k} -- A column vector giving the convolution kernel.
+}
 }
 }

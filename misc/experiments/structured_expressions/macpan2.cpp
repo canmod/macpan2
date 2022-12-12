@@ -304,7 +304,7 @@ public:
                         //return r[0].pow(r[1].coeff(0,0));
 
 
-                    // #' ## Integer Sequences
+                    // #' ## Sequences and Repeated Patterns
                     // #'
                     case MP2_COLON: // :
                     // #' The colon operator works much like the base R version
@@ -332,6 +332,7 @@ public:
                     // #' \code{\link{seq}} function, but only allows the
                     // #' `from`, `to`, and `by` arguments. These arguments
                     // #' must all be scalars.
+                    // #'
                         int length, by;
                         from = CppAD::Integer(r[0].coeff(0,0));
                         length = CppAD::Integer(r[1].coeff(0,0));
@@ -348,6 +349,41 @@ public:
                                       << m << std::endl << std::endl;
                         #endif
                         return m;
+
+                    case MP2_REPLICATE: // rep
+                    // #' The \code{\link{rep}} function can be used to repeat
+                    // #' the elements of a scalar `n` times. The following
+                    // #' arguments are available.
+                    // #'
+                    // #' * `x` -- A scalar-valued variable to repeat.
+                    // #' * `times` -- A scalar-valued integer variable giving
+                    // #' the number of times to repeat `x`.
+                    // #'
+                    // #' The result is a column vector. This function differs
+                    // #' from its base R version in that `x` must be a scalar,
+                    // #' otherwise only the first element of `x` will be used.
+                    // #' TODO: Consider allowing generic `x`
+                    // #'
+                        rows = CppAD::Integer(r[1].coeff(0,0));
+                        m = matrix<Type>::Constant(rows,1, r[0].coeff(0,0));
+                        //for (int i=0; i<rows; i++)
+                        //    m.coeffRef(i,0) = r[0].coeff(0,0);
+
+                        #ifdef MP_VERBOSE
+                            std::cout << "rep(" << r[0] << ", " << r[1] << ") = " << m << std::endl << std::endl;
+                        #endif
+                        return m;
+
+                    case MP2_MATRIX_MULTIPLY: // %*%
+                    // #' ## Matrix Multiplication
+                    // #'
+                    // #' Standard matrix multiplication, \code{\link{%*%}},
+                    // #' is available.
+                        #ifdef MP_VERBOSE
+                            std::cout << r[0] << " %*% " << r[1] << " = " << r[0]*r[1] << std::endl << std::endl;
+                        #endif
+                        return r[0]*r[1];
+
                     case MP2_ROUND_BRACKET: // (
                     // #' ## Parenthesis
                     // #'
@@ -356,13 +392,16 @@ public:
                     // #'
                         return r[0];
 
-                    // #' ## Combining Elements
-                    //
-                    // #' TODO -- Before continuing with the roxygen
-                    // #' we need to group together related functions better.
-                    // #' For example we should have rbind and cbind up here
-                    // #' in this section.
+                    // #' ## Reshaping and Combining Matrices
+                    // #'
                     case MP2_COMBINE: // c
+                    // #' Any number of scalars can be combined into a column
+                    // #' vector using the \code{\link{c}} function. If
+                    // #' non-scalars are provided then only the element in
+                    // #' the first row and column of each input are used.
+                    // #' TODO: Consider modifying so that `c` works more like
+                    // #' the base R `c`, in that it stacks matrix columns.
+                    // #'
                         m = matrix<Type>::Zero(n,1);
                         for (int i=0; i<n; i++)
                             m.coeffRef(i,0) = r[i].coeff(0,0);
@@ -370,7 +409,59 @@ public:
                             std::cout << "c(" << r[0] << ", ...," << r[n-1] << ") = " << m << std::endl << std::endl;
                         #endif
                         return m;
+
+                    // #' Column and row vectors of the same length can be
+                    // #' combined using the \code{\link{cbind}} and
+                    // #' \code{\link{rbind}} functions respectively
+                    // #'
+                    case MP2_CBIND:
+                        rows = r[0].rows();
+                        // std::cout << "rows: " << rows << std::endl;
+                        // std::cout << "n: " << n << std::endl;
+                        cols = n; // one column for each of the n arguments
+                        m = matrix<Type>::Zero(rows, cols);
+                        for (int i=0; i<cols; i++) {
+                            if (r[i].rows()==rows)
+                                m.col(i) = r[i].col(0);
+                            else {
+                                SetError(MP2_CBIND, "Inconsistent size in cbind function");
+                                return m;
+                            }
+                        }
+                        return m;
+                    case MP2_RBIND:
+                        cols = r[0].cols();
+                        // std::cout << "rows: " << rows << std::endl;
+                        // std::cout << "n: " << n << std::endl;
+                        rows = n; // one row for each of the n arguments
+                        m = matrix<Type>::Zero(rows, cols);
+                        for (int i=0; i<rows; i++) {
+                            if (r[i].cols()==cols)
+                                m.row(i) = r[i].row(0);
+                            else {
+                                SetError(MP2_RBIND, "Inconsistent size in rbind function");
+                                return m;
+                            }
+                        }
+                        return m;
+
                     case MP2_MATRIX: // matrix
+                    // #' The `matrix` function can be used to redefine the
+                    // #' numbers of rows and columns to use for arranging
+                    // #' the values of a matrix. It works similarly to
+                    // #' the base R \code{\link{matrix}} function in that it
+                    // #' takes the following arguments.
+                    // #'
+                    // #' * `data` -- A matrix to reshape.
+                    // #' * `nrow` -- An integer scalar giving the number of
+                    // #' rows in the output matrix.
+                    // #' * `ncol` -- An integer scalar giving the number of
+                    // #' columns in the output matrix.
+                    // #'
+                    // #' On the other hand, this function differs substantially
+                    // #' from the base R version in that it must be filled
+                    // #' by column and there is no `byrow` option.
+                    // #'
                         m = r[0];
 
                         rows = CppAD::Integer(r[1].coeff(0,0));
@@ -389,13 +480,20 @@ public:
 
                         return m2;
 
-                    case MP2_MATRIX_MULTIPLY: // %*%
-                        #ifdef MP_VERBOSE
-                            std::cout << r[0] << " %*% " << r[1] << " = " << r[0]*r[1] << std::endl << std::endl;
-                        #endif
-                        return r[0]*r[1];
+                    // #' Matrices can be transposed with the usual
+                    // #' function, \code{\link{t}}.
+                    // #'
+                    case MP2_TRANSPOSE: // t or transpose
+                        m = r[0].transpose();
+                        return m;
 
+                    // #' ## Summarizing Matrix Values
+                    // #'
                     case MP2_SUM: // sum
+                    // #' The elements of a matrix can be summed together using
+                    // #' the standard \code{\link{sum}} function.
+                    // #'
+
                         m = matrix<Type>::Zero(1,1);
                         sum = 0.0;
                         for (int i=0; i<n; i++)
@@ -406,16 +504,16 @@ public:
                             std::cout << "sum(" << r[0] << ", ..., " << r[n-1] << ") = " << m << std::endl << std::endl;
                         #endif
                         return m;
-                    case MP2_REPLICATE: // rep
-                        rows = CppAD::Integer(r[1].coeff(0,0));
-                        m = matrix<Type>::Constant(rows,1, r[0].coeff(0,0));
-                        //for (int i=0; i<rows; i++)
-                        //    m.coeffRef(i,0) = r[0].coeff(0,0);
 
-                        #ifdef MP_VERBOSE
-                            std::cout << "rep(" << r[0] << ", " << r[1] << ") = " << m << std::endl << std::endl;
-                        #endif
-                        return m;
+                    // #' The standard \code{\link{rowSums}} and
+                    // #' \code{\link{colSums}} can be used, but they have
+                    // #' slightly different behaviour from their base R
+                    // #' versions. In particular, the `rowSums` function
+                    // #' returns a column vector and the `colSums` function
+                    // #' returns a row vector. If a specific shape is required
+                    // #' then the transpose \code{\link{t}} function must be
+                    // #' explicitly used.
+                    // #'
                     case MP2_ROWSUMS: // rowSums
                         //m = matrix<Type>::Zero(r[0].rows(), 1);
                         m = r[0].rowwise().sum().matrix();
@@ -429,15 +527,52 @@ public:
                             std::cout << "colSums(" << r[0] << ") = " << m << std::endl << std::endl;
                         #endif
                         return m;
+
                     case MP2_SQUARE_BRACKET: // [
+                    // #' ## Extracting Matrix Elements
+                    // #'
+                    // #' It is possible to extract a single element from a
+                    // #' matrix using square brackets. Two
+                    // #' indices must be supplied for both the row and column
+                    // #' positions. Note that zero-based indexing is used
+                    // #' so the first element gets index, `0`, etc. It is
+                    // #' currently not possible to extract sub-matrices
+                    // #' of arbitrary dimensions, but this GitHub issue
+                    // #' will address this shortcoming when it is completed,
+                    // #' \url{https://github.com/canmod/macpan2/issues/10}.
+                    // #'
                         m = matrix<Type>::Zero(1,1);
                         rowIndex = CppAD::Integer(r[1].coeff(0,0));
                         colIndex = CppAD::Integer(r[2].coeff(0,0));
                         m.coeffRef(0,0) = r[0].coeff(rowIndex, colIndex);
                         return m;
-                    case MP2_TRANSPOSE: // t or transpose
-                        m = r[0].transpose();
-                        return m;
+
+
+                    // #' ## Accessing Past Values in the Simulation History
+                    // #'
+                    // #' For matrices with their simulation history saved,
+                    // #' it is possible to bind the rows or columns of past
+                    // #' versions of such matrices into a single matrix.
+                    // #'
+                    // #' There are four versions of this functionality.
+                    // #'
+                    // #' * `rbind_lag(x, lag)` -- Bind the rows of versions of
+                    // #' `x` that were recorded at the end of all
+                    // #' simulation iterations corresponding to time lags given
+                    // #' by integers in `lag`.
+                    // #' * `rbind_time(x, t)` -- Bind the rows of versions of
+                    // #' `x` that were recorded at the end of all
+                    // #' simulation iterations corresponding to integers in
+                    // #' `t`.
+                    // #' * `cbind_lag(x, lag)` -- Bind the columns of versions of
+                    // #' `x` that were recorded at the end of all
+                    // #' simulation iterations corresponding to time lags given
+                    // #' by integers in `lag`. (TODO -- cbind_lag is not developed yet)
+                    // #' * `cbind_time(x, t)` -- Bind the columns of versions of
+                    // #' `x` that were recorded at the end of all
+                    // #' simulation iterations corresponding to integers in
+                    // #' `t`. (TODO -- cbind_lag is not developed yet)
+                    // #'
                     case MP2_RBIND_LAG:
                         r[1] = -r[1];
                         r[1].array() += t+0.1f; // make sure round(float) correctly works
@@ -491,6 +626,15 @@ public:
                         return m; // empty matrix (if colIndex==0) or non-empty one (otherwise)
 
                     case MP2_CONVOLUTION:
+                    // #' ## Convolution
+                    // #'
+                    // #' One may take the convolution of each element in a
+                    // #' matrix, x, over simulation time using a kernel, k.
+                    // #' There are two arguments of this function.
+                    // #'
+                    // #' * `x` -- The matrix to be convolved.
+                    // #' * `k` -- A column vector giving the convolution kernel.
+                    // #'
                         matIndex = index2mats[0]; // m
                         length = r[1].rows();
                         if (length>0 && r[1].cols()==1) {
@@ -516,38 +660,8 @@ public:
                             SetError(MP2_CONVOLUTION, "Either empty or non-column vector used as kernel in convolution");
                             return m;
                         }
-                    case MP2_CBIND:
-                        rows = r[0].rows();
-                        // std::cout << "rows: " << rows << std::endl;
-                        // std::cout << "n: " << n << std::endl;
-                        cols = n; // one column for each of the n arguments
-                        m = matrix<Type>::Zero(rows, cols);
-                        for (int i=0; i<cols; i++) {
-                            if (r[i].rows()==rows)
-                                m.col(i) = r[i].col(0);
-                            else {
-                                SetError(MP2_CBIND, "Inconsistent size in cbind function");
-                                return m;
-                            }
-                        }
-                        return m;
-                    case MP2_RBIND:
-                        cols = r[0].cols();
-                        // std::cout << "rows: " << rows << std::endl;
-                        // std::cout << "n: " << n << std::endl;
-                        rows = n; // one row for each of the n arguments
-                        m = matrix<Type>::Zero(rows, cols);
-                        for (int i=0; i<rows; i++) {
-                            if (r[i].cols()==cols)
-                                m.row(i) = r[i].row(0);
-                            else {
-                                SetError(MP2_RBIND, "Inconsistent size in rbind function");
-                                return m;
-                            }
-                        }
-                        return m;
+
                     case MP2_TIME_STEP:
-                        std::cout << "here we are" << std::endl;
                         m = matrix<Type>::Zero(1,1);
                         step.coeffRef(0,0) = t;
                         //m.coeffRef(0,0) = step - r[0];
