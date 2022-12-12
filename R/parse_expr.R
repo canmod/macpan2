@@ -64,11 +64,11 @@ make_expr_parser = function(
       "only one-sided formulas can be parsed" =
         length(x) == 2L
     )
-    valid = as.list(environment(x))
+    #valid = as.list(environment(x))
     list(
       x = list(x), n = 0L, i = 0L,
-      valid_funcs = valid$valid_funcs,
-      valid_vars = valid$valid_vars
+      valid_funcs = environment(x)$valid_funcs,
+      valid_vars = environment(x)$valid_vars
       #input_expr_as_string = as.character(x)[2L]
     )
   }
@@ -118,9 +118,9 @@ make_expr_parser = function(
     not_reduced_id = which(!is_reduced)
     for (expr_id in not_reduced_id) {x = reduce_expr(x, expr_id)}
 
-    # recusively call to check if the reduction process is complete
+    # recursively call to check if the reduction process is complete
     # TODO: prove that infinite recursion is not possible
-    do.call(parser_name, list(x))
+    do.call(get(parser_name), list(x))
   }
 }
 
@@ -195,6 +195,8 @@ finalizer_index = function(x) {
   )
 }
 
+parse_expr = make_expr_parser(finalizer = finalizer_index)
+
 get_indices = function(x, vec, vec_type, expr_as_string, zero_based = FALSE) {
   if (!is.character(vec)) vec = names(vec)
   missing_items = x[!x %in% vec]
@@ -219,4 +221,43 @@ get_indices = function(x, vec, vec_type, expr_as_string, zero_based = FALSE) {
   )
   if (zero_based) return(one_based - 1L)
   return(one_based)
+}
+
+#' Formula Environment
+#'
+#' @param valid_vars Named list of variables that could be used in a
+#' formula.
+#'
+#' @export
+FormulaEnvironment = function(valid_vars) {
+  self = Base()
+  # self$parse_expr = make_expr_parser(finalizer = finalizer_index)
+  self$valid_vars = force(valid_vars)
+  self$valid_funcs = valid_funcs
+  return_object(self, "FormulaEnvironment")
+}
+
+#' Expression Formula
+#'
+#' @param expression_string String giving a model expression
+#' @param valid_vars Named list of variables that could be used in the
+#' expression.
+#'
+#' @export
+ExpressionFormula = function(expression_string, valid_vars) {
+  f = as.formula(paste("~", expression_string))
+  environment(f) = FormulaEnvironment(valid_vars)
+  f
+}
+
+#' Initial Valid Variables
+#'
+#' @param valid_var_names Character vector of variable names.
+#'
+#' @export
+initial_valid_vars = function(valid_var_names) {
+  setNames(
+    rep(list(matrix(0)), length(valid_var_names)),
+    valid_var_names
+  )
 }

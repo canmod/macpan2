@@ -10,7 +10,7 @@ correct_answer = function(){
   absvct = seq(1, 98, 2)
   ratevct = absvct/sum(absvct)
   ratemat = matrix(ratevct, 7, 7)
-  
+
   state_hist = list(as.matrix(state))
   for(i in 1:2){
     flowmat = sweep(ratemat, 1, state, "*")
@@ -140,6 +140,11 @@ random_index = list(
 
 time_steps = c(2) #2L
 
+obj_fun_args = ObjectiveFunction(~sum(state))$data_arg(
+  names(mats),
+  .existing_literals = literals
+)
+
 data_args = c(
   list(mats = unname(mats)),
   expr_index,
@@ -149,7 +154,8 @@ data_args = c(
   mats_config,
   params_index,
   random_index,
-  nlist(time_steps)
+  nlist(time_steps),
+  obj_fun_args
 )
 parameter_args = nlist(params, random)
 

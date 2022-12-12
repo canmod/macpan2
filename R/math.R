@@ -3,96 +3,96 @@
 # Create object with functions that override
 #
 
-FF = function(math_function) {
-  force(math_function)
-  `/` = function(x, y) paste(x, y, sep = " / ")
-  environment(math_function) = environment()
-  math_function
-}
-f = FF(function(x, y) x / y)
-f(1, 2)
-GG = function(math_function) {
-  self = new.env(parent = baseenv())
-  self$symbolic = FF(math_function)
-  self
-}
-g = GG(function(x, y) x / y)
-g$symbolic(1, 2)
+# FF = function(math_function) {
+#   force(math_function)
+#   `/` = function(x, y) paste(x, y, sep = " / ")
+#   environment(math_function) = environment()
+#   math_function
+# }
+# f = FF(function(x, y) x / y)
+# f(1, 2)
+# GG = function(math_function) {
+#   self = new.env(parent = baseenv())
+#   self$symbolic = FF(math_function)
+#   self
+# }
+# g = GG(function(x, y) x / y)
+# g$symbolic(1, 2)
+#
+# FF = function(math_function) {
+#   force(math_function)
+#   local({
+#     wrap = function(x) {
+#       force(x)
+#       paste("(", x, ")", sep = "")
+#     }
+#     csv = function(...) {
+#       wrap(paste0(as.character(list(...)), collapse = ", "))
+#     }
+#     is_wrapped = function(x) {
+#       force(x)
+#       x = str2lang(x)
+#       if (!is.symbol(x)) x = x[[1L]]
+#       x = as.character(x)
+#       x == "("
+#     }
+#     fwrap = function(f, x) {
+#       f = force(f)
+#       x = force(x)
+#       if (is_wrapped(x)) return(paste(f, x, sep = ""))
+#       paste(f, "(", x, ")", sep = "")
+#     }
+#     bwrap = function(x, i) {
+#       x = force(x)
+#       i = force(i)
+#       paste(x, "[", i, "]", sep = "")
+#     }
+#     binop = function(op, x, y) {
+#       force(x)
+#       force(y)
+#       force(op)
+#       wrap(paste(x, y, sep = op))
+#     }
+#
+#     ## 1. all functions in self take string (i.e. length-1 character vector)
+#     ## arguments and return strings
+#     ##
+#     ## OR
+#     ##
+#     ## 2. all functions in self take character vector arguments and return
+#     ## character vectors
+#     ##
+#     ## thinking that option #1 is best, because it is easier for me to
+#     ## think about scalars and i don't think that it should be an issue
+#     ## to package these things up into whatever vector/matrix we want
+#     `+` = function(x, y) {
+#       force(x)
+#       force(y)
+#       binop(" + ", x, y)
+#     }
+#     `-` = function(x, y) binop(" - ", x, y)
+#     `*` = function(x, y) binop(" * ", x, y)
+#     `/` = function(x, y) {
+#       force(x)
+#       force(y)
+#       binop(" / ", x, y)
+#     }
+#     `^` = function(x, y) binop(" ^ ", x, y)
+#     `(` = function(x) wrap(x)
+#     `c` = function(...) fwrap("c", csv(...))
+#     `matrix` = function(x, i, j) fwrap("matrix", csv(x, i, j))
+#     `%*%` = function(x, y) binop(" %*% ", x, y)
+#     `sum` = function(...) fwrap("sum", csv(...))
+#     `rep` = function(x, n) fwrap("rep", csv(x, n))
+#     `rowSums` = function(x) fwrap("rowSums", x)
+#     `colSums` = function(x) fwrap("colSums", x)
+#     `[` = function(x, ...) bwrap(x, csv(...))
+#     math_function
+#   })
+# }
 
-FF = function(math_function) {
-  force(math_function)
-  local({
-    wrap = function(x) {
-      force(x)
-      paste("(", x, ")", sep = "")
-    }
-    csv = function(...) {
-      wrap(paste0(as.character(list(...)), collapse = ", "))
-    }
-    is_wrapped = function(x) {
-      force(x)
-      x = str2lang(x)
-      if (!is.symbol(x)) x = x[[1L]]
-      x = as.character(x)
-      x == "("
-    }
-    fwrap = function(f, x) {
-      f = force(f)
-      x = force(x)
-      if (is_wrapped(x)) return(paste(f, x, sep = ""))
-      paste(f, "(", x, ")", sep = "")
-    }
-    bwrap = function(x, i) {
-      x = force(x)
-      i = force(i)
-      paste(x, "[", i, "]", sep = "")
-    }
-    binop = function(op, x, y) {
-      force(x)
-      force(y)
-      force(op)
-      wrap(paste(x, y, sep = op))
-    }
-
-    ## 1. all functions in self take string (i.e. length-1 character vector)
-    ## arguments and return strings
-    ##
-    ## OR
-    ##
-    ## 2. all functions in self take character vector arguments and return
-    ## character vectors
-    ##
-    ## thinking that option #1 is best, because it is easier for me to
-    ## think about scalars and i don't think that it should be an issue
-    ## to package these things up into whatever vector/matrix we want
-    `+` = function(x, y) {
-      force(x)
-      force(y)
-      binop(" + ", x, y)
-    }
-    `-` = function(x, y) binop(" - ", x, y)
-    `*` = function(x, y) binop(" * ", x, y)
-    `/` = function(x, y) {
-      force(x)
-      force(y)
-      binop(" / ", x, y)
-    }
-    `^` = function(x, y) binop(" ^ ", x, y)
-    `(` = function(x) wrap(x)
-    `c` = function(...) fwrap("c", csv(...))
-    `matrix` = function(x, i, j) fwrap("matrix", csv(x, i, j))
-    `%*%` = function(x, y) binop(" %*% ", x, y)
-    `sum` = function(...) fwrap("sum", csv(...))
-    `rep` = function(x, n) fwrap("rep", csv(x, n))
-    `rowSums` = function(x) fwrap("rowSums", x)
-    `colSums` = function(x) fwrap("colSums", x)
-    `[` = function(x, ...) bwrap(x, csv(...))
-    math_function
-  })
-}
-
-f = FF(function(x, y) x / y)
-f(1, 2)
+# f = FF(function(x, y) x / y)
+# f(1, 2)
 
 # csv(letters)
 # as.character(unlist(list(c("a", "b"), "c")))
@@ -227,7 +227,10 @@ SymbolicMath = function() {
   }
   self$`^` = function(x, y) self$binop(" ^ ", x, y)
   self$`(` = function(x) self$wrap(x)
-  self$`c` = function(...) self$fwrap("c", self$csv(...))
+  self$`c` = function(...) {
+    # browser()
+    self$fwrap("c", self$csv(...))
+  }
   self$`matrix` = function(x, i, j) self$fwrap("matrix", self$csv(x, i, j))
   self$`%*%` = function(x, y) self$binop(" %*% ", x, y)
   self$`sum` = function(...) self$fwrap("sum", self$csv(...))
@@ -252,6 +255,7 @@ MathOverrider = function(math_function, function_environment) {
   #self$evaluate = math_function
   self$math_function = math_function
   self$evaluate = function(...) {
+    # browser()
     l = list(...)
     for (i in seq_along(l)) {
       force(l[[i]])
@@ -321,6 +325,7 @@ MathExpressionFromFunc = function(math_function) {
 #' @export
 MathExpressionFromStrings = function(expression_string, argument_strings, include_dots = FALSE) {
   self = Base()
+  # browser()
   math_function = function() {}
   if (include_dots) argument_strings = c(argument_strings, "...")
   blank_args = rep(list(quote(expr = )), length(argument_strings))

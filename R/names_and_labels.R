@@ -1,0 +1,484 @@
+valid_undotted_chars = function(x) {
+  grepl("^([A-Za-z]{1}[A-Za-z0-9_]*|)$", x)
+}
+valid_dotted_chars = function(x) {
+  grepl("^([A-Za-z.]{1}[A-Za-z0-9_.]*|)$", x)
+}
+
+valid_undotted = ValidityMessager(
+  All(
+    is.character,
+    TestPipeline(Summarizer(valid_undotted_chars, all), TestTrue())
+  )
+)
+valid_dotted = ValidityMessager(
+  All(
+    is.character,
+    TestPipeline(Summarizer(valid_dotted_chars, all), TestTrue())
+  )
+)
+valid_scalar = ValidityMessager(
+  All(
+    TestPipeline(Summarizer(length), TestRange(1L, 1L)),
+    TestPipeline(Summarizer(dim, is.null), TestTrue())
+  )
+)
+valid_vector = ValidityMessager(
+  TestPipeline(Summarizer(dim, is.null), TestTrue())
+)
+valid_matrix = ValidityMessager(
+  TestPipeline(Summarizer(dim, length), TestRange(2L, 2L))
+)
+
+test_is = local({
+  a = c("Dotted", "Undotted")
+  b = c("Scalar", "Vector", "Matrix")
+  case_list = c(a, b)
+  case_pairs = expand.grid(a, b)
+  c(
+    String = Is("String"),
+    setNames(
+      lapply(case_list, function(x) All(Is("String"), Is(x))),
+      case_list
+    ),
+    setNames(
+      apply(case_pairs, 1L, function(x) All(Is("String"), Is(x[1]), Is(x[2]))),
+      apply(case_pairs, 1L, function(x) paste(x, collapse = ""))
+    ),
+    UndottedData = All(Is("StringData"), Is("Undotted")),
+    DottedData = All(Is("StringData"), Is("Dotted"))
+  )
+})
+
+#' Comparison Functions
+#'
+#' @param x \code{\link{character}} object
+#' @param y \code{\link{character}} object
+#'
+#' @name comparison
+NULL
+
+#' @export
+#' @describeIn comparison Is it true that all corresponding elements of \code{x}
+#' and \code{y} are equal, have the same shape, and have no missing values?
+all_equals = function(x, y) isTRUE(all(x == y))
+
+#' @describeIn comparison Is it true that all corresponding elements of \code{x}
+#'  and \code{y} are either equal or at least one is a blank string, have the
+#'  same shape, and have no missing values?
+#' @export
+all_consistent = function(x, y) isTRUE(all((x == y) | (x == "") | (y == "")))
+
+
+seq_row = function(x) seq_len(nrow(x))
+seq_col = function(x) seq_len(ncol(x))
+
+## TODO: ensure liskov substitution for the following pairs:
+## DottedScalar and UndottedVector
+## DottedVector and UndottedMatrix
+## DottedData and UndottedData
+##
+## note that the following need no substitution requirement:
+## UndottedScalar, DottedMatrix
+
+String = function(x) {
+  valid = ValidityMessager(is.character)
+  self = Base()
+  self$.value = valid$assert(x)
+  self$value = function() self$.value
+  return_object(self, "String")
+}
+
+#' @export
+print.String = function(x, ...) {
+  cat("String object with the following $value():\n")
+  print(x$value())
+}
+StringDotted = function(x) {
+  self = String(valid_dotted$assert(x))
+  self$dot = function() self
+  return_object(self, "Dotted")
+}
+StringUndotted = function(x) {
+  self = String(valid_undotted$assert(x))
+  self$undot = function() self
+  return_object(self, "Undotted")
+}
+StringDottedScalar = function(...) {
+  self = StringDotted(valid_scalar$assert(c(...)))
+  self$regenerate = function(value) StringDottedScalar(value)
+  self$value_combiner = function(value_list) {
+    StringDottedVector(do.call(c, value_list))
+  }
+  self$undot = function() {
+    d = read.table(text = self$value()
+      , sep = "."
+      , na.strings = character()
+      , colClasses = "character"
+    )
+    StringUndottedVector(unlist(d, use.names = FALSE))
+  }
+  self$tuple_length = function() {
+    length(self$undot()$value())
+  }
+  return_object(self, c("Scalar", "Names"))
+}
+StringUndottedScalar = function(...) {
+  self = StringUndotted(valid_scalar$assert(c(...)))
+  self$regenerate = function(value) StringUndottedScalar(value)
+  self$value_combiner = function(value_list) {
+    StringUndottedVector(do.call(c, value_list))
+  }
+  self$dot = function() {
+    warning("Undotted scalars cannot be dotted")
+    self
+  }
+  return_object(self, "Scalar")
+}
+StringDottedVector = function(...) {
+  self = StringDotted(valid_vector$assert(c(...)))
+  self$regenerate = function(value) StringDottedVector(value)
+  self$undot = function() {
+    d = read.table(text = self$value()
+      , sep = "."
+      , na.strings = character()
+      , colClasses = "character"
+    )
+    m = as.matrix(d)
+    rownames(m) = colnames(m) = NULL
+    StringUndottedMatrix(m)
+  }
+  self$which_in = function(other, f) {
+    self$undot()$which_in(other$undot())$dot()
+  }
+  self$which_dup = function() {
+    duplicated(self$value())
+  }
+  self$unique = function() {
+    self$subset(!self$which_dup())
+  }
+  self$subset = function(i) {
+    StringDottedVector(self$value()[i])
+  }
+  self$tuple_length = function() {
+    ncol(self$undot()$value())
+  }
+  return_object(self, c("Vector", "Labels"))
+}
+StringUndottedVector = function(...) {
+  self = StringUndotted(valid_vector$assert(c(...)))
+  self$regenerate = function(value) StringUndottedVector(value)
+  self$dot = function() {
+    s = paste0(as.character(self$value()), collapse = ".")
+    StringDottedScalar(s)
+  }
+  self$tuple_length = function() {
+    length(self$value())
+  }
+  return_object(self, c("Vector", "Names"))
+}
+StringDottedMatrix = function(...) {
+  self = StringDotted(valid_matrix$assert(rbind(...)))
+  self$regenerate = function(value) StringDottedMatrix(value)
+  self$undot = function() {
+    stop("not implemented, but why not?")
+  }
+  return_object(self, "Matrix")
+}
+StringUndottedMatrix = function(...) {
+  self = StringUndotted(valid_matrix$assert(rbind(...)))
+  self$regenerate = function(value) StringUndottedMatrix(value)
+  self$dot = function() {
+    paste_with_dot = function(x) paste0(x, collapse = ".")
+    v = apply(self$value(), 1L, paste_with_dot)
+    StringDottedVector(v)
+  }
+  self$which_in = function(other, comparison_function) {
+    x = self$value()
+    y = other$value()
+    z = logical(nrow(x))
+    for (i in seq_row(x)) {
+      for (j in seq_row(y)) {
+        z[i] = comparison_function(x[i,,drop = TRUE], y[j,,drop = TRUE])
+        if (z[i]) break
+      }
+    }
+    z
+  }
+  self$order_by = function(other, comparison_function) {
+    x = self$value()
+    y = other$value()
+    z = integer(nrow(y))
+    for (i in seq_row(y)) {
+      for (j in seq_row(x)) {
+        if (comparison_function(x[j,,drop = TRUE], y[i,,drop = TRUE])) {
+          if (z[i] == 0L) {
+            z[i] = j
+          } else {
+            stop("Lack of uniqueness")
+          }
+        }
+      }
+    }
+    z
+  }
+  self$which_dup = function() {
+    self$dot()$which_dup()
+  }
+  self$unique = function() {
+    self$subset(!self$which_dup())
+  }
+  self$subset = function(i) {
+    StringUndottedMatrix(self$value()[i,,drop = FALSE])
+  }
+  self$tuple_length = function() {
+    ncol(self$value())
+  }
+  return_object(self, c("Matrix", "Labels"))
+}
+
+#' @export
+c.String = function(...) {
+  l = list(...)
+  r = list()
+  for (i in seq_along(l)) {
+    r[[i]] = l[[i]]$value()
+  }
+  l[[1L]]$value_combiner()
+  l[[1L]]$regenerate(do.call(l[[1L]]$value_combiner, r))
+}
+
+StringData = function(labels, names) {
+  self = Base()
+  if (labels$tuple_length() != names$tuple_length()) {
+    stop("Labels and names refer to different partition set dimensions")
+  }
+  self$.labels = labels
+  self$.names = names
+  self$labels = function() self$.labels
+  self$names = function() self$.names
+  self$frame = function() {
+    setNames(as.data.frame(self$labels()$value()), self$names()$value())
+  }
+  self$unique = function() {
+    self$.labels = self$.labels$unique()
+    self
+  }
+  return_object(self, "StringData")
+}
+
+#' @export
+c.StringData = function(...) {
+  l = list(...)
+  r = list()
+  for (i in seq_along(l)) {
+    r[[i]] = l[[i]]$labels()$value()
+  }
+  l[[1L]]$regenerate(do.call(rbind, r))
+}
+
+StringDottedData = function(labels, names) {
+  valid_labels = ValidityMessager(test_is$DottedVector)
+  valid_names = ValidityMessager(test_is$DottedScalar)
+  self = StringData(valid_labels$assert(labels), valid_names$assert(names))
+  if (any(duplicated(self$names()$undot()$value()))) {
+    stop("String data cannot have duplicated names.")
+  }
+  self$undot = function() {
+    StringUndottedData(self$labels()$undot(), self$names()$undot())
+  }
+  self$dot = function() self
+  self$change_coordinates = function(...) {
+    names = StringDottedScalar(as.character(c(...)))$undot()$value()
+    self$undot()$change_coordinates(names)$dot()
+  }
+  self$filter = function(other, comparison_function) {
+    self$undot()$filter(other$undot(), comparison_function)$dot()
+  }
+  self$filter_other = function(other, comparison_function) {
+    self$undot()$filter_other(other$undot(), comparison_function)$dot()
+  }
+  self$regenerate = function(labels) StringDottedData(labels, self$names())
+  #self$group = function(other, comparison_function) {
+  #
+  #}
+  return_object(self, "Dotted")
+}
+StringUndottedData = function(labels, names) {
+  valid_labels = ValidityMessager(test_is$UndottedMatrix)
+  valid_names = ValidityMessager(test_is$UndottedVector)
+  self = StringData(valid_labels$assert(labels), valid_names$assert(names))
+  if (any(duplicated(self$names()$value()))) {
+    stop("String data cannot have duplicated names.")
+  }
+  self$undot = function() self
+  self$dot = function() {
+    StringDottedData(self$labels()$dot(), self$names()$dot())
+  }
+  self$change_coordinates = function(...) {
+    names = as.character(unlist(list(...), use.names = FALSE))
+    all_names = self$names()$value()
+    components_to_keep = match(names, all_names)
+    if (any(is.na(components_to_keep))) {
+      stop("Some names are not found in the string data")
+    }
+    StringUndottedData(
+      labels = StringUndottedMatrix(
+        self$labels()$value()[, components_to_keep, drop = FALSE]
+      ),
+      names = StringUndottedVector(
+        self$names()$value()[components_to_keep]
+      )
+    )
+  }
+  self$filter = function(other, comparison_function) {
+    other = other$undot()
+    coordinates = other$names()$value()
+    x = self$change_coordinates(coordinates)
+    y = other$change_coordinates(coordinates)
+    z = x$labels()$which_in(y$labels(), comparison_function)
+    StringUndottedData(
+      labels = self$labels()$subset(z),
+      names = self$names()
+    )
+  }
+  self$ordered_unique_filter = function(other, comparison_function) {
+    other = other$undot()
+    coordinates = other$names()$value()
+    x = self$change_coordinates(coordinates)
+    y = other$change_coordinates(coordinates)
+    z = x$labels()$order_by(y$labels(), comparison_function)
+    StringUndottedData(
+      labels = self$labels()$subset(z),
+      names = self$names()
+    )
+  }
+  self$filter_other = function(other, comparison_function) {
+    this = self$undot()
+    coordinates = this$names()$value()
+    x = other$change_coordinates(coordinates)
+    y = this$change_coordinates(coordinates)
+    z = x$labels()$which_in(y$labels(), comparison_function)
+    StringUndottedData(
+      labels = other$labels()$subset(z),
+      names = other$names()
+    )
+  }
+  self$filter_groups = function(other_list, comparison_function) {
+    lapply(other_list, self$filter, comparison_function)
+  }
+  self$group = function(other, comparison_function) {
+    other = other$undot()
+    lapply(other$split_rows(), self$filter, comparison_function)
+  }
+  self$split_rows = function() {
+    d = self$frame()
+    lapply(split(d, seq_row(d)), StringDataFromFrame)
+  }
+  self$regenerate = function(labels) StringUndottedData(labels, self$names())
+  return_object(self, "Undotted")
+}
+
+# StringGroup = function(data_list) {
+#   self = Base()
+#   self$.groups = data_list
+#   self$.package = function(data_list) {
+#     if (inherits(data_list[[1L]], "Undotted")) return(StringUndottedGroup)
+#     if (inherits(data_list[[1L]], "Dotted")) return(StringDottedGroup)
+#     force
+#   }
+#   self$.ungroup_labels_value = function() {
+#     output_list = list()
+#     for (i in seq_along(self$groups())) {
+#       output_list[[i]] = self$groups()[[i]]$labels()$value()
+#     }
+#     do.call(rbind, output_list)
+#   }
+#   self$groups = function() self$.groups
+#   self$apply = function(method_name, ...) {
+#     output_list = list()
+#     for (i in seq_along(self$groups())) {
+#       output_list[[i]] = get(method_name, self$groups()[[i]])(...)
+#     }
+#     StringGroup(setNames(output_list, names(self$groups())))
+#   }
+#   return_object(self, "StringGroup")
+# }
+#
+# StringUndottedGroup = function(data_list) {
+#   ## TODO: check that all groups have the same column names
+#   ## TODO: check that data format is undotted
+#   self = StringGroup(data_list)
+#   self$ungroup = function() {
+#     StringUndottedData(
+#       labels = self$.ungroup_labels_value(self$groups()),
+#       names = names(self$groups()[[1L]]$names())
+#     )
+#   }
+#   return_object(self, "Undotted")
+# }
+#
+# StringUndottedGroup = function(data_list) {
+#   ## TODO: check that all groups have the same column names
+#   ## TODO: check that data format is undotted
+#   self = StringGroup(data_list)
+#   self$ungroup = function() {
+#     StringDottedData(
+#       labels = self$.ungroup_labels_value(self$groups()),
+#       names = names(self$groups()[[1L]]$names())
+#     )
+#   }
+#   return_object(self, "Undotted")
+# }
+#
+#
+# print.StringGroup = function(x, ...) {
+#   cat("StringGroup object with the following $groups():\n")
+#   print(x$groups())
+# }
+#
+
+#' String Data
+#'
+#' Create objects for representing names and labels in a compartmental
+#' model.
+#'
+#' @name StringData
+NULL
+
+
+#' @param data Data frame with names given by column names and labels by
+#' the elements of the columns.
+#' @describeIn StringData Construct object from a data frame without any
+#' dots in either the names or the values.
+#' @export
+StringDataFromFrame = function(data) {
+  m = as.matrix(data)
+  rownames(m) = colnames(m) = NULL
+  StringUndottedData(
+    labels = StringUndottedMatrix(m),
+    names = StringUndottedVector(names(data))
+  )
+}
+
+#' @param labels Character vector with (dot-separated) partition labels.
+#' @param names Character scalar with (dot-separated) partition names.
+#' @describeIn StringData Construct object from a character scalar with
+#' (dot-separated) partition names and a character vector with (dot-separated)
+#' partition labels.
+#' @export
+StringDataFromDotted = function(labels, names) {
+  StringDottedData(
+    labels = StringDottedVector(labels),
+    names = StringDottedScalar(names)
+  )
+}
+
+#' @param x \code{StringData} object
+#' @param ... Not used but present for S3 method consistency.
+#' @describeIn StringData Print out a `StringData` object.
+#' @export
+print.StringData = function(x, ...) {
+  cat("String data object with the following $frame():\n")
+  print(x$frame())
+}

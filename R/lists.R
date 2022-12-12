@@ -15,6 +15,18 @@ nlist = function(...) {
     setNames(L, nm)
 }
 
+#' Self-Named List
+#'
+#' Construct a list of strings with names given by those same strings.
+#'
+#' @param ... Character vectors
+#'
+#' @export
+self_named_list = function(...) {
+  x = as.character(c(...))
+  setNames(as.list(x), x)
+}
+
 #' Index a Named List of Character Vectors
 #'
 #' @param x Named list of character vectors

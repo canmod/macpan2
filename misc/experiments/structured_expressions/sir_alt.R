@@ -179,16 +179,23 @@ random_index = list(
 
 time_steps = c(2) #2L
 
+
+
+obj_fun_args = ObjectiveFunction(~S + I + R)$data_arg(
+  names(mats),
+  .existing_literals = literals
+)
+
 data_args = c(
   list(mats = unname(mats)),
   expr_index,
   nlist(eval_schedule),
   parse_table,
-  nlist(literals),
   mats_config,
   params_index,
   random_index,
-  nlist(time_steps)
+  nlist(time_steps),
+  obj_fun_args
 )
 parameter_args = nlist(params, random)
 

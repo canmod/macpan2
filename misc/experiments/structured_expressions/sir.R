@@ -1,3 +1,7 @@
+
+
+
+
 library(macpan2)
 library(TMB)
 
@@ -96,6 +100,7 @@ literals_list = c(literals_list, list(flowmat$valid_literals))
 state_update_expr = ~ state - rowSums(flowmat) + t(colSums(flowmat))
 state_update = parse_expr(state_update_expr)
 literals_list = c(literals_list, list(state_update$valid_literals))
+
 
 literal_offsets = c(0, cumsum(vapply(literals_list, length, integer(1L)))[-length(literals_list)])
 literals = unlist(literals_list)
@@ -196,16 +201,21 @@ random_index = list(
 
 time_steps = c(2) #2L
 
+obj_fun_args = ObjectiveFunction(~sum(state))$data_arg(
+  names(mats),
+  .existing_literals = literals
+)
+
 data_args = c(
   list(mats = unname(mats)),
   expr_index,
   nlist(eval_schedule),
   parse_table,
-  nlist(literals),
   mats_config,
   params_index,
   random_index,
-  nlist(time_steps)
+  nlist(time_steps),
+  obj_fun_args
 )
 parameter_args = nlist(params, random)
 
