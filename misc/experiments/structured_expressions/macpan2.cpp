@@ -244,7 +244,33 @@ public:
 
                 if (GetErrorCode()) return m; // early return
 
+                // #' Engine Functions
+                // #'
+                // #' Functions currently supported by the C++ TMB engine
+                // #' for constructing expressions for defining model
+                // #' simulations.
+                // #'
+
                 switch(table_x[row]+1) {
+                    // #' ## Elementwise Binary Operators
+                    // #'
+                    // #' Elementwise binary operators take two matrix-valued
+                    // #' arguments and apply a binary operator (e.g. `+`, `*`)
+                    // #' to each set of corresponding elements, and return the
+                    // #' corresponding matrix-valued output containing the
+                    // #' resulting elements. What does 'corresponding' mean? If
+                    // #' the two matrix-valued arguments have the same shape
+                    // #' (same number of rows and columns), then two elements
+                    // #' correspond if they occur in the same row and column
+                    // #' position in the two matrices. If the two matrices are
+                    // #' not of the same shape but there is either one row or
+                    // #' one column in either matrix, then the singleton rows
+                    // #' and then columns are repeated sufficiently many times
+                    // #' so that they match the shape of the other matrix. If
+                    // #' after repeating singleton rows and columns the
+                    // #' matrices are still of different shape, then an error
+                    // #' is thrown. Currently the following elementwise binary
+                    // #' operators are available: `+`, `-`, `*`, `/`, `^`.
                     case MP2_ADD: // +
                         #ifdef MP_VERBOSE
                             std::cout << r[0] << " + " << r[1] << " = " << r[0]+r[1] << std::endl << std::endl;
@@ -276,7 +302,16 @@ public:
                         #endif
                         return pow(r[0].array(), r[1].array()).matrix();
                         //return r[0].pow(r[1].coeff(0,0));
+
+
+                    // #' ## Integer Sequences
+                    // #'
                     case MP2_COLON: // :
+                    // #' The colon operator works much like the base R version
+                    // #' \code{\link{:}}. It takes two scalar-valued integers
+                    // #' and returns a column vector with all integers between
+                    // #' the two inputs.
+                    // #'
                         int from, to;
                         from = CppAD::Integer(r[0].coeff(0,0));
                         to = CppAD::Integer(r[1].coeff(0,0));
@@ -291,7 +326,12 @@ public:
                             std::cout << from << ":" << to << " = " << m << std::endl << std::endl;
                         #endif
                         return m;
+
                     case MP2_SEQUENCE: // seq
+                    // #' The `seq` function works like the base R default
+                    // #' \code{\link{seq}} function, but only allows the
+                    // #' `from`, `to`, and `by` arguments. These arguments
+                    // #' must all be scalars.
                         int length, by;
                         from = CppAD::Integer(r[0].coeff(0,0));
                         length = CppAD::Integer(r[1].coeff(0,0));
@@ -309,7 +349,19 @@ public:
                         #endif
                         return m;
                     case MP2_ROUND_BRACKET: // (
+                    // #' ## Parenthesis
+                    // #'
+                    // #' The order of operations can be enforced in the usual
+                    // #' way with round parentheses, \code{\link{(}}.
+                    // #'
                         return r[0];
+
+                    // #' ## Combining Elements
+                    //
+                    // #' TODO -- Before continuing with the roxygen
+                    // #' we need to group together related functions better.
+                    // #' For example we should have rbind and cbind up here
+                    // #' in this section.
                     case MP2_COMBINE: // c
                         m = matrix<Type>::Zero(n,1);
                         for (int i=0; i<n; i++)
@@ -395,7 +447,7 @@ public:
                             SetError(MP2_RBIND_TIME, "Cannot rbind_time (or rbind_lag) a matrix with no history");
                             return m;
                         }
- 
+
                         int rbind_length;
                         rbind_length = 0; // count of legitimate time steps to select
                         for (int i=0; i<r[1].size(); i++) {
@@ -532,9 +584,9 @@ void UpdateSimulationHistory(
     const ListOfMatrices<Type>& mats,
     const vector<int>& mats_save_hist
 ) {
-    ListOfMatrices<Type> ms(mats); 
-    for (int i=0; i<mats_save_hist.size(); i++) 
-        if (mats_save_hist[i]==0) 
+    ListOfMatrices<Type> ms(mats);
+    for (int i=0; i<mats_save_hist.size(); i++)
+        if (mats_save_hist[i]==0)
             ms.m_matrices[i] = matrix<Type>::Zero(1,1);
 
     hist[t] = ms;
