@@ -31,7 +31,8 @@ to pass to C++.
 }
 }
 \description{
-Define a compartmental model in TMB.
+Define a compartmental model in TMB. This model uses the spec
+\url{https://canmod.net/misc/cpp_side}.
 }
 \examples{
 sir = TMBModel(

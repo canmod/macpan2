@@ -329,7 +329,8 @@ Time = function(time_steps) {
 
 #' TMB Model
 #'
-#' Define a compartmental model in TMB.
+#' Define a compartmental model in TMB. This model uses the spec
+#' \url{https://canmod.net/misc/cpp_side}.
 #'
 #' @param init_mats An object of class \code{\link{MatsList}}.
 #' @param expr_list An object of class \code{\link{ExprList}}.
