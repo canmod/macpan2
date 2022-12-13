@@ -430,17 +430,13 @@ public:
                     // #'
                     case MP2_CBIND:
                         rows = r[0].rows();
-                        int cols_per_arg;
                         // std::cout << "rows: " << rows << std::endl;
                         // std::cout << "n: " << n << std::endl;
                         cols = n; // one column for each of the n arguments
                         m = matrix<Type>::Zero(rows, cols);
                         for (int i=0; i<cols; i++) {
                             if (r[i].rows()==rows)
-                                cols_per_arg = r[i].cols()
-                                for (int j=0; j<cols_per_arg; j++) {
-                                    m.col(i) = r[i].col(j);
-                                }
+                                m.col(i) = r[i].col(0);
                             else {
                                 SetError(MP2_CBIND, "Inconsistent size in cbind function");
                                 return m;
