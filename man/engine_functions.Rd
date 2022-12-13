@@ -37,10 +37,16 @@ The colon operator works much like the base R version
 and returns a column vector with all integers between
 the two inputs.
 
-The \code{seq} function works like the base R default
-\code{\link{seq}} function, but only allows the
-\code{from}, \code{to}, and \code{by} arguments. These arguments
-must all be scalars.
+The \code{seq} function is similar to the base R default
+\code{\link{seq}} function. It takes the following
+scalar-valued integer arguments, and returns a
+column vector.
+\itemize{
+\item \code{from} -- First integer of the output column vector.
+\item \code{length} -- Length of the output column vector.
+\item \code{by} -- Difference between subsequent elements in
+the output column vector.
+}
 
 The \code{\link{rep}} function can be used to repeat
 the elements of a scalar \code{n} times. The following
@@ -134,8 +140,8 @@ will address this shortcoming when it is completed,
 \subsection{Accessing Past Values in the Simulation History}{
 
 For matrices with their simulation history saved,
-it is possible to bind the rows or columns of all of
-the versions of such matrices into a single matrix.
+it is possible to bind the rows or columns of past
+versions of such matrices into a single matrix.
 
 There are four versions of this functionality.
 \itemize{
@@ -166,6 +172,16 @@ There are two arguments of this function.
 \itemize{
 \item \code{x} -- The matrix to be convolved.
 \item \code{k} -- A column vector giving the convolution kernel.
+}
+}
+
+\subsection{Probability Densities}{
+
+All probability densities have the same first two
+arguments.
+\itemize{
+\item \code{observed}
+\item \code{simulated}
 }
 }
 }

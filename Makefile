@@ -3,19 +3,39 @@ SED_RE = \(\,\)*[ ]*\/\/[ ]*\(.*\)
 ROXY_RE = ^.*\(\#'.*\)$
 VERSION := $(shell sed -n '/^Version: /s///p' DESCRIPTION)
 
+all:
+	make src-update
+	make enum-update
+	make engine-doc-update
+	make doc-update
+	make pkg-build
+	make pkg-install
+	make pkg-check
 
-all: R/enum.R R/engine_functions.R doc-update pkg-build pkg-install
+
+# Avoid package checks
+cpp-dev-update:
+	make src-update
+	make enum-update
+	make quick-install
 
 
-R/enum.R: misc/experiments/structured_expressions/macpan2.cpp
+src-update:: src/macpan2.cpp
+src/macpan2.cpp: misc/dev/dev.cpp
+	echo "// Auto-generated - do not edit by hand" > $@
+	echo "" >> $@
+	cat $^ >> $@
+
+enum-update:: R/enum.R
+R/enum.R: src/macpan2.cpp
 	echo "## Auto-generated - do not edit by hand" > $@
 	echo "valid_funcs = c(" >> $@
 	grep "$(ENUM_RE)" $^ | sed 's/$(ENUM_RE)$(SED_RE)/  \"\2\"\1/' >> $@
 	echo ")" >> $@
 	echo "valid_funcs = setNames(as.list(valid_funcs), valid_funcs)" >> $@
 
-
-R/engine_functions.R: misc/experiments/structured_expressions/macpan2.cpp
+engine-doc-update:: R/engine_functions.R
+R/engine_functions.R: src/macpan2.cpp
 	echo "## Auto-generated - do not edit by hand" > $@
 	echo "" >> $@
 	grep "$(ROXY_RE)" $^ | sed "s/$(ROXY_RE)/\1/" >> $@
@@ -26,11 +46,15 @@ R/engine_functions.R: misc/experiments/structured_expressions/macpan2.cpp
 doc-update: R/*.R
 	echo "suppressWarnings(roxygen2::roxygenize(\".\",roclets = c(\"collate\", \"rd\", \"namespace\")))" | R --slave
 
-pkg-build:
+pkg-build:: macpan2_$(VERSION).tar.gz
+macpan2_$(VERSION).tar.gz: R/*.R src/*.cpp
 	R CMD build .
 
-pkg-check:
+pkg-check: macpan2_$(VERSION).tar.gz
 	R CMD check macpan2_$(VERSION).tar.gz
 
-pkg-install:
+pkg-install: macpan2_$(VERSION).tar.gz
 	R CMD INSTALL macpan2_$(VERSION).tar.gz
+
+quick-install: enum-update $(PACKAGE)/src/glmmTMB.so
+	$(R) CMD INSTALL $(PACKAGE)

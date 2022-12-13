@@ -32,10 +32,15 @@
 #' and returns a column vector with all integers between
 #' the two inputs.
 #'
-#' The `seq` function works like the base R default
-#' \code{\link{seq}} function, but only allows the
-#' `from`, `to`, and `by` arguments. These arguments
-#' must all be scalars.
+#' The `seq` function is similar to the base R default
+#' \code{\link{seq}} function. It takes the following
+#' scalar-valued integer arguments, and returns a
+#' column vector.
+#'
+#' * `from` -- First integer of the output column vector.
+#' * `length` -- Length of the output column vector.
+#' * `by` -- Difference between subsequent elements in
+#' the output column vector.
 #'
 #' The \code{\link{rep}} function can be used to repeat
 #' the elements of a scalar `n` times. The following
@@ -120,8 +125,8 @@
 #' ## Accessing Past Values in the Simulation History
 #'
 #' For matrices with their simulation history saved,
-#' it is possible to bind the rows or columns of all of
-#' the versions of such matrices into a single matrix.
+#' it is possible to bind the rows or columns of past
+#' versions of such matrices into a single matrix.
 #'
 #' There are four versions of this functionality.
 #'
@@ -151,5 +156,12 @@
 #' * `x` -- The matrix to be convolved.
 #' * `k` -- A column vector giving the convolution kernel.
 #'
+#' ## Probability Densities
+#'
+#' All probability densities have the same first two
+#' arguments.
+#'
+#' * `observed`
+#' * `simulated`
 #' @name engine_functions
 NULL

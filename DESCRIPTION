@@ -5,8 +5,11 @@ Authors@R: c(
   person("Steve","Walker",email="swalk@mcmaster.ca",role=c("aut","cre")),
   person("Weiguang Guan", rol="ctb"),
   person("Darren Flynn-Primrose", rol="aut"))
-Description: What the package does (one paragraph).
+Description: Fast and flexible compartmental modelling with template model builder.
 License: GPL-3
+Depends:
+    TMB, 
+    RcppEigen
 Imports: 
     memoise,
     oor,
@@ -15,6 +18,9 @@ Suggests:
     knitr,
     rmarkdown,
     testthat (>= 3.0.0)
+LinkingTo:
+    TMB,
+    RcppEigen
 VignetteBuilder: 
     knitr
 Additional_repositories: https://canmod.github.io/drat

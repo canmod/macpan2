@@ -389,6 +389,8 @@ Time = function(time_steps) {
 #' sir$data_arg()
 #' sir$param_arg()
 #'
+#' @useDynLib macpan2
+#' @importFrom TMB MakeADFun
 #' @export
 TMBModel = function(init_mats, expr_list, params, random, obj_fn, time_steps) {
   self = Base()
@@ -425,6 +427,14 @@ TMBModel = function(init_mats, expr_list, params, random, obj_fn, time_steps) {
       return(NULL)
     }
     return("random")
+  }
+  self$make_ad_fun = function(DLL = "macpan2") {
+    try(TMB::MakeADFun(
+      data = self$data_arg(),
+      parameters = self$param_arg(),
+      random = self$random_arg(),
+      DLL = DLL
+    ))
   }
   return_object(self, "TMBModel")
 }

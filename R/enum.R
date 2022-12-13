@@ -24,6 +24,7 @@ valid_funcs = c(
   "convolution",
   "cbind",
   "rbind",
-  "time_step"
+  "time_step",
+  "dpois"
 )
 valid_funcs = setNames(as.list(valid_funcs), valid_funcs)
