@@ -35,7 +35,7 @@ cpp-dev-install:
 
 
 quick-install: enum-update
-	R CMD INSTALL .
+	R CMD INSTALL . --no-multiarch
 
 
 enum-update:: R/enum.R
