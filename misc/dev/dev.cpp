@@ -430,13 +430,17 @@ public:
                     // #'
                     case MP2_CBIND:
                         rows = r[0].rows();
+                        int cols_per_arg;
                         // std::cout << "rows: " << rows << std::endl;
                         // std::cout << "n: " << n << std::endl;
                         cols = n; // one column for each of the n arguments
                         m = matrix<Type>::Zero(rows, cols);
                         for (int i=0; i<cols; i++) {
                             if (r[i].rows()==rows)
-                                m.col(i) = r[i].col(0);
+                                cols_per_arg = r[i].cols()
+                                for (int j=0; j<cols_per_arg; j++) {
+                                    m.col(i) = r[i].col(j);
+                                }
                             else {
                                 SetError(MP2_CBIND, "Inconsistent size in cbind function");
                                 return m;
@@ -826,7 +830,6 @@ Type objective_function<Type>::operator() ()
     // Expressions
     DATA_IVECTOR(eval_schedule)
 
-    //DATA_IVECTOR(expr_output_count); // to remove
     DATA_IVECTOR(expr_output_id);
     DATA_IVECTOR(expr_sim_block);
     DATA_IVECTOR(expr_num_p_table_rows);
