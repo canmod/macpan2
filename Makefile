@@ -56,5 +56,5 @@ pkg-check: macpan2_$(VERSION).tar.gz
 pkg-install: macpan2_$(VERSION).tar.gz
 	R CMD INSTALL macpan2_$(VERSION).tar.gz
 
-quick-install: enum-update $(PACKAGE)/src/glmmTMB.so
-	$(R) CMD INSTALL $(PACKAGE)
+quick-install: enum-update src/macpan2.so
+	$(R) CMD INSTALL .
