@@ -545,6 +545,9 @@ public:
                         return m;
 
                     case MP2_SQUARE_BRACKET: // [
+                        #ifdef MP_VERBOSE
+                            std::cout << "square bracket" << std::endl << std::endl;
+                        #endif
 
                     // #' ## Extracting Matrix Elements
                     // #'
@@ -568,8 +571,8 @@ public:
                         // have a block function on the R side when speed
                         // matters?
                         // Can we vectorize CppAD::Integer casting??
-                        for (i=0; i<nrow; i++) {
-                            for (j=0; j<ncol; j++) {
+                        for (int i=0; i<nrow; i++) {
+                            for (int j=0; j<ncol; j++) {
                                 rowIndex = CppAD::Integer(r[1].coeff(i,0));
                                 colIndex = CppAD::Integer(r[2].coeff(j,0));
                                 m.coeffRef(i,j) = r[0].coeff(rowIndex, colIndex);
@@ -840,6 +843,8 @@ Type objective_function<Type>::operator() ()
     DATA_IVECTOR(o_table_n);
     DATA_IVECTOR(o_table_x);
     DATA_IVECTOR(o_table_i);
+
+    // DATA_STRUCT(settings, settings_struct);
 
     #ifdef MP_VERBOSE
     std::cout << "params = " << params << std::endl;
