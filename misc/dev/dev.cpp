@@ -429,36 +429,63 @@ public:
                     // #' \code{\link{rbind}} functions respectively
                     // #'
                     case MP2_CBIND:
+                    {
                         rows = r[0].rows();
                         // std::cout << "rows: " << rows << std::endl;
                         // std::cout << "n: " << n << std::endl;
-                        cols = n; // one column for each of the n arguments
-                        m = matrix<Type>::Zero(rows, cols);
-                        for (int i=0; i<cols; i++) {
-                            if (r[i].rows()==rows)
-                                m.col(i) = r[i].col(0);
+                        int cols_per_arg;
+                        int totcols, colmarker;
+                        totcols = 0;
+                        colmarker = 0;
+                        for (int j=0; j<n; j++){
+                            totcols += r[j].cols();
+                        }
+                        m = matrix<Type>::Zero(rows, totcols);
+                        for (int i=0; i<n; i++) {
+                            if (r[i].rows()==rows){
+                                cols_per_arg = r[i].cols();
+                                for (int k=0; k<cols_per_arg; k++){
+                                    m.col(colmarker+k) = r[i].col(k);
+                                }
+                                colmarker += cols_per_arg;
+                            }
                             else {
                                 SetError(MP2_CBIND, "Inconsistent size in cbind function");
                                 return m;
                             }
                         }
+                    }
+                        //m = matrix<Type>::Zero(rows, 1);
                         return m;
                     case MP2_RBIND:
+                    {
                         cols = r[0].cols();
-                        // std::cout << "rows: " << rows << std::endl;
+                        // std::cout << "cols: " << cols << std::endl;
                         // std::cout << "n: " << n << std::endl;
-                        rows = n; // one row for each of the n arguments
-                        m = matrix<Type>::Zero(rows, cols);
-                        for (int i=0; i<rows; i++) {
-                            if (r[i].cols()==cols)
-                                m.row(i) = r[i].row(0);
+                        int rows_per_arg;
+                        int totrows, rowmarker;
+                        totrows = 0;
+                        rowmarker = 0;
+                        for (int j=0; j<n; j++){
+                            totrows += r[j].rows();
+                        }
+                        m = matrix<Type>::Zero(totrows, cols);
+                        for (int i=0; i<n; i++) {
+                            if (r[i].cols()==cols){
+                                rows_per_arg = r[i].rows();
+                                for (int k=0; k<rows_per_arg; k++){
+                                    m.row(rowmarker+k) = r[i].row(k);
+                                }
+                                rowmarker += rows_per_arg;
+                            }
                             else {
                                 SetError(MP2_RBIND, "Inconsistent size in rbind function");
                                 return m;
                             }
                         }
+                    }
+                        //m = matrix<Type>::Zero(1, cols);
                         return m;
-
                     case MP2_MATRIX: // matrix
 
                     // #' The `matrix` function can be used to redefine the
