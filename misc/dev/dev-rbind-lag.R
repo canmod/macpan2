@@ -4,64 +4,64 @@ library(TMB)
 compile('dev.cpp')
 dyn.load(dynlib("dev"))
 
-r = "y"
-correct_answer = function(x, return_mat = "y") {
-  x = list(x)
-  y = list(as.matrix(0))
-
-  for (i in 2:16) {
-    x[[i]] = 1.3 * x[[i - 1]] - 0.2
-    y[[i]] = as.matrix(unlist(x[pmax(2, i - 5):i], recursive = FALSE))
+correct_answer = function() {
+  x = 1
+  mat = 0
+  time = 0
+  value = x
+  for (t in 1:3) {
+    x = x / 2
+    mat = c(mat, 0)
+    time = c(time, t)
+    value = c(value, x)
+    if (t - 2L >= 0L) {
+      y = value[mat == 0 & time == t - 2L]
+      mat = c(mat, 1)
+      time = c(time, t)
+      value = c(value, y)
+    }
   }
-  x[[17]] = x[[16]]
-  y[[17]] = y[[16]]
-  x = lapply(x, as.matrix)
-  nlist(x, y)[[return_mat]]
+  mat = c(mat, 0, 1)
+  time = c(time, 4, 4)
+  value = c(value, x, y)
+  dplyr::arrange(as.data.frame(nlist(mat, time, row = 0, col = 0, value)), mat, time)
 }
 
 m = TMBModel(
   MatsList(
     x = 1,
-    y = 0,
+    y = empty_matrix,
     z = 1,
     .mats_to_save = c("x", "y", "z"),
-    .mats_to_return = r
+    .mats_to_return = c("x", "y")
   ),
   ExprList(
     during = list(
-      x ~ 1.3 * x - 0.2,
-      y ~ rbind_lag(x, 0:5)
+      x ~ x / 2,
+      y ~ rbind_lag(x, 2, 0)
     )
-    # after = list(
-    #   y ~ rbind_time(x, 1:15)
-    # )
   ),
-  OptParamsList(0.9, par_id = 0L, mat = "x", row_id = 0L, col_id = 0L),
+  OptParamsList(1, par_id = 0L, mat = "x", row_id = 0L, col_id = 0L),
   OptParamsList(),
   ObjectiveFunction(~x),
-  Time(15)
+  Time(3)
 )
 m$data_arg()
 m$param_arg()
 f = m$make_ad_fun("dev")
 
-correct = correct_answer(0.9, r)
-correct_hist = data.frame(
-  mat = which(c("x", "y") == r) - 1L,
-  time = rep(seq_along(correct), times = vapply(correct, length, integer(1L))) - 1L,
-  row = unlist(lapply(correct, row)) - 1L,
-  col = unlist(lapply(correct, col)) - 1L,
-  value = unlist(lapply(correct, c))
-)
+correct_hist = correct_answer()
 actual_hist = setNames(
   as.data.frame(f$report()$table_to_return),
   names(correct_hist)
 )
 
 print("actual")
-print(head(actual_hist, 1000))
+print(actual_hist)
 print("correct")
-print(head(correct_hist, 1000))
+print(correct_hist)
+#print(head(actual_hist, 1000))
+#print(head(correct_hist, 1000))
 
 # print(cbind(
 #   macpan2:::ExprListUtils()$.set_name_prefix(actual_hist, "actual_"),
