@@ -276,6 +276,10 @@ initial_valid_vars = function(valid_var_names) {
 #' @param expr_list List of one-sided formulas.
 #' @param valid_vars Named list of numerical matrices that can
 #' be referred to in the formulas.
+#' @param valid_literals An optional existing numeric vector of valid literals
+#' from a related expression list.
+#' @param offset The zero-based row index for the first row of the table.
+#' This is useful when combining tables.
 #'
 #' @export
 parse_expr_list = function(expr_list

@@ -62,7 +62,7 @@ doc-update: R/*.R
 
 
 pkg-build:: macpan2_$(VERSION).tar.gz
-macpan2_$(VERSION).tar.gz: R/*.R src/*.cpp
+macpan2_$(VERSION).tar.gz: R/*.R src/*.cpp tests/testthat/test-*.R tests/testthat.R
 	R CMD build .
 
 

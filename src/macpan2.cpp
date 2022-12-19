@@ -1134,7 +1134,6 @@ Type objective_function<Type>::operator() ()
     //   either the post-simulation matrices or the entire simulation history of matrices
     vector<matrix<Type> > mats_returned(mats_return.sum());
 
-    //matrix<Type> hist;
     int r = 0;
     for (int i=0; i<mats_return.size(); i++) {
         if (mats_return[i]==1) {
@@ -1146,7 +1145,6 @@ Type objective_function<Type>::operator() ()
                 int nRows = mats.m_matrices[i].rows();
                 int nCols = mats.m_matrices[i].cols();
                 matrix<Type> hist(nRows, hist_len*nCols);
-                //hist = matrix<Type>::Zero(nRows, hist_len*nCols);
                 #ifdef MP_VERBOSE
                   std::cout << "reporting mats[" << i << "] of shape " << nRows << ", " << nCols << std::endl;
                 #endif
