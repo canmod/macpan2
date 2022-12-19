@@ -1,13 +1,3 @@
-label_requirements = function(x) {
-  all(grepl("^[a-zA-Z]{1}[a-zA-Z0-9_]*$", x, perl = TRUE) | (x == ""), na.rm = FALSE)
-}
-
-validity_message = paste(
-  "Valid model variables have the following characteristics:",
-  "    They are data frames",
-  "    ",
-  sep = "\n"
-)
 
 # ValidityMessager(
 #   All(

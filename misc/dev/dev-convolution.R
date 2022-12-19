@@ -27,15 +27,27 @@ m = TMBModel(
     .mats_to_save = c("x", "z"),
     .mats_to_return = c("x", "z")
   ),
-  ExprList(during = list(
-    x ~ 1 + x/2,
-    z ~ convolution(x, y)
-  )),
-  OptParamsList(0.1, par_id = 0, mat = "x", row_id = 0, col_id = 0),
-  OptParamsList(),
-  ObjectiveFunction(~z),
+  ExprList(
+    before = list(),
+    during = list(
+      x ~ 1 + x/2,
+      z ~ convolution(x, y)
+    ),
+    after = list(),
+    .simulate_exprs = character(0L)
+  ),
+  params = OptParamsList(0.1
+    , par_id = 0L
+    , mat = "x"
+    , row_id = 0L
+    , col_id = 0L
+  ),
+  random = OptParamsList(),
+  ObjectiveFunction(~0),
   Time(15)
 )
+as.data.frame(m$data_arg()[c("p_table_x", "p_table_n", "p_table_i")])
+
 f = m$make_ad_fun("dev")
 
 data.frame(

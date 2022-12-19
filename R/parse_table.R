@@ -4,20 +4,30 @@ TMBExpressions = function(parse_tables, valid_vars, literals_list) {
   self$parse_tables = lapply(parse_tables, getElement, "parse_table")
   self$valid_vars = valid_vars
   self$literals_list = literals_list
-  self$literal_offsets = c(0, cumsum(vapply(self$literals_list, length, integer(1L)))[-length(self$literals_list)])
+  self$literal_offsets = c(0L, cumsum(vapply(self$literals_list, length, integer(1L)))[-length(self$literals_list)])
   self$parse_table_offsets = c(
-    0,
+    0L,
     cumsum(
-      lapply(
+      vapply(
         self$parse_tables[-length(self$parse_tables)],
-        nrow
+        nrow,
+        integer(1L)
       )
     )
   )
-  self$parse_table = setNames(
-    as.list(do.call(rbind, self$parse_tables)),
-    c("p_table_x", "p_table_n", "p_table_i")
-  )
+  unnamed_parse_table = as.list(do.call(rbind, self$parse_tables))
+  if (length(unnamed_parse_table) == 0L) {
+    self$parse_table = list(
+      p_table_x = integer(0L),
+      p_table_n = integer(0L),
+      p_table_i = integer(0L)
+    )
+  } else {
+    self$parse_table = setNames(
+      unnamed_parse_table,
+      c("p_table_x", "p_table_n", "p_table_i")
+    )
+  }
   self$parse_table$p_table_i = unlist(mapply(
     function(ii, y) {
       ii[ii != -1L] = ii[ii != -1L] + y

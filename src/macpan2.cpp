@@ -153,7 +153,7 @@ public:
     )
     {
         matrix<Type> m, m2, step, sim;
-        Type sum, s, eps;
+        Type sum, s;
         int rows, cols, rowIndex, colIndex, matIndex;
 
         if (GetErrorCode()) return m; // Check if error has already happened at some point of the recursive call.
@@ -431,36 +431,63 @@ public:
                     // #' \code{\link{rbind}} functions respectively
                     // #'
                     case MP2_CBIND:
+                    {
                         rows = r[0].rows();
                         // std::cout << "rows: " << rows << std::endl;
                         // std::cout << "n: " << n << std::endl;
-                        cols = n; // one column for each of the n arguments
-                        m = matrix<Type>::Zero(rows, cols);
-                        for (int i=0; i<cols; i++) {
-                            if (r[i].rows()==rows)
-                                m.col(i) = r[i].col(0);
+                        int cols_per_arg;
+                        int totcols, colmarker;
+                        totcols = 0;
+                        colmarker = 0;
+                        for (int j=0; j<n; j++){
+                            totcols += r[j].cols();
+                        }
+                        m = matrix<Type>::Zero(rows, totcols);
+                        for (int i=0; i<n; i++) {
+                            if (r[i].rows()==rows){
+                                cols_per_arg = r[i].cols();
+                                for (int k=0; k<cols_per_arg; k++){
+                                    m.col(colmarker+k) = r[i].col(k);
+                                }
+                                colmarker += cols_per_arg;
+                            }
                             else {
                                 SetError(MP2_CBIND, "Inconsistent size in cbind function");
                                 return m;
                             }
                         }
+                    }
+                        //m = matrix<Type>::Zero(rows, 1);
                         return m;
                     case MP2_RBIND:
+                    {
                         cols = r[0].cols();
-                        // std::cout << "rows: " << rows << std::endl;
+                        // std::cout << "cols: " << cols << std::endl;
                         // std::cout << "n: " << n << std::endl;
-                        rows = n; // one row for each of the n arguments
-                        m = matrix<Type>::Zero(rows, cols);
-                        for (int i=0; i<rows; i++) {
-                            if (r[i].cols()==cols)
-                                m.row(i) = r[i].row(0);
+                        int rows_per_arg;
+                        int totrows, rowmarker;
+                        totrows = 0;
+                        rowmarker = 0;
+                        for (int j=0; j<n; j++){
+                            totrows += r[j].rows();
+                        }
+                        m = matrix<Type>::Zero(totrows, cols);
+                        for (int i=0; i<n; i++) {
+                            if (r[i].cols()==cols){
+                                rows_per_arg = r[i].rows();
+                                for (int k=0; k<rows_per_arg; k++){
+                                    m.row(rowmarker+k) = r[i].row(k);
+                                }
+                                rowmarker += rows_per_arg;
+                            }
                             else {
                                 SetError(MP2_RBIND, "Inconsistent size in rbind function");
                                 return m;
                             }
                         }
+                    }
+                        //m = matrix<Type>::Zero(1, cols);
                         return m;
-
                     case MP2_MATRIX: // matrix
 
                     // #' The `matrix` function can be used to redefine the
@@ -726,19 +753,22 @@ public:
                     // #' * `observed`
                     // #' * `simulated`
                     case MP2_POISSON_DENSITY:
-                        eps = 1e-12;
-                        rows = r[1].rows(); // one row for each of the n arguments
-                        cols = r[1].cols();
-                        sim = matrix<Type>::Zero(rows, cols);
+                        //eps = 1e-12;
+                        rows = r[0].rows();
+                        cols = r[0].cols();
+                        //sim = matrix<Type>::Zero(rows, cols);
                         m = matrix<Type>::Zero(rows, cols);
+                        //for (int i=0; i<rows; i++) {
+                        //    for (int j=0; j<cols; j++) {
+                        //        sim.coeffRef(i,j) = r[1].coeff(i,j) + eps * (1.0 / (1.0-(r[1].coeff(i,j)-eps)/eps + ((r[1].coeff(i,j)-eps)*(r[1].coeff(i,j)-eps))/(eps*eps)));
+                        //    }
+                        //}
                         for (int i=0; i<rows; i++) {
                             for (int j=0; j<cols; j++) {
-                                sim.coeffRef(i,j) = r[1].coeff(i,j) + eps * (1.0 / (1.0-(r[1].coeff(i,j)-eps)/eps + ((r[1].coeff(i,j)-eps)*(r[1].coeff(i,j)-eps))/(eps*eps)));
-                            }
-                        }
-                        for (int i=0; i<rows; i++) {
-                            for (int j=0; j<cols; j++) {
-                                m.coeffRef(i,j) = dpois(r[0].coeff(i,j), sim.coeff(i,j), 1);
+                                #ifdef MP_VERBOSE
+                                    std::cout << "i = " << i << "j = " << j << "obs = " << r[0].coeff(i,j) << "sim = " << r[1].coeff(i,j) << std::endl << std::endl;
+                                #endif
+                                m.coeffRef(i,j) = dpois(r[0].coeff(i,j), r[1].coeff(i,j), 1);
                             }
                         }
                         return m;
@@ -775,6 +805,8 @@ void UpdateSimulationHistory(
     const vector<int>& mats_save_hist
 ) {
     ListOfMatrices<Type> ms(mats);
+    // if the history of the matrix is not to be saved,
+    // just save a 1-by-1 with a zero instead to save space
     for (int i=0; i<mats_save_hist.size(); i++)
         if (mats_save_hist[i]==0)
             ms.m_matrices[i] = matrix<Type>::Zero(1,1);
@@ -828,7 +860,6 @@ Type objective_function<Type>::operator() ()
     // Expressions
     DATA_IVECTOR(eval_schedule)
 
-    //DATA_IVECTOR(expr_output_count); // to remove
     DATA_IVECTOR(expr_output_id);
     DATA_IVECTOR(expr_sim_block);
     DATA_IVECTOR(expr_num_p_table_rows);
@@ -1103,6 +1134,7 @@ Type objective_function<Type>::operator() ()
     //   either the post-simulation matrices or the entire simulation history of matrices
     vector<matrix<Type> > mats_returned(mats_return.sum());
 
+    //matrix<Type> hist;
     int r = 0;
     for (int i=0; i<mats_return.size(); i++) {
         if (mats_return[i]==1) {
@@ -1114,11 +1146,16 @@ Type objective_function<Type>::operator() ()
                 int nRows = mats.m_matrices[i].rows();
                 int nCols = mats.m_matrices[i].cols();
                 matrix<Type> hist(nRows, hist_len*nCols);
-                //std::cout << "reporting mats[" << i << "] of shape " << nRows << ", " << nCols << std::endl;
+                //hist = matrix<Type>::Zero(nRows, hist_len*nCols);
+                #ifdef MP_VERBOSE
+                  std::cout << "reporting mats[" << i << "] of shape " << nRows << ", " << nCols << std::endl;
+                #endif
                 for (int k=0; k<hist_len; k++)
                     hist.block(0, k*nCols, nRows, nCols) = simulation_history[k].m_matrices[i];
                 mats_returned[r++] = hist;
-                //std::cout << "mats_returned[" << r-1 << "] = " << hist << std::endl;
+                #ifdef MP_VERBOSE
+                  std::cout << "mats_returned[" << r-1 << "] = " << hist << std::endl;
+                #endif
             }
         }
     }

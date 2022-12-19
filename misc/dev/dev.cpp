@@ -151,7 +151,7 @@ public:
     )
     {
         matrix<Type> m, m2, step, sim;
-        Type sum, s, eps;
+        Type sum, s;
         int rows, cols, rowIndex, colIndex, matIndex;
 
         if (GetErrorCode()) return m; // Check if error has already happened at some point of the recursive call.
@@ -751,19 +751,22 @@ public:
                     // #' * `observed`
                     // #' * `simulated`
                     case MP2_POISSON_DENSITY:
-                        eps = 1e-12;
-                        rows = r[1].rows(); // one row for each of the n arguments
-                        cols = r[1].cols();
-                        sim = matrix<Type>::Zero(rows, cols);
+                        //eps = 1e-12;
+                        rows = r[0].rows();
+                        cols = r[0].cols();
+                        //sim = matrix<Type>::Zero(rows, cols);
                         m = matrix<Type>::Zero(rows, cols);
+                        //for (int i=0; i<rows; i++) {
+                        //    for (int j=0; j<cols; j++) {
+                        //        sim.coeffRef(i,j) = r[1].coeff(i,j) + eps * (1.0 / (1.0-(r[1].coeff(i,j)-eps)/eps + ((r[1].coeff(i,j)-eps)*(r[1].coeff(i,j)-eps))/(eps*eps)));
+                        //    }
+                        //}
                         for (int i=0; i<rows; i++) {
                             for (int j=0; j<cols; j++) {
-                                sim.coeffRef(i,j) = r[1].coeff(i,j) + eps * (1.0 / (1.0-(r[1].coeff(i,j)-eps)/eps + ((r[1].coeff(i,j)-eps)*(r[1].coeff(i,j)-eps))/(eps*eps)));
-                            }
-                        }
-                        for (int i=0; i<rows; i++) {
-                            for (int j=0; j<cols; j++) {
-                                m.coeffRef(i,j) = dpois(r[0].coeff(i,j), sim.coeff(i,j), 1);
+                                #ifdef MP_VERBOSE
+                                    std::cout << "i = " << i << "j = " << j << "obs = " << r[0].coeff(i,j) << "sim = " << r[1].coeff(i,j) << std::endl << std::endl;
+                                #endif
+                                m.coeffRef(i,j) = dpois(r[0].coeff(i,j), r[1].coeff(i,j), 1);
                             }
                         }
                         return m;
@@ -800,6 +803,8 @@ void UpdateSimulationHistory(
     const vector<int>& mats_save_hist
 ) {
     ListOfMatrices<Type> ms(mats);
+    // if the history of the matrix is not to be saved,
+    // just save a 1-by-1 with a zero instead to save space
     for (int i=0; i<mats_save_hist.size(); i++)
         if (mats_save_hist[i]==0)
             ms.m_matrices[i] = matrix<Type>::Zero(1,1);
@@ -1138,11 +1143,15 @@ Type objective_function<Type>::operator() ()
                 int nRows = mats.m_matrices[i].rows();
                 int nCols = mats.m_matrices[i].cols();
                 matrix<Type> hist(nRows, hist_len*nCols);
-                //std::cout << "reporting mats[" << i << "] of shape " << nRows << ", " << nCols << std::endl;
+                #ifdef MP_VERBOSE
+                  std::cout << "reporting mats[" << i << "] of shape " << nRows << ", " << nCols << std::endl;
+                #endif
                 for (int k=0; k<hist_len; k++)
                     hist.block(0, k*nCols, nRows, nCols) = simulation_history[k].m_matrices[i];
                 mats_returned[r++] = hist;
-                //std::cout << "mats_returned[" << r-1 << "] = " << hist << std::endl;
+                #ifdef MP_VERBOSE
+                  std::cout << "mats_returned[" << r-1 << "] = " << hist << std::endl;
+                #endif
             }
         }
     }

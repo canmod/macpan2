@@ -1,18 +1,33 @@
 ExprListUtils = function() {
   self = Base()
-  self$.lhs_string = function(x) as.character(x[[2L]])
-  self$.rhs = function(x, mat_names) {
+  self$.mat_names = function(...) {
+    as.character(unlist(list(...)))
+  }
+  self$.init_valid_vars = function(...) {
+    initial_valid_vars(self$.mat_names(...))
+  }
+  self$.parsed_expr_list = function(...
+      , .existing_literals = numeric(0L)
+      , .offset = 0L
+    ) {
+    parse_expr_list(self$.all_rhs(self$.expr_list)
+      , valid_vars = self$.init_valid_vars(...)
+      , valid_literals = .existing_literals
+      , offset = .offset
+    )
+  }
+  self$.set_name_prefix = function(x, prefix) {
+    setNames(x, paste(prefix, names(x), sep = ""))
+  }
+  self$.lhs = function(x) {
+    as.character(x[[2L]])
+  }
+  self$.rhs = function(x) {
     if (length(x) == 3L) e = x[c(1L, 3L)] else e = x
-    environment(e) = list2env(list(
-      valid_vars = initial_valid_vars(mat_names),
-      valid_funcs = valid_funcs
-    ))
     e
   }
-  self$.all_lhs_strings = function(x) vapply(x, self$.lhs_string, character(1L))
-  self$.all_rhs = function(x, mat_names) {
-    lapply(x, self$.rhs, mat_names)
-  }
+  self$.all_lhs = function(x) vapply(x, self$.lhs, character(1L))
+  self$.all_rhs = function(x) lapply(x, self$.rhs)
   return_object(self, "ExprListUtils")
 }
 
@@ -70,66 +85,57 @@ ExprListUtils = function() {
 #' @export
 ExprList = function(before = list(), during = list(), after = list(), .simulate_exprs = character(0L)) {
   self = ExprListUtils()
-  self$.expr_list = c(before, during, after)
+  valid_expr_list = ValidityMessager(
+    All(
+      is.list,  ## list of ...
+      MappedAllTest(Is("formula")),  ## ... formulas that are ...
+      TestPipeline(MappedSummarizer(length), MappedAllTest(TestRange(3L, 3L)))  ## ... two-sided
+    ),
+    "Model expressions must be two-sided formulas"
+  )
+  self$.expr_list = c(
+    valid_expr_list$assert(before),
+    valid_expr_list$assert(during),
+    valid_expr_list$assert(after)
+  )
   expr_nms = names(self$.expr_list)
   if (is.null(expr_nms)) expr_nms = rep("", length(self$.expr_list))
   self$.expr_nms = expr_nms
   self$.expr_list = unname(self$.expr_list)
-  self$.simulate_exprs = .simulate_exprs
+  self$.simulate_exprs = valid$char$assert(.simulate_exprs)
   self$.eval_schedule = c(length(before), length(during), length(after))
-  self$.expr_sim_block = expr_nms %in% .simulate_exprs
+  self$.expr_sim_block = as.integer(expr_nms %in% .simulate_exprs)
   self$.expr_output_id = function(...) {
-    mat_names = as.character(unlist(list(...)))
-    as.integer(match(self$.all_lhs_strings(self$.expr_list), mat_names) - 1L)
+    m = match(
+      self$.all_lhs(self$.expr_list),
+      self$.mat_names(...)
+    )
+    as.integer(m - 1L)
   }
   self$.expr_num_p_table_rows = function(...) {
-    vapply(
-      self$.parse_tables(...),
-      nrow,
-      integer(1L),
-      USE.NAMES = FALSE
-    )
+    self$.parsed_expr_list(...)$num_p_table_rows
   }
-  self$.expr_output_count = function() {
-    rep(1L, length(self$.expr_list))  ## deprecated
-  }
-  self$.unparsed_expr_list = function(...) {
-    mat_names = as.character(unlist(list(...)))
-    self$.all_rhs(self$.expr_list, mat_names)
-  }
-  self$.raw_parse_tables = function(...) {
-    lapply(self$.unparsed_expr_list(...), parse_expr)
-  }
-  self$.parse_tables = function(...) {
-    lapply(self$.raw_parse_tables(...), getElement, "parse_table")
-  }
-  self$.literals_list = function(...) {
-    lapply(self$.raw_parse_tables(...), getElement, "valid_literals")
-  }
-  self$.parsed_expr_obj = function(...) {
-    TMBExpressions(
-      self$.raw_parse_tables(...),
-      initial_valid_vars(as.character(unlist(list(...)))),
-      self$.literals_list(...)
-    )
-  }
+
+  ## list of three equal length integer vectors
+  ## p_table_x, p_table_n, p_table_i
   self$.parse_table = function(...) {
-    self$.parsed_expr_obj(...)$parse_table
+    l = as.list(self$.parsed_expr_list(...)$parse_table[c("x", "n", "i")])
+    self$.set_name_prefix(l, "p_table_")
   }
   self$.literals = function(...) {
-    unlist(self$.literals_list(...))
+    self$.parsed_expr_list(...)$valid_literals
   }
   self$data_arg = function(...) {
-    c(
+    r = c(
       list(
-        expr_output_count = self$.expr_output_count(),
-        expr_output_id = self$.expr_output_id(...),
-        expr_sim_block = self$.expr_sim_block,
-        expr_num_p_table_rows = self$.expr_num_p_table_rows(...),
-        eval_schedule = self$.eval_schedule
+        expr_output_id = as.integer(self$.expr_output_id(...)),
+        expr_sim_block = as.integer(self$.expr_sim_block),
+        expr_num_p_table_rows = as.integer(self$.expr_num_p_table_rows(...)),
+        eval_schedule = as.integer(self$.eval_schedule)
       ),
       self$.parse_table(...)
     )
+    valid$expr_arg$assert(r)
   }
   return_object(self, "ExprList")
 }
@@ -168,14 +174,18 @@ MatsList = function(..., .mats_to_save = character(0L), .mats_to_return = charac
   self$.names = function() names(self$.initial_mats)
   self$.mats = function() unname(self$.initial_mats)
   self$data_arg = function() {
-    list(
+    r = list(
       mats = self$.mats(),
       mats_save_hist = self$.mats_save_hist,
       mats_return = self$.mats_return
     )
+    valid$mats_arg$assert(r)
   }
   return_object(self, "MatsList")
 }
+
+#' @export
+names.MatsList = function(x) x$.names()
 
 
 #' Optimization Parameters List
@@ -235,10 +245,11 @@ OptParamsList = function(..., par_id = integer(0L), mat = character(0L), row_id 
   }
   self$data_arg = function(..., .type_string = c("p", "r")) {
     .type_string = match.arg(.type_string)
-    setNames(
+    r = setNames(
       list(self$.par_id, self$.mat_id(...), self$.row_id, self$.col_id),
       paste(.type_string, c("par", "mat", "row", "col"), "id", sep = "_")
     )
+    valid$opt_params_list_arg$assert(r)
   }
   return_object(self, "OptParamsList")
 }
@@ -277,34 +288,22 @@ OptParamsList = function(..., par_id = integer(0L), mat = character(0L), row_id 
 #' @export
 ObjectiveFunction = function(obj_fn_expr) {
   self = ExprListUtils()
-  self$.obj_fn_expr = obj_fn_expr
-  self$.raw_parse_table = function(...) {
-    mat_names = as.character(unlist(list(...)))
-    parse_expr(self$.rhs(self$.obj_fn_expr, mat_names))
-  }
-  self$.obj_fn_obj = function(..., .existing_literals) {
-    TMBObjectiveFunction(self$.raw_parse_table(...)$parse_table
-      , self$.raw_parse_table(...)$.valid_literals
-      , .existing_literals
-    )
+  self$.expr_list = list(obj_fn_expr)
+  self$.literals = function(..., .existing_literals) {
+    self$.parsed_expr_list(..., .existing_literals = .existing_literals)$valid_literals
   }
   self$.parse_table = function(..., .existing_literals) {
-    self$.obj_fn_obj(..., .existing_literals = .existing_literals)$parse_table
-  }
-  self$.literals = function(..., .existing_literals) {
-    self$.obj_fn_obj(..., .existing_literals = .existing_literals)$literals
+    l = as.list(self$.parsed_expr_list(..., .existing_literals = .existing_literals)$parse_table)
+    self$.set_name_prefix(l[c("x", "n", "i")], "o_table_")
   }
   self$data_arg = function(..., .existing_literals) {
     p = self$.parse_table(..., .existing_literals = .existing_literals)
-    list(
-      literals = self$.literals(..., .existing_literals = .existing_literals),
-      o_table_n = p$n,
-      o_table_x = p$x,
-      o_table_i = p$i
-    )
+    p$literals = self$.literals(..., .existing_literals = .existing_literals)
+    p
   }
   return_object(self, "ObjectiveFunction")
 }
+
 
 #' Time
 #'
@@ -402,9 +401,10 @@ TMBModel = function(init_mats, expr_list, params, random, obj_fn, time_steps) {
   self$.time_steps = time_steps
   self$data_arg = function() {
     existing_literals = self$.expr_list$.literals(self$.init_mats$.names())
+    expr_list = self$.expr_list$data_arg(self$.init_mats$.names())
     c(
       self$.init_mats$data_arg(),
-      self$.expr_list$data_arg(self$.init_mats$.names()),
+      expr_list,
       self$.params$data_arg(self$.init_mats$.names()),
       self$.random$data_arg(self$.init_mats$.names(), .type_string = "r"),
       self$.obj_fn$data_arg(self$.init_mats$.names()

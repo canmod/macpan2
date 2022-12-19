@@ -9,24 +9,48 @@ clamp = function(x) {
 compile('dev.cpp')
 dyn.load(dynlib("dev"))
 set.seed(1L)
+xx = rpois(10, 1)
 m = TMBModel(
   MatsList(
-    x = rpois(10, 1) + 1e-12,
-    y = 1,
-    .mats_to_save = "y",
+    x = xx,
+    y = rep(0, 10),
+    z = rep(0, 10),
+    #.mats_to_save = "y",
     .mats_to_return = "y"
   ),
-  ExprList(before = list(y ~ dpois(x, x))),
-  OptParamsList(1, par_id = 0, mat = "y", row_id = 0, col_id = 0),
+  ExprList(before = list(
+    z ~ x + 1,
+    y ~ dpois(x, z)
+  )),
+  OptParamsList(xx
+    , par_id = 0:9
+    , mat = rep("x", 10)
+    , row_id = 0:9
+    , col_id = rep(0L, 10)
+  ),
   OptParamsList(),
-  ObjectiveFunction(~x),
+  ObjectiveFunction(~ sum(y)),
   Time(0)
 )
 m$data_arg()
 m$param_arg()
-f = m$make_ad_fun("dev")
+fn = m$make_ad_fun("dev")
 
-actual = f$report()$mats_returned[[1L]][,2]
-correct = dpois(c(m$.init_mats$.mats()[[1L]]), clamp(c(m$.init_mats$.mats()[[1L]])), TRUE)
+actual = c(fn$report()$mats_returned[[1]])
+x = c(m$.init_mats$.mats()[[1L]])
+correct = dpois(x, x + 1, TRUE)
 
-data.frame(actual, correct)
+#clamp(c(m$.init_mats$.mats()[[1L]]))
+
+d = data.frame(actual, correct)
+p = fn$par
+f = fn$fn()
+g = fn$gr()
+h = fn$he()
+
+
+d
+p
+f
+g
+h

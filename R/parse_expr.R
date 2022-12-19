@@ -65,10 +65,14 @@ make_expr_parser = function(
         length(x) == 2L
     )
     #valid = as.list(environment(x))
+    offset = environment(x)$offset
+    if (is.null(offset)) offset = 0L
     list(
       x = list(x), n = 0L, i = 0L,
       valid_funcs = environment(x)$valid_funcs,
-      valid_vars = environment(x)$valid_vars
+      valid_vars = environment(x)$valid_vars,
+      valid_literals = environment(x)$valid_literals,
+      offset = offset
       #input_expr_as_string = as.character(x)[2L]
     )
   }
@@ -86,7 +90,7 @@ make_expr_parser = function(
 
       # add placeholders for the i and n that are associated
       # with these new arguments -- these placeholders
-      # will get updated at the next recursion if it if
+      # will get updated at the next recursion if it is
       # discovered that they are also functions
       rep_0 = rep(0L, length(x$x[[expr_id]]) - 1L)
       x$n = append(x$n, rep_0)
@@ -96,7 +100,7 @@ make_expr_parser = function(
       # been reduced
       x$n[[expr_id]] = length(x$x[[expr_id]]) - 1L
       x$x[[expr_id]] = x$x[[expr_id]][[1L]]
-      x$i[[expr_id]] = n_new + 1L
+      x$i[[expr_id]] = n_new + x$offset
 
       x
   }
@@ -152,7 +156,7 @@ finalizer_index = function(x) {
     n <- n[-1]
     i <- i[-1]
     i <- i - 1L
-    i[i == -1L] = 0
+    i[i == -1L] = 0L
   })
 
   # classify the different types of objects
@@ -172,7 +176,7 @@ finalizer_index = function(x) {
       , vec = names(valid_funcs)
       , vec_type = "functions"
       , expr_as_string = x$input_expr_as_string
-      , zero_based = FALSE
+      , zero_based = TRUE
     )
   }
   if (any(is_var)) {
@@ -187,7 +191,8 @@ finalizer_index = function(x) {
     x_int[is_literal] = length(valid_literals) + seq_along(new_valid_literals) - 1L
     valid_literals = c(valid_literals, new_valid_literals)
   }
-  x$x = x_int
+  x$x = as.integer(x_int)
+  x$i = as.integer(x$i)
 
   nlist(
     parse_table = as.data.frame(x),
@@ -259,5 +264,37 @@ initial_valid_vars = function(valid_var_names) {
   setNames(
     rep(list(matrix(0)), length(valid_var_names)),
     valid_var_names
+  )
+}
+
+
+#' Parse Expression List
+#'
+#' Parse a list of one-sided formulas representing expressions
+#' in a compartmental model.
+#'
+#' @param expr_list List of one-sided formulas.
+#' @param valid_vars Named list of numerical matrices that can
+#' be referred to in the formulas.
+#'
+#' @export
+parse_expr_list = function(expr_list
+    , valid_vars
+    , valid_literals = numeric(0L)
+    , offset = 0L
+  ) {
+  eval_env = list2env(nlist(valid_funcs, valid_vars, valid_literals, offset))
+  pe_list = list()
+  for (i in seq_along(expr_list)) {
+    environment(expr_list[[i]]) = eval_env
+    pe_list[[i]] = parse_expr(expr_list[[i]])
+    eval_env$valid_literals = pe_list[[i]]$valid_literals
+    eval_env$offset = eval_env$offset + nrow(pe_list[[i]]$parse_table)
+  }
+  p_tables = lapply(pe_list, getElement, "parse_table")
+  list(
+    parse_table = do.call(rbind, p_tables),
+    valid_literals = eval_env$valid_literals,
+    num_p_table_rows = vapply(p_tables, nrow, integer(1L))
   )
 }

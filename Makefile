@@ -16,7 +16,7 @@ all:
 
 # Use this rule if you are doing R development or want to promote
 # on dev.cpp to macpan2.cpp before doing R development.
-R-dev-install:
+full-install:
 	make src-update
 	make enum-update
 	make engine-doc-update
@@ -25,15 +25,9 @@ R-dev-install:
 	make pkg-install
 
 
-# Use this rule if you are developing dev.cpp and need to update the
-# R package because someone madded new engine functions and therefore
-# needs to update enum.R or R-side changes need to be present for
-# dev.cpp to work as expected.
-cpp-dev-install:
-	make enum-update
-	make quick-install
-
-
+# Use this rule if (1) you are in a development cycle, (2) you
+# haven't modified macpan.cpp (but have perhaps modified dev.cpp)
+# and (3) do not require a roxygen update.
 quick-install: enum-update
 	R CMD INSTALL . --no-multiarch
 
@@ -77,4 +71,5 @@ pkg-check: macpan2_$(VERSION).tar.gz
 
 
 pkg-install: macpan2_$(VERSION).tar.gz
-	R CMD INSTALL macpan2_$(VERSION).tar.gz
+	R CMD INSTALL --no-multiarch macpan2_$(VERSION).tar.gz
+
