@@ -16,6 +16,12 @@ parse_expr_list(
 
 \item{valid_vars}{Named list of numerical matrices that can
 be referred to in the formulas.}
+
+\item{valid_literals}{An optional existing numeric vector of valid literals
+from a related expression list.}
+
+\item{offset}{The zero-based row index for the first row of the table.
+This is useful when combining tables.}
 }
 \description{
 Parse a list of one-sided formulas representing expressions
