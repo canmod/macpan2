@@ -1177,7 +1177,7 @@ Type objective_function<Type>::operator() ()
                             table_to_return(cur,1) = k;
                             table_to_return(cur,2) = ii;
                             table_to_return(cur,3) = jj;
-                            table_to_return(cur,4) = mats.m_matrices[i].coeff(ii, jj);
+                            table_to_return(cur,4) = simulation_history[k].m_matrices[i].coeff(ii, jj);
 
                             cur++;
                         }
