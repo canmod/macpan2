@@ -802,12 +802,14 @@ void UpdateSimulationHistory(
     const ListOfMatrices<Type>& mats,
     const vector<int>& mats_save_hist
 ) {
+    matrix<Type> emptyMat;
+
     ListOfMatrices<Type> ms(mats);
     // if the history of the matrix is not to be saved,
     // just save a 1-by-1 with a zero instead to save space
     for (int i=0; i<mats_save_hist.size(); i++)
         if (mats_save_hist[i]==0)
-            ms.m_matrices[i] = matrix<Type>::Zero(1,1);
+            ms.m_matrices[i] = emptyMat;
 
     hist[t] = ms;
 }
