@@ -728,10 +728,7 @@ public:
                             for (int i=0; i<rows; i++)
                                 for (int j=0; j<cols; j++) {
                                     sum = r[1].coeff(0,0) * valid_vars.m_matrices[matIndex].coeff(i,j);
-                                    for (int k=1; k<=t; k++)
-                                        //#ifdef MP_VERBOSE
-                                            //std::cout << "hist " << t-k << ": " << r << std::endl << std::endl;
-                                        //#endif
+                                    for (int k=1; k<=length-1; k++)
                                         sum += r[1].coeff(k,0) * hist[t-k].m_matrices[matIndex].coeff(i,j);
 
                                     m.coeffRef(i,j) = sum;
