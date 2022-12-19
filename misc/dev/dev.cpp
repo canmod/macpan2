@@ -642,11 +642,17 @@ public:
                             return m;
                         }
 
+                        int lowerTimeBound;
+                        if (table_n[row]==3) 
+                            lowerTimeBound = CppAD::Integer(r[2].coeff(0,0));
+                        else
+                            lowerTimeBound = 0;
+
                         int rbind_length;
                         rbind_length = 0; // count of legitimate time steps to select
                         for (int i=0; i<r[1].size(); i++) {
                             rowIndex = CppAD::Integer(r[1].coeff(i,0));
-                            if (rowIndex<=t && rowIndex>=0)
+                            if (rowIndex<=t && rowIndex>=lowerTimeBound)
                                 rbind_length++;
                         }
                         #ifdef MP_VERBOSE
