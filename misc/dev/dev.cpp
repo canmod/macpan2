@@ -1128,35 +1128,63 @@ Type objective_function<Type>::operator() ()
     }
 #endif
 
-    // 6 Report a vector of matrices, each of which is
-    //   either the post-simulation matrices or the entire simulation history of matrices
-    vector<matrix<Type> > mats_returned(mats_return.sum());
+    // 6 Report a table as history, each row contains
+    //   mat_id, time_step, row_id, col_id, value (This is the the order the current 
+    //   implementation uses)
+    //   These indices are all zero-based.
 
     int r = 0;
+    int table_rows = 0;
     for (int i=0; i<mats_return.size(); i++) {
         if (mats_return[i]==1) {
             if (mats_save_hist[i]==0) { // Report the last one
-                mats_returned[r++] = mats.m_matrices[i];
+                table_rows += mats.m_matrices[i].rows() * mats.m_matrices[i].cols();
             }
             else { // Report the whole simulation history
                 int hist_len = time_steps+2;
-                int nRows = mats.m_matrices[i].rows();
-                int nCols = mats.m_matrices[i].cols();
-                matrix<Type> hist(nRows, hist_len*nCols);
-                #ifdef MP_VERBOSE
-                  std::cout << "reporting mats[" << i << "] of shape " << nRows << ", " << nCols << std::endl;
-                #endif
                 for (int k=0; k<hist_len; k++)
-                    hist.block(0, k*nCols, nRows, nCols) = simulation_history[k].m_matrices[i];
-                mats_returned[r++] = hist;
-                #ifdef MP_VERBOSE
-                  std::cout << "mats_returned[" << r-1 << "] = " << hist << std::endl;
-                #endif
+                    table_rows += simulation_history[k].m_matrices[i].rows() * \
+                                  simulation_history[k].m_matrices[i].cols();
             }
         }
     }
 
-    REPORT(mats_returned)
+    matrix<Type> table_to_return(table_rows, 5);
+
+    int cur = 0;
+    for (int i=0; i<mats_return.size(); i++) {
+        if (mats_return[i]==1) {
+            if (mats_save_hist[i]==0) { // Report the last one
+                for (int ii=0; ii<mats.m_matrices[i].rows(); ii++)
+                    for (int jj=0; jj<mats.m_matrices[i].cols(); jj++) {
+                        table_to_return(cur,0) = i;
+                        table_to_return(cur,1) = time_steps+1;
+                        table_to_return(cur,2) = ii;
+                        table_to_return(cur,3) = jj;
+                        table_to_return(cur,4) = mats.m_matrices[i].coeff(ii, jj);
+
+                        cur++;
+                    }
+            }
+            else { // Report the whole simulation history
+                int hist_len = time_steps+2;
+                for (int k=0; k<hist_len; k++)
+                    for (int ii=0; ii<simulation_history[k].m_matrices[i].rows(); ii++)
+                        for (int jj=0; jj<simulation_history[k].m_matrices[i].cols(); jj++) {
+                            table_to_return(cur,0) = i;
+                            table_to_return(cur,1) = k;
+                            table_to_return(cur,2) = ii;
+                            table_to_return(cur,3) = jj;
+                            table_to_return(cur,4) = mats.m_matrices[i].coeff(ii, jj);
+
+                            cur++;
+                        }
+            }
+        }
+    }
+
+
+    REPORT(table_to_return)
 
     // 7 Calc the return of the objective function
     matrix<Type> ret;
