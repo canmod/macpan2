@@ -267,6 +267,10 @@ initial_valid_vars = function(valid_var_names) {
   )
 }
 
+#' Empty Matrix
+#'
+#' @export
+empty_matrix = matrix(numeric(0L), 0L, 0L)
 
 #' Parse Expression List
 #'
