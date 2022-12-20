@@ -1202,16 +1202,13 @@ Type objective_function<Type>::operator() ()
                 for (int k=0; k<hist_len; k++)
                     for (int ii=0; ii<simulation_history[k].m_matrices[i].rows(); ii++)
                         for (int jj=0; jj<simulation_history[k].m_matrices[i].cols(); jj++) {
-                            if (simulation_history[k].m_matrices[i].rows()!=0 &&
-                                simulation_history[k].m_matrices[i].cols()!=0) {
-                                table_to_return(cur,0) = i;
-                                table_to_return(cur,1) = k;
-                                table_to_return(cur,2) = ii;
-                                table_to_return(cur,3) = jj;
-                                table_to_return(cur,4) = simulation_history[k].m_matrices[i].coeff(ii, jj);
+                            table_to_return(cur,0) = i;
+                            table_to_return(cur,1) = k;
+                            table_to_return(cur,2) = ii;
+                            table_to_return(cur,3) = jj;
+                            table_to_return(cur,4) = simulation_history[k].m_matrices[i].coeff(ii, jj);
 
-                                cur++;
-                            }
+                            cur++;
                         }
             }
         }
