@@ -64,32 +64,35 @@ enum macpan2_func {
     MP2_MULTIPLY = 3, // *
     MP2_DIVIDE = 4, // /
     MP2_POWER = 5, // ^
-    MP2_ROUND_BRACKET = 6, // (
-    MP2_COMBINE = 7, // c
-    MP2_MATRIX = 8, // matrix
-    MP2_MATRIX_MULTIPLY = 9, // %*%
-    MP2_SUM = 10, // sum
-    MP2_REPLICATE = 11, // rep
-    MP2_ROWSUMS = 12, // rowSums
-    MP2_COLSUMS = 13, // colSums
-    MP2_SQUARE_BRACKET = 14, // [
-    MP2_TRANSPOSE = 15, // t
-    MP2_RBIND_TIME = 16, // rbind_time
-    MP2_RBIND_LAG = 17, // rbind_lag
-    MP2_CBIND_TIME = 18, // cbind_time
-    MP2_CBIND_LAG = 19, // cbind_lag
-    MP2_COLON = 20, // :
-    MP2_SEQUENCE = 21, // seq
-    MP2_CONVOLUTION = 22, // convolution
-    MP2_CBIND = 23, // cbind
-    MP2_RBIND = 24, // rbind
-    MP2_TIME_STEP = 25, // time_step
-    MP2_POISSON_DENSITY = 26, // dpois
-    MP2_NORMAL_DENSITY = 27, // dnorm
-    MP2_POISSON_SIM = 28, // rpois
-    MP2_NORMAL_SIM = 29, // rnorm
+    MP2_EXP = 6, // exp
+    MP2_LOG = 7, // log
+    MP2_ROUND_BRACKET = 8, // (
+    MP2_COMBINE = 9, // c
+    MP2_MATRIX = 10, // matrix
+    MP2_MATRIX_MULTIPLY = 11, // %*%
+    MP2_SUM = 12, // sum
+    MP2_REPLICATE = 13, // rep
+    MP2_ROWSUMS = 14, // rowSums
+    MP2_COLSUMS = 15, // colSums
+    MP2_SQUARE_BRACKET = 16, // [
+    MP2_TRANSPOSE = 17, // t
+    MP2_RBIND_TIME = 18, // rbind_time
+    MP2_RBIND_LAG = 19, // rbind_lag
+    MP2_CBIND_TIME = 20, // cbind_time
+    MP2_CBIND_LAG = 21, // cbind_lag
+    MP2_COLON = 22, // :
+    MP2_SEQUENCE = 23, // seq
+    MP2_CONVOLUTION = 24, // convolution
+    MP2_CBIND = 25, // cbind
+    MP2_RBIND = 26, // rbind
+    MP2_TIME_STEP = 27, // time_step
+    MP2_ASSIGN = 28, // assign
+    MP2_CLAMP = 29, // clamp
+    MP2_POISSON_DENSITY = 30, // dpois
+    MP2_NORMAL_DENSITY = 31, // dnorm
+    MP2_POISSON_SIM = 32, // rpois
+    MP2_NORMAL_SIM = 33 // rnorm
     // MP2_NEGBIN_DENSITY = 30, // dnbinom
-    MP2_ASSIGN = 31
 };
 
 template<class Type>
@@ -154,7 +157,7 @@ public:
     )
     {
         matrix<Type> m, m1, m2, step, sim;
-        Type sum, s;
+        Type sum, s, eps;
         int rows, cols, rowIndex, colIndex, matIndex;
 
         if (GetErrorCode()) return m; // Check if error has already happened at some point of the recursive call.
@@ -312,6 +315,15 @@ public:
                         #endif
                         return pow(r[0].array(), r[1].array()).matrix();
                         //return r[0].pow(r[1].coeff(0,0));
+
+
+                    // #' ## Unary Elementwise Math Functions
+                    // #'
+                    case MP2_LOG:
+                        return r[0].array().log().matrix();
+
+                    case MP2_EXP:
+                        return r[0].array().exp().matrix();
 
                     // #' ## Sequences and Repeated Patterns
                     // #'
@@ -765,14 +777,14 @@ public:
                             m = matrix<Type>::Zero(rows, cols);
 
                             for (int i=0; i<rows; i++)
-                                for (int j=0; j<cols; j++) 
+                                for (int j=0; j<cols; j++)
                                     m.coeffRef(i,j) = r[1].coeff(0,0) * valid_vars.m_matrices[matIndex].coeff(i,j);
 
                             for (int k=1; k<=length-1; k++)
                                 if (hist[t-k].m_matrices[matIndex].rows()!=0 &&
                                     hist[t-k].m_matrices[matIndex].cols()!=0)
                                     for (int i=0; i<rows; i++)
-                                        for (int j=0; j<cols; j++) 
+                                        for (int j=0; j<cols; j++)
                                             m.coeffRef(i,j) += r[1].coeff(k,0) * hist[t-k].m_matrices[matIndex].coeff(i,j);
 
                             return m;
@@ -782,6 +794,23 @@ public:
                             return m;
                         }
 
+                    // #' ## Clamp
+                    // #'
+                    // #' Clamp the elements of a matrix so that they do not
+                    // #' get closer to 0 than 1e-12 (TODO: make this tolerance
+                    // #' an optional second argument).
+                    case MP2_CLAMP:
+                        eps = 1e-12;
+                        rows = r[0].rows();
+                        cols = r[0].cols();
+                        m = matrix<Type>::Zero(rows, cols);
+                        for (int i=0; i<rows; i++) {
+                           for (int j=0; j<cols; j++) {
+                               m.coeffRef(i,j) = r[0].coeff(i,j) + eps * (1.0 / (1.0-(r[0].coeff(i,j)-eps)/eps + ((r[0].coeff(i,j)-eps)*(r[0].coeff(i,j)-eps))/(eps*eps)));
+                           }
+                        }
+                        return m;
+
                     // #' ## Probability Densities
                     // #'
                     // #' All probability densities have the same first two
@@ -790,25 +819,13 @@ public:
                     // #' * `observed`
                     // #' * `simulated`
                     case MP2_POISSON_DENSITY:
-                        //eps = 1e-12;
                         rows = r[0].rows();
                         cols = r[0].cols();
-                        //sim = matrix<Type>::Zero(rows, cols);
+                        RecycleInPlace(r[1], rows, cols);
                         m = matrix<Type>::Zero(rows, cols);
-
-                        // TODO: move this commented-out code into a clamp()
-                        //       function that can be composed with any
-                        //       density function
-                        //       -- e.g. dpois(y, clamp(x))
-                        //for (int i=0; i<rows; i++) {
-                        //    for (int j=0; j<cols; j++) {
-                        //        sim.coeffRef(i,j) = r[1].coeff(i,j) + eps * (1.0 / (1.0-(r[1].coeff(i,j)-eps)/eps + ((r[1].coeff(i,j)-eps)*(r[1].coeff(i,j)-eps))/(eps*eps)));
-                        //    }
-                        //}
-
                         for (int i=0; i<rows; i++) {
                             for (int j=0; j<cols; j++) {
-                                m.coeffRef(i,j) = -dpois(r[0].coeff(i,j), r[1].coeff(i,j), 1);
+                                m.coeffRef(i,j) = dpois(r[0].coeff(i,j), r[1].coeff(i,j), 1);
                             }
                         }
                         return m;
@@ -816,10 +833,12 @@ public:
                     case MP2_NORMAL_DENSITY:
                         rows = r[0].rows();
                         cols = r[0].cols();
+                        RecycleInPlace(r[1], rows, cols);
+                        RecycleInPlace(r[2], rows, cols);
                         m = matrix<Type>::Zero(rows, cols);
                         for (int i=0; i<rows; i++) {
                             for (int j=0; j<cols; j++) {
-                                m.coeffRef(i,j) = -dnorm(r[0].coeff(i,j), r[1].coeff(i,j), r[2].coeff(i,j), 1);
+                                m.coeffRef(i,j) = dnorm(r[0].coeff(i,j), r[1].coeff(i,j), r[2].coeff(i,j), 1);
                             }
                         }
                         return m;
@@ -1281,7 +1300,7 @@ Type objective_function<Type>::operator() ()
         }
     }
 
-    matrix<Type> table_to_return(table_rows, 5);
+    matrix<Type> values(table_rows, 5);
 
     int cur = 0;
     for (int i=0; i<mats_return.size(); i++) {
@@ -1289,11 +1308,11 @@ Type objective_function<Type>::operator() ()
             if (mats_save_hist[i]==0) { // Report the last one
                 for (int ii=0; ii<mats.m_matrices[i].rows(); ii++)
                     for (int jj=0; jj<mats.m_matrices[i].cols(); jj++) {
-                        table_to_return(cur,0) = i;
-                        table_to_return(cur,1) = time_steps+1;
-                        table_to_return(cur,2) = ii;
-                        table_to_return(cur,3) = jj;
-                        table_to_return(cur,4) = mats.m_matrices[i].coeff(ii, jj);
+                        values(cur,0) = i;
+                        values(cur,1) = time_steps+1;
+                        values(cur,2) = ii;
+                        values(cur,3) = jj;
+                        values(cur,4) = mats.m_matrices[i].coeff(ii, jj);
 
                         cur++;
                     }
@@ -1303,11 +1322,11 @@ Type objective_function<Type>::operator() ()
                 for (int k=0; k<hist_len; k++)
                     for (int ii=0; ii<simulation_history[k].m_matrices[i].rows(); ii++)
                         for (int jj=0; jj<simulation_history[k].m_matrices[i].cols(); jj++) {
-                            table_to_return(cur,0) = i;
-                            table_to_return(cur,1) = k;
-                            table_to_return(cur,2) = ii;
-                            table_to_return(cur,3) = jj;
-                            table_to_return(cur,4) = simulation_history[k].m_matrices[i].coeff(ii, jj);
+                            values(cur,0) = i;
+                            values(cur,1) = k;
+                            values(cur,2) = ii;
+                            values(cur,3) = jj;
+                            values(cur,4) = simulation_history[k].m_matrices[i].coeff(ii, jj);
 
                             cur++;
                         }
@@ -1316,7 +1335,7 @@ Type objective_function<Type>::operator() ()
     }
 
 
-    REPORT(table_to_return)
+    REPORT(values)
 
     // 7 Calc the return of the objective function
     matrix<Type> ret;
