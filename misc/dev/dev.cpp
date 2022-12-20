@@ -763,16 +763,18 @@ public:
                             rows = r[0].rows();
                             cols = r[0].cols();
                             m = matrix<Type>::Zero(rows, cols);
-                            for (int i=0; i<rows; i++)
-                                for (int j=0; j<cols; j++) {
-                                    sum = r[1].coeff(0,0) * valid_vars.m_matrices[matIndex].coeff(i,j);
-                                    for (int k=1; k<=length-1; k++)
-                                        if (hist[t-k].m_matrices[matIndex].rows()!=0 &&
-                                            hist[t-k].m_matrices[matIndex].cols()!=0)
-                                            sum += r[1].coeff(k,0) * hist[t-k].m_matrices[matIndex].coeff(i,j);
 
-                                    m.coeffRef(i,j) = sum;
-                                }
+                            for (int i=0; i<rows; i++)
+                                for (int j=0; j<cols; j++) 
+                                    m.coeffRef(i,j) = r[1].coeff(0,0) * valid_vars.m_matrices[matIndex].coeff(i,j);
+
+                            for (int k=1; k<=length-1; k++)
+                                if (hist[t-k].m_matrices[matIndex].rows()!=0 &&
+                                    hist[t-k].m_matrices[matIndex].cols()!=0)
+                                    for (int i=0; i<rows; i++)
+                                        for (int j=0; j<cols; j++) 
+                                            m.coeffRef(i,j) += r[1].coeff(k,0) * hist[t-k].m_matrices[matIndex].coeff(i,j);
+
                             return m;
                         }
                         else {
