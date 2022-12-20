@@ -5,6 +5,8 @@ valid_funcs = c(
   "*",
   "/",
   "^",
+  "exp",
+  "log",
   "(",
   "c",
   "matrix",
@@ -25,6 +27,11 @@ valid_funcs = c(
   "cbind",
   "rbind",
   "time_step",
-  "dpois"
+  "assign",
+  "clamp",
+  "dpois",
+  "dnorm",
+  "rpois",
+  "rnorm"
 )
 valid_funcs = setNames(as.list(valid_funcs), valid_funcs)

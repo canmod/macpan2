@@ -4,7 +4,12 @@
 \alias{MatsList}
 \title{Matrix List}
 \usage{
-MatsList(..., .mats_to_save = character(0L), .mats_to_return = character(0L))
+MatsList(
+  ...,
+  .mats_to_save = character(0L),
+  .mats_to_return = character(0L),
+  .dimnames = list()
+)
 }
 \arguments{
 \item{...}{Named objects that can be coerced to numerical matrices.}
@@ -16,6 +21,9 @@ history after the simulation is complete.}
 
 \item{.mats_to_return}{Character vector naming matrices to be returned
 after the simulate is complete.}
+
+\item{.dimnames}{Named list of (max length-2) lists of character vectors
+giving the names of the rows and/or columns of each matrix being named.}
 }
 \value{
 Object of class \code{MatsList} with the following methods.

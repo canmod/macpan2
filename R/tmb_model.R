@@ -152,6 +152,8 @@ ExprList = function(before = list(), during = list(), after = list(), .simulate_
 #' history after the simulation is complete.
 #' @param .mats_to_return Character vector naming matrices to be returned
 #' after the simulate is complete.
+#' @param .dimnames Named list of (max length-2) lists of character vectors
+#' giving the names of the rows and/or columns of each matrix being named.
 #'
 #' @return Object of class \code{MatsList} with the following methods.
 #'
@@ -166,13 +168,14 @@ ExprList = function(before = list(), during = list(), after = list(), .simulate_
 #'     returned after a simulation.
 #'
 #' @export
-MatsList = function(..., .mats_to_save = character(0L), .mats_to_return = character(0L)) {
+MatsList = function(..., .mats_to_save = character(0L), .mats_to_return = character(0L), .dimnames = list()) {
   self = Base()
   self$.initial_mats = lapply(list(...), as.matrix)
   self$.mats_save_hist = names(self$.initial_mats) %in% .mats_to_save
   self$.mats_return = names(self$.initial_mats) %in% .mats_to_return
   self$.names = function() names(self$.initial_mats)
   self$.mats = function() unname(self$.initial_mats)
+  self$.dimnames = .dimnames
   self$data_arg = function() {
     r = list(
       mats = self$.mats(),

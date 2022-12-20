@@ -25,6 +25,8 @@
 #' matrices are still of different shape, then an error
 #' is thrown. Currently the following elementwise binary
 #' operators are available: `+`, `-`, `*`, `/`, `^`.
+#' ## Unary Elementwise Math Functions
+#'
 #' ## Sequences and Repeated Patterns
 #'
 #' The colon operator works much like the base R version
@@ -156,6 +158,11 @@
 #' * `x` -- The matrix to be convolved.
 #' * `k` -- A column vector giving the convolution kernel.
 #'
+#' ## Clamp
+#'
+#' Clamp the elements of a matrix so that they do not
+#' get closer to 0 than 1e-12 (TODO: make this tolerance
+#' an optional second argument).
 #' ## Probability Densities
 #'
 #' All probability densities have the same first two

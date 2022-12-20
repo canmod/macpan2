@@ -175,6 +175,13 @@ There are two arguments of this function.
 }
 }
 
+\subsection{Clamp}{
+
+Clamp the elements of a matrix so that they do not
+get closer to 0 than 1e-12 (TODO: make this tolerance
+an optional second argument).
+}
+
 \subsection{Probability Densities}{
 
 All probability densities have the same first two
