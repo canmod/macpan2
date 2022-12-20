@@ -87,8 +87,9 @@ enum macpan2_func {
     MP2_POISSON_DENSITY = 26, // dpois
     MP2_NORMAL_DENSITY = 27, // dnorm
     MP2_POISSON_SIM = 28, // rpois
-    MP2_NORMAL_SIM = 29 // rnorm
-    // MP2_NEGBIN_DENSITY = 28, // dnbinom
+    MP2_NORMAL_SIM = 29, // rnorm
+    // MP2_NEGBIN_DENSITY = 30, // dnbinom
+    MP2_ASSIGN = 31
 };
 
 template<class Type>
@@ -152,7 +153,7 @@ public:
         int row = 0
     )
     {
-        matrix<Type> m, m2, step, sim;
+        matrix<Type> m, m1, m2, step, sim;
         Type sum, s;
         int rows, cols, rowIndex, colIndex, matIndex;
 
@@ -842,6 +843,28 @@ public:
                             }
                         }
                         return m;
+
+                    case MP2_ASSIGN:
+                        int size, sz, start;
+
+                        m = r[0];
+                        size = m.rows()*m.cols();
+                        m.resize(size, 1);
+
+                        start = 0;
+                        for (int i=1; i<n; i++) {
+                            sz = r[i].rows() * r[i].cols();
+                            if (size>=sz) {
+                                m1 = m.block(start, 0, sz, 1);
+                                m1.resize(r[i].rows(), r[i].cols());
+                                r[i] = m1;
+                                size -= sz;
+                                start += sz;
+                            }
+                            else
+                                break;
+                        }
+                        return m2; // empty matrix
 
                     default:
                         SetError(255, "invalid operator in arithmetic expression");
