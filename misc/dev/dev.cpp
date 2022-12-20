@@ -287,7 +287,7 @@ public:
                         #ifdef MP_VERBOSE
                             if (table_n[row]==1)
                                 std::cout << "Unary - " << r[0] << std::endl << std::endl;
-                            else 
+                            else
                                 std::cout << r[0] << " - " << r[1] << " = " << r[0]-r[1] << std::endl << std::endl;
                         #endif
                         if (table_n[row]==1)
@@ -912,19 +912,19 @@ void UpdateSimulationHistory(
 // Helper function
 template<class Type>
 bool RecycleInPlace(
-    matrix<Type>& mat, 
-    int rows, 
+    matrix<Type>& mat,
+    int rows,
     int cols
 ) {
     if (mat.rows()==rows && mat.cols()==cols) // don't need to do anything.
         return true;
-   
+
     matrix<Type> m(rows, cols);
     if (mat.rows()==rows) {
         if (mat.cols()==1)
             for (int i=0; i<cols; i++)
                 m.col(i) = mat.col(0);
-        else 
+        else
             return false;
     }
     else if (mat.cols()==cols) {
@@ -1263,7 +1263,7 @@ Type objective_function<Type>::operator() ()
     //   implementation uses)
     //   These indices are all zero-based.
 
-    int r = 0;
+    // int r = 0;
     int table_rows = 0;
     for (int i=0; i<mats_return.size(); i++) {
         if (mats_return[i]==1) {
@@ -1339,5 +1339,4 @@ Type objective_function<Type>::operator() ()
 
     std::cout << "======== end of objective function ========" << std::endl;
     return ret.coeff(0,0);
-    //return 0.0;
 }
