@@ -643,7 +643,7 @@ public:
                         }
 
                         int lowerTimeBound;
-                        if (table_n[row]==3) 
+                        if (table_n[row]==3)
                             lowerTimeBound = CppAD::Integer(r[2].coeff(0,0));
                         else
                             lowerTimeBound = 0;
@@ -769,7 +769,7 @@ public:
                                 #ifdef MP_VERBOSE
                                     std::cout << "i = " << i << "j = " << j << "obs = " << r[0].coeff(i,j) << "sim = " << r[1].coeff(i,j) << std::endl << std::endl;
                                 #endif
-                                m.coeffRef(i,j) = dpois(r[0].coeff(i,j), r[1].coeff(i,j), 1);
+                                m.coeffRef(i,j) = -dpois(r[0].coeff(i,j), r[1].coeff(i,j), 1);
                             }
                         }
                         return m;
@@ -1134,7 +1134,7 @@ Type objective_function<Type>::operator() ()
 #endif
 
     // 6 Report a table as history, each row contains
-    //   mat_id, time_step, row_id, col_id, value (This is the the order the current 
+    //   mat_id, time_step, row_id, col_id, value (This is the the order the current
     //   implementation uses)
     //   These indices are all zero-based.
 
