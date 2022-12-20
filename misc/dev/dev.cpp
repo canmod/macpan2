@@ -282,7 +282,10 @@ public:
                         return r[0]+r[1];
                     case MP2_SUBTRACT: // -
                         #ifdef MP_VERBOSE
-                            std::cout << r[0] << " - " << r[1] << " = " << r[0]-r[1] << std::endl << std::endl;
+                            if (table_n[row]==1)
+                                std::cout << "Unary - " << r[0] << std::endl << std::endl;
+                            else 
+                                std::cout << r[0] << " - " << r[1] << " = " << r[0]-r[1] << std::endl << std::endl;
                         #endif
                         if (table_n[row]==1)
                             return -r[0];
