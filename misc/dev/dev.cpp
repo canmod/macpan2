@@ -284,7 +284,10 @@ public:
                         return r[0]+r[1];
                     case MP2_SUBTRACT: // -
                         #ifdef MP_VERBOSE
-                            std::cout << r[0] << " - " << r[1] << " = " << r[0]-r[1] << std::endl << std::endl;
+                            if (table_n[row]==1)
+                                std::cout << "Unary - " << r[0] << std::endl << std::endl;
+                            else 
+                                std::cout << r[0] << " - " << r[1] << " = " << r[0]-r[1] << std::endl << std::endl;
                         #endif
                         if (table_n[row]==1)
                             return -r[0];
@@ -763,7 +766,9 @@ public:
                                 for (int j=0; j<cols; j++) {
                                     sum = r[1].coeff(0,0) * valid_vars.m_matrices[matIndex].coeff(i,j);
                                     for (int k=1; k<=length-1; k++)
-                                        sum += r[1].coeff(k,0) * hist[t-k].m_matrices[matIndex].coeff(i,j);
+                                        if (hist[t-k].m_matrices[matIndex].rows()!=0 &&
+                                            hist[t-k].m_matrices[matIndex].cols()!=0)
+                                            sum += r[1].coeff(k,0) * hist[t-k].m_matrices[matIndex].coeff(i,j);
 
                                     m.coeffRef(i,j) = sum;
                                 }
