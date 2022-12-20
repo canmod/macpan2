@@ -84,9 +84,11 @@ enum macpan2_func {
     MP2_CBIND = 23, // cbind
     MP2_RBIND = 24, // rbind
     MP2_TIME_STEP = 25, // time_step
-    MP2_POISSON_DENSITY = 26 // dpois
-    // MP2_NEGBIN_DENSITY = 27, // dnbinom
-    // MP2_NORMAL_DENSITY = 28 // dnorm
+    MP2_POISSON_DENSITY = 26, // dpois
+    MP2_NORMAL_DENSITY = 27, // dnorm
+    MP2_POISSON_SIM = 28, // rpois
+    MP2_NORMAL_SIM = 29 // rnorm
+    // MP2_NEGBIN_DENSITY = 28, // dnbinom
 };
 
 template<class Type>
@@ -649,7 +651,7 @@ public:
                             lowerTimeBound = 0;
 
                         // Get the length of legitimate times in rbind_time.
-                        // Check if the shape of the matrix changes. 
+                        // Check if the shape of the matrix changes.
                         //    Error if yes or assign variables "rows" and "cols" with
                         //    the correct values otherwise.
                         int rbind_length, nRows, nCols;
@@ -667,7 +669,7 @@ public:
                             else
                                 continue;
 
-                            if (nRows==0 || nCols==0) // skip empty matrix 
+                            if (nRows==0 || nCols==0) // skip empty matrix
                                 continue;
 
                             if (rbind_length==0) { // first one
@@ -785,17 +787,53 @@ public:
                         cols = r[0].cols();
                         //sim = matrix<Type>::Zero(rows, cols);
                         m = matrix<Type>::Zero(rows, cols);
+
+                        // TODO: move this commented-out code into a clamp()
+                        //       function that can be composed with any
+                        //       density function
+                        //       -- e.g. dpois(y, clamp(x))
                         //for (int i=0; i<rows; i++) {
                         //    for (int j=0; j<cols; j++) {
                         //        sim.coeffRef(i,j) = r[1].coeff(i,j) + eps * (1.0 / (1.0-(r[1].coeff(i,j)-eps)/eps + ((r[1].coeff(i,j)-eps)*(r[1].coeff(i,j)-eps))/(eps*eps)));
                         //    }
                         //}
+
                         for (int i=0; i<rows; i++) {
                             for (int j=0; j<cols; j++) {
-                                #ifdef MP_VERBOSE
-                                    std::cout << "i = " << i << "j = " << j << "obs = " << r[0].coeff(i,j) << "sim = " << r[1].coeff(i,j) << std::endl << std::endl;
-                                #endif
                                 m.coeffRef(i,j) = -dpois(r[0].coeff(i,j), r[1].coeff(i,j), 1);
+                            }
+                        }
+                        return m;
+
+                    case MP2_NORMAL_DENSITY:
+                        rows = r[0].rows();
+                        cols = r[0].cols();
+                        m = matrix<Type>::Zero(rows, cols);
+                        for (int i=0; i<rows; i++) {
+                            for (int j=0; j<cols; j++) {
+                                m.coeffRef(i,j) = -dnorm(r[0].coeff(i,j), r[1].coeff(i,j), r[2].coeff(i,j), 1);
+                            }
+                        }
+                        return m;
+
+                    case MP2_POISSON_SIM:
+                        rows = r[0].rows();
+                        cols = r[0].cols();
+                        m = matrix<Type>::Zero(rows, cols);
+                        for (int i=0; i<rows; i++) {
+                            for (int j=0; j<cols; j++) {
+                                m.coeffRef(i,j) = rpois(r[0].coeff(i,j));
+                            }
+                        }
+                        return m;
+
+                    case MP2_NORMAL_SIM:
+                        rows = r[0].rows();
+                        cols = r[0].cols();
+                        m = matrix<Type>::Zero(rows, cols);
+                        for (int i=0; i<rows; i++) {
+                            for (int j=0; j<cols; j++) {
+                                m.coeffRef(i,j) = rnorm(r[0].coeff(i,j), r[1].coeff(i,j));
                             }
                         }
                         return m;
