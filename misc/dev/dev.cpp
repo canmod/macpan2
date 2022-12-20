@@ -761,7 +761,9 @@ public:
                                 for (int j=0; j<cols; j++) {
                                     sum = r[1].coeff(0,0) * valid_vars.m_matrices[matIndex].coeff(i,j);
                                     for (int k=1; k<=length-1; k++)
-                                        sum += r[1].coeff(k,0) * hist[t-k].m_matrices[matIndex].coeff(i,j);
+                                        if (hist[t-k].m_matrices[matIndex].rows()!=0 &&
+                                            hist[t-k].m_matrices[matIndex].cols()!=0)
+                                            sum += r[1].coeff(k,0) * hist[t-k].m_matrices[matIndex].coeff(i,j);
 
                                     m.coeffRef(i,j) = sum;
                                 }
