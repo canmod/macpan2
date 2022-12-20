@@ -886,6 +886,39 @@ void UpdateSimulationHistory(
     hist[t] = ms;
 }
 
+// Helper function
+template<class Type>
+bool RecycleInPlace(
+    matrix<Type>& mat, 
+    int rows, 
+    int cols
+) {
+    if (mat.rows()==rows && mat.cols()==cols) // don't need to do anything.
+        return true;
+   
+    matrix<Type> m(rows, cols);
+    if (mat.rows()==rows) {
+        if (mat.cols()==1)
+            for (int i=0; i<cols; i++)
+                m.col(i) = mat.col(0);
+        else 
+            return false;
+    }
+    else if (mat.cols()==cols) {
+        if (mat.rows()==1)
+            for (int i=0; i<rows; i++)
+                m.row(i) = mat.row(0);
+        else
+            return false;
+    }
+    else
+        return false;
+
+    // final step
+    mat = m;
+    return true;
+}
+
 const char LOG_FILE_NAME[] = "macpan2.log";
 
 // "main" function
