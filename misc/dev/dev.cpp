@@ -634,7 +634,7 @@ public:
                     // #'
                     case MP2_RBIND_LAG:
                         r[1] = -r[1];
-                        r[1].array() += t+0.1f; // make sure round(float) correctly works
+                        r[1].array() += t; // += t+0.1f; // +0.1 won't work when t<0
                     case MP2_RBIND_TIME:
                         matIndex = index2mats[0]; // m
                         if (mats_save_hist[matIndex]==0 && !(r[1].size()==1 && CppAD::Integer(r[1].coeff(0,0))==t)) {
@@ -648,39 +648,65 @@ public:
                         else
                             lowerTimeBound = 0;
 
-                        int rbind_length;
+                        // Get the length of legitimate times in rbind_time.
+                        // Check if the shape of the matrix changes. 
+                        //    Error if yes or assign variables "rows" and "cols" with
+                        //    the correct values otherwise.
+                        int rbind_length, nRows, nCols;
                         rbind_length = 0; // count of legitimate time steps to select
                         for (int i=0; i<r[1].size(); i++) {
                             rowIndex = CppAD::Integer(r[1].coeff(i,0));
-                            if (rowIndex<=t && rowIndex>=lowerTimeBound)
-                                rbind_length++;
+                            if (rowIndex<t && rowIndex>=lowerTimeBound) {
+                                nRows = hist[rowIndex].m_matrices[matIndex].rows();
+                                nCols = hist[rowIndex].m_matrices[matIndex].cols();
+                            }
+                            else if (rowIndex==t) {
+                                nRows = valid_vars.m_matrices[matIndex].rows();
+                                nCols = valid_vars.m_matrices[matIndex].cols();
+                            }
+                            else
+                                continue;
+
+                            if (nRows==0 || nCols==0) // skip empty matrix 
+                                continue;
+
+                            if (rbind_length==0) { // first one
+                                rows = nRows;
+                                cols = nCols;
+                            }
+                            else {
+                                if (rows!=nRows || cols!=nCols) { // Shall we allow inconsistent rows?
+                                    SetError(MP2_RBIND_TIME, "Inconsistent rows or columns in rbind_time (or rbind_lag)");
+                                    return m;
+                                }
+                            }
+
+                            rbind_length++;
                         }
                         #ifdef MP_VERBOSE
                             std::cout << "rbind_time(" << r[1] << ") = " << std::endl;
                         #endif
 
                         if (rbind_length>0) {
-                            rows = hist[0].m_matrices[matIndex].rows();
-                            cols = hist[0].m_matrices[matIndex].cols();
+                            //rows = hist[0].m_matrices[matIndex].rows();
+                            //cols = hist[0].m_matrices[matIndex].cols();
                             m = matrix<Type>::Zero(rbind_length*rows, cols);
                             rbind_length = 0;
                             for (int i=0; i<r[1].size(); i++) {
                                 rowIndex = CppAD::Integer(r[1].coeff(i,0));
-                                if (rowIndex<t && rowIndex>=0) {
-                                    if (hist[rowIndex].m_matrices[matIndex].cols()!=cols) {
-                                        SetError(MP2_RBIND_TIME, "Inconsistent columns in rbind_time (or rbind_lag)");
-                                        return m;
+                                if (rowIndex<t && rowIndex>=lowerTimeBound) {
+                                    if (hist[rowIndex].m_matrices[matIndex].rows()!=0 &&
+                                        hist[rowIndex].m_matrices[matIndex].cols()!=0) {
+                                        m.block(rbind_length*rows, 0, rows, cols) = hist[rowIndex].m_matrices[matIndex];
+                                        rbind_length++;
                                     }
-                                    m.block(rbind_length*rows, 0, rows, cols) = hist[rowIndex].m_matrices[matIndex];
-                                    rbind_length++;
                                 }
                                 else if (rowIndex==t) {
-                                    if (valid_vars.m_matrices[matIndex].cols()!=cols) {
-                                        SetError(MP2_RBIND_TIME, "Inconsistent columns in rbind_time (or rbind_lag)");
-                                        return m;
+                                    if (valid_vars.m_matrices[matIndex].rows()!=0 &&
+                                        valid_vars.m_matrices[matIndex].cols()!=0) {
+                                        m.block(rbind_length*rows, 0, rows, cols) = valid_vars.m_matrices[matIndex];
+                                        rbind_length++;
                                     }
-                                    m.block(rbind_length*rows, 0, rows, cols) = valid_vars.m_matrices[matIndex];
-                                    rbind_length++;
                                 }
                                 #ifdef MP_VERBOSE
                                     std::cout << m.block((rbind_length-1)*rows, 0, rows, cols) << std::endl << std::endl;
