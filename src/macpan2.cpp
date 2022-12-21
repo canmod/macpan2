@@ -76,24 +76,25 @@ enum macpan2_func {
     MP2_REPLICATE = 13, // rep
     MP2_ROWSUMS = 14, // rowSums
     MP2_COLSUMS = 15, // colSums
-    MP2_SQUARE_BRACKET = 16, // [
-    MP2_TRANSPOSE = 17, // t
-    MP2_RBIND_TIME = 18, // rbind_time
-    MP2_RBIND_LAG = 19, // rbind_lag
-    MP2_CBIND_TIME = 20, // cbind_time
-    MP2_CBIND_LAG = 21, // cbind_lag
-    MP2_COLON = 22, // :
-    MP2_SEQUENCE = 23, // seq
-    MP2_CONVOLUTION = 24, // convolution
-    MP2_CBIND = 25, // cbind
-    MP2_RBIND = 26, // rbind
-    MP2_TIME_STEP = 27, // time_step
-    MP2_ASSIGN = 28, // assign
-    MP2_CLAMP = 29, // clamp
-    MP2_POISSON_DENSITY = 30, // dpois
-    MP2_NORMAL_DENSITY = 31, // dnorm
-    MP2_POISSON_SIM = 32, // rpois
-    MP2_NORMAL_SIM = 33 // rnorm
+    MP2_GROUPSUMS = 16, // groupSums
+    MP2_SQUARE_BRACKET = 17, // [
+    MP2_TRANSPOSE = 18, // t
+    MP2_RBIND_TIME = 19, // rbind_time
+    MP2_RBIND_LAG = 20, // rbind_lag
+    MP2_CBIND_TIME = 21, // cbind_time
+    MP2_CBIND_LAG = 22, // cbind_lag
+    MP2_COLON = 23, // :
+    MP2_SEQUENCE = 24, // seq
+    MP2_CONVOLUTION = 25, // convolution
+    MP2_CBIND = 26, // cbind
+    MP2_RBIND = 27, // rbind
+    MP2_TIME_STEP = 28, // time_step
+    MP2_ASSIGN = 29, // assign
+    MP2_CLAMP = 30, // clamp
+    MP2_POISSON_DENSITY = 31, // dpois
+    MP2_NORMAL_DENSITY = 32, // dnorm
+    MP2_POISSON_SIM = 33, // rpois
+    MP2_NORMAL_SIM = 34 // rnorm
     // MP2_NEGBIN_DENSITY = 30, // dnbinom
 };
 
@@ -626,11 +627,14 @@ public:
                             std::cout << "colSums(" << r[0] << ") = " << m << std::endl << std::endl;
                         #endif
                         return m;
-
-                    case MP2_SQUARE_BRACKET: // [
-                        #ifdef MP_VERBOSE
-                            std::cout << "square bracket" << std::endl << std::endl;
-                        #endif
+                    case MP2_GROUPSUMS: // groupSums
+                        rows = CppAD::Integer(r[1].maxCoeff()+0.1f) + 1;
+                        m = matrix<Type>::Zero(rows, 1);
+                        for (int i = 0; i < r[0].rows(); i++) {
+                            rowIndex = CppAD::Integer(r[1].coeff(i,0)+0.1f);
+                            m.coeffRef(rowIndex,0) += r[0].coeff(i,0);
+                        }
+                        return m;
 
                     // #' ## Extracting Matrix Elements
                     // #'
@@ -644,6 +648,11 @@ public:
                     // #' will address this shortcoming when it is completed,
                     // #' \url{https://github.com/canmod/macpan2/issues/10}.
                     // #'
+                    case MP2_SQUARE_BRACKET: // [
+                        #ifdef MP_VERBOSE
+                            std::cout << "square bracket" << std::endl << std::endl;
+                        #endif
+
                         int nrow;
                         int ncol;
                         nrow = r[1].size();
@@ -992,19 +1001,22 @@ Type objective_function<Type>::operator() ()
     // Parameters themselves
     int n;
 
+    // Fixed effects
     PARAMETER_VECTOR(params);
 
+    // Random effects
     PARAMETER_VECTOR(random);
 
     // Matrices
     DATA_STRUCT(mats, ListOfMatrices);
+    DATA_IVECTOR(mats_save_hist);
+    DATA_IVECTOR(mats_return);
 
     // Parameters replacements
     DATA_IVECTOR(p_par_id);
     DATA_IVECTOR(p_mat_id);
     DATA_IVECTOR(p_row_id);
     DATA_IVECTOR(p_col_id);
-
     DATA_IVECTOR(r_par_id);
     DATA_IVECTOR(r_mat_id);
     DATA_IVECTOR(r_row_id);
@@ -1013,17 +1025,11 @@ Type objective_function<Type>::operator() ()
     // Trajectory simulation
     DATA_INTEGER(time_steps)
 
-    DATA_IVECTOR(mats_save_hist);
-    DATA_IVECTOR(mats_return);
-
-    // Expressions
-    DATA_IVECTOR(eval_schedule)
-
+    // Expressions and parse table
     DATA_IVECTOR(expr_output_id);
     DATA_IVECTOR(expr_sim_block);
     DATA_IVECTOR(expr_num_p_table_rows);
-
-    // Parse Tables
+    DATA_IVECTOR(eval_schedule)
     DATA_IVECTOR(p_table_x);
     DATA_IVECTOR(p_table_n);
     DATA_IVECTOR(p_table_i);
@@ -1031,7 +1037,7 @@ Type objective_function<Type>::operator() ()
     // Literals
     DATA_VECTOR(literals);
 
-    // Objective function return
+    // Objective function parse table
     DATA_IVECTOR(o_table_n);
     DATA_IVECTOR(o_table_x);
     DATA_IVECTOR(o_table_i);

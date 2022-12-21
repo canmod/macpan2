@@ -15,6 +15,7 @@ valid_funcs = c(
   "rep",
   "rowSums",
   "colSums",
+  "groupSums",
   "[",
   "t",
   "rbind_time",

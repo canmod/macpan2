@@ -28,7 +28,7 @@ full-install:
 # Use this rule if (1) you are in a development cycle, (2) you
 # haven't modified macpan.cpp (but have perhaps modified dev.cpp)
 # and (3) do not require a roxygen update.
-quick-install: enum-update engine-doc-update
+quick-install: enum-update
 	R CMD INSTALL . --no-multiarch
 
 
@@ -73,3 +73,6 @@ pkg-check: macpan2_$(VERSION).tar.gz
 pkg-install: macpan2_$(VERSION).tar.gz
 	R CMD INSTALL --no-multiarch macpan2_$(VERSION).tar.gz
 
+
+compile-dev: misc/dev/dev.cpp
+	cd misc/dev; echo "TMB::compile(\"dev.cpp\")" | R --slave

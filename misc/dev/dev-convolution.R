@@ -49,7 +49,7 @@ m = TMBModel(
 as.data.frame(m$data_arg()[c("p_table_x", "p_table_n", "p_table_i")])
 
 f = m$make_ad_fun("dev")
-actual = f$report()$table_to_return
+actual = f$report()$values
 data.frame(
    actual = actual[,5],
    correct = correct_answer()
