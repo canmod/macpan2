@@ -66,7 +66,7 @@ like this is easier with the \code{VarsProduct} function.
   ModelVars(vax = c("n", "y"))
 )$data_frame
 #> function() as.data.frame(self$partitions)
-#> <bytecode: 0x7f8af5a7b7f0>
-#> <environment: 0x7f8b10d6a050>
+#> <bytecode: 0x7fbb95313c18>
+#> <environment: 0x7fbb96f2e150>
 }\if{html}{\out{</div>}}
 }

@@ -441,3 +441,56 @@ TMBModel = function(init_mats, expr_list, params, random, obj_fn, time_steps) {
   }
   return_object(self, "TMBModel")
 }
+
+#' TMB Simulator
+#'
+#' Construct an object with methods fore simulating from and optimizing a
+#' compartmental model made using \code{\link{TMBModel}}.
+#'
+#' @param tmb_model An object of class \code{\link{TMBModel}}.
+#' @param tmb_cpp Name of a C++ program using TMB as the simulation engine.
+#'
+#' @return Object of class \code{TMBSimulator} with the following methods.
+#'
+#' ## Methods
+#'
+#' * `$ad_fun()` -- TODO
+#' * `$report()` -- TODO
+#'
+#' @export
+TMBSimulator = function(tmb_model, tmb_cpp = "macpan2") {
+  self = Base()
+  self$tmb_model = tmb_model
+  self$tmb_cpp = tmb_cpp
+  self$matrix_names = self$tmb_model$.init_mats$.names()
+  self$ad_fun = self$tmb_model$make_ad_fun(self$tmb_cpp)
+  self$report = function(..., .phases = c("before", "during", "after")) {
+    fixed_params = as.numeric(unlist(list(...)))
+    r = setNames(
+      as.data.frame(self$ad_fun$report(fixed_params)$values),
+      c("matrix", "time", "row", "col", "value")
+    )
+    r$matrix = self$matrix_names[r$matrix + 1L]
+    dn = self$tmb_model$.init_mats$.dimnames
+    for (mat in names(dn)) {
+      i = r$matrix == mat
+      r[i,"row"] = dn[[mat]][[1L]][r[i,"row"] + 1L]
+      r[i,"col"] = dn[[mat]][[2L]][r[i,"col"] + 1L]
+    }
+    r$time = as.integer(r$time)
+    # r$row = as.integer(r$row)
+    # r$col = as.integer(r$col)
+    num_t = self$tmb_model$.time_steps$.time_steps
+    if (!"before" %in% .phases) {
+      r = r[r$time != 0L,,drop = FALSE]
+    }
+    if (!"during" %in% .phases) {
+      r = r[(r$time < 1L) | (r$time > num_t),,drop=FALSE]
+    }
+    if (!"after" %in% .phases) {
+      r = r[r$time < num_t + 1,,drop=FALSE]
+    }
+    r
+  }
+  return_object(self, "TMBSimulator")
+}

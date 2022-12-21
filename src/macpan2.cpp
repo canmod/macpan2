@@ -628,7 +628,8 @@ public:
                         #endif
                         return m;
                     case MP2_GROUPSUMS: // groupSums
-                        rows = CppAD::Integer(r[1].maxCoeff()+0.1f) + 1;
+                        // rows = CppAD::Integer(r[1].maxCoeff()+0.1f) + 1;
+                        rows = CppAD::Integer(r[2].coeff(0,0)+0.1f);
                         m = matrix<Type>::Zero(rows, 1);
                         for (int i = 0; i < r[0].rows(); i++) {
                             rowIndex = CppAD::Integer(r[1].coeff(i,0)+0.1f);
