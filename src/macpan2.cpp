@@ -66,30 +66,70 @@ enum macpan2_func {
     MP2_MULTIPLY = 3, // *
     MP2_DIVIDE = 4, // /
     MP2_POWER = 5, // ^
-    MP2_ROUND_BRACKET = 6, // (
-    MP2_COMBINE = 7, // c
-    MP2_MATRIX = 8, // matrix
-    MP2_MATRIX_MULTIPLY = 9, // %*%
-    MP2_SUM = 10, // sum
-    MP2_REPLICATE = 11, // rep
-    MP2_ROWSUMS = 12, // rowSums
-    MP2_COLSUMS = 13, // colSums
-    MP2_SQUARE_BRACKET = 14, // [
-    MP2_TRANSPOSE = 15, // t
-    MP2_RBIND_TIME = 16, // rbind_time
-    MP2_RBIND_LAG = 17, // rbind_lag
-    MP2_CBIND_TIME = 18, // cbind_time
-    MP2_CBIND_LAG = 19, // cbind_lag
-    MP2_COLON = 20, // :
-    MP2_SEQUENCE = 21, // seq
-    MP2_CONVOLUTION = 22, // convolution
-    MP2_CBIND = 23, // cbind
-    MP2_RBIND = 24, // rbind
-    MP2_TIME_STEP = 25, // time_step
-    MP2_POISSON_DENSITY = 26 // dpois
-    // MP2_NEGBIN_DENSITY = 27, // dnbinom
-    // MP2_NORMAL_DENSITY = 28 // dnorm
+    MP2_EXP = 6, // exp
+    MP2_LOG = 7, // log
+    MP2_ROUND_BRACKET = 8, // (
+    MP2_COMBINE = 9, // c
+    MP2_MATRIX = 10, // matrix
+    MP2_MATRIX_MULTIPLY = 11, // %*%
+    MP2_SUM = 12, // sum
+    MP2_REPLICATE = 13, // rep
+    MP2_ROWSUMS = 14, // rowSums
+    MP2_COLSUMS = 15, // colSums
+    MP2_SQUARE_BRACKET = 16, // [
+    MP2_TRANSPOSE = 17, // t
+    MP2_RBIND_TIME = 18, // rbind_time
+    MP2_RBIND_LAG = 19, // rbind_lag
+    MP2_CBIND_TIME = 20, // cbind_time
+    MP2_CBIND_LAG = 21, // cbind_lag
+    MP2_COLON = 22, // :
+    MP2_SEQUENCE = 23, // seq
+    MP2_CONVOLUTION = 24, // convolution
+    MP2_CBIND = 25, // cbind
+    MP2_RBIND = 26, // rbind
+    MP2_TIME_STEP = 27, // time_step
+    MP2_ASSIGN = 28, // assign
+    MP2_CLAMP = 29, // clamp
+    MP2_POISSON_DENSITY = 30, // dpois
+    MP2_NORMAL_DENSITY = 31, // dnorm
+    MP2_POISSON_SIM = 32, // rpois
+    MP2_NORMAL_SIM = 33 // rnorm
+    // MP2_NEGBIN_DENSITY = 30, // dnbinom
 };
+
+// Helper function
+template<class Type>
+bool RecycleInPlace(
+    matrix<Type>& mat,
+    int rows,
+    int cols
+) {
+    if (mat.rows()==rows && mat.cols()==cols) // don't need to do anything.
+        return true;
+
+    matrix<Type> m(rows, cols);
+    if (mat.rows()==rows) {
+        if (mat.cols()==1)
+            for (int i=0; i<cols; i++)
+                m.col(i) = mat.col(0);
+        else
+            return false;
+    }
+    else if (mat.cols()==cols) {
+        if (mat.rows()==1)
+            for (int i=0; i<rows; i++)
+                m.row(i) = mat.row(0);
+        else
+            return false;
+    }
+    else
+        return false;
+
+    // final step
+    mat = m;
+    return true;
+}
+
 
 template<class Type>
 struct ListOfMatrices {
@@ -147,13 +187,13 @@ public:
         const vector<int>& table_x,
         const vector<int>& table_n,
         const vector<int>& table_i,
-        const ListOfMatrices<Type>& valid_vars,
+        ListOfMatrices<Type>& valid_vars,
         const vector<Type>& valid_literals,
         int row = 0
     )
     {
-        matrix<Type> m, m2, step, sim;
-        Type sum, s;
+        matrix<Type> m, m1, m2, step, sim;
+        Type sum, s, eps;
         int rows, cols, rowIndex, colIndex, matIndex;
 
         if (GetErrorCode()) return m; // Check if error has already happened at some point of the recursive call.
@@ -284,7 +324,10 @@ public:
                         return r[0]+r[1];
                     case MP2_SUBTRACT: // -
                         #ifdef MP_VERBOSE
-                            std::cout << r[0] << " - " << r[1] << " = " << r[0]-r[1] << std::endl << std::endl;
+                            if (table_n[row]==1)
+                                std::cout << "Unary - " << r[0] << std::endl << std::endl;
+                            else
+                                std::cout << r[0] << " - " << r[1] << " = " << r[0]-r[1] << std::endl << std::endl;
                         #endif
                         if (table_n[row]==1)
                             return -r[0];
@@ -308,6 +351,17 @@ public:
                         #endif
                         return pow(r[0].array(), r[1].array()).matrix();
                         //return r[0].pow(r[1].coeff(0,0));
+
+
+                    // #' ## Unary Elementwise Math Functions
+                    // #'
+                    // #' Currently the `log` and `exp` functions.
+                    // #'
+                    case MP2_LOG:
+                        return r[0].array().log().matrix();
+
+                    case MP2_EXP:
+                        return r[0].array().exp().matrix();
 
                     // #' ## Sequences and Repeated Patterns
                     // #'
@@ -636,7 +690,7 @@ public:
                     // #'
                     case MP2_RBIND_LAG:
                         r[1] = -r[1];
-                        r[1].array() += t+0.1f; // make sure round(float) correctly works
+                        r[1].array() += t; // += t+0.1f; // +0.1 won't work when t<0
                     case MP2_RBIND_TIME:
                         matIndex = index2mats[0]; // m
                         if (mats_save_hist[matIndex]==0 && !(r[1].size()==1 && CppAD::Integer(r[1].coeff(0,0))==t)) {
@@ -644,39 +698,71 @@ public:
                             return m;
                         }
 
-                        int rbind_length;
+                        int lowerTimeBound;
+                        if (table_n[row]==3)
+                            lowerTimeBound = CppAD::Integer(r[2].coeff(0,0));
+                        else
+                            lowerTimeBound = 0;
+
+                        // Get the length of legitimate times in rbind_time.
+                        // Check if the shape of the matrix changes.
+                        //    Error if yes or assign variables "rows" and "cols" with
+                        //    the correct values otherwise.
+                        int rbind_length, nRows, nCols;
                         rbind_length = 0; // count of legitimate time steps to select
                         for (int i=0; i<r[1].size(); i++) {
                             rowIndex = CppAD::Integer(r[1].coeff(i,0));
-                            if (rowIndex<=t && rowIndex>=0)
-                                rbind_length++;
+                            if (rowIndex<t && rowIndex>=lowerTimeBound) {
+                                nRows = hist[rowIndex].m_matrices[matIndex].rows();
+                                nCols = hist[rowIndex].m_matrices[matIndex].cols();
+                            }
+                            else if (rowIndex==t) {
+                                nRows = valid_vars.m_matrices[matIndex].rows();
+                                nCols = valid_vars.m_matrices[matIndex].cols();
+                            }
+                            else
+                                continue;
+
+                            if (nRows==0 || nCols==0) // skip empty matrix
+                                continue;
+
+                            if (rbind_length==0) { // first one
+                                rows = nRows;
+                                cols = nCols;
+                            }
+                            else {
+                                if (rows!=nRows || cols!=nCols) { // Shall we allow inconsistent rows?
+                                    SetError(MP2_RBIND_TIME, "Inconsistent rows or columns in rbind_time (or rbind_lag)");
+                                    return m;
+                                }
+                            }
+
+                            rbind_length++;
                         }
                         #ifdef MP_VERBOSE
                             std::cout << "rbind_time(" << r[1] << ") = " << std::endl;
                         #endif
 
                         if (rbind_length>0) {
-                            rows = hist[0].m_matrices[matIndex].rows();
-                            cols = hist[0].m_matrices[matIndex].cols();
+                            //rows = hist[0].m_matrices[matIndex].rows();
+                            //cols = hist[0].m_matrices[matIndex].cols();
                             m = matrix<Type>::Zero(rbind_length*rows, cols);
                             rbind_length = 0;
                             for (int i=0; i<r[1].size(); i++) {
                                 rowIndex = CppAD::Integer(r[1].coeff(i,0));
-                                if (rowIndex<t && rowIndex>=0) {
-                                    if (hist[rowIndex].m_matrices[matIndex].cols()!=cols) {
-                                        SetError(MP2_RBIND_TIME, "Inconsistent columns in rbind_time (or rbind_lag)");
-                                        return m;
+                                if (rowIndex<t && rowIndex>=lowerTimeBound) {
+                                    if (hist[rowIndex].m_matrices[matIndex].rows()!=0 &&
+                                        hist[rowIndex].m_matrices[matIndex].cols()!=0) {
+                                        m.block(rbind_length*rows, 0, rows, cols) = hist[rowIndex].m_matrices[matIndex];
+                                        rbind_length++;
                                     }
-                                    m.block(rbind_length*rows, 0, rows, cols) = hist[rowIndex].m_matrices[matIndex];
-                                    rbind_length++;
                                 }
                                 else if (rowIndex==t) {
-                                    if (valid_vars.m_matrices[matIndex].cols()!=cols) {
-                                        SetError(MP2_RBIND_TIME, "Inconsistent columns in rbind_time (or rbind_lag)");
-                                        return m;
+                                    if (valid_vars.m_matrices[matIndex].rows()!=0 &&
+                                        valid_vars.m_matrices[matIndex].cols()!=0) {
+                                        m.block(rbind_length*rows, 0, rows, cols) = valid_vars.m_matrices[matIndex];
+                                        rbind_length++;
                                     }
-                                    m.block(rbind_length*rows, 0, rows, cols) = valid_vars.m_matrices[matIndex];
-                                    rbind_length++;
                                 }
                                 #ifdef MP_VERBOSE
                                     std::cout << m.block((rbind_length-1)*rows, 0, rows, cols) << std::endl << std::endl;
@@ -727,23 +813,41 @@ public:
                             rows = r[0].rows();
                             cols = r[0].cols();
                             m = matrix<Type>::Zero(rows, cols);
-                            for (int i=0; i<rows; i++)
-                                for (int j=0; j<cols; j++) {
-                                    sum = r[1].coeff(0,0) * valid_vars.m_matrices[matIndex].coeff(i,j);
-                                    for (int k=1; k<=t; k++)
-                                        //#ifdef MP_VERBOSE
-                                            //std::cout << "hist " << t-k << ": " << r << std::endl << std::endl;
-                                        //#endif
-                                        sum += r[1].coeff(k,0) * hist[t-k].m_matrices[matIndex].coeff(i,j);
 
-                                    m.coeffRef(i,j) = sum;
-                                }
+                            for (int i=0; i<rows; i++)
+                                for (int j=0; j<cols; j++)
+                                    m.coeffRef(i,j) = r[1].coeff(0,0) * valid_vars.m_matrices[matIndex].coeff(i,j);
+
+                            for (int k=1; k<=length-1; k++)
+                                if (hist[t-k].m_matrices[matIndex].rows()!=0 &&
+                                    hist[t-k].m_matrices[matIndex].cols()!=0)
+                                    for (int i=0; i<rows; i++)
+                                        for (int j=0; j<cols; j++)
+                                            m.coeffRef(i,j) += r[1].coeff(k,0) * hist[t-k].m_matrices[matIndex].coeff(i,j);
+
                             return m;
                         }
                         else {
                             SetError(MP2_CONVOLUTION, "Either empty or non-column vector used as kernel in convolution");
                             return m;
                         }
+
+                    // #' ## Clamp
+                    // #'
+                    // #' Clamp the elements of a matrix so that they do not
+                    // #' get closer to 0 than 1e-12 (TODO: make this tolerance
+                    // #' an optional second argument).
+                    case MP2_CLAMP:
+                        eps = 1e-12;
+                        rows = r[0].rows();
+                        cols = r[0].cols();
+                        m = matrix<Type>::Zero(rows, cols);
+                        for (int i=0; i<rows; i++) {
+                           for (int j=0; j<cols; j++) {
+                               m.coeffRef(i,j) = r[0].coeff(i,j) + eps * (1.0 / (1.0-(r[0].coeff(i,j)-eps)/eps + ((r[0].coeff(i,j)-eps)*(r[0].coeff(i,j)-eps))/(eps*eps)));
+                           }
+                        }
+                        return m;
 
                     // #' ## Probability Densities
                     // #'
@@ -753,29 +857,81 @@ public:
                     // #' * `observed`
                     // #' * `simulated`
                     case MP2_POISSON_DENSITY:
-                        //eps = 1e-12;
                         rows = r[0].rows();
                         cols = r[0].cols();
-                        //sim = matrix<Type>::Zero(rows, cols);
+                        RecycleInPlace(r[1], rows, cols);
                         m = matrix<Type>::Zero(rows, cols);
-                        //for (int i=0; i<rows; i++) {
-                        //    for (int j=0; j<cols; j++) {
-                        //        sim.coeffRef(i,j) = r[1].coeff(i,j) + eps * (1.0 / (1.0-(r[1].coeff(i,j)-eps)/eps + ((r[1].coeff(i,j)-eps)*(r[1].coeff(i,j)-eps))/(eps*eps)));
-                        //    }
-                        //}
                         for (int i=0; i<rows; i++) {
                             for (int j=0; j<cols; j++) {
-                                #ifdef MP_VERBOSE
-                                    std::cout << "i = " << i << "j = " << j << "obs = " << r[0].coeff(i,j) << "sim = " << r[1].coeff(i,j) << std::endl << std::endl;
-                                #endif
                                 m.coeffRef(i,j) = dpois(r[0].coeff(i,j), r[1].coeff(i,j), 1);
                             }
                         }
                         return m;
 
+                    case MP2_NORMAL_DENSITY:
+                        rows = r[0].rows();
+                        cols = r[0].cols();
+                        RecycleInPlace(r[1], rows, cols);
+                        RecycleInPlace(r[2], rows, cols);
+                        m = matrix<Type>::Zero(rows, cols);
+                        for (int i=0; i<rows; i++) {
+                            for (int j=0; j<cols; j++) {
+                                m.coeffRef(i,j) = dnorm(r[0].coeff(i,j), r[1].coeff(i,j), r[2].coeff(i,j), 1);
+                            }
+                        }
+                        return m;
+
+                    case MP2_POISSON_SIM:
+                        rows = r[0].rows();
+                        cols = r[0].cols();
+                        m = matrix<Type>::Zero(rows, cols);
+                        for (int i=0; i<rows; i++) {
+                            for (int j=0; j<cols; j++) {
+                                m.coeffRef(i,j) = rpois(r[0].coeff(i,j));
+                            }
+                        }
+                        return m;
+
+                    case MP2_NORMAL_SIM:
+                        rows = r[0].rows();
+                        cols = r[0].cols();
+                        m = matrix<Type>::Zero(rows, cols);
+                        for (int i=0; i<rows; i++) {
+                            for (int j=0; j<cols; j++) {
+                                m.coeffRef(i,j) = rnorm(r[0].coeff(i,j), r[1].coeff(i,j));
+                            }
+                        }
+                        return m;
+
+                    case MP2_ASSIGN:
+                        int size, sz, start;
+                        // matIndex = index2mats[0]; // m
+                        // valid_vars.m_matrices[matIndex]
+
+
+                        m = r[0];
+                        size = m.rows()*m.cols();
+                        m.resize(size, 1);
+
+                        start = 0;
+                        for (int i=1; i<n; i++) {
+                            sz = r[i].rows() * r[i].cols();
+                            if (size>=sz) {
+                                m1 = m.block(start, 0, sz, 1);
+                                m1.resize(r[i].rows(), r[i].cols());
+                                //std::cout << "MMMAAATTTRRRIIIXXX " << valid_vars.m_matrices[index2mats[i]] << std::endl << std::endl;
+                                valid_vars.m_matrices[index2mats[i]] = m1;
+                                // r[i] = m1;
+                                size -= sz;
+                                start += sz;
+                            }
+                            else
+                                break;
+                        }
+                        return m2; // empty matrix
+
                     default:
                         SetError(255, "invalid operator in arithmetic expression");
-                        //Rf_error("invalid operator in arithmetic expression");
                         return m;
                 }
         }
@@ -804,15 +960,18 @@ void UpdateSimulationHistory(
     const ListOfMatrices<Type>& mats,
     const vector<int>& mats_save_hist
 ) {
+    matrix<Type> emptyMat;
+
     ListOfMatrices<Type> ms(mats);
     // if the history of the matrix is not to be saved,
     // just save a 1-by-1 with a zero instead to save space
     for (int i=0; i<mats_save_hist.size(); i++)
         if (mats_save_hist[i]==0)
-            ms.m_matrices[i] = matrix<Type>::Zero(1,1);
+            ms.m_matrices[i] = emptyMat;
 
     hist[t] = ms;
 }
+
 
 const char LOG_FILE_NAME[] = "macpan2.log";
 
@@ -1130,35 +1289,62 @@ Type objective_function<Type>::operator() ()
     }
 #endif
 
-    // 6 Report a vector of matrices, each of which is
-    //   either the post-simulation matrices or the entire simulation history of matrices
-    vector<matrix<Type> > mats_returned(mats_return.sum());
+    // 6 Report a table as history, each row contains
+    //   mat_id, time_step, row_id, col_id, value (This is the the order the current
+    //   implementation uses)
+    //   These indices are all zero-based.
 
-    int r = 0;
+    // int r = 0;
+    int table_rows = 0;
     for (int i=0; i<mats_return.size(); i++) {
         if (mats_return[i]==1) {
             if (mats_save_hist[i]==0) { // Report the last one
-                mats_returned[r++] = mats.m_matrices[i];
+                table_rows += mats.m_matrices[i].rows() * mats.m_matrices[i].cols();
             }
             else { // Report the whole simulation history
                 int hist_len = time_steps+2;
-                int nRows = mats.m_matrices[i].rows();
-                int nCols = mats.m_matrices[i].cols();
-                matrix<Type> hist(nRows, hist_len*nCols);
-                #ifdef MP_VERBOSE
-                  std::cout << "reporting mats[" << i << "] of shape " << nRows << ", " << nCols << std::endl;
-                #endif
                 for (int k=0; k<hist_len; k++)
-                    hist.block(0, k*nCols, nRows, nCols) = simulation_history[k].m_matrices[i];
-                mats_returned[r++] = hist;
-                #ifdef MP_VERBOSE
-                  std::cout << "mats_returned[" << r-1 << "] = " << hist << std::endl;
-                #endif
+                    table_rows += simulation_history[k].m_matrices[i].rows() * \
+                                  simulation_history[k].m_matrices[i].cols();
             }
         }
     }
 
-    REPORT(mats_returned)
+    matrix<Type> values(table_rows, 5);
+
+    int cur = 0;
+    for (int i=0; i<mats_return.size(); i++) {
+        if (mats_return[i]==1) {
+            if (mats_save_hist[i]==0) { // Report the last one
+                for (int jj=0; jj<mats.m_matrices[i].cols(); jj++)
+                    for (int ii=0; ii<mats.m_matrices[i].rows(); ii++) {
+                        values(cur,0) = i;
+                        values(cur,1) = time_steps+1;
+                        values(cur,2) = ii;
+                        values(cur,3) = jj;
+                        values(cur,4) = mats.m_matrices[i].coeff(ii, jj);
+
+                        cur++;
+                    }
+            }
+            else { // Report the whole simulation history
+                int hist_len = time_steps+2;
+                for (int k=0; k<hist_len; k++)
+                    for (int jj=0; jj<simulation_history[k].m_matrices[i].cols(); jj++)
+                        for (int ii=0; ii<simulation_history[k].m_matrices[i].rows(); ii++) {
+                            values(cur,0) = i;
+                            values(cur,1) = k;
+                            values(cur,2) = ii;
+                            values(cur,3) = jj;
+                            values(cur,4) = simulation_history[k].m_matrices[i].coeff(ii, jj);
+
+                            cur++;
+                        }
+            }
+        }
+    }
+
+    REPORT(values)
 
     // 7 Calc the return of the objective function
     matrix<Type> ret;
@@ -1183,5 +1369,4 @@ Type objective_function<Type>::operator() ()
 
     std::cout << "======== end of objective function ========" << std::endl;
     return ret.coeff(0,0);
-    //return 0.0;
 }

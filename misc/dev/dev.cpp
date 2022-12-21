@@ -95,6 +95,40 @@ enum macpan2_func {
     // MP2_NEGBIN_DENSITY = 30, // dnbinom
 };
 
+// Helper function
+template<class Type>
+bool RecycleInPlace(
+    matrix<Type>& mat,
+    int rows,
+    int cols
+) {
+    if (mat.rows()==rows && mat.cols()==cols) // don't need to do anything.
+        return true;
+
+    matrix<Type> m(rows, cols);
+    if (mat.rows()==rows) {
+        if (mat.cols()==1)
+            for (int i=0; i<cols; i++)
+                m.col(i) = mat.col(0);
+        else
+            return false;
+    }
+    else if (mat.cols()==cols) {
+        if (mat.rows()==1)
+            for (int i=0; i<rows; i++)
+                m.row(i) = mat.row(0);
+        else
+            return false;
+    }
+    else
+        return false;
+
+    // final step
+    mat = m;
+    return true;
+}
+
+
 template<class Type>
 struct ListOfMatrices {
     // below is a vector of matrices that passed from R
@@ -151,7 +185,7 @@ public:
         const vector<int>& table_x,
         const vector<int>& table_n,
         const vector<int>& table_i,
-        const ListOfMatrices<Type>& valid_vars,
+        ListOfMatrices<Type>& valid_vars,
         const vector<Type>& valid_literals,
         int row = 0
     )
@@ -318,6 +352,8 @@ public:
 
 
                     // #' ## Unary Elementwise Math Functions
+                    // #'
+                    // #' Currently the `log` and `exp` functions.
                     // #'
                     case MP2_LOG:
                         return r[0].array().log().matrix();
@@ -867,6 +903,9 @@ public:
 
                     case MP2_ASSIGN:
                         int size, sz, start;
+                        // matIndex = index2mats[0]; // m
+                        // valid_vars.m_matrices[matIndex]
+
 
                         m = r[0];
                         size = m.rows()*m.cols();
@@ -878,7 +917,9 @@ public:
                             if (size>=sz) {
                                 m1 = m.block(start, 0, sz, 1);
                                 m1.resize(r[i].rows(), r[i].cols());
-                                r[i] = m1;
+                                //std::cout << "MMMAAATTTRRRIIIXXX " << valid_vars.m_matrices[index2mats[i]] << std::endl << std::endl;
+                                valid_vars.m_matrices[index2mats[i]] = m1;
+                                // r[i] = m1;
                                 size -= sz;
                                 start += sz;
                             }
@@ -889,7 +930,6 @@ public:
 
                     default:
                         SetError(255, "invalid operator in arithmetic expression");
-                        //Rf_error("invalid operator in arithmetic expression");
                         return m;
                 }
         }
@@ -930,38 +970,6 @@ void UpdateSimulationHistory(
     hist[t] = ms;
 }
 
-// Helper function
-template<class Type>
-bool RecycleInPlace(
-    matrix<Type>& mat,
-    int rows,
-    int cols
-) {
-    if (mat.rows()==rows && mat.cols()==cols) // don't need to do anything.
-        return true;
-
-    matrix<Type> m(rows, cols);
-    if (mat.rows()==rows) {
-        if (mat.cols()==1)
-            for (int i=0; i<cols; i++)
-                m.col(i) = mat.col(0);
-        else
-            return false;
-    }
-    else if (mat.cols()==cols) {
-        if (mat.rows()==1)
-            for (int i=0; i<rows; i++)
-                m.row(i) = mat.row(0);
-        else
-            return false;
-    }
-    else
-        return false;
-
-    // final step
-    mat = m;
-    return true;
-}
 
 const char LOG_FILE_NAME[] = "macpan2.log";
 
@@ -1306,8 +1314,8 @@ Type objective_function<Type>::operator() ()
     for (int i=0; i<mats_return.size(); i++) {
         if (mats_return[i]==1) {
             if (mats_save_hist[i]==0) { // Report the last one
-                for (int ii=0; ii<mats.m_matrices[i].rows(); ii++)
-                    for (int jj=0; jj<mats.m_matrices[i].cols(); jj++) {
+                for (int jj=0; jj<mats.m_matrices[i].cols(); jj++)
+                    for (int ii=0; ii<mats.m_matrices[i].rows(); ii++) {
                         values(cur,0) = i;
                         values(cur,1) = time_steps+1;
                         values(cur,2) = ii;
@@ -1320,8 +1328,8 @@ Type objective_function<Type>::operator() ()
             else { // Report the whole simulation history
                 int hist_len = time_steps+2;
                 for (int k=0; k<hist_len; k++)
-                    for (int ii=0; ii<simulation_history[k].m_matrices[i].rows(); ii++)
-                        for (int jj=0; jj<simulation_history[k].m_matrices[i].cols(); jj++) {
+                    for (int jj=0; jj<simulation_history[k].m_matrices[i].cols(); jj++)
+                        for (int ii=0; ii<simulation_history[k].m_matrices[i].rows(); ii++) {
                             values(cur,0) = i;
                             values(cur,1) = k;
                             values(cur,2) = ii;
@@ -1333,7 +1341,6 @@ Type objective_function<Type>::operator() ()
             }
         }
     }
-
 
     REPORT(values)
 

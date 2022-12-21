@@ -30,6 +30,11 @@ is thrown. Currently the following elementwise binary
 operators are available: \code{+}, \code{-}, \code{*}, \code{/}, \code{^}.
 }
 
+\subsection{Unary Elementwise Math Functions}{
+
+Currently the \code{log} and \code{exp} functions.
+}
+
 \subsection{Sequences and Repeated Patterns}{
 
 The colon operator works much like the base R version

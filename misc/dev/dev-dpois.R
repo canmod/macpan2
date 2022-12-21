@@ -14,13 +14,15 @@ m = TMBModel(
   MatsList(
     x = xx,
     y = rep(0, 10),
+    yy = empty_matrix,
     z = rep(0, 10),
     #.mats_to_save = "y",
-    .mats_to_return = "y"
+    .mats_to_return = c("y", "yy")
   ),
   ExprList(before = list(
-    z ~ x + 1,
-    y ~ dpois(x, z)
+    z ~ exp(rnorm(rep(0, 10), rep(1, 10))),
+    y ~ -dpois(x, 10),
+    yy ~ -dpois(x, clamp(z))
   )),
   OptParamsList(xx
     , par_id = 0:9
@@ -34,23 +36,5 @@ m = TMBModel(
 )
 m$data_arg()
 m$param_arg()
-fn = m$make_ad_fun("dev")
-
-actual = c(fn$report()$mats_returned[[1]])
-x = c(m$.init_mats$.mats()[[1L]])
-correct = dpois(x, x + 1, TRUE)
-
-#clamp(c(m$.init_mats$.mats()[[1L]]))
-
-d = data.frame(actual, correct)
-p = fn$par
-f = fn$fn()
-g = fn$gr()
-h = fn$he()
-
-
-d
-p
-f
-g
-h
+f = m$make_ad_fun("dev")
+print(matrix(f$report()$values[,5], 10))

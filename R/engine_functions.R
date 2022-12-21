@@ -27,6 +27,8 @@
 #' operators are available: `+`, `-`, `*`, `/`, `^`.
 #' ## Unary Elementwise Math Functions
 #'
+#' Currently the `log` and `exp` functions.
+#'
 #' ## Sequences and Repeated Patterns
 #'
 #' The colon operator works much like the base R version
