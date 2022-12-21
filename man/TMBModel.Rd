@@ -4,7 +4,14 @@
 \alias{TMBModel}
 \title{TMB Model}
 \usage{
-TMBModel(init_mats, expr_list, params, random, obj_fn, time_steps)
+TMBModel(
+  init_mats = MatsList(),
+  expr_list = ExprList(),
+  params = OptParamsList(0),
+  random = OptParamsList(),
+  obj_fn = ObjectiveFunction(~0),
+  time_steps = Time(0L)
+)
 }
 \arguments{
 \item{init_mats}{An object of class \code{\link{MatsList}}.}

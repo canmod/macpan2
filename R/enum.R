@@ -31,8 +31,10 @@ valid_funcs = c(
   "assign",
   "clamp",
   "dpois",
+  "dnbinom",
   "dnorm",
   "rpois",
+  "rnbinom",
   "rnorm"
 )
 valid_funcs = setNames(as.list(valid_funcs), valid_funcs)

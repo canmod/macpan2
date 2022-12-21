@@ -1,6 +1,5 @@
 // Auto-generated - do not edit by hand
 
-#define MP_VERBOSE
 #define EIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS
 #include <Eigen/Eigen>
 #include <iostream>
@@ -92,10 +91,11 @@ enum macpan2_func {
     MP2_ASSIGN = 29, // assign
     MP2_CLAMP = 30, // clamp
     MP2_POISSON_DENSITY = 31, // dpois
-    MP2_NORMAL_DENSITY = 32, // dnorm
-    MP2_POISSON_SIM = 33, // rpois
-    MP2_NORMAL_SIM = 34 // rnorm
-    // MP2_NEGBIN_DENSITY = 30, // dnbinom
+    MP2_NEGBIN_DENSITY = 32, // dnbinom
+    MP2_NORMAL_DENSITY = 33, // dnorm
+    MP2_POISSON_SIM = 34, // rpois
+    MP2_NEGBIN_SIM = 35, // rnbinom
+    MP2_NORMAL_SIM = 36 // rnorm
 };
 
 // Helper function
@@ -194,7 +194,7 @@ public:
     )
     {
         matrix<Type> m, m1, m2, step, sim;
-        Type sum, s, eps;
+        Type sum, s, eps, var;
         int rows, cols, rowIndex, colIndex, matIndex;
 
         if (GetErrorCode()) return m; // Check if error has already happened at some point of the recursive call.
@@ -878,6 +878,27 @@ public:
                         }
                         return m;
 
+                    case MP2_NEGBIN_DENSITY:
+                        rows = r[0].rows();
+                        cols = r[0].cols();
+                        RecycleInPlace(r[1], rows, cols);
+                        RecycleInPlace(r[2], rows, cols);
+                        //   var ~ variance
+                        //   mu ~ mean
+                        //   k ~ overdispersion parameter = sp[this->spi[0]]
+                        m = matrix<Type>::Zero(rows, cols);
+                        for (int i=0; i<rows; i++) {
+                            for (int j=0; j<cols; j++) {
+                                // p.165: https://ms.mcmaster.ca/~bolker/emdbook/book.pdf
+                                // mu ~ mean -- r[1]
+                                // k ~ overdispersion -- r[2].coeff(i,j)
+                                // var = mu + mu^2/k
+                                var = r[1].coeff(i,j) + ((r[1].coeff(i,j)*r[1].coeff(i,j)) / r[2].coeff(i,j));
+                                m.coeffRef(i,j) = dnbinom2(r[0].coeff(i,j), r[1].coeff(i,j), var, 1);
+                            }
+                        }
+                        return m;
+
                     case MP2_NORMAL_DENSITY:
                         rows = r[0].rows();
                         cols = r[0].cols();
@@ -902,9 +923,29 @@ public:
                         }
                         return m;
 
+                    case MP2_NEGBIN_SIM:
+                        eps = 1e-8;
+                        rows = r[0].rows();
+                        cols = r[0].cols();
+                        RecycleInPlace(r[1], rows, cols);
+                        m = matrix<Type>::Zero(rows, cols);
+                        for (int i=0; i<rows; i++) {
+                            for (int j=0; j<cols; j++) {
+                                var = r[0].coeff(i,j) + ((r[0].coeff(i,j)*r[0].coeff(i,j)) / r[1].coeff(i,j));
+                                if (var < eps)
+                                    // more numerically stable to just set the simulations
+                                    // to the mean when the var is low
+                                    m.coeffRef(i,j) = r[0].coeff(i,j);
+                                else
+                                    m.coeffRef(i,j) = rnbinom2(r[0].coeff(i,j), var);
+                            }
+                        }
+                        return m;
+
                     case MP2_NORMAL_SIM:
                         rows = r[0].rows();
                         cols = r[0].cols();
+                        RecycleInPlace(r[1], rows, cols);
                         m = matrix<Type>::Zero(rows, cols);
                         for (int i=0; i<rows; i++) {
                             for (int j=0; j<cols; j++) {
@@ -989,7 +1030,9 @@ const char LOG_FILE_NAME[] = "macpan2.log";
 template<class Type>
 Type objective_function<Type>::operator() ()
 {
-    std::cout << "============== objective_function =============" << std::endl;
+    #ifdef MP_VERBOSE
+        std::cout << "============== objective_function =============" << std::endl;
+    #endif
 
     std::ofstream logfile;
     logfile.open (LOG_FILE_NAME);
@@ -1374,6 +1417,8 @@ Type objective_function<Type>::operator() ()
 
     REPORT_ERROR
 
-    std::cout << "======== end of objective function ========" << std::endl;
+    #ifdef MP_VERBOSE
+        std::cout << "======== end of objective function ========" << std::endl;
+    #endif
     return ret.coeff(0,0);
 }

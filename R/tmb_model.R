@@ -394,7 +394,14 @@ Time = function(time_steps) {
 #' @useDynLib macpan2
 #' @importFrom TMB MakeADFun
 #' @export
-TMBModel = function(init_mats, expr_list, params, random, obj_fn, time_steps) {
+TMBModel = function(
+    init_mats = MatsList(),
+    expr_list = ExprList(),
+    params = OptParamsList(0),
+    random = OptParamsList(),
+    obj_fn = ObjectiveFunction(~0),
+    time_steps = Time(0L)
+  ) {
   self = Base()
   self$.expr_list = expr_list
   self$.init_mats = init_mats
@@ -478,17 +485,15 @@ TMBSimulator = function(tmb_model, tmb_cpp = "macpan2") {
       r[i,"col"] = dn[[mat]][[2L]][r[i,"col"] + 1L]
     }
     r$time = as.integer(r$time)
-    # r$row = as.integer(r$row)
-    # r$col = as.integer(r$col)
     num_t = self$tmb_model$.time_steps$.time_steps
     if (!"before" %in% .phases) {
       r = r[r$time != 0L,,drop = FALSE]
     }
     if (!"during" %in% .phases) {
-      r = r[(r$time < 1L) | (r$time > num_t),,drop=FALSE]
+      r = r[(r$time < 1L) | (r$time > num_t),,drop = FALSE]
     }
     if (!"after" %in% .phases) {
-      r = r[r$time < num_t + 1,,drop=FALSE]
+      r = r[r$time < num_t + 1,,drop = FALSE]
     }
     r
   }

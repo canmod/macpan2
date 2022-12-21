@@ -44,8 +44,7 @@ R/enum.R: misc/dev/dev.cpp
 src-update:: src/macpan2.cpp
 src/macpan2.cpp: misc/dev/dev.cpp
 	echo "// Auto-generated - do not edit by hand" > $@
-	echo "" >> $@
-	cat $^ >> $@
+	sed "s/#define MP_VERBOSE//" $^ >> $@
 
 
 engine-doc-update:: R/engine_functions.R
