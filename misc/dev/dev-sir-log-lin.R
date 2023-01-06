@@ -11,8 +11,6 @@ m = TMBModel(init_mats = MatsList(
     , beta = empty_matrix
     , beta_curr = empty_matrix
     , foi = empty_matrix
-    #, ratemat = empty_matrix
-    #, flowmat = empty_matrix
     , t = 0
     , X = cbind(seq_len(110), 1)[,2:1]
     , b = c(-1.3, 0.1)

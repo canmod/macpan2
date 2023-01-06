@@ -20,58 +20,157 @@ the two matrix-valued arguments have the same shape
 (same number of rows and columns), then two elements
 correspond if they occur in the same row and column
 position in the two matrices. If the two matrices are
-not of the same shape but there is either one row or
+not of the same shape but there is one row and/or
 one column in either matrix, then the singleton rows
-and then columns are repeated sufficiently many times
+and columns are recycled sufficiently many times
 so that they match the shape of the other matrix. If
-after repeating singleton rows and columns the
+after recycling singleton rows and columns the
 matrices are still of different shape, then an error
-is thrown. Currently the following elementwise binary
-operators are available: \code{+}, \code{-}, \code{*}, \code{/}, \code{^}.
+is thrown and the matrices are said to be incompatible.
+\subsection{Functions}{
+\itemize{
+\item \code{x + y}
+\item \code{x - y}
+\item \code{x * y}
+\item \code{x / y}
+\item \code{x ^ y}
+}
 }
 
-\subsection{Unary Elementwise Math Functions}{
-
-Currently the \code{log} and \code{exp} functions.
+\subsection{Arguments}{
+\itemize{
+\item \code{x} -- Any matrix with dimensions compatible with \code{y}.
+\item \code{y} -- Any matrix with dimensions compatible with \code{x}.
+}
 }
 
-\subsection{Sequences and Repeated Patterns}{
+\subsection{Return}{
+\itemize{
+\item A matrix with the binary operator applied elementwise
+after any necessary recycling of rows and/or columns.
+}
+}
+
+}
+
+\subsection{Unary Elementwise Math}{
+\subsection{Functions}{
+\itemize{
+\item \code{log(x)} -- Natural logarithm
+\item \code{exp(x)} -- Exponential function
+}
+}
+
+\subsection{Arguments}{
+\itemize{
+\item \code{x} -- Any matrix
+}
+}
+
+\subsection{Return}{
+\itemize{
+\item A matrix with the same dimensions as \code{x}, with the
+unary function applied elementwise.
+}
+}
+
+}
+
+\subsection{Integer Sequences}{
+\subsection{Functions}{
+\itemize{
+\item \code{from:to} -- Inclusive and ordered sequence of
+integers between two bounds.
+\item \code{seq(from, length, by)} -- Ordered sequence of
+integers with equal spacing between adjacent
+values.
+}
+}
+
+\subsection{Arguments}{
+\itemize{
+\item \code{from} -- Scalar integer giving the first integer
+in the sequence.
+\item \code{to} -- Scalar integer giving the last integer in
+the sequence.
+\item \code{length} -- Number of integers in the sequence.
+\item \code{by} -- Integer scalar giving the difference
+between adjacent values in the sequence.
+}
+}
+
+\subsection{Return}{
+\itemize{
+\item Column vector with a sequence of integers.
+}
+}
+
+\subsection{Details}{
 
 The colon operator works much like the base R version
 \code{\link{:}}. It takes two scalar-valued integers
 and returns a column vector with all integers between
 the two inputs.
 
-The \code{seq} function is similar to the base R default
-\code{\link{seq}} function. It takes the following
-scalar-valued integer arguments, and returns a
-column vector.
-\itemize{
-\item \code{from} -- First integer of the output column vector.
-\item \code{length} -- Length of the output column vector.
-\item \code{by} -- Difference between subsequent elements in
-the output column vector.
+The \code{seq} function is a little different from the
+base R default, \code{\link{seq}}, in that it
+allows the user precise control over the length of
+the output through the \code{length} argument. The
+base R function gives the user this option, but not
+as the default.
+
+Replicate Elements
 }
 
-The \code{\link{rep}} function can be used to repeat
-the elements of a scalar \code{n} times. The following
-arguments are available.
+\subsection{Functions}{
+\itemize{
+\item \code{rep(x, times)} -- Replicate a column vector a
+number of times, by repeatedly stacking it on top of
+itself.
+\item \code{rep_each} -- Not yet developed.
+\item \code{rep_length} -- Not yet developed.
+}
+}
+
+\subsection{Arguments}{
 \itemize{
 \item \code{x} -- A scalar-valued variable to repeat.
 \item \code{times} -- A scalar-valued integer variable giving
 the number of times to repeat \code{x}.
 }
+}
 
-The result is a column vector. This function differs
-from its base R version in that \code{x} must be a scalar,
-otherwise only the first element of \code{x} will be used.
-TODO: Consider allowing generic \code{x}
+\subsection{Return}{
+\itemize{
+\item Column vector with \code{times} copies of \code{x} stacked
+on top of each other.
+}
+}
+
 }
 
 \subsection{Matrix Multiplication}{
+\subsection{Functions}{
+\itemize{
+\item \code{x \%*\% y} -- Standard matrix multiplication.
+}
+}
 
-Standard matrix multiplication, \code{\link{\%*\%}},
-is available.
+\subsection{Arguments}{
+\itemize{
+\item \code{x} -- Any matrix with as many columns as \code{y} has
+rows.
+\item \code{y} -- Any matrix with as many rows as \code{x} has
+columns.
+}
+}
+
+\subsection{Return}{
+\itemize{
+\item The standard matrix product of \code{x} and \code{y}.
+}
+}
+
 }
 
 \subsection{Parenthesis}{
@@ -81,13 +180,46 @@ way with round parentheses, \code{\link{(}}.
 }
 
 \subsection{Reshaping and Combining Matrices}{
+\subsection{Functions}{
+\itemize{
+\item \code{c(...)} -- Stack column vectors.
+\item \code{cbind(...)} -- Create a matrix containing all of
+the columns of a group of matrices with the same
+number of rows.
+\item \code{rbind(...)} -- Create a matrix containing all of
+the rows of a group of matrices with the same number
+of columns.
+\item \code{matrix(x, rows, cols)} -- Reshape a matrix to have
+\code{rows} rows and \code{cols} columns. The input \code{x} must
+have \code{rows * cols} elements.
+\item \code{t(x)} -- Standard matrix transpose.
+}
+}
 
-Any number of scalars can be combined into a column
-vector using the \code{\link{c}} function. If
-non-scalars are provided then only the element in
-the first row and column of each input are used.
-TODO: Consider modifying so that \code{c} works more like
-the base R \code{c}, in that it stacks matrix columns.
+\subsection{Arguments}{
+\itemize{
+\item \code{...} -- Any number of dimensionally consistent
+matrices. The definition of dimensionally consistent
+depends on the function.
+\item \code{x} -- Can be any matrix for \code{t}, but for \code{matrix}
+it must have \code{rows * cols} elements.
+\item \code{rows} -- Scalar integer giving the number of
+rows in the output.
+\item \code{cols} -- Scalar integer giving the number of
+columns in the output.
+}
+}
+
+\subsection{Return}{
+\itemize{
+\item A combined or reshaped matrix.
+}
+}
+
+\subsection{Details}{
+
+Any number of column vectors can be combined into a
+bigger column vector.
 
 Column and row vectors of the same length can be
 combined using the \code{\link{cbind}} and
@@ -97,15 +229,7 @@ The \code{matrix} function can be used to redefine the
 numbers of rows and columns to use for arranging
 the values of a matrix. It works similarly to
 the base R \code{\link{matrix}} function in that it
-takes the following arguments.
-\itemize{
-\item \code{data} -- A matrix to reshape.
-\item \code{nrow} -- An integer scalar giving the number of
-rows in the output matrix.
-\item \code{ncol} -- An integer scalar giving the number of
-columns in the output matrix.
-}
-
+takes the same arguments.
 On the other hand, this function differs substantially
 from the base R version in that it must be filled
 by column and there is no \code{byrow} option.
@@ -114,7 +238,39 @@ Matrices can be transposed with the usual
 function, \code{\link{t}}.
 }
 
+}
+
 \subsection{Summarizing Matrix Values}{
+\subsection{Functions}{
+\itemize{
+\item \code{sum(x)} -- Sum of the elements of \code{x}.
+\item \code{colSums(x)} -- Row vector containing the sums
+of each column.
+\item \code{rowSums(x)} -- Column vector containing the sums
+of each row.
+\item \code{groupSums(x, f, n)} -- Column vector containing the
+sums of groups of elements in \code{x}. The groups are
+determined by the integers in \code{f} and the order of
+the sums in the output is determined by these
+integers.
+}
+}
+
+\subsection{Arguments}{
+\itemize{
+\item \code{x} -- A matrix of any dimensions, except for
+\code{groupSums} that expects \code{x} to be a column vector.
+\item \code{f} -- A column vector the same length as \code{x}
+containing integers between \code{0} and \verb{n-}.
+\item \code{n} -- Length of the output column vector.
+}
+}
+
+\subsection{Return}{
+\itemize{
+\item A matrix containing sums of various groups of
+the elements of \code{x}.
+}
 
 The elements of a matrix can be summed together using
 the standard \code{\link{sum}} function.
@@ -129,17 +285,47 @@ then the transpose \code{\link{t}} function must be
 explicitly used.
 }
 
-\subsection{Extracting Matrix Elements}{
+}
 
-It is possible to extract a single element from a
-matrix using square brackets. Two
-indices must be supplied for both the row and column
-positions. Note that zero-based indexing is used
-so the first element gets index, \code{0}, etc. It is
-currently not possible to extract sub-matrices
-of arbitrary dimensions, but this GitHub issue
-will address this shortcoming when it is completed,
-\url{https://github.com/canmod/macpan2/issues/10}.
+\subsection{Extracting Matrix Elements}{
+\subsection{Functions}{
+\itemize{
+\item \code{x[i,j]} -- Matrix containing a subset
+of the rows and columns of \code{x}.
+\item \code{block(x,i,j,n,m)} -- Matrix containing a
+contiguous subset of rows and columns of \code{x}
+}
+}
+
+\subsection{Arguments}{
+\itemize{
+\item \code{x} -- Any matrix.
+\item \code{i} -- An integer column vector (for \code{[}) or
+integer scalar (for \code{block}) containing the indices
+of the rows to extract (for \code{[}) or the index of the
+first row to extract (for \code{block}).
+\item \code{j} -- An integer column vector (for \code{[}) or
+integer scalar (for \code{block}) containing the indices
+of the columns to extract (for \code{[}) or the index of
+the first column to extract (for \code{block}).
+\item \code{n} -- Number of rows in the block to return.
+\item \code{m} -- Number of columns in the block to return.
+}
+}
+
+\subsection{Return}{
+\itemize{
+\item A matrix contining a subset of the rows and columns
+in \code{x}.
+}
+}
+
+\subsection{Details}{
+
+Note that zero-based indexing is used
+so the first row/column gets index, \code{0}, etc.
+}
+
 }
 
 \subsection{Accessing Past Values in the Simulation History}{
@@ -147,26 +333,49 @@ will address this shortcoming when it is completed,
 For matrices with their simulation history saved,
 it is possible to bind the rows or columns of past
 versions of such matrices into a single matrix.
-
-There are four versions of this functionality.
+\subsection{Functions}{
 \itemize{
-\item \code{rbind_lag(x, lag)} -- Bind the rows of versions of
+\item \code{rbind_lag(x, lag, t_min)} -- Bind the rows of versions of
 \code{x} that were recorded at the end of all
 simulation iterations corresponding to time lags given
 by integers in \code{lag}.
-\item \code{rbind_time(x, t)} -- Bind the rows of versions of
+\item \code{rbind_time(x, t, t_min)} -- Bind the rows of versions of
 \code{x} that were recorded at the end of all
 simulation iterations corresponding to integers in
 \code{t}.
-\item \code{cbind_lag(x, lag)} -- Bind the columns of versions of
+\item \code{cbind_lag(x, lag, t_min)} -- Bind the columns of versions of
 \code{x} that were recorded at the end of all
 simulation iterations corresponding to time lags given
 by integers in \code{lag}. (TODO -- cbind_lag is not developed yet)
-\item \code{cbind_time(x, t)} -- Bind the columns of versions of
+\item \code{cbind_time(x, t, t_min)} -- Bind the columns of versions of
 \code{x} that were recorded at the end of all
 simulation iterations corresponding to integers in
 \code{t}. (TODO -- cbind_lag is not developed yet)
 }
+}
+
+\subsection{Arguments}{
+\itemize{
+\item \code{x} -- Any matrix with saved history such that the
+number of columns (for \verb{rbind_*}) or rows (for
+\verb{cbind_*}) does not change throughout the simulation.
+\item \code{lag} -- Column vector of integers giving numbers
+of time steps before the current step to obtain
+past values of \code{x}.
+\item \code{t} -- Column vector of integers giving time steps
+at which to obtain past values of \code{x}.
+\item \code{t_min} -- Minimum time step that is allowed to be
+accessed. All time-steps in \code{t} or implied by \code{lag}
+that are before \code{t_min} are ignored.
+}
+}
+
+\subsection{Return}{
+\itemize{
+\item A matrix containing values of \code{x} from past times.
+}
+}
+
 }
 
 \subsection{Convolution}{
@@ -174,10 +383,51 @@ simulation iterations corresponding to integers in
 One may take the convolution of each element in a
 matrix, x, over simulation time using a kernel, k.
 There are two arguments of this function.
+\subsection{Functions}{
 \itemize{
-\item \code{x} -- The matrix to be convolved.
+\item \code{convolution(x, k)}
+}
+}
+
+\subsection{Arguments}{
+\itemize{
+\item \code{x} -- The matrix containing elements to be
+convolved.
 \item \code{k} -- A column vector giving the convolution kernel.
 }
+}
+
+\subsection{Return}{
+
+A matrix the same size as \code{x} but with the
+convolutions of each element, $x_{ij}$, given by
+the following.
+
+\deqn{y_{ij} = \sum_(\tau = 0)^{min(\lambda,)} x_{ij}(t-\tau) k(\tau)}
+
+unless,
+
+\deqn{t-\tau < 0}
+
+in which case,
+
+\deqn{y_{ij} = }
+
+where,
+
+\deqn{y_{ij}} is the convolution.
+\deqn{x_{ij}(t)} is the value of \code{x} at time step, \code{t}.
+\deqn{k(\tau)} is the value of the kernel at the lag.
+}
+
+\subsection{Details}{
+
+If any empty matrices are encountered when looking
+back in time, they are treated as matrices with all
+zeros. Similarly, any matrices encounte
+of \code{x}
+}
+
 }
 
 \subsection{Clamp}{
@@ -194,6 +444,33 @@ arguments.
 \itemize{
 \item \code{observed}
 \item \code{simulated}
+Assign
 }
+\subsection{Functions}{
+\itemize{
+\item \code{assign(x, i, j, v)}
+}
+}
+
+}
+
+\subsection{Unpack}{
+
+Unpack elements of a matrix into smaller matrices.
+\subsection{Functions}{
+\itemize{
+\item \code{unpack(x, ...)}
+}
+}
+
+\subsection{Arguments}{
+\itemize{
+\item \code{x} -- Matrix with elements to be distributed to
+the matrices passed through \code{...}.
+\item \code{...} -- Matrices with elements to be replaced by
+the values of elements in \code{x} in column-major order.
+}
+}
+
 }
 }

@@ -32,6 +32,12 @@ quick-install: enum-update
 	R CMD INSTALL . --no-multiarch
 
 
+quick-doc-install: R/*.R misc/dev/dev.cpp
+	make engine-doc-update
+	make doc-update
+	make quick-install
+
+
 enum-update:: R/enum.R
 R/enum.R: misc/dev/dev.cpp
 	echo "## Auto-generated - do not edit by hand" > $@
@@ -56,7 +62,7 @@ R/engine_functions.R: src/macpan2.cpp
 	echo "NULL" >> $@
 
 
-doc-update: R/*.R
+doc-update: R/*.R misc/dev/dev.cpp
 	echo "suppressWarnings(roxygen2::roxygenize(\".\",roclets = c(\"collate\", \"rd\", \"namespace\")))" | R --slave
 
 

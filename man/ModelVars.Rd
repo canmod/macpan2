@@ -45,15 +45,10 @@ factor model in the terminology of product models). For example,
 the following set of model variables is a product of two factor
 models, \code{si} and \code{vax}:
 
-\if{html}{\out{<div class="sourceCode r">}}\preformatted{ModelVars(
+\if{html}{\out{<div class="sourceCode">}}\preformatted{ModelVars(
   si = c("S", "I", "S", "I"),
   vax = c("n", "n", "y", "y")
 )$data_frame()
-#>   si vax
-#> 1  S   n
-#> 2  I   n
-#> 3  S   y
-#> 4  I   y
 }\if{html}{\out{</div>}}
 
 The first two states are the \code{S} and \code{I} compartments for
@@ -61,12 +56,9 @@ unvaccinated individuals and the last two are for those who
 are vaccinated. Constructing variable lists for product models
 like this is easier with the \code{VarsProduct} function.
 
-\if{html}{\out{<div class="sourceCode r">}}\preformatted{VarsProduct(
+\if{html}{\out{<div class="sourceCode">}}\preformatted{VarsProduct(
   ModelVars(si = c("S", "I")),
   ModelVars(vax = c("n", "y"))
 )$data_frame
-#> function() as.data.frame(self$partitions)
-#> <bytecode: 0x7fc7deb434b8>
-#> <environment: 0x7fc7e9460eb0>
 }\if{html}{\out{</div>}}
 }

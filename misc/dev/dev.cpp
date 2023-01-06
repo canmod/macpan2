@@ -76,25 +76,27 @@ enum macpan2_func {
     MP2_COLSUMS = 15, // colSums
     MP2_GROUPSUMS = 16, // groupSums
     MP2_SQUARE_BRACKET = 17, // [
-    MP2_TRANSPOSE = 18, // t
-    MP2_RBIND_TIME = 19, // rbind_time
-    MP2_RBIND_LAG = 20, // rbind_lag
-    MP2_CBIND_TIME = 21, // cbind_time
-    MP2_CBIND_LAG = 22, // cbind_lag
-    MP2_COLON = 23, // :
-    MP2_SEQUENCE = 24, // seq
-    MP2_CONVOLUTION = 25, // convolution
-    MP2_CBIND = 26, // cbind
-    MP2_RBIND = 27, // rbind
-    MP2_TIME_STEP = 28, // time_step
-    MP2_ASSIGN = 29, // assign
-    MP2_CLAMP = 30, // clamp
-    MP2_POISSON_DENSITY = 31, // dpois
-    MP2_NEGBIN_DENSITY = 32, // dnbinom
-    MP2_NORMAL_DENSITY = 33, // dnorm
-    MP2_POISSON_SIM = 34, // rpois
-    MP2_NEGBIN_SIM = 35, // rnbinom
-    MP2_NORMAL_SIM = 36 // rnorm
+    MP2_BLOCK = 18, // block
+    MP2_TRANSPOSE = 19, // t
+    MP2_RBIND_TIME = 20, // rbind_time
+    MP2_RBIND_LAG = 21, // rbind_lag
+    MP2_CBIND_TIME = 22, // cbind_time
+    MP2_CBIND_LAG = 23, // cbind_lag
+    MP2_COLON = 24, // :
+    MP2_SEQUENCE = 25, // seq
+    MP2_CONVOLUTION = 26, // convolution
+    MP2_CBIND = 27, // cbind
+    MP2_RBIND = 28, // rbind
+    MP2_TIME_STEP = 29, // time_step
+    MP2_ASSIGN = 30, // assign
+    MP2_UNPACK = 31, // unpack
+    MP2_CLAMP = 32, // clamp
+    MP2_POISSON_DENSITY = 33, // dpois
+    MP2_NEGBIN_DENSITY = 34, // dnbinom
+    MP2_NORMAL_DENSITY = 35, // dnorm
+    MP2_POISSON_SIM = 36, // rpois
+    MP2_NEGBIN_SIM = 37, // rnbinom
+    MP2_NORMAL_SIM = 38 // rnorm
 };
 
 // Helper function
@@ -165,14 +167,17 @@ struct ListOfMatrices {
 template<class Type>
 class ExprEvaluator {
 public:
+    // constructor
     ExprEvaluator() {
         error_code = 0;	// non-zero means error has occurred; otherwise, no error
         strcpy(error_message, "OK");
     };
 
+    // getters
     unsigned char GetErrorCode() { return error_code; };
     const char* GetErrorMessage() { return error_message; };
 
+    // setters
     void SetError(unsigned char code, const char* message)
     {
         error_code = code;
@@ -180,6 +185,7 @@ public:
         std::cout << "MACPAN ERROR #" << (int) code << ": " << message << std::endl;
     };
 
+    // evaluators
     matrix<Type> EvalExpr(
         const vector<ListOfMatrices<Type> >& hist,
         int t,
@@ -192,9 +198,10 @@ public:
         int row = 0
     )
     {
-        matrix<Type> m, m1, m2, step, sim;
-        Type sum, s, eps, var;
-        int rows, cols, rowIndex, colIndex, matIndex;
+        // Variables to use locally in function bodies
+        matrix<Type> m, m1, m2;  // return values
+        Type sum, s, eps, var;  // intermediate scalars
+        int rows, cols, rowIndex, colIndex, matIndex, reps, off, size, sz, start;
 
         if (GetErrorCode()) return m; // Check if error has already happened at some point of the recursive call.
 
@@ -309,14 +316,33 @@ public:
                     // #' (same number of rows and columns), then two elements
                     // #' correspond if they occur in the same row and column
                     // #' position in the two matrices. If the two matrices are
-                    // #' not of the same shape but there is either one row or
+                    // #' not of the same shape but there is one row and/or
                     // #' one column in either matrix, then the singleton rows
-                    // #' and then columns are repeated sufficiently many times
+                    // #' and columns are recycled sufficiently many times
                     // #' so that they match the shape of the other matrix. If
-                    // #' after repeating singleton rows and columns the
+                    // #' after recycling singleton rows and columns the
                     // #' matrices are still of different shape, then an error
-                    // #' is thrown. Currently the following elementwise binary
-                    // #' operators are available: `+`, `-`, `*`, `/`, `^`.
+                    // #' is thrown and the matrices are said to be incompatible.
+                    // #'
+                    // #' ### Functions
+                    // #'
+                    // #' * `x + y`
+                    // #' * `x - y`
+                    // #' * `x * y`
+                    // #' * `x / y`
+                    // #' * `x ^ y`
+                    // #'
+                    // #'
+                    // #' ### Arguments
+                    // #'
+                    // #' * `x` -- Any matrix with dimensions compatible with `y`.
+                    // #' * `y` -- Any matrix with dimensions compatible with `x`.
+                    // #'
+                    // #' ### Return
+                    // #'
+                    // #' * A matrix with the binary operator applied elementwise
+                    // #' after any necessary recycling of rows and/or columns.
+                    // #'
                     case MP2_ADD: // +
                         #ifdef MP_VERBOSE
                             std::cout << r[0] << " + " << r[1] << " = " << r[0]+r[1] << std::endl << std::endl;
@@ -353,9 +379,21 @@ public:
                         //return r[0].pow(r[1].coeff(0,0));
 
 
-                    // #' ## Unary Elementwise Math Functions
+                    // #' ## Unary Elementwise Math
                     // #'
-                    // #' Currently the `log` and `exp` functions.
+                    // #' ### Functions
+                    // #'
+                    // #' * `log(x)` -- Natural logarithm
+                    // #' * `exp(x)` -- Exponential function
+                    // #'
+                    // #' ### Arguments
+                    // #'
+                    // #' * `x` -- Any matrix
+                    // #'
+                    // #' ### Return
+                    // #'
+                    // #' * A matrix with the same dimensions as `x`, with the
+                    // #' unary function applied elementwise.
                     // #'
                     case MP2_LOG:
                         return r[0].array().log().matrix();
@@ -363,10 +401,34 @@ public:
                     case MP2_EXP:
                         return r[0].array().exp().matrix();
 
-                    // #' ## Sequences and Repeated Patterns
+                    // #' ## Integer Sequences
+                    // #'
+                    // #' ### Functions
+                    // #'
+                    // #' * `from:to` -- Inclusive and ordered sequence of
+                    // #' integers between two bounds.
+                    // #' * `seq(from, length, by)` -- Ordered sequence of
+                    // #' integers with equal spacing between adjacent
+                    // #' values.
+                    // #'
+                    // #' ### Arguments
+                    // #'
+                    // #' * `from` -- Scalar integer giving the first integer
+                    // #' in the sequence.
+                    // #' * `to` -- Scalar integer giving the last integer in
+                    // #' the sequence.
+                    // #' * `length` -- Number of integers in the sequence.
+                    // #' * `by` -- Integer scalar giving the difference
+                    // #' between adjacent values in the sequence.
+                    // #'
+                    // #' ### Return
+                    // #'
+                    // #' * Column vector with a sequence of integers.
                     // #'
                     case MP2_COLON: // :
 
+                    // #' ### Details
+                    // #'
                     // #' The colon operator works much like the base R version
                     // #' \code{\link{:}}. It takes two scalar-valued integers
                     // #' and returns a column vector with all integers between
@@ -389,15 +451,12 @@ public:
 
                     case MP2_SEQUENCE: // seq
 
-                    // #' The `seq` function is similar to the base R default
-                    // #' \code{\link{seq}} function. It takes the following
-                    // #' scalar-valued integer arguments, and returns a
-                    // #' column vector.
-                    // #'
-                    // #' * `from` -- First integer of the output column vector.
-                    // #' * `length` -- Length of the output column vector.
-                    // #' * `by` -- Difference between subsequent elements in
-                    // #' the output column vector.
+                    // #' The `seq` function is a little different from the
+                    // #' base R default, \code{\link{seq}}, in that it
+                    // #' allows the user precise control over the length of
+                    // #' the output through the `length` argument. The
+                    // #' base R function gives the user this option, but not
+                    // #' as the default.
                     // #'
                         int length, by;
                         from = CppAD::Integer(r[0].coeff(0,0));
@@ -416,26 +475,38 @@ public:
                         #endif
                         return m;
 
-                    case MP2_REPLICATE: // rep
 
-                    // #' The \code{\link{rep}} function can be used to repeat
-                    // #' the elements of a scalar `n` times. The following
-                    // #' arguments are available.
+                    // #' Replicate Elements
+                    // #'
+                    // #' ### Functions
+                    // #'
+                    // #' * `rep(x, times)` -- Replicate a column vector a
+                    // #' number of times, by repeatedly stacking it on top of
+                    // #' itself.
+                    // #' * `rep_each` -- Not yet developed.
+                    // #' * `rep_length` -- Not yet developed.
+                    // #'
+                    // #' ### Arguments
                     // #'
                     // #' * `x` -- A scalar-valued variable to repeat.
                     // #' * `times` -- A scalar-valued integer variable giving
                     // #' the number of times to repeat `x`.
                     // #'
-                    // #' The result is a column vector. This function differs
-                    // #' from its base R version in that `x` must be a scalar,
-                    // #' otherwise only the first element of `x` will be used.
-                    // #' TODO: Consider allowing generic `x`
+                    // #' ### Return
                     // #'
-                        rows = CppAD::Integer(r[1].coeff(0,0));
-                        m = matrix<Type>::Constant(rows,1, r[0].coeff(0,0));
-                        //for (int i=0; i<rows; i++)
-                        //    m.coeffRef(i,0) = r[0].coeff(0,0);
-
+                    // #' * Column vector with `times` copies of `x` stacked
+                    // #' on top of each other.
+                    // #'
+                    case MP2_REPLICATE: // rep
+                        //m = matrix<Type>::Constant(rows, 1, r[0].coeff(0,0));
+                        rows = r[0].rows();
+                        reps = CppAD::Integer(r[1].coeff(0,0));
+                        m = matrix<Type>::Zero(rows * reps,1);
+                        off = 0;
+                        for (int i=0; i<reps; i++) {
+                            m.block(off, 0, rows, 1) = r[0];
+                            off += rows;
+                        }
                         #ifdef MP_VERBOSE
                             std::cout << "rep(" << r[0] << ", " << r[1] << ") = " << m << std::endl << std::endl;
                         #endif
@@ -445,8 +516,21 @@ public:
 
                     // #' ## Matrix Multiplication
                     // #'
-                    // #' Standard matrix multiplication, \code{\link{%*%}},
-                    // #' is available.
+                    // #' ### Functions
+                    // #'
+                    // #' * `x %*% y` -- Standard matrix multiplication.
+                    // #'
+                    // #' ### Arguments
+                    // #'
+                    // #' * `x` -- Any matrix with as many columns as `y` has
+                    // #' rows.
+                    // #' * `y` -- Any matrix with as many rows as `x` has
+                    // #' columns.
+                    // #'
+                    // #' ### Return
+                    // #'
+                    // #' * The standard matrix product of `x` and `y`.
+                    // #'
                         #ifdef MP_VERBOSE
                             std::cout << r[0] << " %*% " << r[1] << " = " << r[0]*r[1] << std::endl << std::endl;
                         #endif
@@ -463,18 +547,53 @@ public:
 
                     // #' ## Reshaping and Combining Matrices
                     // #'
+                    // #' ### Functions
+                    // #'
+                    // #' * `c(...)` -- Stack column vectors.
+                    // #' * `cbind(...)` -- Create a matrix containing all of
+                    // #' the columns of a group of matrices with the same
+                    // #' number of rows.
+                    // #' * `rbind(...)` -- Create a matrix containing all of
+                    // #' the rows of a group of matrices with the same number
+                    // #' of columns.
+                    // #' * `matrix(x, rows, cols)` -- Reshape a matrix to have
+                    // #' `rows` rows and `cols` columns. The input `x` must
+                    // #' have `rows * cols` elements.
+                    // #' * `t(x)` -- Standard matrix transpose.
+                    // #'
+                    // #' ### Arguments
+                    // #'
+                    // #' * `...` -- Any number of dimensionally consistent
+                    // #' matrices. The definition of dimensionally consistent
+                    // #' depends on the function.
+                    // #' * `x` -- Can be any matrix for `t`, but for `matrix`
+                    // #' it must have `rows * cols` elements.
+                    // #' * `rows` -- Scalar integer giving the number of
+                    // #' rows in the output.
+                    // #' * `cols` -- Scalar integer giving the number of
+                    // #' columns in the output.
+                    // #'
+                    // #' ### Return
+                    // #'
+                    // #' * A combined or reshaped matrix.
+                    // #'
+                    // #' ### Details
+                    // #'
                     case MP2_COMBINE: // c
 
-                    // #' Any number of scalars can be combined into a column
-                    // #' vector using the \code{\link{c}} function. If
-                    // #' non-scalars are provided then only the element in
-                    // #' the first row and column of each input are used.
-                    // #' TODO: Consider modifying so that `c` works more like
-                    // #' the base R `c`, in that it stacks matrix columns.
+                    // #' Any number of column vectors can be combined into a
+                    // #' bigger column vector.
                     // #'
                         m = matrix<Type>::Zero(n,1);
-                        for (int i=0; i<n; i++)
-                            m.coeffRef(i,0) = r[i].coeff(0,0);
+                        off = 0;
+                        for (int i=0; i<n; i++) {
+                            rows = r[i].rows();
+                            m.block(off, 0, rows, 1) = r[i];
+                            off += rows;
+                        }
+
+                        //for (int i=0; i<n; i++)
+                        //    m.coeffRef(i,0) = r[i].coeff(0,0);
                         #ifdef MP_VERBOSE
                             std::cout << "c(" << r[0] << ", ...," << r[n-1] << ") = " << m << std::endl << std::endl;
                         #endif
@@ -548,14 +667,7 @@ public:
                     // #' numbers of rows and columns to use for arranging
                     // #' the values of a matrix. It works similarly to
                     // #' the base R \code{\link{matrix}} function in that it
-                    // #' takes the following arguments.
-                    // #'
-                    // #' * `data` -- A matrix to reshape.
-                    // #' * `nrow` -- An integer scalar giving the number of
-                    // #' rows in the output matrix.
-                    // #' * `ncol` -- An integer scalar giving the number of
-                    // #' columns in the output matrix.
-                    // #'
+                    // #' takes the same arguments.
                     // #' On the other hand, this function differs substantially
                     // #' from the base R version in that it must be filled
                     // #' by column and there is no `byrow` option.
@@ -586,6 +698,32 @@ public:
                         return m;
 
                     // #' ## Summarizing Matrix Values
+                    // #'
+                    // #' ### Functions
+                    // #'
+                    // #' * `sum(x)` -- Sum of the elements of `x`.
+                    // #' * `colSums(x)` -- Row vector containing the sums
+                    // #' of each column.
+                    // #' * `rowSums(x)` -- Column vector containing the sums
+                    // #' of each row.
+                    // #' * `groupSums(x, f, n)` -- Column vector containing the
+                    // #' sums of groups of elements in `x`. The groups are
+                    // #' determined by the integers in `f` and the order of
+                    // #' the sums in the output is determined by these
+                    // #' integers.
+                    // #'
+                    // #' ### Arguments
+                    // #'
+                    // #' * `x` -- A matrix of any dimensions, except for
+                    // #' `groupSums` that expects `x` to be a column vector.
+                    // #' * `f` -- A column vector the same length as `x`
+                    // #' containing integers between `0` and `n-`.
+                    // #' * `n` -- Length of the output column vector.
+                    // #'
+                    // #' ### Return
+                    // #'
+                    // #' * A matrix containing sums of various groups of
+                    // #' the elements of `x`.
                     // #'
                     case MP2_SUM: // sum
 
@@ -620,12 +758,14 @@ public:
                             std::cout << "rowSums(" << r[0] << ") = " << m << std::endl << std::endl;
                         #endif
                         return m;
+
                     case MP2_COLSUMS: // colSums
                         m = r[0].colwise().sum().matrix();
                         #ifdef MP_VERBOSE
                             std::cout << "colSums(" << r[0] << ") = " << m << std::endl << std::endl;
                         #endif
                         return m;
+
                     case MP2_GROUPSUMS: // groupSums
                         // rows = CppAD::Integer(r[1].maxCoeff()+0.1f) + 1;
                         rows = CppAD::Integer(r[2].coeff(0,0)+0.1f);
@@ -638,15 +778,36 @@ public:
 
                     // #' ## Extracting Matrix Elements
                     // #'
-                    // #' It is possible to extract a single element from a
-                    // #' matrix using square brackets. Two
-                    // #' indices must be supplied for both the row and column
-                    // #' positions. Note that zero-based indexing is used
-                    // #' so the first element gets index, `0`, etc. It is
-                    // #' currently not possible to extract sub-matrices
-                    // #' of arbitrary dimensions, but this GitHub issue
-                    // #' will address this shortcoming when it is completed,
-                    // #' \url{https://github.com/canmod/macpan2/issues/10}.
+                    // #' ### Functions
+                    // #'
+                    // #' * `x[i,j]` -- Matrix containing a subset
+                    // #' of the rows and columns of `x`.
+                    // #' * `block(x,i,j,n,m)` -- Matrix containing a
+                    // #' contiguous subset of rows and columns of `x`
+                    // #'
+                    // #' ### Arguments
+                    // #'
+                    // #' * `x` -- Any matrix.
+                    // #' * `i` -- An integer column vector (for `[`) or
+                    // #' integer scalar (for `block`) containing the indices
+                    // #' of the rows to extract (for `[`) or the index of the
+                    // #' first row to extract (for `block`).
+                    // #' * `j` -- An integer column vector (for `[`) or
+                    // #' integer scalar (for `block`) containing the indices
+                    // #' of the columns to extract (for `[`) or the index of
+                    // #' the first column to extract (for `block`).
+                    // #' * `n` -- Number of rows in the block to return.
+                    // #' * `m` -- Number of columns in the block to return.
+                    // #'
+                    // #' ### Return
+                    // #'
+                    // #' * A matrix contining a subset of the rows and columns
+                    // #' in `x`.
+                    // #'
+                    // #' ### Details
+                    // #'
+                    // #' Note that zero-based indexing is used
+                    // #' so the first row/column gets index, `0`, etc.
                     // #'
                     case MP2_SQUARE_BRACKET: // [
                         #ifdef MP_VERBOSE
@@ -672,30 +833,55 @@ public:
                         }
                         return m;
 
+                    case MP2_BLOCK: // block
+                        rowIndex = CppAD::Integer(r[1].coeff(0,0));
+                        colIndex = CppAD::Integer(r[2].coeff(0,0));
+                        rows = CppAD::Integer(r[3].coeff(0,0));
+                        cols = CppAD::Integer(r[4].coeff(0,0));
+                        return r[0].block(rowIndex, colIndex, rows, cols);
+
                     // #' ## Accessing Past Values in the Simulation History
                     // #'
                     // #' For matrices with their simulation history saved,
                     // #' it is possible to bind the rows or columns of past
                     // #' versions of such matrices into a single matrix.
                     // #'
-                    // #' There are four versions of this functionality.
+                    // #' ### Functions
                     // #'
-                    // #' * `rbind_lag(x, lag)` -- Bind the rows of versions of
+                    // #' * `rbind_lag(x, lag, t_min)` -- Bind the rows of versions of
                     // #' `x` that were recorded at the end of all
                     // #' simulation iterations corresponding to time lags given
                     // #' by integers in `lag`.
-                    // #' * `rbind_time(x, t)` -- Bind the rows of versions of
+                    // #' * `rbind_time(x, t, t_min)` -- Bind the rows of versions of
                     // #' `x` that were recorded at the end of all
                     // #' simulation iterations corresponding to integers in
                     // #' `t`.
-                    // #' * `cbind_lag(x, lag)` -- Bind the columns of versions of
+                    // #' * `cbind_lag(x, lag, t_min)` -- Bind the columns of versions of
                     // #' `x` that were recorded at the end of all
                     // #' simulation iterations corresponding to time lags given
                     // #' by integers in `lag`. (TODO -- cbind_lag is not developed yet)
-                    // #' * `cbind_time(x, t)` -- Bind the columns of versions of
+                    // #' * `cbind_time(x, t, t_min)` -- Bind the columns of versions of
                     // #' `x` that were recorded at the end of all
                     // #' simulation iterations corresponding to integers in
                     // #' `t`. (TODO -- cbind_lag is not developed yet)
+                    // #'
+                    // #' ### Arguments
+                    // #'
+                    // #' * `x` -- Any matrix with saved history such that the
+                    // #' number of columns (for `rbind_*`) or rows (for
+                    // #' `cbind_*`) does not change throughout the simulation.
+                    // #' * `lag` -- Column vector of integers giving numbers
+                    // #' of time steps before the current step to obtain
+                    // #' past values of `x`.
+                    // #' * `t` -- Column vector of integers giving time steps
+                    // #' at which to obtain past values of `x`.
+                    // #' * `t_min` -- Minimum time step that is allowed to be
+                    // #' accessed. All time-steps in `t` or implied by `lag`
+                    // #' that are before `t_min` are ignored.
+                    // #'
+                    // #' ### Return
+                    // #'
+                    // #' * A matrix containing values of `x` from past times.
                     // #'
                     case MP2_RBIND_LAG:
                         r[1] = -r[1];
@@ -783,9 +969,7 @@ public:
 
                     case MP2_TIME_STEP:
                         m = matrix<Type>::Zero(1,1);
-                        m.array() = CppAD::Integer(t+0.1f);
-                        //m.coeffRef(0,0) = step - r[0];
-                        //std::cout << step << std::endl;
+                        m.coeffRef(0,0) = t;
                         return m;
 
                     case MP2_CONVOLUTION:
@@ -796,8 +980,44 @@ public:
                     // #' matrix, x, over simulation time using a kernel, k.
                     // #' There are two arguments of this function.
                     // #'
-                    // #' * `x` -- The matrix to be convolved.
+                    // #' ### Functions
+                    // #'
+                    // #' * `convolution(x, k)`
+                    // #'
+                    // #' ### Arguments
+                    // #'
+                    // #' * `x` -- The matrix containing elements to be
+                    // #' convolved.
                     // #' * `k` -- A column vector giving the convolution kernel.
+                    // #'
+                    // #' ### Return
+                    // #'
+                    // #' A matrix the same size as `x` but with the
+                    // #' convolutions of each element, $x_{ij}$, given by
+                    // #' the following.
+                    // #'
+                    // #' \deqn{y_{ij} = \sum_(\tau = 0)^{min(\lambda,)} x_{ij}(t-\tau) k(\tau)}
+                    // #'
+                    // #' unless,
+                    // #'
+                    // #' \deqn{t-\tau < 0}
+                    // #'
+                    // #' in which case,
+                    // #'
+                    // #' \deqn{y_{ij} = }
+                    // #'
+                    // #' where,
+                    // #'
+                    // #' \deqn{y_{ij}} is the convolution.
+                    // #' \deqn{x_{ij}(t)} is the value of `x` at time step, `t`.
+                    // #' \deqn{k(\tau)} is the value of the kernel at the lag.
+                    // #'
+                    // #' ### Details
+                    // #'
+                    // #' If any empty matrices are encountered when looking
+                    // #' back in time, they are treated as matrices with all
+                    // #' zeros. Similarly, any matrices encounte
+                    // #' of `x`
                     // #'
                         matIndex = index2mats[0]; // m
                         #ifdef MP_VERBOSE
@@ -954,7 +1174,37 @@ public:
                         return m;
 
                     case MP2_ASSIGN:
-                        int size, sz, start;
+                    // #' Assign
+                    // #'
+                    // #' ### Functions
+                    // #'
+                    // #' * `assign(x, i, j, v)`
+                    // #'
+                        rows = r[3].rows();
+                        for (int k=0; k<rows; k++) {
+                            rowIndex = CppAD::Integer(r[1].coeff(k,0));
+                            colIndex = CppAD::Integer(r[2].coeff(k,0));
+                            valid_vars.m_matrices[index2mats[0]].coeffRef(rowIndex,colIndex) = r[3].coeff(k,0);
+                        }
+                        return m2;
+
+
+                    case MP2_UNPACK:
+                    // #' ## Unpack
+                    // #'
+                    // #' Unpack elements of a matrix into smaller matrices.
+                    // #'
+                    // #' ### Functions
+                    // #'
+                    // #' * `unpack(x, ...)`
+                    // #'
+                    // #' ### Arguments
+                    // #'
+                    // #' * `x` -- Matrix with elements to be distributed to
+                    // #' the matrices passed through `...`.
+                    // #' * `...` -- Matrices with elements to be replaced by
+                    // #' the values of elements in `x` in column-major order.
+                    // #'
                         // matIndex = index2mats[0]; // m
                         // valid_vars.m_matrices[matIndex]
 
@@ -987,7 +1237,36 @@ public:
         }
     };
 
+
 private:
+    // Functor for computing derivatives of expressions.
+    // template <class Type>
+    // struct matrix_functor{
+    //     // define data members
+    //
+    //     // define constructor
+    //     matrix_functor() : // initialization list
+    //     { // the body is empty
+    //     }
+    //     // the function itself
+    //     template <typename T>
+    //     vector<T> operator()(vector<T> input_vector_)
+    //     {
+    //         vector<T> output_vector_ = EvalExpr(
+    //             simulation_history_,
+    //             0,
+    //             mats_save_hist_,
+    //             p_table_x_,
+    //             p_table_n_,
+    //             p_table_i_,
+    //             mats_,
+    //             literals_,
+    //             p_table_row_
+    //         );
+    //         // call exprEval in here to convert input_vector_ into output_vector_
+    //         return (output_vector_);
+    //     }
+    // }
     unsigned char error_code;
     char error_message[256];
 };
@@ -1055,11 +1334,13 @@ Type objective_function<Type>::operator() ()
     DATA_IVECTOR(mats_save_hist);
     DATA_IVECTOR(mats_return);
 
-    // Parameters replacements
+    // Fixed parameter replacements
     DATA_IVECTOR(p_par_id);
     DATA_IVECTOR(p_mat_id);
     DATA_IVECTOR(p_row_id);
     DATA_IVECTOR(p_col_id);
+
+    // Random parameter replacements
     DATA_IVECTOR(r_par_id);
     DATA_IVECTOR(r_mat_id);
     DATA_IVECTOR(r_row_id);

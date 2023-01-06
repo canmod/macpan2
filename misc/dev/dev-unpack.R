@@ -7,10 +7,13 @@ dyn.load(dynlib("dev"))
 m = TMBModel(
     init_mats = MatsList(
         m = matrix(1:12, 4, 3)
+      , a = rep(0, 3)
+      , b = rep(0, 5)
+      , c = matrix(rep(0, 4), 2, 2)
       , dummy = empty_matrix
       , .mats_to_return = c("m", "a", "b", "c")
     )
-  , expr_list = ExprList(before = list(dummy ~ assign(m, c(2, 1, 0), c(2, 2, 0), c(3.14, 100000, 1/40))))
+  , expr_list = ExprList(before = list(dummy ~ unpack(m, a, b, c)))
   , params = OptParamsList(0)
   , random = OptParamsList()
   , obj_fn = ObjectiveFunction(~0)

@@ -49,7 +49,7 @@ LabelledPartitions = function(...) {
 #' the following set of model variables is a product of two factor
 #' models, `si` and `vax`:
 #'
-#' ```{r}
+#' ```
 #' ModelVars(
 #'   si = c("S", "I", "S", "I"),
 #'   vax = c("n", "n", "y", "y")
@@ -61,7 +61,7 @@ LabelledPartitions = function(...) {
 #' are vaccinated. Constructing variable lists for product models
 #' like this is easier with the \code{VarsProduct} function.
 #'
-#' ```{r}
+#' ```
 #' VarsProduct(
 #'   ModelVars(si = c("S", "I")),
 #'   ModelVars(vax = c("n", "y"))

@@ -497,5 +497,11 @@ TMBSimulator = function(tmb_model, tmb_cpp = "macpan2") {
     }
     r
   }
+  self$matrix = function(..., matrix_name, time_step) {
+    r = self$report(...)
+    i = (r$matrix == as.character(matrix_name)) & (r$time == as.integer(time_step))
+    rr = r[i, c("row", "value")]
+    matrix(rr$value, max(rr$row) + 1L)
+  }
   return_object(self, "TMBSimulator")
 }
