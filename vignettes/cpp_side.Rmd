@@ -30,6 +30,8 @@ Treating all numerical objects as matrices might seem strange, but it is similar
 
 Missing values are not allowed in any matrix. On the R side these variables are all associated with a unique name, and on the C++ side each of these names is associated with a 0-based index. All indices in this spec are 0-based.
 
+All matrices must have zero or more rows and columns. Any matrix with either zero rows or zero columns is an empty matrix. Empty matrices allow for placeholders for matrices that will be defined during simulations.
+
 These matrices are passed in using the `DATA_STRUCT(mats)` TMB macro, with an associated C++ `struct` for extracting the component matrices by index.
 
 
@@ -40,11 +42,11 @@ Two vectors of parameters are passed to C++.
 * `PARAMETER_VECTOR(params)` -- this vector becomes the argument of the objective function, and can therefore be optimized using a non-linear optimizer or simulated using MCMC
 * `PARAMETER_VECTOR(random)` -- this vector becomes the random effects that will be integrated out of the objective function using a Laplace approximation
 
-The values in these parameter vectors are used to update certain elements in the matrix-valued variables within `mats`. The elements to be updated are described on the R side by two data frames with one row for every matrix element to be replaced. These data frame are constructed in R and passed to C++. The columns for the data frame associated with `params` are the following.
+The values in these parameter vectors are used to update certain elements in the matrix-valued variables within `mats`. The elements to be updated are described on the R side by two data frames with one row for every matrix element to be replaced. These data frames are constructed in R and passed to C++. The columns for the data frame associated with `params` are the following.
 
 * `DATA_IVECTOR(p_par_id)` -- indices into the `params` vector giving the parameter to use when updating each element in `mats` that is to be updated
 * `DATA_IVECTOR(p_mat_id)` -- indices into `mats` giving the matrices with elements to be replaced by parameters
-* `DATA_IVECTOR(p_row_id)` -- indices of the rows within each matrix associated with an element to be replaced by parametes
+* `DATA_IVECTOR(p_row_id)` -- indices of the rows within each matrix associated with an element to be replaced by parameters
 * `DATA_IVECTOR(p_col_id)` -- indices of the columns within each matrix associated with an element to be replaced by parameters
 
 After these vectors are read into C++, a loop is executed over the rows of this table that replaces the associated `mats` elements with `params` elements.
@@ -97,12 +99,8 @@ A simulation is the sequential evaluation of these expressions in a user-specifi
 
 Each mathematical expression can be used by C++ in several ways. Information on how each expression should be used is passed to C++ using a set of vectors. Each of these vectors is the same length, with one element per expression.
 
-* `DATA_IVECTOR(expr_output_count)`
-    * Number of matrices modified by the expression
-    * Typically this will be `1`, but multiple return values are possible (see section below on [Lists of Matrices])
 * `DATA_IVECTOR(expr_output_id)`
-    * Index into `mats` identifying the first matrix produced by the expression
-    * Matrices that are modified by the same function must be sequentially grouped together in `mats`
+    * Index into `mats` identifying the matrix produced by the expression
 * `DATA_IVECTOR(expr_sim_block)`
     * Identifies whether or not the expression should be evaluated inside a `SIMULATE` macro within TMB
     * A value of `0` indicates that the expression is to be evaluated without the `SIMULATE` macro (we expect this to be the standard case), whereas a value of `1` indicates evaluation inside a `SIMULATE` macro
@@ -110,11 +108,11 @@ Each mathematical expression can be used by C++ in several ways. Information on 
 * `DATA_IVECTOR(expr_num_p_table_rows)`
     * Number of rows associated with each expression in the parse table (see section on [Parse Tables])
 
-Each expression is evaluated in the order in which it appears in this vectors.
+Each expression is evaluated in the order in which it appears in these vectors.
 
 The `DATA_IVECTOR(eval_schedule)` vector gives the phase in which each of these expressions should be evaluated. This vector has three elements giving the number of expressions to evaluate before, during, and after the simulation loop. In particular the first `eval_schedule[0]` expressions are evaluated before the simulation loop, the next `eval_schedule[1]` expressions are evaluated at every iteration of the simulation loop, and the next `eval_schedule[2]` expressions are evaluated after the simulation loop.
 
-Inputs are invalid if the sum of the elements of `eval_schedule` does not equal the number of elements in each of `expr_output_count`, `expr_output_id`, `expr_sim_block`, and `expr_num_p_table_rows`.
+Inputs are invalid if the sum of the elements of `eval_schedule` does not equal the number of elements in each of `expr_output_id`, `expr_sim_block`, and `expr_num_p_table_rows`.
 
 ## Parse Tables
 
@@ -154,89 +152,17 @@ A global list of valid literals for all expressions is passed to C++ as a numeri
 
 The functions that are used in each [Expression] must be in a valid list of functions defined on the C++ side. Most of these functions will have analogues on the R side to make it as easy as possible for R users to reason about their expressions.
 
-Valid functions take one or more matrix-valued arguments and return a single matrix (although see the section on [Lists of Matrices] and [Time Lags] for exceptions). The number of arguments does not need to be known when the model is defined, but some functions may optionally require a predefined number of arguments.
+Valid functions take one or more matrix-valued arguments and return a single matrix. The number of arguments does not need to be known when the model is defined, but some functions may optionally require a predefined number of arguments.
 
-Extending functionality of the engine will typically involve simply adding function definitions to the list of valid functions.
+Extending functionality of the engine will typically involve simply adding function definitions to the list of valid functions. All function definitions have the following objects available to them.
+
+* `r` -- A list of matrices giving the arguments to the function (e.g. `r[0]` returns the first matrix).
+* `index2mats` -- A list of integers giving the indices for identifying the matrices in the `mats` list (e.g. `index2mats[0]` returns the index of the first argument).
+* `t` -- Time step
+* `hist` -- A list of lists of matrices giving the history of the simulation (e.g. `hist[4][0]` returns the value of the first matrix at time step `4`).
+* `n` -- The number of arguments.
 
 Function definitions should be grouped into types if several functions require similar processing. The main example that we have is element-wise binary operators, including `+`, `*`, `-`, `/`, `^`. These functions all require the same pre-processing to make sure that the matrix dimensions of the two operands are compatible and that compatibility is conveniently defined for the user.
-
-We use the following definition of element-wise binary operators.
-
-* If both operands have the same shape, then do the element-wise operation
-* If one of the operands is a scalar, then do the operation of scalar vs
-  elements of the other operand
-* If one of the operands is a vector, then
-    * If the length of the vector is equal to the corresponding dimension of the
-      other operand, then do row- or column-wise element-vs-element operation.
-    * Otherwise return an error
-* Otherwise return an error
-
-
-TODO: Consider adding a special function for 'running a simulation loop' so that we can do things like put priors on R0. The idea with this use case is that R0 is computed be simulating a special cohort model to produce the kernel, the sum of which is R0. Perhaps what we should do is to allow the user to run `n` simulation loops? Or perhaps another way around this is to add objective functions for two different simulation models.
-
-
-## Lists of Matrices
-
-It was briefly introduced in the section on [Expressions] that it is possible to modify several matrices using the same expression. This is achieved by choosing an appropriate function at the root of the parse tree. Such a function is special in that it would return a list of matrices instead of a single matrix. An example might be a function to return both the dominant eigenvector and eigenvalue of an input matrix.
-
-In order to make lists of matrices a consistent concept, we need to introduce five additional special functions: `list`, `extract`, `select`, `map`, and `reduce`.
-
-The `list` function takes an arbitrary number of matrices and returns a list of matrices. This list of matrices can be passed to the one of the following four functions.
-
-The `extract` function takes the following arguments.
-
-1. `l` -- A list of matrices
-2. `i` -- A one-by-one matrix with a single integer
-
-The return value of `extract` is the `i`th matrix in `l`.
-
-The `select` function takes the following arguments.
-
-1. `l` -- A list of matrices
-2. `i` -- A matrix of integers
-
-The return value of `select` is another list of matrices with the elements of `l` that are indexed by the elements of `i`. The output list is sorted in the (row-major) order in which they appear in `i`.
-
-The `map` function takes the following arguments.
-
-1. `l` -- A list of matrices
-2. `f` -- A function that accepts one matrix and returns one matrix
-
-The return value of `map` is another list with the results of applying `f` to each matrix in `l`.
-
-An example of a mapping function is one that returns the row sums of a matrix. When such a function is passed to `map`, the `map` function would return a list of vectors each containing the row sums of the corresponding matrix in the input list.
-
-The `reduce` function takes the following arguments.
-
-1. `l` -- A list of matrices
-2. `f` -- A function that accepts several matrices and returns one matrix
-
-The return value of `reduce` is the matrix returned by passing all of the matrices in `l` to `f`
-
-An example of a reducing function is one that returns the first matrix in the input list. Another example is one that flattens all matrices in the list and concatenates them.
-
-TODO: modify the parse table definitions to accommodate lists of matrices.
-
-
-## Time Lags
-
-To be able to refer to past times for matrices that have their simulation history saved, we have four more special functions: `extract_time`, `extract_lag`, `select_time`, and `select_lag`.
-
-The `extract_time` and `extract_lag` functions each take the following arguments.
-
-1. `m` -- A matrix in `mats`
-2. `i` -- A one-by-one matrix with a single integer
-
-The return value of `extract_time` is the value of `m` at iteration `i`. The return value of `extract_lag` is similar but returns the value of `m` at iteration `t-i`.
-
-The `select_time` and `select_lag` functions each take the following arguments.
-
-1. `m` -- A matrix in `mats`
-2. `i` -- A matrix of integers
-
-The return value of `select_time` is a list of the values of `m` at each iteration given by the elements of `i`. The return value of `select_lag` is similar but returns a list of values at iterations given by `t-i`.
-
-For all four of these functions, if `m` does not refer to a matrix that has a saved simulation history than an error is thrown. Similarly, an error is thrown if any index is out of bounds (i.e. greater than `T+1` or less than `0`.
 
 
 ## Objective Function

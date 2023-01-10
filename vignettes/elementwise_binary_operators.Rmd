@@ -1,10 +1,10 @@
 ---
-title: "Elementwise Binary Operations in the McMasterPandemic Engine"
+title: "Elementwise Binary Operators in the McMasterPandemic Engine"
 output: 
   rmarkdown::html_vignette:
     toc: true
 vignette: >
-  %\VignetteIndexEntry{Elementwise Binary Operations in the McMasterPandemic Engine}
+  %\VignetteIndexEntry{Elementwise Binary Operators in the McMasterPandemic Engine}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

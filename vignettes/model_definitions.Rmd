@@ -74,9 +74,7 @@ The following sections describe each of these files in more detail.
 
 The `variables.csv` file is a data frame with one row for each variable in the model and one column for each labelled partition of the variables. A labelled partition is a character vector of labels that describes the variables. Each row of this data frame must be unique so that it uniquely identifies each variable.
 
-For example, here is a standard SEIR model list of variables.
-
-
+For example, here is a list of variables for the standard SEIR model.
 
 ```{r, echo = FALSE}
 Epi = models$seir$variables()
@@ -104,11 +102,13 @@ data.frame(
 
 We emphasize that the list with the single `Epi` partition did not violate this spec, as it is not required to add a partition to make a distinction between state variables and parameters. The spec makes this distinction in the `settings` file under [Variable Roles]. In this example, the addition of the `Type` and `Infect` partitions are for convenience. The point is that the user is free to add any number of partitions even if they are not required for uniqueness.
 
+We use the term _names_ for strings that identify partitions and the term _labels_ for strings that identify variables with respect to a particular partition.
+
 Note that we do not provide a column for the numeric quantity of each variable because this is a spec for a compartmental model data structure. By working with pure model structure objects, we can combine different atomic models to more easily produce models with more structure. When it comes time to use a model, the [computational engine](https://canmod.net/misc/cpp_side) can be used to associate model variables with numerical quantities.
 
-Non-empty labels must contain only letters, numbers, underscores, and must start with a letter. Empty labels are zero-length strings that can be used to indicate that some partitions are not applicable to some variables. The purpose for these naming rules is to facilitate the construction of [Variable Names] that can be inverted to reproduce the `variables` list.
+Non-empty labels in each partition must contain only letters, numbers, underscores, and must start with a letter. Empty labels are zero-length strings that can be used to indicate that some partitions are not applicable to some variables. The purpose for these naming and labelling rules is to facilitate the construction of [Variable Names] that can be inverted to reproduce the `variables` list.
 
-By convention we use [UpperCamelCase](https://en.wikipedia.org/wiki/Camel_case) for partition names and a modified form of  [snake_case](https://en.wikipedia.org/wiki/Snake_case) for labels. Our modification of snake case allows for single uppercase letters in order to accommodate the convention in epidemiology for using single uppercase letters to refer to state variables. For example, `S`, `I`, and `R`, as well as `I_mild` and `I_severe`, would be consistent with our modified snake case style.
+By convention we use [UpperCamelCase](https://en.wikipedia.org/wiki/Camel_case) for partition names and a modified form of  [snake_case](https://en.wikipedia.org/wiki/Snake_case) for variable labels. Our modification of snake case allows for single uppercase letters in order to accommodate the convention in epidemiology for using single uppercase letters to refer to state variables. For example, `S`, `I`, and `R`, as well as `I_mild` and `I_severe`, would be consistent with our modified snake case style.
 
 ## Required Partitions
 
