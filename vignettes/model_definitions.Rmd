@@ -11,6 +11,8 @@ vignette: >
 
 ```{r, include = FALSE}
 library(macpan2)
+model_dirs = list.files(system.file("starter_models", package = "macpan2"), full.names = TRUE)
+models = setNames(lapply(model_dirs, ModelFiles), basename(model_dirs))
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
@@ -67,12 +69,12 @@ A compartmental model is a directory with the following four files.
 3. `flows` -- A CSV file describing what variables are state variables and the magnitudes of flows to and from compartments.
 4. `settings` -- A JSON file with an object of elements that determine how files 1-3 are used by the software.
 
-
 The following sections describe each of these files in more detail.
+
 
 ## Variables and Partitions
 
-The `variables.csv` file is a data frame with one row for each variable in the model and one column for each labelled partition of the variables. A labelled partition is a character vector of labels that describes the variables. Each row of this data frame must be unique so that it uniquely identifies each variable.
+The `variables.csv` file has row for each variable in the model and one column for each labelled partition of the variables. A labelled partition is a character vector of labels that describes the variables. Each row in this file must be unique so that it uniquely identifies each variable.
 
 For example, here is a list of variables for the standard SEIR model.
 
