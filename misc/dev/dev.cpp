@@ -817,7 +817,17 @@ public:
                         int nrow;
                         int ncol;
                         nrow = r[1].size();
-                        ncol = r[2].size();
+
+                        if(n==2){
+                            m1 = matrix<Type>::Zero(1,1);
+                            ncol=1;
+                        }
+                        else{
+                            ncol = r[2].size();
+                            m1 = r[2];
+                        }
+
+
                         m = matrix<Type>::Zero(nrow,ncol);
                         // if we can assume contiguous sets of rows and columns
                         // then mat.block(...) will be faster, so should we
@@ -827,7 +837,7 @@ public:
                         for (int i=0; i<nrow; i++) {
                             for (int j=0; j<ncol; j++) {
                                 rowIndex = CppAD::Integer(r[1].coeff(i,0));
-                                colIndex = CppAD::Integer(r[2].coeff(j,0));
+                                colIndex = CppAD::Integer(m1.coeff(j,0));
                                 m.coeffRef(i,j) = r[0].coeff(rowIndex, colIndex);
                             }
                         }
