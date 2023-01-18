@@ -10,7 +10,7 @@ MathExpressionFromFunc(math_function)
 
 MathExpressionFromStrings(
   expression_string,
-  argument_strings,
+  argument_strings = character(0L),
   include_dots = FALSE
 )
 }

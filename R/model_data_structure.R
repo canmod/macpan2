@@ -70,6 +70,13 @@ ModelCollection = function(variables
 #' @param txt_reader Class inheriting from \code{\link{Reader}} for reading
 #' txt files.
 #'
+#' @examples
+#' d = system.file("starter_models", "seir_symp_vax", package = "macpan2")
+#' m = ModelFiles(d)
+#' m$flows()
+#' expander = FlowExpander(m)
+#' expander$expand_flows()
+#'
 #' @export
 ModelFiles = function(model_directory
     , csv_reader = CSVReader
@@ -145,7 +152,31 @@ ModelFiles = function(model_directory
     )
   }
 
-  return_object(self, "CompartmentalModel")
+  return_object(self, "ModelFiles")
+}
+
+#' Model
+#'
+#' Construct an object for representing a model structure.
+#'
+#' @param definition Output of \code{\link{ModelFiles}}.
+#' @export
+Model = function(definition) {
+  self = Base()
+  self$def = definition
+  self$variables = function() Partition(self$def$variables())
+  self$flows = function() self$def$flows()
+  self$flows_expanded = function() FlowExpander(self$def)$expand_flows()
+  self$flow_variables = function() {
+    s = self$def$settings()
+    self$variables()$filter(s$flow_variables, .wrt = s$required_partitions)
+  }
+  self$state_variables = function() {
+    s = self$def$settings()
+    self$variables()$filter(s$state_variables, .wrt = s$required_partitions)
+  }
+  self$derivations = self$def$derivations ## TODO: make this more useful
+  return_object(self, "Model")
 }
 
 #' Reader

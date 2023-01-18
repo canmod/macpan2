@@ -19,6 +19,9 @@ ExprListUtils = function() {
   self$.set_name_prefix = function(x, prefix) {
     setNames(x, paste(prefix, names(x), sep = ""))
   }
+  self$.does_assign = function(x) {
+    raw_lhs = self$.lhs(x)
+  }
   self$.lhs = function(x) {
     as.character(x[[2L]])
   }
@@ -476,13 +479,13 @@ TMBSimulator = function(tmb_model, tmb_cpp = "macpan2") {
     r = setNames(
       as.data.frame(self$ad_fun$report(fixed_params)$values),
       c("matrix", "time", "row", "col", "value")
-    )
-    r$matrix = self$matrix_names[r$matrix + 1L]
-    dn = self$tmb_model$.init_mats$.dimnames
+    )  ## get raw simulation output from TMB and supply column names (which don't exist on the TMB side)
+    r$matrix = self$matrix_names[r$matrix + 1L]  ## replace matrix indices with matrix names
+    dn = self$tmb_model$.init_mats$.dimnames ## get the row and column names of matrices with such names
     for (mat in names(dn)) {
       i = r$matrix == mat
-      r[i,"row"] = dn[[mat]][[1L]][r[i,"row"] + 1L]
-      r[i,"col"] = dn[[mat]][[2L]][r[i,"col"] + 1L]
+      r[i,"row"] = dn[[mat]][[1L]][as.integer(r[i,"row"]) + 1L]
+      r[i,"col"] = dn[[mat]][[2L]][as.integer(r[i,"col"]) + 1L]
     }
     r$time = as.integer(r$time)
     num_t = self$tmb_model$.time_steps$.time_steps

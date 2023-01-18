@@ -323,7 +323,10 @@ MathExpressionFromFunc = function(math_function) {
 
 #' @rdname MathExpression
 #' @export
-MathExpressionFromStrings = function(expression_string, argument_strings, include_dots = FALSE) {
+MathExpressionFromStrings = function(expression_string
+    , argument_strings = character(0L)
+    , include_dots = FALSE
+  ) {
   self = Base()
   # browser()
   math_function = function() {}

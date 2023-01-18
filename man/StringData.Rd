@@ -44,3 +44,12 @@ dots in either the names or the values.
 partition labels.
 
 }}
+\examples{
+path = system.file("starter_models", "seir_symp_vax", package = "macpan2")
+model = ModelFiles(path)
+vars = StringDataFromFrame(model$variables())
+vars
+vars$dot()
+
+
+}

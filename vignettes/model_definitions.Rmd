@@ -59,6 +59,17 @@ This spec design has been guided by several high-level user stories, which we ou
 
 These and other [user-stories](https://canmod.github.io/macpan-book/index.html#vision-and-direction) were developed by working with public-health modellers during the COVID-19 pandemic in Canada.
 
+## Labelled Partitions
+
+Before describing a data structure for representing [Compartmental Models], we need to define the concept of labelled partitions. This concept allows for a consistent, flexible, compact, and readable mechanism for identifying model variables and sets of variables. For example, in a spatially structured model we might want to refer to all states in a particular location (e.g. Toronto) and a specific state within that location (e.g. susceptible individuals in Toronto).
+
+There are two equivalent representations of a labelled partition, dotted and undotted. This equivalence allows us to go back-and-forth between the two representations without loosing information, but perhaps gaining convenience.
+
+The undotted representation can be thought of as a data frame. The rows of the data frame represent the things being represented. Our primary example of a 'thing' is a variable in a compartmental model (e.g. number of susceptible individuals in Toronto, or the force of infection). The columns of the data frame represent different ways to partition the rows.
+
+```{r echo = FALSE}
+StringDataFromDotted(models$seir_vax$settings()$state_variables, "Epi.Vax")$undot()$frame()
+```
 
 ## Compartmental Models
 
@@ -79,32 +90,32 @@ The `variables.csv` file has row for each variable in the model and one column f
 For example, here is a list of variables for the standard SEIR model.
 
 ```{r, echo = FALSE}
-Epi = models$seir$variables()
-Epi
+Epi = models$seir$variables()  ## delete when no longer used
+models$seir$variables()
 ```
 
 This example has a single labelled partition, `Epi`. This partition uniquely identifies each variable and so we do not need other partitions to comply with the uniqueness requirement.  Still, it is often convenient to add other partitions to refer to multiple variables at the same time. For example it might help to distinguish between state variables and parameters and also between infected states and non-infected states.
 
 ```{r, echo = FALSE}
-data.frame(
-  Type = c(
-    rep("state", 4), 
-    rep("param", 3)
+cbind(
+  data.frame(
+    Type = c(
+      rep("state", 4), 
+      rep("param", 3),
+      rep("derived", 2)
+    ),
+    Infect = c(
+      "not_infected", "infected", "infected", "not_infected", 
+      "", "", "", "", ""
+    )
   ),
-  Infect = c(
-    "not_infected", "infected", "infected", "not_infected", 
-    "", "", ""
-  ),
-  Epi = c(
-    "S", "E", "I", "R", 
-    "beta", "alpha", "gamma"
-  )
+  models$seir$variables()
 )
 ```
 
-We emphasize that the list with the single `Epi` partition did not violate this spec, as it is not required to add a partition to make a distinction between state variables and parameters. The spec makes this distinction in the `settings` file under [Variable Roles]. In this example, the addition of the `Type` and `Infect` partitions are for convenience. The point is that the user is free to add any number of partitions even if they are not required for uniqueness.
+We emphasize that the list with the single `Epi` partition did not violate this spec, as it is not required to add a partition to make a distinction between state variables and parameters. The spec distinguishes [Variable Roles] like this in the `settings` file. In this example, the addition of the `Type` and `Infect` partitions are for convenience. The point is that the user is free to add any number of partitions even if they are not required for uniqueness.
 
-We use the term _names_ for strings that identify partitions and the term _labels_ for strings that identify variables with respect to a particular partition.
+We use the term _names_ for strings that identify partitions and the term _labels_ for strings that identify variables with respect to a particular partition. 
 
 Note that we do not provide a column for the numeric quantity of each variable because this is a spec for a compartmental model data structure. By working with pure model structure objects, we can combine different atomic models to more easily produce models with more structure. When it comes time to use a model, the [computational engine](https://canmod.net/misc/cpp_side) can be used to associate model variables with numerical quantities.
 

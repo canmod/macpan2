@@ -60,7 +60,7 @@ ExpandDerivationDefinitions = function(derivation, variables, required_partition
   }
   {
     output_data = (filtered_data
-      $ordered_unique_filter(output_filter, all_equals)
+      $ordered_unique_filter(output_filter, all_equal)
       $change_coordinates(required_partitions)
       $dot()
       $labels()
@@ -73,7 +73,7 @@ ExpandDerivationDefinitions = function(derivation, variables, required_partition
     }
     argument_filter = StringDataFromDotted(derivation$arguments, derivation$input_partition)$undot()
     argument_data = (grouped_data
-      |> method_apply("ordered_unique_filter", argument_filter, all_equals)
+      |> method_apply("ordered_unique_filter", argument_filter, all_equal)
       |> method_apply("change_coordinates", required_partitions)
       |> method_apply("dot")
       |> method_apply("labels")
@@ -88,7 +88,7 @@ ExpandDerivationDefinitions = function(derivation, variables, required_partition
     }
     dots_filter = StringDataFromDotted(derivation$argument_dots, derivation$input_partition)$undot()
     dots_data = (grouped_data
-      |> method_apply("ordered_unique_filter", dots_filter, all_equals)
+      |> method_apply("ordered_unique_filter", dots_filter, all_equal)
       |> method_apply("change_coordinates", required_partitions)
       |> method_apply("dot")
       |> method_apply("labels")

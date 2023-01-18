@@ -994,24 +994,19 @@ public:
                     // #' ### Return
                     // #'
                     // #' A matrix the same size as `x` but with the
-                    // #' convolutions of each element, $x_{ij}$, given by
-                    // #' the following.
+                    // #' convolutions, \eqn{y_{ij}}, of each element,
+                    // #' \eqn{x_{ij}}, given by the following.
                     // #'
-                    // #' \deqn{y_{ij} = \sum_(\tau = 0)^{min(\lambda,)} x_{ij}(t-\tau) k(\tau)}
+                    // #' \deqn{y_{ij} = \sum_{\tau = 0} x_{ij}(t-\tau) k(\tau)}
                     // #'
-                    // #' unless,
-                    // #'
-                    // #' \deqn{t-\tau < 0}
-                    // #'
-                    // #' in which case,
+                    // #' unless \eqn{t < \tau}, in which case,
                     // #'
                     // #' \deqn{y_{ij} = }
                     // #'
-                    // #' where,
-                    // #'
-                    // #' \deqn{y_{ij}} is the convolution.
-                    // #' \deqn{x_{ij}(t)} is the value of `x` at time step, `t`.
-                    // #' \deqn{k(\tau)} is the value of the kernel at the lag.
+                    // #' where \eqn{y_{ij}} is the convolution,
+                    // #' \eqn{x_{ij}(t)} is the value of \eqn{x_{ij}} at time step, \eqn{t},
+                    // #' \eqn{k(\tau)} is the value of the kernel at lag, \eqn{\tau},
+                    // #' and \eqn{\lambda} is the length of the kernel.
                     // #'
                     // #' ### Details
                     // #'
@@ -1175,7 +1170,7 @@ public:
                         return m;
 
                     case MP2_ASSIGN:
-                    // #' Assign
+                    // #' ## Assign
                     // #'
                     // #' ### Functions
                     // #'
@@ -1187,7 +1182,7 @@ public:
                             colIndex = CppAD::Integer(r[2].coeff(k,0));
                             valid_vars.m_matrices[index2mats[0]].coeffRef(rowIndex,colIndex) = r[3].coeff(k,0);
                         }
-                        return m2;
+                        return m2; // empty matrix
 
 
                     case MP2_UNPACK:

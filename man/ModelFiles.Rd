@@ -29,3 +29,11 @@ txt files.}
 \description{
 Construct objects for accessing and caching model definition files.
 }
+\examples{
+d = system.file("starter_models", "seir_symp_vax", package = "macpan2")
+m = ModelFiles(d)
+m$flows()
+expander = FlowExpander(m)
+expander$expand_flows()
+
+}

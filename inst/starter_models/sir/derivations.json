@@ -1,10 +1,12 @@
 [
   {
+    "simulation_phase" : "before",
     "output_names" : ["N"],
     "arguments" : ["S", "I", "R"],
     "expression" : "sum(S, I, R)"
   },
   {
+    "simulation_phase" : "during",
     "output_names" : ["foi"],
     "arguments" : ["I", "beta", "N"],
     "expression" : "I * beta / N"

@@ -61,7 +61,7 @@ NULL
 #' @export
 #' @describeIn comparison Is it true that all corresponding elements of \code{x}
 #' and \code{y} are equal, have the same shape, and have no missing values?
-all_equals = function(x, y) isTRUE(all(x == y))
+all_equal = function(x, y) isTRUE(all(x == y))
 
 #' @describeIn comparison Is it true that all corresponding elements of \code{x}
 #'  and \code{y} are either equal or at least one is a blank string, have the
@@ -69,6 +69,13 @@ all_equals = function(x, y) isTRUE(all(x == y))
 #' @export
 all_consistent = function(x, y) isTRUE(all((x == y) | (x == "") | (y == "")))
 
+#' @describeIn comparison Complement of \code{all_equal}.
+#' @export
+not_all_equal = function(x, y) !all_equal(x, y)
+
+#' @describeIn comparison Do not know yet
+#' @export
+all_not_equal = function(x, y) isTRUE(all(x != y))
 
 seq_row = function(x) seq_len(nrow(x))
 seq_col = function(x) seq_len(ncol(x))
@@ -442,6 +449,14 @@ StringUndottedData = function(labels, names) {
 #'
 #' Create objects for representing names and labels in a compartmental
 #' model.
+#'
+#' @examples
+#' path = system.file("starter_models", "seir_symp_vax", package = "macpan2")
+#' model = ModelFiles(path)
+#' vars = StringDataFromFrame(model$variables())
+#' vars
+#' vars$dot()
+#'
 #'
 #' @name StringData
 NULL

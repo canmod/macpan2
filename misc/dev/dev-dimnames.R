@@ -60,8 +60,14 @@ m = TMBModel(
   ),
   random = OptParamsList(),
   obj_fn = ObjectiveFunction(~0),
-  time_steps = Time(5L)
+  time_steps = Time(30L)
 )
 
 s = TMBSimulator(m)
 s$report(0.2)
+ggplot(dplyr::filter(s$report(0.3), row == "I")) + geom_line(aes(time, value))
+
+
+
+
+

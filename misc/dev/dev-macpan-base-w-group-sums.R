@@ -9,6 +9,7 @@ m = TMBModel(
       state = c(1-1e-2, 1e-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
     , from = c(0, 1, 1, 2, 3, 3, 4, 5, 5, 5, 5, 6, 7,  8, 9)
     , to = c(1, 2, 3, 10, 4, 5, 10, 6, 7, 8, 11, 9, 11,  10, 10)
+    , S = 0, E = 1, ... ## state[S, 0]
     , alpha = 0.39
     , beta0 = 1
     , Ca = 2/3
@@ -48,16 +49,19 @@ m = TMBModel(
     , foi = empty_matrix
     , rate = empty_matrix
     , flow = empty_matrix
+    , dummy = empty_matrix
     , .mats_to_save = c("state", "rate", "flow")
     , .mats_to_return = c("state", "rate", "flow")
     , .dimnames = list(
-      state = list(c("S", "E", "Ia", "Ip", "Im", "Is", "ICUs", "ICUd", "H", "H2", "R", "D"))
+        state = list(
+          c("S", "E", "Ia", "Ip", "Im", "Is", "ICUs", "ICUd", "H", "H2", "R", "D"),
+          ""
+        )
       )
-    )
+  )
   , expr_list = ExprList(
-    during = list(
-        N ~ sum(state) - state[11, 0]
-      , EIa ~alpha*sigma
+    before = list(
+        EIa ~alpha*sigma
       , EIp ~(1-alpha)*sigma
       , IaR ~gamma_a
       , IpIm ~mu*gamma_p
@@ -71,13 +75,18 @@ m = TMBModel(
       , ICUdD ~psi2
       , H2R ~psi3
       , HR ~rho
-      , foi ~ state[2, 0] * beta0 * Ca / N  +
-        state[3, 0] * beta0 * Cp / N +
-        state[4, 0] * beta0 * Cm / N * (1 - iso_m) +
-        state[5, 0] * beta0 * Cs / N  * (1 - iso_s)
-      , rate ~ c(foi, EIa, EIp, IaR, IpIm, IpIs, ImR, IsICUs, IsICUd, IsH, IsD, ICUsH2, ICUdD, HR, H2R)
+      , rate ~ c(0.0, EIa, EIp, IaR, IpIm, IpIs, ImR, IsICUs, IsICUd, IsH, IsD, ICUsH2, ICUdD, HR, H2R)
+    ),
+    during = list(
+        N ~ sum(state) - state[11, 0]
+      , foi ~ Ia * beta0 * Ca / N  +
+        Ip * beta0 * Cp / N +
+        Im * beta0 * Cm / N * (1 - iso_m) +
+        Is * beta0 * Cs / N  * (1 - iso_s)
+      , dummy ~ assign(rate, 0, 0, foi)
       , flow ~ state[from, 0]*rate
       , state ~ state - groupSums(flow, from, 12) + groupSums(flow, to, 12)
+      , dummy ~ unpack(state, S, E, Ia, Ip, Im, Is, ICUs, ICUd, H, H2, R, D)
       )
   )
     , params = OptParamsList(2/3, 1, 1, 1
@@ -91,4 +100,11 @@ m = TMBModel(
     , time_steps = Time(100L)
   )
 s = TMBSimulator(m, "dev")
-s$report(2/3, 1, 1, 1)
+r = s$report(2/3, 1, 1, 1)
+View(r)
+
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+filter(r, matrix == "state") %>% ggplot + facet_wrap(~row, scales = 'free') + geom_line(aes(time, value))

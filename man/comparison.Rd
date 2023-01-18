@@ -2,13 +2,19 @@
 % Please edit documentation in R/names_and_labels.R
 \name{comparison}
 \alias{comparison}
-\alias{all_equals}
+\alias{all_equal}
 \alias{all_consistent}
+\alias{not_all_equal}
+\alias{all_not_equal}
 \title{Comparison Functions}
 \usage{
-all_equals(x, y)
+all_equal(x, y)
 
 all_consistent(x, y)
+
+not_all_equal(x, y)
+
+all_not_equal(x, y)
 }
 \arguments{
 \item{x}{\code{\link{character}} object}
@@ -20,11 +26,15 @@ Comparison Functions
 }
 \section{Functions}{
 \itemize{
-\item \code{all_equals()}: Is it true that all corresponding elements of \code{x}
+\item \code{all_equal()}: Is it true that all corresponding elements of \code{x}
 and \code{y} are equal, have the same shape, and have no missing values?
 
 \item \code{all_consistent()}: Is it true that all corresponding elements of \code{x}
 and \code{y} are either equal or at least one is a blank string, have the
 same shape, and have no missing values?
+
+\item \code{not_all_equal()}: Complement of \code{all_equal}.
+
+\item \code{all_not_equal()}: Do not know yet
 
 }}
