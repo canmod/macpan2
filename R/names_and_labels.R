@@ -73,7 +73,7 @@ all_consistent = function(x, y) isTRUE(all((x == y) | (x == "") | (y == "")))
 #' @export
 not_all_equal = function(x, y) !all_equal(x, y)
 
-#' @describeIn comparison Do not know yet
+#' @describeIn comparison Do not know yet. Currently unused; should we remove?
 #' @export
 all_not_equal = function(x, y) isTRUE(all(x != y))
 
@@ -158,6 +158,9 @@ StringDottedVector = function(...) {
   self$which_in = function(other, f) {
     self$undot()$which_in(other$undot())$dot()
   }
+  self$which_not_in = function(other, f) {
+    self$undot()$which_not_in(other$undot())$dot()
+  }
   self$which_dup = function() {
     duplicated(self$value())
   }
@@ -209,6 +212,19 @@ StringUndottedMatrix = function(...) {
         z[i] = comparison_function(x[i,,drop = TRUE], y[j,,drop = TRUE])
         if (z[i]) break
       }
+    }
+    z
+  }
+  self$which_not_in = function(other, comparison_function) {
+    x = self$value()
+    y = other$value()
+    w = logical(nrow(y))
+    z = logical(nrow(x))
+    for (i in seq_row(x)) {
+      for (j in seq_row(y)) {
+        w[j] = comparison_function(x[i,,drop = TRUE], y[j,,drop = TRUE])
+      }
+      if(all(w==TRUE)) z[i]=TRUE
     }
     z
   }
@@ -302,6 +318,9 @@ StringDottedData = function(labels, names) {
   self$filter = function(other, comparison_function) {
     self$undot()$filter(other$undot(), comparison_function)$dot()
   }
+  self$filter_out = function(other, comparison_function) {
+    self$undot()$filter_out(other$undot(), comparison_function)$dot()
+  }
   self$filter_other = function(other, comparison_function) {
     self$undot()$filter_other(other$undot(), comparison_function)$dot()
   }
@@ -344,6 +363,17 @@ StringUndottedData = function(labels, names) {
     x = self$change_coordinates(coordinates)
     y = other$change_coordinates(coordinates)
     z = x$labels()$which_in(y$labels(), comparison_function)
+    StringUndottedData(
+      labels = self$labels()$subset(z),
+      names = self$names()
+    )
+  }
+  self$filter_out = function(other, comparison_function) {
+    other = other$undot()
+    coordinates = other$names()$value()
+    x = self$change_coordinates(coordinates)
+    y = other$change_coordinates(coordinates)
+    z = x$labels()$which_not_in(y$labels(), comparison_function)
     StringUndottedData(
       labels = self$labels()$subset(z),
       names = self$names()
