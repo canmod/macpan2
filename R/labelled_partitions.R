@@ -1,4 +1,10 @@
-## labels objects are vectors that can be dotted
+#' To Labels
+#'
+#' Convert objects to labels, which are vectors that can be dotted.
+#'
+#' @param x Object to convert to labels.
+#' @return Character vector that can be used as labels.
+#'
 #' @export
 to_labels = function(x) UseMethod("to_labels")
 
@@ -20,7 +26,13 @@ to_labels.Vector = function(x) x$dot()$value()
 #' @export
 to_labels.Labels = function(x) x$dot()$value()
 
-## names objects are vectors that cannot be dotted
+#' To Names
+#'
+#' Convert objects to names, which are vectors that cannot be dotted.
+#'
+#' @param x Object to convert to labels.
+#' @return Character vector that can be used as names.
+#'
 #' @export
 to_names = function(x) UseMethod("to_names")
 
@@ -39,7 +51,13 @@ to_names.Scalar = function(x) x$undot()$value()
 #' @export
 to_names.Names = function(x) x$undot()$value()
 
-## name objects are scalars that can be dotted
+#' To Name
+#'
+#' Convert objects to a name, which is a scalar string that can be dotted.
+#'
+#' @param x Object to convert to labels.
+#' @return Character string that can be used as a name.
+#'
 #' @export
 to_name = function(x) UseMethod("to_name")
 

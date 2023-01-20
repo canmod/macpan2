@@ -35,6 +35,6 @@ same shape, and have no missing values?
 
 \item \code{not_all_equal()}: Complement of \code{all_equal}.
 
-\item \code{all_not_equal()}: Do not know yet
+\item \code{all_not_equal()}: Do not know yet. Currently unused; should we remove?
 
 }}
