@@ -118,9 +118,16 @@ Partition = function(frame) {
     )
     Partition(self$.partition$filter(filterer, .comparison_function)$frame())
   }
-  self$filter_out = function(..., .wrt) {
-    self$filter(..., .wrt = .wrt, .comparison_function = not_all_equal)
+self$filter_out = function(..., .wrt, .comparison_function = not_all_equal) {
+  if (missing(.wrt)) {
+    .wrt = self$names()
+    if (length(.wrt) != 1L) .wrt = list_to_names(...)[[1L]]
   }
+  filterer = StringDataFromDotted(
+    labels = list_to_labels(...), names = to_name(.wrt)
+  )
+  Partition(self$.partition$filter_out(filterer, .comparison_function)$frame())
+}
   self$select = function(...) {
     Partition(unique(self$.partition$change_coordinates(...)$frame()))
   }
