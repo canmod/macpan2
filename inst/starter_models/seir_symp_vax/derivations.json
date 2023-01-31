@@ -39,7 +39,7 @@
     "group_names" : ["unvax", "vax"],
     "output_partition" : "Epi.Vax",
     "output_names" : ["N.unvax", "N.vax"],
-    "input_partition" : ["Epi"],
+    "input_partition" : "Epi",
     "arguments" : ["S", "E", "I", "R"],
     "expression" : "sum(S, E, I, R)"
   },
