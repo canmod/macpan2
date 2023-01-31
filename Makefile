@@ -39,11 +39,12 @@ quick-doc-install: R/*.R misc/dev/dev.cpp
 
 
 enum-update:: R/enum.R
-R/enum.R: misc/dev/dev.cpp
+R/enum.R: misc/dev/dev.cpp misc/build/enum_tail.R
 	echo "## Auto-generated - do not edit by hand" > $@
-	echo "valid_funcs = c(" >> $@
-	grep "$(ENUM_RE)" $^ | sed 's/$(ENUM_RE)$(SED_RE)/  \"\2\"\1/' >> $@
+	echo "valid_func_sigs = c(" >> $@
+	grep "$(ENUM_RE)" misc/dev/dev.cpp | sed 's/$(ENUM_RE)$(SED_RE)/  \"\2\"\1/' >> $@
 	echo ")" >> $@
+	cat misc/build/enum_tail.R >> $@
 	echo "valid_funcs = setNames(as.list(valid_funcs), valid_funcs)" >> $@
 
 

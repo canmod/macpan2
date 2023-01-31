@@ -1,42 +1,60 @@
 ## Auto-generated - do not edit by hand
-valid_funcs = c(
-  "+",
-  "-",
-  "*",
-  "/",
-  "^",
-  "exp",
-  "log",
-  "(",
-  "c",
-  "matrix",
-  "%*%",
-  "sum",
-  "rep",
-  "rowSums",
-  "colSums",
-  "groupSums",
-  "[",
-  "block",
-  "t",
-  "rbind_time",
-  "rbind_lag",
-  "cbind_time",
-  "cbind_lag",
-  ":",
-  "seq",
-  "convolution",
-  "cbind",
-  "rbind",
-  "time_step",
-  "assign",
-  "unpack",
-  "clamp",
-  "dpois",
-  "dnbinom",
-  "dnorm",
-  "rpois",
-  "rnbinom",
-  "rnorm"
+valid_func_sigs = c(
+  "binop,null: `+`(x, y)",
+  "binop,null: `-`(x, y)",
+  "binop,null: `*`(x, y)",
+  "binop,null: `/`(x, y)",
+  "binop,null: `^`(x, y)",
+  "fwrap,null: exp(x)",
+  "fwrap,null: log(x)",
+  "null,null: `(`(...)",
+  "null,null: c(...)",
+  "fwrap,null: matrix(x, i, j)",
+  "binop,null: `%*%`(x, y)",
+  "null,null: sum(...)",
+  "fwrap,null: rep(x, times)",
+  "fwrap,null: rowSums(x)",
+  "fwrap,null: colSums(x)",
+  "fwrap,null: groupSums(x, f, n)",
+  "null,null: `[`(x, i, j)",
+  "fwrap,fail: block(x, i, j, n, m)",
+  "fwrap,null: t(x)",
+  "fwrap,fail: rbind_time(x, t, t_min)",
+  "fwrap,fail: rbind_lag(x, lag, t_min)",
+  "fwrap,fail: cbind_time(x, t, t_min)",
+  "fwrap,fail: cbind_lag(x, lag, t_min)",
+  "null,null: `:`(from, to)",
+  "fwrap,fail: seq(from, length, by)",
+  "fwrap,fail: convolution(x, k)",
+  "fwrap,null: cbind(...)",
+  "fwrap,null: rbind(...)",
+  "fwrap,fail: time_step(lag)",
+  "fwrap,null: assign(x, i, j, v)",
+  "fwrap,fail: unpack(x, ...)",
+  "fwrap,fail: clamp(x)",
+  "fwrap,fail: dpois(observed, simulated)",
+  "fwrap,fail: dnbinom(observed, simulated, over_dispersion)",
+  "fwrap,fail: dnorm(observed, simulated, standard_deviation)",
+  "fwrap,fail: rpois(mean)",
+  "fwrap,fail: rnbinom(mean, over_dispersion)",
+  "fwrap,fail: rnorm(mean, standard_deviation)"
 )
+process_enum = function(x) {
+  RE = "(null|fail|binop|fwrap|bwrap|pwrap)[ ]*,[ ]*(null|fail|binop|fwrap|bwrap|pwrap)[ ]*:[ ]*\\`?([^`]*)\\`?\\((.*)(\\,.*)*\\)"
+  valid_ids = grepl(RE, x)
+  if (!all(valid_ids)) {
+    stop("Developer error: Malformed enum in misc/dev/dev.cpp.")
+  }
+  list(
+    symb = sub(RE, "\\1", x),
+    num = sub(RE, "\\2", x),
+    func = sub(RE, "\\3", x),
+    args = lapply(strsplit(sub(RE, "\\4", x), ","), trimws)
+  )
+}
+processed = process_enum(valid_func_sigs)
+valid_funcs = setNames(as.list(processed$func), processed$func)
+valid_func_args = processed$args
+valid_symb_type = processed$symb
+valid_num_type = processed$num
 valid_funcs = setNames(as.list(valid_funcs), valid_funcs)
