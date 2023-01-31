@@ -69,7 +69,7 @@ doc-update: R/*.R misc/dev/dev.cpp
 
 pkg-build:: macpan2_$(VERSION).tar.gz
 macpan2_$(VERSION).tar.gz: R/*.R src/*.cpp tests/testthat/test-*.R tests/testthat.R
-	R CMD build .
+	R CMD build --no-manual --no-build-vignettes .
 
 
 pkg-check: macpan2_$(VERSION).tar.gz
