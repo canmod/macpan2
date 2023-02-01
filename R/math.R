@@ -1,7 +1,7 @@
-# Overriding Math Functions
-#
-# Create object with functions that override
-#
+
+
+
+
 
 # FF = function(math_function) {
 #   force(math_function)
@@ -213,6 +213,20 @@ SymbolicMath = function() {
   ## thinking that option #1 is best, because it is easier for me to
   ## think about scalars and i don't think that it should be an issue
   ## to package these things up into whatever vector/matrix we want
+
+  # This comment block is a start at automatically overriding functions
+  # listed in R/enum.R
+  #
+  # for (f in names(macpan2:::valid_funcs)) {
+  #   browser()
+  #   if (macpan2:::valid_symb_type[f] == "fwrap") {
+  #     self[[f]] = function() self$fwrap(f, do.call(self$csv, as.list(macpan2:::valid_func_args[[f]])))
+  #     blank_args = rep(list(quote(expr = )), length(macpan2:::valid_func_args[[f]]))
+  #     formals(self[[f]]) = setNames(blank_args, macpan2:::valid_func_args[[f]])
+  #   }
+  # }
+
+
   self$`+` = function(x, y) {
     force(x)
     force(y)
