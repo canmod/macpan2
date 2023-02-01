@@ -243,10 +243,7 @@ SymbolicMath = function() {
   self$`exp` = function(x) self$fwrap("exp", x)
   self$`log` = function(x) self$fwrap("log", x)
   self$`(` = function(x) self$wrap(x)
-  self$`c` = function(...) {
-    # browser()
-    self$fwrap("c", self$csv(...))
-  }
+  self$`c` = function(...) self$fwrap("c", self$csv(...))
   self$`matrix` = function(x, i, j) self$fwrap("matrix", self$csv(x, i, j))
   self$`%*%` = function(x, y) self$binop(" %*% ", x, y)
   self$`sum` = function(...) self$fwrap("sum", self$csv(...))
