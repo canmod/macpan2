@@ -176,6 +176,73 @@ Model = function(definition) {
     self$variables()$filter(s$state_variables, .wrt = s$required_partitions)
   }
   self$derivations = self$def$derivations ## TODO: make this more useful
+  self$user_expressions = function(){
+    derivation_list = self$derivations()
+    nmbr_of_drvtns = length(derivation_list)
+    usr_exprs = list()
+    for ( i in 1:nmbr_of_drvtns){
+      if(!is.null(derivation_list[[i]]$filter_partition)){
+        vrbls = self$variables()$filter(derivation_list[[i]]$filter_names, .wrt = derivation_list[[i]]$filter_partition)
+      } 
+      else vrbls = self$variables()
+      if(!is.null(derivation_list[[i]]$group_partition)){
+        nmbr_of_grps = length(derivation_list[[i]]$group_names)
+        grp_vrbls = lapply(derivation_list[[i]]$group_names, vrbls$filter, .wrt = derivation_list[[i]]$group_partition, .comparison_function = all_consistent)
+      }
+      else {
+        nmbr_of_grps = 1
+        grp_vrbls = vrbls
+      }
+      grp_outputs = lapply(derivation_list[[i]]$output_names, vrbls$filter, .wrt = derivation_list[[i]]$output_partition)
+      
+      nondots_flag = !is.null(derivation_list[[i]]$arguments) #Does the derivation have regular (i.e. not related to dots) arguments
+      dots_flag = !is.null(derivation_list[[i]]$argument_dots) #Does the derivation have arguments to go in place of dots
+      
+      if(nondots_flag){
+        fltrd_grp_vrbls = list()
+        for(j in 1:nmbr_of_grps){
+          fltrd_grp_vrbls = c(fltrd_grp_vrbls, grp_vrbls[[j]]$filter(derivation_list[[i]]$arguments, .wrt = derivation_list[[i]]$input_partition))
+        }
+      }
+      if(dots_flag){
+        dots_flag = TRUE
+        fltrd_grp_vrbls_dts = list()
+        for(j in 1:nmbr_of_grps){
+          fltrd_grp_vrbls_dts = c(fltrd_grp_vrbls_dts, grp_vrbls[[j]]$filter(derivation_list[[i]]$argument_dots, .wrt = derivation_list[[i]]$input_partition))
+        }
+      }
+      grp_exprs_list = list()
+      if(nondots_flag & dots_flag){
+        frml = MathExpressionFromStrings(derivation_list[[i]]$expression, derivation_list[[i]]$arguments, include_dots = TRUE)
+        for(j in 1:nmbr_of_grps){
+          symblc_input = as.list(c(fltrd_grp_vrbls[[j]]$labels(), flted_grp_vrbls_dts[[j]]$labels()))
+          symblc_frml = do.call(frml$symbolic$evaluate, symblc_input)
+          grp_exprs_list = append(grp_exprs_list, list(list(grp_outputs[[j]]$labels(), symblc_frml)))
+        }
+      }
+      else if(nondots_flag){
+        frml = MathExpressionFromStrings(derivation_list[[i]]$expression, derivation_list[[i]]$arguments)
+        for(j in 1:nmbr_of_grps){
+          symblc_input = as.list(fltrd_grp_vrbls[[j]]$labels())
+          symblc_frml = do.call(frml$symbolic$evaluate, symblc_input)
+          grp_exprs_list = append(grp_exprs_list, list(list(grp_outputs[[j]]$labels(), symblc_frml)))
+        }
+      }
+      else if(dots_flag){
+        frml = MathExpressionFromStrings(derivation_list[[i]]$expression, include_dots = TRUE)
+        for(j in 1:nmbr_of_grps){
+          symblc_input = as.list(fltrd_grp_vrbls_dts[[j]]$labels())
+          symblc_frml = do.call(frml$symbolic$evaluate, symblc_input)
+          grp_exprs_list = append(grp_exprs_list, list(list(grp_outputs[[j]]$labels(), symblc_frml)))
+        }
+      }
+      else{
+        Print("Error: Invalid derivations file?")#TODO: make this return a real error
+      }
+      usr_exprs = append(usr_exprs, list(grp_exprs_list))
+    }
+    return(usr_exprs)
+  }
   return_object(self, "Model")
 }
 
