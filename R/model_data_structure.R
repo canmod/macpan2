@@ -191,9 +191,20 @@ Model = function(definition) {
       }
       else {
         nmbr_of_grps = 1
-        grp_vrbls = vrbls
+        grp_vrbls = list(vrbls)
       }
-      grp_outputs = lapply(derivation_list[[i]]$output_names, vrbls$filter, .wrt = derivation_list[[i]]$output_partition)
+      if(!is.null(derivation_list[[i]]$output_partition)){
+        grp_outputs = lapply(derivation_list[[i]]$output_names, vrbls$filter, .wrt = derivation_list[[i]]$output_partition)
+      }
+      else {
+        grp_outputs = lapply(derivation_list[[i]]$output_names, vrbls$filter, .wrt = self$def$settings()$required_partitions)
+      }
+      if(!is.null(derivation_list[[i]]$input_partition)){
+        grp_inputs = derivation_list[[i]]$input_partition
+      }
+      else{
+        grp_inputs = self$def$settings()$required_partitions
+      }
       
       nondots_flag = !is.null(derivation_list[[i]]$arguments) #Does the derivation have regular (i.e. not related to dots) arguments
       dots_flag = !is.null(derivation_list[[i]]$argument_dots) #Does the derivation have arguments to go in place of dots
@@ -201,14 +212,14 @@ Model = function(definition) {
       if(nondots_flag){
         fltrd_grp_vrbls = list()
         for(j in 1:nmbr_of_grps){
-          fltrd_grp_vrbls = c(fltrd_grp_vrbls, grp_vrbls[[j]]$filter(derivation_list[[i]]$arguments, .wrt = derivation_list[[i]]$input_partition))
+          fltrd_grp_vrbls = c(fltrd_grp_vrbls, grp_vrbls[[j]]$filter(derivation_list[[i]]$arguments, .wrt = grp_inputs))
         }
       }
       if(dots_flag){
         dots_flag = TRUE
         fltrd_grp_vrbls_dts = list()
         for(j in 1:nmbr_of_grps){
-          fltrd_grp_vrbls_dts = c(fltrd_grp_vrbls_dts, grp_vrbls[[j]]$filter(derivation_list[[i]]$argument_dots, .wrt = derivation_list[[i]]$input_partition))
+          fltrd_grp_vrbls_dts = c(fltrd_grp_vrbls_dts, grp_vrbls[[j]]$filter(derivation_list[[i]]$argument_dots, .wrt = grp_inputs))
         }
       }
       grp_exprs_list = list()
