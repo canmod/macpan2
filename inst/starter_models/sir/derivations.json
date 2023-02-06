@@ -6,7 +6,7 @@
     "expression" : "sum(S, I, R)"
   },
   {
-    "simulation_phase" : "during",
+    "simulation_phase" : "during_pre_update",
     "output_names" : ["foi"],
     "arguments" : ["I", "beta", "N"],
     "expression" : "I * beta / N"

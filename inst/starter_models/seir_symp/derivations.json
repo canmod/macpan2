@@ -1,5 +1,6 @@
 [
   {
+    "simulation_phase" : "during_pre_update",
     "group_partition" : "Epi.SympStruc",
     "group_names" : ["I.component", "infectiousness.component"],
     "output_partition" : "Epi.SympStruc",
@@ -9,6 +10,7 @@
     "expression" : "c(mild, severe)"
   },
   {
+    "simulation_phase" : "during_pre_update",
     "group_partition" : "SympStruc",
     "group_names" : ["vector"],
     "output_partition" : "Epi.SympStruc",
@@ -18,6 +20,7 @@
     "expression" : "sum(I * infectiousness)"
   },
   {
+    "simulation_phase" : "during_pre_update",
     "output_partition" : "Epi.SympStruc",
     "output_names" : ["I.total"],
     "input_partition" : "Epi.SympStruc",
@@ -25,6 +28,7 @@
     "expression" : "sum(I.vector)"
   },
   {
+    "simulation_phase" : "before",
     "filter_partition" : "SympStruc",
     "filter_names" : ["unstructured", "total"],
     "output_partition" : "Epi",
@@ -34,6 +38,7 @@
     "expression" : "sum(S, E, I, R)"
   },
   {
+    "simulation_phase" : "during_pre_update",
     "filter_partition" : "SympStruc",
     "filter_names" : ["unstructured", "effective"],
     "output_names" : ["foi"],

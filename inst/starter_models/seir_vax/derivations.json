@@ -1,5 +1,6 @@
 [
   {
+    "simulation_phase" : "during_pre_update",
     "group_partition" : "Vax",
     "group_names" : ["unvax", "vax"],
     "output_partition" : "Epi.Vax",
@@ -9,6 +10,7 @@
     "expression" : "sum(S, E, I, R)"
   },
   {
+    "simulation_phase" : "during_pre_update",
     "group_partition" : "Vax",
     "group_names" : ["unvax", "vax"],
     "output_partition" : "Epi.Vax",

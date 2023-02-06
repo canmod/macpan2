@@ -1,5 +1,6 @@
 [
   {
+    "simulation_phase" : "during_pre_update",
     "group_partition" : "Epi.SympStruc.Vax",
     "group_names" : [
       "I.component.unvax", "I.component.vax",
@@ -15,6 +16,7 @@
     "expression" : "c(...)"
   },
   {
+    "simulation_phase" : "during_pre_update",
     "group_partition" : "SympStruc.Vax",
     "group_names" : ["vector.unvax", "vector.vax"],
     "output_partition" : "Epi.SympStruc.Vax",
@@ -24,6 +26,7 @@
     "expression" : "sum(I * infectiousness)"
   },
   {
+    "simulation_phase" : "during_pre_update",
     "group_partition" : "Vax",
     "group_names" : ["unvax", "vax"],
     "output_partition" : "Epi.SympStruc.Vax",
@@ -33,6 +36,7 @@
     "expression" : "sum(I.vector)"
   },
   {
+    "simulation_phase" : "during_pre_update",
     "filter_partition" : "SympStruc",
     "filter_names" : ["unstructured", "total"],
     "group_partition" : "Vax",
@@ -44,6 +48,7 @@
     "expression" : "sum(S, E, I, R)"
   },
   {
+    "simulation_phase" : "during_pre_update",
     "filter_partition" : "SympStruc",
     "filter_names" : ["unstructured", "effective"],
     "group_partition" : "Vax",

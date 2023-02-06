@@ -179,7 +179,10 @@ Model = function(definition) {
   self$user_expressions = function(){
     derivation_list = self$derivations()
     nmbr_of_drvtns = length(derivation_list)
-    usr_exprs = list()
+    before = list()
+    during_pre_update = list()
+    during_post_update = list()
+    after = list()
     for ( i in 1:nmbr_of_drvtns){
       if(!is.null(derivation_list[[i]]$filter_partition)){
         vrbls = self$variables()$filter(derivation_list[[i]]$filter_names, .wrt = derivation_list[[i]]$filter_partition)
@@ -250,8 +253,14 @@ Model = function(definition) {
       else{
         Print("Error: Invalid derivations file?")#TODO: make this return a real error
       }
-      usr_exprs = append(usr_exprs, list(grp_exprs_list))
+      if(derivation_list[[i]]$simulation_phase == "before") before = append(before, list(grp_exprs_list))
+      else if(derivation_list[[i]]$simulation_phase == "during_pre_update") during_pre_update = append(during_pre_update, list(grp_exprs_list))
+      else if(derivation_list[[i]]$simulation_phase == "during_post_update") during_post_update = append(during_post_update, list(grp_exprs_list))
+      else if(derivation_list[[i]]$simulation_phase == "after") after = append(after, list(grp_exprs_list))
+      else print("Error: unrecognized simulation phase")#TODO: make this a real error
     }
+    usr_exprs = list(before, during_pre_update, during_post_update, after)
+    names(usr_exprs) = c("before", "during_pre_update", "during_post_update", "after")
     return(usr_exprs)
   }
   return_object(self, "Model")
