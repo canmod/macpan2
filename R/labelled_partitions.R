@@ -136,16 +136,31 @@ Partition = function(frame) {
     )
     Partition(self$.partition$filter(filterer, .comparison_function)$frame())
   }
-self$filter_out = function(..., .wrt, .comparison_function = not_all_equal) {
-  if (missing(.wrt)) {
-    .wrt = self$names()
-    if (length(.wrt) != 1L) .wrt = list_to_names(...)[[1L]]
+  self$filter_out = function(..., .wrt, .comparison_function = not_all_equal) {
+    if (missing(.wrt)) {
+      .wrt = self$names()
+      if (length(.wrt) != 1L) .wrt = list_to_names(...)[[1L]]
+    }
+    filterer = StringDataFromDotted(
+      labels = list_to_labels(...), names = to_name(.wrt)
+    )
+    Partition(self$.partition$filter_out(filterer, .comparison_function)$frame())
   }
-  filterer = StringDataFromDotted(
-    labels = list_to_labels(...), names = to_name(.wrt)
-  )
-  Partition(self$.partition$filter_out(filterer, .comparison_function)$frame())
-}
+  self$filter_ordered = function(..., .wrt, .comparison_function = all_equal) {
+    # step 1: process case of missing .wrt argument
+    if (missing(.wrt)) {
+      .wrt = self$names()
+      if (length(.wrt) != 1L) .wrt = list_to_names(...)[[1L]]
+    }
+
+    # step 2: construct the StringData object to use as the filter
+    filterer = StringDataFromDotted(
+      labels = list_to_labels(...), names = to_name(.wrt)
+    )
+
+    # step 3: apply the filter to the StringData object in self$.partition
+    Partition(self$.partition$ordered_unique_filter(filterer, .comparison_function)$frame())
+  }
   self$select = function(...) {
     Partition(unique(self$.partition$change_coordinates(...)$frame()))
   }
