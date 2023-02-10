@@ -176,7 +176,37 @@ Model = function(definition) {
     self$variables()$filter(s$state_variables, .wrt = s$required_partitions)
   }
   self$derivations = self$def$derivations ## TODO: make this more useful
+  self$state_pointer = function(variable){
+    return(as.numeric(which(variable == self$def$settings()$state_variables))-1)# -1 because c++ side uses zero based indexing.
+  }
+  self$from_states = function(){
+    from_flows = self$flows_expanded()$from
+    return(lapply(from_flows, self$state_pointer))
+  }
+  self$to_states = function(){
+    to_flows = self$flows_expanded()$to
+    return(lapply(to_flows, self$state_pointer))
+  }
+  # self$derived_variables = function(){
+  #   #TODO: produce a list of all derived variables. If a flow_variable is not on this list we assume it is constant.
+  # }
+  # self$rate_expressions = function(){
+  #   #TODO: 1. separate constant rates from variable rates
+  #   #      2. assign constant rates to the corresponding rate elements in "before" expressions
+  #   #      3. Assign variable rates to the corresponding rate elements immediately following "during_pre_update" expressions
+  # }
+  # self$standard_expressions = function(){
+  #   #TODO: 1. Compute "flow" by using "rate" and "state"
+  #   #      2. update "state" using "flow"
+  # }
+  self$state_replacer = function(symbol, stt_vrbls) {
+    if(any(symbol == stt_vrbls)){
+      return(paste0(paste0("state[", self$state_pointer(symbol)), "]"))
+    }
+    else return(symbol)
+  }
   self$user_expressions = function(){
+    stt_vrbls = self$state_variables()$labels()
     derivation_list = self$derivations()
     nmbr_of_drvtns = length(derivation_list)
     before = list()
@@ -219,7 +249,7 @@ Model = function(definition) {
         }
       }
       if(dots_flag){
-        dots_flag = TRUE
+        #dots_flag = TRUE
         fltrd_grp_vrbls_dts = list()
         for(j in 1:nmbr_of_grps){
           fltrd_grp_vrbls_dts = c(fltrd_grp_vrbls_dts, grp_vrbls[[j]]$filter(derivation_list[[i]]$argument_dots, .wrt = grp_inputs))
@@ -229,7 +259,9 @@ Model = function(definition) {
       if(nondots_flag & dots_flag){
         frml = MathExpressionFromStrings(derivation_list[[i]]$expression, derivation_list[[i]]$arguments, include_dots = TRUE)
         for(j in 1:nmbr_of_grps){
-          symblc_input = as.list(c(fltrd_grp_vrbls[[j]]$labels(), flted_grp_vrbls_dts[[j]]$labels()))
+          ordrd_grp_vrbls = fltrd_grp_vrbls[[j]]$filter_ordered(derivation_list[[i]]$arguments, .wrt = grp_inputs)
+          symblc_input = c(ordrd_grp_vrbls$labels(), flted_grp_vrbls_dts[[j]]$labels())
+          symblc_input = lapply(symblc_input, self$state_replacer, stt_vrbls)
           symblc_frml = do.call(frml$symbolic$evaluate, symblc_input)
           grp_exprs_list = append(grp_exprs_list, list(list(grp_outputs[[j]]$labels(), symblc_frml)))
         }
@@ -237,7 +269,9 @@ Model = function(definition) {
       else if(nondots_flag){
         frml = MathExpressionFromStrings(derivation_list[[i]]$expression, derivation_list[[i]]$arguments)
         for(j in 1:nmbr_of_grps){
-          symblc_input = as.list(fltrd_grp_vrbls[[j]]$labels())
+          ordrd_grp_vrbls = fltrd_grp_vrbls[[j]]$filter_ordered(derivation_list[[i]]$arguments, .wrt = grp_inputs)
+          symblc_input = ordrd_grp_vrbls$labels()
+          symblc_input = lapply(symblc_input, self$state_replacer, stt_vrbls)
           symblc_frml = do.call(frml$symbolic$evaluate, symblc_input)
           grp_exprs_list = append(grp_exprs_list, list(list(grp_outputs[[j]]$labels(), symblc_frml)))
         }
@@ -245,24 +279,35 @@ Model = function(definition) {
       else if(dots_flag){
         frml = MathExpressionFromStrings(derivation_list[[i]]$expression, include_dots = TRUE)
         for(j in 1:nmbr_of_grps){
-          symblc_input = as.list(fltrd_grp_vrbls_dts[[j]]$labels())
+          symblc_input = fltrd_grp_vrbls_dts[[j]]$labels()
+          symblc_input = lapply(symblc_input, self$state_replacer, stt_vrbls)
           symblc_frml = do.call(frml$symbolic$evaluate, symblc_input)
           grp_exprs_list = append(grp_exprs_list, list(list(grp_outputs[[j]]$labels(), symblc_frml)))
         }
       }
       else{
-        Print("Error: Invalid derivations file?")#TODO: make this return a real error
+        stop("Invalid derivations file? No arguments or argument dots.")
       }
       if(derivation_list[[i]]$simulation_phase == "before") before = append(before, list(grp_exprs_list))
       else if(derivation_list[[i]]$simulation_phase == "during_pre_update") during_pre_update = append(during_pre_update, list(grp_exprs_list))
       else if(derivation_list[[i]]$simulation_phase == "during_post_update") during_post_update = append(during_post_update, list(grp_exprs_list))
       else if(derivation_list[[i]]$simulation_phase == "after") after = append(after, list(grp_exprs_list))
-      else print("Error: unrecognized simulation phase")#TODO: make this a real error
+      else stop("Unrecognized simulation phase")
     }
     usr_exprs = list(before, during_pre_update, during_post_update, after)
     names(usr_exprs) = c("before", "during_pre_update", "during_post_update", "after")
     return(usr_exprs)
   }
+  # self$prep_expresions = function(){
+  #   #TODO: collect all expressions together into single list
+  #   #      Order is: 1. "before" expressions
+  #   #                2. "during_pre_update" expressions
+  #   #                3. assign variable rate expressions
+  #   #                4. standard expressions
+  #   #                5. "during_post_update" expressions
+  #   #                6. "after" expressions
+  #   # Note: 2 - 5 should be collected together as "during" expressions
+  # }
   return_object(self, "Model")
 }
 
