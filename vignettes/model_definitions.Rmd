@@ -183,10 +183,12 @@ Variable names are invertible, in that a vector of variable names can be combine
 
 ## Variable Roles
 
-[Variable Names] are used in lists that identify variables with specific roles in the model. There are two such lists in the `settings.json` file.
+[Variable Names] are used in lists that identify variables with specific roles in the model. There are at least two such lists in the `settings.json` file.
 
 * `settings$state_variables` -- Character vector giving names of variables, each of which tracks the number of individuals in a compartment.
-* `settings$flow_variables` -- Character vector giving names of variables, each of which determines the magnitude of flow between one or more pairs of compartments.
+* `settings$rate_variables` -- Character vector giving names of variables, each of which determines the per-capita rate of flow between one or more pairs of compartments.
+
+Additional  variable lists may be used to accommodate such things as absolute flow rates as well as sources and sinks.
 
 All state variables and flow variables must be scalars.
 

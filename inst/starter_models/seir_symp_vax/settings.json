@@ -13,7 +13,7 @@
     "I.severe.component.vax",
     "R..unstructured.vax"
   ],
-  "flow_variables" : [
+  "rate_variables" : [
     "alpha..unstructured.",
     "gamma.mild.component.",
     "gamma.severe.component.",

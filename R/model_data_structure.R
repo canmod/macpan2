@@ -167,17 +167,18 @@ Model = function(definition) {
   self$variables = function() Partition(self$def$variables())
   self$flows = function() self$def$flows()
   self$flows_expanded = function() FlowExpander(self$def)$expand_flows()
-  self$flow_variables = function() {
+  self$rate_variables = function() {
     s = self$def$settings()
-    self$variables()$filter(s$flow_variables, .wrt = s$required_partitions)
+    self$variables()$filter(s$rate_variables, .wrt = s$required_partitions)
   }
   self$state_variables = function() {
     s = self$def$settings()
     self$variables()$filter(s$state_variables, .wrt = s$required_partitions)
   }
   self$derivations = self$def$derivations ## TODO: make this more useful
-  self$state_pointer = function(variable){
-    return(as.numeric(which(variable == self$def$settings()$state_variables))-1)# -1 because c++ side uses zero based indexing.
+  self$vctr_pointer = function(vrbl, vctr_nm = "state"){
+    vctr = self$def$settings()[[paste0(vctr_nm, "_variables")]]
+    return(as.numeric(which(vrbl == vctr))-1)# -1 because c++ side uses zero based indexing.
   }
   self$from_states = function(){
     from_flows = self$flows_expanded()$from
@@ -187,26 +188,33 @@ Model = function(definition) {
     to_flows = self$flows_expanded()$to
     return(lapply(to_flows, self$state_pointer))
   }
-  # self$derived_variables = function(){
-  #   #TODO: produce a list of all derived variables. If a flow_variable is not on this list we assume it is constant.
+  # self$init_vals = function(){
+  #   #TODO: obtain all required values.
   # }
-  # self$rate_expressions = function(){
-  #   #TODO: 1. separate constant rates from variable rates
-  #   #      2. assign constant rates to the corresponding rate elements in "before" expressions
-  #   #      3. Assign variable rates to the corresponding rate elements immediately following "during_pre_update" expressions
+  # self$init_mats = function(){
+  #   #TODO: initiate all required variables. Including:
+  #   #1) state, flow, rate
+  #   #2) from, to, from_lngth, to_lngth
+  #   #3) flow variables
   # }
-  # self$standard_expressions = function(){
-  #   #TODO: 1. Compute "flow" by using "rate" and "state"
-  #   #      2. update "state" using "flow"
-  # }
-  self$state_replacer = function(symbol, stt_vrbls) {
-    if(any(symbol == stt_vrbls)){
-      return(paste0(paste0("state[", self$state_pointer(symbol)), "]"))
+  self$standard_expressions = function(){
+    flw_frml = MathExpressionFromStrings("state[from]*rate", list("state", "from", "rate"))
+    symblc_flw_frml = do.call(flw_frml$symbolic$evaluate, list("state", "from", "rate"))
+    
+    stt_frml = MathExpressionFromStrings("state - groupSums(state, from, from_lngth)+groupSums(state, to, to_lngth)", list("state", "from", "from_lngth", "to", "to_lngth"))
+    symblc_stt_frml = do.call(stt_frml$symbolic$evaluate, list("state", "from", "from_lngth", "to", "to_lngth"))
+    
+    return(list(list("flow", symblc_flw_frml), list("state", symblc_stt_frml)))
+  }
+  self$vctr_replacer = function(symbol, vrbls, vctr_nm = "state") {
+    if(any(symbol == vrbls)){
+      return(paste0(paste0(paste0(vctr_nm,"["), self$vctr_pointer(symbol, vctr_nm)), "]"))
     }
     else return(symbol)
   }
   self$user_expressions = function(){
     stt_vrbls = self$state_variables()$labels()
+    rt_vrbls = self$rate_variables()$labels()
     derivation_list = self$derivations()
     nmbr_of_drvtns = length(derivation_list)
     before = list()
@@ -261,9 +269,13 @@ Model = function(definition) {
         for(j in 1:nmbr_of_grps){
           ordrd_grp_vrbls = fltrd_grp_vrbls[[j]]$filter_ordered(derivation_list[[i]]$arguments, .wrt = grp_inputs)
           symblc_input = c(ordrd_grp_vrbls$labels(), flted_grp_vrbls_dts[[j]]$labels())
-          symblc_input = lapply(symblc_input, self$state_replacer, stt_vrbls)
+          symblc_input = lapply(symblc_input, self$vctr_replacer, stt_vrbls)
+          symblc_input = lapply(symblc_input, self$vctr_replacer, rt_vrbls, vctr_nm = "rate")
           symblc_frml = do.call(frml$symbolic$evaluate, symblc_input)
-          grp_exprs_list = append(grp_exprs_list, list(list(grp_outputs[[j]]$labels(), symblc_frml)))
+          symblc_output = grp_outputs[[j]]$labels()
+          symblc_output = lapply(symblc_output, self$vctr_replacer, stt_vrbls)
+          symblc_output = lapply(symblc_output, self$vctr_replacer, rt_vrbls, vctr_nm = "rate")
+          grp_exprs_list = append(grp_exprs_list, list(list(symblc_output, symblc_frml)))
         }
       }
       else if(nondots_flag){
@@ -271,18 +283,26 @@ Model = function(definition) {
         for(j in 1:nmbr_of_grps){
           ordrd_grp_vrbls = fltrd_grp_vrbls[[j]]$filter_ordered(derivation_list[[i]]$arguments, .wrt = grp_inputs)
           symblc_input = ordrd_grp_vrbls$labels()
-          symblc_input = lapply(symblc_input, self$state_replacer, stt_vrbls)
+          symblc_input = lapply(symblc_input, self$vctr_replacer, stt_vrbls)
+          symblc_input = lapply(symblc_input, self$vctr_replacer, rt_vrbls, vctr_nm = "rate")
           symblc_frml = do.call(frml$symbolic$evaluate, symblc_input)
-          grp_exprs_list = append(grp_exprs_list, list(list(grp_outputs[[j]]$labels(), symblc_frml)))
+          symblc_output = grp_outputs[[j]]$labels()
+          symblc_output = lapply(symblc_output, self$vctr_replacer, stt_vrbls)
+          symblc_output = lapply(symblc_output, self$vctr_replacer, rt_vrbls, vctr_nm = "rate")
+          grp_exprs_list = append(grp_exprs_list, list(list(symblc_output, symblc_frml)))
         }
       }
       else if(dots_flag){
         frml = MathExpressionFromStrings(derivation_list[[i]]$expression, include_dots = TRUE)
         for(j in 1:nmbr_of_grps){
           symblc_input = fltrd_grp_vrbls_dts[[j]]$labels()
-          symblc_input = lapply(symblc_input, self$state_replacer, stt_vrbls)
+          symblc_input = lapply(symblc_input, self$vctr_replacer, stt_vrbls)
+          symblc_input = lapply(symblc_input, self$vctr_replacer, rt_vrbls, vctr_nm = "rate")
           symblc_frml = do.call(frml$symbolic$evaluate, symblc_input)
-          grp_exprs_list = append(grp_exprs_list, list(list(grp_outputs[[j]]$labels(), symblc_frml)))
+          symblc_output = grp_outputs[[j]]$labels()
+          symblc_output = lapply(symblc_output, self$vctr_replacer, stt_vrbls)
+          symblc_output = lapply(symblc_output, self$vctr_replacer, rt_vrbls, vctr_nm = "rate")
+          grp_exprs_list = append(grp_exprs_list, list(list(symblc_output, symblc_frml)))
         }
       }
       else{
