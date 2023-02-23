@@ -21,13 +21,12 @@ knitr::opts_chunk$set(
 
 ```{r, echo = FALSE}
 model_repo = "../inst/starter_models"
-model = function(model_name) {
-  model_path = file.path(model_repo, model_name)
-  ModelFiles(model_path)
+make_model_files = function(path){
+  try(ModelFiles(path), silent = TRUE)
 }
 model_paths = list.files(model_repo, full.names = TRUE)
 models = setNames(
-  lapply(model_paths, ModelFiles),
+  lapply(model_paths, make_model_files),
   tools::file_path_sans_ext(basename(model_paths))
 )
 ```
