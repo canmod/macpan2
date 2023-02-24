@@ -14,6 +14,14 @@ FlowExpander = function(model) {
   self$.namer = Namer()
   self$.filter = FilterBlanksNotSpecial()
 
+  ## only rate makes sense now, but adding others to prepare for them
+  valid_flow_types = sprintf("%s_variables", c("rate", "abs", "birth", "death"))
+  flow_settings = self$s[valid_flow_types]
+  ## TODO: add check to enforce that no variable is in more than one type??
+  ## TODO: make sure that flow_settings is a valid character vector even
+  ## though many of these types will not be present in any given model
+  self$.flow_variables = do.call(c, flow_settings)
+
   self$filter_flow = function(flow_number, component_type) {
     filter_partitions = paste(component_type, "partition", sep = "_")
     partition_label = self$f[flow_number, component_type]
@@ -22,7 +30,7 @@ FlowExpander = function(model) {
     component_filter = switch(component_type
       , from = self$s$state_variables
       , to = self$s$state_variables
-      , flow = self$s$flow_variables
+      , flow = self$.flow_variables
     )
     #namer$v_to_psl_with_pn(partition_set, s$required_partitions)
     partition_set[
