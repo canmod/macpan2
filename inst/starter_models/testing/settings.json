@@ -1,0 +1,16 @@
+{
+  "required_partitions" : ["TestStatus"],
+  "null_partitions" : ["Null"],
+  "state_variables" : [
+    "untested",
+    "awaiting_results",
+    "positive",
+    "negitive"
+  ],
+  "flow_variables" : [
+    "testing_rate",
+    "positive",
+    "negitive",
+    "expiration_rate"
+  ]
+}
