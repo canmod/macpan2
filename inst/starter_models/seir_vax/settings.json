@@ -5,7 +5,7 @@
     "S.unvax", "E.unvax", "I.unvax", "R.unvax",
     "S.vax", "E.vax", "I.vax", "R.vax"
   ],
-  "rate_variables" : [
+  "flow_variables" : [
     "foi.unvax", "foi.vax", "alpha.", "gamma.", ".dose_rate"
   ]
 }

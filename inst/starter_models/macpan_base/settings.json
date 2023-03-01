@@ -1,0 +1,34 @@
+{
+  "required_partitions" : ["Epi"],
+  "null_partitions" : ["Null"],
+  "state_variables" : [
+    "S",
+    "E",
+    "Ia",
+    "Ip",
+    "Im",
+    "Is",
+    "R",
+    "H",
+    "ICUs",
+    "ICUd",
+    "H2",
+    "D"
+  ],
+  "flow_variables" : [
+    "SE",
+    "EIa",
+    "EIp",
+    "IaR",
+    "IpIm",
+    "ImR",
+    "IpIs",
+    "IsICUs",
+    "ICUsH2",
+    "H2R",
+    "IsH",
+    "HICUd",
+    "ICUdD",
+    "HR"
+  ]
+}

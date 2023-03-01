@@ -8,7 +8,7 @@
     "I.severe.component",
     "R..unstructured"
   ],
-  "rate_variables" : [
+  "flow_variables" : [
     "alpha..unstructured",
     "gamma.mild.component",
     "gamma.severe.component",
