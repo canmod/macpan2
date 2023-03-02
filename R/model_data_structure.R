@@ -188,66 +188,65 @@ Model = function(definition) {
 DerivationExpander = function(model){
   self = Base()
   self$model = model
-  .filtered_variables = function(derivation){
+  self$.filtered_variables = function(derivation){
     if(!is.null(derivation$filter_partition)){
-      filtered_variables = variables$filter(derivation$filter_names, .wrt = derivation$filter_partition)
+      filtered_variables = self$model$variables$filter(derivation$filter_names, .wrt = derivation$filter_partition)
     } 
-    else filtered_variables = variables
+    else filtered_variables = self$model$variables
     return(filtered_variables)
   }
   
-  .group_variables = function(derivation){
+  self$.group_variables = function(derivation){
     if(!is.null(derivation$group_partition)){
-      group_variables = lapply(derivation$group_names, filtered_variables$filter, .wrt = derivation$group_partition, .comparison_function = all_consistent)
-      # group_variables = lapply(derivation$group_names, self$.filtered_variables(derivation)$filter, .wrt = derivation$group_partition, .comparison_function = all_consistent)
+      group_variables = lapply(derivation$group_names, self$.filtered_variables(derivation)$filter, .wrt = derivation$group_partition, .comparison_function = all_consistent)
     }
     else {
-      group_variables = list(filtered_variables)
+      group_variables = list(self$.filtered_variables(derivation))
     }
     return(group_variables)
   }
   
-  .group_outputs = function(filtered_variables, derivation, settings){
+  self$.group_outputs = function(derivation){
     if(!is.null(derivation$output_partition)){
-      group_outputs = lapply(derivation$output_names, filtered_variables$filter, .wrt = derivation$output_partition)
+      group_outputs = lapply(derivation$output_names, self$.filtered_variables(derivation)$filter, .wrt = derivation$output_partition)
     }
     else {
-      group_outputs = lapply(derivation$output_names, filtered_variables$filter, .wrt = settings$required_partitions)
+      group_outputs = lapply(derivation$output_names, self$.filtered_variables(derivation)$filter, .wrt = self$model$settings$required_partitions)
     }
     return(group_outputs)
   }
   
-  .group_inputs = function(derivation, settings){
+  self$.group_inputs = function(derivation){
     if(!is.null(derivation$input_partition)){
       group_inputs = derivation$input_partition
     }
     else{
-      group_inputs = settings$required_partitions
+      group_inputs = self$model$settings$required_partitions
     }
     return(group_inputs)
   }
   
-  .number_of_groups = function(derivation){
+  self$.number_of_groups = function(derivation){
     if(!is.null(derivation$output_partition)) number_of_groups = length(derivation$group_names)
     else number_of_groups = 1
     return(number_of_groups)
   }
   
-  .filtered_group_variables = function(derivation, group_variables, group_inputs){
+  self$.filtered_group_variables = function(derivation){
     filtered_group_variables = list()
     if(!is.null(derivation$arguments)){
       for(j in 1:self$.number_of_groups(derivation)){
-        filtered_group_variables = c(filtered_group_variables, group_variables[[j]]$filter(derivation$arguments, .wrt = group_inputs))
+        filtered_group_variables = c(filtered_group_variables, self$.group_variables(derivation)[[j]]$filter(derivation$arguments, .wrt = self$.group_inputs(derivation)))
       }
     }
     return(filtered_group_variables)
   }
    
-  .filtered_group_variable_dots = function(derivation, group_variables, group_inputs){ 
+  self$.filtered_group_variable_dots = function(derivation){ 
     filtered_group_variable_dots = list()
     if(!is.null(derivation$argument_dots)){
-      for(j in 1:self$.number_of_groups){
-        filtered_group_variable_dots = c(filtered_group_variable_dots, group_variables[[j]]$filter(derivation$argument_dots, .wrt = group_inputs))
+      for(j in 1:self$.number_of_groups(derivation)){
+        filtered_group_variable_dots = c(filtered_group_variable_dots, self$.group_variables(derivation)[[j]]$filter(derivation$argument_dots, .wrt = self$.group_inputs(derivation)))
       }
     }
     return(filterd_group_variable_dots)
