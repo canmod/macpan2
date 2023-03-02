@@ -86,7 +86,12 @@ ExprListUtils = function() {
 #'
 #'
 #' @export
-ExprList = function(before = list(), during = list(), after = list(), .simulate_exprs = character(0L)) {
+ExprList = function(
+      before = list()
+    , during = list()
+    , after = list()
+    , .simulate_exprs = character(0L)
+  ) {
   self = ExprListUtils()
   valid_expr_list = ValidityMessager(
     All(
@@ -128,6 +133,7 @@ ExprList = function(before = list(), during = list(), after = list(), .simulate_
   self$.literals = function(...) {
     self$.parsed_expr_list(...)$valid_literals
   }
+
   self$data_arg = function(...) {
     r = c(
       list(
@@ -155,8 +161,8 @@ ExprList = function(before = list(), during = list(), after = list(), .simulate_
 #' history after the simulation is complete.
 #' @param .mats_to_return Character vector naming matrices to be returned
 #' after the simulate is complete.
-#' @param .dimnames Named list of (max length-2) lists of character vectors
-#' giving the names of the rows and/or columns of each matrix being named.
+#' @param .dimnames No longer used. Set dimnames by adding dimnames to the
+#' matrices passed to \code{...}.
 #'
 #' @return Object of class \code{MatsList} with the following methods.
 #'
@@ -171,14 +177,27 @@ ExprList = function(before = list(), during = list(), after = list(), .simulate_
 #'     returned after a simulation.
 #'
 #' @export
-MatsList = function(..., .mats_to_save = character(0L), .mats_to_return = character(0L), .dimnames = list()) {
+MatsList = function(...
+    , .mats_to_save = character(0L)
+    , .mats_to_return = character(0L)
+    , .dimnames = list()
+  ) {
   self = Base()
   self$.initial_mats = lapply(list(...), as.matrix)
   self$.mats_save_hist = names(self$.initial_mats) %in% .mats_to_save
   self$.mats_return = names(self$.initial_mats) %in% .mats_to_return
   self$.names = function() names(self$.initial_mats)
   self$.mats = function() unname(self$.initial_mats)
-  self$.dimnames = .dimnames
+  dimnames_handle_nulls = function(x) {
+    if (is.null(dimnames(x))) return(NULL)
+    if (is.null(rownames(x))) rownames(x) = ""
+    if (is.null(colnames(x))) colnames(x) = ""
+    dimnames(x)
+  }
+  not_null = function(x) !is.null(x)
+  self$.dimnames = Filter(not_null
+    , lapply(self$.initial_mats, dimnames_handle_nulls)
+  )
   self$data_arg = function() {
     r = list(
       mats = self$.mats(),
@@ -233,7 +252,12 @@ names.MatsList = function(x) x$.names()
 #' parameters to be integrated out using the Laplace transform.
 #'
 #' @export
-OptParamsList = function(..., par_id = integer(0L), mat = character(0L), row_id = integer(0L), col_id = integer(0L)) {
+OptParamsList = function(...
+    , par_id = integer(0L)
+    , mat = character(0L)
+    , row_id = integer(0L)
+    , col_id = integer(0L)
+  ) {
   self = Base()
   self$.vector = as.numeric(unlist(list(...)))
   self$vector = function() self$.vector
