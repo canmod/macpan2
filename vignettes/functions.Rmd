@@ -35,7 +35,7 @@ knitr::opts_chunk$set(
     * `v` -- A column vector of values to add to elements of x
     * `m` -- A matrix of integers
 
-```{cpp eval = FALSE}
+```{Rcpp eval = FALSE}
 # 1. Fill x with all zeros.
 x[,] = 0
 
