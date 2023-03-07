@@ -145,7 +145,8 @@
 #'
 #' ### Functions
 #'
-#' * `c(...)` -- Stack column vectors.
+#' * `c(...)` -- Stack columns of arguments into a
+#' single column vectos.
 #' * `cbind(...)` -- Create a matrix containing all of
 #' the columns of a group of matrices with the same
 #' number of rows.

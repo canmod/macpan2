@@ -287,7 +287,8 @@ public:
                         }
                     }
                 }
-                else if (table_x[row]+1==9) { // %*% matrix multiplication
+                else if (table_x[row]+1==11) { // %*% matrix multiplication
+                    // std::cout << "mat mult index" << MP2_MATRIX_MULTIPLY << std::endl;
                     if (args[0].cols()!=args[1].rows()) {
                         SetError(204, "The two operands are not compatible to do matrix multiplication");
                         return m;
@@ -549,7 +550,8 @@ public:
                     // #'
                     // #' ### Functions
                     // #'
-                    // #' * `c(...)` -- Stack column vectors.
+                    // #' * `c(...)` -- Stack columns of arguments into a
+                    // #' single column vector.
                     // #' * `cbind(...)` -- Create a matrix containing all of
                     // #' the columns of a group of matrices with the same
                     // #' number of rows.
@@ -584,16 +586,21 @@ public:
                     // #' Any number of column vectors can be combined into a
                     // #' bigger column vector.
                     // #'
-                        m = matrix<Type>::Zero(n,1);
+                        size = 0;
+                        for (int i=0; i<n; i++) {
+                            size += args[i].rows() * args[i].cols();
+                        }
+                        m = matrix<Type>::Zero(size,1);
                         off = 0;
                         for (int i=0; i<n; i++) {
-                            rows = args[i].rows();
-                            m.block(off, 0, rows, 1) = args[i];
-                            off += rows;
+                            cols = args[i].cols();
+                            for (int j=0; j<cols; j++) {
+                                rows = args[i].rows();
+                                m.block(off, 0, rows, 1) = args[i].col(j);
+                                off += rows;
+                            }
                         }
 
-                        //for (int i=0; i<n; i++)
-                        //    m.coeffRef(i,0) = args[i].coeff(0,0);
                         #ifdef MP_VERBOSE
                             std::cout << "c(" << args[0] << ", ...," << args[n-1] << ") = " << m << std::endl << std::endl;
                         #endif
