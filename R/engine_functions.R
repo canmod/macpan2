@@ -310,6 +310,27 @@
 #'
 #' * A matrix containing values of `x` from past times.
 #'
+#' ## Time Step
+#'
+#' Get the time-step associated with a particular
+#' lag from the current time-step. If the lagged
+#' time-step is less than zero, the function returns
+#' zero.
+#'
+#' ### Functions
+#'
+#' * `time_step(lag)`
+#'
+#' ### Arguments
+#'
+#' * `lag` -- Number of time-steps to look back for
+#' the time-step to return.
+#'
+#' ### Return
+#'
+#' A 1-by-1 matrix with the time-step `lag` steps
+#' ago, or with zero if `t+1 < lag`
+#'
 #' ## Convolution
 #'
 #' One may take the convolution of each element in a

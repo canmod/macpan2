@@ -202,7 +202,7 @@ public:
         // Variables to use locally in function bodies
         matrix<Type> m, m1, m2;  // return values
         Type sum, s, eps, var;  // intermediate scalars
-        int rows, cols, rowIndex, colIndex, matIndex, reps, off, size, sz, start;
+        int rows, cols, lag, rowIndex, colIndex, matIndex, reps, off, size, sz, start;
 
         if (GetErrorCode()) return m; // Check if error has already happened at some point of the recursive call.
 
@@ -979,8 +979,36 @@ public:
                         return m; // empty matrix (if colIndex==0) or non-empty one (otherwise)
 
                     case MP2_TIME_STEP:
+                        // #' ## Time Step
+                        // #'
+                        // #' Get the time-step associated with a particular
+                        // #' lag from the current time-step. If the lagged
+                        // #' time-step is less than zero, the function returns
+                        // #' zero.
+                        // #'
+                        // #' ### Functions
+                        // #'
+                        // #' * `time_step(lag)`
+                        // #'
+                        // #' ### Arguments
+                        // #'
+                        // #' * `lag` -- Number of time-steps to look back for
+                        // #' the time-step to return.
+                        // #'
+                        // #' ### Return
+                        // #'
+                        // #' A 1-by-1 matrix with the time-step `lag` steps
+                        // #' ago, or with zero if `t+1 < lag`
+                        // #'
                         m = matrix<Type>::Zero(1,1);
-                        m.coeffRef(0,0) = t;
+                        lag = CppAD::Integer(args[0].coeff(0,0));
+                        if (lag < 0) {
+                            SetError(MP2_TIME_STEP, "Time lag needs to be non-negative");
+                            return m;
+                        }
+                        if (t > lag) {
+                            m.coeffRef(0,0) = t - lag;
+                        }
                         return m;
 
                     case MP2_CONVOLUTION:

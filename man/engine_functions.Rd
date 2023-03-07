@@ -416,6 +416,33 @@ that are before \code{t_min} are ignored.
 
 }
 
+\subsection{Time Step}{
+
+Get the time-step associated with a particular
+lag from the current time-step. If the lagged
+time-step is less than zero, the function returns
+zero.
+\subsection{Functions}{
+\itemize{
+\item \code{time_step(lag)}
+}
+}
+
+\subsection{Arguments}{
+\itemize{
+\item \code{lag} -- Number of time-steps to look back for
+the time-step to return.
+}
+}
+
+\subsection{Return}{
+
+A 1-by-1 matrix with the time-step \code{lag} steps
+ago, or with zero if \code{t+1 < lag}
+}
+
+}
+
 \subsection{Convolution}{
 
 One may take the convolution of each element in a
