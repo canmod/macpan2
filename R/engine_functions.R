@@ -384,4 +384,42 @@
 #' the values of elements in `x` in column-major order.
 #'
 #' @name engine_functions
+#' @aliases `+`
+#' @aliases `-`
+#' @aliases `*`
+#' @aliases `/`
+#' @aliases `^`
+#' @aliases exp
+#' @aliases log
+#' @aliases `(`
+#' @aliases c
+#' @aliases matrix
+#' @aliases `%*%`
+#' @aliases sum
+#' @aliases rep
+#' @aliases rowSums
+#' @aliases colSums
+#' @aliases groupSums
+#' @aliases `[`
+#' @aliases block
+#' @aliases t
+#' @aliases rbind_time
+#' @aliases rbind_lag
+#' @aliases cbind_time
+#' @aliases cbind_lag
+#' @aliases `:`
+#' @aliases seq
+#' @aliases convolution
+#' @aliases cbind
+#' @aliases rbind
+#' @aliases time_step
+#' @aliases assign
+#' @aliases unpack
+#' @aliases clamp
+#' @aliases dpois
+#' @aliases dnbinom
+#' @aliases dnorm
+#' @aliases rpois
+#' @aliases rnbinom
+#' @aliases rnorm
 NULL

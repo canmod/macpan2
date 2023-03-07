@@ -2,6 +2,44 @@
 % Please edit documentation in R/engine_functions.R
 \name{engine_functions}
 \alias{engine_functions}
+\alias{`+`}
+\alias{`-`}
+\alias{`*`}
+\alias{`/`}
+\alias{`^`}
+\alias{exp}
+\alias{log}
+\alias{`(`}
+\alias{c}
+\alias{matrix}
+\alias{`\%*\%`}
+\alias{sum}
+\alias{rep}
+\alias{rowSums}
+\alias{colSums}
+\alias{groupSums}
+\alias{`[`}
+\alias{block}
+\alias{t}
+\alias{rbind_time}
+\alias{rbind_lag}
+\alias{cbind_time}
+\alias{cbind_lag}
+\alias{`:`}
+\alias{seq}
+\alias{convolution}
+\alias{cbind}
+\alias{rbind}
+\alias{time_step}
+\alias{assign}
+\alias{unpack}
+\alias{clamp}
+\alias{dpois}
+\alias{dnbinom}
+\alias{dnorm}
+\alias{rpois}
+\alias{rnbinom}
+\alias{rnorm}
 \title{Engine Functions}
 \description{
 Functions currently supported by the C++ TMB engine
