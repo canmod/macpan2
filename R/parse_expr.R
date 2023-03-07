@@ -81,6 +81,7 @@ make_expr_parser = function(
   # @param x parsing list
   # @param expr_id index for the expression to be reduced
   reduce_expr = function(x, expr_id) {
+      #browser()
       # how many expressions do we currently have?
       n_new = length(x$x)
 
@@ -106,6 +107,7 @@ make_expr_parser = function(
   }
 
   function(x) {
+    #browser()
 
     # parse_expr recursively adjusts a specially-structured
     # list of expressions, but the user should be able to
@@ -193,7 +195,7 @@ finalizer_index = function(x) {
   }
   x$x = as.integer(x_int)
   x$i = as.integer(x$i)
-
+  #browser()
   nlist(
     parse_table = as.data.frame(x),
     valid_funcs, valid_vars, valid_literals
@@ -295,6 +297,7 @@ parse_expr_list = function(expr_list
   pe_list = list()
   for (i in seq_along(expr_list)) {
     environment(expr_list[[i]]) = eval_env
+    #browser()
     pe_list[[i]] = parse_expr(expr_list[[i]])
     eval_env$valid_literals = pe_list[[i]]$valid_literals
     eval_env$offset = eval_env$offset + nrow(pe_list[[i]]$parse_table)

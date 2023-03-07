@@ -40,17 +40,13 @@ ModelCollection = function(variables
     , flows
     , settings
   ) {
-  self = Base()
-  self$.components = nlist(variables, derivations, flows, settings)
-  self$.get = function(component_name) self$.components[[component_name]]
+  self = Collection(variables, derivations, flows, settings)
 
   ## methods required of model representations
-  self$variables = function() self$.get("variables")
-  self$derivations = function() self$.get("derivations")
-  self$flows = function() self$.get("flows")
-  self$settings = function() self$.get("settings")
-
-  self$freeze = function() self
+  self$variables = function() self$get("variables")
+  self$derivations = function() self$get("derivations")
+  self$flows = function() self$get("flows")
+  self$settings = function() self$get("settings")
 
   return_object(self, "ModelCollection")
 }
@@ -83,66 +79,19 @@ ModelFiles = function(model_directory
     , json_reader = JSONReader
     , txt_reader = TXTReader
 ) {
-  self = Base()
-  self$.directory = normalizePath(model_directory)
-  self$.readers = list(
-    variables = csv_reader(self$.directory, "variables.csv"),
-    derivations = json_reader(self$.directory, "derivations.json"),
-    flows = csv_reader(self$.directory, "flows.csv"),
-    settings = json_reader(self$.directory, "settings.json")
+  self = Files(model_directory
+    , reader_spec("variables.csv", csv_reader)
+    , reader_spec("derivations.json", json_reader)
+    , reader_spec("flows.csv", csv_reader)
+    , reader_spec("settings.json", json_reader)
   )
-  self$.access_times = setNames(
-    rep(list(Sys.time()), length(self$.readers)),
-    names(self$.readers)
-  )
-  self$.components = setNames(
-    vector("list", length(self$.readers)),
-    names(self$.readers)
-  )
-  # read data and store it, bumping the access time
-  self$.fetch = function(component_name) {
-    self$.access_times[[component_name]] = Sys.time()
-    self$.components[[component_name]] =
-      self$.readers[[component_name]]$read()
-  }
-  # read data, store it, return it, bumping the access time
-  self$.read = function(component_name) {
-    self$.fetch(component_name)
-    self$.components[[component_name]]
-  }
-  # fill the components fields
-  self$.components = setNames(
-    lapply(names(self$.readers), self$.read),
-    names(self$.readers)
-  )
-  # fetch data only if it was last accessed before it changed
-  self$.pull = function(component_name) {
-    access_time = self$.access_times[[component_name]]
-    modification_time = file.mtime(self$.readers[[component_name]]$file)
-    if (modification_time > access_time) self$.fetch(component_name)
-  }
-  # pull data (i.e. fetch it only if necessary) and return it
-  self$.get = function(component_name) {
-    self$.pull(component_name)
-    self$.components[[component_name]]
-  }
 
   ## methods required of model representations
-  self$variables = function() self$.get("variables")
-  self$derivations = function() self$.get("derivations")
-  self$flows = function() self$.get("flows")
-  self$settings = function() self$.get("settings")
+  self$variables = function() self$get("variables")
+  self$derivations = function() self$get("derivations")
+  self$flows = function() self$get("flows")
+  self$settings = function() self$get("settings")
 
-  ## Convert to a ModelCollection object, which is equivalent to
-  ## a ModelFiles object in that the variables, derivations,
-  ## flows, and settings methods return objects with the
-  ## same requirements. The difference is that a ModelFiles object
-  ## will update what it returns if the associated files change
-  ## on disk, whereas ModelCollection is intended to be
-  ## (by convention) immutable (hence the verb 'freeze'). The
-  ## 'by convention' bit means that a user is free to change the
-  ## contents of `.components`, but this would violate
-  ## the convention.
   self$freeze = function() {
     ModelCollection(
       self$variables(),
@@ -176,6 +125,7 @@ Model = function(definition) {
     self$variables()$filter(s$state_variables, .wrt = s$required_partitions)
   }
   self$derivations = self$def$derivations ## TODO: make this more useful
+
   self$vctr_pointer = function(vrbl, vctr_nm = "state"){
     vctr = self$def$settings()[[paste0(vctr_nm, "_variables")]]
     return(as.numeric(which(vrbl == vctr))-1)# -1 because c++ side uses zero based indexing.
@@ -188,6 +138,7 @@ Model = function(definition) {
     to_flows = self$flows_expanded()$to
     return(lapply(to_flows, self$state_pointer))
   }
+
   # self$init_vals = function(){
   #   #TODO: obtain all required values.
   # }
@@ -200,10 +151,10 @@ Model = function(definition) {
   self$standard_expressions = function(){
     flw_frml = MathExpressionFromStrings("state[from]*rate", list("state", "from", "rate"))
     symblc_flw_frml = do.call(flw_frml$symbolic$evaluate, list("state", "from", "rate"))
-    
+
     stt_frml = MathExpressionFromStrings("state - groupSums(state, from, from_lngth)+groupSums(state, to, to_lngth)", list("state", "from", "from_lngth", "to", "to_lngth"))
     symblc_stt_frml = do.call(stt_frml$symbolic$evaluate, list("state", "from", "from_lngth", "to", "to_lngth"))
-    
+
     return(list(list("flow", symblc_flw_frml), list("state", symblc_stt_frml)))
   }
   self$vctr_replacer = function(symbol, vrbls, vctr_nm = "state") {
@@ -224,7 +175,7 @@ Model = function(definition) {
     for ( i in 1:nmbr_of_drvtns){
       if(!is.null(derivation_list[[i]]$filter_partition)){
         vrbls = self$variables()$filter(derivation_list[[i]]$filter_names, .wrt = derivation_list[[i]]$filter_partition)
-      } 
+      }
       else vrbls = self$variables()
       if(!is.null(derivation_list[[i]]$group_partition)){
         nmbr_of_grps = length(derivation_list[[i]]$group_names)
@@ -246,10 +197,10 @@ Model = function(definition) {
       else{
         grp_inputs = self$def$settings()$required_partitions
       }
-      
+
       nondots_flag = !is.null(derivation_list[[i]]$arguments) #Does the derivation have regular (i.e. not related to dots) arguments
       dots_flag = !is.null(derivation_list[[i]]$argument_dots) #Does the derivation have arguments to go in place of dots
-      
+
       if(nondots_flag){
         fltrd_grp_vrbls = list()
         for(j in 1:nmbr_of_grps){
@@ -329,60 +280,6 @@ Model = function(definition) {
   #   # Note: 2 - 5 should be collected together as "during" expressions
   # }
   return_object(self, "Model")
-}
-
-#' Reader
-#'
-#' Construct objects for reading data.
-#'
-#' @param ... Character vectors giving path components.
-#'
-#' @export
-Reader = function(...) {
-  self = Base()
-  self$file = normalizePath(file.path(...))
-  self$read = function() {
-    stop("Abstract class that is not implemented.")
-  }
-  return_object(self, "Reader")
-}
-
-#' @describeIn Reader Read CSV files.
-#' @export
-CSVReader = function(...) {
-  self = Reader(...)
-  self$.empty = function(row) {
-    isTRUE(all((row == "") | startsWith(row, " ")))
-  }
-  self$read = function() {
-    data_frame = read.table(
-      self$file, sep = ",", quote = "", na.strings = character(0L),
-      colClasses = "character", header = TRUE,
-      strip.white = TRUE, blank.lines.skip = TRUE,
-      stringsAsFactors = TRUE
-    )
-    data_frame[!apply(data_frame, 1, self$.empty), , drop = FALSE]
-  }
-  return_object(self, "CSVReader")
-}
-
-#' @describeIn Reader Read JSON files.
-#' @importFrom jsonlite fromJSON
-#' @export
-JSONReader = function(...) {
-  self = Reader(...)
-  self$read = function() {
-    jsonlite::fromJSON(self$file, simplifyDataFrame = FALSE, simplifyMatrix = FALSE)
-  }
-  return_object(self, "JSONReader")
-}
-
-#' @describeIn Reader Read TXT files.
-#' @export
-TXTReader = function(...) {
-  self = Reader(...)
-  self$read = function() readLines(self$file)
-  return_object(self, "TXTReader")
 }
 
 #' Model Starter

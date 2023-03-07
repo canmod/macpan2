@@ -4,7 +4,9 @@
 #'
 #' @export
 nlist = function(...) {
+    #browser()
     L = list(...)
+    if (valid$char_no_empty$is_true(names(L))) return(L)
     snm = vapply(substitute(list(...)), deparse, character(1))[-1]
     if (is.null(nm <- names(L))) {
         nm = snm
@@ -33,6 +35,7 @@ self_named_list = function(...) {
 #'
 #' @export
 ilist = function(x) {
+  #browser()
   x = lapply(x, names)
   nms = unlist(unname(x))
   var_type_index = setNames(

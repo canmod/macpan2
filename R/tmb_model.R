@@ -284,6 +284,26 @@ OptParamsList = function(...
   return_object(self, "OptParamsList")
 }
 
+OptParamsFrame = function(..., frame) {
+  OptParamsList(...
+    , par_id = frame$par_id
+    , mat = frame$mat
+    , row_id = frame$row_id
+    , col_id = frame$col_id
+  )
+}
+
+OptParamsFile = function(file_path
+      , csv_reader = CSVReader
+      , json_reader = JSONReader
+      , txt_reader = TXTReader
+    ) {
+  self = Files(dirname(file_path)
+    , reader_spec(basename(file_path), csv_reader)
+  )
+  self
+}
+
 #' Objective Function
 #'
 #' Define the objective function of a compartmental model in TMB.
@@ -467,11 +487,13 @@ TMBModel = function(
   }
   self$make_ad_fun = function(DLL = "macpan2") {
     try(TMB::MakeADFun(
-      data = self$data_arg(),
-      parameters = self$param_arg(),
-      random = self$random_arg(),
-      DLL = DLL
-    ))
+        data = self$data_arg(),
+        parameters = self$param_arg(),
+        random = self$random_arg(),
+        DLL = DLL
+      ),
+      silent = TRUE
+    )
   }
   return_object(self, "TMBModel")
 }
@@ -498,6 +520,13 @@ TMBSimulator = function(tmb_model, tmb_cpp = "macpan2") {
   self$tmb_cpp = tmb_cpp
   self$matrix_names = self$tmb_model$.init_mats$.names()
   self$ad_fun = self$tmb_model$make_ad_fun(self$tmb_cpp)
+  if (inherits(self$ad_fun, "try-error")) {
+    stop(
+      "\nThe tmb_model object is malformed,",
+      "\nand TMB gives the following explanation:\n",
+      self$ad_fun
+    )
+  }
   self$report = function(..., .phases = c("before", "during", "after")) {
     fixed_params = as.numeric(unlist(list(...)))
     r = setNames(
