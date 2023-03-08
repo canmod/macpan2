@@ -7,17 +7,18 @@
 engine_eval(e, ..., .matrix_to_return)
 }
 \arguments{
-\item{e}{Expression as a two-sided formula.}
+\item{e}{Expression as a one-sided formula, the right-hand-side of which is
+treated as the expression to be evaluated.}
 
 \item{...}{Named objects that can be coerced into numeric matrices.}
 
 \item{.matrix_to_return}{Optional name of one of the matrices given
 in \code{...} to be returned. If this argument is missing, the
-matrix that will be returned is the matrix on the left-hand-side of the
-expression.}
+matrix that will be returned is the matrix returned by the expression on
+the right-hand-side of the formula.}
 }
 \value{
-Matrix being produced on the left-hand-side or matrix given in
+Matrix being produced on the right-hand-side or matrix given in
 \code{.matrix_to_return} if it is provided.
 }
 \description{
@@ -29,13 +30,12 @@ This function is useful for trying out functions that can be used to
 define \code{macpan2} models.
 }
 \examples{
-engine_eval(x ~ exp(y), y = pi) # ~ 23.14069
+engine_eval(~ exp(y), y = pi) # ~ 23.14069
 
 # It is not currently possible to assign values to a subset of
 # a matrix in a natural way (e.g. you cannot do things like x[1] = exp(y)),
 # but you can achieve this functionality using the assign function.
-engine_eval(dummy ~ assign(x, 1, 0, exp(y))
-  , dummy = empty_matrix
+engine_eval(~ assign(x, 1, 0, exp(y))
   , x = rep(0, 2)
   , y = pi
   , .matrix_to_return = "x"
