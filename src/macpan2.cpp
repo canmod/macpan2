@@ -107,22 +107,31 @@ bool RecycleInPlace(
     int rows,
     int cols
 ) {
+    #ifdef MP_VERBOSE
+        std::cout << "recycling ... " << std::endl;
+    #endif
     if (mat.rows()==rows && mat.cols()==cols) // don't need to do anything.
         return true;
 
     matrix<Type> m(rows, cols);
     if (mat.rows()==rows) {
-        if (mat.cols()==1)
+        if (mat.cols()==1) {
+            #ifdef MP_VERBOSE
+                std::cout << "recycling columns ... " << std::endl;
+            #endif
             for (int i=0; i<cols; i++)
                 m.col(i) = mat.col(0);
-        else
+        } else
             return false;
     }
     else if (mat.cols()==cols) {
-        if (mat.rows()==1)
+        if (mat.rows()==1) {
+            #ifdef MP_VERBOSE
+                std::cout << "recycling rows ... " << std::endl;
+            #endif
             for (int i=0; i<rows; i++)
                 m.row(i) = mat.row(0);
-        else
+        } else
             return false;
     }
     else
@@ -1366,28 +1375,30 @@ public:
                     // #'
                     // #' * `assign(x, i, j, v)`
                     // #'
+
                         cols = args[1].cols();
                         if (cols != 1) {
                             SetError(255, "Assignment index matrices must have a single column");
                             return m;
                         }
-                        rows = args[1].rows();
-                        RecycleInPlace(args[3], rows, cols);
-
                         cols = args[2].cols();
                         if (cols != 1) {
                             SetError(255, "Assignment index matrices must have a single column");
                             return m;
                         }
-                        rows = args[2].rows();
-                        RecycleInPlace(args[3], rows, cols);
-
-                        cols = args[2].cols();
+                        cols = args[3].cols();
                         if (cols != 1) {
                             SetError(255, "Assignment value matrices must have a single column");
                             return m;
                         }
+
+                        // std::cout << "JJJ" << args[1].rows() << "JJJ" << args[2].rows() << "JJJ" << args[3].rows() << std::endl;
+
                         rows = args[3].rows();
+                        RecycleInPlace(args[1], rows, cols);
+                        RecycleInPlace(args[2], rows, cols);
+
+                        // std::cout << "HHH" << args[1].rows() << "HHH" << args[2].rows() << "HHH" << args[3].rows() << std::endl;
 
                         for (int k=0; k<rows; k++) {
                             rowIndex = CppAD::Integer(args[1].coeff(k,0));
