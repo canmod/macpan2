@@ -72,8 +72,8 @@ make_expr_parser = function(
       valid_funcs = environment(x)$valid_funcs,
       valid_vars = environment(x)$valid_vars,
       valid_literals = environment(x)$valid_literals,
-      offset = offset
-      #input_expr_as_string = as.character(x)[2L]
+      offset = offset,
+      input_expr_as_string = as.character(x)[2L]
     )
   }
 
@@ -214,7 +214,8 @@ get_indices = function(x, vec, vec_type, expr_as_string, zero_based = FALSE) {
       "contained the following ", vec_type, ":\n",
       paste0(missing_items, collapse = " "), "\n\n",
       " that were not found in the list of available ", vec_type, ":\n",
-      paste0(vec, collapse = " ") # TODO: smarter pasting when this list gets big
+      paste0(vec, collapse = " "), # TODO: smarter pasting when this list gets big
+      "\nPlease see ?engine_functions for available functions."
     )
   }
   one_based = apply(

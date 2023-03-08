@@ -1,10 +1,9 @@
 #' Engine Evaluation
 #'
 #' Evaluate an expression in the TMB-based C++ simulation and objective
-#' function engine.
-#'
-#' This function is useful for trying out functions that can be used to
-#' define \code{macpan2} models.
+#' function engine. This function is useful for trying out the
+#' \code{\link{engine_functions}} that can be used to define \pkg{macpan2}
+#' models.
 #'
 #' @param e Expression as a one-sided formula, the right-hand-side of which is
 #' treated as the expression to be evaluated.

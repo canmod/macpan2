@@ -23,11 +23,9 @@ Matrix being produced on the right-hand-side or matrix given in
 }
 \description{
 Evaluate an expression in the TMB-based C++ simulation and objective
-function engine.
-}
-\details{
-This function is useful for trying out functions that can be used to
-define \code{macpan2} models.
+function engine. This function is useful for trying out the
+\code{\link{engine_functions}} that can be used to define \pkg{macpan2}
+models.
 }
 \examples{
 engine_eval(~ exp(y), y = pi) # ~ 23.14069

@@ -305,6 +305,18 @@ public:
                 // #' for constructing expressions for defining model
                 // #' simulations.
                 // #'
+                // #' The quickest way to experiment with these functions is
+                // #' to use the \code{\link{engine_eval}} function, as in the
+                // #' following example that calculates a force of infection.
+                // #'
+                // #' ```
+                // #' engine_eval(~ beta * I / S, beta = 0.25, I = 1e3, S = 1e7)
+                // #' ```
+                // #'
+                // #' To produce a simulation using these functions, one may
+                // #' use the ...
+                // #'
+                // #'
                 switch(table_x[row]+1) {
 
                     // #' ## Elementwise Binary Operators
@@ -621,6 +633,7 @@ public:
                     // #' Any number of column vectors can be combined into a
                     // #' bigger column vector.
                     // #'
+                        // std::cout << "in c(...)" << std::endl;
                         size = 0;
                         for (int i=0; i<n; i++) {
                             size += args[i].rows() * args[i].cols();
@@ -631,8 +644,12 @@ public:
                             cols = args[i].cols();
                             for (int j=0; j<cols; j++) {
                                 rows = args[i].rows();
-                                m.block(off, 0, rows, 1) = args[i].col(j);
-                                off += rows;
+                                // std::cout << "number of rows in c(...): " << rows << std::endl;
+                                if (rows != 0) { // avoid adding empty matrices
+                                  // std::cout << "adding rows" << std::endl;
+                                  m.block(off, 0, rows, 1) = args[i].col(j);
+                                  off += rows;
+                                }
                             }
                         }
 
