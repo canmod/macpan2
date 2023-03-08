@@ -345,6 +345,14 @@ public:
                     // #' * A matrix with the binary operator applied elementwise
                     // #' after any necessary recycling of rows and/or columns.
                     // #'
+                    // #' ### Examples
+                    // #'
+                    // #' ```
+                    // #' engine_eval(~ 1 + 2)
+                    // #' engine_eval(~ y * z, y = 1:3, z = matrix(1:6, 3, 2))
+                    // #' engine_eval(~ 1 / (1 - y), y = 1/4)
+                    // #' ```
+                    // #'
                     case MP2_ADD: // +
                         #ifdef MP_VERBOSE
                             std::cout << args[0] << " + " << args[1] << " = " << args[0]+args[1] << std::endl << std::endl;
@@ -396,6 +404,12 @@ public:
                     // #'
                     // #' * A matrix with the same dimensions as `x`, with the
                     // #' unary function applied elementwise.
+                    // #'
+                    // #' ### Examples
+                    // #'
+                    // #' ```
+                    // #' engine_eval(~ log(y), y = c(2, 0.5))
+                    // #' ```
                     // #'
                     case MP2_LOG:
                         return args[0].array().log().matrix();
@@ -477,6 +491,14 @@ public:
                         #endif
                         return m;
 
+                    // #' ### Examples
+                    // #'
+                    // #' ```
+                    // #' engine_eval(~ 1:10)
+                    // #' engine_eval(~ seq(1, 10, 2))
+                    // #' ```
+                    // #'
+
 
                     // #' Replicate Elements
                     // #'
@@ -498,6 +520,12 @@ public:
                     // #'
                     // #' * Column vector with `times` copies of `x` stacked
                     // #' on top of each other.
+                    // #'
+                    // #' ### Examples
+                    // #'
+                    // #' ```
+                    // #' engine_eval(~ rep(1, 10))
+                    // #' ```
                     // #'
                     case MP2_REPLICATE: // rep
                         //m = matrix<Type>::Constant(rows, 1, args[0].coeff(0,0));
@@ -533,6 +561,12 @@ public:
                     // #'
                     // #' * The standard matrix product of `x` and `y`.
                     // #'
+                    // #' ### Examples
+                    // #'
+                    // #' ```
+                    // #' engine_eval(~ (1:10) %*% t(1:10))
+                    // #' ```
+                    // #'
                         #ifdef MP_VERBOSE
                             std::cout << args[0] << " %*% " << args[1] << " = " << args[0]*args[1] << std::endl << std::endl;
                         #endif
@@ -552,7 +586,7 @@ public:
                     // #' ### Functions
                     // #'
                     // #' * `c(...)` -- Stack columns of arguments into a
-                    // #' single column vectos.
+                    // #' single column vector.
                     // #' * `cbind(...)` -- Create a matrix containing all of
                     // #' the columns of a group of matrices with the same
                     // #' number of rows.
@@ -705,6 +739,18 @@ public:
                         m = args[0].transpose();
                         return m;
 
+                    // #' ### Examples
+                    // #'
+                    // #' ```
+                    // #' engine_eval(~ c(a, b, c), a = 1, b = 10:13, c = matrix(20:25, 3, 2))
+                    // #' engine_eval(~ cbind(a, 10 + a), a = 0:3)
+                    // #' engine_eval(~ rbind(a, 10 + a), a = t(0:3))
+                    // #' engine_eval(~ matrix(1:12, 4, 3))
+                    // #' engine_eval(~ t(1:3))
+                    // #' ```
+                    // #'
+
+
                     // #' ## Summarizing Matrix Values
                     // #'
                     // #' ### Functions
@@ -735,10 +781,6 @@ public:
                     // #'
                     case MP2_SUM: // sum
 
-                    // #' The elements of a matrix can be summed together using
-                    // #' the standard \code{\link{sum}} function.
-                    // #'
-
                         m = matrix<Type>::Zero(1,1);
                         sum = 0.0;
                         for (int i=0; i<n; i++)
@@ -750,6 +792,8 @@ public:
                         #endif
                         return m;
 
+                    // #' ### Details
+                    // #'
                     // #' The standard \code{\link{rowSums}} and
                     // #' \code{\link{colSums}} can be used, but they have
                     // #' slightly different behaviour from their base R
@@ -783,6 +827,15 @@ public:
                             m.coeffRef(rowIndex,0) += args[0].coeff(i,0);
                         }
                         return m;
+                    // #' ### Examples
+                    // #'
+                    // #' ```
+                    // #' engine_eval(~ sum(1:4))
+                    // #' engine_eval(~ colSums(A), A = matrix(1:12, 4, 3))
+                    // #' engine_eval(~ rowSums(A), A = matrix(1:12, 4, 3))
+                    // #' engine_eval(~ groupSums(x, f, n), x = 1:10, f = rep(0:3, 1:4), n = 4)
+                    // #' ```
+                    // #'
 
                     // #' ## Extracting Matrix Elements
                     // #'
@@ -1126,6 +1179,49 @@ public:
                     // #'
                     // #' * `observed`
                     // #' * `simulated`
+                    // #'
+                    // #' The `simulated` argument gives a matrix of means for
+                    // #' the `observed` values at which the densities are
+                    // #' being evaluated. Additional arguments are other
+                    // #' distributional parameters such as the standard
+                    // #' deviation or dispersion parameter. All densities
+                    // #' are given as log-densities, so if you would like
+                    // #' the density itself you must pass the result through
+                    // #' the `exp` function.
+                    // #'
+                    // #' If the `simulated` matrix or the additional parameter
+                    // #' matrices have either a single row or
+                    // #' single column, these singleton rows and columns are
+                    // #' repeated to match the number of rows and columns in
+                    // #' the `observed` matrix. This feature allows one
+                    // #' to do things like specify a single common mean for
+                    // #' several values.
+                    // #'
+                    // #' ### Functions
+                    // #'
+                    // #' * `dpois(observed, simulated)` -- Log of the Poisson density
+                    // #' based on this [dpois](https://kaskr.github.io/adcomp/group__R__style__distribution.html#gaa1ed15503e1441a381102a8c4c9baaf1)
+                    // #' TMB function.
+                    // #' * `dnbinom(observed, simulated, over_dispersion)` --
+                    // #' Log of the negative binomial density based on this [dnbinom](https://kaskr.github.io/adcomp/group__R__style__distribution.html#ga76266c19046e04b651fce93aa0810351)
+                    // #' TMB function. To get the variance that this function
+                    // #' requires we use this expression, \code{simulated + simulated^2/over_dispersion},
+                    // #' following p.165 in this [book](https://ms.mcmaster.ca/~bolker/emdbook/book.pdf)
+                    // #' * `dnorm(observed, simulated, standard_deviation)` --
+                    // #' Log of the normal density based on this [dnorm](https://kaskr.github.io/adcomp/dnorm_8hpp.html)
+                    // #' TMB function.
+                    // #'
+                    // #' ### Arguments
+                    // #'
+                    // #' * `observed` -- Matrix of observed values
+                    // #' at which the density is being evaluated.
+                    // #' * `simulated` -- Matrix of distributional means,
+                    // #' with singleton rows and columns recycled to match
+                    // #' the numbers of rows and columns in `observed`.
+                    // #' * `over_dispersion` -- Over-dispersion parameter
+                    // #' given by \code{(simulated/standard_deviation)^2 - simulated)}.
+                    // #' * `standard_deviation` -- Standard deviation parameter.
+                    // #'
                     case MP2_POISSON_DENSITY:
                         rows = args[0].rows();
                         cols = args[0].cols();
@@ -1172,6 +1268,35 @@ public:
                         }
                         return m;
 
+                    // #' Pseudo-Random Number Generators
+                    // #'
+                    // #' All random number generator functions have `mean`
+                    // #' as the first argument. Subsequent arguments give
+                    // #' additional distributional parameters.
+                    // #' Singleton rows and columns in the matrices passed to
+                    // #' the additional distributional parameters are recycled
+                    // #' so that all arguments have the same number of rows
+                    // #' and columns. All functions return a matrix the same
+                    // #' shape as `mean` but with pseudo-random numbers
+                    // #' deviating from each mean in the `mean` matrix.
+                    // #'
+                    // #' ### Functions
+                    // #'
+                    // #' * `rpois(mean)` -- Pseudo-random Poisson distributed
+                    // #' values.
+                    // #' * `rnbinom(mean, over_dispersion)` -- Pseudo-random
+                    // #' negative binomially distributed values.
+                    // #' * `rnorm(mean, standard_deviation)` -- Pseudo-random
+                    // #' normal values.
+                    // #'
+                    // #' ### Arguments
+                    // #'
+                    // #' * `mean` -- Matrix of means about which to simulate
+                    // #' pseudo-random variation.
+                    // #' * `over_dispersion` -- Matrix of over-dispersion parameters
+                    // #' given by \code{(simulated/standard_deviation)^2 - simulated)}.
+                    // #' * `standard_deviation` -- Matrix of standard deviation parameters.
+                    // #'
                     case MP2_POISSON_SIM:
                         rows = args[0].rows();
                         cols = args[0].cols();
@@ -1217,11 +1342,36 @@ public:
                     case MP2_ASSIGN:
                     // #' ## Assign
                     // #'
+                    // #' Assign values to a subset of the elements in a matrix.
+                    // #'
+                    // #'
                     // #' ### Functions
                     // #'
                     // #' * `assign(x, i, j, v)`
                     // #'
+                        cols = args[1].cols();
+                        if (cols != 1) {
+                            SetError(255, "Assignment index matrices must have a single column");
+                            return m;
+                        }
+                        rows = args[1].rows();
+                        RecycleInPlace(args[3], rows, cols);
+
+                        cols = args[2].cols();
+                        if (cols != 1) {
+                            SetError(255, "Assignment index matrices must have a single column");
+                            return m;
+                        }
+                        rows = args[2].rows();
+                        RecycleInPlace(args[3], rows, cols);
+
+                        cols = args[2].cols();
+                        if (cols != 1) {
+                            SetError(255, "Assignment value matrices must have a single column");
+                            return m;
+                        }
                         rows = args[3].rows();
+
                         for (int k=0; k<rows; k++) {
                             rowIndex = CppAD::Integer(args[1].coeff(k,0));
                             colIndex = CppAD::Integer(args[2].coeff(k,0));
