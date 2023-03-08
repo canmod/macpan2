@@ -544,6 +544,7 @@ TMBSimulator = function(tmb_model, tmb_cpp = "macpan2") {
       self$ad_fun
     )
   }
+  self$error_code = function(...) self$ad_fun$report(...)$error
   self$report = function(..., .phases = c("before", "during", "after")) {
     fixed_params = as.numeric(unlist(list(...)))
     if (length(fixed_params) == 0L) {

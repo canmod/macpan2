@@ -1,11 +1,16 @@
-# library(macpan2)
-# compile('misc/dev/dev.cpp')
-# dyn.load(dynlib("misc/dev/dev"))
-# m = TMBModel(
-#     init_mats = MatsList(x = 0, z = c(5, 6), y = c(1, 2, 3), .mats_to_save = "x", .mats_to_return = "x"),
-#     expr_list = ExprList(during = list(x ~ c(x, 1))),
-#     time_steps = Time(10),
-#     params = OptParamsList(0, par_id = 0L, mat = "x", row_id = 0L, col_id = 0L)
-# )
-# a = TMBSimulator(m, tmb_cpp = "dev")
-# a$report(0)
+test_that("concatenation works with many different shapes of input", {
+  set.seed(1L)
+  m = TMBModel(
+      init_mats = MatsList(
+          answer = empty_matrix
+        , x = empty_matrix
+        , y = pi
+        , z = rnorm(4L)
+        , w = matrix(rnorm(12L), 3L, 4L)
+        , .mats_to_return = "answer"
+      ),
+      expr_list = ExprList(before = list(answer ~ c(x, y, z, w)))
+  )
+  s = TMBSimulator(m)
+  s$matrix(matrix_name = "answer", time_step = 1L)
+})
