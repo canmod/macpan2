@@ -28,9 +28,8 @@ jobs:
           needs: coverage
 
       - name: Test coverage
-        id: coverage
         run: |
-          cat(round(covr::percent_coverage(covr::package_coverage(quiet = FALSE, clean = FALSE, install_path = file.path(Sys.getenv("RUNNER_TEMP"), "package"))))) > $GITHUB_OUTPUT
+          writeLines(round(covr::percent_coverage(covr::package_coverage(quiet = FALSE, clean = FALSE, install_path = file.path(Sys.getenv("RUNNER_TEMP"), "package")))), "COVERAGE")
         shell: Rscript {0}
 
       - name: Show testthat output
@@ -47,14 +46,14 @@ jobs:
           name: coverage-test-failures
           path: ${{ runner.temp }}/package
 
-      - id: date
-        run: echo "##[set-output name=data;]$(date)"
+      - id: coverage
+        run: echo "##[set-output name=data;]$(cat COVERAGE)"
 
       - name: Time badge
         uses: RubbaBoy/BYOB@v1.3.0
         with:
-          NAME: time
-          LABEL: 'Code Coverage'
+          NAME: coverage
+          LABEL: 'Test Coverage'
           STATUS: ${{ steps.coverage.outputs.data }}
           COLOR: 00EEFF
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
