@@ -28,6 +28,7 @@ jobs:
           needs: coverage
 
       - name: Test coverage
+        id: coverage
         run: |
           round(covr::percent_coverage(covr::package_coverage(
             quiet = FALSE,
@@ -57,7 +58,7 @@ jobs:
         uses: RubbaBoy/BYOB@v1.3.0
         with:
           NAME: time
-          LABEL: 'Updated at'
-          STATUS: ${{ steps.date.outputs.data }}
+          LABEL: 'Code Coverage'
+          STATUS: ${{ steps.coverage.outputs.data }}
           COLOR: 00EEFF
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
