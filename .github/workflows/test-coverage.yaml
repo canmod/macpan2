@@ -29,11 +29,11 @@ jobs:
 
       - name: Test coverage
         run: |
-          covr::codecov(
+          round(percent_coverage(covr::package_coverage(
             quiet = FALSE,
             clean = FALSE,
             install_path = file.path(Sys.getenv("RUNNER_TEMP"), "package")
-          )
+          )))
         shell: Rscript {0}
 
       - name: Show testthat output
@@ -49,3 +49,11 @@ jobs:
         with:
           name: coverage-test-failures
           path: ${{ runner.temp }}/package
+
+      - name: Badge
+        uses: RubbaBoy/BYOB@v1.2.1
+        with:
+          NAME: Coverage
+          LABEL: 'R Code Coverage'
+          STATUS: '22%'
+          COLOR: blue
