@@ -30,7 +30,7 @@ FlowExpander = function(model) {
     component_filter = switch(component_type
       , from = self$s$state_variables
       , to = self$s$state_variables
-      , flow = self$.flow_variables
+      , flow = self$s$flow_variables
     )
     #namer$v_to_psl_with_pn(partition_set, s$required_partitions)
     partition_set[

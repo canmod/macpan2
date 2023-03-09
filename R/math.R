@@ -441,20 +441,20 @@ MathExpression = function(math_function) {
 
 ## R-side versions of non-standard functions
 
-#' Group Sums
-#'
-#' Column vector containing the
-#' sums of groups of elements in `x`. The groups are
-#' determined by the integers in `f` and the order of
-#' the sums in the output is determined by these
-#' integers.
-#'
-#' @param x A numeric column vector.
-#' @param f A column vector the same length as `x`.
-#' containing integers between `0` and `n-1`.
-#' @param n Length of the output column vector.
-#'
-#' @export
+# Group Sums
+#
+# Column vector containing the
+# sums of groups of elements in `x`. The groups are
+# determined by the integers in `f` and the order of
+# the sums in the output is determined by these
+# integers.
+#
+# @param x A numeric column vector.
+# @param f A column vector the same length as `x`.
+# containing integers between `0` and `n-1`.
+# @param n Length of the output column vector.
+#
+
 groupSums = function(x, f, n) {
   ## Column vector containing the
   ## sums of groups of elements in `x`. The groups are

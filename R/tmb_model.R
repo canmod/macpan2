@@ -195,9 +195,19 @@ MatsList = function(...
     dimnames(x)
   }
   not_null = function(x) !is.null(x)
-  self$.dimnames = Filter(not_null
-    , lapply(self$.initial_mats, dimnames_handle_nulls)
+  dn = lapply(self$.initial_mats, dimnames_handle_nulls)
+  for (mat_nm in names(.dimnames)) dn[[mat_nm]] = .dimnames[[mat_nm]]
+  self$.dimnames = Filter(not_null, dn)
+
+  self$.dim = setNames(
+    lapply(self$.mats(), dim),
+    self$.names()
   )
+  self$.nrow = vapply(self$.mats(), nrow, integer(1L), USE.NAMES = FALSE)
+  self$.ncol = vapply(self$.mats(), ncol, integer(1L), USE.NAMES = FALSE)
+  self$mat_dims = function() {
+    data.frame(mat = self$.names(), nrow = self$.nrow, ncol = self$.ncol)
+  }
   self$data_arg = function() {
     r = list(
       mats = self$.mats(),
@@ -243,6 +253,7 @@ names.MatsList = function(x) x$.names()
 #'     * `{.type_string}_col_id` -- Integers identifying the columns within
 #'     matrices to replace.
 #' * `$vector()`: Return the initial value of the numerical parameter vector.
+#' * `$data_frame()`: Return a data frame with each row describing a parameter.
 #'
 #' ## Method Arguments
 #'
@@ -273,6 +284,9 @@ OptParamsList = function(...
   self$.mat_id = function(...) {
     match(self$.mat, as.character(unlist(list(...)))) - 1L
   }
+  self$data_frame = function() {
+    data.frame(par_id = self$.par_id, mat = self$.mat, row = self$.row_id, col = self$.col_id)
+  }
   self$data_arg = function(..., .type_string = c("p", "r")) {
     .type_string = match.arg(.type_string)
     r = setNames(
@@ -282,6 +296,26 @@ OptParamsList = function(...
     valid$opt_params_list_arg$assert(r)
   }
   return_object(self, "OptParamsList")
+}
+
+OptParamsFrame = function(..., frame) {
+  OptParamsList(...
+    , par_id = frame$par_id
+    , mat = frame$mat
+    , row_id = frame$row_id
+    , col_id = frame$col_id
+  )
+}
+
+OptParamsFile = function(file_path
+      , csv_reader = CSVReader
+      , json_reader = JSONReader
+      , txt_reader = TXTReader
+    ) {
+  self = Files(dirname(file_path)
+    , reader_spec(basename(file_path), csv_reader)
+  )
+  self
 }
 
 #' Objective Function
@@ -467,13 +501,18 @@ TMBModel = function(
   }
   self$make_ad_fun = function(DLL = "macpan2") {
     try(TMB::MakeADFun(
-      data = self$data_arg(),
-      parameters = self$param_arg(),
-      random = self$random_arg(),
-      DLL = DLL
-    ))
+        data = self$data_arg(),
+        parameters = self$param_arg(),
+        random = self$random_arg(),
+        DLL = DLL
+      ),
+      silent = TRUE
+    )
   }
-  return_object(self, "TMBModel")
+  return_object(
+    valid$tmb_model$assert(self),
+    "TMBModel"
+  )
 }
 
 #' TMB Simulator
@@ -498,18 +537,47 @@ TMBSimulator = function(tmb_model, tmb_cpp = "macpan2") {
   self$tmb_cpp = tmb_cpp
   self$matrix_names = self$tmb_model$.init_mats$.names()
   self$ad_fun = self$tmb_model$make_ad_fun(self$tmb_cpp)
+  if (inherits(self$ad_fun, "try-error")) {
+    stop(
+      "\nThe tmb_model object is malformed,",
+      "\nwith the following explanation:\n",
+      self$ad_fun
+    )
+  }
+  self$error_code = function(...) self$ad_fun$report(...)$error
   self$report = function(..., .phases = c("before", "during", "after")) {
     fixed_params = as.numeric(unlist(list(...)))
+    if (length(fixed_params) == 0L) {
+      r = self$ad_fun$report()
+    } else {
+      r = self$ad_fun$report(fixed_params)
+    }
+    if (r$error != 0L) stop("Error thrown by the TMB engine.")
     r = setNames(
-      as.data.frame(self$ad_fun$report(fixed_params)$values),
+      as.data.frame(r$values),
       c("matrix", "time", "row", "col", "value")
     )  ## get raw simulation output from TMB and supply column names (which don't exist on the TMB side)
     r$matrix = self$matrix_names[r$matrix + 1L]  ## replace matrix indices with matrix names
     dn = self$tmb_model$.init_mats$.dimnames ## get the row and column names of matrices with such names
     for (mat in names(dn)) {
       i = r$matrix == mat
-      r[i,"row"] = dn[[mat]][[1L]][as.integer(r[i,"row"]) + 1L]
-      r[i,"col"] = dn[[mat]][[2L]][as.integer(r[i,"col"]) + 1L]
+
+      ## convert to 1-based indices for R users
+      row_indices = as.integer(r[i,"row"]) + 1L
+      col_indices = as.integer(r[i,"col"]) + 1L
+
+      ## add row and column names if available
+      r[i, "row"] = dn[[mat]][[1L]][row_indices]
+      r[i, "col"] = dn[[mat]][[2L]][col_indices]
+
+      ## if some of the row and column names are unavailable,
+      ## replace with indices -- this is important for the use case
+      ## where a named matrix changes shape/size, beacuse row and column
+      ## names can be set for the initial shape/size
+      missing_row_nms = is.na(r[i, "row"])
+      missing_col_nms = is.na(r[i, "col"])
+      r[i, "row"][missing_row_nms] = as.character(row_indices[missing_row_nms])
+      r[i, "col"][missing_col_nms] = as.character(col_indices[missing_col_nms])
     }
     r$time = as.integer(r$time)
     num_t = self$tmb_model$.time_steps$.time_steps

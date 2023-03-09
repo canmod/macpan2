@@ -2,6 +2,44 @@
 % Please edit documentation in R/engine_functions.R
 \name{engine_functions}
 \alias{engine_functions}
+\alias{`+`}
+\alias{`-`}
+\alias{`*`}
+\alias{`/`}
+\alias{`^`}
+\alias{exp}
+\alias{log}
+\alias{`(`}
+\alias{c}
+\alias{matrix}
+\alias{`\%*\%`}
+\alias{sum}
+\alias{rep}
+\alias{rowSums}
+\alias{colSums}
+\alias{groupSums}
+\alias{`[`}
+\alias{block}
+\alias{t}
+\alias{rbind_time}
+\alias{rbind_lag}
+\alias{cbind_time}
+\alias{cbind_lag}
+\alias{`:`}
+\alias{seq}
+\alias{convolution}
+\alias{cbind}
+\alias{rbind}
+\alias{time_step}
+\alias{assign}
+\alias{unpack}
+\alias{clamp}
+\alias{dpois}
+\alias{dnbinom}
+\alias{dnorm}
+\alias{rpois}
+\alias{rnbinom}
+\alias{rnorm}
 \title{Engine Functions}
 \description{
 Functions currently supported by the C++ TMB engine
@@ -9,6 +47,15 @@ for constructing expressions for defining model
 simulations.
 }
 \details{
+The quickest way to experiment with these functions is
+to use the \code{\link{engine_eval}} function, as in the
+following example that calculates a force of infection.
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{engine_eval(~ beta * I / S, beta = 0.25, I = 1e3, S = 1e7)
+}\if{html}{\out{</div>}}
+
+To produce a simulation using these functions, one may
+use the ...
 \subsection{Elementwise Binary Operators}{
 
 Elementwise binary operators take two matrix-valued
@@ -51,6 +98,14 @@ after any necessary recycling of rows and/or columns.
 }
 }
 
+\subsection{Examples}{
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{engine_eval(~ 1 + 2)
+engine_eval(~ y * z, y = 1:3, z = matrix(1:6, 3, 2))
+engine_eval(~ 1 / (1 - y), y = 1/4)
+}\if{html}{\out{</div>}}
+}
+
 }
 
 \subsection{Unary Elementwise Math}{
@@ -72,6 +127,12 @@ after any necessary recycling of rows and/or columns.
 \item A matrix with the same dimensions as \code{x}, with the
 unary function applied elementwise.
 }
+}
+
+\subsection{Examples}{
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{engine_eval(~ log(y), y = c(2, 0.5))
+}\if{html}{\out{</div>}}
 }
 
 }
@@ -118,6 +179,13 @@ allows the user precise control over the length of
 the output through the \code{length} argument. The
 base R function gives the user this option, but not
 as the default.
+}
+
+\subsection{Examples}{
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{engine_eval(~ 1:10)
+engine_eval(~ seq(1, 10, 2))
+}\if{html}{\out{</div>}}
 
 Replicate Elements
 }
@@ -147,6 +215,12 @@ on top of each other.
 }
 }
 
+\subsection{Examples}{
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{engine_eval(~ rep(1, 10))
+}\if{html}{\out{</div>}}
+}
+
 }
 
 \subsection{Matrix Multiplication}{
@@ -171,6 +245,12 @@ columns.
 }
 }
 
+\subsection{Examples}{
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{engine_eval(~ (1:10) \%*\% t(1:10))
+}\if{html}{\out{</div>}}
+}
+
 }
 
 \subsection{Parenthesis}{
@@ -182,7 +262,8 @@ way with round parentheses, \code{\link{(}}.
 \subsection{Reshaping and Combining Matrices}{
 \subsection{Functions}{
 \itemize{
-\item \code{c(...)} -- Stack column vectors.
+\item \code{c(...)} -- Stack columns of arguments into a
+single column vector.
 \item \code{cbind(...)} -- Create a matrix containing all of
 the columns of a group of matrices with the same
 number of rows.
@@ -238,6 +319,16 @@ Matrices can be transposed with the usual
 function, \code{\link{t}}.
 }
 
+\subsection{Examples}{
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{engine_eval(~ c(a, b, c), a = 1, b = 10:13, c = matrix(20:25, 3, 2))
+engine_eval(~ cbind(a, 10 + a), a = 0:3)
+engine_eval(~ rbind(a, 10 + a), a = t(0:3))
+engine_eval(~ matrix(1:12, 4, 3))
+engine_eval(~ t(1:3))
+}\if{html}{\out{</div>}}
+}
+
 }
 
 \subsection{Summarizing Matrix Values}{
@@ -271,9 +362,9 @@ containing integers between \code{0} and \verb{n-}.
 \item A matrix containing sums of various groups of
 the elements of \code{x}.
 }
+}
 
-The elements of a matrix can be summed together using
-the standard \code{\link{sum}} function.
+\subsection{Details}{
 
 The standard \code{\link{rowSums}} and
 \code{\link{colSums}} can be used, but they have
@@ -283,6 +374,15 @@ returns a column vector and the \code{colSums} function
 returns a row vector. If a specific shape is required
 then the transpose \code{\link{t}} function must be
 explicitly used.
+}
+
+\subsection{Examples}{
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{engine_eval(~ sum(1:4))
+engine_eval(~ colSums(A), A = matrix(1:12, 4, 3))
+engine_eval(~ rowSums(A), A = matrix(1:12, 4, 3))
+engine_eval(~ groupSums(x, f, n), x = 1:10, f = rep(0:3, 1:4), n = 4)
+}\if{html}{\out{</div>}}
 }
 
 }
@@ -378,6 +478,33 @@ that are before \code{t_min} are ignored.
 
 }
 
+\subsection{Time Step}{
+
+Get the time-step associated with a particular
+lag from the current time-step. If the lagged
+time-step is less than zero, the function returns
+zero.
+\subsection{Functions}{
+\itemize{
+\item \code{time_step(lag)}
+}
+}
+
+\subsection{Arguments}{
+\itemize{
+\item \code{lag} -- Number of time-steps to look back for
+the time-step to return.
+}
+}
+
+\subsection{Return}{
+
+A 1-by-1 matrix with the time-step \code{lag} steps
+ago, or with zero if \code{t+1 < lag}
+}
+
+}
+
 \subsection{Convolution}{
 
 One may take the convolution of each element in a
@@ -440,9 +567,90 @@ arguments.
 \item \code{observed}
 \item \code{simulated}
 }
+
+The \code{simulated} argument gives a matrix of means for
+the \code{observed} values at which the densities are
+being evaluated. Additional arguments are other
+distributional parameters such as the standard
+deviation or dispersion parameter. All densities
+are given as log-densities, so if you would like
+the density itself you must pass the result through
+the \code{exp} function.
+
+If the \code{simulated} matrix or the additional parameter
+matrices have either a single row or
+single column, these singleton rows and columns are
+repeated to match the number of rows and columns in
+the \code{observed} matrix. This feature allows one
+to do things like specify a single common mean for
+several values.
+\subsection{Functions}{
+\itemize{
+\item \code{dpois(observed, simulated)} -- Log of the Poisson density
+based on this \href{https://kaskr.github.io/adcomp/group__R__style__distribution.html#gaa1ed15503e1441a381102a8c4c9baaf1}{dpois}
+TMB function.
+\item \code{dnbinom(observed, simulated, over_dispersion)} --
+Log of the negative binomial density based on this \href{https://kaskr.github.io/adcomp/group__R__style__distribution.html#ga76266c19046e04b651fce93aa0810351}{dnbinom}
+TMB function. To get the variance that this function
+requires we use this expression, \code{simulated + simulated^2/over_dispersion},
+following p.165 in this \href{https://ms.mcmaster.ca/~bolker/emdbook/book.pdf}{book}
+\item \code{dnorm(observed, simulated, standard_deviation)} --
+Log of the normal density based on this \href{https://kaskr.github.io/adcomp/dnorm_8hpp.html}{dnorm}
+TMB function.
+}
+}
+
+\subsection{Arguments}{
+\itemize{
+\item \code{observed} -- Matrix of observed values
+at which the density is being evaluated.
+\item \code{simulated} -- Matrix of distributional means,
+with singleton rows and columns recycled to match
+the numbers of rows and columns in \code{observed}.
+\item \code{over_dispersion} -- Over-dispersion parameter
+given by \code{(simulated/standard_deviation)^2 - simulated)}.
+\item \code{standard_deviation} -- Standard deviation parameter.
+}
+
+Pseudo-Random Number Generators
+
+All random number generator functions have \code{mean}
+as the first argument. Subsequent arguments give
+additional distributional parameters.
+Singleton rows and columns in the matrices passed to
+the additional distributional parameters are recycled
+so that all arguments have the same number of rows
+and columns. All functions return a matrix the same
+shape as \code{mean} but with pseudo-random numbers
+deviating from each mean in the \code{mean} matrix.
+}
+
+\subsection{Functions}{
+\itemize{
+\item \code{rpois(mean)} -- Pseudo-random Poisson distributed
+values.
+\item \code{rnbinom(mean, over_dispersion)} -- Pseudo-random
+negative binomially distributed values.
+\item \code{rnorm(mean, standard_deviation)} -- Pseudo-random
+normal values.
+}
+}
+
+\subsection{Arguments}{
+\itemize{
+\item \code{mean} -- Matrix of means about which to simulate
+pseudo-random variation.
+\item \code{over_dispersion} -- Matrix of over-dispersion parameters
+given by \code{(simulated/standard_deviation)^2 - simulated)}.
+\item \code{standard_deviation} -- Matrix of standard deviation parameters.
+}
+}
+
 }
 
 \subsection{Assign}{
+
+Assign values to a subset of the elements in a matrix.
 \subsection{Functions}{
 \itemize{
 \item \code{assign(x, i, j, v)}

@@ -44,6 +44,7 @@ to replace.
 matrices to replace.
 }
 \item \verb{$vector()}: Return the initial value of the numerical parameter vector.
+\item \verb{$data_frame()}: Return a data frame with each row describing a parameter.
 }
 }
 
