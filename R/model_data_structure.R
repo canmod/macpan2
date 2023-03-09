@@ -294,8 +294,7 @@ Scalar2Vector = function(model){
     if(any(scalar_name == self$model$def$settings()[["state_variables"]])){
       return(self$.state_replacer(scalar_name))
     }
-    else return(scalar_name)
-    if(any(scalar_name == self$model$def$settings()[["flow_variables"]])){
+    else if(any(scalar_name == self$model$def$settings()[["flow_variables"]])){
       return(self$.rate_replacer(scalar_name))
     }
     else return(scalar_name)
