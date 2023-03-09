@@ -1,3 +1,4 @@
+library(oor)
 library(macpan2)
 library(TMB)
 
@@ -12,6 +13,13 @@ models = setNames(
   tools::file_path_sans_ext(basename(model_paths[3:7]))
 )
 m = Model(models$seir_symp_vax)
+
+de = DerivationExpander(m)
+
+edlist = de$expand_derivations()
+
+s2v = Scalar2Vector(m)
+edlist_replaced = s2v$vectorize()
 
 d = m$derivations()
 

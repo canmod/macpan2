@@ -177,22 +177,22 @@ Model = function(definition) {
   }
   self$derivations = self$def$derivations ## TODO: make this more useful
 
-  self$user_expressions = UserDefinedExpr(self$variables(), self$derivations(), self$def$settings(), self$flows())
-
   return_object(self, "Model")
 }
 
-
-
-
+#' DerivationExpander
+#' 
+#' Expand the derivations of a model object
+#' 
+#' @export
 DerivationExpander = function(model){
   self = Base()
   self$model = model
   self$.filtered_variables = function(derivation){
     if(!is.null(derivation$filter_partition)){
-      filtered_variables = self$model$variables$filter(derivation$filter_names, .wrt = derivation$filter_partition)
+      filtered_variables = self$model$variables()$filter(derivation$filter_names, .wrt = derivation$filter_partition)
     } 
-    else filtered_variables = self$model$variables
+    else filtered_variables = self$model$variables()
     return(filtered_variables)
   }
   
@@ -208,12 +208,14 @@ DerivationExpander = function(model){
   
   self$.group_outputs = function(derivation){
     if(!is.null(derivation$output_partition)){
-      group_outputs = lapply(derivation$output_names, self$.filtered_variables(derivation)$filter, .wrt = derivation$output_partition)
+      group_output = lapply(derivation$output_names, self$.filtered_variables(derivation)$filter, .wrt = derivation$output_partition)
     }
     else {
-      group_outputs = lapply(derivation$output_names, self$.filtered_variables(derivation)$filter, .wrt = self$model$settings$required_partitions)
+      group_output = lapply(derivation$output_names, self$.filtered_variables(derivation)$filter, .wrt = self$model$settings$required_partitions)
     }
-    return(group_outputs)
+    
+    group_output = method_apply(group_output, "labels")
+    return(group_output)
   }
   
   self$.group_inputs = function(derivation){
@@ -236,7 +238,8 @@ DerivationExpander = function(model){
     filtered_group_variables = list()
     if(!is.null(derivation$arguments)){
       for(j in 1:self$.number_of_groups(derivation)){
-        filtered_group_variables = c(filtered_group_variables, self$.group_variables(derivation)[[j]]$filter(derivation$arguments, .wrt = self$.group_inputs(derivation)))
+        #tmp = self$.group_variables(derivation)[[j]]$filter(derivation$arguments, .wrt = self$.group_inputs(derivation))$labels()
+        filtered_group_variables = c(filtered_group_variables, list(as.list(self$.group_variables(derivation)[[j]]$filter(derivation$arguments, .wrt = self$.group_inputs(derivation))$labels())))
       }
     }
     return(filtered_group_variables)
@@ -246,26 +249,69 @@ DerivationExpander = function(model){
     filtered_group_variable_dots = list()
     if(!is.null(derivation$argument_dots)){
       for(j in 1:self$.number_of_groups(derivation)){
-        filtered_group_variable_dots = c(filtered_group_variable_dots, self$.group_variables(derivation)[[j]]$filter(derivation$argument_dots, .wrt = self$.group_inputs(derivation)))
+        #tmp = self$.group_variables(derivation)[[j]]$filter(derivation$argument_dots, .wrt = self$.group_inputs(derivation))$labels()
+        filtered_group_variable_dots = c(filtered_group_variable_dots, list(as.list(self$.group_variables(derivation)[[j]]$filter(derivation$argument_dots, .wrt = self$.group_inputs(derivation))$labels())))
       }
     }
-    return(filterd_group_variable_dots)
+    return(filtered_group_variable_dots)
   }
   
-  expand_derivation = function(derivation){
-    
+  self$expand_derivation = function(derivation){
+    return(list(expression = derivation$expression, arguments = derivation$arguments, outputs = self$.group_outputs(derivation), variables = self$.filtered_group_variables(derivation), variable_dots = self$.filtered_group_variable_dots(derivation)))
   }
   
-  expand_derivations = function(){
-    
+  self$expand_derivations = function(){
+    derivation_list = self$model$derivations()
+    return(lapply(derivation_list, self$expand_derivation))
   }
   
   return_object(self, "DerivationExpander")
 }
 
-Scalar2Vector = function(){
+
+#' Scalar2Vector
+#' 
+#' Replace scalar names with the equivalent vector name
+#' 
+#' @export
+Scalar2Vector = function(model){
   self = Base()
-  #TODO: Replace scalar variables with the equivalent vector variables
+  self$model = model
+  self$expanded_derivations = DerivationExpander(self$model)$expand_derivations()
+  self$.state_pointer = function(scalar_name){
+    return(as.numeric(which(scalar_name == self$model$def$settings()[["state_variables"]]))-1)
+  }
+  self$.state_replacer = function(scalar_name){
+    return(paste0("state[", paste0(self$.state_pointer(scalar_name), "]")))
+  }
+  self$.rate_pointer = function(scalar_name){
+    return(as.numeric(which(scalar_name == self$model$def$settings()[["flow_variables"]]))-1)
+  }
+  self$.rate_replacer = function(scalar_name){
+    return(paste0("rate[", paste0(self$.rate_pointer(scalar_name), "]")))
+  }
+  self$.replacer = function(scalar_name){
+    if(any(scalar_name == self$model$def$settings()[["state_variables"]])){
+      return(self$.state_replacer(scalar_name))
+    }
+    else return(scalar_name)
+    if(any(scalar_name == self$model$def$settings()[["flow_variables"]])){
+      return(self$.rate_replacer(scalar_name))
+    }
+    else return(scalar_name)
+  }
+  self$.list_replacer = function(scalar_name_list){
+    return(lapply(scalar_name_list, self$.replacer))
+  }
+  self$vectorizer = function(expanded_derivation){
+    expanded_derivation$outputs = self$.list_replacer(expanded_derivation$outputs)
+    expanded_derivation$variables = lapply(expanded_derivation$variables, self$.list_replacer)
+    expanded_derivation$variable_dots = lapply(expanded_derivation$variable_dots, self$.list_replacer)
+    return(expanded_derivation)
+  }
+  self$vectorize = function(){
+    return(lapply(self$expanded_derivations, self$vectorizer))
+  }
   return_object(self, "Scalar2Vector")
 }
 
