@@ -73,4 +73,4 @@ jobs:
           STATUS: ${{ steps.coverage.outputs.data }}
           COLOR: 00EEFF
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH: main
+          BRANCH: shields
