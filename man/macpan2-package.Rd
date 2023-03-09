@@ -18,7 +18,13 @@ Authors:
 \itemize{
   \item Darren Flynn-Primrose
   \item Weiguang Guan
+  \item Ben Bolker
   \item Steve Walker
+}
+
+Other contributors:
+\itemize{
+  \item Michael Li [contributor]
 }
 
 }

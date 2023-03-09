@@ -5,6 +5,8 @@ Authors@R: c(
   person("Steve Walker", email="swalk@mcmaster.ca", role=c("cre")),
   person("Darren Flynn-Primrose", rol="aut"),
   person("Weiguang Guan", rol="aut"),
+  person("Ben Bolker", rol="aut"),
+  person("Michael Li", rol="ctb"),
   person("Steve Walker", rol="aut"))
 Description: Fast and flexible compartmental modelling with template model builder.
 License: GPL-3
@@ -16,6 +18,7 @@ Imports:
     oor,
     jsonlite
 Suggests: 
+    covr,
     knitr,
     rmarkdown,
     testthat (>= 3.0.0)

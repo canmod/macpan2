@@ -2,3 +2,4 @@
 ^\.Rproj\.user$
 ^\.github$
 Makefile
+^codecov\.yml$
