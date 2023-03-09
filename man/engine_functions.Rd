@@ -426,6 +426,12 @@ Note that zero-based indexing is used
 so the first row/column gets index, \code{0}, etc.
 }
 
+\subsection{Examples}{
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{engine_eval(~ A[c(3, 1, 2), c(2)], A = matrix(1:12, 4, 3))
+}\if{html}{\out{</div>}}
+}
+
 }
 
 \subsection{Accessing Past Values in the Simulation History}{

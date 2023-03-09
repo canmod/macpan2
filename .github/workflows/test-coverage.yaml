@@ -30,19 +30,23 @@ jobs:
       - name: Test coverage
         run: |
           writeLines(
-            as.character(
-              round(
-                covr::percent_coverage(
-                  covr::package_coverage(
-                    quiet = FALSE,
-                    clean = FALSE,
-                    install_path = file.path(
-                      Sys.getenv("RUNNER_TEMP"),
-                      "package"
+            paste(
+              as.character(
+                round(
+                  covr::percent_coverage(
+                    covr::package_coverage(
+                      quiet = FALSE,
+                      clean = FALSE,
+                      install_path = file.path(
+                        Sys.getenv("RUNNER_TEMP"),
+                        "package"
+                      )
                     )
                   )
                 )
-              )
+              ),
+              "percent",
+              sep = " "
             ),
             "COVERAGE"
           )

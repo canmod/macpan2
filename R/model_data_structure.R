@@ -129,9 +129,17 @@ Model = function(definition) {
 }
 
 #' DerivationExpander
-#' 
-#' Expand the derivations of a model object
-#' 
+#'
+#' Construct an object for expanding the derivations within a
+#' \code{\link{Model}}.
+#'
+#' @param model Object of type \code{\link{Model}}
+#'
+#' ## Methods
+#'
+#' * `$expand_derivation(derivation)` -- Expand a single derivation by name.
+#' * `$expand_derivations()` -- Example all derivations in the model.
+#'
 #' @export
 DerivationExpander = function(model){
   self = Base()
@@ -139,11 +147,11 @@ DerivationExpander = function(model){
   self$.filtered_variables = function(derivation){
     if(!is.null(derivation$filter_partition)){
       filtered_variables = self$model$variables()$filter(derivation$filter_names, .wrt = derivation$filter_partition)
-    } 
+    }
     else filtered_variables = self$model$variables()
     return(filtered_variables)
   }
-  
+
   self$.group_variables = function(derivation){
     if(!is.null(derivation$group_partition)){
       group_variables = lapply(derivation$group_names, self$.filtered_variables(derivation)$filter, .wrt = derivation$group_partition, .comparison_function = all_consistent)
@@ -153,7 +161,7 @@ DerivationExpander = function(model){
     }
     return(group_variables)
   }
-  
+
   self$.group_outputs = function(derivation){
     if(!is.null(derivation$output_partition)){
       group_output = lapply(derivation$output_names, self$.filtered_variables(derivation)$filter, .wrt = derivation$output_partition)
@@ -161,11 +169,11 @@ DerivationExpander = function(model){
     else {
       group_output = lapply(derivation$output_names, self$.filtered_variables(derivation)$filter, .wrt = self$model$settings$required_partitions)
     }
-    
+
     group_output = method_apply(group_output, "labels")
     return(group_output)
   }
-  
+
   self$.group_inputs = function(derivation){
     if(!is.null(derivation$input_partition)){
       group_inputs = derivation$input_partition
@@ -175,13 +183,13 @@ DerivationExpander = function(model){
     }
     return(group_inputs)
   }
-  
+
   self$.number_of_groups = function(derivation){
     if(!is.null(derivation$output_partition)) number_of_groups = length(derivation$group_names)
     else number_of_groups = 1
     return(number_of_groups)
   }
-  
+
   self$.filtered_group_variables = function(derivation){
     filtered_group_variables = list()
     if(!is.null(derivation$arguments)){
@@ -192,8 +200,8 @@ DerivationExpander = function(model){
     }
     return(filtered_group_variables)
   }
-   
-  self$.filtered_group_variable_dots = function(derivation){ 
+
+  self$.filtered_group_variable_dots = function(derivation){
     filtered_group_variable_dots = list()
     if(!is.null(derivation$argument_dots)){
       for(j in 1:self$.number_of_groups(derivation)){
@@ -203,24 +211,37 @@ DerivationExpander = function(model){
     }
     return(filtered_group_variable_dots)
   }
-  
+
   self$expand_derivation = function(derivation){
-    return(list(expression = derivation$expression, arguments = derivation$arguments, outputs = self$.group_outputs(derivation), variables = self$.filtered_group_variables(derivation), variable_dots = self$.filtered_group_variable_dots(derivation)))
+    return(list(expression = derivation$expression
+      , arguments = derivation$arguments
+      , outputs = self$.group_outputs(derivation)
+      , variables = self$.filtered_group_variables(derivation)
+      , variable_dots = self$.filtered_group_variable_dots(derivation)
+    ))
   }
-  
+
   self$expand_derivations = function(){
     derivation_list = self$model$derivations()
     return(lapply(derivation_list, self$expand_derivation))
   }
-  
+
   return_object(self, "DerivationExpander")
 }
 
 
 #' Scalar2Vector
-#' 
-#' Replace scalar names with the equivalent vector name
-#' 
+#'
+#' Construct an object for replacing scalar names within a \code{\link{Model}}
+#' model, with the equivalent vector name.
+#'
+#' @param model Object of type \code{\link{Model}}
+#'
+#' ## Methods
+#'
+#' * `$vectorizer(expanded_derivation)`
+#' * `$vectorize()`
+#'
 #' @export
 Scalar2Vector = function(model){
   self = Base()

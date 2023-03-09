@@ -896,6 +896,12 @@ public:
                     // #' Note that zero-based indexing is used
                     // #' so the first row/column gets index, `0`, etc.
                     // #'
+                    // #' ### Examples
+                    // #'
+                    // #' ```
+                    // #' engine_eval(~ A[c(3, 1, 2), c(2)], A = matrix(1:12, 4, 3))
+                    // #' ```
+                    // #'
                     case MP2_SQUARE_BRACKET: // [
                         #ifdef MP_VERBOSE
                             std::cout << "square bracket" << std::endl << std::endl;
