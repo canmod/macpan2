@@ -155,11 +155,11 @@ StringDottedVector = function(...) {
     rownames(m) = colnames(m) = NULL
     StringUndottedMatrix(m)
   }
-  self$which_in = function(other, f) {
-    self$undot()$which_in(other$undot())$dot()
+  self$which_in = function(other, comparison_function) {
+    self$undot()$which_in(other$undot(), comparison_function)
   }
-  self$which_not_in = function(other, f) {
-    self$undot()$which_not_in(other$undot())$dot()
+  self$which_not_in = function(other, comparison_function) {
+    self$undot()$which_not_in(other$undot(), comparison_function)
   }
   self$which_dup = function() {
     duplicated(self$value())
