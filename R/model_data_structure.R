@@ -334,13 +334,3 @@ model_starter = function(starter_name, dir_name) {
   file.copy(starter_paths, dir_name)
   ModelFiles(dir_name)
 }
-
-#model_starter("seir", "../../../inst/starter_models/seir_symp")
-# sir_test_files = ModelFiles("starter_sir")
-# sir_test_files$variables()
-# sir_test_files$derivations()
-# sir_test_files$flows()
-# sir_test_files = model_starter("sir", "LDSKjf")
-#v = sir_test_files$derivations()
-#valid$is_variables_component$apply(v)
-#debug(valid$is_variables_component$apply)
