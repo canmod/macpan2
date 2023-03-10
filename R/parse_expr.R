@@ -129,7 +129,7 @@ make_expr_parser = function(
 
     # recursively call to check if the reduction process is complete
     # TODO: prove that infinite recursion is not possible
-    writeLines(ls(parent.frame()), "~/Development/macpan2/misc/testing.txt")
+    #writeLines(ls(parent.frame()), "~/Development/macpan2/misc/testing.txt")
     do.call(get(parser_name, parent.frame()), list(x))
   }
 }
