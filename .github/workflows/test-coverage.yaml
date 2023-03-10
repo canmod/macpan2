@@ -75,6 +75,6 @@ jobs:
           NAME: coverage
           LABEL: 'Test Coverage'
           STATUS: ${{ steps.coverage.outputs.data }}
-          COLOR: red
+          COLOR: cyan
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BRANCH: shields
