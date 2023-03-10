@@ -1255,6 +1255,10 @@ public:
                     // #' * `standard_deviation` -- Standard deviation parameter.
                     // #'
                     case MP2_POISSON_DENSITY:
+                        if (n < 2) {
+                            SetError(MP2_POISSON_DENSITY, "dpois needs two arguments: matrices with observed and expected values");
+                            return m;
+                        }
                         rows = args[0].rows();
                         cols = args[0].cols();
                         RecycleInPlace(args[1], rows, cols);
@@ -1267,6 +1271,10 @@ public:
                         return m;
 
                     case MP2_NEGBIN_DENSITY:
+                        if (n < 3) {
+                            SetError(MP2_NEGBIN_DENSITY, "dnbinom needs three arguments: matrices with observed values, expected values, and dispersion parameters");
+                            return m;
+                        }
                         rows = args[0].rows();
                         cols = args[0].cols();
                         RecycleInPlace(args[1], rows, cols);
@@ -1288,6 +1296,10 @@ public:
                         return m;
 
                     case MP2_NORMAL_DENSITY:
+                        if (n < 3) {
+                            SetError(MP2_NORMAL_DENSITY, "dnorm needs three arguments: matrices with observed values, expected values, and standard deviation parameters");
+                            return m;
+                        }
                         rows = args[0].rows();
                         cols = args[0].cols();
                         RecycleInPlace(args[1], rows, cols);
@@ -1341,6 +1353,10 @@ public:
                         return m;
 
                     case MP2_NEGBIN_SIM:
+                        if (n < 2) {
+                            SetError(MP2_NEGBIN_SIM, "rnbinom needs two arguments: matrices with means and dispersion parameters");
+                            return m;
+                        }
                         eps = 1e-8;
                         rows = args[0].rows();
                         cols = args[0].cols();
@@ -1360,6 +1376,10 @@ public:
                         return m;
 
                     case MP2_NORMAL_SIM:
+                        if (n < 2) {
+                            SetError(MP2_NORMAL_SIM, "rnorm needs two arguments: matrices with means and standard deviations");
+                            return m;
+                        }
                         rows = args[0].rows();
                         cols = args[0].cols();
                         RecycleInPlace(args[1], rows, cols);

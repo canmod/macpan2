@@ -471,23 +471,6 @@ FilterUniqueAndSort = function() {
 }
 
 
-# m = ModelFiles("inst/starter_models/seir_symp_vax/")
-# f1 = FilterBlanksNotSpecial()
-# f2 = FilterAlwaysMatchBlanks()
-# f3 = FilterUniqueAndSort()
-# s = Select()
-# x = f1$filter(m$variables()
-#   , "SympStruc.Vax"
-#   , c(
-#     "unstructured.vax", "effective.unvax",
-#     "unstructured.unvax", "effective.vax",
-#     "unstructured.", "effective."
-#   )
-# )
-# y = f2$group(x, "Vax", c("unvax", "vax"))
-# lapply(y, f3$filter, "Epi", c("I", "beta", "N"))
-
-
 #' Namer
 #'
 #' Name model variables and parse names into labelled partitions.

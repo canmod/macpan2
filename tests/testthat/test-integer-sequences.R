@@ -5,4 +5,6 @@ test_that("integer sequence contruction is correct", {
     engine_eval(~seq(from = 5, length = 10, by = 3))
   )
   expect_equal(matrix(rep(1, 5)), engine_eval(~rep(1, 5)))
+  expect_error(engine_eval(~10:1), "Error thrown by the TMB engine")
+  expect_error(engine_eval(~seq(0, 0, 1)), "Error thrown by the TMB engine")
 })
