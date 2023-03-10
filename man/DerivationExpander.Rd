@@ -7,7 +7,13 @@
 DerivationExpander(model)
 }
 \arguments{
-\item{model}{Object of type \code{\link{Model}}}
+\item{model}{Object of type \code{\link{Model}}
+\subsection{Methods}{
+\itemize{
+\item \verb{$expand_derivation(derivation)} -- Expand a single derivation by name.
+\item \verb{$expand_derivations()} -- Example all derivations in the model.
+}
+}}
 }
 \description{
 Construct an object for expanding the derivations within a
