@@ -30,4 +30,8 @@ test_that("model files can be read in and used", {
     m$state_variables()$names(),
     c("Epi", "Symp", "SympStruc", "Vax")
   )
+  expect_identical(nrow(m$flows()), 4L)
+  expect_identical(nrow(m$flows_expanded()), 17L)
+  m$variables()$labels()
+  m$derivations()
 })
