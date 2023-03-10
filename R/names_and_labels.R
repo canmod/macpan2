@@ -416,65 +416,6 @@ StringUndottedData = function(labels, names) {
   return_object(self, "Undotted")
 }
 
-# StringGroup = function(data_list) {
-#   self = Base()
-#   self$.groups = data_list
-#   self$.package = function(data_list) {
-#     if (inherits(data_list[[1L]], "Undotted")) return(StringUndottedGroup)
-#     if (inherits(data_list[[1L]], "Dotted")) return(StringDottedGroup)
-#     force
-#   }
-#   self$.ungroup_labels_value = function() {
-#     output_list = list()
-#     for (i in seq_along(self$groups())) {
-#       output_list[[i]] = self$groups()[[i]]$labels()$value()
-#     }
-#     do.call(rbind, output_list)
-#   }
-#   self$groups = function() self$.groups
-#   self$apply = function(method_name, ...) {
-#     output_list = list()
-#     for (i in seq_along(self$groups())) {
-#       output_list[[i]] = get(method_name, self$groups()[[i]])(...)
-#     }
-#     StringGroup(setNames(output_list, names(self$groups())))
-#   }
-#   return_object(self, "StringGroup")
-# }
-#
-# StringUndottedGroup = function(data_list) {
-#   ## TODO: check that all groups have the same column names
-#   ## TODO: check that data format is undotted
-#   self = StringGroup(data_list)
-#   self$ungroup = function() {
-#     StringUndottedData(
-#       labels = self$.ungroup_labels_value(self$groups()),
-#       names = names(self$groups()[[1L]]$names())
-#     )
-#   }
-#   return_object(self, "Undotted")
-# }
-#
-# StringUndottedGroup = function(data_list) {
-#   ## TODO: check that all groups have the same column names
-#   ## TODO: check that data format is undotted
-#   self = StringGroup(data_list)
-#   self$ungroup = function() {
-#     StringDottedData(
-#       labels = self$.ungroup_labels_value(self$groups()),
-#       names = names(self$groups()[[1L]]$names())
-#     )
-#   }
-#   return_object(self, "Undotted")
-# }
-#
-#
-# print.StringGroup = function(x, ...) {
-#   cat("StringGroup object with the following $groups():\n")
-#   print(x$groups())
-# }
-#
-
 #' String Data
 #'
 #' Create objects for representing names and labels in a compartmental

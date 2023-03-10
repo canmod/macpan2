@@ -1,5 +1,6 @@
 test_that("undotted scalars can be constructed", {
   x = macpan2:::StringUndottedScalar("TestScalar")
+  print(x)
   expect_warning(x$dot(), "Undotted scalars cannot be dotted")
   expect_identical(
     x$regenerate("AnotherTestScalar"),
@@ -39,13 +40,63 @@ test_that("undotted matrices can be ordered", {
   expect_error(x$order_by(y$undot(), all_not_equal), "Lack of uniqueness")
   expect_false(any(x$which_dup()))
   expect_identical(x$subset(1:3), z)
+  expect_identical(x$unique(), x)
 })
 
 test_that("strings can be concatenated", {
   x = macpan2:::StringUndottedVector("S", "E", "I", "R")
   y = macpan2:::StringUndottedVector("D")
-  x = macpan2:::StringUndottedVector("S", "E", "I", "R", "D")
+  z = macpan2:::StringUndottedVector("S", "E", "I", "R", "D")
 
   # failing now -- https://github.com/canmod/macpan2/issues/22
   #expect_identical(c(x, y), z)
+})
+
+test_that("string data frames can be constructed", {
+  undotted = macpan2:::StringDataFromFrame(
+    data.frame(
+      Epi = c("S", "I", "S", "I"),
+      Vax = c("unvax", "unvax", "vax", "vax")
+    )
+  )
+  dotted = undotted$dot()
+  unvax = macpan2:::StringDataFromFrame(data.frame(Vax = "unvax"))
+  unvax_explicit = macpan2:::StringDataFromFrame(
+    data.frame(
+      Epi = c("S", "I"),
+      Vax = c("unvax", "unvax")
+    )
+  )
+  vax_explicit = macpan2:::StringDataFromFrame(
+    data.frame(
+      Epi = c("S", "I"),
+      Vax = c("vax", "vax")
+    )
+  )
+
+  expect_identical(
+    undotted$change_coordinates("Epi"),
+    dotted$change_coordinates("Epi")$undot()
+  )
+  expect_identical(
+    undotted$filter(unvax, all_equal),
+    unvax_explicit
+  )
+  expect_identical(
+    undotted$filter(unvax, all_equal),
+    dotted$filter(unvax, all_equal)$undot()
+  )
+  expect_identical(
+    undotted$filter_out(unvax, all_not_equal),
+    vax_explicit
+  )
+  expect_identical(
+    undotted$filter_out(unvax, all_not_equal),
+    dotted$filter_out(unvax, all_not_equal)$undot()
+  )
+  # expect_identical(
+  #   undotted$filter_other(unvax, all_not_equal),
+  #   dotted$filter_other(unvax, all_not_equal)$undot()
+  # )
+
 })
