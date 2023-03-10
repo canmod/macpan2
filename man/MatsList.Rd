@@ -22,8 +22,8 @@ history after the simulation is complete.}
 \item{.mats_to_return}{Character vector naming matrices to be returned
 after the simulate is complete.}
 
-\item{.dimnames}{Named list of (max length-2) lists of character vectors
-giving the names of the rows and/or columns of each matrix being named.}
+\item{.dimnames}{No longer used. Set dimnames by adding dimnames to the
+matrices passed to \code{...}.}
 }
 \value{
 Object of class \code{MatsList} with the following methods.

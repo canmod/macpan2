@@ -6,6 +6,18 @@
 #' for constructing expressions for defining model
 #' simulations.
 #'
+#' The quickest way to experiment with these functions is
+#' to use the \code{\link{engine_eval}} function, as in the
+#' following example that calculates a force of infection.
+#'
+#' ```
+#' engine_eval(~ beta * I / S, beta = 0.25, I = 1e3, S = 1e7)
+#' ```
+#'
+#' To produce a simulation using these functions, one may
+#' use the ...
+#'
+#'
 #' ## Elementwise Binary Operators
 #'
 #' Elementwise binary operators take two matrix-valued
@@ -44,6 +56,14 @@
 #' * A matrix with the binary operator applied elementwise
 #' after any necessary recycling of rows and/or columns.
 #'
+#' ### Examples
+#'
+#' ```
+#' engine_eval(~ 1 + 2)
+#' engine_eval(~ y * z, y = 1:3, z = matrix(1:6, 3, 2))
+#' engine_eval(~ 1 / (1 - y), y = 1/4)
+#' ```
+#'
 #' ## Unary Elementwise Math
 #'
 #' ### Functions
@@ -59,6 +79,12 @@
 #'
 #' * A matrix with the same dimensions as `x`, with the
 #' unary function applied elementwise.
+#'
+#' ### Examples
+#'
+#' ```
+#' engine_eval(~ log(y), y = c(2, 0.5))
+#' ```
 #'
 #' ## Integer Sequences
 #'
@@ -98,6 +124,13 @@
 #' base R function gives the user this option, but not
 #' as the default.
 #'
+#' ### Examples
+#'
+#' ```
+#' engine_eval(~ 1:10)
+#' engine_eval(~ seq(1, 10, 2))
+#' ```
+#'
 #' Replicate Elements
 #'
 #' ### Functions
@@ -119,6 +152,12 @@
 #' * Column vector with `times` copies of `x` stacked
 #' on top of each other.
 #'
+#' ### Examples
+#'
+#' ```
+#' engine_eval(~ rep(1, 10))
+#' ```
+#'
 #' ## Matrix Multiplication
 #'
 #' ### Functions
@@ -136,6 +175,12 @@
 #'
 #' * The standard matrix product of `x` and `y`.
 #'
+#' ### Examples
+#'
+#' ```
+#' engine_eval(~ (1:10) %*% t(1:10))
+#' ```
+#'
 #' ## Parenthesis
 #'
 #' The order of operations can be enforced in the usual
@@ -145,7 +190,8 @@
 #'
 #' ### Functions
 #'
-#' * `c(...)` -- Stack column vectors.
+#' * `c(...)` -- Stack columns of arguments into a
+#' single column vector.
 #' * `cbind(...)` -- Create a matrix containing all of
 #' the columns of a group of matrices with the same
 #' number of rows.
@@ -194,6 +240,16 @@
 #' Matrices can be transposed with the usual
 #' function, \code{\link{t}}.
 #'
+#' ### Examples
+#'
+#' ```
+#' engine_eval(~ c(a, b, c), a = 1, b = 10:13, c = matrix(20:25, 3, 2))
+#' engine_eval(~ cbind(a, 10 + a), a = 0:3)
+#' engine_eval(~ rbind(a, 10 + a), a = t(0:3))
+#' engine_eval(~ matrix(1:12, 4, 3))
+#' engine_eval(~ t(1:3))
+#' ```
+#'
 #' ## Summarizing Matrix Values
 #'
 #' ### Functions
@@ -222,8 +278,7 @@
 #' * A matrix containing sums of various groups of
 #' the elements of `x`.
 #'
-#' The elements of a matrix can be summed together using
-#' the standard \code{\link{sum}} function.
+#' ### Details
 #'
 #' The standard \code{\link{rowSums}} and
 #' \code{\link{colSums}} can be used, but they have
@@ -233,6 +288,15 @@
 #' returns a row vector. If a specific shape is required
 #' then the transpose \code{\link{t}} function must be
 #' explicitly used.
+#'
+#' ### Examples
+#'
+#' ```
+#' engine_eval(~ sum(1:4))
+#' engine_eval(~ colSums(A), A = matrix(1:12, 4, 3))
+#' engine_eval(~ rowSums(A), A = matrix(1:12, 4, 3))
+#' engine_eval(~ groupSums(x, f, n), x = 1:10, f = rep(0:3, 1:4), n = 4)
+#' ```
 #'
 #' ## Extracting Matrix Elements
 #'
@@ -310,6 +374,27 @@
 #'
 #' * A matrix containing values of `x` from past times.
 #'
+#' ## Time Step
+#'
+#' Get the time-step associated with a particular
+#' lag from the current time-step. If the lagged
+#' time-step is less than zero, the function returns
+#' zero.
+#'
+#' ### Functions
+#'
+#' * `time_step(lag)`
+#'
+#' ### Arguments
+#'
+#' * `lag` -- Number of time-steps to look back for
+#' the time-step to return.
+#'
+#' ### Return
+#'
+#' A 1-by-1 matrix with the time-step `lag` steps
+#' ago, or with zero if `t+1 < lag`
+#'
 #' ## Convolution
 #'
 #' One may take the convolution of each element in a
@@ -362,7 +447,82 @@
 #'
 #' * `observed`
 #' * `simulated`
+#'
+#' The `simulated` argument gives a matrix of means for
+#' the `observed` values at which the densities are
+#' being evaluated. Additional arguments are other
+#' distributional parameters such as the standard
+#' deviation or dispersion parameter. All densities
+#' are given as log-densities, so if you would like
+#' the density itself you must pass the result through
+#' the `exp` function.
+#'
+#' If the `simulated` matrix or the additional parameter
+#' matrices have either a single row or
+#' single column, these singleton rows and columns are
+#' repeated to match the number of rows and columns in
+#' the `observed` matrix. This feature allows one
+#' to do things like specify a single common mean for
+#' several values.
+#'
+#' ### Functions
+#'
+#' * `dpois(observed, simulated)` -- Log of the Poisson density
+#' based on this [dpois](https://kaskr.github.io/adcomp/group__R__style__distribution.html#gaa1ed15503e1441a381102a8c4c9baaf1)
+#' TMB function.
+#' * `dnbinom(observed, simulated, over_dispersion)` --
+#' Log of the negative binomial density based on this [dnbinom](https://kaskr.github.io/adcomp/group__R__style__distribution.html#ga76266c19046e04b651fce93aa0810351)
+#' TMB function. To get the variance that this function
+#' requires we use this expression, \code{simulated + simulated^2/over_dispersion},
+#' following p.165 in this [book](https://ms.mcmaster.ca/~bolker/emdbook/book.pdf)
+#' * `dnorm(observed, simulated, standard_deviation)` --
+#' Log of the normal density based on this [dnorm](https://kaskr.github.io/adcomp/dnorm_8hpp.html)
+#' TMB function.
+#'
+#' ### Arguments
+#'
+#' * `observed` -- Matrix of observed values
+#' at which the density is being evaluated.
+#' * `simulated` -- Matrix of distributional means,
+#' with singleton rows and columns recycled to match
+#' the numbers of rows and columns in `observed`.
+#' * `over_dispersion` -- Over-dispersion parameter
+#' given by \code{(simulated/standard_deviation)^2 - simulated)}.
+#' * `standard_deviation` -- Standard deviation parameter.
+#'
+#' Pseudo-Random Number Generators
+#'
+#' All random number generator functions have `mean`
+#' as the first argument. Subsequent arguments give
+#' additional distributional parameters.
+#' Singleton rows and columns in the matrices passed to
+#' the additional distributional parameters are recycled
+#' so that all arguments have the same number of rows
+#' and columns. All functions return a matrix the same
+#' shape as `mean` but with pseudo-random numbers
+#' deviating from each mean in the `mean` matrix.
+#'
+#' ### Functions
+#'
+#' * `rpois(mean)` -- Pseudo-random Poisson distributed
+#' values.
+#' * `rnbinom(mean, over_dispersion)` -- Pseudo-random
+#' negative binomially distributed values.
+#' * `rnorm(mean, standard_deviation)` -- Pseudo-random
+#' normal values.
+#'
+#' ### Arguments
+#'
+#' * `mean` -- Matrix of means about which to simulate
+#' pseudo-random variation.
+#' * `over_dispersion` -- Matrix of over-dispersion parameters
+#' given by \code{(simulated/standard_deviation)^2 - simulated)}.
+#' * `standard_deviation` -- Matrix of standard deviation parameters.
+#'
 #' ## Assign
+#'
+#' Assign values to a subset of the elements in a matrix.
+#'
 #'
 #' ### Functions
 #'
@@ -384,4 +544,42 @@
 #' the values of elements in `x` in column-major order.
 #'
 #' @name engine_functions
+#' @aliases `+`
+#' @aliases `-`
+#' @aliases `*`
+#' @aliases `/`
+#' @aliases `^`
+#' @aliases exp
+#' @aliases log
+#' @aliases `(`
+#' @aliases c
+#' @aliases matrix
+#' @aliases `%*%`
+#' @aliases sum
+#' @aliases rep
+#' @aliases rowSums
+#' @aliases colSums
+#' @aliases groupSums
+#' @aliases `[`
+#' @aliases block
+#' @aliases t
+#' @aliases rbind_time
+#' @aliases rbind_lag
+#' @aliases cbind_time
+#' @aliases cbind_lag
+#' @aliases `:`
+#' @aliases seq
+#' @aliases convolution
+#' @aliases cbind
+#' @aliases rbind
+#' @aliases time_step
+#' @aliases assign
+#' @aliases unpack
+#' @aliases clamp
+#' @aliases dpois
+#' @aliases dnbinom
+#' @aliases dnorm
+#' @aliases rpois
+#' @aliases rnbinom
+#' @aliases rnorm
 NULL

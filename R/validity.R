@@ -8,7 +8,23 @@ is_opt_par_name = function(x) grepl("(p|r)_(par|mat|row|col)_id", x)
 are_matrix_list_names = function(x) {
   all(grepl("^([A-Za-z.]{1}[A-Za-z0-9_.]*|)$", x) | (x == ""), na.rm = FALSE)
 }
-
+init_el_valid_pars = function(tmb_model) {
+  par_dim_summary = merge(
+    tmb_model$.params$data_frame(),
+    tmb_model$.init_mats$mat_dims(),
+    all.x = TRUE
+  )
+  valid_pars = with(par_dim_summary, (row < nrow) & (col < ncol))
+  if (any(!valid_pars)) {
+    stop(
+      "\nMatrices involved in model parameterization must contain the right",
+      "\nrows and columns within which to insert each parameter.",
+      "\nHowever, the following matrix-parameter pairs fail this test:\n",
+      frame_formatter(par_dim_summary[!valid_pars, , drop = FALSE])
+    )
+  }
+  TRUE
+}
 
 #' @importFrom oor ValidityMessager
 #' @importFrom oor All Any Not Is
@@ -118,6 +134,10 @@ valid <- list(
         TestRange(1L, Inf)
       )
     )
+  ),
+  tmb_model = ValidityMessager(
+    init_el_valid_pars,
+    "TMB model is not valid"
   ),
   mats_list = ValidityMessager(
     All(

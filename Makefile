@@ -1,5 +1,6 @@
 ENUM_RE = ^[ ]*MP2_[A-Z_]*[ ]*=[ ]*[0-9][0-9]*
 SED_RE = \(\,\)*[ ]*\/\/[ ]*\(.*\)
+ALIAS_RE = ^[ ]*MP2_\(.*\)\: \(.*\)(\(.*\))
 ROXY_RE = ^.*\(\#'.*\)$
 VERSION := $(shell sed -n '/^Version: /s///p' DESCRIPTION)
 
@@ -60,6 +61,7 @@ R/engine_functions.R: src/macpan2.cpp
 	echo "" >> $@
 	grep "$(ROXY_RE)" $^ | sed "s/$(ROXY_RE)/\1/" >> $@
 	echo "#' @name engine_functions" >> $@
+	grep "$(ENUM_RE)" $^ | sed "s/$(ALIAS_RE)/#' @aliases \2/" >> $@
 	echo "NULL" >> $@
 
 
@@ -69,7 +71,7 @@ doc-update: R/*.R misc/dev/dev.cpp
 
 pkg-build:: macpan2_$(VERSION).tar.gz
 macpan2_$(VERSION).tar.gz: R/*.R src/*.cpp tests/testthat/test-*.R tests/testthat.R
-	R CMD build --no-manual --no-build-vignettes .
+	R CMD build .
 
 
 pkg-check: macpan2_$(VERSION).tar.gz

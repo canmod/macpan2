@@ -2,7 +2,7 @@
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/canmod/macpan2/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/canmod/macpan2/actions/workflows/R-CMD-check.yaml)
-<!-- badges: end -->
+![test coverage](https://byob.yarr.is/canmod/macpan2/coverage)
 
 ```
 remotes::install_github("canmod/oor")
