@@ -58,6 +58,11 @@ test_that("elementwise binary operator executable specs match spec doc", {
   )
 
   expect_equal(
+    times(y, A),
+    engine_eval(~y * A, A = A, y = y)
+  )
+
+  expect_equal(
     pow(A, A),
     engine_eval(~A^A, A = A)
   )
@@ -66,4 +71,11 @@ test_that("elementwise binary operator executable specs match spec doc", {
     A - 1,
     engine_eval(~A - 1, A = A)
   )
+
+  expect_equal(-A, engine_eval(~ -A, A = A))
+
+  expect_equal(matrix(10), engine_eval(~5 + 5))
+  expect_equal(matrix(1), engine_eval(~5 / 5))
+
+
 })
