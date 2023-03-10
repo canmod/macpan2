@@ -205,7 +205,7 @@ StringUndottedMatrix = function(...) {
   }
   self$which_in = function(other, comparison_function) {
     x = self$value()
-    y = other$value()
+    y = other$undot()$value()
     z = logical(nrow(x))
     for (i in seq_row(x)) {
       for (j in seq_row(y)) {
