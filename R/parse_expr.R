@@ -53,6 +53,8 @@ make_expr_parser = function(
     finalizer = force  # the identity finalizer is the default
   ) {
 
+  parser_name = force(parser_name)
+
   # convert a formula to the initial state of a list that could be
   # recursively parsed using parse_expr
   formula_to_parsing_list = function(x) {
@@ -107,6 +109,7 @@ make_expr_parser = function(
   }
 
   function(x) {
+    #penv = parent.frame()
     #browser()
 
     # parse_expr recursively adjusts a specially-structured
@@ -126,7 +129,8 @@ make_expr_parser = function(
 
     # recursively call to check if the reduction process is complete
     # TODO: prove that infinite recursion is not possible
-    do.call(get(parser_name), list(x))
+    writeLines(ls(parent.frame()), "~/Development/macpan2/misc/testing.txt")
+    do.call(get(parser_name, parent.frame()), list(x))
   }
 }
 
@@ -231,32 +235,6 @@ get_indices = function(x, vec, vec_type, expr_as_string, zero_based = FALSE) {
   return(one_based)
 }
 
-#' Formula Environment
-#'
-#' @param valid_vars Named list of variables that could be used in a
-#' formula.
-#'
-#' @export
-FormulaEnvironment = function(valid_vars) {
-  self = Base()
-  # self$parse_expr = make_expr_parser(finalizer = finalizer_index)
-  self$valid_vars = force(valid_vars)
-  self$valid_funcs = valid_funcs
-  return_object(self, "FormulaEnvironment")
-}
-
-#' Expression Formula
-#'
-#' @param expression_string String giving a model expression
-#' @param valid_vars Named list of variables that could be used in the
-#' expression.
-#'
-#' @export
-ExpressionFormula = function(expression_string, valid_vars) {
-  f = as.formula(paste("~", expression_string))
-  environment(f) = FormulaEnvironment(valid_vars)
-  f
-}
 
 #' Initial Valid Variables
 #'
