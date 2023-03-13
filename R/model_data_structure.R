@@ -159,7 +159,7 @@ DerivationExtractor = function(model){
       group_output = lapply(derivation$output_names, self$.filtered_variables(derivation)$filter, .wrt = derivation$output_partition)
     }
     else {
-      group_output = lapply(derivation$output_names, self$.filtered_variables(derivation)$filter, .wrt = self$model$settings$required_partitions)
+      group_output = lapply(derivation$output_names, self$.filtered_variables(derivation)$filter, .wrt = self$model$def$settings()$required_partitions)
     }
     
     group_output = method_apply(group_output, "labels")
@@ -171,7 +171,7 @@ DerivationExtractor = function(model){
       group_inputs = derivation$input_partition
     }
     else{
-      group_inputs = self$model$settings$required_partitions
+      group_inputs = self$model$def$settings()$required_partitions
     }
     return(group_inputs)
   }
