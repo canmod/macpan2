@@ -28,16 +28,27 @@ to_labels.Labels = function(x) x$dot()$value()
 
 #' To Names
 #'
-#' Convert objects to names, which are vectors that cannot be dotted.
+#' Convert objects to names, which are character vectors with the following
+#' restrictions:  (1) they cannot have dots, (2) all values must start with
+#' a letter, (3) all characters must be letters, numbers, or underscores.
 #'
-#' @param x Object to convert to labels.
+#' @param x Object to convert to names.
 #' @return Character vector that can be used as names.
 #'
 #' @export
 to_names = function(x) UseMethod("to_names")
 
-#' @export
-to_names.character = function(x) to_names(StringDottedVector(x))
+#' @export{
+to_names.character = function(x) {
+  if (length(x) == 1L) {
+    x = StringDottedScalar(x)
+  } else if (length(x) > 1L) {
+    x = StringUndottedVector(x)
+  } else {
+    stop("an empty character vector cannot be turned into names")
+  }
+  to_names(x)
+}
 
 #' @export
 to_names.Partition = function(x) x$names()
@@ -68,7 +79,7 @@ to_name.character = function(x) {
   } else if (length(x) > 1L) {
     x = StringUndottedVector(x)
   } else {
-    stop("character vector cannot be turned into a name")
+    stop("an empty character vector cannot be turned into a name")
   }
   to_name(x)
 }
@@ -205,21 +216,23 @@ if (interactive()) {
   m$derivations()
 }
 
-make_expression = function(model, expr_id, grp_id) {
-  v = model$variables()
-  e = model$derivations()[[expr_id]]
-  if (!is.null(e$filter_partition)) {
-    v = v$filter(e$filter_names, .wrt = e$filter_partition)
+if (FALSE) {
+  make_expression = function(model, expr_id, grp_id) {
+    v = model$variables()
+    e = model$derivations()[[expr_id]]
+    if (!is.null(e$filter_partition)) {
+      v = v$filter(e$filter_names, .wrt = e$filter_partition)
+    }
+    if (!is.null(e$group_partition)) {
+      g = v$filter(e$group_names[grp_id], .wrt = e$group_partition)
+      o = v$filter(e$output_names[grp_id], .wrt = e$output_partition)
+    } else {
+      g = v
+      o = v$filter(e$output_names[1], .wrt = e$output_partition)
+    }
+    a = c(character(0L), e$arguments, e$argument_dots)
+    a
   }
-  if (!is.null(e$group_partition)) {
-    g = v$filter(e$group_names[grp_id], .wrt = e$group_partition)
-    o = v$filter(e$output_names[grp_id], .wrt = e$output_partition)
-  } else {
-    g = v
-    o = v$filter(e$output_names[1], .wrt = e$output_partition)
-  }
-  a = c(character(0L), e$arguments, e$argument_dots)
-  a
 }
 
 if (FALSE) {
