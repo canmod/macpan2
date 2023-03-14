@@ -206,7 +206,7 @@ DerivationExtractor = function(model){
   }
   
   self$extract_derivation = function(derivation){
-    return(list(expression = derivation$expression, arguments = derivation$arguments, outputs = self$.group_outputs(derivation), variables = self$.filtered_group_variables(derivation), variable_dots = self$.filtered_group_variable_dots(derivation)))
+    return(list(simulation_phase = derivation$simulation_phase, expression = derivation$expression, arguments = derivation$arguments, outputs = self$.group_outputs(derivation), variables = self$.filtered_group_variables(derivation), variable_dots = self$.filtered_group_variable_dots(derivation)))
   }
   
   self$extract_derivations = function(){
@@ -274,6 +274,9 @@ UserExpr = function(model){
   self$model = model
   # self$vectorized_derivations = Scalar2Vector(self$model)$vectorize()
   self$scalarized_derivations = DerivationExtractor(self$model)$extract_derivations()
+  self$.retrieve = function(derivation, entry){
+    return(derivation[[entry]])
+  }
   self$.vars_check = function(extracted_derivation){
     return(!is.null(extracted_derivation$variables) & !(length(extracted_derivation$variables) == 0L))
   }
@@ -316,6 +319,12 @@ UserExpr = function(model){
   }
   self$evaluate_expressions = function(){
     return(lapply(self$scalarized_derivations, self$.evaluate_expression))
+  }
+  self$outputs = function(){
+    return(lapply(self$scalarized_derivations, self$.retrieve, "outputs"))
+  }
+  self$simulation_phase = function(){
+    return(lapply(self$scalarized_derivations, self$.retrieve, "simulation_phase"))
   }
   return_object(self, "UserExpr")
 }
