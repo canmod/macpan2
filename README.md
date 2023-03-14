@@ -4,55 +4,35 @@
 [![R-CMD-check](https://github.com/canmod/macpan2/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/canmod/macpan2/actions/workflows/R-CMD-check.yaml)
 ![test coverage](https://byob.yarr.is/canmod/macpan2/coverage)
 
+[McMasterPandemic](https://github.com/mac-theobio/McMasterPandemic) was developed to provide forecasts and insights to Canadian public health agencies throughout the COVID-19 pandemic. [Much was learned](https://canmod.github.io/macpan-book/index.html#vision-and-direction) about developing general purpose compartmental modelling software during this experience, but the pressure to deliver regular forecasts made it difficult to focus on the software itself. The goal of this `macpan2` project is to re-imagine `McMasterPandemic`, building it from the ground up with architectural and technological decisions that address the many lessons that we learned from COVID-19 about software.
+
+## Installation
+
+Users should install with the following R commands.
+
 ```
 remotes::install_github("canmod/oor")
 remotes::install_github("canmod/macpan2")
 ```
 
-[Model definition specs](https://canmod.net/misc/model_definitions)
+Developers and contributors should clone this repository and call `make` at the command-line in the top level directory. The following `make` rules are available for getting more control over the build process.
 
-[Engine specs](https://canmod.net/misc/cpp_side)
+```
+make quick-install
+make quick-doc-install
+make full-install
+make src-update
+make enum-update
+make engine-doc-update
+make doc-update
+make pkg-build
+make pkg-install
+make pkg-check
+```
 
-[Binary operator specs](https://canmod.net/misc/elementwise_binary_operators)
+## Specification Documents
 
-[Notes on the composition of simulation models](https://canmod.net/misc/composing_simulation_models)
-
-
-## Development Plan
-
-### Components
-
-- C++ Engine
-    - Done: Draft code
-    - In Progress: Documentation
-- R-Side Data Structure for the Engine (TMBModel, TMBSimulator)
-    - Done: Draft code
-    - In Progress: Documentation
-- Model Definition Files
-    - Done: Draft code
-    - In Progress: 
-- Translating Model Definition Files to an Engine Data Structure
-    - Done: Prototype
-    - In Progress: Draft code
-- Operations on Model Space
-- Calibration
-- Ensemble Forecasts
-
-
-### Common Requirements for each Component
-
-- Prototype code -- works but usually breaks
-- Draft code -- friendly and indoctrinated users can collaborate with us
-- Testing
-- Documentation (for contributors and users)
-- Alpha tests -- ready for friendly and indoctrinated users to use on their own
-- Beta tests -- ready for external users to use on their own
-- Release -- successful beta tests
-
-
-### Milestones
-
-1. Create an SV-E-IH-R model for Michael Li using the C++ Engine and TMBModel (https://github.com/canmod/macpan2/issues/20)
-2. Ready for initial engagement with friendly and indoctrinated users:
-    - Draft code or better for C++ Engine, R-Side Engine Data Structure, Model Definition Files, Files-to-Engine Translation
-3. 
+* [Model definition specs](https://canmod.net/misc/model_definitions)
+* [Engine specs](https://canmod.net/misc/cpp_side)
+* [Binary operator specs](https://canmod.net/misc/elementwise_binary_operators)
+* [Notes on the composition of simulation models](https://canmod.net/misc/composing_simulation_models)

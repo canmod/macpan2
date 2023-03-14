@@ -17,4 +17,9 @@ test_that("concatenation works with many different shapes of input", {
 
   expect_identical(answer, cbind(z, t(w)))
   expect_identical(bad$error_code(), 27L)
+
+  expect_equal(
+    rbind(0:3, 10 + 0:3),
+    engine_eval(~ rbind(a, 10 + a), a = t(0:3))
+  )
 })

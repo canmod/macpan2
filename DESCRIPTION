@@ -11,6 +11,7 @@ Authors@R: c(
 Description: Fast and flexible compartmental modelling with template model builder.
 License: GPL-3
 Depends:
+    R (>= 3.5.0),
     TMB, 
     RcppEigen
 Imports: 

@@ -1,8 +1,13 @@
-library(macpan2)
-
-m = TMBModel(
-    init_mats = MatsList(z = empty_matrix, x = rnorm(10), y = rnorm(10), .mats_to_save = "z", .mats_to_return = "z"),
-    expr_list = ExprList(during = list(z ~ t(x) %*% y)),
-    time_steps = Time(10)
-)
-m$make_ad_fun()$report()
+test_that("matrix multiplication works", {
+  set.seed(1L)
+  A = matrix(rnorm(12), 4, 3)
+  x = rnorm(3)
+  expect_equal(
+    engine_eval(~ A %*% x, A = A, x = x),
+    A %*% x
+  )
+  expect_error(
+    engine_eval(~ t(A) %*% x, A = A, x = x),
+    "Error thrown by the TMB engine"
+  )
+})
