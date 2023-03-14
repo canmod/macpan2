@@ -274,9 +274,6 @@ UserExpr = function(model){
   self$model = model
   # self$vectorized_derivations = Scalar2Vector(self$model)$vectorize()
   self$scalarized_derivations = DerivationExtractor(self$model)$extract_derivations()
-  self$.retrieve = function(derivation, entry){
-    return(derivation[[entry]])
-  }
   self$.vars_check = function(extracted_derivation){
     return(!is.null(extracted_derivation$variables) & !(length(extracted_derivation$variables) == 0L))
   }
@@ -317,15 +314,16 @@ UserExpr = function(model){
     evaluated_expressions = lapply(self$.argument_collector(extracted_derivation), evaluator)
     return(evaluated_expressions)
   }
-  self$evaluate_expressions = function(){
-    return(lapply(self$scalarized_derivations, self$.evaluate_expression))
+  self$.format_expression = function(extracted_derivation){
+    expressions = self$.evaluate_expression(extracted_derivation)
+    outputs = extracted_derivation$outputs
+    sim_phases = rep(extracted_derivation$simulation_phase, length(outputs))
+    return(mapply(list, Output = outputs, Expression = expressions, Simulation_phase = sim_phases, SIMPLIFY = FALSE))
   }
-  self$outputs = function(){
-    return(lapply(self$scalarized_derivations, self$.retrieve, "outputs"))
+  self$expand_expressions = function(){
+    return(lapply(self$scalarized_derivations, self$.format_expression))
   }
-  self$simulation_phase = function(){
-    return(lapply(self$scalarized_derivations, self$.retrieve, "simulation_phase"))
-  }
+
   return_object(self, "UserExpr")
 }
 

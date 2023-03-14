@@ -15,9 +15,8 @@ models = setNames(
 
 m1 = Model(models$seir_symp_vax)
 ue1 = UserExpr(m1)
-ee1 = ue1$evaluate_expressions()
-op1 = ue1$outputs()
-sp1 = ue1$simulation_phase()
+ee1 = ue1$expand_expressions()
+
 
 m2 = Model(models$seir)
 ue2 = UserExpr(m2)
@@ -37,6 +36,4 @@ ee5 = ue5$evaluate_expressions()
 
 m6 = Model(models$macpan_base)
 ue6 = UserExpr(m6)
-ee6 = ue6$evaluate_expressions()
-op6 = ue6$outputs()
-sp6 = ue6$simulation_phase()
+ee6 = ue6$expand_expressions()
