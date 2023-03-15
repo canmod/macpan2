@@ -128,9 +128,10 @@ Model = function(definition) {
   return_object(self, "Model")
 }
 
-#' DerivationExpander
+
+#' DerivationExtractor
 #'
-#' Construct an object for expanding the derivations within a
+#' Construct an object for extracting the derivations within a
 #' \code{\link{Model}}.
 #'
 #' @param model Object of type \code{\link{Model}}
@@ -141,7 +142,7 @@ Model = function(definition) {
 #' * `$expand_derivations()` -- Example all derivations in the model.
 #'
 #' @export
-DerivationExpander = function(model){
+DerivationExtractor = function(model){
   self = Base()
   self$model = model
   self$.filtered_variables = function(derivation){
@@ -167,7 +168,7 @@ DerivationExpander = function(model){
       group_output = lapply(derivation$output_names, self$.filtered_variables(derivation)$filter, .wrt = derivation$output_partition)
     }
     else {
-      group_output = lapply(derivation$output_names, self$.filtered_variables(derivation)$filter, .wrt = self$model$settings$required_partitions)
+      group_output = lapply(derivation$output_names, self$.filtered_variables(derivation)$filter, .wrt = self$model$def$settings()$required_partitions)
     }
 
     group_output = method_apply(group_output, "labels")
@@ -179,7 +180,7 @@ DerivationExpander = function(model){
       group_inputs = derivation$input_partition
     }
     else{
-      group_inputs = self$model$settings$required_partitions
+      group_inputs = self$model$def$settings()$required_partitions
     }
     return(group_inputs)
   }
@@ -194,8 +195,9 @@ DerivationExpander = function(model){
     filtered_group_variables = list()
     if(!is.null(derivation$arguments)){
       for(j in 1:self$.number_of_groups(derivation)){
-        #tmp = self$.group_variables(derivation)[[j]]$filter(derivation$arguments, .wrt = self$.group_inputs(derivation))$labels()
-        filtered_group_variables = c(filtered_group_variables, list(as.list(self$.group_variables(derivation)[[j]]$filter(derivation$arguments, .wrt = self$.group_inputs(derivation))$labels())))
+        unordered_group_variables = self$.group_variables(derivation)[[j]]$filter(derivation$arguments, .wrt = self$.group_inputs(derivation))
+        ordered_group_variables = unordered_group_variables$filter_ordered(derivation$arguments, .wrt = self$.group_inputs(derivation))
+        filtered_group_variables = c(filtered_group_variables, list(as.list(ordered_group_variables$labels())))
       }
     }
     return(filtered_group_variables)
@@ -212,21 +214,16 @@ DerivationExpander = function(model){
     return(filtered_group_variable_dots)
   }
 
-  self$expand_derivation = function(derivation){
-    return(list(expression = derivation$expression
-      , arguments = derivation$arguments
-      , outputs = self$.group_outputs(derivation)
-      , variables = self$.filtered_group_variables(derivation)
-      , variable_dots = self$.filtered_group_variable_dots(derivation)
-    ))
+  self$extract_derivation = function(derivation){
+    return(list(simulation_phase = derivation$simulation_phase, expression = derivation$expression, arguments = derivation$arguments, outputs = self$.group_outputs(derivation), variables = self$.filtered_group_variables(derivation), variable_dots = self$.filtered_group_variable_dots(derivation)))
   }
 
-  self$expand_derivations = function(){
+  self$extract_derivations = function(){
     derivation_list = self$model$derivations()
-    return(lapply(derivation_list, self$expand_derivation))
+    return(lapply(derivation_list, self$extract_derivation))
   }
 
-  return_object(self, "DerivationExpander")
+  return_object(self, "DerivationExtractor")
 }
 
 
@@ -246,7 +243,7 @@ DerivationExpander = function(model){
 Scalar2Vector = function(model){
   self = Base()
   self$model = model
-  self$expanded_derivations = DerivationExpander(self$model)$expand_derivations()
+  self$extracted_derivations = DerivationExtractor(self$model)$extract_derivations()
   self$.state_pointer = function(scalar_name){
     return(as.numeric(which(scalar_name == self$model$def$settings()[["state_variables"]]))-1)
   }
@@ -271,21 +268,81 @@ Scalar2Vector = function(model){
   self$.list_replacer = function(scalar_name_list){
     return(lapply(scalar_name_list, self$.replacer))
   }
-  self$vectorizer = function(expanded_derivation){
-    expanded_derivation$outputs = self$.list_replacer(expanded_derivation$outputs)
-    expanded_derivation$variables = lapply(expanded_derivation$variables, self$.list_replacer)
-    expanded_derivation$variable_dots = lapply(expanded_derivation$variable_dots, self$.list_replacer)
-    return(expanded_derivation)
+  self$vectorizer = function(extracted_derivation){
+    extracted_derivation$outputs = self$.list_replacer(extracted_derivation$outputs)
+    extracted_derivation$variables = lapply(extracted_derivation$variables, self$.list_replacer)
+    extracted_derivation$variable_dots = lapply(extracted_derivation$variable_dots, self$.list_replacer)
+    return(extracted_derivation)
   }
   self$vectorize = function(){
-    return(lapply(self$expanded_derivations, self$vectorizer))
+    return(lapply(self$extracted_derivations, self$vectorizer))
   }
   return_object(self, "Scalar2Vector")
 }
 
-UserExpr = function(){
+
+#' UserExpr
+#'
+#' Evaluate user inpu expressions
+#'
+#' @param model Object created by \code{\link{Model}}.
+#'
+#' @export
+UserExpr = function(model){
   self = Base()
-  #TODO: Evaluate user provided expressions using variables obtained from Scalar2Vector.
+  self$model = model
+  # self$vectorized_derivations = Scalar2Vector(self$model)$vectorize()
+  self$scalarized_derivations = DerivationExtractor(self$model)$extract_derivations()
+  self$.vars_check = function(extracted_derivation){
+    return(!is.null(extracted_derivation$variables) & !(length(extracted_derivation$variables) == 0L))
+  }
+  self$.dots_check = function(extracted_derivation){
+    return(!is.null(extracted_derivation$variable_dots) & !(length(extracted_derivation$variable_dots) == 0L))
+  }
+  # self$.vect_check = function(output){
+  #
+  # }
+  self$.make_expression = function(extracted_derivation){
+    if(self$.vars_check(extracted_derivation) & self$.dots_check(extracted_derivation)){
+      return(MathExpressionFromStrings(extracted_derivation$expression, extracted_derivation$arguments, include_dots = TRUE))
+    }
+    else if (self$.vars_check(extracted_derivation)){
+      return(MathExpressionFromStrings(extracted_derivation$expression, extracted_derivation$arguments, include_dots = FALSE))
+    }
+    else if (self$.dots_check(extracted_derivation)){
+      return(MathExpressionFromStrings(extracted_derivation$expression, include_dots = TRUE))
+    }
+    else stop("Derivations file appears invalid, no arguments or argument dots.")
+  }
+  self$.argument_collector = function(extracted_derivation){
+    if(self$.vars_check(extracted_derivation) & self$.dots_check(extracted_derivation)){
+      args = mapply(c, extracted_derivation$variables, extracted_derivation$variable_dots)
+    }
+    else if (self$.vars_check(extracted_derivation)){
+      args = extracted_derivation$variables
+    }
+    else if (self$.dots_check(extracted_derivation)){
+      args = extracted_derivation$variable_dots
+    }
+    else stop("Derivations file appears invalid, no arguments or argument dots.")
+    return(args)
+  }
+  self$.evaluate_expression = function(extracted_derivation){
+    formula = self$.make_expression(extracted_derivation)
+    evaluator = function(args) return(do.call(formula$symbolic$evaluate, args))
+    evaluated_expressions = lapply(self$.argument_collector(extracted_derivation), evaluator)
+    return(evaluated_expressions)
+  }
+  self$.format_expression = function(extracted_derivation){
+    expressions = self$.evaluate_expression(extracted_derivation)
+    outputs = extracted_derivation$outputs
+    sim_phases = rep(extracted_derivation$simulation_phase, length(outputs))
+    return(mapply(list, Output = outputs, Expression = expressions, Simulation_phase = sim_phases, SIMPLIFY = FALSE))
+  }
+  self$expand_expressions = function(){
+    return(lapply(self$scalarized_derivations, self$.format_expression))
+  }
+
   return_object(self, "UserExpr")
 }
 
