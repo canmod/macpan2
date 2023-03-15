@@ -34,6 +34,8 @@ m = TMBModel(
   ObjectiveFunction(~ sum(y)),
   Time(0)
 )
+simulator = TMBSimulator(m)
+simulator$report(xx)
 m$data_arg()
 m$param_arg()
 f = m$make_ad_fun("dev")

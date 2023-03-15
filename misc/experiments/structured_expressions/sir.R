@@ -1,7 +1,3 @@
-
-
-
-
 library(macpan2)
 library(TMB)
 

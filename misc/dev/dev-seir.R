@@ -1,15 +1,20 @@
 library(macpan2)
 library(TMB)
 
-compile('dev.cpp')
-dyn.load(dynlib("dev"))
+if (interactive()) {
+  cpp = "macpan2"
+} else {
+  compile('dev.cpp')
+  dyn.load(dynlib("dev"))
+  cpp = "dev"
+}
 
 m = TMBModel(
   init_mats = MatsList(
     S = 99,
-    E=1,
-    I=0,
-    R=0,
+    E = 1,
+    I = 0,
+    R = 0,
     alpha = 0.05,
     beta = 0.07,
     gamma = 0.12,
@@ -51,5 +56,5 @@ m = TMBModel(
 #m$data_arg()
 
 #m$make_ad_fun("dev")
-s = TMBSimulator(m, "dev")
+s = TMBSimulator(m, cpp)
 s$report(0.05, 0.07, 0.12)

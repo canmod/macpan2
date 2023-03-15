@@ -1,9 +1,8 @@
 library(macpan2)
 library(TMB)
 
-compile('macpan2.cpp')
-dyn.load(dynlib("macpan2"))
-
+#compile('macpan2.cpp')
+#dyn.load(dynlib("macpan2"))
 
 correct_answer = function(beta = 0.3) {
 
@@ -51,7 +50,7 @@ sir = TMBModel(
     foi = 0,
     ratemat = matrix(0, 3, 3),
     flowmat = matrix(0, 3, 3),
-    .mats_to_save = c("state", "N", "foi"),
+    .mats_to_save = character(0L),
     .mats_to_return = c("state", "N", "foi")
   ),
   expr_list = ExprList(
@@ -81,30 +80,7 @@ sir = TMBModel(
 sir$data_arg()
 sir$param_arg()
 
-data_args = sir$data_arg()
-parameter_args = sir$param_arg()
-random_args = sir$random_arg()
-print(random_args)
+tmb_function = sir$make_ad_fun()
 
-print("data args ...")
-print(data_args)
-
-print("parameter args ...")
-print(parameter_args)
-
-tmb_function = try(TMB::MakeADFun(
-  data = data_args,
-  parameters = parameter_args,
-  random = random_args,
-  DLL = 'macpan2'
-))
-
-# print("correct answer ...")
-# correct_answer()  ## expected result
-#
-# print("actual answer ...")
-# tmb_output = try(tmb_function$report())  ## actual result
-#
-#
 correct_answer(0.1)
 tmb_function$report(0.1)

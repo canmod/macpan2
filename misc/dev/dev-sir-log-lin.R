@@ -55,11 +55,12 @@ m = TMBModel(init_mats = MatsList(
 #f$report(m$.params$vector())$values
 
 s = TMBSimulator(m, "dev")
-library(tidyr)
 r = s$report(-1.6, 0.03, .phases = c("before", "during"))
-pivot_wider(filter(r, matrix != "beta"), id_cols = time, names_from = c(matrix, row, col), values_from = value) %>%
-  mutate(foi = beta_curr_0_0 * lag(state_I_, 1) / N_0_0) %>%
-  View
+r
+# library(tidyr)
+# pivot_wider(filter(r, matrix != "beta"), id_cols = time, names_from = c(matrix, row, col), values_from = value) %>%
+#   mutate(foi = beta_curr_0_0 * lag(state_I_, 1) / N_0_0) %>%
+#   View
 # aa = s$report(c(-1.6, 0.03), .phases = "after")
 
 # filter(aa, matrix %in% c("state", "xx"))

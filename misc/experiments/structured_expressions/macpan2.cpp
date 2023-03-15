@@ -1,3 +1,4 @@
+#define MP_VERBOSE
 #define EIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS
 #include <Eigen/Eigen>
 #include <iostream>
@@ -328,10 +329,15 @@ public:
                         return m;
 
                     case MP2_SEQUENCE: // seq
-                    // #' The `seq` function works like the base R default
-                    // #' \code{\link{seq}} function, but only allows the
-                    // #' `from`, `to`, and `by` arguments. These arguments
-                    // #' must all be scalars.
+                    // #' The `seq` function is similar to the base R default
+                    // #' \code{\link{seq}} function. It takes the following
+                    // #' scalar-valued integer arguments, and returns a
+                    // #' column vector.
+                    // #'
+                    // #' * `from` -- First integer of the output column vector.
+                    // #' * `length` -- Length of the output column vector.
+                    // #' * `by` -- Difference between subsequent elements in
+                    // #' the output column vector.
                     // #'
                         int length, by;
                         from = CppAD::Integer(r[0].coeff(0,0));
@@ -547,7 +553,6 @@ public:
                         m.coeffRef(0,0) = r[0].coeff(rowIndex, colIndex);
                         return m;
 
-
                     // #' ## Accessing Past Values in the Simulation History
                     // #'
                     // #' For matrices with their simulation history saved,
@@ -625,6 +630,13 @@ public:
 
                         return m; // empty matrix (if colIndex==0) or non-empty one (otherwise)
 
+                    case MP2_TIME_STEP:
+                        m = matrix<Type>::Zero(1,1);
+                        m.array() = t+0.1f;
+                        //m.coeffRef(0,0) = step - r[0];
+                        //std::cout << step << std::endl;
+                        return m;
+
                     case MP2_CONVOLUTION:
                     // #' ## Convolution
                     // #'
@@ -636,7 +648,13 @@ public:
                     // #' * `k` -- A column vector giving the convolution kernel.
                     // #'
                         matIndex = index2mats[0]; // m
+                        #ifdef MP_VERBOSE
+                            std::cout << "matIndex: " << matIndex << std::endl << std::endl;
+                        #endif
                         length = r[1].rows();
+                        #ifdef MP_VERBOSE
+                            std::cout << "length: " << length << std::endl << std::endl;
+                        #endif
                         if (length>0 && r[1].cols()==1) {
                             if (t+1<length) {
                                 length = t+1;
@@ -661,12 +679,6 @@ public:
                             return m;
                         }
 
-                    case MP2_TIME_STEP:
-                        m = matrix<Type>::Zero(1,1);
-                        step.coeffRef(0,0) = t;
-                        //m.coeffRef(0,0) = step - r[0];
-                        //std::cout << step << std::endl;
-                        return m;
                     default:
                         SetError(255, "invalid operator in arithmatic expression");
                         //Rf_error("invalid operator in arithmatic expression");

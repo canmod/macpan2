@@ -13,6 +13,6 @@ process_enum = function(x) {
 }
 processed = process_enum(valid_func_sigs)
 valid_funcs = setNames(as.list(processed$func), processed$func)
-valid_func_args = processed$args
-valid_symb_type = processed$symb
-valid_num_type = processed$num
+valid_func_args = setNames(processed$args, processed$func)
+valid_symb_type = setNames(processed$symb, processed$func)
+valid_num_type = setNames(processed$num, processed$func)

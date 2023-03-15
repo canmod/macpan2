@@ -1,0 +1,3 @@
+from,to,flow_component,flow_type
+S,I,foi,rate
+I,R,gamma,rate
