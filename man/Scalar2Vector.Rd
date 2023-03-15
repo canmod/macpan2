@@ -8,4 +8,16 @@ Scalar2Vector(model)
 }
 \description{
 Replace scalar names with the equivalent vector name
+\arguments{
+\item{model}{Object of type \code{\link{Model}}
+\subsection{Methods}{
+\itemize{
+\item \verb{$vectorizer(expanded_derivation)}
+\item \verb{$vectorize()}
+}
+}}
+}
+\description{
+Construct an object for replacing scalar names within a \code{\link{Model}}
+model, with the equivalent vector name.
 }

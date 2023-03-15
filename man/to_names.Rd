@@ -7,11 +7,13 @@
 to_names(x)
 }
 \arguments{
-\item{x}{Object to convert to labels.}
+\item{x}{Object to convert to names.}
 }
 \value{
 Character vector that can be used as names.
 }
 \description{
-Convert objects to names, which are vectors that cannot be dotted.
+Convert objects to names, which are character vectors with the following
+restrictions:  (1) they cannot have dots, (2) all values must start with
+a letter, (3) all characters must be letters, numbers, or underscores.
 }

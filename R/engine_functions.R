@@ -331,6 +331,12 @@
 #' Note that zero-based indexing is used
 #' so the first row/column gets index, `0`, etc.
 #'
+#' ### Examples
+#'
+#' ```
+#' engine_eval(~ A[c(3, 1, 2), c(2)], A = matrix(1:12, 4, 3))
+#' ```
+#'
 #' ## Accessing Past Values in the Simulation History
 #'
 #' For matrices with their simulation history saved,
