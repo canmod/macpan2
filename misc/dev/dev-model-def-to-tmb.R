@@ -9,46 +9,31 @@ model = function(model_name) {
 }
 model_paths = list.files(model_repo, full.names = TRUE)
 models = setNames(
-  lapply(model_paths[3:7], ModelFiles),
-  tools::file_path_sans_ext(basename(model_paths[3:7]))
+  lapply(model_paths, ModelFiles),
+  tools::file_path_sans_ext(basename(model_paths))
 )
-m = Model(models$seir_symp_vax)
 
-de = DerivationExpander(m)
-
-edlist = de$expand_derivations()
-
-s2v = Scalar2Vector(m)
-edlist_replaced = s2v$vectorize()
-
-d = m$derivations()
-
-d1 = d[[1]]
-d4 = d[[4]]
-
-v = m$variables()
-ue = m$user_expressions()
-se = m$standard_expressions()
-m_from = m$from_states()
-m_to = m$to_states()
-fe = m$flows_expanded()
-
-grp_list_d4 = group_expressions(v, d4)
-grp_list_d4
+m1 = Model(models$seir_symp_vax)
+ue1 = UserExpr(m1)
+ee1 = ue1$expand_expressions()
 
 
-grp_list_d1 = group_expressions(v, d1)
-grp_list_d1
+m2 = Model(models$seir)
+ue2 = UserExpr(m2)
+ee2 = ue2$evaluate_expressions()
 
-grp_list_alt = group_expressions(v, d[[5]])
-grp_list_alt
+m3 = Model(models$age)
+ue3 = UserExpr(m3)
+ee3 = ue3$evaluate_expressions()
 
-usr_exprs = user_expressions(v, d)
-usr_exprs
+m4 = Model(models$testing)
+ue4 = UserExpr(m4)
+ee4 = ue4$evaluate_expressions()
 
-m1 = Model(models$seir)
-ue1 = m1$user_expressions()
-m1_from = m1$from_states()
-m1_to = m$to_states()
-v1 = m1$variables()
-v1$filter()
+m5 = Model(models$vax)
+ue5 = UserExpr(m5)
+ee5 = ue5$evaluate_expressions()
+
+m6 = Model(models$macpan_base)
+ue6 = UserExpr(m6)
+ee6 = ue6$expand_expressions()
