@@ -6,6 +6,16 @@
 \usage{
 DerivationExtractor(model)
 }
+\arguments{
+\item{model}{Object of type \code{\link{Model}}
+\subsection{Methods}{
+\itemize{
+\item \verb{$expand_derivation(derivation)} -- Expand a single derivation by name.
+\item \verb{$expand_derivations()} -- Example all derivations in the model.
+}
+}}
+}
 \description{
-extract the derivations of a model object
+Construct an object for extracting the derivations within a
+\code{\link{Model}}.
 }

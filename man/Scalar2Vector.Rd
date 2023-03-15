@@ -6,8 +6,6 @@
 \usage{
 Scalar2Vector(model)
 }
-\description{
-Replace scalar names with the equivalent vector name
 \arguments{
 \item{model}{Object of type \code{\link{Model}}
 \subsection{Methods}{

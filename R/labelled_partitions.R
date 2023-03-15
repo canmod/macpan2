@@ -38,7 +38,7 @@ to_labels.Labels = function(x) x$dot()$value()
 #' @export
 to_names = function(x) UseMethod("to_names")
 
-#' @export{
+#' @export
 to_names.character = function(x) {
   if (length(x) == 1L) {
     x = StringDottedScalar(x)

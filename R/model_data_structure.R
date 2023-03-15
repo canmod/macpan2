@@ -213,16 +213,16 @@ DerivationExtractor = function(model){
     }
     return(filtered_group_variable_dots)
   }
-  
+
   self$extract_derivation = function(derivation){
     return(list(simulation_phase = derivation$simulation_phase, expression = derivation$expression, arguments = derivation$arguments, outputs = self$.group_outputs(derivation), variables = self$.filtered_group_variables(derivation), variable_dots = self$.filtered_group_variable_dots(derivation)))
   }
-  
+
   self$extract_derivations = function(){
     derivation_list = self$model$derivations()
     return(lapply(derivation_list, self$extract_derivation))
   }
-  
+
   return_object(self, "DerivationExtractor")
 }
 
@@ -282,9 +282,11 @@ Scalar2Vector = function(model){
 
 
 #' UserExpr
-#' 
+#'
 #' Evaluate user inpu expressions
-#' 
+#'
+#' @param model Object created by \code{\link{Model}}.
+#'
 #' @export
 UserExpr = function(model){
   self = Base()
@@ -298,7 +300,7 @@ UserExpr = function(model){
     return(!is.null(extracted_derivation$variable_dots) & !(length(extracted_derivation$variable_dots) == 0L))
   }
   # self$.vect_check = function(output){
-  #   
+  #
   # }
   self$.make_expression = function(extracted_derivation){
     if(self$.vars_check(extracted_derivation) & self$.dots_check(extracted_derivation)){
