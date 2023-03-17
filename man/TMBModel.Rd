@@ -34,6 +34,8 @@ Object of class \code{TMBModel} with the following methods.
 to pass to C++.
 \item \verb{$param_arg()} -- Return all of the components of the parameter list
 to pass to C++.
+\item \verb{$simulator()} -- Return an object of class \code{\link{TMBSimulator}},
+which can be used to simulate data from the model.
 }
 }
 }

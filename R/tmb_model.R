@@ -101,6 +101,7 @@ ExprList = function(
     ),
     "Model expressions must be two-sided formulas"
   )
+  self$.input = nlist(before, during, after)
   self$.expr_list = c(
     valid_expr_list$assert(before),
     valid_expr_list$assert(during),
@@ -114,6 +115,7 @@ ExprList = function(
   self$.eval_schedule = c(length(before), length(during), length(after))
   self$.expr_sim_block = as.integer(expr_nms %in% .simulate_exprs)
   self$.expr_output_id = function(...) {
+    # browser()
     m = match(
       self$.all_lhs(self$.expr_list),
       self$.mat_names(...)
@@ -145,6 +147,56 @@ ExprList = function(
       self$.parse_table(...)
     )
     valid$expr_arg$assert(r)
+  }
+  self$insert = function(...
+    , .at = 1L
+    , .phase = c("before", "during", "after")
+    , .simulate_exprs = character(0L)
+  ) {
+    .phase = match.arg(.phase)
+    input = self$.input
+    input[[.phase]] = append(input[[.phase]], list(...), after = .at - 1L)
+    input$.simulate_exprs = unique(c(self$.simulate_exprs, .simulate_exprs))
+    do.call(ExprList, input)
+  }
+  self$print_exprs = function(file = "") {
+    to = cumsum(self$.eval_schedule)
+    from = c(0L, to[1:2]) + 1L
+    msgs = c(
+      "Before the simulation loop (t = 0):",
+      "At every iteration of the simulation loop (t = 1 to T):",
+      "After the simulation loop (t = T):"
+    )
+    for (i in 1:3) {
+      if (self$.eval_schedule[i] > 0L) {
+        expr_strings = lapply(self$.expr_list[from[i]:to[i]], deparse)
+        tab_size = nchar(self$.eval_schedule[i])
+        fmt = sprintf("%%%ii: %%s", tab_size)
+        tab = paste0(rep(" ", tab_size), collapse = "")
+        expr_n_lines = vapply(expr_strings, length, integer(1L))
+        make_expr_numbers = function(s, i) {
+          s[1L] = sprintf(fmt, i, s[1L])
+          if (length(s) > 1L) {
+            s[-1L] = paste(tab, s[-1L], sep = "")
+          }
+          s
+        }
+        expr_char = unlist(mapply(make_expr_numbers
+          , expr_strings
+          , seq_len(self$.eval_schedule[i])
+          , SIMPLIFY = FALSE
+          , USE.NAMES = FALSE
+        ))
+        lines = c(
+          "---------------------",
+          msgs[i],
+          "---------------------",
+          expr_char,
+          ""
+        )
+        cat(lines, file = file, sep = "\n", append = i != 1L)
+      }
+    }
   }
   return_object(self, "ExprList")
 }
@@ -411,6 +463,8 @@ Time = function(time_steps) {
 #' to pass to C++.
 #' * `$param_arg()` -- Return all of the components of the parameter list
 #' to pass to C++.
+#' * `$simulator()` -- Return an object of class \code{\link{TMBSimulator}},
+#' which can be used to simulate data from the model.
 #'
 #' @examples
 #' sir = TMBModel(
@@ -509,6 +563,22 @@ TMBModel = function(
       silent = TRUE
     )
   }
+  self$simulator = function() {TMBSimulator(self)}
+  self$insert_exprs = function(...
+    , .at
+    , .phase = c("before", "during", "after")
+    , .simulate_exprs = character(0L)
+  ) {
+    TMBModel(
+      self$.init_mats,
+      self$.expr_list$insert(..., .at = .at, .phase = .phase, .simulate_exprs = .simulate_exprs),
+      self$.params,
+      self$.random,
+      self$.obj_fn,
+      self$.time_steps
+    )
+  }
+  self$print_exprs = function(file = "") self$.expr_list$print_exprs(file = file)
   return_object(
     valid$tmb_model$assert(self),
     "TMBModel"

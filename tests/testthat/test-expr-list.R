@@ -2,8 +2,14 @@
 #
 # })
 
-# library(macpan2)
-# library(oor)
-# expr_arg = ExprList(before = list(x ~ 1))$data_arg("x")
-# lapply(expr_arg, is.integer)
-# valid_expr_arg$assert(expr_arg)
+test_that("expressions are inserted and printed", {
+  l = ExprList(during = list(a ~ 1, b ~ 2, c ~ 3))
+  expect_output(
+    (l
+     $insert(X ~ 500, Y ~ 600, .phase = "before")
+     $insert(A ~ 0, .phase = "after")
+     $print_exprs()
+    ),
+    "---------------------\\nBefore the simulation loop \\(t = 0\\):\\n---------------------\\n1: X ~ 500\\n2: Y ~ 600\\n\\n---------------------\\nAt every iteration of the simulation loop \\(t = 1 to T\\):\\n---------------------\\n1: a ~ 1\\n2: b ~ 2\\n3: c ~ 3\\n\\n---------------------\\nAfter the simulation loop \\(t = T\\):\\n---------------------\\n1: A ~ 0\\n"
+  )
+})

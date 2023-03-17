@@ -22,6 +22,11 @@
 #   labelled_partitions_validity_message
 # )
 
+# Initialize Model Definition
+#
+#
+#initialize_model_definition(path)
+
 #' Model Collection
 #'
 #' A model definition that is untied from a set of \code{\link{ModelFiles}}.
