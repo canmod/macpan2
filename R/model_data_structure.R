@@ -275,24 +275,24 @@ Scalar2Vector = function(model){
     new_derivation$expression = paste0("assign(vect_name, vect_index, 0, ", paste0(extracted_derivation$expression, ")"))
     for (i in 1:length(extracted_derivation$outputs)){
       if(any(extracted_derivation$outputs[[i]]==self$model$def$settings()[["state_variables"]])){
-        new_derivation$outputs = list(new_derivation$outputs, "dummy")
-        new_derivation$variables = list(new_derivation$variables, list("state", self$.state_replacer(extracted_derivation$outputs[[i]]), extracted_derivation$variables[[i]]))
-        new_derivation$variable_dots = list(new_derivation$variable_dots, extracted_derivation$variable_dots[[i]])
+        new_derivation$outputs = c(new_derivation$outputs, "dummy")
+        if(length(extracted_derivation$variables) != 0L) new_derivation$variables = c(new_derivation$variables, list(c("state", self$.state_pointer(extracted_derivation$outputs[[i]]), extracted_derivation$variables[[i]])))
+        if (length(extracted_derivation$variable_dots) != 0) new_derivation$variable_dots = c(new_derivation$variable_dots, list(extracted_derivation$variable_dots[[i]]))
       }
       else if(any(extracted_derivation$outputs[[i]]==self$model$def$settings()[["flow_variables"]])){
-        new_derivation$outputs = list(new_derivation$outputs, "dummy")
-        new_derivation$variables = list(new_derivation$variables, list("rate", self$.rate_replacer(extracted_derivation$outputs[[i]]), extracted_derivation$variables[[i]]))
-        new_derivation$variable_dots = list(new_derivation$variable_dots, extracted_derivation$variable_dots[[i]])
+        new_derivation$outputs = c(new_derivation$outputs, "dummy")
+        if(length(extracted_derivation$variables) != 0L) new_derivation$variables = c(new_derivation$variables, list(c("rate", self$.rate_pointer(extracted_derivation$outputs[[i]]), extracted_derivation$variables[[i]])))
+        if (length(extracted_derivation$variable_dots) != 0) new_derivation$variable_dots = c(new_derivation$variable_dots, list(extracted_derivation$variable_dots[[i]]))
       }
       else {
-        old_derivation$outputs = list(old_derivation$outputs, extracted_derivation$outputs[[i]])
-        old_derivation$variables = list(old_derivation$variables, extracted_derivation$variables[[i]])
-        old_derivation$variable_dots = list(old_derivation$variable_dots, extracted_derivation$variable_dots[[i]])
+        old_derivation$outputs = c(old_derivation$outputs, extracted_derivation$outputs[[i]])
+        if(length(extracted_derivation$variables) != 0L) old_derivation$variables = c(old_derivation$variables, extracted_derivation$variables[[i]])
+        if (length(extracted_derivation$variable_dots) != 0) old_derivation$variable_dots = c(old_derivation$variable_dots, list(extracted_derivation$variable_dots[[i]]))
       }
     }
-    if((length(new_derivation$outputs)!=0L) & length(old_derivation$outputs)!=0L) revised_derivations = list(new_derivation, old_derivation)
-    else if(length(new_derivation$outputs)!=0L) revised_derivations = list(new_derivations)
-    else revised_derivations = list(old_derivations)
+    if((length(new_derivation$outputs)!=0L) & length(old_derivation$outputs)!=0L) revised_derivations = c(new_derivation, old_derivation)
+    else if(length(new_derivation$outputs)!=0L) revised_derivations = new_derivation
+    else revised_derivations = old_derivation
     return(revised_derivations)
   }
   self$vectorizer = function(extracted_derivation){

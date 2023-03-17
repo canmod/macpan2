@@ -16,6 +16,8 @@ models = setNames(
 m1 = Model(models$seir_symp_vax)
 ue1 = UserExpr(m1)
 ee1 = ue1$expand_expressions()
+sv1 = Scalar2Vector(m1)
+v1 = sv1$vectorize()
 
 
 m2 = Model(models$seir)
@@ -37,3 +39,5 @@ ee5 = ue5$evaluate_expressions()
 m6 = Model(models$macpan_base)
 ue6 = UserExpr(m6)
 ee6 = ue6$expand_expressions()
+sv6 = Scalar2Vector(m6)
+v6 = sv6$vectorize()
