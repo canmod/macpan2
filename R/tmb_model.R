@@ -93,13 +93,17 @@ ExprList = function(
     , .simulate_exprs = character(0L)
   ) {
   self = ExprListUtils()
+  lhs = function(x) x[[2L]]
   valid_expr_list = ValidityMessager(
     All(
       is.list,  ## list of ...
       MappedAllTest(Is("formula")),  ## ... formulas that are ...
-      TestPipeline(MappedSummarizer(length), MappedAllTest(TestRange(3L, 3L)))  ## ... two-sided
+      TestPipeline(MappedSummarizer(length), MappedAllTest(TestRange(3L, 3L))),  ## ... two-sided formula
+      TestPipeline(MappedSummarizer(lhs, is.symbol), MappedAllTest(TestTrue()))  ## ... only one symbol on the lhs
     ),
-    "Model expressions must be two-sided formulas"
+    "Model expressions must be two-sided assignment formulas,",
+    "without subsetting on the left-hand-side",
+    "(i.e. x ~ 1 is fine, but x[0] ~ 1 is not)."
   )
   self$.input = nlist(before, during, after)
   self$.expr_list = c(
