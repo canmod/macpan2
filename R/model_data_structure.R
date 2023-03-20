@@ -286,7 +286,7 @@ Scalar2Vector = function(model){
       }
       else {
         old_derivation$outputs = c(old_derivation$outputs, extracted_derivation$outputs[[i]])
-        if(length(extracted_derivation$variables) != 0L) old_derivation$variables = c(old_derivation$variables, extracted_derivation$variables[[i]])
+        if(length(extracted_derivation$variables) != 0L) old_derivation$variables = c(old_derivation$variables, list(extracted_derivation$variables[[i]]))
         if (length(extracted_derivation$variable_dots) != 0) old_derivation$variable_dots = c(old_derivation$variable_dots, list(extracted_derivation$variable_dots[[i]]))
       }
     }
@@ -318,7 +318,7 @@ Scalar2Vector = function(model){
 UserExpr = function(model){
   self = Base()
   self$model = model
-  # self$vectorized_derivations = Scalar2Vector(self$model)$vectorize()
+  self$vectorized_derivations = Scalar2Vector(self$model)$vectorize()
   self$scalarized_derivations = DerivationExtractor(self$model)$extract_derivations()
   self$.vars_check = function(extracted_derivation){
     return(!is.null(extracted_derivation$variables) & !(length(extracted_derivation$variables) == 0L))
@@ -366,10 +366,12 @@ UserExpr = function(model){
     sim_phases = rep(extracted_derivation$simulation_phase, length(outputs))
     return(mapply(list, Output = outputs, Expression = expressions, Simulation_phase = sim_phases, SIMPLIFY = FALSE))
   }
-  self$expand_expressions = function(){
+  self$expand_scalar_expressions = function(){
     return(lapply(self$scalarized_derivations, self$.format_expression))
   }
-
+  self$expand_vector_expressions = function(){
+    return(lapply(self$vectorized_derivations, self$.format_expression))
+  }
   return_object(self, "UserExpr")
 }
 
