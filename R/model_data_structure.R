@@ -232,7 +232,7 @@ DerivationExtractor = function(model){
 #' Construct an object for replacing scalar names within a \code{\link{Model}}
 #' model, with the equivalent vector name.
 #'
-#' @param model Object of type \code{\link{Model}}
+#' @param model Object of type \code{\link{DerivationExtractor}}
 #'
 #' ## Methods
 #'
@@ -240,10 +240,10 @@ DerivationExtractor = function(model){
 #' * `$vectorize()`
 #'
 #' @export
-Scalar2Vector = function(model){
+Scalar2Vector = function(derivation_extractor){
   self = Base()
-  self$model = model
-  self$extracted_derivations = DerivationExtractor(self$model)$extract_derivations()
+  self$model = derivation_extractor$model
+  self$extracted_derivations = derivation_extractor$extract_derivations()
   self$.state_pointer = function(scalar_name){
     return(as.numeric(which(scalar_name == self$model$def$settings()[["state_variables"]]))-1)
   }
@@ -310,7 +310,7 @@ Scalar2Vector = function(model){
 
 #' UserExpr
 #'
-#' Evaluate user inpu expressions
+#' Evaluate user input expressions
 #'
 #' @param model Object created by \code{\link{Model}}.
 #'
@@ -318,8 +318,9 @@ Scalar2Vector = function(model){
 UserExpr = function(model){
   self = Base()
   self$model = model
-  self$vectorized_derivations = Scalar2Vector(self$model)$vectorize()
-  self$scalarized_derivations = DerivationExtractor(self$model)$extract_derivations()
+  self$derivation_extractor = DerivationExtractor(self$model)
+  self$vectorized_derivations = Scalar2Vector(self$derivation_extractor)$vectorize()
+  self$scalarized_derivations = self$derivation_extractor$extract_derivations()
   self$.vars_check = function(extracted_derivation){
     return(!is.null(extracted_derivation$variables) & !(length(extracted_derivation$variables) == 0L))
   }
