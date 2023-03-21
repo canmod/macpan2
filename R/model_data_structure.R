@@ -232,7 +232,7 @@ DerivationExtractor = function(model){
 #' Construct an object for replacing scalar names within a \code{\link{Model}}
 #' model, with the equivalent vector name.
 #'
-#' @param model Object of type \code{\link{DerivationExtractor}}
+#' @param derivation_extractor Object of type \code{\link{DerivationExtractor}}
 #'
 #' ## Methods
 #'

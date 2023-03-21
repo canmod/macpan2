@@ -10,5 +10,5 @@ UserExpr(model)
 \item{model}{Object created by \code{\link{Model}}.}
 }
 \description{
-Evaluate user inpu expressions
+Evaluate user input expressions
 }

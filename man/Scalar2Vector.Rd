@@ -4,10 +4,10 @@
 \alias{Scalar2Vector}
 \title{Scalar2Vector}
 \usage{
-Scalar2Vector(model)
+Scalar2Vector(derivation_extractor)
 }
 \arguments{
-\item{model}{Object of type \code{\link{Model}}
+\item{derivation_extractor}{Object of type \code{\link{DerivationExtractor}}
 \subsection{Methods}{
 \itemize{
 \item \verb{$vectorizer(expanded_derivation)}
