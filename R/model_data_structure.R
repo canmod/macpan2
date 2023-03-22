@@ -39,6 +39,17 @@
 #' \code{\link{ModelFiles}} object.
 #' @param settings Return value of the `settings` method in a
 #' \code{\link{ModelFiles}} object.
+#'
+#' @return An object of class \code{ModelCollection} with the following
+#' methods.
+#'
+#' ## Methods
+#'
+#' * `$variables()` --
+#' * `$derivations()`
+#' * `$flows()`
+#' * `$settings()`
+#'
 #' @export
 ModelCollection = function(variables
     , derivations
@@ -114,6 +125,9 @@ ModelFiles = function(model_directory
 #' Construct an object for representing a model structure.
 #'
 #' @param definition Output of \code{\link{ModelFiles}}.
+#'
+#' @return
+#'
 #' @export
 Model = function(definition) {
   self = Base()
@@ -139,7 +153,10 @@ Model = function(definition) {
 #' Construct an object for extracting the derivations within a
 #' \code{\link{Model}}.
 #'
-#' @param model Object of type \code{\link{Model}}
+#' @param model Object of class \code{\link{Model}}
+#'
+#' @return An object of class \code{DerivationExtractor} with the
+#' following methods.
 #'
 #' ## Methods
 #'
