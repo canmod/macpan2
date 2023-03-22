@@ -254,7 +254,7 @@ DerivationExtractor = function(model){
 #' Construct an object for replacing scalar names within a \code{\link{Model}}
 #' model, with the equivalent vector name.
 #'
-#' @param model Object of type \code{\link{Model}}
+#' @param derivation_extractor Object of type \code{\link{DerivationExtractor}}
 #'
 #' ## Methods
 #'
@@ -262,10 +262,10 @@ DerivationExtractor = function(model){
 #' * `$vectorize()`
 #'
 #' @export
-Scalar2Vector = function(model){
+Scalar2Vector = function(derivation_extractor){
   self = Base()
-  self$model = model
-  self$extracted_derivations = DerivationExtractor(self$model)$extract_derivations()
+  self$model = derivation_extractor$model
+  self$extracted_derivations = derivation_extractor$extract_derivations()
   self$.state_pointer = function(scalar_name){
     return(as.numeric(which(scalar_name == self$model$def$settings()[["state_variables"]]))-1)
   }
@@ -290,10 +290,37 @@ Scalar2Vector = function(model){
   self$.list_replacer = function(scalar_name_list){
     return(lapply(scalar_name_list, self$.replacer))
   }
+  self$.output_revisor = function(extracted_derivation){
+    old_derivation = list(simulation_phase = extracted_derivation$simulation_phase, expression = extracted_derivation$expression, arguments = extracted_derivation$arguments, outputs = list(), variables = list(), variable_dots = list())
+    new_derivation = list(simulation_phase = extracted_derivation$simulation_phase, outputs = list(), variables = list(), variable_dots = list())
+    new_derivation$arguments = c("vect_name", "vect_index", extracted_derivation$arguments)
+    new_derivation$expression = paste0("assign(vect_name, vect_index, 0, ", paste0(extracted_derivation$expression, ")"))
+    for (i in 1:length(extracted_derivation$outputs)){
+      if(any(extracted_derivation$outputs[[i]]==self$model$def$settings()[["state_variables"]])){
+        new_derivation$outputs = c(new_derivation$outputs, "dummy")
+        if(length(extracted_derivation$variables) != 0L) new_derivation$variables = c(new_derivation$variables, list(c("state", self$.state_pointer(extracted_derivation$outputs[[i]]), extracted_derivation$variables[[i]])))
+        if (length(extracted_derivation$variable_dots) != 0) new_derivation$variable_dots = c(new_derivation$variable_dots, list(extracted_derivation$variable_dots[[i]]))
+      }
+      else if(any(extracted_derivation$outputs[[i]]==self$model$def$settings()[["flow_variables"]])){
+        new_derivation$outputs = c(new_derivation$outputs, "dummy")
+        if(length(extracted_derivation$variables) != 0L) new_derivation$variables = c(new_derivation$variables, list(c("rate", self$.rate_pointer(extracted_derivation$outputs[[i]]), extracted_derivation$variables[[i]])))
+        if (length(extracted_derivation$variable_dots) != 0) new_derivation$variable_dots = c(new_derivation$variable_dots, list(extracted_derivation$variable_dots[[i]]))
+      }
+      else {
+        old_derivation$outputs = c(old_derivation$outputs, extracted_derivation$outputs[[i]])
+        if(length(extracted_derivation$variables) != 0L) old_derivation$variables = c(old_derivation$variables, list(extracted_derivation$variables[[i]]))
+        if (length(extracted_derivation$variable_dots) != 0) old_derivation$variable_dots = c(old_derivation$variable_dots, list(extracted_derivation$variable_dots[[i]]))
+      }
+    }
+    if((length(new_derivation$outputs)!=0L) & length(old_derivation$outputs)!=0L) revised_derivations = c(new_derivation, old_derivation)
+    else if(length(new_derivation$outputs)!=0L) revised_derivations = new_derivation
+    else revised_derivations = old_derivation
+    return(revised_derivations)
+  }
   self$vectorizer = function(extracted_derivation){
-    extracted_derivation$outputs = self$.list_replacer(extracted_derivation$outputs)
     extracted_derivation$variables = lapply(extracted_derivation$variables, self$.list_replacer)
     extracted_derivation$variable_dots = lapply(extracted_derivation$variable_dots, self$.list_replacer)
+    extracted_derivation = self$.output_revisor(extracted_derivation)
     return(extracted_derivation)
   }
   self$vectorize = function(){
@@ -305,7 +332,7 @@ Scalar2Vector = function(model){
 
 #' UserExpr
 #'
-#' Evaluate user inpu expressions
+#' Evaluate user input expressions
 #'
 #' @param model Object created by \code{\link{Model}}.
 #'
@@ -313,8 +340,9 @@ Scalar2Vector = function(model){
 UserExpr = function(model){
   self = Base()
   self$model = model
-  # self$vectorized_derivations = Scalar2Vector(self$model)$vectorize()
-  self$scalarized_derivations = DerivationExtractor(self$model)$extract_derivations()
+  self$derivation_extractor = DerivationExtractor(self$model)
+  self$vectorized_derivations = Scalar2Vector(self$derivation_extractor)$vectorize()
+  self$scalarized_derivations = self$derivation_extractor$extract_derivations()
   self$.vars_check = function(extracted_derivation){
     return(!is.null(extracted_derivation$variables) & !(length(extracted_derivation$variables) == 0L))
   }
@@ -361,10 +389,12 @@ UserExpr = function(model){
     sim_phases = rep(extracted_derivation$simulation_phase, length(outputs))
     return(mapply(list, Output = outputs, Expression = expressions, Simulation_phase = sim_phases, SIMPLIFY = FALSE))
   }
-  self$expand_expressions = function(){
+  self$expand_scalar_expressions = function(){
     return(lapply(self$scalarized_derivations, self$.format_expression))
   }
-
+  self$expand_vector_expressions = function(){
+    return(lapply(self$vectorized_derivations, self$.format_expression))
+  }
   return_object(self, "UserExpr")
 }
 
