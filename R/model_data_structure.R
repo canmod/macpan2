@@ -368,9 +368,10 @@ UserExpr = function(model){
   }
   self$.format_expression = function(extracted_derivation){
     expressions = self$.evaluate_expression(extracted_derivation)
+    arguments = self$.argument_collector(extracted_derivation) #This is inefficient as the same method is already called as part of self$.evaluate_expression
     outputs = extracted_derivation$outputs
     sim_phases = rep(extracted_derivation$simulation_phase, length(outputs))
-    return(mapply(list, Output = outputs, Expression = expressions, Simulation_phase = sim_phases, SIMPLIFY = FALSE))
+    return(mapply(list, output_names = outputs, expression = expressions, arguments = arguments, simulation_phase = sim_phases, SIMPLIFY = FALSE))
   }
   self$expand_scalar_expressions = function(){
     return(lapply(self$scalarized_derivations, self$.format_expression))
