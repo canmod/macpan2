@@ -382,9 +382,61 @@ UserExpr = function(model){
   return_object(self, "UserExpr")
 }
 
-StandardExpr = function(){
+StandardExpr = function(model){
   self = Base()
-  #TODO: Evaluate standard expressions
+  self$model = model
+  self$.expanded_flows = self$model$flows_expanded()
+  self$.state_pointer = function(scalar_name){
+    return(as.numeric(which(scalar_name == self$model$def$settings()[["state_variables"]]))-1)
+  }
+  self$.rate_pointer = function(scalar_name){
+    return(as.numeric(which(scalar_name == self$model$def$settings()[["flow_variables"]]))-1)
+  }
+  self$.rate_types = list("per-capita",
+                          "absolute",
+                          "per-capita_inflow",
+                          "per-capita_outflow",
+                          "absolute_inflow",
+                          "absolute_outflow")
+  self$.flow_seperator = function(rate_type){
+    return(self$.expanded_flows[self$.expanded_flows$type == rate_type])
+  }
+  self$.seperated_flows = lapply(self$.rate_types, self$.flow_seperator)
+  # names(self$.seperated_flows) = self$.rate_types
+  self$.init_index_vector = function(flows_frame){
+    from = lapply(flow_frame$from, self$.state_pointer)
+    to = lapply(flow_frame$to, self$.state_pointer)
+    flow = lapply(flow_frame$flow, self$.rate_pointer)
+    return(list(from, to, flow))
+  }
+  self$.init_index_vectors = function(){
+    return(lapply(self$.seperated_flows, self$.init_index_vector))
+  }
+  self$.init_formulas = function(){
+    per-capita_formula = MathExpressionFromStrings("state[per-capita_from]*rate[per-capita_flows]", list("state", "per-capita_from", "rate", "per-capita_flows"))
+    absolute_formula = MathExpressionFromStrings("rate[absolute_flows]", list("rate", "absolute_flows"))
+    per-capita_inflow_formula = MathExpressionFromStrings("state[per-capita_inflow_from]*rate[per-capita_inflow_flows]", list("state", "per-capita_inflow_from", "rate", "per-capita_inflow_flows"))
+    per-capita_outflow_formula = MathExpressionFromStrings("state[per-capita_outflow_from]*rate[per-capita_outflow_flows]", list("state", "per-capita_outflow_from", "rate", "per-capita_outflow_flows"))
+    absolute_inflow_formula = MathExpressionFromStrings("rate[absolute_inflow_flows]", list("rate", "absolute_inflow_flows"))
+    absolute_outflow_formula = MathExpressionFromStrings("rate[absolute_outflow_flows]", list("rate", "absolute_outflow_flows"))
+    total_inflow_formula = MathExpressionFromStrings("groupSums(per-capita, per-capita_to, state_length)
+                                                     +groupSums(absolute, absolute_to, state_length)
+                                                     +groupSums(per-capita_inflow, per-capita_inflow_to, state_length)
+                                                     +groupSums(absolute_inflow, absolute_inflow_to, state_length)", 
+                                                     list("per-capita", "per-capita_to",
+                                                          "absolute", "absolute_to",
+                                                          "per-capita_inflow", "per-capita_inflow_to",
+                                                          "state_length"))
+    total_outflow_formula = MathExpressionFromStrings("groupSums(per-capita, per-capita_from, state_length)
+                                                     +groupSums(absolute, absolute_from, state_length)
+                                                     +groupSums(per-capita_outflow, per-capita_outflow_from, state_length)
+                                                     +groupSums(absolute_outflow, absolute_outflow_from, state_length)", 
+                                                     list("per-capita", "per-capita_from",
+                                                          "absolute", "absolute_from",
+                                                          "per-capita_outflow", "per-capita_outflow_from",
+                                                          "state_length"))
+    state_update_formula = MathExpressionFromStrings("state - total_outflow + total_inflow", list("state", "total_outflow", "total_inflow"))
+  }
   return_object(self, "StandardExpr")
 }
 
