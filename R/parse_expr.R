@@ -212,6 +212,18 @@ get_indices = function(x, vec, vec_type, expr_as_string, zero_based = FALSE) {
   if (!is.character(vec)) vec = names(vec)
   missing_items = x[!x %in% vec]
   if (length(missing_items) > 0L) {
+    pointers = ""
+    if (vec_type == "functions") {
+      pointers = "\nPlease see ?engine_functions for more information on the available functions."
+    } else if (vec_type == "variables") {
+      pointers = paste(
+        "\nPlease ensure that all variables are being initialized",
+        "\nEven variables that are derived and not dependencies of",
+        "\nother expressions must at least be initialized as an ?empty_matrix.",
+        "\n",
+        sep = ""
+      )
+    }
     stop(
       "\nthe expression given by:\n",
       expr_as_string, "\n\n",
@@ -219,7 +231,7 @@ get_indices = function(x, vec, vec_type, expr_as_string, zero_based = FALSE) {
       paste0(missing_items, collapse = " "), "\n\n",
       " that were not found in the list of available ", vec_type, ":\n",
       paste0(vec, collapse = " "), # TODO: smarter pasting when this list gets big
-      "\nPlease see ?engine_functions for available functions."
+      pointers
     )
   }
   one_based = apply(
@@ -250,6 +262,24 @@ initial_valid_vars = function(valid_var_names) {
 
 #' Empty Matrix
 #'
+#' Empty matrices are useful when defining matrices that do not need to be
+#' initialized because they will get computed before they are required by
+#' other expressions. They are also a useful placeholder for matrices that
+#' should only have a value after a certain phase in the simulation.
+#'
+#' @name empty_matrix
+#' @format A \code{\link{numeric}} \code{\link[base]{matrix}} with zero rows
+#' and zero columns.
+#' @examples
+#' s = TMBModel(
+#'   init_mats = MatsList(x = empty_matrix
+#'     , .mats_to_save = "x"
+#'     , .mats_to_return = "x"
+#'   ),
+#'   expr_list = ExprList(during = list(x ~ time_step(0))),
+#'   time_steps = Time(2)
+#' )
+#' s$simulator()$report()
 #' @export
 empty_matrix = matrix(numeric(0L), 0L, 0L)
 

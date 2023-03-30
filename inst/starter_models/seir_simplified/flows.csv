@@ -1,4 +1,3 @@
-from,to,flow,type
-S,E,foi,per-capita rate
-E,I,alpha,per-capita rate
-I,R,gamma,per-capita rate
+from ,to ,flow  ,type
+S    ,I  ,foi   ,per-capita rate
+I    ,R  ,gamma ,per-capita rate

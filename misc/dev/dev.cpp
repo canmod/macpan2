@@ -90,18 +90,20 @@ enum macpan2_func {
     MP2_TIME_STEP = 29, // fwrap,fail: time_step(lag)
     MP2_ASSIGN = 30, // fwrap,null: assign(x, i, j, v)
     MP2_UNPACK = 31, // fwrap,fail: unpack(x, ...)
-    MP2_CLAMP = 32, // fwrap,fail: clamp(x)
-    MP2_POISSON_DENSITY = 33, // fwrap,fail: dpois(observed, simulated)
-    MP2_NEGBIN_DENSITY = 34, // fwrap,fail: dnbinom(observed, simulated, over_dispersion)
-    MP2_NORMAL_DENSITY = 35, // fwrap,fail: dnorm(observed, simulated, standard_deviation)
-    MP2_POISSON_SIM = 36, // fwrap,fail: rpois(mean)
-    MP2_NEGBIN_SIM = 37, // fwrap,fail: rnbinom(mean, over_dispersion)
-    MP2_NORMAL_SIM = 38 // fwrap,fail: rnorm(mean, standard_deviation)
+    MP2_RECYCLE = 32, // fwrap,null: recycle(x, rows, cols)
+    MP2_CLAMP = 33, // fwrap,fail: clamp(x)
+    MP2_POISSON_DENSITY = 34, // fwrap,fail: dpois(observed, simulated)
+    MP2_NEGBIN_DENSITY = 35, // fwrap,fail: dnbinom(observed, simulated, over_dispersion)
+    MP2_NORMAL_DENSITY = 36, // fwrap,fail: dnorm(observed, simulated, standard_deviation)
+    MP2_POISSON_SIM = 37, // fwrap,fail: rpois(mean)
+    MP2_NEGBIN_SIM = 38, // fwrap,fail: rnbinom(mean, over_dispersion)
+    MP2_NORMAL_SIM = 39 // fwrap,fail: rnorm(mean, standard_deviation)
+    //MP2_SIN = 40 // fwrap,null: sin(x)
 };
 
 // Helper function
 template<class Type>
-bool RecycleInPlace(
+int RecycleInPlace(
     matrix<Type>& mat,
     int rows,
     int cols
@@ -110,10 +112,13 @@ bool RecycleInPlace(
         std::cout << "recycling ... " << std::endl;
     #endif
     if (mat.rows()==rows && mat.cols()==cols) // don't need to do anything.
-        return true;
+        return 0;
 
     matrix<Type> m(rows, cols);
-    if (mat.rows()==rows) {
+    if (mat.rows()==1 && mat.cols()==1) {
+        m = matrix<Type>::Constant(rows, cols, mat.coeff(0,0));
+    }
+    else if (mat.rows()==rows) {
         if (mat.cols()==1) {
             #ifdef MP_VERBOSE
                 std::cout << "recycling columns ... " << std::endl;
@@ -121,7 +126,8 @@ bool RecycleInPlace(
             for (int i=0; i<cols; i++)
                 m.col(i) = mat.col(0);
         } else
-            return false;
+            return 501;
+            //SetError(501, "cannot recycle columns because the input is neither a scalar nor a column vector");
     }
     else if (mat.cols()==cols) {
         if (mat.rows()==1) {
@@ -131,14 +137,15 @@ bool RecycleInPlace(
             for (int i=0; i<rows; i++)
                 m.row(i) = mat.row(0);
         } else
-            return false;
-    }
-    else
-        return false;
+            return 501;
+            //SetError(501, "cannot recycle rows because the input is neither a scalar nor a row vector");
+    } else
+        return 501;
+        //SetError(501, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request");
 
     // final step
     mat = m;
-    return true;
+    return 0;
 }
 
 
@@ -210,7 +217,7 @@ public:
         // Variables to use locally in function bodies
         matrix<Type> m, m1, m2;  // return values
         Type sum, s, eps, var;  // intermediate scalars
-        int rows, cols, lag, rowIndex, colIndex, matIndex, reps, off, size, sz, start;
+        int rows, cols, lag, rowIndex, colIndex, matIndex, reps, off, size, sz, start, err_code, err_code1, err_code2;
 
         if (GetErrorCode()) return m; // Check if error has already happened at some point of the recursive call.
 
@@ -436,6 +443,9 @@ public:
 
                     case MP2_EXP:
                         return args[0].array().exp().matrix();
+
+                    // case MP2_SIN:
+                    //    return args[0].array().sin().matrix();
 
                     // #' ## Integer Sequences
                     // #'
@@ -870,6 +880,7 @@ public:
                     // #' of the rows and columns of `x`.
                     // #' * `block(x,i,j,n,m)` -- Matrix containing a
                     // #' contiguous subset of rows and columns of `x`
+                    // #' \url{https://eigen.tuxfamily.org/dox/group__TutorialBlockOperations.html}
                     // #'
                     // #' ### Arguments
                     // #'
@@ -887,7 +898,7 @@ public:
                     // #'
                     // #' ### Return
                     // #'
-                    // #' * A matrix contining a subset of the rows and columns
+                    // #' * A matrix containing a subset of the rows and columns
                     // #' in `x`.
                     // #'
                     // #' ### Details
@@ -898,7 +909,7 @@ public:
                     // #' ### Examples
                     // #'
                     // #' ```
-                    // #' engine_eval(~ A[c(3, 1, 2), c(2)], A = matrix(1:12, 4, 3))
+                    // #' engine_eval(~ A[c(3, 1, 2), 2], A = matrix(1:12, 4, 3))
                     // #' ```
                     // #'
                     case MP2_SQUARE_BRACKET: // [
@@ -1260,7 +1271,9 @@ public:
                         }
                         rows = args[0].rows();
                         cols = args[0].cols();
-                        RecycleInPlace(args[1], rows, cols);
+                        err_code = RecycleInPlace(args[1], rows, cols);
+                        if (err_code != 0)
+                          SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request");
                         m = matrix<Type>::Zero(rows, cols);
                         for (int i=0; i<rows; i++) {
                             for (int j=0; j<cols; j++) {
@@ -1276,8 +1289,12 @@ public:
                         }
                         rows = args[0].rows();
                         cols = args[0].cols();
-                        RecycleInPlace(args[1], rows, cols);
-                        RecycleInPlace(args[2], rows, cols);
+                        err_code1 = RecycleInPlace(args[1], rows, cols);
+                        err_code2 = RecycleInPlace(args[2], rows, cols);
+                        err_code = err_code1 + err_code2;
+                        if (err_code != 0) {
+                            SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request");
+                        }
                         //   var ~ variance
                         //   mu ~ mean
                         //   k ~ overdispersion parameter = sp[this->spi[0]]
@@ -1301,8 +1318,12 @@ public:
                         }
                         rows = args[0].rows();
                         cols = args[0].cols();
-                        RecycleInPlace(args[1], rows, cols);
-                        RecycleInPlace(args[2], rows, cols);
+                        err_code1 = RecycleInPlace(args[1], rows, cols);
+                        err_code2 = RecycleInPlace(args[2], rows, cols);
+                        err_code = err_code1 + err_code2;
+                        if (err_code != 0) {
+                            SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request");
+                        }
                         m = matrix<Type>::Zero(rows, cols);
                         for (int i=0; i<rows; i++) {
                             for (int j=0; j<cols; j++) {
@@ -1359,7 +1380,10 @@ public:
                         eps = 1e-8;
                         rows = args[0].rows();
                         cols = args[0].cols();
-                        RecycleInPlace(args[1], rows, cols);
+                        err_code = RecycleInPlace(args[1], rows, cols);
+                        if (err_code != 0) {
+                            SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request");
+                        }
                         m = matrix<Type>::Zero(rows, cols);
                         for (int i=0; i<rows; i++) {
                             for (int j=0; j<cols; j++) {
@@ -1381,7 +1405,10 @@ public:
                         }
                         rows = args[0].rows();
                         cols = args[0].cols();
-                        RecycleInPlace(args[1], rows, cols);
+                        err_code = RecycleInPlace(args[1], rows, cols);
+                        if (err_code != 0) {
+                            SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request");
+                        }
                         m = matrix<Type>::Zero(rows, cols);
                         for (int i=0; i<rows; i++) {
                             for (int j=0; j<cols; j++) {
@@ -1420,8 +1447,12 @@ public:
                         // std::cout << "JJJ" << args[1].rows() << "JJJ" << args[2].rows() << "JJJ" << args[3].rows() << std::endl;
 
                         rows = args[3].rows();
-                        RecycleInPlace(args[1], rows, cols);
-                        RecycleInPlace(args[2], rows, cols);
+                        err_code1 = RecycleInPlace(args[1], rows, cols);
+                        err_code2 = RecycleInPlace(args[2], rows, cols);
+                        err_code = err_code1 + err_code2;
+                        if (err_code != 0) {
+                            SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request");
+                        }
 
                         // std::cout << "HHH" << args[1].rows() << "HHH" << args[2].rows() << "HHH" << args[3].rows() << std::endl;
 
@@ -1463,7 +1494,7 @@ public:
                             if (size>=sz) {
                                 m1 = m.block(start, 0, sz, 1);
                                 m1.resize(args[i].rows(), args[i].cols());
-                                //std::cout << "MMMAAATTTRRRIIIXXX " << valid_vars.m_matrices[index2mats[i]] << std::endl << std::endl;
+                                //std::cout << "MATRIX " << valid_vars.m_matrices[index2mats[i]] << std::endl << std::endl;
                                 valid_vars.m_matrices[index2mats[i]] = m1;
                                 // args[i] = m1;
                                 size -= sz;
@@ -1473,6 +1504,16 @@ public:
                                 break;
                         }
                         return m2; // empty matrix
+
+                    case MP2_RECYCLE:
+                        m = args[0];
+                        rows = CppAD::Integer(args[1].coeff(0,0));
+                        cols = CppAD::Integer(args[2].coeff(0,0));
+                        err_code = RecycleInPlace(m, rows, cols);
+                        if (err_code != 0) {
+                            SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request");
+                        }
+                        return m;
 
                     default:
                         SetError(255, "invalid operator in arithmetic expression");

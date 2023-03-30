@@ -70,7 +70,7 @@ doc-update: R/*.R misc/dev/dev.cpp
 
 
 pkg-build:: macpan2_$(VERSION).tar.gz
-macpan2_$(VERSION).tar.gz: R/*.R src/*.cpp tests/testthat/test-*.R tests/testthat.R
+macpan2_$(VERSION).tar.gz: R/*.R src/*.cpp tests/testthat/test-*.R tests/testthat.R inst/starter_models/**/*.csv inst/starter_models/**/*.json
 	R CMD build --no-build-vignettes .
 
 

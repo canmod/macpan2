@@ -306,6 +306,7 @@
 #' of the rows and columns of `x`.
 #' * `block(x,i,j,n,m)` -- Matrix containing a
 #' contiguous subset of rows and columns of `x`
+#' \url{https://eigen.tuxfamily.org/dox/group__TutorialBlockOperations.html}
 #'
 #' ### Arguments
 #'
@@ -323,7 +324,7 @@
 #'
 #' ### Return
 #'
-#' * A matrix contining a subset of the rows and columns
+#' * A matrix containing a subset of the rows and columns
 #' in `x`.
 #'
 #' ### Details
@@ -334,7 +335,7 @@
 #' ### Examples
 #'
 #' ```
-#' engine_eval(~ A[c(3, 1, 2), c(2)], A = matrix(1:12, 4, 3))
+#' engine_eval(~ A[c(3, 1, 2), 2], A = matrix(1:12, 4, 3))
 #' ```
 #'
 #' ## Accessing Past Values in the Simulation History
@@ -581,6 +582,7 @@
 #' @aliases time_step
 #' @aliases assign
 #' @aliases unpack
+#' @aliases recycle
 #' @aliases clamp
 #' @aliases dpois
 #' @aliases dnbinom

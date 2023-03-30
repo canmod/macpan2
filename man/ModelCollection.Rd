@@ -19,6 +19,18 @@ ModelCollection(variables, derivations, flows, settings)
 \item{settings}{Return value of the \code{settings} method in a
 \code{\link{ModelFiles}} object.}
 }
+\value{
+An object of class \code{ModelCollection} with the following
+methods.
+\subsection{Methods}{
+\itemize{
+\item \verb{$variables()} --
+\item \verb{$derivations()}
+\item \verb{$flows()}
+\item \verb{$settings()}
+}
+}
+}
 \description{
 A model definition that is untied from a set of \code{\link{ModelFiles}}.
 }

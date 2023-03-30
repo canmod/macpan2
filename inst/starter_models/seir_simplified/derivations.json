@@ -2,7 +2,7 @@
   {
     "simulation_phase" : "before_state_update",
     "output_names" : ["foi"],
-    "arguments" : ["S", "E", "I", "R", "beta"],
-    "expression" : "I * beta / sum(S, E, I, R)"
+    "arguments" : ["S", "I", "R", "beta"],
+    "expression" : "I * beta / sum(S, I, R)"
   }
 ]

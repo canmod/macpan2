@@ -33,6 +33,7 @@
 \alias{time_step}
 \alias{assign}
 \alias{unpack}
+\alias{recycle}
 \alias{clamp}
 \alias{dpois}
 \alias{dnbinom}
@@ -394,6 +395,7 @@ engine_eval(~ groupSums(x, f, n), x = 1:10, f = rep(0:3, 1:4), n = 4)
 of the rows and columns of \code{x}.
 \item \code{block(x,i,j,n,m)} -- Matrix containing a
 contiguous subset of rows and columns of \code{x}
+\url{https://eigen.tuxfamily.org/dox/group__TutorialBlockOperations.html}
 }
 }
 
@@ -415,7 +417,7 @@ the first column to extract (for \code{block}).
 
 \subsection{Return}{
 \itemize{
-\item A matrix contining a subset of the rows and columns
+\item A matrix containing a subset of the rows and columns
 in \code{x}.
 }
 }
@@ -428,7 +430,7 @@ so the first row/column gets index, \code{0}, etc.
 
 \subsection{Examples}{
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{engine_eval(~ A[c(3, 1, 2), c(2)], A = matrix(1:12, 4, 3))
+\if{html}{\out{<div class="sourceCode">}}\preformatted{engine_eval(~ A[c(3, 1, 2), 2], A = matrix(1:12, 4, 3))
 }\if{html}{\out{</div>}}
 }
 

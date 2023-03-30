@@ -50,6 +50,15 @@ valid <- list(
     ),
     "missing stuff"
   ),
+  named_list = ValidityMessager(
+    All(
+      is.list,
+      TestPipeline(Summarizer(names, is.null, any), TestFalse()),
+      TestPipeline(Summarizer(names, duplicated, any), TestFalse()),
+      TestPipeline(Summarizer(names, nchar), TestRange(1, Inf))
+    ),
+    "not a list with unique names that are neither blank nor null"
+  ),
   logic = ValidityMessager(
     is.logical, "not a logical vector"
   ),

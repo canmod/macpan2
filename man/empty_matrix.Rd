@@ -5,12 +5,27 @@
 \alias{empty_matrix}
 \title{Empty Matrix}
 \format{
-An object of class \code{matrix} (inherits from \code{array}) with 0 rows and 0 columns.
+A \code{\link{numeric}} \code{\link[base]{matrix}} with zero rows
+and zero columns.
 }
 \usage{
 empty_matrix
 }
 \description{
-Empty Matrix
+Empty matrices are useful when defining matrices that do not need to be
+initialized because they will get computed before they are required by
+other expressions. They are also a useful placeholder for matrices that
+should only have a value after a certain phase in the simulation.
+}
+\examples{
+s = TMBModel(
+  init_mats = MatsList(x = empty_matrix
+    , .mats_to_save = "x"
+    , .mats_to_return = "x"
+  ),
+  expr_list = ExprList(during = list(x ~ time_step(0))),
+  time_steps = Time(2)
+)
+s$simulator()$report()
 }
 \keyword{datasets}

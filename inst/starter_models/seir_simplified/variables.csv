@@ -1,9 +1,12 @@
-Epi,
-S,
-E,
-I,
-R,
-beta,
-alpha,
-gamma,
-foi,
+Epi   ,Vax
+S     ,unvax
+I     ,unvax
+R     ,unvax
+S     ,vax
+I     ,vax
+R     ,vax
+beta  ,
+gamma ,
+foi   ,
+      ,vax_rate
+      ,wane_rate

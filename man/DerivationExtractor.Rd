@@ -7,13 +7,17 @@
 DerivationExtractor(model)
 }
 \arguments{
-\item{model}{Object of type \code{\link{Model}}
+\item{model}{Object of class \code{\link{Model}}}
+}
+\value{
+An object of class \code{DerivationExtractor} with the
+following methods.
 \subsection{Methods}{
 \itemize{
 \item \verb{$expand_derivation(derivation)} -- Expand a single derivation by name.
 \item \verb{$expand_derivations()} -- Example all derivations in the model.
 }
-}}
+}
 }
 \description{
 Construct an object for extracting the derivations within a

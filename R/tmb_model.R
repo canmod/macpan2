@@ -231,6 +231,10 @@ ExprList = function(
 #'     have their history saved.
 #'     * `mats_return` -- Boolean vector identifying which matrices should be
 #'     returned after a simulation.
+#' * `$mat_dims()`: Return a data frame giving the numbers of rows and columns
+#' of each matrix in the list.
+#' * `$add_mats(...)`: Add matrices to the list and return a new
+#' regenerated \code{MatsList} object.
 #'
 #' @export
 MatsList = function(...
@@ -238,8 +242,14 @@ MatsList = function(...
     , .mats_to_return = character(0L)
     , .dimnames = list()
   ) {
-  self = Base()
+  self = EditableArgs(MatsList
+    , lapply(list(...), as.matrix)
+    , list()
+  )
   self$.initial_mats = lapply(list(...), as.matrix)
+  self$.mats_to_save = .mats_to_save
+  self$.mats_to_return = .mats_to_return
+  self$.dimnames = .dimnames
   self$.mats_save_hist = names(self$.initial_mats) %in% .mats_to_save
   self$.mats_return = names(self$.initial_mats) %in% .mats_to_return
   self$.names = function() names(self$.initial_mats)
@@ -271,6 +281,17 @@ MatsList = function(...
       mats_return = self$.mats_return
     )
     valid$mats_arg$assert(r)
+  }
+  self$add_mats = function(...
+    , .mats_to_save = character(0L)
+    , .mats_to_return = character(0L)
+    , .dimnames = list()
+  ) {
+    args = c(self$.initial_mats, list(...))
+    args$.mats_to_save = c(self$.mats_to_save, .mats_to_save)
+    args$.mats_to_return = c(self$.mats_to_return, .mats_to_return)
+    args$.dimnames = c(self$.dimnames, .dimnames)
+    do.call(MatsList, args)
   }
   return_object(self, "MatsList")
 }
@@ -568,6 +589,25 @@ TMBModel = function(
     )
   }
   self$simulator = function() {TMBSimulator(self)}
+
+  self$add_mats = function(...
+    , .mats_to_save = character(0L)
+    , .mats_to_return = character(0L)
+    , .dimnames = list()
+  ) {
+    TMBModel(
+      self$.init_mats$add_mats(...
+        , .mats_to_save = .mats_to_save
+        , .mats_to_return = .mats_to_return
+        , .dimnames = .dimnames
+      ),
+      self$.expr_list,
+      self$.params,
+      self$.random,
+      self$.obj_fn,
+      self$.time_steps
+    )
+  }
   self$insert_exprs = function(...
     , .at
     , .phase = c("before", "during", "after")
@@ -669,7 +709,10 @@ TMBSimulator = function(tmb_model, tmb_cpp = "macpan2") {
   self$matrix = function(..., matrix_name, time_step) {
     r = self$report(...)
     i = (r$matrix == as.character(matrix_name)) & (r$time == as.integer(time_step))
-    rr = r[i, c("row", "value")]
+    rr = r[i, c("row", "col", "value")]
+    if (!any(is.na(as.integer(rr$row)))) {
+      return(matrix(rr$value, max(as.integer(rr$row)) + 1L))
+    }
     matrix(rr$value, max(rr$row) + 1L)
   }
   return_object(self, "TMBSimulator")

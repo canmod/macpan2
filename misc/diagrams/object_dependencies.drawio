@@ -1,11 +1,11 @@
 <mxfile host="65bd71144e">
     <diagram id="-Eip-1yhXG_PjdOotFfL" name="Page-1">
-        <mxGraphModel dx="1122" dy="688" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="700" pageHeight="1400" background="#ffffff" math="0" shadow="0">
+        <mxGraphModel dx="1306" dy="2054" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="700" pageHeight="1400" background="#ffffff" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
                 <mxCell id="68" value="" style="rounded=0;whiteSpace=wrap;html=1;fillStyle=solid;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" parent="1" vertex="1">
-                    <mxGeometry width="700" height="1400" as="geometry"/>
+                    <mxGeometry x="2130" y="-7" width="700" height="1400" as="geometry"/>
                 </mxCell>
                 <mxCell id="36" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;dashed=1;" parent="1" vertex="1">
                     <mxGeometry x="230" y="148" width="150" height="390" as="geometry"/>
@@ -46,7 +46,7 @@
                 <mxCell id="8" value="create &lt;br&gt;object &lt;br&gt;for using and &lt;br&gt;editing the &lt;br&gt;model" style="rhombus;whiteSpace=wrap;html=1;" parent="1" vertex="1">
                     <mxGeometry x="410" y="288" width="120" height="120" as="geometry"/>
                 </mxCell>
-                <mxCell id="75" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;dashed=1;endArrow=none;endFill=0;" edge="1" parent="1" source="11" target="74">
+                <mxCell id="75" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;dashed=1;endArrow=none;endFill=0;" parent="1" source="11" target="74" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="11" value="edit model&lt;br&gt;definition (e.g. time-variation)" style="rhombus;whiteSpace=wrap;html=1;" parent="1" vertex="1">
@@ -55,7 +55,7 @@
                 <mxCell id="17" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=classic;endFill=1;" parent="1" source="13" target="4" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="77" style="edgeStyle=none;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0;entryDx=90;entryDy=72.5;entryPerimeter=0;dashed=1;endArrow=none;endFill=0;" edge="1" parent="1" source="13" target="76">
+                <mxCell id="77" style="edgeStyle=none;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0;entryDx=90;entryDy=72.5;entryPerimeter=0;dashed=1;endArrow=none;endFill=0;" parent="1" source="13" target="76" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="13" value="numerically instantiate &lt;br&gt;model" style="rhombus;whiteSpace=wrap;html=1;" parent="1" vertex="1">
@@ -187,10 +187,10 @@
                 <mxCell id="71" value="E.g. model products for creating new directories with model definitions (not shown)" style="shape=note;size=15;align=left;spacingLeft=10;html=1;whiteSpace=wrap;strokeWidth=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
                     <mxGeometry x="562.5" y="200" width="135" height="63" as="geometry"/>
                 </mxCell>
-                <mxCell id="74" value="Other examples include convolution, epidemiological parameters like Rt, R0" style="shape=note;size=15;align=left;spacingLeft=10;html=1;whiteSpace=wrap;strokeWidth=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+                <mxCell id="74" value="Other examples include convolution, epidemiological parameters like Rt, R0" style="shape=note;size=15;align=left;spacingLeft=10;html=1;whiteSpace=wrap;strokeWidth=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
                     <mxGeometry x="562.5" y="568" width="135" height="63" as="geometry"/>
                 </mxCell>
-                <mxCell id="76" value="Alternative constructor for creating TMBModel objects" style="shape=note;size=15;align=left;spacingLeft=10;html=1;whiteSpace=wrap;strokeWidth=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+                <mxCell id="76" value="Alternative constructor for creating TMBModel objects" style="shape=note;size=15;align=left;spacingLeft=10;html=1;whiteSpace=wrap;strokeWidth=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
                     <mxGeometry x="80" y="518" width="90" height="130" as="geometry"/>
                 </mxCell>
             </root>

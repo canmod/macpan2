@@ -38,6 +38,10 @@ have their history saved.
 \item \code{mats_return} -- Boolean vector identifying which matrices should be
 returned after a simulation.
 }
+\item \verb{$mat_dims()}: Return a data frame giving the numbers of rows and columns
+of each matrix in the list.
+\item \verb{$add_mats(...)}: Add matrices to the list and return a new
+regenerated \code{MatsList} object.
 }
 }
 }
