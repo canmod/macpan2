@@ -2,7 +2,7 @@ library(oor)
 library(macpan2)
 library(TMB)
 
-model_repo = "../../inst/starter_models"
+model_repo = "inst/starter_models"
 model = function(model_name) {
   model_path = file.path(model_repo, model_name)
   ModelFiles(model_path)
@@ -20,9 +20,30 @@ eve1 = ue1$expand_vector_expressions()
 se1 = StandardExpr(m1)
 sse1 = se1$standard_expressions()
 
+
+
+expression_phase_sorter(eve1, sse1, "before")
+
+phases = vapply(sse1, getElement, character(1L), "simulation_phase")
+
+
+ExprList(
+  before = create_expr_list_phase(eve1, sse1, "before"),
+  during = c(
+    create_expr_list_phase(eve1, sse1, "during_pre_update"),
+    create_expr_list_phase(eve1, sse1, "during_update"),
+    create_expr_list_phase(eve1, sse1, "during_post_update")),
+  after = create_expr_list_phase(eve1, sse1, "after")
+)
+unlist(lapply(eve1, getElement, "arguments"), recursive = TRUE)
+unlist(lapply(sse1, getElement, "arguments"), recursive = TRUE)
+
 m2 = Model(models$seir)
 ue2 = UserExpr(m2)
-ee2 = ue2$evaluate_expressions()
+ue2$expand_scalar_expressions()
+ue2$expand_vector_expressions()
+se2 = StandardExpr(m2)
+se2$standard_expressions()
 
 m3 = Model(models$age)
 ue3 = UserExpr(m3)
@@ -38,7 +59,7 @@ ee5 = ue5$evaluate_expressions()
 
 m6 = Model(models$macpan_base)
 ue6 = UserExpr(m6)
-ese6 = ue6$expand_scalar_expressions()                     
+ese6 = ue6$expand_scalar_expressions()
 eve6 = ue6$expand_vector_expressions()
 se6 = StandardExpr(m6)
 sse6 = se6$standard_expressions()

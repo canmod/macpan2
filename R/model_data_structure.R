@@ -373,10 +373,10 @@ UserExpr = function(model){
     return(mapply(list, output_names = outputs, expression = expressions, arguments = arguments, simulation_phase = sim_phases, SIMPLIFY = FALSE))
   }
   self$expand_scalar_expressions = function(){
-    return(lapply(self$scalarized_derivations, self$.format_expression))
+    return(do.call(c, lapply(self$scalarized_derivations, self$.format_expression)))
   }
   self$expand_vector_expressions = function(){
-    return(lapply(self$vectorized_derivations, self$.format_expression))
+    return(do.call(c, lapply(self$vectorized_derivations, self$.format_expression)))
   }
   return_object(self, "UserExpr")
 }
@@ -470,7 +470,6 @@ StandardExpr = function(model){
     ))
   }
   self$.index_vectors_evaluator = function(){
-    browser()
     prefix_strings = unique(self$.expanded_flows$type) # self$.rate_types
     #prefix_strings = self$.rate_types
     index_vectors = self$.init_index_vectors()[prefix_strings]
@@ -491,10 +490,25 @@ StandardExpr = function(model){
   return_object(self, "StandardExpr")
 }
 
-ExpressionFormater = function(){
-  self = Base()
-  #TODO: Combine all user and standard expressions into a format that can be given to TMBModel.
-  return_object(self, "ExpressionFormater")
+#' @export
+expression_formatter = function(expression_list_element){
+  as.formula(paste(expression_list_element$output_names, expression_list_element$expression, sep = " ~ "))
+}
+
+#' @export
+expression_phase_sorter = function(user_expr_list, standard_expr_list
+  , phase = c("before", "during_pre_update", "during_update", "during_post_update", "after")) {
+
+  phase = match.arg(phase)
+  user_phases = vapply(user_expr_list, getElement, character(1L), "simulation_phase")
+  standard_phases = vapply(standard_expr_list, getElement, character(1L), "simulation_phase")
+  c(user_expr_list[user_phases == phase], standard_expr_list[standard_phases == phase])
+}
+
+#' @export
+create_expr_list_phase = function(user_expr_list, standard_expr_list
+  , phase = c("before", "during_pre_update", "during_update", "during_post_update", "after")) {
+  lapply(expression_phase_sorter(user_expr_list, standard_expr_list, phase), expression_formatter)
 }
 
 #' Model Starter
