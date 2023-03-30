@@ -348,7 +348,7 @@ UserExpr = function(model){
   }
   self$.argument_collector = function(extracted_derivation){
     if(self$.vars_check(extracted_derivation) & self$.dots_check(extracted_derivation)){
-      args = mapply(c, extracted_derivation$variables, extracted_derivation$variable_dots)
+      args = mapply(c, extracted_derivation$variables, extracted_derivation$variable_dots, SIMPLIFY = FALSE)
     }
     else if (self$.vars_check(extracted_derivation)){
       args = extracted_derivation$variables
@@ -382,11 +382,11 @@ UserExpr = function(model){
 }
 
 #' StandardExpr
-#' 
+#'
 #' Evaluate standard model expressions
-#' 
+#'
 #' @param model Object created by \code{\link{Model}}.
-#' 
+#'
 #' @export
 StandardExpr = function(model){
   self = Base()
@@ -435,21 +435,21 @@ StandardExpr = function(model){
     present_flows = unlist(lapply(self$.rate_types, self$.flow_tester), use.names = FALSE)
     present_inflows = unlist(lapply(self$.inflow_rate_types, self$.flow_tester), use.names = FALSE)
     present_outflows = unlist(lapply(self$.outflow_rate_types, self$.flow_tester), use.names = FALSE)
-    
+
     total_inflow_expression_vct = c("groupSums(per_capita, per_capita_to, state_length)",
                                     "groupSums(absolute, absolute_to, state_length)",
                                     "groupSums(per_capita_outflow, per_capita_outflow_from, state_length)",
                                     "groupSums(absolute_inflow, absolute_inflow_to, state_length)")
-    total_inflow_argument_list = list("per_capita", "per_capita_to", "absolute", "absolute_to", "per_capita_inflow", 
+    total_inflow_argument_list = list("per_capita", "per_capita_to", "absolute", "absolute_to", "per_capita_inflow",
                                   "per_capita_inflow_to", "absolute_inflow", "absolute_inflow_to", "state_length")
-    
+
     total_outflow_expression_vct = c("groupSums(per_capita, per_capita_from, state_length)",
                                      "groupSums(absolute, absolute_from, state_length)",
                                      "groupSums(per_capita_outflow, per_capita_outflow_from, state_length)",
                                      "groupSums(absolute_outflow, absolute_outflow_from, state_length)")
-    total_outflow_argument_list = list("per_capita", "per_capita_from", "absolute", "absolute_from", "per_capita_outflow", 
+    total_outflow_argument_list = list("per_capita", "per_capita_from", "absolute", "absolute_from", "per_capita_outflow",
                                    "per_capita_outflow_from", "absolute_outflow", "absolute_outflow_from", "state_length")
-    
+
     per_capita_list = list(output_names = "per_capita", expression = "state[per_capita_from]*rate[per_capita_flows]", arguments = list("state", "per_capita_from", "rate", "per_capita_flows"), simulation_phase = "during_update")
     absolute_list = list(output_names = "absolute", expression = "rate[absolute_flows]", arguments = list("rate", "absolute_flows"), simulation_phase = "during_update")
     per_capita_inflow_list = list(output_names = "per_capita_inflow", expression = "state[per_capita_inflow_from]*rate[per_capita_inflow_flows]", arguments = list("state", "per_capita_inflow_from", "rate", "per_capita_inflow_flows"), simulation_phase = "during_update")
@@ -462,7 +462,7 @@ StandardExpr = function(model){
     output_list = list(per_capita_list, absolute_list, per_capita_inflow_list, per_capita_outflow_list, absolute_inflow_list, absolute_outflow_list, total_inflow_list, total_outflow_list, state_list)
     return(output_list[c(present_flows, rep(TRUE, 3))])
   }
-  self$.index_vector_evaluator = function(prefix_string, formula, index_vector){
+  self$.index_vector_evaluator = function(prefix_string, index_vector, formula){
     return(list(
       list(output_names = paste0(prefix_string, "_from"), expression = do.call(formula$symbolic$evaluate, index_vector$from), arguments = index_vector$from, simulation_phase = "before"),
       list(output_names = paste0(prefix_string, "_to"), expression = do.call(formula$symbolic$evaluate, index_vector$to), arguments = index_vector$to, simulation_phase = "before"),
@@ -470,10 +470,12 @@ StandardExpr = function(model){
     ))
   }
   self$.index_vectors_evaluator = function(){
-    index_vectors = self$.init_index_vectors()
-    prefix_strings = self$.rate_types
+    browser()
+    prefix_strings = unique(self$.expanded_flows$type) # self$.rate_types
+    #prefix_strings = self$.rate_types
+    index_vectors = self$.init_index_vectors()[prefix_strings]
     formula = MathExpressionFromStrings("c(...)", include_dots = TRUE)
-    return(mapply(self$.index_vector_evaluator, prefix_strings, list(formula), index_vectors))
+    return(do.call(c, mapply(self$.index_vector_evaluator, prefix_strings, index_vectors, MoreArgs = list(formula = formula), SIMPLIFY = FALSE)))
   }
   self$.derivation_evaluator = function(input_list){
     formula = MathExpressionFromStrings(input_list$expression, input_list$arguments)
