@@ -40,6 +40,9 @@
     <loc>https://canmod.github.io/macpan2/reference/DerivationExtractor.html</loc>
   </url>
   <url>
+    <loc>https://canmod.github.io/macpan2/reference/Derivations2ExprList.html</loc>
+  </url>
+  <url>
     <loc>https://canmod.github.io/macpan2/reference/ExprList.html</loc>
   </url>
   <url>
@@ -80,6 +83,9 @@
   </url>
   <url>
     <loc>https://canmod.github.io/macpan2/reference/Scalar2Vector.html</loc>
+  </url>
+  <url>
+    <loc>https://canmod.github.io/macpan2/reference/StandardExpr.html</loc>
   </url>
   <url>
     <loc>https://canmod.github.io/macpan2/reference/StringData.html</loc>

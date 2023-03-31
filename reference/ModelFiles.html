@@ -90,11 +90,11 @@ txt files.</p></dd>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">d</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"starter_models"</span>, <span class="st">"seir_symp_vax"</span>, package <span class="op">=</span> <span class="st">"macpan2"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">m</span> <span class="op">=</span> <span class="fu">ModelFiles</span><span class="op">(</span><span class="va">d</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">m</span><span class="op">$</span><span class="fu">flows</span><span class="op">(</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    from  to      flow type from_partition to_partition flow_partition</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1     S   E       foi rate            Epi          Epi            Epi</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2     E   I     alpha rate            Epi          Epi            Epi</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3     I   R     gamma rate            Epi          Epi            Epi</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4 unvax vax dose_rate rate            Vax          Vax            Vax</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    from  to      flow       type from_partition to_partition flow_partition</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1     S   E       foi per_capita            Epi          Epi            Epi</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2     E   I     alpha per_capita            Epi          Epi            Epi</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3     I   R     gamma per_capita            Epi          Epi            Epi</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 unvax vax dose_rate per_capita            Vax          Vax            Vax</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    from_to_partition from_flow_partition to_flow_partition</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1                Vax                                  Null</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2                Vax                                  Null</span>
@@ -120,24 +120,24 @@ txt files.</p></dd>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 15   I.mild.component.unvax     I.mild.component.vax ..unstructured.dose_rate</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 16 I.severe.component.unvax   I.severe.component.vax ..unstructured.dose_rate</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 17    R..unstructured.unvax      R..unstructured.vax ..unstructured.dose_rate</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    type</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1  rate</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2  rate</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3  rate</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4  rate</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5  rate</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6  rate</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7  rate</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8  rate</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 9  rate</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10 rate</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 11 rate</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 12 rate</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 13 rate</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 14 rate</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 15 rate</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 16 rate</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 17 rate</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          type</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1  per_capita</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2  per_capita</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3  per_capita</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4  per_capita</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5  per_capita</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6  per_capita</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7  per_capita</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8  per_capita</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9  per_capita</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10 per_capita</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11 per_capita</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12 per_capita</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13 per_capita</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14 per_capita</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15 per_capita</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16 per_capita</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 17 per_capita</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
