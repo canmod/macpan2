@@ -11,6 +11,13 @@ This R package is a do-over of the
 package on compartmental epidemic modelling for
 forecasting and analysis of infectious diseases.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://canmod.github.io/macpan2/}
+}
+
+}
 \author{
 \strong{Maintainer}: Steve Walker \email{swalk@mcmaster.ca}
 

@@ -13,6 +13,6 @@ character_dots = function(...) {
   as.character(unlist(list(...), use.names = FALSE))
 }
 
-indices = function(..., ) {
+indices = function(...) {
   character_dots(...)
 }
