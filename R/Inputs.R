@@ -1,4 +1,4 @@
-#' @export
+
 MakeModifierEditor = function(parent, modifier_name) {
   self = Base()
   self$parent = parent
@@ -9,7 +9,7 @@ MakeModifierEditor = function(parent, modifier_name) {
   return_object(self, "MakeModifierEditor")
 }
 
-#' @export
+
 MakeRemove = function(parent, modifier_name) {
   self = MakeModifierEditor(parent, modifier_name)
   function(...) {
@@ -22,7 +22,6 @@ MakeRemove = function(parent, modifier_name) {
   }
 }
 
-#' @export
 MakeAdd = function(parent, modifier_name) {
   self = MakeModifierEditor(parent, modifier_name)
   function(...) {
@@ -35,7 +34,7 @@ MakeAdd = function(parent, modifier_name) {
   }
 }
 
-#' @export
+
 MakeReplace = function(parent, modifier_name) {
   self = MakeModifierEditor(parent, modifier_name)
   function(...) {
@@ -45,7 +44,6 @@ MakeReplace = function(parent, modifier_name) {
   }
 }
 
-#' @export
 Args = function(constructor, arg_list, arg_modifiers) {
   self = Base()
   self$.constructor = constructor
@@ -57,7 +55,6 @@ Args = function(constructor, arg_list, arg_modifiers) {
   return_object(self, "Args")
 }
 
-#' @export
 EditableArgs = function(constructor, arg_list, arg_modifiers) {
   self = Args(constructor, arg_list, arg_modifiers)
   self$edit = function(...) {
