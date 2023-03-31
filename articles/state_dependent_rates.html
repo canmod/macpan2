@@ -79,8 +79,8 @@
 <h2 id="decomposition-of-state-dependent-rates">Decomposition of State-Dependent Rates<a class="anchor" aria-label="anchor" href="#decomposition-of-state-dependent-rates"></a>
 </h2>
 <p>The vast majority of compartmental models contain flows that depend
-on the states of compartments that are not directly involved in the
-flows. In particular, the magnitude of the flow from compartment A to
+on the states of compartments that are not directly involved in those
+flows. For example, the magnitude of the flow from compartment A to
 compartment B could depend on another compartment, C. The most important
 example of these dependencies is infection, and so we use the
 terminology from infection processes. However, our model will subsume a
@@ -94,14 +94,27 @@ infectious compartments – that affect these flows. The components of
 components of <span class="math inline">\(y\)</span> but they do need to
 affect some of them. Note that we do not keep track of the
 to-compartments in these flows because they do not matter (I think).</p>
-<p>We define the <span class="math inline">\(n\)</span>-by-<span class="math inline">\(m\)</span> transmission matrix as the
-following.</p>
+<p>We define the <span class="math inline">\(n\)</span>-by-<span class="math inline">\(m\)</span> transmission matrix as the following
+decomposition.</p>
 <p><span class="math display">\[
 \DeclareMathOperator{\diag}{diag}
 T = \diag(p) B \diag(c)
 \]</span></p>
-<p>An alternative way to write this equation – that I prefer because it
-is a better representation of the actual computations – is using <a href="https://canmod.github.io/macpan2/articles/elementwise_binary_operators.html">element-wise
+<p>This decomposition involves the following terms.</p>
+<ul>
+<li>
+<span class="math inline">\(p\)</span> – length-<span class="math inline">\(n\)</span> vector of <em>susceptibilities</em> for
+each <span class="math inline">\(s\)</span> state</li>
+<li>
+<span class="math inline">\(B\)</span> – <span class="math inline">\(n\)</span>-by-<span class="math inline">\(m\)</span> matrix of <em>contacts</em> between
+each <span class="math inline">\(x\)</span> and <span class="math inline">\(s\)</span> state</li>
+<li>
+<span class="math inline">\(c\)</span> – length-<span class="math inline">\(m\)</span> vector of <em>infectivities</em> for
+each <span class="math inline">\(x\)</span> state</li>
+</ul>
+<p>An alternative way to write the transmission matrix decomposition –
+that I prefer because it is a more accurate representation of the actual
+computations – is using <a href="https://canmod.github.io/macpan2/articles/elementwise_binary_operators.html">element-wise
 operations</a>. If <span class="math inline">\(\circ\)</span> is the
 element-wise product then we have the following.</p>
 <p><span class="math display">\[
@@ -121,21 +134,8 @@ called the force of infection.</p>
 <p>And finally the absolute flow rates out of each of the <span class="math inline">\(s\)</span> states is the following.</p>
 <p><span class="math display">\[
 \DeclareMathOperator{\diag}{diag}
-r = \lambda \circ s = \left(Tx\right) \circ s = \left(\left(p \circ B
-\circ c^\top\right) x\right) \circ s
+r = \lambda \circ s
 \]</span></p>
-<p>This decomposition involves the following terms.</p>
-<ul>
-<li>
-<span class="math inline">\(p\)</span> – length-<span class="math inline">\(n\)</span> vector of <em>susceptibilities</em> for
-each <span class="math inline">\(s\)</span> state</li>
-<li>
-<span class="math inline">\(B\)</span> – <span class="math inline">\(n\)</span>-by-<span class="math inline">\(m\)</span> matrix of <em>contacts</em> between
-each <span class="math inline">\(x\)</span> and <span class="math inline">\(s\)</span> state</li>
-<li>
-<span class="math inline">\(c\)</span> – length-<span class="math inline">\(m\)</span> vector of <em>infectivities</em> for
-each <span class="math inline">\(x\)</span> state</li>
-</ul>
 </div>
 <div class="section level2">
 <h2 id="example-sir">Example – SIR<a class="anchor" aria-label="anchor" href="#example-sir"></a>
@@ -161,14 +161,14 @@ rate vector, and absolute flow rate vector.</p>
 I\)</span></li>
 <li><span class="math inline">\(r = \frac{\sigma}{N} IS\)</span></li>
 </ul>
-<p>In this example we could have decided to put <span class="math inline">\(\sigma\)</span> and <span class="math inline">\(\frac{1}{N}\)</span> in any of the components,
+<p>In this overly simple but hopefully clarifying example we could have
+decided to put <span class="math inline">\(\sigma\)</span> and <span class="math inline">\(\frac{1}{N}\)</span> in any of the components,
 <span class="math inline">\(p\)</span>, <span class="math inline">\(B\)</span>, or <span class="math inline">\(c\)</span>. The point is that we have a somewhat
 mechanistic and somewhat general decomposition of transmission, so that
 when we start working with more complex models by combining model
 modules (e.g. combining SEIR with age and spatial structure) we have a
 way to conveniently combine these modules so that the resulting
-transmission rates make mechanistic sense. The next example takes one
-more step towards this complexity.</p>
+transmission rates make mechanistic sense.</p>
 </div>
 <div class="section level2">
 <h2 id="product-models">Product Models<a class="anchor" aria-label="anchor" href="#product-models"></a>
@@ -197,11 +197,11 @@ with just age groups does not. Because a pure age model does not
 distinguish between infectious and susceptible people, the only process
 that it considers is aging. Nevertheless when the age model becomes
 combined with a model that does have transmission, we want it to be
-ready.</p>
+ready for being combined.</p>
 <p>To make an age model – or any other factor model without transmission
 – ready to be combined with a model that includes transmission we need
 to do two things. First we need to account for the fact that some or all
-states will appear in both <span class="math inline">\(x\)</span> and
+states may appear in both <span class="math inline">\(x\)</span> and
 <span class="math inline">\(s\)</span> (e.g. young people can be both
 infectious and susceptible). Second we need to include parameters that
 are not used in the factor model’s processes but that will be used when
@@ -214,11 +214,8 @@ example illustrates these ideas.</p>
 <h2 id="example-sir-times-age">Example – SIR times age<a class="anchor" aria-label="anchor" href="#example-sir-times-age"></a>
 </h2>
 <p>We take the product of the SIR model above with a two-age-group
-model. In this product model <span class="math inline">\(x\)</span>
-contains <code>I.young</code> and <code>I.old</code> and <span class="math inline">\(s\)</span> contains <code>S.young</code> and
-<code>S.old</code>.</p>
-<p>The components of the transmission decomposition for this particular
-age model is as follows.</p>
+factor model. The components of the transmission decomposition for this
+particular age-group factor model is as follows.</p>
 <ul>
 <li>susceptibility: <span class="math inline">\(p = \begin{bmatrix} 1 \\
 1 \end{bmatrix}\)</span>
@@ -235,6 +232,11 @@ any given contact is between individuals of the same age. This is a
 symmetric contact matrix, but we didn’t need to do that. We have also
 decided to not have susceptibility depend on age, but we absolutely
 could have by parameterizing that vector.</p>
+<p>It is a little odd to refer to this as a decomposition of
+transmission, because the age-only model contains only aging processes
+and does not include transmission. However, including the transmission
+decomposition is necessary to prepare this model for combination with a
+model with transmission.</p>
 <p>Taking the product of this age model with the SIR model above we have
 the following transmission decomposition.</p>
 <ul>
@@ -249,7 +251,11 @@ the following transmission decomposition.</p>
 \end{bmatrix}\)</span>
 </li>
 </ul>
-<p>Therefore the transmission matrix is as follows.</p>
+<p>In this product model <span class="math inline">\(x\)</span> contains
+<code>I.young</code> and <code>I.old</code> and <span class="math inline">\(s\)</span> contains <code>S.young</code> and
+<code>S.old</code>.</p>
+<p>The transmission matrix can be obtained by multiplying the three
+components of the decomposition as follows.</p>
 <p><span class="math display">\[
 T = \begin{bmatrix} 1 \\ 1 \end{bmatrix}
 \circ \begin{bmatrix} q &amp; (1 - q) \\ (1 - q) &amp; q \end{bmatrix}
@@ -272,10 +278,10 @@ I_{\text{old}} \end{bmatrix}
 <div class="section level2">
 <h2 id="example-sir-with-multiple-i-boxes-times-age">Example – SIR with multiple I-boxes times age<a class="anchor" aria-label="anchor" href="#example-sir-with-multiple-i-boxes-times-age"></a>
 </h2>
-<p>This exampled SIR model has <span class="math inline">\(n =
-1\)</span> susceptible class and <span class="math inline">\(m =
-2\)</span> infectious classes – mild and severe – with the following
-transmission decomposition.</p>
+<p>This example SIR model has <span class="math inline">\(n = 1\)</span>
+susceptible class and <span class="math inline">\(m = 2\)</span>
+infectious classes – mild and severe – with the following transmission
+decomposition.</p>
 <ul>
 <li>susceptibility: <span class="math inline">\(p = 1\)</span>
 </li>
