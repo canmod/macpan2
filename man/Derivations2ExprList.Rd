@@ -7,9 +7,9 @@
 Derivations2ExprList(user_expr, standard_expr)
 }
 \arguments{
-\item{user_expr_list}{\code{\link{UserExpr}} object.}
+\item{user_expr}{\code{\link{UserExpr}} object.}
 
-\item{standard_expr_list}{\code{\link{StandardExpr}} object.}
+\item{standard_expr}{\code{\link{StandardExpr}} object.}
 }
 \value{
 Object of class \code{Derivations2ExprList} with the following
