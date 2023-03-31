@@ -4,31 +4,27 @@
 \alias{Derivations2ExprList}
 \title{Convert Derivation Lists to Expression Lists}
 \usage{
-Derivations2ExprList(user_expr_list, standard_expr_list)
+Derivations2ExprList(user_expr, standard_expr)
 }
 \arguments{
-\item{user_expr_list}{Output of the \code{expand_vector_expressions} method
-in a \code{\link{UserExpr}} object.}
+\item{user_expr_list}{\code{\link{UserExpr}} object.}
 
-\item{standard_expr_list}{Output of the \code{standard_expressions} method
-in a \code{\link{StandardExpr}} object.}
+\item{standard_expr_list}{\code{\link{StandardExpr}} object.}
 }
 \value{
 Object of class \code{Derivations2ExprList} with the following
 methods.
 \subsection{Methods}{
 \itemize{
-\item \verb{$expr_list(phase)} -- Create one of \code{before}, \code{during},
-and \code{after} arguments in \code{\link{ExprList}}.
+\item \verb{$expr_list()} -- An alternate constructor of \code{\link{ExprList}}
+objects from a set of derivations.
 }
 }
 
 \subsection{Arguments}{
 \itemize{
-\item \code{phase} -- One of the following character strings indicating if the
-expression list should be generated for the phase before the simulation
-loop, at each iteration of the simulation loop, or after the simulation
-loop: \code{"before"}, \code{"during"}, and \code{"after"}.
+\item \code{.simulate_exprs} -- See the argument of the same name in
+\code{\link{ExprList}}.
 }
 }
 }

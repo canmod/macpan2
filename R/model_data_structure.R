@@ -492,31 +492,27 @@ StandardExpr = function(model){
 
 #' Convert Derivation Lists to Expression Lists
 #'
-#' @param user_expr_list Output of the \code{expand_vector_expressions} method
-#' in a \code{\link{UserExpr}} object.
-#' @param standard_expr_list Output of the \code{standard_expressions} method
-#' in a \code{\link{StandardExpr}} object.
+#' @param user_expr \code{\link{UserExpr}} object.
+#' @param standard_expr \code{\link{StandardExpr}} object.
 #'
 #' @return Object of class \code{Derivations2ExprList} with the following
 #' methods.
 #'
 #' ## Methods
 #'
-#' * `$expr_list(phase)` -- Create one of \code{before}, \code{during},
-#' and \code{after} arguments in \code{\link{ExprList}}.
+#' * `$expr_list()` -- An alternate constructor of \code{\link{ExprList}}
+#' objects from a set of derivations.
 #'
 #' ## Arguments
 #'
-#' * `phase` -- One of the following character strings indicating if the
-#' expression list should be generated for the phase before the simulation
-#' loop, at each iteration of the simulation loop, or after the simulation
-#' loop: \code{"before"}, \code{"during"}, and \code{"after"}.
+#' * `.simulate_exprs` -- See the argument of the same name in
+#' \code{\link{ExprList}}.
 #'
 #' @export
-Derivations2ExprList = function(user_expr_list, standard_expr_list) {
+Derivations2ExprList = function(user_expr, standard_expr) {
   self = Base()
-  self$.user_expr_list = user_expr_list
-  self$.standard_expr_list = standard_expr_list
+  self$.user_expr_list = user_expr$expand_vector_expressions()
+  self$.standard_expr_list = standard_expr$standard_expressions()
 
   self$.expression_formatter = function(expression_list_element){
     as.formula(
@@ -553,7 +549,7 @@ Derivations2ExprList = function(user_expr_list, standard_expr_list) {
       self$.standard_expr_list[standard_phases == phase]
     )
   }
-  self$expr_list = function(
+  self$.expr_list_per_phase = function(
       phase = c("before", "during", "after")
     ) {
 
@@ -571,7 +567,14 @@ Derivations2ExprList = function(user_expr_list, standard_expr_list) {
     }
     do.call(c, l)
   }
-
+  self$expr_list = function(.simulate_exprs = character(0L)) {
+    ExprList(
+      before = self$.expr_list_per_phase("before"),
+      during = self$.expr_list_per_phase("during"),
+      after = self$.expr_list_per_phase("after"),
+      .simulate_exprs = .simulate_exprs
+    )
+  }
   return_object(self, "Derivations2ExprList")
 }
 

@@ -14,47 +14,27 @@ models = setNames(
 )
 
 m1 = Model(models$seir_symp_vax)
-ue1 = UserExpr(m1)
-ese1 = ue1$expand_scalar_expressions()
-eve1 = ue1$expand_vector_expressions()
-se1 = StandardExpr(m1)
-sse1 = se1$standard_expressions()
-
-
-
-expression_phase_sorter(eve1, sse1, "before")
-
-phases = vapply(sse1, getElement, character(1L), "simulation_phase")
-
-
-ExprList(
-  before = create_expr_list_phase(eve1, sse1, "before"),
-  during = create_expr_list_phase(eve1, sse1, "during"),
-  after = create_expr_list_phase(eve1, sse1, "after")
-)
+d1 = Derivations2ExprList(UserExpr(m1), StandardExpr(m1))
+e1 = d1$expr_list()
+e1$print_exprs()
 
 m2 = Model(models$seir)
-ue2 = UserExpr(m2)
-ue2$expand_scalar_expressions()
-ue2$expand_vector_expressions()
-se2 = StandardExpr(m2)
-se2$standard_expressions()
+d2 = Derivations2ExprList(UserExpr(m2), StandardExpr(m2))
+e2 = d2$expr_list()
 
 m3 = Model(models$age)
-ue3 = UserExpr(m3)
-ee3 = ue3$evaluate_expressions()
+d3 = Derivations2ExprList(UserExpr(m3), StandardExpr(m3))
+e3 = d3$expr_list()
 
 m4 = Model(models$testing)
-ue4 = UserExpr(m4)
-ee4 = ue4$evaluate_expressions()
+d4 = Derivations2ExprList(UserExpr(m4), StandardExpr(m4))
+e4 = d4$expr_list()
 
 m5 = Model(models$vax)
-ue5 = UserExpr(m5)
-ee5 = ue5$evaluate_expressions()
+d5 = Derivations2ExprList(UserExpr(m5), StandardExpr(m5))
+e5 = d5$expr_list()
 
 m6 = Model(models$macpan_base)
-ue6 = UserExpr(m6)
-ese6 = ue6$expand_scalar_expressions()
-eve6 = ue6$expand_vector_expressions()
-se6 = StandardExpr(m6)
-sse6 = se6$standard_expressions()
+d6 = Derivations2ExprList(UserExpr(m6), StandardExpr(m6))
+e6 = d6$expr_list()
+e6$print_exprs()
