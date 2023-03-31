@@ -229,7 +229,6 @@ DerivationExtractor = function(model){
     filtered_group_variable_dots = list()
     if(!is.null(derivation$argument_dots)){
       for(j in 1:self$.number_of_groups(derivation)){
-        #tmp = self$.group_variables(derivation)[[j]]$filter(derivation$argument_dots, .wrt = self$.group_inputs(derivation))$labels()
         filtered_group_variable_dots = c(filtered_group_variable_dots, list(as.list(self$.group_variables(derivation)[[j]]$filter(derivation$argument_dots, .wrt = self$.group_inputs(derivation))$labels())))
       }
     }
@@ -366,7 +365,7 @@ UserExpr = function(model){
   }
   self$.argument_collector = function(extracted_derivation){
     if(self$.vars_check(extracted_derivation) & self$.dots_check(extracted_derivation)){
-      args = mapply(c, extracted_derivation$variables, extracted_derivation$variable_dots)
+      args = mapply(c, extracted_derivation$variables, extracted_derivation$variable_dots, SIMPLIFY = FALSE)
     }
     else if (self$.vars_check(extracted_derivation)){
       args = extracted_derivation$variables
@@ -385,29 +384,215 @@ UserExpr = function(model){
   }
   self$.format_expression = function(extracted_derivation){
     expressions = self$.evaluate_expression(extracted_derivation)
+    arguments = self$.argument_collector(extracted_derivation) #This is inefficient as the same method is already called as part of self$.evaluate_expression
     outputs = extracted_derivation$outputs
     sim_phases = rep(extracted_derivation$simulation_phase, length(outputs))
-    return(mapply(list, Output = outputs, Expression = expressions, Simulation_phase = sim_phases, SIMPLIFY = FALSE))
+    return(mapply(list, output_names = outputs, expression = expressions, arguments = arguments, simulation_phase = sim_phases, SIMPLIFY = FALSE))
   }
   self$expand_scalar_expressions = function(){
-    return(lapply(self$scalarized_derivations, self$.format_expression))
+    return(do.call(c, lapply(self$scalarized_derivations, self$.format_expression)))
   }
   self$expand_vector_expressions = function(){
-    return(lapply(self$vectorized_derivations, self$.format_expression))
+    return(do.call(c, lapply(self$vectorized_derivations, self$.format_expression)))
   }
   return_object(self, "UserExpr")
 }
 
-StandardExpr = function(){
+#' StandardExpr
+#'
+#' Evaluate standard model expressions
+#'
+#' @param model Object created by \code{\link{Model}}.
+#'
+#' @export
+StandardExpr = function(model){
   self = Base()
-  #TODO: Evaluate standard expressions
+  self$model = model
+  self$.expanded_flows = self$model$flows_expanded()
+  self$.state_length = length(self$model$def$settings()$state_variables)
+  self$.state_pointer = function(scalar_name){
+    return(as.numeric(which(scalar_name == self$model$def$settings()[["state_variables"]]))-1)
+  }
+  self$.rate_pointer = function(scalar_name){
+    return(as.numeric(which(scalar_name == self$model$def$settings()[["flow_variables"]]))-1)
+  }
+  self$.rate_types = list("per_capita",
+                          "absolute",
+                          "per_capita_inflow",
+                          "per_capita_outflow",
+                          "absolute_inflow",
+                          "absolute_outflow")
+  self$.inflow_rate_types = list("per_capita",
+                                 "absolute",
+                                 "per-capita_inflow",
+                                 "absolute_inflow")
+  self$.outflow_rate_types = list("per_capita",
+                                  "absolute",
+                                  "per_capita_outflow",
+                                  "absolute_outflow")
+  self$.flow_seperator = function(rate_type){
+    return(self$.expanded_flows[self$.expanded_flows$type == rate_type,])
+  }
+  self$.seperated_flows = lapply(self$.rate_types, self$.flow_seperator)
+  self$.init_index_vector = function(flow_frame){
+    from = lapply(flow_frame$from, self$.state_pointer)
+    to = lapply(flow_frame$to, self$.state_pointer)
+    flow = lapply(flow_frame$flow, self$.rate_pointer)
+    return(list(from = from, to = to, flow = flow))
+  }
+  self$.init_index_vectors = function(){
+    output_list = lapply(self$.seperated_flows, self$.init_index_vector)
+    names(output_list) = self$.rate_types
+    return(output_list)
+  }
+  self$.flow_tester = function(rate_type){
+    return(!(nrow(self$.expanded_flows[self$.expanded_flows$type == rate_type,])==0L))
+  }
+  self$.init_derivations_list = function(){
+    present_flows = unlist(lapply(self$.rate_types, self$.flow_tester), use.names = FALSE)
+    present_inflows = unlist(lapply(self$.inflow_rate_types, self$.flow_tester), use.names = FALSE)
+    present_outflows = unlist(lapply(self$.outflow_rate_types, self$.flow_tester), use.names = FALSE)
+
+    total_inflow_expression_vct = c("groupSums(per_capita, per_capita_to, state_length)",
+                                    "groupSums(absolute, absolute_to, state_length)",
+                                    "groupSums(per_capita_outflow, per_capita_outflow_from, state_length)",
+                                    "groupSums(absolute_inflow, absolute_inflow_to, state_length)")
+    total_inflow_argument_list = list("per_capita", "per_capita_to", "absolute", "absolute_to", "per_capita_inflow",
+                                  "per_capita_inflow_to", "absolute_inflow", "absolute_inflow_to", "state_length")
+
+    total_outflow_expression_vct = c("groupSums(per_capita, per_capita_from, state_length)",
+                                     "groupSums(absolute, absolute_from, state_length)",
+                                     "groupSums(per_capita_outflow, per_capita_outflow_from, state_length)",
+                                     "groupSums(absolute_outflow, absolute_outflow_from, state_length)")
+    total_outflow_argument_list = list("per_capita", "per_capita_from", "absolute", "absolute_from", "per_capita_outflow",
+                                   "per_capita_outflow_from", "absolute_outflow", "absolute_outflow_from", "state_length")
+
+    per_capita_list = list(output_names = "per_capita", expression = "state[per_capita_from]*rate[per_capita_flows]", arguments = list("state", "per_capita_from", "rate", "per_capita_flows"), simulation_phase = "during_update")
+    absolute_list = list(output_names = "absolute", expression = "rate[absolute_flows]", arguments = list("rate", "absolute_flows"), simulation_phase = "during_update")
+    per_capita_inflow_list = list(output_names = "per_capita_inflow", expression = "state[per_capita_inflow_from]*rate[per_capita_inflow_flows]", arguments = list("state", "per_capita_inflow_from", "rate", "per_capita_inflow_flows"), simulation_phase = "during_update")
+    per_capita_outflow_list = list(output_names = "per_capita_outflow", expression = "state[per_capita_outflow_from]*rate[per_capita_outflow_flows]", arguments = list("state", "per_capita_outflow_from", "rate", "per_capita_outflow_flows"), simulation_phase = "during_update")
+    absolute_inflow_list = list(output_names = "absolute_inflow", expression = "rate[absolute_inflow_flows]", arguments = list("rate", "absolute_inflow_flows"), simulation_phase = "duing_update")
+    absolute_outflow_list = list(output_names = "absolute_outflow", expression = "rate[absolute_outflow_flows]", arguments = list("rate", "absolute_outflow_flows"), simulation_phase = "during_update")
+    total_inflow_list = list(output_names = "total_inflow", expression = paste0(total_inflow_expression_vct[present_inflows], collapse = "+") ,arguments = total_inflow_argument_list[c(rep(present_inflows, each = 2), TRUE)] , simulation_phase = "during_update")
+    total_outflow_list = list(output_names = "total_outflow", expression = paste0(total_outflow_expression_vct[present_outflows]),arguments = total_outflow_argument_list[c(rep(present_outflows, each = 2), TRUE)] , simulation_phase = "during_update")
+    state_list = list(output_names = "state", expression = "state - total_outflow + total_inflow", arguments = list("state", "total_outflow", "total_inflow"), simulation_phase = "during_update")
+    output_list = list(per_capita_list, absolute_list, per_capita_inflow_list, per_capita_outflow_list, absolute_inflow_list, absolute_outflow_list, total_inflow_list, total_outflow_list, state_list)
+    return(output_list[c(present_flows, rep(TRUE, 3))])
+  }
+  self$.index_vector_evaluator = function(prefix_string, index_vector, formula){
+    return(list(
+      list(output_names = paste0(prefix_string, "_from"), expression = do.call(formula$symbolic$evaluate, index_vector$from), arguments = index_vector$from, simulation_phase = "before"),
+      list(output_names = paste0(prefix_string, "_to"), expression = do.call(formula$symbolic$evaluate, index_vector$to), arguments = index_vector$to, simulation_phase = "before"),
+      list(output_names = paste0(prefix_string, "_flow"), expression = do.call(formula$symbolic$evaluate, index_vector$flow), arguments = index_vector$flow, simulation_phase = "before")
+    ))
+  }
+  self$.index_vectors_evaluator = function(){
+    prefix_strings = unique(self$.expanded_flows$type) # self$.rate_types
+    #prefix_strings = self$.rate_types
+    index_vectors = self$.init_index_vectors()[prefix_strings]
+    formula = MathExpressionFromStrings("c(...)", include_dots = TRUE)
+    return(do.call(c, mapply(self$.index_vector_evaluator, prefix_strings, index_vectors, MoreArgs = list(formula = formula), SIMPLIFY = FALSE)))
+  }
+  self$.derivation_evaluator = function(input_list){
+    formula = MathExpressionFromStrings(input_list$expression, input_list$arguments)
+    expressions = do.call(formula$symbolic$evaluate, input_list$arguments)
+    return(list(output_names = input_list$output_names, expression = expressions, arguments = input_list$arguments, simulation_phase = input_list$simulation_phase))
+  }
+  self$.derivations_evaluator = function(){
+    return(lapply(self$.init_derivations_list(), self$.derivation_evaluator))
+  }
+  self$standard_expressions = function(){
+    return(c(self$.index_vectors_evaluator(), self$.derivations_evaluator()))
+  }
   return_object(self, "StandardExpr")
 }
 
-ExpressionFormater = function(){
+#' Convert Derivation Lists to Expression Lists
+#'
+#' @param user_expr \code{\link{UserExpr}} object.
+#' @param standard_expr \code{\link{StandardExpr}} object.
+#'
+#' @return Object of class \code{Derivations2ExprList} with the following
+#' methods.
+#'
+#' ## Methods
+#'
+#' * `$expr_list()` -- An alternate constructor of \code{\link{ExprList}}
+#' objects from a set of derivations.
+#'
+#' ## Arguments
+#'
+#' * `.simulate_exprs` -- See the argument of the same name in
+#' \code{\link{ExprList}}.
+#'
+#' @export
+Derivations2ExprList = function(user_expr, standard_expr) {
   self = Base()
-  #TODO: Combine all user and standard expressions into a format that can be given to TMBModel.
-  return_object(self, "ExpressionFormater")
+  self$.user_expr_list = user_expr$expand_vector_expressions()
+  self$.standard_expr_list = standard_expr$standard_expressions()
+
+  self$.expression_formatter = function(expression_list_element){
+    as.formula(
+      paste(
+        expression_list_element$output_names,
+        expression_list_element$expression,
+        sep = " ~ "
+      )
+    )
+  }
+
+  self$.expression_phase_sorter = function(
+    phase = c(
+      "before",
+      "during_pre_update", "during_update", "during_post_update",
+      "after")
+    ) {
+
+    phase = match.arg(phase)
+    user_phases = vapply(
+      self$.user_expr_list,
+      getElement,
+      character(1L),
+      "simulation_phase"
+    )
+    standard_phases = vapply(
+      self$.standard_expr_list,
+      getElement,
+      character(1L),
+      "simulation_phase"
+    )
+    c(
+      self$.user_expr_list[user_phases == phase],
+      self$.standard_expr_list[standard_phases == phase]
+    )
+  }
+  self$.expr_list_per_phase = function(
+      phase = c("before", "during", "after")
+    ) {
+
+    phases = match.arg(phase)
+    if (phases == "during") {
+      phases = c("during_pre_update", "during_update", "during_post_update")
+    }
+
+    l = list()
+    for (phase in phases) {
+      l[[phase]] = lapply(
+        self$.expression_phase_sorter(phase),
+        self$.expression_formatter
+      )
+    }
+    do.call(c, l)
+  }
+  self$expr_list = function(.simulate_exprs = character(0L)) {
+    ExprList(
+      before = self$.expr_list_per_phase("before"),
+      during = self$.expr_list_per_phase("during"),
+      after = self$.expr_list_per_phase("after"),
+      .simulate_exprs = .simulate_exprs
+    )
+  }
+  return_object(self, "Derivations2ExprList")
 }
 
 #' Model Starter
