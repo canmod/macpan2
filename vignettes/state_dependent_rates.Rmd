@@ -1,18 +1,15 @@
 ---
-title: "Product Models of State-Dependent Rates"
+title: "State-Dependent Rates"
 output: 
   rmarkdown::html_vignette:
     toc: true
 vignette: >
-  %\VignetteIndexEntry{Product Models of State-Dependent Rates}
+  %\VignetteIndexEntry{State-Dependent Rates}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
 ```{r, include = FALSE}
-library(macpan2)
-library(dplyr)
-library(ggplot2)
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
@@ -95,7 +92,7 @@ $$
 
 Where $\otimes$ is the Kronecker product. This leads to an $n_1n_2$-by-1 column vector, $p$, $n_1n_2$-by-$m_1m_2$ matrix, $B$, and $m_1m_2$-by-1 column vector $c$.
 
-
+We also have $x_1, x_2$ and $s_1, s_2$ to combine into $x$ and $s$. Before doing this we need to make a distinction between factor models with transmission and those without. For example, the SIR model clearly has transmission, but a factor model with just age groups does not. Because a pure age model does not distinguish between infectious and susceptible people, the only process that it considers is aging. Nevertheless when the age model becomes combined with a 
 
 
 ## Example -- SIR time age
