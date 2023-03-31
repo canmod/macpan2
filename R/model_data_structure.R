@@ -490,25 +490,89 @@ StandardExpr = function(model){
   return_object(self, "StandardExpr")
 }
 
+#' Convert Derivation Lists to Expression Lists
+#'
+#' @param user_expr_list Output of the \code{expand_vector_expressions} method
+#' in a \code{\link{UserExpr}} object.
+#' @param standard_expr_list Output of the \code{standard_expressions} method
+#' in a \code{\link{StandardExpr}} object.
+#'
+#' @return Object of class \code{Derivations2ExprList} with the following
+#' methods.
+#'
+#' ## Methods
+#'
+#' * `$expr_list(phase)` -- Create one of \code{before}, \code{during},
+#' and \code{after} arguments in \code{\link{ExprList}}.
+#'
+#' ## Arguments
+#'
+#' * `phase` -- One of the following character strings indicating if the
+#' expression list should be generated for the phase before the simulation
+#' loop, at each iteration of the simulation loop, or after the simulation
+#' loop: \code{"before"}, \code{"during"}, and \code{"after"}.
+#'
 #' @export
-expression_formatter = function(expression_list_element){
-  as.formula(paste(expression_list_element$output_names, expression_list_element$expression, sep = " ~ "))
-}
+Derivations2ExprList = function(user_expr_list, standard_expr_list) {
+  self = Base()
+  self$.user_expr_list = user_expr_list
+  self$.standard_expr_list = standard_expr_list
 
-#' @export
-expression_phase_sorter = function(user_expr_list, standard_expr_list
-  , phase = c("before", "during_pre_update", "during_update", "during_post_update", "after")) {
+  self$.expression_formatter = function(expression_list_element){
+    as.formula(
+      paste(
+        expression_list_element$output_names,
+        expression_list_element$expression,
+        sep = " ~ "
+      )
+    )
+  }
 
-  phase = match.arg(phase)
-  user_phases = vapply(user_expr_list, getElement, character(1L), "simulation_phase")
-  standard_phases = vapply(standard_expr_list, getElement, character(1L), "simulation_phase")
-  c(user_expr_list[user_phases == phase], standard_expr_list[standard_phases == phase])
-}
+  self$.expression_phase_sorter = function(
+    phase = c(
+      "before",
+      "during_pre_update", "during_update", "during_post_update",
+      "after")
+    ) {
 
-#' @export
-create_expr_list_phase = function(user_expr_list, standard_expr_list
-  , phase = c("before", "during_pre_update", "during_update", "during_post_update", "after")) {
-  lapply(expression_phase_sorter(user_expr_list, standard_expr_list, phase), expression_formatter)
+    phase = match.arg(phase)
+    user_phases = vapply(
+      self$.user_expr_list,
+      getElement,
+      character(1L),
+      "simulation_phase"
+    )
+    standard_phases = vapply(
+      self$.standard_expr_list,
+      getElement,
+      character(1L),
+      "simulation_phase"
+    )
+    c(
+      self$.user_expr_list[user_phases == phase],
+      self$.standard_expr_list[standard_phases == phase]
+    )
+  }
+  self$expr_list = function(
+      phase = c("before", "during", "after")
+    ) {
+
+    phases = match.arg(phase)
+    if (phases == "during") {
+      phases = c("during_pre_update", "during_update", "during_post_update")
+    }
+
+    l = list()
+    for (phase in phases) {
+      l[[phase]] = lapply(
+        self$.expression_phase_sorter(phase),
+        self$.expression_formatter
+      )
+    }
+    do.call(c, l)
+  }
+
+  return_object(self, "Derivations2ExprList")
 }
 
 #' Model Starter

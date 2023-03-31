@@ -29,14 +29,9 @@ phases = vapply(sse1, getElement, character(1L), "simulation_phase")
 
 ExprList(
   before = create_expr_list_phase(eve1, sse1, "before"),
-  during = c(
-    create_expr_list_phase(eve1, sse1, "during_pre_update"),
-    create_expr_list_phase(eve1, sse1, "during_update"),
-    create_expr_list_phase(eve1, sse1, "during_post_update")),
+  during = create_expr_list_phase(eve1, sse1, "during"),
   after = create_expr_list_phase(eve1, sse1, "after")
 )
-unlist(lapply(eve1, getElement, "arguments"), recursive = TRUE)
-unlist(lapply(sse1, getElement, "arguments"), recursive = TRUE)
 
 m2 = Model(models$seir)
 ue2 = UserExpr(m2)
