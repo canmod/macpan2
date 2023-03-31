@@ -1,0 +1,109 @@
+---
+title: "Product Models of State-Dependent Rates"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{Product Models of State-Dependent Rates}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+library(macpan2)
+library(dplyr)
+library(ggplot2)
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Decomposition of State-Dependent Rates
+
+The vast majority of compartmental models contain flows that depend on the states of compartments that are not directly involved in the flows. In particular, the magnitude of the flow from compartment A to compartment B could depend on another compartment, C. The most important example of these dependencies is infection, and so we use the terminology from infection processes. However, our model will subsume a very large number of flows as special cases.
+
+Let $s$ and $x$ be subsets of the state vector. The length-$n$ vector $s$ contains the from-compartments -- typically the compartments that are susceptible to infection -- for a set of flows. The length-$m$ vector $x$ contains compartments -- typically the infectious compartments -- that affect these flows. The components of $x$ do not need to affect all components of $y$ but they do need to affect some of them. Note that we do not keep track of the to-compartments in these flows because they do not matter (I think).
+
+We define the $n$-by-$m$ transmission matrix as the following.
+
+$$
+\DeclareMathOperator{\diag}{diag}
+T = \diag(p) B \diag(c)
+$$
+
+An alternative way to write this equation -- that I prefer because it is a better representation of the actual computations -- is using [element-wise operations](https://canmod.github.io/macpan2/articles/elementwise_binary_operators.html). If $\circ$ is the element-wise product then we have the following.
+
+$$
+T = p \circ B \circ c^\top
+$$
+
+The vector containing the per-capita flow rates out of each of the $s$ states is the following.
+
+$$
+\lambda = Tx
+$$
+
+And finally the absolute flow rates out of each of the $s$ states is the following.
+
+$$
+\DeclareMathOperator{\diag}{diag}
+r = \lambda \circ s = \left(Tx\right) \circ s = \left(\left(p \circ B \circ c^\top\right) x\right) \circ s
+$$
+
+This decomposition involves the following terms.
+
+* $p$ -- length-$n$ vector of _susceptibilities_ for each $s$ state
+* $B$ -- $n$-by-$m$ matrix of _contacts_ between each $x$ and $s$ state
+* $c$ -- length-$m$ vector of _infectivities_ for each $x$ state
+
+## Example -- SIR
+
+The $s$ vector contains a single state, `S`, and $x$ contains only `I`. In this case both $n$ and $m$ are 1, and so all components are 1-by-1 as follows.
+
+* $p = 1$ -- susceptibility
+* $B = 1$ -- contact matrix
+* $c = \frac{\sigma}{N}$ -- infectivity
+
+Therefore we have the following transmission matrix, per-capita flow rate vector, and absolute flow rate vector.
+
+* $T = \frac{\sigma}{N}$
+* $\lambda = \frac{\sigma}{N} I$
+* $r = \frac{\sigma}{N} IS$
+
+In this example we could have decided to put $\sigma$ and $\frac{1}{N}$ in any of the components, $p$, $B$, or $c$. The point is that we have a somewhat mechanistic and somewhat general decomposition of transmission, so that when we start working with more complex models by combining model modules (e.g. combining SEIR with age and spatial structure) we have a way to conveniently combine these modules so that the resulting transmission rates make mechanistic sense. The next example takes one more step towards this complexity.
+
+## Product Models
+
+Now we consider two models, each with the following triples.
+
+$$
+(p_1, B_1, c_1)
+$$
+
+$$
+(p_2, B_2, c_2)
+$$
+
+Note that these subscripts represent the model, not the components of these vectors and matrices. The dimensions of the two models is $n_1, m_1$ and $n_2, m_2$.
+
+Taking the product of these two models results in the following triple.
+
+$$
+(p, B, c) = (p_1\otimes p_2, B_1\otimes B_2, c_1\otimes c_2)
+$$
+
+Where $\otimes$ is the Kronecker product. This leads to an $n_1n_2$-by-1 column vector, $p$, $n_1n_2$-by-$m_1m_2$ matrix, $B$, and $m_1m_2$-by-1 column vector $c$.
+
+
+
+
+## Example -- SIR time age
+
+We take the product of the SIR model above with a two-age-group module.
+
+Immediately we see an asymmetry. The age-group model has two states, young and old, neither of which can be classified as either susceptible or infectious. Both young and old states will have infectious and susceptible compartments in the combined product model. This means that the young and old states both play infectious and susceptible roles, and so both states need to be in $s$ and $x$.
+
+
+## SIR with multiple infection status' times age
+
