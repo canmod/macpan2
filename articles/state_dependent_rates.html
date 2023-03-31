@@ -112,6 +112,8 @@ T = p \circ B \circ c^\top
 <p><span class="math display">\[
 \lambda = Tx
 \]</span></p>
+<p>This <span class="math inline">\(\lambda\)</span> vector is often
+called the force of infection.</p>
 <p>And finally the absolute flow rates out of each of the <span class="math inline">\(s\)</span> states is the following.</p>
 <p><span class="math display">\[
 \DeclareMathOperator{\diag}{diag}
@@ -189,23 +191,79 @@ For example, the SIR model clearly has transmission, but a factor model
 with just age groups does not. Because a pure age model does not
 distinguish between infectious and susceptible people, the only process
 that it considers is aging. Nevertheless when the age model becomes
-combined with a</p>
+combined with a model that does have transmission, we want it to be
+ready.</p>
+<p>To make an age model – or any other factor model without transmission
+– ready to be combined with a model that includes transmission we need
+to do two things. First we need to account for the fact that some or all
+states will appear in both <span class="math inline">\(x\)</span> and
+<span class="math inline">\(s\)</span> (e.g. young people can be both
+infectious and susceptible). Second we need to include parameters that
+are not used in the factor model’s processes but that will be used when
+it is combined with a model that includes transmission (e.g. an age
+model needs to have a contact matrix even though contact processes do
+not affect aging, which is the only process in the age model). The next
+example illustrates these ideas.</p>
 </div>
 <div class="section level2">
 <h2 id="example-sir-time-age">Example – SIR time age<a class="anchor" aria-label="anchor" href="#example-sir-time-age"></a>
 </h2>
 <p>We take the product of the SIR model above with a two-age-group
-module.</p>
-<p>Immediately we see an asymmetry. The age-group model has two states,
-young and old, neither of which can be classified as either susceptible
-or infectious. Both young and old states will have infectious and
-susceptible compartments in the combined product model. This means that
-the young and old states both play infectious and susceptible roles, and
-so both states need to be in <span class="math inline">\(s\)</span> and
-<span class="math inline">\(x\)</span>.</p>
+model. In this product model <span class="math inline">\(x\)</span>
+contains <code>I.young</code> and <code>I.old</code> and <span class="math inline">\(s\)</span> contains <code>S.young</code> and
+<code>S.old</code>.</p>
+<p>The components of the transmission decomposition for this particular
+age model is as follows.</p>
+<ul>
+<li>susceptibility: <span class="math inline">\(p = \begin{bmatrix} 1 \\
+1 \end{bmatrix}\)</span>
+</li>
+<li>contact matrix: <span class="math inline">\(B = \begin{bmatrix} q
+&amp; (1 - q) \\ (1 - q) &amp; q \end{bmatrix}\)</span>
+</li>
+<li>infectivity: <span class="math inline">\(c = \begin{bmatrix} 1 \\ 1
+\end{bmatrix}\)</span>
+</li>
+</ul>
+<p>Here <span class="math inline">\(q\)</span> is the probability that
+any given contact is between individuals of the same age. This is a
+symmetric contact matrix, but we didn’t need to do that. We have also
+decided to not have susceptibility and infectivity depend on age, but we
+absolutely could have by parameterizing these vectors.</p>
+<p>Taking the product of this age model with the SIR model above we have
+the following transmission decomposition.</p>
+<ul>
+<li>susceptibility: <span class="math inline">\(p = \begin{bmatrix} 1 \\
+1 \end{bmatrix}\)</span>
+</li>
+<li>contact matrix: <span class="math inline">\(B = \begin{bmatrix} q
+&amp; (1 - q) \\ (1 - q) &amp; q \end{bmatrix}\)</span>
+</li>
+<li>infectivity: <span class="math inline">\(c = \begin{bmatrix}
+\frac{\sigma}{N} \\ \frac{\sigma}{N} \end{bmatrix}\)</span>
+</li>
+</ul>
+<p>Therefore the transmission matrix is as follows.</p>
+<p><span class="math display">\[
+T = \begin{bmatrix} 1 \\ 1 \end{bmatrix} \circ \begin{bmatrix} q &amp;
+(1 - q) \\ (1 - q) &amp; q \end{bmatrix} \circ \begin{bmatrix}
+\frac{\sigma}{N} &amp; \frac{\sigma}{N} \end{bmatrix}
+= \frac{\sigma}{N} \begin{bmatrix} q &amp; (1 - q) \\ (1 - q) &amp; q
+\end{bmatrix}
+\]</span></p>
+<p>The force of infection vector is then the product of <span class="math inline">\(T\)</span> and <span class="math inline">\(x\)</span></p>
+<p><span class="math display">\[
+\lambda = \frac{\sigma}{N} \begin{bmatrix} q I_{\text{young}} + (1-q)
+I_{\text{old}} \\ (1-q) I_{\text{young}} + q I_{\text{old}}
+\end{bmatrix}
+\]</span></p>
 </div>
 <div class="section level2">
-<h2 id="sir-with-multiple-infection-status-times-age">SIR with multiple infection status’ times age<a class="anchor" aria-label="anchor" href="#sir-with-multiple-infection-status-times-age"></a>
+<h2 id="example-sir-with-multiple-infection-status-times-age">Example – SIR with multiple infection status’ times age<a class="anchor" aria-label="anchor" href="#example-sir-with-multiple-infection-status-times-age"></a>
+</h2>
+</div>
+<div class="section level2">
+<h2 id="example-sir-with-partial-immunity">Example – SIR with partial immunity<a class="anchor" aria-label="anchor" href="#example-sir-with-partial-immunity"></a>
 </h2>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
