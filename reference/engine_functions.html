@@ -364,12 +364,69 @@ function, <code>t</code>.</p>
 </div>
 
 <div class="section">
-<h3 id="summarizing-matrix-values">Summarizing Matrix Values<a class="anchor" aria-label="anchor" href="#summarizing-matrix-values"></a></h3>
+<h3 id="matrix-diagonals">Matrix Diagonals<a class="anchor" aria-label="anchor" href="#matrix-diagonals"></a></h3>
 
 <div class="section">
 <h4 id="functions-6">Functions<a class="anchor" aria-label="anchor" href="#functions-6"></a></h4>
 
-<ul><li><p><code>sum(x)</code> -- Sum of the elements of <code>x</code>.</p></li>
+<ul><li><p><code>to_diag(x)</code> -- Create a diagonal matrix by setting
+the diagonal to a column vector, <code>x</code>.</p></li>
+<li><p><code>from_diag(x)</code> -- Extract the diagonal from a
+matrix, <code>x</code>, and return the diagonal as a column
+vector.</p></li>
+</ul></div>
+
+<div class="section">
+<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
+
+<ul><li><p><code>x</code> -- Any matrix (for <code>from_diag</code>) or a
+column vector (for <code>to_diag</code>). It is common to assume
+that <code>x</code> is square for <code>from_diag</code> but this is
+not required.</p></li>
+</ul></div>
+
+<div class="section">
+<h4 id="return-6">Return<a class="anchor" aria-label="anchor" href="#return-6"></a></h4>
+
+<ul><li><p><code>to_diag(x)</code> -- Diagonal matrix with <code>x</code> on the
+diagonal.</p></li>
+<li><p><code>from_diag(x)</code> -- Column vector containing the
+diagonal of <code>x</code>. A value is considered to be on
+the diagonal if it has a row index equal to
+the column index.</p></li>
+</ul></div>
+
+<div class="section">
+<h4 id="details-3">Details<a class="anchor" aria-label="anchor" href="#details-3"></a></h4>
+
+
+<p>The <code>to_diag</code> function can be used to produce a
+diagonal matrix by setting a column vector equal
+to the desired diagonal. The <code>from_diag</code> does
+(almost) the opposite, which is to get a column vector
+containing the diagonal of an existing matrix.</p>
+</div>
+
+<div class="section">
+<h4 id="examples-6">Examples<a class="anchor" aria-label="anchor" href="#examples-6"></a></h4>
+
+
+<p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span><span class="fu">from_diag</span>(<span class="fu">matrix</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">9</span>, <span class="dv">3</span>, <span class="dv">3</span>)))</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span><span class="fu">to_diag</span>(<span class="fu">from_diag</span>(<span class="fu">matrix</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">9</span>, <span class="dv">3</span>, <span class="dv">3</span>))))</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span><span class="fu">from_diag</span>(<span class="fu">to_diag</span>(<span class="fu">from_diag</span>(<span class="fu">matrix</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">9</span>, <span class="dv">3</span>, <span class="dv">3</span>)))))</span></code></pre><p></p></div>
+</div>
+
+
+</div>
+
+<div class="section">
+<h3 id="summarizing-matrix-values">Summarizing Matrix Values<a class="anchor" aria-label="anchor" href="#summarizing-matrix-values"></a></h3>
+
+<div class="section">
+<h4 id="functions-7">Functions<a class="anchor" aria-label="anchor" href="#functions-7"></a></h4>
+
+<ul><li><p><code>sum(...)</code> -- Sum all of the elements of all of the
+matrices passed to <code>...</code>.</p></li>
 <li><p><code>colSums(x)</code> -- Row vector containing the sums
 of each column.</p></li>
 <li><p><code>rowSums(x)</code> -- Column vector containing the sums
@@ -382,9 +439,10 @@ integers.</p></li>
 </ul></div>
 
 <div class="section">
-<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
+<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
 
-<ul><li><p><code>x</code> -- A matrix of any dimensions, except for
+<ul><li><p><code>...</code> -- Any number of matrices of any shape.</p></li>
+<li><p><code>x</code> -- A matrix of any dimensions, except for
 <code>groupSums</code> that expects <code>x</code> to be a column vector.</p></li>
 <li><p><code>f</code> -- A column vector the same length as <code>x</code>
 containing integers between <code>0</code> and <code>n-</code>.</p></li>
@@ -392,14 +450,14 @@ containing integers between <code>0</code> and <code>n-</code>.</p></li>
 </ul></div>
 
 <div class="section">
-<h4 id="return-6">Return<a class="anchor" aria-label="anchor" href="#return-6"></a></h4>
+<h4 id="return-7">Return<a class="anchor" aria-label="anchor" href="#return-7"></a></h4>
 
 <ul><li><p>A matrix containing sums of various groups of
 the elements of <code>x</code>.</p></li>
 </ul></div>
 
 <div class="section">
-<h4 id="details-3">Details<a class="anchor" aria-label="anchor" href="#details-3"></a></h4>
+<h4 id="details-4">Details<a class="anchor" aria-label="anchor" href="#details-4"></a></h4>
 
 
 <p>The standard <code>rowSums</code> and
@@ -413,13 +471,17 @@ explicitly used.</p>
 </div>
 
 <div class="section">
-<h4 id="examples-6">Examples<a class="anchor" aria-label="anchor" href="#examples-6"></a></h4>
+<h4 id="examples-7">Examples<a class="anchor" aria-label="anchor" href="#examples-7"></a></h4>
 
 
-<p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span> <span class="fu">sum</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>))</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span> <span class="fu">colSums</span>(A), <span class="at">A =</span> <span class="fu">matrix</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">12</span>, <span class="dv">4</span>, <span class="dv">3</span>))</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span> <span class="fu">rowSums</span>(A), <span class="at">A =</span> <span class="fu">matrix</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">12</span>, <span class="dv">4</span>, <span class="dv">3</span>))</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span> <span class="fu">groupSums</span>(x, f, n), <span class="at">x =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="at">f =</span> <span class="fu">rep</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">3</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>), <span class="at">n =</span> <span class="dv">4</span>)</span></code></pre><p></p></div>
+<p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>x <span class="ot">=</span> <span class="dv">1</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>y <span class="ot">=</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>A <span class="ot">=</span> <span class="fu">matrix</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">12</span>, <span class="dv">4</span>, <span class="dv">3</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span> <span class="fu">sum</span>(y), <span class="at">y =</span> y)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span><span class="fu">sum</span>(x, y, A), <span class="at">x =</span> x, <span class="at">y =</span> y, <span class="at">z =</span> z)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span> <span class="fu">colSums</span>(A), <span class="at">A =</span> A)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span> <span class="fu">rowSums</span>(A), <span class="at">A =</span> A)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span> <span class="fu">groupSums</span>(x, f, n), <span class="at">x =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="at">f =</span> <span class="fu">rep</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">3</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>), <span class="at">n =</span> <span class="dv">4</span>)</span></code></pre><p></p></div>
 </div>
 
 
@@ -429,7 +491,7 @@ explicitly used.</p>
 <h3 id="extracting-matrix-elements">Extracting Matrix Elements<a class="anchor" aria-label="anchor" href="#extracting-matrix-elements"></a></h3>
 
 <div class="section">
-<h4 id="functions-7">Functions<a class="anchor" aria-label="anchor" href="#functions-7"></a></h4>
+<h4 id="functions-8">Functions<a class="anchor" aria-label="anchor" href="#functions-8"></a></h4>
 
 <ul><li><p><code>x[i,j]</code> -- Matrix containing a subset
 of the rows and columns of <code>x</code>.</p></li>
@@ -439,7 +501,7 @@ contiguous subset of rows and columns of <code>x</code>
 </ul></div>
 
 <div class="section">
-<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
+<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
 
 <ul><li><p><code>x</code> -- Any matrix.</p></li>
 <li><p><code>i</code> -- An integer column vector (for <code>[</code>) or
@@ -455,14 +517,14 @@ the first column to extract (for <code>block</code>).</p></li>
 </ul></div>
 
 <div class="section">
-<h4 id="return-7">Return<a class="anchor" aria-label="anchor" href="#return-7"></a></h4>
+<h4 id="return-8">Return<a class="anchor" aria-label="anchor" href="#return-8"></a></h4>
 
 <ul><li><p>A matrix containing a subset of the rows and columns
 in <code>x</code>.</p></li>
 </ul></div>
 
 <div class="section">
-<h4 id="details-4">Details<a class="anchor" aria-label="anchor" href="#details-4"></a></h4>
+<h4 id="details-5">Details<a class="anchor" aria-label="anchor" href="#details-5"></a></h4>
 
 
 <p>Note that zero-based indexing is used
@@ -470,7 +532,7 @@ so the first row/column gets index, <code>0</code>, etc.</p>
 </div>
 
 <div class="section">
-<h4 id="examples-7">Examples<a class="anchor" aria-label="anchor" href="#examples-7"></a></h4>
+<h4 id="examples-8">Examples<a class="anchor" aria-label="anchor" href="#examples-8"></a></h4>
 
 
 <p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span> A[<span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">1</span>, <span class="dv">2</span>), <span class="dv">2</span>], <span class="at">A =</span> <span class="fu">matrix</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">12</span>, <span class="dv">4</span>, <span class="dv">3</span>))</span></code></pre><p></p></div>
@@ -486,7 +548,7 @@ so the first row/column gets index, <code>0</code>, etc.</p>
 <p>For matrices with their simulation history saved,
 it is possible to bind the rows or columns of past
 versions of such matrices into a single matrix.</p><div class="section">
-<h4 id="functions-8">Functions<a class="anchor" aria-label="anchor" href="#functions-8"></a></h4>
+<h4 id="functions-9">Functions<a class="anchor" aria-label="anchor" href="#functions-9"></a></h4>
 
 <ul><li><p><code>rbind_lag(x, lag, t_min)</code> -- Bind the rows of versions of
 <code>x</code> that were recorded at the end of all
@@ -507,7 +569,7 @@ simulation iterations corresponding to integers in
 </ul></div>
 
 <div class="section">
-<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
+<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
 
 <ul><li><p><code>x</code> -- Any matrix with saved history such that the
 number of columns (for <code>rbind_*</code>) or rows (for
@@ -523,7 +585,7 @@ that are before <code>t_min</code> are ignored.</p></li>
 </ul></div>
 
 <div class="section">
-<h4 id="return-8">Return<a class="anchor" aria-label="anchor" href="#return-8"></a></h4>
+<h4 id="return-9">Return<a class="anchor" aria-label="anchor" href="#return-9"></a></h4>
 
 <ul><li><p>A matrix containing values of <code>x</code> from past times.</p></li>
 </ul></div>
@@ -539,20 +601,20 @@ that are before <code>t_min</code> are ignored.</p></li>
 lag from the current time-step. If the lagged
 time-step is less than zero, the function returns
 zero.</p><div class="section">
-<h4 id="functions-9">Functions<a class="anchor" aria-label="anchor" href="#functions-9"></a></h4>
+<h4 id="functions-10">Functions<a class="anchor" aria-label="anchor" href="#functions-10"></a></h4>
 
 <ul><li><p><code>time_step(lag)</code></p></li>
 </ul></div>
 
 <div class="section">
-<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
+<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
 
 <ul><li><p><code>lag</code> -- Number of time-steps to look back for
 the time-step to return.</p></li>
 </ul></div>
 
 <div class="section">
-<h4 id="return-9">Return<a class="anchor" aria-label="anchor" href="#return-9"></a></h4>
+<h4 id="return-10">Return<a class="anchor" aria-label="anchor" href="#return-10"></a></h4>
 
 
 <p>A 1-by-1 matrix with the time-step <code>lag</code> steps
@@ -569,13 +631,13 @@ ago, or with zero if <code>t+1 &lt; lag</code></p>
 <p>One may take the convolution of each element in a
 matrix, x, over simulation time using a kernel, k.
 There are two arguments of this function.</p><div class="section">
-<h4 id="functions-10">Functions<a class="anchor" aria-label="anchor" href="#functions-10"></a></h4>
+<h4 id="functions-11">Functions<a class="anchor" aria-label="anchor" href="#functions-11"></a></h4>
 
 <ul><li><p><code>convolution(x, k)</code></p></li>
 </ul></div>
 
 <div class="section">
-<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
+<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
 
 <ul><li><p><code>x</code> -- The matrix containing elements to be
 convolved.</p></li>
@@ -583,7 +645,7 @@ convolved.</p></li>
 </ul></div>
 
 <div class="section">
-<h4 id="return-10">Return<a class="anchor" aria-label="anchor" href="#return-10"></a></h4>
+<h4 id="return-11">Return<a class="anchor" aria-label="anchor" href="#return-11"></a></h4>
 
 
 <p>A matrix the same size as <code>x</code> but with the
@@ -599,7 +661,7 @@ and \(\lambda\) is the length of the kernel.</p>
 </div>
 
 <div class="section">
-<h4 id="details-5">Details<a class="anchor" aria-label="anchor" href="#details-5"></a></h4>
+<h4 id="details-6">Details<a class="anchor" aria-label="anchor" href="#details-6"></a></h4>
 
 
 <p>If any empty matrices are encountered when looking
@@ -642,7 +704,7 @@ repeated to match the number of rows and columns in
 the <code>observed</code> matrix. This feature allows one
 to do things like specify a single common mean for
 several values.</p><div class="section">
-<h4 id="functions-11">Functions<a class="anchor" aria-label="anchor" href="#functions-11"></a></h4>
+<h4 id="functions-12">Functions<a class="anchor" aria-label="anchor" href="#functions-12"></a></h4>
 
 <ul><li><p><code>dpois(observed, simulated)</code> -- Log of the Poisson density
 based on this <a href="https://kaskr.github.io/adcomp/group__R__style__distribution.html#gaa1ed15503e1441a381102a8c4c9baaf1" class="external-link">dpois</a>
@@ -658,7 +720,7 @@ TMB function.</p></li>
 </ul></div>
 
 <div class="section">
-<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
+<h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
 
 <ul><li><p><code>observed</code> -- Matrix of observed values
 at which the density is being evaluated.</p></li>
@@ -681,7 +743,7 @@ deviating from each mean in the <code>mean</code> matrix.</p>
 </div>
 
 <div class="section">
-<h4 id="functions-12">Functions<a class="anchor" aria-label="anchor" href="#functions-12"></a></h4>
+<h4 id="functions-13">Functions<a class="anchor" aria-label="anchor" href="#functions-13"></a></h4>
 
 <ul><li><p><code>rpois(mean)</code> -- Pseudo-random Poisson distributed
 values.</p></li>
@@ -692,7 +754,7 @@ normal values.</p></li>
 </ul></div>
 
 <div class="section">
-<h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
+<h4 id="arguments-13">Arguments<a class="anchor" aria-label="anchor" href="#arguments-13"></a></h4>
 
 <ul><li><p><code>mean</code> -- Matrix of means about which to simulate
 pseudo-random variation.</p></li>
@@ -709,13 +771,13 @@ given by <code>(simulated/standard_deviation)^2 - simulated)</code>.</p></li>
 
 
 <p>Assign values to a subset of the elements in a matrix.</p><div class="section">
-<h4 id="functions-13">Functions<a class="anchor" aria-label="anchor" href="#functions-13"></a></h4>
+<h4 id="functions-14">Functions<a class="anchor" aria-label="anchor" href="#functions-14"></a></h4>
 
 <ul><li><p><code>assign(x, i, j, v)</code></p></li>
 </ul></div>
 
 <div class="section">
-<h4 id="arguments-13">Arguments<a class="anchor" aria-label="anchor" href="#arguments-13"></a></h4>
+<h4 id="arguments-14">Arguments<a class="anchor" aria-label="anchor" href="#arguments-14"></a></h4>
 
 <ul><li><p><code>x</code> -- Matrix with elements that are to be updated
 by the values in <code>v</code>.</p></li>
@@ -736,7 +798,7 @@ of <code>x</code> at locations given by <code>i</code> and <code>j</code>.</p></
 </ul></div>
 
 <div class="section">
-<h4 id="return-11">Return<a class="anchor" aria-label="anchor" href="#return-11"></a></h4>
+<h4 id="return-12">Return<a class="anchor" aria-label="anchor" href="#return-12"></a></h4>
 
 
 <p>The <code>assign</code> function is not called for its return
@@ -746,7 +808,7 @@ components with those in <code>v</code>.</p>
 </div>
 
 <div class="section">
-<h4 id="examples-8">Examples<a class="anchor" aria-label="anchor" href="#examples-8"></a></h4>
+<h4 id="examples-9">Examples<a class="anchor" aria-label="anchor" href="#examples-9"></a></h4>
 
 
 <p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>x <span class="ot">=</span> <span class="fu">matrix</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">12</span>, <span class="dv">3</span>, <span class="dv">4</span>)</span>
@@ -769,13 +831,13 @@ components with those in <code>v</code>.</p>
 
 
 <p>Unpack elements of a matrix into smaller matrices.</p><div class="section">
-<h4 id="functions-14">Functions<a class="anchor" aria-label="anchor" href="#functions-14"></a></h4>
+<h4 id="functions-15">Functions<a class="anchor" aria-label="anchor" href="#functions-15"></a></h4>
 
 <ul><li><p><code>unpack(x, ...)</code></p></li>
 </ul></div>
 
 <div class="section">
-<h4 id="arguments-14">Arguments<a class="anchor" aria-label="anchor" href="#arguments-14"></a></h4>
+<h4 id="arguments-15">Arguments<a class="anchor" aria-label="anchor" href="#arguments-15"></a></h4>
 
 <ul><li><p><code>x</code> -- Matrix with elements to be distributed to
 the matrices passed through <code>...</code>.</p></li>
@@ -784,7 +846,7 @@ the values of elements in <code>x</code> in column-major order.</p></li>
 </ul></div>
 
 <div class="section">
-<h4 id="return-12">Return<a class="anchor" aria-label="anchor" href="#return-12"></a></h4>
+<h4 id="return-13">Return<a class="anchor" aria-label="anchor" href="#return-13"></a></h4>
 
 
 <p>The <code>unpack</code> function is not called for its return
@@ -794,7 +856,7 @@ at least some of its components with those in <code>x</code>.</p>
 </div>
 
 <div class="section">
-<h4 id="examples-9">Examples<a class="anchor" aria-label="anchor" href="#examples-9"></a></h4>
+<h4 id="examples-10">Examples<a class="anchor" aria-label="anchor" href="#examples-10"></a></h4>
 
 
 <p>Here we fill a matrix with integers from <code>1</code> to <code>12</code>
