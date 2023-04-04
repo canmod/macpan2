@@ -99,7 +99,9 @@ enum macpan2_func {
     MP2_NEGBIN_SIM = 38, // fwrap,fail: rnbinom(mean, over_dispersion)
     MP2_NORMAL_SIM = 39, // fwrap,fail: rnorm(mean, standard_deviation)
     //MP2_SIN = 40 // fwrap,null: sin(x)
-    MP2_KRONECKER = 40 // binop,null: `%x%`(x, y)
+    MP2_KRONECKER = 40, // binop,null: `%x%`(x, y)
+    MP2_TO_DIAG = 41, // fwrap,fail: to_diag(x)
+    MP2_FROM_DIAG = 42 // fwrap,fail: from_diag(x)
 };
 
 // Helper function
@@ -801,11 +803,69 @@ public:
                     // #'
 
 
+                    // #' ## Matrix Diagonals
+                    // #'
+                    // #' ### Functions
+                    // #'
+                    // #' * `to_diag(x)` -- Create a diagonal matrix by setting
+                    // #' the diagonal to a column vector, `x`.
+                    // #' * `from_diag(x)` -- Extract the diagonal from a
+                    // #' matrix, `x`, and return the diagonal as a column
+                    // #' vector.
+                    // #'
+                    // #' ### Arguments
+                    // #'
+                    // #' * `x` -- Any matrix (for `from_diag`) or a
+                    // #' column vector (for `to_diag`). It is common to assume
+                    // #' that `x` is square for `from_diag` but this is
+                    // #' not required.
+                    // #'
+                    // #' ### Return
+                    // #'
+                    // #' * `to_diag(x)` -- Diagonal matrix with `x` on the
+                    // #' diagonal.
+                    // #' * `from_diag(x)` -- Column vector containing the
+                    // #' diagonal of `x`. A value is considered to be on
+                    // #' the diagonal if it has a row index equal to
+                    // #' the column index.
+                    // #'
+                    // #' ### Details
+                    // #'
+                    // #' The `to_diag` function can be used to produce a
+                    // #' diagonal matrix by setting a column vector equal
+                    // #' to the desired diagonal. The `from_diag` does
+                    // #' (almost) the opposite, which is to get a column vector
+                    // #' containing the diagonal of an existing matrix.
+                    // #'
+                    // #' ### Examples
+                    // #'
+                    // #' ```
+                    // #' engine_eval(~from_diag(matrix(1:9, 3, 3)))
+                    // #' engine_eval(~to_diag(from_diag(matrix(1:9, 3, 3))))
+                    // #' engine_eval(~from_diag(to_diag(from_diag(matrix(1:9, 3, 3)))))
+                    // #' ```
+                    // #'
+                    case MP2_TO_DIAG: // to_diag
+                        rows = args[0].rows();
+                        m = matrix<Type>::Zero(rows, rows);
+                        for (int i=0; i<rows; i++){
+                            m.coeffRef(i, i) = args[0].coeff(i, 0);
+                        }
+                        return m;
+
+                    case MP2_FROM_DIAG: // from_diag
+                        m = args[0].diagonal();
+                        return m;
+
+
+
+
                     // #' ## Summarizing Matrix Values
                     // #'
                     // #' ### Functions
                     // #'
-                    // #' * `sum(x)` -- Sum of the elements of `x`.
+                    // #' * `sum(...)` -- Sum all of the elements of all of the
+                    // #' matrices passed to `...`.
                     // #' * `colSums(x)` -- Row vector containing the sums
                     // #' of each column.
                     // #' * `rowSums(x)` -- Column vector containing the sums
@@ -818,6 +878,7 @@ public:
                     // #'
                     // #' ### Arguments
                     // #'
+                    // #' * `...` -- Any number of matrices of any shape.
                     // #' * `x` -- A matrix of any dimensions, except for
                     // #' `groupSums` that expects `x` to be a column vector.
                     // #' * `f` -- A column vector the same length as `x`
@@ -880,9 +941,13 @@ public:
                     // #' ### Examples
                     // #'
                     // #' ```
-                    // #' engine_eval(~ sum(1:4))
-                    // #' engine_eval(~ colSums(A), A = matrix(1:12, 4, 3))
-                    // #' engine_eval(~ rowSums(A), A = matrix(1:12, 4, 3))
+                    // #' x = 1
+                    // #' y = 1:3
+                    // #' A = matrix(1:12, 4, 3)
+                    // #' engine_eval(~ sum(y), y = y)
+                    // #' engine_eval(~sum(x, y, A), x = x, y = y, z = z)
+                    // #' engine_eval(~ colSums(A), A = A)
+                    // #' engine_eval(~ rowSums(A), A = A)
                     // #' engine_eval(~ groupSums(x, f, n), x = 1:10, f = rep(0:3, 1:4), n = 4)
                     // #' ```
                     // #'

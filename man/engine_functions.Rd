@@ -42,6 +42,8 @@
 \alias{rnbinom}
 \alias{rnorm}
 \alias{`\%x\%`}
+\alias{to_diag}
+\alias{from_diag}
 \title{Engine Functions}
 \description{
 Functions currently supported by the C++ TMB engine
@@ -335,10 +337,61 @@ engine_eval(~ t(1:3))
 
 }
 
+\subsection{Matrix Diagonals}{
+\subsection{Functions}{
+\itemize{
+\item \code{to_diag(x)} -- Create a diagonal matrix by setting
+the diagonal to a column vector, \code{x}.
+\item \code{from_diag(x)} -- Extract the diagonal from a
+matrix, \code{x}, and return the diagonal as a column
+vector.
+}
+}
+
+\subsection{Arguments}{
+\itemize{
+\item \code{x} -- Any matrix (for \code{from_diag}) or a
+column vector (for \code{to_diag}). It is common to assume
+that \code{x} is square for \code{from_diag} but this is
+not required.
+}
+}
+
+\subsection{Return}{
+\itemize{
+\item \code{to_diag(x)} -- Diagonal matrix with \code{x} on the
+diagonal.
+\item \code{from_diag(x)} -- Column vector containing the
+diagonal of \code{x}. A value is considered to be on
+the diagonal if it has a row index equal to
+the column index.
+}
+}
+
+\subsection{Details}{
+
+The \code{to_diag} function can be used to produce a
+diagonal matrix by setting a column vector equal
+to the desired diagonal. The \code{from_diag} does
+(almost) the opposite, which is to get a column vector
+containing the diagonal of an existing matrix.
+}
+
+\subsection{Examples}{
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{engine_eval(~from_diag(matrix(1:9, 3, 3)))
+engine_eval(~to_diag(from_diag(matrix(1:9, 3, 3))))
+engine_eval(~from_diag(to_diag(from_diag(matrix(1:9, 3, 3)))))
+}\if{html}{\out{</div>}}
+}
+
+}
+
 \subsection{Summarizing Matrix Values}{
 \subsection{Functions}{
 \itemize{
-\item \code{sum(x)} -- Sum of the elements of \code{x}.
+\item \code{sum(...)} -- Sum all of the elements of all of the
+matrices passed to \code{...}.
 \item \code{colSums(x)} -- Row vector containing the sums
 of each column.
 \item \code{rowSums(x)} -- Column vector containing the sums
@@ -353,6 +406,7 @@ integers.
 
 \subsection{Arguments}{
 \itemize{
+\item \code{...} -- Any number of matrices of any shape.
 \item \code{x} -- A matrix of any dimensions, except for
 \code{groupSums} that expects \code{x} to be a column vector.
 \item \code{f} -- A column vector the same length as \code{x}
@@ -382,9 +436,13 @@ explicitly used.
 
 \subsection{Examples}{
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{engine_eval(~ sum(1:4))
-engine_eval(~ colSums(A), A = matrix(1:12, 4, 3))
-engine_eval(~ rowSums(A), A = matrix(1:12, 4, 3))
+\if{html}{\out{<div class="sourceCode">}}\preformatted{x = 1
+y = 1:3
+A = matrix(1:12, 4, 3)
+engine_eval(~ sum(y), y = y)
+engine_eval(~sum(x, y, A), x = x, y = y, z = z)
+engine_eval(~ colSums(A), A = A)
+engine_eval(~ rowSums(A), A = A)
 engine_eval(~ groupSums(x, f, n), x = 1:10, f = rep(0:3, 1:4), n = 4)
 }\if{html}{\out{</div>}}
 }
