@@ -4,7 +4,7 @@
 \alias{engine_eval}
 \title{Engine Evaluation}
 \usage{
-engine_eval(e, ..., .matrix_to_return)
+engine_eval(e, ..., .matrix_to_return, .tmb_cpp = "macpan2")
 }
 \arguments{
 \item{e}{Expression as a one-sided formula, the right-hand-side of which is
@@ -16,6 +16,12 @@ treated as the expression to be evaluated.}
 in \code{...} to be returned. If this argument is missing, the
 matrix that will be returned is the matrix returned by the expression on
 the right-hand-side of the formula.}
+
+\item{.tmb_cpp}{Name of a \code{C++} program defining the engine. Typically
+you just want to use the default, which is \code{macpan2}, unless you
+are extending the
+\href{https://canmod.github.io/macpan2/articles/cpp_side.html}{engine}
+yourself.}
 }
 \value{
 Matrix being produced on the right-hand-side or matrix given in

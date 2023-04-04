@@ -12,6 +12,11 @@
 #' in \code{...} to be returned. If this argument is missing, the
 #' matrix that will be returned is the matrix returned by the expression on
 #' the right-hand-side of the formula.
+#' @param .tmb_cpp Name of a \code{C++} program defining the engine. Typically
+#' you just want to use the default, which is \code{macpan2}, unless you
+#' are extending the
+#' [engine](https://canmod.github.io/macpan2/articles/cpp_side.html)
+#' yourself.
 #'
 #' @return Matrix being produced on the right-hand-side or matrix given in
 #' \code{.matrix_to_return} if it is provided.
@@ -27,7 +32,7 @@
 #'   , y = pi
 #'   , .matrix_to_return = "x"
 #' )
-engine_eval = function(e, ..., .matrix_to_return) {
+engine_eval = function(e, ..., .matrix_to_return, .tmb_cpp = "macpan2") {
   dot_mats = list(...)
 
   ## force two-sided formula for compliance with TMBSimulator
@@ -59,7 +64,7 @@ engine_eval = function(e, ..., .matrix_to_return) {
     obj_fn = ObjectiveFunction(~0)
   )
 
-  TMBSimulator(m)$matrix(NA, matrix_name = .matrix_to_return, time_step = 1L)
+  TMBSimulator(m, tmb_cpp = .tmb_cpp)$matrix(NA, matrix_name = .matrix_to_return, time_step = 1L)
 }
 
 

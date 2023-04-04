@@ -24,16 +24,16 @@ remotes::install_github("canmod/macpan2")
 Developers and contributors should clone this repository and call `make` at the command-line in the top level directory. The following `make` rules are available for getting more control over the build process.
 
 ```
-make quick-install
-make quick-doc-install
-make full-install
-make src-update
-make enum-update
-make engine-doc-update
-make doc-update
-make pkg-build
-make pkg-install
-make pkg-check
+make quick-install     # for changes that only modify R source
+make quick-doc-install # for changes that modify R source and roxygen comments
+make full-install      # for all changes, including changes to C++ source
+make src-update        # push changes to dev.cpp to macpan2.cpp
+make enum-update       # register new C++ engine functions on the R-side
+make engine-doc-update # generate roxygen comments from comments in dev.cpp
+make doc-update        # roxygenize
+make pkg-build         # build the R package
+make pkg-install       # install the R package from the build
+make pkg-check         # R package checks
 ```
 
 ## Specification Documents

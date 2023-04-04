@@ -38,7 +38,8 @@ valid_func_sigs = c(
   "fwrap,fail: dnorm(observed, simulated, standard_deviation)",
   "fwrap,fail: rpois(mean)",
   "fwrap,fail: rnbinom(mean, over_dispersion)",
-  "fwrap,fail: rnorm(mean, standard_deviation)"
+  "fwrap,fail: rnorm(mean, standard_deviation)",
+  "binop,null: `%x%`(x, y)"
 )
 process_enum = function(x) {
   RE = "(null|fail|binop|fwrap|bwrap|pwrap)[ ]*,[ ]*(null|fail|binop|fwrap|bwrap|pwrap)[ ]*:[ ]*\\`?([^`]*)\\`?\\((.*)(\\,.*)*\\)"

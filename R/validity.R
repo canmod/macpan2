@@ -66,6 +66,13 @@ valid <- list(
     All(is.numeric, is.matrix),
     "not a numeric matrix"
   ),
+  num_vec = ValidityMessager(
+    All(
+      is.numeric,
+      TestPipeline(Summarizer(dim, is.null), TestTrue())
+    ),
+    "not a numeric vector"
+  ),
   list_char_eq_len = ValidityMessager(
     All(
       is.list,

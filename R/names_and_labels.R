@@ -325,11 +325,13 @@ StringDottedData = function(labels, names) {
     self$undot()$filter_other(other$undot(), comparison_function)$dot()
   }
   self$regenerate = function(labels) StringDottedData(labels, self$names())
+  self$expand = function(names) self$undot()$expand(names)$dot()
   #self$group = function(other, comparison_function) {
   #
   #}
   return_object(self, "Dotted")
 }
+
 StringUndottedData = function(labels, names) {
   valid_labels = ValidityMessager(test_is$UndottedMatrix)
   valid_names = ValidityMessager(test_is$UndottedVector)
@@ -413,6 +415,14 @@ StringUndottedData = function(labels, names) {
     lapply(split(d, seq_row(d)), StringDataFromFrame)
   }
   self$regenerate = function(labels) StringUndottedData(labels, self$names())
+  self$expand = function(name) {
+    new_names = setdiff(
+      StringDottedScalar(name)$undot()$value(),
+      self$names()$value()
+    )
+    new_list = setNames(rep(list(""), length(new_names)), new_names)
+    StringDataFromFrame(as.data.frame(c(self$frame(), new_list)))
+  }
   return_object(self, "Undotted")
 }
 

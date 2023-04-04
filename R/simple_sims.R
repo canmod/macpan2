@@ -1,13 +1,16 @@
 simple_sims = function(iteration_exprs, time_steps, ...) {
+  mat_names = names(list(...))
   TMBModel(
     init_mats = MatsList(...
-      , .mats_to_return = "x"
-      , .mats_to_save = "x"
+      , .mats_to_return = mat_names
+      , .mats_to_save = mat_names
     ),
     expr_list = ExprList(during = iteration_exprs),
     time_steps = Time(time_steps)
   )$simulator()$report(.phases = c("before", "during"))
 }
+
+
 
 if (FALSE) {
 

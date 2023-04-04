@@ -163,22 +163,24 @@
 #' ### Functions
 #'
 #' * `x %*% y` -- Standard matrix multiplication.
+#' * `x %x% y` -- Kronecker product
 #'
 #' ### Arguments
 #'
-#' * `x` -- Any matrix with as many columns as `y` has
-#' rows.
-#' * `y` -- Any matrix with as many rows as `x` has
-#' columns.
+#' * `x` -- A matrix. For the standard product, `x`
+#' must have as many columns as `y` has rows.
+#' * `y` -- A matrix. For standard product, `y`
+#' must have as many rows as `x` has columns.
 #'
 #' ### Return
 #'
-#' * The standard matrix product of `x` and `y`.
+#' * The matrix product of `x` and `y`.
 #'
 #' ### Examples
 #'
 #' ```
 #' engine_eval(~ (1:10) %*% t(1:10))
+#' engine_eval(~ (1:10) %x% t(1:10))
 #' ```
 #'
 #' ## Parenthesis
@@ -530,10 +532,50 @@
 #'
 #' Assign values to a subset of the elements in a matrix.
 #'
-#'
 #' ### Functions
 #'
 #' * `assign(x, i, j, v)`
+#'
+#' ### Arguments
+#'
+#' * `x` -- Matrix with elements that are to be updated
+#' by the values in `v`.
+#' * `i` -- Column vector of row indices pointing to
+#' the elements of `x` to be updated. These indices are
+#' paired with those in `v`. If the length of
+#' `i` does not equal that of `v`, then it must have a
+#' single index that gets paired with every element of
+#' `v`.
+#' * `j` -- Column vector of column indices pointing to
+#' the elements of `x` to be updated. These indices are
+#' paired with those in `v`. If the length of
+#' `j` does not equal that of `v`, then it must have a
+#' single index that gets paired with every element of
+#' `v`.
+#' * `v` -- Column vector of values to replace elements
+#' of `x` at locations given by `i` and `j`.
+#'
+#' ### Return
+#'
+#' The `assign` function is not called for its return
+#' value, which is an \code{\link{empty_matrix}}, but
+#' rather to modify `x` but replacing some of its
+#' components with those in `v`.
+#'
+#' ### Examples
+#'
+#' ```
+#' x = matrix(1:12, 3, 4)
+#' engine_eval(~ x + 1, x = x)
+#' engine_eval(~ x + 1, x = x, .matrix_to_return = "x")
+#' engine_eval(~ assign(x, 2, 1, 100), x = x, .matrix_to_return = "x")
+#' engine_eval(~ assign(x
+#'   , c(2, 1, 0)
+#'   , 0
+#'   , c(100, 1000, 10000)
+#' ), x = x, .matrix_to_return = "x")
+#'
+#' ```
 #'
 #' ## Unpack
 #'
@@ -549,6 +591,28 @@
 #' the matrices passed through `...`.
 #' * `...` -- Matrices with elements to be replaced by
 #' the values of elements in `x` in column-major order.
+#'
+#' ### Return
+#'
+#' The `unpack` function is not called for its return
+#' value, which is an \code{\link{empty_matrix}}, but
+#' rather to modify the matrices in `...` by replacing
+#' at least some of its components with those in `x`.
+#'
+#' ### Examples
+#'
+#' Here we fill a matrix with integers from `1` to `12`
+#' and then unpack them one-at-a-time into two
+#' column vectors, `x` and `y`. By returning `y`
+#' we see the integers after the first three were
+#' used up by `x`.
+#' ```
+#' engine_eval(~unpack(matrix(1:12, 3, 4), x, y)
+#'   , x = rep(0, 3)
+#'   , y = rep(1, 5)
+#'   , .matrix_to_return = "y"
+#' )
+#' ```
 #'
 #' @name engine_functions
 #' @aliases `+`
@@ -590,4 +654,5 @@
 #' @aliases rpois
 #' @aliases rnbinom
 #' @aliases rnorm
+#' @aliases `%x%`
 NULL

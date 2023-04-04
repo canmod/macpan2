@@ -41,6 +41,7 @@
 \alias{rpois}
 \alias{rnbinom}
 \alias{rnorm}
+\alias{`\%x\%`}
 \title{Engine Functions}
 \description{
 Functions currently supported by the C++ TMB engine
@@ -228,27 +229,29 @@ on top of each other.
 \subsection{Functions}{
 \itemize{
 \item \code{x \%*\% y} -- Standard matrix multiplication.
+\item \code{x \%x\% y} -- Kronecker product
 }
 }
 
 \subsection{Arguments}{
 \itemize{
-\item \code{x} -- Any matrix with as many columns as \code{y} has
-rows.
-\item \code{y} -- Any matrix with as many rows as \code{x} has
-columns.
+\item \code{x} -- A matrix. For the standard product, \code{x}
+must have as many columns as \code{y} has rows.
+\item \code{y} -- A matrix. For standard product, \code{y}
+must have as many rows as \code{x} has columns.
 }
 }
 
 \subsection{Return}{
 \itemize{
-\item The standard matrix product of \code{x} and \code{y}.
+\item The matrix product of \code{x} and \code{y}.
 }
 }
 
 \subsection{Examples}{
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{engine_eval(~ (1:10) \%*\% t(1:10))
+engine_eval(~ (1:10) \%x\% t(1:10))
 }\if{html}{\out{</div>}}
 }
 
@@ -665,6 +668,50 @@ Assign values to a subset of the elements in a matrix.
 }
 }
 
+\subsection{Arguments}{
+\itemize{
+\item \code{x} -- Matrix with elements that are to be updated
+by the values in \code{v}.
+\item \code{i} -- Column vector of row indices pointing to
+the elements of \code{x} to be updated. These indices are
+paired with those in \code{v}. If the length of
+\code{i} does not equal that of \code{v}, then it must have a
+single index that gets paired with every element of
+\code{v}.
+\item \code{j} -- Column vector of column indices pointing to
+the elements of \code{x} to be updated. These indices are
+paired with those in \code{v}. If the length of
+\code{j} does not equal that of \code{v}, then it must have a
+single index that gets paired with every element of
+\code{v}.
+\item \code{v} -- Column vector of values to replace elements
+of \code{x} at locations given by \code{i} and \code{j}.
+}
+}
+
+\subsection{Return}{
+
+The \code{assign} function is not called for its return
+value, which is an \code{\link{empty_matrix}}, but
+rather to modify \code{x} but replacing some of its
+components with those in \code{v}.
+}
+
+\subsection{Examples}{
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{x = matrix(1:12, 3, 4)
+engine_eval(~ x + 1, x = x)
+engine_eval(~ x + 1, x = x, .matrix_to_return = "x")
+engine_eval(~ assign(x, 2, 1, 100), x = x, .matrix_to_return = "x")
+engine_eval(~ assign(x
+  , c(2, 1, 0)
+  , 0
+  , c(100, 1000, 10000)
+), x = x, .matrix_to_return = "x")
+
+}\if{html}{\out{</div>}}
+}
+
 }
 
 \subsection{Unpack}{
@@ -683,6 +730,30 @@ the matrices passed through \code{...}.
 \item \code{...} -- Matrices with elements to be replaced by
 the values of elements in \code{x} in column-major order.
 }
+}
+
+\subsection{Return}{
+
+The \code{unpack} function is not called for its return
+value, which is an \code{\link{empty_matrix}}, but
+rather to modify the matrices in \code{...} by replacing
+at least some of its components with those in \code{x}.
+}
+
+\subsection{Examples}{
+
+Here we fill a matrix with integers from \code{1} to \code{12}
+and then unpack them one-at-a-time into two
+column vectors, \code{x} and \code{y}. By returning \code{y}
+we see the integers after the first three were
+used up by \code{x}.
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{engine_eval(~unpack(matrix(1:12, 3, 4), x, y)
+  , x = rep(0, 3)
+  , y = rep(1, 5)
+  , .matrix_to_return = "y"
+)
+}\if{html}{\out{</div>}}
 }
 
 }

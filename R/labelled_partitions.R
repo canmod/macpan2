@@ -128,6 +128,28 @@ if (FALSE) {
 #'
 #' @param frame Data frame representing the partition.
 #'
+#' @return Object of class \code{Partition} with the following methods.
+#'
+#' ## Methods
+#'
+#' * `$frame()` -- The `Partition` object as a data frame.
+#' * `$dotted()` -- The `Partition` object as a data frame with one united column.
+#' * `$names()` -- The names of the `Partition` (i.e. the column names).
+#' * `$name()` -- The name of the `Partition` (i.e. the dot-concatenated column names).
+#' * `$labels()` -- The labels of the `Partition` (i.e. the row-wise dot-concatenated columns).
+#' * `$filter(..., .wrt, .comparison_function)` -- Filter by keeping only a subset of labels.
+#' * `$filter_out(..., .wrt, .comparison_function)` -- Filter by removing a subset of labels.
+#' * `$filter_ordered(..., .wrt, .comparison_function = all_equal)` -- Filter and order by labels.
+#'    * `...` -- Labels to filter
+#'    * `.wrt` -- The filtering labels are with respect to a particular `Partition`, and
+#'    `.wrt` is the name of this `Partition`.
+#'    * `.comparison_function` -- Boolean function to decide if each filtering label is
+#'    equal to each label in the `Partition`.
+#' * `$select(...)` -- Create a new `Partition` with a subset of names. The rows of the new
+#' `Partition` are de-duplicated.
+#' * `$select_out(...)` -- Create a new `Partition` without a subset of names.
+#'    * `...` -- Names to keep in the resulting `Partition`.
+#'
 #' @export
 Partition = function(frame) {
   self = Base()
@@ -137,6 +159,9 @@ Partition = function(frame) {
   self$names = function() names(self$frame())
   self$name = function() names(self$dotted())
   self$labels = function() self$dotted()[[1L]]
+  self$partial_labels = function(...) {
+    self$.partition$change_coordinates(...)$dot()$frame()[[1L]]
+  }
   self$filter = function(..., .wrt, .comparison_function = all_equal) {
     if (missing(.wrt)) {
       .wrt = self$names()
@@ -175,11 +200,76 @@ Partition = function(frame) {
   self$select = function(...) {
     Partition(unique(self$.partition$change_coordinates(...)$frame()))
   }
+  self$select_out = function(...) {
+    self$select(setdiff(self$names(), unlist(list(...), recursive = TRUE)))
+  }
+  self$expand = function(name) {
+    Partition(self$.partition$expand(name)$frame())
+  }
   return_object(self, "Partition")
 }
 
 #' @export
 print.Partition = function(x, ...) print(x$frame())
+
+NumericPartition = function(frame, numeric_vector) {
+  if (nrow(frame) != length(numeric_vector)) stop("Inconsitent numeric partition.")
+  self = Base()
+  self$partition = Partition(frame)
+  self$vector = setNames(
+    macpan2:::valid$num_vec$assert(numeric_vector),
+    self$partition$select_out("Matrix")$labels()
+  )
+  self$filter_vector = function(..., .wrt, .comparison_function = all_equal) {
+    l = self$partition$filter(...
+      , .wrt = .wrt
+      , .comparison_function = .comparison_function
+    )$select_out("Matrix")$labels()
+    self$vector[l]
+  }
+  self$matrix = function(name, row_part, col_part) {
+    row_col_names = character(0L)
+    if (row_part != "") row_part = row_col_names = to_names(row_part)
+    if (col_part != "") {
+      col_part = to_names(col_part)
+      if (length(intersect(col_part, row_part)) != 0L) {
+        stop("Row and column partitions must be mutually exclusive.")
+      }
+      row_col_names = c(row_col_names, col_part)
+    }
+    all_names = self$partition$select_out("Matrix")$names()
+    if (!all(row_col_names %in% all_names)) {
+      stop("Matrix row and column labels must use all label components.")
+    }
+    if (!all(all_names %in% row_col_names)) {
+      stop("Some row/column labels not found in the partition.")
+    }
+    v = self$filter_vector("state", .wrt = "Matrix")
+    if (isTRUE(row_part == "")) {
+      rn = ""
+      i = 1
+    } else {
+      r = self$partition$filter("state", .wrt = "Matrix")$partial_labels(row_part)
+      rn = unique(r)
+      i = match(r, rn)
+    }
+    if (isTRUE(col_part == "")) {
+      cn = ""
+      j = 1
+    } else {
+      c = self$partition$filter("state", .wrt = "Matrix")$partial_labels(col_part)
+      cn = unique(c)
+      j = match(c, cn)
+    }
+    m = matrix(0, length(rn), length(cn))
+    m[cbind(i, j)] = v
+    dimnames(m) = list(rn, cn)
+    m
+  }
+  return_object(self, "NumericPartition")
+}
+
+
 
 if (interactive()) {
   model_dirs = list.files(system.file("starter_models", package = "macpan2"), full.names = TRUE)

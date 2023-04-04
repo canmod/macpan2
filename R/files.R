@@ -94,6 +94,16 @@ Files = function(directory, ...) {
   self$.pull = function(component_name) {
     access_time = self$.access_times[[component_name]]
     modification_time = file.mtime(self$.readers[[component_name]]$file)
+    if (is.na(modification_time)) {
+      ff = self$.readers[[component_name]]$file
+      if (!file.exists(ff)) {
+        stop(
+          "\nThe file, ", ff, " is not where it was.",
+          "\nYou will need to regenerate this Files object",
+          "\nbecause it is corrupted."
+        )
+      }
+    }
     if (modification_time > access_time) self$.fetch(component_name)
   }
   # pull data (i.e. fetch it only if necessary) and return it

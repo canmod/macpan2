@@ -1,0 +1,5 @@
+#set.seed(1L)
+#x = matrix(1:3)
+#macpan2::engine_eval(~ x[5], x = x)
+#macpan2::engine_eval(~ assign(x, 1, c(0, 0), 100:102), x = x, .matrix_to_return = "x")
+#macpan2::engine_eval(~ rnorm(x, x[0:1]), x = x)

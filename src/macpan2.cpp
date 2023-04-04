@@ -98,8 +98,9 @@ enum macpan2_func {
     MP2_NORMAL_DENSITY = 36, // fwrap,fail: dnorm(observed, simulated, standard_deviation)
     MP2_POISSON_SIM = 37, // fwrap,fail: rpois(mean)
     MP2_NEGBIN_SIM = 38, // fwrap,fail: rnbinom(mean, over_dispersion)
-    MP2_NORMAL_SIM = 39 // fwrap,fail: rnorm(mean, standard_deviation)
+    MP2_NORMAL_SIM = 39, // fwrap,fail: rnorm(mean, standard_deviation)
     //MP2_SIN = 40 // fwrap,null: sin(x)
+    MP2_KRONECKER = 40 // binop,null: `%x%`(x, y)
 };
 
 // Helper function
@@ -580,28 +581,42 @@ public:
                     // #' ### Functions
                     // #'
                     // #' * `x %*% y` -- Standard matrix multiplication.
+                    // #' * `x %x% y` -- Kronecker product
                     // #'
                     // #' ### Arguments
                     // #'
-                    // #' * `x` -- Any matrix with as many columns as `y` has
-                    // #' rows.
-                    // #' * `y` -- Any matrix with as many rows as `x` has
-                    // #' columns.
+                    // #' * `x` -- A matrix. For the standard product, `x`
+                    // #' must have as many columns as `y` has rows.
+                    // #' * `y` -- A matrix. For standard product, `y`
+                    // #' must have as many rows as `x` has columns.
                     // #'
                     // #' ### Return
                     // #'
-                    // #' * The standard matrix product of `x` and `y`.
+                    // #' * The matrix product of `x` and `y`.
                     // #'
                     // #' ### Examples
                     // #'
                     // #' ```
                     // #' engine_eval(~ (1:10) %*% t(1:10))
+                    // #' engine_eval(~ (1:10) %x% t(1:10))
                     // #' ```
                     // #'
                         #ifdef MP_VERBOSE
                             std::cout << args[0] << " %*% " << args[1] << " = " << args[0]*args[1] << std::endl << std::endl;
                         #endif
                         return args[0]*args[1];
+
+                    case MP2_KRONECKER: // %x%
+
+                        rows = args[0].rows() * args[1].rows();
+                        cols = args[0].cols() * args[1].cols();
+                        m = matrix<Type>::Zero(rows, cols);
+                        for (int i=0; i<args[0].rows(); i++) {
+                            for (int j=0; j<args[0].cols(); j++) {
+                                m.block(i*args[1].rows(), j*args[1].cols(), args[1].rows(), args[1].cols()) = args[0].coeff(i, j) * args[1];
+                            }
+                        }
+                        return m;
 
                     case MP2_ROUND_BRACKET: // (
 
@@ -1423,10 +1438,50 @@ public:
                     // #'
                     // #' Assign values to a subset of the elements in a matrix.
                     // #'
-                    // #'
                     // #' ### Functions
                     // #'
                     // #' * `assign(x, i, j, v)`
+                    // #'
+                    // #' ### Arguments
+                    // #'
+                    // #' * `x` -- Matrix with elements that are to be updated
+                    // #' by the values in `v`.
+                    // #' * `i` -- Column vector of row indices pointing to
+                    // #' the elements of `x` to be updated. These indices are
+                    // #' paired with those in `v`. If the length of
+                    // #' `i` does not equal that of `v`, then it must have a
+                    // #' single index that gets paired with every element of
+                    // #' `v`.
+                    // #' * `j` -- Column vector of column indices pointing to
+                    // #' the elements of `x` to be updated. These indices are
+                    // #' paired with those in `v`. If the length of
+                    // #' `j` does not equal that of `v`, then it must have a
+                    // #' single index that gets paired with every element of
+                    // #' `v`.
+                    // #' * `v` -- Column vector of values to replace elements
+                    // #' of `x` at locations given by `i` and `j`.
+                    // #'
+                    // #' ### Return
+                    // #'
+                    // #' The `assign` function is not called for its return
+                    // #' value, which is an \code{\link{empty_matrix}}, but
+                    // #' rather to modify `x` but replacing some of its
+                    // #' components with those in `v`.
+                    // #'
+                    // #' ### Examples
+                    // #'
+                    // #' ```
+                    // #' x = matrix(1:12, 3, 4)
+                    // #' engine_eval(~ x + 1, x = x)
+                    // #' engine_eval(~ x + 1, x = x, .matrix_to_return = "x")
+                    // #' engine_eval(~ assign(x, 2, 1, 100), x = x, .matrix_to_return = "x")
+                    // #' engine_eval(~ assign(x
+                    // #'   , c(2, 1, 0)
+                    // #'   , 0
+                    // #'   , c(100, 1000, 10000)
+                    // #' ), x = x, .matrix_to_return = "x")
+                    // #'
+                    // #' ```
                     // #'
 
                         cols = args[1].cols();
@@ -1481,6 +1536,29 @@ public:
                     // #' * `...` -- Matrices with elements to be replaced by
                     // #' the values of elements in `x` in column-major order.
                     // #'
+                    // #' ### Return
+                    // #'
+                    // #' The `unpack` function is not called for its return
+                    // #' value, which is an \code{\link{empty_matrix}}, but
+                    // #' rather to modify the matrices in `...` by replacing
+                    // #' at least some of its components with those in `x`.
+                    // #'
+                    // #' ### Examples
+                    // #'
+                    // #' Here we fill a matrix with integers from `1` to `12`
+                    // #' and then unpack them one-at-a-time into two
+                    // #' column vectors, `x` and `y`. By returning `y`
+                    // #' we see the integers after the first three were
+                    // #' used up by `x`.
+                    // #' ```
+                    // #' engine_eval(~unpack(matrix(1:12, 3, 4), x, y)
+                    // #'   , x = rep(0, 3)
+                    // #'   , y = rep(1, 5)
+                    // #'   , .matrix_to_return = "y"
+                    // #' )
+                    // #' ```
+                    // #'
+
                         // matIndex = index2mats[0]; // m
                         // valid_vars.m_matrices[matIndex]
 

@@ -200,3 +200,28 @@ Note that this is almost identical to the expression for $\lambda_\text{young}$ 
 $$
 \lambda_{\text{R,young}} = (1-\pi) \lambda_{\text{young}}
 $$
+
+## Bookkeeping (in progress)
+
+Index each element of $s$ with $i$ and each element of $x$ with $j$.
+
+We can define the per-capita rate at which individuals flow out of the $s_i$ compartment with the following decomposition.
+
+$$
+r_i = p_i \lambda_i
+$$
+
+The components of the decomposition are as follows.
+
+* $p_i$: susceptibility (e.g. complement of vaccine efficacy)
+* $\lambda_i$: force of infection
+
+With this definition, the absolute rate of flow out of $s_i$ is given by $r_i s_i$.
+
+The force of infection is.
+
+$$
+\lambda_i = \sum_j B_{ij}c_jx_j
+$$
+
+
