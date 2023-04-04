@@ -62,7 +62,7 @@ models.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">engine_eval</span><span class="op">(</span><span class="va">e</span>, <span class="va">...</span>, <span class="va">.matrix_to_return</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">engine_eval</span><span class="op">(</span><span class="va">e</span>, <span class="va">...</span>, <span class="va">.matrix_to_return</span>, .tmb_cpp <span class="op">=</span> <span class="st">"macpan2"</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -81,6 +81,14 @@ treated as the expression to be evaluated.</p></dd>
 in <code>...</code> to be returned. If this argument is missing, the
 matrix that will be returned is the matrix returned by the expression on
 the right-hand-side of the formula.</p></dd>
+
+
+<dt>.tmb_cpp</dt>
+<dd><p>Name of a <code>C++</code> program defining the engine. Typically
+you just want to use the default, which is <code>macpan2</code>, unless you
+are extending the
+<a href="https://canmod.github.io/macpan2/articles/cpp_side.html">engine</a>
+yourself.</p></dd>
 
 </dl></div>
     <div class="section level2">

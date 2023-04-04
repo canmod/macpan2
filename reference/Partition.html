@@ -65,6 +65,34 @@ labels for representing and naming model entities.</p>
 <dd><p>Data frame representing the partition.</p></dd>
 
 </dl></div>
+    <div class="section level2">
+    <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
+    
+
+<p>Object of class <code>Partition</code> with the following methods.</p><div class="section">
+<h3 id="methods">Methods<a class="anchor" aria-label="anchor" href="#methods"></a></h3>
+
+<ul><li><p><code>$frame()</code> -- The <code>Partition</code> object as a data frame.</p></li>
+<li><p><code>$dotted()</code> -- The <code>Partition</code> object as a data frame with one united column.</p></li>
+<li><p><code>$names()</code> -- The names of the <code>Partition</code> (i.e. the column names).</p></li>
+<li><p><code>$name()</code> -- The name of the <code>Partition</code> (i.e. the dot-concatenated column names).</p></li>
+<li><p><code>$labels()</code> -- The labels of the <code>Partition</code> (i.e. the row-wise dot-concatenated columns).</p></li>
+<li><p><code>$filter(..., .wrt, .comparison_function)</code> -- Filter by keeping only a subset of labels.</p></li>
+<li><p><code>$filter_out(..., .wrt, .comparison_function)</code> -- Filter by removing a subset of labels.</p></li>
+<li><p><code>$filter_ordered(..., .wrt, .comparison_function = all_equal)</code> -- Filter and order by labels.</p><ul><li><p><code>...</code> -- Labels to filter</p></li>
+<li><p><code>.wrt</code> -- The filtering labels are with respect to a particular <code>Partition</code>, and
+<code>.wrt</code> is the name of this <code>Partition</code>.</p></li>
+<li><p><code>.comparison_function</code> -- Boolean function to decide if each filtering label is
+equal to each label in the <code>Partition</code>.</p></li>
+</ul></li>
+<li><p><code>$select(...)</code> -- Create a new <code>Partition</code> with a subset of names. The rows of the new
+<code>Partition</code> are de-duplicated.</p></li>
+<li><p><code>$select_out(...)</code> -- Create a new <code>Partition</code> without a subset of names.</p><ul><li><p><code>...</code> -- Names to keep in the resulting <code>Partition</code>.</p></li>
+</ul></li>
+</ul></div>
+
+
+    </div>
 
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside></div>

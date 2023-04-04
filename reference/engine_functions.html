@@ -251,28 +251,30 @@ on top of each other.</p></li>
 <h4 id="functions-4">Functions<a class="anchor" aria-label="anchor" href="#functions-4"></a></h4>
 
 <ul><li><p><code>x %*% y</code> -- Standard matrix multiplication.</p></li>
+<li><p><code>x %x% y</code> -- Kronecker product</p></li>
 </ul></div>
 
 <div class="section">
 <h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
 
-<ul><li><p><code>x</code> -- Any matrix with as many columns as <code>y</code> has
-rows.</p></li>
-<li><p><code>y</code> -- Any matrix with as many rows as <code>x</code> has
-columns.</p></li>
+<ul><li><p><code>x</code> -- A matrix. For the standard product, <code>x</code>
+must have as many columns as <code>y</code> has rows.</p></li>
+<li><p><code>y</code> -- A matrix. For standard product, <code>y</code>
+must have as many rows as <code>x</code> has columns.</p></li>
 </ul></div>
 
 <div class="section">
 <h4 id="return-4">Return<a class="anchor" aria-label="anchor" href="#return-4"></a></h4>
 
-<ul><li><p>The standard matrix product of <code>x</code> and <code>y</code>.</p></li>
+<ul><li><p>The matrix product of <code>x</code> and <code>y</code>.</p></li>
 </ul></div>
 
 <div class="section">
 <h4 id="examples-4">Examples<a class="anchor" aria-label="anchor" href="#examples-4"></a></h4>
 
 
-<p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span> (<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>) <span class="sc">%*%</span> <span class="fu">t</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>))</span></code></pre><p></p></div>
+<p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span> (<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>) <span class="sc">%*%</span> <span class="fu">t</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>))</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span> (<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>) <span class="sc">%x%</span> <span class="fu">t</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>))</span></code></pre><p></p></div>
 </div>
 
 
@@ -712,6 +714,53 @@ given by <code>(simulated/standard_deviation)^2 - simulated)</code>.</p></li>
 <ul><li><p><code>assign(x, i, j, v)</code></p></li>
 </ul></div>
 
+<div class="section">
+<h4 id="arguments-13">Arguments<a class="anchor" aria-label="anchor" href="#arguments-13"></a></h4>
+
+<ul><li><p><code>x</code> -- Matrix with elements that are to be updated
+by the values in <code>v</code>.</p></li>
+<li><p><code>i</code> -- Column vector of row indices pointing to
+the elements of <code>x</code> to be updated. These indices are
+paired with those in <code>v</code>. If the length of
+<code>i</code> does not equal that of <code>v</code>, then it must have a
+single index that gets paired with every element of
+<code>v</code>.</p></li>
+<li><p><code>j</code> -- Column vector of column indices pointing to
+the elements of <code>x</code> to be updated. These indices are
+paired with those in <code>v</code>. If the length of
+<code>j</code> does not equal that of <code>v</code>, then it must have a
+single index that gets paired with every element of
+<code>v</code>.</p></li>
+<li><p><code>v</code> -- Column vector of values to replace elements
+of <code>x</code> at locations given by <code>i</code> and <code>j</code>.</p></li>
+</ul></div>
+
+<div class="section">
+<h4 id="return-11">Return<a class="anchor" aria-label="anchor" href="#return-11"></a></h4>
+
+
+<p>The <code>assign</code> function is not called for its return
+value, which is an <code><a href="empty_matrix.html">empty_matrix</a></code>, but
+rather to modify <code>x</code> but replacing some of its
+components with those in <code>v</code>.</p>
+</div>
+
+<div class="section">
+<h4 id="examples-8">Examples<a class="anchor" aria-label="anchor" href="#examples-8"></a></h4>
+
+
+<p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>x <span class="ot">=</span> <span class="fu">matrix</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">12</span>, <span class="dv">3</span>, <span class="dv">4</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span> x <span class="sc">+</span> <span class="dv">1</span>, <span class="at">x =</span> x)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span> x <span class="sc">+</span> <span class="dv">1</span>, <span class="at">x =</span> x, <span class="at">.matrix_to_return =</span> <span class="st">"x"</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span> <span class="fu">assign</span>(x, <span class="dv">2</span>, <span class="dv">1</span>, <span class="dv">100</span>), <span class="at">x =</span> x, <span class="at">.matrix_to_return =</span> <span class="st">"x"</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span> <span class="fu">assign</span>(x</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  , <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">1</span>, <span class="dv">0</span>)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  , <span class="dv">0</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  , <span class="fu">c</span>(<span class="dv">100</span>, <span class="dv">1000</span>, <span class="dv">10000</span>)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>), <span class="at">x =</span> x, <span class="at">.matrix_to_return =</span> <span class="st">"x"</span>)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span></code></pre><p></p></div>
+</div>
+
 
 </div>
 
@@ -726,13 +775,39 @@ given by <code>(simulated/standard_deviation)^2 - simulated)</code>.</p></li>
 </ul></div>
 
 <div class="section">
-<h4 id="arguments-13">Arguments<a class="anchor" aria-label="anchor" href="#arguments-13"></a></h4>
+<h4 id="arguments-14">Arguments<a class="anchor" aria-label="anchor" href="#arguments-14"></a></h4>
 
 <ul><li><p><code>x</code> -- Matrix with elements to be distributed to
 the matrices passed through <code>...</code>.</p></li>
 <li><p><code>...</code> -- Matrices with elements to be replaced by
 the values of elements in <code>x</code> in column-major order.</p></li>
 </ul></div>
+
+<div class="section">
+<h4 id="return-12">Return<a class="anchor" aria-label="anchor" href="#return-12"></a></h4>
+
+
+<p>The <code>unpack</code> function is not called for its return
+value, which is an <code><a href="empty_matrix.html">empty_matrix</a></code>, but
+rather to modify the matrices in <code>...</code> by replacing
+at least some of its components with those in <code>x</code>.</p>
+</div>
+
+<div class="section">
+<h4 id="examples-9">Examples<a class="anchor" aria-label="anchor" href="#examples-9"></a></h4>
+
+
+<p>Here we fill a matrix with integers from <code>1</code> to <code>12</code>
+and then unpack them one-at-a-time into two
+column vectors, <code>x</code> and <code>y</code>. By returning <code>y</code>
+we see the integers after the first three were
+used up by <code>x</code>.</p>
+<p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span><span class="fu">unpack</span>(<span class="fu">matrix</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">12</span>, <span class="dv">3</span>, <span class="dv">4</span>), x, y)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  , <span class="at">x =</span> <span class="fu">rep</span>(<span class="dv">0</span>, <span class="dv">3</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  , <span class="at">y =</span> <span class="fu">rep</span>(<span class="dv">1</span>, <span class="dv">5</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  , <span class="at">.matrix_to_return =</span> <span class="st">"y"</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>)</span></code></pre><p></p></div>
+</div>
 
 
 </div>
