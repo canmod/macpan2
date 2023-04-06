@@ -22,6 +22,8 @@ Suggests:
     covr,
     knitr,
     rmarkdown,
+    dplyr,
+    ggplot2,
     testthat (>= 3.0.0)
 LinkingTo:
     TMB,
