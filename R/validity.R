@@ -123,7 +123,7 @@ valid <- list(
       TestPipeline(
         Summarizer(extract_with_name("eval_schedule"), length),
         TestRange(3L, 3L)
-      ),
+      ),# "eval_schedule needs 3 elements"),
       MappedAllTest(is.integer),
       TestPipeline(
         Summarizer(extract_with_name("p_table_x")),

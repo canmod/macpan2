@@ -1,0 +1,73 @@
+---
+title: "Quickstart Guide"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{Quickstart Guide}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+library(macpan2)
+library(dplyr)
+library(ggplot2)
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+cat_file = function(...) {
+  cat(readLines(file.path(...)), sep = "\n")
+}
+sir_dir = system.file("starter_models", "sir", package = "macpan2")
+sir = Model(ModelFiles(sir_dir))
+```
+
+## Model Definition Files
+
+```{r, echo=FALSE, eval=TRUE}
+cat_file(sir_dir, "flows.csv")
+```
+
+```{r, echo=FALSE, eval=TRUE}
+cat_file(sir_dir, "variables.csv")
+```
+
+```{r, echo=FALSE, eval=TRUE}
+cat_file(sir_dir, "settings.json")
+```
+
+```{r, echo=FALSE, eval=TRUE}
+cat_file(sir_dir, "derivations.json")
+```
+
+## Numerical Inputs
+
+
+```{r}
+sir_simulator = sir$simulators_tmb(time_steps = 100
+  , state = c(S = 99, I = 1, R = 0)
+  , rate = c(foi = 0, gamma = 0.1)
+  , beta = 0.2
+  , N = empty_matrix
+  , .mats_to_save = "state"
+  , .mats_to_return = "state"
+)
+```
+
+## Simulation
+
+```{r}
+sir_simulations = sir_simulator$report()
+head(sir_simulations, 20)
+```
+
+
+## Processing Results
+
+```{r}
+(sir_simulations
+ %>% ggplot()
+ + geom_line(aes(time, value, colour = row))
+)

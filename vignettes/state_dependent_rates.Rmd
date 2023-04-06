@@ -201,6 +201,10 @@ $$
 \lambda_{\text{R,young}} = (1-\pi) \lambda_{\text{young}}
 $$
 
+## Example
+
+Assume we have an SI model times a young-old model.
+
 ## Bookkeeping (in progress)
 
 Index each element of $s$ with $i$ and each element of $x$ with $j$.

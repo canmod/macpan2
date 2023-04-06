@@ -85,6 +85,7 @@ ExprListUtils = function() {
 #' * `...`: Character vector containing the names of the matrices in the model.
 #'
 #'
+#' @importFrom oor method_apply
 #' @export
 ExprList = function(
       before = list()

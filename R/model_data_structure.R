@@ -144,6 +144,53 @@ Model = function(definition) {
     self$variables()$filter(s$state_variables, .wrt = s$required_partitions)
   }
   self$derivations = self$def$derivations ## TODO: make this more useful
+  self$expr_list = function() {
+    Derivations2ExprList(UserExpr(self), StandardExpr(self))$expr_list()
+  }
+  self$init_mats = function(
+      state
+    , rate
+    , ...
+    , .mats_to_save = character(0L)
+    , .mats_to_return = character(0L)
+    , .dimnames = list()
+  ) {
+    MatsList(
+      state = state
+    , rate = rate
+    , ...
+    , state_length = length(state)
+    , total_inflow = empty_matrix
+    , total_outflow = empty_matrix
+    , per_capita = empty_matrix
+    , per_capita_from = empty_matrix
+    , per_capita_to = empty_matrix
+    , per_capita_flow = empty_matrix
+    , dummy = empty_matrix
+    , .mats_to_save = .mats_to_save
+    , .mats_to_return = .mats_to_return
+    , .dimnames = .dimnames
+    )
+  }
+  self$simulators_tmb = function(time_steps
+        , state
+        , rate
+        , ...
+        , .mats_to_save = character(0L)
+        , .mats_to_return = character(0L)
+        , .dimnames = list()
+    ) {
+      TMBModel(
+        init_mats = self$init_mats(state
+          , rate
+          , ...
+          , .mats_to_save = .mats_to_save
+          , .mats_to_return = .mats_to_return
+          , .dimnames = .dimnames),
+        expr_list = self$expr_list(),
+        time_steps = Time(time_steps)
+      )$simulator()
+    }
   return_object(self, "Model")
 }
 
@@ -467,7 +514,7 @@ StandardExpr = function(model){
     total_outflow_argument_list = list("per_capita", "per_capita_from", "absolute", "absolute_from", "per_capita_outflow",
                                    "per_capita_outflow_from", "absolute_outflow", "absolute_outflow_from", "state_length")
 
-    per_capita_list = list(output_names = "per_capita", expression = "state[per_capita_from]*rate[per_capita_flows]", arguments = list("state", "per_capita_from", "rate", "per_capita_flows"), simulation_phase = "during_update")
+    per_capita_list = list(output_names = "per_capita", expression = "state[per_capita_from]*rate[per_capita_flow]", arguments = list("state", "per_capita_from", "rate", "per_capita_flow"), simulation_phase = "during_update")
     absolute_list = list(output_names = "absolute", expression = "rate[absolute_flows]", arguments = list("rate", "absolute_flows"), simulation_phase = "during_update")
     per_capita_inflow_list = list(output_names = "per_capita_inflow", expression = "state[per_capita_inflow_from]*rate[per_capita_inflow_flows]", arguments = list("state", "per_capita_inflow_from", "rate", "per_capita_inflow_flows"), simulation_phase = "during_update")
     per_capita_outflow_list = list(output_names = "per_capita_outflow", expression = "state[per_capita_outflow_from]*rate[per_capita_outflow_flows]", arguments = list("state", "per_capita_outflow_from", "rate", "per_capita_outflow_flows"), simulation_phase = "during_update")
