@@ -7,10 +7,38 @@
 FlowExpander = function(model) {
   self = Base()
   model = model$freeze()
+
+  self$.add_missing_columns = function(flows) {
+    cols_on_file = names(flows)
+    required_cols = c("from",	"to",	"flow",	"type")
+    if (!all(required_cols %in% cols_on_file)) {
+      stop(
+        "Malformed flows.csv file.\n",
+        "All of the following columns must exist:\n",
+        required_cols
+      )
+    }
+    rp = macpan2:::StringUndottedVector(self$s$required_partitions)$dot()$value()
+    filtering_cols = c("from_partition",	"to_partition",	"flow_partition")
+    for (col in filtering_cols) {
+      if (!col %in% cols_on_file) {
+        flows[[col]] = rp
+      }
+    }
+    mp = c("", "", self$s$null_partition)
+    matching_cols = c("from_to_partition",	"from_flow_partition",	"to_flow_partition")
+    for (col in matching_cols) {
+      if (!col %in% cols_on_file) {
+        flows[[col]] = mp[col == matching_cols]
+      }
+    }
+    flows
+  }
+
   self$v = model$variables()
-  self$f = model$flows()
   self$d = model$derivations()
   self$s = model$settings()
+  self$f = self$.add_missing_columns(model$flows())
   self$.namer = Namer()
   self$.filter = FilterBlanksNotSpecial()
 
@@ -21,6 +49,8 @@ FlowExpander = function(model) {
   ## TODO: make sure that flow_settings is a valid character vector even
   ## though many of these types will not be present in any given model
   self$.flow_variables = do.call(c, flow_settings)
+
+
 
   self$filter_flow = function(flow_number, component_type) {
     filter_partitions = paste(component_type, "partition", sep = "_")

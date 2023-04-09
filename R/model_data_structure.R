@@ -176,8 +176,8 @@ Model = function(definition) {
         , state
         , rate
         , ...
-        , .mats_to_save = character(0L)
-        , .mats_to_return = character(0L)
+        , .mats_to_save = .mats_to_return
+        , .mats_to_return = "state"
         , .dimnames = list()
     ) {
       TMBModel(

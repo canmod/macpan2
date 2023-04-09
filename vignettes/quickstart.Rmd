@@ -21,28 +21,68 @@ cat_file = function(...) {
   cat(readLines(file.path(...)), sep = "\n")
 }
 sir_dir = system.file("starter_models", "sir", package = "macpan2")
-sir = Model(ModelFiles(sir_dir))
 ```
+
 
 ## Model Definition Files
 
+Models are defined by a set of four [model definition files](https://canmod.github.io/macpan2/articles/model_definitions). Installations of `macpan2` contain several starter models for illustration. The simplest is an SIR model, with a path that can be obtained as follows.
+```{r}
+print(sir_dir <- system.file("starter_models", "sir", package = "macpan2"))
+```
+
+The first of these files is `variables.csv`, which provides a list of the variables in the model.
+```{r, echo=FALSE, eval=TRUE}
+cat_file(sir_dir, "variables.csv")
+```
+
+TODO: describe the meaning of each variable in this case.
+
+In simple models like this, `variables.csv` is a single-column CSV file. In this case the name of the column is `Epi`, which isn't particularly useful in this case.  However, in more complex structured models there could be many columns with names like `Epi`, `Age`, and `Location`. In this quickstart guide we focus on simple unstructured models.
+
+The second file is `flows.csv`, which defines flows between compartments.
 ```{r, echo=FALSE, eval=TRUE}
 cat_file(sir_dir, "flows.csv")
 ```
 
-```{r, echo=FALSE, eval=TRUE}
-cat_file(sir_dir, "variables.csv")
-```
+TODO: describe columns of flows.csv.
+
+TODO: note that in structured models more columns are required.
+
+The next file is `settings.json`, which has information about how to interpret the variables and flows.  In simple models like this, the two relevant fields are a list of state variables (those that can appear in the `from` and `to` columns of `flows.csv`) and another list of flow variables (those that can appear in the `flow` column of `flows.csv`).
 
 ```{r, echo=FALSE, eval=TRUE}
 cat_file(sir_dir, "settings.json")
 ```
 
+The final file, `derivations.json`, describes a list of expressions for computing derived variables.
+
 ```{r, echo=FALSE, eval=TRUE}
 cat_file(sir_dir, "derivations.json")
 ```
 
+In this example, the derived variables are the total population size, `N`, and the force of infection, `foi`.
+
+TODO: describe the details of the fields in this file.
+
+## Getting Model Definitions into R
+
+Once a directory that defines a compartmental model is produced, the definition can be loaded into R using the `Compartmental` function.
+
+```{r}
+sir = Compartmental(sir_dir)
+```
+
+This `sir` object contains several methods for working with the model.  The most important of these is the `simulators_tmb` method, which is described in the next section.
+
 ## Numerical Inputs
+
+The model definition does not contain any numerical quantities and so it is not sufficient for running a simulation. The `simulators_tmb` method allows one to create a model engine, which can be used to run simulations, by specifying numerical values for key quantities. Here we specify an engine called `sir_simulator` by providing the following information.
+
+* `time_steps` -- How many time steps should the epidemic simulator run for?
+* `state` -- A named vector containing the values of the state variables defined in `settings.json`.
+* `rate` -- A named vector containing the values of the flow variables defined in `settings.json` (TODO: fix inconsistency by changing the package so that the word flow and not rate is used).
+* `...` -- Any other named variables that are required of your model definition, because they are not derived quantities specified in `derivations.json`. In this example we have `beta` and `N` that are required.
 
 
 ```{r}
@@ -51,21 +91,25 @@ sir_simulator = sir$simulators_tmb(time_steps = 100
   , rate = c(foi = 0, gamma = 0.1)
   , beta = 0.2
   , N = empty_matrix
-  , .mats_to_save = "state"
-  , .mats_to_return = "state"
 )
 ```
 
 ## Simulation
+
+To generate simulations from the simulator, one uses the `report` method. The results come out in [narrow format](https://en.wikipedia.org/wiki/Wide_and_narrow_data) and always have the same columns.
 
 ```{r}
 sir_simulations = sir_simulator$report()
 head(sir_simulations, 20)
 ```
 
+All variables in the simulations are [matrix valued](https://canmod.github.io/macpan2/articles/cpp_side#matrices) -- even ordinary numbers are stored as 1-by-1 matrices. The first column in the output gives you the name of the matrix being returned. Here we see the default behaviour of returning only the state matrix (or vector). This can be modified with the `.mats_to_save` and `.mats_to_return` arguments to the `$simulators_tmb` method (TODO: clean up and point to documentation).
+
+The second column, `time`, gives the time step being reported. The third and fouth columns give the row and column identifiers within each matrices being reported on. The final column gives each simulated value.
 
 ## Processing Results
 
+There are no plotting tools in `macpan2`. The philosophy is to focus on the engine and modelling interface. We are not going to do better than `ggplot2` at plotting, for example, so we just format the output so that it can be easily manipulated by someone who has learned `ggplot2`. Here is an example.
 ```{r}
 (sir_simulations
  %>% ggplot()
