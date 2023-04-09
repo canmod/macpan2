@@ -79,9 +79,15 @@
 <div class="section level2">
 <h2 id="model-definition-files">Model Definition Files<a class="anchor" aria-label="anchor" href="#model-definition-files"></a>
 </h2>
-<pre><code><span><span class="co">#&gt; from ,to ,flow  ,type       ,from_partition ,to_partition ,flow_partition ,from_to_partition ,from_flow_partition ,to_flow_partition</span></span>
-<span><span class="co">#&gt; S    ,I  ,foi   ,per_capita ,Epi            ,Epi          ,Epi            ,                  ,                    ,Null</span></span>
-<span><span class="co">#&gt; I    ,R  ,gamma ,per_capita ,Epi            ,Epi          ,Epi            ,                  ,                    ,Null</span></span></code></pre>
+<p>Models are defined by a set of four <a href="https://canmod.github.io/macpan2/articles/model_definitions">model
+definition files</a>. Installations of <code>macpan2</code> contain
+several starter models for illustration. The simplest is an SIR model,
+with a path that can be obtained as follows.</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">sir_dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"starter_models"</span>, <span class="st">"sir"</span>, package <span class="op">=</span> <span class="st">"macpan2"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "/home/runner/work/_temp/Library/macpan2/starter_models/sir"</span></span></code></pre></div>
+<p>The first of these files is <code>variables.csv</code>, which
+provides a list of the variables in the model.</p>
 <pre><code><span><span class="co">#&gt; Epi</span></span>
 <span><span class="co">#&gt; S</span></span>
 <span><span class="co">#&gt; I</span></span>
@@ -90,12 +96,35 @@
 <span><span class="co">#&gt; beta</span></span>
 <span><span class="co">#&gt; foi</span></span>
 <span><span class="co">#&gt; gamma</span></span></code></pre>
+<p>TODO: describe the meaning of each variable in this case.</p>
+<p>In simple models like this, <code>variables.csv</code> is a
+single-column CSV file. In this case the name of the column is
+<code>Epi</code>, which isn’t particularly useful in this case. However,
+in more complex structured models there could be many columns with names
+like <code>Epi</code>, <code>Age</code>, and <code>Location</code>. In
+this quickstart guide we focus on simple unstructured models.</p>
+<p>The second file is <code>flows.csv</code>, which defines flows
+between compartments.</p>
+<pre><code><span><span class="co">#&gt; from ,to ,flow  ,type      </span></span>
+<span><span class="co">#&gt; S    ,I  ,foi   ,per_capita</span></span>
+<span><span class="co">#&gt; I    ,R  ,gamma ,per_capita</span></span></code></pre>
+<p>TODO: describe columns of flows.csv.</p>
+<p>TODO: note that in structured models more columns are required.</p>
+<p>The next file is <code>settings.json</code>, which has information
+about how to interpret the variables and flows. In simple models like
+this, the two relevant fields are a list of state variables (those that
+can appear in the <code>from</code> and <code>to</code> columns of
+<code>flows.csv</code>) and another list of flow variables (those that
+can appear in the <code>flow</code> column of
+<code>flows.csv</code>).</p>
 <pre><code><span><span class="co">#&gt; {</span></span>
 <span><span class="co">#&gt;   "required_partitions" : ["Epi"],</span></span>
 <span><span class="co">#&gt;   "null_partition" : "Null",</span></span>
 <span><span class="co">#&gt;   "state_variables" : ["S", "I", "R"],</span></span>
 <span><span class="co">#&gt;   "flow_variables" : ["foi", "gamma"]</span></span>
 <span><span class="co">#&gt; }</span></span></code></pre>
+<p>The final file, <code>derivations.json</code>, describes a list of
+expressions for computing derived variables.</p>
 <pre><code><span><span class="co">#&gt; [</span></span>
 <span><span class="co">#&gt;   {</span></span>
 <span><span class="co">#&gt;     "simulation_phase" : "before",</span></span>
@@ -110,24 +139,65 @@
 <span><span class="co">#&gt;     "expression" : "I * beta / N"</span></span>
 <span><span class="co">#&gt;   }</span></span>
 <span><span class="co">#&gt; ]</span></span></code></pre>
+<p>In this example, the derived variables are the total population size,
+<code>N</code>, and the force of infection, <code>foi</code>.</p>
+<p>TODO: describe the details of the fields in this file.</p>
+</div>
+<div class="section level2">
+<h2 id="getting-model-definitions-into-r">Getting Model Definitions into R<a class="anchor" aria-label="anchor" href="#getting-model-definitions-into-r"></a>
+</h2>
+<p>Once a directory that defines a compartmental model is produced, the
+definition can be loaded into R using the <code>Compartmental</code>
+function.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sir</span> <span class="op">=</span> <span class="fu"><a href="../reference/Compartmental.html">Compartmental</a></span><span class="op">(</span><span class="va">sir_dir</span><span class="op">)</span></span></code></pre></div>
+<p>This <code>sir</code> object contains several methods for working
+with the model. The most important of these is the
+<code>simulators_tmb</code> method, which is described in the next
+section.</p>
 </div>
 <div class="section level2">
 <h2 id="numerical-inputs">Numerical Inputs<a class="anchor" aria-label="anchor" href="#numerical-inputs"></a>
 </h2>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<p>The model definition does not contain any numerical quantities and so
+it is not sufficient for running a simulation. The
+<code>simulators_tmb</code> method allows one to create a model engine,
+which can be used to run simulations, by specifying numerical values for
+key quantities. Here we specify an engine called
+<code>sir_simulator</code> by providing the following information.</p>
+<ul>
+<li>
+<code>time_steps</code> – How many time steps should the epidemic
+simulator run for?</li>
+<li>
+<code>state</code> – A named vector containing the values of the
+state variables defined in <code>settings.json</code>.</li>
+<li>
+<code>rate</code> – A named vector containing the values of the flow
+variables defined in <code>settings.json</code> (TODO: fix inconsistency
+by changing the package so that the word flow and not rate is
+used).</li>
+<li>
+<code>...</code> – Any other named variables that are required of
+your model definition, because they are not derived quantities specified
+in <code>derivations.json</code>. In this example we have
+<code>beta</code> and <code>N</code> that are required.</li>
+</ul>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_simulator</span> <span class="op">=</span> <span class="va">sir</span><span class="op">$</span><span class="fu">simulators_tmb</span><span class="op">(</span>time_steps <span class="op">=</span> <span class="fl">100</span></span>
 <span>  , state <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>S <span class="op">=</span> <span class="fl">99</span>, I <span class="op">=</span> <span class="fl">1</span>, R <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
 <span>  , rate <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>foi <span class="op">=</span> <span class="fl">0</span>, gamma <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span></span>
 <span>  , beta <span class="op">=</span> <span class="fl">0.2</span></span>
 <span>  , N <span class="op">=</span> <span class="va">empty_matrix</span></span>
-<span>  , .mats_to_save <span class="op">=</span> <span class="st">"state"</span></span>
-<span>  , .mats_to_return <span class="op">=</span> <span class="st">"state"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="simulation">Simulation<a class="anchor" aria-label="anchor" href="#simulation"></a>
 </h2>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<p>To generate simulations from the simulator, one uses the
+<code>report</code> method. The results come out in <a href="https://en.wikipedia.org/wiki/Wide_and_narrow_data" class="external-link">narrow
+format</a> and always have the same columns.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_simulations</span> <span class="op">=</span> <span class="va">sir_simulator</span><span class="op">$</span><span class="fu">report</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">sir_simulations</span>, <span class="fl">20</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    matrix time row col      value</span></span>
@@ -151,16 +221,33 @@
 <span><span class="co">#&gt; 18  state    5   R      0.6075577</span></span>
 <span><span class="co">#&gt; 19  state    6   S     97.4919089</span></span>
 <span><span class="co">#&gt; 20  state    6   I      1.7415734</span></span></code></pre></div>
+<p>All variables in the simulations are <a href="https://canmod.github.io/macpan2/articles/cpp_side#matrices">matrix
+valued</a> – even ordinary numbers are stored as 1-by-1 matrices. The
+first column in the output gives you the name of the matrix being
+returned. Here we see the default behaviour of returning only the state
+matrix (or vector). This can be modified with the
+<code>.mats_to_save</code> and <code>.mats_to_return</code> arguments to
+the <code>$simulators_tmb</code> method (TODO: clean up and point to
+documentation).</p>
+<p>The second column, <code>time</code>, gives the time step being
+reported. The third and fouth columns give the row and column
+identifiers within each matrices being reported on. The final column
+gives each simulated value.</p>
 </div>
 <div class="section level2">
 <h2 id="processing-results">Processing Results<a class="anchor" aria-label="anchor" href="#processing-results"></a>
 </h2>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<p>There are no plotting tools in <code>macpan2</code>. The philosophy
+is to focus on the engine and modelling interface. We are not going to
+do better than <code>ggplot2</code> at plotting, for example, so we just
+format the output so that it can be easily manipulated by someone who
+has learned <code>ggplot2</code>. Here is an example.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="op">(</span><span class="va">sir_simulations</span></span>
 <span> <span class="op">%&gt;%</span> <span class="fu">ggplot</span><span class="op">(</span><span class="op">)</span></span>
 <span> <span class="op">+</span> <span class="fu">geom_line</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span><span class="va">time</span>, <span class="va">value</span>, colour <span class="op">=</span> <span class="va">row</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="quickstart_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
+<p><img src="quickstart_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>
