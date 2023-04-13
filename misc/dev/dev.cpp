@@ -106,6 +106,26 @@ enum macpan2_func {
 
 // Helper function
 template<class Type>
+int CheckIndices(
+    matrix<Type>& x,
+    matrix<Type>& rowIndices,
+    matrix<Type>& colIndices
+) {
+    int rows = x.rows();
+    int cols = x.cols();
+    Type maxRowIndex = rowIndices.maxCoeff();
+    Type maxColIndex = colIndices.maxCoeff();
+    Type minRowIndex = rowIndices.minCoeff();
+    Type minColIndex = colIndices.minCoeff();
+
+    if ((maxRowIndex < rows) & (maxColIndex < cols) && (minRowIndex > -0.1) && (minColIndex > -0.1)) {
+        return 0;
+    }
+    return 1;
+}
+
+// Helper function
+template<class Type>
 int RecycleInPlace(
     matrix<Type>& mat,
     int rows,
@@ -997,6 +1017,8 @@ public:
                             std::cout << "square bracket" << std::endl << std::endl;
                         #endif
 
+
+
                         int nrow;
                         int ncol;
                         nrow = args[1].size();
@@ -1010,6 +1032,10 @@ public:
                             m1 = args[2];
                         }
 
+                        err_code = CheckIndices(args[0], args[1], m1);
+                        if (err_code) {
+                            SetError(MP2_SQUARE_BRACKET, "Illegal index to square bracket");
+                        }
 
                         m = matrix<Type>::Zero(nrow,ncol);
                         // if we can assume contiguous sets of rows and columns
@@ -1563,8 +1589,10 @@ public:
                             SetError(255, "Assignment value matrices must have a single column");
                             return m;
                         }
-
-                        // std::cout << "JJJ" << args[1].rows() << "JJJ" << args[2].rows() << "JJJ" << args[3].rows() << std::endl;
+                        err_code = CheckIndices(args[0], args[1], args[2]);
+                        if (err_code) {
+                            SetError(MP2_ASSIGN, "Illegal index used in assign");
+                        }
 
                         rows = args[3].rows();
                         err_code1 = RecycleInPlace(args[1], rows, cols);
@@ -1573,8 +1601,6 @@ public:
                         if (err_code != 0) {
                             SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request");
                         }
-
-                        // std::cout << "HHH" << args[1].rows() << "HHH" << args[2].rows() << "HHH" << args[3].rows() << std::endl;
 
                         for (int k=0; k<rows; k++) {
                             rowIndex = CppAD::Integer(args[1].coeff(k,0));
