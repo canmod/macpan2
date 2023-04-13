@@ -1031,13 +1031,14 @@ public:
                             ncol = args[2].size();
                             m1 = args[2];
                         }
+                        m = matrix<Type>::Zero(nrow,ncol);
 
                         err_code = CheckIndices(args[0], args[1], m1);
                         if (err_code) {
                             SetError(MP2_SQUARE_BRACKET, "Illegal index to square bracket");
+                            return m;
                         }
 
-                        m = matrix<Type>::Zero(nrow,ncol);
                         // if we can assume contiguous sets of rows and columns
                         // then mat.block(...) will be faster, so should we
                         // have a block function on the R side when speed
@@ -1592,6 +1593,7 @@ public:
                         err_code = CheckIndices(args[0], args[1], args[2]);
                         if (err_code) {
                             SetError(MP2_ASSIGN, "Illegal index used in assign");
+                            return m;
                         }
 
                         rows = args[3].rows();
@@ -1600,6 +1602,7 @@ public:
                         err_code = err_code1 + err_code2;
                         if (err_code != 0) {
                             SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request");
+                            return m;
                         }
 
                         for (int k=0; k<rows; k++) {
