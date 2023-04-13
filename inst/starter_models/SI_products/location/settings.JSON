@@ -1,0 +1,6 @@
+{
+  "required_partitions" : "Location",
+  "null_partition" : "Null",
+  "state_variables" : ["toronto", "ottawa", "montreal"],
+  "flow_variables" : ["to", "tm", "ot", "om", "mt", "mo"]
+}

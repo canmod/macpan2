@@ -1,0 +1,9 @@
+from ,to   ,flow   ,type       ,from_partition ,to_partition ,flow_partition ,from_to_partition ,from_flow_partition ,to_flow_partition
+S,I,foi,per_capita_rate,Epi,Epi,Epi,,,Null
+I,S,alpha,per_capita_rate,Epi,Epi,Epi,,,Null
+toronto,ottawa,to,per_capita_rate,Location,Location,Location,,,Null
+toronto,montreal,tm,per_capita_rate,Location,Location,Location,,,Null
+ottawa,toronto,ot,per_capita_rate,Location,Location,Location,,,Null
+ottawa,montreal,om,per_capita_rate,Location,Location,Location,,,Null
+montreal,toronto,mt,per_capita_rate,Location,Location,Location,,,Null
+montreal,ottawa,mo,per_capita_rate,Location,Location,Location,,,Null

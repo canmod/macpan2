@@ -1,0 +1,3 @@
+from,to,flow,from_partition,to_partition,flow_partition,from_to_partition,from_flow_partition,to_flow_partition
+S,I,foi,Epi,Epi,Epi,Age,,Null
+I,S,alpha,Epi,Epi,Epi,Age,,Null

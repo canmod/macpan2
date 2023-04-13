@@ -1,0 +1,32 @@
+[
+  {
+        "simulation_phase" : "before",
+        "output_names" : "N.young",
+        "arguments" : ["S.young", "I.young"],
+        "expression" : "sum(S.young, I.young)"
+  },
+  {
+        "simulation_phase" : "before",
+        "output_names" : "N.old",
+        "arguments" : ["S.old", "I.old"],
+        "expression" : "sum(S.old, I.old)"
+  },
+  {
+    "simulation_phase" : "before",
+    "output_names" : "N.total",
+    "arguments" : ["N.young", "N.old"],
+    "expression" : "sum(N.young, N.old)"
+  },
+  {
+    "simulation_phase" : "during_pre_update",
+    "output_names" : "foi.young",
+    "arguments" : ["I.young", "beta1.young", "I.old", "beta2.young", "N.total"],
+    "expression" : "(I.young*beta1.young/N.total)+(I.old*beta2.young/N.total)"
+  },
+  {
+    "simulation_phase" : "during_pre_update",
+    "output_names" : "foi.young",
+    "arguments" : ["I.young", "beta1.young", "I.old", "beta2.young", "N.total"],
+    "expression" : "(I.young*beta.young/N.total)+(I.old*beta2.young/N.total)"
+  }
+]

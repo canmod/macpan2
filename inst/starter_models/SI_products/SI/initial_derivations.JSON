@@ -1,0 +1,26 @@
+[
+  {
+    "simulation_phase" : "before",
+    "output_names" : "beta",
+    "arguments" : ".beta",
+    "expression" : ".beta"
+  },
+  {
+    "simulation_phase" : "before",
+    "output_names" : "alpha",
+    "arguments" : ".alpha",
+    "expression" : ".alpha"
+  },
+  {
+    "simulation_phase" : "before",
+    "output_names" : "S",
+    "arguments" : "S.population",
+    "expression" : "S.population"
+  },
+  {
+    "simulation_phase" : "before",
+    "output_names" : "I",
+    "arguments" : "I.population",
+    "expression" : "I.population"
+  }
+]

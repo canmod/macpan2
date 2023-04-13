@@ -1,0 +1,26 @@
+{
+  "required_partitions" : ["Epi", "Location"],
+  "null_partition" : "Null",
+  "state_variables" : [
+    "S.toronto",
+    "I.toronto",
+    "S.ottawa",
+    "I.ottawa",
+    "S.montreal",
+    "I.montreal"
+  ],
+  "flow_variables" : [
+    "foi.toronto",
+    "alpha.toronto",
+    "foi.ottawa",
+    "alpha.ottawa",
+    "foi.montreal",
+    "alpha.montreal",
+    ".to",
+    ".tm",
+    ".ot",
+    ".om",
+    ".mt",
+    ".mo"
+  ]
+}

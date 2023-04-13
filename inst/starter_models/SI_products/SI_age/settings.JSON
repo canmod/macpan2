@@ -1,0 +1,16 @@
+{
+  "required_partitions" : ["Epi", "Age"],
+  "null_partition" : "Null",
+  "state_variables" : [
+    "S.young",
+    "I.young",
+    "S.old",
+    "I.old"
+  ],
+  "flow_variables" : [
+    "foi.young",
+    "foi.old",
+    "alpha.young",
+    "alpha.old"
+  ]
+}

@@ -1,0 +1,14 @@
+[
+  {
+    "simulation_phase" : "before",
+    "output_names" : "N",
+    "arguments" : ["S", "I"],
+    "expression" : "sum(S, I)"
+  },
+  {
+    "simulation_phase" : "during_pre_update",
+    "output_names" : "foi",
+    "arguments" : ["beta", "N", "I"],
+    "expression" : "I*beta/N"
+  }
+]

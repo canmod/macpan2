@@ -1,0 +1,62 @@
+[
+  {
+    "simulation_phase" : "before",
+    "output_names" : "beta1.young",
+    "arguments" : ["S.young..susceptability", "I..young.infectivity", "..young.young.contact"],
+    "expression" : "S.young..susceptability*I..young.infectivity*..young.young.contact"
+  },
+    {
+    "simulation_phase" : "before",
+    "output_names" : "beta2.young",
+    "arguments" : ["S.young..susceptability", "I..old.infectivity", "..young.oldyoung.contact"],
+    "expression" : "S.young..susceptability*I..old.infectivity*..young.old.contact"
+  },
+    {
+    "simulation_phase" : "before",
+    "output_names" : "beta1.old",
+    "arguments" : ["S.old..susceptability", "I..young.infectivity", "..old.young.contact"],
+    "expression" : "S.old..susceptability*I..young.infectivity*..old.young.contact"
+  },
+  {
+    "simulation_phase" : "before",
+    "output_names" : "beta2.old",
+    "arguments" : ["S.old..susceptability", "I..old.infectivity", "..old.old.contact"],
+    "expression" : "S.old..susceptability*I..old.infectivity*..old.old.contact"
+  },
+  {
+    "simulation_phase" : "before",
+    "output_names" : "S.young",
+    "arguments" : "S.young..population",
+    "expression" : "S.young..population"
+  },
+    {
+    "simulation_phase" : "before",
+    "output_names" : "S.young",
+    "arguments" : "S.old..population",
+    "expression" : "S.old..population"
+  },
+  {
+    "simulation_phase" : "before",
+    "output_names" : "I.young",
+    "arguments" : "I..young.population",
+    "expression" : "I..young.population"
+  },
+  {
+    "simulation_phase" : "before",
+    "output_names" : "I.old",
+    "arguments" : "I..old.population",
+    "expression" : "I..old.population"
+  },
+  {
+    "simulation_phase" : "before",
+    "output_names" : "alpha.young",
+    "arguments" : "..young.alpha",
+    "expression" : "..young.alpha"
+  },
+  {
+    "simulation_phase" : "before",
+    "output_names" : "alpha.old",
+    "arguments" : "..old.alpha",
+    "expression" : "..old.alpha"
+  }
+]

@@ -1,0 +1,14 @@
+[
+  {
+    "simulation_phase" : "before",
+    "output_names" : "young",
+    "arguments" : "young.population",
+    "expression" : "young.population"
+  },
+    {
+    "simulation_phase" : "before",
+    "output_names" : "old",
+    "arguments" : "old.population",
+    "expression" : "old.population"
+  }
+]
