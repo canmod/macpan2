@@ -84,3 +84,7 @@ pkg-install: macpan2_$(VERSION).tar.gz
 
 compile-dev: misc/dev/dev.cpp
 	cd misc/dev; echo "TMB::compile(\"dev.cpp\")" | R --slave
+
+
+misc/dev/%.run: misc/dev/%.R
+	cd misc/dev; Rscript ../../$^
