@@ -12,6 +12,7 @@ vignette: >
 ```{r, include = FALSE}
 library(macpan2)
 model_dirs = list.files(system.file("starter_models", package = "macpan2"), full.names = TRUE)
+model_dirs = model_dirs[basename(model_dirs) != "SI_products"]  # hack -- better to change the directory structure 
 models = setNames(lapply(model_dirs, ModelFiles), basename(model_dirs))
 knitr::opts_chunk$set(
   collapse = TRUE,
