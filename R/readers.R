@@ -39,6 +39,7 @@ CSVReader = function(...) {
       strip.white = TRUE, blank.lines.skip = TRUE,
       stringsAsFactors = TRUE
     )
+    if (nrow(data_frame) == 0L) return(data_frame)
     data_frame[!apply(data_frame, 1, self$.empty), , drop = FALSE]
   }
   return_object(self, "CSVReader")
