@@ -68,10 +68,12 @@
 <!-- badges: start -->
 
 <p><a href="https://github.com/mac-theobio/McMasterPandemic" class="external-link">McMasterPandemic</a> was developed to provide forecasts and insights to Canadian public health agencies throughout the COVID-19 pandemic. <a href="https://canmod.github.io/macpan-book/index.html#vision-and-direction" class="external-link">Much was learned</a> about developing general purpose compartmental modelling software during this experience, but the pressure to deliver regular forecasts made it difficult to focus on the software itself. The goal of this <code>macpan2</code> project is to re-imagine <code>McMasterPandemic</code>, building it from the ground up with architectural and technological decisions that address the many lessons that we learned from COVID-19 about software.</p>
+<p>Although <code>macpan2</code> is designed as a compartmental modelling tool that is agnostic about the underlying computational engine, it currently makes use of <a href="https://github.com/kaskr/adcomp" class="external-link">template model builder</a>. Template model builder (TMB) is a blazing fast <span class="emoji" data-emoji="rocket">🚀</span> <code>R</code> modelling package based on a <code>C++</code> framework that sits on top of mature <a href="https://cppad.readthedocs.io/en/latest/user_guide.html" class="external-link">automatic differentiation</a> and <a href="http://eigen.tuxfamily.org/index.php?title=Main_Page" class="external-link">matrix algebra</a> libraries.</p>
 <div class="section level2">
 <h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
 </h2>
-<p><a href="https://canmod.github.io/macpan2/">https://canmod.github.io/macpan2/</a></p>
+<p>The package documentation is at <a href="https://canmod.github.io/macpan2">https://canmod.github.io/macpan2</a>.</p>
+<p><a href="https://canmod.github.io/macpan2/articles/quickstart">This</a> is where to look to get started as quickly as possible. <a href="https://canmod.github.io/macpan2/articles/model_definitions">This</a> is a specification document describing how compartmental models are represented. <a href="https://canmod.github.io/macpan2/articles/cpp_side">This</a> is another specification document, and it describes the <code>C++</code> engine that sits on top of <a href="https://github.com/kaskr/adcomp" class="external-link">TMB</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
