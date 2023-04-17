@@ -12,9 +12,11 @@ Although `macpan2` is designed as a compartmental modelling tool that is agnosti
 
 ## Documentation
 
-The package documentation is at [https://canmod.github.io/macpan2](https://canmod.github.io/macpan2).
-
-[This](https://canmod.github.io/macpan2/articles/quickstart) is where to look to get started as quickly as possible.  [This](https://canmod.github.io/macpan2/articles/model_definitions) is a specification document describing how compartmental models are represented.  [This](https://canmod.github.io/macpan2/articles/cpp_side) is another specification document, and it describes the `C++` engine that sits on top of [TMB](https://github.com/kaskr/adcomp).
+* [Package reference](https://canmod.github.io/macpan2)
+* [Quick-start guide](https://canmod.github.io/macpan2/articles/quickstart)
+* [Representation of compartmental models](https://canmod.github.io/macpan2/articles/model_definitions) [specification document]
+* [`C++` engine](https://canmod.github.io/macpan2/articles/cpp_side) [specification document]
+* [Project history and trajectory](https://canmod.net/misc/macpan2_presentation) [slides]
 
 ## Installation
 
