@@ -35,10 +35,3 @@ make pkg-build         # build the R package
 make pkg-install       # install the R package from the build
 make pkg-check         # R package checks
 ```
-
-## Specification Documents
-
-* [Model definition specs](https://canmod.net/misc/model_definitions)
-* [Engine specs](https://canmod.net/misc/cpp_side)
-* [Binary operator specs](https://canmod.net/misc/elementwise_binary_operators)
-* [Notes on the composition of simulation models](https://canmod.net/misc/composing_simulation_models)
