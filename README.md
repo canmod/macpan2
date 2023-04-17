@@ -14,9 +14,9 @@ Although `macpan2` is designed as a compartmental modelling tool that is agnosti
 
 * [Package reference](https://canmod.github.io/macpan2)
 * [Quick-start guide](https://canmod.github.io/macpan2/articles/quickstart)
-* [Specification document](https://canmod.github.io/macpan2/articles/model_definitions) describing how `macpan2` represents compartmental models
-* [Another specification document](https://canmod.github.io/macpan2/articles/cpp_side) describing the `C++` engine that sits on top of [TMB](https://github.com/kaskr/adcomp)
-* [Presentation](https://canmod.net/misc/macpan2_presentation) on the history and trajectory of the McMasterPandemic/macpan modelling project
+* [Representation of compartmental models](https://canmod.github.io/macpan2/articles/model_definitions) [specification document]
+* [`C++` engine](https://canmod.github.io/macpan2/articles/cpp_side) [specification document]
+* [Project history and trajectory](https://canmod.net/misc/macpan2_presentation) [slides]
 
 ## Installation
 
