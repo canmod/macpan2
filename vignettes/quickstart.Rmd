@@ -5,8 +5,10 @@ output:
     toc: true
 vignette: >
   %\VignetteIndexEntry{Quickstart Guide}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r, include = FALSE}
@@ -77,18 +79,18 @@ This `sir` object contains several methods for working with the model.  The most
 
 ## Numerical Inputs
 
-The model definition does not contain any numerical quantities and so it is not sufficient for running a simulation. The `simulators_tmb` method allows one to create a model engine, which can be used to run simulations, by specifying numerical values for key quantities. Here we specify an engine called `sir_simulator` by providing the following information.
+The model definition does not contain any numerical quantities and so it is not sufficient for running a simulation. The `$simulators$tmb` method allows one to create a model engine, which can be used to run simulations, by specifying numerical values for key quantities. Here we specify an engine called `sir_simulator` by providing the following information.
 
 * `time_steps` -- How many time steps should the epidemic simulator run for?
 * `state` -- A named vector containing the values of the state variables defined in `settings.json`.
-* `rate` -- A named vector containing the values of the flow variables defined in `settings.json` (TODO: fix inconsistency by changing the package so that the word flow and not rate is used).
+* `flow` -- A named vector containing the values of the flow variables defined in `settings.json`.
 * `...` -- Any other named variables that are required of your model definition, because they are not derived quantities specified in `derivations.json`. In this example we have `beta` and `N` that are required.
 
 
 ```{r}
-sir_simulator = sir$simulators_tmb(time_steps = 100
+sir_simulator = sir$simulators$tmb(time_steps = 100
   , state = c(S = 99, I = 1, R = 0)
-  , rate = c(foi = 0, gamma = 0.1)
+  , flow = c(foi = 0, gamma = 0.1)
   , beta = 0.2
   , N = empty_matrix
 )
@@ -115,3 +117,4 @@ There are no plotting tools in `macpan2`. The philosophy is to focus on the engi
  %>% ggplot()
  + geom_line(aes(time, value, colour = row))
 )
+```

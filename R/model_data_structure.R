@@ -1,132 +1,8 @@
-
-# ValidityMessager(
-#   All(
-#     Is("data.frame"),
-#     MappedAllTest(is.character),
-#     TestPipeline(MappedSummarizer(names), MappedAllTest(is.null)),
-#
-#     ## bound the range of the number of variables
-#     ## (question: should we allow one variable or not?)
-#     TestPipeline(MappedSummarizer(length), MappedAllTest(Not(TestRange(0L, 0L)))),
-#     MappedAllTest(label_requirements),
-#
-#     ## bound the number of characters that is allowed in partitions
-#     TestPipeline(MappedSummarizer(nchar), MappedAllTest(Not(TestRange(0L, 0L)))),
-#
-#     TestPipeline(MappedSummarizer(length), TestHomo()),
-#     TestPipeline(Summarizer(names, is.null), TestFalse()),
-#     TestPipeline(Summarizer(names, duplicated, any), TestFalse()),
-#     TestPipeline(Summarizer(names), TestBasic(label_requirements))
-#   ),
-#   "\nInvalid labelled partitions passed to ModelVars.",
-#   labelled_partitions_validity_message
-# )
-
-# Initialize Model Definition
-#
-#
-#initialize_model_definition(path)
-
-#' Model Collection
-#'
-#' A model definition that is untied from a set of \code{\link{ModelFiles}}.
-#'
-#' @param variables Return value of the `variables` method in a
-#' \code{\link{ModelFiles}} object.
-#' @param derivations Return value of the `derivations` method in a
-#' \code{\link{ModelFiles}} object.
-#' @param flows Return value of the `flows` method in a
-#' \code{\link{ModelFiles}} object.
-#' @param settings Return value of the `settings` method in a
-#' \code{\link{ModelFiles}} object.
-#'
-#' @return An object of class \code{ModelCollection} with the following
-#' methods.
-#'
-#' ## Methods
-#'
-#' * `$variables()` --
-#' * `$derivations()`
-#' * `$flows()`
-#' * `$settings()`
-#'
-#' @export
-ModelCollection = function(variables
-    , derivations
-    , flows
-    , settings
-  ) {
-  self = Collection(variables, derivations, flows, settings)
-
-  ## methods required of model representations
-  self$variables = function() self$get("variables")
-  self$derivations = function() self$get("derivations")
-  self$flows = function() self$get("flows")
-  self$settings = function() self$get("settings")
-
-  return_object(self, "ModelCollection")
-}
-
-#' Model Files
-#'
-#' Construct objects for accessing and caching model definition files.
-#'
-#' @param model_directory String giving a path to a directory containing
-#' the following files, `variables.csv`, `derivations.json`, `flows.csv`,
-#' and `settings.json`, described by
-#' [this spec](https://canmod.net/misc/model_definitions).
-#' @param csv_reader Class inheriting from \code{\link{Reader}} for reading
-#' csv files.
-#' @param json_reader Class inheriting from \code{\link{Reader}} for reading
-#' json files.
-#' @param txt_reader Class inheriting from \code{\link{Reader}} for reading
-#' txt files.
-#'
-#' @examples
-#' d = system.file("starter_models", "seir_symp_vax", package = "macpan2")
-#' m = ModelFiles(d)
-#' m$flows()
-#' expander = FlowExpander(m)
-#' expander$expand_flows()
-#'
-#' @export
-ModelFiles = function(model_directory
-    , csv_reader = CSVReader
-    , json_reader = JSONReader
-    , txt_reader = TXTReader
-) {
-  self = Files(model_directory
-    , reader_spec("variables.csv", csv_reader)
-    , reader_spec("derivations.json", json_reader)
-    , reader_spec("flows.csv", csv_reader)
-    , reader_spec("settings.json", json_reader)
-  )
-
-  ## methods required of model representations
-  self$variables = function() self$get("variables")
-  self$derivations = function() self$get("derivations")
-  self$flows = function() self$get("flows")
-  self$settings = function() self$get("settings")
-
-  self$freeze = function() {
-    ModelCollection(
-      self$variables(),
-      self$derivations(),
-      self$flows(),
-      self$settings()
-    )
-  }
-
-  return_object(self, "ModelFiles")
-}
-
 #' Model
 #'
 #' Construct an object for representing a model structure.
 #'
 #' @param definition Output of \code{\link{ModelFiles}}.
-#'
-#' @return
 #'
 #' @export
 Model = function(definition) {
@@ -143,54 +19,29 @@ Model = function(definition) {
     s = self$def$settings()
     self$variables()$filter(s$state_variables, .wrt = s$required_partitions)
   }
+  self$all_labels = function() {
+    rp = self$def$settings()$required_partitions
+    self$variables()$select(rp)$labels()
+  }
+  self$flow_labels = function() {
+    rp = self$def$settings()$required_partitions
+    self$flow_variables()$select(rp)$labels()
+  }
+  self$state_labels = function() {
+    rp = self$def$settings()$required_partitions
+    self$state_variables()$select(rp)$labels()
+  }
+  self$other_labels = function() {
+    setdiff(
+      self$all_labels(),
+      c(self$state_labels(), self$flow_labels())
+    )
+  }
   self$derivations = self$def$derivations ## TODO: make this more useful
   self$expr_list = function() {
     Derivations2ExprList(UserExpr(self), StandardExpr(self))$expr_list()
   }
-  self$init_mats = function(
-      state
-    , rate
-    , ...
-    , .mats_to_save = character(0L)
-    , .mats_to_return = character(0L)
-    , .dimnames = list()
-  ) {
-    MatsList(
-      state = state
-    , rate = rate
-    , ...
-    , state_length = length(state)
-    , total_inflow = empty_matrix
-    , total_outflow = empty_matrix
-    , per_capita = empty_matrix
-    , per_capita_from = empty_matrix
-    , per_capita_to = empty_matrix
-    , per_capita_flow = empty_matrix
-    , dummy = empty_matrix
-    , .mats_to_save = .mats_to_save
-    , .mats_to_return = .mats_to_return
-    , .dimnames = .dimnames
-    )
-  }
-  self$simulators_tmb = function(time_steps
-        , state
-        , rate
-        , ...
-        , .mats_to_save = .mats_to_return
-        , .mats_to_return = "state"
-        , .dimnames = list()
-    ) {
-      TMBModel(
-        init_mats = self$init_mats(state
-          , rate
-          , ...
-          , .mats_to_save = .mats_to_save
-          , .mats_to_return = .mats_to_return
-          , .dimnames = .dimnames),
-        expr_list = self$expr_list(),
-        time_steps = Time(time_steps)
-      )$simulator()
-    }
+  self$simulators = Simulators(self)
   return_object(self, "Model")
 }
 
@@ -364,18 +215,18 @@ Scalar2Vector = function(derivation_extractor){
   self$.state_replacer = function(scalar_name){
     return(paste0("state[", paste0(self$.state_pointer(scalar_name), "]")))
   }
-  self$.rate_pointer = function(scalar_name){
+  self$.flow_pointer = function(scalar_name){
     return(as.numeric(which(scalar_name == self$model$def$settings()[["flow_variables"]]))-1)
   }
-  self$.rate_replacer = function(scalar_name){
-    return(paste0("rate[", paste0(self$.rate_pointer(scalar_name), "]")))
+  self$.flow_replacer = function(scalar_name){
+    return(paste0("flow[", paste0(self$.flow_pointer(scalar_name), "]")))
   }
   self$.replacer = function(scalar_name){
     if(any(scalar_name == self$model$def$settings()[["state_variables"]])){
       return(self$.state_replacer(scalar_name))
     }
     else if(any(scalar_name == self$model$def$settings()[["flow_variables"]])){
-      return(self$.rate_replacer(scalar_name))
+      return(self$.flow_replacer(scalar_name))
     }
     else return(scalar_name)
   }
@@ -395,7 +246,7 @@ Scalar2Vector = function(derivation_extractor){
       }
       else if(any(extracted_derivation$outputs[[i]]==self$model$def$settings()[["flow_variables"]])){
         new_derivation$outputs = c(new_derivation$outputs, "dummy")
-        if(length(extracted_derivation$variables) != 0L) new_derivation$variables = c(new_derivation$variables, list(c("rate", self$.rate_pointer(extracted_derivation$outputs[[i]]), extracted_derivation$variables[[i]])))
+        if(length(extracted_derivation$variables) != 0L) new_derivation$variables = c(new_derivation$variables, list(c("flow", self$.flow_pointer(extracted_derivation$outputs[[i]]), extracted_derivation$variables[[i]])))
         if (length(extracted_derivation$variable_dots) != 0) new_derivation$variable_dots = c(new_derivation$variable_dots, list(extracted_derivation$variable_dots[[i]]))
       }
       else {
@@ -506,45 +357,45 @@ StandardExpr = function(model){
   self$.state_pointer = function(scalar_name){
     return(as.numeric(which(scalar_name == self$model$def$settings()[["state_variables"]]))-1)
   }
-  self$.rate_pointer = function(scalar_name){
+  self$.flow_pointer = function(scalar_name){
     return(as.numeric(which(scalar_name == self$model$def$settings()[["flow_variables"]]))-1)
   }
-  self$.rate_types = list("per_capita",
+  self$.flow_types = list("per_capita",
                           "absolute",
                           "per_capita_inflow",
                           "per_capita_outflow",
                           "absolute_inflow",
                           "absolute_outflow")
-  self$.inflow_rate_types = list("per_capita",
+  self$.inflow_flow_types = list("per_capita",
                                  "absolute",
                                  "per-capita_inflow",
                                  "absolute_inflow")
-  self$.outflow_rate_types = list("per_capita",
+  self$.outflow_flow_types = list("per_capita",
                                   "absolute",
                                   "per_capita_outflow",
                                   "absolute_outflow")
-  self$.flow_seperator = function(rate_type){
-    return(self$.expanded_flows[self$.expanded_flows$type == rate_type,])
+  self$.flow_seperator = function(flow_type){
+    return(self$.expanded_flows[self$.expanded_flows$type == flow_type,])
   }
-  self$.seperated_flows = lapply(self$.rate_types, self$.flow_seperator)
+  self$.seperated_flows = lapply(self$.flow_types, self$.flow_seperator)
   self$.init_index_vector = function(flow_frame){
     from = lapply(flow_frame$from, self$.state_pointer)
     to = lapply(flow_frame$to, self$.state_pointer)
-    flow = lapply(flow_frame$flow, self$.rate_pointer)
+    flow = lapply(flow_frame$flow, self$.flow_pointer)
     return(list(from = from, to = to, flow = flow))
   }
   self$.init_index_vectors = function(){
     output_list = lapply(self$.seperated_flows, self$.init_index_vector)
-    names(output_list) = self$.rate_types
+    names(output_list) = self$.flow_types
     return(output_list)
   }
-  self$.flow_tester = function(rate_type){
-    return(!(nrow(self$.expanded_flows[self$.expanded_flows$type == rate_type,])==0L))
+  self$.flow_tester = function(flow_type){
+    return(!(nrow(self$.expanded_flows[self$.expanded_flows$type == flow_type,])==0L))
   }
   self$.init_derivations_list = function(){
-    present_flows = unlist(lapply(self$.rate_types, self$.flow_tester), use.names = FALSE)
-    present_inflows = unlist(lapply(self$.inflow_rate_types, self$.flow_tester), use.names = FALSE)
-    present_outflows = unlist(lapply(self$.outflow_rate_types, self$.flow_tester), use.names = FALSE)
+    present_flows = unlist(lapply(self$.flow_types, self$.flow_tester), use.names = FALSE)
+    present_inflows = unlist(lapply(self$.inflow_flow_types, self$.flow_tester), use.names = FALSE)
+    present_outflows = unlist(lapply(self$.outflow_flow_types, self$.flow_tester), use.names = FALSE)
 
     total_inflow_expression_vct = c("groupSums(per_capita, per_capita_to, state_length)",
                                     "groupSums(absolute, absolute_to, state_length)",
@@ -560,12 +411,12 @@ StandardExpr = function(model){
     total_outflow_argument_list = list("per_capita", "per_capita_from", "absolute", "absolute_from", "per_capita_outflow",
                                    "per_capita_outflow_from", "absolute_outflow", "absolute_outflow_from", "state_length")
 
-    per_capita_list = list(output_names = "per_capita", expression = "state[per_capita_from]*rate[per_capita_flow]", arguments = list("state", "per_capita_from", "rate", "per_capita_flow"), simulation_phase = "during_update")
-    absolute_list = list(output_names = "absolute", expression = "rate[absolute_flows]", arguments = list("rate", "absolute_flows"), simulation_phase = "during_update")
-    per_capita_inflow_list = list(output_names = "per_capita_inflow", expression = "state[per_capita_inflow_from]*rate[per_capita_inflow_flows]", arguments = list("state", "per_capita_inflow_from", "rate", "per_capita_inflow_flows"), simulation_phase = "during_update")
-    per_capita_outflow_list = list(output_names = "per_capita_outflow", expression = "state[per_capita_outflow_from]*rate[per_capita_outflow_flows]", arguments = list("state", "per_capita_outflow_from", "rate", "per_capita_outflow_flows"), simulation_phase = "during_update")
-    absolute_inflow_list = list(output_names = "absolute_inflow", expression = "rate[absolute_inflow_flows]", arguments = list("rate", "absolute_inflow_flows"), simulation_phase = "duing_update")
-    absolute_outflow_list = list(output_names = "absolute_outflow", expression = "rate[absolute_outflow_flows]", arguments = list("rate", "absolute_outflow_flows"), simulation_phase = "during_update")
+    per_capita_list = list(output_names = "per_capita", expression = "state[per_capita_from]*flow[per_capita_flow]", arguments = list("state", "per_capita_from", "flow", "per_capita_flow"), simulation_phase = "during_update")
+    absolute_list = list(output_names = "absolute", expression = "flow[absolute_flows]", arguments = list("flow", "absolute_flows"), simulation_phase = "during_update")
+    per_capita_inflow_list = list(output_names = "per_capita_inflow", expression = "state[per_capita_inflow_from]*flow[per_capita_inflow_flows]", arguments = list("state", "per_capita_inflow_from", "flow", "per_capita_inflow_flows"), simulation_phase = "during_update")
+    per_capita_outflow_list = list(output_names = "per_capita_outflow", expression = "state[per_capita_outflow_from]*flow[per_capita_outflow_flows]", arguments = list("state", "per_capita_outflow_from", "flow", "per_capita_outflow_flows"), simulation_phase = "during_update")
+    absolute_inflow_list = list(output_names = "absolute_inflow", expression = "flow[absolute_inflow_flows]", arguments = list("flow", "absolute_inflow_flows"), simulation_phase = "duing_update")
+    absolute_outflow_list = list(output_names = "absolute_outflow", expression = "flow[absolute_outflow_flows]", arguments = list("flow", "absolute_outflow_flows"), simulation_phase = "during_update")
     total_inflow_list = list(output_names = "total_inflow", expression = paste0(total_inflow_expression_vct[present_inflows], collapse = "+") ,arguments = total_inflow_argument_list[c(rep(present_inflows, each = 2), TRUE)] , simulation_phase = "during_update")
     total_outflow_list = list(output_names = "total_outflow", expression = paste0(total_outflow_expression_vct[present_outflows]),arguments = total_outflow_argument_list[c(rep(present_outflows, each = 2), TRUE)] , simulation_phase = "during_update")
     state_list = list(output_names = "state", expression = "state - total_outflow + total_inflow", arguments = list("state", "total_outflow", "total_inflow"), simulation_phase = "during_update")
@@ -580,8 +431,8 @@ StandardExpr = function(model){
     ))
   }
   self$.index_vectors_evaluator = function(){
-    prefix_strings = unique(self$.expanded_flows$type) # self$.rate_types
-    #prefix_strings = self$.rate_types
+    prefix_strings = unique(self$.expanded_flows$type) # self$.flow_types
+    #prefix_strings = self$.flow_types
     index_vectors = self$.init_index_vectors()[prefix_strings]
     formula = MathExpressionFromStrings("c(...)", include_dots = TRUE)
     return(do.call(c, mapply(self$.index_vector_evaluator, prefix_strings, index_vectors, MoreArgs = list(formula = formula), SIMPLIFY = FALSE)))

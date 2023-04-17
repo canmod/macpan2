@@ -218,8 +218,13 @@ ExprList = function(
 #' history after the simulation is complete.
 #' @param .mats_to_return Character vector naming matrices to be returned
 #' after the simulate is complete.
-#' @param .dimnames No longer used. Set dimnames by adding dimnames to the
-#' matrices passed to \code{...}.
+#' @param .dimnames Named list of \code{\link{dimnames}} for matrices that change
+#' their dimensions over the simulation steps. These names correspond to the
+#' names of the matrices. The output of the simulations will try their best
+#' to honor these names, but if the shape of the matrix is too inconsistent
+#' with the \code{\link{dimnames}} then numerical indices will be used instead.
+#' For matrices that do not change their dimensions, set \code{\link{dimnames}}
+#' by adding \code{\link{dimnames}} to the matrices passed to \code{...}.
 #'
 #' @return Object of class \code{MatsList} with the following methods.
 #'

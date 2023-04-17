@@ -89,6 +89,10 @@ valid <- list(
     Is("EdgeModel"),
     "not an edge model"
   ),
+  compartmental = ValidityMessager(
+    Is("Compartmental"),
+    "not a compartmental model"
+  ),
   func = ValidityMessager(
     is.function,
     "not a function"
