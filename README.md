@@ -12,7 +12,7 @@ Although `macpan2` is designed as a compartmental modelling tool that is agnosti
 
 ## Documentation
 
-* [Package documentation](https://canmod.github.io/macpan2)
+* [Package reference](https://canmod.github.io/macpan2)
 * [Quick-start guide](https://canmod.github.io/macpan2/articles/quickstart)
 * [Specification document](https://canmod.github.io/macpan2/articles/model_definitions) describing how `macpan2` represents compartmental models
 * [Another specification document](https://canmod.github.io/macpan2/articles/cpp_side) describing the `C++` engine that sits on top of [TMB](https://github.com/kaskr/adcomp)
