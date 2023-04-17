@@ -43,7 +43,7 @@ FlowExpander = function(model) {
   self$.filter = FilterBlanksNotSpecial()
 
   ## only rate makes sense now, but adding others to prepare for them
-  valid_flow_types = sprintf("%s_variables", c("abs", "rate", "abs_source", "abs_sink", "rate_source", "rate_source"))
+  valid_flow_types = sprintf("%s_variables", c("flow"))
   flow_settings = self$s[valid_flow_types]
   ## TODO: add check to enforce that no variable is in more than one type??
   ## TODO: make sure that flow_settings is a valid character vector even
@@ -115,6 +115,7 @@ FlowExpander = function(model) {
   }
 
   self$expand_flows = function() {
+    if (nrow(self$f) == 0L) return(self$f[, c("from", "to", "flow", "type"), drop = FALSE])
     do.call(rbind, lapply(seq_len(nrow(self$f)), self$expand_flow))
   }
 
