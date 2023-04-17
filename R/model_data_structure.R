@@ -214,6 +214,9 @@ Model = function(definition) {
 DerivationExtractor = function(model){
   self = Base()
   self$model = model
+
+  # @param derivation an element in a derivations file
+  # @return variables required for the derivation, with all partitions
   self$.filtered_variables = function(derivation){
     if (!is.null(derivation$filter_partition)) {
       filtered_variables = self$model$variables()$filter(
@@ -224,6 +227,9 @@ DerivationExtractor = function(model){
     return(filtered_variables)
   }
 
+  # @param derivation an element in a derivations file
+  # @return list of variables required for each group in the derivation,
+  #         with all partitions
   self$.group_variables = function(derivation){
     if (!is.null(derivation$group_partition)) {
       group_variables = lapply(derivation$group_names
@@ -238,7 +244,11 @@ DerivationExtractor = function(model){
     return(group_variables)
   }
 
+  # @param derivation an element in a derivations file
+  # @return list of labels for the outputs of each group, using only the
+  #         required partitions
   self$.group_outputs = function(derivation){
+    rp = self$model$def$settings()$required_partitions
     if (!is.null(derivation$output_partition)) {
       group_output = lapply(derivation$output_names
         , self$.filtered_variables(derivation)$filter
@@ -248,11 +258,13 @@ DerivationExtractor = function(model){
     else {
       group_output = lapply(derivation$output_names
         , self$.filtered_variables(derivation)$filter
-        , .wrt = self$model$def$settings()$required_partitions
+        , .wrt = rp
       )
     }
-
-    group_output = method_apply(group_output, "labels")
+    group_output = (group_output
+      |> method_apply("select", rp)
+      |> method_apply("labels")
+    )
     return(group_output)
   }
 
@@ -271,6 +283,7 @@ DerivationExtractor = function(model){
   self$.filtered_group_variables = function(derivation){
     filtered_group_variables = list()
     if (!is.null(derivation$arguments)) {
+      rp = self$model$def$settings()$required_partitions
       for (j in 1:self$.n_grps) {
         unordered_group_variables = self$.grp_vars[[j]]$filter(
           derivation$arguments,
@@ -282,7 +295,7 @@ DerivationExtractor = function(model){
         )
         filtered_group_variables = c(
           filtered_group_variables,
-          list(as.list(ordered_group_variables$labels()))
+          list(as.list(ordered_group_variables$select(rp)$labels()))
         )
       }
     }
@@ -292,13 +305,14 @@ DerivationExtractor = function(model){
   self$.filtered_group_variable_dots = function(derivation){
     filtered_group_variable_dots = list()
     if (!is.null(derivation$argument_dots)) {
+      rp = self$model$def$settings()$required_partitions
       for (j in 1:self$.n_grps) {
         filtered_group_variable_dots = c(
           filtered_group_variable_dots,
           list(as.list(self$.grp_vars[[j]]$filter(
             derivation$argument_dots,
             .wrt = self$.grp_inpt
-          )$labels())))
+          )$select(rp)$labels())))
       }
     }
     return(filtered_group_variable_dots)
