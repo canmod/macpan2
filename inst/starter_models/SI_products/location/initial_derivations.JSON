@@ -1,0 +1,74 @@
+[
+  {
+    "simulation_phase" : "before",
+    "output_names" : "S.toronto",
+    "arguments" : "S.toronto.",
+    "expresion" : "S.toronto."
+  },
+  {
+    "simulation_phase" : "before",
+    "output_names" : "I.toronto",
+    "arguments" : "I.toronto.",
+    "expresion" : "I.toronto."
+  },
+  {
+    "simulation_phase" : "before",
+    "output_names" : "S.ottawa",
+    "arguments" : "S.ottawa.",
+    "expresion" : "S.ottawa."
+  },
+  {
+    "simulation_phase" : "before",
+    "output_names" : "I.ottawa",
+    "arguments" : "I.ottawa.",
+    "expresion" : "I.ottawa."
+  },
+  {
+    "simulation_phase" : "before",
+    "output_names" : "S.montreal",
+    "arguments" : "S.montreal.",
+    "expresion" : "S.montreal."
+  },
+  {
+    "simulation_phase" : "before",
+    "output_names" : "I.montreal",
+    "arguments" : "I.montreal.",
+    "expresion" : "I.montreal."
+  },
+  {
+    "simulation_phase" : "before",
+    "output_names" : "alpha.toronto",
+    "arguments" : ".toronto.alpha",
+    "expression" : ".toronto.alpha"
+  },
+  {
+    "simulation_phase" : "before",
+    "output_names" : "beta.toronto",
+    "arguments" : ".toronto.beta",
+    "expression" : ".toronto.beta"
+  },
+  {
+    "simulation_phase" : "before",
+    "output_names" : "alpha.ottawa",
+    "arguments" : ".ottawa.alpha",
+    "expression" : ".ottawa.alpha"
+  },
+  {
+    "simulation_phase" : "before",
+    "output_names" : "beta.ottawa",
+    "arguments" : ".ottawa.beta",
+    "expression" : ".ottawa.beta"
+  },
+  {
+    "simulation_phase" : "before",
+    "output_names" : "alpha.montreal",
+    "arguments" : ".montreal.alpha",
+    "expression" : ".montreal.alpha"
+  },
+  {
+    "simulation_phase" : "before",
+    "output_names" : "beta.montreal",
+    "arguments" : ".montreal.beta",
+    "expression" : ".montreal.beta"
+  }
+]

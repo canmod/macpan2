@@ -1,0 +1,38 @@
+[
+  {
+    "simulation_phase" : "during_pre_update",
+    "output_names" : "N.toronto",
+    "arguments" : ["S.toronto", "I.toronto"],
+    "expression" : "sum(S.toronto, I.toronto)"
+  },
+  {
+    "simulation_phase" : "during_pre_update",
+    "output_names" : "N.ottawa",
+    "arguments" : ["S.ottawa", "I.ottawa"],
+    "expression" : "sum(S.ottawa, I.ottawa)"
+  },
+  {
+    "simulation_phase" : "during_pre_update",
+    "output_names" : "N.montreal",
+    "arguments" : ["S.montreal", "I.montreal"],
+    "expression" : "sum(S.montreal, I.montreal)"
+  },
+  {
+    "simulation_phase" : "during_pre_update",
+    "output_names" : "foi.toronto",
+    "arguments" : ["I.toronto", "beta.toronto", "N.toronto"],
+    "expression" : "I.toronto*beta.toronto/N.toronto"
+  },
+  {
+    "simulation_phase" : "during_pre_update",
+    "output_names" : "foi.ottawa",
+    "arguments" : ["I.ottawa", "beta.ottawa", "N.ottawa"],
+    "expression" : "I.ottawa*beta.ottawa/N.ottawa"
+  },
+  {
+    "simulation_phase" : "during_pre_update",
+    "output_names" : "foi.montreal",
+    "arguments" : ["I.montreal", "beta.montreal", "N.montreal"],
+    "expression" : "I.montreal*beta.montreal/N.montreal"
+  }
+]
