@@ -136,25 +136,3 @@ reader_spec = function(file, reader) {
   component_name = tools::file_path_sans_ext(file)
   function(...) setNames(list(reader(..., file)), component_name)
 }
-
-
-if (FALSE) {
-
-f = Files("inst/starter_models/seir"
-  , reader_spec("derivations.json", JSONReader)
-  , reader_spec("flows.csv", CSVReader)
-  , reader_spec("settings.json", JSONReader)
-  , reader_spec("variables.csv", CSVReader)
-)
-f$get("variables")
-f$.fetch("derivations")
-names(f$.readers)
-reader_spec("derivations.json", JSONReader)("inst", "starter_models", "seir")$derivations$read()
-
-a = function(x) function(a) list(a = x)
-b = function(x) function(b) list(b = x)
-ff = function(...) {
-  lapply()
-}
-ff(a(10), b(20))
-}
