@@ -66,6 +66,39 @@ and <code>settings.json</code>, described by
 <a href="https://canmod.github.io/macpan2/articles/model_definitions.html">this spec</a>.</p></dd>
 
 </dl></div>
+    <div class="section level2">
+    <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
+    
+
+<p>An object with the following methods and fields.</p><div class="section">
+<h3 id="methods">Methods<a class="anchor" aria-label="anchor" href="#methods"></a></h3>
+
+<ul><li><p><code>$variables()</code>: <code><a href="Partition.html">Partition</a></code> object of all variables.</p></li>
+<li><p><code>$flows()</code>: Data frame with rows giving all groups of flows.</p></li>
+<li><p><code>$flows_expanded()</code>: Data frame with rows giving all individual flows.</p></li>
+<li><p><code>$state_variables()</code>: <code><a href="Partition.html">Partition</a></code> object of all state variables.</p></li>
+<li><p><code>$flow_variables()</code>: <code><a href="Partition.html">Partition</a></code> object of all flow variables.</p></li>
+<li><p><code>$all_labels()</code>: Character vector giving the labels of all variables.</p></li>
+<li><p><code>$state_labels()</code>: Character vector giving the labels of all state variables.</p></li>
+<li><p><code>$flow_labels()</code>: Character vector giving the labels of all flow variables.</p></li>
+<li><p><code>$other_labels()</code>: Character vector giving the labels of all variables that
+are neither state nor flow variables.</p></li>
+<li><p><code>$expr_list()</code>: <code><a href="ExprList.html">ExprList</a></code> object containing all expressions.</p></li>
+</ul></div>
+
+
+
+<div class="section">
+<h3 id="fields">Fields<a class="anchor" aria-label="anchor" href="#fields"></a></h3>
+
+<ul><li><p><code>$def</code>: The <code><a href="ModelFiles.html">ModelFiles</a></code> object representing the directory
+that defines the model.</p></li>
+<li><p><code>$simulators</code>: A <code><a href="Simulators.html">Simulators</a></code> object for generating
+simulators, which are objects that can generate simulations from the model.</p></li>
+</ul></div>
+
+
+    </div>
 
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside></div>

@@ -84,8 +84,13 @@ after the simulate is complete.</p></dd>
 
 
 <dt>.dimnames</dt>
-<dd><p>No longer used. Set dimnames by adding dimnames to the
-matrices passed to <code>...</code>.</p></dd>
+<dd><p>Named list of <code><a href="https://rdrr.io/r/base/dimnames.html" class="external-link">dimnames</a></code> for matrices that change
+their dimensions over the simulation steps. These names correspond to the
+names of the matrices. The output of the simulations will try their best
+to honor these names, but if the shape of the matrix is too inconsistent
+with the <code><a href="https://rdrr.io/r/base/dimnames.html" class="external-link">dimnames</a></code> then numerical indices will be used instead.
+For matrices that do not change their dimensions, set <code><a href="https://rdrr.io/r/base/dimnames.html" class="external-link">dimnames</a></code>
+by adding <code><a href="https://rdrr.io/r/base/dimnames.html" class="external-link">dimnames</a></code> to the matrices passed to <code>...</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">

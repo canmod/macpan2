@@ -161,7 +161,7 @@ section.</p>
 </h2>
 <p>The model definition does not contain any numerical quantities and so
 it is not sufficient for running a simulation. The
-<code>simulators_tmb</code> method allows one to create a model engine,
+<code>$simulators$tmb</code> method allows one to create a model engine,
 which can be used to run simulations, by specifying numerical values for
 key quantities. Here we specify an engine called
 <code>sir_simulator</code> by providing the following information.</p>
@@ -173,10 +173,8 @@ simulator run for?</li>
 <code>state</code> – A named vector containing the values of the
 state variables defined in <code>settings.json</code>.</li>
 <li>
-<code>rate</code> – A named vector containing the values of the flow
-variables defined in <code>settings.json</code> (TODO: fix inconsistency
-by changing the package so that the word flow and not rate is
-used).</li>
+<code>flow</code> – A named vector containing the values of the flow
+variables defined in <code>settings.json</code>.</li>
 <li>
 <code>...</code> – Any other named variables that are required of
 your model definition, because they are not derived quantities specified
@@ -184,9 +182,9 @@ in <code>derivations.json</code>. In this example we have
 <code>beta</code> and <code>N</code> that are required.</li>
 </ul>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sir_simulator</span> <span class="op">=</span> <span class="va">sir</span><span class="op">$</span><span class="fu">simulators_tmb</span><span class="op">(</span>time_steps <span class="op">=</span> <span class="fl">100</span></span>
+<code class="sourceCode R"><span><span class="va">sir_simulator</span> <span class="op">=</span> <span class="va">sir</span><span class="op">$</span><span class="va">simulators</span><span class="op">$</span><span class="fu">tmb</span><span class="op">(</span>time_steps <span class="op">=</span> <span class="fl">100</span></span>
 <span>  , state <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>S <span class="op">=</span> <span class="fl">99</span>, I <span class="op">=</span> <span class="fl">1</span>, R <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
-<span>  , rate <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>foi <span class="op">=</span> <span class="fl">0</span>, gamma <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span></span>
+<span>  , flow <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>foi <span class="op">=</span> <span class="fl">0</span>, gamma <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span></span>
 <span>  , beta <span class="op">=</span> <span class="fl">0.2</span></span>
 <span>  , N <span class="op">=</span> <span class="va">empty_matrix</span></span>
 <span><span class="op">)</span></span></code></pre></div>
