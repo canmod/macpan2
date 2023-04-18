@@ -77,8 +77,18 @@ compartmental model made using <code><a href="TMBModel.html">TMBModel</a></code>
 <p>Object of class <code>TMBSimulator</code> with the following methods.</p><div class="section">
 <h3 id="methods">Methods<a class="anchor" aria-label="anchor" href="#methods"></a></h3>
 
-<ul><li><p><code>$ad_fun()</code> -- TODO</p></li>
-<li><p><code>$report()</code> -- TODO</p></li>
+<ul><li><p><code>$report()</code>: Runs simulations and returns a data frame with the following
+columns.</p><ul><li><p><code>matrix</code>: Name of the matrix with values returned.</p></li>
+<li><p><code>time</code>: Time step of the values.</p></li>
+<li><p><code>row</code>: Row in the <code>matrix</code> containing the <code>value</code>.</p></li>
+<li><p><code>col</code>: Column in the <code>matrix</code> containing the <code>value</code>.</p></li>
+<li><p><code>value</code>: Numerical value being reported.</p></li>
+</ul></li>
+<li><p><code>$error_code()</code>: If the simulations result in an engine error then the
+code associated with this error is returned, otherwise the code <code>0</code> is
+returned.</p></li>
+<li><p><code>$ad_fun()</code>: Return the underlying <a href="https://github.com/kaskr/adcomp" class="external-link">TMB</a>
+object.</p></li>
 </ul></div>
 
 
