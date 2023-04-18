@@ -63,7 +63,7 @@
 <dd><p>String giving a path to a directory containing
 the following files, <code>variables.csv</code>, <code>derivations.json</code>, <code>flows.csv</code>,
 and <code>settings.json</code>, described by
-<a href="https://canmod.github.io/macpan2/articles/model_definitions.html">this spec</a>.</p></dd>
+<a href="https://canmod.github.io/macpan2/articles/model_definitions">this spec</a>.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -76,13 +76,15 @@ and <code>settings.json</code>, described by
 <ul><li><p><code>$variables()</code>: <code><a href="Partition.html">Partition</a></code> object of all variables.</p></li>
 <li><p><code>$flows()</code>: Data frame with rows giving all groups of flows.</p></li>
 <li><p><code>$flows_expanded()</code>: Data frame with rows giving all individual flows.</p></li>
-<li><p><code>$state_variables()</code>: <code><a href="Partition.html">Partition</a></code> object of all state variables.</p></li>
+<li><p><code>$state_variables()</code>: <code><a href="Partition.html">Partition</a></code> object of all state
+variables.</p></li>
 <li><p><code>$flow_variables()</code>: <code><a href="Partition.html">Partition</a></code> object of all flow variables.</p></li>
 <li><p><code>$all_labels()</code>: Character vector giving the labels of all variables.</p></li>
-<li><p><code>$state_labels()</code>: Character vector giving the labels of all state variables.</p></li>
+<li><p><code>$state_labels()</code>: Character vector giving the labels of all state
+variables.</p></li>
 <li><p><code>$flow_labels()</code>: Character vector giving the labels of all flow variables.</p></li>
-<li><p><code>$other_labels()</code>: Character vector giving the labels of all variables that
-are neither state nor flow variables.</p></li>
+<li><p><code>$other_labels()</code>: Character vector giving the labels of all variables
+that are neither state nor flow variables.</p></li>
 <li><p><code>$expr_list()</code>: <code><a href="ExprList.html">ExprList</a></code> object containing all expressions.</p></li>
 </ul></div>
 
@@ -93,8 +95,9 @@ are neither state nor flow variables.</p></li>
 
 <ul><li><p><code>$def</code>: The <code><a href="ModelFiles.html">ModelFiles</a></code> object representing the directory
 that defines the model.</p></li>
-<li><p><code>$simulators</code>: A <code><a href="Simulators.html">Simulators</a></code> object for generating
-simulators, which are objects that can generate simulations from the model.</p></li>
+<li><p><code>$simulators</code>: A <code><a href="Simulators.html">Simulators</a></code> instance containing methods for
+generating simulators, which are objects that can generate simulations from
+the model.</p></li>
 </ul></div>
 
 
