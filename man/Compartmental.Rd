@@ -10,7 +10,7 @@ Compartmental(model_directory)
 \item{model_directory}{String giving a path to a directory containing
 the following files, \code{variables.csv}, \code{derivations.json}, \code{flows.csv},
 and \code{settings.json}, described by
-\href{https://canmod.github.io/macpan2/articles/model_definitions.html}{this spec}.}
+\href{https://canmod.github.io/macpan2/articles/model_definitions}{this spec}.}
 }
 \value{
 An object with the following methods and fields.
@@ -19,13 +19,15 @@ An object with the following methods and fields.
 \item \verb{$variables()}: \code{\link{Partition}} object of all variables.
 \item \verb{$flows()}: Data frame with rows giving all groups of flows.
 \item \verb{$flows_expanded()}: Data frame with rows giving all individual flows.
-\item \verb{$state_variables()}: \code{\link{Partition}} object of all state variables.
+\item \verb{$state_variables()}: \code{\link{Partition}} object of all state
+variables.
 \item \verb{$flow_variables()}: \code{\link{Partition}} object of all flow variables.
 \item \verb{$all_labels()}: Character vector giving the labels of all variables.
-\item \verb{$state_labels()}: Character vector giving the labels of all state variables.
+\item \verb{$state_labels()}: Character vector giving the labels of all state
+variables.
 \item \verb{$flow_labels()}: Character vector giving the labels of all flow variables.
-\item \verb{$other_labels()}: Character vector giving the labels of all variables that
-are neither state nor flow variables.
+\item \verb{$other_labels()}: Character vector giving the labels of all variables
+that are neither state nor flow variables.
 \item \verb{$expr_list()}: \code{\link{ExprList}} object containing all expressions.
 }
 }
@@ -34,8 +36,9 @@ are neither state nor flow variables.
 \itemize{
 \item \verb{$def}: The \code{\link{ModelFiles}} object representing the directory
 that defines the model.
-\item \verb{$simulators}: A \code{\link{Simulators}} object for generating
-simulators, which are objects that can generate simulations from the model.
+\item \verb{$simulators}: A \code{\link{Simulators}} instance containing methods for
+generating simulators, which are objects that can generate simulations from
+the model.
 }
 }
 }

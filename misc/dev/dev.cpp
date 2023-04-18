@@ -40,13 +40,12 @@
 //   + else ERROR
 //   NOTE: 1 Inner product can be made by row_vec %*% col_vec while outer product
 //         can be made by col_vec %*% row_vec.
-//         2 We need to add "transpose" and "flatten" operators
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
 // Functions we Support
 // Please follow exactly the format below when adding a new function:
-//   MP2_CPP_CASE_NAME = {case number}, // {R function name}
+//   MP2_CPP_CASE_NAME = {case number} // {R function name}
 // Note that the last entry does not have the comma that follows
 // {case number}.
 // If an entry in this enum does not have an associated case in the
@@ -59,49 +58,49 @@
 // long as the integers increase from 1 without gaps as long as the
 // R/enum.R file is regenerated.
 enum macpan2_func {
-    MP2_ADD = 1, // binop,null: `+`(x, y)
-    MP2_SUBTRACT = 2, // binop,null: `-`(x, y)
-    MP2_MULTIPLY = 3, // binop,null: `*`(x, y)
-    MP2_DIVIDE = 4, // binop,null: `/`(x, y)
-    MP2_POWER = 5, // binop,null: `^`(x, y)
-    MP2_EXP = 6, // fwrap,null: exp(x)
-    MP2_LOG = 7, // fwrap,null: log(x)
-    MP2_ROUND_BRACKET = 8, // null,null: `(`(...)
-    MP2_COMBINE = 9, // null,null: c(...)
-    MP2_MATRIX = 10, // fwrap,null: matrix(x, i, j)
-    MP2_MATRIX_MULTIPLY = 11, // binop,null: `%*%`(x, y)
-    MP2_SUM = 12, // null,null: sum(...)
-    MP2_REPLICATE = 13, // fwrap,null: rep(x, times)
-    MP2_ROWSUMS = 14, // fwrap,null: rowSums(x)
-    MP2_COLSUMS = 15, // fwrap,null: colSums(x)
-    MP2_GROUPSUMS = 16, // fwrap,null: groupSums(x, f, n)
-    MP2_SQUARE_BRACKET = 17, // null,null: `[`(x, i, j)
-    MP2_BLOCK = 18, // fwrap,fail: block(x, i, j, n, m)
-    MP2_TRANSPOSE = 19, // fwrap,null: t(x)
-    MP2_RBIND_TIME = 20, // fwrap,fail: rbind_time(x, t, t_min)
-    MP2_RBIND_LAG = 21, // fwrap,fail: rbind_lag(x, lag, t_min)
-    MP2_CBIND_TIME = 22, // fwrap,fail: cbind_time(x, t, t_min)
-    MP2_CBIND_LAG = 23, // fwrap,fail: cbind_lag(x, lag, t_min)
-    MP2_COLON = 24, // null,null: `:`(from, to)
-    MP2_SEQUENCE = 25, // fwrap,fail: seq(from, length, by)
-    MP2_CONVOLUTION = 26, // fwrap,fail: convolution(x, k)
-    MP2_CBIND = 27, // fwrap,null: cbind(...)
-    MP2_RBIND = 28, // fwrap,null: rbind(...)
-    MP2_TIME_STEP = 29, // fwrap,fail: time_step(lag)
-    MP2_ASSIGN = 30, // fwrap,null: assign(x, i, j, v)
-    MP2_UNPACK = 31, // fwrap,fail: unpack(x, ...)
-    MP2_RECYCLE = 32, // fwrap,null: recycle(x, rows, cols)
-    MP2_CLAMP = 33, // fwrap,fail: clamp(x)
-    MP2_POISSON_DENSITY = 34, // fwrap,fail: dpois(observed, simulated)
-    MP2_NEGBIN_DENSITY = 35, // fwrap,fail: dnbinom(observed, simulated, over_dispersion)
-    MP2_NORMAL_DENSITY = 36, // fwrap,fail: dnorm(observed, simulated, standard_deviation)
-    MP2_POISSON_SIM = 37, // fwrap,fail: rpois(mean)
-    MP2_NEGBIN_SIM = 38, // fwrap,fail: rnbinom(mean, over_dispersion)
-    MP2_NORMAL_SIM = 39, // fwrap,fail: rnorm(mean, standard_deviation)
-    //MP2_SIN = 40 // fwrap,null: sin(x)
-    MP2_KRONECKER = 40, // binop,null: `%x%`(x, y)
-    MP2_TO_DIAG = 41, // fwrap,fail: to_diag(x)
-    MP2_FROM_DIAG = 42 // fwrap,fail: from_diag(x)
+      MP2_ADD = 1 // binop,null: `+`(x, y)
+    , MP2_SUBTRACT = 2 // binop,null: `-`(x, y)
+    , MP2_MULTIPLY = 3 // binop,null: `*`(x, y)
+    , MP2_DIVIDE = 4 // binop,null: `/`(x, y)
+    , MP2_POWER = 5 // binop,null: `^`(x, y)
+    , MP2_EXP = 6 // fwrap,null: exp(x)
+    , MP2_LOG = 7 // fwrap,null: log(x)
+    , MP2_ROUND_BRACKET = 8 // null,null: `(`(...)
+    , MP2_COMBINE = 9 // null,null: c(...)
+    , MP2_MATRIX = 10 // fwrap,null: matrix(x, i, j)
+    , MP2_MATRIX_MULTIPLY = 11 // binop,null: `%*%`(x, y)
+    , MP2_SUM = 12 // null,null: sum(...)
+    , MP2_REPLICATE = 13 // fwrap,null: rep(x, times)
+    , MP2_ROWSUMS = 14 // fwrap,null: rowSums(x)
+    , MP2_COLSUMS = 15 // fwrap,null: colSums(x)
+    , MP2_GROUPSUMS = 16 // fwrap,null: groupSums(x, f, n)
+    , MP2_SQUARE_BRACKET = 17 // null,null: `[`(x, i, j)
+    , MP2_BLOCK = 18 // fwrap,fail: block(x, i, j, n, m)
+    , MP2_TRANSPOSE = 19 // fwrap,null: t(x)
+    , MP2_RBIND_TIME = 20 // fwrap,fail: rbind_time(x, t, t_min)
+    , MP2_RBIND_LAG = 21 // fwrap,fail: rbind_lag(x, lag, t_min)
+    , MP2_CBIND_TIME = 22 // fwrap,fail: cbind_time(x, t, t_min)
+    , MP2_CBIND_LAG = 23 // fwrap,fail: cbind_lag(x, lag, t_min)
+    , MP2_COLON = 24 // null,null: `:`(from, to)
+    , MP2_SEQUENCE = 25 // fwrap,fail: seq(from, length, by)
+    , MP2_CONVOLUTION = 26 // fwrap,fail: convolution(x, k)
+    , MP2_CBIND = 27 // fwrap,null: cbind(...)
+    , MP2_RBIND = 28 // fwrap,null: rbind(...)
+    , MP2_TIME_STEP = 29 // fwrap,fail: time_step(lag)
+    , MP2_ASSIGN = 30 // fwrap,null: assign(x, i, j, v)
+    , MP2_UNPACK = 31 // fwrap,fail: unpack(x, ...)
+    , MP2_RECYCLE = 32 // fwrap,null: recycle(x, rows, cols)
+    , MP2_CLAMP = 33 // fwrap,fail: clamp(x)
+    , MP2_POISSON_DENSITY = 34 // fwrap,fail: dpois(observed, simulated)
+    , MP2_NEGBIN_DENSITY = 35 // fwrap,fail: dnbinom(observed, simulated, over_dispersion)
+    , MP2_NORMAL_DENSITY = 36 // fwrap,fail: dnorm(observed, simulated, standard_deviation)
+    , MP2_POISSON_SIM = 37 // fwrap,fail: rpois(mean)
+    , MP2_NEGBIN_SIM = 38 // fwrap,fail: rnbinom(mean, over_dispersion)
+    , MP2_NORMAL_SIM = 39 // fwrap,fail: rnorm(mean, standard_deviation)
+    , MP2_KRONECKER = 40 // binop,null: `%x%`(x, y)
+    , MP2_TO_DIAG = 41 // fwrap,fail: to_diag(x)
+    , MP2_FROM_DIAG = 42 // fwrap,fail: from_diag(x)
+    , MP2_CHANGE = 43 //fwrap,fail: change(i, change_points)
 };
 
 // Helper function
@@ -348,7 +347,11 @@ public:
                 // #' following example that calculates a force of infection.
                 // #'
                 // #' ```
-                // #' engine_eval(~ beta * I / S, beta = 0.25, I = 1e3, S = 1e7)
+                // #' engine_eval(~ beta * I / S
+                // #'   , beta = 0.25
+                // #'   , I = 1e3
+                // #'   , S = 1e7
+                // #' )
                 // #' ```
                 // #'
                 // #' To produce a simulation using these functions, one may
@@ -1876,15 +1879,17 @@ Type objective_function<Type>::operator() ()
     for (int i=0; i<n; i++)
         mats.m_matrices[r_mat_id[i]].coeffRef(r_row_id[i], r_col_id[i]) = random[r_par_id[i]];
 
-    //////////////////////////////////
-    // Define an expression evaluator
-    ExprEvaluator<Type> exprEvaluator;
-    //////////////////////////////////
-
     // Simulation history
     /// each element of this history 'vector' is a list of the matrices
     /// in the model at a particular point in history
     vector<ListOfMatrices<Type> > simulation_history(time_steps+2);
+
+
+
+    //////////////////////////////////
+    // Define an expression evaluator
+    ExprEvaluator<Type> exprEvaluator;
+    //////////////////////////////////
 
     // 3 Pre-simulation
     int expr_index = 0;

@@ -11,7 +11,11 @@
 #' following example that calculates a force of infection.
 #'
 #' ```
-#' engine_eval(~ beta * I / S, beta = 0.25, I = 1e3, S = 1e7)
+#' engine_eval(~ beta * I / S
+#'   , beta = 0.25
+#'   , I = 1e3
+#'   , S = 1e7
+#' )
 #' ```
 #'
 #' To produce a simulation using these functions, one may
@@ -705,4 +709,5 @@
 #' @aliases `%x%`
 #' @aliases to_diag
 #' @aliases from_diag
+#' @aliases change
 NULL

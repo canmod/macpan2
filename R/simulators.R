@@ -7,7 +7,7 @@
 #'
 #' @return An object with the following methods.
 #'
-#' ### Methods
+#' ## Methods
 #'
 #' ```
 #' $tmb(time_steps
@@ -19,7 +19,7 @@
 #' )
 #' ```
 #'
-#' ### Method Arguments
+#' ## Method Arguments
 #'
 #' * `time_steps`: The number of time steps run in each simulation.
 #' * `state`: Named numerical vector giving the default initial value of the

@@ -1,47 +1,48 @@
 ## Auto-generated - do not edit by hand
 valid_func_sigs = c(
-  "binop,null: `+`(x, y)",
-  "binop,null: `-`(x, y)",
-  "binop,null: `*`(x, y)",
-  "binop,null: `/`(x, y)",
-  "binop,null: `^`(x, y)",
-  "fwrap,null: exp(x)",
-  "fwrap,null: log(x)",
-  "null,null: `(`(...)",
-  "null,null: c(...)",
-  "fwrap,null: matrix(x, i, j)",
-  "binop,null: `%*%`(x, y)",
-  "null,null: sum(...)",
-  "fwrap,null: rep(x, times)",
-  "fwrap,null: rowSums(x)",
-  "fwrap,null: colSums(x)",
-  "fwrap,null: groupSums(x, f, n)",
-  "null,null: `[`(x, i, j)",
-  "fwrap,fail: block(x, i, j, n, m)",
-  "fwrap,null: t(x)",
-  "fwrap,fail: rbind_time(x, t, t_min)",
-  "fwrap,fail: rbind_lag(x, lag, t_min)",
-  "fwrap,fail: cbind_time(x, t, t_min)",
-  "fwrap,fail: cbind_lag(x, lag, t_min)",
-  "null,null: `:`(from, to)",
-  "fwrap,fail: seq(from, length, by)",
-  "fwrap,fail: convolution(x, k)",
-  "fwrap,null: cbind(...)",
-  "fwrap,null: rbind(...)",
-  "fwrap,fail: time_step(lag)",
-  "fwrap,null: assign(x, i, j, v)",
-  "fwrap,fail: unpack(x, ...)",
-  "fwrap,null: recycle(x, rows, cols)",
-  "fwrap,fail: clamp(x)",
-  "fwrap,fail: dpois(observed, simulated)",
-  "fwrap,fail: dnbinom(observed, simulated, over_dispersion)",
-  "fwrap,fail: dnorm(observed, simulated, standard_deviation)",
-  "fwrap,fail: rpois(mean)",
-  "fwrap,fail: rnbinom(mean, over_dispersion)",
-  "fwrap,fail: rnorm(mean, standard_deviation)",
-  "binop,null: `%x%`(x, y)",
-  "fwrap,fail: to_diag(x)",
-  "fwrap,fail: from_diag(x)"
+        "binop,null: `+`(x, y)"
+      , "binop,null: `-`(x, y)"
+      , "binop,null: `*`(x, y)"
+      , "binop,null: `/`(x, y)"
+      , "binop,null: `^`(x, y)"
+      , "fwrap,null: exp(x)"
+      , "fwrap,null: log(x)"
+      , "null,null: `(`(...)"
+      , "null,null: c(...)"
+      , "fwrap,null: matrix(x, i, j)"
+      , "binop,null: `%*%`(x, y)"
+      , "null,null: sum(...)"
+      , "fwrap,null: rep(x, times)"
+      , "fwrap,null: rowSums(x)"
+      , "fwrap,null: colSums(x)"
+      , "fwrap,null: groupSums(x, f, n)"
+      , "null,null: `[`(x, i, j)"
+      , "fwrap,fail: block(x, i, j, n, m)"
+      , "fwrap,null: t(x)"
+      , "fwrap,fail: rbind_time(x, t, t_min)"
+      , "fwrap,fail: rbind_lag(x, lag, t_min)"
+      , "fwrap,fail: cbind_time(x, t, t_min)"
+      , "fwrap,fail: cbind_lag(x, lag, t_min)"
+      , "null,null: `:`(from, to)"
+      , "fwrap,fail: seq(from, length, by)"
+      , "fwrap,fail: convolution(x, k)"
+      , "fwrap,null: cbind(...)"
+      , "fwrap,null: rbind(...)"
+      , "fwrap,fail: time_step(lag)"
+      , "fwrap,null: assign(x, i, j, v)"
+      , "fwrap,fail: unpack(x, ...)"
+      , "fwrap,null: recycle(x, rows, cols)"
+      , "fwrap,fail: clamp(x)"
+      , "fwrap,fail: dpois(observed, simulated)"
+      , "fwrap,fail: dnbinom(observed, simulated, over_dispersion)"
+      , "fwrap,fail: dnorm(observed, simulated, standard_deviation)"
+      , "fwrap,fail: rpois(mean)"
+      , "fwrap,fail: rnbinom(mean, over_dispersion)"
+      , "fwrap,fail: rnorm(mean, standard_deviation)"
+      , "binop,null: `%x%`(x, y)"
+      , "fwrap,fail: to_diag(x)"
+      , "fwrap,fail: from_diag(x)"
+      , "fwrap,fail: change(i, change_points)"
 )
 process_enum = function(x) {
   RE = "(null|fail|binop|fwrap|bwrap|pwrap)[ ]*,[ ]*(null|fail|binop|fwrap|bwrap|pwrap)[ ]*:[ ]*\\`?([^`]*)\\`?\\((.*)(\\,.*)*\\)"

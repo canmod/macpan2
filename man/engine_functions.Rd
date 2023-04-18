@@ -44,6 +44,7 @@
 \alias{`\%x\%`}
 \alias{to_diag}
 \alias{from_diag}
+\alias{change}
 \title{Engine Functions}
 \description{
 Functions currently supported by the C++ TMB engine
@@ -55,7 +56,11 @@ The quickest way to experiment with these functions is
 to use the \code{\link{engine_eval}} function, as in the
 following example that calculates a force of infection.
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{engine_eval(~ beta * I / S, beta = 0.25, I = 1e3, S = 1e7)
+\if{html}{\out{<div class="sourceCode">}}\preformatted{engine_eval(~ beta * I / S
+  , beta = 0.25
+  , I = 1e3
+  , S = 1e7
+)
 }\if{html}{\out{</div>}}
 
 To produce a simulation using these functions, one may

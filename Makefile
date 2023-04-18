@@ -1,6 +1,7 @@
-ENUM_RE = ^[ ]*MP2_[A-Z_]*[ ]*=[ ]*[0-9][0-9]*
+COMMA_RE = ^\([, ]*\)
+ENUM_RE = [ ]*MP2_[A-Z_]*[ ]*=[ ]*[0-9][0-9]*
 SED_RE = \(\,\)*[ ]*\/\/[ ]*\(.*\)
-ALIAS_RE = ^[ ]*MP2_\(.*\)\: \(.*\)(\(.*\))
+ALIAS_RE = [ ]*MP2_\(.*\)\: \(.*\)(\(.*\))
 ROXY_RE = ^.*\(\#'.*\)$
 VERSION := $(shell sed -n '/^Version: /s///p' DESCRIPTION)
 
@@ -43,7 +44,7 @@ enum-update:: R/enum.R
 R/enum.R: misc/dev/dev.cpp misc/build/enum_tail.R
 	echo "## Auto-generated - do not edit by hand" > $@
 	echo "valid_func_sigs = c(" >> $@
-	grep "$(ENUM_RE)" misc/dev/dev.cpp | sed 's/$(ENUM_RE)$(SED_RE)/  \"\2\"\1/' >> $@
+	grep "$(COMMA_RE)$(ENUM_RE)" misc/dev/dev.cpp | sed 's/$(COMMA_RE)$(ENUM_RE)$(SED_RE)/  \1\"\3\"\2/' >> $@
 	echo ")" >> $@
 	cat misc/build/enum_tail.R >> $@
 	echo "valid_funcs = setNames(as.list(valid_funcs), valid_funcs)" >> $@
@@ -61,7 +62,7 @@ R/engine_functions.R: src/macpan2.cpp
 	echo "" >> $@
 	grep "$(ROXY_RE)" $^ | sed "s/$(ROXY_RE)/\1/" >> $@
 	echo "#' @name engine_functions" >> $@
-	grep "$(ENUM_RE)" $^ | sed "s/$(ALIAS_RE)/#' @aliases \2/" >> $@
+	grep "$(COMMA_RE)$(ENUM_RE)" $^ | sed "s/$(COMMA_RE)$(ALIAS_RE)/#' @aliases \3/" >> $@
 	echo "NULL" >> $@
 
 

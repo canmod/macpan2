@@ -5,30 +5,33 @@
 #' @param model_directory String giving a path to a directory containing
 #' the following files, `variables.csv`, `derivations.json`, `flows.csv`,
 #' and `settings.json`, described by
-#' [this spec](https://canmod.github.io/macpan2/articles/model_definitions.html).
+#' [this spec](https://canmod.github.io/macpan2/articles/model_definitions).
 #'
 #' @return An object with the following methods and fields.
 #'
-#' ### Methods
+#' ## Methods
 #'
 #' * `$variables()`: \code{\link{Partition}} object of all variables.
 #' * `$flows()`: Data frame with rows giving all groups of flows.
 #' * `$flows_expanded()`: Data frame with rows giving all individual flows.
-#' * `$state_variables()`: \code{\link{Partition}} object of all state variables.
+#' * `$state_variables()`: \code{\link{Partition}} object of all state
+#' variables.
 #' * `$flow_variables()`: \code{\link{Partition}} object of all flow variables.
 #' * `$all_labels()`: Character vector giving the labels of all variables.
-#' * `$state_labels()`: Character vector giving the labels of all state variables.
+#' * `$state_labels()`: Character vector giving the labels of all state
+#' variables.
 #' * `$flow_labels()`: Character vector giving the labels of all flow variables.
-#' * `$other_labels()`: Character vector giving the labels of all variables that
-#' are neither state nor flow variables.
+#' * `$other_labels()`: Character vector giving the labels of all variables
+#' that are neither state nor flow variables.
 #' * `$expr_list()`: \code{\link{ExprList}} object containing all expressions.
 #'
-#' ### Fields
+#' ## Fields
 #'
 #' * `$def`: The \code{\link{ModelFiles}} object representing the directory
 #' that defines the model.
-#' * `$simulators`: A \code{\link{Simulators}} object for generating
-#' simulators, which are objects that can generate simulations from the model.
+#' * `$simulators`: A \code{\link{Simulators}} instance containing methods for
+#' generating simulators, which are objects that can generate simulations from
+#' the model.
 #'
 #' @export
 Compartmental = function(model_directory) {
