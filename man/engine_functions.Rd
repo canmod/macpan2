@@ -44,7 +44,7 @@
 \alias{`\%x\%`}
 \alias{to_diag}
 \alias{from_diag}
-\alias{change}
+\alias{time_group}
 \title{Engine Functions}
 \description{
 Functions currently supported by the C++ TMB engine
@@ -552,22 +552,38 @@ that are before \code{t_min} are ignored.
 
 }
 
-\subsection{Time Step}{
+\subsection{Time Indexing}{
 
-Get the time-step associated with a particular
-lag from the current time-step. If the lagged
-time-step is less than zero, the function returns
-zero.
+Get the index of current or lagged time step or
+the index of the current time group. A time group
+is a contiguous set of time steps defined by two
+change points.
 \subsection{Functions}{
 \itemize{
-\item \code{time_step(lag)}
+\item \code{time_step(lag)}: Get the time-step associated
+with a particular lag from the current time-step.
+If the lagged time-step is less than zero, the
+function returns zero.
+\item \code{time_group(index, change_points)}: Update the
+\code{index} associated with the current time group.
+The current group is defined by the minimum
+of all elements of \code{change_points} that are
+greater than the current time step. The time group
+\code{index} is the index associated with this element.
+Please see the examples below, they are easier
+to understand than this explanation.
 }
 }
 
 \subsection{Arguments}{
 \itemize{
-\item \code{lag} -- Number of time-steps to look back for
+\item \code{lag}: Number of time-steps to look back for
 the time-step to return.
+\item \code{index}: Index associated with the current time
+group.
+\item \code{change_points}: Increasing column vector of
+time steps giving the lower bound of each time
+group.
 }
 }
 
@@ -575,6 +591,24 @@ the time-step to return.
 
 A 1-by-1 matrix with the time-step \code{lag} steps
 ago, or with zero if \code{t+1 < lag}
+}
+
+\subsection{Examples}{
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{simple_sims(~time_step(0))
+sims = simple_sims(
+  iteration_exprs = list(
+    time_group ~ change(time_group, change_points),
+    y ~ time_variation_schedule[time_group]
+  ),
+  time_steps = 10,
+  time_group = 0,
+  change_points = c(0, 4, 7),
+  time_variation_schedule = c(42, pi, sqrt(2)),
+  time_varying_parameter = empty_matrix
+)
+sims[sims$matrix == "time_varying_parameter",]
+}\if{html}{\out{</div>}}
 }
 
 }

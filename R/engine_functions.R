@@ -436,26 +436,60 @@
 #'
 #' * A matrix containing values of `x` from past times.
 #'
-#' ## Time Step
+#' ## Time Indexing
 #'
-#' Get the time-step associated with a particular
-#' lag from the current time-step. If the lagged
-#' time-step is less than zero, the function returns
-#' zero.
+#' Get the index of current or lagged time step or
+#' the index of the current time group. A time group
+#' is a contiguous set of time steps defined by two
+#' change points.
 #'
 #' ### Functions
 #'
-#' * `time_step(lag)`
+#' * `time_step(lag)`: Get the time-step associated
+#' with a particular lag from the current time-step.
+#' If the lagged time-step is less than zero, the
+#' function returns zero.
+#' * `time_group(index, change_points)`: Update the
+#' `index` associated with the current time group.
+#' The current group is defined by the minimum
+#' of all elements of `change_points` that are
+#' greater than the current time step. The time group
+#' `index` is the index associated with this element.
+#' Please see the examples below, they are easier
+#' to understand than this explanation.
 #'
 #' ### Arguments
 #'
-#' * `lag` -- Number of time-steps to look back for
+#' * `lag`: Number of time-steps to look back for
 #' the time-step to return.
+#' * `index`: Index associated with the current time
+#' group.
+#' * `change_points`: Increasing column vector of
+#' time steps giving the lower bound of each time
+#' group.
 #'
 #' ### Return
 #'
 #' A 1-by-1 matrix with the time-step `lag` steps
 #' ago, or with zero if `t+1 < lag`
+#'
+#' ### Examples
+#'
+#' ```
+#' simple_sims(~time_step(0))
+#' sims = simple_sims(
+#'   iteration_exprs = list(
+#'     time_group ~ change(time_group, change_points),
+#'     y ~ time_variation_schedule[time_group]
+#'   ),
+#'   time_steps = 10,
+#'   time_group = 0,
+#'   change_points = c(0, 4, 7),
+#'   time_variation_schedule = c(42, pi, sqrt(2)),
+#'   time_varying_parameter = empty_matrix
+#' )
+#' sims[sims$matrix == "time_varying_parameter",]
+#' ```
 #'
 #' ## Convolution
 #'
@@ -710,5 +744,5 @@
 #' @aliases `%x%`
 #' @aliases to_diag
 #' @aliases from_diag
-#' @aliases change
+#' @aliases time_group
 NULL

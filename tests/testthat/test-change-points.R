@@ -1,7 +1,7 @@
 test_that("change pointers can be incremented", {
   sims = simple_sims(
     iteration_exprs = list(
-      pointer ~ change(pointer, change_points)
+      pointer ~ time_group(pointer, change_points)
     ),
     time_steps = 10,
     pointer = 0,
