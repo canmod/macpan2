@@ -647,8 +647,18 @@ TMBModel = function(
 #'
 #' ## Methods
 #'
-#' * `$ad_fun()` -- TODO
-#' * `$report()` -- TODO
+#' * `$report()`: Runs simulations and returns a data frame with the following
+#' columns.
+#'     * `matrix`: Name of the matrix with values returned.
+#'     * `time`: Time step of the values.
+#'     * `row`: Row in the `matrix` containing the `value`.
+#'     * `col`: Column in the `matrix` containing the `value`.
+#'     * `value`: Numerical value being reported.
+#' * `$error_code()`: If the simulations result in an engine error then the
+#' code associated with this error is returned, otherwise the code `0` is
+#' returned.
+#' * `$ad_fun()`: Return the underlying [TMB](https://github.com/kaskr/adcomp)
+#' object.
 #'
 #' @export
 TMBSimulator = function(tmb_model, tmb_cpp = "macpan2") {

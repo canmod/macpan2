@@ -19,7 +19,8 @@
 #' ```
 #'
 #' To produce a simulation using these functions, one may
-#' use the ...
+#' use \code{\link{TMBSimulator}}.
+#'
 #'
 #'
 #' ## Elementwise Binary Operators

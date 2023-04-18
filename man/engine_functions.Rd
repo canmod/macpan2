@@ -64,7 +64,7 @@ following example that calculates a force of infection.
 }\if{html}{\out{</div>}}
 
 To produce a simulation using these functions, one may
-use the ...
+use \code{\link{TMBSimulator}}.
 \subsection{Elementwise Binary Operators}{
 
 Elementwise binary operators take two matrix-valued

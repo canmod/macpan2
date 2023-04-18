@@ -15,8 +15,20 @@ TMBSimulator(tmb_model, tmb_cpp = "macpan2")
 Object of class \code{TMBSimulator} with the following methods.
 \subsection{Methods}{
 \itemize{
-\item \verb{$ad_fun()} -- TODO
-\item \verb{$report()} -- TODO
+\item \verb{$report()}: Runs simulations and returns a data frame with the following
+columns.
+\itemize{
+\item \code{matrix}: Name of the matrix with values returned.
+\item \code{time}: Time step of the values.
+\item \code{row}: Row in the \code{matrix} containing the \code{value}.
+\item \code{col}: Column in the \code{matrix} containing the \code{value}.
+\item \code{value}: Numerical value being reported.
+}
+\item \verb{$error_code()}: If the simulations result in an engine error then the
+code associated with this error is returned, otherwise the code \code{0} is
+returned.
+\item \verb{$ad_fun()}: Return the underlying \href{https://github.com/kaskr/adcomp}{TMB}
+object.
 }
 }
 }

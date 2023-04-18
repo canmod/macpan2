@@ -239,7 +239,7 @@ public:
         // Variables to use locally in function bodies
         matrix<Type> m, m1, m2;  // return values
         Type sum, s, eps, var;  // intermediate scalars
-        int rows, cols, lag, rowIndex, colIndex, matIndex, reps, off, size, sz, start, err_code, err_code1, err_code2;
+        int rows, cols, lag, rowIndex, colIndex, matIndex, reps, cp, off, size, sz, start, err_code, err_code1, err_code2;
 
         if (GetErrorCode()) return m; // Check if error has already happened at some point of the recursive call.
 
@@ -355,7 +355,8 @@ public:
                 // #' ```
                 // #'
                 // #' To produce a simulation using these functions, one may
-                // #' use the ...
+                // #' use \code{\link{TMBSimulator}}.
+                // #'
                 // #'
                 // #'
                 switch(table_x[row]+1) {
@@ -1220,6 +1221,15 @@ public:
                         }
                         if (t > lag) {
                             m.coeffRef(0,0) = t - lag;
+                        }
+                        return m;
+
+                    case MP2_CHANGE: // change(i, change_points)
+                        m = args[0];
+                        off = CppAD::Integer(args[0].coeff(0, 0));
+                        cp = CppAD::Integer(args[1].coeff(off + 1, 0));
+                        if (cp == t) {
+                            m.coeffRef(0,0) = off + 1;
                         }
                         return m;
 
