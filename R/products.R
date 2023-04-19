@@ -19,8 +19,6 @@ Products = function(x) {
   return_object(self, "Products")
 }
 
-sub("^[^0-9]+([0-9]+)$", "\\1", xx)
-
 # methods for products. currently these are just for Partition
 # objects and so they are not yet done as S3 or S4.
 
