@@ -6,10 +6,11 @@ articles:
   cpp_side: cpp_side.html
   elementwise_binary_operators: elementwise_binary_operators.html
   functions: functions.html
+  hello_products: hello_products.html
   model_definitions: model_definitions.html
   quickstart: quickstart.html
   state_dependent_rates: state_dependent_rates.html
-last_built: 2023-04-19T13:14Z
+last_built: 2023-04-19T17:19Z
 urls:
   reference: https://canmod.github.io/macpan2/reference
   article: https://canmod.github.io/macpan2/articles
