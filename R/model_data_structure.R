@@ -12,12 +12,31 @@ Model = function(definition) {
   self$flows = function() self$def$flows()
   self$flows_expanded = function() FlowExpander(self$def)$expand_flows()
   self$flow_variables = function() {
+    # TODO: Handle case without flow variables.
     s = self$def$settings()
     self$variables()$filter(s$flow_variables, .wrt = s$required_partitions)
   }
   self$state_variables = function() {
+    # TODO: Handle case without state variables.
     s = self$def$settings()
     self$variables()$filter(s$state_variables, .wrt = s$required_partitions)
+  }
+  self$other_variables = function() {
+    # TODO: A better way to handle the NULL case would make it possible
+    # to return a null Partition object. This is currently not possible
+    # for 'technical' reasons.
+    if (length(self$other_labels()) == 0L) {
+      warning(
+        "\nThere are no other variables in this model",
+        "\nexcept for state and flow variables."
+      )
+      return(NULL)
+    }
+    s = self$def$settings()
+    self$variables()$filter_out(
+      c(s$flow_variables, s$state_variables),
+      .wrt = s$required_partitions
+    )
   }
   self$all_labels = function() {
     rp = self$def$settings()$required_partitions

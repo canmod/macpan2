@@ -1,0 +1,159 @@
+---
+title: "Hello Products"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{Hello Products}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+library(macpan2)
+library(dplyr)
+library(ggplot2)
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+cat_file = function(...) {
+  cat(readLines(file.path(...)), sep = "\n")
+}
+prod_dir = file.path("..", "inst", "starter_models", "SI_products", "hello_products")
+si_dir = file.path("..", "inst", "starter_models", "SI_products", "hello_si")
+age_dir = file.path("..", "inst", "starter_models", "SI_products", "hello_age")
+```
+
+## Read Models
+
+Here we read the target product model, `prod`, and its two factor models, `si` and `age`, into R.
+
+```{r}
+prod = Compartmental(prod_dir)
+si = Compartmental(si_dir)
+age = Compartmental(age_dir)
+```
+
+The goal of this document is to multiply `si` and `age` to see if we can recover our target, `prod`.
+
+## Simulating from the Product Model
+
+TODO: 
+
+* Do the model definition by hand so that it works
+* Specify numerical inputs
+* Run the the simulation
+* Verify the results
+
+## Multiplying Variable Lists
+
+We begin taking the product of `si` and `age` by multiplying the variables, which are as follows for the factor models.
+
+```{r}
+si$variables()
+age$variables()
+```
+
+The simple Cartesian product of these two lists is as follows.
+
+```{r}
+cartesian(si$variables(), age$variables())
+```
+
+This is too much.  For example, one of the levels of each state variable (`r si$state_labels()`) in the `si` model is the `aging` rate. This doesn't make sense. Perhaps it would be better to start with the Cartesian product of the state variables only, and then build up from there.
+
+```{r}
+cartesian(si$state_variables(), age$state_variables())
+```
+
+That's better, but it is missing the stratification of the flow rates and their parameters. For example we want age-stratified `infection` rates. To stratify the flows in `si` by the states in `age` we could do the following.
+
+```{r}
+cartesian(si$flow_variables(), age$state_variables())
+```
+
+That's good.  Do we want to stratify the flows in `age` by the states in `si`?
+
+```{r}
+cartesian(si$state_variables(), age$flow_variables())
+```
+
+Here it doesn't make sense for `S` and `I` to age at different `aging` rates. But maybe for the purposes of 'The Product Model' this is OK, and the user just needs to set the aging rate as constant? Not sure.
+
+Putting this all together we have.
+
+```{r}
+union_vars(
+  cartesian(si$state_variables(), age$state_variables()),
+  cartesian(si$flow_variables(), age$state_variables()),
+  cartesian(si$state_variables(), age$flow_variables())
+)
+```
+
+But what about other variables that are neither states nor flows? We can at least list these other variables.
+
+```{r}
+si$other_variables()
+age$other_variables()
+```
+
+Here we see `N`, which as we will see later is the sum of `S` and `I`. We also see three variables (`susceptibility`, `contact`, and `infectivity`) that [parameterize](https://canmod.github.io/macpan2/articles/state_dependent_rates) the `infection` rate. Finally we also see that the only variables in the `age` model are states and flows.
+
+We want `N` to be stratified by age, but what about the infection-related variables? We take one at a time.
+
+The `susceptibility` parameter is a property of the `from` states involved in infection flows. It measures how susceptible the `from` state is to being infected. Often `susceptibility` will equal `1` (or some other constant) if there is only one susceptible state or if all susceptible states are equally susceptible. But if the susceptible states differ in their susceptibility (e.g. due to differeneces in vaccination status or infection history), then the `susceptibility` parameter will vary. In our working example we might want to stratify `susceptibility` by age so that young people are less susceptible than old people.
+
+The `infectivity` parameter is a property of the infectious states involved in infection flows. As with the `susceptibility` parameter, we probably also want to stratify `infectivity` by `age` as well.
+
+The `contact` parameter is a property of a pair of states -- in particular one susceptible state and one infectious state. Because all states can be any age and that it is possible for any individual in one age to interact with an individual in another age, this `contact` parameter needs to be stratified by age twice -- first by the susceptible age and then by the infectious age. This double-stratification makes `contact` more complex to handle, because we are not able to just take a single Cartesian product -- we need to take two products.
+
+But before we do any double products, let's first handle `N`, `susceptibility`, and `infectivity`.
+
+```{r}
+cartesian(
+  si$other_variables()$filter("N", "susceptibility", "infectivity"), 
+  age$state_variables()
+)
+```
+
+```{r}
+cartesian(
+  si$other_variables()$filter("contact"),
+  age$state_variables()
+)$products$cartesian(age$state_variables())
+```
+
+## Aligning State-Dependent Effects on Flows
+
+## Multiplying Flows
+
+## Combining the Derivations
+
+## Simulating the Resulting Product Model
+
+## Scratch
+
+
+```{r}
+prod$state_labels()
+prod$flow_labels()
+```
+
+```{r}
+si$variables()
+si$flows_expanded()
+```
+
+```{r}
+age$variables()
+age$flows_expanded()
+```
+
+
+```{r}
+prod$variables()
+prod$flows_expanded()
+UserExpr(prod)$expand_vector_expressions()
+prod$expr_list()$print_exprs()
+```

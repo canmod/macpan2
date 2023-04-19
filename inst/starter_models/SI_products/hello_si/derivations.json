@@ -1,0 +1,14 @@
+[
+    {
+        "simulation_phase" : "during_pre_update",
+        "output_names" : ["N"],
+        "arguments" : ["S", "I"],
+        "expression" : "sum(S, I)"
+    },
+    {
+        "simulation_phase" : "during_pre_update",
+        "output_names" : ["infection"],
+        "arguments" : ["susceptibility", "contact", "infectivity", "I", "N"],
+        "expression" : "susceptibility * contact * infectivity * I / N"
+    }
+]

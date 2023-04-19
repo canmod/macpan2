@@ -153,6 +153,7 @@ if (FALSE) {
 #' @export
 Partition = function(frame) {
   self = Base()
+  self$products = Products(self)
   self$.partition = frame_to_part(frame)
   self$frame = function() self$.partition$frame()
   self$dotted = function() self$.partition$dot()$frame()
@@ -206,11 +207,27 @@ Partition = function(frame) {
   self$expand = function(name) {
     Partition(self$.partition$expand(name)$frame())
   }
+  self$union = function(other) {
+    new_names = StringUndottedVector(union(self$names(), other$names()))$dot()$value()
+    x = self$.partition$expand(new_names)$frame()
+    y = other$.partition$expand(new_names)$frame()
+    Partition(rbind(x, y))
+  }
   return_object(self, "Partition")
 }
 
 #' @export
 print.Partition = function(x, ...) print(x$frame())
+
+#' @export
+union_vars = function(...) {
+  l = list(...)
+  y = l[[1L]]
+  for (i in 2:length(l)) {
+    y = y$union(l[[i]])
+  }
+  y
+}
 
 NumericPartition = function(frame, numeric_vector) {
   if (nrow(frame) != length(numeric_vector)) stop("Inconsitent numeric partition.")

@@ -1,0 +1,6 @@
+{
+    "required_partitions" : ["Age"],
+    "null_partition" : ["Null"],
+    "state_variables" : ["young", "old"],
+    "flow_variables" : ["aging"]
+}
