@@ -56,15 +56,22 @@ The quickest way to experiment with these functions is
 to use the \code{\link{engine_eval}} function, as in the
 following example that calculates a force of infection.
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{engine_eval(~ beta * I / S
+\if{html}{\out{<div class="sourceCode">}}\preformatted{engine_eval(~ beta * I / N
   , beta = 0.25
   , I = 1e3
-  , S = 1e7
+  , N = 1e7
 )
 }\if{html}{\out{</div>}}
 
 To produce a simulation using these functions, one may
-use \code{\link{TMBSimulator}}.
+use \code{\link{simple_sims}}.
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{simple_sims(
+  iteration_exprs = list(x ~ x - 0.9 * x),
+  time_steps = 5,
+  x = 1
+)
+}\if{html}{\out{</div>}}
 \subsection{Elementwise Binary Operators}{
 
 Elementwise binary operators take two matrix-valued
@@ -595,7 +602,11 @@ ago, or with zero if \code{t+1 < lag}
 
 \subsection{Examples}{
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{simple_sims(~time_step(0))
+\if{html}{\out{<div class="sourceCode">}}\preformatted{simple_sims(
+  iteration_exprs = list(x ~ time_step(0)),
+  time_steps = 10,
+  x = empty_matrix
+)
 sims = simple_sims(
   iteration_exprs = list(
     time_group ~ change(time_group, change_points),

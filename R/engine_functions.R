@@ -11,16 +11,23 @@
 #' following example that calculates a force of infection.
 #'
 #' ```
-#' engine_eval(~ beta * I / S
+#' engine_eval(~ beta * I / N
 #'   , beta = 0.25
 #'   , I = 1e3
-#'   , S = 1e7
+#'   , N = 1e7
 #' )
 #' ```
 #'
 #' To produce a simulation using these functions, one may
-#' use \code{\link{TMBSimulator}}.
+#' use \code{\link{simple_sims}}.
 #'
+#' ```
+#' simple_sims(
+#'   iteration_exprs = list(x ~ x - 0.9 * x),
+#'   time_steps = 5,
+#'   x = 1
+#' )
+#' ```
 #'
 #'
 #' ## Elementwise Binary Operators
@@ -476,7 +483,11 @@
 #' ### Examples
 #'
 #' ```
-#' simple_sims(~time_step(0))
+#' simple_sims(
+#'   iteration_exprs = list(x ~ time_step(0)),
+#'   time_steps = 10,
+#'   x = empty_matrix
+#' )
 #' sims = simple_sims(
 #'   iteration_exprs = list(
 #'     time_group ~ change(time_group, change_points),
