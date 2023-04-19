@@ -125,7 +125,7 @@ models.</p>
 <span><span class="co">#&gt; 3 aging</span></span></code></pre></div>
 <p>The simple Cartesian product of these two lists is as follows.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">cartesian</span><span class="op">(</span><span class="va">si</span><span class="op">$</span><span class="fu">variables</span><span class="op">(</span><span class="op">)</span>, <span class="va">age</span><span class="op">$</span><span class="fu">variables</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/cartesian.html">cartesian</a></span><span class="op">(</span><span class="va">si</span><span class="op">$</span><span class="fu">variables</span><span class="op">(</span><span class="op">)</span>, <span class="va">age</span><span class="op">$</span><span class="fu">variables</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;               Epi   Age</span></span>
 <span><span class="co">#&gt; 1               S young</span></span>
 <span><span class="co">#&gt; 2               I young</span></span>
@@ -157,7 +157,7 @@ rate. This doesn’t make sense. Perhaps it would be better to start with
 the Cartesian product of the state variables only, and then build up
 from there.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">cartesian</span><span class="op">(</span><span class="va">si</span><span class="op">$</span><span class="fu">state_variables</span><span class="op">(</span><span class="op">)</span>, <span class="va">age</span><span class="op">$</span><span class="fu">state_variables</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/cartesian.html">cartesian</a></span><span class="op">(</span><span class="va">si</span><span class="op">$</span><span class="fu">state_variables</span><span class="op">(</span><span class="op">)</span>, <span class="va">age</span><span class="op">$</span><span class="fu">state_variables</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   Epi   Age</span></span>
 <span><span class="co">#&gt; 1   S young</span></span>
 <span><span class="co">#&gt; 2   I young</span></span>
@@ -168,7 +168,7 @@ and their parameters. For example we want age-stratified
 <code>infection</code> rates. To stratify the flows in <code>si</code>
 by the states in <code>age</code> we could do the following.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">cartesian</span><span class="op">(</span><span class="va">si</span><span class="op">$</span><span class="fu">flow_variables</span><span class="op">(</span><span class="op">)</span>, <span class="va">age</span><span class="op">$</span><span class="fu">state_variables</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/cartesian.html">cartesian</a></span><span class="op">(</span><span class="va">si</span><span class="op">$</span><span class="fu">flow_variables</span><span class="op">(</span><span class="op">)</span>, <span class="va">age</span><span class="op">$</span><span class="fu">state_variables</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;         Epi   Age</span></span>
 <span><span class="co">#&gt; 1 infection young</span></span>
 <span><span class="co">#&gt; 2    waning young</span></span>
@@ -177,7 +177,7 @@ by the states in <code>age</code> we could do the following.</p>
 <p>That’s good. Do we want to stratify the flows in <code>age</code> by
 the states in <code>si</code>?</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">cartesian</span><span class="op">(</span><span class="va">si</span><span class="op">$</span><span class="fu">state_variables</span><span class="op">(</span><span class="op">)</span>, <span class="va">age</span><span class="op">$</span><span class="fu">flow_variables</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/cartesian.html">cartesian</a></span><span class="op">(</span><span class="va">si</span><span class="op">$</span><span class="fu">state_variables</span><span class="op">(</span><span class="op">)</span>, <span class="va">age</span><span class="op">$</span><span class="fu">flow_variables</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   Epi   Age</span></span>
 <span><span class="co">#&gt; 1   S aging</span></span>
 <span><span class="co">#&gt; 2   I aging</span></span></code></pre></div>
@@ -187,10 +187,10 @@ age at different <code>aging</code> rates. But maybe for the purposes of
 rate as constant? Not sure.</p>
 <p>Putting this all together we have.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">union_vars</span><span class="op">(</span></span>
-<span>  <span class="fu">cartesian</span><span class="op">(</span><span class="va">si</span><span class="op">$</span><span class="fu">state_variables</span><span class="op">(</span><span class="op">)</span>, <span class="va">age</span><span class="op">$</span><span class="fu">state_variables</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  <span class="fu">cartesian</span><span class="op">(</span><span class="va">si</span><span class="op">$</span><span class="fu">flow_variables</span><span class="op">(</span><span class="op">)</span>, <span class="va">age</span><span class="op">$</span><span class="fu">state_variables</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  <span class="fu">cartesian</span><span class="op">(</span><span class="va">si</span><span class="op">$</span><span class="fu">state_variables</span><span class="op">(</span><span class="op">)</span>, <span class="va">age</span><span class="op">$</span><span class="fu">flow_variables</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/union_vars.html">union_vars</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="../reference/cartesian.html">cartesian</a></span><span class="op">(</span><span class="va">si</span><span class="op">$</span><span class="fu">state_variables</span><span class="op">(</span><span class="op">)</span>, <span class="va">age</span><span class="op">$</span><span class="fu">state_variables</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="../reference/cartesian.html">cartesian</a></span><span class="op">(</span><span class="va">si</span><span class="op">$</span><span class="fu">flow_variables</span><span class="op">(</span><span class="op">)</span>, <span class="va">age</span><span class="op">$</span><span class="fu">state_variables</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="../reference/cartesian.html">cartesian</a></span><span class="op">(</span><span class="va">si</span><span class="op">$</span><span class="fu">state_variables</span><span class="op">(</span><span class="op">)</span>, <span class="va">age</span><span class="op">$</span><span class="fu">flow_variables</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;          Epi   Age</span></span>
 <span><span class="co">#&gt; 1          S young</span></span>
@@ -253,7 +253,7 @@ need to take two products.</p>
 <code>N</code>, <code>susceptibility</code>, and
 <code>infectivity</code>.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">cartesian</span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/cartesian.html">cartesian</a></span><span class="op">(</span></span>
 <span>  <span class="va">si</span><span class="op">$</span><span class="fu">other_variables</span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="fu">filter</span><span class="op">(</span><span class="st">"N"</span>, <span class="st">"susceptibility"</span>, <span class="st">"infectivity"</span><span class="op">)</span>, </span>
 <span>  <span class="va">age</span><span class="op">$</span><span class="fu">state_variables</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
@@ -265,7 +265,7 @@ need to take two products.</p>
 <span><span class="co">#&gt; 5 susceptibility   old</span></span>
 <span><span class="co">#&gt; 6    infectivity   old</span></span></code></pre></div>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">cartesian</span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/cartesian.html">cartesian</a></span><span class="op">(</span></span>
 <span>  <span class="va">si</span><span class="op">$</span><span class="fu">other_variables</span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="fu">filter</span><span class="op">(</span><span class="st">"contact"</span><span class="op">)</span>,</span>
 <span>  <span class="va">age</span><span class="op">$</span><span class="fu">state_variables</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span><span class="op">$</span><span class="va">products</span><span class="op">$</span><span class="fu">cartesian</span><span class="op">(</span><span class="va">age</span><span class="op">$</span><span class="fu">state_variables</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>

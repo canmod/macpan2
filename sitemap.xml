@@ -91,6 +91,9 @@
     <loc>https://canmod.github.io/macpan2/reference/Partition.html</loc>
   </url>
   <url>
+    <loc>https://canmod.github.io/macpan2/reference/Products.html</loc>
+  </url>
+  <url>
     <loc>https://canmod.github.io/macpan2/reference/Reader.html</loc>
   </url>
   <url>
@@ -116,6 +119,9 @@
   </url>
   <url>
     <loc>https://canmod.github.io/macpan2/reference/UserExpr.html</loc>
+  </url>
+  <url>
+    <loc>https://canmod.github.io/macpan2/reference/cartesian.html</loc>
   </url>
   <url>
     <loc>https://canmod.github.io/macpan2/reference/comparison.html</loc>
@@ -167,5 +173,8 @@
   </url>
   <url>
     <loc>https://canmod.github.io/macpan2/reference/to_names.html</loc>
+  </url>
+  <url>
+    <loc>https://canmod.github.io/macpan2/reference/union_vars.html</loc>
   </url>
 </urlset>
