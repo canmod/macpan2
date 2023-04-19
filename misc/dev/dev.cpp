@@ -1246,16 +1246,15 @@ public:
                         // #' )
                         // #' sims = simple_sims(
                         // #'   iteration_exprs = list(
-                        // #'     time_group ~ change(time_group, change_points),
-                        // #'     y ~ time_variation_schedule[time_group]
+                        // #'     j ~ time_group(j, change_points),
+                        // #'     time_varying_parameter ~ time_variation_schedule[j]
                         // #'   ),
                         // #'   time_steps = 10,
-                        // #'   time_group = 0,
+                        // #'   j = 0,
                         // #'   change_points = c(0, 4, 7),
                         // #'   time_variation_schedule = c(42, pi, sqrt(2)),
                         // #'   time_varying_parameter = empty_matrix
                         // #' )
-                        // #' sims[sims$matrix == "time_varying_parameter",]
                         // #' ```
                         // #'
                         m = matrix<Type>::Zero(1,1);

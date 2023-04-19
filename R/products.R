@@ -1,3 +1,7 @@
+#' Products
+#'
+#' @param x Object with a `$frame` method that returns a data frame.
+#'
 #' @export
 Products = function(x) {
   self = Base()
@@ -22,6 +26,11 @@ Products = function(x) {
 # methods for products. currently these are just for Partition
 # objects and so they are not yet done as S3 or S4.
 
+#' Cartesian Product
+#'
+#' @param x Object with a `$frame` method that returns a data frame.
+#' @param y Object with a `$frame` method that returns a data frame.
+#'
 #' @export
 cartesian = function(x, y) {
   x$products$cartesian(y)

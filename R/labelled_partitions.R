@@ -219,6 +219,13 @@ Partition = function(frame) {
 #' @export
 print.Partition = function(x, ...) print(x$frame())
 
+#' Union of Variables
+#'
+#' Take the union of a set of variable lists, each of which is represented
+#' by a \code{\link{Partition}} object.
+#'
+#' @param ... \code{\link{Partition}} objects to combine.
+#'
 #' @export
 union_vars = function(...) {
   l = list(...)
