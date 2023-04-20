@@ -31,13 +31,21 @@ full-install:
 # haven't modified macpan.cpp (but have perhaps modified dev.cpp)
 # and (3) do not require a roxygen update.
 quick-install: enum-update
-	R CMD INSTALL . --no-multiarch
+	R CMD INSTALL --no-multiarch --install-tests .
 
 
 quick-doc-install: R/*.R misc/dev/dev.cpp
 	make engine-doc-update
 	make doc-update
 	make quick-install
+
+
+run-examples:
+	Rscript misc/build/run_examples.R
+
+
+run-tests:
+	Rscript -e "library(macpan2); testthat::test_package(\"macpan2\")"
 
 
 enum-update:: R/enum.R
@@ -80,7 +88,7 @@ pkg-check: macpan2_$(VERSION).tar.gz
 
 
 pkg-install: macpan2_$(VERSION).tar.gz
-	R CMD INSTALL --no-multiarch macpan2_$(VERSION).tar.gz
+	R CMD INSTALL --no-multiarch --install-tests macpan2_$(VERSION).tar.gz
 
 
 compile-dev: misc/dev/dev.cpp
