@@ -1,0 +1,5 @@
+from ,to  ,flow          ,type       ,from_partition ,to_partition ,flow_partition ,from_to_partition ,from_flow_partition ,to_flow_partition
+S    ,I   ,infection     ,per_capita ,Epi1           ,Epi1         ,Epi1           ,Epi2              ,Epi2                ,Null
+I    ,R   ,recovery      ,per_capita ,Epi1           ,Epi1         ,Epi1           ,Epi2              ,Epi2                ,Null
+S    ,I   ,infection     ,per_capita ,Epi2           ,Epi2         ,Epi2           ,Epi1              ,Epi1                ,Null
+I    ,R   ,recovery      ,per_capita ,Epi2           ,Epi2         ,Epi2           ,Epi1              ,Epi1                ,Null

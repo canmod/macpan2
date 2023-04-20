@@ -16,7 +16,7 @@
 #'
 #' ## Methods
 #'
-#' * `$variables()` --
+#' * `$variables$all()` --
 #' * `$derivations()`
 #' * `$flows()`
 #' * `$settings()`

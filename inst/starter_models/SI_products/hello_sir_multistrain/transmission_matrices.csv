@@ -1,0 +1,30 @@
+matrix                    ,infection_flow ,infectious_state
+.transmission             ,S.infection      ,S.I
+.transmission             ,I.infection      ,I.I
+.transmission             ,R.infection      ,R.I
+
+
+transmission.             ,infection.S      ,I.S
+transmission.             ,infection.I      ,I.I
+transmission.             ,infection.R      ,I.R
+
+
+transmission.transmission ,infection.S    ,I.S
+transmission.transmission ,infection.S    ,I.I
+transmission.transmission ,infection.S    ,I.R
+transmission.transmission ,infection.I    ,I.S
+transmission.transmission ,infection.I    ,I.I
+transmission.transmission ,infection.I    ,I.R
+transmission.transmission ,infection.R    ,I.S
+transmission.transmission ,infection.R    ,I.I
+transmission.transmission ,infection.R    ,I.R
+
+transmission.transmission ,S.infection    ,S.I
+transmission.transmission ,S.infection    ,I.I
+transmission.transmission ,S.infection    ,R.I
+transmission.transmission ,I.infection    ,S.I
+transmission.transmission ,I.infection    ,I.I
+transmission.transmission ,I.infection    ,R.I
+transmission.transmission ,R.infection    ,S.I
+transmission.transmission ,R.infection    ,I.I
+transmission.transmission ,R.infection    ,R.I

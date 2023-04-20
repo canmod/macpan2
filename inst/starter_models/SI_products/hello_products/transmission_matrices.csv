@@ -1,0 +1,5 @@
+matrix         ,infection_flow  ,infectious_state
+transmission   ,infection.young ,I.young
+transmission   ,infection.old   ,I.young
+transmission   ,infection.young ,I.old
+transmission   ,infection.old   ,I.old

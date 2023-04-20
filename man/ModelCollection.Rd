@@ -24,7 +24,7 @@ An object of class \code{ModelCollection} with the following
 methods.
 \subsection{Methods}{
 \itemize{
-\item \verb{$variables()} --
+\item \verb{$variables$all()} --
 \item \verb{$derivations()}
 \item \verb{$flows()}
 \item \verb{$settings()}

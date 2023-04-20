@@ -1,0 +1,10 @@
+{
+    "required_partitions" : ["Epi.Epi"],
+    "null_partition" : ["Null"],
+    "state_variables" : ["S.S", "S.I", "I.S", "I.I"],
+    "flow_variables" : ["infection.S", "infection.I", "S.infection", "I.infection", "recovery.S", "recovery.I", "S.recovery", "I.recovery"],
+    "infected_state_variables" : ["I.S", "I.I"],
+    "infectious_state_variables" : ["S.I", "I.S", "I.I"],
+    "infection_flow_variables" : ["infection.S", "infection.I", "S.infection", "I.infection"],
+    "transmission_matrix" : "transmission"
+}

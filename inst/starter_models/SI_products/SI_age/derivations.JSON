@@ -25,8 +25,19 @@
   },
   {
     "simulation_phase" : "during_pre_update",
-    "output_names" : "foi.young",
-    "arguments" : ["I.young", "beta1.young", "I.old", "beta2.young", "N.total"],
-    "expression" : "(I.young*beta.young/N.total)+(I.old*beta2.young/N.total)"
+    "output_names" : "foi.old",
+    "arguments" : ["I.young", "beta1.old", "I.old", "beta2.old", "N.total"],
+    "expression" : "(I.young*beta1.old/N.total)+(I.old*beta2.old/N.total)"
+  },
+  {
+    "filter_partition" : "Transmission",
+    "filter_names" : ["susceptibility", "contact", "infectivity"],
+    "group_partition" : "AgeSusceptible.AgeInfected",
+    "group_names" : ["young.young", "young.old", "old.young", "old.old"],
+    "output_partition" : "Epi.AgeSusceptible.AgeInfected",
+    "output_names" : "beta.young.young",
+    "input_partition" : "Transmission",
+    "arguments" : ["susceptibility", "contact", "infectivity"],
+    "expression" : "susceptibility * contact * infectivity"
   }
 ]

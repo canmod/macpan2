@@ -2,5 +2,9 @@
     "required_partitions" : ["Epi"],
     "null_partition" : ["Null"],
     "state_variables" : ["S", "I"],
-    "flow_variables" : ["infection", "waning"]
+    "flow_variables" : ["infection", "recovery"],
+    "infected_state_variables" : ["I"],
+    "infectious_state_variables" : ["I"],
+    "infection_flow_variables" : ["infection"],
+    "transmission_matrix" : "transmission"
 }

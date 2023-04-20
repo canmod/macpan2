@@ -1,22 +1,10 @@
 {
-    "required_partitions" : [
-        "Epi", 
-        "Age" ,
-        "Age2"
-    ],
+    "required_partitions" : ["Epi", "Age"],
     "null_partition" : ["Null"],
-    "state_variables" : [
-        "S.young.", 
-        "I.young.", 
-        "S.old.", 
-        "I.old."
-    ],
-    "flow_variables" : [
-        "infection.young.young", 
-        "infection.old.young",
-        "infection.young.old", 
-        "infection.old.old", 
-        "waning.young.", 
-        "waning.old."
-    ]
+    "state_variables" : ["S.young", "I.young", "S.old", "I.old"],
+    "flow_variables" : ["infection.young", "infection.old", "recovery.young", "recovery.old", "aging.young", "aging.old"],
+    "infected_state_variables" : ["I.young", "I.old"],
+    "infectious_state_variables" : ["I.young", "I.old"],
+    "infection_flow_variables" : ["infection.young", "infection.old"],
+    "transmission_matrix" : "transmission."
 }

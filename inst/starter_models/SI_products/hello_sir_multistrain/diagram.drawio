@@ -1,0 +1,157 @@
+<mxfile host="65bd71144e">
+    <diagram id="pENmULuyZvtenRr2tMOF" name="Page-1">
+        <mxGraphModel dx="751" dy="508" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="700" pageHeight="1400" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="41" value="SS" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="160" y="80" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="54" value="SI" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="160" y="200" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="55" value="SR" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="160" y="320" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="56" value="IS" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="280" y="80" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="57" value="II" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="280" y="200" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="58" value="IR" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="280" y="320" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="59" value="RS" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="400" y="80" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="60" value="RI" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="400" y="200" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="61" value="RR" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="400" y="320" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="63" value="" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="120" y="480" width="240" height="240" as="geometry"/>
+                </mxCell>
+                <mxCell id="64" value="infection.S" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="480" width="60" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="65" value="infection.I" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="520" width="60" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="66" value="infection.R" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="560" width="60" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="67" value="S.infection" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="600" width="60" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="68" value="I.infection" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="640" width="60" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="70" value="R.infection" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="680" width="60" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="71" value="S.I" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="320" y="440" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="72" value="I.I" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="200" y="440" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="73" value="R.I" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="280" y="440" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="74" value="I.R" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="160" y="440" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="75" value="I.S" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="120" y="440" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="77" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+                    <mxGeometry x="120" y="480" width="120" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="84" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+                    <mxGeometry x="240" y="600" width="120" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="85" value="" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="120" y="800" width="660" height="360" as="geometry"/>
+                </mxCell>
+                <mxCell id="86" value="infection.S.S" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="800" width="60" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="87" value="infection.I.S" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="840" width="60" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="88" value="infection.R.S" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="880" width="60" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="92" value="I.I.I" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="280" y="760" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="93" value="I.S.R" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="200" y="760" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="94" value="I.I.S" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="240" y="760" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="95" value="I.S.I" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="160" y="760" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="96" value="I.S.S" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="120" y="760" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="99" value="infection.S.I" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="920" width="60" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="100" value="infection.I.I" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="960" width="60" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="101" value="infection.R.I" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="1000" width="60" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="102" value="infection.S.R" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="1040" width="60" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="103" value="infection.I.R" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="1080" width="60" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="104" value="infection.R.R" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="1120" width="60" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="105" value="S.infection.S" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="1160" width="60" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="106" value="I.infection.S" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="1200" width="60" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="107" value="R.infection.S" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="1240" width="60" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="108" value="S.infection.I" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="1280" width="60" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="109" value="infection.I.I" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="1320" width="60" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="110" value="infection.R.I" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="1360" width="60" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="111" value="infection.S.R" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="1400" width="60" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="112" value="infection.I.R" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="1440" width="60" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="113" value="infection.R.R" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="1480" width="60" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="114" value="I.I.R" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="320" y="760" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="116" value="I.I" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="240" y="440" width="40" height="40" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

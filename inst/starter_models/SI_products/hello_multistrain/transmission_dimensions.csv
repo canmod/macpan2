@@ -1,0 +1,4 @@
+matrix                    ,matrix_partition ,infection_partition ,infectious_partition
+transmission.             ,Epi1.Epi2        ,Epi1                ,Epi1
+.transmission             ,Epi1.Epi2        ,Epi2                ,Epi2
+transmission.transmission ,Epi1.Epi2        ,Epi1.Epi2           ,Epi1.Epi2

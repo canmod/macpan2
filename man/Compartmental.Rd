@@ -16,12 +16,12 @@ and \code{settings.json}, described by
 An object with the following methods and fields.
 \subsection{Methods}{
 \itemize{
-\item \verb{$variables()}: \code{\link{Partition}} object of all variables.
+\item \verb{$variables$all()}: \code{\link{Partition}} object of all variables.
 \item \verb{$flows()}: Data frame with rows giving all groups of flows.
 \item \verb{$flows_expanded()}: Data frame with rows giving all individual flows.
-\item \verb{$state_variables()}: \code{\link{Partition}} object of all state
+\item \verb{$variables$state()}: \code{\link{Partition}} object of all state
 variables.
-\item \verb{$flow_variables()}: \code{\link{Partition}} object of all flow variables.
+\item \verb{$variables$flow()}: \code{\link{Partition}} object of all flow variables.
 \item \verb{$all_labels()}: Character vector giving the labels of all variables.
 \item \verb{$state_labels()}: Character vector giving the labels of all state
 variables.

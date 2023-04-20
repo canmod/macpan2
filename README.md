@@ -40,4 +40,5 @@ make doc-update        # roxygenize
 make pkg-build         # build the R package
 make pkg-install       # install the R package from the build
 make pkg-check         # R package checks
+make run-examples      # help file checks only (without package rebuild)
 ```

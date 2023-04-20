@@ -5,34 +5,34 @@ test_that("model files can be read in and used", {
   f$freeze()
   m = Model(f)
   expect_identical(
-    m$flow_variables()$labels(),
+    m$variables$flow()$labels(),
     c(
       "foi..unstructured.unvax", "foi..unstructured.vax", "alpha..unstructured.",
       "gamma.mild.component.", "gamma.severe.component.", "..unstructured.dose_rate"
     )
   )
   expect_identical(
-    m$flow_variables()$names(),
+    m$variables$flow()$names(),
     c("Epi", "Symp", "SympStruc", "Vax")
   )
   expect_identical(
-    m$flow_variables()$name(),
+    m$variables$flow()$name(),
     "Epi.Symp.SympStruc.Vax"
   )
   expect_identical(
-    m$state_variables()$labels(),
+    m$variables$state()$labels(),
     c("S..unstructured.unvax", "E..unstructured.unvax", "I.mild.component.unvax",
       "I.severe.component.unvax", "R..unstructured.unvax", "S..unstructured.vax",
       "E..unstructured.vax", "I.mild.component.vax", "I.severe.component.vax",
       "R..unstructured.vax")
   )
   expect_identical(
-    m$state_variables()$names(),
+    m$variables$state()$names(),
     c("Epi", "Symp", "SympStruc", "Vax")
   )
   expect_identical(nrow(m$flows()), 4L)
   expect_identical(nrow(m$flows_expanded()), 17L)
-  m$variables()$labels()
+  m$variables$all()$labels()
   m$derivations()
 })
 

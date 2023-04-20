@@ -8,54 +8,10 @@
 Model = function(definition) {
   self = Base()
   self$def = definition
-  self$variables = function() Partition(self$def$variables())
+  self$variables = Variables(self)
+  self$labels = VariableLabels(self$variables)
   self$flows = function() self$def$flows()
   self$flows_expanded = function() FlowExpander(self$def)$expand_flows()
-  self$flow_variables = function() {
-    # TODO: Handle case without flow variables.
-    s = self$def$settings()
-    self$variables()$filter(s$flow_variables, .wrt = s$required_partitions)
-  }
-  self$state_variables = function() {
-    # TODO: Handle case without state variables.
-    s = self$def$settings()
-    self$variables()$filter(s$state_variables, .wrt = s$required_partitions)
-  }
-  self$other_variables = function() {
-    # TODO: A better way to handle the NULL case would make it possible
-    # to return a null Partition object. This is currently not possible
-    # for 'technical' reasons.
-    if (length(self$other_labels()) == 0L) {
-      warning(
-        "\nThere are no other variables in this model",
-        "\nexcept for state and flow variables."
-      )
-      return(NULL)
-    }
-    s = self$def$settings()
-    self$variables()$filter_out(
-      c(s$flow_variables, s$state_variables),
-      .wrt = s$required_partitions
-    )
-  }
-  self$all_labels = function() {
-    rp = self$def$settings()$required_partitions
-    self$variables()$select(rp)$labels()
-  }
-  self$flow_labels = function() {
-    rp = self$def$settings()$required_partitions
-    self$flow_variables()$select(rp)$labels()
-  }
-  self$state_labels = function() {
-    rp = self$def$settings()$required_partitions
-    self$state_variables()$select(rp)$labels()
-  }
-  self$other_labels = function() {
-    setdiff(
-      self$all_labels(),
-      c(self$state_labels(), self$flow_labels())
-    )
-  }
   self$derivations = self$def$derivations ## TODO: make this more useful
   self$expr_list = function() {
     Derivations2ExprList(UserExpr(self), StandardExpr(self))$expr_list()
@@ -89,11 +45,11 @@ DerivationExtractor = function(model){
   # @return variables required for the derivation, with all partitions
   self$.filtered_variables = function(derivation){
     if (!is.null(derivation$filter_partition)) {
-      filtered_variables = self$model$variables()$filter(
+      filtered_variables = self$model$variables$all()$filter(
         derivation$filter_names,
         .wrt = derivation$filter_partition
       )
-    } else filtered_variables = self$model$variables()
+    } else filtered_variables = self$model$variables$all()
     return(filtered_variables)
   }
 

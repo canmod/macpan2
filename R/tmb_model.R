@@ -121,10 +121,15 @@ ExprList = function(
   self$.expr_sim_block = as.integer(expr_nms %in% .simulate_exprs)
   self$.expr_output_id = function(...) {
     # browser()
-    m = match(
-      self$.all_lhs(self$.expr_list),
-      self$.mat_names(...)
-    )
+    output_names = self$.all_lhs(self$.expr_list)
+    all_names = self$.mat_names(...)
+    # TODO: test that these names are consistent
+    m = match(output_names, all_names)
+    if (any(is.na(m))) {
+      stop(
+        "\nThe following updated variables are not "
+      )
+    }
     as.integer(m - 1L)
   }
   self$.expr_num_p_table_rows = function(...) {
@@ -142,9 +147,10 @@ ExprList = function(
   }
 
   self$data_arg = function(...) {
+    expr_output_id = self$.expr_output_id(...)
     r = c(
       list(
-        expr_output_id = as.integer(self$.expr_output_id(...)),
+        expr_output_id = as.integer(expr_output_id),
         expr_sim_block = as.integer(self$.expr_sim_block),
         expr_num_p_table_rows = as.integer(self$.expr_num_p_table_rows(...)),
         eval_schedule = as.integer(self$.eval_schedule)

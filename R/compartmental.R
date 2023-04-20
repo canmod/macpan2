@@ -11,12 +11,12 @@
 #'
 #' ## Methods
 #'
-#' * `$variables()`: \code{\link{Partition}} object of all variables.
+#' * `$variables$all()`: \code{\link{Partition}} object of all variables.
 #' * `$flows()`: Data frame with rows giving all groups of flows.
 #' * `$flows_expanded()`: Data frame with rows giving all individual flows.
-#' * `$state_variables()`: \code{\link{Partition}} object of all state
+#' * `$variables$state()`: \code{\link{Partition}} object of all state
 #' variables.
-#' * `$flow_variables()`: \code{\link{Partition}} object of all flow variables.
+#' * `$variables$flow()`: \code{\link{Partition}} object of all flow variables.
 #' * `$all_labels()`: Character vector giving the labels of all variables.
 #' * `$state_labels()`: Character vector giving the labels of all state
 #' variables.

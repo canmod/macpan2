@@ -1,0 +1,16 @@
+Epi1         ,Epi2
+S            ,S
+I            ,S
+S            ,I
+I            ,I
+infection    ,S
+infection    ,I
+recovery     ,S
+recovery     ,I
+S            ,infection
+I            ,infection
+S            ,recovery
+I            ,recovery
+transmission ,
+             ,transmission
+transmission ,transmission

@@ -228,10 +228,13 @@ print.Partition = function(x, ...) print(x$frame())
 #'
 #' @export
 union_vars = function(...) {
-  l = list(...)
+  not_null = function(x) !is.null(x)
+  l = Filter(not_null, list(...))
   y = l[[1L]]
-  for (i in 2:length(l)) {
-    y = y$union(l[[i]])
+  if (length(l) > 1L) {
+    for (i in 2:length(l)) {
+      y = y$union(l[[i]])
+    }
   }
   y
 }
@@ -295,10 +298,10 @@ NumericPartition = function(frame, numeric_vector) {
 
 
 
-if (interactive()) {
+if (FALSE) {
   model_dirs = list.files(system.file("starter_models", package = "macpan2"), full.names = TRUE)
   models = setNames(lapply(model_dirs, ModelFiles), basename(model_dirs))
-  pp = Partition(models$seir_symp_vax$variables())
+  pp = Partition(models$seir_symp_vax$variables$all())
   qq = pp$filter("S", "E", "I", "R", .wrt = "Epi")$filter("unvax", .wrt = "Vax")
   Partition(pp$select("Epi", "Vax")$dotted())
   pp$frame()
@@ -315,16 +318,16 @@ if (interactive()) {
 
   pp$filter("S", .wrt = "Epi", .comparison_function = not_all_equal)
   pp$filter_out("S", .wrt = "Epi")
-  seir = Partition(models$seir$variables())
-  vax = Partition(models$vax$variables())
+  seir = Partition(models$seir$variables$all())
+  vax = Partition(models$vax$variables$all())
 
   models$seir$settings()$required_partitions
   models$seir$settings()$state_variables
 
   m = Model(models$seir_symp_vax)
-  m$variables()
-  m$flow_variables()
-  m$state_variables()
+  m$variables$all()
+  m$variables$flow()
+  m$variables$state()
   m$flows()
   m$flows_expanded()
   m$derivations()
@@ -332,7 +335,7 @@ if (interactive()) {
 
 if (FALSE) {
   make_expression = function(model, expr_id, grp_id) {
-    v = model$variables()
+    v = model$variables$all()
     e = model$derivations()[[expr_id]]
     if (!is.null(e$filter_partition)) {
       v = v$filter(e$filter_names, .wrt = e$filter_partition)
@@ -354,7 +357,7 @@ if (FALSE) {
 i = 3
 j = 1
 ee = m$derivations()[[i]]
-vv = m$variables()
+vv = m$variables$all()
 gg = vv$filter(ee$group_names[j], .wrt = ee$group_partition)
 oo = vv$filter(ee$output_names[j], .wrt = ee$output_partition)
 ##ii = gg$filter(ee$argument_dots, .wrt = ee$input_partition)

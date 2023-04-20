@@ -1,0 +1,2 @@
+matrix         ,matrix_partition ,infection_partition ,infectious_partition
+transmission   ,Epi              ,Epi.Age             ,Epi.Age
