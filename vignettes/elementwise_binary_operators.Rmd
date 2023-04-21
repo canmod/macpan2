@@ -9,6 +9,8 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+[![status](https://img.shields.io/badge/status-working%20draft-red)](https://img.shields.io/badge/status-working%20draft-red)
+
 ```{r, include = FALSE}
 library(macpan2)
 knitr::opts_chunk$set(

@@ -16,6 +16,8 @@ knitr::opts_chunk$set(
 )
 ```
 
+[![status](https://img.shields.io/badge/status-working%20draft-red)](https://img.shields.io/badge/status-working%20draft-red)
+
 ## Introduction
 
 After defining an epidemiological model users often want to compute quantities that summarize it. Examples include simple single-number quantities like R0, Gbar, and r, as well as more elaborate objects like the stable compartment distribution of the linearized model. 
@@ -86,5 +88,4 @@ This framework can be used to model an important computational reality when usin
 
 In TMB, objective functions and simulation functions can only take one parameter vector. In our notation, we model this parameter vector as $\theta$. For models that require regeneration, $f(\theta;x)$, we assume that $x$ is a constant feature of the model. To change $x$ means recreating all model objects including $f$ and $g$ and this can be much slower than reparameterizing the model, particularly when we want to iteratively make changes to the state vector. Models that do not have an explicit initial state, $f(\theta)$, assume that the initial state can be changed by passing a different parameter vector, $\theta$, which is faster than the case where the model objects need to be iteratively regenerated.
 
-In the use cases above, we used the regeneration approach. But we can modify any of these to use reparameterization
-.
+In the use cases above, we used the regeneration approach. But we can modify any of these to use reparameterization.

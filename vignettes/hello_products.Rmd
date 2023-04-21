@@ -169,7 +169,11 @@ prod$flows()
 
 ## Roadmap
 
-Here we outline what development needs to take place 
+Here we outline what development needs to take place in order to complete this document.
+
+* Add transmission matrix step to `StandardExprs`
+* Align transmission matrix specifications
+* Pass required indices for lining up the transmission matrix to the flow vector and state vector.
 
 ## Scratch
 

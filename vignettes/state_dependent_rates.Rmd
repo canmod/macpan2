@@ -11,6 +11,8 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+[![status](https://img.shields.io/badge/status-working%20draft-red)](https://img.shields.io/badge/status-working%20draft-red)
+
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
@@ -204,6 +206,19 @@ $$
 ## Example
 
 Assume we have an SI model times a young-old model.
+
+`Variables.csv`
+```
+Epi,        Age
+S,          young
+I,          young
+S,          old
+I,          old
+susceptibility,  
+contact
+```
+
+
 
 ## Bookkeeping (in progress)
 

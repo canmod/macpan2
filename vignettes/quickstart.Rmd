@@ -11,6 +11,8 @@ editor_options:
   chunk_output_type: console
 ---
 
+[![status](https://img.shields.io/badge/status-working%20draft-red)](https://img.shields.io/badge/status-working%20draft-red)
+
 ```{r, include = FALSE}
 library(macpan2)
 library(dplyr)
