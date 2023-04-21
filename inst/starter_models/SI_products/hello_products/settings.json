@@ -2,7 +2,7 @@
     "required_partitions" : ["Epi", "Age"],
     "null_partition" : ["Null"],
     "state_variables" : ["S.young", "I.young", "S.old", "I.old"],
-    "flow_variables" : ["infection.young", "infection.old", "recovery.young", "recovery.old", "aging.young", "aging.old"],
+    "flow_variables" : ["infection.young", "infection.old", "recovery.young", "recovery.old", "S.aging", "I.aging"],
     "infected_state_variables" : ["I.young", "I.old"],
     "infectious_state_variables" : ["I.young", "I.old"],
     "infection_flow_variables" : ["infection.young", "infection.old"],
