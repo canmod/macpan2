@@ -86,6 +86,12 @@ factor models, <code>si</code> and <code>age</code>, into R.</p>
 <code class="sourceCode R"><span><span class="va">prod</span> <span class="op">=</span> <span class="fu"><a href="../reference/Compartmental.html">Compartmental</a></span><span class="op">(</span><span class="va">prod_dir</span><span class="op">)</span></span>
 <span><span class="va">si</span> <span class="op">=</span> <span class="fu"><a href="../reference/Compartmental.html">Compartmental</a></span><span class="op">(</span><span class="va">si_dir</span><span class="op">)</span></span>
 <span><span class="va">age</span> <span class="op">=</span> <span class="fu"><a href="../reference/Compartmental.html">Compartmental</a></span><span class="op">(</span><span class="va">age_dir</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning in read.table(self$file, sep = ",", quote = "", na.strings =</span></span>
+<span><span class="co">#&gt; character(0L), : incomplete final line found by readTableHeader on</span></span>
+<span><span class="co">#&gt; '/home/runner/work/macpan2/macpan2/inst/starter_models/SI_products/hello_age/transmission_matrices.csv'</span></span>
+<span><span class="co">#&gt; Warning in read.table(self$file, sep = ",", quote = "", na.strings =</span></span>
+<span><span class="co">#&gt; character(0L), : incomplete final line found by readTableHeader on</span></span>
+<span><span class="co">#&gt; '/home/runner/work/macpan2/macpan2/inst/starter_models/SI_products/hello_age/transmission_dimensions.csv'</span></span>
 <span></span>
 <span><span class="va">dummy</span> <span class="op">~</span> <span class="fu"><a href="../reference/engine_functions.html">assign</a></span><span class="op">(</span><span class="va">flow</span>, <span class="va">infection_indices</span>, <span class="fl">0</span>, <span class="va">transmission</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">state</span><span class="op">[</span><span class="va">infectious_indices</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="co">#&gt; dummy ~ assign(flow, infection_indices, 0, transmission %*% state[infectious_indices])</span></span></code></pre></div>

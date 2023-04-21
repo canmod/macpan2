@@ -55,7 +55,7 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">reader_spec</span><span class="op">(</span><span class="va">file</span>, <span class="va">reader</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">reader_spec</span><span class="op">(</span><span class="va">file</span>, <span class="va">reader</span>, optional <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -67,12 +67,16 @@
 <dt>reader</dt>
 <dd><p>One of the functions documented in <code><a href="Reader.html">Reader</a></code>s.</p></dd>
 
+
+<dt>optional</dt>
+<dd><p>Is this file optional or not?</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     
 
-<p>A function that takes a path in which to file <code>file</code> and
+<p>A function that takes a path in which to find <code>file</code> and
 returns a named list with one element giving an instantiated
 <code><a href="Reader.html">Reader</a></code> object with name given by the file name with the
 extension removed. The path may optionally be broken into path components,
