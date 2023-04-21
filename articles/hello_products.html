@@ -86,12 +86,6 @@ factor models, <code>si</code> and <code>age</code>, into R.</p>
 <code class="sourceCode R"><span><span class="va">prod</span> <span class="op">=</span> <span class="fu"><a href="../reference/Compartmental.html">Compartmental</a></span><span class="op">(</span><span class="va">prod_dir</span><span class="op">)</span></span>
 <span><span class="va">si</span> <span class="op">=</span> <span class="fu"><a href="../reference/Compartmental.html">Compartmental</a></span><span class="op">(</span><span class="va">si_dir</span><span class="op">)</span></span>
 <span><span class="va">age</span> <span class="op">=</span> <span class="fu"><a href="../reference/Compartmental.html">Compartmental</a></span><span class="op">(</span><span class="va">age_dir</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in read.table(self$file, sep = ",", quote = "", na.strings =</span></span>
-<span><span class="co">#&gt; character(0L), : incomplete final line found by readTableHeader on</span></span>
-<span><span class="co">#&gt; '/home/runner/work/macpan2/macpan2/inst/starter_models/SI_products/hello_age/transmission_matrices.csv'</span></span>
-<span><span class="co">#&gt; Warning in read.table(self$file, sep = ",", quote = "", na.strings =</span></span>
-<span><span class="co">#&gt; character(0L), : incomplete final line found by readTableHeader on</span></span>
-<span><span class="co">#&gt; '/home/runner/work/macpan2/macpan2/inst/starter_models/SI_products/hello_age/transmission_dimensions.csv'</span></span>
 <span></span>
 <span><span class="va">dummy</span> <span class="op">~</span> <span class="fu"><a href="../reference/engine_functions.html">assign</a></span><span class="op">(</span><span class="va">flow</span>, <span class="va">infection_indices</span>, <span class="fl">0</span>, <span class="va">transmission</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">state</span><span class="op">[</span><span class="va">infectious_indices</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="co">#&gt; dummy ~ assign(flow, infection_indices, 0, transmission %*% state[infectious_indices])</span></span></code></pre></div>
@@ -194,7 +188,9 @@ compartmental diagram.</p>
 <span><span class="co">#&gt; 1 infection young</span></span>
 <span><span class="co">#&gt; 2 infection   old</span></span>
 <span><span class="co">#&gt; 3  recovery young</span></span>
-<span><span class="co">#&gt; 4  recovery   old</span></span></code></pre></div>
+<span><span class="co">#&gt; 4  recovery   old</span></span>
+<span><span class="co">#&gt; 5         S aging</span></span>
+<span><span class="co">#&gt; 6         I aging</span></span></code></pre></div>
 <p>And a subset of flows are those involved in infection.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">si</span><span class="op">$</span><span class="va">variables</span><span class="op">$</span><span class="fu">infection_flow</span><span class="op">(</span><span class="op">)</span></span>
@@ -221,10 +217,8 @@ can list these other variables.</p>
 <span><span class="co">#&gt; except for state and flow variables.</span></span>
 <span><span class="co">#&gt; NULL</span></span>
 <span><span class="va">prod</span><span class="op">$</span><span class="va">variables</span><span class="op">$</span><span class="fu">other</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt;            Epi   Age</span></span>
-<span><span class="co">#&gt; 1            S aging</span></span>
-<span><span class="co">#&gt; 2            I aging</span></span>
-<span><span class="co">#&gt; 3 transmission</span></span></code></pre></div>
+<span><span class="co">#&gt;            Epi Age</span></span>
+<span><span class="co">#&gt; 1 transmission</span></span></code></pre></div>
 <p>We see that the only variables in the <code>age</code> model are
 states and flows. But we also see that the <code>si</code> and
 <code>prod</code> models have a <code>transmission</code> variable.</p>
@@ -268,7 +262,9 @@ products.</p>
 <span><span class="co">#&gt; 1 infection young</span></span>
 <span><span class="co">#&gt; 2 infection   old</span></span>
 <span><span class="co">#&gt; 3  recovery young</span></span>
-<span><span class="co">#&gt; 4  recovery   old</span></span></code></pre></div>
+<span><span class="co">#&gt; 4  recovery   old</span></span>
+<span><span class="co">#&gt; 5         S aging</span></span>
+<span><span class="co">#&gt; 6         I aging</span></span></code></pre></div>
 <p>The other variable in <code>prod</code>, <code>transmission.</code>,
 can be obtained by taking the union of the other variables in
 <code>si</code> and <code>age</code>.</p>
@@ -280,10 +276,8 @@ can be obtained by taking the union of the other variables in
 <span><span class="co">#&gt;            Epi</span></span>
 <span><span class="co">#&gt; 1 transmission</span></span>
 <span><span class="va">prod</span><span class="op">$</span><span class="va">variables</span><span class="op">$</span><span class="fu">other</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt;            Epi   Age</span></span>
-<span><span class="co">#&gt; 1            S aging</span></span>
-<span><span class="co">#&gt; 2            I aging</span></span>
-<span><span class="co">#&gt; 3 transmission</span></span></code></pre></div>
+<span><span class="co">#&gt;            Epi Age</span></span>
+<span><span class="co">#&gt; 1 transmission</span></span></code></pre></div>
 <p>Putting this all together we have.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/union_vars.html">union_vars</a></span><span class="op">(</span></span>
@@ -368,7 +362,8 @@ can be obtained by taking the union of the other variables in
 <code class="sourceCode R"><span><span class="va">prod</span><span class="op">$</span><span class="va">labels</span><span class="op">$</span><span class="fu">state</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "S.young" "S.old"   "I.young" "I.old"</span></span>
 <span><span class="va">prod</span><span class="op">$</span><span class="va">labels</span><span class="op">$</span><span class="fu">flow</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "infection.young" "infection.old"   "recovery.young"  "recovery.old"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "infection.young" "infection.old"   "recovery.young"  "recovery.old"   </span></span>
+<span><span class="co">#&gt; [5] "S.aging"         "I.aging"</span></span></code></pre></div>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">si</span><span class="op">$</span><span class="va">variables</span><span class="op">$</span><span class="fu">all</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;            Epi</span></span>
