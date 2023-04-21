@@ -11,6 +11,8 @@ editor_options:
   chunk_output_type: console
 ---
 
+[![status](https://img.shields.io/badge/status-working%20draft-red)](https://img.shields.io/badge/status-working%20draft-red)
+
 ```{r, include = FALSE}
 library(macpan2)
 library(dplyr)
@@ -35,8 +37,6 @@ Here we read the target product model, `prod`, and its two factor models, `si` a
 prod = Compartmental(prod_dir)
 si = Compartmental(si_dir)
 age = Compartmental(age_dir)
-
-dummy ~ assign(flow, infection_indices, 0, transmission %*% state[infectious_indices])
 ```
 
 The goal of this document is to multiply `si` and `age` to see if we can recover our target, `prod`.
@@ -160,12 +160,16 @@ prod_flows
 prod$flows()
 ```
 
+## Combining the Transmission Matrices
 
 ## Combining the Derivations
 
-
-
 ## Simulating the Resulting Product Model
+
+
+## Roadmap
+
+Here we outline what development needs to take place 
 
 ## Scratch
 
@@ -195,8 +199,6 @@ prod$expr_list()$print_exprs()
 
 
 ## Simulating from the Product Model
-
-TODO: 
 
 * Do the model definition by hand so that it works
 * Specify numerical inputs
