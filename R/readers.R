@@ -7,7 +7,6 @@
 #' @importFrom tools file_ext
 #' @export
 Reader = function(...) {
-  #browser()
   self = Base()
   self$file = normalizePath(file.path(...), mustWork = TRUE)
   self$read = function() {

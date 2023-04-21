@@ -1,5 +1,6 @@
 name_starts_with = function(prefix) function(x) x[startsWith(names(x), prefix)]
 name_ends_with = function(prefix) function(x) x[endsWith(names(x), prefix)]
+run_no_op_method = function(method_name) function(x) x[[method_name]]()
 extract_with_name = function(name) function(x) x[[name]]
 subset_with_names = function(names) function(x) x[names]
 starts_with_this = function(prefix) function(x) startsWith(x, prefix)

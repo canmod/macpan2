@@ -11,13 +11,44 @@ Model = function(definition) {
   self$variables = Variables(self)
   self$labels = VariableLabels(self$variables)
   self$flows = function() self$def$flows()
-  self$flows_expanded = function() FlowExpander(self$def)$expand_flows()
+  self$flows_expanded = function() {
+    expander = FlowExpander(self$def)
+    expander$expand_flows()
+  }
   self$derivations = self$def$derivations ## TODO: make this more useful
   self$expr_list = function() {
     Derivations2ExprList(UserExpr(self), StandardExpr(self))$expr_list()
   }
   self$simulators = Simulators(self)
-  return_object(self, "Model")
+  (self
+    |> assert_variables()
+    |> return_object("Model")
+  )
+}
+
+assert_variables = function(model) {
+  make_pipeline = function(setting, set) {
+    TestPipeline(
+      Summarizer(
+        extract_with_name("def"),
+        run_no_op_method("settings"),
+        extract_with_name(setting)
+      ),
+      TestSubset(set)
+    )
+  }
+  v = model$variables$all()
+  ValidityMessager(
+    All(
+      make_pipeline("required_partitions", v$names()),
+      make_pipeline("state_variables", v$labels()),
+      make_pipeline("flow_variables", v$labels()),
+      make_pipeline("infectious_state_variables", v$labels()),
+      make_pipeline("infected_state_variables", v$labels()),
+      make_pipeline("infection_flow_variables", v$labels())
+    ),
+    "the settings.json file is not consistent with the variables.csv file"
+  )$assert(model)
 }
 
 
