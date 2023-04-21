@@ -71,6 +71,8 @@ ModelFiles = function(model_directory
     , reader_spec("derivations.json", json_reader)
     , reader_spec("flows.csv", csv_reader)
     , reader_spec("settings.json", json_reader)
+    , reader_spec("transmission_matrices.csv", csv_reader, optional = TRUE)
+    , reader_spec("transmission_dimensions.csv", csv_reader, optional = TRUE)
   )
 
   ## methods required of model representations

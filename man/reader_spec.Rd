@@ -4,15 +4,17 @@
 \alias{reader_spec}
 \title{Reader Spec}
 \usage{
-reader_spec(file, reader)
+reader_spec(file, reader, optional = FALSE)
 }
 \arguments{
 \item{file}{Path to a single file.}
 
 \item{reader}{One of the functions documented in \code{\link{Reader}}s.}
+
+\item{optional}{Is this file optional or not?}
 }
 \value{
-A function that takes a path in which to file \code{file} and
+A function that takes a path in which to find \code{file} and
 returns a named list with one element giving an instantiated
 \code{\link{Reader}} object with name given by the file name with the
 extension removed. The path may optionally be broken into path components,

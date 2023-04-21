@@ -66,3 +66,12 @@ TXTReader = function(...) {
   self$read = function() readLines(self$file)
   return_object(self, "TXTReader")
 }
+
+#' @describeIn Reader Placeholder reader that always returns \code{NULL}.
+#' @export
+NULLReader = function(...) {
+  self = self = Base()
+  self$file = NULL
+  self$read = function() NULL
+  return_object(self, "NULLReader")
+}

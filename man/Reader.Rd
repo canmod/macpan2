@@ -5,6 +5,7 @@
 \alias{CSVReader}
 \alias{JSONReader}
 \alias{TXTReader}
+\alias{NULLReader}
 \title{Reader}
 \usage{
 Reader(...)
@@ -14,6 +15,8 @@ CSVReader(...)
 JSONReader(...)
 
 TXTReader(...)
+
+NULLReader(...)
 }
 \arguments{
 \item{...}{Character vectors giving path components to the file to be read.}
@@ -28,5 +31,7 @@ Construct objects for reading data.
 \item \code{JSONReader()}: Read JSON files.
 
 \item \code{TXTReader()}: Read TXT files.
+
+\item \code{NULLReader()}: Placeholder reader that always returns \code{NULL}.
 
 }}

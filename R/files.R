@@ -19,7 +19,6 @@
 #'
 #' @export
 Collection = function(...) {
-  #browser()
   self = Base()
   self$.components = nlist(...)
   self$get = function(component_name) self$.components[[component_name]]
@@ -57,7 +56,6 @@ Collection = function(...) {
 #'
 #' @export
 Files = function(directory, ...) {
-  #browser()
   self = Base()
   self$.directory = normalizePath(directory)
   self$.readers = list(...)
@@ -124,15 +122,23 @@ Files = function(directory, ...) {
 #'
 #' @param file Path to a single file.
 #' @param reader One of the functions documented in \code{\link{Reader}}s.
+#' @param optional Is this file optional or not?
 #'
-#' @return A function that takes a path in which to file \code{file} and
+#' @return A function that takes a path in which to find \code{file} and
 #' returns a named list with one element giving an instantiated
 #' \code{\link{Reader}} object with name given by the file name with the
 #' extension removed. The path may optionally be broken into path components,
 #' which are assembled using \code{\link{file.path}}.
 #'
 #' @export
-reader_spec = function(file, reader) {
+reader_spec = function(file, reader, optional = FALSE) {
   component_name = tools::file_path_sans_ext(file)
-  function(...) setNames(list(reader(..., file)), component_name)
+  function(...) {
+    if (optional & !file.exists(file.path(..., file))) {
+      reader = NULLReader(..., file)
+    } else {
+      reader = reader(..., file)
+    }
+    setNames(list(reader), component_name)
+  }
 }
