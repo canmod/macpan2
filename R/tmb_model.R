@@ -120,10 +120,10 @@ ExprList = function(
   self$.eval_schedule = c(length(before), length(during), length(after))
   self$.expr_sim_block = as.integer(expr_nms %in% .simulate_exprs)
   self$.expr_output_id = function(...) {
-    # browser()
-    output_names = self$.all_lhs(self$.expr_list)
     all_names = self$.mat_names(...)
-    # TODO: test that these names are consistent
+    output_names = valid$engine_outputs(all_names)$assert(
+      self$.all_lhs(self$.expr_list)
+    )
     m = match(output_names, all_names)
     if (any(is.na(m))) {
       stop(

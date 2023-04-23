@@ -237,5 +237,11 @@ valid <- list(
         ))
       )
     )
-  )
+  ),
+  engine_outputs = function(all_names) {
+    ValidityMessager(
+      TestSubset(all_names),
+      "some expressions are saved to matrices that are not initialized"
+    )
+  }
 )

@@ -30,3 +30,14 @@ test_that("formula validity is enforced", {
     "Model expressions must be two-sided"
   )
 })
+
+test_that("proper error message comes when output matrices are not initialized", {
+  m = TMBModel(
+    init_mats = MatsList(a = 1),
+    expr_list = ExprList(before = list(b ~ a))
+  )
+  expect_error(
+    m$data_arg(),
+    "some expressions are saved to matrices that are not initialized"
+  )
+})
