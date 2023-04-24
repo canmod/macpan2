@@ -1,0 +1,7 @@
+from ,to ,flow ,type
+A    ,B  ,a    ,per_capita
+B    ,C  ,b    ,absolute
+C    ,D  ,c    ,per_capita_inflow
+D    ,E  ,d    ,per_capita_outflow
+E    ,F  ,e    ,absolute_inflow
+F    ,G  ,f    ,absolute_outflow

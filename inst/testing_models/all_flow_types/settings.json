@@ -1,0 +1,6 @@
+{
+    "required_partitions" : ["Model"],
+    "null_partition" : ["Null"],
+    "state_variables" : ["A", "B", "C", "D", "E", "F", "G"],
+    "flow_variables" : ["a", "b", "c", "d", "e", "f"]
+}
