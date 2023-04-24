@@ -15,6 +15,20 @@ Model = function(definition) {
     expander = FlowExpander(self$def)
     expander$expand_flows()
   }
+  self$flows_explicit = function() {
+    # for each optional field:
+    #  - check if it is missing
+    #  - if missing, add a default value
+    #
+    # defaults:
+    #  - from_partition: required partition
+    #  - to_partition: required partition
+    #  - flow_partition: required partition
+    #  - from_to_partition: empty string
+    #  - from_to_partition: empty string
+    #  - from_flow_partition: empty string
+    #  - to_flow_partition: null partition
+  }
   self$derivations = self$def$derivations ## TODO: make this more useful
   self$expr_list = function() {
     Derivations2ExprList(UserExpr(self), StandardExpr(self))$expr_list()
