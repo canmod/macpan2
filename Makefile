@@ -40,6 +40,12 @@ quick-doc-install: R/*.R misc/dev/dev.cpp
 	make quick-install
 
 
+quick-test:
+	make quick-doc-install
+	make run-examples
+	make run-tests
+
+
 run-examples:
 	Rscript misc/build/run_examples.R
 

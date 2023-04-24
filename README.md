@@ -32,6 +32,9 @@ Developers and contributors should clone this repository and call `make` at the 
 ```
 make quick-install     # for changes that only modify R source
 make quick-doc-install # for changes that modify R source and roxygen comments
+make quick-test        # quick-doc-install + run-examples + run-tests
+make run-examples      # help file checks only (without package rebuild)
+make run-tests         # run scripts in tests (without package rebuild)
 make full-install      # for all changes, including changes to C++ source
 make src-update        # push changes to dev.cpp to macpan2.cpp
 make enum-update       # register new C++ engine functions on the R-side
@@ -40,5 +43,4 @@ make doc-update        # roxygenize
 make pkg-build         # build the R package
 make pkg-install       # install the R package from the build
 make pkg-check         # R package checks
-make run-examples      # help file checks only (without package rebuild)
 ```
