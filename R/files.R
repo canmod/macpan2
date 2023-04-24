@@ -44,7 +44,9 @@ Collection = function(...) {
 #'
 #' ## Methods
 #'
-#' * `$get(component_name)`: Return components by name.
+#' * `$get(component_name, optional = FALSE)`: Return components by name.
+#' If it is optional, first check that it exists and return \code{NULL} if
+#' it doesn't.
 #' * `$freeze()`: Convert to a \code{\link{Collection}} object, which is
 #' equivalent to a \code{Files} object in that the \code{$get} method returns
 #' the same objects. The difference is that a \code{Files} object
@@ -88,12 +90,15 @@ Files = function(directory, ...) {
     lapply(names(self$.readers), self$.read),
     self$.component_names
   )
+  self$.file_path = function(component_name) {
+    self$.readers[[component_name]]$file
+  }
   # fetch data only if it was last accessed before it changed
   self$.pull = function(component_name) {
     access_time = self$.access_times[[component_name]]
     modification_time = file.mtime(self$.readers[[component_name]]$file)
     if (is.na(modification_time)) {
-      ff = self$.readers[[component_name]]$file
+      ff = self$.file_path(component_name)
       if (!file.exists(ff)) {
         stop(
           "\nThe file, ", ff, " is not where it was.",
@@ -105,7 +110,10 @@ Files = function(directory, ...) {
     if (modification_time > access_time) self$.fetch(component_name)
   }
   # pull data (i.e. fetch it only if necessary) and return it
-  self$get = function(component_name) {
+  self$get = function(component_name, optional = FALSE) {
+    if (optional) {
+      if (!file.exists(self$.file_path(component_name))) return(NULL)
+    }
     self$.pull(component_name)
     self$.components[[component_name]]
   }

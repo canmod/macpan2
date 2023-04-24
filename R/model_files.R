@@ -80,6 +80,12 @@ ModelFiles = function(model_directory
   self$derivations = function() self$get("derivations")
   self$flows = function() self$get("flows")
   self$settings = function() self$get("settings")
+  self$transmission_matrices = function() {
+    self$get("transmission_matrices", optional = TRUE)
+  }
+  self$transmission_dimensions = function() {
+    self$get("transmission_dimensions", optional = TRUE)
+  }
 
   self$freeze = function() {
     ModelCollection(

@@ -17,7 +17,9 @@ be used to access the file.}
 Object of class \code{Collection} with the following methods.
 \subsection{Methods}{
 \itemize{
-\item \verb{$get(component_name)}: Return components by name.
+\item \verb{$get(component_name, optional = FALSE)}: Return components by name.
+If it is optional, first check that it exists and return \code{NULL} if
+it doesn't.
 \item \verb{$freeze()}: Convert to a \code{\link{Collection}} object, which is
 equivalent to a \code{Files} object in that the \code{$get} method returns
 the same objects. The difference is that a \code{Files} object

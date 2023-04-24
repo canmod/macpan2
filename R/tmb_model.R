@@ -627,7 +627,11 @@ TMBModel = function(
   ) {
     TMBModel(
       self$.init_mats,
-      self$.expr_list$insert(..., .at = .at, .phase = .phase, .simulate_exprs = .simulate_exprs),
+      self$.expr_list$insert(...
+        , .at = .at
+        , .phase = .phase
+        , .simulate_exprs = .simulate_exprs
+      ),
       self$.params,
       self$.random,
       self$.obj_fn,
