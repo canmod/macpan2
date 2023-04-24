@@ -77,7 +77,9 @@ be used to access the file.</p></dd>
 <p>Object of class <code>Collection</code> with the following methods.</p><div class="section">
 <h3 id="methods">Methods<a class="anchor" aria-label="anchor" href="#methods"></a></h3>
 
-<ul><li><p><code>$get(component_name)</code>: Return components by name.</p></li>
+<ul><li><p><code>$get(component_name, optional = FALSE)</code>: Return components by name.
+If it is optional, first check that it exists and return <code>NULL</code> if
+it doesn't.</p></li>
 <li><p><code>$freeze()</code>: Convert to a <code><a href="Collection.html">Collection</a></code> object, which is
 equivalent to a <code>Files</code> object in that the <code>$get</code> method returns
 the same objects. The difference is that a <code>Files</code> object
