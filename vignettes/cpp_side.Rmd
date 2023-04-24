@@ -1,10 +1,10 @@
 ---
-title: "The C++ Side of McMasterPandemic"
+title: "The C++ Side"
 output: 
   rmarkdown::html_vignette:
     toc: true
 vignette: >
-  %\VignetteIndexEntry{The C++ Side of McMasterPandemic}
+  %\VignetteIndexEntry{The C++ Side}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

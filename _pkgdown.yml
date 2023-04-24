@@ -1,4 +1,11 @@
 url: https://canmod.github.io/macpan2/
 template:
   bootstrap: 5
+navbar:
+  structure:
+    left:  [intro, reference, articles, tutorials, news]
+    right: [search, github]
 
+articles:
+- name: "The C++ Side"
+  source: "vignettes/cpp_side.Rmd"
