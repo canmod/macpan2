@@ -16,18 +16,23 @@ Model = function(definition) {
     expander$expand_flows()
   }
   self$flows_explicit = function() {
-    # for each optional field:
-    #  - check if it is missing
-    #  - if missing, add a default value
-    #
-    # defaults:
-    #  - from_partition: required partition
-    #  - to_partition: required partition
-    #  - flow_partition: required partition
-    #  - from_to_partition: empty string
-    #  - from_to_partition: empty string
-    #  - from_flow_partition: empty string
-    #  - to_flow_partition: null partition
+    optional_fields = c("from_partition", "to_partition", "flow_partition", 
+    "from_to_partition", "from_flow_partition", "to_flow_partition")
+
+    
+    required_partition = paste0(self$def$settings()$required_partitions, collapse = ".")
+    null_partition = self$def$settings()$null_partition
+    
+    default_entries = data.frame(required_partition, required_partition, required_partition, "", "", null_partition)
+    names(default_entries) = optional_fields
+    
+    default_entries = do.call("rbind", replicate(nrow(self$flows()), default_entries, simplify = FALSE))
+    
+    is_missing = function(field_name){
+      return(!any(names(self$flows())==field_name))
+    }
+    missing_fields = which(lapply(optional_fields, is_missing)==TRUE)
+    return(cbind(self$flows(), default_entries[,missing_fields]))
   }
   self$derivations = self$def$derivations ## TODO: make this more useful
   self$expr_list = function() {
