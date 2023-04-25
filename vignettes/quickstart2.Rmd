@@ -1,0 +1,21 @@
+---
+title: "Quickstart Guide, part 2: specifying and simulating a structured compartmental model"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Quickstart Guide, part 2: specifying and simulating a structured compartmental model}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(macpan2)
+```
+
+This article is the counterpart to `vignette('quickstart', package = 'macpan2')`, but instead of explaining the spec and sim of a simple SIR, we describe the **new** components introduced by trying to specify a product model. While the new "productify" functionality should make most of the content of this article obsolete eventually, this article can serve as a resource for users until then.
