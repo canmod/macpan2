@@ -11,3 +11,4 @@ inst/doc
 *.log
 *.html
 docs
+src/macpan2.dll
