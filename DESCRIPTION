@@ -1,12 +1,13 @@
 Package: macpan2
 Title: Fast and Flexible Compartmental Modelling
-Version: 0.0.0.9000
+Version: 0.0.1
 Authors@R: c(
   person("Steve Walker", email="swalk@mcmaster.ca", role=c("cre")),
   person("Darren Flynn-Primrose", rol="aut"),
   person("Weiguang Guan", rol="aut"),
   person("Ben Bolker", rol="aut"),
   person("Michael Li", rol="ctb"),
+  person("Irena Papst", rol="ctb"),
   person("Steve Walker", rol="aut"))
 Description: Fast and flexible compartmental modelling with template model builder.
 License: GPL-3
@@ -36,4 +37,4 @@ Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
-URL: https://canmod.github.io/macpan2/
+URL: https://canmod.github.io/macpan2, https://github.com/canmod/macpan2
