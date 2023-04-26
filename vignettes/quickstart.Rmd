@@ -4,7 +4,7 @@ output:
   rmarkdown::html_vignette:
     toc: true
 vignette: >
-  %\VignetteIndexEntry{Quickstart Guide}
+  %\VignetteIndexEntry{Quickstart Guide: specifying and simulating a simple compartmental model}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -13,7 +13,7 @@ editor_options:
 
 [![status](https://img.shields.io/badge/status-working%20draft-red)](https://img.shields.io/badge/status-working%20draft-red)
 
-```{r, include = FALSE}
+```{r pkgs, include = FALSE}
 library(macpan2)
 library(dplyr)
 library(ggplot2)
@@ -28,7 +28,7 @@ cat_file = function(...) {
 
 This quickstart guide is meant to show a new user how to specify and simulate a simple compartmental model in `macpan2`. 
 
-`macpan2` is extremely flexible in how models are specified, and so there can be several equivalent ways of specifying the same model. This feature is important to keep in mind when trying to understand or build more complicated models, such as the one demonstrated in Quickstart Guide, part 2: see `vignette('quickstart2', package = 'macpan2')`.
+`macpan2` is extremely flexible in how models are specified, and so there can be several equivalent ways of specifying the same model. This feature is important to keep in mind when trying to understand or build more complicated models, such as the one demonstrated in Quickstart Guide, part 2 (see `vignette('quickstart2', package = 'macpan2')`).
 
 ## Model Definition Files
 
@@ -44,19 +44,46 @@ model_name
 
 Installations of `macpan2` contain several starter models:
 
-```{r}
+```{r list_starters}
 list.files(system.file("starter_models", package = "macpan2"))
 ```
 
 TODO: add a link to a reference doc with short descriptions of each starter model... also write this doc :) ideally it would have diagrams to illustrate each model
 
-The simplest is an SIR model, with a path that can be obtained as follows:
+The simplest is an SIR model, which can be found in this directory:
 
-```{r}
+```{r sir_model_path}
 print(sir_dir <- system.file("starter_models", "sir", package = "macpan2"))
 ```
 
 IP: before getting into the files below, it would be worth showing the user a diagram of the model (and especially if there's a diagram utility, it could be demonstrated here)
+
+(BB: do we want this? Start a `macpan_helpers` package?)
+
+```{r make_visnet, echo = FALSE}
+sir = Compartmental(sir_dir)
+if (require(visNetwork, quietly = TRUE)) {
+    nodes = data.frame(id = sir$labels$state(),
+                        label = sir$labels$state(),
+                        shape = "square")
+    edges = sir$flows_expanded()[c("from", "to")]
+    vn = visNetwork(nodes, edges) |>
+        visEdges(arrows = "to") |>
+        visHierarchicalLayout(direction = "LR")
+    visSave(vn, file = paste0("visnet.html"))
+}
+```
+
+```{r show_visnet, results = "asis", echo = FALSE, eval = FALSE}
+## this fails in pkgdown build, suppressing for now ...
+if (require(htmltools, quietly = TRUE)) {
+    hh <- htmltools::includeHTML("visnet.html") |>
+        ## https://stackoverflow.com/questions/47577894/r-markdown-visnetwork-not-displayed-in-html-output-when-using-for-loops-or-fun
+        gsub(pattern = "<!DOCTYPE html>", replacement = "", fixed = TRUE) |>
+        sub(pattern = "\n", replacement = "")
+    cat(hh)
+}
+```
 
 In this article, we work through the specification and simulation of the SIR sample model.
 
@@ -64,11 +91,11 @@ In this article, we work through the specification and simulation of the SIR sam
 
 `variables.csv` includes a list of the model variables:
 
-```{r, echo=FALSE, eval=TRUE}
+```{r vars, echo=FALSE, eval=TRUE}
 cat_file(sir_dir, "variables.csv")
 ```
 
-(The first row of this file is header row, which classifies the variables below. More on this later.)
+(The first row of this file is a header row, which classifies the variables below. More on this later.)
 
 In `macpan2`, we use "variables" as a general term to refer to
 
@@ -76,16 +103,16 @@ In `macpan2`, we use "variables" as a general term to refer to
   - `S`: the number of susceptible individuals at each point in time
   - `I`: the number of infectious individuals
   - `R`: the number of removed individuals
-- **parameter variables**, such as:
-  - `beta`: the per-capita transmission rate
+- **parameters**, such as:
+  - `beta`: the contact rate (transmission per time per susceptible per infective)
   - `gamma`: the per-capita recovery rate of infectious individuals
 - **derived variables**, to be calculated using state variables and/or parameters, such as:
   - `N`: population size, calculated by summing all of the state variables `S + I + R`
-  - `foi`: the force of infection, which in the SIR model is calculated as `beta * I / N`
+  - `foi`: the force of infection, `beta * I / N` in this model
   
 Formulas for the derived quantities are defined in [derivations.json](#derivations).
 
-In simple models like this basic SIR, `variables.csv` is a single-column `.csv` file. The header row features one column name, `Epi`, which labels the variables below it as epidemiological variables. Such variable category labels, or **variable partitions**, aren't very useful for simple models like the basic SIR, where there is only one category of variables. However, partitions are integral when trying to combine multiple model structures into more complex, ["product" models](https://canmod.github.io/macpan2/articles/hello_products.html), like an SEIR model with symptom strata, which is explored in Quickstart Guide, part 2: see `vignette('quickstart2', package = 'macpan2')`.
+In simple models like this one, `variables.csv` is a single-column `.csv` file. The header row contains one column name, `Epi`, which labels the variables below it as epidemiological variables. Such variable category labels, or **variable partitions**, aren't useful for simple models like the basic SIR, which have only a single variable category. However, partitions are essential as part of ["product" models](https://canmod.github.io/macpan2/articles/hello_products.html) that combine multiple model structures into more complex models (for example, an SEIR model where the infectious class is divided by level of symptoms: see `vignette('quickstart2', package = 'macpan2')`.
 
 ### derivations.json {#derivations}
 
@@ -95,26 +122,28 @@ In simple models like this basic SIR, `variables.csv` is a single-column `.csv` 
 cat_file(sir_dir, "derivations.json")
 ```
 
-In this example, the derived variables are the total population size, `N`, and the force of infection, `foi`. Each derived variable is defined in a JSON object. Each such JSON object will have several key-value pairs. Here the keys are:
+In this example, the derived variables are the total population size, `N`, and the force of infection, `foi`. Each derived variable is defined in a [JSON](https://en.wikipedia.org/wiki/JSON) object. Each such JSON object will contain several key-value pairs. Here the keys are:
 
 - `output_names`: the name(s) of the derived variable(s); in this simple model, each JSON object only defines a single derived variable
 - `simulation_phase`: the phase during which this derived variable is calculated; here we have 
-    - `"before"`, which means the variable is calculated from the initial variables values, before the simulation begins
+    - `"before"`, which means the variable is calculated from the initial variable values, before the simulation begins
     - `"during_pre_update"`, which means the variable is calculated at each simulation step, before the state variables are updated for the next time step
-- `arguments`: an array of the variables used to calculate the derived variable
+- `arguments`: an array of the variables (delimited by brackets `[]`) used to calculate the derived variable
 - `expression`: a string storing a mathematical expression  used to calculate the derived variable using the `arguments` 
 
-There are more value options for the keys described above, as well as supplementary keys used for defining more complicated models. These are fully cataloged in the [model defintions](https://canmod.github.io/macpan2/articles/model_definitions.html#flow-between-compartments) article. Mathematical operations and functions available to use in the `expression` string can be found in the  [engine functions](https://canmod.github.io/macpan2/reference/engine_functions.html) reference article.
+The keys described above have more options; supplementary keys are used for defining more complicated models. These are fully catalogued in the [model definitions](https://canmod.github.io/macpan2/articles/model_definitions.html#flow-between-compartments) article. Mathematical operations and functions available to use in the `expression` string are listed in the  [engine functions](https://canmod.github.io/macpan2/reference/engine_functions.html) reference article.
+
+(BB: is it worth mentioning that (1) we could have defined `foi` as `beta*I/(S+I+R)`, but that (a) it would be harder to read and (b) it would be less efficient since we would be computing `N` at every time step? and (2) that in a model where `N` varied over time we would need to compute `N` "during_pre_update" rather than "before"? Or are these unnecessary details at this stage?)
 
 ### settings.json
 
-`settings.json` has information about how to interpret the variables defined in [variables.csv](#variables). 
+`settings.json` gives information about how to interpret the variables defined in [variables.csv](#variables). 
 
 IP: the old version of this paragraph started with 
 
 > The next file is `settings.json`, which has information about how to interpret the variables and flows. In simple models like this, the two relevant fields are a list of state variables (those that can appear in the from and to columns of flows.csv) and another list of flow variables (those that can appear in the flow column of flows.csv).
 
-IP: I've tried to simplify this by saying that `settings.json` gives info about variables in `variables.csv` (as opposed to additionally referring to `flows.csv`), and that's also why I've put this section directly after `variables.csv`. While it's possible to just reference variables in `variables.csv` to explain `settings.json` for this atomic model, I'm not sure if it also holds true for product models, but I think it's OK if we glaze over that here.
+IP: I've tried to simplify this by saying that `settings.json` gives info about variables in `variables.csv` (as opposed to additionally referring to `flows.csv`), and that's also why I've put this section directly after `variables.csv`. While it's possible to just reference variables in `variables.csv` to explain `settings.json` for this atomic model, I'm not sure if it also holds true for product models, but I think it's OK if we gloss over that here.
 
 ```{r, echo=FALSE, eval=TRUE}
 cat_file(sir_dir, "settings.json")
@@ -135,22 +164,24 @@ This file contains a single JSON object, with several key-value pairs. The manda
 cat_file(sir_dir, "flows.csv")
 ```
 
-This file also starts with a header row, an includes the following columns:
+This file also starts with a header row, including the following columns:
 
 - `from`: the name of the compartment where the flow comes from
 - `to`: the name of the compartment where the flow goes to
 - `flow`: the variable name storing the value of the flow rate
 - `type`: the type of the flow
 
-Here, the flow type is `per_capita`, which simply means that the flow at time step $t+1$ will be equal to `flow` times the number of individuals in the `from` compartment at time $t$. In the example above, the flow from `S` to `I` is equal to `foi * S`. 
+(BB: "origin" and "destination" compartments instead of "where the flow (comes from|goes to)"? or is that too fancy?)
 
-All available flow types are given in the [model defintions](https://canmod.github.io/macpan2/articles/model_definitions.html#flow-between-compartments) article.
+Here, the flow type is `per_capita`: i.e., the flow at time step $t+1$ will equal `flow` times the number of individuals in the `from` compartment at time $t$. In the example above, the flow from `S` to `I` equals `foi * S` (referring back to the derivations file, this is equal to `beta * S * I/ N`).
+
+All available flow types are given in the [model definitions](https://canmod.github.io/macpan2/articles/model_definitions.html#flow-between-compartments) article.
 
 ## Getting Model Definitions into R
 
-Once a directory that defines a compartmental model is produced, the definition can be loaded into R using the `Compartmental` function.
+Once we have a directory that completely defines a compartmental model, the definition can be loaded into R using the `Compartmental` function.
 
-```{r}
+```{r Compartmental}
 sir = Compartmental(sir_dir)
 ```
 
@@ -158,15 +189,15 @@ This `sir` object contains several methods for working with the model.  The most
 
 ## Numerical Inputs
 
-The model definition does not contain any numerical quantities and so it is not sufficient for running a simulation. The `$simulators$tmb` method allows one to create a model engine, which can be used to run simulations, by specifying numerical values for key quantities. Here we specify an engine called `sir_simulator` by providing the following information.
+The model definition does not contain any numerical quantities and so it is not sufficient for running a simulation. The `$simulators$tmb` method allows you to create a model engine, which can be used to run simulations, by specifying numerical values for key quantities. Here we specify an engine called `sir_simulator` by providing the following information.
 
 * `time_steps` -- How many time steps should the epidemic simulator run for?
-* `state` -- A named vector containing the values of the state variables defined in `settings.json`.
+* `state` -- A named vector containing the initial values of the state variables defined in `settings.json`.
 * `flow` -- A named vector containing the values of the flow variables defined in `settings.json`.
-* `...` -- Any other named variables that are required of your model definition, because they are not derived quantities specified in `derivations.json`. In this example we have `beta` and `N` that are required.
+* `...` -- Any other named variables that are required for your model definition, i.e. quantities used in the model that are not defined in `derivations.json`. In this example `beta` and `N` are required.
 
 
-```{r}
+```{r sim_values}
 sir_simulator = sir$simulators$tmb(time_steps = 100
   , state = c(S = 99, I = 1, R = 0)
   , flow = c(foi = 0, gamma = 0.1)
@@ -177,23 +208,38 @@ sir_simulator = sir$simulators$tmb(time_steps = 100
 
 ## Simulation
 
-To generate simulations from the simulator, one uses the `report` method. The results come out in [narrow format](https://en.wikipedia.org/wiki/Wide_and_narrow_data) and always have the same columns.
+To generate simulations from the simulator, use the `report` method. The results come out in [long format](https://en.wikipedia.org/wiki/Wide_and_narrow_data) and always have the same columns.
 
-```{r}
+(BB: I know the wikipedia page says "wide and narrow", but "long format" seems more common IME.)
+
+```{r run_sims}
 sir_simulations = sir_simulator$report()
-head(sir_simulations, 20)
+head(sir_simulations, 9)
 ```
 
-All variables in the simulations are [matrix valued](https://canmod.github.io/macpan2/articles/cpp_side#matrices) -- even ordinary numbers are stored as 1-by-1 matrices. The first column in the output gives you the name of the matrix being returned. Here we see the default behaviour of returning only the state matrix (or vector). This can be modified with the `.mats_to_save` and `.mats_to_return` arguments to the `$simulators_tmb` method (TODO: clean up and point to documentation).
+All variables in the simulations are [matrix valued](https://canmod.github.io/macpan2/articles/cpp_side#matrices) -- even ordinary numbers are stored as 1-by-1 matrices. The first column in the output gives the name of the matrix being returned. Here we see the default behaviour of returning only the state matrix (or vector). This can be modified with the `.mats_to_save` and `.mats_to_return` arguments to the `$simulators_tmb` method (TODO: clean up and point to documentation).  (BB: not entirely clear ...)
 
-The second column, `time`, gives the time step being reported. The third and fouth columns give the row and column identifiers within each matrices being reported on. The final column gives each simulated value.
+The second column, `time`, gives the time step being reported. The third and fourth columns give the row and column identifiers within each reported matrix (in this example there is only one reported matrix, `state`, and our column identifier is filled with blanks since our `state` matrix has only one row). The final column gives the simulated values.
 
 ## Processing Results
 
-There are no plotting tools in `macpan2`. The philosophy is to focus on the engine and modelling interface. We are not going to do better than `ggplot2` at plotting, for example, so we just format the output so that it can be easily manipulated by someone who has learned `ggplot2`. Here is an example.
-```{r}
+There are no plotting tools in `macpan2`. The philosophy is to focus on the engine and modelling interface. We are not going to do better than `ggplot2` at plotting, for example, so we format the output so that it can be easily manipulated in `ggplot2`. For example:
+```{r ggplot_ex, fig.width = 6}
 (sir_simulations
- %>% ggplot()
+ |> ggplot()
  + geom_line(aes(time, value, colour = row))
 )
 ```
+
+Similarly, if you want to convert the long-format data to wide format, you can use standard R tools:
+
+```{r pivot_wider}
+(sir_simulations
+    ## drop 'matrix' (has only a single value) and 'column' (blank)
+    |> dplyr::select(-c(matrix, col))
+    |> tidyr::pivot_wider(id_cols = time, names_from = row)
+    |> head(3)
+)
+```
+
+(BB: any further examples here, or is this enough?)
