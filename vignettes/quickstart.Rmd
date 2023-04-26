@@ -64,7 +64,7 @@ IP: before getting into the files below, it would be worth showing the user a di
 sir = Compartmental(sir_dir)
 if (require(visNetwork, quietly = TRUE)) {
     nodes = data.frame(id = sir$labels$state(),
-                        label = nodes$id,
+                        label = sir$labels$state(),
                         shape = "square")
     edges = sir$flows_expanded()[c("from", "to")]
     vn = visNetwork(nodes, edges) |>
