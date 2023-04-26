@@ -85,8 +85,8 @@ simulate a simple compartmental model in <code>macpan2</code>.</p>
 specified, and so there can be several equivalent ways of specifying the
 same model. This feature is important to keep in mind when trying to
 understand or build more complicated models, such as the one
-demonstrated in Quickstart Guide, part 2: see
-<code><a href="../articles/quickstart2.html">vignette('quickstart2', package = 'macpan2')</a></code>.</p>
+demonstrated in Quickstart Guide, part 2 (see
+<code><a href="../articles/quickstart2.html">vignette('quickstart2', package = 'macpan2')</a></code>).</p>
 <div class="section level2">
 <h2 id="model-definition-files">Model Definition Files<a class="anchor" aria-label="anchor" href="#model-definition-files"></a>
 </h2>
@@ -107,14 +107,16 @@ models:</p>
 <p>TODO: add a link to a reference doc with short descriptions of each
 starter model… also write this doc :) ideally it would have diagrams to
 illustrate each model</p>
-<p>The simplest is an SIR model, with a path that can be obtained as
-follows:</p>
+<p>The simplest is an SIR model, which can be found in this
+directory:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">sir_dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"starter_models"</span>, <span class="st">"sir"</span>, package <span class="op">=</span> <span class="st">"macpan2"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "/home/runner/work/_temp/Library/macpan2/starter_models/sir"</span></span></code></pre></div>
 <p>IP: before getting into the files below, it would be worth showing
 the user a diagram of the model (and especially if there’s a diagram
 utility, it could be demonstrated here)</p>
+<p>(BB: do we want this? Start a <code>macpan_helpers</code>
+package?)</p>
 <p>In this article, we work through the specification and simulation of
 the SIR sample model.</p>
 <div class="section level3">
@@ -130,7 +132,7 @@ variables:</p>
 <span><span class="co">#&gt; beta</span></span>
 <span><span class="co">#&gt; foi</span></span>
 <span><span class="co">#&gt; gamma</span></span></code></pre>
-<p>(The first row of this file is header row, which classifies the
+<p>(The first row of this file is a header row, which classifies the
 variables below. More on this later.)</p>
 <p>In <code>macpan2</code>, we use “variables” as a general term to
 refer to</p>
@@ -148,10 +150,11 @@ in time</li>
 </ul>
 </li>
 <li>
-<strong>parameter variables</strong>, such as:
+<strong>parameters</strong>, such as:
 <ul>
 <li>
-<code>beta</code>: the per-capita transmission rate</li>
+<code>beta</code>: the contact rate (transmission per time per
+susceptible per infective)</li>
 <li>
 <code>gamma</code>: the per-capita recovery rate of infectious
 individuals</li>
@@ -166,23 +169,22 @@ variables and/or parameters, such as:
 state variables <code>S + I + R</code>
 </li>
 <li>
-<code>foi</code>: the force of infection, which in the SIR model is
-calculated as <code>beta * I / N</code>
-</li>
+<code>foi</code>: the force of infection, <code>beta * I / N</code>
+in this model</li>
 </ul>
 </li>
 </ul>
 <p>Formulas for the derived quantities are defined in <a href="#derivations">derivations.json</a>.</p>
-<p>In simple models like this basic SIR, <code>variables.csv</code> is a
-single-column <code>.csv</code> file. The header row features one column
+<p>In simple models like this one, <code>variables.csv</code> is a
+single-column <code>.csv</code> file. The header row contains one column
 name, <code>Epi</code>, which labels the variables below it as
 epidemiological variables. Such variable category labels, or
-<strong>variable partitions</strong>, aren’t very useful for simple
-models like the basic SIR, where there is only one category of
-variables. However, partitions are integral when trying to combine
-multiple model structures into more complex, <a href="https://canmod.github.io/macpan2/articles/hello_products.html">“product”
-models</a>, like an SEIR model with symptom strata, which is explored in
-Quickstart Guide, part 2: see
+<strong>variable partitions</strong>, aren’t useful for simple models
+like the basic SIR, which have only a single variable category. However,
+partitions are essential as part of <a href="https://canmod.github.io/macpan2/articles/hello_products.html">“product”
+models</a> that combine multiple model structures into more complex
+models (for example, an SEIR model where the infectious class is divided
+by level of symptoms: see
 <code><a href="../articles/quickstart2.html">vignette('quickstart2', package = 'macpan2')</a></code>.</p>
 </div>
 <div class="section level3">
@@ -206,8 +208,8 @@ derived variables:</p>
 <span><span class="co">#&gt; ]</span></span></code></pre>
 <p>In this example, the derived variables are the total population size,
 <code>N</code>, and the force of infection, <code>foi</code>. Each
-derived variable is defined in a JSON object. Each such JSON object will
-have several key-value pairs. Here the keys are:</p>
+derived variable is defined in a <a href="https://en.wikipedia.org/wiki/JSON" class="external-link">JSON</a> object. Each such
+JSON object will contain several key-value pairs. Here the keys are:</p>
 <ul>
 <li>
 <code>output_names</code>: the name(s) of the derived variable(s);
@@ -219,7 +221,7 @@ variable is calculated; here we have
 <ul>
 <li>
 <code>"before"</code>, which means the variable is calculated from
-the initial variables values, before the simulation begins</li>
+the initial variable values, before the simulation begins</li>
 <li>
 <code>"during_pre_update"</code>, which means the variable is
 calculated at each simulation step, before the state variables are
@@ -227,26 +229,33 @@ updated for the next time step</li>
 </ul>
 </li>
 <li>
-<code>arguments</code>: an array of the variables used to calculate
-the derived variable</li>
+<code>arguments</code>: an array of the variables (delimited by
+brackets <code>[]</code>) used to calculate the derived variable</li>
 <li>
 <code>expression</code>: a string storing a mathematical expression
 used to calculate the derived variable using the
 <code>arguments</code>
 </li>
 </ul>
-<p>There are more value options for the keys described above, as well as
-supplementary keys used for defining more complicated models. These are
-fully cataloged in the <a href="https://canmod.github.io/macpan2/articles/model_definitions.html#flow-between-compartments">model
-defintions</a> article. Mathematical operations and functions available
-to use in the <code>expression</code> string can be found in the <a href="https://canmod.github.io/macpan2/reference/engine_functions.html">engine
+<p>The keys described above have more options; supplementary keys are
+used for defining more complicated models. These are fully catalogued in
+the <a href="https://canmod.github.io/macpan2/articles/model_definitions.html#flow-between-compartments">model
+definitions</a> article. Mathematical operations and functions available
+to use in the <code>expression</code> string are listed in the <a href="https://canmod.github.io/macpan2/reference/engine_functions.html">engine
 functions</a> reference article.</p>
+<p>(BB: is it worth mentioning that (1) we could have defined
+<code>foi</code> as <code>beta*I/(S+I+R)</code>, but that (a) it would
+be harder to read and (b) it would be less efficient since we would be
+computing <code>N</code> at every time step? and (2) that in a model
+where <code>N</code> varied over time we would need to compute
+<code>N</code> “during_pre_update” rather than “before”? Or are these
+unnecessary details at this stage?)</p>
 </div>
 <div class="section level3">
 <h3 id="settings-json">settings.json<a class="anchor" aria-label="anchor" href="#settings-json"></a>
 </h3>
-<p><code>settings.json</code> has information about how to interpret the
-variables defined in <a href="#variables">variables.csv</a>.</p>
+<p><code>settings.json</code> gives information about how to interpret
+the variables defined in <a href="#variables">variables.csv</a>.</p>
 <p>IP: the old version of this paragraph started with</p>
 <blockquote>
 <p>The next file is <code>settings.json</code>, which has information
@@ -263,7 +272,7 @@ flows.csv).</p>
 directly after <code>variables.csv</code>. While it’s possible to just
 reference variables in <code>variables.csv</code> to explain
 <code>settings.json</code> for this atomic model, I’m not sure if it
-also holds true for product models, but I think it’s OK if we glaze over
+also holds true for product models, but I think it’s OK if we gloss over
 that here.</p>
 <pre><code><span><span class="co">#&gt; {</span></span>
 <span><span class="co">#&gt;   "required_partitions" : ["Epi"],</span></span>
@@ -297,7 +306,7 @@ compartments:</p>
 <pre><code><span><span class="co">#&gt; from ,to ,flow  ,type      </span></span>
 <span><span class="co">#&gt; S    ,I  ,foi   ,per_capita</span></span>
 <span><span class="co">#&gt; I    ,R  ,gamma ,per_capita</span></span></code></pre>
-<p>This file also starts with a header row, an includes the following
+<p>This file also starts with a header row, including the following
 columns:</p>
 <ul>
 <li>
@@ -312,21 +321,25 @@ rate</li>
 <li>
 <code>type</code>: the type of the flow</li>
 </ul>
-<p>Here, the flow type is <code>per_capita</code>, which simply means
-that the flow at time step <span class="math inline">\(t+1\)</span> will
-be equal to <code>flow</code> times the number of individuals in the
+<p>(BB: “origin” and “destination” compartments instead of “where the
+flow (comes from|goes to)”? or is that too fancy?)</p>
+<p>Here, the flow type is <code>per_capita</code>: i.e., the flow at
+time step <span class="math inline">\(t+1\)</span> will equal
+<code>flow</code> times the number of individuals in the
 <code>from</code> compartment at time <span class="math inline">\(t\)</span>. In the example above, the flow from
-<code>S</code> to <code>I</code> is equal to <code>foi * S</code>.</p>
+<code>S</code> to <code>I</code> equals <code>foi * S</code> (referring
+back to the derivations file, this is equal to
+<code>beta * S * I/ N</code>).</p>
 <p>All available flow types are given in the <a href="https://canmod.github.io/macpan2/articles/model_definitions.html#flow-between-compartments">model
-defintions</a> article.</p>
+definitions</a> article.</p>
 </div>
 </div>
 <div class="section level2">
 <h2 id="getting-model-definitions-into-r">Getting Model Definitions into R<a class="anchor" aria-label="anchor" href="#getting-model-definitions-into-r"></a>
 </h2>
-<p>Once a directory that defines a compartmental model is produced, the
-definition can be loaded into R using the <code>Compartmental</code>
-function.</p>
+<p>Once we have a directory that completely defines a compartmental
+model, the definition can be loaded into R using the
+<code>Compartmental</code> function.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir</span> <span class="op">=</span> <span class="fu"><a href="../reference/Compartmental.html">Compartmental</a></span><span class="op">(</span><span class="va">sir_dir</span><span class="op">)</span></span></code></pre></div>
 <p>This <code>sir</code> object contains several methods for working
@@ -339,7 +352,7 @@ section.</p>
 </h2>
 <p>The model definition does not contain any numerical quantities and so
 it is not sufficient for running a simulation. The
-<code>$simulators$tmb</code> method allows one to create a model engine,
+<code>$simulators$tmb</code> method allows you to create a model engine,
 which can be used to run simulations, by specifying numerical values for
 key quantities. Here we specify an engine called
 <code>sir_simulator</code> by providing the following information.</p>
@@ -348,16 +361,16 @@ key quantities. Here we specify an engine called
 <code>time_steps</code> – How many time steps should the epidemic
 simulator run for?</li>
 <li>
-<code>state</code> – A named vector containing the values of the
-state variables defined in <code>settings.json</code>.</li>
+<code>state</code> – A named vector containing the initial values of
+the state variables defined in <code>settings.json</code>.</li>
 <li>
 <code>flow</code> – A named vector containing the values of the flow
 variables defined in <code>settings.json</code>.</li>
 <li>
-<code>...</code> – Any other named variables that are required of
-your model definition, because they are not derived quantities specified
-in <code>derivations.json</code>. In this example we have
-<code>beta</code> and <code>N</code> that are required.</li>
+<code>...</code> – Any other named variables that are required for
+your model definition, i.e. quantities used in the model that are not
+defined in <code>derivations.json</code>. In this example
+<code>beta</code> and <code>N</code> are required.</li>
 </ul>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_simulator</span> <span class="op">=</span> <span class="va">sir</span><span class="op">$</span><span class="va">simulators</span><span class="op">$</span><span class="fu">tmb</span><span class="op">(</span>time_steps <span class="op">=</span> <span class="fl">100</span></span>
@@ -370,60 +383,69 @@ in <code>derivations.json</code>. In this example we have
 <div class="section level2">
 <h2 id="simulation">Simulation<a class="anchor" aria-label="anchor" href="#simulation"></a>
 </h2>
-<p>To generate simulations from the simulator, one uses the
-<code>report</code> method. The results come out in <a href="https://en.wikipedia.org/wiki/Wide_and_narrow_data" class="external-link">narrow
+<p>To generate simulations from the simulator, use the
+<code>report</code> method. The results come out in <a href="https://en.wikipedia.org/wiki/Wide_and_narrow_data" class="external-link">long
 format</a> and always have the same columns.</p>
+<p>(BB: I know the wikipedia page says “wide and narrow”, but “long
+format” seems more common IME.)</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_simulations</span> <span class="op">=</span> <span class="va">sir_simulator</span><span class="op">$</span><span class="fu">report</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">sir_simulations</span>, <span class="fl">20</span><span class="op">)</span></span>
-<span><span class="co">#&gt;    matrix time row col      value</span></span>
-<span><span class="co">#&gt; 1   state    0   S     99.0000000</span></span>
-<span><span class="co">#&gt; 2   state    0   I      1.0000000</span></span>
-<span><span class="co">#&gt; 3   state    0   R      0.0000000</span></span>
-<span><span class="co">#&gt; 4   state    1   S     98.8020000</span></span>
-<span><span class="co">#&gt; 5   state    1   I      1.0980000</span></span>
-<span><span class="co">#&gt; 6   state    1   R      0.1000000</span></span>
-<span><span class="co">#&gt; 7   state    2   S     98.5850308</span></span>
-<span><span class="co">#&gt; 8   state    2   I      1.2051692</span></span>
-<span><span class="co">#&gt; 9   state    2   R      0.2098000</span></span>
-<span><span class="co">#&gt; 10  state    3   S     98.3474075</span></span>
-<span><span class="co">#&gt; 11  state    3   I      1.3222756</span></span>
-<span><span class="co">#&gt; 12  state    3   R      0.3303169</span></span>
-<span><span class="co">#&gt; 13  state    4   S     98.0873228</span></span>
-<span><span class="co">#&gt; 14  state    4   I      1.4501327</span></span>
-<span><span class="co">#&gt; 15  state    4   R      0.4625445</span></span>
-<span><span class="co">#&gt; 16  state    5   S     97.8028435</span></span>
-<span><span class="co">#&gt; 17  state    5   I      1.5895987</span></span>
-<span><span class="co">#&gt; 18  state    5   R      0.6075577</span></span>
-<span><span class="co">#&gt; 19  state    6   S     97.4919089</span></span>
-<span><span class="co">#&gt; 20  state    6   I      1.7415734</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">sir_simulations</span>, <span class="fl">9</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   matrix time row col     value</span></span>
+<span><span class="co">#&gt; 1  state    0   S     99.000000</span></span>
+<span><span class="co">#&gt; 2  state    0   I      1.000000</span></span>
+<span><span class="co">#&gt; 3  state    0   R      0.000000</span></span>
+<span><span class="co">#&gt; 4  state    1   S     98.802000</span></span>
+<span><span class="co">#&gt; 5  state    1   I      1.098000</span></span>
+<span><span class="co">#&gt; 6  state    1   R      0.100000</span></span>
+<span><span class="co">#&gt; 7  state    2   S     98.585031</span></span>
+<span><span class="co">#&gt; 8  state    2   I      1.205169</span></span>
+<span><span class="co">#&gt; 9  state    2   R      0.209800</span></span></code></pre></div>
 <p>All variables in the simulations are <a href="https://canmod.github.io/macpan2/articles/cpp_side#matrices">matrix
 valued</a> – even ordinary numbers are stored as 1-by-1 matrices. The
-first column in the output gives you the name of the matrix being
-returned. Here we see the default behaviour of returning only the state
-matrix (or vector). This can be modified with the
-<code>.mats_to_save</code> and <code>.mats_to_return</code> arguments to
-the <code>$simulators_tmb</code> method (TODO: clean up and point to
-documentation).</p>
+first column in the output gives the name of the matrix being returned.
+Here we see the default behaviour of returning only the state matrix (or
+vector). This can be modified with the <code>.mats_to_save</code> and
+<code>.mats_to_return</code> arguments to the
+<code>$simulators_tmb</code> method (TODO: clean up and point to
+documentation). (BB: not entirely clear …)</p>
 <p>The second column, <code>time</code>, gives the time step being
-reported. The third and fouth columns give the row and column
-identifiers within each matrices being reported on. The final column
-gives each simulated value.</p>
+reported. The third and fourth columns give the row and column
+identifiers within each reported matrix (in this example there is only
+one reported matrix, <code>state</code>, and our column identifier is
+filled with blanks since our <code>state</code> matrix has only one
+row). The final column gives the simulated values.</p>
 </div>
 <div class="section level2">
 <h2 id="processing-results">Processing Results<a class="anchor" aria-label="anchor" href="#processing-results"></a>
 </h2>
 <p>There are no plotting tools in <code>macpan2</code>. The philosophy
 is to focus on the engine and modelling interface. We are not going to
-do better than <code>ggplot2</code> at plotting, for example, so we just
-format the output so that it can be easily manipulated by someone who
-has learned <code>ggplot2</code>. Here is an example.</p>
+do better than <code>ggplot2</code> at plotting, for example, so we
+format the output so that it can be easily manipulated in
+<code>ggplot2</code>. For example:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="op">(</span><span class="va">sir_simulations</span></span>
-<span> <span class="op">%&gt;%</span> <span class="fu">ggplot</span><span class="op">(</span><span class="op">)</span></span>
+<span> <span class="op">|&gt;</span> <span class="fu">ggplot</span><span class="op">(</span><span class="op">)</span></span>
 <span> <span class="op">+</span> <span class="fu">geom_line</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span><span class="va">time</span>, <span class="va">value</span>, colour <span class="op">=</span> <span class="va">row</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="quickstart_files/figure-html/unnamed-chunk-11-1.png" width="700"></p>
+<p><img src="quickstart_files/figure-html/ggplot_ex-1.png" width="576"></p>
+<p>Similarly, if you want to convert the long-format data to wide
+format, you can use standard R tools:</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="op">(</span><span class="va">sir_simulations</span></span>
+<span>    <span class="co">## drop 'matrix' (has only a single value) and 'column' (blank)</span></span>
+<span>    <span class="op">|&gt;</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="va">matrix</span>, <span class="va">col</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="op">|&gt;</span> <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span>id_cols <span class="op">=</span> <span class="va">time</span>, names_from <span class="op">=</span> <span class="va">row</span><span class="op">)</span></span>
+<span>    <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 4</span></span></span>
+<span><span class="co">#&gt;    time     S     I     R</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>     0  99    1    0    </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>     1  98.8  1.10 0.1  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>     2  98.6  1.21 0.210</span></span></code></pre></div>
+<p>(BB: any further examples here, or is this enough?)</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>
