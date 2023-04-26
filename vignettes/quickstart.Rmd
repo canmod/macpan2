@@ -74,7 +74,8 @@ if (require(visNetwork, quietly = TRUE)) {
 }
 ```
 
-```{r show_visnet, results = "asis", echo = FALSE}
+```{r show_visnet, results = "asis", echo = FALSE, eval = FALSE}
+## this fails in pkgdown build, suppressing for now ...
 if (require(htmltools, quietly = TRUE)) {
     hh <- htmltools::includeHTML("visnet.html") |>
         ## https://stackoverflow.com/questions/47577894/r-markdown-visnetwork-not-displayed-in-html-output-when-using-for-loops-or-fun
