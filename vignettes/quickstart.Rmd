@@ -124,10 +124,10 @@ In `macpan2`, we use "variables" as a general term to refer to
   - `S`: the number of susceptible individuals at each point in time
   - `I`: the number of infectious individuals
   - `R`: the number of removed individuals
-- **parameters**, such as:
+- **flow variables**, such as:
   - `beta`: the contact rate (transmission per time per susceptible per infective)
   - `gamma`: the per-capita recovery rate of infectious individuals
-- **derived variables**, to be calculated using state variables and/or parameters, such as:
+- **derived variables**, to be calculated using state and/or flow variables, such as:
   - `N`: population size, calculated by summing all of the state variables `S + I + R`
   - `foi`: the force of infection, `beta * I / N` in this model
   
