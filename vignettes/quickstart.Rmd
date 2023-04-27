@@ -62,23 +62,12 @@ Installations of `macpan2` contain several starter models:
 list.files(system.file("starter_models", package = "macpan2"))
 ```
 
-TODO: add a link to a reference doc with short descriptions of each starter model... also write this doc :) ideally it would have diagrams to illustrate each model
+(TODO: add a link to a reference doc with short descriptions of each starter model... also write this doc :) ideally it would have diagrams to illustrate each model)
 
-The simplest is an SIR model, which can be found in this directory:
+The simplest is [the SIR model](https://en.wikipedia.org/wiki/Compartmental_models_in_epidemiology#The_SIR_model), which can be found in this directory:
 
 ```{r sir_model_path}
 print(sir_dir <- system.file("starter_models", "sir", package = "macpan2"))
-```
-
-Models are initialized from this directory using the `Compartmental()` function, and can then be visualized with the help of the [macpan2helpers](https://github.com/canmod/macpan2helpers) package:
-
-```{r make_visnet}
-sir = Compartmental(sir_dir)
-vn = macpan2helpers::visCompartmental(sir)
-```
-
-```{r show_sir, results = 'asis', echo = FALSE}
-show_visnet(vn)
 ```
 
 In this article, we work through the specification and simulation of the SIR sample model.
@@ -129,17 +118,11 @@ In this example, the derived variables are the total population size, `N`, and t
 
 The keys described above have more options; supplementary keys are used for defining more complicated models. These are fully catalogued in the [model definitions](https://canmod.github.io/macpan2/articles/model_definitions.html#flow-between-compartments) article. Mathematical operations and functions available to use in the `expression` string are listed in the  [engine functions](https://canmod.github.io/macpan2/reference/engine_functions.html) reference article.
 
-(BB: is it worth mentioning that (1) we could have defined `foi` as `beta*I/(S+I+R)`, but that (a) it would be harder to read and (b) it would be less efficient since we would be computing `N` at every time step? and (2) that in a model where `N` varied over time we would need to compute `N` "during_pre_update" rather than "before"? Or are these unnecessary details at this stage?)
+In the example above, we could have defined `foi` as `beta * I / (S + I + R)`. However, this expression is harder to read, and less computationally efficient. As defined above, `N` is computed once, before the simulation begins (`"simulation_phase": "before"`), since the population size is fixed in this model. `foi` is computed from its arguments at each simulation time step (`"simulation_phase": "during_pre_update"`) in order to update the numerator `I` using the latest prevalence. The denominator `(S + I + R)` would then also be re-computed needlessly during each time step. 
 
 ### settings.json
 
 `settings.json` gives information about how to interpret the variables defined in [variables.csv](#variables). 
-
-IP: the old version of this paragraph started with 
-
-> The next file is `settings.json`, which has information about how to interpret the variables and flows. In simple models like this, the two relevant fields are a list of state variables (those that can appear in the from and to columns of flows.csv) and another list of flow variables (those that can appear in the flow column of flows.csv).
-
-IP: I've tried to simplify this by saying that `settings.json` gives info about variables in `variables.csv` (as opposed to additionally referring to `flows.csv`), and that's also why I've put this section directly after `variables.csv`. While it's possible to just reference variables in `variables.csv` to explain `settings.json` for this atomic model, I'm not sure if it also holds true for product models, but I think it's OK if we gloss over that here.
 
 ```{r, echo=FALSE, eval=TRUE}
 cat_file(sir_dir, "settings.json")
@@ -162,80 +145,146 @@ cat_file(sir_dir, "flows.csv")
 
 This file also starts with a header row, including the following columns:
 
-- `from`: the name of the compartment where the flow comes from
-- `to`: the name of the compartment where the flow goes to
+- `from`: the name of the flow origin compartment
+- `to`: the name of the flow destination compartment
 - `flow`: the variable name storing the value of the flow rate
 - `type`: the type of the flow
-
-(BB: "origin" and "destination" compartments instead of "where the flow (comes from|goes to)"? or is that too fancy?)
 
 Here, the flow type is `per_capita`: i.e., the flow at time step $t+1$ equals `flow` times the number of individuals in the `from` compartment at time $t$. In the example above, the flow from `S` to `I` equals `foi * S` (referring back to the derivations file, this is equal to `beta * S * I/ N`).
 
 All available flow types are given in the [model definitions](https://canmod.github.io/macpan2/articles/model_definitions.html#flow-between-compartments) article.
 
+## Side-Note: `macpan2` is Object-Oriented
+
+Before we demonstrate how to import and use a model into R, it is helpful to note that `macpan2` is [object-oriented](https://en.wikipedia.org/wiki/Object-oriented_programming). If you are new to object-oriented programming, what you need to know is that when using `macpan2`, we routinely create ("initialize") special R objects that will have specific functions ("methods") attached that can operate on these objects. These objects are generally just named lists, where some of the list elements are actually methods. Here is a sketch of what that looks like:
+
+```
+myObject <- functionToIntializeObject(argumentsToSetUpMyObject)
+names(myObject)
+> [1] "objectInfo" "objectMethod"
+myObject$objectMethod(argumentsForUsingObjectMethod)
+```
+
+We make this more concrete in the next section.
+
 ## Getting Model Definitions into R
 
-Once we have a directory that completely defines a compartmental model, the definition can be loaded into R using the `Compartmental` function.
+Now that we have a directory that completely defines a compartmental model, we can use it to create a **model structure** object in R using the `Compartmental` function. (`Compartmental` is a function that initializes `Compartmental` objects, which are special to `macpan2`.)
 
 ```{r Compartmental}
 sir = Compartmental(sir_dir)
 ```
 
-This `sir` object contains several methods for working with the model.  The most important of these is the `simulators_tmb` method, which is described in the next section.
+`Compartmental` objects can then be visualized with the help of the [macpan2helpers](https://github.com/canmod/macpan2helpers) package:
 
-## Numerical Inputs
+```{r make_visnet}
+vn = macpan2helpers::visCompartmental(sir, label_flows = TRUE)
+```
 
-The model definition does not contain any numerical quantities and so it is not sufficient for running a simulation. The `$simulators$tmb` method allows you to create a model engine, which can be used to run simulations, by specifying numerical values for key quantities. Here we specify an engine called `sir_simulator` by providing the following information.
+```{r show_visnet_sir, results = 'asis', echo = FALSE}
+show_visnet(vn)
+```
 
-* `time_steps` -- How many time steps should the epidemic simulator run for?
-* `state` -- A named vector containing the initial values of the state variables defined in `settings.json`.
-* `flow` -- A named vector containing the values of the flow variables defined in `settings.json`.
-* `...` -- Any other named variables that are required for your model definition, i.e. quantities used in the model that are not defined in `derivations.json`. In this example `beta` and `N` are required.
+We can easily see the components of and methods for operating on `Compartmental` objects by looking at the names of a `Compartmental` object, in this case the `sir` object:
 
+```{r}
+names(sir)
+```
+
+These list elements are fully catalogued in the documentation for `Compartmental` objects (`?Compartmental()`), but for the next section, we focus on `sir$simulators`.
+
+## Inputting Values to Create Model Simulators
+
+Model structure objects, like `sir`, are very general: they don't contain any specific values for their variables, such as initial conditions for the state variables or values for flow rates. In order to simulate a model, we need to create a **model simulator** object by combining a model structure object with numerical values for its variables. 
+
+The `sir$simulators` list element contains methods for generating model simulators. In this article, we use the `sir$simulators$tmb` method, which is currently the only simulation engine available. 
+
+We attach specific values for model variables when initializing the model simulator, `sir_simluator`, using the `sir$simulators$tmb()` function:
 
 ```{r sim_values}
-sir_simulator = sir$simulators$tmb(time_steps = 100
-  , state = c(S = 99, I = 1, R = 0)
-  , flow = c(foi = 0, gamma = 0.1)
-  , beta = 0.2
-  , N = empty_matrix
+sir_simulator = sir$simulators$tmb(
+  time_steps = 100,
+  state = c(S = 99, I = 1, R = 0),
+  flow = c(foi = 0, gamma = 0.1),
+  beta = 0.2,
+  N = empty_matrix # explained below
 )
 ```
+
+The simulator initializer function, `sir$simulators$tmb`, will use `sir` as the model structure, and then additionally take the following arguments:
+
+- `time_steps`: How many time steps should the epidemic simulator run for? 
+- `state`: A named vector containing the initial values of the state variables defined in `settings.json`. In this example, we are simulating states in numbers of individuals.
+- `flow`: A named vector containing the values of the flow variables defined in `settings.json`. Here, those are just `foi` and `gamma`.
+- `...`: Any other named variables that are required for your model definition, _i.e._, variables used in  `derivations.json` that are not included in `settings.json`. Here,  `beta` and `N` are used in expressions for derived variables but not explicitly as flow variables.
+
+(IP: are the units of the time steps determined implicitly from the units of the flow rates? For instance, if the flow rates are specified per day, the time step is 1 day? We should clarify that here.)
+
+In our example, we use the `empty_matrix` placeholder value to initialize a value for the population size `N`. `N` will be computed before the simulation starts using the given initial conditions, as specified in `derivations.json` with `"simulation_phase": "before"`. In order to create a model simulator object, we must give a value for every variable in the model definition. `macpan2` does not check ahead of time whether `N` will be pre-computed. Thus, we initialize `N` with the placeholder value `macpan2::empty_matrix`, which is simply an empty matrix. (Although `N` is a scalar value, `macpan2` represents all varibles as [matrices](https://canmod.github.io/macpan2/articles/cpp_side#matrices), including scalars, also known as 1 x 1 matrices.)
+
+What if we had specified a hard-coded value for `N` above? For instance: 
+
+```{r sim_values2, eval = FALSE}
+sir_simulator2 = sir$simulators$tmb(
+  time_steps = 100,
+  state = c(S = 99, I = 1, R = 0),
+  flow = c(foi = 0, gamma = 0.1),
+  beta = 0.2,
+  N = 100
+)
+```
+
+There is actually no problem with this specification; `macpan2` will compute `N` using the expression `S + I + R` from `derivations.json` and the initial conditions from the `state` argument above before the simulation and overwrite the user-input value of 100. Thus, if one were to change the initial condition to `state = c(S = 999, I = 1, R = 0)` without updating the population to `N = 1000`, the simulator would still use the correct population size. However, the code is more readable if you explicitly use `N = empty_matrix`, because it reminds the user that `N` will be computed by the simulator and so it does not have to be updated by the user.
 
 ## Simulation
 
-To generate simulations from the simulator, use the `report` method. The results come out in [long format](https://en.wikipedia.org/wiki/Wide_and_narrow_data) and always have the same columns.
-
-(BB: I know the wikipedia page says "wide and narrow", but "long format" seems more common IME.)
+Now that we have a simulation engine object,  `sir_simulator`, we use it to generate simulation results using one of its methods: `report`. The results come out in [long (or "narrow") format](https://en.wikipedia.org/wiki/Wide_and_narrow_data), where there is exactly one value per row:
 
 ```{r run_sims}
-sir_simulations = sir_simulator$report()
-head(sir_simulations, 9)
+sir_results = sir_simulator$report()
+head(sir_results, 9)
 ```
 
-All variables in the simulations are [matrix valued](https://canmod.github.io/macpan2/articles/cpp_side#matrices) -- even ordinary numbers are stored as 1-by-1 matrices. The first column in the output gives the name of the matrix being returned. Here we see the default behaviour of returning only the state matrix (or vector). This can be modified with the `.mats_to_save` and `.mats_to_return` arguments to the `$simulators_tmb` method (TODO: clean up and point to documentation).  (BB: not entirely clear ...)
+The simulation results are output as a data frame with the following columns:
 
-The second column, `time`, gives the time step being reported. The third and fourth columns give the row and column identifiers within each reported matrix (in this example there is only one reported matrix, `state`, and our column identifier is filled with blanks since our `state` matrix has only one row). The final column gives the simulated values.
+- `matrix`: Which matrix does a value come from? By default, the simulation results will only include values for the state variables (coming from the `state` matrix). This behaviour can be changed with the `.mats_to_return` argument of `$simulators$tmb()` (see `?Simulators()`)
+- `time`: The time index, where the initial conditions are returned for `time` 0.
+- `row`: The name of the variable, which corresponds to the row names of the `state` matrix.
+- `col`: A placeholder for variable name components in more complicated models (not covered in this article).
+- `value`: The simulated value corresponding to the context provided by the other columns.
 
 ## Processing Results
 
-There are no plotting tools in `macpan2`. The philosophy is to focus on the engine and modelling interface. We are not going to do better than `ggplot2` at plotting, for example, so we format the output so that it can be easily manipulated in `ggplot2`. For example:
+There are no data manipulation or plotting tools in `macpan2`. The philosophy is to focus on the engine and modelling interface, but to provide outputs in formats that are easy to use with other data processing packages, like `ggplot2`, `dplyr`, and `tidyr`, all of which readily make use of data in long format. 
+
+For example, we can generate a `ggplot` easily with:
+
 ```{r ggplot_ex, fig.width = 6}
-(sir_simulations
- |> ggplot()
- + geom_line(aes(time, value, colour = row))
+(ggplot(sir_results)
+  + geom_line(aes(time, value, colour = row))
+  + labs(colour = "state")
+  + theme_bw()
 )
 ```
 
-Similarly, if you want to convert the long-format data to wide format, you can use standard R tools:
+Similarly, if you want to use base plotting tools to visualize a simulation, you can readily convert the long format data to wide format:
 
 ```{r pivot_wider}
-(sir_simulations
+sir_results_wide <- (sir_results
     ## drop 'matrix' (has only a single value) and 'column' (blank)
     |> dplyr::select(-c(matrix, col))
     |> tidyr::pivot_wider(id_cols = time, names_from = row)
-    |> head(3)
+)
+
+head(sir_results_wide, n = 3)
+```
+
+(Above, we made use of the [base pipe operator](https://www.tidyverse.org/blog/2023/04/base-vs-magrittr-pipe/#pipes), `|>`.)
+
+```{r base_plot_ex, fig.width = 6}
+with(sir_results_wide,
+     plot(x = time,
+          y = I)
 )
 ```
 
-(BB: any further examples here, or is this enough?)
