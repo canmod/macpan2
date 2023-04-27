@@ -169,10 +169,11 @@ We make this more concrete in the next section.
 
 ## Getting Model Definitions into R
 
-Now that we have a directory that completely defines a compartmental model, we can use it to create a **model structure** object in R using the `Compartmental` function. (`Compartmental` is a function that initializes `Compartmental` objects, which are special to `macpan2`.)
+Now that we have a directory that completely defines a compartmental model, we can use it to create a **model structure** object in R using the `Compartmental()` function. `Compartmental()` is a function that initializes objects whose class includes `Compartmental`, a `macpan2` custom object class.
 
 ```{r Compartmental}
 sir = Compartmental(sir_dir)
+class(sir)
 ```
 
 `Compartmental` objects can then be visualized with the help of the [macpan2helpers](https://github.com/canmod/macpan2helpers) package:
@@ -197,7 +198,7 @@ These list elements are fully catalogued in the documentation for `Compartmental
 
 Model structure objects, like `sir`, are very general: they don't contain any specific values for their variables, such as initial conditions for the state variables or values for flow rates. In order to simulate a model, we need to create a **model simulator** object by combining a model structure object with numerical values for its variables. 
 
-The `sir$simulators` list element contains methods for generating model simulators. In this article, we use the `sir$simulators$tmb` method, which is currently the only simulation engine available. 
+The `sir$simulators` list element contains methods for generating model simulators. In this article, we use the `sir$simulators$tmb()` method, which is currently the only simulation engine available. 
 
 We attach specific values for model variables when initializing the model simulator, `sir_simluator`, using the `sir$simulators$tmb()` function:
 
@@ -211,7 +212,7 @@ sir_simulator = sir$simulators$tmb(
 )
 ```
 
-The simulator initializer function, `sir$simulators$tmb`, will use `sir` as the model structure, and then additionally take the following arguments:
+The simulator initializer function, `sir$simulators$tmb()`, will use `sir` as the model structure, and then additionally take the following arguments:
 
 - `time_steps`: How many time steps should the epidemic simulator run for? 
 - `state`: A named vector containing the initial values of the state variables defined in `settings.json`. In this example, we are simulating states in numbers of individuals.
@@ -238,7 +239,7 @@ There is actually no problem with this specification; `macpan2` will compute `N`
 
 ## Simulation
 
-Now that we have a simulation engine object,  `sir_simulator`, we use it to generate simulation results using one of its methods: `report`. The results come out in [long (or "narrow") format](https://en.wikipedia.org/wiki/Wide_and_narrow_data), where there is exactly one value per row:
+Now that we have a simulation engine object,  `sir_simulator`, we use it to generate simulation results using one of its methods: `report()`. The results come out in [long (or "narrow") format](https://en.wikipedia.org/wiki/Wide_and_narrow_data), where there is exactly one value per row:
 
 ```{r run_sims}
 sir_results = sir_simulator$report()
