@@ -18,7 +18,7 @@ FlowExpander = function(model) {
         required_cols
       )
     }
-    rp = macpan2:::StringUndottedVector(self$s$required_partitions)$dot()$value()
+    rp = StringUndottedVector(self$s$required_partitions)$dot()$value()
     filtering_cols = c("from_partition",	"to_partition",	"flow_partition")
     for (col in filtering_cols) {
       if (!col %in% cols_on_file) {

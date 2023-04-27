@@ -13,10 +13,9 @@ Description: Fast and flexible compartmental modelling with template model build
 License: GPL-3
 Depends:
     R (>= 3.5.0),
-    TMB, 
-    RcppEigen
 Imports: 
-    memoise,
+    TMB, 
+    RcppEigen,
     oor,
     jsonlite
 Suggests: 

@@ -5,3 +5,8 @@ Makefile
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
+^macpan2/\.*$
+^macpan2_*.tar.gz$
+.*\.o$
+.*\.so$
+.*\.dll$

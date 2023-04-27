@@ -70,7 +70,7 @@ TXTReader = function(...) {
 #' @export
 NULLReader = function(...) {
   self = self = Base()
-  self$file = NULL
+  self$file = ""
   self$read = function() NULL
   return_object(self, "NULLReader")
 }
