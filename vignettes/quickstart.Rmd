@@ -143,7 +143,7 @@ In simple models like this one, `variables.csv` is a single-column `.csv` file. 
 cat_file(sir_dir, "derivations.json")
 ```
 
-In this example, the derived variables are the total population size, `N`, and the force of infection, `foi`. Each derived variable is defined in a [JSON](https://en.wikipedia.org/wiki/JSON) object. Each such JSON object will contain several key-value pairs. Here the keys are:
+In this example, the derived variables are the total population size, `N`, and the force of infection, `foi`. Each derived variable is defined in a [JSON](https://en.wikipedia.org/wiki/JSON) object. Each such JSON object contains several key-value pairs. Here the keys are:
 
 - `output_names`: the name(s) of the derived variable(s); in this simple model, each JSON object only defines a single derived variable
 - `simulation_phase`: the phase during which this derived variable is calculated; here we have 
@@ -194,7 +194,7 @@ This file also starts with a header row, including the following columns:
 
 (BB: "origin" and "destination" compartments instead of "where the flow (comes from|goes to)"? or is that too fancy?)
 
-Here, the flow type is `per_capita`: i.e., the flow at time step $t+1$ will equal `flow` times the number of individuals in the `from` compartment at time $t$. In the example above, the flow from `S` to `I` equals `foi * S` (referring back to the derivations file, this is equal to `beta * S * I/ N`).
+Here, the flow type is `per_capita`: i.e., the flow at time step $t+1$ equals `flow` times the number of individuals in the `from` compartment at time $t$. In the example above, the flow from `S` to `I` equals `foi * S` (referring back to the derivations file, this is equal to `beta * S * I/ N`).
 
 All available flow types are given in the [model definitions](https://canmod.github.io/macpan2/articles/model_definitions.html#flow-between-compartments) article.
 
