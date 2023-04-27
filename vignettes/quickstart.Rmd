@@ -219,7 +219,7 @@ The simulator initializer function, `sir$simulators$tmb()`, will use `sir` as th
 - `flow`: A named vector containing the values of the flow variables defined in `settings.json`. Here, those are just `foi` and `gamma`.
 - `...`: Any other named variables that are required for your model definition, _i.e._, variables used in  `derivations.json` that are not included in `settings.json`. Here,  `beta` and `N` are used in expressions for derived variables but not explicitly as flow variables.
 
-(IP: are the units of the time steps determined implicitly from the units of the flow rates? For instance, if the flow rates are specified per day, the time step is 1 day? We should clarify that here.)
+Currently `macpan2` does not have any way to explicitly specify the physical time unit (e.g. 1 day) associated with a single time-step. It is up to the user to provide such an interpretation. We do plan to allow the user to provide time units, but this functionality is not yet developed.
 
 In our example, we use the `empty_matrix` placeholder value to initialize a value for the population size `N`. `N` will be computed before the simulation starts using the given initial conditions, as specified in `derivations.json` with `"simulation_phase": "before"`. In order to create a model simulator object, we must give a value for every variable in the model definition. `macpan2` does not check ahead of time whether `N` will be pre-computed. Thus, we initialize `N` with the placeholder value `macpan2::empty_matrix`, which is simply an empty matrix. (Although `N` is a scalar value, `macpan2` represents all varibles as [matrices](https://canmod.github.io/macpan2/articles/cpp_side#matrices), including scalars, also known as 1 x 1 matrices.)
 
