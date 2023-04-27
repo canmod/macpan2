@@ -272,7 +272,7 @@ Similarly, if you want to use base plotting tools to visualize a simulation, you
 
 ```{r pivot_wider}
 sir_results_wide <- (sir_results
-    ## drop 'matrix' (has only a single value) and 'column' (blank)
+    ## drop 'matrix' (has only a single value) and 'col' (empty)
     |> dplyr::select(-c(matrix, col))
     |> tidyr::pivot_wider(id_cols = time, names_from = row)
 )
