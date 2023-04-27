@@ -84,16 +84,16 @@ cat_file(sir_dir, "variables.csv")
 
 In `macpan2`, we use "variables" as a general term to refer to
 
-- **state variables**, such as:
-  - `S`: the number of susceptible individuals at each point in time
-  - `I`: the number of infectious individuals
-  - `R`: the number of removed individuals
-- **flow variables**, such as:
-  - `beta`: the contact rate (transmission per time per susceptible per infective)
-  - `gamma`: the per-capita recovery rate of infectious individuals
-- **derived variables**, to be calculated using state and/or flow variables, such as:
-  - `N`: population size, calculated by summing all of the state variables `S + I + R`
-  - `foi`: the force of infection, `beta * I / N` in this model
+- **State variables**, such as:
+  - `S`: the number of susceptible individuals at each point in time;
+  - `I`: the number of infectious individuals;
+  - `R`: the number of removed individuals.
+- **Flow variables**, such as:
+  - `beta`: the contact rate (transmission per time per susceptible per infective);
+  - `gamma`: the per-capita recovery rate of infectious individuals.
+- **Derived variables**, to be calculated using state and/or flow variables, such as:
+  - `N`: population size, calculated by summing all of the state variables `S + I + R`.
+  - `foi`: the force of infection, `beta * I / N` in this model.
   
 Formulas for the derived quantities are defined in [derivations.json](#derivations).
 
@@ -109,12 +109,12 @@ cat_file(sir_dir, "derivations.json")
 
 In this example, the derived variables are the total population size, `N`, and the force of infection, `foi`. Each derived variable is defined in a [JSON](https://en.wikipedia.org/wiki/JSON) object. Each such JSON object contains several key-value pairs. Here the keys are:
 
-- `output_names`: the name(s) of the derived variable(s); in this simple model, each JSON object only defines a single derived variable
-- `simulation_phase`: the phase during which this derived variable is calculated; here we have 
-    - `"before"`, which means the variable is calculated from the initial variable values, before the simulation begins
-    - `"during_pre_update"`, which means the variable is calculated at each simulation step, before the state variables are updated for the next time step
-- `arguments`: an array of the variables (delimited by brackets `[]`) used to calculate the derived variable
-- `expression`: a string storing a mathematical expression  used to calculate the derived variable using the `arguments` 
+- `output_names`: The name(s) of the derived variable(s); in this simple model, each JSON object only defines a single derived variable.
+- `simulation_phase`: The phase during which this derived variable is calculated; Here we have:
+    - `before`, which means the variable is calculated from the initial variable values, before the simulation begins;
+    - `during_pre_update`, which means the variable is calculated at each simulation step, before the state variables are updated for the next time step.
+- `arguments`: An array of the variables (delimited by brackets `[]`) used to calculate the derived variable.
+- `expression`: A string storing a mathematical expression  used to calculate the derived variable using the `arguments`.
 
 The keys described above have more options; supplementary keys are used for defining more complicated models. These are fully catalogued in the [model definitions](https://canmod.github.io/macpan2/articles/model_definitions.html#flow-between-compartments) article. Mathematical operations and functions available to use in the `expression` string are listed in the  [engine functions](https://canmod.github.io/macpan2/reference/engine_functions.html) reference article.
 
@@ -130,10 +130,10 @@ cat_file(sir_dir, "settings.json")
 
 This file contains a single JSON object, with several key-value pairs. The mandatory keys are:
 
-- `required_partitions`: an array of variable partition names (from the header row of [variables.csv](#variables)) required to uniquely identify each variable
-- `null_partition`: leave this entry as `"Null"`; this key may be used to expand `macpan2`'s functionality in the future, but it is currently unused
-- `state_variables`: an array of state variables
-- `flow_variables`: an array of flow variables
+- `required_partitions`: An array of variable partition names (from the header row of [variables.csv](#variables)) required to uniquely identify each variable.
+- `null_partition`: Leave this entry as `"Null"`; this key may be used to expand `macpan2`'s functionality in the future, but it is currently unused.
+- `state_variables`: An array of state variables.
+- `flow_variables`: An array of flow variables.
 
 ### flows.csv
 
@@ -145,10 +145,10 @@ cat_file(sir_dir, "flows.csv")
 
 This file also starts with a header row, including the following columns:
 
-- `from`: the name of the flow origin compartment
-- `to`: the name of the flow destination compartment
-- `flow`: the variable name storing the value of the flow rate
-- `type`: the type of the flow
+- `from`: The name of the flow origin compartment.
+- `to`: The name of the flow destination compartment.
+- `flow`: The variable name storing the value of the flow rate.
+- `type`: The type of the flow.
 
 Here, the flow type is `per_capita`: i.e., the flow at time step $t+1$ equals `flow` times the number of individuals in the `from` compartment at time $t$. In the example above, the flow from `S` to `I` equals `foi * S` (referring back to the derivations file, this is equal to `beta * S * I/ N`).
 
