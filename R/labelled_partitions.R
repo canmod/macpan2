@@ -109,18 +109,6 @@ frame_to_part = function(frame) {
   y
 }
 
-if (FALSE) {
-  ee = list(
-    us = macpan2:::StringUndottedScalar("d"),
-    ds = macpan2:::StringDottedScalar("d.g.d"),
-    uv = macpan2:::StringUndottedVector("d", "g", "d"),
-    dv = macpan2:::StringDottedVector("d.g.d", "e.g.e"),
-    um = macpan2:::StringUndottedMatrix(matrix(c("a", "b", "c", "d"), 2, 2)),
-    dm = macpan2:::StringDottedMatrix(matrix(c("a.b", "b.b", "c.e", "d.d"), 2, 2))
-  )
-  lapply(ee, class)
-}
-
 #' Partition
 #'
 #' Create object for manipulating partitions, which are sets of
@@ -244,7 +232,7 @@ NumericPartition = function(frame, numeric_vector) {
   self = Base()
   self$partition = Partition(frame)
   self$vector = setNames(
-    macpan2:::valid$num_vec$assert(numeric_vector),
+    valid$num_vec$assert(numeric_vector),
     self$partition$select_out("Matrix")$labels()
   )
   self$filter_vector = function(..., .wrt, .comparison_function = all_equal) {

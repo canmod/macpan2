@@ -40,8 +40,8 @@ Defaults = function(default_files) {
   self$.make_matrix = function(name, row_part, col_part) {
     i = self$def$defaults()$Matrix == name
     vals = self$def$defaults()[i, "Value"]
-    row_part = macpan2:::StringDottedScalar(row_part)
-    col_part = macpan2:::StringDottedScalar(col_part)
+    row_part = StringDottedScalar(row_part)
+    col_part = StringDottedScalar(col_part)
     self$initialized_variables()$select(row_part$undot())$filter()
   }
   return_object(self, "Defaults")

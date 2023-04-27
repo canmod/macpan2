@@ -58,7 +58,7 @@ Args = function(constructor, arg_list, arg_modifiers) {
 EditableArgs = function(constructor, arg_list, arg_modifiers) {
   self = Args(constructor, arg_list, arg_modifiers)
   self$edit = function(...) {
-    new_args = macpan2:::valid$named_list$assert(list(...))
+    new_args = valid$named_list$assert(list(...))
     new_list_args = new_args[!names(new_args) %in% names(self$.arg_modifiers)]
     new_modifier_args = new_args[names(new_args) %in% names(self$.arg_modifiers)]
     for (nm in names(new_list_args)) {
