@@ -15,6 +15,7 @@ editor_options:
 
 ```{r pkgs, include = FALSE}
 library(macpan2)
+library(macpan2helpers)
 library(dplyr)
 library(ggplot2)
 knitr::opts_chunk$set(
@@ -23,6 +24,19 @@ knitr::opts_chunk$set(
 )
 cat_file = function(...) {
   cat(readLines(file.path(...)), sep = "\n")
+}
+```
+
+```{r show_visnet, echo = FALSE}
+# function to get around issues with displaying visNetwork objects in an html vignette 
+show_visnet <- function(vn){
+  visNetwork::visSave(vn, file = paste0("visnet.html"))
+  hh <- htmltools::includeHTML("visnet.html") |>
+      ## https://stackoverflow.com/questions/47577894/r-markdown-visnetwork-not-displayed-in-html-output-when-using-for-loops-or-fun
+      gsub(pattern = "<!DOCTYPE html>", replacement = "", fixed = TRUE) |>
+      sub(pattern = "\n", replacement = "")
+  cat(hh)
+  invisible(file.remove("visnet.html"))
 }
 ```
 
@@ -56,54 +70,15 @@ The simplest is an SIR model, which can be found in this directory:
 print(sir_dir <- system.file("starter_models", "sir", package = "macpan2"))
 ```
 
-IP: before getting into the files below, it would be worth showing the user a diagram of the model (and especially if there's a diagram utility, it could be demonstrated here)
+Models are initialized from this directory using the `Compartmental()` function, and can then be visualized with the help of the [macpan2helpers](https://github.com/canmod/macpan2helpers) package:
 
-(BB: do we want this? Start a `macpan_helpers` package?)
-
-```{r visCompartmental, echo = FALSE}
-#' Visualize a Compartmental model
-#' 
-#' @param model Model object created using [Compartmental()]
-#' @param label_flows Logical. Should edges be labelled with flow rates?
-#' 
-#' @return A `visNetwork` object
-#' 
-#' @example 
-#' sir = Compartmental(system.file('starter_models', 'sir', package = 'macpan2'
-#' visCompartmental(sir)))
-visCompartmental <- function(model, label_flows = FALSE){
-  nodes = data.frame(id = sir$labels$state(),
-                       label = sir$labels$state(),
-                       shape = "square")
-  edges = sir$flows_expanded()[c("from", "to")]
-  if(label_flows) edges = cbind(edges,
-                                label = sir$flows_expanded()[["flow"]])
-  
-  vn = visNetwork(nodes, edges) |>
-       visEdges(arrows = "to") |>
-       visHierarchicalLayout(direction = "LR")
-  
-  return(vn)
-}
-```
-
-```{r make_visnet, echo = FALSE}
+```{r make_visnet}
 sir = Compartmental(sir_dir)
-if (require(visNetwork, quietly = TRUE)) {
-    vn = visCompartmental(sir)
-    visSave(vn, file = paste0("visnet.html"))
-}
+vn = macpan2helpers::visCompartmental(sir)
 ```
 
-```{r show_visnet, results = "asis", echo = FALSE, eval = TRUE}
-## this fails in pkgdown build, suppressing for now ...
-if (require(htmltools, quietly = TRUE)) {
-    hh <- htmltools::includeHTML("visnet.html") |>
-        ## https://stackoverflow.com/questions/47577894/r-markdown-visnetwork-not-displayed-in-html-output-when-using-for-loops-or-fun
-        gsub(pattern = "<!DOCTYPE html>", replacement = "", fixed = TRUE) |>
-        sub(pattern = "\n", replacement = "")
-    cat(hh)
-}
+```{r show_sir, results = 'asis', echo = FALSE}
+show_visnet(vn)
 ```
 
 In this article, we work through the specification and simulation of the SIR sample model.
