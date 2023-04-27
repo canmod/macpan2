@@ -27,7 +27,8 @@ Suggests:
     ggplot2,
     testthat (>= 3.0.0),
     htmltools,
-    visNetwork
+    visNetwork,
+    macpan2helpers
 LinkingTo:
     TMB,
     RcppEigen
