@@ -1,23 +1,175 @@
 ---
-title: "Quickstart Guide, part 2: specifying and simulating a structured compartmental model"
+title: "Quickstart Guide, part 2: specifying and simulating a stratidied compartmental model"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Quickstart Guide, part 2: specifying and simulating a structured compartmental model}
+  %\VignetteIndexEntry{Quickstart Guide, part 2: specifying and simulating a stratified compartmental model}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
 [![status](https://img.shields.io/badge/status-stub-red)](https://img.shields.io/badge/status-stub-red)
 
-```{r, include = FALSE}
+```{r pkgs, include = FALSE}
+library(macpan2)
+library(macpan2helpers)
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+cat_file = function(...) {
+  cat(readLines(file.path(...)), sep = "\n")
+}
 ```
 
-```{r setup}
-library(macpan2)
+This article is the continuation of `vignette('quickstart', package = 'macpan2')`. Here, we explain how to specify and simulate more complex models, specifically those where states are **stratified** (_e.g._ by symptom status, age, vaccination status). As the focus of this article will be on the additional `macpan2` features required to specify stratified models, please be sure to review and understand `vignette('quickstart', package = 'macpan2')` before proceeding. 
+
+# SEIR with symptom types
+
+As an illustrative example, we use the `seir_symp` sample model included with `macpan2`, which defines the [SEIR model](https://en.wikipedia.org/wiki/Compartmental_models_in_epidemiology#The_SEIR_model), where the infectious state, $I$, is stratified by two symptom types: mild and severe.
+
+---
+
+# SIR with vaccination partition
+
+We explore an SIR model with two vaccination strata: `unvax` for unvaccinated individuals and `vax` for vaccinated ones. Each vaccination strata has a copy of basic epidemiological model, and there is a flow between `S` in the unvaccinated statrum to `S` in the vaccinated stratum to simulate vaccination of susceptible individuals:
+
+```{r model_dir}
+m_dir = system.file("starter_models", "sir_vax", package = "macpan2")
+m = Compartmental(m_dir)
+visCompartmental(m)
 ```
 
-This article is the counterpart to `vignette('quickstart', package = 'macpan2')`, but instead of explaining the spec and sim of a simple SIR, we describe the **new** components introduced by trying to specify a product model. While the new "productify" functionality should make most of the content of this article obsolete eventually, this article can serve as a resource for users until then.
+
+
+## Model Definition Files
+
+### flow.csv
+
+Let's start with the flows, because these are key to understanding model structure:
+
+```{r}
+m$flows()
+```
+
+The `flows.csv` file for the simple SIR model explored in the first Quickstart guide had only the first four columns:
+
+```{r}
+sir = Compartmental(system.file("starter_models", "sir", package = "macpan2"))
+sir$flows()
+```
+
+In our new that the `flows.csv` file for this partitioned model has more than just the first four columns. Our goal in this section is to understand these additional columns:
+
+```{r}
+m$flows()
+```
+
+Big picture, we have flows from `S` to `I`, `I` to `R`, and `S.unvax` to `S.vax`. However, this is a partitioned model, where each state is partitioned by vaccine status, so that's not exactly what's going on. Let's focus on the `I` to `R` flow first to understand how flows are specified for partitioned models.
+
+If the `I` to `R` flow was specified for an atomic model (only one partition, like `Epi`), the above file would have something like the following entry for that flow:
+
+```{r}
+m$flows()[2,1:4]
+```
+
+This line would tell `macpan2` to create a flow from `I` to `R` with a per_capita rate `gamma` (per capita based on the `from` compartment), _i.e._, the flow into `R` is equal to `gamma * I`. 
+
+But in the partitioned model with an `Epi` partition _and_ a `Vax` partition, there is no "just `I`" or "just `R`" state:
+
+```{r}
+m$variables$state()
+```
+There are actually _two_ `I` states and two `R` states, one for each `Vax` label. The labels for each partition, `Epi` and `Vax`, are concatenated with a `.` to produce the expanded state labels:
+
+```{r}
+m$variables$state()$filter(c("I", "R"), .wrt = "Epi")$labels()
+```
+
+In the first four columns of `flows.csv`, we've specified that we want `I`s to go to `R`s, but which `I`s to which `R`s? Depending on the model, we could want `I.unvax` to go to `R.unvax`, or to go to `R.vax`, or both! Since there are two `from` compartments and two `to` compartments, there are four available flows:
+
+```
+I.unvax -> R.unvax 
+I.unvax -> R.vax
+I.vax -> R.unvax
+I.vax -> R.unvax
+```
+
+But in our vaccination model, these flows represent recovery from illness, and not a contemporanous change in vaccine status, so the only flows we actually want are
+
+```
+I.unvax -> R.unvax
+I.vax -> R.vax
+
+```
+
+What we could do is manually specify that we want these two flows in `flows.csv` as:
+
+```{r}
+tibble(
+  from = paste("I", c("unvax", "vax"), sep = "."),
+  to = paste("R", c("unvax", "vax"), sep = "."),
+  flow = "gamma",
+  type = "per_capita"
+)
+```
+
+This is fine since we only have two such flows, but what if we had many more vaccine categories? Not to mention that we will likely want to do a similar operation for every epideimiological flow in the model (like `S` to `I` as well)... what if the model was much more complicated than a simple SIR and had many more epidemiological flows? 
+
+Instead, we describe the basic epidemiological flow with
+
+```{r}
+m$flows()[2,1:4]
+```
+
+and then add information on 
+1. the partition in which the `from` labels live (`from_partition`)
+1. the partition in which the `to` labels live (`to_partition`)
+1. the partition that determines how the `from` and `to` compartments are connected via a flow (`from_to_partition`)
+
+```{r}
+m$flows()[2,c(5,6,8)]
+```
+
+Above, we have that 
+1. the `from_partition` entry is `Epi` so the `from` compartment variable `I` lives in the `Epi` partition
+1. the `to_partition` entry is `Epi` so the `to` compartment variable `R` lives in the `Epi` partition
+1. the `from_to_partition` entry is `Vax` so the `from` and `to` compartments should have matching `Vax` partition labels.
+
+We can always check that the above actually specifies the flows we want:
+
+```{r}
+(m$flows_expanded() 
+  |> dplyr::filter(stringr::str_detect(from, "^I\\.")) 
+  |> dplyr::select(from, to)
+)
+```
+
+Now we've specified which flows we want out of the four available flows, but which flow parameters should be use for each flow? That's where the columns in `flow.csv` that we haven't yet explained come in:
+
+```{r}
+m$flows()[2,c(3,7,9,10)]
+```
+
+We have actually seen the first column here, `flow`, which gives the variable name for the flow rate. We specify the second column, `flow_partition`, to identify that the flow variable lives in the `Epi` partition. The third column, `from_flow_partition`, will determine which partition is used to connect a `flow` variable with the `from` compartment. (The last column `to_flow_partition` is the `to` compartment counterpart to `from_flow_partition`, and should be left as `Null` here---can we explain why?)
+
+Here, we've specified that the `from_flow_partition` is `Vax`. Why do we even need to specify this? Firstly, there are two `gamma` rates specified:
+
+```{r}
+m$variables$flow()$filter("gamma", .wrt = "Epi")
+```
+
+This is to allow for different recovery rates in each vaccination stratum. We need to make explicit that the `gamma` variables should be matched with the `from` compartments using the `Vax` partition labels, that is
+
+```
+I.unvax --gamma.unvax--> R.unvax
+I.vax --gamma.vax--> R.vax
+```
+
+That's what we're doing in the `from_flow_partition` column. If we had left this entry blank, `macpan2` would have created _two_ flows within each vaccination stratum for recovery, one for each gamma:
+
+```
+I.unvax --gamma.unvax--> R.unvax
+I.unvax --gamma.vax--> R.unvax
+I.vax --gamma.unvax--> R.vax
+I.vax --gamma.vax--> R.vax
+```
