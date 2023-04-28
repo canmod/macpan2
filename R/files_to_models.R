@@ -83,7 +83,11 @@ DerivationExtractor = function(model){
   }
 
   self$.number_of_groups = function(derivation){
-    if (is.null(derivation$output_partition)) return(1)
+    only_one_grp = (
+        is.null(derivation$output_partition)
+      | is.null(derivation$group_names)
+    )
+    if (only_one_grp) return(1)
     return(length(derivation$group_names))
   }
 

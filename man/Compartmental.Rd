@@ -23,10 +23,10 @@ An object with the following methods and fields.
 variables.
 \item \verb{$variables$flow()}: \code{\link{Partition}} object of all flow variables.
 \item \verb{$all_labels()}: Character vector giving the labels of all variables.
-\item \verb{$state_labels()}: Character vector giving the labels of all state
+\item \verb{$labels$state()}: Character vector giving the labels of all state
 variables.
-\item \verb{$flow_labels()}: Character vector giving the labels of all flow variables.
-\item \verb{$other_labels()}: Character vector giving the labels of all variables
+\item \verb{$labels$flow()}: Character vector giving the labels of all flow variables.
+\item \verb{$labels$other()}: Character vector giving the labels of all variables
 that are neither state nor flow variables.
 \item \verb{$expr_list()}: \code{\link{ExprList}} object containing all expressions.
 }

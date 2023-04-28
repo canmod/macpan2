@@ -1,0 +1,4 @@
+from    ,to    ,flow      ,type       ,from_partition ,to_partition ,flow_partition ,from_to_partition ,from_flow_partition ,to_flow_partition
+S       ,I     ,infection ,per_capita ,Epi            ,Epi          ,Epi            ,Vax               ,Vax                 ,Null
+I       ,R     ,gamma     ,per_capita ,Epi            ,Epi          ,Epi            ,Vax               ,Vax                 ,Null
+S.unvax ,S.vax ,vax_rate  ,per_capita ,Epi.Vax        ,Epi.Vax      ,Vax            ,                  ,                    ,Null

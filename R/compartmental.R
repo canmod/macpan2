@@ -18,10 +18,10 @@
 #' variables.
 #' * `$variables$flow()`: \code{\link{Partition}} object of all flow variables.
 #' * `$all_labels()`: Character vector giving the labels of all variables.
-#' * `$state_labels()`: Character vector giving the labels of all state
+#' * `$labels$state()`: Character vector giving the labels of all state
 #' variables.
-#' * `$flow_labels()`: Character vector giving the labels of all flow variables.
-#' * `$other_labels()`: Character vector giving the labels of all variables
+#' * `$labels$flow()`: Character vector giving the labels of all flow variables.
+#' * `$labels$other()`: Character vector giving the labels of all variables
 #' that are neither state nor flow variables.
 #' * `$expr_list()`: \code{\link{ExprList}} object containing all expressions.
 #'

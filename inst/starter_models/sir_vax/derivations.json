@@ -1,0 +1,44 @@
+[
+  {
+    "group_partition" : "Vax",
+    "group_names" : ["unvax", "vax"],
+    "output_partition" : "Epi.Vax",
+    "output_names" : ["N.unvax", "N.vax"],
+    "simulation_phase" : "during_pre_update",
+    "input_partition" : "Epi",
+    "arguments" : ["S", "I", "R"],
+    "expression" : "sum(S, I, R)"
+  },
+  {
+    "group_partition" : "Vax",
+    "group_names" : ["unvax", "vax"],
+    "output_partition" : "Epi.Vax", 
+    "output_names" : ["foi.unvax", "foi.vax"],
+    "simulation_phase" : "during_pre_update",
+    "input_partition" : "Epi",
+    "arguments" : ["I", "beta", "N"],
+    "expression" : "I * beta / clamp(N)" 
+  },
+  {
+    "filter_partition" : "Epi",
+    "filter_names" : ["foi"],
+    "output_partition" : "Epi.Vax",
+    "output_names" : ["foi."],
+    "simulation_phase" : "during_pre_update",
+    "input_partition" : "Vax",
+    "arguments" : ["unvax", "vax"],
+    "expression" : "unvax + vax"
+  },
+  {
+    "filter_partition" : "Epi.Vax",
+    "filter_names" : ["foi.", "sigma.unvax", "sigma.vax", "infection.unvax", "infection.vax"],
+    "group_partition" : "Vax",
+    "group_names" : ["unvax", "vax"],
+    "output_partition" : "Epi.Vax",
+    "output_names" : ["infection.unvax", "infection.vax"],
+    "simulation_phase" : "during_pre_update",
+    "input_partition" : "Epi",
+    "arguments" : ["foi", "sigma"],
+    "expression" : "foi * sigma"
+  }
+]

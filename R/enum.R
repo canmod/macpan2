@@ -32,7 +32,7 @@ valid_func_sigs = c(
       , "fwrap,null: assign(x, i, j, v)"
       , "fwrap,fail: unpack(x, ...)"
       , "fwrap,null: recycle(x, rows, cols)"
-      , "fwrap,fail: clamp(x)"
+      , "fwrap,null: clamp(x, eps)"
       , "fwrap,fail: dpois(observed, simulated)"
       , "fwrap,fail: dnbinom(observed, simulated, over_dispersion)"
       , "fwrap,fail: dnorm(observed, simulated, standard_deviation)"
