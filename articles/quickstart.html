@@ -5660,11 +5660,11 @@ HTMLWidgets.widget({
   
 });
 </script><div id="htmlwidget_container">
-<div id="htmlwidget-6cf5d2521a9593726f6c" class="visNetwork html-widget html-fill-item-overflow-hidden html-fill-item" style="width:960px;height:500px;">
+<div id="htmlwidget-8b2e632287b662dc825c" class="visNetwork html-widget html-fill-item-overflow-hidden html-fill-item" style="width:960px;height:500px;">
 
 </div>
 </div>
-<script type="application/json" data-for="htmlwidget-6cf5d2521a9593726f6c">{"x":{"nodes":{"id":["S","I","R"],"label":["S","I","R"],"shape":["square","square","square"]},"edges":{"from":["S","I"],"to":["I","R"],"label":["foi","gamma"]},"nodesToDataframe":true,"edgesToDataframe":true,"options":{"width":"100%","height":"100%","nodes":{"shape":"dot"},"manipulation":{"enabled":false},"edges":{"arrows":"to"},"layout":{"hierarchical":{"enabled":true,"direction":"LR"}}},"groups":null,"width":null,"height":null,"idselection":{"enabled":false},"byselection":{"enabled":false},"main":null,"submain":null,"footer":null,"background":"rgba(0, 0, 0, 0)"},"evals":[],"jsHooks":[]}</script><script type="application/htmlwidget-sizing" data-for="htmlwidget-6cf5d2521a9593726f6c">{"viewer":{"width":450,"height":350,"padding":15,"fill":true},"browser":{"width":960,"height":500,"padding":40,"fill":false}}</script><p>We can easily see the components of and methods for operating on
+<script type="application/json" data-for="htmlwidget-8b2e632287b662dc825c">{"x":{"nodes":{"id":["S","I","R"],"label":["S","I","R"],"shape":["square","square","square"]},"edges":{"from":["S","I"],"to":["I","R"],"label":["foi","gamma"]},"nodesToDataframe":true,"edgesToDataframe":true,"options":{"width":"100%","height":"100%","nodes":{"shape":"dot"},"manipulation":{"enabled":false},"edges":{"arrows":"to"},"layout":{"hierarchical":{"enabled":true,"direction":"LR"}}},"groups":null,"width":null,"height":null,"idselection":{"enabled":false},"byselection":{"enabled":false},"main":null,"submain":null,"footer":null,"background":"rgba(0, 0, 0, 0)"},"evals":[],"jsHooks":[]}</script><script type="application/htmlwidget-sizing" data-for="htmlwidget-8b2e632287b662dc825c">{"viewer":{"width":450,"height":350,"padding":15,"fill":true},"browser":{"width":960,"height":500,"padding":40,"fill":false}}</script><p>We can easily see the components of and methods for operating on
 <code>Compartmental</code> objects by looking at the names of a
 <code>Compartmental</code> object, in this case the <code>sir</code>
 object:</p>
@@ -5724,9 +5724,15 @@ your model definition, <em>i.e.</em>, variables used in
 are used in expressions for derived variables but not explicitly as flow
 variables.</li>
 </ul>
-<p>(IP: are the units of the time steps determined implicitly from the
-units of the flow rates? For instance, if the flow rates are specified
-per day, the time step is 1 day? We should clarify that here.)</p>
+<p>It best to think explicitly about the units of the flow variables.
+For example, perhaps it is known that infected individuals recover in
+ten days on average. This fact might lead one to set the per-capita
+recovery rate, <code>gamma</code>, equal to <code>1/10 = 0.1</code>.
+Doing this implicitly determines the physical length of one time step as
+one day. If one were to choose <code>gamma = 1/240</code>, then each
+time step would represent one hour. It is therefore very important to
+measure all flow variables using the same time units, otherwise the
+length of a single time step would not have physical meaning.</p>
 <p>In our example, we use the <code>empty_matrix</code> placeholder
 value to initialize a value for the population size <code>N</code>.
 <code>N</code> will be computed before the simulation starts using the
