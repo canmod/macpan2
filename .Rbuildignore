@@ -11,3 +11,5 @@ Makefile
 .*\.so$
 .*\.dll$
 coverage.html
+^lib/.*$
+^covr*.$

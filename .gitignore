@@ -13,3 +13,6 @@ inst/doc
 docs
 src/macpan2.dll
 visnet_files
+covr_trace_*
+lib
+macpan2*
