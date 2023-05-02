@@ -375,7 +375,7 @@ StandardExpr = function(model){
                           "absolute_outflow")
   self$.inflow_flow_types = list("per_capita",
                                  "absolute",
-                                 "per-capita_inflow",
+                                 "per_capita_inflow",
                                  "absolute_inflow")
   self$.outflow_flow_types = list("per_capita",
                                   "absolute",
@@ -411,6 +411,7 @@ StandardExpr = function(model){
   #   - simulation_phase
   # See the spec document on model definition files for what these mean.
   self$.init_derivations_list = function(){
+
     present_flows = unlist(lapply(self$.flow_types, self$.flow_tester), use.names = FALSE)
     present_inflows = unlist(lapply(self$.inflow_flow_types, self$.flow_tester), use.names = FALSE)
     present_outflows = unlist(lapply(self$.outflow_flow_types, self$.flow_tester), use.names = FALSE)
@@ -418,7 +419,7 @@ StandardExpr = function(model){
     total_inflow_expression_vct = c(
       "groupSums(per_capita, per_capita_to, state_length)",
       "groupSums(absolute, absolute_to, state_length)",
-      "groupSums(per_capita_outflow, per_capita_outflow_from, state_length)",
+      "groupSums(per_capita_inflow, per_capita_inflow_to, state_length)",
       "groupSums(absolute_inflow, absolute_inflow_to, state_length)"
     )
     total_inflow_argument_list = list(
@@ -465,7 +466,7 @@ StandardExpr = function(model){
       output_names = "absolute_inflow",
       expression = "flow[absolute_inflow_flow]",
       arguments = list("flow", "absolute_inflow_flow"),
-      simulation_phase = "duing_update"
+      simulation_phase = "during_update"
     )
     absolute_outflow_list = list(
       output_names = "absolute_outflow",
@@ -476,13 +477,13 @@ StandardExpr = function(model){
     total_inflow_list = list(
       output_names = "total_inflow",
       expression = paste0(total_inflow_expression_vct[present_inflows], collapse = "+") ,
-      arguments = total_inflow_argument_list[c(rep(present_inflows, each = 2), TRUE)] ,
+      arguments = total_inflow_argument_list[c(rep(present_inflows, each = 2), TRUE)],
       simulation_phase = "during_update"
     )
     total_outflow_list = list(
       output_names = "total_outflow",
       expression = paste0(total_outflow_expression_vct[present_outflows], collapse = "+"),
-      arguments = total_outflow_argument_list[c(rep(present_outflows, each = 2), TRUE)] ,
+      arguments = total_outflow_argument_list[c(rep(present_outflows, each = 2), TRUE)],
       simulation_phase = "during_update"
     )
     state_list = list(
