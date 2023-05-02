@@ -1,0 +1,14 @@
+[
+    {
+        "simulation_phase" : "before",
+        "output_names" : ["N"],
+        "arguments" : ["S", "I", "R"],
+        "expression" : "sum(S, I, R)"
+    },
+    {
+        "simulation_phase" : "during_pre_update",
+        "output_names" : ["infection"],
+        "arguments" : ["N", "transmission", "I"],
+        "expression" : "(transmission / N) %*% I"
+    }
+]

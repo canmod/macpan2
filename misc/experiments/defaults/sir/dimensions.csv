@@ -1,0 +1,7 @@
+Matrix         ,RowPartition ,ColPartition ,MatrixPartition
+state          ,Epi          ,             ,
+rate           ,Epi          ,             ,
+infectivity    ,EpiInfective ,             ,Epi
+susceptibility ,Epi          ,             ,Epi
+contact        ,Epi          ,EpiInfective ,Epi
+transmission   ,Epi          ,EpiInfective ,Epi

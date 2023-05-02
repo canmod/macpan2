@@ -1,0 +1,10 @@
+Epi            ,Type   ,EpiRate   ,EpiI ,Value
+S              ,state  ,          ,     ,
+I              ,state  ,          ,I    ,
+infection      ,rate   ,infection ,     ,
+infectivity    ,decomp ,          ,I    ,
+susceptibility ,decomp ,S         ,     ,
+contact        ,decomp ,S         ,I    ,
+transmission   ,decomp ,S         ,I    ,
+sigma          ,param  ,          ,     ,
+N              ,param  ,          ,     ,

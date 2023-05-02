@@ -1,0 +1,10 @@
+[
+    {
+        "group_partition" : "Age",
+        "group_names" : ["young", "old"],
+        "output_names" : ["infection.young", "infection.old"],
+        "input_partition" : "Epi",
+        "arguments" : ["sigma", "I", "N"],
+        "expression" : "sigma * I / N"
+    }
+]

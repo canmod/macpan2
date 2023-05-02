@@ -21,6 +21,13 @@ age = Compartmental("inst/starter_models/SI_products/hello_age/")
 si = Compartmental("inst/starter_models/SI_products/hello_si/")
 prod = Compartmental("inst/starter_models/SI_products/hello_products/")
 
+
+
+library(oor)
+
+prod$def$get("transmission_matrices")
+
+
 prod$variables$all()
 prod$variables$state()
 prod$variables$flow()

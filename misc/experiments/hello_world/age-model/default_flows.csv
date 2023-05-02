@@ -1,0 +1,5 @@
+Component    ,Flow      ,StateEffects ,Value
+N            ,infection ,             ,  
+transmission ,infection ,I            , 0.24
+             ,infection ,I            ,  
+             ,recovery  ,             , 0.1

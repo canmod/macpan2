@@ -1,0 +1,34 @@
+{
+    "matrices" : [
+        {
+            "name" : "contact",
+            "mat_partition" : "Infection",
+            "row_partition" : "Epi",
+            "col_partition" : "Epi"
+        },
+        {
+            
+        },
+        {
+            "name" : "infectivity",
+            "mat_partition" : "Epi",
+            "row_partition" : "",
+            "col_partition" : "Epi"
+        },
+        {
+            "name" : "susceptibility",
+            "mat_partition" : "Epi",
+            "row_partition" : "Epi",
+            "col_partition" : ""
+        },
+        {
+            "name" : "per_capita",
+            "mat_partition" : "Epi",
+            "row_partition" : "Epi",
+            "col_partition" : ""
+        }
+    ],
+    "expressions" : [
+        "per_capita ~ susceptibility * contact * infectivity"
+    ]
+}

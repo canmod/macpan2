@@ -1,0 +1,3 @@
+Matrix      ,RowPartition ,ColPartition ,MatrixPartition
+contact.epi ,Epi          ,Epi.Symp     ,Epi.Factor
+contact.age ,Age          ,Age          ,Epi.Factor

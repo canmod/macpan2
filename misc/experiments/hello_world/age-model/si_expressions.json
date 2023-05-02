@@ -1,0 +1,7 @@
+[
+    {
+        "output_names" : ["infection"],
+        "arguments" : ["sigma", "I", "N"],
+        "expression" : "sigma * I / N"
+    }
+]

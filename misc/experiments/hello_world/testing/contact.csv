@@ -1,0 +1,5 @@
+RowPartition ,ColPartition ,RowLevel ,ColLevel
+Age          ,Age          ,young    ,young
+Age          ,Age          ,old      ,young
+Age          ,Age          ,young    ,old
+Age          ,Age          ,old      ,young

@@ -1,0 +1,10 @@
+Component   ,Row   ,Column   ,Factor   ,Expression     ,ExpressionPartition ,Matrix ,RowIndex ,ColIndex
+contact     ,S.    ,I.mild   ,Epi.Symp ,"1"            ,
+contact     ,S.    ,I.severe ,Epi.Symp ,"1"            ,
+contact     ,young ,young    ,Age      ,"q"            ,Age
+contact     ,old   ,young    ,Age      ,"(1-q)"        ,Age
+contact     ,young ,old      ,Age      ,"(1-q)"        ,Age
+contact     ,old   ,old      ,Age      ,"q"            ,Age
+infectivity ,      ,I.mild   ,Epi.Symp ,"sigma.mild"   ,Epi.Symp
+infectivity ,      ,I.severe ,Epi.Symp ,"sigma.severe" ,Epi.Symp
+

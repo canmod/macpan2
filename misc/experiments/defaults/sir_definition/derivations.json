@@ -1,0 +1,18 @@
+[
+    {
+        "output_partition" : "Epi",
+        "output_names" : ["N"],
+        "input_partition" : "Epi",
+        "argument_dots" : ["S", "I", "R"],
+        "expression" : "c(...)",
+        "simulation_phase" : "before"
+    },
+    {
+        "output_partition" : "Epi",
+        "output_names" : ["foi"],
+        "input_partition" : "Epi",
+        "arguments" : ["I", "N", "sigma"],
+        "expression" : "I * sigma / N",
+        "simulation_phase" : "during_pre_update"
+    }
+]

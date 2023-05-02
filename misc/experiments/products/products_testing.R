@@ -23,14 +23,11 @@ loc_vars = loc_model$variables$all()
 
 class(si_vars$names())
 
-(si_model
-  |> variables_product(age_model)
-  |> variables_product(loc_model)
-)
+variables_product(prod_model, loc_model)
 
 req_par_si = si_model$def$settings()$required_partitions
 req_par = prod_model$def$settings()$required_partitions
 paste0(req_par, collapse = ".")
 paste0(req_par_si, collapse = ".")
 
-flows_product(si_model, age_model)
+flows_product(prod_model, loc_model)

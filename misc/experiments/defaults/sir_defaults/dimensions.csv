@@ -1,0 +1,5 @@
+Matrix      ,RowPartition ,ColPartition ,MatrixPartition
+state       ,Epi.Age      ,             ,
+rate        ,Epi.Age      ,             ,
+contact     ,Age          ,AgeInfective ,Epi
+infectivity ,             ,AgeInfective ,Epi

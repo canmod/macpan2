@@ -1,0 +1,10 @@
+Epi       ,EpiI ,Age   ,AgeI ,Infection
+S         ,     ,young ,     ,S
+I         ,     ,young ,     ,I
+S         ,     ,old   ,     ,S
+I         ,     ,old   ,     ,I
+infection ,     ,young ,     ,
+infection ,     ,old   ,     ,
+I         ,     ,young ,     ,infectivity
+I         ,     ,old   ,     ,infectivity
+S         ,     ,      ,     ,

@@ -1,0 +1,15 @@
+Epi      ,Age   ,AgeInfective ,Matrix      ,Value
+S        ,young ,             ,state       ,99
+I        ,young ,             ,state       , 1
+S        ,old   ,             ,state       , 0
+I        ,old   ,             ,state       , 0
+recovery ,      ,             ,rate        , 0.06
+         ,      ,             ,infectivity , 0.24
+         ,young ,young        ,contact     ,  
+         ,old   ,young        ,contact     ,  
+         ,young ,old          ,contact     ,  
+         ,old   ,old          ,contact     ,  
+N        ,young ,             ,            ,  
+N        ,old   ,             ,            ,  
+foi      ,young ,             ,rate        ,  
+foi      ,old   ,             ,rate        ,  

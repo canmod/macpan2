@@ -1,0 +1,3 @@
+from ,to ,flow      ,type
+S    ,I  ,infection ,per_capita
+I    ,R  ,recovery  ,per_capita

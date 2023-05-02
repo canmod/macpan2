@@ -1,0 +1,14 @@
+[
+    {
+        "output_names" : ["N"],
+        "argument_dots" : ["S", "I", "R"],
+        "expression" : "c(...)",
+        "simulation_phase" : "before"
+    },
+    {
+        "output_names" : ["foi"],
+        "arguments" : ["I", "N", "sigma"],
+        "expression" : "I * sigma / N",
+        "simulation_phase" : "during_pre_update"
+    }
+]

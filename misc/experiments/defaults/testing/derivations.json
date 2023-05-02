@@ -1,0 +1,18 @@
+[
+    {
+        "output_partition" : "Epi.Factor",
+        "output_names" : "contact.age",
+        "input_partition" : "Age",
+        "arguments" : ["q"],
+        "expression" : "matrix(c(q, (1-q), (1-q), q), 2, 2)"
+    },
+    {
+        "filter_partition" : "Epi.Factor",
+        "filter_names" : "contact.",
+        "output_partition" : "Epi",
+        "output_names" : ["contact"],
+        "input_partition" : "Epi.Factor",
+        "arguments" : ["contact.epi", "contact.age"],
+        "expression" : "contact.epi %x% contact.age"
+    }
+]

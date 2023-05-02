@@ -1,0 +1,7 @@
+Matrix      ,Row   ,Column   ,Value
+contact.epi ,S     ,I.mild   ,
+contact.epi ,S     ,I.severe ,
+contact.age ,young ,young    ,
+contact.age ,old   ,young    ,
+contact.age ,young ,old      ,
+contact.age ,old   ,old      ,

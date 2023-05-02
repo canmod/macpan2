@@ -1,0 +1,6 @@
+Matrix         ,RowPartition ,ColPartition ,MatrixPartition
+state          ,Age          ,             ,
+infectivity    ,AgeInfective ,             ,
+susceptibility ,Age          ,             ,
+contact        ,Age          ,AgeInfective ,
+transmission   ,Age          ,AgeInfective ,

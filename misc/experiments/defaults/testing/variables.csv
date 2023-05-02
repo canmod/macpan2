@@ -1,0 +1,13 @@
+Epi     ,Symp   ,Age   ,Factor
+S       ,       ,young ,
+S       ,       ,young ,
+I       ,mild   ,young ,
+I       ,severe ,young ,
+S       ,       ,old   ,
+S       ,       ,old   ,
+I       ,mild   ,old   ,
+I       ,severe ,old   ,
+        ,       ,q     ,
+contact ,       ,      ,epi
+contact ,       ,      ,age
+contact
