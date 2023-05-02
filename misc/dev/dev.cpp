@@ -90,7 +90,7 @@ enum macpan2_func {
     , MP2_ASSIGN = 30 // fwrap,null: assign(x, i, j, v)
     , MP2_UNPACK = 31 // fwrap,fail: unpack(x, ...)
     , MP2_RECYCLE = 32 // fwrap,null: recycle(x, rows, cols)
-    , MP2_CLAMP = 33 // fwrap,fail: clamp(x)
+    , MP2_CLAMP = 33 // fwrap,null: clamp(x, eps)
     , MP2_POISSON_DENSITY = 34 // fwrap,fail: dpois(observed, simulated)
     , MP2_NEGBIN_DENSITY = 35 // fwrap,fail: dnbinom(observed, simulated, over_dispersion)
     , MP2_NORMAL_DENSITY = 36 // fwrap,fail: dnorm(observed, simulated, standard_deviation)
@@ -1368,6 +1368,7 @@ public:
                     // #' an optional second argument).
                     case MP2_CLAMP:
                         eps = 1e-12;
+                        if (n == 2) eps = args[1].coeff(0,0);
                         rows = args[0].rows();
                         cols = args[0].cols();
                         m = matrix<Type>::Zero(rows, cols);
