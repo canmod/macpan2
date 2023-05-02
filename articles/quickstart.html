@@ -5660,19 +5660,19 @@ HTMLWidgets.widget({
   
 });
 </script><div id="htmlwidget_container">
-<div id="htmlwidget-8b2e632287b662dc825c" class="visNetwork html-widget html-fill-item-overflow-hidden html-fill-item" style="width:960px;height:500px;">
+<div id="htmlwidget-8059b0f6eaf683add593" class="visNetwork html-widget html-fill-item-overflow-hidden html-fill-item" style="width:960px;height:500px;">
 
 </div>
 </div>
-<script type="application/json" data-for="htmlwidget-8b2e632287b662dc825c">{"x":{"nodes":{"id":["S","I","R"],"label":["S","I","R"],"shape":["square","square","square"]},"edges":{"from":["S","I"],"to":["I","R"],"label":["foi","gamma"]},"nodesToDataframe":true,"edgesToDataframe":true,"options":{"width":"100%","height":"100%","nodes":{"shape":"dot"},"manipulation":{"enabled":false},"edges":{"arrows":"to"},"layout":{"hierarchical":{"enabled":true,"direction":"LR"}}},"groups":null,"width":null,"height":null,"idselection":{"enabled":false},"byselection":{"enabled":false},"main":null,"submain":null,"footer":null,"background":"rgba(0, 0, 0, 0)"},"evals":[],"jsHooks":[]}</script><script type="application/htmlwidget-sizing" data-for="htmlwidget-8b2e632287b662dc825c">{"viewer":{"width":450,"height":350,"padding":15,"fill":true},"browser":{"width":960,"height":500,"padding":40,"fill":false}}</script><p>We can easily see the components of and methods for operating on
+<script type="application/json" data-for="htmlwidget-8059b0f6eaf683add593">{"x":{"nodes":{"id":["S","I","R"],"label":["S","I","R"],"shape":["square","square","square"]},"edges":{"from":["S","I"],"to":["I","R"],"label":["foi","gamma"]},"nodesToDataframe":true,"edgesToDataframe":true,"options":{"width":"100%","height":"100%","nodes":{"shape":"dot"},"manipulation":{"enabled":false},"edges":{"arrows":"to"},"layout":{"hierarchical":{"enabled":true,"direction":"LR"}}},"groups":null,"width":null,"height":null,"idselection":{"enabled":false},"byselection":{"enabled":false},"main":null,"submain":null,"footer":null,"background":"rgba(0, 0, 0, 0)"},"evals":[],"jsHooks":[]}</script><script type="application/htmlwidget-sizing" data-for="htmlwidget-8059b0f6eaf683add593">{"viewer":{"width":450,"height":350,"padding":15,"fill":true},"browser":{"width":960,"height":500,"padding":40,"fill":false}}</script><p>We can easily see the components of and methods for operating on
 <code>Compartmental</code> objects by looking at the names of a
 <code>Compartmental</code> object, in this case the <code>sir</code>
 object:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">sir</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "def"            "labels"         "flows_expanded" "variables"     </span></span>
-<span><span class="co">#&gt; [5] "simulators"     "expr_list"      "flows"          "flows_explicit"</span></span>
-<span><span class="co">#&gt; [9] "derivations"</span></span></code></pre></div>
+<span><span class="co">#&gt;  [1] "def"            "indices"        "labels"         "flows_expanded"</span></span>
+<span><span class="co">#&gt;  [5] "variables"      "simulators"     "expr_list"      "flows"         </span></span>
+<span><span class="co">#&gt;  [9] "flows_explicit" "settings"       "derivations"</span></span></code></pre></div>
 <p>These list elements are fully catalogued in the documentation for
 <code>Compartmental</code> objects (<code>?Compartmental()</code>), but
 for the next section, we focus on <code>sir$simulators</code>.</p>
@@ -5724,7 +5724,7 @@ your model definition, <em>i.e.</em>, variables used in
 are used in expressions for derived variables but not explicitly as flow
 variables.</li>
 </ul>
-<p>It best to think explicitly about the units of the flow variables.
+<p>It is best to think explicitly about the units of the flow variables.
 For example, perhaps it is known that infected individuals recover in
 ten days on average. This fact might lead one to set the per-capita
 recovery rate, <code>gamma</code>, equal to <code>1/10 = 0.1</code>.
