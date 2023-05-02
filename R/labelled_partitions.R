@@ -1,114 +1,3 @@
-#' To Labels
-#'
-#' Convert objects to labels, which are vectors that can be dotted.
-#'
-#' @param x Object to convert to labels.
-#' @return Character vector that can be used as labels.
-#'
-#' @export
-to_labels = function(x) UseMethod("to_labels")
-
-#' @export
-to_labels.character = function(x) valid_dotted$assert(x)
-
-#' @export
-to_labels.Partition = function(x) x$labels()
-
-#' @export
-to_labels.StringData = function(x) x$dot()$labels()$value()
-
-#' @export
-to_labels.Scalar = function(x) x$dot()$value()
-
-#' @export
-to_labels.Vector = function(x) x$dot()$value()
-
-#' @export
-to_labels.Labels = function(x) x$dot()$value()
-
-#' To Names
-#'
-#' Convert objects to names, which are character vectors with the following
-#' restrictions:  (1) they cannot have dots, (2) all values must start with
-#' a letter, (3) all characters must be letters, numbers, or underscores.
-#'
-#' @param x Object to convert to names.
-#' @return Character vector that can be used as names.
-#'
-#' @export
-to_names = function(x) UseMethod("to_names")
-
-#' @export
-to_names.character = function(x) {
-  if (length(x) == 1L) {
-    x = StringDottedScalar(x)
-  } else if (length(x) > 1L) {
-    x = StringUndottedVector(x)
-  } else {
-    stop("an empty character vector cannot be turned into names")
-  }
-  to_names(x)
-}
-
-#' @export
-to_names.Partition = function(x) x$names()
-
-#' @export
-to_names.StringData = function(x) x$undot()$names()$value()
-
-#' @export
-to_names.Scalar = function(x) x$undot()$value()
-
-#' @export
-to_names.Names = function(x) x$undot()$value()
-
-#' To Name
-#'
-#' Convert objects to a name, which is a scalar string that can be dotted.
-#'
-#' @param x Object to convert to labels.
-#' @return Character string that can be used as a name.
-#'
-#' @export
-to_name = function(x) UseMethod("to_name")
-
-#' @export
-to_name.character = function(x) {
-  if (length(x) == 1L) {
-    x = StringDottedScalar(x)
-  } else if (length(x) > 1L) {
-    x = StringUndottedVector(x)
-  } else {
-    stop("an empty character vector cannot be turned into a name")
-  }
-  to_name(x)
-}
-
-#' @export
-to_name.Partition = function(x) x$name()
-
-#' @export
-to_name.StringData = function(x) x$dot()$names()$value()
-
-#' @export
-to_name.Scalar = function(x) x$dot()$value()
-
-#' @export
-to_name.Names = function(x) x$dot()$value()
-
-list_to_labels = function(...) unlist(lapply(list(...), to_labels), use.names = FALSE)
-list_to_names = function(...) unlist(lapply(list(...), to_names), use.names = FALSE)
-
-frame_to_part = function(frame) {
-  # TODO: assert frameness
-  if (ncol(frame) == 1L) {
-    y = StringDataFromDotted(unique(frame[[1L]]), names(frame))$undot()
-  } else {
-    y = StringDataFromFrame(unique(frame))
-  }
-  y
-}
-
 #' Partition
 #'
 #' Create object for manipulating partitions, which are sets of
@@ -125,6 +14,7 @@ frame_to_part = function(frame) {
 #' * `$names()` -- The names of the `Partition` (i.e. the column names).
 #' * `$name()` -- The name of the `Partition` (i.e. the dot-concatenated column names).
 #' * `$labels()` -- The labels of the `Partition` (i.e. the row-wise dot-concatenated columns).
+#' * `$partial_labels()` -- TODO
 #' * `$filter(..., .wrt, .comparison_function)` -- Filter by keeping only a subset of labels.
 #' * `$filter_out(..., .wrt, .comparison_function)` -- Filter by removing a subset of labels.
 #' * `$filter_ordered(..., .wrt, .comparison_function = all_equal)` -- Filter and order by labels.
@@ -137,29 +27,41 @@ frame_to_part = function(frame) {
 #' `Partition` are de-duplicated.
 #' * `$select_out(...)` -- Create a new `Partition` without a subset of names.
 #'    * `...` -- Names to keep in the resulting `Partition`.
+#' * `$expand(name)` -- TODO
+#' * `$union(other)` -- TODO
+#'
+#' ## Fields
+#'
+#' * `products`
 #'
 #' @export
 Partition = function(frame) {
   self = Base()
-  self$products = Products(self)
   self$.partition = frame_to_part(frame)
+  self$products = Products(self)
   self$frame = function() self$.partition$frame()
   self$dotted = function() self$.partition$dot()$frame()
   self$names = function() names(self$frame())
   self$name = function() names(self$dotted())
   self$labels = function() self$dotted()[[1L]]
   self$partial_labels = function(...) {
-    self$.partition$change_coordinates(...)$dot()$frame()[[1L]]
+    new_names = list_to_names(...)
+    self$.partition$change_coordinates(new_names)$dot()$frame()[[1L]]
   }
   self$filter = function(..., .wrt, .comparison_function = all_equal) {
-    if (missing(.wrt)) {
-      .wrt = self$names()
-      if (length(.wrt) != 1L) .wrt = list_to_names(...)[[1L]]
+    if (missing(.wrt)) .wrt = self$name()
+    .wrt = name_set_op(self$name(), .wrt, intersect)
+    nms = to_names(.wrt)
+    labels = list_to_labels(...)
+    if (is.null(labels)) {  ## no filtering names are supplied
+      p = NullPartition(.wrt)
+    } else if (!any(labels %in% self$select(nms)$labels())) {  ## no filtering names match
+      p = NullPartition(.wrt)
+    } else {  ##
+      filterer = StringDataFromDotted(labels = labels, name = .wrt)
+      p = Partition(self$.partition$filter(filterer, .comparison_function)$frame())
     }
-    filterer = StringDataFromDotted(
-      labels = list_to_labels(...), names = to_name(.wrt)
-    )
-    Partition(self$.partition$filter(filterer, .comparison_function)$frame())
+    return(p)
   }
   self$filter_out = function(..., .wrt, .comparison_function = not_all_equal) {
     if (missing(.wrt)) {
@@ -167,7 +69,7 @@ Partition = function(frame) {
       if (length(.wrt) != 1L) .wrt = list_to_names(...)[[1L]]
     }
     filterer = StringDataFromDotted(
-      labels = list_to_labels(...), names = to_name(.wrt)
+      labels = list_to_labels(...), name = to_name(.wrt)
     )
     Partition(self$.partition$filter_out(filterer, .comparison_function)$frame())
   }
@@ -180,7 +82,7 @@ Partition = function(frame) {
 
     # step 2: construct the StringData object to use as the filter
     filterer = StringDataFromDotted(
-      labels = list_to_labels(...), names = to_name(.wrt)
+      labels = list_to_labels(...), name = to_name(.wrt)
     )
 
     # step 3: apply the filter to the StringData object in self$.partition
@@ -192,20 +94,64 @@ Partition = function(frame) {
   self$select_out = function(...) {
     self$select(setdiff(self$names(), unlist(list(...), recursive = TRUE)))
   }
-  self$expand = function(name) {
-    Partition(self$.partition$expand(name)$frame())
-  }
+  self$expand = function(name) Partition(self$.expand(name))
+  self$.expand = function(name) self$.partition$expand(name)$frame()
   self$union = function(other) {
-    new_names = StringUndottedVector(union(self$names(), other$names()))$dot()$value()
-    x = self$.partition$expand(new_names)$frame()
-    y = other$.partition$expand(new_names)$frame()
+    #new_name = StringUndottedVector(union(self$names(), other$names()))$dot()$value()
+    new_name = name_set_op(self$name(), other$name(), union)
+    x = self$.expand(new_name)
+    y = other$.expand(new_name)
     Partition(rbind(x, y))
   }
   return_object(self, "Partition")
 }
 
+NullPartition = function(...) {
+  self = Base()
+  self$.names = list_to_names(...)
+  self$frame = function() empty_frame(self$.names)
+  self$dotted = function() empty_frame(to_name(self$.names))
+  self$names = function() self$.names
+  self$name = function() to_name(self$.names)
+  self$labels = function() character(0L)
+  self$partial_labels = function(...) {
+    stopifnot(all(list_to_names(...) %in% self$names()))
+    self$labels()
+  }
+  self$filter = function(..., .wrt, .comparison_function = all_equal) self
+  self$filter_out = function(..., .wrt, comparison_function = not_all_equal) self
+  self$filter_ordered = function(..., .wrt, .comparison_function = all_equal) self
+  self$select = function(...) {
+    new_names = list_to_names(...)
+    stopifnot(all(new_names %in% self$names()))
+    NullPartition(new_names)
+  }
+  self$select_out = function(...) {
+    new_names = name_set_op(self$name(), list_to_names(...), setdiff)
+    NullPartition(new_names)
+  }
+  self$expand = function(name) NullPartition(names(self$.expand(name)))
+  self$.expand = function(name) empty_frame(name_set_op(self$name(), name, union))
+  self$union = function(other) {
+    new_name = name_set_op(self$name(), other$name(), union)
+    other$expand(new_name)
+  }
+  self = return_object(self, "Partition")
+  return_object(self, "NullPartition")
+}
+
 #' @export
 print.Partition = function(x, ...) print(x$frame())
+
+empty_frame = function(...) {
+  colnames = unlist(
+    lapply(list(...), as.character),
+    use.names = FALSE,
+    recursive = TRUE
+  )
+  ncol = length(colnames)
+  setNames(as.data.frame(matrix(character(), 0L, ncol)), colnames)
+}
 
 #' Union of Variables
 #'

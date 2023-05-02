@@ -1,7 +1,3 @@
-# C++ uses zero-based indexing
-match_zero_based = function(...) match(...) - 1L
-
-
 #' DerivationExtractor
 #'
 #' Construct an object for extracting the derivations within a
@@ -55,7 +51,7 @@ DerivationExtractor = function(model){
   # @return list of labels for the outputs of each group, using only the
   #         required partitions
   self$.group_outputs = function(derivation){
-    rp = self$model$def$settings()$required_partitions
+    rp = self$model$settings$names()
     if (!is.null(derivation$output_partition)) {
       group_output = lapply(derivation$output_names
         , self$.filtered_variables(derivation)$filter
@@ -79,7 +75,7 @@ DerivationExtractor = function(model){
     if (!is.null(derivation$input_partition)) {
       return(derivation$input_partition)
     }
-    return(self$model$def$settings()$required_partitions)
+    return(self$model$settings$names())
   }
 
   self$.number_of_groups = function(derivation){
@@ -94,7 +90,7 @@ DerivationExtractor = function(model){
   self$.filtered_group_variables = function(derivation){
     filtered_group_variables = list()
     if (!is.null(derivation$arguments)) {
-      rp = self$model$def$settings()$required_partitions
+      rp = self$model$settings$names()
       for (j in 1:self$.n_grps) {
         unordered_group_variables = self$.grp_vars[[j]]$filter(
           derivation$arguments,
@@ -116,7 +112,7 @@ DerivationExtractor = function(model){
   self$.filtered_group_variable_dots = function(derivation){
     filtered_group_variable_dots = list()
     if (!is.null(derivation$argument_dots)) {
-      rp = self$model$def$settings()$required_partitions
+      rp = self$model$settings$required_partitions
       for (j in 1:self$.n_grps) {
         filtered_group_variable_dots = c(
           filtered_group_variable_dots,
@@ -194,17 +190,43 @@ Scalar2Vector = function(derivation_extractor){
     return(lapply(scalar_name_list, self$.replacer))
   }
   self$.output_revisor = function(extracted_derivation){
-    old_derivation = list(simulation_phase = extracted_derivation$simulation_phase, expression = extracted_derivation$expression, arguments = extracted_derivation$arguments, outputs = list(), variables = list(), variable_dots = list())
-    new_derivation = list(simulation_phase = extracted_derivation$simulation_phase, outputs = list(), variables = list(), variable_dots = list())
-    new_derivation$arguments = c("vect_name", "vect_index", extracted_derivation$arguments)
+    old_derivation = list(
+      simulation_phase = extracted_derivation$simulation_phase,
+      expression = extracted_derivation$expression,
+      arguments = extracted_derivation$arguments,
+      outputs = list(),
+      variables = list(),
+      variable_dots = list()
+    )
+    new_derivation = list(
+      simulation_phase = extracted_derivation$simulation_phase,
+      outputs = list(),
+      variables = list(),
+      variable_dots = list()
+    )
+    new_derivation$arguments = c(
+      "vect_name", "vect_index",
+      extracted_derivation$arguments
+    )
     new_derivation$expression = paste0("assign(vect_name, vect_index, 0, ", paste0(extracted_derivation$expression, ")"))
+    s = self$model$def$settings()
     for (i in 1:length(extracted_derivation$outputs)) {
-      if (any(extracted_derivation$outputs[[i]] == self$model$def$settings()[["state_variables"]])) {
+      if (any(extracted_derivation$outputs[[i]] == s[["state_variables"]])) {
         new_derivation$outputs = c(new_derivation$outputs, "dummy")
-        if (length(extracted_derivation$variables) != 0L) new_derivation$variables = c(new_derivation$variables, list(c("state", self$.state_pointer(extracted_derivation$outputs[[i]]), extracted_derivation$variables[[i]])))
+        if (length(extracted_derivation$variables) != 0L) {
+          new_derivation$variables = c(
+            new_derivation$variables,
+            list(
+              c(
+                "state",
+                self$.state_pointer(extracted_derivation$outputs[[i]]),
+                extracted_derivation$variables[[i]])
+              )
+            )
+        }
         if (length(extracted_derivation$variable_dots) != 0) new_derivation$variable_dots = c(new_derivation$variable_dots, list(extracted_derivation$variable_dots[[i]]))
       }
-      else if (any(extracted_derivation$outputs[[i]] == self$model$def$settings()[["flow_variables"]])) {
+      else if (any(extracted_derivation$outputs[[i]] == s[["flow_variables"]])) {
         new_derivation$outputs = c(new_derivation$outputs, "dummy")
         if (length(extracted_derivation$variables) != 0L) new_derivation$variables = c(new_derivation$variables, list(c("flow", self$.flow_pointer(extracted_derivation$outputs[[i]]), extracted_derivation$variables[[i]])))
         if (length(extracted_derivation$variable_dots) != 0) new_derivation$variable_dots = c(new_derivation$variable_dots, list(extracted_derivation$variable_dots[[i]]))
@@ -302,6 +324,38 @@ UserExpr = function(model){
   return_object(self, "UserExpr")
 }
 
+
+Indices = function(model) {
+  self = Base()
+  self$model = model
+
+  # C++ uses zero-based indexing
+  self$.match_zero_based = function(...) match(...) - 1L
+
+  self$indices = function(scalar_name, variable_collection_name) {
+    valid$char1$check(variable_collection_name)
+    variable_collection = self$model$def$settings()[[variable_collection_name]]
+    required_collections = sprintf("%s_variables", c("state", "flow"))
+    if (!is.null(variable_collection)) {
+      indices = self$.match_zero_based(
+        valid$char1$assert(scalar_name),
+        variable_collection
+      )
+    } else if (variable_collection_name %in% required_collections) {
+      stop("\nthe"
+        , variable_collection_name
+        , "\nfield is missing from the settings.json file"
+        , "\nin this model."
+      )
+    } else {
+      indices = integer()
+    }
+    return(indices)
+  }
+  return_object(self, "Indices")
+}
+
+
 #' StandardExpr
 #'
 #' Evaluate standard model expressions
@@ -310,24 +364,9 @@ UserExpr = function(model){
 #'
 #' @export
 StandardExpr = function(model){
-  self = Base()
-  self$model = model
+  self = Indices(model)
   self$.expanded_flows = self$model$flows_expanded()
-  self$.state_length = length(self$model$def$settings()$state_variables)
-  self$.state_pointer = function(scalar_name) {
-    match_zero_based(
-      valid$char1$assert(scalar_name),
-      self$model$def$settings()[["state_variables"]]
-    )
-    #return(as.numeric(which(scalar_name == self$model$def$settings()[["state_variables"]])) - 1L)
-  }
-  self$.flow_pointer = function(scalar_name) {
-    match_zero_based(
-      valid$char1$assert(scalar_name),
-      self$model$def$settings()[["flow_variables"]]
-    )
-    #return(as.numeric(which(scalar_name == self$model$def$settings()[["flow_variables"]])) - 1L)
-  }
+  self$.state_length = length(self$model$settings$state())
   self$.flow_types = list("per_capita",
                           "absolute",
                           "per_capita_inflow",
@@ -347,10 +386,9 @@ StandardExpr = function(model){
   }
   self$.seperated_flows = lapply(self$.flow_types, self$.flow_seperator)
   self$.init_index_vector = function(flow_frame){
-    ## from = as.list(self$.state_pointer(flow_frame$frame))
-    from = lapply(flow_frame$from, self$.state_pointer)
-    to = lapply(flow_frame$to, self$.state_pointer)
-    flow = lapply(flow_frame$flow, self$.flow_pointer)
+    from = lapply(flow_frame$from, self$indices, "state_variables")
+    to = lapply(flow_frame$to, self$indices, "state_variables")
+    flow = lapply(flow_frame$flow, self$indices, "flow_variables")
     return(list(from = from, to = to, flow = flow))
   }
   self$.init_index_vectors = function(){
@@ -360,7 +398,6 @@ StandardExpr = function(model){
   }
   self$.flow_tester = function(flow_type) {
     valid$char1$assert(flow_type) %in% self$.expanded_flows$type
-    #return(!(nrow(self$.expanded_flows[self$.expanded_flows$type == flow_type,]) == 0L))
   }
 
   # Return a list of derivations, each of which describes a
@@ -470,12 +507,48 @@ StandardExpr = function(model){
       list(output_names = paste0(prefix_string, "_flow"), expression = do.call(formula$symbolic$evaluate, index_vector$flow), arguments = index_vector$flow, simulation_phase = "before")
     ))
   }
+  self$.index_subvector_evaluator = function(subvector_name, vector_name, formula) {
+    l = list()
+    labels = self$model$labels
+    subvector = labels[[valid$char1$assert(subvector_name)]]()
+    vector = labels[[valid$char1$assert(vector_name)]]()
+    if (!any(is.null(subvector), is.null(vector))) {
+      indices = self$.match_zero_based(subvector, vector)
+      l = append(l, list(
+        output_names = subvector_name,
+        expression = do.call(formula$symbolic$evaluate, as.list(indices)),
+        arguments = as.list(indices),
+        simulation_phase = "before"
+      ))
+    }
+    return(l)
+  }
   self$.index_vectors_evaluator = function(){
     prefix_strings = unique(self$.expanded_flows$type) # self$.flow_types
     #prefix_strings = self$.flow_types
     index_vectors = self$.init_index_vectors()[prefix_strings]
     formula = MathExpressionFromStrings("c(...)", include_dots = TRUE)
-    return(do.call(c, mapply(self$.index_vector_evaluator, prefix_strings, index_vectors, MoreArgs = list(formula = formula), SIMPLIFY = FALSE)))
+    out_args = mapply(self$.index_vector_evaluator
+      , prefix_strings
+      , index_vectors
+      , MoreArgs = list(formula = formula)
+      , SIMPLIFY = FALSE
+    )
+    state_subvector_names = c("infectious_state")
+    flow_subvector_names = c("infection_flow")
+    out_args = append(out_args, lapply(
+      state_subvector_names,
+      self$.index_subvector_evaluator,
+      "state",
+      formula
+    ))
+    out_args = append(out_args, lapply(
+      flow_subvector_names,
+      self$.index_subvector_evaluator,
+      "flow",
+      formula
+    ))
+    return(do.call(c, out_args))
   }
   self$.derivation_evaluator = function(derivation){
     formula = MathExpressionFromStrings(derivation$expression, derivation$arguments)
@@ -486,6 +559,7 @@ StandardExpr = function(model){
     return(lapply(self$.init_derivations_list(), self$.derivation_evaluator))
   }
   self$standard_expressions = function(){
+    return(self$.derivations_evaluator())
     return(c(self$.index_vectors_evaluator(), self$.derivations_evaluator()))
   }
   return_object(self, "StandardExpr")
@@ -553,7 +627,7 @@ Derivations2ExprList = function(user_expr, standard_expr) {
   self$.expr_list_per_phase = function(
       phase = c("before", "during", "after")
     ) {
-
+    #browser()
     phases = match.arg(phase)
     if (phases == "during") {
       phases = c("during_pre_update", "during_update", "during_post_update")

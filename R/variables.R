@@ -4,19 +4,18 @@ Variables = function(model) {
   self$model = model
   self$all = function() Partition(self$model$def$variables())
   self$.type = function(type) {
-    type_nm = sprintf("%s_variables", type)
-    s = self$model$def$settings()
-    var_nms = s[[type_nm]]
-    if (length(var_nms) == 0L) {
-      warning(
-        "\nThere are no ",
-        gsub("_", " ", type),
-        " variables",
-        "\nin this model."
-      )
-      return(NULL)
-    }
-    self$all()$filter(var_nms, .wrt = s$required_partitions)
+    var_nms = self$model$settings$variable(type)
+    wrt = self$model$settings$name()
+    # if (length(var_nms) == 0L) {
+    #   warning(
+    #     "\nThere are no ",
+    #     gsub("_", " ", type),
+    #     " variables",
+    #     "\nin this model."
+    #   )
+    #   return(NULL)
+    # }
+    self$all()$filter(var_nms, .wrt = wrt)
   }
   self$flow = function() self$.type("flow")
   self$state = function() self$.type("state")
@@ -61,3 +60,66 @@ VariableLabels = function(variables) {
   self$other = function() setdiff(self$all(), c(self$state(), self$flow()))
   return_object(self, "VariableLabels")
 }
+
+VariableIndices = function(labels) {
+  self = Base()
+  self$flow = FlowTypeIndices(labels)
+  self$transmission = TransmissionIndices(labels)
+  return_object(self, "VariableIndices")
+}
+
+IndexUtilities = function(labels) {
+  self = Base()
+  self$labels = labels
+  self$variables = labels$variables
+  self$model = labels$variables$model
+  self$match = function(...) match(...) - 1L  # -1 for zero-based C++ indexing
+  self$.state = function() self$labels$state()
+  self$.flow = function() self$labels$flow()
+  self$.make_flow_method = function(flow_component, flow_type, vector_name) {
+    force(flow_type); force(flow_component); force(vector_name)
+    function() {
+      f = self$model$flows_expanded()
+      flow_labels = f[[flow_component]][f$type == flow_type]
+      self$match(flow_labels, self$labels[[vector_name]]())
+    }
+  }
+  self$flow_types = c(
+    "per_capita", "per_capita_inflow", "per_capita_outflow",
+    "absolute", "absolute_inflow", "absolute_outflow"
+  )
+  return_object(self, "IndexUtilities")
+}
+
+FlowIndices = function(labels, type) {
+  self = IndexUtilities(labels)
+  self$type = type
+  self$from = self$.make_flow_method("from", type, "state")
+  self$to = self$.make_flow_method("to", type, "state")
+  self$flow = self$.make_flow_method("flow", type, "flow")
+  return_object(self, "FlowIndices")
+}
+
+FlowTypeIndices = function(labels) {
+  self = IndexUtilities(labels)
+  for (type in self$flow_types) self[[type]] = FlowIndices(labels, type)
+  return_object(self, "FlowTypeIndices")
+}
+
+TransmissionIndices = function(labels) {
+  self = IndexUtilities(labels)
+  self$infectious_state = function() {
+    self$match(
+      self$labels$infectious_state(),
+      self$.state()
+    )
+  }
+  self$infection_flow = function() {
+    self$match(
+      self$labels$infection_flow(),
+      self$.flow()
+    )
+  }
+  return_object(self, "TransmissionIndices")
+}
+

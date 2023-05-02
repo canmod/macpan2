@@ -23,10 +23,10 @@ flows_product = function(model1, model2){
   }
 
   m1_flows = model1$flows_explicit()
-  m1_required_partitions = dot(model1$def$settings()$required_partitions)
+  m1_required_partitions = model1$settings$name()
 
   m2_flows = model2$flows_explicit()
-  m2_required_partitions = dot(model2$def$settings()$required_partitions)
+  m2_required_partitions = model2$settings$name()
 
   m1_flows$from_to_partition = cdot(m1_flows$from_to_partition, m2_required_partitions)
   m2_flows$from_to_partition = cdot(m2_flows$from_to_partition, m1_required_partitions)

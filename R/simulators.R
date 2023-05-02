@@ -56,11 +56,12 @@ Simulators = function(model) {
         , .dimnames = list()
     ) {
       TMBModel(
-        init_mats = CompartmentalMatsList(state, flow
+        init_mats = CompartmentalMatsList(self$model, state, flow
           , ...
           , .mats_to_save = .mats_to_save
           , .mats_to_return = .mats_to_return
-          , .dimnames = .dimnames),
+          , .dimnames = .dimnames
+        ),
         expr_list = self$model$expr_list(),
         time_steps = Time(time_steps)
       )$simulator()

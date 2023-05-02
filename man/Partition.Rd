@@ -18,6 +18,7 @@ Object of class \code{Partition} with the following methods.
 \item \verb{$names()} -- The names of the \code{Partition} (i.e. the column names).
 \item \verb{$name()} -- The name of the \code{Partition} (i.e. the dot-concatenated column names).
 \item \verb{$labels()} -- The labels of the \code{Partition} (i.e. the row-wise dot-concatenated columns).
+\item \verb{$partial_labels()} -- TODO
 \item \verb{$filter(..., .wrt, .comparison_function)} -- Filter by keeping only a subset of labels.
 \item \verb{$filter_out(..., .wrt, .comparison_function)} -- Filter by removing a subset of labels.
 \item \verb{$filter_ordered(..., .wrt, .comparison_function = all_equal)} -- Filter and order by labels.
@@ -34,6 +35,14 @@ equal to each label in the \code{Partition}.
 \itemize{
 \item \code{...} -- Names to keep in the resulting \code{Partition}.
 }
+\item \verb{$expand(name)} -- TODO
+\item \verb{$union(other)} -- TODO
+}
+}
+
+\subsection{Fields}{
+\itemize{
+\item \code{products}
 }
 }
 }

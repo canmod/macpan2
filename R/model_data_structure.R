@@ -8,8 +8,10 @@
 Model = function(definition) {
   self = Base()
   self$def = definition
+  self$settings = Settings(self)
   self$variables = Variables(self)
   self$labels = VariableLabels(self$variables)
+  self$indices = VariableIndices(self$labels)
   self$flows = function() self$def$flows()
   self$flows_expanded = function() {
     expander = FlowExpander(self$def)
@@ -19,9 +21,8 @@ Model = function(definition) {
     optional_fields = c("from_partition", "to_partition", "flow_partition",
     "from_to_partition", "from_flow_partition", "to_flow_partition")
 
-
-    required_partition = paste0(self$def$settings()$required_partitions, collapse = ".")
-    null_partition = self$def$settings()$null_partition
+    required_partition = self$settings$name()
+    null_partition = self$settings$null()
 
     default_entries = data.frame(required_partition, required_partition, required_partition, "", "", null_partition)
     names(default_entries) = optional_fields

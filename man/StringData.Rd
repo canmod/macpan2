@@ -9,7 +9,7 @@
 \usage{
 StringDataFromFrame(data)
 
-StringDataFromDotted(labels, names)
+StringDataFromDotted(labels, name)
 
 \method{print}{StringData}(x, ...)
 }
@@ -19,7 +19,7 @@ the elements of the columns.}
 
 \item{labels}{Character vector with (dot-separated) partition labels.}
 
-\item{names}{Character scalar with (dot-separated) partition names.}
+\item{name}{Character scalar with (dot-separated) partition name.}
 
 \item{x}{\code{StringData} object}
 

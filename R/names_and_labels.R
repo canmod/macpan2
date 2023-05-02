@@ -1,7 +1,11 @@
 valid_undotted_chars = function(x) {
+  #browser()
+  if (length(x) == 0L) return(is.character(x))
   grepl("^([A-Za-z]{1}[A-Za-z0-9_]*|)$", x)
 }
 valid_dotted_chars = function(x) {
+  #browser()
+  if (length(x) == 0L) return(is.character(x))
   grepl("^([A-Za-z.]{1}[A-Za-z0-9_.]*|)$", x)
 }
 
@@ -458,15 +462,15 @@ StringDataFromFrame = function(data) {
 }
 
 #' @param labels Character vector with (dot-separated) partition labels.
-#' @param names Character scalar with (dot-separated) partition names.
+#' @param name Character scalar with (dot-separated) partition name.
 #' @describeIn StringData Construct object from a character scalar with
 #' (dot-separated) partition names and a character vector with (dot-separated)
 #' partition labels.
 #' @export
-StringDataFromDotted = function(labels, names) {
+StringDataFromDotted = function(labels, name) {
   StringDottedData(
     labels = StringDottedVector(labels),
-    names = StringDottedScalar(names)
+    names = StringDottedScalar(name)
   )
 }
 
