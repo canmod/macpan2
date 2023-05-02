@@ -1,13 +1,16 @@
 ---
-title: "Model Definitions in McMasterPandemic"
+title: "Compartmental Model Definitions"
+header-includes:
+   - \usepackage{amsmath}
 output: 
   rmarkdown::html_vignette:
     toc: true
 vignette: >
-  %\VignetteIndexEntry{Model Definitions in McMasterPandemic}
+  %\VignetteIndexEntry{Compartmental Model Definitions}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
+
 
 [![status](https://img.shields.io/badge/status-mature%20draft-yellow)](https://img.shields.io/badge/status-mature%20draft-yellow)
 
@@ -36,15 +39,23 @@ models = setNames(
 
 ## Prerequisites
 
-This document assumes knowledge of compartmental epidemic models. We will not be defining terms and symbols that we consider to be widely understood by mathematical epidemiologists.
+This document assumes knowledge of compartmental epidemic models. We will not be
+defining terms and symbols that we consider to be widely understood by
+mathematical epidemiologists.
 
 ## Document Goals
 
-This document describes a specification for a data structure to represent compartmental models. The goal of this document is not to define a spec for a user interface for constructing compartmental models. Instead, we define the data structure here so that interfaces for creating instances of compartmental models can be designed without needing to grapple with issues of how to represent and store model definitions.
+This document describes a specification for a data structure to represent
+compartmental models. The goal of this document is not to define a spec for a
+user interface for constructing compartmental models. Instead, we define the
+data structure here so that interfaces for creating instances of compartmental
+models can be designed without needing to grapple with issues of how to
+represent and store model definitions.
 
 ## User Stories
 
-This spec design has been guided by several high-level user stories, which we outline briefly.
+This spec design has been guided by several high-level user stories, which we
+outline briefly.
 
 > As a modeller, I want to use software that provides an
 > extensive set of modelling capabilities, so that I can
@@ -59,23 +70,76 @@ This spec design has been guided by several high-level user stories, which we ou
 > modelling capability, so that I can support public
 > health modellers in as timely a manner as possible.
 
-These and other [user-stories](https://canmod.github.io/macpan-book/index.html#vision-and-direction) were developed by working with public-health modellers during the COVID-19 pandemic in Canada.
+These and other
+[user-stories](https://canmod.github.io/macpan-book/index.html#vision-and-direction)
+were developed by working with public-health modellers during the COVID-19
+pandemic in Canada.
 
-## Labelled Partitions
+## Labelled Partitions (in progress)
 
-Before describing a data structure for representing [Compartmental Models], we need to define the concept of labelled partitions. This concept allows for a consistent, flexible, compact, and readable mechanism for identifying model variables and sets of variables. For example, in a spatially structured model we might want to refer to all states in a particular location (e.g. Toronto) and a specific state within that location (e.g. susceptible individuals in Toronto).
-
-There are two equivalent representations of a labelled partition, dotted and undotted. This equivalence allows us to go back-and-forth between the two representations without loosing information, but perhaps gaining convenience.
-
-The undotted representation can be thought of as a data frame. The rows of the data frame represent the things being represented. Our primary example of a 'thing' is a variable in a compartmental model (e.g. number of susceptible individuals in Toronto, or the force of infection). The columns of the data frame represent different ways to partition the rows.
+Before describing a data structure for representing [Compartmental Models], we
+need to define the concept of labelled partitions. This concept allows for a
+consistent, flexible, compact, and readable mechanism for identifying model
+variables and sets of variables. For example, in a spatially structured model we
+might want to refer to all states in a particular location (e.g. Toronto) and a
+specific state within that location (e.g. susceptible individuals in Toronto).
+Labelled partitions can be stored as a data frame. The rows of the data frame
+represent the things being represented. Our primary example of a 'thing' is a
+variable in a compartmental model (e.g. number of susceptible individuals in
+Toronto, or the force of infection). The columns of the data frame represent
+different ways to partition the rows.
 
 ```{r echo = FALSE}
-StringDataFromDotted(models$seir_vax$settings()$state_variables, "Epi.Vax")$undot()$frame()
+p = Partition(models$seir_vax$variables())$filter("S", "E", "I", "R", .wrt = "Epi")
+p
 ```
+
+Non-empty values in each cell must contain only letters, numbers, underscores,
+and must start with a letter. Empty labels are zero-length strings that can be
+used to indicate that some partitions are not applicable to some variables. The
+purpose for these restrictions is to facilitate the construction of strings and
+character vectors that summarize different aspects of the labelled partition.
+When taken together, these summaries can be inverted to restore the full
+labelled partition and so they represent zero information loss. This equivalence
+allows us to go back-and-forth between the two representations without loosing
+information, but perhaps gaining convenience.
+There are three types of summaries: the names, the name, and the labels. The
+names of a labelled partition are the column names of the corresponding data
+frame.
+
+```{r}
+p$names()
+```
+
+The name of a labelled partition is a dot-concatenation of the names,
+
+```{r}
+p$name()
+```
+
+The labels of a labelled partition is a dot-concatenation of the columns.
+
+```{r}
+p$labels()
+```
+
+These labels give a unique single character string for referring to each
+variable. With only the labels and one of either the names or the name, one may
+recover the labelled partition. The labels provide convenient names for the
+variables -- i.e. rownames.
+By convention we use [UpperCamelCase](https://en.wikipedia.org/wiki/Camel_case)
+for partition names and a modified form of
+[snake_case](https://en.wikipedia.org/wiki/Snake_case) for variable labels. Our
+modification of snake case allows for single uppercase letters in order to
+accommodate the convention in epidemiology for using single uppercase letters to
+refer to state variables. For example, `S`, `I`, and `R`, as well as `I_mild`
+and `I_severe`, would be consistent with our modified snake case style.
 
 ## Compartmental Models
 
-A compartmental model is a directory with the following four files.
+A [compartmental
+model](https://canmod.github.io/macpan2/articles/model_definitions) can be
+represented as a directory with the following four files.
 
 1. `variables` -- A CSV file describing the variables in the model.
 2. `derivations` -- JSON file with an array of instructions on how to update the `variables` at each iteration of a model simulation.
@@ -87,43 +151,27 @@ The following sections describe each of these files in more detail.
 
 ## Variables and Partitions
 
-The `variables.csv` file has row for each variable in the model and one column for each labelled partition of the variables. A labelled partition is a character vector of labels that describes the variables. Each row in this file must be unique so that it uniquely identifies each variable.
+The `variables.csv` file has a row for each variable in the model and one column
+for each labelled partition of the variables. A labelled partition is a
+character vector of labels that describes the variables. Each row in this file
+must be unique so that it uniquely identifies each variable.
 
-For example, here is a list of variables for the standard SEIR model.
-
-```{r, echo = FALSE}
-Epi = models$seir$variables()  ## delete when no longer used
-models$seir$variables()
-```
-
-This example has a single labelled partition, `Epi`. This partition uniquely identifies each variable and so we do not need other partitions to comply with the uniqueness requirement.  Still, it is often convenient to add other partitions to refer to multiple variables at the same time. For example it might help to distinguish between state variables and parameters and also between infected states and non-infected states.
+For example, here is a list of variables for the standard SIR model.
 
 ```{r, echo = FALSE}
-cbind(
-  data.frame(
-    Type = c(
-      rep("state", 4), 
-      rep("param", 3),
-      rep("derived", 2)
-    ),
-    Infect = c(
-      "not_infected", "infected", "infected", "not_infected", 
-      "", "", "", "", ""
-    )
-  ),
-  models$seir$variables()
-)
+sir_vars = Partition(models$sir$variables())
+sir_vars
 ```
+
+This example has a single labelled partition, `Epi`. This partition uniquely identifies each variable and so we do not need other partitions to comply with the uniqueness requirement.
+
+To stratify by another factor (e.g. age groups or locations) we can add other labelled partitions. 
 
 We emphasize that the list with the single `Epi` partition did not violate this spec, as it is not required to add a partition to make a distinction between state variables and parameters. The spec distinguishes [Variable Roles] like this in the `settings` file. In this example, the addition of the `Type` and `Infect` partitions are for convenience. The point is that the user is free to add any number of partitions even if they are not required for uniqueness.
 
 We use the term _names_ for strings that identify partitions and the term _labels_ for strings that identify variables with respect to a particular partition. 
 
 Note that we do not provide a column for the numeric quantity of each variable because this is a spec for a compartmental model data structure. By working with pure model structure objects, we can combine different atomic models to more easily produce models with more structure. When it comes time to use a model, the [computational engine](https://canmod.net/misc/cpp_side) can be used to associate model variables with numerical quantities.
-
-Non-empty labels in each partition must contain only letters, numbers, underscores, and must start with a letter. Empty labels are zero-length strings that can be used to indicate that some partitions are not applicable to some variables. The purpose for these naming and labelling rules is to facilitate the construction of [Variable Names] that can be inverted to reproduce the `variables` list.
-
-By convention we use [UpperCamelCase](https://en.wikipedia.org/wiki/Camel_case) for partition names and a modified form of  [snake_case](https://en.wikipedia.org/wiki/Snake_case) for variable labels. Our modification of snake case allows for single uppercase letters in order to accommodate the convention in epidemiology for using single uppercase letters to refer to state variables. For example, `S`, `I`, and `R`, as well as `I_mild` and `I_severe`, would be consistent with our modified snake case style.
 
 ## Required Partitions
 
@@ -247,7 +295,7 @@ The spec for this file will be hard to understand on first reading. To understan
 
 We begin with defining the force of infection for an SEIR model with the following variable list.
 ```{r echo = FALSE}
-Epi
+sir_vars
 ```
 The force of infection for this model can be represented as follows.
 ```{r eval = FALSE}
@@ -384,10 +432,10 @@ We have another data frame, `flows`, with rows describing how individuals flow b
 * `to` -- The [variable name](#variable-names) of the compartment to which individuals are flowing.
 * `flow` -- The name of the variable governing the magnitude of the flow.
 * `flow_type` -- A type describing the way in which the magnitude of flow is quantified. The following options are available.
-    * `"per-capita"` -- The flow from `from` and to `to` equals `from * flow`.
+    * `"per_capita"` -- The flow from `from` and to `to` equals `from * flow`.
     * `"absolute"` -- The flow from `from` and to `to` equals `flow`.
-    * `"per-capita_inflow"` -- The flow to `to` equals `from * flow`.
-    * `"per-capita_outflow"` -- The flow from `from` equals `from * flow`.
+    * `"per_capita_inflow"` -- The flow to `to` equals `from * flow`.
+    * `"per_capita_outflow"` -- The flow from `from` equals `from * flow`.
     * `"absolute_inflow"` -- The flow to `to` equals `flow`.
     * `"absolute_outflow"` -- The flow from `from` equals `flow`.
 
@@ -465,6 +513,11 @@ data.frame(
 ```
 
 
+## Transmission Matrices (in progress)
+
+
+
+
 ## File Formats
 
 Both CSV files have the following format.
@@ -475,20 +528,25 @@ Both CSV files have the following format.
 * The first row gives the names of the partitions.
 * There are no row names.
 
-Additionally, the only characters that are allowed in this file are uppercase and lowercase letters, digits, underscores, and commas. The presence of any other character is sufficient to invalidate the file.
+Additionally, the only characters that are allowed in this file are uppercase
+and lowercase letters, digits, underscores, and commas. The presence of any
+other character is sufficient to invalidate the file.
 
-The `settings.json` file contains a single object with the following key-value pairs.
+The `settings.json` file contains a single object with the following key-value
+pairs.
 
 * `required_partitions` -- array of strings
 * `state_variables` -- array of strings
 * `flow_variables` -- array of strings
 
-The `derivations.json` file contains a single array of objects. Each of these objects has the following required key-value pairs.
+The `derivations.json` file contains a single array of objects. Each of these
+objects has the following required key-value pairs.
 
 * `output_names` -- array of strings
 * `expression` -- string
 
-Each of these objects has the following optional key-value pairs, although some of these optional pairs become required given the existence of others.
+Each of these objects has the following optional key-value pairs, although some
+of these optional pairs become required given the existence of others.
 
 * `filter_names` -- array of strings
 * `group_names` -- array of strings
