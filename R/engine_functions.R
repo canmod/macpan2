@@ -82,6 +82,7 @@
 #'
 #' * `log(x)` -- Natural logarithm
 #' * `exp(x)` -- Exponential function
+#' * `cos(x)` -- Cosine function
 #'
 #' ### Arguments
 #'
@@ -755,4 +756,5 @@
 #' @aliases to_diag
 #' @aliases from_diag
 #' @aliases time_group
+#' @aliases cos
 NULL

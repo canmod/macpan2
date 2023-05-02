@@ -45,6 +45,7 @@
 \alias{to_diag}
 \alias{from_diag}
 \alias{time_group}
+\alias{cos}
 \title{Engine Functions}
 \description{
 Functions currently supported by the C++ TMB engine
@@ -129,6 +130,7 @@ engine_eval(~ 1 / (1 - y), y = 1/4)
 \itemize{
 \item \code{log(x)} -- Natural logarithm
 \item \code{exp(x)} -- Exponential function
+\item \code{cos(x)} -- Cosine function
 }
 }
 

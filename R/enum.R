@@ -43,6 +43,7 @@ valid_func_sigs = c(
       , "fwrap,fail: to_diag(x)"
       , "fwrap,fail: from_diag(x)"
       , "fwrap,fail: time_group(i, change_points)"
+      , "fwrap,null: cos(x)"
 )
 process_enum = function(x) {
   RE = "(null|fail|binop|fwrap|bwrap|pwrap)[ ]*,[ ]*(null|fail|binop|fwrap|bwrap|pwrap)[ ]*:[ ]*\\`?([^`]*)\\`?\\((.*)(\\,.*)*\\)"

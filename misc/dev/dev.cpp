@@ -101,6 +101,7 @@ enum macpan2_func {
     , MP2_TO_DIAG = 41 // fwrap,fail: to_diag(x)
     , MP2_FROM_DIAG = 42 // fwrap,fail: from_diag(x)
     , MP2_TIME_GROUP = 43 //fwrap,fail: time_group(i, change_points)
+    , MP2_COS = 44 // fwrap,null: cos(x)
 };
 
 // Helper function
@@ -456,6 +457,7 @@ public:
                     // #'
                     // #' * `log(x)` -- Natural logarithm
                     // #' * `exp(x)` -- Exponential function
+                    // #' * `cos(x)` -- Cosine function
                     // #'
                     // #' ### Arguments
                     // #'
@@ -478,8 +480,8 @@ public:
                     case MP2_EXP:
                         return args[0].array().exp().matrix();
 
-                    // case MP2_SIN:
-                    //    return args[0].array().sin().matrix();
+                    case MP2_COS:
+                        return args[0].array().cos().matrix();
 
                     // #' ## Integer Sequences
                     // #'
