@@ -54,6 +54,11 @@ run-tests:
 	Rscript -e "library(macpan2); testthat::test_package(\"macpan2\")"
 
 
+coverage-report:: coverage.html
+coverage.html: R/*.R src/macpan2.cpp tests/testthat/*.R
+	Rscript -e "covr::report(file = \"coverage.html\")"
+
+
 enum-update:: R/enum.R
 R/enum.R: misc/dev/dev.cpp misc/build/enum_tail.R
 	echo "## Auto-generated - do not edit by hand" > $@

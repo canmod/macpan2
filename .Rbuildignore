@@ -10,3 +10,4 @@ Makefile
 .*\.o$
 .*\.so$
 .*\.dll$
+coverage.html
