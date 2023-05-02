@@ -384,10 +384,10 @@ We have another data frame, `flows`, with rows describing how individuals flow b
 * `to` -- The [variable name](#variable-names) of the compartment to which individuals are flowing.
 * `flow` -- The name of the variable governing the magnitude of the flow.
 * `flow_type` -- A type describing the way in which the magnitude of flow is quantified. The following options are available.
-    * `"per-capita"` -- The flow from `from` and to `to` equals `from * flow`.
+    * `"per_capita"` -- The flow from `from` and to `to` equals `from * flow`.
     * `"absolute"` -- The flow from `from` and to `to` equals `flow`.
-    * `"per-capita_inflow"` -- The flow to `to` equals `from * flow`.
-    * `"per-capita_outflow"` -- The flow from `from` equals `from * flow`.
+    * `"per_capita_inflow"` -- The flow to `to` equals `from * flow`.
+    * `"per_capita_outflow"` -- The flow from `from` equals `from * flow`.
     * `"absolute_inflow"` -- The flow to `to` equals `flow`.
     * `"absolute_outflow"` -- The flow from `from` equals `flow`.
 
