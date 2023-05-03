@@ -544,9 +544,21 @@
 #'
 #' ## Clamp
 #'
-#' Clamp the elements of a matrix so that they do not
-#' get closer to 0 than 1e-12 (TODO: make this tolerance
-#' an optional second argument).
+#' Smoothly clamp the elements of a matrix so that they
+#' do not get closer to 0 than a tolerance, `eps`, with
+#' a default of 1e-12. The output of the `clamp`
+#' function is as follows.
+#'
+#' ### Functions
+#'
+#' * `clamp(x, eps)`
+#'
+#' ### Arguments
+#'
+#' * `x` : A matrix with elements that should remain positive.
+#' * `eps` : A small positive number giving the
+#' theoretical minimum of the elements in the returned
+#' matrix.
 #' ## Probability Densities
 #'
 #' All probability densities have the same first two

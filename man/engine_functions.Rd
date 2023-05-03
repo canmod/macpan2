@@ -674,9 +674,25 @@ of \code{x}
 
 \subsection{Clamp}{
 
-Clamp the elements of a matrix so that they do not
-get closer to 0 than 1e-12 (TODO: make this tolerance
-an optional second argument).
+Smoothly clamp the elements of a matrix so that they
+do not get closer to 0 than a tolerance, \code{eps}, with
+a default of 1e-12. The output of the \code{clamp}
+function is as follows.
+\subsection{Functions}{
+\itemize{
+\item \code{clamp(x, eps)}
+}
+}
+
+\subsection{Arguments}{
+\itemize{
+\item \code{x} : A matrix with elements that should remain positive.
+\item \code{eps} : A small positive number giving the
+theoretical minimum of the elements in the returned
+matrix.
+}
+}
+
 }
 
 \subsection{Probability Densities}{

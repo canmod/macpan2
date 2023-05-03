@@ -493,6 +493,19 @@ StandardExpr = function(model){
       simulation_phase = "during_update"
     )
 
+
+    ## no outflows
+    if (!any(unlist(present_outflows))) {
+      total_outflow_list$expression = " 0 "
+      total_outflow_list$arguments = list()
+    }
+
+    ## no inflows
+    if (!any(unlist(present_inflows))) {
+      total_inflow_list$expression = " 0 "
+      total_inflow_list$arguments = list()
+    }
+
     optional_derivations = list(
       per_capita_list, absolute_list, per_capita_inflow_list,
       per_capita_outflow_list, absolute_inflow_list, absolute_outflow_list

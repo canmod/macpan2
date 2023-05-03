@@ -240,6 +240,7 @@ public:
     {
         // Variables to use locally in function bodies
         matrix<Type> m, m1, m2;  // return values
+        matrix<Type> timeIndex; // for rbind_time
         Type sum, s, eps, var;  // intermediate scalars
         int rows, cols, lag, rowIndex, colIndex, matIndex, reps, cp, off, size, sz, start, err_code, err_code1, err_code2;
 
@@ -1122,7 +1123,16 @@ public:
                         args[1].array() += t; // += t+0.1f; // +0.1 won't work when t<0
                     case MP2_RBIND_TIME:
                         matIndex = index2mats[0]; // m
-                        if (mats_save_hist[matIndex]==0 && !(args[1].size()==1 && CppAD::Integer(args[1].coeff(0,0))==t)) {
+
+                        if (n == 1) {
+                            timeIndex = matrix<Type>::Zero(t - 1, 1);
+                            for (int i=0; i < t - 1; i++) {
+                                timeIndex.coeffRef(i, 0) = i + 1;
+                            }
+                        } else {
+                            timeIndex = args[1];
+                        }
+                        if (mats_save_hist[matIndex]==0 && !(timeIndex.size()==1 && CppAD::Integer(timeIndex.coeff(0,0))==t)) {
                             SetError(MP2_RBIND_TIME, "Cannot rbind_time (or rbind_lag) a matrix with no history");
                             return m;
                         }
@@ -1139,8 +1149,8 @@ public:
                         //    the correct values otherwise.
                         int rbind_length, nRows, nCols;
                         rbind_length = 0; // count of legitimate time steps to select
-                        for (int i=0; i<args[1].size(); i++) {
-                            rowIndex = CppAD::Integer(args[1].coeff(i,0));
+                        for (int i=0; i<timeIndex.size(); i++) {
+                            rowIndex = CppAD::Integer(timeIndex.coeff(i,0));
                             if (rowIndex<t && rowIndex>=lowerTimeBound) {
                                 nRows = hist[rowIndex].m_matrices[matIndex].rows();
                                 nCols = hist[rowIndex].m_matrices[matIndex].cols();
@@ -1169,7 +1179,7 @@ public:
                             rbind_length++;
                         }
                         #ifdef MP_VERBOSE
-                            std::cout << "rbind_time(" << args[1] << ") = " << std::endl;
+                            std::cout << "rbind_time(" << timeIndex << ") = " << std::endl;
                         #endif
 
                         if (rbind_length>0) {
@@ -1177,8 +1187,8 @@ public:
                             //cols = hist[0].m_matrices[matIndex].cols();
                             m = matrix<Type>::Zero(rbind_length*rows, cols);
                             rbind_length = 0;
-                            for (int i=0; i<args[1].size(); i++) {
-                                rowIndex = CppAD::Integer(args[1].coeff(i,0));
+                            for (int i=0; i<timeIndex.size(); i++) {
+                                rowIndex = CppAD::Integer(timeIndex.coeff(i,0));
                                 if (rowIndex<t && rowIndex>=lowerTimeBound) {
                                     if (hist[rowIndex].m_matrices[matIndex].rows()!=0 &&
                                         hist[rowIndex].m_matrices[matIndex].cols()!=0) {
@@ -1366,11 +1376,23 @@ public:
 
                     // #' ## Clamp
                     // #'
-                    // #' Clamp the elements of a matrix so that they do not
-                    // #' get closer to 0 than 1e-12 (TODO: make this tolerance
-                    // #' an optional second argument).
+                    // #' Smoothly clamp the elements of a matrix so that they
+                    // #' do not get closer to 0 than a tolerance, `eps`, with
+                    // #' a default of 1e-12. The output of the `clamp`
+                    // #' function is as follows.
+                    // #'
+                    // #' ### Functions
+                    // #'
+                    // #' * `clamp(x, eps)`
+                    // #'
+                    // #' ### Arguments
+                    // #'
+                    // #' * `x` : A matrix with elements that should remain positive.
+                    // #' * `eps` : A small positive number giving the
+                    // #' theoretical minimum of the elements in the returned
+                    // #' matrix.
                     case MP2_CLAMP:
-                        eps = 1e-12;
+                        eps = 1e-12;  // default
                         if (n == 2) eps = args[1].coeff(0,0);
                         rows = args[0].rows();
                         cols = args[0].cols();
