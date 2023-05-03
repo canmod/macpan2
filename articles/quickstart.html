@@ -322,19 +322,19 @@ definitions</a> article.</p>
 <div class="section level2">
 <h2 id="side-note-macpan2-is-object-oriented">Side-Note: <code>macpan2</code> is Object-Oriented<a class="anchor" aria-label="anchor" href="#side-note-macpan2-is-object-oriented"></a>
 </h2>
-<p>Before we demonstrate how to import and use a model into R, it is
-helpful to note that <code>macpan2</code> is <a href="https://en.wikipedia.org/wiki/Object-oriented_programming" class="external-link">object-oriented</a>.
-If you are new to object-oriented programming, what you need to know is
-that when using <code>macpan2</code>, we routinely create (“initialize”)
-special R objects that will have specific functions (“methods”) attached
-that can operate on these objects. These objects are generally just
-named lists, where some of the list elements are actually methods. Here
-is a sketch of what that looks like:</p>
-<pre><code>myObject &lt;- functionToIntializeObject(argumentsToSetUpMyObject)
+<p>Before we demonstrate how to import and use a model into R, note that
+<code>macpan2</code> is <a href="https://en.wikipedia.org/wiki/Object-oriented_programming" class="external-link">object-oriented</a>.
+All you really need to know about this is that when using
+<code>macpan2</code>, we routinely create (“initialize”) special R
+objects that have specific functions (“methods”) attached that perform
+useful actions. These objects are generally just named lists, where some
+of the list elements are actually methods (functions). As an example,
+with made-up general names:</p>
+<pre><code>myObject &lt;- functionToInitializeObject(argumentsToSetUpMyObject)
 names(myObject)
 &gt; [1] "objectInfo" "objectMethod"
 myObject$objectMethod(argumentsForUsingObjectMethod)</code></pre>
-<p>We make this more concrete in the next section.</p>
+<p>The next section will make this idea more concrete.</p>
 </div>
 <div class="section level2">
 <h2 id="getting-model-definitions-into-r">Getting Model Definitions into R<a class="anchor" aria-label="anchor" href="#getting-model-definitions-into-r"></a>
@@ -342,15 +342,15 @@ myObject$objectMethod(argumentsForUsingObjectMethod)</code></pre>
 <p>Now that we have a directory that completely defines a compartmental
 model, we can use it to create a <strong>model structure</strong> object
 in R using the <code><a href="../reference/Compartmental.html">Compartmental()</a></code> function.
-<code><a href="../reference/Compartmental.html">Compartmental()</a></code> is a function that initializes objects
-whose class includes <code>Compartmental</code>, a <code>macpan2</code>
-custom object class.</p>
+<code><a href="../reference/Compartmental.html">Compartmental()</a></code> is a function that initializes
+<code>macpan2</code> models (which also include
+<code>Compartmental</code> in their class):</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir</span> <span class="op">=</span> <span class="fu"><a href="../reference/Compartmental.html">Compartmental</a></span><span class="op">(</span><span class="va">sir_dir</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">sir</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "Compartmental" "Model"         "Base"</span></span></code></pre></div>
-<p><code>Compartmental</code> objects can then be visualized with the
-help of the <a href="https://github.com/canmod/macpan2helpers" class="external-link">macpan2helpers</a>
+<p>Visualizing a <code>Compartmental</code> object with a function from
+the <a href="https://github.com/canmod/macpan2helpers" class="external-link">macpan2helpers</a>
 package:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">vn</span> <span class="op">=</span> <span class="fu">macpan2helpers</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/macpan2helpers/man/visCompartmental.html" class="external-link">visCompartmental</a></span><span class="op">(</span><span class="va">sir</span>, label_flows <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
@@ -5660,22 +5660,22 @@ HTMLWidgets.widget({
   
 });
 </script><div id="htmlwidget_container">
-<div id="htmlwidget-6991ded2a6c7545c4074" class="visNetwork html-widget html-fill-item-overflow-hidden html-fill-item" style="width:960px;height:500px;">
+<div id="htmlwidget-a273394e01eb246e6b92" class="visNetwork html-widget html-fill-item-overflow-hidden html-fill-item" style="width:960px;height:500px;">
 
 </div>
 </div>
-<script type="application/json" data-for="htmlwidget-6991ded2a6c7545c4074">{"x":{"nodes":{"id":["S","I","R"],"label":["S","I","R"],"shape":["square","square","square"]},"edges":{"from":["S","I"],"to":["I","R"],"label":["foi","gamma"]},"nodesToDataframe":true,"edgesToDataframe":true,"options":{"width":"100%","height":"100%","nodes":{"shape":"dot"},"manipulation":{"enabled":false},"edges":{"arrows":"to"},"layout":{"hierarchical":{"enabled":true,"direction":"LR"}}},"groups":null,"width":null,"height":null,"idselection":{"enabled":false},"byselection":{"enabled":false},"main":null,"submain":null,"footer":null,"background":"rgba(0, 0, 0, 0)"},"evals":[],"jsHooks":[]}</script><script type="application/htmlwidget-sizing" data-for="htmlwidget-6991ded2a6c7545c4074">{"viewer":{"width":450,"height":350,"padding":15,"fill":true},"browser":{"width":960,"height":500,"padding":40,"fill":false}}</script><p>We can easily see the components of and methods for operating on
-<code>Compartmental</code> objects by looking at the names of a
-<code>Compartmental</code> object, in this case the <code>sir</code>
-object:</p>
+<script type="application/json" data-for="htmlwidget-a273394e01eb246e6b92">{"x":{"nodes":{"id":["S","I","R"],"label":["S","I","R"],"shape":["square","square","square"]},"edges":{"from":["S","I"],"to":["I","R"],"label":["foi","gamma"]},"nodesToDataframe":true,"edgesToDataframe":true,"options":{"width":"100%","height":"100%","nodes":{"shape":"dot"},"manipulation":{"enabled":false},"edges":{"arrows":"to"},"layout":{"hierarchical":{"enabled":true,"direction":"LR"}}},"groups":null,"width":null,"height":null,"idselection":{"enabled":false},"byselection":{"enabled":false},"main":null,"submain":null,"footer":null,"background":"rgba(0, 0, 0, 0)"},"evals":[],"jsHooks":[]}</script><script type="application/htmlwidget-sizing" data-for="htmlwidget-a273394e01eb246e6b92">{"viewer":{"width":450,"height":350,"padding":15,"fill":true},"browser":{"width":960,"height":500,"padding":40,"fill":false}}</script><p>We can display the components of <code>macpan2</code> models
+(<code>Compartmental</code> objects), including the methods that operate
+on them, by listing their names:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">sir</span><span class="op">)</span></span>
 <span><span class="co">#&gt;  [1] "def"            "indices"        "labels"         "flows_expanded"</span></span>
 <span><span class="co">#&gt;  [5] "variables"      "simulators"     "expr_list"      "flows"         </span></span>
 <span><span class="co">#&gt;  [9] "flows_explicit" "settings"       "derivations"</span></span></code></pre></div>
-<p>These list elements are fully catalogued in the documentation for
-<code>Compartmental</code> objects (<code>?Compartmental()</code>), but
-for the next section, we focus on <code>sir$simulators</code>.</p>
+<p>The documentation for <code>Compartmental</code> objects
+(<code>?Compartmental()</code>) gives a full description of these
+components, but for the next section, we focus on
+<code>sir$simulators</code>.</p>
 </div>
 <div class="section level2">
 <h2 id="inputting-values-to-create-model-simulators">Inputting Values to Create Model Simulators<a class="anchor" aria-label="anchor" href="#inputting-values-to-create-model-simulators"></a>
@@ -5691,7 +5691,7 @@ generating model simulators. In this article, we use the
 <code>sir$simulators$tmb()</code> method, which is currently the only
 simulation engine available.</p>
 <p>We attach specific values for model variables when initializing the
-model simulator, <code>sir_simluator</code>, using the
+model simulator, <code>sir_simulator</code>, using the
 <code>sir$simulators$tmb()</code> function:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_simulator</span> <span class="op">=</span> <span class="va">sir</span><span class="op">$</span><span class="va">simulators</span><span class="op">$</span><span class="fu">tmb</span><span class="op">(</span></span>
@@ -5702,8 +5702,8 @@ model simulator, <code>sir_simluator</code>, using the
 <span>  N <span class="op">=</span> <span class="va">empty_matrix</span> <span class="co"># explained below</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>The simulator initializer function,
-<code>sir$simulators$tmb()</code>, will use <code>sir</code> as the
-model structure, and then additionally take the following arguments:</p>
+<code>sir$simulators$tmb()</code>, uses <code>sir</code> as the model
+structure, and additionally takes the following arguments:</p>
 <ul>
 <li>
 <code>time_steps</code>: How many time steps should the epidemic
@@ -5711,10 +5711,10 @@ simulator run for?</li>
 <li>
 <code>state</code>: A named vector containing the initial values of
 the state variables defined in <code>settings.json</code>. In this
-example, we are simulating states in numbers of individuals.</li>
+example, the units of the states are “number of individuals”.</li>
 <li>
 <code>flow</code>: A named vector containing the values of the flow
-variables defined in <code>settings.json</code>. Here, those are just
+variables defined in <code>settings.json</code> - here, just
 <code>foi</code> and <code>gamma</code>.</li>
 <li>
 <code>...</code>: Any other named variables that are required for
@@ -5724,15 +5724,14 @@ your model definition, <em>i.e.</em>, variables used in
 are used in expressions for derived variables but not explicitly as flow
 variables.</li>
 </ul>
-<p>It is best to think explicitly about the units of the flow variables.
-For example, perhaps it is known that infected individuals recover in
-ten days on average. This fact might lead one to set the per-capita
-recovery rate, <code>gamma</code>, equal to <code>1/10 = 0.1</code>.
-Doing this implicitly determines the physical length of one time step as
-one day. If one were to choose <code>gamma = 1/240</code>, then each
-time step would represent one hour. It is therefore very important to
-measure all flow variables using the same time units, otherwise the
-length of a single time step would not have physical meaning.</p>
+<p>Always think explicitly about the units of your flow variables. For
+example, perhaps you know that infected individuals recover in ten days
+on average. You could then set the per-capita recovery rate,
+<code>gamma</code>, equal to <code>1/10 = 0.1</code>, thus implicitly
+specifying your time step as one day. If you set
+<code>gamma = 1/240</code> instead, then each time step would represent
+one hour. You must define all flow variables using consistent time
+units!</p>
 <p>In our example, we use the <code>empty_matrix</code> placeholder
 value to initialize a value for the population size <code>N</code>.
 <code>N</code> will be computed before the simulation starts using the
@@ -5744,8 +5743,8 @@ whether <code>N</code> will be pre-computed. Thus, we initialize
 <code>N</code> with the placeholder value
 <code><a href="../reference/empty_matrix.html">macpan2::empty_matrix</a></code>, which is simply an empty matrix.
 (Although <code>N</code> is a scalar value, <code>macpan2</code>
-represents all varibles as <a href="https://canmod.github.io/macpan2/articles/cpp_side#matrices">matrices</a>,
-including scalars, also known as 1 x 1 matrices.)</p>
+represents all variables as <a href="https://canmod.github.io/macpan2/articles/cpp_side#matrices">matrices</a>,
+including scalars, in this case treated as 1 x 1 matrices.)</p>
 <p>What if we had specified a hard-coded value for <code>N</code> above?
 For instance:</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
@@ -5765,9 +5764,8 @@ to change the initial condition to
 <code>state = c(S = 999, I = 1, R = 0)</code> without updating the
 population to <code>N = 1000</code>, the simulator would still use the
 correct population size. However, the code is more readable if you
-explicitly use <code>N = empty_matrix</code>, because it reminds the
-user that <code>N</code> will be computed by the simulator and so it
-does not have to be updated by the user.</p>
+explicitly use <code>N = empty_matrix</code>, because it reminds you
+that <code>N</code> will be computed by the simulator.</p>
 </div>
 <div class="section level2">
 <h2 id="simulation">Simulation<a class="anchor" aria-label="anchor" href="#simulation"></a>
@@ -5803,26 +5801,27 @@ can be changed with the <code>.mats_to_return</code> argument of
 <code>time</code>: The time index, where the initial conditions are
 returned for <code>time</code> 0.</li>
 <li>
-<code>row</code>: The name of the variable, which corresponds to the
-row names of the <code>state</code> matrix.</li>
+<code>row</code>: The name of the variable, corresponding to the row
+names of the <code>state</code> matrix.</li>
 <li>
 <code>col</code>: A placeholder for variable name components in more
 complicated models (not covered in this article).</li>
 <li>
-<code>value</code>: The simulated value corresponding to the context
-provided by the other columns.</li>
+<code>value</code>: The simulated value for a particular state and
+time step.</li>
 </ul>
 </div>
 <div class="section level2">
 <h2 id="processing-results">Processing Results<a class="anchor" aria-label="anchor" href="#processing-results"></a>
 </h2>
-<p>There are no data manipulation or plotting tools in
-<code>macpan2</code>. The philosophy is to focus on the engine and
-modelling interface, but to provide outputs in formats that are easy to
-use with other data processing packages, like <code>ggplot2</code>,
+<p><code>macpan2</code> does not provide any data manipulation or
+plotting tools (although there are a few in
+<code>macpan2helpers</code>). The philosophy is to focus on the engine
+and modelling interface, but to provide outputs in formats that are easy
+to use with other data processing packages, like <code>ggplot2</code>,
 <code>dplyr</code>, and <code>tidyr</code>, all of which readily make
 use of data in long format.</p>
-<p>For example, we can generate a <code>ggplot</code> easily with:</p>
+<p>For example, we can generate a <code>ggplot</code> with:</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="op">(</span><span class="fu">ggplot</span><span class="op">(</span><span class="va">sir_results</span><span class="op">)</span></span>
 <span>  <span class="op">+</span> <span class="fu">geom_line</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span><span class="va">time</span>, <span class="va">value</span>, colour <span class="op">=</span> <span class="va">row</span><span class="op">)</span><span class="op">)</span></span>
@@ -5830,9 +5829,8 @@ use of data in long format.</p>
 <span>  <span class="op">+</span> <span class="fu">theme_bw</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="quickstart_files/figure-html/ggplot_ex-1.png" width="576"></p>
-<p>Similarly, if you want to use base plotting tools to visualize a
-simulation, you can readily convert the long format data to wide
-format:</p>
+<p>If you want to use base R plots, you can convert the long format data
+to wide format:</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_results_wide</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">sir_results</span></span>
 <span>    <span class="co">## drop 'matrix' (has only a single value) and 'col' (empty)</span></span>
@@ -5847,14 +5845,26 @@ format:</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>     0  99    1    0    </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>     1  98.8  1.10 0.1  </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>     2  98.6  1.21 0.210</span></span></code></pre></div>
-<p>(Above, we made use of the <a href="https://www.tidyverse.org/blog/2023/04/base-vs-magrittr-pipe/#pipes" class="external-link">base
-pipe operator</a>, <code>|&gt;</code>.)</p>
+<p>(Above, we used the <a href="https://www.tidyverse.org/blog/2023/04/base-vs-magrittr-pipe/#pipes" class="external-link">base
+R pipe operator</a>, <code>|&gt;</code>.)</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="va">sir_results_wide</span>,</span>
 <span>     <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">time</span>,</span>
 <span>          y <span class="op">=</span> <span class="va">I</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="quickstart_files/figure-html/base_plot_ex-1.png" width="576"></p>
+<p>or</p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>las <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="co">## horizontal y-axis ticks</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/matplot.html" class="external-link">matplot</a></span><span class="op">(</span><span class="va">sir_results_wide</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>,</span>
+<span>        <span class="va">sir_results_wide</span><span class="op">[</span>,<span class="op">-</span><span class="fl">1</span><span class="op">]</span>,</span>
+<span>        type <span class="op">=</span> <span class="st">"l"</span>,</span>
+<span>        log <span class="op">=</span> <span class="st">"y"</span>,</span>
+<span>        xlab <span class="op">=</span> <span class="st">"time"</span>, ylab <span class="op">=</span> <span class="st">""</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning in xy.coords(x, y, xlabel, ylabel, log = log, recycle = TRUE): 1 y</span></span>
+<span><span class="co">#&gt; value &lt;= 0 omitted from logarithmic plot</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/legend.html" class="external-link">legend</a></span><span class="op">(</span><span class="st">"bottom"</span>, col <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, lty <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, legend <span class="op">=</span> <span class="va">sir</span><span class="op">$</span><span class="va">labels</span><span class="op">$</span><span class="fu">state</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="quickstart_files/figure-html/base_matplot_ex-1.png" width="576"></p>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>
