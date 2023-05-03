@@ -148,8 +148,8 @@ diagram.</p>
 <span><span class="va">prod</span><span class="op">$</span><span class="va">variables</span><span class="op">$</span><span class="fu">state</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   Epi   Age</span></span>
 <span><span class="co">#&gt; 1   S young</span></span>
-<span><span class="co">#&gt; 2   S   old</span></span>
-<span><span class="co">#&gt; 3   I young</span></span>
+<span><span class="co">#&gt; 2   I young</span></span>
+<span><span class="co">#&gt; 3   S   old</span></span>
 <span><span class="co">#&gt; 4   I   old</span></span></code></pre></div>
 <p>The model definition also recognizes two subsets of these states –
 infectious and infected – which in these models are identical because
@@ -213,15 +213,29 @@ can list these other variables.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">si</span><span class="op">$</span><span class="va">variables</span><span class="op">$</span><span class="fu">other</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;            Epi</span></span>
-<span><span class="co">#&gt; 1 transmission</span></span>
+<span><span class="co">#&gt; 1            S</span></span>
+<span><span class="co">#&gt; 2            I</span></span>
+<span><span class="co">#&gt; 3    infection</span></span>
+<span><span class="co">#&gt; 4     recovery</span></span>
+<span><span class="co">#&gt; 5 transmission</span></span>
 <span><span class="va">age</span><span class="op">$</span><span class="va">variables</span><span class="op">$</span><span class="fu">other</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning in age$variables$other(): </span></span>
 <span><span class="co">#&gt; There are no other variables in this model</span></span>
 <span><span class="co">#&gt; except for state and flow variables.</span></span>
 <span><span class="co">#&gt; NULL</span></span>
 <span><span class="va">prod</span><span class="op">$</span><span class="va">variables</span><span class="op">$</span><span class="fu">other</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt;            Epi Age</span></span>
-<span><span class="co">#&gt; 1 transmission</span></span></code></pre></div>
+<span><span class="co">#&gt;             Epi   Age</span></span>
+<span><span class="co">#&gt; 1             S young</span></span>
+<span><span class="co">#&gt; 2             S   old</span></span>
+<span><span class="co">#&gt; 3             I young</span></span>
+<span><span class="co">#&gt; 4             I   old</span></span>
+<span><span class="co">#&gt; 5     infection young</span></span>
+<span><span class="co">#&gt; 6     infection   old</span></span>
+<span><span class="co">#&gt; 7      recovery young</span></span>
+<span><span class="co">#&gt; 8      recovery   old</span></span>
+<span><span class="co">#&gt; 9             S aging</span></span>
+<span><span class="co">#&gt; 10            I aging</span></span>
+<span><span class="co">#&gt; 11 transmission</span></span></code></pre></div>
 <p>We see that the only variables in the <code>age</code> model are
 states and flows. But we also see that the <code>si</code> and
 <code>prod</code> models have a <code>transmission</code> variable.</p>
@@ -243,8 +257,8 @@ state variables in <code>si</code> and <code>age</code>.</p>
 <span><span class="va">prod</span><span class="op">$</span><span class="va">variables</span><span class="op">$</span><span class="fu">state</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   Epi   Age</span></span>
 <span><span class="co">#&gt; 1   S young</span></span>
-<span><span class="co">#&gt; 2   S   old</span></span>
-<span><span class="co">#&gt; 3   I young</span></span>
+<span><span class="co">#&gt; 2   I young</span></span>
+<span><span class="co">#&gt; 3   S   old</span></span>
 <span><span class="co">#&gt; 4   I   old</span></span></code></pre></div>
 <p>The flow variables in <code>prod</code> are a union of two Cartesian
 products.</p>
@@ -277,10 +291,24 @@ can be obtained by taking the union of the other variables in
 <span><span class="co">#&gt; There are no other variables in this model</span></span>
 <span><span class="co">#&gt; except for state and flow variables.</span></span>
 <span><span class="co">#&gt;            Epi</span></span>
-<span><span class="co">#&gt; 1 transmission</span></span>
+<span><span class="co">#&gt; 1            S</span></span>
+<span><span class="co">#&gt; 2            I</span></span>
+<span><span class="co">#&gt; 3    infection</span></span>
+<span><span class="co">#&gt; 4     recovery</span></span>
+<span><span class="co">#&gt; 5 transmission</span></span>
 <span><span class="va">prod</span><span class="op">$</span><span class="va">variables</span><span class="op">$</span><span class="fu">other</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt;            Epi Age</span></span>
-<span><span class="co">#&gt; 1 transmission</span></span></code></pre></div>
+<span><span class="co">#&gt;             Epi   Age</span></span>
+<span><span class="co">#&gt; 1             S young</span></span>
+<span><span class="co">#&gt; 2             S   old</span></span>
+<span><span class="co">#&gt; 3             I young</span></span>
+<span><span class="co">#&gt; 4             I   old</span></span>
+<span><span class="co">#&gt; 5     infection young</span></span>
+<span><span class="co">#&gt; 6     infection   old</span></span>
+<span><span class="co">#&gt; 7      recovery young</span></span>
+<span><span class="co">#&gt; 8      recovery   old</span></span>
+<span><span class="co">#&gt; 9             S aging</span></span>
+<span><span class="co">#&gt; 10            I aging</span></span>
+<span><span class="co">#&gt; 11 transmission</span></span></code></pre></div>
 <p>Putting this all together we have.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/union_vars.html">union_vars</a></span><span class="op">(</span></span>
@@ -304,7 +332,11 @@ can be obtained by taking the union of the other variables in
 <span><span class="co">#&gt; 8      recovery   old</span></span>
 <span><span class="co">#&gt; 9             S aging</span></span>
 <span><span class="co">#&gt; 10            I aging</span></span>
-<span><span class="co">#&gt; 11 transmission</span></span>
+<span><span class="co">#&gt; 11            S      </span></span>
+<span><span class="co">#&gt; 12            I      </span></span>
+<span><span class="co">#&gt; 13    infection      </span></span>
+<span><span class="co">#&gt; 14     recovery      </span></span>
+<span><span class="co">#&gt; 15 transmission</span></span>
 <span><span class="va">prod</span><span class="op">$</span><span class="va">variables</span><span class="op">$</span><span class="fu">all</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             Epi   Age</span></span>
 <span><span class="co">#&gt; 1             S young</span></span>
@@ -380,7 +412,7 @@ flow vector and state vector.</li>
 </h2>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">prod</span><span class="op">$</span><span class="va">labels</span><span class="op">$</span><span class="fu">state</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "S.young" "S.old"   "I.young" "I.old"</span></span>
+<span><span class="co">#&gt; [1] "S.young" "I.young" "S.old"   "I.old"</span></span>
 <span><span class="va">prod</span><span class="op">$</span><span class="va">labels</span><span class="op">$</span><span class="fu">flow</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "infection.young" "infection.old"   "recovery.young"  "recovery.old"   </span></span>
 <span><span class="co">#&gt; [5] "S.aging"         "I.aging"</span></span></code></pre></div>
