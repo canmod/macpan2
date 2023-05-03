@@ -48,7 +48,7 @@ Partition = function(frame) {
     new_names = list_to_names(...)
     self$.partition$change_coordinates(new_names)$dot()$frame()[[1L]]
   }
-  self$filter = function(..., .wrt, .comparison_function = all_equal) {
+  self$.filter = function(..., .wrt, .comparison_function, .filter_type) {
     if (missing(.wrt)) .wrt = self$name()
     .wrt = name_set_op(self$name(), .wrt, intersect)
     nms = to_names(.wrt)
@@ -59,34 +59,30 @@ Partition = function(frame) {
       p = NullPartition(.wrt)
     } else {  ##
       filterer = StringDataFromDotted(labels = labels, name = .wrt)
-      p = Partition(self$.partition$filter(filterer, .comparison_function)$frame())
+      p = Partition(self$.partition[[.filter_type]](filterer, .comparison_function)$frame())
     }
     return(p)
   }
-  self$filter_out = function(..., .wrt, .comparison_function = not_all_equal) {
-    if (missing(.wrt)) {
-      .wrt = self$names()
-      if (length(.wrt) != 1L) .wrt = list_to_names(...)[[1L]]
-    }
-    filterer = StringDataFromDotted(
-      labels = list_to_labels(...), name = to_name(.wrt)
+  self$filter = function(..., .wrt, .comparison_function = all_equal) {
+    self$.filter(...
+      , .wrt = .wrt
+      , .comparison_function = .comparison_function
+      , .filter_type = "filter"
     )
-    Partition(self$.partition$filter_out(filterer, .comparison_function)$frame())
+  }
+  self$filter_out = function(..., .wrt, .comparison_function = not_all_equal) {
+    self$.filter(...
+      , .wrt = .wrt
+      , .comparison_function = .comparison_function
+      , .filter_type = "filter"
+    )
   }
   self$filter_ordered = function(..., .wrt, .comparison_function = all_equal) {
-    # step 1: process case of missing .wrt argument
-    if (missing(.wrt)) {
-      .wrt = self$names()
-      if (length(.wrt) != 1L) .wrt = list_to_names(...)[[1L]]
-    }
-
-    # step 2: construct the StringData object to use as the filter
-    filterer = StringDataFromDotted(
-      labels = list_to_labels(...), name = to_name(.wrt)
+    self$.filter(...
+      , .wrt = .wrt
+      , .comparison_function = .comparison_function
+      , .filter_type = "ordered_unique_filter"
     )
-
-    # step 3: apply the filter to the StringData object in self$.partition
-    Partition(self$.partition$ordered_unique_filter(filterer, .comparison_function)$frame())
   }
   self$select = function(...) {
     Partition(unique(self$.partition$change_coordinates(...)$frame()))
@@ -97,7 +93,6 @@ Partition = function(frame) {
   self$expand = function(name) Partition(self$.expand(name))
   self$.expand = function(name) self$.partition$expand(name)$frame()
   self$union = function(other) {
-    #new_name = StringUndottedVector(union(self$names(), other$names()))$dot()$value()
     new_name = name_set_op(self$name(), other$name(), union)
     x = self$.expand(new_name)
     y = other$.expand(new_name)

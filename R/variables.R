@@ -4,7 +4,7 @@ Variables = function(model) {
   self$model = model
   self$all = function() Partition(self$model$def$variables())
   self$.type = function(type) {
-    var_nms = self$model$settings$variable(type)
+    labels_this_type = self$model$settings$variable(type)
     wrt = self$model$settings$name()
     # if (length(var_nms) == 0L) {
     #   warning(
@@ -15,7 +15,7 @@ Variables = function(model) {
     #   )
     #   return(NULL)
     # }
-    self$all()$filter(var_nms, .wrt = wrt)
+    self$all()$filter_ordered(labels_this_type, .wrt = wrt)
   }
   self$flow = function() self$.type("flow")
   self$state = function() self$.type("state")

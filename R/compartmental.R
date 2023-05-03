@@ -48,10 +48,11 @@ CompartmentalMatsList = function(
     , .mats_to_return = character(0L)
     , .dimnames = list()
   ) {
+    settings = model$settings
     indices = model$indices
     MatsList(
-      state = state
-    , flow = flow
+      state = state[settings$state()]
+    , flow = flow[settings$flow()]
     , ...
     , state_length = length(state)
     , per_capita_from = indices$flow$per_capita$from()

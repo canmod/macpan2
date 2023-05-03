@@ -7,8 +7,12 @@ test_that("model files can be read in and used", {
   expect_identical(
     m$variables$flow()$labels(),
     c(
-      "foi..unstructured.unvax", "foi..unstructured.vax", "alpha..unstructured.",
-      "gamma.mild.component.", "gamma.severe.component.", "..unstructured.dose_rate"
+      "alpha..unstructured.",
+      "gamma.mild.component.",
+      "gamma.severe.component.",
+      "foi..unstructured.unvax",
+      "foi..unstructured.vax",
+      "..unstructured.dose_rate"
     )
   )
   expect_identical(
@@ -74,5 +78,28 @@ test_that("labels, name, and names conversion is correct", {
   expect_error(
     to_name(character(0L)),
     "an empty character vector cannot be turned into a name"
+  )
+})
+
+test_that("labels are appropriately generated when null partitions are involved", {
+  m = Compartmental(system.file("starter_models", "sir_vax", package = "macpan2"))
+  v = m$variables$all()
+  s = m$variables$state()
+
+  expect_identical(
+    v$filter("foi.", .wrt = "Epi.Vax")$labels(),
+    "foi."
+  )
+  expect_identical(
+    v$filter("foi", "I", .wrt = "Epi")$labels(),
+    c("I.unvax", "foi.unvax", "I.vax", "foi.vax", "foi.")
+  )
+  expect_identical(
+    v$filter("not.exist")$labels(),
+    character(0L)
+  )
+  expect_identical(
+    v$filter()$union(s)$labels(),
+    s$union(v$filter())$labels()
   )
 })
