@@ -737,9 +737,25 @@ of <code>x</code></p>
 <h3 id="clamp">Clamp<a class="anchor" aria-label="anchor" href="#clamp"></a></h3>
 
 
-<p>Clamp the elements of a matrix so that they do not
-get closer to 0 than 1e-12 (TODO: make this tolerance
-an optional second argument).</p>
+<p>Smoothly clamp the elements of a matrix so that they
+do not get closer to 0 than a tolerance, <code>eps</code>, with
+a default of 1e-12. The output of the <code>clamp</code>
+function is as follows.</p><div class="section">
+<h4 id="functions-12">Functions<a class="anchor" aria-label="anchor" href="#functions-12"></a></h4>
+
+<ul><li><p><code>clamp(x, eps)</code></p></li>
+</ul></div>
+
+<div class="section">
+<h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
+
+<ul><li><p><code>x</code> : A matrix with elements that should remain positive.</p></li>
+<li><p><code>eps</code> : A small positive number giving the
+theoretical minimum of the elements in the returned
+matrix.</p></li>
+</ul></div>
+
+
 </div>
 
 <div class="section">
@@ -764,7 +780,7 @@ repeated to match the number of rows and columns in
 the <code>observed</code> matrix. This feature allows one
 to do things like specify a single common mean for
 several values.</p><div class="section">
-<h4 id="functions-12">Functions<a class="anchor" aria-label="anchor" href="#functions-12"></a></h4>
+<h4 id="functions-13">Functions<a class="anchor" aria-label="anchor" href="#functions-13"></a></h4>
 
 <ul><li><p><code>dpois(observed, simulated)</code> -- Log of the Poisson density
 based on this <a href="https://kaskr.github.io/adcomp/group__R__style__distribution.html#gaa1ed15503e1441a381102a8c4c9baaf1" class="external-link">dpois</a>
@@ -780,7 +796,7 @@ TMB function.</p></li>
 </ul></div>
 
 <div class="section">
-<h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
+<h4 id="arguments-13">Arguments<a class="anchor" aria-label="anchor" href="#arguments-13"></a></h4>
 
 <ul><li><p><code>observed</code> -- Matrix of observed values
 at which the density is being evaluated.</p></li>
@@ -803,7 +819,7 @@ deviating from each mean in the <code>mean</code> matrix.</p>
 </div>
 
 <div class="section">
-<h4 id="functions-13">Functions<a class="anchor" aria-label="anchor" href="#functions-13"></a></h4>
+<h4 id="functions-14">Functions<a class="anchor" aria-label="anchor" href="#functions-14"></a></h4>
 
 <ul><li><p><code>rpois(mean)</code> -- Pseudo-random Poisson distributed
 values.</p></li>
@@ -814,7 +830,7 @@ normal values.</p></li>
 </ul></div>
 
 <div class="section">
-<h4 id="arguments-13">Arguments<a class="anchor" aria-label="anchor" href="#arguments-13"></a></h4>
+<h4 id="arguments-14">Arguments<a class="anchor" aria-label="anchor" href="#arguments-14"></a></h4>
 
 <ul><li><p><code>mean</code> -- Matrix of means about which to simulate
 pseudo-random variation.</p></li>
@@ -831,13 +847,13 @@ given by <code>(simulated/standard_deviation)^2 - simulated)</code>.</p></li>
 
 
 <p>Assign values to a subset of the elements in a matrix.</p><div class="section">
-<h4 id="functions-14">Functions<a class="anchor" aria-label="anchor" href="#functions-14"></a></h4>
+<h4 id="functions-15">Functions<a class="anchor" aria-label="anchor" href="#functions-15"></a></h4>
 
 <ul><li><p><code>assign(x, i, j, v)</code></p></li>
 </ul></div>
 
 <div class="section">
-<h4 id="arguments-14">Arguments<a class="anchor" aria-label="anchor" href="#arguments-14"></a></h4>
+<h4 id="arguments-15">Arguments<a class="anchor" aria-label="anchor" href="#arguments-15"></a></h4>
 
 <ul><li><p><code>x</code> -- Matrix with elements that are to be updated
 by the values in <code>v</code>.</p></li>
@@ -891,13 +907,13 @@ components with those in <code>v</code>.</p>
 
 
 <p>Unpack elements of a matrix into smaller matrices.</p><div class="section">
-<h4 id="functions-15">Functions<a class="anchor" aria-label="anchor" href="#functions-15"></a></h4>
+<h4 id="functions-16">Functions<a class="anchor" aria-label="anchor" href="#functions-16"></a></h4>
 
 <ul><li><p><code>unpack(x, ...)</code></p></li>
 </ul></div>
 
 <div class="section">
-<h4 id="arguments-15">Arguments<a class="anchor" aria-label="anchor" href="#arguments-15"></a></h4>
+<h4 id="arguments-16">Arguments<a class="anchor" aria-label="anchor" href="#arguments-16"></a></h4>
 
 <ul><li><p><code>x</code> -- Matrix with elements to be distributed to
 the matrices passed through <code>...</code>.</p></li>
