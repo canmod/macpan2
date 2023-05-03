@@ -45,3 +45,7 @@ make pkg-build         # build the R package
 make pkg-install       # install the R package from the build
 make pkg-check         # R package checks
 ```
+
+## Product Management
+
+* [Roadmap](https://github.com/orgs/canmod/projects/2)
