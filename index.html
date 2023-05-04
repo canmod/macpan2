@@ -101,6 +101,8 @@
 <p>Users should install with the following R commands.</p>
 <pre><code><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"canmod/oor"</span><span class="op">)</span></span>
 <span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"canmod/macpan2"</span><span class="op">)</span></span></code></pre>
+<p>For projects in production one should install a specific version, as in the following command. The current version is given by a version badge at the beginning of this document.</p>
+<pre><code><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"canmod/macpan2@v0.0.1"</span><span class="op">)</span></span></code></pre>
 <p>Developers and contributors should clone this repository and call <code>make</code> at the command-line in the top level directory. The following <code>make</code> rules are available for getting more control over the build process.</p>
 <pre><code>make quick-install     # for changes that only modify R source
 make quick-doc-install # for changes that modify R source and roxygen comments
