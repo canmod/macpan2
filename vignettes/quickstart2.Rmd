@@ -33,7 +33,7 @@ As an illustrative example, we use the `seir_symp` sample model included with `m
 
 We explore an SIR model with two vaccination strata: `unvax` for unvaccinated individuals and `vax` for vaccinated ones. Each vaccination strata has a copy of basic epidemiological model, and there is a flow between `S` in the unvaccinated statrum to `S` in the vaccinated stratum to simulate vaccination of susceptible individuals:
 
-```{r model_dir}
+```{r model_dir, fig.width = 6}
 m_dir = system.file("starter_models", "sir_vax", package = "macpan2")
 m = Compartmental(m_dir)
 visCompartmental(m)
@@ -64,28 +64,30 @@ In our new that the `flows.csv` file for this partitioned model has more than ju
 m$flows()
 ```
 
-Big picture, we have flows from `S` to `I`, `I` to `R`, and `S.unvax` to `S.vax`. However, this is a partitioned model, where each state is partitioned by vaccine status, so that's not exactly what's going on. Let's focus on the `I` to `R` flow first to understand how flows are specified for partitioned models.
+We have flows from `S` to `I`, `I` to `R` (and `S.unvax` to `S.vax`, which we will discuss later). However, this is a partitioned model, where each state is partitioned by vaccine status, it's not exactly what's going on. Let's focus on the `I` to `R` flow first to understand how flows are specified for partitioned models.
 
-If the `I` to `R` flow was specified for an atomic model (only one partition, like `Epi`), the above file would have something like the following entry for that flow:
+#### Which flows?
+
+If the `I` to `R` flow was specified for an atomic model (only one partition, like `Epi`, as in the first Quickstart guide), the above file would have something like the following entry for that flow:
 
 ```{r}
 m$flows()[2,1:4]
 ```
 
-This line would tell `macpan2` to create a flow from `I` to `R` with a per_capita rate `gamma` (per capita based on the `from` compartment), _i.e._, the flow into `R` is equal to `gamma * I`. 
+This line would tell `macpan2` to create a flow from `I` to `R` with a `per_capita` rate `gamma` (per capita based on the `from` compartment), _i.e._, the flow into `R` is equal to `gamma * I`. 
 
 But in the partitioned model with an `Epi` partition _and_ a `Vax` partition, there is no "just `I`" or "just `R`" state:
 
 ```{r}
 m$variables$state()
 ```
-There are actually _two_ `I` states and two `R` states, one for each `Vax` label. The labels for each partition, `Epi` and `Vax`, are concatenated with a `.` to produce the expanded state labels:
+There are actually _two_ `I` states and _two_ `R` states, one for each `Vax` label. The labels for each partition, `Epi` and `Vax`, are concatenated with a `.` to produce the expanded state labels:
 
 ```{r}
 m$variables$state()$filter(c("I", "R"), .wrt = "Epi")$labels()
 ```
 
-In the first four columns of `flows.csv`, we've specified that we want `I`s to go to `R`s, but which `I`s to which `R`s? Depending on the model, we could want `I.unvax` to go to `R.unvax`, or to go to `R.vax`, or both! Since there are two `from` compartments and two `to` compartments, there are four available flows:
+In the first four columns of `flows.csv`, we've specified that we want `I`s to go to `R`s, but which `I`s to which `R`s? Depending on the model, we could want `I.unvax` to go to `R.unvax`, or to go to `R.vax`, or both. Since there are two `from` compartments and two `to` compartments, there are four available flows:
 
 ```
 I.unvax -> R.unvax 
@@ -94,18 +96,17 @@ I.vax -> R.unvax
 I.vax -> R.unvax
 ```
 
-But in our vaccination model, these flows represent recovery from illness, and not a contemporanous change in vaccine status, so the only flows we actually want are
+But in our vaccination model, the `I` to `R` flows purely represent recovery from illness, and not a contemporanous change in vaccine status, so the only flows we actually want are
 
 ```
 I.unvax -> R.unvax
 I.vax -> R.vax
-
 ```
 
 What we could do is manually specify that we want these two flows in `flows.csv` as:
 
 ```{r}
-tibble(
+tibble::tibble(
   from = paste("I", c("unvax", "vax"), sep = "."),
   to = paste("R", c("unvax", "vax"), sep = "."),
   flow = "gamma",
@@ -122,20 +123,22 @@ m$flows()[2,1:4]
 ```
 
 and then add information on 
-1. the partition in which the `from` labels live (`from_partition`)
-1. the partition in which the `to` labels live (`to_partition`)
-1. the partition that determines how the `from` and `to` compartments are connected via a flow (`from_to_partition`)
+
+1. the partition in which the `from` variable names live (in the `from_partition` column)
+1. the partition in which the `to` variable names live (in the `to_partition` column)
+1. the partition that determines how the `from` and `to` compartments are connected via a flow (in the `from_to_partition` column)
 
 ```{r}
 m$flows()[2,c(5,6,8)]
 ```
 
-Above, we have that 
+Above, we have that
+
 1. the `from_partition` entry is `Epi` so the `from` compartment variable `I` lives in the `Epi` partition
 1. the `to_partition` entry is `Epi` so the `to` compartment variable `R` lives in the `Epi` partition
 1. the `from_to_partition` entry is `Vax` so the `from` and `to` compartments should have matching `Vax` partition labels.
 
-We can always check that the above actually specifies the flows we want:
+We can always check that the above actually specifies the flows we want using the `flows_expanded()` method of `Compartmental()` objects:
 
 ```{r}
 (m$flows_expanded() 
@@ -144,32 +147,81 @@ We can always check that the above actually specifies the flows we want:
 )
 ```
 
-Now we've specified which flows we want out of the four available flows, but which flow parameters should be use for each flow? That's where the columns in `flow.csv` that we haven't yet explained come in:
+If we did actually want all of the available flows in this case, _i.e._,
 
-```{r}
-m$flows()[2,c(3,7,9,10)]
+```
+I.unvax -> R.unvax 
+I.unvax -> R.vax
+I.vax -> R.unvax
+I.vax -> R.unvax
 ```
 
-We have actually seen the first column here, `flow`, which gives the variable name for the flow rate. We specify the second column, `flow_partition`, to identify that the flow variable lives in the `Epi` partition. The third column, `from_flow_partition`, will determine which partition is used to connect a `flow` variable with the `from` compartment. (The last column `to_flow_partition` is the `to` compartment counterpart to `from_flow_partition`, and should be left as `Null` here---can we explain why?)
+we would just leave the `from_to_partition` column blank.
 
-Here, we've specified that the `from_flow_partition` is `Vax`. Why do we even need to specify this? Firstly, there are two `gamma` rates specified:
+#### Which flow rates/components?
+
+We've specified which flows we want out of the four available `I` to `R` flows, but which flow parameter(s) should be used for each partitioned flow (like the partitioned `I.unvax` to `R.unvax` flow)? There is nothing limiting us to using just one flow rate between `I.unvax` to `R.unvax` (except perhaps biological soundness). `macpan2` can handle situations where we have multiple flow rates, which are added to get the total flow, _e.g._:
+
+```
+I.unvax --[flowrate1 + flowrate2]--> R.unvax
+```
+
+We call the flow associated with each individual flow rate a _flow component_. Flow components are specified using the last three columns in `flows.csv`:
+
+```{r}
+(m$flows()
+  |> dplyr::filter(from == "I")
+  |> dplyr::select(matches(".flow|flow."))
+)
+```
+
+These columns add information to each flow about:
+
+1. the partition in which the `flow` variable names live (in the `flow_partition` column)
+1. the partition that determines how the `from` and `flow` compartments are matched up (in the `from_flow_partition` column)
+1. the partition that determines how the `to` and `flow` compartments are matched up (in the `to_flow_partition` column)
+
+(Note that the `to_flow_partition` has been implemented to maximize generalisability of the software but in practice is not used and should be set to `Null` to avoid unintended consequences; a blank entry is not the same as a `Null` entry!)
+
+Let's look at this flow specification in context to interpret the entries for the `I` to `R` flows:
+
+```{r}
+(m$flows()
+  |> dplyr::filter(from == "I")
+)
+```
+
+The `flow_partition` is set to `Epi`, which indicates that any `flow` variables `gamma` live in the `Epi` partition. But there are two `gamma` flows:
 
 ```{r}
 m$variables$flow()$filter("gamma", .wrt = "Epi")
 ```
 
-This is to allow for different recovery rates in each vaccination stratum. We need to make explicit that the `gamma` variables should be matched with the `from` compartments using the `Vax` partition labels, that is
+These flow variables are concatenated with periods to get the expanded flow names `gamma.unvax` and `gamma.vax`.
+
+Therefore, there are _four_ potential component flows:
 
 ```
-I.unvax --gamma.unvax--> R.unvax
-I.vax --gamma.vax--> R.vax
+I.unvax --[gamma.unvax]--> R.unvax
+I.unvax --[gamma.vax]--> R.unvax
+I.vax --[gamma.unvax]--> R.vax
+I.vax --[gamma.vax]--> R.vax
 ```
 
-That's what we're doing in the `from_flow_partition` column. If we had left this entry blank, `macpan2` would have created _two_ flows within each vaccination stratum for recovery, one for each gamma:
+The above is equivalent to:
 
 ```
-I.unvax --gamma.unvax--> R.unvax
-I.unvax --gamma.vax--> R.unvax
-I.vax --gamma.unvax--> R.vax
-I.vax --gamma.vax--> R.vax
+I.unvax --[gamma.unvax + gamma.vax]--> R.unvax
+I.vax --[gamma.unvax + gamma.vax]--> R.vax
 ```
+
+However, from a biological standpoint, we only want _two_ of these component flows:
+
+```
+I.unvax --[gamma.unvax]--> R.unvax
+I.vax --[gamma.vax]--> R.vax
+```
+
+In other words, we want unvaccinated individuals to recover with one rate and vaccinated individuals to recover with another. The recovery rate for one group does not affect or add on to the other. We specify this by setting the `from_flow_partition` entry to `Vax`, which means that the `from`  variable names (starting with `I`) should be matched to the `flow` variable names (starting with `gamma`) using the `Vax` variable names: `I.unvax` is matched with `gamma.unvax` and `I.vax` with `gamma.vax`.
+
+If we had really wanted all possible component flows, we would simply leave the `from_flow_partition` column blank. If we only had a single `gamma` variable for all vaccine strata, we would set the `from_flow_partition` column to `Null`.
