@@ -18,6 +18,40 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(macpan2)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
 ```
 
 This article is the counterpart to `vignette('quickstart', package = 'macpan2')`, but instead of explaining the spec and sim of a simple SIR, we describe the **new** components introduced by trying to specify a product model. While the new "productify" functionality should make most of the content of this article obsolete eventually, this article can serve as a resource for users until then.
+
+```{r example_model}
+sir_vax = Compartmental(system.file("starter_models", "sir_vax", package = "macpan2"))
+sir_vax_sim = sir_vax$simulators$tmb(time_steps = 100L
+  , state = c(S.unvax = 99, I.unvax = 1, R.unvax = 0, S.vax = 0, I.vax = 0, R.vax = 0)
+  , flow = c(
+        infection.unvax = 0, infection.vax = 0
+      , gamma.unvax = 0.1, gamma.vax = 0.1
+      , .vax_rate = 0.1
+    )
+  , sigma.unvax = 1
+  , sigma.vax = 0.01
+  , beta.unvax = 0.2
+  , beta.vax = 0.2
+  , foi.unvax = empty_matrix
+  , foi.vax = empty_matrix
+  , foi. = empty_matrix
+  , N.unvax = empty_matrix
+  , N.vax = empty_matrix
+)
+```
+
+```{r simulations}
+(sir_vax_sim$report() 
+ %>% separate_wider_delim("row", ".", names = c("Epi", "Vax"))
+ %>% mutate(Epi = factor(Epi, levels = c("S", "I", "R")))
+ %>% ggplot()
+ + facet_grid(Epi~Vax, scales = "free")
+ + geom_line(aes(time, value))
+)
+```
