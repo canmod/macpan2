@@ -90,7 +90,21 @@
     
 <p><a href="https://img.shields.io/badge/status-stub-red" class="external-link"><img src="https://img.shields.io/badge/status-stub-red" alt="status"></a></p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://canmod.github.io/macpan2">macpan2</a></span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://canmod.github.io/macpan2">macpan2</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Attaching package: 'dplyr'</span></span>
+<span><span class="co">#&gt; The following object is masked from 'package:macpan2':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     all_equal</span></span>
+<span><span class="co">#&gt; The following objects are masked from 'package:stats':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     filter, lag</span></span>
+<span><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     intersect, setdiff, setequal, union</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyr.tidyverse.org" class="external-link">tidyr</a></span><span class="op">)</span></span></code></pre></div>
 <p>This article is the counterpart to
 <code><a href="../articles/quickstart.html">vignette('quickstart', package = 'macpan2')</a></code>, but instead of
 explaining the spec and sim of a simple SIR, we describe the
@@ -98,6 +112,34 @@ explaining the spec and sim of a simple SIR, we describe the
 product model. While the new “productify” functionality should make most
 of the content of this article obsolete eventually, this article can
 serve as a resource for users until then.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sir_vax</span> <span class="op">=</span> <span class="fu"><a href="../reference/Compartmental.html">Compartmental</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"starter_models"</span>, <span class="st">"sir_vax"</span>, package <span class="op">=</span> <span class="st">"macpan2"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">sir_vax_sim</span> <span class="op">=</span> <span class="va">sir_vax</span><span class="op">$</span><span class="va">simulators</span><span class="op">$</span><span class="fu">tmb</span><span class="op">(</span>time_steps <span class="op">=</span> <span class="fl">100L</span></span>
+<span>  , state <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>S.unvax <span class="op">=</span> <span class="fl">99</span>, I.unvax <span class="op">=</span> <span class="fl">1</span>, R.unvax <span class="op">=</span> <span class="fl">0</span>, S.vax <span class="op">=</span> <span class="fl">0</span>, I.vax <span class="op">=</span> <span class="fl">0</span>, R.vax <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
+<span>  , flow <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span></span>
+<span>        infection.unvax <span class="op">=</span> <span class="fl">0</span>, infection.vax <span class="op">=</span> <span class="fl">0</span></span>
+<span>      , gamma.unvax <span class="op">=</span> <span class="fl">0.1</span>, gamma.vax <span class="op">=</span> <span class="fl">0.1</span></span>
+<span>      , .vax_rate <span class="op">=</span> <span class="fl">0.1</span></span>
+<span>    <span class="op">)</span></span>
+<span>  , sigma.unvax <span class="op">=</span> <span class="fl">1</span></span>
+<span>  , sigma.vax <span class="op">=</span> <span class="fl">0.01</span></span>
+<span>  , beta.unvax <span class="op">=</span> <span class="fl">0.2</span></span>
+<span>  , beta.vax <span class="op">=</span> <span class="fl">0.2</span></span>
+<span>  , foi.unvax <span class="op">=</span> <span class="va">empty_matrix</span></span>
+<span>  , foi.vax <span class="op">=</span> <span class="va">empty_matrix</span></span>
+<span>  , foi. <span class="op">=</span> <span class="va">empty_matrix</span></span>
+<span>  , N.unvax <span class="op">=</span> <span class="va">empty_matrix</span></span>
+<span>  , N.vax <span class="op">=</span> <span class="va">empty_matrix</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="op">(</span><span class="va">sir_vax_sim</span><span class="op">$</span><span class="fu">report</span><span class="op">(</span><span class="op">)</span> </span>
+<span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://tidyr.tidyverse.org/reference/separate_wider_delim.html" class="external-link">separate_wider_delim</a></span><span class="op">(</span><span class="st">"row"</span>, <span class="st">"."</span>, names <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"Epi"</span>, <span class="st">"Vax"</span><span class="op">)</span><span class="op">)</span></span>
+<span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>Epi <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">Epi</span>, levels <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"S"</span>, <span class="st">"I"</span>, <span class="st">"R"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span></span>
+<span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_grid.html" class="external-link">facet_grid</a></span><span class="op">(</span><span class="va">Epi</span><span class="op">~</span><span class="va">Vax</span>, scales <span class="op">=</span> <span class="st">"free"</span><span class="op">)</span></span>
+<span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">value</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p><img src="quickstart2_files/figure-html/simulations-1.png" width="700"></p>
   </main>
 </div>
 
