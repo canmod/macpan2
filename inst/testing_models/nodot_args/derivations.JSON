@@ -1,0 +1,8 @@
+[
+  {
+    "simulation_phase" : "during_pre_update",
+    "output_names" : "pop",
+    "arguments" : ["S", "R"],
+    "expression" : "sum(S, R)"
+  }
+]

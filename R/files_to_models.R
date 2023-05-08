@@ -112,7 +112,7 @@ DerivationExtractor = function(model){
   self$.filtered_group_variable_dots = function(derivation){
     filtered_group_variable_dots = list()
     if (!is.null(derivation$argument_dots)) {
-      rp = self$model$settings$required_partitions
+      rp = self$model$settings$names()
       for (j in 1:self$.n_grps) {
         filtered_group_variable_dots = c(
           filtered_group_variable_dots,
