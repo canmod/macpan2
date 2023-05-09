@@ -1,22 +1,10 @@
-#' DerivationExtractor
-#'
-#' Construct an object for extracting the derivations within a
-#' \code{\link{Model}}.
-#'
-#' @param model Object of class \code{\link{Model}}
-#'
-#' @return An object of class \code{DerivationExtractor} with the
-#' following methods.
-#'
-#' ## Methods
-#'
-#' * `$expand_derivation(derivation)` -- Expand a single derivation by name.
-#' * `$expand_derivations()` -- Example all derivations in the model.
-#'
-#' @export
-DerivationExtractor = function(model){
+DerivationUtils = function(model) {
   self = Base()
+
+  ## Args
   self$model = model
+
+  ## Private Methods
 
   # @param derivation an element in a derivations file
   # @return variables required for the derivation, with all partitions
@@ -51,6 +39,7 @@ DerivationExtractor = function(model){
   # @return list of labels for the outputs of each group, using only the
   #         required partitions
   self$.group_outputs = function(derivation){
+    if (self$.is_atomic()) return(list(derivation$output_names))
     rp = self$model$settings$names()
     if (!is.null(derivation$output_partition)) {
       group_output = lapply(derivation$output_names
@@ -87,26 +76,39 @@ DerivationExtractor = function(model){
     return(length(derivation$group_names))
   }
 
+  self$.is_atomic = function() isTRUE(nrow(self$model$def$variables()) == 1L)
+
   self$.filtered_group_variables = function(derivation){
+    if (self$.is_atomic()) return(list(as.list(derivation$arguments)))
     filtered_group_variables = list()
     if (!is.null(derivation$arguments)) {
-      rp = self$model$settings$names()
-      for (j in 1:self$.n_grps) {
-        unordered_group_variables = self$.grp_vars[[j]]$filter(
-          derivation$arguments,
-          .wrt = self$.grp_inpt
-        )
-        ordered_group_variables = unordered_group_variables$filter_ordered(
-          derivation$arguments,
-          .wrt = self$.grp_inpt
-        )
-        filtered_group_variables = c(
-          filtered_group_variables,
-          list(as.list(ordered_group_variables$select(rp)$labels()))
-        )
-      }
+      #browser()
+      #rp = self$model$settings$names()
+      filtered_group_variables = (self$.grp_vars
+        |> method_apply("filter_ordered"
+            , derivation$arguments
+            , .wrt = self$.grp_inpt
+          )
+        |> method_apply("select", self$model$settings$names())
+        |> method_apply("labels")
+        |> lapply(as.list)
+      )
+    #   for (j in 1:self$.n_grps) {
+    #     ordered_group_variables = self$.grp_vars[[j]]$filter_ordered(
+    #       derivation$arguments,
+    #       .wrt = self$.grp_inpt
+    #     )
+    #     # ordered_group_variables = unordered_group_variables$filter_ordered(
+    #     #   derivation$arguments,
+    #     #   .wrt = self$.grp_inpt
+    #     # )
+    #     filtered_group_variables = c(
+    #       filtered_group_variables,
+    #       list(as.list(ordered_group_variables$select(rp)$labels()))
+    #     )
+    #   }
+      return(filtered_group_variables)
     }
-    return(filtered_group_variables)
   }
 
   self$.filtered_group_variable_dots = function(derivation){
@@ -124,21 +126,51 @@ DerivationExtractor = function(model){
     }
     return(filtered_group_variable_dots)
   }
+  initialize_cache(self, ".is_atomic")
+  return_object(self, "DerivationUtils")
+}
 
+#' DerivationExtractor
+#'
+#' Construct an object for extracting the derivations within a
+#' \code{\link{Model}}.
+#'
+#' @param model Object of class \code{\link{Model}}
+#'
+#' @return An object of class \code{DerivationExtractor} with the
+#' following methods.
+#'
+#' ## Methods
+#'
+#' * `$expand_derivation(derivation)` -- Expand a single derivation by name.
+#' * `$expand_derivations()` -- Example all derivations in the model.
+#'
+#' @export
+DerivationExtractor = function(model){
+  # Inheritance
+  self = DerivationUtils(model)
+
+  # Standard Methods
+
+  # TODO: change this name to `extract_one`
   self$extract_derivation = function(derivation){
-    self$.grp_vars = self$.group_variables(derivation)
+    ## derivation: one element of the list that results
+    ##             from self$model$derivations()
+    self$.grp_vars = self$.group_variables(derivation) # 120 ms
     self$.grp_inpt = self$.group_inputs(derivation)
     self$.n_grps = self$.number_of_groups(derivation)
+    #browser()
     return(list(
       simulation_phase = derivation$simulation_phase,
       expression = derivation$expression,
       arguments = derivation$arguments,
-      outputs = self$.group_outputs(derivation),
-      variables = self$.filtered_group_variables(derivation),
+      outputs = self$.group_outputs(derivation), # 940 ms
+      variables = self$.filtered_group_variables(derivation), # 860 ms
       variable_dots = self$.filtered_group_variable_dots(derivation)
     ))
   }
 
+  # TODO: change this name to `extract`
   self$extract_derivations = function(){
     derivation_list = self$model$derivations()
     return(lapply(derivation_list, self$extract_derivation))
@@ -163,6 +195,7 @@ DerivationExtractor = function(model){
 #' @export
 Scalar2Vector = function(derivation_extractor){
   self = Base()
+  self$derivation_extractor = derivation_extractor
   self$model = derivation_extractor$model
   self$extracted_derivations = derivation_extractor$extract_derivations()
   self$.state_pointer = function(scalar_name){
@@ -267,7 +300,7 @@ UserExpr = function(model){
   self$model = model
   self$derivation_extractor = DerivationExtractor(self$model)
   self$vectorized_derivations = Scalar2Vector(self$derivation_extractor)$vectorize()
-  self$scalarized_derivations = self$derivation_extractor$extract_derivations()
+  #self$scalarized_derivations = self$derivation_extractor$extract_derivations()
   self$.vars_check = function(extracted_derivation){
     return(!is.null(extracted_derivation$variables) & !(length(extracted_derivation$variables) == 0L))
   }
@@ -638,7 +671,7 @@ Derivations2ExprList = function(user_expr, standard_expr) {
       self$.standard_expr_list[standard_phases == phase]
     )
   }
-  self$.expr_list_per_phase = function(
+  self$expr_list_per_phase = function(
       phase = c("before", "during", "after")
     ) {
     #browser()
@@ -658,9 +691,9 @@ Derivations2ExprList = function(user_expr, standard_expr) {
   }
   self$expr_list = function(.simulate_exprs = character(0L)) {
     ExprList(
-      before = self$.expr_list_per_phase("before"),
-      during = self$.expr_list_per_phase("during"),
-      after = self$.expr_list_per_phase("after"),
+      before = self$expr_list_per_phase("before"),
+      during = self$expr_list_per_phase("during"),
+      after = self$expr_list_per_phase("after"),
       .simulate_exprs = .simulate_exprs
     )
   }

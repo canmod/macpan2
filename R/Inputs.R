@@ -1,4 +1,3 @@
-
 MakeModifierEditor = function(parent, modifier_name) {
   self = Base()
   self$parent = parent
@@ -8,7 +7,6 @@ MakeModifierEditor = function(parent, modifier_name) {
   }
   return_object(self, "MakeModifierEditor")
 }
-
 
 MakeRemove = function(parent, modifier_name) {
   self = MakeModifierEditor(parent, modifier_name)
@@ -33,7 +31,6 @@ MakeAdd = function(parent, modifier_name) {
     self$parent$regenerate()
   }
 }
-
 
 MakeReplace = function(parent, modifier_name) {
   self = MakeModifierEditor(parent, modifier_name)
@@ -81,4 +78,18 @@ EditableArgs = function(constructor, arg_list, arg_modifiers) {
     self$replace[[mod_nm]] = MakeReplace(self, nm)
   }
   return_object(self, "EditableArgs")
+}
+
+if (FALSE) {
+  library(oor)
+  valid = macpan2:::valid
+  EditableArgs(
+    constructor = macpan2::MatsList,
+    arg_list = list(),
+    arg_modifiers = list(
+        .mats_to_save = character(0L)
+      , .mats_to_return = character(0L)
+      , .dimnames = list()
+    )
+  )
 }

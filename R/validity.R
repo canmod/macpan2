@@ -11,8 +11,8 @@ are_matrix_list_names = function(x) {
 }
 init_el_valid_pars = function(tmb_model) {
   par_dim_summary = merge(
-    tmb_model$.params$data_frame(),
-    tmb_model$.init_mats$mat_dims(),
+    tmb_model$params$data_frame(),
+    tmb_model$init_mats$mat_dims(),
     all.x = TRUE
   )
   valid_pars = with(par_dim_summary, (row < nrow) & (col < ncol))
