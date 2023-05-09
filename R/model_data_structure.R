@@ -6,12 +6,19 @@
 #'
 #' @export
 Model = function(definition) {
+  # Inheritance
   self = Base()
-  self$def = definition
+
+  # Args / Composition
+  self$def = definition ## ModelFiles object
+
+  # Compositions
   self$settings = Settings(self)
   self$variables = Variables(self)
   self$labels = VariableLabels(self$variables)
   self$indices = VariableIndices(self$labels)
+
+  # Standard Methods
   self$flows = function() self$def$flows()
   self$flows_expanded = function() {
     expander = FlowExpander(self$def)
@@ -35,11 +42,15 @@ Model = function(definition) {
     missing_fields = which(lapply(optional_fields, is_missing) == TRUE)
     return(cbind(self$flows(), default_entries[,missing_fields]))
   }
-  self$derivations = self$def$derivations ## TODO: make this more useful
+  self$derivations = self$def$derivations  ## look like a field but actually method forwarding
   self$expr_list = function() {
     Derivations2ExprList(UserExpr(self), StandardExpr(self))$expr_list()
   }
+
+  # Composition
   self$simulators = Simulators(self)
+
+  # Validate and Return
   (self
     |> assert_variables()
     |> return_object("Model")

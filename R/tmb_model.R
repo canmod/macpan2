@@ -10,7 +10,7 @@ ExprListUtils = function() {
       , .existing_literals = numeric(0L)
       , .offset = 0L
     ) {
-    parse_expr_list(self$.all_rhs(self$.expr_list)
+    parse_expr_list(self$.all_rhs(self$expr_list)
       , valid_vars = self$.init_valid_vars(...)
       , valid_literals = .existing_literals
       , offset = .offset
@@ -107,22 +107,22 @@ ExprList = function(
     "(i.e. x ~ 1 is fine, but x[0] ~ 1 is not)."
   )
   self$.input = nlist(before, during, after)
-  self$.expr_list = c(
+  self$expr_list = c(
     valid_expr_list$assert(before),
     valid_expr_list$assert(during),
     valid_expr_list$assert(after)
   )
-  expr_nms = names(self$.expr_list)
-  if (is.null(expr_nms)) expr_nms = rep("", length(self$.expr_list))
+  expr_nms = names(self$expr_list)
+  if (is.null(expr_nms)) expr_nms = rep("", length(self$expr_list))
   self$.expr_nms = expr_nms
-  self$.expr_list = unname(self$.expr_list)
+  self$expr_list = unname(self$expr_list)
   self$.simulate_exprs = valid$char$assert(.simulate_exprs)
   self$.eval_schedule = c(length(before), length(during), length(after))
   self$.expr_sim_block = as.integer(expr_nms %in% .simulate_exprs)
   self$.expr_output_id = function(...) {
     all_names = self$.mat_names(...)
     output_names = valid$engine_outputs(all_names)$assert(
-      self$.all_lhs(self$.expr_list)
+      self$.all_lhs(self$expr_list)
     )
     m = match(output_names, all_names)
     if (any(is.na(m))) {
@@ -180,7 +180,7 @@ ExprList = function(
     )
     for (i in 1:3) {
       if (self$.eval_schedule[i] > 0L) {
-        expr_strings = lapply(self$.expr_list[from[i]:to[i]], deparse)
+        expr_strings = lapply(self$expr_list[from[i]:to[i]], deparse)
         tab_size = nchar(self$.eval_schedule[i])
         fmt = sprintf("%%%ii: %%s", tab_size)
         tab = paste0(rep(" ", tab_size), collapse = "")
@@ -254,10 +254,11 @@ MatsList = function(...
     , .mats_to_return = character(0L)
     , .dimnames = list()
   ) {
-  self = EditableArgs(MatsList
-    , lapply(list(...), as.matrix)
-    , list()
-  )
+  # self = EditableArgs(MatsList
+  #   , lapply(list(...), as.matrix)
+  #   , list()
+  # )
+  self = Base()
   self$.initial_mats = lapply(list(...), as.matrix)
   self$.mats_to_save = .mats_to_save
   self$.mats_to_return = .mats_to_return
@@ -300,8 +301,16 @@ MatsList = function(...
     , .dimnames = list()
   ) {
     args = c(self$.initial_mats, list(...))
-    args$.mats_to_save = c(self$.mats_to_save, .mats_to_save)
-    args$.mats_to_return = c(self$.mats_to_return, .mats_to_return)
+    dups = duplicated(names(args))
+    if (any(dups)) {
+      stop(
+        "\nThe following matrices were added, but already existed:\n",
+        paste0(names(args)[dups], collapse = ", ")
+        ## TODO: fill in what to do about it
+      )
+    }
+    args$.mats_to_save = union(self$.mats_to_save, .mats_to_save)
+    args$.mats_to_return = union(self$.mats_to_return, .mats_to_return)
     args$.dimnames = c(self$.dimnames, .dimnames)
     do.call(MatsList, args)
   }
@@ -441,7 +450,7 @@ OptParamsFile = function(file_path
 #' @export
 ObjectiveFunction = function(obj_fn_expr) {
   self = ExprListUtils()
-  self$.expr_list = list(obj_fn_expr)
+  self$expr_list = list(obj_fn_expr)
   self$.literals = function(..., .existing_literals) {
     self$.parsed_expr_list(..., .existing_literals = .existing_literals)$valid_literals
   }
@@ -475,10 +484,59 @@ ObjectiveFunction = function(obj_fn_expr) {
 #' @export
 Time = function(time_steps) {
   self = Base()
-  self$.time_steps = time_steps
-  self$data_arg = function() list(time_steps = self$.time_steps)
+  self$time_steps = time_steps
+  self$data_arg = function() list(time_steps = self$time_steps)
   return_object(self, "Time")
 }
+
+
+TMBEditor = function(model) {
+  self = Base()
+  self$model = model
+  return_object(self, "TMBEditor")
+}
+
+TMBPrinter = function(model) {
+  self = TMBEditor(model)
+  self$expressions = function() self$model$expr_list$print_exprs()
+  self$matrix_dims = function() self$model$init_mats$mat_dims()
+  return_object(self, "TMBPrinter")
+}
+
+TMBInserter = function(model) {
+  self = TMBEditor(model)
+  self$expressions = function(...
+    , .at = 1L
+    , .phase = c("before", "during", "after")
+    , .simulate_exprs = character(0L)
+  ) {
+    self$model$expr_list = self$model$expr_list$insert(...
+      , .at = .at
+      , .phase = .phase
+      , .simulate_exprs = .simulate_exprs
+    )
+    self$model
+  }
+  return_object(self, "TMBInserter")
+}
+
+TMBAdder = function(model) {
+  self = TMBEditor(model)
+  self$matrices = function(...
+    , .mats_to_save = character(0L)
+    , .mats_to_return = character(0L)
+    , .dimnames = list()
+  ) {
+    self$model$init_mats = self$model$init_mats$add_mats(...
+        , .mats_to_save = .mats_to_save
+        , .mats_to_return = .mats_to_return
+        , .dimnames = .dimnames
+      )
+    self$model
+  }
+  return_object(self, "TMBAdder")
+}
+
 
 #' TMB Model
 #'
@@ -554,40 +612,43 @@ TMBModel = function(
     obj_fn = ObjectiveFunction(~0),
     time_steps = Time(0L)
   ) {
+  ## Inheritance
   self = Base()
-  self$.expr_list = expr_list
-  self$.init_mats = init_mats
-  self$.params = params
-  self$.random = random
-  self$.obj_fn = obj_fn
-  self$.time_steps = time_steps
+
+  ## Args
+  self$expr_list = expr_list
+  self$init_mats = init_mats
+  self$params = params
+  self$random = random
+  self$obj_fn = obj_fn
+  self$time_steps = time_steps
+
+  ## Standard Methods
   self$data_arg = function() {
-    existing_literals = self$.expr_list$.literals(self$.init_mats$.names())
-    expr_list = self$.expr_list$data_arg(self$.init_mats$.names())
+    existing_literals = self$expr_list$.literals(self$init_mats$.names())
+    expr_list = self$expr_list$data_arg(self$init_mats$.names())
     c(
-      self$.init_mats$data_arg(),
+      self$init_mats$data_arg(),
       expr_list,
-      self$.params$data_arg(self$.init_mats$.names()),
-      self$.random$data_arg(self$.init_mats$.names(), .type_string = "r"),
-      self$.obj_fn$data_arg(self$.init_mats$.names()
+      self$params$data_arg(self$init_mats$.names()),
+      self$random$data_arg(self$init_mats$.names(), .type_string = "r"),
+      self$obj_fn$data_arg(self$init_mats$.names()
         , .existing_literals = existing_literals
       ),
-      self$.time_steps$data_arg()
+      self$time_steps$data_arg()
 
     )
   }
   self$param_arg = function() {
     p = list(
-      params = self$.params$vector(),
-      random = self$.random$vector()
+      params = self$params$vector(),
+      random = self$random$vector()
     )
     if (length(p$params) == 0L) p$params = 0
     p
   }
   self$random_arg = function() {
-    if (length(self$.random$vector()) == 0L) {
-      return(NULL)
-    }
+    if (length(self$random$vector()) == 0L) return(NULL)
     return("random")
   }
   self$make_ad_fun = function(DLL = "macpan2") {
@@ -600,54 +661,91 @@ TMBModel = function(
       silent = TRUE
     )
   }
+
+  ## Composition
   self$simulator = function() {TMBSimulator(self)}
 
-  self$add_mats = function(...
-    , .mats_to_save = character(0L)
-    , .mats_to_return = character(0L)
-    , .dimnames = list()
-  ) {
-    TMBModel(
-      self$.init_mats$add_mats(...
-        , .mats_to_save = .mats_to_save
-        , .mats_to_return = .mats_to_return
-        , .dimnames = .dimnames
-      ),
-      self$.expr_list,
-      self$.params,
-      self$.random,
-      self$.obj_fn,
-      self$.time_steps
-    )
-  }
-  self$insert_exprs = function(...
-    , .at
-    , .phase = c("before", "during", "after")
-    , .simulate_exprs = character(0L)
-  ) {
-    TMBModel(
-      self$.init_mats,
-      self$.expr_list$insert(...
-        , .at = .at
-        , .phase = .phase
-        , .simulate_exprs = .simulate_exprs
-      ),
-      self$.params,
-      self$.random,
-      self$.obj_fn,
-      self$.time_steps
-    )
-  }
-  self$print_exprs = function(file = "") self$.expr_list$print_exprs(file = file)
+  self$add = TMBAdder(self)
+  self$insert = TMBInserter(self)
+  self$print = TMBPrinter(self)
+
   return_object(
     valid$tmb_model$assert(self),
     "TMBModel"
   )
 }
 
+## The copied method acts on the source when called by the target.
+## This is useful when the target has the source as a composed object.
+copy_method = function(
+      method ## string giving the name of the method to transfer
+    , source ## source object to donate the method
+    , target ## target object to receive the method
+    , refresh = TRUE ## should the target be refreshed after receiving the method?
+    , return = TRUE ## should the return value in the source be returned in the target?
+  ) {
+  force(method); force(refresh); force(source); force(target)
+  target[[method]] = function() {
+    named_args = as.list(environment())
+    dot_args = try(list(...), silent = TRUE)
+    if (inherits(dot_args, "try-error")) dot_args = list()
+    args = c(named_args, dot_args)
+    y = do.call(source[[method]], args)
+    if (refresh) target$refresh()
+    if (return) return(y)
+  }
+  formals(target[[method]]) = formals(source[[method]])
+}
+copy_methods = function(methods, source, target, refresh = TRUE) {
+  for (method in methods) copy_method(method, source, target, refresh)
+}
+
+
+TMBSimulatorAdder = function(simulator) {
+  self = TMBAdder(simulator$tmb_model)
+  self$simulator = simulator
+  methods = c("matrices")
+  copy_methods(methods = methods
+    , source = self$simulator$tmb_model$add
+    , target = self
+    , refresh = FALSE
+  )
+  return_object(self, "TMBSimulatorAdder")
+}
+
+TMBSimulatorInserter = function(simulator) {
+  self = TMBInserter(simulator$tmb_model)
+  self$simulator = simulator
+  methods = c("expressions")
+  copy_methods(methods = methods
+    , source = self$simulator$tmb_model$insert
+    , target = self
+  )
+  return_object(self, "TMBSimulatorInserter")
+}
+
+TMBSimulatorPrinter = function(simulator) {
+  self = TMBPrinter(simulator$tmb_model)
+  self$simulator = simulator
+  copy_method(method = "matrix_dims"
+    , source = self$simulator$tmb_model$print
+    , target = self
+    , refresh = FALSE
+    , return = TRUE
+  )
+  copy_method(method = "expressions"
+    , source = self$simulator$tmb_model$print
+    , target = self
+    , refresh = FALSE
+    , return = FALSE
+  )
+  return_object(self, "TMBSimulatorPrinter")
+}
+
+
 #' TMB Simulator
 #'
-#' Construct an object with methods fore simulating from and optimizing a
+#' Construct an object with methods for simulating from and optimizing a
 #' compartmental model made using \code{\link{TMBModel}}.
 #'
 #' @param tmb_model An object of class \code{\link{TMBModel}}.
@@ -675,30 +773,30 @@ TMBSimulator = function(tmb_model, tmb_cpp = "macpan2") {
   self = Base()
   self$tmb_model = tmb_model
   self$tmb_cpp = tmb_cpp
-  self$matrix_names = self$tmb_model$.init_mats$.names()
-  self$ad_fun = self$tmb_model$make_ad_fun(self$tmb_cpp)
-  if (inherits(self$ad_fun, "try-error")) {
+  self$matrix_names = function() self$tmb_model$init_mats$.names()
+  self$ad_fun = function() self$tmb_model$make_ad_fun(self$tmb_cpp)
+  if (inherits(self$ad_fun(), "try-error")) {
     stop(
       "\nThe tmb_model object is malformed,",
       "\nwith the following explanation:\n",
-      self$ad_fun
+      self$ad_fun()
     )
   }
-  self$error_code = function(...) self$ad_fun$report(...)$error
+  self$error_code = function(...) self$ad_fun()$report(...)$error
   self$report = function(..., .phases = c("before", "during", "after")) {
     fixed_params = as.numeric(unlist(list(...)))
     if (length(fixed_params) == 0L) {
-      r = self$ad_fun$report()
+      r = self$ad_fun()$report()
     } else {
-      r = self$ad_fun$report(fixed_params)
+      r = self$ad_fun()$report(fixed_params)
     }
     if (r$error != 0L) stop("Error thrown by the TMB engine.")
     r = setNames(
       as.data.frame(r$values),
       c("matrix", "time", "row", "col", "value")
     )  ## get raw simulation output from TMB and supply column names (which don't exist on the TMB side)
-    r$matrix = self$matrix_names[r$matrix + 1L]  ## replace matrix indices with matrix names
-    dn = self$tmb_model$.init_mats$.dimnames ## get the row and column names of matrices with such names
+    r$matrix = self$matrix_names()[r$matrix + 1L]  ## replace matrix indices with matrix names
+    dn = self$tmb_model$init_mats$.dimnames ## get the row and column names of matrices with such names
     for (mat in names(dn)) {
       i = r$matrix == mat
 
@@ -720,7 +818,7 @@ TMBSimulator = function(tmb_model, tmb_cpp = "macpan2") {
       r[i, "col"][missing_col_nms] = as.character(col_indices[missing_col_nms])
     }
     r$time = as.integer(r$time)
-    num_t = self$tmb_model$.time_steps$.time_steps
+    num_t = self$tmb_model$time_steps$time_steps
     if (!"before" %in% .phases) {
       r = r[r$time != 0L,,drop = FALSE]
     }
@@ -741,5 +839,10 @@ TMBSimulator = function(tmb_model, tmb_cpp = "macpan2") {
     }
     matrix(rr$value, max(rr$row) + 1L)
   }
+  self$print = TMBSimulatorPrinter(self)
+  self$insert = TMBSimulatorInserter(self)
+  self$add = TMBSimulatorAdder(self)
+
+  initialize_cache(self, "ad_fun")
   return_object(self, "TMBSimulator")
 }

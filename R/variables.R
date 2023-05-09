@@ -40,6 +40,7 @@ Variables = function(model) {
       .wrt = s$required_partitions
     )
   }
+  initialize_cache(self, "all")
   return_object(self, "Variables")
 }
 
@@ -58,6 +59,7 @@ VariableLabels = function(variables) {
   self$infected_state = function() self$variables$infected_state()$labels()
   self$infection_flow = function() self$variables$infection_flow()$labels()
   self$other = function() setdiff(self$all(), c(self$state(), self$flow()))
+  initialize_cache(self, "all", "flow", "state", "infectious_state", "infection_flow", "other")
   return_object(self, "VariableLabels")
 }
 
@@ -97,6 +99,7 @@ FlowIndices = function(labels, type) {
   self$from = self$.make_flow_method("from", type, "state")
   self$to = self$.make_flow_method("to", type, "state")
   self$flow = self$.make_flow_method("flow", type, "flow")
+  initialize_cache(self, "from", "to", "flow")
   return_object(self, "FlowIndices")
 }
 

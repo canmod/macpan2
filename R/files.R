@@ -58,7 +58,10 @@ Collection = function(...) {
 #'
 #' @export
 Files = function(directory, ...) {
+  ## Inheritance
   self = Base()
+
+  ## Private Methods
   self$.directory = normalizePath(directory)
   self$.readers = list(...)
   for (i in seq_along(self$.readers)) {
@@ -109,6 +112,9 @@ Files = function(directory, ...) {
     }
     if (modification_time > access_time) self$.fetch(component_name)
   }
+
+  ## Standard Methods
+
   # pull data (i.e. fetch it only if necessary) and return it
   self$get = function(component_name, optional = FALSE) {
     if (optional) {
@@ -118,6 +124,7 @@ Files = function(directory, ...) {
     self$.components[[component_name]]
   }
   self$freeze = function() do.call(Collection, self$.components)
+
   return_object(self, "Files")
 }
 
