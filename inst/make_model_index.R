@@ -4,6 +4,17 @@ model_dirs <- list.files(pattern="models$")
 ## this is already too big and ugly.
 ## could be simplify by tidyverse if we wanted
 ## maybe there's an existing pandoc-YAML-to-json-to-list pipeline?
+
+## e.g. https://rdrr.io/cran/yaml/man/read_yaml.html
+##  * readLines()
+##  * |> extract header to variable (drop lines after second "^---"
+##  * read_yaml(textConnection(header_contents))
+## adds a (soft) dependency to yaml pkg
+##  ... but no recursive dependencies ... https://github.com/vubiostat/r-yaml/blob/master/DESCRIPTION
+
+## instead of hard-coding README.md, list.files with pattern
+##  README.?md (specify [qQRr] ?) to allow dynamic files
+
 get_mod_info <- function(f) {
     fields <- c("title", "index_entry")
     fn <- file.path(f, "README.md")
