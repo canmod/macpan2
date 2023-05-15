@@ -30,6 +30,11 @@ SymbolicMath = function() {
     force(x)
     force(y)
     force(op)
+
+    ## handle unary minus case
+    if (y == "") return(self$wrap(paste("-", x, sep = "")))
+
+    ## actual binop -- binary operator -- case
     self$wrap(paste(x, y, sep = op))
   }
 
@@ -63,7 +68,7 @@ SymbolicMath = function() {
     force(y)
     self$binop(" + ", x, y)
   }
-  self$`-` = function(x, y) self$binop(" - ", x, y)
+  self$`-` = function(x, y = "") self$binop(" - ", x, y)
   self$`*` = function(x, y) self$binop(" * ", x, y)
   self$`/` = function(x, y) {
     force(x)
@@ -82,21 +87,21 @@ SymbolicMath = function() {
   self$`rowSums` = function(x) self$fwrap("rowSums", x)
   self$`colSums` = function(x) self$fwrap("colSums", x)
   self$`groupSums` = function(x, f, n) self$fwrap("groupSums", self$csv(x, f, n))
-  self$`[` = function(x, ...) self$bwrap(x, self$csv(...))
+  self$`[` = function(x, i, ...) self$bwrap(x, self$csv(i, ...)) ## optional: j
   self$`block` = function(x, i, j, n, m) self$fwrap("block", self$csv(x, i, j, n, m))
   self$`t` = function(x) self$fwrap("t", x)
-  self$`rbind_time` = function(x, lag, t_min) self$fwrap("rbind_time", self$csv(x, lag, t_min))
-  self$`rbind_lag` = function(x, lag, t_min) self$fwrap("rbind_lag", self$csv(x, lag, t_min))
+  self$`rbind_time` = function(x, ...) self$fwrap("rbind_time", self$csv(x, ...)) ## optional: t, t_min
+  self$`rbind_lag` = function(x, ...) self$fwrap("rbind_lag", self$csv(x, ...)) ## optional: lag, t_min
   self$`:` = function(from, to) self$binop(" : ", from, to)
   self$`seq` = function(from, length, by) self$fwrap("seq", self$csv(from, length, by))
   self$`convolution` = function(x, k) self$fwrap("convolution", self$csv(x, k))
   self$`cbind` = function(...) self$fwrap("cbind", self$csv(...))
   self$`rbind` = function(...) self$fwrap("rbind", self$csv(...))
-  self$`time_step` = function(lag) self$fwrap("time_step", lag)
+  self$`time_step` = function(...) self$fwrap("time_step", ...) ## optional: lag
   self$`assign` = function(x, i, j, v) self$fwrap("assign", self$csv(x, i, j, v))
   self$`unpack` = function(x, ...) self$fwrap("unpack", self$csv(x, ...))
   self$`recycle` = function(x, rows, cols) self$fwrap("recycle", self$csv(x, rows, cols))
-  self$`clamp` = function(x, ...) self$fwrap("clamp", self$csv(x, ...))
+  self$`clamp` = function(x, ...) self$fwrap("clamp", self$csv(x, ...)) ## optional: tolerance
   self$`dpois` = function(x, y) self$fwrap("dpois", self$csv(x, y))
   self$`dnbinom` = function(x, y, z) self$fwrap("dnbinom", self$csv(x, y, z))
   self$`dnorm` = function(x, y, z) self$fwrap("dnorm", self$csv(x, y, z))

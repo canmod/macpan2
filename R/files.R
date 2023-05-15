@@ -39,6 +39,8 @@ Collection = function(...) {
 #' @param ... One or more \code{\link{reader_spec}}(s) that point to files
 #' within the \code{directory} and define what \code{\link{Reader}} should
 #' be used to access the file.
+#' @param .cache Optional object with an invalidate method that can be
+#' called when the files are updated.
 #'
 #' @return Object of class \code{Collection} with the following methods.
 #'
@@ -57,13 +59,16 @@ Collection = function(...) {
 #' the convention.
 #'
 #' @export
-Files = function(directory, ...) {
+Files = function(directory, ..., .cache = CacheList()) {
   ## Inheritance
   self = Base()
 
-  ## Private Methods
+  # Args
+  self$cache = .cache
   self$.directory = normalizePath(directory)
   self$.readers = list(...)
+
+  ## Private Methods
   for (i in seq_along(self$.readers)) {
     self$.readers[[i]] = self$.readers[[i]](self$.directory)
   }
@@ -82,6 +87,7 @@ Files = function(directory, ...) {
     self$.access_times[[component_name]] = Sys.time()
     self$.components[[component_name]] =
       self$.readers[[component_name]]$read()
+    self$cache$invalidate()
   }
   # read data, store it, return it, bumping the access time
   self$.read = function(component_name) {

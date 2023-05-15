@@ -44,6 +44,20 @@ Variables = function(model) {
   return_object(self, "Variables")
 }
 
+NullLabels = function() {
+  self = Base()
+  self$variables = NULL ## TODO: should be NullVariables, which doesn't yet exist
+  self$all = function() character(0L)
+  self$flow = function() character(0L)
+  self$state = function() character(0L)
+  self$infectious_state = function() character(0L)
+  self$infected_state = function() character(0L)
+  self$infection_flow = function() character(0L)
+  self$other = function() character(0L)
+  initialize_cache(self, "all", "flow", "state", "infectious_state", "infection_flow", "other")
+  return_object(self, "NullLabels")
+}
+
 VariableLabels = function(variables) {
   self = Base()
   self$variables = variables
@@ -106,6 +120,9 @@ FlowIndices = function(labels, type) {
 FlowTypeIndices = function(labels) {
   self = IndexUtilities(labels)
   for (type in self$flow_types) self[[type]] = FlowIndices(labels, type)
+  self$invalidate = function() {
+    for (type in self$flow_types) self[[type]]$cache$invalidate()
+  }
   return_object(self, "FlowTypeIndices")
 }
 

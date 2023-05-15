@@ -4,7 +4,7 @@
 \alias{Files}
 \title{Files}
 \usage{
-Files(directory, ...)
+Files(directory, ..., .cache = CacheList())
 }
 \arguments{
 \item{directory}{Path to a directory containing the files.}
@@ -12,6 +12,9 @@ Files(directory, ...)
 \item{...}{One or more \code{\link{reader_spec}}(s) that point to files
 within the \code{directory} and define what \code{\link{Reader}} should
 be used to access the file.}
+
+\item{.cache}{Optional object with an invalidate method that can be
+called when the files are updated.}
 }
 \value{
 Object of class \code{Collection} with the following methods.

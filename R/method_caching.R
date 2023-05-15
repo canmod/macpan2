@@ -42,6 +42,21 @@ initialize_cache = function(object, ...) {
   ## create a cache for each method
   for (nm in self$method_names) self[[nm]] = CachedMethod(object, object[[nm]], nm)
 
+  self$invalidate = function() {
+    for (nm in self$method_names) self[[nm]]$invalidate()
+  }
+
   ## initialize the cache
   self$object$cache = return_object(self, "MethodsCache")
+}
+
+CacheList = function(...) {
+  self = Base()
+  self$cache_objects = list(...)
+  self$invalidate = function() {
+    for (i in seq_along(self$cache_objects)) {
+      self$cache_objects[[i]]$invalidate()
+    }
+  }
+  return_object(self, "CacheList")
 }

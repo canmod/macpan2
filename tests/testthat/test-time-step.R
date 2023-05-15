@@ -6,6 +6,6 @@ test_that("time_step function returns a valid time-step no matter what", {
   )
   expect_identical(
     c(0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 6),
-    m$make_ad_fun()$report()$values[,5]
+    m$ad_fun()$report()$values[,5]
   )
 })

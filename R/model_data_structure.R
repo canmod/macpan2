@@ -50,6 +50,16 @@ Model = function(definition) {
   # Composition
   self$simulators = Simulators(self)
 
+  # Set the cache in the underlying ModelFiles object
+  # so that when the model definition files change
+  # on disk, the caches that depend on these files
+  # are invalidated.
+  self$def$cache = CacheList(
+    self$variables$cache,
+    self$labels$cache,
+    self$indices$flow ## invalidate method outside of the cache for convenience
+  )
+
   # Validate and Return
   (self
     |> assert_variables()

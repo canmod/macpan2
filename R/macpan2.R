@@ -6,7 +6,4 @@
 ##' package on compartmental epidemic modelling for
 ##' forecasting and analysis of infectious diseases.
 ##'
-##' @exportPattern "^[[:alpha:]]+"
-##' @importFrom Rcpp evalCpp
-##'
 "_PACKAGE"
