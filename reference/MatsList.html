@@ -72,7 +72,8 @@ model in TMB.</p>
 <span>  <span class="va">...</span>,</span>
 <span>  .mats_to_save <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0L</span><span class="op">)</span>,</span>
 <span>  .mats_to_return <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0L</span><span class="op">)</span>,</span>
-<span>  .dimnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  .dimnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  .structure_labels <span class="op">=</span> <span class="fu">NullLabels</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -102,6 +103,13 @@ to honor these names, but if the shape of the matrix is too inconsistent
 with the <code><a href="https://rdrr.io/r/base/dimnames.html" class="external-link">dimnames</a></code> then numerical indices will be used instead.
 For matrices that do not change their dimensions, set <code><a href="https://rdrr.io/r/base/dimnames.html" class="external-link">dimnames</a></code>
 by adding <code><a href="https://rdrr.io/r/base/dimnames.html" class="external-link">dimnames</a></code> to the matrices passed to <code>...</code>.</p></dd>
+
+
+<dt>.structure_labels</dt>
+<dd><p>An optional object for obtaining labels of
+elements of special vectors and matrices. Such an object can be found in
+the <code>$labels</code> field of a <code><a href="Compartmental.html">Compartmental</a></code> model. Note that this
+is an advanced technique.</p></dd>
 
 </dl></div>
     <div class="section level2">

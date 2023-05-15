@@ -65,7 +65,7 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">Files</span><span class="op">(</span><span class="va">directory</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">Files</span><span class="op">(</span><span class="va">directory</span>, <span class="va">...</span>, .cache <span class="op">=</span> <span class="fu">CacheList</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -78,6 +78,11 @@
 <dd><p>One or more <code><a href="reader_spec.html">reader_spec</a></code>(s) that point to files
 within the <code>directory</code> and define what <code><a href="Reader.html">Reader</a></code> should
 be used to access the file.</p></dd>
+
+
+<dt>.cache</dt>
+<dd><p>Optional object with an invalidate method that can be
+called when the files are updated.</p></dd>
 
 </dl></div>
     <div class="section level2">
