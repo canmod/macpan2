@@ -5,6 +5,7 @@ N = 100
 sir$labels$state()
 sir$labels$flow()
 sir$labels$other()
+sir$flows()
 # --------
 simulator = sir$simulators$tmb(time_steps = 100
   , state = c(S = N - 1, I = 1, R = 0)
@@ -15,13 +16,16 @@ simulator = sir$simulators$tmb(time_steps = 100
 simulator$print$matrix_dims()
 simulator$print$expressions()
 
+## generate simulated data so that i can fit the generating
+## model to these data for a sanity check -- can we recover
+## the parameters from the simulating model?
 sims = simulator$report(.phases = "during")
-
-set.seed(1L)
-observed_I = rpois(100, (sims
+deterministic_prevalence = (sims
   %>% filter(row == "I")
   %>% pull(value)
-))
+)
+set.seed(1L)
+observed_I = rpois(100, deterministic_prevalence)
 
 sir$labels$all()
 
@@ -49,7 +53,7 @@ simulator$print$matrix_dims()
 ##         during each iteration of the simulation loop.
 simulator$insert$expressions(
     simulated_I ~ I
-  , .at = Inf
+  , .at = Inf  ## place the inserted expressions at the end of the expression list
   , .phase = "during"
 )
 simulator$print$expressions()
@@ -64,7 +68,10 @@ simulator$print$expressions()
 ##         matrix by binding together the rows at each
 ##         iteration.
 simulator$insert$expressions(
-  log_lik ~ dpois(observed_I, clamp(rbind_time(simulated_I)))
+  log_lik ~ dpois(
+    observed_I,  ## observed values
+    clamp(rbind_time(simulated_I))  ## simulated values
+  )
  , .at = Inf
  , .phase = "after"
 )
@@ -77,7 +84,7 @@ simulator$replace$obj_fn(~ -sum(log_lik))
 ## Step 5: declare (and maybe transform) parameters to be optimized
 simulator$add$matrices(
   log_beta = log(0.6),
-  logit_gamma = qlogis(0.2)
+  logit_gamma = qlogis(0.4)
 )
 
 simulator$insert$expressions(
@@ -87,13 +94,13 @@ simulator$insert$expressions(
 )
 
 simulator$replace$params(
-  default = log(0.6),
-  mat = "log_beta"
+  default = c(log(0.6), qlogis(0.4)),
+  mat = c("log_beta", "logit_gamma")
 )
-simulator$replace$random(
-  default = qlogis(0.2),
-  mat = "logit_gamma"
-)
+# simulator$replace$random(
+#   default = qlogis(0.2),
+#   mat = "logit_gamma"
+# )
 
 simulator$print$expressions()
 
@@ -103,22 +110,17 @@ simulator$optimize$optim()
 simulator$optimize$optim(method = "Brent", lower = -10, upper = 0)
 simulator$optimize$nlminb()
 
-simulator$optimization_history$get()
+xx = simulator$optimization_history$get()
 simulator$current$params_frame()
+simulator$cache$invalidate()
 
 refreshed_objective = function(...) {
-  simulator$cache$invalidate()
+  simulator$cache$invalidate()  ## start every evaluation from the default
   simulator$objective(...)
 }
-
-refreshed_objective(-1)
-plogis(simulator$parameters()$random)
 
 log_beta_values = seq(from = -3, to = -0.001, len = 100)
 neg_log_lik = vapply(log_beta_values, refreshed_objective, numeric(1L))
 plot(log_beta_values, neg_log_lik, type = 'l', las = 1)
 plot(exp(log_beta_values), neg_log_lik, type = "l", las = 1)
 refreshed_objective(log_beta_values[which(is.nan(neg_log_lik))] + 1e-3)
-
-aa = simulator$ad_fun()
-aa$env$parList()
