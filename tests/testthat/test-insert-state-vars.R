@@ -9,6 +9,7 @@ test_that("inserted expressions are able to refer to single states/flows", {
     , .mats_to_return = c("test_ratio", "state")
   )
   s$insert$expressions(test_ratio ~ I / S, .at = Inf, .phase = "during")
+  s$insert$expressions(foi ~ (I/S)^0.5 * beta, .at = 2L, .phase = "during")
   v = s$report(.phases = "during")
   expect_equal(
     v[v$row == "I", "value"] / v[v$row == "S", "value"],
