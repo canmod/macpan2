@@ -79,3 +79,7 @@ test_that("elementwise binary operator executable specs match spec doc", {
 
 
 })
+
+test_that("equivalent unary and binary minus operators give the same answers", {
+  expect_equal(engine_eval(~-4), engine_eval(~0-4))
+})
