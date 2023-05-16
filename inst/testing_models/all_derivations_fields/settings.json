@@ -1,0 +1,9 @@
+{
+    "required_partitions" : ["A", "B"],
+    "null_partition" : ["Null"],
+    "state_variables" : [
+        "a.a", "a.b", "a.c", "b.a", "b.b", 
+        "b.c", "c.a", "c.b", "c.c"
+    ],
+    "flow_variables" : ["d.a", "d.b", "d.c"]
+}
