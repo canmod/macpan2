@@ -3,8 +3,6 @@ to_special_vecs = function(formula, component_list, matrix_list) {
     unlist(component_list, use.names = FALSE, recursive = FALSE),
     matrix_list
   )
-  state_components = c("S", "I", "R")
-  flow_components = c("foi", "gamma")
   form_parts = vapply(formula, deparse1, character(1L))
   stopifnot(form_parts[1L] == "~")
   ee = MathExpressionFromStrings(form_parts[[3L]], arg_signature)

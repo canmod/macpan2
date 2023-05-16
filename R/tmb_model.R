@@ -286,6 +286,32 @@ MatsList = function(...
   self$.mats_return = names(self$.initial_mats) %in% .mats_to_return
 
   ## Standard methods
+  self$get = function(variable_name) {
+    i = which(self$.names() == valid$char1$assert(variable_name))
+    if (length(i) == 1L) {
+      return(self$.mats()[[i]])
+    } else {
+      i = which(variable_name == self$.structure_labels$state())
+      if (length(i) == 1L) {
+        return(self$get("state")[i])
+      }
+      i = which(variable_name == self$.structure_labels$flow())
+      if (length(i) == 1L) {
+        return(self$get("flow")[i])
+      }
+    }
+    stop(
+      "\nNo variable called ", variable_name, " in the list:\n",
+      paste0(
+        c(
+          self$.names(),
+          self$.structure_labels$state(),
+          self$.structure_labels$flow()
+        ),
+        collapse = "; "
+      )
+    )
+  }
   self$.names = function() names(self$.initial_mats)
   self$.mats = function() unname(self$.initial_mats)
   dimnames_handle_nulls = function(x) {

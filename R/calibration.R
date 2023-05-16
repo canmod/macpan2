@@ -56,7 +56,10 @@ TMBCurrentParams = function(simulator) { ## TMBSimulator
   self$simulator = simulator
 
   self$params_vector = function() self$simulator$ad_fun()$env$parList()$params
-  self$random_vector = function() self$simulator$ad_fun()$env$parList()$random
+  self$random_vector = function() {
+    self$simulator$objective(self$params_vector())
+    self$simulator$ad_fun()$env$parList()$random
+  }
   self$params_frame = function() {
     self$simulator$tmb_model$params$data_frame(current = self$params_vector())
   }

@@ -17,6 +17,7 @@
 #' are extending the
 #' [engine](https://canmod.github.io/macpan2/articles/cpp_side.html)
 #' yourself.
+#' @param .structure_labels See \code{\link{MatsList}}.
 #'
 #' @return Matrix being produced on the right-hand-side or matrix given in
 #' \code{.matrix_to_return} if it is provided.
@@ -32,7 +33,7 @@
 #'   , y = pi
 #'   , .matrix_to_return = "x"
 #' )
-engine_eval = function(e, ..., .matrix_to_return, .tmb_cpp = "macpan2") {
+engine_eval = function(e, ..., .matrix_to_return, .tmb_cpp = "macpan2", .structure_labels = NullLabels()) {
   dot_mats = list(...)
 
   ## force two-sided formula for compliance with TMBSimulator
@@ -54,6 +55,14 @@ engine_eval = function(e, ..., .matrix_to_return, .tmb_cpp = "macpan2") {
     dot_mats,
     .mats_to_return = .matrix_to_return
   )
+
+  if (!inherits(.structure_labels, "NullLabels")) {
+    component_list = list(
+      state = .structure_labels$state(),
+      flow = .structure_labels$flow()
+    )
+    e = to_special_vecs(e, component_list, c(left_hand_side, names(dot_mats)))
+  }
 
   m = TMBModel(
     init_mats = do.call(MatsList, init_mats),
