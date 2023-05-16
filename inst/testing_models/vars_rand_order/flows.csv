@@ -1,0 +1,4 @@
+from ,to ,flow  ,type       ,from_partition ,to_partition ,flow_partition ,from_to_partition ,from_flow_partition ,to_flow_partition
+S    ,I  ,alpha ,per_capita ,Epi            ,Epi          ,Epi            ,                  ,                    ,Null
+I    ,R  ,beta  ,per_capita ,Epi            ,Epi          ,Epi            ,                  ,                    ,Null
+R    ,S  ,gamma ,per_capita ,Epi            ,Epi          ,Epi            ,                  ,                    ,Null
