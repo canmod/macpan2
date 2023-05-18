@@ -20,14 +20,18 @@ simulator$print$expressions()
 ## model to these data for a sanity check -- can we recover
 ## the parameters from the simulating model?
 sims = simulator$report(.phases = "during")
+obs_time_steps = unique(sort(sample(1:100, 30)))
 deterministic_prevalence = (sims
   %>% filter(row == "I")
   %>% pull(value)
-)
-set.seed(1L)
-observed_I = rpois(100, deterministic_prevalence)
+)[obs_time_steps]
 
-sir$labels$all()
+
+
+
+set.seed(1L)
+observed_I = rpois(30, deterministic_prevalence)
+
 
 ## Step 1: add observed data and declare matrices storing
 ##         the simulation history of variables to compare
@@ -38,10 +42,12 @@ sir$labels$all()
 ##         log likelihood values.
 simulator$add$matrices(
     observed_I = observed_I
+  , obs_time_steps = obs_time_steps
   , simulated_I = empty_matrix
   , log_lik = empty_matrix
-  , .mats_to_save = "simulated_I"
-  , .mats_to_return = c("log_lik", "simulated_I")
+  , .mats_to_save = c("simulated_I", "total_inflow")
+  , .mats_to_return = c("log_lik", "simulated_I", "total_inflow")
+  , .dimnames = list(total_inflow = list(c("S", "I", "R"), ""))
 )
 simulator$print$matrix_dims()
 
@@ -52,7 +58,8 @@ simulator$print$matrix_dims()
 ##         should come at the end of the expressions evaluated
 ##         during each iteration of the simulation loop.
 simulator$insert$expressions(
-    simulated_I ~ I
+    #trajectory = simulated_I ~ 0.1 * sum(total_inflow[c(20, 21)])
+    trajectory = simulated_I ~ I
   , .at = Inf  ## place the inserted expressions at the end of the expression list
   , .phase = "during"
 )
@@ -68,10 +75,17 @@ simulator$print$expressions()
 ##         matrix by binding together the rows at each
 ##         iteration.
 simulator$insert$expressions(
-  log_lik ~ dpois(
-    observed_I,  ## observed values
-    clamp(rbind_time(simulated_I))  ## simulated values
-  )
+  likelihood = log_lik ~
+    (
+      dpois(
+        observed_I,  ## observed values
+        clamp(rbind_time(simulated_I, obs_time_steps))  ## simulated values
+      )
+      # + dpois(
+      #   observed_var_a,
+      #   clamp(rbind_time(sim_a, ts_a))
+      # )
+    )
  , .at = Inf
  , .phase = "after"
 )
@@ -81,7 +95,8 @@ simulator$print$expressions()
 ##         this will be minus the sum of the log likelihoods).
 simulator$replace$obj_fn(~ -sum(log_lik))
 
-## Step 5: declare (and maybe transform) parameters to be optimized
+## Step 5: declare (and maybe transform) parameters to be optimized,
+##         as well as starting values for the parameters to be optimized
 simulator$add$matrices(
   log_beta = log(0.6),
   logit_gamma = qlogis(0.4)
@@ -97,6 +112,7 @@ simulator$replace$params(
   default = c(log(0.6), qlogis(0.4)),
   mat = c("log_beta", "logit_gamma")
 )
+
 # simulator$replace$random(
 #   default = qlogis(0.2),
 #   mat = "logit_gamma"
@@ -105,22 +121,10 @@ simulator$replace$params(
 simulator$print$expressions()
 
 ## Step 6: use the engine object
+plot(obs_time_steps, observed_I)
 simulator$optimize$optim()
-
-simulator$optimize$optim(method = "Brent", lower = -10, upper = 0)
-simulator$optimize$nlminb()
-
-xx = simulator$optimization_history$get()
-simulator$current$params_frame()
+lines(1:100, filter(simulator$report(.phases = "during"), matrix == "state", row == "I")$value)
 simulator$cache$invalidate()
+lines(1:100, filter(simulator$report(.phases = "during"), matrix == "state", row == "I")$value, col = "red")
 
-refreshed_objective = function(...) {
-  simulator$cache$invalidate()  ## start every evaluation from the default
-  simulator$objective(...)
-}
-
-log_beta_values = seq(from = -3, to = -0.001, len = 100)
-neg_log_lik = vapply(log_beta_values, refreshed_objective, numeric(1L))
-plot(log_beta_values, neg_log_lik, type = 'l', las = 1)
-plot(exp(log_beta_values), neg_log_lik, type = "l", las = 1)
-refreshed_objective(log_beta_values[which(is.nan(neg_log_lik))] + 1e-3)
+simulator$optimization_history$get()
