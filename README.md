@@ -28,7 +28,7 @@ remotes::install_github("canmod/oor")
 remotes::install_github("canmod/macpan2")
 ```
 
-For projects in production one should install a specific version, as in the following command. The current version is given by a version badge at the beginning of this document.
+For projects in production one should install a specific version, as in the following command.
 ```
 remotes::install_github("canmod/macpan2@v0.0.2")
 ```
