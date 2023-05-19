@@ -495,7 +495,7 @@ public:
                     //
                     // case MP2_LOGIT:
                     //     return (
-                    //         (args[0]).log()
+                    //         -(1 / args[0].array() - 1).log()
                     //     ).matrix();
 
                     // #' ## Integer Sequences

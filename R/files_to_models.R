@@ -547,56 +547,6 @@ StandardExpr = function(model){
 
     c(optional_derivations[present_flows], required_derivations)
   }
-  self$.index_vector_evaluator = function(prefix_string, index_vector, formula){
-    return(list(
-      list(output_names = paste0(prefix_string, "_from"), expression = do.call(formula$symbolic$evaluate, index_vector$from), arguments = index_vector$from, simulation_phase = "before"),
-      list(output_names = paste0(prefix_string, "_to"), expression = do.call(formula$symbolic$evaluate, index_vector$to), arguments = index_vector$to, simulation_phase = "before"),
-      list(output_names = paste0(prefix_string, "_flow"), expression = do.call(formula$symbolic$evaluate, index_vector$flow), arguments = index_vector$flow, simulation_phase = "before")
-    ))
-  }
-  self$.index_subvector_evaluator = function(subvector_name, vector_name, formula) {
-    l = list()
-    labels = self$model$labels
-    subvector = labels[[valid$char1$assert(subvector_name)]]()
-    vector = labels[[valid$char1$assert(vector_name)]]()
-    if (!any(is.null(subvector), is.null(vector))) {
-      indices = self$.match_zero_based(subvector, vector)
-      l = append(l, list(
-        output_names = subvector_name,
-        expression = do.call(formula$symbolic$evaluate, as.list(indices)),
-        arguments = as.list(indices),
-        simulation_phase = "before"
-      ))
-    }
-    return(l)
-  }
-  self$.index_vectors_evaluator = function(){
-    prefix_strings = unique(self$.expanded_flows$type) # self$.flow_types
-    #prefix_strings = self$.flow_types
-    index_vectors = self$.init_index_vectors()[prefix_strings]
-    formula = MathExpressionFromStrings("c(...)", include_dots = TRUE)
-    out_args = mapply(self$.index_vector_evaluator
-      , prefix_strings
-      , index_vectors
-      , MoreArgs = list(formula = formula)
-      , SIMPLIFY = FALSE
-    )
-    state_subvector_names = c("infectious_state")
-    flow_subvector_names = c("infection_flow")
-    out_args = append(out_args, lapply(
-      state_subvector_names,
-      self$.index_subvector_evaluator,
-      "state",
-      formula
-    ))
-    out_args = append(out_args, lapply(
-      flow_subvector_names,
-      self$.index_subvector_evaluator,
-      "flow",
-      formula
-    ))
-    return(do.call(c, out_args))
-  }
   self$.derivation_evaluator = function(derivation){
     formula = MathExpressionFromStrings(derivation$expression, derivation$arguments)
     derivation$expression = do.call(formula$symbolic$evaluate, derivation$arguments)
@@ -605,10 +555,7 @@ StandardExpr = function(model){
   self$.derivations_evaluator = function(){
     return(lapply(self$.init_derivations_list(), self$.derivation_evaluator))
   }
-  self$standard_expressions = function(){
-    return(self$.derivations_evaluator())
-    return(c(self$.index_vectors_evaluator(), self$.derivations_evaluator()))
-  }
+  self$standard_expressions = self$.derivations_evaluator
   return_object(self, "StandardExpr")
 }
 
@@ -637,12 +584,9 @@ Derivations2ExprList = function(user_expr, standard_expr) {
   self$.standard_expr_list = standard_expr$standard_expressions()
 
   self$.expression_formatter = function(expression_list_element){
-    as.formula(
-      paste(
-        expression_list_element$output_names,
-        expression_list_element$expression,
-        sep = " ~ "
-      )
+    two_sided(
+      expression_list_element$output_names,
+      expression_list_element$expression
     )
   }
 
@@ -682,12 +626,12 @@ Derivations2ExprList = function(user_expr, standard_expr) {
 
     l = list()
     for (phase in phases) {
-      l[[phase]] = lapply(
+      l = append(l, lapply(
         self$.expression_phase_sorter(phase),
         self$.expression_formatter
-      )
+      ))
     }
-    do.call(c, l)
+    return(l)
   }
   self$expr_list = function(.simulate_exprs = character(0L)) {
     ExprList(

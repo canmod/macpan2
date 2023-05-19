@@ -10,25 +10,23 @@ Transform = function(variable, prefix) {
   self$variable = variable
   self$prefix = prefix
   self$trans_variable = sprintf("%s_%s", self$prefix, self$variable)
-  self$.two_sided = function(lhs, rhs) as.formula(sprintf("%s ~ %s", lhs, rhs))
-  self$.one_sided = function(rhs) as.formula(sprintf("~ %s", rhs))
   self$trans_two_sided_formula = function() {
-    self$.two_sided(
+    two_sided(
       self$trans_variable,
       self$trans$symbolic$evaluate(self$variable)
     )
   }
   self$trans_one_sided_formula = function() {
-    self$.one_sided(self$trans$symbolic$evaluate(self$variable))
+    one_sided(self$trans$symbolic$evaluate(self$variable))
   }
   self$inverse_two_sided_formula = function() {
-    self$.two_sided(
+    two_sided(
       self$variable,
       self$inverse$symbolic$evaluate(self$trans_variable)
     )
   }
   self$inverse_one_sided_formula = function() {
-    self$.one_sided(self$inverse$symbolic$evaluate(self$trans_variable))
+    one_sided(self$inverse$symbolic$evaluate(self$trans_variable))
   }
   self$trans_engine_eval = function(value) {
     do.call(

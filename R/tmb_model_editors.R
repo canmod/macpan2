@@ -182,3 +182,48 @@ TMBSimulatorReplacer = function(simulator) {
 
 
 ## Deleters ------------
+
+
+## Updaters ------------
+
+TMBUpdater = function(model) {
+  self = TMBEditor(model)
+  return_object(self, "TMBUpdater")
+}
+
+TMBSimulationUpdater = function(simulator) {
+  self = TMBUpdater(simulator$tmb_model)
+  self$simulator = simulator
+  self$matrices = function(...
+    , .mats_to_save = character(0L)
+    , .mats_to_return = character(0L)
+    , .dimnames = list()
+  ) {
+    self$model$init_mats = self$model$init_mats$update_mats(...
+      , .mats_to_save = .mats_to_save
+      , .mats_to_return = .mats_to_return
+      , .dimnames = .dimnames
+    )
+    self$simulator$cache$invalidate()
+    invisible(self$simulator)
+  }
+  self$transformations = function(..., .at = 1L, .phase = "before") {
+    l = list(...)
+    l = setNames(l, vapply(l, getElement, character(1L), "variable"))
+    for (v in names(l)) {
+      value = self$model$init_mats$get(v)
+      trans_value = l[[v]]$trans_engine_eval(value)
+      do.call(
+        self$simulator$update$matrices,
+        setNames(list(value), l[[v]]$trans_variable)
+      )
+      self$simulator$insert$expressions(
+        l[[v]]$inverse_two_sided_formula(),
+        .at = .at, .phase = .phase
+      )
+    }
+    self$simulator$cache$invalidate()
+    invisible(self$simulator)
+  }
+  return_object(self, "TMBSimulationUpdater")
+}

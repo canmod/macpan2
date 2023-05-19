@@ -362,6 +362,21 @@ MatsList = function(...
     args$.structure_labels = self$.structure_labels
     do.call(MatsList, args)
   }
+  self$update_mats = function(...
+    , .mats_to_save = character(0L)
+    , .mats_to_return = character(0L)
+    , .dimnames = list()
+  ) {
+    args = self$.initial_mats
+    new_args = list(...)
+    args[names(new_args)] = new_args
+    args$.mats_to_save = union(self$.mats_to_save, .mats_to_save)
+    args$.mats_to_return = union(self$.mats_to_return, .mats_to_return)
+    args$.dimnames = self$.dimnames
+    args$.dimnames[names(.dimnames)] = .dimnames
+    args$.structure_labels = self$.structure_labels
+    do.call(MatsList, args)
+  }
   return_object(self, "MatsList")
 }
 
@@ -467,58 +482,6 @@ OptParamsFrameStruc = function(..., frame) {
   )
 }
 
-split_index_label_mix = function(x) {
-  if (is.numeric(x)) {
-    l = list(
-      indices = as.integer(x),
-      labels = rep(NA_character_, length(x))
-    )
-    return(l)
-  }
-  x = as.character(x)
-  index_locations = grepl("^[0-9]+$", x)
-  label_locations = !index_locations
-  indices = integer(length(x))
-  labels = character(length(x))
-  indices[] = NA
-  labels[] = NA
-  indices[index_locations] = as.integer(x[index_locations])
-  labels[label_locations] = x[label_locations]
-  nlist(indices, labels)
-}
-
-make_row_col_ids = function(mat, row, col, .dimnames) {
-  if (is.numeric(row) & is.numeric(col)) {
-    l = list(row_id = as.integer(row), col_id = as.integer(col))
-    return(l)
-  }
-  row = split_index_label_mix(row)
-  col = split_index_label_mix(col)
-  missing_row_indices = is.na(row$indices)
-  missing_col_indices = is.na(col$indices)
-  for (m in names(.dimnames)) {
-    mi = mat == m
-    i = mi & missing_row_indices
-    j = mi & missing_col_indices
-    row_vec = length(.dimnames[[m]][[1L]]) == 1L
-    col_vec = length(.dimnames[[m]][[2L]]) == 1L
-    if (any(i)) {
-      if (row_vec) {
-        row$indices[i] = 0L
-      } else {
-        row$indices[i] = match(row$labels[i], .dimnames[[m]][[1L]]) - 1L
-      }
-    }
-    if (any(j)) {
-      if (col_vec) {
-        col$indices[i] = 0L
-      } else {
-        col$indices[i] = match(col$labels[i], .dimnames[[m]][[1L]]) - 1L
-      }
-    }
-  }
-  list(row_id = row$indices, col_id = col$indices)
-}
 
 ## alternative constructor of OptParamsList
 OptParamsFrame = function(frame, .dimnames = list()) {
@@ -935,6 +898,7 @@ TMBSimulator = function(tmb_model, tmb_cpp = "macpan2") {
   self$add = TMBSimulatorAdder(self)
   self$replace = TMBSimulatorReplacer(self)
   self$current = TMBCurrentParams(self)
+  self$get = TMBSimulatorGetters(self)
 
   initialize_cache(self, "ad_fun")
   return_object(self, "TMBSimulator")

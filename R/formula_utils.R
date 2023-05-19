@@ -31,3 +31,11 @@ to_assign = function(formula) {
   ))
   as.formula(do.call(sprintf, args))
 }
+
+## for character vectors lhs and rhs, return a formula
+one_sided = function(rhs) {
+  as.formula(sprintf("~ %s", as.character(rhs)))
+}
+two_sided = function(lhs, rhs) {
+  as.formula(sprintf("%s ~ %s", as.character(lhs), as.character(rhs)))
+}
