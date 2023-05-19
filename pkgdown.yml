@@ -12,7 +12,7 @@ articles:
   quickstart2: quickstart2.html
   state_dependent_rates: state_dependent_rates.html
   time-varying-parameters: time-varying-parameters.html
-last_built: 2023-05-19T10:29Z
+last_built: 2023-05-19T12:27Z
 urls:
   reference: https://canmod.github.io/macpan2/reference
   article: https://canmod.github.io/macpan2/articles
