@@ -152,7 +152,7 @@ int RecycleInPlace(
                 m.col(i) = mat.col(0);
         } else
             return 501;
-            //SetError(501, "cannot recycle columns because the input is neither a scalar nor a column vector");
+            //SetError(501, "cannot recycle columns because the input is neither a scalar nor a column vector", row);
     }
     else if (mat.cols()==cols) {
         if (mat.rows()==1) {
@@ -163,10 +163,10 @@ int RecycleInPlace(
                 m.row(i) = mat.row(0);
         } else
             return 501;
-            //SetError(501, "cannot recycle rows because the input is neither a scalar nor a row vector");
+            //SetError(501, "cannot recycle rows because the input is neither a scalar nor a row vector", row);
     } else
         return 501;
-        //SetError(501, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request");
+        //SetError(501, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row);
 
     // final step
     mat = m;
@@ -211,17 +211,20 @@ public:
     // constructor
     ExprEvaluator() {
         error_code = 0;	// non-zero means error has occurred; otherwise, no error
+        expr_row = 0;
         strcpy(error_message, "OK");
     };
 
     // getters
     unsigned char GetErrorCode() { return error_code; };
     const char* GetErrorMessage() { return error_message; };
+    int GetExprRow() {return expr_row; };
 
     // setters
-    void SetError(unsigned char code, const char* message)
+    void SetError(unsigned char code, const char* message, int row)
     {
         error_code = code;
+        expr_row = row;
         strcpy(error_message, message);
         std::cout << "MACPAN ERROR #" << (int) code << ": " << message << std::endl;
     };
@@ -283,7 +286,7 @@ public:
                                     args[1].col(i) = m.col(0);
                             }
                             else {
-                                SetError(201, "The two operands do not have the same number of columns");
+                                SetError(201, "The two operands do not have the same number of columns", row);
                                 return m;
                                 //Rf_error("The two operands do not have the same number of columns");
                             }
@@ -305,7 +308,7 @@ public:
                                     args[1].row(i) = m.row(0);
                             }
                             else {
-                                SetError(202, "The two operands do not have the same number of rows");
+                                SetError(202, "The two operands do not have the same number of rows", row);
                                 return m;
                                 // Rf_error("The two operands do not have the same number of rows");
                             }
@@ -322,7 +325,7 @@ public:
                                 args[1].setConstant(s);
                             }
                             else {
-                                SetError(203, "The two operands do not have the same number of columns or rows");
+                                SetError(203, "The two operands do not have the same number of columns or rows", row);
                                 return m;
                                 //Rf_error("The dimensions of the two operands are not equal to each other");
                             }
@@ -332,7 +335,7 @@ public:
                 else if (table_x[row]+1==11) { // %*% matrix multiplication
                     // std::cout << "mat mult index" << MP2_MATRIX_MULTIPLY << std::endl;
                     if (args[0].cols()!=args[1].rows()) {
-                        SetError(204, "The two operands are not compatible to do matrix multiplication");
+                        SetError(204, "The two operands are not compatible to do matrix multiplication", row);
                         return m;
                         //Rf_error("The two operands are not compatible to do matrix multiplication");
                     }
@@ -534,7 +537,7 @@ public:
                         from = CppAD::Integer(args[0].coeff(0,0));
                         to = CppAD::Integer(args[1].coeff(0,0));
                         if (from>to) {
-                            SetError(MP2_COLON, "Lower bound greater than upper bound in : operation");
+                            SetError(MP2_COLON, "Lower bound greater than upper bound in : operation", row);
                             return m;
                         }
                         m = matrix<Type>::Zero(to-from+1,1);
@@ -559,7 +562,7 @@ public:
                         length = CppAD::Integer(args[1].coeff(0,0));
                         by = CppAD::Integer(args[2].coeff(0,0));
                         if (length<=0) {
-                            SetError(MP2_SEQUENCE, "Sequence length is less than or equal to zero in seq operation");
+                            SetError(MP2_SEQUENCE, "Sequence length is less than or equal to zero in seq operation", row);
                             return m;
                         }
                         m = matrix<Type>::Zero(length,1);
@@ -766,7 +769,7 @@ public:
                                 colmarker += cols_per_arg;
                             }
                             else {
-                                SetError(MP2_CBIND, "Inconsistent size in cbind function");
+                                SetError(MP2_CBIND, "Inconsistent size in cbind function", row);
                                 return m;
                             }
                         }
@@ -795,7 +798,7 @@ public:
                                 rowmarker += rows_per_arg;
                             }
                             else {
-                                SetError(MP2_RBIND, "Inconsistent size in rbind function");
+                                SetError(MP2_RBIND, "Inconsistent size in rbind function", row);
                                 return m;
                             }
                         }
@@ -1062,7 +1065,7 @@ public:
 
                         err_code = CheckIndices(args[0], args[1], m1);
                         if (err_code) {
-                            SetError(MP2_SQUARE_BRACKET, "Illegal index to square bracket");
+                            SetError(MP2_SQUARE_BRACKET, "Illegal index to square bracket", row);
                             return m;
                         }
 
@@ -1134,6 +1137,10 @@ public:
                         args[1] = -args[1];
                         args[1].array() += t; // += t+0.1f; // +0.1 won't work when t<0
                     case MP2_RBIND_TIME:
+                        if (t == 0) {
+                            SetError(154, "The simulation loop has not yet begun and so rbind_time (or rbind_lag) cannot be used", row);
+                            return args[0];
+                        }
                         matIndex = index2mats[0]; // m
 
                         if (n == 1) {
@@ -1145,8 +1152,8 @@ public:
                             timeIndex = args[1];
                         }
                         if (mats_save_hist[matIndex]==0 && !(timeIndex.size()==1 && CppAD::Integer(timeIndex.coeff(0,0))==t)) {
-                            SetError(MP2_RBIND_TIME, "Cannot rbind_time (or rbind_lag) a matrix with no history");
-                            return m;
+                            SetError(MP2_RBIND_TIME, "Can only rbind_time (or rbind_lag) initialized matrices with saved history", row);
+                            return args[0];
                         }
 
                         int lowerTimeBound;
@@ -1183,8 +1190,8 @@ public:
                             }
                             else {
                                 if (rows!=nRows || cols!=nCols) { // Shall we allow inconsistent rows?
-                                    SetError(MP2_RBIND_TIME, "Inconsistent rows or columns in rbind_time (or rbind_lag)");
-                                    return m;
+                                    SetError(MP2_RBIND_TIME, "Inconsistent rows or columns in rbind_time (or rbind_lag)", row);
+                                    return args[0];
                                 }
                             }
 
@@ -1223,69 +1230,69 @@ public:
 
                         return m; // empty matrix (if colIndex==0) or non-empty one (otherwise)
 
-                    case MP2_TIME_STEP:
-                        // #' ## Time Indexing
-                        // #'
-                        // #' Get the index of current or lagged time step or
-                        // #' the index of the current time group. A time group
-                        // #' is a contiguous set of time steps defined by two
-                        // #' change points.
-                        // #'
-                        // #' ### Functions
-                        // #'
-                        // #' * `time_step(lag)`: Get the time-step associated
-                        // #' with a particular lag from the current time-step.
-                        // #' If the lagged time-step is less than zero, the
-                        // #' function returns zero.
-                        // #' * `time_group(index, change_points)`: Update the
-                        // #' `index` associated with the current time group.
-                        // #' The current group is defined by the minimum
-                        // #' of all elements of `change_points` that are
-                        // #' greater than the current time step. The time group
-                        // #' `index` is the index associated with this element.
-                        // #' Please see the examples below, they are easier
-                        // #' to understand than this explanation.
-                        // #'
-                        // #' ### Arguments
-                        // #'
-                        // #' * `lag`: Number of time-steps to look back for
-                        // #' the time-step to return.
-                        // #' * `index`: Index associated with the current time
-                        // #' group.
-                        // #' * `change_points`: Increasing column vector of
-                        // #' time steps giving the lower bound of each time
-                        // #' group.
-                        // #'
-                        // #' ### Return
-                        // #'
-                        // #' A 1-by-1 matrix with the time-step `lag` steps
-                        // #' ago, or with zero if `t+1 < lag`
-                        // #'
-                        // #' ### Examples
-                        // #'
-                        // #' ```
-                        // #' simple_sims(
-                        // #'   iteration_exprs = list(x ~ time_step(0)),
-                        // #'   time_steps = 10,
-                        // #'   x = empty_matrix
-                        // #' )
-                        // #' sims = simple_sims(
-                        // #'   iteration_exprs = list(
-                        // #'     j ~ time_group(j, change_points),
-                        // #'     time_varying_parameter ~ time_variation_schedule[j]
-                        // #'   ),
-                        // #'   time_steps = 10,
-                        // #'   j = 0,
-                        // #'   change_points = c(0, 4, 7),
-                        // #'   time_variation_schedule = c(42, pi, sqrt(2)),
-                        // #'   time_varying_parameter = empty_matrix
-                        // #' )
-                        // #' ```
-                        // #'
+                    // #' ## Time Indexing
+                    // #'
+                    // #' Get the index of current or lagged time step or
+                    // #' the index of the current time group. A time group
+                    // #' is a contiguous set of time steps defined by two
+                    // #' change points.
+                    // #'
+                    // #' ### Functions
+                    // #'
+                    // #' * `time_step(lag)`: Get the time-step associated
+                    // #' with a particular lag from the current time-step.
+                    // #' If the lagged time-step is less than zero, the
+                    // #' function returns zero.
+                    // #' * `time_group(index, change_points)`: Update the
+                    // #' `index` associated with the current time group.
+                    // #' The current group is defined by the minimum
+                    // #' of all elements of `change_points` that are
+                    // #' greater than the current time step. The time group
+                    // #' `index` is the index associated with this element.
+                    // #' Please see the examples below, they are easier
+                    // #' to understand than this explanation.
+                    // #'
+                    // #' ### Arguments
+                    // #'
+                    // #' * `lag`: Number of time-steps to look back for
+                    // #' the time-step to return.
+                    // #' * `index`: Index associated with the current time
+                    // #' group.
+                    // #' * `change_points`: Increasing column vector of
+                    // #' time steps giving the lower bound of each time
+                    // #' group.
+                    // #'
+                    // #' ### Return
+                    // #'
+                    // #' A 1-by-1 matrix with the time-step `lag` steps
+                    // #' ago, or with zero if `t+1 < lag`
+                    // #'
+                    // #' ### Examples
+                    // #'
+                    // #' ```
+                    // #' simple_sims(
+                    // #'   iteration_exprs = list(x ~ time_step(0)),
+                    // #'   time_steps = 10,
+                    // #'   x = empty_matrix
+                    // #' )
+                    // #' sims = simple_sims(
+                    // #'   iteration_exprs = list(
+                    // #'     j ~ time_group(j, change_points),
+                    // #'     time_varying_parameter ~ time_variation_schedule[j]
+                    // #'   ),
+                    // #'   time_steps = 10,
+                    // #'   j = 0,
+                    // #'   change_points = c(0, 4, 7),
+                    // #'   time_variation_schedule = c(42, pi, sqrt(2)),
+                    // #'   time_varying_parameter = empty_matrix
+                    // #' )
+                    // #' ```
+                    // #'
+                    case MP2_TIME_STEP: // time_step(lag)
                         m = matrix<Type>::Zero(1,1);
                         lag = CppAD::Integer(args[0].coeff(0,0));
                         if (lag < 0) {
-                            SetError(MP2_TIME_STEP, "Time lag needs to be non-negative");
+                            SetError(MP2_TIME_STEP, "Time lag needs to be non-negative", row);
                             return m;
                         }
                         if (t > lag) {
@@ -1382,7 +1389,7 @@ public:
                             return m;
                         }
                         else {
-                            SetError(MP2_CONVOLUTION, "Either empty or non-column vector used as kernel in convolution");
+                            SetError(MP2_CONVOLUTION, "Either empty or non-column vector used as kernel in convolution", row);
                             return m;
                         }
 
@@ -1468,14 +1475,14 @@ public:
                     // #'
                     case MP2_POISSON_DENSITY:
                         if (n < 2) {
-                            SetError(MP2_POISSON_DENSITY, "dpois needs two arguments: matrices with observed and expected values");
+                            SetError(MP2_POISSON_DENSITY, "dpois needs two arguments: matrices with observed and expected values", row);
                             return m;
                         }
                         rows = args[0].rows();
                         cols = args[0].cols();
                         err_code = RecycleInPlace(args[1], rows, cols);
                         if (err_code != 0)
-                          SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request");
+                          SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row);
                         m = matrix<Type>::Zero(rows, cols);
                         for (int i=0; i<rows; i++) {
                             for (int j=0; j<cols; j++) {
@@ -1486,7 +1493,7 @@ public:
 
                     case MP2_NEGBIN_DENSITY:
                         if (n < 3) {
-                            SetError(MP2_NEGBIN_DENSITY, "dnbinom needs three arguments: matrices with observed values, expected values, and dispersion parameters");
+                            SetError(MP2_NEGBIN_DENSITY, "dnbinom needs three arguments: matrices with observed values, expected values, and dispersion parameters", row);
                             return m;
                         }
                         rows = args[0].rows();
@@ -1495,7 +1502,7 @@ public:
                         err_code2 = RecycleInPlace(args[2], rows, cols);
                         err_code = err_code1 + err_code2;
                         if (err_code != 0) {
-                            SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request");
+                            SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row);
                         }
                         //   var ~ variance
                         //   mu ~ mean
@@ -1515,7 +1522,7 @@ public:
 
                     case MP2_NORMAL_DENSITY:
                         if (n < 3) {
-                            SetError(MP2_NORMAL_DENSITY, "dnorm needs three arguments: matrices with observed values, expected values, and standard deviation parameters");
+                            SetError(MP2_NORMAL_DENSITY, "dnorm needs three arguments: matrices with observed values, expected values, and standard deviation parameters", row);
                             return m;
                         }
                         rows = args[0].rows();
@@ -1524,7 +1531,7 @@ public:
                         err_code2 = RecycleInPlace(args[2], rows, cols);
                         err_code = err_code1 + err_code2;
                         if (err_code != 0) {
-                            SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request");
+                            SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row);
                         }
                         m = matrix<Type>::Zero(rows, cols);
                         for (int i=0; i<rows; i++) {
@@ -1576,7 +1583,7 @@ public:
 
                     case MP2_NEGBIN_SIM:
                         if (n < 2) {
-                            SetError(MP2_NEGBIN_SIM, "rnbinom needs two arguments: matrices with means and dispersion parameters");
+                            SetError(MP2_NEGBIN_SIM, "rnbinom needs two arguments: matrices with means and dispersion parameters", row);
                             return m;
                         }
                         eps = 1e-8;
@@ -1584,7 +1591,7 @@ public:
                         cols = args[0].cols();
                         err_code = RecycleInPlace(args[1], rows, cols);
                         if (err_code != 0) {
-                            SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request");
+                            SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row);
                         }
                         m = matrix<Type>::Zero(rows, cols);
                         for (int i=0; i<rows; i++) {
@@ -1602,14 +1609,14 @@ public:
 
                     case MP2_NORMAL_SIM:
                         if (n < 2) {
-                            SetError(MP2_NORMAL_SIM, "rnorm needs two arguments: matrices with means and standard deviations");
+                            SetError(MP2_NORMAL_SIM, "rnorm needs two arguments: matrices with means and standard deviations", row);
                             return m;
                         }
                         rows = args[0].rows();
                         cols = args[0].cols();
                         err_code = RecycleInPlace(args[1], rows, cols);
                         if (err_code != 0) {
-                            SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request");
+                            SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row);
                         }
                         m = matrix<Type>::Zero(rows, cols);
                         for (int i=0; i<rows; i++) {
@@ -1672,22 +1679,22 @@ public:
 
                         cols = args[1].cols();
                         if (cols != 1) {
-                            SetError(255, "Assignment index matrices must have a single column");
+                            SetError(255, "Assignment index matrices must have a single column", row);
                             return m;
                         }
                         cols = args[2].cols();
                         if (cols != 1) {
-                            SetError(255, "Assignment index matrices must have a single column");
+                            SetError(255, "Assignment index matrices must have a single column", row);
                             return m;
                         }
                         cols = args[3].cols();
                         if (cols != 1) {
-                            SetError(255, "Assignment value matrices must have a single column");
+                            SetError(255, "Assignment value matrices must have a single column", row);
                             return m;
                         }
                         err_code = CheckIndices(args[0], args[1], args[2]);
                         if (err_code) {
-                            SetError(MP2_ASSIGN, "Illegal index used in assign");
+                            SetError(MP2_ASSIGN, "Illegal index used in assign", row);
                             return m;
                         }
 
@@ -1696,7 +1703,7 @@ public:
                         err_code2 = RecycleInPlace(args[2], rows, cols);
                         err_code = err_code1 + err_code2;
                         if (err_code != 0) {
-                            SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request");
+                            SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row);
                             return m;
                         }
 
@@ -1778,12 +1785,12 @@ public:
                         cols = CppAD::Integer(args[2].coeff(0,0));
                         err_code = RecycleInPlace(m, rows, cols);
                         if (err_code != 0) {
-                            SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request");
+                            SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row);
                         }
                         return m;
 
                     default:
-                        SetError(255, "invalid operator in arithmetic expression");
+                        SetError(255, "invalid operator in arithmetic expression", row);
                         return m;
                 }
         }
@@ -1820,16 +1827,20 @@ private:
     //     }
     // }
     unsigned char error_code;
+    int expr_row;
     char error_message[256];
 };
 
 #define REPORT_ERROR { \
     int error = exprEvaluator.GetErrorCode(); \
+    int expr_row = exprEvaluator.GetExprRow(); \
     REPORT(error); \
+    REPORT(expr_row); \
  \
     logfile.open (LOG_FILE_NAME, std::ios_base::app); \
     logfile << "Error code = " << error << std::endl; \
     logfile << "Error message = " << exprEvaluator.GetErrorMessage() << std::endl; \
+    logfile << "Expression row = " << expr_row << std::endl; \
     logfile.close(); \
 }
 

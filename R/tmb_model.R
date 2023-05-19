@@ -804,6 +804,11 @@ TMBSimulationUtils = function() {
     }
     r
   }
+  self$.find_problematic_expression = function(row) {
+    expr_num_p_table_rows = self$tmb_model$data_arg()$expr_num_p_table_rows
+    expr_num = min(which(row < cumsum(expr_num_p_table_rows)))
+    deparse1(self$tmb_model$expr_list$expr_list()[[expr_num]])
+  }
   self$.runner = function(..., .phases = c("before", "during", "after"), .method = c("report", "simulate")) {
     .method = match.arg(.method)
     fixed_params = as.numeric(unlist(list(...)))
@@ -812,7 +817,12 @@ TMBSimulationUtils = function() {
     } else {
       r = self$ad_fun()[[.method]](fixed_params)
     }
-    if (r$error != 0L) stop("Error thrown by the TMB engine.")
+    if (r$error != 0L) {
+      stop(
+        "\nError thrown by the TMB engine at the following expression:\n",
+        self$.find_problematic_expression(r$expr_row)
+      )
+    }
     self$.simulation_formatter(r, .phases)
   }
   return_object(self, "TMBSimulationFormatter")
