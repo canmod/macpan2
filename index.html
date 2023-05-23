@@ -104,6 +104,25 @@
 <span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"canmod/macpan2"</span><span class="op">)</span></span></code></pre>
 <p>For projects in production one should install a specific version, as in the following command.</p>
 <pre><code><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"canmod/macpan2@v0.0.2"</span><span class="op">)</span></span></code></pre>
+</div>
+<div class="section level2">
+<h2 id="hello-world">Hello World<a class="anchor" aria-label="anchor" href="#hello-world"></a>
+</h2>
+<p>This <a href="https://canmod.github.io/macpan2/articles/quickstart">quick-start guide</a> describes the following hello-world SIR model.</p>
+<pre><code><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://canmod.github.io/macpan2">macpan2</a></span><span class="op">)</span></span>
+<span><span class="va">sir</span> <span class="op">=</span> <span class="fu"><a href="reference/Compartmental.html">Compartmental</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"starter_models"</span>, <span class="st">"sir"</span>, package <span class="op">=</span> <span class="st">"macpan2"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">N</span> <span class="op">=</span> <span class="fl">100</span></span>
+<span><span class="va">simulator</span> <span class="op">=</span> <span class="va">sir</span><span class="op">$</span><span class="va">simulators</span><span class="op">$</span><span class="fu">tmb</span><span class="op">(</span>time_steps <span class="op">=</span> <span class="fl">100</span></span>
+<span>  , state <span class="op">=</span> <span class="fu"><a href="reference/engine_functions.html">c</a></span><span class="op">(</span>S <span class="op">=</span> <span class="va">N</span> <span class="op">-</span> <span class="fl">1</span>, I <span class="op">=</span> <span class="fl">1</span>, R <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
+<span>  , flow <span class="op">=</span> <span class="fu"><a href="reference/engine_functions.html">c</a></span><span class="op">(</span>foi <span class="op">=</span> <span class="fl">0</span>, gamma <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span></span>
+<span>  , N <span class="op">=</span> <span class="va">N</span></span>
+<span>  , beta <span class="op">=</span> <span class="fl">0.2</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">sir_sims</span> <span class="op">=</span> <span class="va">simulator</span><span class="op">$</span><span class="fu">report</span><span class="op">(</span><span class="op">)</span></span></code></pre>
+</div>
+<div class="section level2">
+<h2 id="for-developers">For Developers<a class="anchor" aria-label="anchor" href="#for-developers"></a>
+</h2>
 <p>Developers and contributors should clone this repository and call <code>make</code> at the command-line in the top level directory. The following <code>make</code> rules are available for getting more control over the build process.</p>
 <pre><code>make quick-install     # for changes that only modify R source
 make quick-doc-install # for changes that modify R source and roxygen comments
@@ -111,13 +130,28 @@ make quick-test        # quick-doc-install + run-examples + run-tests
 make run-examples      # help file checks only (without package rebuild)
 make run-tests         # run scripts in tests (without package rebuild)
 make full-install      # for all changes, including changes to C++ source
-make src-update        # push changes to dev.cpp to macpan2.cpp
+make src-update        # push changes to dev.cpp to macpan2.cpp (see below)
 make enum-update       # register new C++ engine functions on the R-side
 make engine-doc-update # generate roxygen comments from comments in dev.cpp
 make doc-update        # roxygenize
 make pkg-build         # build the R package
 make pkg-install       # install the R package from the build
 make pkg-check         # R package checks</code></pre>
+<p>In most R packages with compiled code, developers edit the source files to be compiled in the <code>src</code> directory. In <code>macpan2</code> there is a single file in that directory called <code>macpan2</code>, which is generated automatically from the file <code>misc/dev/dev.cpp</code>. This setup allows for quicker C++ development cycles, because developers can edit <code>misc/dev/dev.cpp</code> and then use this file in tests without needing to re-install the package with the new source. In particular, the above hello-world example could use <code>dev.cpp</code> as follows.</p>
+<pre><code><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://canmod.github.io/macpan2">macpan2</a></span><span class="op">)</span></span>
+<span><span class="fu">macpan2</span><span class="fu">:::</span><span class="fu">dev_compile</span><span class="op">(</span><span class="op">)</span> <span class="co">## compile dev.cpp</span></span>
+<span><span class="va">sir</span> <span class="op">=</span> <span class="fu"><a href="reference/Compartmental.html">Compartmental</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"starter_models"</span>, <span class="st">"sir"</span>, package <span class="op">=</span> <span class="st">"macpan2"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">N</span> <span class="op">=</span> <span class="fl">100</span></span>
+<span><span class="va">simulator</span> <span class="op">=</span> <span class="va">sir</span><span class="op">$</span><span class="va">simulators</span><span class="op">$</span><span class="fu">tmb</span><span class="op">(</span>time_steps <span class="op">=</span> <span class="fl">100</span></span>
+<span>  , state <span class="op">=</span> <span class="fu"><a href="reference/engine_functions.html">c</a></span><span class="op">(</span>S <span class="op">=</span> <span class="va">N</span> <span class="op">-</span> <span class="fl">1</span>, I <span class="op">=</span> <span class="fl">1</span>, R <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
+<span>  , flow <span class="op">=</span> <span class="fu"><a href="reference/engine_functions.html">c</a></span><span class="op">(</span>foi <span class="op">=</span> <span class="fl">0</span>, gamma <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span></span>
+<span>  , N <span class="op">=</span> <span class="va">N</span></span>
+<span>  , beta <span class="op">=</span> <span class="fl">0.2</span></span>
+<span>  , .tmb_cpp <span class="op">=</span> <span class="st">"dev"</span> <span class="co">## use dev.cpp</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">sir_sims</span> <span class="op">=</span> <span class="va">simulator</span><span class="op">$</span><span class="fu">report</span><span class="op">(</span><span class="op">)</span></span></code></pre>
+<p>To update <code>src/macpan2</code> to the state of <code>misc/dev/dev.cpp</code> one may run <code>make src-update</code>.</p>
+<p>Running with <code>misc/dev/dev.cpp</code> will print out debugging information in a verbose manner, whereas <code>src/macpan2.cpp</code> will not. The <code>src-update</code> make rule removes the <code>#define MP_VERBOSE</code> flag at the top of the file.</p>
 </div>
 <div class="section level2">
 <h2 id="product-management">Product Management<a class="anchor" aria-label="anchor" href="#product-management"></a>
