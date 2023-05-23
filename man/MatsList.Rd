@@ -9,7 +9,8 @@ MatsList(
   .mats_to_save = character(0L),
   .mats_to_return = character(0L),
   .dimnames = list(),
-  .structure_labels = NullLabels()
+  .structure_labels = NullLabels(),
+  .init_saved_dims = list()
 )
 }
 \arguments{

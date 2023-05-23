@@ -54,6 +54,7 @@ Simulators = function(model) {
         , .mats_to_save = .mats_to_return
         , .mats_to_return = "state"
         , .dimnames = list()
+        , .tmb_cpp = "macpan2"
     ) {
       TMBModel(
         init_mats = CompartmentalMatsList(self$model, state, flow
@@ -65,7 +66,7 @@ Simulators = function(model) {
         ),
         expr_list = self$model$expr_list(),
         time_steps = Time(time_steps)
-      )$simulator()
+      )$simulator(tmb_cpp = .tmb_cpp)
   }
   return_object(self, "Simulators")
 }

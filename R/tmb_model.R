@@ -267,6 +267,7 @@ MatsList = function(...
     , .mats_to_return = character(0L)
     , .dimnames = list()
     , .structure_labels = NullLabels()
+    #, .init_saved_dims = list()
   ) {
   # self = EditableArgs(MatsList
   #   , lapply(list(...), as.matrix)
@@ -280,10 +281,20 @@ MatsList = function(...
   self$.mats_to_return = .mats_to_return
   self$.dimnames = .dimnames
   self$.structure_labels = .structure_labels
+  #self$.init_saved_dims = .init_saved_dims
 
-  ## TODO: these should be standard methods
-  self$.mats_save_hist = names(self$.initial_mats) %in% .mats_to_save
-  self$.mats_return = names(self$.initial_mats) %in% .mats_to_return
+  self$mats_save_hist = function() names(self$.initial_mats) %in% self$.mats_to_save
+  self$mats_return = function() names(self$.initial_mats) %in% self$.mats_to_return
+  # self$mats_save_dims = function() {
+  #   msh = self$mats_save_hist()
+  #   msd = setNames(
+  #     lapply(self$.initial_mats[msh], dim),
+  #     self$.names()[msh]
+  #   )
+  #   for (m in names(self$.init_saved_dims)) {
+  #
+  #   }
+  # }
 
   ## Standard methods
   self$get = function(variable_name) {
@@ -337,8 +348,8 @@ MatsList = function(...
   self$data_arg = function() {
     r = list(
       mats = self$.mats(),
-      mats_save_hist = self$.mats_save_hist,
-      mats_return = self$.mats_return
+      mats_save_hist = self$mats_save_hist(),
+      mats_return = self$mats_return()
     )
     valid$mats_arg$assert(r)
   }
@@ -714,7 +725,7 @@ TMBModel = function(
     #)
   }
 
-  self$simulator = function() TMBSimulator(self)
+  self$simulator = function(tmb_cpp = "macpan2") TMBSimulator(self, tmb_cpp = tmb_cpp)
 
   self$add = TMBAdder(self)
   self$insert = TMBInserter(self)
