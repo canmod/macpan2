@@ -16,13 +16,3 @@ nlist = function(...) {
     }
     setNames(L, nm)
 }
-
-
-List = function(...) {
-  self = Base()
-  self$.list = nlist(...)
-  self$add = function(...) {
-    self$.list = c
-  }
-  return_object(self, "List")
-}

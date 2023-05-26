@@ -33,6 +33,6 @@ object.
 }
 }
 \description{
-Construct an object with methods fore simulating from and optimizing a
+Construct an object with methods for simulating from and optimizing a
 compartmental model made using \code{\link{TMBModel}}.
 }

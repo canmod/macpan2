@@ -1,0 +1,13 @@
+[
+    {
+        "filter_partition" : "B",
+        "filter_names" : ["a", "b", "n"],
+        "group_partition" : "A",
+        "group_names" : ["a", "b", "c", "d"],
+        "output_partition" : "A.B",
+        "output_names" : ["a.n", "b.n", "c.n", "d.n"],
+        "input_partition" : "B",
+        "arguments" : ["a", "b"],
+        "expression" : "a + b"
+    }
+]

@@ -14,7 +14,7 @@ OptParamsList(
 }
 \arguments{
 \item{...}{Objects that can be coerced to numeric vectors, which will be
-concatenated to produce the parameter vector.}
+concatenated to produce the default value of the parameter vector.}
 
 \item{par_id}{Integer vector identifying elements of the parameter vector
 to be used to replace elements of the model matrices.}

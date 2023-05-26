@@ -61,6 +61,7 @@ Simulators = function(model) {
           , .mats_to_save = .mats_to_save
           , .mats_to_return = .mats_to_return
           , .dimnames = .dimnames
+          , .structure_labels = self$model$labels
         ),
         expr_list = self$model$expr_list(),
         time_steps = Time(time_steps)

@@ -1,6 +1,6 @@
 Package: macpan2
 Title: Fast and Flexible Compartmental Modelling
-Version: 0.0.1
+Version: 0.0.2
 Authors@R: c(
   person("Steve Walker", email="swalk@mcmaster.ca", role=c("cre")),
   person("Darren Flynn-Primrose", rol="aut"),
@@ -14,10 +14,11 @@ License: GPL-3
 Depends:
     R (>= 3.5.0),
 Imports: 
-    TMB, 
+    TMB,
     RcppEigen,
     oor,
-    jsonlite
+    jsonlite,
+    Rcpp
 Suggests: 
     covr,
     knitr,
@@ -31,7 +32,8 @@ Suggests:
     macpan2helpers
 LinkingTo:
     TMB,
-    RcppEigen
+    RcppEigen,
+    Rcpp
 VignetteBuilder: 
     knitr
 Additional_repositories: https://canmod.github.io/drat

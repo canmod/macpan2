@@ -28,9 +28,9 @@ remotes::install_github("canmod/oor")
 remotes::install_github("canmod/macpan2")
 ```
 
-For projects in production one should install a specific version, as in the following command. The current version is given by a version badge at the beginning of this document.
+For projects in production one should install a specific version, as in the following command.
 ```
-remotes::install_github("canmod/macpan2@v0.0.1")
+remotes::install_github("canmod/macpan2@v0.0.2")
 ```
 
 Developers and contributors should clone this repository and call `make` at the command-line in the top level directory. The following `make` rules are available for getting more control over the build process.

@@ -1,22 +1,10 @@
-#' DerivationExtractor
-#'
-#' Construct an object for extracting the derivations within a
-#' \code{\link{Model}}.
-#'
-#' @param model Object of class \code{\link{Model}}
-#'
-#' @return An object of class \code{DerivationExtractor} with the
-#' following methods.
-#'
-#' ## Methods
-#'
-#' * `$expand_derivation(derivation)` -- Expand a single derivation by name.
-#' * `$expand_derivations()` -- Example all derivations in the model.
-#'
-#' @export
-DerivationExtractor = function(model){
+DerivationUtils = function(model) {
   self = Base()
+
+  ## Args
   self$model = model
+
+  ## Private Methods
 
   # @param derivation an element in a derivations file
   # @return variables required for the derivation, with all partitions
@@ -51,6 +39,7 @@ DerivationExtractor = function(model){
   # @return list of labels for the outputs of each group, using only the
   #         required partitions
   self$.group_outputs = function(derivation){
+    if (self$.is_atomic()) return(list(derivation$output_names))
     rp = self$model$settings$names()
     if (!is.null(derivation$output_partition)) {
       group_output = lapply(derivation$output_names
@@ -87,26 +76,39 @@ DerivationExtractor = function(model){
     return(length(derivation$group_names))
   }
 
+  self$.is_atomic = function() isTRUE(nrow(self$model$def$variables()) == 1L)
+
   self$.filtered_group_variables = function(derivation){
+    if (self$.is_atomic()) return(list(as.list(derivation$arguments)))
     filtered_group_variables = list()
     if (!is.null(derivation$arguments)) {
-      rp = self$model$settings$names()
-      for (j in 1:self$.n_grps) {
-        unordered_group_variables = self$.grp_vars[[j]]$filter(
-          derivation$arguments,
-          .wrt = self$.grp_inpt
-        )
-        ordered_group_variables = unordered_group_variables$filter_ordered(
-          derivation$arguments,
-          .wrt = self$.grp_inpt
-        )
-        filtered_group_variables = c(
-          filtered_group_variables,
-          list(as.list(ordered_group_variables$select(rp)$labels()))
-        )
-      }
+      #browser()
+      #rp = self$model$settings$names()
+      filtered_group_variables = (self$.grp_vars
+        |> method_apply("filter_ordered"
+            , derivation$arguments
+            , .wrt = self$.grp_inpt
+          )
+        |> method_apply("select", self$model$settings$names())
+        |> method_apply("labels")
+        |> lapply(as.list)
+      )
+    #   for (j in 1:self$.n_grps) {
+    #     ordered_group_variables = self$.grp_vars[[j]]$filter_ordered(
+    #       derivation$arguments,
+    #       .wrt = self$.grp_inpt
+    #     )
+    #     # ordered_group_variables = unordered_group_variables$filter_ordered(
+    #     #   derivation$arguments,
+    #     #   .wrt = self$.grp_inpt
+    #     # )
+    #     filtered_group_variables = c(
+    #       filtered_group_variables,
+    #       list(as.list(ordered_group_variables$select(rp)$labels()))
+    #     )
+    #   }
+      return(filtered_group_variables)
     }
-    return(filtered_group_variables)
   }
 
   self$.filtered_group_variable_dots = function(derivation){
@@ -124,21 +126,51 @@ DerivationExtractor = function(model){
     }
     return(filtered_group_variable_dots)
   }
+  initialize_cache(self, ".is_atomic")
+  return_object(self, "DerivationUtils")
+}
 
+#' DerivationExtractor
+#'
+#' Construct an object for extracting the derivations within a
+#' \code{\link{Model}}.
+#'
+#' @param model Object of class \code{\link{Model}}
+#'
+#' @return An object of class \code{DerivationExtractor} with the
+#' following methods.
+#'
+#' ## Methods
+#'
+#' * `$expand_derivation(derivation)` -- Expand a single derivation by name.
+#' * `$expand_derivations()` -- Example all derivations in the model.
+#'
+#' @export
+DerivationExtractor = function(model){
+  # Inheritance
+  self = DerivationUtils(model)
+
+  # Standard Methods
+
+  # TODO: change this name to `extract_one`
   self$extract_derivation = function(derivation){
-    self$.grp_vars = self$.group_variables(derivation)
+    ## derivation: one element of the list that results
+    ##             from self$model$derivations()
+    self$.grp_vars = self$.group_variables(derivation) # 120 ms
     self$.grp_inpt = self$.group_inputs(derivation)
     self$.n_grps = self$.number_of_groups(derivation)
+    #browser()
     return(list(
       simulation_phase = derivation$simulation_phase,
       expression = derivation$expression,
       arguments = derivation$arguments,
-      outputs = self$.group_outputs(derivation),
-      variables = self$.filtered_group_variables(derivation),
+      outputs = self$.group_outputs(derivation), # 940 ms
+      variables = self$.filtered_group_variables(derivation), # 860 ms
       variable_dots = self$.filtered_group_variable_dots(derivation)
     ))
   }
 
+  # TODO: change this name to `extract`
   self$extract_derivations = function(){
     derivation_list = self$model$derivations()
     return(lapply(derivation_list, self$extract_derivation))
@@ -163,6 +195,7 @@ DerivationExtractor = function(model){
 #' @export
 Scalar2Vector = function(derivation_extractor){
   self = Base()
+  self$derivation_extractor = derivation_extractor
   self$model = derivation_extractor$model
   self$extracted_derivations = derivation_extractor$extract_derivations()
   self$.state_pointer = function(scalar_name){
@@ -267,7 +300,7 @@ UserExpr = function(model){
   self$model = model
   self$derivation_extractor = DerivationExtractor(self$model)
   self$vectorized_derivations = Scalar2Vector(self$derivation_extractor)$vectorize()
-  self$scalarized_derivations = self$derivation_extractor$extract_derivations()
+  #self$scalarized_derivations = self$derivation_extractor$extract_derivations()
   self$.vars_check = function(extracted_derivation){
     return(!is.null(extracted_derivation$variables) & !(length(extracted_derivation$variables) == 0L))
   }
@@ -514,56 +547,6 @@ StandardExpr = function(model){
 
     c(optional_derivations[present_flows], required_derivations)
   }
-  self$.index_vector_evaluator = function(prefix_string, index_vector, formula){
-    return(list(
-      list(output_names = paste0(prefix_string, "_from"), expression = do.call(formula$symbolic$evaluate, index_vector$from), arguments = index_vector$from, simulation_phase = "before"),
-      list(output_names = paste0(prefix_string, "_to"), expression = do.call(formula$symbolic$evaluate, index_vector$to), arguments = index_vector$to, simulation_phase = "before"),
-      list(output_names = paste0(prefix_string, "_flow"), expression = do.call(formula$symbolic$evaluate, index_vector$flow), arguments = index_vector$flow, simulation_phase = "before")
-    ))
-  }
-  self$.index_subvector_evaluator = function(subvector_name, vector_name, formula) {
-    l = list()
-    labels = self$model$labels
-    subvector = labels[[valid$char1$assert(subvector_name)]]()
-    vector = labels[[valid$char1$assert(vector_name)]]()
-    if (!any(is.null(subvector), is.null(vector))) {
-      indices = self$.match_zero_based(subvector, vector)
-      l = append(l, list(
-        output_names = subvector_name,
-        expression = do.call(formula$symbolic$evaluate, as.list(indices)),
-        arguments = as.list(indices),
-        simulation_phase = "before"
-      ))
-    }
-    return(l)
-  }
-  self$.index_vectors_evaluator = function(){
-    prefix_strings = unique(self$.expanded_flows$type) # self$.flow_types
-    #prefix_strings = self$.flow_types
-    index_vectors = self$.init_index_vectors()[prefix_strings]
-    formula = MathExpressionFromStrings("c(...)", include_dots = TRUE)
-    out_args = mapply(self$.index_vector_evaluator
-      , prefix_strings
-      , index_vectors
-      , MoreArgs = list(formula = formula)
-      , SIMPLIFY = FALSE
-    )
-    state_subvector_names = c("infectious_state")
-    flow_subvector_names = c("infection_flow")
-    out_args = append(out_args, lapply(
-      state_subvector_names,
-      self$.index_subvector_evaluator,
-      "state",
-      formula
-    ))
-    out_args = append(out_args, lapply(
-      flow_subvector_names,
-      self$.index_subvector_evaluator,
-      "flow",
-      formula
-    ))
-    return(do.call(c, out_args))
-  }
   self$.derivation_evaluator = function(derivation){
     formula = MathExpressionFromStrings(derivation$expression, derivation$arguments)
     derivation$expression = do.call(formula$symbolic$evaluate, derivation$arguments)
@@ -572,10 +555,7 @@ StandardExpr = function(model){
   self$.derivations_evaluator = function(){
     return(lapply(self$.init_derivations_list(), self$.derivation_evaluator))
   }
-  self$standard_expressions = function(){
-    return(self$.derivations_evaluator())
-    return(c(self$.index_vectors_evaluator(), self$.derivations_evaluator()))
-  }
+  self$standard_expressions = self$.derivations_evaluator
   return_object(self, "StandardExpr")
 }
 
@@ -604,12 +584,9 @@ Derivations2ExprList = function(user_expr, standard_expr) {
   self$.standard_expr_list = standard_expr$standard_expressions()
 
   self$.expression_formatter = function(expression_list_element){
-    as.formula(
-      paste(
-        expression_list_element$output_names,
-        expression_list_element$expression,
-        sep = " ~ "
-      )
+    two_sided(
+      expression_list_element$output_names,
+      expression_list_element$expression
     )
   }
 
@@ -638,7 +615,7 @@ Derivations2ExprList = function(user_expr, standard_expr) {
       self$.standard_expr_list[standard_phases == phase]
     )
   }
-  self$.expr_list_per_phase = function(
+  self$expr_list_per_phase = function(
       phase = c("before", "during", "after")
     ) {
     #browser()
@@ -649,18 +626,18 @@ Derivations2ExprList = function(user_expr, standard_expr) {
 
     l = list()
     for (phase in phases) {
-      l[[phase]] = lapply(
+      l = append(l, lapply(
         self$.expression_phase_sorter(phase),
         self$.expression_formatter
-      )
+      ))
     }
-    do.call(c, l)
+    return(l)
   }
   self$expr_list = function(.simulate_exprs = character(0L)) {
     ExprList(
-      before = self$.expr_list_per_phase("before"),
-      during = self$.expr_list_per_phase("during"),
-      after = self$.expr_list_per_phase("after"),
+      before = self$expr_list_per_phase("before"),
+      during = self$expr_list_per_phase("during"),
+      after = self$expr_list_per_phase("after"),
       .simulate_exprs = .simulate_exprs
     )
   }

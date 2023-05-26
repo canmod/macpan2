@@ -47,6 +47,7 @@ CompartmentalMatsList = function(
     , .mats_to_save = character(0L)
     , .mats_to_return = character(0L)
     , .dimnames = list()
+    , .structure_labels = NullLabels()
   ) {
     settings = model$settings
     indices = model$indices
@@ -85,5 +86,6 @@ CompartmentalMatsList = function(
     , .mats_to_save = .mats_to_save
     , .mats_to_return = .mats_to_return
     , .dimnames = .dimnames
+    , .structure_labels = .structure_labels
     )
   }

@@ -66,6 +66,7 @@ ModelFiles = function(model_directory
     , json_reader = JSONReader
     , txt_reader = TXTReader
 ) {
+  ## Inheritance
   self = Files(model_directory
     , reader_spec("variables.csv", csv_reader)
     , reader_spec("derivations.json", json_reader)
@@ -74,6 +75,9 @@ ModelFiles = function(model_directory
     , reader_spec("transmission_matrices.csv", csv_reader, optional = TRUE)
     , reader_spec("transmission_dimensions.csv", csv_reader, optional = TRUE)
   )
+
+
+  ## Standard Methods
 
   ## methods required of model representations
   self$variables = function() self$get("variables")

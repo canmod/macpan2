@@ -4,7 +4,13 @@
 \alias{engine_eval}
 \title{Engine Evaluation}
 \usage{
-engine_eval(e, ..., .matrix_to_return, .tmb_cpp = "macpan2")
+engine_eval(
+  e,
+  ...,
+  .matrix_to_return,
+  .tmb_cpp = "macpan2",
+  .structure_labels = NullLabels()
+)
 }
 \arguments{
 \item{e}{Expression as a one-sided formula, the right-hand-side of which is
@@ -22,6 +28,8 @@ you just want to use the default, which is \code{macpan2}, unless you
 are extending the
 \href{https://canmod.github.io/macpan2/articles/cpp_side.html}{engine}
 yourself.}
+
+\item{.structure_labels}{See \code{\link{MatsList}}.}
 }
 \value{
 Matrix being produced on the right-hand-side or matrix given in
