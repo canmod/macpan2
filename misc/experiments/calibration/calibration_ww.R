@@ -185,7 +185,7 @@ plot(obs_W_time_steps, obs_W)
 ## THIS IS WHERE ERROR OCCURS, MACPAN ERROR #245: 
 ## cannot recycle rows and/or columns because the 
 ## input is inconsistent with the recycling request
-simulator$optimize$optim()
+# simulator$optimize$optim()
 
 
 
