@@ -1,5 +1,7 @@
 library(macpan2)
 library(dplyr)
+macpan2:::dev_compile()
+dyn.load("/usr/local/lib/libprofiler.0.dylib")
 sir = Compartmental(file.path("inst", "starter_models", "sir"))
 N = 100
 sir$labels$state()
@@ -7,12 +9,24 @@ sir$labels$flow()
 sir$labels$other()
 sir$flows()
 # --------
-simulator = sir$simulators$tmb(time_steps = 100
+simulator = sir$simulators$tmb(time_steps = 10
   , state = c(S = N - 1, I = 1, R = 0)
   , flow = c(foi = 0, gamma = 0.2)
-  , N = empty_matrix
+  , N = N
   , beta = 0.4
+  # , .mats_to_save = c(
+  #     "state", "flow", "N", "beta", "state_length", "per_capita_from",
+  #     "per_capita_to", "per_capita_flow", "absolute_from", "absolute_to",
+  #     "absolute_flow", "per_capita_inflow_from", "per_capita_inflow_to",
+  #     "per_capita_inflow_flow", "per_capita_outflow_from",
+  #     "per_capita_outflow_flow", "absolute_inflow_to", "absolute_inflow_flow",
+  #     "absolute_outflow_from", "absolute_outflow_flow", "per_capita",
+  #     "absolute", "per_capita_inflow", "per_capita_outflow", "absolute_inflow",
+  #     "absolute_outflow", "total_inflow", "total_outflow", "dummy"
+  # )
+  , .tmb_cpp = "dev"
 )
+
 simulator$print$matrix_dims()
 simulator$print$expressions()
 
@@ -20,6 +34,7 @@ simulator$print$expressions()
 ## model to these data for a sanity check -- can we recover
 ## the parameters from the simulating model?
 sims = simulator$report(.phases = "during")
+if (FALSE) {
 obs_time_steps = unique(sort(sample(1:100, 30)))
 deterministic_prevalence = (sims
   %>% filter(row == "I")
@@ -128,3 +143,4 @@ simulator$cache$invalidate()
 lines(1:100, filter(simulator$report(.phases = "during"), matrix == "state", row == "I")$value, col = "red")
 
 simulator$optimization_history$get()
+}

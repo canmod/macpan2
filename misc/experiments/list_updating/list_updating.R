@@ -1,6 +1,8 @@
 library(macpan2)
 library(oor)
 
+
+
 EditorBase = function(parent, arg_ref) {
   self = Base()
   self$parent = parent
@@ -164,9 +166,18 @@ EditableArgs = function(constructor, dot_args, predefined_args
   return_object(self, "EditableArgs")
 }
 
+EditableArgs = macpan2:::EditableArgs
+MakeEditList = macpan2:::MakeEditList
+MakeRemoveChar = macpan2:::MakeRemoveChar
+MakeAddChar = macpan2:::MakeAddChar
+MakeReplaceChar = macpan2:::MakeReplaceChar
+
 xx = EditableArgs(MatsList
   , list(x = 1:3)
-  , list(.mats_to_return = "x", .mats_to_save = character(0L), .dimnames = list(x = list(letters, "")))
+  , list(.mats_to_return = "x",
+         .mats_to_save = character(0L),
+         .dimnames = list(x = list(letters, ""))
+        )
   , edit = list(
     matrices = MakeEditList(".dot_args"),
     .dimnames = MakeEditList(".predefined_args")
@@ -184,6 +195,8 @@ xx = EditableArgs(MatsList
     .mats_to_save = MakeReplaceChar
   )
 )
+
+xx$.predefined_args
 
 yy = EditableArgs(ExprList
   , list()

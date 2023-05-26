@@ -18,6 +18,8 @@ methods.
 \itemize{
 \item \verb{$expr_list()} -- An alternate constructor of \code{\link{ExprList}}
 objects from a set of derivations.
+\item \verb{$math_expr_list()} -- List of \code{\link{MathExpression}}s associated
+with a set of derivations.
 }
 }
 

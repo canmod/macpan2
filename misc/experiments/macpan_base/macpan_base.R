@@ -15,7 +15,7 @@ state["S"] = 99; state["Is"] = 1
 flow = zero_vector(m$labels$flow())
 flow["SE"] = 0.1
 
-# Step 3 --
+## Step 3 --
 s = m$simulators$tmb(time_steps = 100L
   , state = state
   , flow = flow
@@ -44,6 +44,4 @@ s = m$simulators$tmb(time_steps = 100L
   ### , .mats_to_return = c("state", "total_inflow")
 )
 
-s$tmb_model$print_exprs()
-s$tmb_model$.init_mats$mat_dims()
-View(s$report())
+s$report()

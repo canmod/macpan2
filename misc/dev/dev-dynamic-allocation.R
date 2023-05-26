@@ -13,7 +13,7 @@ macpan2:::dev_compile()
 
 sir = Compartmental(system.file("starter_models", "sir", package = "macpan2"))
 N = 100
-time_steps = 100000 ## Increase this number to cause allocation problems
+time_steps = 1000000 ## Increase this number to cause allocation problems
 
 # --------
 simulator = sir$simulators$tmb(time_steps = time_steps

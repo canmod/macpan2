@@ -311,6 +311,7 @@ UserExpr = function(model){
   #
   # }
   self$.make_expression = function(extracted_derivation){
+    #browser()
     if (self$.vars_check(extracted_derivation) & self$.dots_check(extracted_derivation)) {
       return(MathExpressionFromStrings(extracted_derivation$expression, extracted_derivation$arguments, include_dots = TRUE))
     }
@@ -556,6 +557,7 @@ StandardExpr = function(model){
     return(lapply(self$.init_derivations_list(), self$.derivation_evaluator))
   }
   self$standard_expressions = self$.derivations_evaluator
+  self$as_derivations = function() lapply(self$standard_expressions(), lapply, as.character)
   return_object(self, "StandardExpr")
 }
 
@@ -571,6 +573,8 @@ StandardExpr = function(model){
 #'
 #' * `$expr_list()` -- An alternate constructor of \code{\link{ExprList}}
 #' objects from a set of derivations.
+#' * `$math_expr_list()` -- List of \code{\link{MathExpression}}s associated
+#' with a set of derivations.
 #'
 #' ## Arguments
 #'
@@ -580,6 +584,8 @@ StandardExpr = function(model){
 #' @export
 Derivations2ExprList = function(user_expr, standard_expr) {
   self = Base()
+  self$user_expr = user_expr
+  self$standard_expr = standard_expr
   self$.user_expr_list = user_expr$expand_vector_expressions()
   self$.standard_expr_list = standard_expr$standard_expressions()
 
@@ -616,7 +622,7 @@ Derivations2ExprList = function(user_expr, standard_expr) {
     )
   }
   self$expr_list_per_phase = function(
-      phase = c("before", "during", "after")
+      phase = c("before", "during", "after", "during_pre_update", "during_update", "during_post_update")
     ) {
     #browser()
     phases = match.arg(phase)
@@ -640,6 +646,11 @@ Derivations2ExprList = function(user_expr, standard_expr) {
       after = self$expr_list_per_phase("after"),
       .simulate_exprs = .simulate_exprs
     )
+  }
+  self$math_expr_list = function(
+    phase = c("before", "during", "after", "during_pre_update", "during_update", "during_post_update")
+  ) {
+
   }
   return_object(self, "Derivations2ExprList")
 }

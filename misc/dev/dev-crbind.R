@@ -131,7 +131,7 @@ parameter_args = bindingModel$param_arg()
 random_args = bindingModel$random_arg()
 # print(random_args)
 
-mm = setNames(bindingModel$.init_mats$.mats(), bindingModel$.init_mats$.names())
+mm = setNames(bindingModel$init_mats$.mats(), bindingModel$init_mats$.names())
 
 
 print("data args ...")
