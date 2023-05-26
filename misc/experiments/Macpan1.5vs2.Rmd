@@ -1,0 +1,236 @@
+---
+title: "MacPan 1.5 vs 2 Graphs"
+author: "Maya Earn"
+date: "2023-05-09"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+# load required packages
+library(tidyverse)
+library(McMasterPandemic)
+library(macpan2)
+
+# set start date and end date of simulation
+start_date = "2020-03-10"
+end_date = "2020-07-10"
+
+# initiate macpan 1.5 model, reading parameter values from ICU1.csv, and getting state values from make_state()
+params = read_params("ICU1.csv")
+model = (flexmodel(
+  params = params,
+  state = make_state(params = params),
+  start_date = start_date,
+  end_date = end_date,
+  do_make_state = FALSE,
+  do_hazard = FALSE,
+  do_sim_constraint = FALSE
+)
+%>% add_rate("E", "Ia", ~ (alpha) * (sigma))
+%>% add_rate("E", "Ip", ~ (1 - alpha) * (sigma))
+%>% add_rate("Ia", "R", ~ (gamma_a))
+%>% add_rate("Ip", "Im", ~ (mu) * (gamma_p))
+%>% add_rate("Ip", "Is", ~ (1 - mu) * (gamma_p))
+%>% add_rate("Im", "R", ~ (gamma_m))
+%>% add_rate("Is", "H", ~
+               (1 - nonhosp_mort) * (phi1) * (gamma_s))
+%>% add_rate("Is", "ICUs", ~
+               (1 - nonhosp_mort) * (1 - phi1) * (1 - phi2) * (gamma_s))
+%>% add_rate("Is", "ICUd", ~
+               (1 - nonhosp_mort) * (1 - phi1) * (phi2) * (gamma_s))
+%>% add_rate("Is", "D", ~ (nonhosp_mort) * (gamma_s))
+%>% add_rate("ICUs", "H2", ~ (psi1))
+%>% add_rate("ICUd", "D", ~ (psi2))
+%>% add_rate("H2", "R", ~ (psi3))
+%>% add_rate("H", "R", ~ (rho))
+#%>% add_rate("Is", "X", ~ (1 - nonhosp_mort) * (phi1) * (gamma_s))
+%>% add_rate("S", "E", ~
+               (Ia) * (beta0) * (1 / N) * (Ca) +
+               (Ip) * (beta0) * (1 / N) * (Cp) +
+               (Im) * (beta0) * (1 / N) * (Cm) * (1 - iso_m) +
+               (Is) * (beta0) * (1 / N) * (Cs) * (1 - iso_s))
+#%>% add_outflow(".+", "^(S|E|I|H|ICU|D|R)")
+)
+
+# get macpan 1.5 model simulation results, cleaned
+macpan_base_results_1 <- (model 
+                          %>% simulate_state_vector(add_dates = TRUE)
+                          %>% pivot_longer(!Date)
+                          %>% filter(name != "V" & name != "X")
+                          %>% mutate(Date = interval(ymd(start_date), ymd(Date)) %/% days())
+)
+
+# initiate macpan 2 model
+macpan_base <- Compartmental(file.path("../../", "inst", "starter_models", "macpan_base"))
+# print(macpan_dir <- system.file("starter_models", "macpan_base", package = "macpan2"))
+# macpan_base <- Compartmental(macpan_dir)
+
+# define zero vector function
+zero_vector = function(nms) setNames(rep(0, length(nms)), nms)
+
+# initiate state and flow vectors, and assign initial state values matching macpan 1.5 model to macpan 2 model
+state = zero_vector(macpan_base$labels$state())
+state["S"] = 999995; state["E"] = 3; state["Ia"] = 1; state["Im"] = 1;
+flow = zero_vector(macpan_base$labels$flow())
+
+# get time steps from start and end dates
+interval <- interval(ymd(start_date), ymd(end_date))
+time_steps <- interval %/% days() - 1
+
+# run macpan 2 model simulation with parameter values matching macpan 1.5 model
+macpan_base_simulator = macpan_base$simulators$tmb(
+  time_steps = time_steps
+  , state = state
+  , flow = flow
+  , alpha = 1/3
+  , beta0 = 1
+  , sigma = 1/5.2
+  , mu = 0.956
+  , gamma_a = 1/7
+  , gamma_p = 2
+  , gamma_m = 1/7
+  , gamma_s = 1/5.72
+  , nonhosp_mort = 0
+  , phi1 = 0.76
+  , phi2 = 1/2
+  , psi1 = 1/20
+  , psi2 = 1/8
+  , psi3 = 1/5
+  , rho = 1/10
+  , Ca = 2/3
+  , Cp = 1
+  , Cm = 1
+  , Cs = 1
+  , iso_m = 0
+  , iso_s = 0
+  , N = 1e6
+)
+
+# get results of macpan 2 simulation
+macpan_base_results_2 <- macpan_base_simulator$report()
+
+```
+
+## all states
+
+```{r all_states, echo = FALSE, fig.width = 4, fig.height = 5}
+(macpan_base_results_1 %>% ggplot()
+    + geom_line(aes(Date, value, colour = name))
+    + labs(colour = "state")
+    + xlab("time")
+    + ggtitle("macpan 1.5")
+    + theme_bw()
+)
+
+(ggplot(macpan_base_results_2)
+  + geom_line(aes(time, value, colour = row))
+  + labs(colour = "state")
+  + ggtitle("macpan 2")
+  + theme_bw()
+)
+```
+
+## only exposed and infected
+
+```{r no_s_or_r, echo=FALSE, fig.width = 4, fig.height = 5}
+(macpan_base_results_1 %>% filter(name %in% c("E", "Ia", "Im", "Is", "Ip")) %>% ggplot()
+    + geom_line(aes(Date, value, colour = name))
+    + labs(colour = "state")
+    + xlab("time")
+    + ggtitle("macpan 1.5")
+    + theme_bw()
+)
+
+(macpan_base_results_2 %>% filter(row %in% c("E", "Ia", "Im", "Is", "Ip")) %>% ggplot()
+  + geom_line(aes(time, value, colour = row))
+  + labs(colour = "state")
+  + ggtitle("macpan 2")
+  + theme_bw()
+)
+```
+
+## faceted plots
+
+```{r faceted, echo = FALSE, fig.width = 4, fig.height = 5}
+(macpan_base_results_1 %>% filter(name %in% c("E", "Ia", "Im", "Is", "Ip")) %>% ggplot()
+    + geom_line(aes(Date, value, colour = name))
+    + labs(colour = "state")
+    + xlab("time")
+    + ggtitle("macpan 1.5")
+    + theme_bw()
+    + facet_grid(rows = "name")
+)
+
+(macpan_base_results_2 %>% filter(row %in% c("E", "Ia", "Im", "Is", "Ip")) %>% ggplot()
+  + geom_line(aes(time, value, colour = row))
+  + labs(colour = "state")
+  + ggtitle("macpan 2")
+  + theme_bw()
+  + facet_grid(rows = "row")
+)
+```
+
+<!-- ## facet 2 -->
+
+<!-- # ```{r faceted2, echo = FALSE, fig.width = 4, fig.height = 5} -->
+<!-- # (macpan_base_results_1 %>% filter(name %in% c("R", "H")) %>% ggplot() -->
+<!-- #     + geom_line(aes(Date, value, colour = name)) -->
+<!-- #     + labs(colour = "state") -->
+<!-- #     + xlab("time") -->
+<!-- #     + ggtitle("macpan 1.5") -->
+<!-- #     + theme_bw() -->
+<!-- #     + facet_grid(rows = "name", scales = "free") -->
+<!-- # ) -->
+<!-- #  -->
+<!-- # (macpan_base_results_2 %>% filter(row %in% c("R", "H")) %>% ggplot() -->
+<!-- #   + geom_line(aes(time, value, colour = row)) -->
+<!-- #   + labs(colour = "state") -->
+<!-- #   + ggtitle("macpan 2") -->
+<!-- #   + theme_bw() -->
+<!-- #   + facet_grid(rows = "row", scales = "free") -->
+<!-- # ) -->
+<!-- # ``` -->
+
+## difference analysis
+
+```{r closer, echo=FALSE}
+macpan_base_results_1 <- macpan_base_results_1 %>% rename(time = "Date")
+macpan_base_results_2 <- macpan_base_results_2 %>% rename(name = "row")
+macpan_base_compare <- subset(merge(macpan_base_results_1, macpan_base_results_2, by = c("time", "name")), select = c("time", "name", "value.x", "value.y"))
+macpan_base_compare <- macpan_base_compare %>% mutate(difference = value.x - value.y) %>% arrange(time)
+(macpan_base_compare %>% ggplot()
+  + geom_line(aes(time, difference, colour = name))
+  + labs(colour = "state")
+  + xlab("time")
+  + ggtitle("difference between 1.5 and 2")
+  + theme_bw()
+)
+```
+
+## difference analysis for 10 time steps
+
+```{r closer2, echo=FALSE}
+#head(macpan_base_compare, 24)
+(macpan_base_compare %>% filter(time < 10) %>% ggplot()
+  + geom_line(aes(time, difference, colour = name))
+  + labs(colour = "state")
+  + xlab("time")
+  + ggtitle("difference between 1.5 and 2")
+  + theme_bw()
+)
+```
+
+<!-- ## logarithmic difference analysis  -->
+
+<!-- # ```{r closer2, echo=FALSE} -->
+<!-- %>% mutate(log_difference = log(value.x) - log(value.y)) -->
+<!-- # (macpan_base_compare %>% ggplot() -->
+<!-- #   + geom_line(aes(time, log_difference, colour = name)) -->
+<!-- #   + labs(colour = "state") -->
+<!-- #   + xlab("time") -->
+<!-- #   + ggtitle("difference between 1.5 and 2") -->
+<!-- #   + theme_bw() -->
+<!-- # ) -->
+<!-- # ``` -->

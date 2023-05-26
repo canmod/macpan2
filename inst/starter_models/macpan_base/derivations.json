@@ -79,12 +79,6 @@
   }, 
   {
     "simulation_phase" : "during_pre_update",
-    "output_names" : ["N"],
-    "arguments" : ["S", "E", "Ia", "Ip", "Is", "R"],
-    "expression" : "S + E + Ia + Ip + Is + R"
-  },
-  {
-    "simulation_phase" : "during_pre_update",
     "output_names" : ["SE"],
     "arguments" : ["Ia", "Ip", "Im", "Is", "beta0", "N", "Ca", "Cp", "Cm", "Cs", "iso_m", "iso_s"],
     "expression" : "(beta0/N)*(Ia*Ca+Ip*Cp+Im*Cm*(1-iso_m)+Is*Cs*(1-iso_s))"
