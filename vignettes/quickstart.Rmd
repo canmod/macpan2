@@ -11,7 +11,7 @@ editor_options:
   chunk_output_type: console
 ---
 
-[![status](https://img.shields.io/badge/status-working%20draft-red)](https://img.shields.io/badge/status-working%20draft-red)
+[![status](https://img.shields.io/badge/status-mature%20draft-yellow)](https://img.shields.io/badge/status-mature%20draft-yellow)
 
 ```{r pkgs, include = FALSE}
 library(macpan2)
@@ -28,6 +28,11 @@ cat_file = function(...) cat(readLines(file.path(...)), sep = "\n")
 ```{r show_visnet, echo = FALSE}
 # function to get around issues with displaying visNetwork objects in an html vignette 
 show_visnet <- function(vn) {
+  vn = visNetwork::visInteraction(vn
+    , dragNodes = TRUE
+    , dragView = TRUE
+    , zoomView = FALSE
+  )
   visNetwork::visSave(vn, file = paste0("visnet.html"))
   hh <- htmltools::includeHTML("visnet.html") |>
       ## https://stackoverflow.com/questions/47577894/r-markdown-visnetwork-not-displayed-in-html-output-when-using-for-loops-or-fun
@@ -339,3 +344,5 @@ The plotting code used above can be modified to plot inflow rather than state.
 ```
 
 In this figure the incidence is the inflow into the `I` box. The `S` line is flat because in this model there is no flow into `S`.
+
+Note that this approach to calculating incidence only works if the time period over which incidence is measured corresponds to the length of one time step. If this assumption is not met -- for example if the time step is one day but incidence data are reported every week -- then other approaches to computing simulated incidence must be taken. The simplest approach is to use accumulator variables, which are not covered here (TODO: write a vignette on accumulator variables).
