@@ -22,9 +22,7 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
-cat_file = function(...) {
-  cat(readLines(file.path(...)), sep = "\n")
-}
+cat_file = function(...) cat(readLines(file.path(...)), sep = "\n")
 ```
 
 ```{r show_visnet, echo = FALSE}
@@ -261,12 +259,15 @@ The simulation results are output as a data frame with the following columns:
 For example, we can generate a `ggplot` with:
 
 ```{r ggplot_ex, fig.width = 6}
-(ggplot(sir_results)
-  + geom_line(aes(time, value, colour = row))
-  + labs(colour = "state")
+(sir_results
+  |> mutate(state = factor(row, levels = sir$labels$state()))
+  |> ggplot()
+  + geom_line(aes(time, value, colour = state))
   + theme_bw()
 )
 ```
+
+The `mutate` step is optional, and is included to enforce the logical ordering of the state variables in the legend of the plot -- otherwise we would have the alphabetically-ordered IRS model instead of the flow-ordered SIR.
 
 If you want to use base R plots, you can convert the long format data to wide format:
 
@@ -300,3 +301,41 @@ matplot(sir_results_wide[, 1],
         xlab = "time", ylab = "")
 legend("bottom", col = 1:3, lty = 1:3, legend = sir$labels$state())
 ```
+
+
+## Incidence
+
+All of the above simulations give the prevalence of the disease but not incidence, which is the total number of new individuals entering the `I`-box at each time step. Incidence is more commonly reported than prevalence, and so it is important to be able to get incidence numbers.
+
+The total number of new individuals entering all boxes is stored in the `total_inflow` vector that is automatically constructed by the `Compartmental` function. This vector is as long as `state` and each element to the inflow into each corresponding box (there is an analogous `total_outflow` vector as well). To return this vector, one must declare that it is a matrix to return as in the following code (by default `state` is the only matrix to be returned).
+
+```{r incidence}
+sir_simulator3 = sir$simulators$tmb(
+  time_steps = 100,
+  state = c(S = 99, I = 1, R = 0),
+  flow = c(foi = 0, gamma = 0.1),
+  beta = 0.2,
+  N = empty_matrix,
+  
+  ## telling the simulator to return the inflows into each box
+  ## including `I`, which corresponds to incidence
+  ## (note: in the near future the .dimnames part will be automatic)
+  .mats_to_return = c("state", "total_inflow"),
+  .dimnames = list(total_inflow = list(sir$labels$state(), ""))
+)
+```
+
+The plotting code used above can be modified to plot inflow rather than state.
+
+```{r inflow_plot, fig.width = 6}
+(sir_simulator3$report()
+  |> filter(matrix == "total_inflow")
+  |> mutate(state = factor(row, levels = sir$labels$state()))
+  |> ggplot()
+  + geom_line(aes(time, value, colour = state))
+  + ggtitle("Total Inflow into Each State")
+  + theme_bw()
+)
+```
+
+In this figure the incidence is the inflow into the `I` box. The `S` line is flat because in this model there is no flow into `S`.
