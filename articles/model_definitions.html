@@ -802,7 +802,7 @@ topologically sorted.</p>
 <p>We have another data frame, <code>flows</code>, with rows describing
 how individuals flow between pairs of compartments. There are four
 required columns in this data frame, <code>from</code>, <code>to</code>,
-<code>flow</code>, and <code>flow_type</code>.</p>
+<code>flow</code>, and <code>type</code>.</p>
 <ul>
 <li>
 <code>from</code> – The <a href="#variable-names">variable name</a>
@@ -814,8 +814,8 @@ the compartment to which individuals are flowing.</li>
 <code>flow</code> – The name of the variable governing the magnitude
 of the flow.</li>
 <li>
-<code>flow_type</code> – A type describing the way in which the
-magnitude of flow is quantified. The following options are available.
+<code>type</code> – A type describing the way in which the magnitude
+of flow is quantified. The following options are available.
 <ul>
 <li>
 <code>"per_capita"</code> – The flow from <code>from</code> and to
