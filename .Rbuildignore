@@ -14,3 +14,5 @@ coverage.html
 ^lib/.*$
 ^covr*.$
 misc/
+.*\.log$
+LICENSE

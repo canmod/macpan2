@@ -15,10 +15,8 @@ Depends:
     R (>= 3.5.0),
 Imports: 
     TMB,
-    RcppEigen,
     oor,
-    jsonlite,
-    Rcpp
+    jsonlite
 Suggests: 
     covr,
     knitr,
@@ -42,4 +40,4 @@ Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
-URL: https://canmod.github.io/macpan2, https://github.com/canmod/macpan2
+URL: https://canmod.github.io/macpan2/, https://github.com/canmod/macpan2

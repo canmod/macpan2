@@ -3,9 +3,10 @@
 #' @param variable Character string giving a variable in the model.
 #' @param prefix Character string to use to distinguish the transformed
 #' version of the `variable`.
+#' @param default (??)
 #'
 #' @export
-Transform = function(variable, default = NULL, prefix = "") {
+Transform <- function(variable, default = NULL, prefix = "") {
   self = Base()
   self$variable = variable
   self$default = default

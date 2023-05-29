@@ -14,7 +14,7 @@ forecasting and analysis of infectious diseases.
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://canmod.github.io/macpan2}
+  \item \url{https://canmod.github.io/macpan2/}
   \item \url{https://github.com/canmod/macpan2}
 }
 

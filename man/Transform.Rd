@@ -15,6 +15,8 @@ Logit(variable, default = NULL)
 \arguments{
 \item{variable}{Character string giving a variable in the model.}
 
+\item{default}{(??)}
+
 \item{prefix}{Character string to use to distinguish the transformed
 version of the \code{variable}.}
 }

@@ -33,6 +33,7 @@
 #'   , y = pi
 #'   , .matrix_to_return = "x"
 #' )
+#' @importFrom stats as.formula
 engine_eval = function(e, ..., .matrix_to_return, .tmb_cpp = "macpan2", .structure_labels = NullLabels()) {
   dot_mats = list(...)
 
