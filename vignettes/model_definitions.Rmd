@@ -426,7 +426,7 @@ The ordering of the `derivations` list must be topologically sorted so that the 
 
 ## Flow between Compartments
 
-We have another data frame, `flows`, with rows describing how individuals flow between pairs of compartments. There are four columns in this data frame, `from`, `to`, `rate_component`, and `component_type`. 
+We have another data frame, `flows`, with rows describing how individuals flow between pairs of compartments. There are four required columns in this data frame, `from`, `to`, `flow`, and `flow_type`. 
 
 * `from` -- The [variable name](#variable-names) of the compartment from which individuals are flowing.
 * `to` -- The [variable name](#variable-names) of the compartment to which individuals are flowing.
