@@ -426,12 +426,12 @@ The ordering of the `derivations` list must be topologically sorted so that the 
 
 ## Flow between Compartments
 
-We have another data frame, `flows`, with rows describing how individuals flow between pairs of compartments. There are four required columns in this data frame, `from`, `to`, `flow`, and `flow_type`. 
+We have another data frame, `flows`, with rows describing how individuals flow between pairs of compartments. There are four required columns in this data frame, `from`, `to`, `flow`, and `type`. 
 
 * `from` -- The [variable name](#variable-names) of the compartment from which individuals are flowing.
 * `to` -- The [variable name](#variable-names) of the compartment to which individuals are flowing.
 * `flow` -- The name of the variable governing the magnitude of the flow.
-* `flow_type` -- A type describing the way in which the magnitude of flow is quantified. The following options are available.
+* `type` -- A type describing the way in which the magnitude of flow is quantified. The following options are available.
     * `"per_capita"` -- The flow from `from` and to `to` equals `from * flow`.
     * `"absolute"` -- The flow from `from` and to `to` equals `flow`.
     * `"per_capita_inflow"` -- The flow to `to` equals `from * flow`.
