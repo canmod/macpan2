@@ -6,11 +6,11 @@
 \alias{Logit}
 \title{Transform}
 \usage{
-Transform(variable, prefix)
+Transform(variable, default = NULL, prefix = "")
 
-Log(variable)
+Log(variable, default = NULL)
 
-Logit(variable)
+Logit(variable, default = NULL)
 }
 \arguments{
 \item{variable}{Character string giving a variable in the model.}

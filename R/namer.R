@@ -220,6 +220,7 @@ TranslatorUtilities = function() {
 #' bundled with its coordinate system as column names. This is the format of
 #' the `variables.csv` file in the model definition.
 #'
+#' @importFrom stats setNames
 #' @noRd
 CoordinateChangeUtilities = function() {
   self = NameAndLabelUtilities()
