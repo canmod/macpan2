@@ -21,6 +21,7 @@ TMBOptimizer = function(simulator) {
       }
 
       ad_fun = self$simulator$ad_fun()
+      ad_fun$fn()  ## work out certain starting value issues -- is this necessary?
       args = list()
       mc = match.call()
       if (length(mc) != 1L) {

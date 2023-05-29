@@ -25,6 +25,7 @@ Reader = function(...) {
 }
 
 #' @describeIn Reader Read CSV files.
+#' @importFrom utils read.table
 #' @export
 CSVReader = function(...) {
   self = Reader(...)

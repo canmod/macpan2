@@ -52,7 +52,7 @@ m = TMBModel(init_mats = MatsList(
 )
 #m$data_arg()
 #f = m$make_ad_fun("dev")
-#f$report(m$.params$vector())$values
+#f$report(m$params$vector())$values
 
 s = TMBSimulator(m, "dev")
 r = s$report(-1.6, 0.03, .phases = c("before", "during"))

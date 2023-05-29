@@ -13,3 +13,4 @@ Makefile
 coverage.html
 ^lib/.*$
 ^covr*.$
+misc/

@@ -208,3 +208,14 @@ prod$expr_list()$print_exprs()
 * Specify numerical inputs
 * Run the the simulation
 * Verify the results
+
+
+## Steps in Taking Model Products
+
+We have a nested set of operations.
+
+1. Cartesian product of state variables
+2. Cartesian product of state and flow variables (once in each direction)
+3. Matrix product of transmission matrix (lots of variations available here, for example Kronecker product)
+
+A modeller may choose to do just 1, just 1-2, or 1-3.

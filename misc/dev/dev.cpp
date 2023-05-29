@@ -1481,8 +1481,10 @@ public:
                         rows = args[0].rows();
                         cols = args[0].cols();
                         err_code = RecycleInPlace(args[1], rows, cols);
-                        if (err_code != 0)
+                        if (err_code != 0) {
                           SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row);
+                          return m;
+                        }
                         m = matrix<Type>::Zero(rows, cols);
                         for (int i=0; i<rows; i++) {
                             for (int j=0; j<cols; j++) {
@@ -1503,6 +1505,7 @@ public:
                         err_code = err_code1 + err_code2;
                         if (err_code != 0) {
                             SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row);
+                            return m;
                         }
                         //   var ~ variance
                         //   mu ~ mean
@@ -1532,6 +1535,7 @@ public:
                         err_code = err_code1 + err_code2;
                         if (err_code != 0) {
                             SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row);
+                            return m;
                         }
                         m = matrix<Type>::Zero(rows, cols);
                         for (int i=0; i<rows; i++) {
@@ -1592,6 +1596,7 @@ public:
                         err_code = RecycleInPlace(args[1], rows, cols);
                         if (err_code != 0) {
                             SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row);
+                            return m;
                         }
                         m = matrix<Type>::Zero(rows, cols);
                         for (int i=0; i<rows; i++) {
@@ -1617,6 +1622,7 @@ public:
                         err_code = RecycleInPlace(args[1], rows, cols);
                         if (err_code != 0) {
                             SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row);
+                            return m;
                         }
                         m = matrix<Type>::Zero(rows, cols);
                         for (int i=0; i<rows; i++) {
@@ -1786,6 +1792,7 @@ public:
                         err_code = RecycleInPlace(m, rows, cols);
                         if (err_code != 0) {
                             SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row);
+                            return m;
                         }
                         return m;
 
