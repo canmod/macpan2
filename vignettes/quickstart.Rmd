@@ -43,7 +43,7 @@ show_visnet <- function(vn) {
 }
 ```
 
-This quickstart guide is meant to show a new user how to specify and simulate a simple compartmental model in `macpan2`. 
+This quickstart guide is meant to show a new user how to specify and simulate a simple compartmental model in `macpan2`, which can be installed [like this](https://github.com/canmod/macpan2/#installation).
 
 `macpan2` is extremely flexible in how models are specified, and so there can be several equivalent ways of specifying the same model. This feature is important to keep in mind when trying to understand or build more complicated models, such as the one demonstrated in Quickstart Guide, part 2 (see `vignette('quickstart2', package = 'macpan2')`).
 
