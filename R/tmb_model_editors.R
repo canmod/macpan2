@@ -119,11 +119,15 @@ TMBSimulatorAdder = function(simulator) {
     l = list(...)
     l = setNames(l, vapply(l, getElement, character(1L), "variable"))
     for (v in names(l)) {
-      value = self$model$init_mats$get(v)
+      if (is.null(l[[v]]$default)) {
+        value = self$model$init_mats$get(v)
+      } else {
+        value = l[[v]]$default
+      }
       trans_value = l[[v]]$trans_engine_eval(value)
       do.call(
         self$simulator$add$matrices,
-        setNames(list(value), l[[v]]$trans_variable)
+        setNames(list(trans_value), l[[v]]$trans_variable)
       )
       self$simulator$insert$expressions(
         l[[v]]$inverse_two_sided_formula(),

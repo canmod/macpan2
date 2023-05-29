@@ -3,6 +3,7 @@
 library(macpan2)
 library(dplyr)
 library(tidyverse)
+library(lubridate)
 
 # get macpan_base model with additional wastewater compartments
 macpan_ww = Compartmental(file.path("../../../", "inst", "starter_models", "ww"))
@@ -75,7 +76,7 @@ clean_data <- (champ_data %>% arrange(ymd(champ_data$date))
 
 # get observed waste vector and the corresponding time vector
 obs_W = (clean_data %>% filter(var == "W"))$value
-obs_W_time_steps = (clean_data %>% filter(var == "W"))$time
+obs_W_time_steps = (clean_data %>% filter(var == "W"))$time + 1
 
 # obs_report = (clean_data %>% filter(var == "report"))$value
 # obs_report_time_steps = (clean_data %>% filter(var == "report"))$time
@@ -90,6 +91,8 @@ obs_W_time_steps = (clean_data %>% filter(var == "W"))$time
 # set.seed(1L)
 # observed_I = rpois(30, deterministic_prevalence)
 
+## Step 0: set the number of time-steps required to fit the model
+simulator$replace$time_steps(460)
 
 ## Step 1: add observed data and declare matrices storing
 ##         the simulation history of variables to compare
@@ -136,12 +139,10 @@ simulator$print$expressions()
 ##         iteration.
 simulator$insert$expressions(
   likelihood = log_lik ~
-    (
       dpois(
         obs_W,  ## observed values
         clamp(rbind_time(simulated_W, obs_W_time_steps))  ## simulated values
       )
-    )
   , .at = Inf
   , .phase = "after"
 )
@@ -150,23 +151,25 @@ simulator$print$expressions()
 ## Step 4: specify the objective function (very often
 ##         this will be minus the sum of the log likelihoods).
 simulator$replace$obj_fn(~ -sum(log_lik))
+#simulator$replace$obj_fn(~ 0)
 
 ## Step 5: declare (and maybe transform) parameters to be optimized,
 ##         as well as starting values for the parameters to be optimized
 
-simulator$add$matrices(
-  log_beta0 = log(0.6)
-  #, log_xi = log(0.6)
-  #, logit_gamma = qlogis(0.4)
-)
+# simulator$add$matrices(
+#   log_beta0 = log(0.6)
+#   #, log_xi = log(0.6)
+#   #, logit_gamma = qlogis(0.4)
+# )
+#
+# simulator$insert$expressions(
+#   beta0 ~ exp(log_beta0)
+#   #, xi ~ exp(log_xi)
+#   #, gamma ~ 1 / (1 + exp(-logit_gamma))
+#   , .phase = "before"
+# )
 
-simulator$insert$expressions(
-  beta0 ~ exp(log_beta0)
-  #, xi ~ exp(log_xi)
-  #, gamma ~ 1 / (1 + exp(-logit_gamma))
-  , .phase = "before"
-)
-
+simulator$add$transformations(Log("beta0"))
 simulator$replace$params(
   default = c(log(0.6)), # qlogis(0.4)),
   mat = c("log_beta0") #, "logit_gamma")
@@ -182,11 +185,14 @@ simulator$print$expressions()
 ## Step 6: use the engine object
 plot(obs_W_time_steps, obs_W)
 
-## THIS IS WHERE ERROR OCCURS, MACPAN ERROR #245: 
-## cannot recycle rows and/or columns because the 
+## THIS IS WHERE ERROR OCCURS, MACPAN ERROR #245:
+## cannot recycle rows and/or columns because the
 ## input is inconsistent with the recycling request
-# simulator$optimize$optim()
-
+#length(obs_W)
+#length(filter(simulator$report(.phases = "after"), matrix == "log_lik")$value)
+#simulator$report()
+simulator$optimize$optim()
+simulator$current$params_frame()
 
 
 # lines(1:100, filter(simulator$report(.phases = "during"), matrix == "state", row == "W")$value)
