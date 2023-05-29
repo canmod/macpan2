@@ -1,5 +1,5 @@
 ---
-title: "basic SIR model"
+title: "basic SIR"
 index_entry: "a very simple epidemic model"
 author: Steve Walker
 ---
