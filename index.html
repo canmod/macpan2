@@ -82,12 +82,12 @@
 <!-- badges: start -->
 
 <p><a href="https://github.com/mac-theobio/McMasterPandemic" class="external-link">McMasterPandemic</a> was developed to provide forecasts and insights to Canadian public health agencies throughout the COVID-19 pandemic. <a href="https://canmod.github.io/macpan-book/index.html#vision-and-direction" class="external-link">Much was learned</a> about developing general purpose compartmental modelling software during this experience, but the pressure to deliver regular forecasts made it difficult to focus on the software itself. The goal of this <code>macpan2</code> project is to re-imagine <code>McMasterPandemic</code>, building it from the ground up with architectural and technological decisions that address the many lessons that we learned from COVID-19 about software.</p>
-<p>Although <code>macpan2</code> is designed as a compartmental modelling tool that is agnostic about the underlying computational engine, it currently makes use of <a href="https://github.com/kaskr/adcomp" class="external-link">template model builder</a>. Template model builder (TMB) is a blazing fast <span class="emoji" data-emoji="rocket">🚀</span> <code>R</code> modelling package based on a <code>C++</code> framework that sits on top of mature <a href="https://cppad.readthedocs.io/en/latest/user_guide.html" class="external-link">automatic differentiation</a> and <a href="http://eigen.tuxfamily.org/index.php?title=Main_Page" class="external-link">matrix algebra</a> libraries.</p>
+<p>Although <code>macpan2</code> is designed as a compartmental modelling tool that is agnostic about the underlying computational engine, it currently makes use of <a href="https://github.com/kaskr/adcomp" class="external-link">template model builder</a>. Template model builder (TMB) is an <code>R</code> modelling package based on a <code>C++</code> framework incorporating mature <a href="https://cppad.readthedocs.io/en/latest/user_guide.html" class="external-link">automatic differentiation</a> and <a href="http://eigen.tuxfamily.org/index.php?title=Main_Page" class="external-link">matrix algebra</a> libraries.</p>
 <div class="section level2">
 <h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
 </h2>
 <ul>
-<li><a href="https://canmod.github.io/macpan2">Package reference</a></li>
+<li><a href="https://canmod.github.io/macpan2/">Package reference</a></li>
 <li><a href="https://canmod.github.io/macpan2/articles/quickstart">Quick-start guide</a></li>
 <li>
 <a href="https://canmod.github.io/macpan2/articles/model_definitions">Representation of compartmental models</a> [specification document]</li>
@@ -110,7 +110,7 @@
 <h2 id="hello-world">Hello World<a class="anchor" aria-label="anchor" href="#hello-world"></a>
 </h2>
 <p>This <a href="https://canmod.github.io/macpan2/articles/quickstart">quick-start guide</a> describes the following hello-world SIR model.</p>
-<pre><code><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://canmod.github.io/macpan2">macpan2</a></span><span class="op">)</span></span>
+<pre><code><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://canmod.github.io/macpan2/">macpan2</a></span><span class="op">)</span></span>
 <span><span class="va">sir</span> <span class="op">=</span> <span class="fu"><a href="reference/Compartmental.html">Compartmental</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"starter_models"</span>, <span class="st">"sir"</span>, package <span class="op">=</span> <span class="st">"macpan2"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">N</span> <span class="op">=</span> <span class="fl">100</span></span>
 <span><span class="va">simulator</span> <span class="op">=</span> <span class="va">sir</span><span class="op">$</span><span class="va">simulators</span><span class="op">$</span><span class="fu">tmb</span><span class="op">(</span>time_steps <span class="op">=</span> <span class="fl">100</span></span>
@@ -139,7 +139,7 @@ make pkg-build         # build the R package
 make pkg-install       # install the R package from the build
 make pkg-check         # R package checks</code></pre>
 <p>In most R packages with compiled code, developers edit the source files to be compiled in the <code>src</code> directory. In <code>macpan2</code> there is a single file in that directory called <code>macpan2</code>, which is generated automatically from the file <code>misc/dev/dev.cpp</code>. This setup allows for quicker C++ development cycles, because developers can edit <code>misc/dev/dev.cpp</code> and then use this file in tests without needing to re-install the package with the new source. In particular, the above hello-world example could use <code>dev.cpp</code> as follows.</p>
-<pre><code><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://canmod.github.io/macpan2">macpan2</a></span><span class="op">)</span></span>
+<pre><code><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://canmod.github.io/macpan2/">macpan2</a></span><span class="op">)</span></span>
 <span><span class="fu">macpan2</span><span class="fu">:::</span><span class="fu">dev_compile</span><span class="op">(</span><span class="op">)</span> <span class="co">## compile dev.cpp</span></span>
 <span><span class="va">sir</span> <span class="op">=</span> <span class="fu"><a href="reference/Compartmental.html">Compartmental</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"starter_models"</span>, <span class="st">"sir"</span>, package <span class="op">=</span> <span class="st">"macpan2"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">N</span> <span class="op">=</span> <span class="fl">100</span></span>
