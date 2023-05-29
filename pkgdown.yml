@@ -13,7 +13,7 @@ articles:
   state_dependent_rates: state_dependent_rates.html
   time-varying-parameters: time-varying-parameters.html
   vignette-status: vignette-status.html
-last_built: 2023-05-26T18:33Z
+last_built: 2023-05-29T16:23Z
 urls:
   reference: https://canmod.github.io/macpan2/reference
   article: https://canmod.github.io/macpan2/articles
