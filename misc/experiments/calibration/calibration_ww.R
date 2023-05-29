@@ -57,26 +57,27 @@ simulator$print$expressions()
 ## read champredon data so that i can fit the generating
 ## model to these data
 champ_data <- read_csv("ChampData.csv")
-clean_data <- (champ_data %>% arrange(ymd(champ_data$date))
-               %>% filter(wwloc == "OTW")
-               %>% select(date, event.type, n, sarscov2.conc.ww)
-               %>% pivot_longer(!c(date, event.type))
-               %>% filter(!(event.type == "hosp.adm" & name == "sarscov2.conc.ww"))
-               %>% mutate(event.type = ifelse(name == "n", event.type, name))
-               %>% select(!name)
-               %>% rename(var = event.type)
-               %>% mutate(var = ifelse(var == "clinical.cases", "report", var))
-               %>% mutate(var = ifelse(var == "hosp.adm", "hosp", var))
-               %>% mutate(var = ifelse(var == "sarscov2.conc.ww", "W", var))
-               %>% mutate(var = ifelse(var == "hosp.occ", "H", var))
-               %>% mutate(date = interval(ymd("2020-04-08"), ymd(date)) %/% days())
-               %>% distinct()
-               %>% rename(time = date)
+clean_data <- (champ_data
+   %>% arrange(ymd(champ_data$date))
+   %>% filter(wwloc == "OTW")
+   %>% select(date, event.type, n, sarscov2.conc.ww)
+   %>% pivot_longer(!c(date, event.type))
+   %>% filter(!(event.type == "hosp.adm" & name == "sarscov2.conc.ww"))
+   %>% mutate(event.type = ifelse(name == "n", event.type, name))
+   %>% select(!name)
+   %>% rename(var = event.type)
+   %>% mutate(var = ifelse(var == "clinical.cases", "report", var))
+   %>% mutate(var = ifelse(var == "hosp.adm", "hosp", var))
+   %>% mutate(var = ifelse(var == "sarscov2.conc.ww", "W", var))
+   %>% mutate(var = ifelse(var == "hosp.occ", "H", var))
+   %>% mutate(date = interval(ymd("2020-04-08"), ymd(date)) %/% days())
+   %>% distinct()
+   %>% mutate(time = date + 1)
 )
 
 # get observed waste vector and the corresponding time vector
 obs_W = (clean_data %>% filter(var == "W"))$value
-obs_W_time_steps = (clean_data %>% filter(var == "W"))$time + 1
+obs_W_time_steps = (clean_data %>% filter(var == "W"))$time
 
 # obs_report = (clean_data %>% filter(var == "report"))$value
 # obs_report_time_steps = (clean_data %>% filter(var == "report"))$time
@@ -104,6 +105,7 @@ simulator$replace$time_steps(460)
 simulator$add$matrices(
   obs_W = obs_W
   , obs_W_time_steps = obs_W_time_steps
+  , W_sd = 1
   # , obs_report = obs_report
   # , obs_report_time_steps = obs_report_time_steps
   , simulated_W = empty_matrix
@@ -139,10 +141,17 @@ simulator$print$expressions()
 ##         iteration.
 simulator$insert$expressions(
   likelihood = log_lik ~
-      dpois(
-        obs_W,  ## observed values
-        clamp(rbind_time(simulated_W, obs_W_time_steps))  ## simulated values
+    (
+      dnorm(
+        log(obs_W),  ## observed values
+        log(clamp(rbind_time(simulated_W, obs_W_time_steps))),  ## simulated values
+        W_sd
       )
+      # + dpois(
+      #   obs_H,
+      #   rbind_time(simulated_H, obs_H_time_steps)
+      # )
+    )
   , .at = Inf
   , .phase = "after"
 )
@@ -151,7 +160,6 @@ simulator$print$expressions()
 ## Step 4: specify the objective function (very often
 ##         this will be minus the sum of the log likelihoods).
 simulator$replace$obj_fn(~ -sum(log_lik))
-#simulator$replace$obj_fn(~ 0)
 
 ## Step 5: declare (and maybe transform) parameters to be optimized,
 ##         as well as starting values for the parameters to be optimized
@@ -170,9 +178,10 @@ simulator$replace$obj_fn(~ -sum(log_lik))
 # )
 
 simulator$add$transformations(Log("beta0"))
+simulator$add$transformations(Log("W_sd"))
 simulator$replace$params(
-  default = c(log(0.6)), # qlogis(0.4)),
-  mat = c("log_beta0") #, "logit_gamma")
+  default = c(log(0.6), 0), # qlogis(0.4)),
+  mat = c("log_beta0", "log_W_sd") #, "logit_gamma")
 )
 
 # simulator$replace$random(
@@ -190,7 +199,14 @@ plot(obs_W_time_steps, obs_W)
 ## input is inconsistent with the recycling request
 #length(obs_W)
 #length(filter(simulator$report(.phases = "after"), matrix == "log_lik")$value)
+
 #simulator$report()
+
+# (simulator$report()
+#   %>% filter(matrix == "simulated_W")
+#   %>% View
+# )
+simulator$optimize$nlminb()
 simulator$optimize$optim()
 simulator$current$params_frame()
 
