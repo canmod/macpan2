@@ -50,6 +50,7 @@ get_mod_info <- function(f) {
 #' @param show_missing (logical) include entries for models with no README information?
 #' @return a data frame containing entries \code{dir} (model directory), \code{title} (model title), \code{index_entry} (short description)
 #' @examples show_models(show_missing = TRUE)
+#' @importFrom stats na.omit
 #' @export
 show_models <- function(dir = system.file("starter_models", package = "macpan2"),
                         show_missing = FALSE) {
