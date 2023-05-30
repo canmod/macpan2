@@ -13,6 +13,9 @@
     <loc>https://canmod.github.io/macpan2/articles/cpp_side.html</loc>
   </url>
   <url>
+    <loc>https://canmod.github.io/macpan2/articles/development_patterns.html</loc>
+  </url>
+  <url>
     <loc>https://canmod.github.io/macpan2/articles/elementwise_binary_operators.html</loc>
   </url>
   <url>
@@ -37,10 +40,10 @@
     <loc>https://canmod.github.io/macpan2/articles/state_dependent_rates.html</loc>
   </url>
   <url>
-    <loc>https://canmod.github.io/macpan2/articles/time-varying-parameters.html</loc>
+    <loc>https://canmod.github.io/macpan2/articles/time_varying_parameters.html</loc>
   </url>
   <url>
-    <loc>https://canmod.github.io/macpan2/articles/vignette-status.html</loc>
+    <loc>https://canmod.github.io/macpan2/articles/vignette_status.html</loc>
   </url>
   <url>
     <loc>https://canmod.github.io/macpan2/authors.html</loc>
