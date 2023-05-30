@@ -5,3 +5,27 @@ navbar:
   structure:
     left:  [intro, reference, articles, tutorials, news]
     right: [search, github]
+articles:
+- title: Quick Start
+  navbar: ~
+  contents:
+  - quickstart
+  - quickstart2
+  - time_varying_parameters
+
+- title: Specs
+  desc: Specification documents
+  contents:
+  - cpp_side
+  - model_definitions
+
+- title: Developer
+  desc: Vignettes aimed at package developers
+  contents:
+  - development_patterns
+  - vignette_status
+  - composing_simulation_models
+  - elementwise_binary_operators
+  - functions
+  - hello_products
+  - state_dependent_rates
