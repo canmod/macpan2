@@ -94,6 +94,92 @@ s = simulator$report(.phases = "during")
 )
 ```
 
+## Calibrating Time Variation Parameters
+
+First we simulate data to fit our model to, to see if we can recover the time-varying parameters.
+```{r noisy_data}
+set.seed(1L)
+I_observed = rpois(
+  50, 
+  filter(s, matrix == "state", row == "I")$value
+)
+plot(I_observed)
+```
+
+Then we add a few matrices to the model for keeping tracking of information used in model fitting.
+```{r add_matrices}
+simulator$add$matrices(
+  
+  ## observed data
+  I_obs = I_observed,
+  
+  ## simulated trajectory to compare with data
+  I_sim = empty_matrix, 
+  
+  ## location of I in the state vector
+  ## (the `-1L` bit is to get 0-based indices instead of 1-based)
+  I_index = match("I", sir$labels$state()) - 1L, 
+  
+  ## matrix to contain the log likelihood values at 
+  ## each time step
+  log_lik = empty_matrix, 
+  
+  ## need to save the simulation history of each of these matrices
+  .mats_to_save = c("I_sim", "log_lik")
+)
+```
+
+Now we need some new expressions. The first expression pulls out the I state from the state vector.
+```{r pull_out_trajectory}
+simulator$insert$expressions(
+  I_sim ~ state[I_index],
+  .phase = "during"
+)
+```
+
+The second expression computes a vector of Poisson log-likelihood values -- one for each time step.
+```{r log_lik}
+simulator$insert$expressions(
+  log_lik ~ dpois(I_obs, clamp(rbind_time(I_sim))),
+  .phase = "after"
+)
+simulator$replace$obj_fn(~ -sum(log_lik))
+```
+
+Next we declare the beta values as parameters to be optimized on the log scale.
+```{r params}
+simulator$add$transformations(Log("beta_values"))
+simulator$replace$params(
+  default = log(mean(simulator$get$initial("beta_values"))),
+  mat = rep("log_beta_values", 3L),
+  row = 0:2
+)
+```
+
+Finally we fit the model back to the simulation data.
+```{r optimize}
+simulator$optimize$nlminb()
+```
+
+We can see that the optimizer converges (i.e. `$convergence = 0`) in 26 iterations.
+
+On the log scale we see that the optimizer finds different values (`current`) than it started at (`default`).
+```{r log_parameters}
+simulator$current$params_frame()
+```
+
+More importantly the beta values on the untransformed scale recover to the values used in the simulations, although the second fitted beta value is much smaller than the true value.
+```{r recovered_parameters}
+data.frame(
+  fitted = formatC(
+    exp(simulator$current$params_frame()$current),
+    format = "e", digits = 2
+  ),
+  true = simulator$get$initial("beta_values")
+)
+```
+
+
 ## Smooth Time Variation (TODO)
 
 
