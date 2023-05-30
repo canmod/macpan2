@@ -27,7 +27,8 @@ Suggests:
     testthat (>= 3.0.0),
     htmltools,
     visNetwork,
-    macpan2helpers
+    macpan2helpers,
+    kableExtra
 LinkingTo:
     TMB,
     RcppEigen,
