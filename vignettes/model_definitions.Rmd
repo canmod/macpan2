@@ -12,7 +12,7 @@ vignette: >
 ---
 
 
-[![status](https://img.shields.io/badge/status-mature%20draft-yellow)](https://img.shields.io/badge/status-mature%20draft-yellow)
+[![status](https://img.shields.io/badge/status-mature%20draft-yellow)](https://canmod.github.io/macpan2/articles/vignette-status#mature-draft)
 
 ```{r, include = FALSE}
 library(macpan2)
