@@ -44,6 +44,7 @@
     <a class="dropdown-item" href="../articles/quickstart.html">Quickstart Guide: specifying and simulating a simple compartmental model</a>
     <a class="dropdown-item" href="../articles/quickstart2.html">Quickstart Guide, part 2: specifying and simulating a structured compartmental model</a>
     <a class="dropdown-item" href="../articles/time_varying_parameters.html">Specifying Time-Varying Parameters</a>
+    <a class="dropdown-item" href="../articles/example_models.html">Example Models</a>
     <div class="dropdown-divider"></div>
     <a class="dropdown-item" href="../articles/index.html">More articles...</a>
   </div>
@@ -87,8 +88,8 @@
 <p><a href="https://canmod.github.io/macpan2/articles/vignette-status#mature-draft"><img src="https://img.shields.io/badge/status-mature%20draft-yellow" alt="status"></a></p>
 <p>This quickstart guide is meant to show a new user how to specify and
 simulate a simple compartmental model in <code>macpan2</code>, which can
-be installed <a href="https://github.com/canmod/macpan2/#installation" class="external-link">like
-this</a>.</p>
+be <a href="https://github.com/canmod/macpan2/#installation" class="external-link">installed
+like this</a>.</p>
 <p><code>macpan2</code> is extremely flexible in how models are
 specified, and so there can be several equivalent ways of specifying the
 same model. This feature is important to keep in mind when trying to
@@ -122,7 +123,8 @@ SIR model</a>, which can be found in this directory:</p>
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">sir_dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"starter_models"</span>, <span class="st">"sir"</span>, package <span class="op">=</span> <span class="st">"macpan2"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "/home/runner/work/_temp/Library/macpan2/starter_models/sir"</span></span></code></pre></div>
 <p>In this article, we work through the specification and simulation of
-the SIR sample model.</p>
+the SIR sample model. You can discover <a href="https://canmod.github.io/macpan2/articles/example_models">more
+examples here</a>.</p>
 <div class="section level3">
 <h3 id="variables">variables.csv<a class="anchor" aria-label="anchor" href="#variables"></a>
 </h3>
@@ -5659,11 +5661,11 @@ HTMLWidgets.widget({
   
 });
 </script><div id="htmlwidget_container">
-<div id="htmlwidget-e16d7474b3f0c241301c" class="visNetwork html-widget html-fill-item-overflow-hidden html-fill-item" style="width:960px;height:500px;">
+<div id="htmlwidget-da20041f27f7cf87b32f" class="visNetwork html-widget html-fill-item-overflow-hidden html-fill-item" style="width:960px;height:500px;">
 
 </div>
 </div>
-<script type="application/json" data-for="htmlwidget-e16d7474b3f0c241301c">{"x":{"nodes":{"id":["S","I","R"],"label":["S","I","R"],"shape":["square","square","square"]},"edges":{"from":["S","I"],"to":["I","R"],"label":["foi","gamma"]},"nodesToDataframe":true,"edgesToDataframe":true,"options":{"width":"100%","height":"100%","nodes":{"shape":"dot"},"manipulation":{"enabled":false},"edges":{"arrows":"to"},"layout":{"hierarchical":{"enabled":true,"direction":"LR"}},"interaction":{"dragNodes":true,"dragView":true,"zoomView":false,"zoomSpeed":1}},"groups":null,"width":null,"height":null,"idselection":{"enabled":false},"byselection":{"enabled":false},"main":null,"submain":null,"footer":null,"background":"rgba(0, 0, 0, 0)","tooltipStay":300,"tooltipStyle":"position: fixed;visibility:hidden;padding: 5px;white-space: nowrap;font-family: verdana;font-size:14px;font-color:#000000;background-color: #f5f4ed;-moz-border-radius: 3px;-webkit-border-radius: 3px;border-radius: 3px;border: 1px solid #808074;box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);"},"evals":[],"jsHooks":[]}</script><script type="application/htmlwidget-sizing" data-for="htmlwidget-e16d7474b3f0c241301c">{"viewer":{"width":450,"height":350,"padding":15,"fill":true},"browser":{"width":960,"height":500,"padding":40,"fill":false}}</script><p>We can display the components of <code>macpan2</code> models
+<script type="application/json" data-for="htmlwidget-da20041f27f7cf87b32f">{"x":{"nodes":{"id":["S","I","R"],"label":["S","I","R"],"shape":["square","square","square"]},"edges":{"from":["S","I"],"to":["I","R"],"label":["foi","gamma"]},"nodesToDataframe":true,"edgesToDataframe":true,"options":{"width":"100%","height":"100%","nodes":{"shape":"dot"},"manipulation":{"enabled":false},"edges":{"arrows":"to"},"layout":{"hierarchical":{"enabled":true,"direction":"LR"}},"interaction":{"dragNodes":true,"dragView":true,"zoomView":false,"zoomSpeed":1}},"groups":null,"width":null,"height":null,"idselection":{"enabled":false},"byselection":{"enabled":false},"main":null,"submain":null,"footer":null,"background":"rgba(0, 0, 0, 0)","tooltipStay":300,"tooltipStyle":"position: fixed;visibility:hidden;padding: 5px;white-space: nowrap;font-family: verdana;font-size:14px;font-color:#000000;background-color: #f5f4ed;-moz-border-radius: 3px;-webkit-border-radius: 3px;border-radius: 3px;border: 1px solid #808074;box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);"},"evals":[],"jsHooks":[]}</script><script type="application/htmlwidget-sizing" data-for="htmlwidget-da20041f27f7cf87b32f">{"viewer":{"width":450,"height":350,"padding":15,"fill":true},"browser":{"width":960,"height":500,"padding":40,"fill":false}}</script><p>We can display the components of <code>macpan2</code> models
 (<code>Compartmental</code> objects), including the methods that operate
 on them, by listing their names:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">

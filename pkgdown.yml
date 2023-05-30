@@ -6,6 +6,7 @@ articles:
   cpp_side: cpp_side.html
   development_patterns: development_patterns.html
   elementwise_binary_operators: elementwise_binary_operators.html
+  example_models: example_models.html
   functions: functions.html
   hello_products: hello_products.html
   model_definitions: model_definitions.html
@@ -14,7 +15,7 @@ articles:
   state_dependent_rates: state_dependent_rates.html
   time_varying_parameters: time_varying_parameters.html
   vignette_status: vignette_status.html
-last_built: 2023-05-30T14:34Z
+last_built: 2023-05-30T15:24Z
 urls:
   reference: https://canmod.github.io/macpan2/reference
   article: https://canmod.github.io/macpan2/articles
