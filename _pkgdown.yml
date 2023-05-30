@@ -12,18 +12,16 @@ articles:
   - quickstart
   - quickstart2
   - time_varying_parameters
-
 - title: Specs
   desc: Specification documents
   contents:
   - cpp_side
   - model_definitions
-
+  - vignette_status
 - title: Developer
   desc: Vignettes aimed at package developers
   contents:
   - development_patterns
-  - vignette_status
   - composing_simulation_models
   - elementwise_binary_operators
   - functions
