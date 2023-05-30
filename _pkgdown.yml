@@ -12,6 +12,7 @@ articles:
   - quickstart
   - quickstart2
   - time_varying_parameters
+  - example_models
 - title: Specs
   desc: Specification documents
   contents:

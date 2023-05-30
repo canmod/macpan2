@@ -1,0 +1,69 @@
+---
+title: "Example Models"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{Example Models}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+[![status](https://img.shields.io/badge/status-mature%20draft-yellow)](https://canmod.github.io/macpan2/articles/vignette-status#mature-draft)
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+library(macpan2)
+```
+
+## Finding Example Models
+
+The `macpan2` comes with a set of example [model definitions](https://canmod.github.io/macpan2/articles/model_definitions), which can be listed with the `show_models` function.
+```{r eval = FALSE}
+show_models()
+```
+```{r echo = FALSE}
+kableExtra::kable(show_models())
+```
+
+There are three things that you can do with the items on this list: reading them, using them, and modifying them.
+
+## Reading Examples
+
+Suppose that we want to read the first `sir` example we would go here: [https://github.com/canmod/macpan2/tree/main/inst/starter_models/sir](https://github.com/canmod/macpan2/tree/main/inst/starter_models/sir). If you want to see another model then just switch `sir` to another entry in the `dir` column of the table printed above.
+
+## Using Examples
+
+To use the `sir` example it can be read into R using the following code.
+```{r}
+sir_dir = system.file("starter_models", "sir", package = "macpan2")
+sir = Compartmental(sir_dir)
+sir$labels$all()
+sir$labels$state()
+sir$labels$flow()
+sir$flows()
+```
+To see how to actually generate simulations from this model see [this article](https://canmod.github.io/macpan2/articles/quickstart). To use another model, again, replace `sir` with another entry in the `dir` column above.
+
+## Modifying Examples
+
+To take `sir` as a jumping-off point for producing your own model one may use the following code.
+```{r}
+my_sir_dir = file.path(tempdir(), "my_sir")
+model_starter("sir", my_sir_dir)
+```
+
+After running this code you can go to the files in `my_sir_dir` and modify what you see there. Note that you typically want to chose a specific directory for your model instead of using `tempdir`. You still need to read your own model in the usual way.
+```{r}
+my_sir = Compartmental(my_sir_dir)
+my_sir$labels$all()
+my_sir$labels$state()
+my_sir$labels$flow()
+my_sir$flows()
+```
+These look identical to what came before, but that's just because it hasn't been modified ... yet ...
