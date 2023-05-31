@@ -13,24 +13,16 @@ We use a status system in `macpan2` to communicate the maturity of each article 
 
 ## Stable
 
-![status](https://img.shields.io/badge/status-stable-green)
-
-Please read!
+![](https://img.shields.io/badge/status-stable-green) -- Please read!  Although mistakes are always possible, so please open an issue if you find any.
 
 ## Mature Draft
 
-![status](https://img.shields.io/badge/status-mature%20draft-yellow)
-
-Should be consistent and accurate, but not yet widely utilized and/or checked for correctness.
+![](https://img.shields.io/badge/status-mature%20draft-yellow) -- Should be consistent and accurate, but not yet widely utilized and/or checked for correctness.
 
 ## Working Draft
 
-![status](https://img.shields.io/badge/status-working%20draft-red)
-
-Makes some sense, but could very well be inconsistent or confusing.
+![](https://img.shields.io/badge/status-working%20draft-red) -- Makes some sense, but could very well be inconsistent or confusing.
 
 ## Stub 
 
-![status](https://img.shields.io/badge/status-stub-red)
-
-Do not even bother reading.
+![](https://img.shields.io/badge/status-stub-red) -- Do not even bother reading.

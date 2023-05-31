@@ -30,5 +30,6 @@ articles:
   contents:
   - development_patterns
   - composing_simulation_models
-  - hello_products
+  - elementwise_binary_operators
   - state_dependent_rates
+  - hello_products
