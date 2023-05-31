@@ -1,0 +1,256 @@
+---
+title: "Specifying Time-Varying Parameters"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{Specifying Time-Varying Parameters}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+[![status](https://img.shields.io/badge/status-working%20draft-red)](https://canmod.github.io/macpan2/articles/vignette-status#working-draft)
+
+```{r pkgs, include = FALSE}
+library(macpan2)
+library(macpan2helpers)
+library(dplyr)
+library(ggplot2)
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Baseline SIR Model
+
+Here we modify an [SIR](https://canmod.github.io/macpan2/articles/quickstart) model so that transmission rate is time-varying.
+
+```{r baseline_sir}
+sir = Compartmental(system.file("starter_models", "sir", package = "macpan2"))
+simulator = sir$simulators$tmb(time_steps = 50
+  , state = c(S = 99, I = 1, R = 0)
+  , flow = c(foi = 0, gamma = 0.2)
+  , N = empty_matrix
+  , beta = 0.8
+)
+(simulator$report(.phases = "during")
+  %>% rename(state = row)
+  %>% mutate(state = factor(state, sir$labels$state()))
+  %>% ggplot() + geom_line(aes(time, value, colour = state))
+)
+
+```
+
+## Piecewise Time Variation
+
+We now change the value of the transmission rate, `beta`, at the beginning of time-step 10 and 15. In the first step we add to the simulator a vector containing these change-points.
+```{r change_points}
+simulator$add$matrices(beta_changepoints = c(0, 10, 15))
+```
+
+Next we add the values to which `beta` changes at these time-steps.
+```{r change_values}
+simulator$add$matrices(beta_values = c(0.8, 0.01, 0.4))
+```
+
+We also need a variable to track the current value of `beta`. This `beta_pointer` starts at time-step equal to 0, and it will be incremented throughout the simulation.
+```{r change_pointer}
+simulator$add$matrices(beta_pointer = 0)
+```
+
+We increment `beta_pointer` using the [`time_group` function](https://canmod.github.io/macpan2/reference/engine_functions.html#time-indexing) that returns either `beta_pointer` or `beta_pointer + 1` depending on whether or not the current time-step is at a change-point in `beta_changepoints`.
+```{r update_pointer}
+simulator$insert$expressions(
+    beta_pointer ~ time_group(beta_pointer, beta_changepoints), 
+    .phase = "during"
+)
+```
+
+We update `beta` at every iteration of the simulation loop using this `beta_pointer`.
+```{r update_beta}
+simulator$insert$expressions(
+  beta ~ beta_values[beta_pointer],
+  .phase = "during"
+)
+```
+
+And that's it.  Now we plot the updated simulations using these change-points, which we highlight with vertical lines.
+```{r time_varying_graph}
+s = simulator$report(.phases = "during")
+(s
+  %>% rename(state = row)
+  %>% mutate(state = factor(state, sir$labels$state()))
+  %>% ggplot()
+  + geom_line(aes(time, value, colour = state))
+  + geom_vline(
+    aes(xintercept = x), 
+    linetype = "dashed", 
+    alpha = 0.5, 
+    data = data.frame(x = simulator$get$initial("beta_changepoints"))
+  )
+)
+```
+
+## Calibrating Time Variation Parameters
+
+First we simulate data to fit our model to, to see if we can recover the time-varying parameters.
+```{r noisy_data}
+set.seed(1L)
+I_observed = rpois(
+  50, 
+  filter(s, matrix == "state", row == "I")$value
+)
+plot(I_observed)
+```
+
+Then we add a few matrices to the model for keeping tracking of information used in model fitting.
+```{r add_matrices}
+simulator$add$matrices(
+  
+  ## observed data
+  I_obs = I_observed,
+  
+  ## simulated trajectory to compare with data
+  I_sim = empty_matrix, 
+  
+  ## location of I in the state vector
+  ## (the `-1L` bit is to get 0-based indices instead of 1-based)
+  I_index = match("I", sir$labels$state()) - 1L, 
+  
+  ## matrix to contain the log likelihood values at 
+  ## each time step
+  log_lik = empty_matrix, 
+  
+  ## need to save the simulation history of each of these matrices
+  .mats_to_save = c("I_sim", "log_lik")
+)
+```
+
+Now we need some new expressions. The first expression pulls out the I state from the state vector.
+```{r pull_out_trajectory}
+simulator$insert$expressions(
+  I_sim ~ state[I_index],
+  .phase = "during"
+)
+```
+
+The second expression computes a vector of Poisson log-likelihood values -- one for each time step.
+```{r log_lik}
+simulator$insert$expressions(
+  log_lik ~ dpois(I_obs, clamp(rbind_time(I_sim))),
+  .phase = "after"
+)
+simulator$replace$obj_fn(~ -sum(log_lik))
+```
+
+Next we declare the beta values as parameters to be optimized on the log scale.
+```{r params}
+simulator$add$transformations(Log("beta_values"))
+simulator$replace$params(
+  default = log(mean(simulator$get$initial("beta_values"))),
+  mat = rep("log_beta_values", 3L),
+  row = 0:2
+)
+```
+
+Finally we fit the model back to the simulation data.
+```{r optimize}
+simulator$optimize$nlminb()
+```
+
+We can see that the optimizer converges (i.e. `$convergence = 0`) in 26 iterations.
+
+On the log scale we see that the optimizer finds different values (`current`) than it started at (`default`).
+```{r log_parameters}
+simulator$current$params_frame()
+```
+
+More importantly the beta values on the untransformed scale recover to the values used in the simulations, although the second fitted beta value is much smaller than the true value.
+```{r recovered_parameters}
+data.frame(
+  fitted = formatC(
+    exp(simulator$current$params_frame()$current),
+    format = "e", digits = 2
+  ),
+  true = simulator$get$initial("beta_values")
+)
+```
+
+
+## Smooth Time Variation (TODO)
+
+
+## Generalized Linear Models (TODO)
+
+
+## Generalized Linear Mixed Models (TODO)
+
+## Radial Basis Functions for Flexible Time Variation (In-Progress)
+
+First we need a method for computing a set of radial basis functions.
+
+```{r fig.height=10, fig.width=7}
+#' @param time_steps number of time steps in the model
+#' @param dimension number of gaussians in the basis
+#' @param scale width of the gaussians
+rbf = function(time_steps, dimension, scale = time_steps / dimension) {
+  s = scale
+  make_gaussian = function(m) function(x) exp(-((x - m)^2)/(2*s^2))
+  locations = seq(from = 0, to = time_steps + 0, length = dimension)
+  gaussians = lapply(locations, make_gaussian)
+  do.call(cbind, lapply(gaussians, do.call, list(0:time_steps)))
+}
+set.seed(1L)
+X = rbf(100, 30)
+b = rnorm(30)
+a = rnorm(1)
+par(mfrow = c(2, 1))
+plot(c(0, 100), c(0, 1), type = "n", xlab = "time")
+for (i in 1:30) lines(0:100, X[,i])
+#plot(0:100, rowSums(X), type = "l", xlab = "time")
+plot(0:100, plogis(a + (X %*% b)), type = "l", xlab = "time")
+```
+
+Then we may create a simulator with this time-varying transmission.
+
+```{r}
+sir = Compartmental(system.file("starter_models", "sir", package = "macpan2"))
+simulator_rbf = sir$simulators$tmb(time_steps = 50
+  , state = c(S = 99, I = 1, R = 0)
+  , flow = c(foi = 0, gamma = 0.2)
+  , N = empty_matrix
+  , beta = 0.8
+  , .mats_to_return = c("state", "beta")
+  , .mats_to_save = c("state", "beta")
+)
+set.seed(7L)
+simulator_rbf$add$matrices(
+    X = rbf(simulator_rbf$tmb_model$time_steps$time_steps, 10)
+  , b = rnorm(10)
+  , a = rnorm(1)
+  , beta_values = empty_matrix
+)
+simulator_rbf$insert$expressions(
+  beta_values ~ 1 / (1 + exp(-(a + (X %*% b)))), 
+  .phase = "before"
+)
+simulator_rbf$insert$expressions(
+  beta ~ beta_values[time_step(0) - 1],
+  .phase = "during"
+)
+```
+
+
+Then simulate,
+
+```{r}
+(simulator_rbf$report(.phases = "during")
+ %>% filter(row == "I" | matrix == "beta")
+ %>% ggplot()
+ + facet_wrap(~ matrix, ncol = 1, scales = 'free')
+ + geom_line(aes(time, value))
+)
+```

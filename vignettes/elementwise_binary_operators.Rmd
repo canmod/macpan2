@@ -1,15 +1,15 @@
 ---
-title: "Elementwise Binary Operators in the McMasterPandemic Engine"
+title: "Elementwise Binary Operators"
 output: 
   rmarkdown::html_vignette:
     toc: true
 vignette: >
-  %\VignetteIndexEntry{Elementwise Binary Operators in the McMasterPandemic Engine}
+  %\VignetteIndexEntry{Elementwise Binary Operators}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-[![status](https://img.shields.io/badge/status-working%20draft-red)](https://img.shields.io/badge/status-working%20draft-red)
+[![status](https://img.shields.io/badge/status-working%20draft-red)](https://canmod.github.io/macpan2/articles/vignette-status#working-draft)
 
 ```{r, include = FALSE}
 library(macpan2)
@@ -22,7 +22,7 @@ set.seed(1L)
 
 ## The Problem
 
-In the `C++` engine every variable is a matrix.  In this simple situation where every variable is a matrix, elementwise binary operations can be defined to have very convenient properties.  The problem is that these properties are not standard in `R`, probably because it is not the case that all numeric variables are matrices.  Differences between standard `R` mathematical functions and the McMasterPandemic `C++` engine make it more difficult to test the engine.  This document describes how to use `R` so that elementwise binary operators are comparable with those in the engine.
+In the `C++` [engine](https://canmod.github.io/macpan2/articles/cpp_side) every variable is a matrix.  In this simple situation where every variable is a matrix, elementwise binary operations can be defined to have very convenient properties.  The problem is that these properties are not standard in `R`, probably because it is not the case that all numeric variables are matrices.  Differences between standard `R` mathematical functions and the McMasterPandemic `C++` engine make it more difficult to test the engine.  This document describes how to use `R` so that elementwise binary operators are comparable with those in the engine.
 
 Consider the following three related matrices.
 ```{r}

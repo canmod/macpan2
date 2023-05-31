@@ -1,0 +1,133 @@
+---
+title: "Development Principles and Patterns"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{Develoment Principles and Patterns}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+[![status](https://img.shields.io/badge/status-stub-red)](https://canmod.github.io/macpan2/articles/vignette-status#stub)
+
+## Principles
+
+There will be trade-offs among these principles, but they are good guidelines.
+
+### Small Classes
+
+You should be able to see the whole constructor definition on a single screen -- it is OK if it doesn't happen though.
+
+### Avoid Modifying Well-Tested Classes
+
+Extension is better done by introducing new classes, rather than new methods.  Big classes are hard to reason about, test, and stabilize.
+
+### Linear Inheritance
+
+Classes should not inherit from multiple parents. 
+
+### Shallow Inheritance Hierarchy
+
+Parent classes may have multiple children, but in these cases the hierarchy should be shallow and simple. For example, consider alternatives if some children inherit directly from an intermediate parent. When things like this start to happen, it is usually best to just extend the intermediate parent so that it can inherit directly from the `Base` class.
+
+### Balance Regeneration with Consistency
+
+A naive approach to keeping the components of objects consistent is to regenerate the object with every change. But continual regeneration can be expensive. It is best to avoid this trade-off as much as possible by making fields that are cheap to compute into methods that always recompute what the user is asking for. But some fields are too expensive to regenerate and therefore need to be stored and only regenerated when necessary.
+
+## Patterns
+
+Here are some design patterns for complying with these principles.
+
+### Alternative Classes
+
+Alterative versions of a class have the same set of methods as the initial version. It needs change then it becomes easy to swap out one alterative for another. For example, the `Reader()` classes all have a single method -- `$read()` -- without arguments. Therefore, any bit of functionality that requires data to be read in can be modified simply by writing a new reader and swapping it in for the old one, without needing to modify any of the code that calls the `$read()` method. The methods in alternative classes should return the same type of object, but obviously the return value itself can and should vary.
+
+### Types of Object Components
+
+There should only be the following types of object components.
+
+1. Standard methods -- Methods computing and returning values derived from arguments to the constructor
+2. Composition -- Objects with further fields and methods
+3. Args -- Fields storing arguments to the constructor
+4. Static -- Fields storing values derived from arguments to the constructor
+5. A `$refesh()` method that can be called to update #3 components in-place
+6. Private methods -- Methods that should only be called by other methods in the class
+
+How to decide what kind of component to use for each piece of information will depend on the following considerations.
+
+Standard methods should only be used if they are cheap to run, so that regeneration and consistency are balanced. But this pattern is generally the preferred option, because it is simplest to reason about and maintain because it more directly ensures consistency.
+
+Composition of objects and classes looks like this.
+
+```{r, eval = FALSE}
+A = function(...) {
+  ...
+  self$b = B(self)
+  ...
+}
+...
+B = function(a) {
+  ...
+  self$a = a
+  ...
+}
+```
+
+Then other developers and users can do the following.
+
+```{r, eval = FALSE}
+a = A(...)
+a$b$method(...)
+```
+
+This keeps classes small because `B` can have methods instead of `A`, and small classes are easier to test and stabilize.  Testing of `A` can focus on the methods directly in `A`, and then `A` can be extended by composing new classes like `B`.
+
+Static fields should be used if they are expensive to compute. Consistency can be managed by producing static fields in a `$refresh()` method -- this is a good way to balance regeneration with consistency. This way, developers of other classes that are composed components can make use of the `$refresh()` method to reliably keep everything up-to-date and consistent. In this way static fields and `$refresh()` methods work together to balance the cost of regeneration with the necessity of consistency.
+
+In the constructor, this `$refresh()` pattern looks like this.
+
+```{r, eval = FALSE}
+A = function(...) {
+  ...
+  self$refresh = function() {
+    self$expensive_field_1 = f_1(...)
+    ...
+    self$expensive_field_n = f_n(...)
+  }
+  self$refresh()
+  ...
+  self$b = B(a)
+}
+...
+B = function(a) {
+  ...
+  self$a = a  ## an instance of `A`
+  ...
+  self$method_to_modify_a = function(...) {...}
+  self$a$refresh()
+  ...
+}
+```
+
+Private methods should only be used by other methods in the class. There is nothing stoping a developer or a user from calling a private method, but there is no guarantee that the private method with have consistent behaviour or even exist.  To communicate privacy, private methods should start with a dot as the following example shows.
+
+```{r, eval = FALSE}
+A = function(...) {
+  ...
+  self$.private = function(...) {...}
+  ...
+  self$public = function(...) {
+    ...
+    self.private(...)
+    ...
+  }
+}
+```

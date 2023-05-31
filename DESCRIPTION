@@ -12,7 +12,7 @@ Authors@R: c(
 Description: Fast and flexible compartmental modelling with template model builder.
 License: GPL-3
 Depends:
-    R (>= 3.5.0),
+    R (>= 4.1.0),
 Imports: 
     TMB,
     oor,
@@ -27,7 +27,8 @@ Suggests:
     testthat (>= 3.0.0),
     htmltools,
     visNetwork,
-    macpan2helpers
+    macpan2helpers,
+    kableExtra
 LinkingTo:
     TMB,
     RcppEigen,

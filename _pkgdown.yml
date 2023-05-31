@@ -5,3 +5,31 @@ navbar:
   structure:
     left:  [intro, reference, articles, tutorials, news]
     right: [search, github]
+home:
+  sidebar:
+    structure: [toc, links, license, community, citation, authors, dev]
+  links:
+  - text: Roadmap
+    href: https://github.com/orgs/canmod/projects/2
+articles:
+- title: Quick Start
+  navbar: ~
+  contents:
+  - quickstart
+  - quickstart2
+  - time_varying_parameters
+  - example_models
+- title: Specs
+  desc: Specification documents
+  contents:
+  - cpp_side
+  - model_definitions
+  - vignette_status
+- title: Developer
+  desc: Vignettes aimed at package developers
+  contents:
+  - development_patterns
+  - composing_simulation_models
+  - elementwise_binary_operators
+  - state_dependent_rates
+  - hello_products

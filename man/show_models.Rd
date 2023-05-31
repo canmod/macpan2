@@ -18,7 +18,7 @@ show_models(
 a data frame containing entries \code{dir} (model directory), \code{title} (model title), \code{index_entry} (short description)
 }
 \description{
-Collections information from the headers of the README files in the model directories
+Collects information from the headers of the README files in the model directories
 and returns the results as a data frame
 }
 \examples{

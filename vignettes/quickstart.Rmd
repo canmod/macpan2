@@ -11,7 +11,7 @@ editor_options:
   chunk_output_type: console
 ---
 
-[![status](https://img.shields.io/badge/status-mature%20draft-yellow)](https://img.shields.io/badge/status-mature%20draft-yellow)
+[![status](https://img.shields.io/badge/status-mature%20draft-yellow)](https://canmod.github.io/macpan2/articles/vignette-status#mature-draft)
 
 ```{r pkgs, include = FALSE}
 library(macpan2)
@@ -43,7 +43,7 @@ show_visnet <- function(vn) {
 }
 ```
 
-This quickstart guide is meant to show a new user how to specify and simulate a simple compartmental model in `macpan2`. 
+This quickstart guide is meant to show a new user how to specify and simulate a simple compartmental model in `macpan2`, which can be [installed like this](https://github.com/canmod/macpan2/#installation).
 
 `macpan2` is extremely flexible in how models are specified, and so there can be several equivalent ways of specifying the same model. This feature is important to keep in mind when trying to understand or build more complicated models, such as the one demonstrated in Quickstart Guide, part 2 (see `vignette('quickstart2', package = 'macpan2')`).
 
@@ -73,7 +73,7 @@ The simplest is [the SIR model](https://en.wikipedia.org/wiki/Compartmental_mode
 print(sir_dir <- system.file("starter_models", "sir", package = "macpan2"))
 ```
 
-In this article, we work through the specification and simulation of the SIR sample model.
+In this article, we work through the specification and simulation of the SIR sample model. You can discover [more examples here](https://canmod.github.io/macpan2/articles/example_models).
 
 ### variables.csv {#variables}
 
