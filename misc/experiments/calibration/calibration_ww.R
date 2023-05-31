@@ -1,9 +1,17 @@
-# I have set this script up so that it should run. If you want to produce the error, uncomment line 188.
+# Currently this script runs on my computer once or twice. 
+# Usually on the second source in the same session, it breaks (sometimes the third).
 
 library(macpan2)
 library(dplyr)
 library(tidyverse)
 library(lubridate)
+
+breakpoint_dates = c(ymd(20200310), ymd(20200330), ymd(20200419), ymd(20200608),
+                     ymd(20200713), ymd(20200728), ymd(20200827), ymd(20201016),
+                     ymd(20201115), ymd(20210124), ymd(20210213), ymd(20210305),
+                     ymd(20210330), ymd(20210504), ymd(20210514))
+
+breakpoint_times = interval(ymd(20200310), breakpoint_dates) %/% days() + 1
 
 # get macpan_base model with additional wastewater compartments
 macpan_ww = Compartmental(file.path("../../../", "inst", "starter_models", "ww"))
@@ -22,8 +30,8 @@ state["S"] = 999995; state["E"] = 3; state["Ia"] = 1; state["Im"] = 1;
 flow = zero_vector(macpan_ww$labels$flow())
 
 # get simulator with initial states as in ICU1.csv
-simulator = macpan_ww$simulators$tmb(
-  time_steps = 100L
+simulator <- macpan_ww$simulators$tmb(
+  time_steps = 460L
   , state = state
   , flow = flow
   , alpha = 1/3
@@ -79,9 +87,12 @@ clean_data <- (champ_data
 obs_W = (clean_data %>% filter(var == "W"))$value
 obs_W_time_steps = (clean_data %>% filter(var == "W"))$time
 
+# get observed hosp_occ vector and the corresponding time vector
+obs_H = (clean_data %>% filter(var == "H"))$value
+obs_H_time_steps = (clean_data %>% filter(var == "H"))$time
+
 # obs_report = (clean_data %>% filter(var == "report"))$value
 # obs_report_time_steps = (clean_data %>% filter(var == "report"))$time
-
 
 # the following code is used if we are calibrating to simulated data instead of observed data:
 # sims = simulator$report(.phases = "during")
@@ -106,14 +117,26 @@ simulator$add$matrices(
   obs_W = obs_W
   , obs_W_time_steps = obs_W_time_steps
   , W_sd = 1
+  , obs_H = obs_H
+  , obs_H_time_steps = obs_H_time_steps
+  , H_sd = 1
   # , obs_report = obs_report
   # , obs_report_time_steps = obs_report_time_steps
   , simulated_W = empty_matrix
+  , simulated_H = empty_matrix
   # , simulated_report = empty_matrix
   , log_lik = empty_matrix
-  , .mats_to_save = c("simulated_W", "total_inflow") # "simulated_report"
-  , .mats_to_return = c("log_lik", "simulated_W", "total_inflow") # "simulated_report"
+  , .mats_to_save = c("simulated_W", "simulated_H", "total_inflow") # "simulated_report"
+  , .mats_to_return = c("log_lik", "simulated_W", "simulated_H", "total_inflow") # "simulated_report"
   #, .dimnames = list(total_inflow = list(macpan_ww$labels$state(), ""))
+)
+simulator$print$matrix_dims()
+
+# add time varying parameter tools
+simulator$add$matrices(
+  beta_changepoints = breakpoint_times # c(0,10,20,30,40,50,100,200,300) #breakpoint_times
+  , beta_values = c(0.8, 0.01, 0.2, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.1, 0.11, 0.12)
+  , beta_pointer = 0
 )
 simulator$print$matrix_dims()
 
@@ -127,6 +150,24 @@ simulator$insert$expressions(
   trajectory = simulated_W ~ W
   , .at = Inf  ## place the inserted expressions at the end of the expression list
   , .phase = "during"
+)
+simulator$print$expressions()
+
+simulator$insert$expressions(
+  trajectory = simulated_H ~ H
+  , .at = Inf  ## place the inserted expressions at the end of the expression list
+  , .phase = "during"
+)
+simulator$print$expressions()
+
+# add time-varying parameter expressions
+simulator$insert$expressions(
+  beta_pointer ~ time_group(beta_pointer, beta_changepoints),
+  .phase = "during"
+)
+simulator$insert$expressions(
+  beta0 ~ beta_values[beta_pointer],
+  .phase = "during"
 )
 simulator$print$expressions()
 
@@ -147,9 +188,10 @@ simulator$insert$expressions(
         log(clamp(rbind_time(simulated_W, obs_W_time_steps))),  ## simulated values
         W_sd
       )
-      # + dpois(
-      #   obs_H,
-      #   rbind_time(simulated_H, obs_H_time_steps)
+      # + dnorm(
+      #   log(obs_H),
+      #   log(clamp(rbind_time(simulated_H, obs_H_time_steps))),
+      #   H_sd
       # )
     )
   , .at = Inf
@@ -164,35 +206,60 @@ simulator$replace$obj_fn(~ -sum(log_lik))
 ## Step 5: declare (and maybe transform) parameters to be optimized,
 ##         as well as starting values for the parameters to be optimized
 
-# simulator$add$matrices(
-#   log_beta0 = log(0.6)
-#   #, log_xi = log(0.6)
-#   #, logit_gamma = qlogis(0.4)
-# )
-#
-# simulator$insert$expressions(
-#   beta0 ~ exp(log_beta0)
-#   #, xi ~ exp(log_xi)
-#   #, gamma ~ 1 / (1 + exp(-logit_gamma))
-#   , .phase = "before"
-# )
+#simulator$add$transformations(Log("beta0"))
 
-simulator$add$transformations(Log("beta0"))
+simulator$add$transformations(Log("beta_values"))
 simulator$add$transformations(Log("W_sd"))
+#simulator$add$transformations(Log("H_sd"))
 simulator$replace$params(
-  default = c(log(0.6), 0), # qlogis(0.4)),
-  mat = c("log_beta0", "log_W_sd") #, "logit_gamma")
+  default = c(rep(log(mean(simulator$get$initial("beta_values"))), 15), 1), #, 1),
+  mat = c(rep("log_beta_values", 15), "log_W_sd"), #, "log_H_sd"), #length(breakpoint_times)
+  row = 0:15 # 16 #length(breakpoint_times)
 )
-
-# simulator$replace$random(
-#   default = qlogis(0.2),
-#   mat = "logit_gamma"
-# )
 
 simulator$print$expressions()
 
 ## Step 6: use the engine object
 plot(obs_W_time_steps, obs_W)
+
+simulator$optimize$nlminb()
+#simulator$optimize$optim()
+simulator$current$params_frame()
+
+lines(1:460, filter(simulator$report(.phases = "during"), matrix == "state", row == "W")$value, col = "red")
+
+# simulator$cache$invalidate()
+# lines(1:460, filter(simulator$report(.phases = "during"), matrix == "state", row == "W")$value, col = "red")
+#simulator$optimization_history$get()
+
+
+
+
+# extra code
+
+#simulator$add$transformations(Log("W_sd"))
+# simulator$replace$params(
+#   default = c(log(mean(simulator$get$initial("beta_values"))), 0),
+#   mat = c(rep("log_beta_values", 11L), "log_W_sd")#,
+#   #row = 0:2
+# )
+
+# simulator$add$transformations(Log("W_sd"))
+# simulator$replace$params(
+#   default = 0,
+#   mat = "log_W_sd"
+# )
+
+
+# simulator$replace$params(
+#   default = c(log(0.6), 0), # qlogis(0.4)),
+#   mat = c("log_beta0", "log_W_sd") #, "logit_gamma")
+# )
+
+# simulator$replace$random(
+#   default = qlogis(0.2),
+#   mat = "logit_gamma"
+# )
 
 ## THIS IS WHERE ERROR OCCURS, MACPAN ERROR #245:
 ## cannot recycle rows and/or columns because the
@@ -202,16 +269,8 @@ plot(obs_W_time_steps, obs_W)
 
 #simulator$report()
 
+
 # (simulator$report()
 #   %>% filter(matrix == "simulated_W")
 #   %>% View
 # )
-simulator$optimize$nlminb()
-simulator$optimize$optim()
-simulator$current$params_frame()
-
-
-# lines(1:100, filter(simulator$report(.phases = "during"), matrix == "state", row == "W")$value)
-# simulator$cache$invalidate()
-# lines(1:100, filter(simulator$report(.phases = "during"), matrix == "state", row == "W")$value, col = "red")
-# simulator$optimization_history$get()
