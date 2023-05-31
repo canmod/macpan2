@@ -1,4 +1,4 @@
-# Currently this script runs on my computer once or twice. 
+# Currently this script runs on my computer once or twice.
 # Usually on the second source in the same session, it breaks (sometimes the third).
 
 library(macpan2)
@@ -211,11 +211,12 @@ simulator$replace$obj_fn(~ -sum(log_lik))
 simulator$add$transformations(Log("beta_values"))
 simulator$add$transformations(Log("W_sd"))
 #simulator$add$transformations(Log("H_sd"))
-simulator$replace$params(
-  default = c(rep(log(mean(simulator$get$initial("beta_values"))), 15), 1), #, 1),
-  mat = c(rep("log_beta_values", 15), "log_W_sd"), #, "log_H_sd"), #length(breakpoint_times)
-  row = 0:15 # 16 #length(breakpoint_times)
-)
+simulator$replace$params_frame(readr::read_csv("opt_parameters.csv"))
+# simulator$replace$params(
+#   default = c(rep(log(mean(simulator$get$initial("beta_values"))), 15), 1), #, 1),
+#   mat = c(rep("log_beta_values", 15), "log_W_sd"), #, "log_H_sd"), #length(breakpoint_times)
+#   row = c(0:14, 0) # 16 #length(breakpoint_times)
+# )
 
 simulator$print$expressions()
 
