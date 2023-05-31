@@ -124,6 +124,8 @@ simulator$add$matrices(
   # , obs_report_time_steps = obs_report_time_steps
   , simulated_W = empty_matrix
   , simulated_H = empty_matrix
+  #, simulated_Adm = empty_matrix
+  #, simulated_reports = empty_matrix
   # , simulated_report = empty_matrix
   , log_lik = empty_matrix
   , .mats_to_save = c("simulated_W", "simulated_H", "total_inflow") # "simulated_report"
@@ -160,6 +162,20 @@ simulator$insert$expressions(
 )
 simulator$print$expressions()
 
+# simulator$insert$expressions(
+#   trajectory = simulated_Adm ~ total_inflow[7]  ## 7 corresponds to H in this case
+#   , .at = Inf  ## place the inserted expressions at the end of the expression list
+#   , .phase = "during"
+# )
+# simulator$print$expressions()
+#
+# simulator$insert$expressions(
+#   trajectory = simulated_reports ~ 0.1 * total_inflow[1]  ## 1 corresponds to E in this case -- this `0.1 *` bit needs to be replaced by a convolution
+#   , .at = Inf  ## place the inserted expressions at the end of the expression list
+#   , .phase = "during"
+# )
+# simulator$print$expressions()
+
 # add time-varying parameter expressions
 simulator$insert$expressions(
   beta_pointer ~ time_group(beta_pointer, beta_changepoints),
@@ -170,6 +186,17 @@ simulator$insert$expressions(
   .phase = "during"
 )
 simulator$print$expressions()
+
+
+# match("H", macpan_ww$labels$state()) - 1L  ## plug this into the square brackets for total_inflow below to get inflow into H
+# match("E", macpan_ww$labels$state()) - 1L  ## plug this into the square brackets for total_inflow below to get inflow into E
+# simulator$insert$expressions(
+#     #X ~ X + IsH
+#     #hosp ~ X - lag(X)
+#     hosp ~ Is * IsH
+#     total_inflow[7]  ## this is admissions
+#     0.1 * total_inflow[1]  ## this is incidence
+# )
 
 ## Step 3: compute any values that will be part of the
 ##         objective function to be optimized. here we
