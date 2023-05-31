@@ -15,7 +15,6 @@ all:
 	make pkg-install
 	make pkg-check
 
-
 # Use this rule if you are doing R development or want to promote
 # on dev.cpp to macpan2.cpp before doing R development.
 full-install:
@@ -33,6 +32,8 @@ full-install:
 quick-install: enum-update
 	R CMD INSTALL --no-multiarch --install-tests .
 
+install-deps:
+	Rscript -e "remotes::install_github('canmod/oor')"
 
 quick-doc-install: R/*.R misc/dev/dev.cpp
 	make engine-doc-update
