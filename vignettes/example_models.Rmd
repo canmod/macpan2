@@ -31,7 +31,7 @@ show_models()
 kableExtra::kable(show_models())
 ```
 
-There are three things that you can do with the items on this list: reading them, using them, and modifying them.
+There are three things that you can do with the items on this list: read them, use them, and modify them.
 
 ## Reading Examples
 

@@ -5,6 +5,12 @@ navbar:
   structure:
     left:  [intro, reference, articles, tutorials, news]
     right: [search, github]
+home:
+  sidebar:
+    structure: [toc, links, license, community, citation, authors, dev]
+  links:
+  - text: Roadmap
+    href: https://github.com/orgs/canmod/projects/2
 articles:
 - title: Quick Start
   navbar: ~
@@ -24,7 +30,5 @@ articles:
   contents:
   - development_patterns
   - composing_simulation_models
-  - elementwise_binary_operators
-  - functions
   - hello_products
   - state_dependent_rates
