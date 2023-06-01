@@ -842,9 +842,9 @@ equals <code>flow</code>.</li>
 <span><span class="co">#&gt; 5 gamma</span></span>
 <span><span class="co">#&gt; 6   foi</span></span></code></pre>
 <p>We would have the following <code>flows.csv</code> file.</p>
-<pre><code><span><span class="co">#&gt;   from to flow_component component_type</span></span>
-<span><span class="co">#&gt; 1    S  I            foi           rate</span></span>
-<span><span class="co">#&gt; 2    I  R          gamma           rate</span></span></code></pre>
+<pre><code><span><span class="co">#&gt;   from to  flow       type</span></span>
+<span><span class="co">#&gt; 1    S  I   foi per_capita</span></span>
+<span><span class="co">#&gt; 2    I  R gamma per_capita</span></span></code></pre>
 <p>Notice that all state variables appear in this table, and that it
 contains no parameters. This is the mechanism for encoding whether a
 model variable is a state variables or a parameter.</p>
@@ -865,14 +865,14 @@ model variable is a state variables or a parameter.</p>
 <span><span class="co">#&gt; 12       dose_rate</span></span></code></pre>
 <p>The <code>flows</code> data frame for these variables could look like
 the following.</p>
-<pre><code><span><span class="co">#&gt;      from      to flow_component component_type</span></span>
-<span><span class="co">#&gt; 1 S.unvax I.unvax      foi.total           rate</span></span>
-<span><span class="co">#&gt; 2 I.unvax R.unvax         gamma.           rate</span></span>
-<span><span class="co">#&gt; 3   S.vax   I.vax      foi.total           rate</span></span>
-<span><span class="co">#&gt; 4   I.vax   R.vax         gamma.           rate</span></span>
-<span><span class="co">#&gt; 5 S.unvax   S.vax     .dose_rate           rate</span></span>
-<span><span class="co">#&gt; 6 I.unvax   I.vax     .dose_rate           rate</span></span>
-<span><span class="co">#&gt; 7 R.unvax   R.vax     .dose_rate           rate</span></span></code></pre>
+<pre><code><span><span class="co">#&gt;      from      to       flow       type</span></span>
+<span><span class="co">#&gt; 1 S.unvax I.unvax  foi.total per_capita</span></span>
+<span><span class="co">#&gt; 2 I.unvax R.unvax     gamma. per_capita</span></span>
+<span><span class="co">#&gt; 3   S.vax   I.vax  foi.total per_capita</span></span>
+<span><span class="co">#&gt; 4   I.vax   R.vax     gamma. per_capita</span></span>
+<span><span class="co">#&gt; 5 S.unvax   S.vax .dose_rate per_capita</span></span>
+<span><span class="co">#&gt; 6 I.unvax   I.vax .dose_rate per_capita</span></span>
+<span><span class="co">#&gt; 7 R.unvax   R.vax .dose_rate per_capita</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="flows-in-structured-models">Flows in Structured Models<a class="anchor" aria-label="anchor" href="#flows-in-structured-models"></a>
@@ -895,8 +895,8 @@ example, the following line clearly tells me that unvaccinated exposed
 individuals flow to unvaccinated infectious individuals with mild
 symptoms at a rate that is independent of both vaccination status and
 symptomatic status.</p>
-<pre><code><span><span class="co">#&gt;       from           to    flow flow_type</span></span>
-<span><span class="co">#&gt; 1 E..unvax I.mild.unvax alpha..      rate</span></span></code></pre>
+<pre><code><span><span class="co">#&gt;       from           to    flow       type</span></span>
+<span><span class="co">#&gt; 1 E..unvax I.mild.unvax alpha.. per_capita</span></span></code></pre>
 <p>In this section we add more columns to the data structure for
 encoding model structure. These additional columns make it possible to
 shorten the list and retain model structure information, at the cost of
@@ -907,8 +907,8 @@ to go from unstructured to structured.</p>
 <p>The first three additional columns contain partition sets to resolve
 the names in <code>from</code>, <code>to</code>, and <code>flow</code>.
 Consider the following example.</p>
-<pre><code><span><span class="co">#&gt;   from to flow flow_type from_partition to_partition flow_partition</span></span>
-<span><span class="co">#&gt; 1    S  E  foi      rate            Epi          Epi            Epi</span></span></code></pre>
+<pre><code><span><span class="co">#&gt;   from to flow       type from_partition to_partition flow_partition</span></span>
+<span><span class="co">#&gt; 1    S  E  foi per_capita            Epi          Epi            Epi</span></span></code></pre>
 <p>Consider this example within the context of an SEIR model stratified
 by two vaccination status’. In this case this data structure does not
 allow us to distinguish between models where <code>S.unvax</code> flows
@@ -916,8 +916,8 @@ only to <code>E.unvax</code> from one where it is also allowed to flow
 to <code>E.vax</code>. To address this problem, we need three more
 partition columns for matching up valid <code>S</code>-<code>E</code>
 pairs. The following table provides an example of this.</p>
-<pre><code><span><span class="co">#&gt;   from to flow flow_type from_partition to_partition flow_partition</span></span>
-<span><span class="co">#&gt; 1    S  E  foi      rate            Epi          Epi            Epi</span></span>
+<pre><code><span><span class="co">#&gt;   from to flow       type from_partition to_partition flow_partition</span></span>
+<span><span class="co">#&gt; 1    S  E  foi per_capita            Epi          Epi            Epi</span></span>
 <span><span class="co">#&gt;   from_to_partition from_flow_partition to_flow_partition</span></span>
 <span><span class="co">#&gt; 1               Vax</span></span></code></pre>
 </div>
