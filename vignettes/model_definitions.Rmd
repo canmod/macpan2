@@ -451,8 +451,8 @@ We would have the following `flows.csv` file.
 data.frame(
   from = c("S", "I"), 
   to = c("I", "R"),
-  flow_component = c("foi", "gamma"),
-  component_type = "rate"
+  flow = c("foi", "gamma"),
+  type = "per_capita"
 )
 ```
 
@@ -471,11 +471,11 @@ The `flows` data frame for these variables could look like the following.
 data.frame(
   from = c("S.unvax", "I.unvax", "S.vax", "I.vax", "S.unvax", "I.unvax", "R.unvax"),
   to = c("I.unvax", "R.unvax", "I.vax", "R.vax", "S.vax", "I.vax", "R.vax"),
-  flow_component = c(
+  flow = c(
     rep(c("foi.total", "gamma."), 2L),
     rep(".dose_rate", 3L)
   ),
-  component_type = "rate"
+  type = "per_capita"
 )
 ```
 
@@ -485,7 +485,7 @@ Structured models can have a large number of flows making the above `flows` data
 
 On the other hand, the benefit of the more explicit data structure in [Flows between Compartments] is that it is easy to read each line. For example, the following line clearly tells me that unvaccinated exposed individuals flow to unvaccinated infectious individuals with mild symptoms at a rate that is independent of both vaccination status and symptomatic status.
 ```{r echo = FALSE}
-data.frame(from = "E..unvax", to = "I.mild.unvax", flow = "alpha..", flow_type = "rate")
+data.frame(from = "E..unvax", to = "I.mild.unvax", flow = "alpha..", type = "per_capita")
 ```
 
 In this section we add more columns to the data structure for encoding model structure. These additional columns make it possible to shorten the list and retain model structure information, at the cost of making the meaning of each line more difficult to decode. However, if required, as we will see, the structured version can always be converted to the simpler but longer unstructured version. But it is not possible to go from unstructured to structured.
@@ -493,7 +493,7 @@ In this section we add more columns to the data structure for encoding model str
 The first three additional columns contain partition sets to resolve the names in `from`, `to`, and `flow`.  Consider the following example.
 ```{r echo = FALSE}
 data.frame(
-  from = "S", to = "E", flow = "foi", flow_type = "rate",
+  from = "S", to = "E", flow = "foi", type = "per_capita",
   from_partition = "Epi",
   to_partition = "Epi",
   flow_partition = "Epi"
@@ -502,7 +502,7 @@ data.frame(
 Consider this example within the context of an SEIR model stratified by two vaccination status'. In this case this data structure does not allow us to distinguish between models where `S.unvax` flows only to `E.unvax` from one where it is also allowed to flow to `E.vax`. To address this problem, we need three more partition columns for matching up valid `S`-`E` pairs. The following table provides an example of this.
 ```{r echo = FALSE}
 data.frame(
-  from = "S", to = "E", flow = "foi", flow_type = "rate",
+  from = "S", to = "E", flow = "foi", type = "per_capita",
   from_partition = "Epi",
   to_partition = "Epi",
   flow_partition = "Epi",
