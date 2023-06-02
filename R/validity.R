@@ -35,22 +35,25 @@ are_matrix_list_names = function(x) {
 ## ΤΟDO: make this a wrapper for a function that takes a params data frame
 ## and matrix dimensions and checks consistency, so that consistency can be
 ## checked before updating the params in a tmb_model
-init_el_valid_pars = function(tmb_model) {
-  par_dim_summary = merge(
-    tmb_model$params$data_frame(),
-    tmb_model$init_mats$mat_dims(),
-    all.x = TRUE
-  )
-  valid_pars = with(par_dim_summary, (row < nrow) & (col < ncol))
-  if (any(!valid_pars)) {
-    stop(
-      "\nMatrices involved in model parameterization must contain the right",
-      "\nrows and columns within which to insert each parameter.",
-      "\nHowever, the following matrix-parameter pairs fail this test:\n",
-      frame_formatter(par_dim_summary[!valid_pars, , drop = FALSE])
+p_or_r_consistency_opt_mat = function(parameter_type = c("params", "random")){
+  parameter_type = match.arg(parameter_type)
+  function(tmb_model) {
+    par_dim_summary = merge(
+      tmb_model[[parameter_type]]$data_frame(),
+      tmb_model$init_mats$mat_dims(),
+      all.x = TRUE
     )
+    valid_pars = with(par_dim_summary, (row < nrow) & (col < ncol))
+    if (any(!valid_pars)) {
+      stop(
+        "\nMatrices involved in model parameterization must contain the right",
+        "\nrows and columns within which to insert each parameter.",
+        "\nHowever, the following matrix-parameter pairs fail this test:\n",
+        frame_formatter(par_dim_summary[!valid_pars, , drop = FALSE])
+      )
+    }
+    TRUE
   }
-  TRUE
 }
 
 AllValid = function(..., .msg = "") {
@@ -70,7 +73,7 @@ AllValid = function(..., .msg = "") {
   self$check = function(x) {
     for (valid in self$validity_objects) {
       test_result = try(valid$check(x), silent = TRUE)
-      if (!test_result) {
+      if (!isTRUE(test_result)) {
         message(.msg)
         stop(test_result)
       }
@@ -229,8 +232,27 @@ BaseValidity = function() {
   return_object(self, "BaseValidity")
 }
 
-TMBAdaptorValidity <- function() {
+TMBConsistency = function() {
+  ## consistency among TMBModel components
   self = BaseValidity()
+  self$consistency_params_mats = ValidityMessager(
+    p_or_r_consistency_opt_mat("params"),
+    "optimization parameters are not consistent with matrices"
+  )
+  self$consistency_random_mats = ValidityMessager(
+    p_or_r_consistency_opt_mat("random"),
+    "random-effect parameters are not consistent with matrices"
+  )
+  self$tmb_model = AllValid(
+    self$consistency_params_mats,
+    self$consistency_random_mats,
+    .msg = "TMB model components are not consistent"
+  )
+  return_object(self, "TMBConsistency")
+}
+
+TMBAdaptorValidity <- function() {
+  self = TMBConsistency()
   # model component validity
   self$matrix_list_names = function() {
     ValidityMessager(
@@ -342,10 +364,6 @@ TMBAdaptorValidity <- function() {
     .msg = "expression information passed to c++ is not valid"
   )
 
-  self$tmb_model = ValidityMessager(
-    init_el_valid_pars,
-    "TMB model is not valid"
-  )
   self$mats_list = AllValid( ## never called! this means that matrices are not yet checked for name validity
     self$all_matrices,
     self$all_numeric,

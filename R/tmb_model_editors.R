@@ -168,6 +168,7 @@ TMBSimulatorReplacer = function(simulator) {
   self$params_frame = function(frame) {
     self$model$params = OptParamsFrame(frame, self$model$init_mats$.dimnames)
     self$simulator$cache$invalidate()
+    valid$consistency_params_mats$check(self$model)
     invisible(self$simulator)
   }
   self$params = function(default, mat, row = 0L, col = 0L) {
@@ -176,6 +177,7 @@ TMBSimulatorReplacer = function(simulator) {
   self$random_frame = function(frame) {
     self$model$random = OptParamsFrame(frame, self$model$init_mats$.dimnames)
     self$simulator$cache$invalidate()
+    valid$consistency_random_mats$check(self$model)
     invisible(self$simulator)
   }
   self$random = function(default, mat, row = 0L, col = 0L) {

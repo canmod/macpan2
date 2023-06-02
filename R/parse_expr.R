@@ -128,8 +128,6 @@ make_expr_parser = function(
     for (expr_id in not_reduced_id) {x = reduce_expr(x, expr_id)}
 
     # recursively call to check if the reduction process is complete
-    # TODO: prove that infinite recursion is not possible
-    #writeLines(ls(parent.frame()), "~/Development/macpan2/misc/testing.txt")
     do.call(get(parser_name, parent.frame()), list(x))
   }
 }
@@ -234,15 +232,7 @@ get_indices = function(x, vec, vec_type, expr_as_string, zero_based = FALSE) {
       pointers
     )
   }
-  one_based = apply(
-    outer(
-      as.character(x),
-      vec,
-      "=="
-    ),
-    1,
-    which
-  )
+  one_based = apply(outer(as.character(x), vec, "=="), 1, which)
   if (zero_based) return(one_based - 1L)
   return(one_based)
 }
