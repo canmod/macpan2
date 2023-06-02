@@ -353,6 +353,9 @@ MatsList = function(...
     )
     valid$mats_arg$assert(r)
   }
+
+  ## add _new_ matrices -- error if a matrix with the
+  ## same name already exists
   self$add_mats = function(...
     , .mats_to_save = character(0L)
     , .mats_to_return = character(0L)
@@ -373,6 +376,10 @@ MatsList = function(...
     args$.structure_labels = self$.structure_labels
     do.call(MatsList, args)
   }
+
+  ## add new matrices or update existing matrices as the
+  ## case may be -- no error or warning if you happen to
+  ## overwrite an existing matrix
   self$update_mats = function(...
     , .mats_to_save = character(0L)
     , .mats_to_return = character(0L)

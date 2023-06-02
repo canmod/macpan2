@@ -609,7 +609,7 @@
 #' given by \code{(simulated/standard_deviation)^2 - simulated)}.
 #' * `standard_deviation` -- Standard deviation parameter.
 #'
-#' Pseudo-Random Number Generators
+#' ## Pseudo-Random Number Generators
 #'
 #' All random number generator functions have `mean`
 #' as the first argument. Subsequent arguments give

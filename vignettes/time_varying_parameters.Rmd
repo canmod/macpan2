@@ -186,7 +186,6 @@ data.frame(
 ## Generalized Linear Models (TODO)
 
 
-## Generalized Linear Mixed Models (TODO)
 
 ## Radial Basis Functions for Flexible Time Variation (In-Progress)
 
@@ -198,7 +197,7 @@ First we need a method for computing a set of radial basis functions.
 #' @param scale width of the gaussians
 rbf = function(time_steps, dimension, scale = time_steps / dimension) {
   s = scale
-  make_gaussian = function(m) function(x) exp(-((x - m)^2)/(2*s^2))
+  make_gaussian = \(m)\(x)exp(-((x-m)^2)/(2*s^2))
   locations = seq(from = 0, to = time_steps + 0, length = dimension)
   gaussians = lapply(locations, make_gaussian)
   do.call(cbind, lapply(gaussians, do.call, list(0:time_steps)))
@@ -253,4 +252,112 @@ Then simulate,
  + facet_wrap(~ matrix, ncol = 1, scales = 'free')
  + geom_line(aes(time, value))
 )
+funky_observed_I = rpois(50, filter(
+  simulator_rbf$report(.phases = "during"),
+  row == "I", matrix == "state"
+)$value)
+
+fancy_beta = filter(simulator_rbf$report(.phases = "during"), matrix == "beta")$value
+norm_beta = sort(rnorm(50, sd = sd(fancy_beta)))[rank(fancy_beta)]
+
+```
+
+## Generalized Linear Mixed Models (In-Progress)
+
+```{r}
+#set.seed(6L)
+sir = Compartmental(system.file("starter_models", "sir", package = "macpan2"))
+simulator_rand_beta = sir$simulators$tmb(time_steps = 50
+  , state = c(S = 99, I = 1, R = 0)
+  , flow = c(foi = 0, gamma = 0.2)
+  , N = empty_matrix
+  , beta = 0.4
+)
+simulator_rand_beta$add$matrices(
+  beta_eps = norm_beta,
+  beta_mean = log(0.3)
+)
+simulator_rand_beta$insert$expressions(
+    beta ~ 1 / (1 + exp(-beta_mean - beta_eps))
+  , .phase = "during"
+  , .at = 1
+)
+(simulator_rand_beta$report(.phases = "during")
+  %>% filter(row == "I", matrix == "state")
+  %>% ggplot()
+  + facet_wrap(~ matrix, ncol = 1, scales = 'free')
+  + geom_line(aes(time, value))
+)
+observed_I = filter(simulator_rand_beta$report(.phases = "during"), row == "I", matrix == "state")$value
+```
+
+```{r eval = FALSE}
+sir = Compartmental(system.file("starter_models", "sir", package = "macpan2"))
+simulator_step_level_re = sir$simulators$tmb(time_steps = 50
+  , state = c(S = 99, I = 1, R = 0)
+  , flow = c(foi = 0, gamma = 0.2)
+  , N = empty_matrix
+  , beta = 0.8
+)
+simulator_step_level_re$add$matrices(
+    beta_mean = log(0.5)
+  , beta_sd = 1
+  , beta_time_step = rnorm(50, 0, 0.2)
+  , beta_log_density = empty_matrix
+  , I_observed = observed_I
+  , log_lik = empty_matrix
+  , total_log_lik = empty_matrix
+  , .mats_to_save = "log_lik"
+)
+simulator_step_level_re$insert$expressions(
+    beta_log_density ~ sum(dnorm(
+      beta_time_step, 
+      0, 
+      beta_sd
+    ))
+  , .phase = "before"
+)
+simulator_step_level_re$insert$expressions(
+    beta ~ exp(beta_mean + beta_time_step[time_step(1)])
+  , .phase = "during"
+)
+simulator_step_level_re$insert$expressions(
+    log_lik ~ dpois(I_observed[time_step(1)], clamp(I))
+  , .phase = "during"
+  , .at = Inf
+)
+simulator_step_level_re$insert$expressions(
+    total_log_lik ~ sum(rbind_time(log_lik))
+  , .phase = "after"
+)
+simulator_step_level_re$replace$params(
+  default = c(0, 1),
+  mat = c("beta_mean", "beta_sd")
+)
+simulator_step_level_re$replace$random(
+  default = rnorm(50, 0, 1),
+  mat = rep("beta_time_step", 50),
+  row = 0:49
+)
+simulator_step_level_re$replace$obj_fn(
+  ~ -total_log_lik-beta_log_density-dnorm(beta_sd, 0.2, 0.01)
+)
+simulator_step_level_re$optimize$nlminb()
+simulator_step_level_re$optimize$optim()
+#simulator_step_level_re$current$random_frame()
+#simulator_step_level_re$current$params_frame()
+#simulator_step_level_re$ad_fun()$fn(0)
+ggplot(simulator_step_level_re$current$random_frame()) +
+  geom_line(aes(row, current))
+```
+
+
+```{r eval = FALSE}
+#simulator_step_level_re$cache$invalidate()
+#simulator_step_level_re$ad_fun()$gr(-1.23)
+plot(
+  filter(simulator_step_level_re$report(.phases = "during"), row == "I", matrix == "state")$value,
+  observed_I
+)
+abline(0, 1)
 ```

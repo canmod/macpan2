@@ -747,8 +747,11 @@ the numbers of rows and columns in \code{observed}.
 given by \code{(simulated/standard_deviation)^2 - simulated)}.
 \item \code{standard_deviation} -- Standard deviation parameter.
 }
+}
 
-Pseudo-Random Number Generators
+}
+
+\subsection{Pseudo-Random Number Generators}{
 
 All random number generator functions have \code{mean}
 as the first argument. Subsequent arguments give
@@ -759,8 +762,6 @@ so that all arguments have the same number of rows
 and columns. All functions return a matrix the same
 shape as \code{mean} but with pseudo-random numbers
 deviating from each mean in the \code{mean} matrix.
-}
-
 \subsection{Functions}{
 \itemize{
 \item \code{rpois(mean)} -- Pseudo-random Poisson distributed

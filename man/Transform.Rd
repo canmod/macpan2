@@ -15,9 +15,7 @@ Logit(variable, default = NULL)
 \arguments{
 \item{variable}{Character string giving a variable in the model.}
 
-\item{default}{Default value for the untransformed variable. If \code{NULL}
-(the default) this value is taken from the initial value in the model
-containing the transformation.}
+\item{default}{(??)}
 
 \item{prefix}{Character string to use to distinguish the transformed
 version of the \code{variable}.}

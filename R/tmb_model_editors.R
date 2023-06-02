@@ -137,6 +137,11 @@ TMBSimulatorAdder = function(simulator) {
     self$simulator$cache$invalidate()
     invisible(self$simulator)
   }
+  self$observed_trajectory = function(
+    observed_values,
+    observed_times,
+    simulated_trajectory
+  ) {stop("under construction")}
   return_object(self, "TMBSimulatorAdder")
 }
 
