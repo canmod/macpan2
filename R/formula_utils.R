@@ -8,13 +8,22 @@ to_special_vecs = function(formula, component_list, matrix_list) {
   ee = MathExpressionFromStrings(form_parts[[3L]], arg_signature)
   hh = MathExpressionFromStrings(form_parts[[2L]], arg_signature)
   for (nm in names(component_list)) {
-    component_list[[nm]] = sprintf("%s[%s]", nm, seq_along(component_list[[nm]]) - 1L)
+    if (nm == "...RAW...INDICES...") { ## this token probably won't clash ... right??
+      component_list[[nm]] = as.character(seq_along(component_list[[nm]]) - 1L)
+    } else {
+      component_list[[nm]] = sprintf("%s[%s]", nm, seq_along(component_list[[nm]]) - 1L)
+    }
   }
   args = as.list(c(
     unlist(component_list, use.names = FALSE, recursive = FALSE),
     matrix_list
   ))
-  as.formula(sprintf("%s ~ %s", do.call(hh$symbolic$evaluate, args), do.call(ee$symbolic$evaluate, args)))
+  lhs = do.call(hh$symbolic$evaluate, args)
+  rhs = do.call(ee$symbolic$evaluate, args)
+  ("%s ~ %s"
+    |> sprintf(lhs, rhs)
+    |> as.formula()
+  )
 }
 
 to_assign = function(formula) {

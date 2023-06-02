@@ -56,6 +56,37 @@ p_or_r_consistency_opt_mat = function(parameter_type = c("params", "random")){
   }
 }
 
+check_auto_component_names = function(all_names, auto_vec_name, component_names) {
+  clash_names = component_names[component_names %in% all_names]
+  if (length(clash_names) > 0) {
+    stop(
+      sprintf(
+        "\nThe following components of the %s vector are getting used as the",
+        auto_vec_name
+      ),
+      "\nnames of matrices. This is not allowed because it could create",
+      "\nnaming ambiguity in some situations. Please rename the following",
+      "\nvariables.\n",
+      paste0(clash_names, collapse = "\n")
+    )
+  }
+}
+
+check_auto_names = function(all_names, ...) {
+  auto_names = (list(...)
+    |> lapply(as.character)
+    |> unlist(recursive = FALSE, use.names = FALSE)
+  )
+  clash_names = auto_names[auto_names %in% all_names]
+  if (length(clash_names) > 0) {
+    stop(
+      "\nThe following automatically generated names are already used in the model.",
+      "\nPlease use different names so that these names are available.\n",
+      paste0(clash_names, collapse = "\n")
+    )
+  }
+}
+
 AllValid = function(..., .msg = "") {
   self = Base()
   self$valid_dots = ValidityMessager(

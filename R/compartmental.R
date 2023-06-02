@@ -49,6 +49,13 @@ CompartmentalMatsList = function(
     , .dimnames = list()
     , .structure_labels = NullLabels()
   ) {
+
+    dot_names = names(list(...))
+
+    check_auto_component_names(dot_names, "state", model$labels$state())
+    check_auto_component_names(dot_names, "flow", model$labels$flow())
+    check_auto_names(dot_names, auto_gen_names)
+
     settings = model$settings
     indices = model$indices
     MatsList(
@@ -87,5 +94,35 @@ CompartmentalMatsList = function(
     , .mats_to_return = .mats_to_return
     , .dimnames = .dimnames
     , .structure_labels = .structure_labels
-    )
-  }
+  )
+}
+
+auto_gen_names = c(
+    "state"
+  , "flow"
+  , "state_length"
+  , "per_capita_from"
+  , "per_capita_to"
+  , "per_capita_flow"
+  , "absolute_from"
+  , "absolute_to"
+  , "absolute_flow"
+  , "per_capita_inflow_from"
+  , "per_capita_inflow_to"
+  , "per_capita_inflow_flow"
+  , "per_capita_outflow_from"
+  , "per_capita_outflow_flow"
+  , "absolute_inflow_to"
+  , "absolute_inflow_flow"
+  , "absolute_outflow_from"
+  , "absolute_outflow_flow"
+  , "per_capita"
+  , "absolute"
+  , "per_capita_inflow"
+  , "per_capita_outflow"
+  , "absolute_inflow"
+  , "absolute_outflow"
+  , "total_inflow"
+  , "total_outflow"
+  , "dummy"
+)
