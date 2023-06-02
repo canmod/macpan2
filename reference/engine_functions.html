@@ -803,7 +803,15 @@ the numbers of rows and columns in <code>observed</code>.</p></li>
 <li><p><code>over_dispersion</code> -- Over-dispersion parameter
 given by <code>(simulated/standard_deviation)^2 - simulated)</code>.</p></li>
 <li><p><code>standard_deviation</code> -- Standard deviation parameter.</p></li>
-</ul><p>Pseudo-Random Number Generators</p>
+</ul></div>
+
+
+</div>
+
+<div class="section">
+<h3 id="pseudo-random-number-generators">Pseudo-Random Number Generators<a class="anchor" aria-label="anchor" href="#pseudo-random-number-generators"></a></h3>
+
+
 <p>All random number generator functions have <code>mean</code>
 as the first argument. Subsequent arguments give
 additional distributional parameters.
@@ -812,10 +820,7 @@ the additional distributional parameters are recycled
 so that all arguments have the same number of rows
 and columns. All functions return a matrix the same
 shape as <code>mean</code> but with pseudo-random numbers
-deviating from each mean in the <code>mean</code> matrix.</p>
-</div>
-
-<div class="section">
+deviating from each mean in the <code>mean</code> matrix.</p><div class="section">
 <h4 id="functions-14">Functions<a class="anchor" aria-label="anchor" href="#functions-14"></a></h4>
 
 <ul><li><p><code>rpois(mean)</code> -- Pseudo-random Poisson distributed
