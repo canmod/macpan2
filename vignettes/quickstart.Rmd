@@ -43,7 +43,9 @@ show_visnet <- function(vn) {
 }
 ```
 
-This quickstart guide is meant to show a new user how to specify and simulate a simple compartmental model in `macpan2`, which can be [installed like this](https://github.com/canmod/macpan2/#installation).
+This quickstart guide is meant to show a new user how to specify and simulate a simple compartmental model in `macpan2` (it does assume you have already installed the package: see [these installation instructions](https://github.com/canmod/macpan2/#installation)).
+
+<!-- FIXME: do we need this note here? Seems like we should save it until later ... -->
 
 `macpan2` is extremely flexible in how models are specified, and so there can be several equivalent ways of specifying the same model. This feature is important to keep in mind when trying to understand or build more complicated models, such as the one demonstrated in Quickstart Guide, part 2 (see `vignette('quickstart2', package = 'macpan2')`).
 
@@ -65,15 +67,13 @@ Installations of `macpan2` contain several starter models:
 list.files(system.file("starter_models", package = "macpan2"))
 ```
 
-(TODO: add a link to a reference doc with short descriptions of each starter model... also write this doc :) ideally it would have diagrams to illustrate each model)
-
 The simplest is [the SIR model](https://en.wikipedia.org/wiki/Compartmental_models_in_epidemiology#The_SIR_model), which can be found in this directory:
 
 ```{r sir_model_path}
 print(sir_dir <- system.file("starter_models", "sir", package = "macpan2"))
 ```
 
-In this article, we work through the specification and simulation of the SIR sample model. You can discover [more examples here](https://canmod.github.io/macpan2/articles/example_models).
+In this article, we work through the specification and simulation of the SIR sample model. You can discover [more examples here](https://canmod.github.io/macpan2/articles/example_models). To make your own copy of a model (e.g. because you want to modify it), you can use `model_starter(starter_name, dir_name)`, e.g. `model_starter("sir", "~/my_projects/macpan2/sir")` (if the target directory doesn't exist, `model_starter()` will refuse to overwrite it).
 
 ### variables.csv {#variables}
 
