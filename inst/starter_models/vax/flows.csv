@@ -1,2 +1,2 @@
-from,to,flow,type,from_partition,to_partition,flow_partition,from_to_partition,from_flow_partition,to_flow_partition
-unvax,vax,dose_rate,rate,Vax,Vax,Vax,,,
+from,to,flow,type,from_partition ,to_partition ,flow_partition ,from_to_partition ,from_flow_partition ,to_flow_partition
+unvax,vax,dose_rate,per_capita,Vax,Vax,Vax,,,Null
