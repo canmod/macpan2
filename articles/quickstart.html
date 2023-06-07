@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.3</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -113,8 +113,8 @@ models:</p>
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"starter_models"</span>, package <span class="op">=</span> <span class="st">"macpan2"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;  [1] "age"             "macpan_base"     "seir"            "seir_simplified"</span></span>
 <span><span class="co">#&gt;  [5] "seir_symp"       "seir_symp_vax"   "seir_vax"        "SI_products"    </span></span>
-<span><span class="co">#&gt;  [9] "sir"             "sir_vax"         "testing"         "vax"            </span></span>
-<span><span class="co">#&gt; [13] "ww"</span></span></code></pre></div>
+<span><span class="co">#&gt;  [9] "sir"             "sir_demo"        "sir_vax"         "sir_waning"     </span></span>
+<span><span class="co">#&gt; [13] "testing"         "vax"             "ww"</span></span></code></pre></div>
 <p>The simplest is <a href="https://en.wikipedia.org/wiki/Compartmental_models_in_epidemiology#The_SIR_model" class="external-link">the
 SIR model</a>, which can be found in this directory:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
@@ -5664,11 +5664,11 @@ HTMLWidgets.widget({
   
 });
 </script><div id="htmlwidget_container">
-<div id="htmlwidget-fe1eb81bf67986ccff04" class="visNetwork html-widget html-fill-item-overflow-hidden html-fill-item" style="width:960px;height:500px;">
+<div id="htmlwidget-25c503c1362f34ef1bc0" class="visNetwork html-widget html-fill-item-overflow-hidden html-fill-item" style="width:960px;height:500px;">
 
 </div>
 </div>
-<script type="application/json" data-for="htmlwidget-fe1eb81bf67986ccff04">{"x":{"nodes":{"id":["S","I","R"],"label":["S","I","R"],"shape":["square","square","square"]},"edges":{"from":["S","I"],"to":["I","R"],"label":["foi","gamma"]},"nodesToDataframe":true,"edgesToDataframe":true,"options":{"width":"100%","height":"100%","nodes":{"shape":"dot"},"manipulation":{"enabled":false},"edges":{"arrows":"to"},"layout":{"hierarchical":{"enabled":true,"direction":"LR"}},"interaction":{"dragNodes":true,"dragView":true,"zoomView":false,"zoomSpeed":1}},"groups":null,"width":null,"height":null,"idselection":{"enabled":false},"byselection":{"enabled":false},"main":null,"submain":null,"footer":null,"background":"rgba(0, 0, 0, 0)","tooltipStay":300,"tooltipStyle":"position: fixed;visibility:hidden;padding: 5px;white-space: nowrap;font-family: verdana;font-size:14px;font-color:#000000;background-color: #f5f4ed;-moz-border-radius: 3px;-webkit-border-radius: 3px;border-radius: 3px;border: 1px solid #808074;box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);"},"evals":[],"jsHooks":[]}</script><script type="application/htmlwidget-sizing" data-for="htmlwidget-fe1eb81bf67986ccff04">{"viewer":{"width":450,"height":350,"padding":15,"fill":true},"browser":{"width":960,"height":500,"padding":40,"fill":false}}</script><p>We can display the components of <code>macpan2</code> models
+<script type="application/json" data-for="htmlwidget-25c503c1362f34ef1bc0">{"x":{"nodes":{"id":["S","I","R"],"label":["S","I","R"],"shape":["square","square","square"]},"edges":{"from":["S","I"],"to":["I","R"],"label":["foi","gamma"]},"nodesToDataframe":true,"edgesToDataframe":true,"options":{"width":"100%","height":"100%","nodes":{"shape":"dot"},"manipulation":{"enabled":false},"edges":{"arrows":"to"},"layout":{"hierarchical":{"enabled":true,"direction":"LR"}},"interaction":{"dragNodes":true,"dragView":true,"zoomView":false,"zoomSpeed":1}},"groups":null,"width":null,"height":null,"idselection":{"enabled":false},"byselection":{"enabled":false},"main":null,"submain":null,"footer":null,"background":"rgba(0, 0, 0, 0)","tooltipStay":300,"tooltipStyle":"position: fixed;visibility:hidden;padding: 5px;white-space: nowrap;font-family: verdana;font-size:14px;font-color:#000000;background-color: #f5f4ed;-moz-border-radius: 3px;-webkit-border-radius: 3px;border-radius: 3px;border: 1px solid #808074;box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);"},"evals":[],"jsHooks":[]}</script><script type="application/htmlwidget-sizing" data-for="htmlwidget-25c503c1362f34ef1bc0">{"viewer":{"width":450,"height":350,"padding":15,"fill":true},"browser":{"width":960,"height":500,"padding":40,"fill":false}}</script><p>We can display the components of <code>macpan2</code> models
 (<code>Compartmental</code> objects), including the methods that operate
 on them, by listing their names:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
