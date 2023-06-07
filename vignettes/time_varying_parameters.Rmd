@@ -189,77 +189,100 @@ data.frame(
 
 ## Radial Basis Functions for Flexible Time Variation (In-Progress)
 
-First we need a method for computing a set of radial basis functions.
+## Getting and the Base Model
 
-```{r fig.height=10, fig.width=7}
-#' @param time_steps number of time steps in the model
-#' @param dimension number of gaussians in the basis
-#' @param scale width of the gaussians
-rbf = function(time_steps, dimension, scale = time_steps / dimension) {
-  s = scale
-  make_gaussian = \(m)\(x)exp(-((x-m)^2)/(2*s^2))
-  locations = seq(from = 0, to = time_steps + 0, length = dimension)
-  gaussians = lapply(locations, make_gaussian)
-  do.call(cbind, lapply(gaussians, do.call, list(0:time_steps)))
-}
+Before we can add the fancy radial basis for the transmission rate, we need a base model. We use an SIR model that has been modified to include waning.
+
+```{r}
+sir = Compartmental(system.file("starter_models", "sir_waning", package = "macpan2"))
+sir$flows()
+```
+
+
+## Radial Basis Functions (In-Progress)
+
+This section uses radial basis functions to generate models with a flexible functional form for smooth changes in the transmission rate.
+
+The `macpan2::rbf` function can be used to produce a matrix giving the values of each basis function (each column) at each time step (each row). Using this matrix, $X$, and a weights vector, $b$, we can get a flexible output vector, $y$, with a shape that can be modified into a wide variety of shapes by changing the weights vector.
+
+$$
+y = Xb
+$$
+
+The following code illustrates this approach.
+
+```{r, fig.height=8, fig.width=6}
 set.seed(1L)
-X = rbf(100, 30)
-b = rnorm(30)
-a = rnorm(1)
-par(mfrow = c(2, 1))
-plot(c(0, 100), c(0, 1), type = "n", xlab = "time")
-for (i in 1:30) lines(0:100, X[,i])
-#plot(0:100, rowSums(X), type = "l", xlab = "time")
-plot(0:100, plogis(a + (X %*% b)), type = "l", xlab = "time")
+d = 20
+n = 2500
+X = rbf(n, d)
+b = rnorm(d, sd = 0.01)
+par(mfrow = c(3, 1))
+plot(c(1, n), range(X), type = "n",
+     xlab = "time", ylab = "basis functions")
+for (i in 1:d) lines(X[,i])
+barplot(b, xlab = "", ylab = "weights")
+plot(X %*% b, type = "l", xlab = "time", ylab = "output")
 ```
 
-Then we may create a simulator with this time-varying transmission.
+Here `d` is the dimension of the basis, or number of functions, and `n` is the number of time steps. By multiplying the uniform basis matrix (top panel) to a set of weights (middle panel), one can obtain a non-uniform curve (bottom panel). Note how the peaks in the output are associated with large positive weights.
+
+To transform the output of the matrix multiplication of the radial basis function matrix and the weights vector into a time-series for the transmission rate, $\beta$. Although we could just use the output vector as the $\beta$ time series, it is more convenient to transform it a little so that the $\beta$ values yield more interesting dynamics in an SIR model. In particular, our model for $\beta_t$ as a function of time, $t$, is as follows.
+
+$$
+\log(\beta_t) = \log(\gamma_t) + \log(N) - \log(S_t) + x_tb
+$$
+
+Here we have the recovery rate, $\gamma_t$, total population, $N_t$, and number of susceptibles, $S_t$, at time, $t$, and the $t$th row of $X$, $x_t$. To better understand the rationale for this equation note that if every element of $b$ is set to zero, we have the following condition.
+
+$$
+\frac{\beta_t S_t}{N} = \gamma_t
+$$
+
+This condition assures that the number of infected individuals remains constant at time, $t$. This means that positive values of $b$ will tend to generate outbreaks and negative values will tend to reduce transmission.
 
 ```{r}
-sir = Compartmental(system.file("starter_models", "sir", package = "macpan2"))
-simulator_rbf = sir$simulators$tmb(time_steps = 50
-  , state = c(S = 99, I = 1, R = 0)
-  , flow = c(foi = 0, gamma = 0.2)
-  , N = empty_matrix
-  , beta = 0.8
-  , .mats_to_return = c("state", "beta")
-  , .mats_to_save = c("state", "beta")
-)
-set.seed(7L)
-simulator_rbf$add$matrices(
-    X = rbf(simulator_rbf$tmb_model$time_steps$time_steps, 10)
-  , b = rnorm(10)
-  , a = rnorm(1)
-  , beta_values = empty_matrix
-)
-simulator_rbf$insert$expressions(
-  beta_values ~ 1 / (1 + exp(-(a + (X %*% b)))), 
-  .phase = "before"
-)
-simulator_rbf$insert$expressions(
-  beta ~ beta_values[time_step(0) - 1],
-  .phase = "during"
+set.seed(1L)
+simulator = sir$simulators$tmb(
+      time_steps = n
+    , state = c(S = 100000 - 500, I = 500, R = 0)
+    , flow = c(foi = 0, gamma = 0.2, wane = 0.01)
+    , beta = 1
+    , N = 100000
+    , X = rbf(n, d)
+    , b = rnorm(d, sd = 0.01)
+    , incidence = empty_matrix
+    , eta = empty_matrix
+    , .mats_to_save = c("state", "incidence", "beta")
+    , .mats_to_return = c("state", "incidence", "beta")
+)$insert$expressions(
+    eta ~ gamma * exp(X %*% b)
+  , .phase = "before"
+  , .at = Inf
+)$insert$expressions(
+    beta ~ eta[time_step(1)] / clamp(S/N, 1/100)
+  , .phase = "during"
+  , .at = 1
+)$insert$expressions(
+    incidence ~ I
+  , .vec_by_states = "total_inflow"
+  , .phase = "during"
+  , .at = Inf
+)$replace$params(
+    default = rnorm(d, sd = 0.01)
+  , mat = rep("b", d)
+  , row = seq_len(d) - 1L
 )
 ```
 
-
-Then simulate,
-
-```{r}
-(simulator_rbf$report(.phases = "during")
- %>% filter(row == "I" | matrix == "beta")
- %>% ggplot()
- + facet_wrap(~ matrix, ncol = 1, scales = 'free')
- + geom_line(aes(time, value))
+```{r, fig.height=8, fig.width=6}
+set.seed(5L)
+(simulator$report(rnorm(d, sd = 0.01), .phases = "during")
+  %>% mutate(variable = if_else(matrix == "state", row, matrix))
+  %>% ggplot()
+  + facet_wrap(~ variable, ncol = 1, scales = 'free')
+  + geom_line(aes(time, value))
 )
-funky_observed_I = rpois(50, filter(
-  simulator_rbf$report(.phases = "during"),
-  row == "I", matrix == "state"
-)$value)
-
-fancy_beta = filter(simulator_rbf$report(.phases = "during"), matrix == "beta")$value
-norm_beta = sort(rnorm(50, sd = sd(fancy_beta)))[rank(fancy_beta)]
-
 ```
 
 ## Generalized Linear Mixed Models (In-Progress)
