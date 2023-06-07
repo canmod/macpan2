@@ -94,10 +94,6 @@ definitions</a>, which can be listed with the <code>show_models</code>
 function.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/show_models.html">show_models</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">#&gt; Warning in readLines(fn): incomplete final line found on</span></span>
-<span><span class="co">#&gt; '/home/runner/work/_temp/Library/macpan2/starter_models/seir_symp/README.md'</span></span>
-<span><span class="co">#&gt; Warning in readLines(fn): incomplete final line found on</span></span>
-<span><span class="co">#&gt; '/home/runner/work/_temp/Library/macpan2/starter_models/seir_symp_vax/README.md'</span></span></code></pre>
 <table class="table">
 <thead><tr>
 <th style="text-align:left;">
@@ -232,6 +228,17 @@ Basic vaccination model
 A simple vaccination model without waning
 </td>
 </tr>
+<tr>
+<td style="text-align:left;">
+ww
+</td>
+<td style="text-align:left;">
+Wastewater model
+</td>
+<td style="text-align:left;">
+Macpan base with an additional wastewater component
+</td>
+</tr>
 </tbody>
 </table>
 <p>There are three things that you can do with the items on this list:
@@ -251,7 +258,7 @@ above.</p>
 </h2>
 <p>To use the <code>sir</code> example it can be read into R using the
 following code.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_dir</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"starter_models"</span>, <span class="st">"sir"</span>, package <span class="op">=</span> <span class="st">"macpan2"</span><span class="op">)</span></span>
 <span><span class="va">sir</span> <span class="op">=</span> <span class="fu"><a href="../reference/Compartmental.html">Compartmental</a></span><span class="op">(</span><span class="va">sir_dir</span><span class="op">)</span></span>
 <span><span class="va">sir</span><span class="op">$</span><span class="va">labels</span><span class="op">$</span><span class="fu">all</span><span class="op">(</span><span class="op">)</span></span>
@@ -276,10 +283,10 @@ another entry in the <code>dir</code> column above.</p>
 </h2>
 <p>To take <code>sir</code> as a jumping-off point for producing your
 own model one may use the following code.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">my_sir_dir</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"my_sir"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/model_starter.html">model_starter</a></span><span class="op">(</span><span class="st">"sir"</span>, <span class="va">my_sir_dir</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Classes 'ModelFiles', 'Files', 'Base' &lt;environment: 0x55c0ae68ed18&gt; </span></span>
+<span><span class="co">#&gt; Classes 'ModelFiles', 'Files', 'Base' &lt;environment: 0x55f85b33e560&gt; </span></span>
 <span><span class="co">#&gt; derivations : function ()  </span></span>
 <span><span class="co">#&gt; flows : function ()  </span></span>
 <span><span class="co">#&gt; freeze : function ()  </span></span>
@@ -293,7 +300,7 @@ own model one may use the following code.</p>
 typically want to chose a specific directory for your model instead of
 using <code>tempdir</code>. You still need to read your own model in the
 usual way.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">my_sir</span> <span class="op">=</span> <span class="fu"><a href="../reference/Compartmental.html">Compartmental</a></span><span class="op">(</span><span class="va">my_sir_dir</span><span class="op">)</span></span>
 <span><span class="va">my_sir</span><span class="op">$</span><span class="va">labels</span><span class="op">$</span><span class="fu">all</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "S"     "I"     "R"     "N"     "beta"  "foi"   "gamma"</span></span>
