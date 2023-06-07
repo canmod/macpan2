@@ -390,9 +390,9 @@ Indices = function(model) {
 }
 
 
-#' StandardExpr
+#' Standard Expressions
 #'
-#' Evaluate standard model expressions
+#' Evaluate standard model expressions.
 #'
 #' @param model Object created by \code{\link{Model}}.
 #'
@@ -520,6 +520,208 @@ StandardExpr = function(model){
       arguments = total_outflow_argument_list[c(rep(present_outflows, each = 2), TRUE)],
       simulation_phase = "during_update"
     )
+    state_list = list(
+      output_names = "state",
+      expression = "state - total_outflow + total_inflow",
+      arguments = list("state", "total_outflow", "total_inflow"),
+      simulation_phase = "during_update"
+    )
+
+
+    ## no outflows
+    if (!any(unlist(present_outflows))) {
+      total_outflow_list$expression = " 0 "
+      total_outflow_list$arguments = list()
+    }
+
+    ## no inflows
+    if (!any(unlist(present_inflows))) {
+      total_inflow_list$expression = " 0 "
+      total_inflow_list$arguments = list()
+    }
+
+    optional_derivations = list(
+      per_capita_list, absolute_list, per_capita_inflow_list,
+      per_capita_outflow_list, absolute_inflow_list, absolute_outflow_list
+    )
+    required_derivations = list(total_inflow_list, total_outflow_list, state_list)
+
+    c(optional_derivations[present_flows], required_derivations)
+  }
+  self$.derivation_evaluator = function(derivation){
+    formula = MathExpressionFromStrings(derivation$expression, derivation$arguments)
+    derivation$expression = do.call(formula$symbolic$evaluate, derivation$arguments)
+    return(derivation)
+  }
+  self$.derivations_evaluator = function(){
+    return(lapply(self$.init_derivations_list(), self$.derivation_evaluator))
+  }
+  self$standard_expressions = self$.derivations_evaluator
+  self$as_derivations = function() lapply(self$standard_expressions(), lapply, as.character)
+  return_object(self, "StandardExpr")
+}
+
+#' Standard Expressions for Hazard-Corrected Models
+#'
+#' Evaluate standard expressions in hazard-corrected models.
+#'
+#' @param model Object created by \code{\link{Model}}.
+#'
+#' @export
+StandardExprHazard = function(model){
+  self = Indices(model)
+  self$.expanded_flows = self$model$flows_expanded()
+  self$.state_length = length(self$model$settings$state())
+  self$.flow_types = list("per_capita",
+                          "absolute",
+                          "per_capita_inflow",
+                          "per_capita_outflow",
+                          "absolute_inflow",
+                          "absolute_outflow")
+  self$.inflow_flow_types = list("per_capita",
+                                 "absolute",
+                                 "per_capita_inflow",
+                                 "absolute_inflow")
+  self$.outflow_flow_types = list("per_capita",
+                                  "absolute",
+                                  "per_capita_outflow",
+                                  "absolute_outflow")
+  self$.flow_seperator = function(flow_type){
+    return(self$.expanded_flows[self$.expanded_flows$type == flow_type,])
+  }
+  self$.seperated_flows = lapply(self$.flow_types, self$.flow_seperator)
+  self$.init_index_vector = function(flow_frame){
+    from = lapply(flow_frame$from, self$indices, "state_variables")
+    to = lapply(flow_frame$to, self$indices, "state_variables")
+    flow = lapply(flow_frame$flow, self$indices, "flow_variables")
+    return(list(from = from, to = to, flow = flow))
+  }
+  self$.init_index_vectors = function(){
+    output_list = lapply(self$.seperated_flows, self$.init_index_vector)
+    names(output_list) = self$.flow_types
+    return(output_list)
+  }
+  self$.flow_tester = function(flow_type) {
+    valid$char1$assert(flow_type) %in% self$.expanded_flows$type
+  }
+
+  # Return a list of derivations, each of which describes a
+  # standard expression in the order in which they must appear
+  # in the model.
+  #
+  # Each element in the list contains the following fields:
+  #   - output_names
+  #   - expression
+  #   - arguments
+  #   - simulation_phase
+  # See the spec document on model definition files for what these mean.
+  self$.init_derivations_list = function(){
+
+    present_flows = unlist(lapply(self$.flow_types, self$.flow_tester), use.names = FALSE)
+    present_inflows = unlist(lapply(self$.inflow_flow_types, self$.flow_tester), use.names = FALSE)
+    present_outflows = unlist(lapply(self$.outflow_flow_types, self$.flow_tester), use.names = FALSE)
+
+    total_inflow_expression_vct = c(
+      "groupSums(per_capita, per_capita_to, state_length)",
+      "groupSums(absolute, absolute_to, state_length)",
+      "groupSums(per_capita_inflow, per_capita_inflow_to, state_length)",
+      "groupSums(absolute_inflow, absolute_inflow_to, state_length)"
+    )
+    total_inflow_argument_list = list(
+      "per_capita", "per_capita_to", "absolute", "absolute_to", "per_capita_inflow",
+      "per_capita_inflow_to", "absolute_inflow", "absolute_inflow_to", "state_length"
+    )
+
+    total_outflow_expression_vct = c(
+      "groupSums(per_capita, per_capita_from, state_length)",
+      "groupSums(absolute, absolute_from, state_length)",
+      "groupSums(per_capita_outflow, per_capita_outflow_from, state_length)",
+      "groupSums(absolute_outflow, absolute_outflow_from, state_length)"
+    )
+    total_outflow_argument_list = list(
+      "per_capita", "per_capita_from", "absolute", "absolute_from", "per_capita_outflow",
+      "per_capita_outflow_from", "absolute_outflow", "absolute_outflow_from", "state_length"
+    )
+
+    per_capita_list = list(
+      output_names = "per_capita",
+      expression = "state[per_capita_from]*flow[per_capita_flow]",
+      arguments = list("state", "per_capita_from", "flow", "per_capita_flow"),
+      simulation_phase = "during_update"
+    )
+    per_capita_normalized_list = list(
+      output_names = "per_capita",
+      expression = "normalized_state[per_capita_from]*flow[per_capita_flow]",
+      arguments = list("normalized_state", "per_capita_from", "flow", "per_capita_flow"),
+      simulation_phase = "during_update"
+    )
+    absolute_list = list(
+      output_names = "absolute",
+      expression = "flow[absolute_flow]",
+      arguments = list("flow", "absolute_flow"),
+      simulation_phase = "during_update"
+    )
+    per_capita_inflow_list = list(
+      output_names = "per_capita_inflow",
+      expression = "state[per_capita_inflow_from]*flow[per_capita_inflow_flow]",
+      arguments = list("state", "per_capita_inflow_from", "flow", "per_capita_inflow_flow"),
+      simulation_phase = "during_update"
+    )
+    per_capita_inflow_normalized_list = list(
+      output_names = "per_capita_inflow",
+      expression = "normalized_state[per_capita_inflow_from]*flow[per_capita_inflow_flow]",
+      arguments = list("normalized_state", "per_capita_inflow_from", "flow", "per_capita_inflow_flow"),
+      simulation_phase = "during_update"
+    )
+    per_capita_outflow_list = list(
+      output_names = "per_capita_outflow",
+      expression = "state[per_capita_outflow_from]*flow[per_capita_outflow_flow]",
+      arguments = list("state", "per_capita_outflow_from", "flow", "per_capita_outflow_flow"),
+      simulation_phase = "during_update"
+    )
+    per_capita_outflow_normalized_list = list(
+      output_names = "per_capita_outflow",
+      expression = "normalized_state[per_capita_outflow_from]*flow[per_capita_outflow_flow]",
+      arguments = list("normalized_state", "per_capita_outflow_from", "flow", "per_capita_outflow_flow"),
+      simulation_phase = "during_update"
+    )
+    absolute_inflow_list = list(
+      output_names = "absolute_inflow",
+      expression = "flow[absolute_inflow_flow]",
+      arguments = list("flow", "absolute_inflow_flow"),
+      simulation_phase = "during_update"
+    )
+    absolute_outflow_list = list(
+      output_names = "absolute_outflow",
+      expression = "flow[absolute_outflow_flow]",
+      arguments = list("flow", "absolute_outflow_flow"),
+      simulation_phase = "during_update"
+    )
+    total_inflow_list = list(
+      output_names = "total_inflow",
+      expression = paste0(total_inflow_expression_vct[present_inflows], collapse = "+") ,
+      arguments = total_inflow_argument_list[c(rep(present_inflows, each = 2), TRUE)],
+      simulation_phase = "during_update"
+    )
+    total_outflow_list = list(
+      output_names = "total_outflow",
+      expression = paste0(total_outflow_expression_vct[present_outflows], collapse = "+"),
+      arguments = total_outflow_argument_list[c(rep(present_outflows, each = 2), TRUE)],
+      simulation_phase = "during_update"
+    )
+    exponential_rate = list(
+      output_names = "exponential_rate",
+      expression = "1 - exp(-total_ouflow)",
+      arguments = list("total_outflow"),
+      simulation_phase = "during_update"
+    )
+    normalized_state = list(
+      output_names = "normalized_state",
+      expression = "state / total_outflow",
+      arguments = list("state", "total_outflow"),
+      simulation_phase = "during_update"
+    )
+
     state_list = list(
       output_names = "state",
       expression = "state - total_outflow + total_inflow",

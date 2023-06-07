@@ -27,7 +27,7 @@ full-install:
 
 
 # Use this rule if (1) you are in a development cycle, (2) you
-# haven't modified macpan.cpp (but have perhaps modified dev.cpp)
+# haven't updated macpan.cpp (but have perhaps modified dev.cpp)
 # and (3) do not require a roxygen update.
 quick-install: enum-update
 	R CMD INSTALL --no-multiarch --install-tests .

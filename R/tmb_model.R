@@ -721,18 +721,21 @@ TMBModel = function(
     if (length(self$random$vector()) == 0L) return(NULL)
     return("random")
   }
-  self$ad_fun = function(tmb_cpp = "macpan2") {
-    TMB::MakeADFun(
+  self$make_ad_fun_arg = function(tmb_cpp = "macpan2") {
+    list(
         data = self$data_arg(),
         parameters = self$param_arg(),
         random = self$random_arg(),
         DLL = tmb_cpp
-      )#,
-      #silent = TRUE
-    #)
+    )
+  }
+  self$ad_fun = function(tmb_cpp = "macpan2") {
+    do.call(TMB::MakeADFun, self$make_ad_fun_arg(tmb_cpp))
   }
 
-  self$simulator = function(tmb_cpp = "macpan2") TMBSimulator(self, tmb_cpp = tmb_cpp)
+  self$simulator = function(tmb_cpp = "macpan2", initialize_ad_fun = TRUE) {
+    TMBSimulator(self, tmb_cpp = tmb_cpp, initialize_ad_fun = initialize_ad_fun)
+  }
 
   self$add = TMBAdder(self)
   self$insert = TMBInserter(self)
@@ -853,6 +856,12 @@ TMBSimulationUtils = function() {
 #'
 #' @param tmb_model An object of class \code{\link{TMBModel}}.
 #' @param tmb_cpp Name of a C++ program using TMB as the simulation engine.
+#' @param initialize_ad_fun Should the TMB AD function be intialized? This
+#' should usually be set to \code{TRUE} unless you want to hack the data
+#' structure passed to TMB (which can be acquired using
+#' `$tmb_model$make_ad_fun_arg()`) before passing it yourself to
+#' `TMB::MakeADFun`. This is particularly useful if you want to modify
+#' `tmb_cpp`.
 #'
 #' @return Object of class \code{TMBSimulator} with the following methods.
 #'
@@ -872,7 +881,7 @@ TMBSimulationUtils = function() {
 #' object.
 #'
 #' @export
-TMBSimulator = function(tmb_model, tmb_cpp = "macpan2") {
+TMBSimulator = function(tmb_model, tmb_cpp = "macpan2", initialize_ad_fun = TRUE) {
   self = TMBSimulationUtils()
 
   ## Args
@@ -882,13 +891,7 @@ TMBSimulator = function(tmb_model, tmb_cpp = "macpan2") {
   ## Standard Methods
   self$matrix_names = function() self$tmb_model$init_mats$.names()
   self$ad_fun = function() self$tmb_model$ad_fun(self$tmb_cpp)
-  if (inherits(self$ad_fun(), "try-error")) {
-    stop(
-      "\nThe tmb_model object is malformed,",
-      "\nwith the following explanation:\n",
-      self$ad_fun()
-    )
-  }
+
   self$objective = function(...) {
     fixed_params = as.numeric(unlist(list(...)))
     self$ad_fun()$fn(fixed_params)
@@ -929,6 +932,15 @@ TMBSimulator = function(tmb_model, tmb_cpp = "macpan2") {
   self$get = TMBSimulatorGetters(self)
 
   initialize_cache(self, "ad_fun")
+  if (initialize_ad_fun) {
+    if (inherits(self$ad_fun(), "try-error")) {
+      stop(
+        "\nThe tmb_model object is malformed,",
+        "\nwith the following explanation:\n",
+        self$ad_fun()
+      )
+    }
+  }
   return_object(self, "TMBSimulator")
 }
 

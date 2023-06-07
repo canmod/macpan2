@@ -30,7 +30,7 @@ remotes::install_github("canmod/macpan2")
 
 For projects in production one should install a specific version, as in the following command.
 ```
-remotes::install_github("canmod/macpan2@v0.0.2")
+remotes::install_github("canmod/macpan2@v0.0.3")
 ```
 
 ## Hello World

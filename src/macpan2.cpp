@@ -1852,24 +1852,39 @@ private:
     logfile.close(); \
 }
 
+template<class Type>
+vector<ListOfMatrices<Type> > MakeSimulationHistory(
+    const int time_steps,
+    const vector<int>& mats_save_hist,
+    ListOfMatrices<Type>& hist_shape_template
+) {
+    vector<ListOfMatrices<Type> > simulation_history(time_steps+2);
+    matrix<Type> empty_matrix;
+    for (int i=0; i<mats_save_hist.size(); i++)
+        if (mats_save_hist[i]==0)
+            hist_shape_template.m_matrices[i] = empty_matrix;
+
+    return simulation_history;
+}
+
 // Helper function
 template<class Type>
 void UpdateSimulationHistory(
     vector<ListOfMatrices<Type> >& hist,
     int t,
     const ListOfMatrices<Type>& mats,
-    const vector<int>& mats_save_hist
+    const vector<int>& mats_save_hist,
+    ListOfMatrices<Type>& hist_shape_template
 ) {
-    matrix<Type> emptyMat;
-
-    ListOfMatrices<Type> ms(mats);
+    // matrix<Type> emptyMat;
+    // ListOfMatrices<Type> ms(mats);
     // if the history of the matrix is not to be saved,
     // just save a 1-by-1 with a zero instead to save space
     for (int i=0; i<mats_save_hist.size(); i++)
-        if (mats_save_hist[i]==0)
-            ms.m_matrices[i] = emptyMat;
+        if (mats_save_hist[i]!=0)
+            hist_shape_template.m_matrices[i] = mats.m_matrices[i];
 
-    hist[t] = ms;
+    hist[t] = hist_shape_template;
 }
 
 
@@ -1993,7 +2008,12 @@ Type objective_function<Type>::operator() ()
     // Simulation history
     /// each element of this history 'vector' is a list of the matrices
     /// in the model at a particular point in history
-    vector<ListOfMatrices<Type> > simulation_history(time_steps+2);
+    ListOfMatrices<Type> hist_shape_template(mats);
+    vector<ListOfMatrices<Type> > simulation_history = MakeSimulationHistory(
+        time_steps,
+        mats_save_hist,
+        hist_shape_template
+    );
 
 
 
@@ -2055,7 +2075,8 @@ Type objective_function<Type>::operator() ()
         simulation_history,
         0,
         mats,
-        mats_save_hist
+        mats_save_hist,
+        hist_shape_template
     );
 
     // 4 During simulation
@@ -2120,7 +2141,8 @@ Type objective_function<Type>::operator() ()
             simulation_history,
             k+1,
             mats,
-            mats_save_hist
+            mats_save_hist,
+            hist_shape_template
         );
     }
     p_table_row = p_table_row2;
@@ -2177,7 +2199,8 @@ Type objective_function<Type>::operator() ()
         simulation_history,
         time_steps+1,
         mats,
-        mats_save_hist
+        mats_save_hist,
+        hist_shape_template
     );
 
 #ifdef MP_VERBOSE

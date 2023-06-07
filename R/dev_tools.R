@@ -2,8 +2,8 @@ dev_in_root = function() "inst" %in% list.dirs(full.names = FALSE)
 dev_in_dev = function() "dev.cpp" %in% list.files(full.names = FALSE)
 ## TODO: dev_in_test or something like that
 
-dev_file = function() {
-  cpp = "misc/dev/dev.cpp"
+dev_file = function(suffix = "", ext = "cpp") {
+  cpp = paste0("misc/dev/dev", suffix, ".", ext)
   if (dev_in_root()) return(cpp)
   if (dev_in_dev()) return(basename(cpp))
   stop(
@@ -15,17 +15,22 @@ dev_file = function() {
   )
 }
 
-dev_obj = function() {
-  tools::file_path_sans_ext(dev_file())
+dev_obj = function(...) {
+  tools::file_path_sans_ext(dev_file(...))
 }
 
-dev_choose_cpp = function() {
+dev_choose_cpp = function(...) {
   if (interactive()) return("macpan2")
-  dev_compile()
-  return("dev")
+  dev_compile(...)
+  dev_obj(...)
 }
 
-dev_compile = function() {
-  TMB::compile(dev_file())
-  dyn.load(TMB::dynlib(dev_obj()))
+dev_compile = function(...) {
+  print("hi")
+  ff = dev_file(...)
+  print(ff)
+  print(file.exists(ff))
+  TMB::compile(ff)
+  print("hi again")
+  dyn.load(TMB::dynlib(dev_obj(...)))
 }

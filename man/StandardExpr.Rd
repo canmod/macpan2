@@ -2,7 +2,7 @@
 % Please edit documentation in R/files_to_models.R
 \name{StandardExpr}
 \alias{StandardExpr}
-\title{StandardExpr}
+\title{Standard Expressions}
 \usage{
 StandardExpr(model)
 }
@@ -10,5 +10,5 @@ StandardExpr(model)
 \item{model}{Object created by \code{\link{Model}}.}
 }
 \description{
-Evaluate standard model expressions
+Evaluate standard model expressions.
 }

@@ -4,12 +4,19 @@
 \alias{TMBSimulator}
 \title{TMB Simulator}
 \usage{
-TMBSimulator(tmb_model, tmb_cpp = "macpan2")
+TMBSimulator(tmb_model, tmb_cpp = "macpan2", initialize_ad_fun = TRUE)
 }
 \arguments{
 \item{tmb_model}{An object of class \code{\link{TMBModel}}.}
 
 \item{tmb_cpp}{Name of a C++ program using TMB as the simulation engine.}
+
+\item{initialize_ad_fun}{Should the TMB AD function be intialized? This
+should usually be set to \code{TRUE} unless you want to hack the data
+structure passed to TMB (which can be acquired using
+\verb{$tmb_model$make_ad_fun_arg()}) before passing it yourself to
+\code{TMB::MakeADFun}. This is particularly useful if you want to modify
+\code{tmb_cpp}.}
 }
 \value{
 Object of class \code{TMBSimulator} with the following methods.
