@@ -305,9 +305,10 @@ value is much smaller than the true value.</p>
 <h2 id="radial-basis-functions-for-flexible-time-variation-in-progress">Radial Basis Functions for Flexible Time Variation
 (In-Progress)<a class="anchor" aria-label="anchor" href="#radial-basis-functions-for-flexible-time-variation-in-progress"></a>
 </h2>
-<p>This section uses radial basis functions to generate models with a
-flexible functional form for smooth changes in the transmission
-rate.</p>
+</div>
+<div class="section level2">
+<h2 id="getting-and-the-base-model">Getting and the Base Model<a class="anchor" aria-label="anchor" href="#getting-and-the-base-model"></a>
+</h2>
 <p>Before we can add the fancy radial basis for the transmission rate,
 we need a base model. We use an SIR model that has been modified to
 include waning.</p>
@@ -318,6 +319,13 @@ include waning.</p>
 <span><span class="co">#&gt; 1    S  I   foi per_capita</span></span>
 <span><span class="co">#&gt; 2    I  R gamma per_capita</span></span>
 <span><span class="co">#&gt; 3    R  S  wane per_capita</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="radial-basis-functions-in-progress">Radial Basis Functions (In-Progress)<a class="anchor" aria-label="anchor" href="#radial-basis-functions-in-progress"></a>
+</h2>
+<p>This section uses radial basis functions to generate models with a
+flexible functional form for smooth changes in the transmission
+rate.</p>
 <p>The <code><a href="../reference/rbf.html">macpan2::rbf</a></code> function can be used to produce a
 matrix giving the values of each basis function (each column) at each
 time step (each row). Using this matrix, <span class="math inline">\(X\)</span>, and a weights vector, <span class="math inline">\(b\)</span>, we can get a flexible output vector,
