@@ -60,8 +60,11 @@ show_models <- function(dir = system.file("starter_models", package = "macpan2")
                    lapply(file.path(dir, mods), get_mod_info))
     ord <- order(paste0(as.numeric(is.na(res$title)), res$dir))
     res <- res[ord,]
-    if (show_missing) res else na.omit(res)
+    if (!show_missing) res <- na.omit(res)
+    ## row numbering including missing models is distracting ...
+    rownames(res) <- NULL
+    return(res)
 }
 
-## could embed this machinery in an rmd/qmd file, generate sections/tables
+
 

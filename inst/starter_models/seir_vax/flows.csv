@@ -1,7 +1,7 @@
 from,to,flow,type,from_partition,to_partition,flow_partition,from_to_partition,from_flow_partition,to_flow_partition
-S,E,foi,rate,Epi,Epi,Epi,Vax,,Null
-E,I,alpha,rate,Epi,Epi,Epi,Vax,,Null
-I,R,gamma,rate,Epi,Epi,Epi,Vax,,Null
-unvax,vax,dose_rate,rate,Vax,Vax,Vax,Epi,,Null
+S,E,foi,per_capita,Epi,Epi,Epi,Vax,,Null
+E,I,alpha,per_capita,Epi,Epi,Epi,Vax,,Null
+I,R,gamma,per_capita,Epi,Epi,Epi,Vax,,Null
+unvax,vax,dose_rate,per_capita,Vax,Vax,Vax,Epi,,Null
 ,,,,,,,,,
 ,,,,,,,,,
