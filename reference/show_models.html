@@ -92,32 +92,32 @@ and returns the results as a data frame</p>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">show_models</span><span class="op">(</span>show_missing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                dir                   title</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2              age      basic ageing model</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3      macpan_base             MacPan base</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4             seir              basic SEIR</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8         seir_vax  SEIR vaccination model</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 9              sir               basic SIR</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10         sir_vax   SIR vaccination model</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 12             vax Basic vaccination model</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1      SI_products                    &lt;NA&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5  seir_simplified                    &lt;NA&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6        seir_symp                    &lt;NA&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7    seir_symp_vax                    &lt;NA&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 11         testing                    &lt;NA&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1              age      basic ageing model</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2      macpan_base             MacPan base</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3             seir              basic SEIR</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4         seir_vax  SEIR vaccination model</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5              sir               basic SIR</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6          sir_vax   SIR vaccination model</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7              vax Basic vaccination model</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8      SI_products                    &lt;NA&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9  seir_simplified                    &lt;NA&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10       seir_symp                    &lt;NA&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11   seir_symp_vax                    &lt;NA&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12         testing                    &lt;NA&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 13              ww                    &lt;NA&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                                                 index_entry</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2       Ageing model with six age groups and vital dynamics</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3  re-implementation of the McMaster group's COVID-19 model</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4              vanilla epidemic model with an exposed class</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8    An SEIR model that includes the effects of vaccination</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 9                              a very simple epidemic model</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10                  AN SIR model which includes Vaccination</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 12                A simple vaccination model without waning</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1                                                      &lt;NA&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5                                                      &lt;NA&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6                                                      &lt;NA&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7                                                      &lt;NA&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1       Ageing model with six age groups and vital dynamics</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2  re-implementation of the McMaster group's COVID-19 model</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3              vanilla epidemic model with an exposed class</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4    An SEIR model that includes the effects of vaccination</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5                              a very simple epidemic model</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6                   AN SIR model which includes Vaccination</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7                 A simple vaccination model without waning</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8                                                      &lt;NA&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9                                                      &lt;NA&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10                                                     &lt;NA&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 11                                                     &lt;NA&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12                                                     &lt;NA&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 13                                                     &lt;NA&gt;</span>
 </code></pre></div>
     </div>
