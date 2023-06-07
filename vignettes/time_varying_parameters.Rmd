@@ -189,7 +189,7 @@ data.frame(
 
 ## Radial Basis Functions for Flexible Time Variation (In-Progress)
 
-## Getting and the Base Model
+This section uses radial basis functions to generate models with a flexible functional form for smooth changes in the transmission rate.
 
 Before we can add the fancy radial basis for the transmission rate, we need a base model. We use an SIR model that has been modified to include waning.
 
@@ -197,11 +197,6 @@ Before we can add the fancy radial basis for the transmission rate, we need a ba
 sir = Compartmental(system.file("starter_models", "sir_waning", package = "macpan2"))
 sir$flows()
 ```
-
-
-## Radial Basis Functions (In-Progress)
-
-This section uses radial basis functions to generate models with a flexible functional form for smooth changes in the transmission rate.
 
 The `macpan2::rbf` function can be used to produce a matrix giving the values of each basis function (each column) at each time step (each row). Using this matrix, $X$, and a weights vector, $b$, we can get a flexible output vector, $y$, with a shape that can be modified into a wide variety of shapes by changing the weights vector.
 
