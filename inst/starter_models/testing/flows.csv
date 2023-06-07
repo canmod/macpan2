@@ -1,6 +1,6 @@
 from,to,flow,type,from_partition,to_partition,flow_partition,from_to_partition,from_flow_partition,to_flow_partition
-untested,awaiting_result,testing_rate,rate,TestStatus,TestStatus,TestStatus,,,
-awaiting_result,positive,positive_rate,rate,TestStatus,TestStatus,TestStatus,,,
-awaiting_result,negitive,negitive_rate,rate,TestStatus,TestStatus,TestStatus,,,
-positive,untested,expiration_rate,rate,TestStatus,TestStatus,TestStatus,,,
-negitive,untested,expiration_rate,rate,TestStatus,TestStatus,TestStatus,,,
+untested,awaiting_result,testing_rate,per_capita,TestStatus,TestStatus,TestStatus,,,
+awaiting_result,positive,positive_rate,per_capita,TestStatus,TestStatus,TestStatus,,,
+awaiting_result,negitive,negitive_rate,per_capita,TestStatus,TestStatus,TestStatus,,,
+positive,untested,expiration_rate,per_capita,TestStatus,TestStatus,TestStatus,,,
+negitive,untested,expiration_rate,per_capita,TestStatus,TestStatus,TestStatus,,,
