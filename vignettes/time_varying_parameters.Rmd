@@ -287,7 +287,7 @@ set.seed(5L)
 
 ## Generalized Linear Mixed Models (In-Progress)
 
-```{r}
+```{r, eval=FALSE}
 #set.seed(6L)
 sir = Compartmental(system.file("starter_models", "sir", package = "macpan2"))
 simulator_rand_beta = sir$simulators$tmb(time_steps = 50
