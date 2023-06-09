@@ -112,11 +112,17 @@ simulated_incidence = filter(simulator$report(.phases = "during"), matrix == "in
 plot(measles$date, simulated_incidence, type = "l", xlab = "time")
 ```
 
-It looks nothing like the observed measles series, but also illustrates the ability to generate complex incidence patterns not present in the simple SIR model without radial basis functions and waning immunity.
+It looks nothing like the observed measles series, but illustrates the ability to generate complex incidence patterns not present in the simple SIR model without radial basis functions and waning immunity.
 
 
 ```{r, echo=FALSE}
-simulator = readRDS("../misc/saved-simulators/measles-model-object.rds")
+simulator = ("https://github.com"
+  |> file.path("canmod/macpan2")
+  |> file.path("raw/main")
+  |> file.path("misc/saved-simulators/measles-model-object.rds")
+  |> url('rb')
+  |> readRDS()
+)
 ```
 
 We modify the simulation object to be able to fit to the measles data.
