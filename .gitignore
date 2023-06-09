@@ -17,3 +17,13 @@ covr_trace_*
 lib
 macpan2*
 *~
+/doc/
+/Meta/
+/*.pdf
+/*.ps
+/*.png
+/*.dot
+/*.txt
+/*.out
+/*.profile
+/*.cpp

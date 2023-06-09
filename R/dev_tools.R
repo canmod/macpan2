@@ -26,11 +26,7 @@ dev_choose_cpp = function(...) {
 }
 
 dev_compile = function(...) {
-  print("hi")
   ff = dev_file(...)
-  print(ff)
-  print(file.exists(ff))
   TMB::compile(ff)
-  print("hi again")
   dyn.load(TMB::dynlib(dev_obj(...)))
 }
