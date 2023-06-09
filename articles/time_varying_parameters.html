@@ -44,6 +44,7 @@
     <a class="dropdown-item" href="../articles/quickstart.html">Quickstart Guide: specifying and simulating a simple compartmental model</a>
     <a class="dropdown-item" href="../articles/quickstart2.html">Quickstart Guide, part 2: specifying and simulating a structured compartmental model</a>
     <a class="dropdown-item" href="../articles/time_varying_parameters.html">Specifying Time-Varying Parameters</a>
+    <a class="dropdown-item" href="../articles/calibration.html">Calibrating Compartmental Models to Data</a>
     <a class="dropdown-item" href="../articles/example_models.html">Example Models</a>
     <div class="dropdown-divider"></div>
     <a class="dropdown-item" href="../articles/index.html">More articles...</a>
@@ -356,7 +357,8 @@ dynamics in an SIR model. In particular, our model for <span class="math inline"
 <p><span class="math display">\[
 \log(\beta_t) = \log(\gamma_t) + \log(N) - \log(S_t) + x_tb
 \]</span></p>
-<p>Here we have the recovery rate, <span class="math inline">\(\gamma_t\)</span>, total population, <span class="math inline">\(N_t\)</span>, and number of susceptibles, <span class="math inline">\(S_t\)</span>, at time, <span class="math inline">\(t\)</span>, and the <span class="math inline">\(t\)</span>th row of <span class="math inline">\(X\)</span>, <span class="math inline">\(x_t\)</span>. To better understand the rationale
+<p>Here we have the recovery rate, <span class="math inline">\(\gamma_t\)</span>, and number of susceptibles,
+<span class="math inline">\(S_t\)</span>, at time, <span class="math inline">\(t\)</span>, the total population, <span class="math inline">\(N\)</span>, and the <span class="math inline">\(t\)</span>th row of <span class="math inline">\(X\)</span>, <span class="math inline">\(x_t\)</span>. To better understand the rationale
 for this equation note that if every element of <span class="math inline">\(b\)</span> is set to zero, we have the following
 condition.</p>
 <p><span class="math display">\[
@@ -366,7 +368,12 @@ condition.</p>
 remains constant at time, <span class="math inline">\(t\)</span>. This
 means that positive values of <span class="math inline">\(b\)</span>
 will tend to generate outbreaks and negative values will tend to reduce
-transmission.</p>
+transmission. Because of the local nature of radial basis functions, it
+is not necessary to set all coefficients of <span class="math inline">\(b\)</span> to zero to achieve the same results in
+practice – it is only necessary to work with the coefficients of the
+basis functions that are appreciably greater than zero at <span class="math inline">\(t\)</span>.</p>
+<p>Here is a simulation model with a radial basis for exogenous
+transmission rate dynamics.</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1L</span><span class="op">)</span></span>
 <span><span class="va">simulator</span> <span class="op">=</span> <span class="va">sir</span><span class="op">$</span><span class="va">simulators</span><span class="op">$</span><span class="fu">tmb</span><span class="op">(</span></span>
