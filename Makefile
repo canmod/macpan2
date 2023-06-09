@@ -16,7 +16,7 @@ all:
 	make pkg-check
 
 # Use this rule if you are doing R development or want to promote
-# on dev.cpp to macpan2.cpp before doing R development.
+# dev.cpp to macpan2.cpp before doing R development.
 full-install:
 	make src-update
 	make enum-update
@@ -92,7 +92,7 @@ doc-update: R/*.R misc/dev/dev.cpp
 
 pkg-build:: macpan2_$(VERSION).tar.gz
 macpan2_$(VERSION).tar.gz: man/*.Rd R/*.R src/*.cpp tests/testthat/test-*.R tests/testthat.R inst/starter_models/**/*.csv inst/starter_models/**/*.json
-	R CMD build --no-build-vignettes .
+	R CMD build .
 
 
 pkg-check: macpan2_$(VERSION).tar.gz
