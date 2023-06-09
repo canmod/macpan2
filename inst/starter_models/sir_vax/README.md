@@ -1,4 +1,4 @@
 ---
 title: "SIR vaccination model"
-index_entry: "AN SIR model which includes Vaccination"
+index_entry: "an SIR model that includes vaccination"
 ---
