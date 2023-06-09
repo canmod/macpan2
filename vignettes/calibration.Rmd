@@ -18,8 +18,6 @@ library(macpan2)
 library(macpan2helpers)
 library(dplyr)
 library(ggplot2)
-library(readr)
-library(lubridate)
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
@@ -30,18 +28,18 @@ knitr::opts_chunk$set(
 
 ## Measles Data
 
-Here is a reasonably difficult problem -- fit an SIR model to measles incidence data from London UK.
+Here is a reasonably difficult problem -- fit an SIR model to weekly measles incidence data from London UK over about six decades.
 
 ```{r, fig.width=6}
-measles = read_csv(
+measles = read.csv(
   file.path(
     "https://raw.githubusercontent.com/davidearn/iidda/master/data",
     "meas_uk__lon_1944-94_wk/source-data/meas_uk__lon_1944-94_wk.csv"
   ),
   comment = "#"
 )
-measles$date = ymd(paste(
-  measles$year, measles$month, measles$day, sep = "-"
+measles$date = as.Date(sprintf(
+  "%s-%s-%s", measles$year, measles$month, measles$day
 ))
 plot(measles$date, measles$cases, type = "l")
 ```
