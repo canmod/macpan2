@@ -1,0 +1,293 @@
+---
+title: "Calibrating Compartmental Models to Data"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{Calibrating Compartmental Models to Data}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+[![status](https://img.shields.io/badge/status-working%20draft-red)](https://canmod.github.io/macpan2/articles/vignette-status#working-draft)
+
+```{r pkgs, include = FALSE}
+library(macpan2)
+library(macpan2helpers)
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(lubridate)
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Hello World Fitting Problem (TODO)
+
+## Measles Data
+
+Here is a reasonably difficult problem -- fit an SIR model to measles incidence data from London UK.
+
+```{r, fig.width=6}
+measles = read_csv(
+  file.path(
+    "https://raw.githubusercontent.com/davidearn/iidda/master/data",
+    "meas_uk__lon_1944-94_wk/source-data/meas_uk__lon_1944-94_wk.csv"
+  ),
+  comment = "#"
+)
+measles$date = ymd(paste(
+  measles$year, measles$month, measles$day, sep = "-"
+))
+plot(measles$date, measles$cases, type = "l")
+```
+
+We need to slightly extend the standard SIR model to include waning immunity.
+
+```{r}
+sir = Compartmental(system.file("starter_models", "sir_waning", package = "macpan2"))
+sir$flows()
+```
+
+
+We use [radial basis functions](https://canmod.github.io/macpan2/articles/time_varying_parameters.html#radial-basis-functions-for-flexible-time-variation-in-progress) to model time-variation in the transmission rate.  We also make a variety of questionable assumptions (TODO: fix these), but the point at the moment is just to illustrate usage and provide a proof of concept.
+```{r}
+d = 100
+n = nrow(measles)
+simulator = sir$simulators$tmb(
+      time_steps = n
+    , state = c(S = 100000 - 500, I = 500, R = 0)
+    , flow = c(foi = 0, gamma = 0.2, wane = 0.01)
+    
+    ## this beta does not matter because we will overwrite
+    ## it with the output of the radial basis functions
+    , beta = 1
+    
+    ## FIXME: this is surely not the population of London at
+    ##        all in the series
+    , N = 100000 
+    
+    ## matrices involved in radial basis functions
+    , X = rbf(n, d)
+    , b = rnorm(d, sd = 0.01)
+    , incidence = empty_matrix
+    , eta = empty_matrix
+    
+    , .mats_to_save = c("state", "incidence", "beta")
+    , .mats_to_return = c("state", "incidence", "beta")
+    
+## initial S is a function of initial I, which we
+## fit to data below
+)$insert$expressions(
+    S ~ N - I
+  , .phase = "before"
+  , .at = 1
+  
+## radial basis function evaluations
+)$insert$expressions(
+    eta ~ gamma * exp(X %*% b)
+  , .phase = "before"
+  , .at = Inf
+)$insert$expressions(
+    beta ~ eta[time_step(1)] / clamp(S/N, 1/100)
+  , .phase = "during"
+  , .at = 1
+  
+## save the simulated incidence trajectory to
+## compare with data
+)$insert$expressions(
+    incidence ~ I
+  , .vec_by_states = "total_inflow"
+  , .phase = "during"
+  , .at = Inf
+)
+```
+
+Here is an example simulation from this model, before fitting to data.
+```{r, fig.width=6}
+set.seed(1L)
+simulated_incidence = filter(simulator$report(.phases = "during"), matrix == "incidence")$value
+plot(measles$date, simulated_incidence, type = "l", xlab = "time")
+```
+
+It looks nothing like the observed measles series, but also illustrates the ability to generate complex incidence patterns not present in the simple SIR model without radial basis functions and waning immunity.
+
+
+```{r, echo=FALSE}
+simulator = readRDS("../misc/saved-simulators/measles-model-object.rds")
+```
+
+We modify the simulation object to be able to fit to the measles data.
+
+```{r, eval=FALSE}
+simulator$add$matrices(
+    reports = measles$cases
+  , log_lik = empty_matrix
+  , sim_reports = empty_matrix
+)
+simulator$insert$expressions(
+    sim_reports ~ rbind_time(incidence)
+  , .phase = "after"
+  , .at = Inf
+)
+simulator$replace$params(
+  default = c(
+      c(0.2, 0.01)
+    , rep(0, d)
+    , 500
+  )
+  , mat = c(
+      rep("flow", 2L)
+    , rep("b", d)  
+    , "state"
+  )
+  , row = c(
+      (1:2)
+    , seq_len(d) - 1L
+    , 1
+  )
+)
+simulator$replace$obj_fn(~ - sum(dpois(reports, sim_reports)))
+```
+
+The optimization takes quite a few minutes, and still doesn't converge in 10000 function evaluations.
+```{r, eval=FALSE}
+simulator$optimize$nlminb(control = list(eval.max = 10000, iter.max = 10000, trace = 10))
+```
+
+
+
+```{r}
+simulator$optimization_history$get()[[3]]  ## the 3 is there because we tried two other times
+```
+
+Here the red data are fitted and black observed.
+```{r, fig.width=6}
+simulated_incidence = filter(simulator$report(.phases = "during"), matrix == "incidence")$value
+plot(measles$date, measles$cases, xlab = "time", type = "l")
+lines(measles$date, simulated_incidence, col = 2)
+```
+
+Not a perfect fit, but not bad for now (TODO: work on this, without papering over the real challenges).
+
+## Challenging Logistic Variation in Transmission Rate
+
+Here we consider the problem of fitting an SIR model to a simulated dataset from this model, such that the simulations pose challenges to the fitting machinery.
+
+```{r}
+sir = Compartmental(system.file("starter_models", "sir", package = "macpan2"))
+sir$flows_expanded()
+```
+
+Our simulation model includes a logistically time-varying transmission rate.
+
+```{r}
+n = 2500
+set.seed(1L)
+simulator = sir$simulators$tmb(
+      time_steps = n
+    , state = c(S = 100000 - 500, I = 500, R = 0)
+    , flow = c(foi = 0, gamma = 0.2)#, wane = 0.01)
+    , beta = 1
+    , N = 100000
+    , X = cbind(1, scale(seq_len(n)))
+    , b = c(0, 1)
+    , incidence = empty_matrix
+    , beta_values = empty_matrix
+    , .mats_to_save = c("state", "incidence", "beta")
+    , .mats_to_return = c("state", "incidence", "beta")
+)$insert$expressions(
+    beta_values ~ 1 / (1 + exp(-X %*% b))
+  , .phase = "before"
+  , .at = Inf
+)$insert$expressions(
+    beta ~ beta_values[time_step(1)]
+  , .phase = "during"
+  , .at = 1
+)$insert$expressions(
+    incidence ~ I
+  , .vec_by_states = "total_inflow"
+  , .phase = "during"
+  , .at = Inf
+)$replace$params(
+    default = c(0, 1)
+  , mat = rep("b", 2)
+  , row = 0:1
+)
+```
+
+```{r, fig.height=8, fig.width=6}
+set.seed(5L)
+sims = simulator$report(.phases = "during")
+(sims
+  |> mutate(variable = if_else(matrix == "state", row, matrix))
+  |> ggplot()
+  + facet_wrap(~ variable, ncol = 1, scales = 'free')
+  + geom_line(aes(time, value))
+)
+```
+
+Fitting to the simulation data, manages to converge, but to the wrong value.
+```{r, fig.width=6}
+set.seed(3L) ## different seeds do result in convergence on the correct value
+reports = filter(sims, matrix == "incidence")$value
+simulator$add$matrices(reports = reports, report_sim = empty_matrix)
+simulator$insert$expressions(
+    report_sim ~ rbind_time(incidence)
+  , .phase = "after"
+  , .at = Inf
+)
+simulator$replace$obj_fn(~ -sum(dpois(reports, report_sim)))
+simulator$replace$params(
+    default = rnorm(2L) ## random starting values for the optimizer
+  , mat = rep("b", 2)
+  , row = 0:1
+)
+simulator$optimize$nlminb()
+simulator$current$params_frame()
+fitted_incidence = (simulator$current$params_vector()
+  |> simulator$report()
+  |> filter(matrix == "incidence")
+  |> pull(value)
+)
+plot(reports, type = "l")
+lines(fitted_incidence, col = 2)
+```
+
+The fit is not good!  Why?  To find out we plot the likelihood surface with arrows representing the magnitude and direction of the down-hill gradient towards the optimum. Notice the very flat gradient in the direction along the valley containing the optimum at $(0, 1)$. The gradient is pointing towards the valley but not along it.  I do not understand why.
+
+```{r, results='hide', message=FALSE}
+lik_surf = expand.grid(
+  intercept_parameter = seq(from = -1, to = 1, by = 0.05),
+  slope_parameter = seq(from = 0, to = 2, by = 0.05)
+)
+gr = t(apply(lik_surf, 1, simulator$gradient))
+lik_surf$z = apply(lik_surf, 1, simulator$objective)
+gr = 0.1 * gr / max(abs(gr))
+lik_surf$gx = gr[,1]
+lik_surf$gy = gr[,2]
+```
+
+
+
+```{r, fig.height=6, fig.width=7}
+(ggplot(lik_surf) 
+  + geom_tile(aes(intercept_parameter, slope_parameter, fill = z)) 
+  + geom_segment(
+    aes(
+      intercept_parameter, 
+      slope_parameter, 
+      xend = intercept_parameter - gx, 
+      yend = slope_parameter - gy
+    ), 
+    arrow = arrow(length = unit(0.05, "inches")), 
+    colour = 'white'
+  )
+  + theme_bw()
+)
+```
+

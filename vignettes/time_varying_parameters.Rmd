@@ -228,13 +228,15 @@ $$
 \log(\beta_t) = \log(\gamma_t) + \log(N) - \log(S_t) + x_tb
 $$
 
-Here we have the recovery rate, $\gamma_t$, total population, $N_t$, and number of susceptibles, $S_t$, at time, $t$, and the $t$th row of $X$, $x_t$. To better understand the rationale for this equation note that if every element of $b$ is set to zero, we have the following condition.
+Here we have the recovery rate, $\gamma_t$, and number of susceptibles, $S_t$, at time, $t$, the total population, $N$, and the $t$th row of $X$, $x_t$. To better understand the rationale for this equation note that if every element of $b$ is set to zero, we have the following condition.
 
 $$
 \frac{\beta_t S_t}{N} = \gamma_t
 $$
 
-This condition assures that the number of infected individuals remains constant at time, $t$. This means that positive values of $b$ will tend to generate outbreaks and negative values will tend to reduce transmission.
+This condition assures that the number of infected individuals remains constant at time, $t$. This means that positive values of $b$ will tend to generate outbreaks and negative values will tend to reduce transmission. Because of the local nature of radial basis functions, it is not necessary to set all coefficients of $b$ to zero to achieve the same results in practice -- it is only necessary to work with the coefficients of the basis functions that are appreciably greater than zero at $t$.
+
+Here is a simulation model with a radial basis for exogenous transmission rate dynamics.
 
 ```{r}
 set.seed(1L)
