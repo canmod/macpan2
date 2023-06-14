@@ -214,11 +214,18 @@ the (possibly modified) eigenvector of the (possibly modified)
 linearized model be given by <span class="math inline">\(g_0(\theta)\)</span>. Further let the objective
 function of the focal model be <span class="math inline">\(f(\theta;x)\)</span>.</p>
 <p>To avoid needing to specify or fit a reasonable value for <span class="math inline">\(x\)</span> at each calibration step, one could use
-the following modified objective function, <span class="math inline">\(h(\theta) = f(\theta|x =
+the following modified objective function, <span class="math inline">\(h(\theta) = f(\theta;x =
 g_0(\theta))\)</span>.</p>
-<p>There is a hidden computational difficulty here however. In
-McMasterPandemic we use TMB as the computational engine. TMB-generated
-objective functions assume that</p>
+<p>There is a hidden computational difficulty here however.
+McMasterPandemic uses TMB as the computational engine. TMB uses
+automatic differentiation to efficiently provide the gradients of
+objective functions. Optimizers can make use of these gradients to
+converge in fewer iterations. However, TMB does not return the gradients
+of the simulations with respect to the parameters. This means that the
+gradients return by TMB for <span class="math inline">\(f(\theta;x =
+g_0(\theta))\)</span> do not take into account the effect that <span class="math inline">\(\theta\)</span> has on <span class="math inline">\(x\)</span> through <span class="math inline">\(g_0\)</span>. This means that optimization using
+this state-initialization approach would not be able to utilize all of
+TMB’s speed benefits.</p>
 </div>
 <div class="section level2">
 <h2 id="priors-on-r0">Priors on R0<a class="anchor" aria-label="anchor" href="#priors-on-r0"></a>
