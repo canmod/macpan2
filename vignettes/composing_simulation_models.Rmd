@@ -67,10 +67,9 @@ This procedure will not work well if the forecasts are not sufficiently accurate
 
 The previous online forecasting setup did not consider how to determine the initial state vector, $x_1$, of the first model. An approach to achieving this is to initialize the state vector using the eigenvector of a linearized version of the model. To construct the objective function for fitting such a model assume that there are two trajectory models on the same parameter and state space. Let the initial state of the focal model be given by $x$ and the (possibly modified) eigenvector of the (possibly modified) linearized model be given by $g_0(\theta)$. Further let the objective function of the focal model be $f(\theta;x)$.
 
-To avoid needing to specify or fit a reasonable value for $x$ at each calibration step, one could use the following modified objective function, $h(\theta) = f(\theta|x = g_0(\theta))$.
+To avoid needing to specify or fit a reasonable value for $x$ at each calibration step, one could use the following modified objective function, $h(\theta) = f(\theta;x = g_0(\theta))$.
 
-There is a hidden computational difficulty here however. In McMasterPandemic we use TMB as the computational engine. TMB-generated objective functions assume that 
-
+There is a hidden computational difficulty here however. McMasterPandemic uses TMB as the computational engine. TMB uses automatic differentiation to efficiently provide the gradients of objective functions. Optimizers can make use of these gradients to converge in fewer iterations. However, TMB does not return the gradients of the simulations with respect to the parameters. This means that the gradients return by TMB for $f(\theta;x = g_0(\theta))$ do not take into account the effect that $\theta$ has on $x$ through $g_0$. This means that optimization using this state-initialization approach would not be able to utilize all of TMB's speed benefits.
 
 ## Priors on R0
 
