@@ -1,0 +1,26 @@
+---
+title: "Flow Types"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteEncoding{UTF-8}
+  %\VignetteIndexEntry{Flow Types}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+[![status](https://img.shields.io/badge/stub-red)](https://canmod.github.io/macpan2/articles/vignette-status#stub)
+
+```{r pkgs, include = FALSE}
+library(macpan2)
+library(macpan2helpers)
+library(dplyr)
+library(ggplot2)
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+cat_file = function(...) cat(readLines(file.path(...)), sep = "\n")
+```
