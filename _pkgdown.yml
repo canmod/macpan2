@@ -22,6 +22,7 @@ articles:
   - time_varying_parameters
   - calibration
   - example_models
+  - flow_types
 - title: Specs
   desc: Specification documents
   contents:
