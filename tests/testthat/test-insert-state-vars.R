@@ -2,7 +2,7 @@ test_that("inserted expressions are able to refer to single states/flows", {
   m = Compartmental(system.file("starter_models", "sir", package = "macpan2"))
   s = m$simulators$tmb(time_steps = 3
     , state = c(S = 99, I = 1, R = 0)
-    , flow = c(foi = 0, gamma = 0.2)
+    , flow = c(foi = NA, gamma = 0.2)
     , beta = 0.4
     , N = empty_matrix
     , test_ratio = empty_matrix

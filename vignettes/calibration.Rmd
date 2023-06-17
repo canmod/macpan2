@@ -59,11 +59,11 @@ n = nrow(measles)
 simulator = sir$simulators$tmb(
       time_steps = n
     , state = c(S = 100000 - 500, I = 500, R = 0)
-    , flow = c(foi = 0, gamma = 0.2, wane = 0.01)
+    , flow = c(foi = NA, gamma = 0.2, wane = 0.01)
     
     ## this beta does not matter because we will overwrite
     ## it with the output of the radial basis functions
-    , beta = 1
+    , beta = NA
     
     ## FIXME: this is surely not the population of London at
     ##        all in the series
@@ -195,7 +195,7 @@ set.seed(1L)
 simulator = sir$simulators$tmb(
       time_steps = n
     , state = c(S = 100000 - 500, I = 500, R = 0)
-    , flow = c(foi = 0, gamma = 0.2)#, wane = 0.01)
+    , flow = c(foi = NA, gamma = 0.2)#, wane = 0.01)
     , beta = 1
     , N = 100000
     , X = cbind(1, scale(seq_len(n)))

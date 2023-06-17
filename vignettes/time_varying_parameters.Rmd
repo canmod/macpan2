@@ -32,7 +32,7 @@ Here we modify an [SIR](https://canmod.github.io/macpan2/articles/quickstart) mo
 sir = Compartmental(system.file("starter_models", "sir", package = "macpan2"))
 simulator = sir$simulators$tmb(time_steps = 50
   , state = c(S = 99, I = 1, R = 0)
-  , flow = c(foi = 0, gamma = 0.2)
+  , flow = c(foi = NA, gamma = 0.2)
   , N = empty_matrix
   , beta = 0.8
 )
@@ -243,7 +243,7 @@ set.seed(1L)
 simulator = sir$simulators$tmb(
       time_steps = n
     , state = c(S = 100000 - 500, I = 500, R = 0)
-    , flow = c(foi = 0, gamma = 0.2, wane = 0.01)
+    , flow = c(foi = NA, gamma = 0.2, wane = 0.01)
     , beta = 1
     , N = 100000
     , X = rbf(n, d)
@@ -289,7 +289,7 @@ set.seed(5L)
 sir = Compartmental(system.file("starter_models", "sir", package = "macpan2"))
 simulator_rand_beta = sir$simulators$tmb(time_steps = 50
   , state = c(S = 99, I = 1, R = 0)
-  , flow = c(foi = 0, gamma = 0.2)
+  , flow = c(foi = NA, gamma = 0.2)
   , N = empty_matrix
   , beta = 0.4
 )
@@ -315,7 +315,7 @@ observed_I = filter(simulator_rand_beta$report(.phases = "during"), row == "I", 
 sir = Compartmental(system.file("starter_models", "sir", package = "macpan2"))
 simulator_step_level_re = sir$simulators$tmb(time_steps = 50
   , state = c(S = 99, I = 1, R = 0)
-  , flow = c(foi = 0, gamma = 0.2)
+  , flow = c(foi = NA, gamma = 0.2)
   , N = empty_matrix
   , beta = 0.8
 )

@@ -209,11 +209,13 @@ We attach specific values for model variables when initializing the model simula
 sir_simulator = sir$simulators$tmb(
   time_steps = 100,
   state = c(S = 99, I = 1, R = 0),
-  flow = c(foi = 0, gamma = 0.1),
+  flow = c(foi = NA, gamma = 0.1),
   beta = 0.2,
   N = empty_matrix # explained below
 )
 ```
+
+(flow variables that are recalculated before every time step, as specified in `derivations.json`, can be set to `NA` - these are placeholder values and don't affect the simulation)
 
 The simulator initializer function, `sir$simulators$tmb()`, uses `sir` as the model structure, and additionally takes the following arguments:
 
@@ -232,7 +234,7 @@ What if we had specified a hard-coded value for `N` above? For instance:
 sir_simulator2 = sir$simulators$tmb(
   time_steps = 100,
   state = c(S = 99, I = 1, R = 0),
-  flow = c(foi = 0, gamma = 0.1),
+  flow = c(foi = NA, gamma = 0.1),
   beta = 0.2,
   N = 100
 )
@@ -318,7 +320,7 @@ The total number of new individuals entering all boxes is stored in the `total_i
 sir_simulator3 = sir$simulators$tmb(
   time_steps = 100,
   state = c(S = 99, I = 1, R = 0),
-  flow = c(foi = 0, gamma = 0.1),
+  flow = c(foi = NA, gamma = 0.1),
   beta = 0.2,
   N = empty_matrix,
   
