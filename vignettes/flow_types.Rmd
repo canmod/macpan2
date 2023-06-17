@@ -4,8 +4,8 @@ output:
   rmarkdown::html_vignette:
     toc: true
 vignette: >
-  %\VignetteEncoding{UTF-8}
   %\VignetteIndexEntry{Flow Types}
+  %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
   chunk_output_type: console
