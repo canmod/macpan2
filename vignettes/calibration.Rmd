@@ -30,7 +30,8 @@ knitr::opts_chunk$set(
 
 Here is a reasonably difficult problem -- fit an SIR model to weekly measles incidence data from London UK over about six decades.
 
-```{r, fig.width=6}
+<!-- FIXME: store data locally, don't rely on IIDA ... -->
+```{r sir_plot, fig.width=6}
 measles = read.csv(
   file.path(
     "https://raw.githubusercontent.com/davidearn/iidda/master/data",
@@ -46,24 +47,24 @@ plot(measles$date, measles$cases, type = "l")
 
 We need to slightly extend the standard SIR model to include waning immunity.
 
-```{r}
+```{r sir_waning}
 sir = Compartmental(system.file("starter_models", "sir_waning", package = "macpan2"))
 sir$flows()
 ```
 
 
 We use [radial basis functions](https://canmod.github.io/macpan2/articles/time_varying_parameters.html#radial-basis-functions-for-flexible-time-variation-in-progress) to model time-variation in the transmission rate.  We also make a variety of questionable assumptions (TODO: fix these), but the point at the moment is just to illustrate usage and provide a proof of concept.
-```{r}
+```{r rbf}
 d = 100
 n = nrow(measles)
 simulator = sir$simulators$tmb(
       time_steps = n
     , state = c(S = 100000 - 500, I = 500, R = 0)
-    , flow = c(foi = NA, gamma = 0.2, wane = 0.01)
+    , flow = c(foi = NA_real_, gamma = 0.2, wane = 0.01)
     
     ## this beta does not matter because we will overwrite
     ## it with the output of the radial basis functions
-    , beta = NA
+    , beta = NA_real_
     
     ## FIXME: this is surely not the population of London at
     ##        all in the series
@@ -106,7 +107,7 @@ simulator = sir$simulators$tmb(
 ```
 
 Here is an example simulation from this model, before fitting to data.
-```{r, fig.width=6}
+```{r rbf_ex, fig.width=6}
 set.seed(1L)
 simulated_incidence = filter(simulator$report(.phases = "during"), matrix == "incidence")$value
 plot(measles$date, simulated_incidence, type = "l", xlab = "time")
@@ -115,7 +116,7 @@ plot(measles$date, simulated_incidence, type = "l", xlab = "time")
 It looks nothing like the observed measles series, but illustrates the ability to generate complex incidence patterns not present in the simple SIR model without radial basis functions and waning immunity.
 
 
-```{r, echo=FALSE}
+```{r rbf_model, echo=FALSE}
 simulator = ("https://github.com"
   |> file.path("canmod/macpan2")
   |> file.path("raw/main")
@@ -127,7 +128,7 @@ simulator = ("https://github.com"
 
 We modify the simulation object to be able to fit to the measles data.
 
-```{r, eval=FALSE}
+```{r rbf_modify, eval=FALSE}
 simulator$add$matrices(
     reports = measles$cases
   , log_lik = empty_matrix
@@ -159,18 +160,18 @@ simulator$replace$obj_fn(~ - sum(dpois(reports, sim_reports)))
 ```
 
 The optimization takes quite a few minutes, and still doesn't converge in 10000 function evaluations.
-```{r, eval=FALSE}
+```{r rbf_optim_fake, eval=FALSE}
 simulator$optimize$nlminb(control = list(eval.max = 10000, iter.max = 10000, trace = 10))
 ```
 
 
 
-```{r}
+```{r rbf_opt_get}
 simulator$optimization_history$get()[[3]]  ## the 3 is there because we tried two other times
 ```
 
 Here the red data are fitted and black observed.
-```{r, fig.width=6}
+```{r plot_rbf_res, fig.width=6}
 simulated_incidence = filter(simulator$report(.phases = "during"), matrix == "incidence")$value
 plot(measles$date, measles$cases, xlab = "time", type = "l")
 lines(measles$date, simulated_incidence, col = 2)
@@ -182,14 +183,14 @@ Not a perfect fit, but not bad for now (TODO: work on this, without papering ove
 
 Here we consider the problem of fitting an SIR model to a simulated dataset from this model, such that the simulations pose challenges to the fitting machinery.
 
-```{r}
+```{r logistic_ex}
 sir = Compartmental(system.file("starter_models", "sir", package = "macpan2"))
 sir$flows_expanded()
 ```
 
 Our simulation model includes a logistically time-varying transmission rate.
 
-```{r}
+```{r logistic_sim}
 n = 2500
 set.seed(1L)
 simulator = sir$simulators$tmb(
@@ -224,7 +225,7 @@ simulator = sir$simulators$tmb(
 )
 ```
 
-```{r, fig.height=8, fig.width=6}
+```{r logistic_plot2, fig.height=8, fig.width=6}
 set.seed(5L)
 sims = simulator$report(.phases = "during")
 (sims
@@ -236,7 +237,7 @@ sims = simulator$report(.phases = "during")
 ```
 
 Fitting to the simulation data, manages to converge, but to the wrong value.
-```{r, fig.width=6}
+```{r logistic_bad_converge, fig.width=6}
 set.seed(3L) ## different seeds do result in convergence on the correct value
 reports = filter(sims, matrix == "incidence")$value
 simulator$add$matrices(reports = reports, report_sim = empty_matrix)
@@ -264,7 +265,7 @@ lines(fitted_incidence, col = 2)
 
 The fit is not good!  Why?  To find out we plot the likelihood surface with arrows representing the magnitude and direction of the down-hill gradient towards the optimum. Notice the very flat gradient in the direction along the valley containing the optimum at $(0, 1)$. The gradient is pointing towards the valley but not along it.  I do not understand why.
 
-```{r, results='hide', message=FALSE}
+```{r logistic_plot_surf, results='hide', message=FALSE}
 lik_surf = expand.grid(
   intercept_parameter = seq(from = -1, to = 1, by = 0.05),
   slope_parameter = seq(from = 0, to = 2, by = 0.05)
@@ -278,7 +279,7 @@ lik_surf$gy = gr[,2]
 
 
 
-```{r, fig.height=6, fig.width=7}
+```{r logistic_plot_surf2, fig.height=6, fig.width=7}
 (ggplot(lik_surf) 
   + geom_tile(aes(intercept_parameter, slope_parameter, fill = z)) 
   + geom_segment(
