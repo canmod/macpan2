@@ -46,6 +46,7 @@
     <a class="dropdown-item" href="../articles/time_varying_parameters.html">Specifying Time-Varying Parameters</a>
     <a class="dropdown-item" href="../articles/calibration.html">Calibrating Compartmental Models to Data</a>
     <a class="dropdown-item" href="../articles/example_models.html">Example Models</a>
+    <a class="dropdown-item" href="../articles/flow_types.html">Flow Types</a>
     <div class="dropdown-divider"></div>
     <a class="dropdown-item" href="../articles/index.html">More articles...</a>
   </div>
@@ -96,7 +97,7 @@ model so that transmission rate is time-varying.</p>
 <code class="sourceCode R"><span><span class="va">sir</span> <span class="op">=</span> <span class="fu"><a href="../reference/Compartmental.html">Compartmental</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"starter_models"</span>, <span class="st">"sir"</span>, package <span class="op">=</span> <span class="st">"macpan2"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">simulator</span> <span class="op">=</span> <span class="va">sir</span><span class="op">$</span><span class="va">simulators</span><span class="op">$</span><span class="fu">tmb</span><span class="op">(</span>time_steps <span class="op">=</span> <span class="fl">50</span></span>
 <span>  , state <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>S <span class="op">=</span> <span class="fl">99</span>, I <span class="op">=</span> <span class="fl">1</span>, R <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
-<span>  , flow <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>foi <span class="op">=</span> <span class="fl">0</span>, gamma <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span>
+<span>  , flow <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>foi <span class="op">=</span> <span class="cn">NA</span>, gamma <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span>
 <span>  , N <span class="op">=</span> <span class="va">empty_matrix</span></span>
 <span>  , beta <span class="op">=</span> <span class="fl">0.8</span></span>
 <span><span class="op">)</span></span>
@@ -379,7 +380,7 @@ transmission rate dynamics.</p>
 <span><span class="va">simulator</span> <span class="op">=</span> <span class="va">sir</span><span class="op">$</span><span class="va">simulators</span><span class="op">$</span><span class="fu">tmb</span><span class="op">(</span></span>
 <span>      time_steps <span class="op">=</span> <span class="va">n</span></span>
 <span>    , state <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>S <span class="op">=</span> <span class="fl">100000</span> <span class="op">-</span> <span class="fl">500</span>, I <span class="op">=</span> <span class="fl">500</span>, R <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
-<span>    , flow <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>foi <span class="op">=</span> <span class="fl">0</span>, gamma <span class="op">=</span> <span class="fl">0.2</span>, wane <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span></span>
+<span>    , flow <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>foi <span class="op">=</span> <span class="cn">NA</span>, gamma <span class="op">=</span> <span class="fl">0.2</span>, wane <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span></span>
 <span>    , beta <span class="op">=</span> <span class="fl">1</span></span>
 <span>    , N <span class="op">=</span> <span class="fl">100000</span></span>
 <span>    , X <span class="op">=</span> <span class="fu"><a href="../reference/rbf.html">rbf</a></span><span class="op">(</span><span class="va">n</span>, <span class="va">d</span><span class="op">)</span></span>
@@ -424,7 +425,7 @@ transmission rate dynamics.</p>
 <span><span class="va">sir</span> <span class="op">=</span> <span class="fu"><a href="../reference/Compartmental.html">Compartmental</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"starter_models"</span>, <span class="st">"sir"</span>, package <span class="op">=</span> <span class="st">"macpan2"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">simulator_rand_beta</span> <span class="op">=</span> <span class="va">sir</span><span class="op">$</span><span class="va">simulators</span><span class="op">$</span><span class="fu">tmb</span><span class="op">(</span>time_steps <span class="op">=</span> <span class="fl">50</span></span>
 <span>  , state <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>S <span class="op">=</span> <span class="fl">99</span>, I <span class="op">=</span> <span class="fl">1</span>, R <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
-<span>  , flow <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>foi <span class="op">=</span> <span class="fl">0</span>, gamma <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span>
+<span>  , flow <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>foi <span class="op">=</span> <span class="cn">NA</span>, gamma <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span>
 <span>  , N <span class="op">=</span> <span class="va">empty_matrix</span></span>
 <span>  , beta <span class="op">=</span> <span class="fl">0.4</span></span>
 <span><span class="op">)</span></span>
@@ -448,7 +449,7 @@ transmission rate dynamics.</p>
 <code class="sourceCode R"><span><span class="va">sir</span> <span class="op">=</span> <span class="fu"><a href="../reference/Compartmental.html">Compartmental</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"starter_models"</span>, <span class="st">"sir"</span>, package <span class="op">=</span> <span class="st">"macpan2"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">simulator_step_level_re</span> <span class="op">=</span> <span class="va">sir</span><span class="op">$</span><span class="va">simulators</span><span class="op">$</span><span class="fu">tmb</span><span class="op">(</span>time_steps <span class="op">=</span> <span class="fl">50</span></span>
 <span>  , state <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>S <span class="op">=</span> <span class="fl">99</span>, I <span class="op">=</span> <span class="fl">1</span>, R <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
-<span>  , flow <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>foi <span class="op">=</span> <span class="fl">0</span>, gamma <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span>
+<span>  , flow <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>foi <span class="op">=</span> <span class="cn">NA</span>, gamma <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span>
 <span>  , N <span class="op">=</span> <span class="va">empty_matrix</span></span>
 <span>  , beta <span class="op">=</span> <span class="fl">0.8</span></span>
 <span><span class="op">)</span></span>

@@ -46,6 +46,7 @@
     <a class="dropdown-item" href="../articles/time_varying_parameters.html">Specifying Time-Varying Parameters</a>
     <a class="dropdown-item" href="../articles/calibration.html">Calibrating Compartmental Models to Data</a>
     <a class="dropdown-item" href="../articles/example_models.html">Example Models</a>
+    <a class="dropdown-item" href="../articles/flow_types.html">Flow Types</a>
     <div class="dropdown-divider"></div>
     <a class="dropdown-item" href="../articles/index.html">More articles...</a>
   </div>
@@ -5665,11 +5666,11 @@ HTMLWidgets.widget({
   
 });
 </script><div id="htmlwidget_container">
-<div id="htmlwidget-cff1f8e5b3094030f23c" class="visNetwork html-widget html-fill-item-overflow-hidden html-fill-item" style="width:960px;height:500px;">
+<div id="htmlwidget-9de0158ad22febd2a7ad" class="visNetwork html-widget html-fill-item-overflow-hidden html-fill-item" style="width:960px;height:500px;">
 
 </div>
 </div>
-<script type="application/json" data-for="htmlwidget-cff1f8e5b3094030f23c">{"x":{"nodes":{"id":["S","I","R"],"label":["S","I","R"],"shape":["square","square","square"]},"edges":{"from":["S","I"],"to":["I","R"],"label":["foi","gamma"]},"nodesToDataframe":true,"edgesToDataframe":true,"options":{"width":"100%","height":"100%","nodes":{"shape":"dot"},"manipulation":{"enabled":false},"edges":{"arrows":"to"},"layout":{"hierarchical":{"enabled":true,"direction":"LR"}},"interaction":{"dragNodes":true,"dragView":true,"zoomView":false,"zoomSpeed":1}},"groups":null,"width":null,"height":null,"idselection":{"enabled":false},"byselection":{"enabled":false},"main":null,"submain":null,"footer":null,"background":"rgba(0, 0, 0, 0)","tooltipStay":300,"tooltipStyle":"position: fixed;visibility:hidden;padding: 5px;white-space: nowrap;font-family: verdana;font-size:14px;font-color:#000000;background-color: #f5f4ed;-moz-border-radius: 3px;-webkit-border-radius: 3px;border-radius: 3px;border: 1px solid #808074;box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);"},"evals":[],"jsHooks":[]}</script><script type="application/htmlwidget-sizing" data-for="htmlwidget-cff1f8e5b3094030f23c">{"viewer":{"width":450,"height":350,"padding":15,"fill":true},"browser":{"width":960,"height":500,"padding":40,"fill":false}}</script><p>We can display the components of <code>macpan2</code> models
+<script type="application/json" data-for="htmlwidget-9de0158ad22febd2a7ad">{"x":{"nodes":{"id":["S","I","R"],"label":["S","I","R"],"shape":["square","square","square"]},"edges":{"from":["S","I"],"to":["I","R"],"label":["foi","gamma"]},"nodesToDataframe":true,"edgesToDataframe":true,"options":{"width":"100%","height":"100%","nodes":{"shape":"dot"},"manipulation":{"enabled":false},"edges":{"arrows":"to"},"layout":{"hierarchical":{"enabled":true,"direction":"LR"}},"interaction":{"dragNodes":true,"dragView":true,"zoomView":false,"zoomSpeed":1}},"groups":null,"width":null,"height":null,"idselection":{"enabled":false},"byselection":{"enabled":false},"main":null,"submain":null,"footer":null,"background":"rgba(0, 0, 0, 0)","tooltipStay":300,"tooltipStyle":"position: fixed;visibility:hidden;padding: 5px;white-space: nowrap;font-family: verdana;font-size:14px;font-color:#000000;background-color: #f5f4ed;-moz-border-radius: 3px;-webkit-border-radius: 3px;border-radius: 3px;border: 1px solid #808074;box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);"},"evals":[],"jsHooks":[]}</script><script type="application/htmlwidget-sizing" data-for="htmlwidget-9de0158ad22febd2a7ad">{"viewer":{"width":450,"height":350,"padding":15,"fill":true},"browser":{"width":960,"height":500,"padding":40,"fill":false}}</script><p>We can display the components of <code>macpan2</code> models
 (<code>Compartmental</code> objects), including the methods that operate
 on them, by listing their names:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
@@ -5702,10 +5703,14 @@ model simulator, <code>sir_simulator</code>, using the
 <code class="sourceCode R"><span><span class="va">sir_simulator</span> <span class="op">=</span> <span class="va">sir</span><span class="op">$</span><span class="va">simulators</span><span class="op">$</span><span class="fu">tmb</span><span class="op">(</span></span>
 <span>  time_steps <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>  state <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>S <span class="op">=</span> <span class="fl">99</span>, I <span class="op">=</span> <span class="fl">1</span>, R <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>,</span>
-<span>  flow <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>foi <span class="op">=</span> <span class="fl">0</span>, gamma <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span>,</span>
+<span>  flow <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>foi <span class="op">=</span> <span class="cn">NA</span>, gamma <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span>,</span>
 <span>  beta <span class="op">=</span> <span class="fl">0.2</span>,</span>
 <span>  N <span class="op">=</span> <span class="va">empty_matrix</span> <span class="co"># explained below</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+<p>(flow variables that are recalculated before every time step, as
+specified in <code>derivations.json</code>, can be set to
+<code>NA</code> - these are placeholder values and don’t affect the
+simulation)</p>
 <p>The simulator initializer function,
 <code>sir$simulators$tmb()</code>, uses <code>sir</code> as the model
 structure, and additionally takes the following arguments:</p>
@@ -5756,7 +5761,7 @@ For instance:</p>
 <code class="sourceCode R"><span><span class="va">sir_simulator2</span> <span class="op">=</span> <span class="va">sir</span><span class="op">$</span><span class="va">simulators</span><span class="op">$</span><span class="fu">tmb</span><span class="op">(</span></span>
 <span>  time_steps <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>  state <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>S <span class="op">=</span> <span class="fl">99</span>, I <span class="op">=</span> <span class="fl">1</span>, R <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>,</span>
-<span>  flow <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>foi <span class="op">=</span> <span class="fl">0</span>, gamma <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span>,</span>
+<span>  flow <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>foi <span class="op">=</span> <span class="cn">NA</span>, gamma <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span>,</span>
 <span>  beta <span class="op">=</span> <span class="fl">0.2</span>,</span>
 <span>  N <span class="op">=</span> <span class="fl">100</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -5896,7 +5901,7 @@ is the only matrix to be returned).</p>
 <code class="sourceCode R"><span><span class="va">sir_simulator3</span> <span class="op">=</span> <span class="va">sir</span><span class="op">$</span><span class="va">simulators</span><span class="op">$</span><span class="fu">tmb</span><span class="op">(</span></span>
 <span>  time_steps <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>  state <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>S <span class="op">=</span> <span class="fl">99</span>, I <span class="op">=</span> <span class="fl">1</span>, R <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>,</span>
-<span>  flow <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>foi <span class="op">=</span> <span class="fl">0</span>, gamma <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span>,</span>
+<span>  flow <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>foi <span class="op">=</span> <span class="cn">NA</span>, gamma <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span>,</span>
 <span>  beta <span class="op">=</span> <span class="fl">0.2</span>,</span>
 <span>  N <span class="op">=</span> <span class="va">empty_matrix</span>,</span>
 <span>  </span>

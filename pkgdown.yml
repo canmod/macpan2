@@ -8,6 +8,7 @@ articles:
   development_patterns: development_patterns.html
   elementwise_binary_operators: elementwise_binary_operators.html
   example_models: example_models.html
+  flow_types: flow_types.html
   hello_products: hello_products.html
   model_definitions: model_definitions.html
   quickstart: quickstart.html
@@ -15,7 +16,7 @@ articles:
   state_dependent_rates: state_dependent_rates.html
   time_varying_parameters: time_varying_parameters.html
   vignette_status: vignette_status.html
-last_built: 2023-06-14T19:53Z
+last_built: 2023-06-17T15:14Z
 urls:
   reference: https://canmod.github.io/macpan2/reference
   article: https://canmod.github.io/macpan2/articles
