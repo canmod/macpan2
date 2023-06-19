@@ -1,11 +1,11 @@
-# Currently this script runs on my computer once or twice.
-# Usually on the second source in the same session, it breaks (sometimes the third).
+# currently, calibrating to hospital occupancy data is not working as expected.
 
 library(macpan2)
 library(dplyr)
 library(tidyverse)
 library(lubridate)
 
+# set breakpoint times based on Champredon breakpoint dates
 breakpoint_dates = c(ymd(20200310), ymd(20200330), ymd(20200419), ymd(20200608),
                      ymd(20200713), ymd(20200728), ymd(20200827), ymd(20201016),
                      ymd(20201115), ymd(20210124), ymd(20210213), ymd(20210305),
@@ -119,7 +119,7 @@ simulator$add$matrices(
   , W_sd = 1
   , obs_H = obs_H
   , obs_H_time_steps = obs_H_time_steps
-  , H_sd = 1
+  #, H_sd = 1
   # , obs_report = obs_report
   # , obs_report_time_steps = obs_report_time_steps
   , simulated_W = empty_matrix
@@ -137,7 +137,7 @@ simulator$print$matrix_dims()
 # add time varying parameter tools
 simulator$add$matrices(
   beta_changepoints = breakpoint_times # c(0,10,20,30,40,50,100,200,300) #breakpoint_times
-  , beta_values = c(0.8, 0.01, 0.2, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.1, 0.11, 0.12)
+  , beta_values = c(0.2, 0.1, 0.2, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.1, 0.11, 0.12)
   , beta_pointer = 0
 )
 simulator$print$matrix_dims()
@@ -147,13 +147,13 @@ simulator$print$matrix_dims()
 ##         `.phase = "during"` indicates that this expression
 ##         should come at the end of the expressions evaluated
 ##         during each iteration of the simulation loop.
-simulator$insert$expressions(
-  #trajectory = simulated_I ~ 0.1 * sum(total_inflow[c(20, 21)])
-  trajectory = simulated_W ~ W
-  , .at = Inf  ## place the inserted expressions at the end of the expression list
-  , .phase = "during"
-)
-simulator$print$expressions()
+# simulator$insert$expressions(
+#   #trajectory = simulated_I ~ 0.1 * sum(total_inflow[c(20, 21)])
+#   trajectory = simulated_W ~ W
+#   , .at = Inf  ## place the inserted expressions at the end of the expression list
+#   , .phase = "during"
+# )
+# simulator$print$expressions()
 
 simulator$insert$expressions(
   trajectory = simulated_H ~ H
@@ -162,6 +162,7 @@ simulator$insert$expressions(
 )
 simulator$print$expressions()
 
+# the following code will be utilized when calibrating to hosp admission and/or reports
 # simulator$insert$expressions(
 #   trajectory = simulated_Adm ~ total_inflow[7]  ## 7 corresponds to H in this case
 #   , .at = Inf  ## place the inserted expressions at the end of the expression list
@@ -175,6 +176,15 @@ simulator$print$expressions()
 #   , .phase = "during"
 # )
 # simulator$print$expressions()
+# match("H", macpan_ww$labels$state()) - 1L  ## plug this into the square brackets for total_inflow below to get inflow into H
+# match("E", macpan_ww$labels$state()) - 1L  ## plug this into the square brackets for total_inflow below to get inflow into E
+# simulator$insert$expressions(
+#     #X ~ X + IsH
+#     #hosp ~ X - lag(X)
+#     hosp ~ Is * IsH
+#     total_inflow[7]  ## this is admissions
+#     0.1 * total_inflow[1]  ## this is incidence
+# )
 
 # add time-varying parameter expressions
 simulator$insert$expressions(
@@ -187,35 +197,34 @@ simulator$insert$expressions(
 )
 simulator$print$expressions()
 
-
-# match("H", macpan_ww$labels$state()) - 1L  ## plug this into the square brackets for total_inflow below to get inflow into H
-# match("E", macpan_ww$labels$state()) - 1L  ## plug this into the square brackets for total_inflow below to get inflow into E
-# simulator$insert$expressions(
-#     #X ~ X + IsH
-#     #hosp ~ X - lag(X)
-#     hosp ~ Is * IsH
-#     total_inflow[7]  ## this is admissions
-#     0.1 * total_inflow[1]  ## this is incidence
-# )
-
 ## Step 3: compute any values that will be part of the
 ##         objective function to be optimized. here we
 ##         have the log of the Poisson density of the
-##         observed `W` values with mean (i.e. predicted)
-##         value at the simulated `W` values. the
+##         observed `H` values with mean (i.e. predicted)
+##         value at the simulated `H` values. the
 ##         `rbind_time` function gathers together the
-##         full simulation history of the `simulated_W`
+##         full simulation history of the `simulated_H`
 ##         matrix by binding together the rows at each
 ##         iteration.
 simulator$insert$expressions(
   likelihood = log_lik ~
     (
-      dnorm(
-        log(obs_W),  ## observed values
-        log(clamp(rbind_time(simulated_W, obs_W_time_steps))),  ## simulated values
-        W_sd
+      # dnorm(
+      #   log(obs_W),  ## observed values
+      #   log(clamp(rbind_time(simulated_W, obs_W_time_steps))),  ## simulated values
+      #   W_sd
+      # )
+      # dpois(
+      #   obs_W,
+      #   clamp(rbind_time(simulated_W, obs_W_time_steps))
+      # )
+      #+ 
+      dpois(
+      obs_H,
+      clamp(rbind_time(simulated_H, obs_H_time_steps))
       )
-      # + dnorm(
+      #+
+      # dnorm(
       #   log(obs_H),
       #   log(clamp(rbind_time(simulated_H, obs_H_time_steps))),
       #   H_sd
@@ -234,9 +243,8 @@ simulator$replace$obj_fn(~ -sum(log_lik))
 ##         as well as starting values for the parameters to be optimized
 
 #simulator$add$transformations(Log("beta0"))
-
 simulator$add$transformations(Log("beta_values"))
-simulator$add$transformations(Log("W_sd"))
+#simulator$add$transformations(Log("W_sd"))
 #simulator$add$transformations(Log("H_sd"))
 simulator$replace$params_frame(readr::read_csv("opt_parameters.csv"))
 # simulator$replace$params(
@@ -248,13 +256,15 @@ simulator$replace$params_frame(readr::read_csv("opt_parameters.csv"))
 simulator$print$expressions()
 
 ## Step 6: use the engine object
-plot(obs_W_time_steps, obs_W)
+#plot(obs_W_time_steps, obs_W)
+plot(obs_H_time_steps, obs_H)
 
 simulator$optimize$nlminb()
 #simulator$optimize$optim()
 simulator$current$params_frame()
 
-lines(1:460, filter(simulator$report(.phases = "during"), matrix == "state", row == "W")$value, col = "red")
+#lines(1:460, filter(simulator$report(.phases = "during"), matrix == "state", row == "W")$value, col = "red")
+lines(1:460, filter(simulator$report(.phases = "during"), matrix == "state", row == "H")$value, col = "red")
 
 # simulator$cache$invalidate()
 # lines(1:460, filter(simulator$report(.phases = "during"), matrix == "state", row == "W")$value, col = "red")
