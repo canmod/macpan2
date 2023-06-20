@@ -1,4 +1,0 @@
-{
-  "state_variables" : ["S", "I", "R"],
-  "flow_variables" : ["foi", "gamma"]
-}
