@@ -124,6 +124,7 @@ simulator$add$matrices(
   # , obs_report_time_steps = obs_report_time_steps
   , simulated_W = empty_matrix
   , simulated_H = empty_matrix
+  , clamped_H = empty_matrix
   #, simulated_Adm = empty_matrix
   #, simulated_reports = empty_matrix
   # , simulated_report = empty_matrix
@@ -189,12 +190,12 @@ simulator$print$expressions()
 # add time-varying parameter expressions
 simulator$insert$expressions(
   beta_pointer ~ time_group(beta_pointer, beta_changepoints),
-  .phase = "during"
-)
-simulator$insert$expressions(
   beta0 ~ beta_values[beta_pointer],
   .phase = "during"
 )
+# simulator$insert$expressions(
+#   .phase = "during"
+# )
 simulator$print$expressions()
 
 ## Step 3: compute any values that will be part of the
@@ -207,7 +208,11 @@ simulator$print$expressions()
 ##         matrix by binding together the rows at each
 ##         iteration.
 simulator$insert$expressions(
-  likelihood = log_lik ~
+    simulated_H ~ rbind_time(simulated_H, obs_H_time_steps)
+    #simulated_H ~ log(1 + 1e-12 + exp(rbind_time(simulated_H, obs_H_time_steps)))
+  #, simulated_H ~ exp(rbind_time(simulated_H, obs_H_time_steps))
+  , clamped_H ~ 1e-12 + 0.5 * ((simulated_H - 1e-12) + ((simulated_H - 1e-12)^2 + (2*1e-6 - 1e-12)^2 - (1e-12)^2)^0.5)
+  , likelihood = log_lik ~
     (
       # dnorm(
       #   log(obs_W),  ## observed values
@@ -218,11 +223,8 @@ simulator$insert$expressions(
       #   obs_W,
       #   clamp(rbind_time(simulated_W, obs_W_time_steps))
       # )
-      #+ 
-      dpois(
-      obs_H,
-      clamp(rbind_time(simulated_H, obs_H_time_steps))
-      )
+      #+
+      dpois(obs_H, clamped_H)
       #+
       # dnorm(
       #   log(obs_H),
@@ -254,6 +256,9 @@ simulator$replace$params_frame(readr::read_csv("opt_parameters.csv"))
 # )
 
 simulator$print$expressions()
+# simulator$report() %>% pull(matrix) %>% unique
+# View(simulator$report(.phases = "after") %>% filter(matrix == "log_lik"))
+# View(simulator$report(.phases = "after") %>% filter(matrix == "simulated_H"))
 
 ## Step 6: use the engine object
 #plot(obs_W_time_steps, obs_W)
@@ -262,6 +267,8 @@ plot(obs_H_time_steps, obs_H)
 simulator$optimize$nlminb()
 #simulator$optimize$optim()
 simulator$current$params_frame()
+
+simulator$optimization_history$get()
 
 #lines(1:460, filter(simulator$report(.phases = "during"), matrix == "state", row == "W")$value, col = "red")
 lines(1:460, filter(simulator$report(.phases = "during"), matrix == "state", row == "H")$value, col = "red")
@@ -312,3 +319,42 @@ lines(1:460, filter(simulator$report(.phases = "during"), matrix == "state", row
 #   %>% filter(matrix == "simulated_W")
 #   %>% View
 # )
+library(macpan2)
+x = seq(from = -100, to = 100, by = 0.1)
+y = engine_eval(~ clamp(x, 10), x = x)
+plot(x, y, xlim = c(0, max(x)), ylim = c(0, max(y)), type = "l")
+abline(a = 0, b = 1, col = 2, lty = 2)
+
+cl = function(x, eps) {
+  # x + eps * (1.0 / (1.0 - (x - eps) / eps + ((x - eps) * (x - eps)) / (eps * eps)))
+  x + eps * (1.0 / (1.0 - (x - eps) / eps + ((x - eps) * (x - eps)) / (eps * eps)))
+}
+lines(x, cl(x, 10), col = 3)
+
+plot(x, plogis(x))
+
+cdf = function(x) plogis(x, mu, s)
+cdf = function(x) 1 / (1 + exp(-(x - mu)/s))
+cdf = function(x, mu, s) plogis(x, mu, s)
+cc = function(mu, s, x0) {
+  function(x) {
+    x0 * (1 - cdf(x, mu, s)) + x * cdf(x, mu, s)
+    #log(1 + exp(x))
+  }
+}
+plot(x, cc(1, 1, 1e-10)(x), type = 'l')
+plot(x, log(1 + 1e-12 + exp(x)), type = "l")
+sp = function(eps) function(x) (x + sqrt(x^2 + 4 * eps^2)) / 2
+plot(x, sp(1/10)(x), type = "l")
+sp(1e-6)(-1)
+abline(a = 0, b = 1)
+
+spp = function(eps_neg_inf, eps_0) {
+  function(x) {
+    eps_neg_inf + 0.5 * ((x - eps_neg_inf) + sqrt((x - eps_neg_inf)^2 + (2*eps_0 - eps_neg_inf)^2 - eps_neg_inf^2))
+  }
+}
+plot(x, spp(1e-12, 1e-6)(x), type = "l")
+spp(1e-12, 1e-6)(0.0001)
+spp(1e-12, 1e-6)(0)
+spp(1e-12, 1e-6)(-1e5)
