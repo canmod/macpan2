@@ -1,7 +1,5 @@
-# currently, calibrating to hospital occupancy data is working, but it requires 
-# seemingly random breakpoints that don't work well for other data streams
-# and calibrating to multiple time series does not seem to be working properly 
-# with these breakpoints
+# currently, calibrating to hospital occupancy data and waste is working, but it requires 
+# seemingly random breakpoints, where small changes ruin the fit
 
 library(macpan2)
 library(dplyr)
@@ -17,7 +15,7 @@ breakpoint_dates = c(ymd(20200310), ymd(20200330), ymd(20200419), ymd(20200608),
 # add 120 days to breakpoint times and two random 
 # start breakpoint times, so that calibration works, 
 # does not make sense to me at all
-breakpoint_times = interval(ymd(20200310), breakpoint_dates) %/% days() + 1 + 120
+breakpoint_times = interval(ymd(20200310), breakpoint_dates) %/% days() + 1 + 120 #120
 breakpoint_times = c(20, 60, breakpoint_times)
 
 # get macpan_base model with additional wastewater compartments
@@ -137,8 +135,8 @@ simulator$add$matrices(
   #, simulated_reports = empty_matrix
   # , simulated_report = empty_matrix
   , log_lik = empty_matrix
-  , .mats_to_save = c("simulated_W", "simulated_H", "total_inflow", "beta_changepoints") # "simulated_report"
-  , .mats_to_return = c("log_lik", "simulated_W", "simulated_H", "total_inflow", "beta_changepoints") # "simulated_report"
+  , .mats_to_save = c("simulated_W", "simulated_H", "total_inflow", "beta_changepoints", "xi", "nu") # "simulated_report"
+  , .mats_to_return = c("log_lik", "simulated_W", "simulated_H", "total_inflow", "beta_changepoints", "xi", "nu") # "simulated_report"
   #, .dimnames = list(total_inflow = list(macpan_ww$labels$state(), ""))
 )
 simulator$print$matrix_dims()
@@ -234,8 +232,8 @@ simulator$insert$expressions(
       #   clamp(rbind_time(simulated_W, obs_W_time_steps))
       # )
       #+
-      #dpois(obs_W, clamped_W)
-      #+
+      dpois(obs_W, clamped_W)
+      +
       dpois(obs_H, clamped_H)
       #+
       # dnorm(
@@ -258,9 +256,11 @@ simulator$replace$obj_fn(~ -sum(log_lik))
 
 #simulator$add$transformations(Log("beta0"))
 simulator$add$transformations(Log("beta_values"))
+simulator$add$transformations(Log("xi"))
+simulator$add$transformations(Log("nu"))
 #simulator$add$transformations(Log("W_sd"))
 #simulator$add$transformations(Log("H_sd"))
-simulator$replace$params_frame(readr::read_csv("opt_parameters.csv"))
+simulator$replace$params_frame(readr::read_csv("opt_parameters.csv", comment = "#"))
 # simulator$replace$params(
 #   default = c(rep(log(mean(simulator$get$initial("beta_values"))), 15), 1), #, 1),
 #   mat = c(rep("log_beta_values", 15), "log_W_sd"), #, "log_H_sd"), #length(breakpoint_times)
