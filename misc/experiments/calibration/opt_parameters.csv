@@ -14,6 +14,7 @@ log_beta_values,11, 0,  -3.5
 log_beta_values,12, 0,  -3.5
 log_beta_values,13, 0,  -3.5
 log_beta_values,14, 0,  -3.5
+log_W_sd,	0, 0,  1
 log_xi,	        0,  0, -3.5
 log_nu,	        0,  0, -3.5
 log_mu, 	        0,  0, -3.5

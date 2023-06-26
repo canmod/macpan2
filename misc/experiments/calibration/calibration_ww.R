@@ -18,7 +18,7 @@ breakpoint_dates = c(ymd(20200310), ymd(20200330), ymd(20200419), ymd(20200608),
 # start breakpoint times, so that calibration works, 
 # does not make sense to me at all
 breakpoint_times = interval(ymd(20200310), breakpoint_dates) %/% days() + 1 + 120
-breakpoint_times = c(20, 60, breakpoint_times)
+breakpoint_times = c(25, 60, breakpoint_times)
 
 # get macpan_base model with additional wastewater compartments
 macpan_ww = Compartmental(file.path("../../../", "inst", "starter_models", "ww"))
@@ -202,7 +202,7 @@ simulator$insert$expressions(
     (
       # dnorm(
       #   log(obs_W),  ## observed values
-      #   log(clamp(rbind_time(simulated_W, obs_W_time_steps))),  ## simulated values
+      #   log(clamped_W), #log(clamp(rbind_time(simulated_W, obs_W_time_steps))),  ## simulated values
       #   W_sd
       # )
       # dpois(
@@ -237,7 +237,7 @@ simulator$add$transformations(Log("beta_values"))
 simulator$add$transformations(Log("xi"))
 simulator$add$transformations(Log("nu"))
 simulator$add$transformations(Log("mu"))
-#simulator$add$transformations(Log("W_sd"))
+simulator$add$transformations(Log("W_sd"))
 #simulator$add$transformations(Log("H_sd"))
 simulator$replace$params_frame(readr::read_csv("opt_parameters.csv", comment = "#"))
 # simulator$replace$params(
@@ -265,9 +265,9 @@ simulator$optimization_history$get()
 
 
 # create plot for hosp occ calibration which includes H, H2, ICUs, and ICUd
-my_tib <- pivot_wider(filter(simulator$report(.phases = "during"), 
-                             matrix == "state", 
-                             row %in% c("H", "H2", "ICUd", "ICUs")), 
+my_tib <- pivot_wider(filter(simulator$report(.phases = "during"),
+                             matrix == "state",
+                             row %in% c("H", "H2", "ICUd", "ICUs")),
                       names_from = row) %>% mutate(sum = H + ICUs + ICUd + H2)
 
 lines(1:(460+60), my_tib$sum, col = "red")
