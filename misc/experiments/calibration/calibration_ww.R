@@ -205,6 +205,7 @@ simulator$insert$expressions(
       #   log(clamped_W), #log(clamp(rbind_time(simulated_W, obs_W_time_steps))),  ## simulated values
       #   W_sd
       # )
+      # +
       # dpois(
       #   obs_W,
       #   clamp(rbind_time(simulated_W, obs_W_time_steps))
