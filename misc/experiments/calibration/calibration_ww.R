@@ -1,5 +1,6 @@
-# currently, calibrating to hospital occupancy data and waste is working, but it requires 
-# seemingly random breakpoints, where small changes ruin the fit
+# currently, calibrating to hospital occupancy data is working, but it requires 
+# seemingly random breakpoints, where small changes ruin the fit, and the waste combined 
+# hosp occ and waste fit is bad with these breakpoints
 
 library(macpan2)
 library(dplyr)
@@ -7,6 +8,7 @@ library(tidyverse)
 library(lubridate)
 
 # set breakpoint times based on Champredon breakpoint dates
+
 breakpoint_dates = c(ymd(20200310), ymd(20200330), ymd(20200419), ymd(20200608),
                      ymd(20200713), ymd(20200728), ymd(20200827), ymd(20201016),
                      ymd(20201115), ymd(20210124), ymd(20210213), ymd(20210305),
@@ -15,7 +17,7 @@ breakpoint_dates = c(ymd(20200310), ymd(20200330), ymd(20200419), ymd(20200608),
 # add 120 days to breakpoint times and two random 
 # start breakpoint times, so that calibration works, 
 # does not make sense to me at all
-breakpoint_times = interval(ymd(20200310), breakpoint_dates) %/% days() + 1 + 120 #120
+breakpoint_times = interval(ymd(20200310), breakpoint_dates) %/% days() + 1 + 120
 breakpoint_times = c(20, 60, breakpoint_times)
 
 # get macpan_base model with additional wastewater compartments
@@ -85,7 +87,7 @@ clean_data <- (champ_data
    %>% mutate(var = ifelse(var == "hosp.occ", "H", var))
    %>% mutate(date = interval(ymd("2020-04-08"), ymd(date)) %/% days())
    %>% distinct()
-   %>% mutate(time = date + 1 + 60) #60 + 1)
+   %>% mutate(time = date + 1 + 60)
 )
 
 # get observed waste vector and the corresponding time vector
@@ -163,35 +165,11 @@ simulator$insert$expressions(
 simulator$print$expressions()
 
 simulator$insert$expressions(
-  trajectory = simulated_H ~ H
+  trajectory = simulated_H ~ H + H2 + ICUs + ICUd
   , .at = Inf  ## place the inserted expressions at the end of the expression list
   , .phase = "during"
 )
 simulator$print$expressions()
-
-# the following code will be utilized when calibrating to hosp admission and/or reports
-# simulator$insert$expressions(
-#   trajectory = simulated_Adm ~ total_inflow[7]  ## 7 corresponds to H in this case
-#   , .at = Inf  ## place the inserted expressions at the end of the expression list
-#   , .phase = "during"
-# )
-# simulator$print$expressions()
-#
-# simulator$insert$expressions(
-#   trajectory = simulated_reports ~ 0.1 * total_inflow[1]  ## 1 corresponds to E in this case -- this `0.1 *` bit needs to be replaced by a convolution
-#   , .at = Inf  ## place the inserted expressions at the end of the expression list
-#   , .phase = "during"
-# )
-# simulator$print$expressions()
-# match("H", macpan_ww$labels$state()) - 1L  ## plug this into the square brackets for total_inflow below to get inflow into H
-# match("E", macpan_ww$labels$state()) - 1L  ## plug this into the square brackets for total_inflow below to get inflow into E
-# simulator$insert$expressions(
-#     #X ~ X + IsH
-#     #hosp ~ X - lag(X)
-#     hosp ~ Is * IsH
-#     total_inflow[7]  ## this is admissions
-#     0.1 * total_inflow[1]  ## this is incidence
-# )
 
 # add time-varying parameter expressions
 simulator$insert$expressions(
@@ -232,8 +210,8 @@ simulator$insert$expressions(
       #   clamp(rbind_time(simulated_W, obs_W_time_steps))
       # )
       #+
-      dpois(obs_W, clamped_W)
-      +
+      #dpois(obs_W, clamped_W)
+      #+
       dpois(obs_H, clamped_H)
       #+
       # dnorm(
@@ -258,6 +236,7 @@ simulator$replace$obj_fn(~ -sum(log_lik))
 simulator$add$transformations(Log("beta_values"))
 simulator$add$transformations(Log("xi"))
 simulator$add$transformations(Log("nu"))
+simulator$add$transformations(Log("mu"))
 #simulator$add$transformations(Log("W_sd"))
 #simulator$add$transformations(Log("H_sd"))
 simulator$replace$params_frame(readr::read_csv("opt_parameters.csv", comment = "#"))
@@ -283,17 +262,58 @@ simulator$current$params_frame()
 simulator$optimization_history$get()
 
 #lines(1:(460+60), filter(simulator$report(.phases = "during"), matrix == "state", row == "W")$value, col = "red")
-lines(1:(460+60), filter(simulator$report(.phases = "during"), matrix == "state", row == "H")$value, col = "red")
+
+
+# create plot for hosp occ calibration which includes H, H2, ICUs, and ICUd
+my_tib <- pivot_wider(filter(simulator$report(.phases = "during"), 
+                             matrix == "state", 
+                             row %in% c("H", "H2", "ICUd", "ICUs")), 
+                      names_from = row) %>% mutate(sum = H + ICUs + ICUd + H2)
+
+lines(1:(460+60), my_tib$sum, col = "red")
+
+
+
+
+
+
+
+
+# extra code
+
+#breakpoint_times = c(20, 60, 121, 130, 141, 161, 246, 261, 291, 300, 310, 341, 371, 441, 461)
+
+#lines(1:(460+60), filter(simulator$report(.phases = "during"), matrix == "state", row %in% c("H", "H2", "ICUd", "ICUs"))$value, col = "red")
 
 #520
 # simulator$cache$invalidate()
 # lines(1:460, filter(simulator$report(.phases = "during"), matrix == "state", row == "W")$value, col = "red")
 #simulator$optimization_history$get()
 
+# the following code will be utilized when calibrating to hosp admission and/or reports
+# simulator$insert$expressions(
+#   trajectory = simulated_Adm ~ total_inflow[7]  ## 7 corresponds to H in this case
+#   , .at = Inf  ## place the inserted expressions at the end of the expression list
+#   , .phase = "during"
+# )
+# simulator$print$expressions()
+#
+# simulator$insert$expressions(
+#   trajectory = simulated_reports ~ 0.1 * total_inflow[1]  ## 1 corresponds to E in this case -- this `0.1 *` bit needs to be replaced by a convolution
+#   , .at = Inf  ## place the inserted expressions at the end of the expression list
+#   , .phase = "during"
+# )
+# simulator$print$expressions()
+# match("H", macpan_ww$labels$state()) - 1L  ## plug this into the square brackets for total_inflow below to get inflow into H
+# match("E", macpan_ww$labels$state()) - 1L  ## plug this into the square brackets for total_inflow below to get inflow into E
+# simulator$insert$expressions(
+#     #X ~ X + IsH
+#     #hosp ~ X - lag(X)
+#     hosp ~ Is * IsH
+#     total_inflow[7]  ## this is admissions
+#     0.1 * total_inflow[1]  ## this is incidence
+# )
 
-
-
-# extra code
 
 #simulator$add$transformations(Log("W_sd"))
 # simulator$replace$params(

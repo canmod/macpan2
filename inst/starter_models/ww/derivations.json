@@ -75,7 +75,7 @@
     "simulation_phase" : "before",
     "output_names" : ["HR"],
     "arguments" : ["rho"],
-    "expression" : "rho"
+    "expression" : "1-exp(-rho)"
   },
   {
     "simulation_phase" : "before",
