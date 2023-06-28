@@ -88,7 +88,149 @@
     
     
 <p><a href="https://canmod.github.io/macpan2/articles/vignette-status#stub"><img src="https://img.shields.io/badge/stub-red" alt="status"></a></p>
-  </main>
+<div class="section level2">
+<h2 id="types-of-flows">Types of Flows<a class="anchor" aria-label="anchor" href="#types-of-flows"></a>
+</h2>
+<p>The <code>Macpan2</code> library allows for six different types of
+flows. They are:</p>
+<ol style="list-style-type: decimal">
+<li><code>per_capita</code></li>
+<li><code>absolute</code></li>
+<li><code>per_capita_inflow</code></li>
+<li><code>per_capita_outflow</code></li>
+<li><code>absolute_inflow</code></li>
+<li><code>absolute_outflow</code></li>
+</ol>
+<p>There is also a demo model with one flow of each type.</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">flow_example_dir</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"starter_models"</span>, <span class="st">"flow_examples"</span>, package <span class="op">=</span> <span class="st">"macpan2"</span><span class="op">)</span></span>
+<span><span class="va">flow_example</span> <span class="op">=</span> <span class="fu"><a href="../reference/Compartmental.html">Compartmental</a></span><span class="op">(</span><span class="va">flow_example_dir</span><span class="op">)</span></span>
+<span><span class="va">flow_example</span><span class="op">$</span><span class="va">labels</span><span class="op">$</span><span class="fu">state</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "A"     "B"     "C"     "D"     "Dummy"</span></span>
+<span><span class="va">flow_example</span><span class="op">$</span><span class="va">labels</span><span class="op">$</span><span class="fu">flow</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "absin"     "absout"    "abs"       "percap"    "percapin"  "percapout"</span></span>
+<span><span class="va">flow_example</span><span class="op">$</span><span class="fu">flows</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    from    to      flow               type from_partition to_partition</span></span>
+<span><span class="co">#&gt; 1 Dummy     A     absin    absolute_inflow           Main         Main</span></span>
+<span><span class="co">#&gt; 2     A Dummy    absout   absolute_outflow           Main         Main</span></span>
+<span><span class="co">#&gt; 3     A     B       abs           absolute           Main         Main</span></span>
+<span><span class="co">#&gt; 4     B     C    percap         per_capita           Main         Main</span></span>
+<span><span class="co">#&gt; 5     C Dummy percapout per_capita_outflow           Main         Main</span></span>
+<span><span class="co">#&gt; 6     C     D  percapin  per_capita_inflow           Main         Main</span></span>
+<span><span class="co">#&gt;   flow_partition from_to_partition from_flow_partition to_flow_partition</span></span>
+<span><span class="co">#&gt; 1           Main                                                    Null</span></span>
+<span><span class="co">#&gt; 2           Main                                                    Null</span></span>
+<span><span class="co">#&gt; 3           Main                                                    Null</span></span>
+<span><span class="co">#&gt; 4           Main                                                    Null</span></span>
+<span><span class="co">#&gt; 5           Main                                                    Null</span></span>
+<span><span class="co">#&gt; 6           Main                                                    Null</span></span></code></pre></div>
+<p>Modelers can specify the type of a given flow in the
+<code>type</code> column of the <code>flows.csv</code> file.</p>
+</div>
+<div class="section level2">
+<h2 id="per_capita-flows">per_capita Flows<a class="anchor" aria-label="anchor" href="#per_capita-flows"></a>
+</h2>
+<p>Probably the most common type of flow <code>per_capita</code> flows
+move a given proportion of the population in the <code>from</code>
+compartment to the <code>to</code> compartment. For example if two
+compartments <code>A</code> and <code>B</code> have populations
+<code>P_a</code> and <code>P_b</code> respectively and are linked by a
+per_capita flow with flow rate <code>r</code> then the population of
+<code>A</code> will decrease by <code>P_a * r</code> per unite time and
+the population of <code>B</code> will increase by an equal amount. So
+after a single time step the population of <code>A</code> will be
+<code>P_a - P_a * r</code> and the population of <code>B</code> will be
+<code>P_b + P_a * r</code>.</p>
+</div>
+<div class="section level2">
+<h2 id="absolute-flows">Absolute Flows<a class="anchor" aria-label="anchor" href="#absolute-flows"></a>
+</h2>
+<p>Unlike per_capita flows, absolute flows specify the change in
+compartmental populations in absolute terms. If compartments
+<code>A</code> and <code>B</code> are connected by an absolute flow with
+rate <code>r</code> then the population of <code>A</code> will decrease
+by <code>r</code> per unite time and the population of <code>B</code>
+will increase by an equal amount. Thus after a single time step the
+population of <code>A</code> will be <code>P_a - r</code> and the
+population of <code>B</code> will be <code>P_b + r</code>.</p>
+</div>
+<div class="section level2">
+<h2 id="inflows-and-outflows">Inflows and Outflows<a class="anchor" aria-label="anchor" href="#inflows-and-outflows"></a>
+</h2>
+<p>Flows can also be specified as <code>inflows</code> or
+<code>outflows</code>. Inflows increase the population of their
+<code>to</code> compartment but have no effect on the population of
+their <code>from</code> compartment. Similarly outflows decrease the
+population of their <code>from</code> compartment but do not have any
+<code>to</code> compartment. Inflows and outflows can be either
+<code>per_capita</code> flows or <code>absolute</code> flows. For
+example if <code>A</code> is a compartment with an
+<code>absolute_outflow</code> and a flow rate <code>r</code> then after
+a single time step <code>A</code> will have a population of
+<code>P_a -r</code>. Since outflows have no <code>to</code> compartment
+the population that is removed from <code>A</code> is not added
+anywhere, the total population of the model will decrease by
+<code>r</code>. Alternatively, if <code>B</code> is a compartment with a
+<code>per_capita_inflow</code> with rate <code>r</code> and
+<code>from</code> compartment <code>A</code> then the population of
+<code>B</code> will increase by <code>P_a * r</code> per unite time.
+Notably, the population of <code>A</code> will not be changed so the
+total population of the model will increase. After a single time step
+the population of <code>B</code> will be <code>P_b + P_a * r</code> and
+the population of <code>A</code> will be <code>P_a</code> (baring the
+influence of any other flows <code>A</code> might have).</p>
+</div>
+<div class="section level2">
+<h2 id="specific-example">Specific Example<a class="anchor" aria-label="anchor" href="#specific-example"></a>
+</h2>
+<p>We have created an example model which includes each type of flow.
+One key detail is that Macpan2 currently requires all flows in the
+<code>flows.csv</code> file to have both an <code>from</code> and
+<code>to</code> compartment. <a href="https://github.com/canmod/macpan2/issues/56" class="external-link">See here</a>. This
+includes for <code>absolute_inflows</code> which have no
+<code>from</code> compartment as well as <code>absolute_outflows</code>
+and <code>per_capita_outflows</code> which have no <code>to</code>
+compartments. In this example we have explicitly used a dummy
+compartment to fulfill the requirement, in principle any compartment can
+be used as a dummy compartment since no actual changes to that
+compartments population will result from being used in this way. Note
+that <code>per_capita_inflows</code> do require a <code>from</code>
+compartment as the population of that compartment will be use to compute
+the total inflow to the <code>to</code> compartment. As with the other
+one-sided flows though <code>per_capita_inflows</code> do not change the
+population of their <code>from</code> compartment.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span> <span class="va">flow_simulator</span> <span class="op">=</span> <span class="va">flow_example</span><span class="op">$</span><span class="va">simulators</span><span class="op">$</span><span class="fu">tmb</span><span class="op">(</span></span>
+<span>   time_steps <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>   state <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>A <span class="op">=</span> <span class="fl">1000</span>, B <span class="op">=</span> <span class="fl">0</span>, C <span class="op">=</span> <span class="fl">0</span>, D <span class="op">=</span> <span class="fl">0</span>, Dummy <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>,</span>
+<span>   flow <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>absin <span class="op">=</span> <span class="fl">1000</span>, absout <span class="op">=</span> <span class="fl">500</span>, abs <span class="op">=</span> <span class="fl">100</span>, percap <span class="op">=</span> <span class="fl">0.5</span>, percapout <span class="op">=</span> <span class="fl">0.25</span>, percapin<span class="op">=</span><span class="fl">0.25</span><span class="op">)</span></span>
+<span> <span class="op">)</span></span></code></pre></div>
+<p>Because this model includes absolute flows it is important to chose
+starting values carefully to prevent state populations from going below
+zero.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span> <span class="va">flow_results</span> <span class="op">=</span> <span class="va">flow_simulator</span><span class="op">$</span><span class="fu">report</span><span class="op">(</span><span class="op">)</span></span>
+<span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">flow_results</span>, <span class="fl">16</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    matrix time   row col value</span></span>
+<span><span class="co">#&gt; 1   state    0     A      1000</span></span>
+<span><span class="co">#&gt; 2   state    0     B         0</span></span>
+<span><span class="co">#&gt; 3   state    0     C         0</span></span>
+<span><span class="co">#&gt; 4   state    0     D         0</span></span>
+<span><span class="co">#&gt; 5   state    0 Dummy         0</span></span>
+<span><span class="co">#&gt; 6   state    1     A      1400</span></span>
+<span><span class="co">#&gt; 7   state    1     B       100</span></span>
+<span><span class="co">#&gt; 8   state    1     C         0</span></span>
+<span><span class="co">#&gt; 9   state    1     D         0</span></span>
+<span><span class="co">#&gt; 10  state    1 Dummy         0</span></span>
+<span><span class="co">#&gt; 11  state    2     A      1800</span></span>
+<span><span class="co">#&gt; 12  state    2     B       150</span></span>
+<span><span class="co">#&gt; 13  state    2     C        50</span></span>
+<span><span class="co">#&gt; 14  state    2     D         0</span></span>
+<span><span class="co">#&gt; 15  state    2 Dummy         0</span></span>
+<span><span class="co">#&gt; 16  state    3     A      2200</span></span></code></pre></div>
+</div>
+  </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
+    </nav></aside>
 </div>
 
 
