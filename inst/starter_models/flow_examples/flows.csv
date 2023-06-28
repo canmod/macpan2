@@ -1,0 +1,7 @@
+from ,to ,flow  ,type       ,from_partition ,to_partition ,flow_partition ,from_to_partition ,from_flow_partition ,to_flow_partition
+Dummy,A,absin,absolute_inflow,Main,Main,Main,,,Null
+A,Dummy,absout,absolute_outflow,Main,Main,Main,,,Null
+A,B,abs,absolute,Main,Main,Main,,,Null
+B,C,percap,per_capita,Main,Main,Main,,,Null
+C,Dummy,percapout,per_capita_outflow,Main,Main,Main,,,Null
+C,D,percapin,per_capita_inflow,Main,Main,Main,,,Null

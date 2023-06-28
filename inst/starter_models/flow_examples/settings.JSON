@@ -1,0 +1,6 @@
+{
+  "required_partitions" : ["Main"],
+  "null_partition" : ["Null"],
+  "state_variables" : ["A", "B", "C", "D", "Dummy"],
+  "flow_variables" : ["absin", "absout", "abs", "percap", "percapin", "percapout"]
+}
