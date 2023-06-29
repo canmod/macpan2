@@ -1,0 +1,1155 @@
+---
+title: "Calibration Issues"
+author: "Maya Earn"
+date: "2023-06-28"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(macpan2)
+library(dplyr)
+library(tidyverse)
+library(lubridate)
+library(readxl)
+
+# set breakpoint times based on Champredon breakpoint dates
+
+breakpoint_dates = c(ymd(20200310), ymd(20200330), ymd(20200419), ymd(20200608),
+                     ymd(20200713), ymd(20200728), ymd(20200827), ymd(20201016),
+                     ymd(20201115), ymd(20210124), ymd(20210213), ymd(20210305),
+                     ymd(20210330), ymd(20210504), ymd(20210514))
+
+# add 120 days to breakpoint times and two random 
+# start breakpoint times, so that calibration works, 
+# does not make sense to me at all
+breakpoint_times = interval(ymd(20200310), breakpoint_dates) %/% days() + 1 + 110
+breakpoint_times = c(25, 60, breakpoint_times)
+
+# get macpan_base model with additional wastewater compartments
+macpan_ww = Compartmental(file.path("../../../../", "inst", "starter_models", "ww"))
+N = 100
+macpan_ww$labels$state()
+macpan_ww$labels$flow()
+macpan_ww$labels$other()
+macpan_ww$flows()
+
+# define zero vector function
+zero_vector = function(nms) setNames(rep(0, length(nms)), nms)
+
+# initiate state and flow vectors, and assign initial state values matching macpan 1.5 model to macpan 2 model
+state = zero_vector(macpan_ww$labels$state())
+state["S"] = 999995; state["E"] = 3; state["Ia"] = 1; state["Im"] = 1;
+flow = zero_vector(macpan_ww$labels$flow())
+
+## read champredon data so that i can fit the generating
+## model to these data
+champ_data <- read_csv("../ChampData.csv")
+clean_data <- (champ_data
+   %>% arrange(ymd(champ_data$date))
+   %>% filter(wwloc == "OTW")
+   %>% select(date, event.type, n, sarscov2.conc.ww)
+   %>% pivot_longer(!c(date, event.type))
+   %>% filter(!(event.type == "hosp.adm" & name == "sarscov2.conc.ww"))
+   %>% mutate(event.type = ifelse(name == "n", event.type, name))
+   %>% select(!name)
+   %>% rename(var = event.type)
+   %>% mutate(var = ifelse(var == "clinical.cases", "report", var))
+   %>% mutate(var = ifelse(var == "hosp.adm", "hosp", var))
+   %>% mutate(var = ifelse(var == "sarscov2.conc.ww", "W", var))
+   %>% mutate(var = ifelse(var == "hosp.occ", "H", var))
+   %>% mutate(date = interval(ymd("2020-04-08"), ymd(date)) %/% days())
+   %>% distinct()
+   %>% mutate(time = date + 1 + 60)
+)
+
+# get observed waste vector and the corresponding time vector
+obs_W = (clean_data %>% filter(var == "W"))$value
+obs_W_time_steps = (clean_data %>% filter(var == "W"))$time
+
+# get observed hosp_occ vector and the corresponding time vector
+obs_H = (clean_data %>% filter(var == "H"))$value
+obs_H_time_steps = (clean_data %>% filter(var == "H"))$time
+
+# get simulator with initial states as in ICU1.csv
+simulator <- macpan_ww$simulators$tmb(
+  time_steps = 460L
+  , state = state
+  , flow = flow
+  , alpha = 1/3
+  , beta0 = 1
+  , sigma = 1/5.2
+  , mu = 0.956
+  , gamma_a = 1/7
+  , gamma_p = 2
+  , gamma_m = 1/7
+  , gamma_s = 1/5.72
+  , nonhosp_mort = 0
+  , phi1 = 0.76
+  , phi2 = 1/2
+  , psi1 = 1/20
+  , psi2 = 1/8
+  , psi3 = 1/5
+  , rho = 1/10
+  , Ca = 2/3
+  , Cp = 1
+  , Cm = 1
+  , Cs = 1
+  , iso_m = 0
+  , iso_s = 0
+  , nu = 0.003
+  , xi = 0.0333
+  , N = 1e6
+)
+
+## Step 0: set the number of time-steps required to fit the model
+simulator$replace$time_steps(460 + 60)
+
+## Step 1: add observed data and declare matrices storing
+##         the simulation history of variables to compare
+##         with observed data, as well as a matrix for
+##         storing log-likelihood values. need to make sure
+##         that the simulation histories are saved, and
+##         if you want you can return them as well as the
+##         log likelihood values.
+simulator$add$matrices(
+  obs_W = obs_W
+  , obs_W_time_steps = obs_W_time_steps
+  , W_sd = 1
+  , obs_H = obs_H
+  , obs_H_time_steps = obs_H_time_steps
+  , simulated_W = empty_matrix
+  , simulated_H = empty_matrix
+  , clamped_H = empty_matrix
+  , clamped_W = empty_matrix
+  , log_lik = empty_matrix
+  , .mats_to_save = c("simulated_W", "simulated_H", "total_inflow", "beta_changepoints", "xi", "nu")
+  , .mats_to_return = c("log_lik", "simulated_W", "simulated_H", "total_inflow", "beta_changepoints", "xi", "nu")
+)
+
+# add time varying parameter tools
+simulator$add$matrices(
+  beta_changepoints = breakpoint_times
+  , beta_values = 1:(length(breakpoint_times))
+  , beta_pointer = 0
+)
+
+## Step 2: collect simulated values into matrices to be
+##         compared with data. the `.at = Inf` and
+##         `.phase = "during"` indicates that this expression
+##         should come at the end of the expressions evaluated
+##         during each iteration of the simulation loop.
+simulator$insert$expressions(
+  trajectory = simulated_W ~ W
+  , .at = Inf  ## place the inserted expressions at the end of the expression list
+  , .phase = "during"
+)
+
+simulator$insert$expressions(
+  trajectory = simulated_H ~ H + H2 + ICUs + ICUd
+  , .at = Inf  ## place the inserted expressions at the end of the expression list
+  , .phase = "during"
+)
+
+# add time-varying parameter expressions
+simulator$insert$expressions(
+  beta_pointer ~ time_group(beta_pointer, beta_changepoints),
+  beta0 ~ beta_values[beta_pointer],
+  .phase = "during"
+)
+
+## Step 3: compute any values that will be part of the
+##         objective function to be optimized. here we
+##         have the log of the Poisson density of the
+##         observed `H` values with mean (i.e. predicted)
+##         value at the simulated `H` values. the
+##         `rbind_time` function gathers together the
+##         full simulation history of the `simulated_H`
+##         matrix by binding together the rows at each
+##         iteration.
+simulator$insert$expressions(
+    simulated_H ~ rbind_time(simulated_H, obs_H_time_steps)
+  , simulated_W ~ rbind_time(simulated_W, obs_W_time_steps)
+  , clamped_H ~ 1e-12 + 0.5 * ((simulated_H - 1e-12) + ((simulated_H - 1e-12)^2 + (2*1e-6 - 1e-12)^2 - (1e-12)^2)^0.5)
+  , clamped_W ~ 1e-12 + 0.5 * ((simulated_W - 1e-12) + ((simulated_W - 1e-12)^2 + (2*1e-6 - 1e-12)^2 - (1e-12)^2)^0.5)
+  , likelihood = log_lik ~
+    (
+      dpois(obs_H, clamped_H)
+    )
+  , .at = Inf
+  , .phase = "after"
+)
+
+## Step 4: specify the objective function (very often
+##         this will be minus the sum of the log likelihoods).
+simulator$replace$obj_fn(~ -sum(log_lik))
+
+## Step 5: declare (and maybe transform) parameters to be optimized,
+##         as well as starting values for the parameters to be optimized
+simulator$add$transformations(Log("beta_values"))
+simulator$add$transformations(Log("xi"))
+simulator$add$transformations(Log("nu"))
+simulator$add$transformations(Log("mu"))
+simulator$add$transformations(Log("W_sd"))
+simulator$replace$params_frame(readr::read_csv("opt_parameters.csv", comment = "#"))
+
+simulator$optimize$nlminb()
+```
+
+When fitting my wastewater model to report vs waste data, the values of fitted parameters are somewhat unexpected. This document will hopefully help explain the issue so that it can be addressed.
+
+The values I am fitting during calibration are:
+```{r fitted_params}
+param_tib <- read_excel("~/macpan_forecast/data/params.xlsx", col_types = "text")
+fitted_params <- param_tib %>% select(symbol, description) %>% filter(symbol %in% c("beta0", "xi", "nu", "mu"))
+fitted_params
+```
+
+First, I note that beta0 is time-varying. The data I am using to test calibration was used in a Champredon wastewater paper. Each of the beta0 breakpoints used in the Champredon paper were 50 days before one of mine. I am also using an additional two beta0 breakpoints at 25 and 60 days. These beta0 breakpoints were chosen only because I stumbled across a good fit while using them. I am mentioning this in case this is a source of error.
+
+The Champredon beta0 breakpoints are:
+```{r champ_breaks}
+interval(ymd(20200310), breakpoint_dates) %/% days() + 1 + 60
+```
+
+My beta0 breakpoints are:
+```{r my_breaks}
+breakpoint_times
+```
+
+Now, I will show the differences in calibration.
+
+When fitting to just report data using the following starting values for calibration:
+```{r params}
+read.csv("opt_parameters.csv", header = TRUE)
+```
+
+I get the following fit:
+
+```{r report, echo=FALSE}
+plot(obs_H_time_steps, obs_H, xlim = c(1, 460 + 60))
+
+# create plot for hosp occ calibration which includes H, H2, ICUs, and ICUd
+my_tib <- pivot_wider(filter(simulator$report(.phases = "during"),
+                             matrix == "state",
+                             row %in% c("H", "H2", "ICUd", "ICUs")),
+                      names_from = row) %>% mutate(sum = H + ICUs + ICUd + H2)
+
+lines(1:(460+60), my_tib$sum, col = "red")
+simulator$current$params_frame()
+simulator$optimization_history$get()
+```
+
+This is clearly a bad fit, so I will use the following parameters to fit instead (which are similar to where the fitted parameters in the last calibration ended up):
+
+```{r params2}
+read.csv("opt_parameters2.csv", header = TRUE)
+```
+
+These starting values give the following fit: 
+
+```{r report2opt, include=FALSE}
+# get simulator with initial states as in ICU1.csv
+simulator <- macpan_ww$simulators$tmb(
+  time_steps = 460L
+  , state = state
+  , flow = flow
+  , alpha = 1/3
+  , beta0 = 1
+  , sigma = 1/5.2
+  , mu = 0.956
+  , gamma_a = 1/7
+  , gamma_p = 2
+  , gamma_m = 1/7
+  , gamma_s = 1/5.72
+  , nonhosp_mort = 0
+  , phi1 = 0.76
+  , phi2 = 1/2
+  , psi1 = 1/20
+  , psi2 = 1/8
+  , psi3 = 1/5
+  , rho = 1/10
+  , Ca = 2/3
+  , Cp = 1
+  , Cm = 1
+  , Cs = 1
+  , iso_m = 0
+  , iso_s = 0
+  , nu = 0.003
+  , xi = 0.0333
+  , N = 1e6
+)
+
+## Step 0: set the number of time-steps required to fit the model
+simulator$replace$time_steps(460 + 60)
+
+## Step 1: add observed data and declare matrices storing
+##         the simulation history of variables to compare
+##         with observed data, as well as a matrix for
+##         storing log-likelihood values. need to make sure
+##         that the simulation histories are saved, and
+##         if you want you can return them as well as the
+##         log likelihood values.
+simulator$add$matrices(
+  obs_W = obs_W
+  , obs_W_time_steps = obs_W_time_steps
+  , W_sd = 1
+  , obs_H = obs_H
+  , obs_H_time_steps = obs_H_time_steps
+  , simulated_W = empty_matrix
+  , simulated_H = empty_matrix
+  , clamped_H = empty_matrix
+  , clamped_W = empty_matrix
+  , log_lik = empty_matrix
+  , .mats_to_save = c("simulated_W", "simulated_H", "total_inflow", "beta_changepoints", "xi", "nu")
+  , .mats_to_return = c("log_lik", "simulated_W", "simulated_H", "total_inflow", "beta_changepoints", "xi", "nu")
+)
+
+# add time varying parameter tools
+simulator$add$matrices(
+  beta_changepoints = breakpoint_times
+  , beta_values = 1:(length(breakpoint_times))
+  , beta_pointer = 0
+)
+
+## Step 2: collect simulated values into matrices to be
+##         compared with data. the `.at = Inf` and
+##         `.phase = "during"` indicates that this expression
+##         should come at the end of the expressions evaluated
+##         during each iteration of the simulation loop.
+simulator$insert$expressions(
+  trajectory = simulated_W ~ W
+  , .at = Inf  ## place the inserted expressions at the end of the expression list
+  , .phase = "during"
+)
+
+simulator$insert$expressions(
+  trajectory = simulated_H ~ H + H2 + ICUs + ICUd
+  , .at = Inf  ## place the inserted expressions at the end of the expression list
+  , .phase = "during"
+)
+
+# add time-varying parameter expressions
+simulator$insert$expressions(
+  beta_pointer ~ time_group(beta_pointer, beta_changepoints),
+  beta0 ~ beta_values[beta_pointer],
+  .phase = "during"
+)
+
+## Step 3: compute any values that will be part of the
+##         objective function to be optimized. here we
+##         have the log of the Poisson density of the
+##         observed `H` values with mean (i.e. predicted)
+##         value at the simulated `H` values. the
+##         `rbind_time` function gathers together the
+##         full simulation history of the `simulated_H`
+##         matrix by binding together the rows at each
+##         iteration.
+simulator$insert$expressions(
+    simulated_H ~ rbind_time(simulated_H, obs_H_time_steps)
+  , simulated_W ~ rbind_time(simulated_W, obs_W_time_steps)
+  , clamped_H ~ 1e-12 + 0.5 * ((simulated_H - 1e-12) + ((simulated_H - 1e-12)^2 + (2*1e-6 - 1e-12)^2 - (1e-12)^2)^0.5)
+  , clamped_W ~ 1e-12 + 0.5 * ((simulated_W - 1e-12) + ((simulated_W - 1e-12)^2 + (2*1e-6 - 1e-12)^2 - (1e-12)^2)^0.5)
+  , likelihood = log_lik ~
+    (
+      dpois(obs_H, clamped_H)
+    )
+  , .at = Inf
+  , .phase = "after"
+)
+
+## Step 4: specify the objective function (very often
+##         this will be minus the sum of the log likelihoods).
+simulator$replace$obj_fn(~ -sum(log_lik))
+
+## Step 5: declare (and maybe transform) parameters to be optimized,
+##         as well as starting values for the parameters to be optimized
+simulator$add$transformations(Log("beta_values"))
+simulator$add$transformations(Log("xi"))
+simulator$add$transformations(Log("nu"))
+simulator$add$transformations(Log("mu"))
+simulator$add$transformations(Log("W_sd"))
+simulator$replace$params_frame(readr::read_csv("opt_parameters2.csv", comment = "#"))
+
+simulator$optimize$nlminb()
+```
+
+```{r report2}
+plot(obs_H_time_steps, obs_H, xlim = c(1, 460 + 60))
+
+# create plot for hosp occ calibration which includes H, H2, ICUs, and ICUd
+my_tib <- pivot_wider(filter(simulator$report(.phases = "during"),
+                             matrix == "state",
+                             row %in% c("H", "H2", "ICUd", "ICUs")),
+                      names_from = row) %>% mutate(sum = H + ICUs + ICUd + H2)
+
+lines(1:(460+60), my_tib$sum, col = "red")
+
+simulator$current$params_frame()
+simulator$optimization_history$get()
+```
+
+Now this gives a much better fit, but the fitted beta0 and mu values are unrealistic, and there is no convergence. To get singular convergence, I can use these unrealistic starting values:
+```{r params3}
+read.csv("opt_parameters3.csv", header = TRUE)
+```
+
+and get the following fit:
+
+```{r report3opt, include=FALSE}
+# get simulator with initial states as in ICU1.csv
+simulator <- macpan_ww$simulators$tmb(
+  time_steps = 460L
+  , state = state
+  , flow = flow
+  , alpha = 1/3
+  , beta0 = 1
+  , sigma = 1/5.2
+  , mu = 0.956
+  , gamma_a = 1/7
+  , gamma_p = 2
+  , gamma_m = 1/7
+  , gamma_s = 1/5.72
+  , nonhosp_mort = 0
+  , phi1 = 0.76
+  , phi2 = 1/2
+  , psi1 = 1/20
+  , psi2 = 1/8
+  , psi3 = 1/5
+  , rho = 1/10
+  , Ca = 2/3
+  , Cp = 1
+  , Cm = 1
+  , Cs = 1
+  , iso_m = 0
+  , iso_s = 0
+  , nu = 0.003
+  , xi = 0.0333
+  , N = 1e6
+)
+
+## Step 0: set the number of time-steps required to fit the model
+simulator$replace$time_steps(460 + 60)
+
+## Step 1: add observed data and declare matrices storing
+##         the simulation history of variables to compare
+##         with observed data, as well as a matrix for
+##         storing log-likelihood values. need to make sure
+##         that the simulation histories are saved, and
+##         if you want you can return them as well as the
+##         log likelihood values.
+simulator$add$matrices(
+  obs_W = obs_W
+  , obs_W_time_steps = obs_W_time_steps
+  , W_sd = 1
+  , obs_H = obs_H
+  , obs_H_time_steps = obs_H_time_steps
+  , simulated_W = empty_matrix
+  , simulated_H = empty_matrix
+  , clamped_H = empty_matrix
+  , clamped_W = empty_matrix
+  , log_lik = empty_matrix
+  , .mats_to_save = c("simulated_W", "simulated_H", "total_inflow", "beta_changepoints", "xi", "nu")
+  , .mats_to_return = c("log_lik", "simulated_W", "simulated_H", "total_inflow", "beta_changepoints", "xi", "nu")
+)
+
+# add time varying parameter tools
+simulator$add$matrices(
+  beta_changepoints = breakpoint_times
+  , beta_values = 1:(length(breakpoint_times))
+  , beta_pointer = 0
+)
+
+## Step 2: collect simulated values into matrices to be
+##         compared with data. the `.at = Inf` and
+##         `.phase = "during"` indicates that this expression
+##         should come at the end of the expressions evaluated
+##         during each iteration of the simulation loop.
+simulator$insert$expressions(
+  trajectory = simulated_W ~ W
+  , .at = Inf  ## place the inserted expressions at the end of the expression list
+  , .phase = "during"
+)
+
+simulator$insert$expressions(
+  trajectory = simulated_H ~ H + H2 + ICUs + ICUd
+  , .at = Inf  ## place the inserted expressions at the end of the expression list
+  , .phase = "during"
+)
+
+# add time-varying parameter expressions
+simulator$insert$expressions(
+  beta_pointer ~ time_group(beta_pointer, beta_changepoints),
+  beta0 ~ beta_values[beta_pointer],
+  .phase = "during"
+)
+
+## Step 3: compute any values that will be part of the
+##         objective function to be optimized. here we
+##         have the log of the Poisson density of the
+##         observed `H` values with mean (i.e. predicted)
+##         value at the simulated `H` values. the
+##         `rbind_time` function gathers together the
+##         full simulation history of the `simulated_H`
+##         matrix by binding together the rows at each
+##         iteration.
+simulator$insert$expressions(
+    simulated_H ~ rbind_time(simulated_H, obs_H_time_steps)
+  , simulated_W ~ rbind_time(simulated_W, obs_W_time_steps)
+  , clamped_H ~ 1e-12 + 0.5 * ((simulated_H - 1e-12) + ((simulated_H - 1e-12)^2 + (2*1e-6 - 1e-12)^2 - (1e-12)^2)^0.5)
+  , clamped_W ~ 1e-12 + 0.5 * ((simulated_W - 1e-12) + ((simulated_W - 1e-12)^2 + (2*1e-6 - 1e-12)^2 - (1e-12)^2)^0.5)
+  , likelihood = log_lik ~
+    (
+      dpois(obs_H, clamped_H)
+    )
+  , .at = Inf
+  , .phase = "after"
+)
+
+## Step 4: specify the objective function (very often
+##         this will be minus the sum of the log likelihoods).
+simulator$replace$obj_fn(~ -sum(log_lik))
+
+## Step 5: declare (and maybe transform) parameters to be optimized,
+##         as well as starting values for the parameters to be optimized
+simulator$add$transformations(Log("beta_values"))
+simulator$add$transformations(Log("xi"))
+simulator$add$transformations(Log("nu"))
+simulator$add$transformations(Log("mu"))
+simulator$add$transformations(Log("W_sd"))
+simulator$replace$params_frame(readr::read_csv("opt_parameters3.csv", comment = "#"))
+
+simulator$optimize$nlminb()
+```
+
+```{r report3}
+plot(obs_H_time_steps, obs_H, xlim = c(1, 460 + 60))
+
+# create plot for hosp occ calibration which includes H, H2, ICUs, and ICUd
+my_tib <- pivot_wider(filter(simulator$report(.phases = "during"),
+                             matrix == "state",
+                             row %in% c("H", "H2", "ICUd", "ICUs")),
+                      names_from = row) %>% mutate(sum = H + ICUs + ICUd + H2)
+
+lines(1:(460+60), my_tib$sum, col = "red")
+
+simulator$current$params_frame()
+simulator$optimization_history$get()
+```
+
+Again, the fitted values are biologically unrealistic.
+
+Now using wastewater to calibrate, I use these starting values:
+```{r waste_params}
+read.csv("opt_parameters.csv", header = TRUE)
+```
+
+and get the following fit:
+
+```{r waste_opt, include=FALSE}
+# get simulator with initial states as in ICU1.csv
+simulator <- macpan_ww$simulators$tmb(
+  time_steps = 460L
+  , state = state
+  , flow = flow
+  , alpha = 1/3
+  , beta0 = 1
+  , sigma = 1/5.2
+  , mu = 0.956
+  , gamma_a = 1/7
+  , gamma_p = 2
+  , gamma_m = 1/7
+  , gamma_s = 1/5.72
+  , nonhosp_mort = 0
+  , phi1 = 0.76
+  , phi2 = 1/2
+  , psi1 = 1/20
+  , psi2 = 1/8
+  , psi3 = 1/5
+  , rho = 1/10
+  , Ca = 2/3
+  , Cp = 1
+  , Cm = 1
+  , Cs = 1
+  , iso_m = 0
+  , iso_s = 0
+  , nu = 0.003
+  , xi = 0.0333
+  , N = 1e6
+)
+
+## Step 0: set the number of time-steps required to fit the model
+simulator$replace$time_steps(460 + 60)
+
+## Step 1: add observed data and declare matrices storing
+##         the simulation history of variables to compare
+##         with observed data, as well as a matrix for
+##         storing log-likelihood values. need to make sure
+##         that the simulation histories are saved, and
+##         if you want you can return them as well as the
+##         log likelihood values.
+simulator$add$matrices(
+  obs_W = obs_W
+  , obs_W_time_steps = obs_W_time_steps
+  , W_sd = 1
+  , obs_H = obs_H
+  , obs_H_time_steps = obs_H_time_steps
+  , simulated_W = empty_matrix
+  , simulated_H = empty_matrix
+  , clamped_H = empty_matrix
+  , clamped_W = empty_matrix
+  , log_lik = empty_matrix
+  , .mats_to_save = c("simulated_W", "simulated_H", "total_inflow", "beta_changepoints", "xi", "nu")
+  , .mats_to_return = c("log_lik", "simulated_W", "simulated_H", "total_inflow", "beta_changepoints", "xi", "nu")
+)
+
+# add time varying parameter tools
+simulator$add$matrices(
+  beta_changepoints = breakpoint_times
+  , beta_values = 1:(length(breakpoint_times))
+  , beta_pointer = 0
+)
+
+## Step 2: collect simulated values into matrices to be
+##         compared with data. the `.at = Inf` and
+##         `.phase = "during"` indicates that this expression
+##         should come at the end of the expressions evaluated
+##         during each iteration of the simulation loop.
+simulator$insert$expressions(
+  trajectory = simulated_W ~ W
+  , .at = Inf  ## place the inserted expressions at the end of the expression list
+  , .phase = "during"
+)
+
+simulator$insert$expressions(
+  trajectory = simulated_H ~ H + H2 + ICUs + ICUd
+  , .at = Inf  ## place the inserted expressions at the end of the expression list
+  , .phase = "during"
+)
+
+# add time-varying parameter expressions
+simulator$insert$expressions(
+  beta_pointer ~ time_group(beta_pointer, beta_changepoints),
+  beta0 ~ beta_values[beta_pointer],
+  .phase = "during"
+)
+
+## Step 3: compute any values that will be part of the
+##         objective function to be optimized. here we
+##         have the log of the Poisson density of the
+##         observed `H` values with mean (i.e. predicted)
+##         value at the simulated `H` values. the
+##         `rbind_time` function gathers together the
+##         full simulation history of the `simulated_H`
+##         matrix by binding together the rows at each
+##         iteration.
+simulator$insert$expressions(
+    simulated_H ~ rbind_time(simulated_H, obs_H_time_steps)
+  , simulated_W ~ rbind_time(simulated_W, obs_W_time_steps)
+  , clamped_H ~ 1e-12 + 0.5 * ((simulated_H - 1e-12) + ((simulated_H - 1e-12)^2 + (2*1e-6 - 1e-12)^2 - (1e-12)^2)^0.5)
+  , clamped_W ~ 1e-12 + 0.5 * ((simulated_W - 1e-12) + ((simulated_W - 1e-12)^2 + (2*1e-6 - 1e-12)^2 - (1e-12)^2)^0.5)
+  , likelihood = log_lik ~
+    (
+      dnorm(
+        log(obs_W),  ## observed values
+        log(clamped_W),
+        W_sd
+      )
+    )
+  , .at = Inf
+  , .phase = "after"
+)
+
+## Step 4: specify the objective function (very often
+##         this will be minus the sum of the log likelihoods).
+simulator$replace$obj_fn(~ -sum(log_lik))
+
+## Step 5: declare (and maybe transform) parameters to be optimized,
+##         as well as starting values for the parameters to be optimized
+simulator$add$transformations(Log("beta_values"))
+simulator$add$transformations(Log("xi"))
+simulator$add$transformations(Log("nu"))
+simulator$add$transformations(Log("mu"))
+simulator$add$transformations(Log("W_sd"))
+simulator$replace$params_frame(readr::read_csv("opt_parameters.csv", comment = "#"))
+
+simulator$optimize$nlminb()
+```
+
+```{r waste}
+plot(obs_W_time_steps, obs_W, xlim = c(1, 460 + 60))
+
+lines(1:(460+60), filter(simulator$report(.phases = "during"), matrix == "state", row == "W")$value, col = "red")
+
+simulator$current$params_frame()
+simulator$optimization_history$get()
+```
+
+This fit is not terrible, but convergence failed. To try to get convergence, lets use the following starting values (their values are similar to where the fitted parameters ended up at the end of the previous optimization):
+
+```{r waste_params2}
+read.csv("opt_parameters4.csv", header = TRUE)
+```
+
+```{r waste_opt2, include=FALSE}
+# get simulator with initial states as in ICU1.csv
+simulator <- macpan_ww$simulators$tmb(
+  time_steps = 460L
+  , state = state
+  , flow = flow
+  , alpha = 1/3
+  , beta0 = 1
+  , sigma = 1/5.2
+  , mu = 0.956
+  , gamma_a = 1/7
+  , gamma_p = 2
+  , gamma_m = 1/7
+  , gamma_s = 1/5.72
+  , nonhosp_mort = 0
+  , phi1 = 0.76
+  , phi2 = 1/2
+  , psi1 = 1/20
+  , psi2 = 1/8
+  , psi3 = 1/5
+  , rho = 1/10
+  , Ca = 2/3
+  , Cp = 1
+  , Cm = 1
+  , Cs = 1
+  , iso_m = 0
+  , iso_s = 0
+  , nu = 0.003
+  , xi = 0.0333
+  , N = 1e6
+)
+
+## Step 0: set the number of time-steps required to fit the model
+simulator$replace$time_steps(460 + 60)
+
+## Step 1: add observed data and declare matrices storing
+##         the simulation history of variables to compare
+##         with observed data, as well as a matrix for
+##         storing log-likelihood values. need to make sure
+##         that the simulation histories are saved, and
+##         if you want you can return them as well as the
+##         log likelihood values.
+simulator$add$matrices(
+  obs_W = obs_W
+  , obs_W_time_steps = obs_W_time_steps
+  , W_sd = 1
+  , obs_H = obs_H
+  , obs_H_time_steps = obs_H_time_steps
+  , simulated_W = empty_matrix
+  , simulated_H = empty_matrix
+  , clamped_H = empty_matrix
+  , clamped_W = empty_matrix
+  , log_lik = empty_matrix
+  , .mats_to_save = c("simulated_W", "simulated_H", "total_inflow", "beta_changepoints", "xi", "nu")
+  , .mats_to_return = c("log_lik", "simulated_W", "simulated_H", "total_inflow", "beta_changepoints", "xi", "nu")
+)
+
+# add time varying parameter tools
+simulator$add$matrices(
+  beta_changepoints = breakpoint_times
+  , beta_values = 1:(length(breakpoint_times))
+  , beta_pointer = 0
+)
+
+## Step 2: collect simulated values into matrices to be
+##         compared with data. the `.at = Inf` and
+##         `.phase = "during"` indicates that this expression
+##         should come at the end of the expressions evaluated
+##         during each iteration of the simulation loop.
+simulator$insert$expressions(
+  trajectory = simulated_W ~ W
+  , .at = Inf  ## place the inserted expressions at the end of the expression list
+  , .phase = "during"
+)
+
+simulator$insert$expressions(
+  trajectory = simulated_H ~ H + H2 + ICUs + ICUd
+  , .at = Inf  ## place the inserted expressions at the end of the expression list
+  , .phase = "during"
+)
+
+# add time-varying parameter expressions
+simulator$insert$expressions(
+  beta_pointer ~ time_group(beta_pointer, beta_changepoints),
+  beta0 ~ beta_values[beta_pointer],
+  .phase = "during"
+)
+
+## Step 3: compute any values that will be part of the
+##         objective function to be optimized. here we
+##         have the log of the Poisson density of the
+##         observed `H` values with mean (i.e. predicted)
+##         value at the simulated `H` values. the
+##         `rbind_time` function gathers together the
+##         full simulation history of the `simulated_H`
+##         matrix by binding together the rows at each
+##         iteration.
+simulator$insert$expressions(
+    simulated_H ~ rbind_time(simulated_H, obs_H_time_steps)
+  , simulated_W ~ rbind_time(simulated_W, obs_W_time_steps)
+  , clamped_H ~ 1e-12 + 0.5 * ((simulated_H - 1e-12) + ((simulated_H - 1e-12)^2 + (2*1e-6 - 1e-12)^2 - (1e-12)^2)^0.5)
+  , clamped_W ~ 1e-12 + 0.5 * ((simulated_W - 1e-12) + ((simulated_W - 1e-12)^2 + (2*1e-6 - 1e-12)^2 - (1e-12)^2)^0.5)
+  , likelihood = log_lik ~
+    (
+      dnorm(
+        log(obs_W),  ## observed values
+        log(clamped_W),
+        W_sd
+      )
+    )
+  , .at = Inf
+  , .phase = "after"
+)
+
+## Step 4: specify the objective function (very often
+##         this will be minus the sum of the log likelihoods).
+simulator$replace$obj_fn(~ -sum(log_lik))
+
+## Step 5: declare (and maybe transform) parameters to be optimized,
+##         as well as starting values for the parameters to be optimized
+simulator$add$transformations(Log("beta_values"))
+simulator$add$transformations(Log("xi"))
+simulator$add$transformations(Log("nu"))
+simulator$add$transformations(Log("mu"))
+simulator$add$transformations(Log("W_sd"))
+simulator$replace$params_frame(readr::read_csv("opt_parameters4.csv", comment = "#"))
+
+simulator$optimize$nlminb()
+```
+
+```{r waste2}
+plot(obs_W_time_steps, obs_W, xlim = c(1, 460 + 60))
+
+lines(1:(460+60), filter(simulator$report(.phases = "during"), matrix == "state", row == "W")$value, col = "red")
+
+simulator$current$params_frame()
+simulator$optimization_history$get()
+```
+
+Again, an okay fit, but no convergence. Now lets see what happens when we calibrate to both reports and waste. We use the following starting values (same as the last waste calibration):
+
+```{r both_params}
+read.csv("opt_parameters4.csv", header = TRUE)
+```
+
+```{r both_opt, include=FALSE}
+# get simulator with initial states as in ICU1.csv
+simulator <- macpan_ww$simulators$tmb(
+  time_steps = 460L
+  , state = state
+  , flow = flow
+  , alpha = 1/3
+  , beta0 = 1
+  , sigma = 1/5.2
+  , mu = 0.956
+  , gamma_a = 1/7
+  , gamma_p = 2
+  , gamma_m = 1/7
+  , gamma_s = 1/5.72
+  , nonhosp_mort = 0
+  , phi1 = 0.76
+  , phi2 = 1/2
+  , psi1 = 1/20
+  , psi2 = 1/8
+  , psi3 = 1/5
+  , rho = 1/10
+  , Ca = 2/3
+  , Cp = 1
+  , Cm = 1
+  , Cs = 1
+  , iso_m = 0
+  , iso_s = 0
+  , nu = 0.003
+  , xi = 0.0333
+  , N = 1e6
+)
+
+## Step 0: set the number of time-steps required to fit the model
+simulator$replace$time_steps(460 + 60)
+
+## Step 1: add observed data and declare matrices storing
+##         the simulation history of variables to compare
+##         with observed data, as well as a matrix for
+##         storing log-likelihood values. need to make sure
+##         that the simulation histories are saved, and
+##         if you want you can return them as well as the
+##         log likelihood values.
+simulator$add$matrices(
+  obs_W = obs_W
+  , obs_W_time_steps = obs_W_time_steps
+  , W_sd = 1
+  , obs_H = obs_H
+  , obs_H_time_steps = obs_H_time_steps
+  , simulated_W = empty_matrix
+  , simulated_H = empty_matrix
+  , clamped_H = empty_matrix
+  , clamped_W = empty_matrix
+  , log_lik = empty_matrix
+  , .mats_to_save = c("simulated_W", "simulated_H", "total_inflow", "beta_changepoints", "xi", "nu")
+  , .mats_to_return = c("log_lik", "simulated_W", "simulated_H", "total_inflow", "beta_changepoints", "xi", "nu")
+)
+
+# add time varying parameter tools
+simulator$add$matrices(
+  beta_changepoints = breakpoint_times
+  , beta_values = 1:(length(breakpoint_times))
+  , beta_pointer = 0
+)
+
+## Step 2: collect simulated values into matrices to be
+##         compared with data. the `.at = Inf` and
+##         `.phase = "during"` indicates that this expression
+##         should come at the end of the expressions evaluated
+##         during each iteration of the simulation loop.
+simulator$insert$expressions(
+  trajectory = simulated_W ~ W
+  , .at = Inf  ## place the inserted expressions at the end of the expression list
+  , .phase = "during"
+)
+
+simulator$insert$expressions(
+  trajectory = simulated_H ~ H + H2 + ICUs + ICUd
+  , .at = Inf  ## place the inserted expressions at the end of the expression list
+  , .phase = "during"
+)
+
+# add time-varying parameter expressions
+simulator$insert$expressions(
+  beta_pointer ~ time_group(beta_pointer, beta_changepoints),
+  beta0 ~ beta_values[beta_pointer],
+  .phase = "during"
+)
+
+## Step 3: compute any values that will be part of the
+##         objective function to be optimized. here we
+##         have the log of the Poisson density of the
+##         observed `H` values with mean (i.e. predicted)
+##         value at the simulated `H` values. the
+##         `rbind_time` function gathers together the
+##         full simulation history of the `simulated_H`
+##         matrix by binding together the rows at each
+##         iteration.
+simulator$insert$expressions(
+    simulated_H ~ rbind_time(simulated_H, obs_H_time_steps)
+  , simulated_W ~ rbind_time(simulated_W, obs_W_time_steps)
+  , clamped_H ~ 1e-12 + 0.5 * ((simulated_H - 1e-12) + ((simulated_H - 1e-12)^2 + (2*1e-6 - 1e-12)^2 - (1e-12)^2)^0.5)
+  , clamped_W ~ 1e-12 + 0.5 * ((simulated_W - 1e-12) + ((simulated_W - 1e-12)^2 + (2*1e-6 - 1e-12)^2 - (1e-12)^2)^0.5)
+  , likelihood = log_lik ~
+    (
+      dnorm(
+        log(obs_W),  ## observed values
+        log(clamped_W),
+        W_sd
+      )
+      +
+      dpois(obs_H, clamped_H)
+    )
+  , .at = Inf
+  , .phase = "after"
+)
+
+## Step 4: specify the objective function (very often
+##         this will be minus the sum of the log likelihoods).
+simulator$replace$obj_fn(~ -sum(log_lik))
+
+## Step 5: declare (and maybe transform) parameters to be optimized,
+##         as well as starting values for the parameters to be optimized
+simulator$add$transformations(Log("beta_values"))
+simulator$add$transformations(Log("xi"))
+simulator$add$transformations(Log("nu"))
+simulator$add$transformations(Log("mu"))
+simulator$add$transformations(Log("W_sd"))
+simulator$replace$params_frame(readr::read_csv("opt_parameters4.csv", comment = "#"))
+
+simulator$optimize$nlminb()
+```
+
+and get this fit:
+
+```{r both}
+plot(obs_W_time_steps, obs_W, xlim = c(1, 460 + 60))
+
+lines(1:(460+60), filter(simulator$report(.phases = "during"), matrix == "state", row == "W")$value, col = "red")
+
+plot(obs_H_time_steps, obs_H, xlim = c(1, 460 + 60))
+
+# create plot for hosp occ calibration which includes H, H2, ICUs, and ICUd
+my_tib <- pivot_wider(filter(simulator$report(.phases = "during"),
+                             matrix == "state",
+                             row %in% c("H", "H2", "ICUd", "ICUs")),
+                      names_from = row) %>% mutate(sum = H + ICUs + ICUd + H2)
+
+lines(1:(460+60), my_tib$sum, col = "red")
+
+simulator$current$params_frame()
+simulator$optimization_history$get()
+```
+
+So we get convergence, but it gives us very weird fitted values (especially mu).
+
+The solution could be to stop fitting mu, i.e., with the following starting values:
+
+```{r both_params2}
+read.csv("opt_parameters5.csv", header = TRUE)
+```
+
+```{r both_opt2, include=FALSE}
+# get simulator with initial states as in ICU1.csv
+simulator <- macpan_ww$simulators$tmb(
+  time_steps = 460L
+  , state = state
+  , flow = flow
+  , alpha = 1/3
+  , beta0 = 1
+  , sigma = 1/5.2
+  , mu = 0.956
+  , gamma_a = 1/7
+  , gamma_p = 2
+  , gamma_m = 1/7
+  , gamma_s = 1/5.72
+  , nonhosp_mort = 0
+  , phi1 = 0.76
+  , phi2 = 1/2
+  , psi1 = 1/20
+  , psi2 = 1/8
+  , psi3 = 1/5
+  , rho = 1/10
+  , Ca = 2/3
+  , Cp = 1
+  , Cm = 1
+  , Cs = 1
+  , iso_m = 0
+  , iso_s = 0
+  , nu = 0.003
+  , xi = 0.0333
+  , N = 1e6
+)
+
+## Step 0: set the number of time-steps required to fit the model
+simulator$replace$time_steps(460 + 60)
+
+## Step 1: add observed data and declare matrices storing
+##         the simulation history of variables to compare
+##         with observed data, as well as a matrix for
+##         storing log-likelihood values. need to make sure
+##         that the simulation histories are saved, and
+##         if you want you can return them as well as the
+##         log likelihood values.
+simulator$add$matrices(
+  obs_W = obs_W
+  , obs_W_time_steps = obs_W_time_steps
+  , W_sd = 1
+  , obs_H = obs_H
+  , obs_H_time_steps = obs_H_time_steps
+  , simulated_W = empty_matrix
+  , simulated_H = empty_matrix
+  , clamped_H = empty_matrix
+  , clamped_W = empty_matrix
+  , log_lik = empty_matrix
+  , .mats_to_save = c("simulated_W", "simulated_H", "total_inflow", "beta_changepoints", "xi", "nu")
+  , .mats_to_return = c("log_lik", "simulated_W", "simulated_H", "total_inflow", "beta_changepoints", "xi", "nu")
+)
+
+# add time varying parameter tools
+simulator$add$matrices(
+  beta_changepoints = breakpoint_times
+  , beta_values = 1:(length(breakpoint_times))
+  , beta_pointer = 0
+)
+
+## Step 2: collect simulated values into matrices to be
+##         compared with data. the `.at = Inf` and
+##         `.phase = "during"` indicates that this expression
+##         should come at the end of the expressions evaluated
+##         during each iteration of the simulation loop.
+simulator$insert$expressions(
+  trajectory = simulated_W ~ W
+  , .at = Inf  ## place the inserted expressions at the end of the expression list
+  , .phase = "during"
+)
+
+simulator$insert$expressions(
+  trajectory = simulated_H ~ H + H2 + ICUs + ICUd
+  , .at = Inf  ## place the inserted expressions at the end of the expression list
+  , .phase = "during"
+)
+
+# add time-varying parameter expressions
+simulator$insert$expressions(
+  beta_pointer ~ time_group(beta_pointer, beta_changepoints),
+  beta0 ~ beta_values[beta_pointer],
+  .phase = "during"
+)
+
+## Step 3: compute any values that will be part of the
+##         objective function to be optimized. here we
+##         have the log of the Poisson density of the
+##         observed `H` values with mean (i.e. predicted)
+##         value at the simulated `H` values. the
+##         `rbind_time` function gathers together the
+##         full simulation history of the `simulated_H`
+##         matrix by binding together the rows at each
+##         iteration.
+simulator$insert$expressions(
+    simulated_H ~ rbind_time(simulated_H, obs_H_time_steps)
+  , simulated_W ~ rbind_time(simulated_W, obs_W_time_steps)
+  , clamped_H ~ 1e-12 + 0.5 * ((simulated_H - 1e-12) + ((simulated_H - 1e-12)^2 + (2*1e-6 - 1e-12)^2 - (1e-12)^2)^0.5)
+  , clamped_W ~ 1e-12 + 0.5 * ((simulated_W - 1e-12) + ((simulated_W - 1e-12)^2 + (2*1e-6 - 1e-12)^2 - (1e-12)^2)^0.5)
+  , likelihood = log_lik ~
+    (
+      dnorm(
+        log(obs_W),  ## observed values
+        log(clamped_W),
+        W_sd
+      )
+      +
+      dpois(obs_H, clamped_H)
+    )
+  , .at = Inf
+  , .phase = "after"
+)
+
+## Step 4: specify the objective function (very often
+##         this will be minus the sum of the log likelihoods).
+simulator$replace$obj_fn(~ -sum(log_lik))
+
+## Step 5: declare (and maybe transform) parameters to be optimized,
+##         as well as starting values for the parameters to be optimized
+simulator$add$transformations(Log("beta_values"))
+simulator$add$transformations(Log("xi"))
+simulator$add$transformations(Log("nu"))
+simulator$add$transformations(Log("W_sd"))
+simulator$replace$params_frame(readr::read_csv("opt_parameters5.csv", comment = "#"))
+
+simulator$optimize$nlminb()
+```
+
+and get this fit:
+
+```{r both2}
+plot(obs_W_time_steps, obs_W, xlim = c(1, 460 + 60))
+
+lines(1:(460+60), filter(simulator$report(.phases = "during"), matrix == "state", row == "W")$value, col = "red")
+
+plot(obs_H_time_steps, obs_H, xlim = c(1, 460 + 60))
+
+# create plot for hosp occ calibration which includes H, H2, ICUs, and ICUd
+my_tib <- pivot_wider(filter(simulator$report(.phases = "during"),
+                             matrix == "state",
+                             row %in% c("H", "H2", "ICUd", "ICUs")),
+                      names_from = row) %>% mutate(sum = H + ICUs + ICUd + H2)
+
+lines(1:(460+60), my_tib$sum, col = "red")
+
+simulator$current$params_frame()
+simulator$optimization_history$get()
+```
+
+Now we have convergence and somewhat realistic fitted values. I'm still not sure why when we fit mu, it goes to a very unrealistic fitted value.
+
+This document also doesn't include starting values where convergence occurs while calibrating to only one time-series (just waste or just reports). I plan to add these soon.
+

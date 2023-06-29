@@ -1,0 +1,19 @@
+mat,            row,col,default
+log_beta_values,0,  0,  -2.3
+log_beta_values,1,  0,  -3.8
+log_beta_values,2,  0,  -2.6
+log_beta_values,3,  0,  -0.4
+log_beta_values,4,  0,  -2.1
+log_beta_values,5,  0,  -1.0
+log_beta_values,6,  0,  -7.5
+log_beta_values,7,  0,  -2.6
+log_beta_values,8,  0,  -1.2
+log_beta_values,9,  0,  -3.1
+log_beta_values,10, 0,  -1.4
+log_beta_values,11, 0,  -7.5
+log_beta_values,12, 0,  -5.2
+log_beta_values,13, 0,  -1.0
+log_beta_values,14, 0,  -3.5
+log_W_sd,	0, 0,  -0.5
+log_xi,	        0,  0, -3.9
+log_nu,	        0,  0, 1.5
