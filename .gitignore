@@ -27,3 +27,6 @@ macpan2*
 /*.out
 /*.profile
 /*.cpp
+*.rds
+*_cache
+*_files

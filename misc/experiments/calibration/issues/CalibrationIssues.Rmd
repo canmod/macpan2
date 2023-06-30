@@ -27,8 +27,8 @@ breakpoint_times = interval(ymd(20200310), breakpoint_dates) %/% days() + 1 + 11
 breakpoint_times = c(25, 60, breakpoint_times)
 
 # get macpan_base model with additional wastewater compartments
-macpan_ww = Compartmental(file.path("../../../../", "inst", "starter_models", "ww"))
-N = 100
+macpan_ww = Compartmental(system.file("starter_models", "ww", package = "macpan2"))
+N = 100  ## BMB: what is this?
 macpan_ww$labels$state()
 macpan_ww$labels$flow()
 macpan_ww$labels$other()
@@ -42,11 +42,11 @@ state = zero_vector(macpan_ww$labels$state())
 state["S"] = 999995; state["E"] = 3; state["Ia"] = 1; state["Im"] = 1;
 flow = zero_vector(macpan_ww$labels$flow())
 
-## read champredon data so that i can fit the generating
+## read Champredon data so that I can fit the generating
 ## model to these data
 champ_data <- read_csv("../ChampData.csv")
 clean_data <- (champ_data
-   %>% arrange(ymd(champ_data$date))
+   %>% arrange(ymd(date))
    %>% filter(wwloc == "OTW")
    %>% select(date, event.type, n, sarscov2.conc.ww)
    %>% pivot_longer(!c(date, event.type))
@@ -54,15 +54,17 @@ clean_data <- (champ_data
    %>% mutate(event.type = ifelse(name == "n", event.type, name))
    %>% select(!name)
    %>% rename(var = event.type)
+   ## BMB: could use case_when? 
    %>% mutate(var = ifelse(var == "clinical.cases", "report", var))
    %>% mutate(var = ifelse(var == "hosp.adm", "hosp", var))
    %>% mutate(var = ifelse(var == "sarscov2.conc.ww", "W", var))
    %>% mutate(var = ifelse(var == "hosp.occ", "H", var))
    %>% mutate(date = interval(ymd("2020-04-08"), ymd(date)) %/% days())
    %>% distinct()
-   %>% mutate(time = date + 1 + 60)
+   %>% mutate(time = date + 1 + 60)  ## BMB: document?
 )
 
+## BMB: use pull(time) rather than $time (etc.) if going full tidyverse
 # get observed waste vector and the corresponding time vector
 obs_W = (clean_data %>% filter(var == "W"))$value
 obs_W_time_steps = (clean_data %>% filter(var == "W"))$time
@@ -102,6 +104,7 @@ simulator <- macpan_ww$simulators$tmb(
   , N = 1e6
 )
 
+## BMB: where does 460 + 60 come from?
 ## Step 0: set the number of time-steps required to fit the model
 simulator$replace$time_steps(460 + 60)
 
@@ -193,16 +196,27 @@ simulator$add$transformations(Log("mu"))
 simulator$add$transformations(Log("W_sd"))
 simulator$replace$params_frame(readr::read_csv("opt_parameters.csv", comment = "#"))
 
-simulator$optimize$nlminb()
+## save for external experiments
+save(simulator, obs_H, obs_H_time_steps, file = "sim_setup1.rds")
+```
+
+(Fit in separate, cached chunk: should arguably use `dependson="setup"` too ...)
+
+```{r fit1, cache=TRUE, results = "hide"}
+## defaults: (function evaluations) eval.max = 200, (optimizer algorithm steps) iter.max = 150
+simulator$optimize$nlminb(control = list(eval.max = 1e4, iter.max = 1e4))
 ```
 
 When fitting my wastewater model to report vs waste data, the values of fitted parameters are somewhat unexpected. This document will hopefully help explain the issue so that it can be addressed.
 
 The values I am fitting during calibration are:
 ```{r fitted_params}
-param_tib <- read_excel("~/macpan_forecast/data/params.xlsx", col_types = "text")
-fitted_params <- param_tib %>% select(symbol, description) %>% filter(symbol %in% c("beta0", "xi", "nu", "mu"))
-fitted_params
+param_file <- "~/macpan_forecast/data/params.xlsx"
+if (file.exists(param_file)) {
+    param_tib <- read_excel(param_file, col_types = "text")
+    fitted_params <- param_tib %>% select(symbol, description) %>% filter(symbol %in% c("beta0", "xi", "nu", "mu"))
+    fitted_params
+}
 ```
 
 First, I note that beta0 is time-varying. The data I am using to test calibration was used in a Champredon wastewater paper. Each of the beta0 breakpoints used in the Champredon paper were 50 days before one of mine. I am also using an additional two beta0 breakpoints at 25 and 60 days. These beta0 breakpoints were chosen only because I stumbled across a good fit while using them. I am mentioning this in case this is a source of error.
@@ -673,7 +687,7 @@ simulator$add$transformations(Log("mu"))
 simulator$add$transformations(Log("W_sd"))
 simulator$replace$params_frame(readr::read_csv("opt_parameters.csv", comment = "#"))
 
-simulator$optimize$nlminb()
+simulator$optimize$nlminb(control = list(eval.max = 1000))
 ```
 
 ```{r waste}
