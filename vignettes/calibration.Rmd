@@ -107,6 +107,7 @@ matrix by binding together the rows at each
 iteration.
 
 ```{r compute_loglik}
+sir_simulator$add$matrices( I_sd = 1 )
 sir_simulator$insert$expressions(
   log_lik ~ dnorm(I_obs, rbind_time(I_sim), I_sd),
   .phase = "after"
@@ -124,9 +125,6 @@ Step 5: declare (and maybe transform) parameters to be optimized,
 as well as starting values for the parameters to be optimized
 
 ```{r step5}
-sir_simulator$add$matrices(
-                      I_sd = 1
-                  )
 
 sir_simulator$add$transformations(Log("I_sd"))
 sir_simulator$add$transformations(Log("beta"))
