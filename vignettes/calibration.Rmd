@@ -26,9 +26,6 @@ knitr::opts_chunk$set(
 
 ## Hello World Fitting Problem (IN PROGRESS)
 
-```{r}
-knitr::opts_chunk$set(eval = FALSE)
-```
 
 First set up the model from the quickstart guide:
 
@@ -41,33 +38,30 @@ sir_simulator = sir$simulators$tmb(
   beta = 0.2,
   N = empty_matrix
 )
-sir_simulator2 = sir$simulators$tmb(
-  time_steps = 100,
-  state = c(S = 99, I = 1, R = 0),
-  flow = c(foi = NA, gamma = 0.1),
-  beta = 0.2,
-  N = 100
-  )
 sir_results = sir_simulator$report()
+```
+
+Add some noise to the prevalence (`I`) value:
+```{r sir_noise}
 set.seed(101)
 sir_prevalence = (sir_results
     |> dplyr::select(-c(matrix, col))
     |> filter(row == "I")
     |> mutate(obs_val = value + rnorm(n(), sd = 1))
 )
-plot(obs_val ~ time, data = sir_prevalence)
-with(sir_prevalence, lines(time, value))
+ggplot(sir_prevalence, aes(time)) +
+    geom_point(aes(y = obs_val)) +
+    geom_line(aes(y = value))
 ```
 
-Step 1: add observed data and declare matrices storing
-the simulation history of variables to compare
-with observed data, as well as a matrix for
-storing log-likelihood values. need to make sure
-that the simulation histories are saved;
-if you want you can return them as well as the
-log likelihood values.
+Step 1:  use `$add$matrices()` to:
 
-```{r}
+(a) add observed data 
+(b) declare a matrix storing the simulation history of variables to compare with observed data (if you want you can return these values in the report)
+(c) declare a matrix to store the log-likelihood
+(d) specify which matrices you want to save and/or return in the report
+
+```{r sim_addmat}
 sir_simulator$add$matrices(
   ## observed data
   I_obs = sir_prevalence$obs_val,
@@ -75,30 +69,27 @@ sir_simulator$add$matrices(
   I_sim = empty_matrix, 
   ## location of I in the state vector
   ## (the `-1L` bit is to get 0-based indices instead of 1-based)
-  I_index = match("I", sir$labels$state()) - 1L, 
-  ## matrix to contain the log likelihood values at 
-  ## each time step
-  log_lik = empty_matrix, 
+  I_index = match("I", sir$labels$state()) - 1L,
+  ## matrix to contain the log likelihood values at each time step
+  log_lik = empty_matrix,
   ## need to save the simulation history of each of these matrices
   .mats_to_save = c("I_sim", "log_lik"),
   .mats_to_return = c("I_sim")
 )
 ```
 
-```{r}
-simulator$print$matrix_dims()
-```
 
-**Fixme**: what are the `beta_*` things doing in there? Are they hard-coded somewhere? (Why?)
+**fixme**: some examples show `sir_simulator$print$matrix_dims()` at this point.  What is this good for/how do we interpret it?
+
 
 Step 2: collect simulated values into matrices to be
 compared with data. the `.at = Inf` and
 `.phase = "during"` indicates that this expression
-should come at the end of the expressions evaluated
+should come at the *end* of the expressions evaluated
 during each iteration of the simulation loop.
 
-```{r}
-simulator$insert$expressions(
+```{r add_Isim}
+sir_simulator$insert$expressions(
   I_sim ~ state[I_index],
   .phase = "during",
   .at = Inf
@@ -115,9 +106,9 @@ full simulation history of the `I_sim`
 matrix by binding together the rows at each
 iteration.
 
-```{r}
-simulator$insert$expressions(
-  log_lik ~ dnorm(I_obs, rbind_time(I_sim), I_sd)m
+```{r compute_loglik}
+sir_simulator$insert$expressions(
+  log_lik ~ dnorm(I_obs, rbind_time(I_sim), I_sd),
   .phase = "after"
   )
 ```
@@ -125,19 +116,37 @@ simulator$insert$expressions(
 Step 4: specify the objective function (usually
 the sum of the negative log-likelihoods)
 
-```{r}
-simulator$replace$obj_fn(~ -sum(log_lik))
+```{r add_loglik}
+sir_simulator$replace$obj_fn(~ -sum(log_lik))
 ```
 
 Step 5: declare (and maybe transform) parameters to be optimized,
 as well as starting values for the parameters to be optimized
 
-```{r}
-simulator$add$transformations(Log("I_sd"))
-simulator$replace$params_frame(readr::read_csv("opt_parameters.csv", comment = "#"))
+```{r step5}
+sir_simulator$add$matrices(
+                      I_sd = 1
+                  )
+
+sir_simulator$add$transformations(Log("I_sd"))
+sir_simulator$add$transformations(Log("beta"))
+params <- read.delim(sep = "|", header = TRUE, text = "
+mat       | row | col | default
+log_I_sd  | 0   | 0   | 0
+log_beta  | 0	| 0   | 1
+")
+try(sir_simulator$replace$params_frame(params))
 ```
 
-```{r eval = TRUE}
+**fixme**: on the last line above I get a less-than-perfectly-useful error message:
+
+(Use this chunk to turn off evaluation while working through example:
+
+```{r stop_eval}
+knitr::opts_chunk$set(eval = FALSE)
+```
+
+```{r start_eval, eval = TRUE}
 ## turn evaluation back on
 knitr::opts_chunk$set(eval = TRUE)
 ```
