@@ -24,7 +24,123 @@ knitr::opts_chunk$set(
 )
 ```
 
-## Hello World Fitting Problem (TODO)
+## Hello World Fitting Problem (IN PROGRESS)
+
+```{r}
+knitr::opts_chunk$set(eval = FALSE)
+```
+
+First set up the model from the quickstart guide:
+
+```{r sir_setup}
+sir = Compartmental(system.file("starter_models", "sir", package = "macpan2"))
+sir_simulator = sir$simulators$tmb(
+  time_steps = 100,
+  state = c(S = 99, I = 1, R = 0),
+  flow = c(foi = NA, gamma = 0.1),
+  beta = 0.2,
+  N = empty_matrix
+)
+sir_simulator2 = sir$simulators$tmb(
+  time_steps = 100,
+  state = c(S = 99, I = 1, R = 0),
+  flow = c(foi = NA, gamma = 0.1),
+  beta = 0.2,
+  N = 100
+  )
+sir_results = sir_simulator$report()
+set.seed(101)
+sir_prevalence = (sir_results
+    |> dplyr::select(-c(matrix, col))
+    |> filter(row == "I")
+    |> mutate(obs_val = value + rnorm(n(), sd = 1))
+)
+plot(obs_val ~ time, data = sir_prevalence)
+with(sir_prevalence, lines(time, value))
+```
+
+Step 1: add observed data and declare matrices storing
+the simulation history of variables to compare
+with observed data, as well as a matrix for
+storing log-likelihood values. need to make sure
+that the simulation histories are saved;
+if you want you can return them as well as the
+log likelihood values.
+
+```{r}
+sir_simulator$add$matrices(
+  ## observed data
+  I_obs = sir_prevalence$obs_val,
+  ## simulated trajectory to compare with data
+  I_sim = empty_matrix, 
+  ## location of I in the state vector
+  ## (the `-1L` bit is to get 0-based indices instead of 1-based)
+  I_index = match("I", sir$labels$state()) - 1L, 
+  ## matrix to contain the log likelihood values at 
+  ## each time step
+  log_lik = empty_matrix, 
+  ## need to save the simulation history of each of these matrices
+  .mats_to_save = c("I_sim", "log_lik"),
+  .mats_to_return = c("I_sim")
+)
+```
+
+```{r}
+simulator$print$matrix_dims()
+```
+
+**Fixme**: what are the `beta_*` things doing in there? Are they hard-coded somewhere? (Why?)
+
+Step 2: collect simulated values into matrices to be
+compared with data. the `.at = Inf` and
+`.phase = "during"` indicates that this expression
+should come at the end of the expressions evaluated
+during each iteration of the simulation loop.
+
+```{r}
+simulator$insert$expressions(
+  I_sim ~ state[I_index],
+  .phase = "during",
+  .at = Inf
+)
+```
+
+Step 3: compute any values that will be part of the
+objective function to be optimized. here we
+have the log (by default) of the Gaussian density of the
+observed `I` values with mean (i.e. predicted)
+value of the simulated `I` values. the
+`rbind_time` function gathers together the
+full simulation history of the `I_sim`
+matrix by binding together the rows at each
+iteration.
+
+```{r}
+simulator$insert$expressions(
+  log_lik ~ dnorm(I_obs, rbind_time(I_sim), I_sd)m
+  .phase = "after"
+  )
+```
+
+Step 4: specify the objective function (usually
+the sum of the negative log-likelihoods)
+
+```{r}
+simulator$replace$obj_fn(~ -sum(log_lik))
+```
+
+Step 5: declare (and maybe transform) parameters to be optimized,
+as well as starting values for the parameters to be optimized
+
+```{r}
+simulator$add$transformations(Log("I_sd"))
+simulator$replace$params_frame(readr::read_csv("opt_parameters.csv", comment = "#"))
+```
+
+```{r eval = TRUE}
+## turn evaluation back on
+knitr::opts_chunk$set(eval = TRUE)
+```
 
 ## Measles Data
 
