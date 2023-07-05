@@ -91,10 +91,8 @@
 <div class="section level2">
 <h2 id="hello-world-fitting-problem-in-progress">Hello World Fitting Problem (IN PROGRESS)<a class="anchor" aria-label="anchor" href="#hello-world-fitting-problem-in-progress"></a>
 </h2>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/knitr/man/opts_chunk.html" class="external-link">opts_chunk</a></span><span class="op">$</span><span class="fu">set</span><span class="op">(</span>eval <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <p>First set up the model from the quickstart guide:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir</span> <span class="op">=</span> <span class="fu"><a href="../reference/Compartmental.html">Compartmental</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"starter_models"</span>, <span class="st">"sir"</span>, package <span class="op">=</span> <span class="st">"macpan2"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">sir_simulator</span> <span class="op">=</span> <span class="va">sir</span><span class="op">$</span><span class="va">simulators</span><span class="op">$</span><span class="fu">tmb</span><span class="op">(</span></span>
 <span>  time_steps <span class="op">=</span> <span class="fl">100</span>,</span>
@@ -103,27 +101,29 @@
 <span>  beta <span class="op">=</span> <span class="fl">0.2</span>,</span>
 <span>  N <span class="op">=</span> <span class="va">empty_matrix</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">sir_simulator2</span> <span class="op">=</span> <span class="va">sir</span><span class="op">$</span><span class="va">simulators</span><span class="op">$</span><span class="fu">tmb</span><span class="op">(</span></span>
-<span>  time_steps <span class="op">=</span> <span class="fl">100</span>,</span>
-<span>  state <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>S <span class="op">=</span> <span class="fl">99</span>, I <span class="op">=</span> <span class="fl">1</span>, R <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>,</span>
-<span>  flow <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>foi <span class="op">=</span> <span class="cn">NA</span>, gamma <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span>,</span>
-<span>  beta <span class="op">=</span> <span class="fl">0.2</span>,</span>
-<span>  N <span class="op">=</span> <span class="fl">100</span></span>
-<span>  <span class="op">)</span></span>
-<span><span class="va">sir_results</span> <span class="op">=</span> <span class="va">sir_simulator</span><span class="op">$</span><span class="fu">report</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">101</span><span class="op">)</span></span>
+<span><span class="va">sir_results</span> <span class="op">=</span> <span class="va">sir_simulator</span><span class="op">$</span><span class="fu">report</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>Add some noise to the prevalence (<code>I</code>) value:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">101</span><span class="op">)</span></span>
 <span><span class="va">sir_prevalence</span> <span class="op">=</span> <span class="op">(</span><span class="va">sir_results</span></span>
 <span>    <span class="op">|&gt;</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="va">matrix</span>, <span class="va">col</span><span class="op">)</span><span class="op">)</span></span>
 <span>    <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">row</span> <span class="op">==</span> <span class="st">"I"</span><span class="op">)</span></span>
 <span>    <span class="op">|&gt;</span> <span class="fu">mutate</span><span class="op">(</span>obs_val <span class="op">=</span> <span class="va">value</span> <span class="op">+</span> <span class="fu"><a href="../reference/engine_functions.html">rnorm</a></span><span class="op">(</span><span class="fu">n</span><span class="op">(</span><span class="op">)</span>, sd <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">obs_val</span> <span class="op">~</span> <span class="va">time</span>, data <span class="op">=</span> <span class="va">sir_prevalence</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="va">sir_prevalence</span>, <span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">value</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p>Step 1: add observed data and declare matrices storing the simulation
-history of variables to compare with observed data, as well as a matrix
-for storing log-likelihood values. need to make sure that the simulation
-histories are saved; if you want you can return them as well as the log
-likelihood values.</p>
+<span><span class="fu">ggplot</span><span class="op">(</span><span class="va">sir_prevalence</span>, <span class="fu">aes</span><span class="op">(</span><span class="va">time</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">geom_point</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>y <span class="op">=</span> <span class="va">obs_val</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">geom_line</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>y <span class="op">=</span> <span class="va">value</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="calibration_files/figure-html/sir_noise-1.png" width="700"></p>
+<p>Step 1: use <code>$add$matrices()</code> to:</p>
+<ol style="list-style-type: lower-alpha">
+<li>add observed data</li>
+<li>declare a matrix storing the simulation history of variables to
+compare with observed data (if you want you can return these values in
+the report)</li>
+<li>declare a matrix to store the log-likelihood</li>
+<li>specify which matrices you want to save and/or return in the
+report</li>
+</ol>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_simulator</span><span class="op">$</span><span class="va">add</span><span class="op">$</span><span class="fu">matrices</span><span class="op">(</span></span>
 <span>  <span class="co">## observed data</span></span>
@@ -132,24 +132,22 @@ likelihood values.</p>
 <span>  I_sim <span class="op">=</span> <span class="va">empty_matrix</span>, </span>
 <span>  <span class="co">## location of I in the state vector</span></span>
 <span>  <span class="co">## (the `-1L` bit is to get 0-based indices instead of 1-based)</span></span>
-<span>  I_index <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/match.html" class="external-link">match</a></span><span class="op">(</span><span class="st">"I"</span>, <span class="va">sir</span><span class="op">$</span><span class="va">labels</span><span class="op">$</span><span class="fu">state</span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1L</span>, </span>
-<span>  <span class="co">## matrix to contain the log likelihood values at </span></span>
-<span>  <span class="co">## each time step</span></span>
-<span>  log_lik <span class="op">=</span> <span class="va">empty_matrix</span>, </span>
+<span>  I_index <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/match.html" class="external-link">match</a></span><span class="op">(</span><span class="st">"I"</span>, <span class="va">sir</span><span class="op">$</span><span class="va">labels</span><span class="op">$</span><span class="fu">state</span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1L</span>,</span>
+<span>  <span class="co">## matrix to contain the log likelihood values at each time step</span></span>
+<span>  log_lik <span class="op">=</span> <span class="va">empty_matrix</span>,</span>
 <span>  <span class="co">## need to save the simulation history of each of these matrices</span></span>
 <span>  .mats_to_save <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"I_sim"</span>, <span class="st">"log_lik"</span><span class="op">)</span>,</span>
 <span>  .mats_to_return <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"I_sim"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">simulator</span><span class="op">$</span><span class="va">print</span><span class="op">$</span><span class="fu">matrix_dims</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><strong>Fixme</strong>: what are the <code>beta_*</code> things doing
-in there? Are they hard-coded somewhere? (Why?)</p>
+<p><strong>fixme</strong>: some examples show
+<code>sir_simulator$print$matrix_dims()</code> at this point. What is
+this good for/how do we interpret it?</p>
 <p>Step 2: collect simulated values into matrices to be compared with
 data. the <code>.at = Inf</code> and <code>.phase = "during"</code>
-indicates that this expression should come at the end of the expressions
-evaluated during each iteration of the simulation loop.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">simulator</span><span class="op">$</span><span class="va">insert</span><span class="op">$</span><span class="fu">expressions</span><span class="op">(</span></span>
+indicates that this expression should come at the <em>end</em> of the
+expressions evaluated during each iteration of the simulation loop.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sir_simulator</span><span class="op">$</span><span class="va">insert</span><span class="op">$</span><span class="fu">expressions</span><span class="op">(</span></span>
 <span>  <span class="va">I_sim</span> <span class="op">~</span> <span class="va">state</span><span class="op">[</span><span class="va">I_index</span><span class="op">]</span>,</span>
 <span>  .phase <span class="op">=</span> <span class="st">"during"</span>,</span>
 <span>  .at <span class="op">=</span> <span class="cn">Inf</span></span>
@@ -161,19 +159,38 @@ Gaussian density of the observed <code>I</code> values with mean
 <code>rbind_time</code> function gathers together the full simulation
 history of the <code>I_sim</code> matrix by binding together the rows at
 each iteration.</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>simulator<span class="sc">$</span>insert<span class="sc">$</span><span class="fu">expressions</span>(</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  log_lik <span class="sc">~</span> <span class="fu">dnorm</span>(I_obs, <span class="fu">rbind_time</span>(I_sim), I_sd)m</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">.phase =</span> <span class="st">"after"</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sir_simulator</span><span class="op">$</span><span class="va">add</span><span class="op">$</span><span class="fu">matrices</span><span class="op">(</span> I_sd <span class="op">=</span> <span class="fl">1</span> <span class="op">)</span></span>
+<span><span class="va">sir_simulator</span><span class="op">$</span><span class="va">insert</span><span class="op">$</span><span class="fu">expressions</span><span class="op">(</span></span>
+<span>  <span class="va">log_lik</span> <span class="op">~</span> <span class="fu"><a href="../reference/engine_functions.html">dnorm</a></span><span class="op">(</span><span class="va">I_obs</span>, <span class="fu"><a href="../reference/engine_functions.html">rbind_time</a></span><span class="op">(</span><span class="va">I_sim</span><span class="op">)</span>, <span class="va">I_sd</span><span class="op">)</span>,</span>
+<span>  .phase <span class="op">=</span> <span class="st">"after"</span></span>
+<span>  <span class="op">)</span></span></code></pre></div>
 <p>Step 4: specify the objective function (usually the sum of the
 negative log-likelihoods)</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">simulator</span><span class="op">$</span><span class="va">replace</span><span class="op">$</span><span class="fu">obj_fn</span><span class="op">(</span><span class="op">~</span> <span class="op">-</span><span class="fu"><a href="../reference/engine_functions.html">sum</a></span><span class="op">(</span><span class="va">log_lik</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sir_simulator</span><span class="op">$</span><span class="va">replace</span><span class="op">$</span><span class="fu">obj_fn</span><span class="op">(</span><span class="op">~</span> <span class="op">-</span><span class="fu"><a href="../reference/engine_functions.html">sum</a></span><span class="op">(</span><span class="va">log_lik</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Step 5: declare (and maybe transform) parameters to be optimized, as
 well as starting values for the parameters to be optimized</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="va">sir_simulator</span><span class="op">$</span><span class="va">add</span><span class="op">$</span><span class="fu">transformations</span><span class="op">(</span><span class="fu"><a href="../reference/Transform.html">Log</a></span><span class="op">(</span><span class="st">"I_sd"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">sir_simulator</span><span class="op">$</span><span class="va">add</span><span class="op">$</span><span class="fu">transformations</span><span class="op">(</span><span class="fu"><a href="../reference/Transform.html">Log</a></span><span class="op">(</span><span class="st">"beta"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">params</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.delim</a></span><span class="op">(</span>sep <span class="op">=</span> <span class="st">"|"</span>, header <span class="op">=</span> <span class="cn">TRUE</span>, text <span class="op">=</span> <span class="st">"</span></span>
+<span><span class="st">mat       | row | col | default</span></span>
+<span><span class="st">log_I_sd  | 0   | 0   | 0</span></span>
+<span><span class="st">log_beta  | 0   | 0   | 1</span></span>
+<span><span class="st">"</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/try.html" class="external-link">try</a></span><span class="op">(</span><span class="va">sir_simulator</span><span class="op">$</span><span class="va">replace</span><span class="op">$</span><span class="fu">params_frame</span><span class="op">(</span><span class="va">params</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Error in valid$consistency_params_mats$check(self$model) : </span></span>
+<span><span class="co">#&gt; optimization parameters are not consistent with matrices</span></span>
+<span><span class="co">#&gt; but validity could not be checked because:</span></span>
+<span><span class="co">#&gt; Error in if (any(!valid_pars)) { : missing value where TRUE/FALSE needed</span></span></code></pre></div>
+<p><strong>fixme</strong>: on the last line above I get a
+less-than-perfectly-useful error message:</p>
+<p>(Use this chunk to turn off evaluation while working through
+example:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">simulator</span><span class="op">$</span><span class="va">add</span><span class="op">$</span><span class="fu">transformations</span><span class="op">(</span><span class="fu"><a href="../reference/Transform.html">Log</a></span><span class="op">(</span><span class="st">"I_sd"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">simulator</span><span class="op">$</span><span class="va">replace</span><span class="op">$</span><span class="fu">params_frame</span><span class="op">(</span><span class="fu">readr</span><span class="fu">::</span><span class="fu">read_csv</span><span class="op">(</span><span class="st">"opt_parameters.csv"</span>, comment <span class="op">=</span> <span class="st">"#"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/knitr/man/opts_chunk.html" class="external-link">opts_chunk</a></span><span class="op">$</span><span class="fu">set</span><span class="op">(</span>eval <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">## turn evaluation back on</span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/knitr/man/opts_chunk.html" class="external-link">opts_chunk</a></span><span class="op">$</span><span class="fu">set</span><span class="op">(</span>eval <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
