@@ -2,14 +2,14 @@ Package: macpan2
 Title: Fast and Flexible Compartmental Modelling
 Version: 0.0.3
 Authors@R: c(
-  person("Steve Walker", email="swalk@mcmaster.ca", role=c("cre")),
-  person("Darren Flynn-Primrose", rol="aut"),
-  person("Weiguang Guan", rol="aut"),
-  person("Ben Bolker", rol="aut"),
-  person("Michael Li", rol="ctb"),
-  person("Irena Papst", rol="ctb"),
-  person("Steve Walker", rol="aut"))
-Description: Fast and flexible compartmental modelling with template model builder.
+  person("Steve Walker", email="swalk@mcmaster.ca", role=c("cre", "aut")),
+  person("Darren Flynn-Primrose", role="aut"),
+  person("Weiguang Guan", role="aut"),
+  person("Ben Bolker", role="aut"),
+  person("Michael Li", role="ctb"),
+  person("Irena Papst", role="ctb")
+  )		
+Description: Fast and flexible compartmental modelling with Template Model Builder.
 License: GPL-3
 Depends:
     R (>= 4.1.0),

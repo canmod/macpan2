@@ -30,3 +30,5 @@ macpan2*
 *.rds
 *_cache
 *_files
+\#*
+.#*
