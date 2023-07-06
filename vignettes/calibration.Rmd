@@ -479,34 +479,79 @@ lines(fitted_incidence, col = 2)
 The fit is not good!  Why?  To find out we plot the likelihood surface with arrows representing the magnitude and direction of the down-hill gradient towards the optimum. Notice the very flat gradient in the direction along the valley containing the optimum at $(0, 1)$. The gradient is pointing towards the valley but not along it.  I do not understand why.
 
 ```{r logistic_plot_surf, results='hide', message=FALSE}
-lik_surf = expand.grid(
-  intercept_parameter = seq(from = -1, to = 1, by = 0.05),
-  slope_parameter = seq(from = 0, to = 2, by = 0.05)
-)
-gr = t(apply(lik_surf, 1, simulator$gradient))
-lik_surf$z = apply(lik_surf, 1, simulator$objective)
-gr = 0.1 * gr / max(abs(gr))
-lik_surf$gx = gr[,1]
-lik_surf$gy = gr[,2]
+make_liksurf <- function(lwr = c(-1, 0), upr = c(1, 2),
+                         n = c(41, 41)) {
+    lik_surf = expand.grid(
+        intercept_parameter = seq(from = lwr[1], to = upr[1], 
+                                  length.out = n[1]),
+        slope_parameter = seq(from = lwr[2], to = upr[2],
+                              length.out = n[2])
+    )
+    gr = t(apply(lik_surf, 1, simulator$gradient))
+    lik_surf$z = apply(lik_surf, 1, simulator$objective)
+    gr = 0.1 * gr / max(abs(gr))
+    lik_surf$gx = gr[,1]
+    lik_surf$gy = gr[,2]
+    return(lik_surf)
+}
+lik_surf <- make_liksurf()
 ```
 
 
 
 ```{r logistic_plot_surf2, fig.height=6, fig.width=7}
-(ggplot(lik_surf) 
-  + geom_tile(aes(intercept_parameter, slope_parameter, fill = z)) 
-  + geom_segment(
-    aes(
-      intercept_parameter, 
-      slope_parameter, 
-      xend = intercept_parameter - gx, 
-      yend = slope_parameter - gy
-    ), 
-    arrow = arrow(length = unit(0.05, "inches")), 
-    colour = 'white'
-  )
-  + theme_bw()
-)
+mk_plot <- function(dd, arrows = TRUE, contours = TRUE,
+                    arrow_len = 0.05,
+                    cbrks = (1:10)*1e5) {
+    gg0 <- (ggplot(dd, aes(intercept_parameter, slope_parameter))
+        + geom_tile(aes(fill = z))
+        + theme_bw()
+        + scale_x_continuous(expand = c(0,0))
+        + scale_y_continuous(expand = c(0,0))
+        + annotate(geom = "point", x = 0, y = 1, colour = "yellow", size = 2,
+                   pch = 16)
+        + scale_fill_continuous(trans = "log10")
+
+    )
+    if (contours) {
+        gg0 <- gg0 + geom_contour(aes(z = z), colour = "red",
+                                  breaks = cbrks)
+    }
+    if (arrows) {
+        gg0 <- gg0 + geom_segment(
+                         data = dd[seq(nrow(dd)) %% 5 == 0 , ],
+                         aes(
+                             xend = intercept_parameter - gx, 
+                             yend = slope_parameter - gy
+                         ), 
+                         arrow = arrow(length = unit(arrow_len, "inches")), 
+                         colour = 'white'
+                     )
+    }
+    gg0
+}
+print(mk_plot(lik_surf))
 ```
 
+```{r results = "hide"}
+lik_surf2 <- make_liksurf(lwr = c(-0.1, 0.9), upr = c(0.1, 1.1))
+print(mk_plot(lik_surf2, arrows = FALSE, cbrks = 1e4*(1:10)))
+```
+
+**experimental**: working with `DEoptim` (haven't included yet because I don't want to have to `Suggest:` DEoptim ...
+
+```{r eval=FALSE}
+library(DEoptim)
+set.seed(101)
+fit <- DEoptim(simulator$objective, lower = rep(-10, 2), upper = rep(10, 2))
+fitted_incidence = (simulator$ad_fun()$env$last.par.best
+    |> simulator$report()
+    |> filter(matrix == "incidence")
+    |> pull(value)
+)
+plot(reports, type = "l")
+lines(fitted_incidence, col = 2)
+```
+
+**fixme**: warning that `$current$params_vector()` is mutable/unreliable. Extractor for `$ad_fun()$env$last.par.best` (or equivalently for the optim fit)?
 **fixme**: add (abbreviated) `sessionInfo` output? (Package versions?)
