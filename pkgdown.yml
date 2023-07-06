@@ -13,10 +13,11 @@ articles:
   model_definitions: model_definitions.html
   quickstart: quickstart.html
   quickstart2: quickstart2.html
+  standard_expressions: standard_expressions.html
   state_dependent_rates: state_dependent_rates.html
   time_varying_parameters: time_varying_parameters.html
   vignette_status: vignette_status.html
-last_built: 2023-07-06T19:51Z
+last_built: 2023-07-06T23:33Z
 urls:
   reference: https://canmod.github.io/macpan2/reference
   article: https://canmod.github.io/macpan2/articles
