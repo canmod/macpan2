@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
 
 Setup:
 
-```{r pkgs}
+```{r pkgs, message = FALSE}
 library(macpan2)
 library(macpan2helpers)
 library(dplyr)
