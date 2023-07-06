@@ -1,0 +1,75 @@
+---
+title: "Standard Expressions"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{Standard Expressions}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+[![status](https://img.shields.io/badge/stub-red)](https://canmod.github.io/macpan2/articles/vignette-status#stub)
+
+``` {r pkgs, include = FALSE}
+library(macpan2)
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  eval = FALSE,
+  comment = "#>"
+)
+```
+
+Macpan2 separates model expressions into two types; user expressions which vary from model to model and standard expressions which are common across all models that employ the same numerical method (e.g. Euler steps). User expressions are typically evaluated in the ``during_pre_update`` simulation phase although some may be evaluated in the ``before`` simulation phase (if the output does not vary with time). Standard expressions are evaluated in the ``during_update`` simulation phase and are used to update the state vector for the next time step. 
+
+state:
+A vector with the population of each compartment. The purpose of the ``during_update`` simulation phase is to update this vector in accordance with the user supplied expressions detailing the flows between compartments.
+
+total_inflow:
+A vector with the total inflow to each compartment. This is computed by summing the effects of ``per_capita``, ``absolute``, ``per_capita_inflow`` and ``absolute_inflow`` type flows. 
+
+total_outflow:
+A vector with the total outflow from each compartment. This is computed by summing the effects of ``per_capita``, ``absolute``, ``per_capita_outflow`` and ``absolute_outflow`` type flows.
+
+So the final step of the ``during_update`` simulation phase is simply
+
+```{r state_update}
+state = state + total_inflow - total_outflow
+```
+
+Computing ``total_inflow`` and ``total_outflow`` is more complicated. We use as an example ``total_inflow`` the procedure for ``total_outflow`` is fundamentally the same. There are two primary challenges to overcome:
+
+1) Each of the flow types may or may not be present in a given model
+
+2) There may be multiple flows of the same type to any given compartment.
+
+Another key point to keep in mind is that per_capita flows are specified as a rate that needs to be multiplied by the population of their from compartment whereas absolute flows do not.
+
+After the ``during_pre_update`` simulation phase we are guaranteed to have two vectors ``state`` and ``flow``. ``flow`` in particular will have been generated during the previous simulation phases using whatever expressions where supplied by the user. We also have, for each flow type, vectors specifying which elements of ``flow`` are of that flow type and, where applicable, which elements of ``state`` correspond to the ``from`` and ``to`` compartments of the flows in ``flow``. These vectors are denoted with the suffix ``_flow``, ``_from`` and ``_to`` respectively. So for example ``per_capita_flow`` specifiec which elements of ``flow`` are per_capita, ``per_capita_from`` specifies which elements of ``state`` are from compartments for per capita flows, and ``per_capita_to`` specifies which elements of ``state`` are to compartments for per_capita flows. thus we can write
+``` {R per_capita}
+per_capita = state[per_capita_from]*flow[per_capita_flow]
+per_capita_inflow = state[per_capita_inflow_from]*flow[per_capita_inflow_flow]
+absolute = flow[absolute_flow]
+absolute_inflow = flow[absolute_inflow_flow]
+```
+
+We then create a vector which sums all inflows of a single type that have the same ``to`` compartment.
+
+``` {R}
+    total_inflow_expression_vct = c(
+      "groupSums(per_capita, per_capita_to, state_length)",
+      "groupSums(absolute, absolute_to, state_length)",
+      "groupSums(per_capita_inflow, per_capita_inflow_to, state_length)",
+      "groupSums(absolute_inflow, absolute_inflow_to, state_length)"
+    )
+```
+
+The total inflow can than be calculated with the expression
+
+``` {R}
+total_inflow = paste0(total_inflow_expression_vct[present_inflows], collapse = "+")
+```
+
+Where ``present_inflows`` is a vector which communicates which of the four inflow types are actually being used in the specific model at hand.
