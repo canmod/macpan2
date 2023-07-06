@@ -26,11 +26,16 @@ Setup:
 library(macpan2)
 library(macpan2helpers)
 library(dplyr)
-library(ggplot2)
+library(ggplot2); theme_set(theme_bw())
 ```
 
-## Hello World Fitting Problem (IN PROGRESS)
+In addition to these packages, the `broom.mixed` package is used below (if installed).
 
+## 'Hello, World': an easy (??) calibration exercise
+
+We'll do the first thing you should always do when trying out a new fitting procedure: simulate clean, nice data from the model and see if you can recover something close to the true parameters.
+
+### Step 0: set up simulator and generate 'data'
 
 First set up the model from the quickstart guide:
 
@@ -150,12 +155,8 @@ sir_simulator$replace$obj_fn(~ -sum(log_lik))
 ```{r step4}
 sir_simulator$add$transformations(Log("I_sd"))
 sir_simulator$add$transformations(Log("beta"))
-## n.b. need strip.white = TRUE here
 params <- read.delim(sep = "|", header = TRUE,
-                     strip.white = TRUE,
-                     ## don't think this is necessary but trying
-                     ## it to see if it fixes issues ...
-                     colClasses = c("character", rep("integer", 3)),
+                     strip.white = TRUE, ## important!
                      text = "
 mat       | row | col | default
 log_I_sd  | 0   | 0   | 0
@@ -174,7 +175,7 @@ sir_simulator$replace$params_frame(params)
 
 ### Step 5: do the fit
 
-It's always a good idea to do some quick sanity checks on the objective function before you try to optimize: do you get finite values? Does changing the inputs change the returned value?
+It's always a good idea to do some quick sanity checks on the objective function before you try to optimize: do you get finite values (for reasonable inputs)? Does changing the inputs change the returned value?
 
 ```{r test_objective}
 sir_simulator$objective(c(1,1))
@@ -199,6 +200,8 @@ Print the results of `nlminb` - **always check the value of the convergence code
 ```{r check_fit}
 print(fit)
 ```
+
+Back-transform the parameters:
 
 ```{r params}
 exp(fit$par)
@@ -233,6 +236,8 @@ gg0 + geom_line(data = sim_vals, aes(y= value), colour = "red")
 ```
 
 **fixme**: what next? Show a fit to real data? Comparison with [fitode](https://github.com/parksw3/fitode) ?
+
+**fixme**: add some *intermediate* examples (simple time-varying parameters, Poisson/negative binomial responses, irregularly sampled data, fitting prevalence/hospitalization/death, fitting multiple data streams ...) try to minimize 'boiler plate', focus on added features in each model ...
 
 ## Measles Data
 
