@@ -1,3 +1,6 @@
+library(macpan2)
+library(tidyverse)
+
 sir = Compartmental(system.file("starter_models", "sir", package = "macpan2"))
 simulator = sir$simulators$tmb(time_steps = 50
                                , state = c(S = 99, I = 1, R = 0)
