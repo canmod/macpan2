@@ -13,15 +13,20 @@ editor_options:
 
 [![status](https://img.shields.io/badge/status-working%20draft-red)](https://canmod.github.io/macpan2/articles/vignette-status#working-draft)
 
-```{r pkgs, include = FALSE}
-library(macpan2)
-library(macpan2helpers)
-library(dplyr)
-library(ggplot2)
+```{r opts, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+```
+
+Setup:
+
+```{r pkgs}
+library(macpan2)
+library(macpan2helpers)
+library(dplyr)
+library(ggplot2)
 ```
 
 ## Hello World Fitting Problem (IN PROGRESS)
@@ -37,9 +42,12 @@ sir_simulator = sir$simulators$tmb(
   flow = c(foi = NA, gamma = 0.1),
   beta = 0.2,
   N = empty_matrix
-)
-sir_results = sir_simulator$report()
+  )
+## This is key!
+sir_results = sir_simulator$report(.phases = "during")
 ```
+
+**fixme**: providing mismatched time series (e.g. by forgetting to specify `.phases = "during"` when generating simulated data) gives cryptic/confusing errors and behaviour (warnings about failure to recycle, objective function values equal to zero). (We can make a reprex for this by leaving out `.phases = "during"` above ...
 
 Add some noise to the prevalence (`I`) value:
 ```{r sir_noise}
@@ -49,12 +57,15 @@ sir_prevalence = (sir_results
     |> filter(row == "I")
     |> mutate(obs_val = value + rnorm(n(), sd = 1))
 )
-ggplot(sir_prevalence, aes(time)) +
+gg0 <- ggplot(sir_prevalence, aes(time)) +
     geom_point(aes(y = obs_val)) +
     geom_line(aes(y = value))
+print(gg0)
 ```
 
-Step 1:  use `$add$matrices()` to:
+### Step 1: add observed data and slots for history etc.
+
+Use `$add$matrices()` to:
 
 (a) add observed data 
 (b) declare a matrix storing the simulation history of variables to compare with observed data (if you want you can return these values in the report)
@@ -74,7 +85,7 @@ sir_simulator$add$matrices(
   log_lik = empty_matrix,
   ## need to save the simulation history of each of these matrices
   .mats_to_save = c("I_sim", "log_lik"),
-  .mats_to_return = c("I_sim")
+  .mats_to_return = c("I_sim", "log_lik")
 )
 ```
 
@@ -82,7 +93,9 @@ sir_simulator$add$matrices(
 **fixme**: some examples show `sir_simulator$print$matrix_dims()` at this point.  What is this good for/how do we interpret it?
 
 
-Step 2: collect simulated values into matrices to be
+### Step 2: collect simulated values
+
+Collect simulated values into matrices to be
 compared with data. the `.at = Inf` and
 `.phase = "during"` indicates that this expression
 should come at the *end* of the expressions evaluated
@@ -96,12 +109,19 @@ sir_simulator$insert$expressions(
 )
 ```
 
-Step 3: compute any values that will be part of the
-objective function to be optimized. here we
-have the log (by default) of the Gaussian density of the
+**fixme**: what's the best way to handle irregularly sampled data/match up with timestamps of observed data? (not for here, this should be a footnote or put in an 'extra tricks' section)
+
+## Step 3: set up and compute objective function
+
+We will use the log (by default) of the Gaussian density of the
 observed `I` values with mean (i.e. predicted)
-value of the simulated `I` values. the
-`rbind_time` function gathers together the
+value of the simulated `I` values (this is equivalent to
+least-squares estimation, with the added complication that
+we estimate the standard deviation explicitly rather than computing
+it from the residuals). 
+
+- Add the new parameter (standard deviation of the observed `I` distribution around the predicted `I` values)
+- The `rbind_time` function gathers together the
 full simulation history of the `I_sim`
 matrix by binding together the rows at each
 iteration.
@@ -114,40 +134,105 @@ sir_simulator$insert$expressions(
   )
 ```
 
-Step 4: specify the objective function (usually
-the sum of the negative log-likelihoods)
+Define the objective function (which will almost always be the sum
+of the negative log-likelihoods for each point):
 
 ```{r add_loglik}
 sir_simulator$replace$obj_fn(~ -sum(log_lik))
 ```
 
-Step 5: declare (and maybe transform) parameters to be optimized,
-as well as starting values for the parameters to be optimized
+## Step 4: declare and/or transform parameters to be optimized, set starting values
 
-```{r step5}
+- We could have postponed defining `I_sd` in the model until this step (**fixme**: right?), but it would have been confusing since we used it in the objective function.
+- For parameters that are restricted to be positive, it is almost always best to estimate them on the log scale. This ensures that their values will always be non-negative (and positive unless the transformed values are negative and large enough in magnitude that `exp(x)` underflows to zero) and has other advantages in optimization (**fixme**: how much detail is needed here? Shrink scale of optimization, make parameter magnitudes ${\cal O}(1)$, make Wald estimation more reliable ...)
+- In practice we would often read the parameter starting values in from a CSV file (using `read.csv` from base R or `readr::read_csv()` from tidyverse), but here we can set up the data frame on the fly
 
+```{r step4}
 sir_simulator$add$transformations(Log("I_sd"))
 sir_simulator$add$transformations(Log("beta"))
-params <- read.delim(sep = "|", header = TRUE, text = "
+## n.b. need strip.white = TRUE here
+params <- read.delim(sep = "|", header = TRUE,
+                     strip.white = TRUE,
+                     ## don't think this is necessary but trying
+                     ## it to see if it fixes issues ...
+                     colClasses = c("character", rep("integer", 3)),
+                     text = "
 mat       | row | col | default
 log_I_sd  | 0   | 0   | 0
 log_beta  | 0	| 0   | 1
 ")
-try(sir_simulator$replace$params_frame(params))
+sir_simulator$replace$params_frame(params)
 ```
 
-**fixme**: on the last line above I get a less-than-perfectly-useful error message:
+**fixme**: if I fail to use `strip.white = TRUE` (so the `mat` names have trailing whitespace), then on the last line above I get a less-than-perfectly-useful error message:
 
-(Use this chunk to turn off evaluation while working through example:
+> Error in valid\$consistency_params_mats\$check(self\$model) : 
+> optimization parameters are not consistent with matrices
+> but validity could not be checked because:<br>
+> Error in if (any(!valid_pars)) { : missing value where TRUE/FALSE needed
 
-```{r stop_eval}
-knitr::opts_chunk$set(eval = FALSE)
+
+### Step 5: do the fit
+
+It's always a good idea to do some quick sanity checks on the objective function before you try to optimize: do you get finite values? Does changing the inputs change the returned value?
+
+```{r test_objective}
+sir_simulator$objective(c(1,1))
+sir_simulator$objective(c(0,1))
 ```
 
-```{r start_eval, eval = TRUE}
-## turn evaluation back on
-knitr::opts_chunk$set(eval = TRUE)
+```{r fit, eval = FALSE}
+## these were some other things I tried out when debugging ...
+print(sir_simulator$get$initial("log_I_sd"))
+print(sir_simulator$get$initial("log_beta"))
+print(sir_simulator$current$params_frame())
+sir_simulator$report()
 ```
+
+```{r sir_fit, results = "hide"}
+fit <- sir_simulator$optimize$nlminb()
+```
+
+
+Print the results of `nlminb` - **always check the value of the convergence code** (if it's not 0, then something *may* have gone wrong ...)
+
+```{r check_fit}
+print(fit)
+```
+
+```{r params}
+exp(fit$par)
+```
+
+Get more information:
+
+```{r params_fancy}
+ff <- sir_simulator$ad_fun()
+class(ff) <- "TMB"
+if (requireNamespace("broom.mixed")) {
+    (broom.mixed::tidy(ff, conf.int = TRUE)
+        |> select(-c(type, std.error))
+        ## ugh, shouldn't need to do this by hand
+        |> mutate(term = c("I_sd", "beta"))
+        |> mutate(across(where(is.numeric), exp))
+    )
+}
+```
+
+These correspond to true values of 0.2, 1, so pretty close.
+
+**fixme**: can we handle back-transformation/parameter naming more nicely? `coef()`, `summary()` methods ... ??
+
+The best-fit parameters are stored *internally*, so if we re-run the `$report()` method we will get information about the predicted best-fit trajectory:
+
+```{r plot_results}
+sim_vals <- (sir_simulator$report(.phases = "during")
+    |> filter(matrix == "state", row == "I")
+)
+gg0 + geom_line(data = sim_vals, aes(y= value), colour = "red")
+```
+
+**fixme**: what next? Show a fit to real data? Comparison with [fitode](https://github.com/parksw3/fitode) ?
 
 ## Measles Data
 
@@ -419,3 +504,4 @@ lik_surf$gy = gr[,2]
 )
 ```
 
+**fixme**: add (abbreviated) `sessionInfo` output? (Package versions?)

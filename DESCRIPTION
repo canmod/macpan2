@@ -28,7 +28,8 @@ Suggests:
     htmltools,
     visNetwork,
     macpan2helpers,
-    kableExtra
+    kableExtra,
+    broom.mixed
 LinkingTo:
     TMB,
     RcppEigen,
