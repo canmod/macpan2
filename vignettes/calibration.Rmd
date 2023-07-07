@@ -553,5 +553,8 @@ plot(reports, type = "l")
 lines(fitted_incidence, col = 2)
 ```
 
-**fixme**: warning that `$current$params_vector()` is mutable/unreliable. Extractor for `$ad_fun()$env$last.par.best` (or equivalently for the optim fit)?
-**fixme**: add (abbreviated) `sessionInfo` output? (Package versions?)
+* **fixme**: also add multi-start example (i.e. less fancy than DEoptim, suitable for surfaces like this one that are multimodal but smooth (ref. Raue et al. "Lessons Learned from Quantitative Dynamical Modeling in Systems Biology" 2013)?)
+* **fixme**: warning that `$current$params_vector()` is mutable/unreliable. Extractor for `$ad_fun()$env$last.par.best` (or equivalently for the optim fit)?
+
+
+* **fixme**: add (abbreviated) `sessionInfo` output? (Package versions?)
