@@ -70,6 +70,8 @@ print(gg0)
 
 ### Step 1: add observed data and slots for history etc.
 
+**fixme**: better transition explaining (1) that we are revealing more of the low-level details of `macpan2` (can we add an interface for this??); (2) that we are adding stuff to the `sir_simulator` object that wasn't needed when we only wanted to use it as a simulator; (3) that `$add$matrices()` is adding data objects to a space within the object that was initially populated from the "variables" and "expression" files
+
 Use `$add$matrices()` to:
 
 (a) add observed data 
@@ -91,6 +93,9 @@ sir_simulator$add$matrices(
 )
 ```
 
+**fixme**: SJW says we don't need `match` any more?
+
+**fixme**: possibly comment that we *could* have added some of these objects up-front, in the definition files ...
 
 **fixme**: some examples show `sir_simulator$print$matrix_dims()` at this point.  What is this good for/how do we interpret it?
 
@@ -102,6 +107,8 @@ compared with data. the `.at = Inf` and
 `.phase = "during"` indicates that this expression
 should come at the *end* of the expressions evaluated
 during each iteration of the simulation loop.
+
+**fixme**: explain that, like `$add$matrices()`, this adds components that could have been included initially (in the "expressions" file)
 
 ```{r add_Isim}
 sir_simulator$insert$expressions(
@@ -161,6 +168,8 @@ log_beta  | 0	| 0   | 1
 ")
 sir_simulator$replace$params_frame(params)
 ```
+
+**fixme**: explain that adding the Log transformation automatically adds a `log_*` variable/matrix
 
 **fixme**: if I fail to use `strip.white = TRUE` (so the `mat` names have trailing whitespace), then on the last line above I get a less-than-perfectly-useful error message:
 
@@ -233,6 +242,8 @@ gg0 + geom_line(data = sim_vals, aes(y= value), colour = "red")
 ```
 
 **fixme**: what next? Show a fit to real data? Comparison with [fitode](https://github.com/parksw3/fitode) ?
+
+**fixme**: examples of (statistical) diagnostics?
 
 **fixme**: add some *intermediate* examples (simple time-varying parameters, Poisson/negative binomial responses, irregularly sampled data, fitting prevalence/hospitalization/death, fitting multiple data streams ...) try to minimize 'boiler plate', focus on added features in each model ...
 
