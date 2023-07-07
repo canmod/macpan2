@@ -140,6 +140,13 @@ can make a reprex for this by leaving out
 <div class="section level3">
 <h3 id="step-1-add-observed-data-and-slots-for-history-etc-">Step 1: add observed data and slots for history etc.<a class="anchor" aria-label="anchor" href="#step-1-add-observed-data-and-slots-for-history-etc-"></a>
 </h3>
+<p><strong>fixme</strong>: better transition explaining (1) that we are
+revealing more of the low-level details of <code>macpan2</code> (can we
+add an interface for this??); (2) that we are adding stuff to the
+<code>sir_simulator</code> object that wasn’t needed when we only wanted
+to use it as a simulator; (3) that <code>$add$matrices()</code> is
+adding data objects to a space within the object that was initially
+populated from the “variables” and “expression” files</p>
 <p>Use <code>$add$matrices()</code> to:</p>
 <ol style="list-style-type: lower-alpha">
 <li>add observed data</li>
@@ -165,6 +172,10 @@ report</li>
 <span>  .mats_to_save <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"I_sim"</span>, <span class="st">"log_lik"</span><span class="op">)</span>,</span>
 <span>  .mats_to_return <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"I_sim"</span>, <span class="st">"log_lik"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+<p><strong>fixme</strong>: SJW says we don’t need <code>match</code> any
+more?</p>
+<p><strong>fixme</strong>: possibly comment that we <em>could</em> have
+added some of these objects up-front, in the definition files …</p>
 <p><strong>fixme</strong>: some examples show
 <code>sir_simulator$print$matrix_dims()</code> at this point. What is
 this good for/how do we interpret it?</p>
@@ -176,6 +187,9 @@ this good for/how do we interpret it?</p>
 <code>.at = Inf</code> and <code>.phase = "during"</code> indicates that
 this expression should come at the <em>end</em> of the expressions
 evaluated during each iteration of the simulation loop.</p>
+<p><strong>fixme</strong>: explain that, like
+<code>$add$matrices()</code>, this adds components that could have been
+included initially (in the “expressions” file)</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_simulator</span><span class="op">$</span><span class="va">insert</span><span class="op">$</span><span class="fu">expressions</span><span class="op">(</span></span>
 <span>  <span class="va">I_sim</span> <span class="op">~</span> <span class="va">state</span><span class="op">[</span><span class="va">I_index</span><span class="op">]</span>,</span>
@@ -246,6 +260,8 @@ the data frame on the fly</li>
 <span><span class="st">log_beta  | 0   | 0   | 1</span></span>
 <span><span class="st">"</span><span class="op">)</span></span>
 <span><span class="va">sir_simulator</span><span class="op">$</span><span class="va">replace</span><span class="op">$</span><span class="fu">params_frame</span><span class="op">(</span><span class="va">params</span><span class="op">)</span></span></code></pre></div>
+<p><strong>fixme</strong>: explain that adding the Log transformation
+automatically adds a <code>log_*</code> variable/matrix</p>
 <p><strong>fixme</strong>: if I fail to use
 <code>strip.white = TRUE</code> (so the <code>mat</code> names have
 trailing whitespace), then on the last line above I get a
@@ -342,6 +358,7 @@ the predicted best-fit trajectory:</p>
 <p><strong>fixme</strong>: what next? Show a fit to real data?
 Comparison with <a href="https://github.com/parksw3/fitode" class="external-link">fitode</a>
 ?</p>
+<p><strong>fixme</strong>: examples of (statistical) diagnostics?</p>
 <p><strong>fixme</strong>: add some <em>intermediate</em> examples
 (simple time-varying parameters, Poisson/negative binomial responses,
 irregularly sampled data, fitting prevalence/hospitalization/death,
