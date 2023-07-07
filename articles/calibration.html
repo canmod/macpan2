@@ -738,11 +738,18 @@ the valley but not along it. I do not understand why.</p>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">reports</span>, type <span class="op">=</span> <span class="st">"l"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="va">fitted_incidence</span>, col <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
-<p><strong>fixme</strong>: warning that
+<ul>
+<li><p><strong>fixme</strong>: also add multi-start example (i.e. less
+fancy than DEoptim, suitable for surfaces like this one that are
+multimodal but smooth (ref. Raue et al. “Lessons Learned from
+Quantitative Dynamical Modeling in Systems Biology” 2013)?)</p></li>
+<li><p><strong>fixme</strong>: warning that
 <code>$current$params_vector()</code> is mutable/unreliable. Extractor
 for <code>$ad_fun()$env$last.par.best</code> (or equivalently for the
-optim fit)? <strong>fixme</strong>: add (abbreviated)
-<code>sessionInfo</code> output? (Package versions?)</p>
+optim fit)?</p></li>
+<li><p><strong>fixme</strong>: add (abbreviated)
+<code>sessionInfo</code> output? (Package versions?)</p></li>
+</ul>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>
