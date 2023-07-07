@@ -163,9 +163,6 @@ report</li>
 <span>  I_obs <span class="op">=</span> <span class="va">sir_prevalence</span><span class="op">$</span><span class="va">obs_val</span>,</span>
 <span>  <span class="co">## simulated trajectory to compare with data</span></span>
 <span>  I_sim <span class="op">=</span> <span class="va">empty_matrix</span>, </span>
-<span>  <span class="co">## location of I in the state vector</span></span>
-<span>  <span class="co">## (the `-1L` bit is to get 0-based indices instead of 1-based)</span></span>
-<span>  I_index <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/match.html" class="external-link">match</a></span><span class="op">(</span><span class="st">"I"</span>, <span class="va">sir</span><span class="op">$</span><span class="va">labels</span><span class="op">$</span><span class="fu">state</span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1L</span>,</span>
 <span>  <span class="co">## matrix to contain the log likelihood values at each time step</span></span>
 <span>  log_lik <span class="op">=</span> <span class="va">empty_matrix</span>,</span>
 <span>  <span class="co">## need to save the simulation history of each of these matrices</span></span>
@@ -192,7 +189,7 @@ evaluated during each iteration of the simulation loop.</p>
 included initially (in the “expressions” file)</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_simulator</span><span class="op">$</span><span class="va">insert</span><span class="op">$</span><span class="fu">expressions</span><span class="op">(</span></span>
-<span>  <span class="va">I_sim</span> <span class="op">~</span> <span class="va">state</span><span class="op">[</span><span class="va">I_index</span><span class="op">]</span>,</span>
+<span>  <span class="va">I_sim</span> <span class="op">~</span> <span class="va">I</span>,</span>
 <span>  .phase <span class="op">=</span> <span class="st">"during"</span>,</span>
 <span>  .at <span class="op">=</span> <span class="cn">Inf</span></span>
 <span><span class="op">)</span></span></code></pre></div>
