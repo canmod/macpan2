@@ -83,9 +83,6 @@ sir_simulator$add$matrices(
   I_obs = sir_prevalence$obs_val,
   ## simulated trajectory to compare with data
   I_sim = empty_matrix, 
-  ## location of I in the state vector
-  ## (the `-1L` bit is to get 0-based indices instead of 1-based)
-  I_index = match("I", sir$labels$state()) - 1L,
   ## matrix to contain the log likelihood values at each time step
   log_lik = empty_matrix,
   ## need to save the simulation history of each of these matrices
@@ -108,7 +105,7 @@ during each iteration of the simulation loop.
 
 ```{r add_Isim}
 sir_simulator$insert$expressions(
-  I_sim ~ state[I_index],
+  I_sim ~ I,
   .phase = "during",
   .at = Inf
 )
