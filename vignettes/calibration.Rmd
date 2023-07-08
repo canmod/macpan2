@@ -546,6 +546,26 @@ lik_surf2 <- make_liksurf(lwr = c(-0.1, 0.9), upr = c(0.1, 1.1))
 print(mk_plot(lik_surf2, arrows = FALSE, cbrks = 1e4*(1:10)))
 ```
 
+Explore more carefully:
+
+```{r eval = FALSE}
+make_mat <- function(x) {
+  with(x, matrix(z, sqrt(length(z)),
+            dimnames = list(intercept = unique(intercept_parameter),
+                            slope = unique(slope_parameter)))
+       )
+}
+library(rgl)
+z1 <- make_mat(lik_surf)
+persp3d(as.numeric(rownames(z)), as.numeric(colnames(z)), log10(z),
+        col = "gray")
+z2 <- make_mat(lik_surf2)
+persp3d(as.numeric(rownames(z2)), as.numeric(colnames(z2)), log10(z2),
+        col = "gray")
+```
+
+**fixme**: what causes spikiness along the ridge? Add points where each optimization attempt stopped?
+
 **experimental**: working with `DEoptim` (haven't included yet because I don't want to have to `Suggest:` DEoptim ...
 
 ```{r eval=FALSE}
