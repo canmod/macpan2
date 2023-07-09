@@ -36,6 +36,7 @@ TMBOptimizer = function(simulator) {
       )
       opt_obj = do.call(opt_func, c(args_from_object, args))
       self$simulator$optimization_history$save(opt_obj)
+      self$simulator$cache$sdreport$invalidate()
       ad_fun$fn(opt_obj$par)
       opt_obj
     }

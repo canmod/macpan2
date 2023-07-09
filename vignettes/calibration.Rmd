@@ -93,8 +93,6 @@ sir_simulator$add$matrices(
 )
 ```
 
-**fixme**: SJW says we don't need `match` any more?
-
 **fixme**: possibly comment that we *could* have added some of these objects up-front, in the definition files ...
 
 **fixme**: some examples show `sir_simulator$print$matrix_dims()` at this point.  What is this good for/how do we interpret it?
@@ -160,7 +158,7 @@ sir_simulator$replace$obj_fn(~ -sum(log_lik))
 sir_simulator$add$transformations(Log("I_sd"))
 sir_simulator$add$transformations(Log("beta"))
 params <- read.delim(sep = "|", header = TRUE,
-                     strip.white = TRUE, ## important!
+                     strip.white = FALSE, ## important!
                      text = "
 mat       | row | col | default
 log_I_sd  | 0   | 0   | 0

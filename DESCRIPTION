@@ -16,7 +16,8 @@ Depends:
 Imports: 
     TMB,
     oor,
-    jsonlite
+    jsonlite,
+    MASS
 Suggests: 
     covr,
     knitr,

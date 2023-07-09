@@ -503,6 +503,9 @@ OptParamsFrameStruc = function(..., frame) {
 
 ## alternative constructor of OptParamsList
 OptParamsFrame = function(frame, .dimnames = list()) {
+  for (c in names(frame)) {
+    if (is.character(frame[[c]])) frame[[c]] = trimws(frame[[c]])
+  }
   row_col_ids = make_row_col_ids(frame$mat, frame$row, frame$col, .dimnames)
   args = c(
     as.list(as.numeric(frame$default)),
@@ -605,6 +608,26 @@ Time = function(time_steps) {
   self$time_steps = time_steps
   self$data_arg = function() list(time_steps = self$time_steps)
   return_object(self, "Time")
+}
+
+DiffTime = function(start_time, end_time) {
+  self = Base()
+  self$start_time = valid$scalar$assert(start_time)
+  self$end_time = valid$scalar$assert(end_time)
+  self$start = function() {}
+}
+
+Daily = function(start_date, end_date) {
+  self = Base()
+  self$start_date = as.Date(start_date)
+  self$end_date = as.Date(end_date)
+  self$time_steps = function() {
+    (self$end_date
+     |> difftime(self$start_date, units = "days")
+     |> as.integer()
+    )
+  }
+  self$data_arg = function() list(list_steps = self$time_steps())
 }
 
 
@@ -880,6 +903,7 @@ TMBSimulationUtils = function() {
 #' * `$ad_fun()`: Return the underlying [TMB](https://github.com/kaskr/adcomp)
 #' object.
 #'
+#' @importFrom MASS mvrnorm
 #' @export
 TMBSimulator = function(tmb_model, tmb_cpp = "macpan2", initialize_ad_fun = TRUE) {
   self = TMBSimulationUtils()
@@ -905,8 +929,27 @@ TMBSimulator = function(tmb_model, tmb_cpp = "macpan2", initialize_ad_fun = TRUE
     self$ad_fun()$he(fixed_params)
   }
   self$error_code = function(...) self$ad_fun()$report(...)$error
+  self$sdreport = function() TMB::sdreport(self$ad_fun())
+  self$cov.fixed = function() self$sdreport()$cov.fixed
+  self$par.fixed = function() self$sdreport()$par.fixed
   self$report = function(..., .phases = c("before", "during", "after")) {
     self$.runner(..., .phases = .phases, .method = "report")
+  }
+  self$report_values = function(..., .phases = c("before", "during", "after")) {
+    self$report(..., .phases = .phases)$value
+  }
+  self$report_ensemble = function(...
+      , .phases = c("before", "during", "after")
+      , .n = 100
+      , .probs = c(0.025, 0.5, 0.975)
+    ) {
+    r = self$report(..., .phases = .phases)
+    rr = (MASS::mvrnorm(.n, self$par.fixed(), self$cov.fixed())
+      |> apply(1, self$report_values, .phases = .phases)
+      |> apply(1, quantile, probs = .probs)
+      |> t()
+    )
+    cbind(r, rr)
   }
   self$simulate = function(..., .phases = c("before", "during", "after")) {
     self$.runner(..., .phases = .phases, .method = "simulate")
@@ -931,7 +974,7 @@ TMBSimulator = function(tmb_model, tmb_cpp = "macpan2", initialize_ad_fun = TRUE
   self$current = TMBCurrentParams(self)
   self$get = TMBSimulatorGetters(self)
 
-  initialize_cache(self, "ad_fun")
+  initialize_cache(self, "ad_fun", "sdreport")
   if (initialize_ad_fun) {
     if (inherits(self$ad_fun(), "try-error")) {
       stop(

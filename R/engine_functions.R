@@ -116,7 +116,7 @@
 #' * `to` -- Scalar integer giving the last integer in
 #' the sequence.
 #' * `length` -- Number of integers in the sequence.
-#' * `by` -- Integer scalar giving the difference
+#' * `by` -- Scalar giving the difference
 #' between adjacent values in the sequence.
 #'
 #' ### Return

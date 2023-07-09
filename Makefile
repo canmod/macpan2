@@ -91,7 +91,7 @@ doc-update: R/*.R misc/dev/dev.cpp
 
 
 pkg-build:: macpan2_$(VERSION).tar.gz
-macpan2_$(VERSION).tar.gz: man/*.Rd R/*.R src/*.cpp tests/testthat/test-*.R tests/testthat.R inst/starter_models/**/*.csv inst/starter_models/**/*.json
+macpan2_$(VERSION).tar.gz: DESCRIPTION man/*.Rd R/*.R src/*.cpp tests/testthat/test-*.R tests/testthat.R inst/starter_models/**/*.csv inst/starter_models/**/*.json
 	R CMD build .
 
 

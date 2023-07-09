@@ -245,7 +245,7 @@ public:
         // Variables to use locally in function bodies
         matrix<Type> m, m1, m2;  // return values
         matrix<Type> timeIndex; // for rbind_time
-        Type sum, s, eps, var;  // intermediate scalars
+        Type sum, s, eps, var, by;  // intermediate scalars
         int rows, cols, lag, rowIndex, colIndex, matIndex, reps, cp, off, size, sz, start, err_code, err_code1, err_code2;
 
         if (GetErrorCode()) return m; // Check if error has already happened at some point of the recursive call.
@@ -517,7 +517,7 @@ public:
                     // #' * `to` -- Scalar integer giving the last integer in
                     // #' the sequence.
                     // #' * `length` -- Number of integers in the sequence.
-                    // #' * `by` -- Integer scalar giving the difference
+                    // #' * `by` -- Scalar giving the difference
                     // #' between adjacent values in the sequence.
                     // #'
                     // #' ### Return
@@ -557,10 +557,10 @@ public:
                     // #' base R function gives the user this option, but not
                     // #' as the default.
                     // #'
-                        int length, by;
+                        int length;
                         from = CppAD::Integer(args[0].coeff(0,0));
                         length = CppAD::Integer(args[1].coeff(0,0));
-                        by = CppAD::Integer(args[2].coeff(0,0));
+                        by = args[2].coeff(0,0);
                         if (length<=0) {
                             SetError(MP2_SEQUENCE, "Sequence length is less than or equal to zero in seq operation", row);
                             return m;
@@ -1418,7 +1418,8 @@ public:
                         m = matrix<Type>::Zero(rows, cols);
                         for (int i=0; i<rows; i++) {
                            for (int j=0; j<cols; j++) {
-                               m.coeffRef(i,j) = args[0].coeff(i,j) + eps * (1.0 / (1.0-(args[0].coeff(i,j)-eps)/eps + ((args[0].coeff(i,j)-eps)*(args[0].coeff(i,j)-eps))/(eps*eps)));
+                               m.coeffRef(i,j) = args[0].coeff(i,j) +
+                                 eps * (1.0 / (1.0-(args[0].coeff(i,j)-eps)/eps + ((args[0].coeff(i,j)-eps)*(args[0].coeff(i,j)-eps))/(eps*eps)));
                            }
                         }
                         return m;

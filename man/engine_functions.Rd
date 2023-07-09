@@ -173,7 +173,7 @@ in the sequence.
 \item \code{to} -- Scalar integer giving the last integer in
 the sequence.
 \item \code{length} -- Number of integers in the sequence.
-\item \code{by} -- Integer scalar giving the difference
+\item \code{by} -- Scalar giving the difference
 between adjacent values in the sequence.
 }
 }
