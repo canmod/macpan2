@@ -70,14 +70,18 @@ print(gg0)
 
 ### Step 1: add observed data and slots for history etc.
 
-**fixme**: better transition explaining (1) that we are revealing more of the low-level details of `macpan2` (can we add an interface for this??); (2) that we are adding stuff to the `sir_simulator` object that wasn't needed when we only wanted to use it as a simulator; (3) that `$add$matrices()` is adding data objects to a space within the object that was initially populated from the "variables" and "expression" files
+While the files specified in the model definition (`variables.csv`, `derivations.csv`, `settings.json`, `flows.csv`) are sufficient to define a simulator, we now need to add more structure to the model object so we can do the calibration - specifically, both whatever observed data we want to compare against, and whatever new variables ("matrices") and expressions we will evaluate to compute the goodness of fit (aka the loss function or objective function) of a particular set of parameters.
 
-Use `$add$matrices()` to:
+**fixme**: any chance of adding an interface layer that would do this stuff?
+
+If we have a `TMBSimulator` object (i.e., `sir_simulator` in this example), the `$add$matrices()` method will add new variables to the space where the object has already stored the state variables, etc. (you use `sir_simulator$matrix_names()` to list the existing matrices, although this produces a long, scary list of internal variables that `macpan2` has constructed)
+
+Now we will use `$add$matrices()` to:
 
 (a) add observed data 
-(b) declare a matrix storing the simulation history of variables to compare with observed data (if you want you can return these values in the report)
+(b) declare a matrix storing the simulation history of variables to compare with observed data
 (c) declare a matrix to store the log-likelihood
-(d) specify which matrices you want to save and/or return in the report
+(d) specify which matrices to save and/or return in the report
 
 ```{r sim_addmat}
 sir_simulator$add$matrices(
@@ -97,7 +101,6 @@ sir_simulator$add$matrices(
 
 **fixme**: some examples show `sir_simulator$print$matrix_dims()` at this point.  What is this good for/how do we interpret it?
 
-
 ### Step 2: collect simulated values
 
 Collect simulated values into matrices to be
@@ -106,7 +109,7 @@ compared with data. the `.at = Inf` and
 should come at the *end* of the expressions evaluated
 during each iteration of the simulation loop.
 
-**fixme**: explain that, like `$add$matrices()`, this adds components that could have been included initially (in the "expressions" file)
+Like `$add$matrices()`, `$insert$expressions` adds components to an existing `TMBSimulator` object - in this case, expressions that will be computed during the simulation. (In this example, since we set `.phase = "during"`, the expressions will be computed at each time step.)
 
 ```{r add_Isim}
 sir_simulator$insert$expressions(
@@ -167,7 +170,7 @@ log_beta  | 0	| 0   | 1
 sir_simulator$replace$params_frame(params)
 ```
 
-**fixme**: explain that adding the Log transformation automatically adds a `log_*` variable/matrix
+Using `$add_transformations(Log("var"))` automatically adds a variable called `log_var` to the list of matrices.
 
 **fixme**: if I fail to use `strip.white = TRUE` (so the `mat` names have trailing whitespace), then on the last line above I get a less-than-perfectly-useful error message:
 
@@ -241,7 +244,7 @@ gg0 + geom_line(data = sim_vals, aes(y= value), colour = "red")
 
 **fixme**: what next? Show a fit to real data? Comparison with [fitode](https://github.com/parksw3/fitode) ?
 
-**fixme**: examples of (statistical) diagnostics?
+**fixme**: examples of (statistical) diagnostics? e.g. compute residuals, plot vs. time or vs fitted values, scale-location plot, etc. ?
 
 **fixme**: add some *intermediate* examples (simple time-varying parameters, Poisson/negative binomial responses, irregularly sampled data, fitting prevalence/hospitalization/death, fitting multiple data streams ...) try to minimize 'boiler plate', focus on added features in each model ...
 
@@ -543,6 +546,26 @@ print(mk_plot(lik_surf))
 lik_surf2 <- make_liksurf(lwr = c(-0.1, 0.9), upr = c(0.1, 1.1))
 print(mk_plot(lik_surf2, arrows = FALSE, cbrks = 1e4*(1:10)))
 ```
+
+Explore more carefully:
+
+```{r eval = FALSE}
+make_mat <- function(x) {
+  with(x, matrix(z, sqrt(length(z)),
+            dimnames = list(intercept = unique(intercept_parameter),
+                            slope = unique(slope_parameter)))
+       )
+}
+library(rgl)
+z1 <- make_mat(lik_surf)
+persp3d(as.numeric(rownames(z)), as.numeric(colnames(z)), log10(z),
+        col = "gray")
+z2 <- make_mat(lik_surf2)
+persp3d(as.numeric(rownames(z2)), as.numeric(colnames(z2)), log10(z2),
+        col = "gray")
+```
+
+**fixme**: what causes spikiness along the ridge? Add points where each optimization attempt stopped?
 
 **experimental**: working with `DEoptim` (haven't included yet because I don't want to have to `Suggest:` DEoptim ...
 
