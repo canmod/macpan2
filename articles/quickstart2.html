@@ -90,6 +90,10 @@
 <p><a href="https://canmod.github.io/macpan2/articles/vignette-status#stub"><img src="https://img.shields.io/badge/status-stub-red" alt="status"></a></p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://canmod.github.io/macpan2/">macpan2</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning in checkMatrixPackageVersion(): Package version inconsistency detected.</span></span>
+<span><span class="co">#&gt; TMB was built with Matrix version 1.6.0</span></span>
+<span><span class="co">#&gt; Current Matrix version is 1.5.4.1</span></span>
+<span><span class="co">#&gt; Please re-install 'TMB' from source using install.packages('TMB', type = 'source') or ask CRAN for a binary version of 'TMB' matching CRAN's 'Matrix' package</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Attaching package: 'dplyr'</span></span>
@@ -111,9 +115,185 @@ explaining the spec and sim of a simple SIR, we describe the
 product model. While the new “productify” functionality should make most
 of the content of this article obsolete eventually, this article can
 serve as a resource for users until then.</p>
+<div class="section level2">
+<h2 id="sir-vaccination-model">SIR Vaccination model<a class="anchor" aria-label="anchor" href="#sir-vaccination-model"></a>
+</h2>
+<p>A good place to start with product models is the <code>sir_vax</code>
+starter model which stratifies a standard SIR model to include
+vaccination status.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sir_vax</span> <span class="op">=</span> <span class="fu"><a href="../reference/Compartmental.html">Compartmental</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"starter_models"</span>, <span class="st">"sir_vax"</span>, package <span class="op">=</span> <span class="st">"macpan2"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">sir_vax_sim</span> <span class="op">=</span> <span class="va">sir_vax</span><span class="op">$</span><span class="va">simulators</span><span class="op">$</span><span class="fu">tmb</span><span class="op">(</span>time_steps <span class="op">=</span> <span class="fl">100L</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">sir_vax_dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"starter_models"</span>, <span class="st">"sir_vax"</span>, package <span class="op">=</span> <span class="st">"macpan2"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "/home/runner/work/_temp/Library/macpan2/starter_models/sir_vax"</span></span></code></pre></div>
+<p>As in the case of a simple <code>SIR</code> model the population is
+divided into compartments for susceptible, infected, and recovered
+individuals. However the population is <strong>also</strong> divided
+into compartments for vaccinated and unvaccinated individuals. So where
+a simple <code>SIR</code> model has three compartments the
+<code>SIR_vax</code> model has six. This is reflected in the
+<code>variables.csv</code> file in the model directory which now has two
+columns.</p>
+<pre><code><span><span class="co">#&gt; Epi       ,Vax</span></span>
+<span><span class="co">#&gt; S         ,unvax</span></span>
+<span><span class="co">#&gt; I         ,unvax</span></span>
+<span><span class="co">#&gt; R         ,unvax</span></span>
+<span><span class="co">#&gt; N         ,unvax</span></span>
+<span><span class="co">#&gt; sigma     ,unvax</span></span>
+<span><span class="co">#&gt; beta      ,unvax</span></span>
+<span><span class="co">#&gt; foi       ,unvax</span></span>
+<span><span class="co">#&gt; infection ,unvax</span></span>
+<span><span class="co">#&gt; gamma     ,unvax</span></span>
+<span><span class="co">#&gt; S         ,vax</span></span>
+<span><span class="co">#&gt; I         ,vax</span></span>
+<span><span class="co">#&gt; R         ,vax</span></span>
+<span><span class="co">#&gt; N         ,vax</span></span>
+<span><span class="co">#&gt; sigma     ,vax</span></span>
+<span><span class="co">#&gt; beta      ,vax</span></span>
+<span><span class="co">#&gt; foi       ,vax</span></span>
+<span><span class="co">#&gt; infection ,vax</span></span>
+<span><span class="co">#&gt; gamma     ,vax</span></span>
+<span><span class="co">#&gt; foi       ,</span></span>
+<span><span class="co">#&gt;           ,vax_rate</span></span></code></pre>
+<p>The row of the file specifies the name of each column; so the first
+column is called <code>Epi</code> and the second column is called
+<code>Vax</code>. predictably the <code>Epi</code> column lists
+compartment and parameter names relevant to epidemiological status and
+the <code>Vax</code> column similarly relates to vaccination status.
+Some parameters (e.g. <code>gamma</code>) which in an <code>SIR</code>
+model have a single value now have two values to reflect the differences
+in behavior in vaccinated and unvaxxinated people. Other parameters
+(e.g. <code>vax_rate</code>) have only a single value (in this case
+because only <code>susceptible</code> people will be vaccinated). Epi
+parameters that vary based on vax status will have the parameter name
+repeated in the <code>Epi</code> column but will have differing status
+labels in the <code>Vax</code> column. When referring to specific
+compartments or parameters we concatenate their labels in each column
+with a <code>.</code>, so the compartment for the unvaccinated
+susceptible population is called <code>S.unvax</code>. If a variable has
+no label in a given column then that entry is left blank but the
+concatonation dot is still included (so <code>vax_rate</code> is
+properly referred to as <code>.vax_rate</code>).</p>
+<p>Flows in product models are specified by the <code>flows.csv</code>
+file in the model definition directory.</p>
+<pre><code><span><span class="co">#&gt; from    ,to    ,flow      ,type       ,from_partition ,to_partition ,flow_partition ,from_to_partition ,from_flow_partition ,to_flow_partition</span></span>
+<span><span class="co">#&gt; S       ,I     ,infection ,per_capita ,Epi            ,Epi          ,Epi            ,Vax               ,Vax                 ,Null</span></span>
+<span><span class="co">#&gt; I       ,R     ,gamma     ,per_capita ,Epi            ,Epi          ,Epi            ,Vax               ,Vax                 ,Null</span></span>
+<span><span class="co">#&gt; S.unvax ,S.vax ,vax_rate  ,per_capita ,Epi.Vax        ,Epi.Vax      ,Vax            ,                  ,                    ,Null</span></span></code></pre>
+<p>Notice that the three right most columns, which unused in single
+stratum models now have an important role. In particular they are there
+to ensure that compartments of one stratum flow into other compartments
+of the same stratum. Without them the <code>S.vax</code> compartment
+would have flows both to <code>I.vax</code> and <code>I.unvax</code>.
+There are three such columns <code>from_to_partition</code>,
+<code>from_flow_partition</code> and <code>to_flow_partition</code>, in
+general two of these columns should have entries and the third should be
+blank or have the <code>null_partition</code> label specified in
+<code>settings.json</code>. The <code>from_to_partition</code> column
+indicates which partitions should be used to math <code>from</code> and
+<code>to</code> compartments. In the example the flow from
+<code>S</code> to <code>I</code> indicates the <code>Vax</code>
+partition should be used so <code>S.vax</code> flows to
+<code>I.vax</code> and <code>S.unvax</code> to <code>I.unvax</code>. The
+<code>from_flow_partition</code> column indicates which partition should
+be used to match <code>from</code> compartments with flow variables. In
+this example the flow from <code>I</code> to <code>R</code> has
+<code>Vax</code> in the <code>from_flow_partition</code> so the flow
+from <code>I.unvax</code> to <code>R.unvax</code> is matched with the
+<code>gamma.unvax</code> variable. In principle the
+<code>to_flow_partition</code> column can be used to match flow
+parameters to flow via their <code>to</code> compartment rather than
+their <code>from</code> compartment however in this example we have used
+the other two columns so the <code>to_flow_column</code> has a
+<code>Null</code> entry. Notice that the flow from <code>S.unvax</code>
+to <code>S.vax</code> is different from the other flows because there
+are no corresponding flows from <code>I.unvax</code> to
+<code>I.vax</code> or from <code>R.unvax</code> to <code>R.vax</code>.
+In this case the <code>from_partition</code> and the
+<code>to_partition</code> are both <code>Epi.Vax</code> because the
+<code>from</code> and <code>to</code> compartments are specified using
+both partitions, the <code>flow_partition</code> is specified as
+<code>Vax</code> because the rate of vaccination is governed by the
+<code>.dose_rate</code> variable which has no entry in the
+<code>Epi</code> partition. There is no need to use the final three
+columns since the compartments involved in the flow are given explicitly
+rather than as a group as was the case for the other flows.</p>
+<pre><code><span><span class="co">#&gt; [</span></span>
+<span><span class="co">#&gt;   {</span></span>
+<span><span class="co">#&gt;     "group_partition" : "Vax",</span></span>
+<span><span class="co">#&gt;     "group_names" : ["unvax", "vax"],</span></span>
+<span><span class="co">#&gt;     "output_partition" : "Epi.Vax",</span></span>
+<span><span class="co">#&gt;     "output_names" : ["N.unvax", "N.vax"],</span></span>
+<span><span class="co">#&gt;     "simulation_phase" : "during_pre_update",</span></span>
+<span><span class="co">#&gt;     "input_partition" : "Epi",</span></span>
+<span><span class="co">#&gt;     "arguments" : ["S", "I", "R"],</span></span>
+<span><span class="co">#&gt;     "expression" : "sum(S, I, R)"</span></span>
+<span><span class="co">#&gt;   },</span></span>
+<span><span class="co">#&gt;   {</span></span>
+<span><span class="co">#&gt;     "group_partition" : "Vax",</span></span>
+<span><span class="co">#&gt;     "group_names" : ["unvax", "vax"],</span></span>
+<span><span class="co">#&gt;     "output_partition" : "Epi.Vax", </span></span>
+<span><span class="co">#&gt;     "output_names" : ["foi.unvax", "foi.vax"],</span></span>
+<span><span class="co">#&gt;     "simulation_phase" : "during_pre_update",</span></span>
+<span><span class="co">#&gt;     "input_partition" : "Epi",</span></span>
+<span><span class="co">#&gt;     "arguments" : ["I", "beta", "N"],</span></span>
+<span><span class="co">#&gt;     "expression" : "I * beta / clamp(N)" </span></span>
+<span><span class="co">#&gt;   },</span></span>
+<span><span class="co">#&gt;   {</span></span>
+<span><span class="co">#&gt;     "filter_partition" : "Epi",</span></span>
+<span><span class="co">#&gt;     "filter_names" : ["foi"],</span></span>
+<span><span class="co">#&gt;     "output_partition" : "Epi.Vax",</span></span>
+<span><span class="co">#&gt;     "output_names" : ["foi."],</span></span>
+<span><span class="co">#&gt;     "simulation_phase" : "during_pre_update",</span></span>
+<span><span class="co">#&gt;     "input_partition" : "Vax",</span></span>
+<span><span class="co">#&gt;     "arguments" : ["unvax", "vax"],</span></span>
+<span><span class="co">#&gt;     "expression" : "unvax + vax"</span></span>
+<span><span class="co">#&gt;   },</span></span>
+<span><span class="co">#&gt;   {</span></span>
+<span><span class="co">#&gt;     "filter_partition" : "Epi.Vax",</span></span>
+<span><span class="co">#&gt;     "filter_names" : ["foi.", "sigma.unvax", "sigma.vax", "infection.unvax", "infection.vax"],</span></span>
+<span><span class="co">#&gt;     "group_partition" : "Vax",</span></span>
+<span><span class="co">#&gt;     "group_names" : ["unvax", "vax"],</span></span>
+<span><span class="co">#&gt;     "output_partition" : "Epi.Vax",</span></span>
+<span><span class="co">#&gt;     "output_names" : ["infection.unvax", "infection.vax"],</span></span>
+<span><span class="co">#&gt;     "simulation_phase" : "during_pre_update",</span></span>
+<span><span class="co">#&gt;     "input_partition" : "Epi",</span></span>
+<span><span class="co">#&gt;     "arguments" : ["foi", "sigma"],</span></span>
+<span><span class="co">#&gt;     "expression" : "foi * sigma"</span></span>
+<span><span class="co">#&gt;   }</span></span>
+<span><span class="co">#&gt; ]</span></span></code></pre>
+<p>The <code>derivations.json</code> file from the model definition
+directory largely the same as it would be for single stratum models. On
+key distinction is that now each derivation can correspond to multiple
+different equations, this is reflected in the existence of multiple
+entries in the <code>group_names</code> as well as
+<code>output_names</code> fields. If we take the first derivation in the
+above file as an example we can see that the expression being evaluated
+is <code>sum(S, I, R)</code>. The <code>group_names</code> field has
+entries <code>unvax</code> and <code>vax</code> (the
+<code>group_partition</code> field defines which partition the
+<code>group_names</code> are related to). The <code>output_names</code>
+field also has two entries <code>N.unvax</code> and <code>N.vax</code>
+which are the names of the variables this derivation will compute values
+for. Taken together we see that this single derivation produces two
+distinct equations,
+<code>N.unvax = sum(I.unvax, S.unvax, R.unvax)</code> and
+<code>N.vax = sum(S.vax, I.vax, R.vax)</code>.</p>
+<pre><code><span><span class="co">#&gt; {</span></span>
+<span><span class="co">#&gt;   "required_partitions" : ["Epi", "Vax"],</span></span>
+<span><span class="co">#&gt;   "null_partition" : "Null",</span></span>
+<span><span class="co">#&gt;   "state_variables" : ["S.unvax", "I.unvax", "R.unvax", "S.vax", "I.vax", "R.vax"],</span></span>
+<span><span class="co">#&gt;   "flow_variables" : ["infection.unvax", "infection.vax", "gamma.unvax", "gamma.vax", ".vax_rate"]</span></span>
+<span><span class="co">#&gt; }</span></span></code></pre>
+<p>The only notable difference between the <code>settings.json</code>
+files for single stratum and multi-strata models is that multi-strata
+models will have multiple <code>required_partitions</code>. It’s also
+worth noting that the <code>null_partition</code> entry defines what
+should be entered in whichever of the <code>from_to_partition</code>,
+<code>from_flow_partition</code> and <code>to_from_partition</code>
+isn’t being used in the <code>flows.csv</code> file.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sir_vax</span> <span class="op">=</span> <span class="fu"><a href="../reference/Compartmental.html">Compartmental</a></span><span class="op">(</span><span class="va">sir_vax_dir</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sir_vax_sim</span> <span class="op">=</span> <span class="va">sir_vax</span><span class="op">$</span><span class="va">simulators</span><span class="op">$</span><span class="fu">tmb</span><span class="op">(</span>time_steps <span class="op">=</span> <span class="fl">100L</span></span>
 <span>  , state <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>S.unvax <span class="op">=</span> <span class="fl">99</span>, I.unvax <span class="op">=</span> <span class="fl">1</span>, R.unvax <span class="op">=</span> <span class="fl">0</span>, S.vax <span class="op">=</span> <span class="fl">0</span>, I.vax <span class="op">=</span> <span class="fl">0</span>, R.vax <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
 <span>  , flow <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span></span>
 <span>        infection.unvax <span class="op">=</span> <span class="fl">0</span>, infection.vax <span class="op">=</span> <span class="fl">0</span></span>
@@ -130,7 +310,7 @@ serve as a resource for users until then.</p>
 <span>  , N.unvax <span class="op">=</span> <span class="va">empty_matrix</span></span>
 <span>  , N.vax <span class="op">=</span> <span class="va">empty_matrix</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="op">(</span><span class="va">sir_vax_sim</span><span class="op">$</span><span class="fu">report</span><span class="op">(</span><span class="op">)</span> </span>
 <span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://tidyr.tidyverse.org/reference/separate_wider_delim.html" class="external-link">separate_wider_delim</a></span><span class="op">(</span><span class="st">"row"</span>, <span class="st">"."</span>, names <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"Epi"</span>, <span class="st">"Vax"</span><span class="op">)</span><span class="op">)</span></span>
 <span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>Epi <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">Epi</span>, levels <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"S"</span>, <span class="st">"I"</span>, <span class="st">"R"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
@@ -139,6 +319,7 @@ serve as a resource for users until then.</p>
 <span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">value</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="quickstart2_files/figure-html/simulations-1.png" width="700"></p>
+</div>
   </main>
 </div>
 
