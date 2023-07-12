@@ -346,7 +346,7 @@ $$
 Although this looks awful, (1) the high-dimensional integral over $\mathbf b$ can be separated into a product of one-dimensional integrals and (2) the Laplace approximation gives us a quick, reasonable approximation to the one-dimensional integrals.
 
 The `rbf_sd` parameter can be interpreted as  standard deviation on a Gaussian random effect
-or as approximately $1/\sqrt($\lambda)$ where $\lambda$ is a ridge penalty.
+or as approximately $1/\sqrt{\lambda}$ where $\lambda$ is a ridge penalty.
 
 Continuing with the coding, we add the parameters and negative log-likelihood to the model,
 making the negative log-likelihood a *sum* of the two terms in the integral above: the 
