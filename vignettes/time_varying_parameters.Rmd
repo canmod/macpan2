@@ -21,8 +21,12 @@ library(dplyr)
 library(ggplot2)
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
-)
+  comment = "#>",
+  fig.width = 6,
+  fig.height = 4
+  )
+basefig_setup <- function() par(las = 1, bty = "l")
+knitr::knit_hooks$set(basefig = basefig_setup)
 ```
 
 ## Baseline SIR Model
@@ -98,7 +102,7 @@ s = simulator$report(.phases = "during")
 ## Calibrating Time Variation Parameters
 
 First we simulate data to fit our model to, to see if we can recover the time-varying parameters.
-```{r noisy_data}
+```{r noisy_data, basefig = TRUE}
 set.seed(1L)
 I_observed = rpois(
   50, 
@@ -295,14 +299,13 @@ The next few steps will follow the first example in the [Calibration](./calibrat
 
 1\. Simulate from the model and add some noise:
 
-```{r noisy_sim, fig.width = 8, fig.height = 4}
+```{r noisy_sim, basefig = TRUE}
 obs_I <- (
     simulator$report(.phases = "during")
     |> filter(row == "I", matrix == "state")
     |> mutate(across(value, ~ rnorm(n(), ., sd = 50)))
     |> pull(value)
 )
-par(las = 1, bty = "l")
 plot(obs_I, xlab = "time", ylab = "prevalence")
 ```
 
@@ -388,10 +391,17 @@ simulator$replace$random_frame(rparams)
 ```
 
 Test the objective function:
-```{r rbf_test_objfun, results = "hide"}
-simulator$ad_fun()$fn(c(1,1))
+
+```{r rbf_test_objfun, resuls = "hide"}
+res <- simulator$ad_fun()$fn(c(1,1))
 ```
-(this step produces more output than usual because the Laplace approximation involves an additional "inner" step where the `b` parameters are optimized, even though we are only evaluating the objective for a single set of fixed parameters (`log_I_sd`, `log_rbf_sd`)
+```{r rbf_test_fake, echo = FALSE}
+print(res)
+```
+
+**fixme**: can't get objective function to shut up. Should have specified `silent = TRUE` when calling `MakeADFun()` initially, now have tried assigning the value in several different environments, without success ...
+
+This step normally produces lots of output (more output than a model with random effects) because the Laplace approximation involves an additional "inner" step where the `b` parameters are optimized, even though we are only evaluating the objective for a single set of fixed parameters (`log_I_sd`, `log_rbf_sd`)
 
 **fixme**: note to developers, if we cache results we may need to call the `$retape()` function to restore internal structure when retrieving ...
 
@@ -419,7 +429,7 @@ fit <- simulator$optimize$nlminb()
 
 Extract parameters, run the simulator for the best-fit parameters, compare with data ...
 
-```{r plot_sim, fig.width = 8, fig.height = 4}
+```{r plot_sim, basefig = TRUE}
 pp <- simulator$ad_fun()$env$last.par.best
 est_I <- (
     simulator$report(pp, .phases = "during")
