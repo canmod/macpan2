@@ -194,7 +194,7 @@ data.frame(
 
 ## Radial Basis Functions for Flexible Time Variation (In-Progress)
 
-This section uses radial basis functions to generate models with a flexible functional form for smooth changes in the transmission rate.
+This section uses radial basis functions (RBFs) to generate models with a flexible functional form for smooth changes in the transmission rate.
 
 Before we can add the fancy radial basis for the transmission rate, we need a base model. We use an SIR model that has been modified to include waning.
 
@@ -211,23 +211,24 @@ $$
 
 The following code illustrates this approach.
 
-```{r, fig.height=8, fig.width=6}
+```{r, fig.height=8, fig.width=6, basefig = TRUE}
 set.seed(1L)
 d = 20
 n = 2500
 X = rbf(n, d)
 b = rnorm(d, sd = 0.01)
-par(mfrow = c(3, 1))
-plot(c(1, n), range(X), type = "n",
-     xlab = "time", ylab = "basis functions")
-for (i in 1:d) lines(X[,i])
+par(mfrow = c(3, 1), mar = c(0.5, 4, 1, 1) + 0.1)
+matplot(X, type = "l", lty = 1, col = 1, ylab = "basis functions", axes = FALSE)
+axis(side = 2)
+box()
 barplot(b, xlab = "", ylab = "weights")
+par(mar = c(5, 4, 1, 1) + 0.1)
 plot(X %*% b, type = "l", xlab = "time", ylab = "output")
 ```
 
-Here `d` is the dimension of the basis, or number of functions, and `n` is the number of time steps. By multiplying the uniform basis matrix (top panel) to a set of weights (middle panel), one can obtain a non-uniform curve (bottom panel). Note how the peaks in the output are associated with large positive weights.
+Here `d` is the dimension of the basis, or number of functions, and `n` is the number of time steps. By multiplying the uniform basis matrix (top panel) by a set of weights (middle panel), we obtain a non-uniform curve (bottom panel). Note how the peaks (troughs) in the output are associated with large positive (negative) weights.
 
-To transform the output of the matrix multiplication of the radial basis function matrix and the weights vector into a time-series for the transmission rate, $\beta$. Although we could just use the output vector as the $\beta$ time series, it is more convenient to transform it a little so that the $\beta$ values yield more interesting dynamics in an SIR model. In particular, our model for $\beta_t$ as a function of time, $t$, is as follows.
+Now we want transform the output of the (matrix) product of the RBF matrix and the weights vector into a time-series for the transmission rate, $\beta$. Although we could just use the output vector as the $\beta$ time series, it is more convenient to transform it so that the $\beta$ values yield more interesting dynamics in an SIR model. In particular, our model for $\beta_t$ as a function of time, $t$, is
 
 $$
 \log(\beta_t) = \log(\gamma_t) + \log(N) - \log(S_t) + x_tb
@@ -239,7 +240,9 @@ $$
 \frac{\beta_t S_t}{N} = \gamma_t
 $$
 
-This condition assures that the number of infected individuals remains constant at time, $t$. This means that positive values of $b$ will tend to generate outbreaks and negative values will tend to reduce transmission. Because of the local nature of radial basis functions, it is not necessary to set all coefficients of $b$ to zero to achieve the same results in practice -- it is only necessary to work with the coefficients of the basis functions that are appreciably greater than zero at $t$.
+This condition assures that the number of infected individuals remains constant at time, $t$. This means that positive values of $b$ will tend to generate outbreaks and negative values will tend to reduce transmission. Because of the local nature of RBFs, we don't need to set all coefficients of $b$ to zero to achieve the same results in practice -- we only need to work with the coefficients of the basis functions that are appreciably greater than zero at $t$.  **fixme**: clarify last sentence?
+
+**fixme**: I (BMB) understand why you're setting the model up this way, but it's an odd/non-standard setup - may confuse people who are already familiar with epidemic models (it confused me initially).
 
 Here is a simulation model with a radial basis for exogenous transmission rate dynamics.
 
@@ -293,7 +296,7 @@ set.seed(5L)
 
 ### Calibration
 
-Now we're going to try to calibrate this to data. The main innovation here is that we will use a 
+Now we're going to try to calibrate this model to data. The main innovation here is that we will use a 
 built-in feature of [TMB](https://cran.r-project.org/package=TMB) (on which `macpan2` is constructed),
 estimation of latent variables by [Laplace approximation](https://en.wikipedia.org/wiki/Laplace%27s_approximation) to fit the time series efficiently without overfitting (see section 5.10 of @madsenIntroduction2011, @kristensenTMB2016, or the [TMB documentation](https://kaskr.github.io/adcomp/_book/Tutorial.html#statistical-modelling) for more detail).
 
@@ -339,16 +342,16 @@ and penalize the likelihood using
 
 $$
 \begin{split}
-I_{\textrm{obs}} & \sim \textrm{Normal}(I_\textrm{sim}(\beta, {\mathbf b}), \sigma^2_I) \\
+I_{\textrm{obs}} & \sim \textrm{Normal}(I_\textrm{sim}(\phi, {\mathbf b}), \sigma^2_I) \\
 b_i & \sim \textrm{Normal}(0, \sigma^2_{\textrm{rbf}})
 \end{split}
 $$
 and the likelihood is defined as:
 $$
-\int {\cal L}(I_{\textrm{obs}}|\beta, {\mathbf b}', \sigma^2_I) \cdot {\cal L}({\mathbf b}'|\sigma^2_{\textrm{rbf}}) \, d{\mathbf b}.
+\int {\cal L}(I_{\textrm{obs}}|\phi, {\mathbf b}', \sigma^2_I) \cdot {\cal L}({\mathbf b}'|\sigma^2_{\textrm{rbf}}) \, d{\mathbf b}.
 $$
 
-(In the example here $\beta$ is empty/null; note that in statistical notation it represents a *parameter vector*, not a transmission coefficient as is generally the case in epidemic models ...)
+The $\phi$ vector is a set of *fixed-effect* (unpenalized) parameters; in this case it is empty, but it could include (for example) time-constant recovery or immune-waning rates, or a baseline transmission rate (see note below). (The fixed-effect parameter is usually denoted as $\beta$ in statistical models, but we've already used that symbol for the transmission coefficient ...)
 
 Although this looks awful, (1) the high-dimensional integral over $\mathbf b$ can be separated into a product of one-dimensional integrals and (2) the Laplace approximation gives us a quick, reasonable approximation to the one-dimensional integrals.
 
@@ -448,7 +451,7 @@ lines(est_I, col = 2, lwd = 2)
 **fixme**: there are a few artificialities about this example that could/should be relaxed
 
 - the only fixed parameters are the standard deviations. Normally we would also be estimating `gamma` (possibly with a prior? do we have any examples, say in the calibration vignette, of adding priors?)
-- the RBF function is penalized to zero. In general, we should augment the penalized RBF component (which determines the variation around the mean) with an unpenalized intercept/baseline transmission parameter. So, for example, the computation of the transmission coefficient should be `eta ~ gamma * (b0 + exp(X %*% b))`, where `b0` represents an unpenalized parameter that's allowed to vary freely ...
+- the RBF function is penalized to zero. In general, we should augment the penalized RBF component (which determines the variation around the mean) with an unpenalized intercept/baseline transmission parameter. So, for example, the transmission rate should be computed as `b0 + exp(X %*% b)`, where `b0` represents an unpenalized parameter that's allowed to vary freely ...
 
 **fixme**: compare (1) unpenalized fit; (2) penalized fit without Laplace approximation ...
 
