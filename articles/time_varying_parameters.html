@@ -407,6 +407,14 @@ transmission rate dynamics.</p>
 <span>  , mat <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">rep</a></span><span class="op">(</span><span class="st">"b"</span>, <span class="va">d</span><span class="op">)</span></span>
 <span>  , row <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1L</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+<p><strong>fixme</strong>: explain what the first/unnamed argument of
+<code>$report()</code> is doing? Why are we setting it to a random value
+here? (As I understand it, it’s the parameter vector;
+<code><a href="../reference/engine_functions.html">rnorm()</a></code> is the same as the default setting for this
+parameter. Commenting out that term doesn’t seem to change anything
+<em>because</em> we have just set the random-number seed? (The default
+value will be something different because it was evaluated with a
+different seed …)</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">5L</span><span class="op">)</span></span>
 <span><span class="op">(</span><span class="va">simulator</span><span class="op">$</span><span class="fu">report</span><span class="op">(</span><span class="co">## rnorm(d, sd = 0.01),</span></span>
@@ -533,9 +541,9 @@ approximation to these parameters …</p>
 <span><span class="co">#&gt; iter: 5  value: 428917 mgc: 8625089 ustep: 1 </span></span>
 <span><span class="co">#&gt; iter: 6  value: 428886.9 mgc: 525976.1 ustep: 1 </span></span>
 <span><span class="co">#&gt; iter: 7  value: 428886.9 mgc: 5853.994 ustep: 1 </span></span>
-<span><span class="co">#&gt; iter: 8  value: 428886.9 mgc: 1.444768 ustep: 1 </span></span>
-<span><span class="co">#&gt; iter: 9  value: 428886.9 mgc: 2.233791e-06 ustep: 1 </span></span>
-<span><span class="co">#&gt; mgc: 9.270754e-06</span></span></code></pre></div>
+<span><span class="co">#&gt; iter: 8  value: 428886.9 mgc: 1.444758 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 9  value: 428886.9 mgc: 9.867291e-06 ustep: 1 </span></span>
+<span><span class="co">#&gt; mgc: 6.757727e-06</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt; [1] 429059.1</span></span>
 <span><span class="co">#&gt; attr(,"logarithm")</span></span>
 <span><span class="co">#&gt; [1] TRUE</span></span></code></pre>
