@@ -9,6 +9,7 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
   chunk_output_type: console
+bibliography: macpan2.bib
 ---
 
 [![status](https://img.shields.io/badge/status-working%20draft-red)](https://canmod.github.io/macpan2/articles/vignette-status#working-draft)
@@ -284,40 +285,75 @@ set.seed(5L)
 )
 ```
 
-### now calibrate???
+### Calibration
 
-Simulate and add some noise:
+Now we're going to try to calibrate this to data. The main innovation here is that we will use a 
+built-in feature of [TMB](https://cran.r-project.org/package=TMB) (on which `macpan2` is constructed),
+estimation of latent variables by [Laplace approximation](https://en.wikipedia.org/wiki/Laplace%27s_approximation) to fit the time series efficiently without overfitting (see section 5.10 of @madsenIntroduction2011, @kristensenTMB2016, or the [TMB documentation](https://kaskr.github.io/adcomp/_book/Tutorial.html#statistical-modelling) for more detail).
 
-```{r noisy_sim}
-obs_incidence <- (
+The next few steps will follow the first example in the [Calibration](./calibration.html) vignette:
+
+1\. Simulate from the model and add some noise:
+
+```{r noisy_sim, fig.width = 8, fig.height = 4}
+obs_I <- (
     simulator$report(.phases = "during")
     |> filter(row == "I", matrix == "state")
     |> mutate(across(value, ~ rnorm(n(), ., sd = 50)))
     |> pull(value)
 )
-plot(obs_incidence)
+par(las = 1, bty = "l")
+plot(obs_I, xlab = "time", ylab = "prevalence")
 ```
 
-Add basic calibration boilerplate, including a parameter for the variance of the RBF term (`rbf_sd`); add a RBF penalty to the log-likelihood (**note for later**, may want to add a comment about centered/non-centered parameterizations of the penalty term ...)
+2\. Add calibration information.
+
+
+We start by adding standard boilerplate stuff to include the observed data and store/return the results.
 
 ```{r add_calib_info}
 ## copied from 'calibration/"hello world"' example
 simulator$add$matrices(
-              I_obs = obs_incidence,
+              I_obs = obs_I,
               I_sim = empty_matrix, 
               log_lik = empty_matrix,
-              .mats_to_save = c("I_sim", "log_lik"),
-              .mats_to_return = c("I_sim", "log_lik")
+              .mats_to_save = c("I_sim"),
+              .mats_to_return = c("I_sim")
           )
 simulator$insert$expressions(
                      I_sim ~ I,
                      .phase = "during",
                      .at = Inf
                  )
-## parameter for std dev of incidence
-##  *and* a penalty parameter for the RBF coefficients
-## (this is esentially a standard deviation on a Gaussian random effect ...
-##  or approximately 1/sqrt(lambda) if lambda is a ridge penalty ...
+```
+
+Now we start to deviate from the previous example: in addition to
+a parameter (`I_sd`) for the standard deviation of the noise in $I$, we
+also add a parameter (`rbf_sd`) for the variance of the RBF coefficients,
+and penalize the likelihood using 
+
+$$
+\begin{split}
+I_{\textrm{obs}} & \sim \textrm{Normal}(I_\textrm{sim}(\beta, b), \sigma^2_I) \\
+b_i & \sim \textrm{Normal}(0, \sigma^2_{\textrm{rbf}})
+\end{split}
+$$
+and the likelihood is defined as:
+$$
+\int {\cal L}(I_{\textrm{obs}}|\beta, {\mathbf b}', \sigma^2_I) \cdot {\cal L}({\mathbf b}'|\sigma^2_{\textrm{rbf}}) \, d{\mathbf b}.
+$$
+
+Although this looks awful, (1) the high-dimensional integral over $\mathbf b$ can be separated into a product of one-dimensional integrals and (2) the Laplace approximation gives us a quick, reasonable approximation to the one-dimensional integrals.
+
+The `rbf_sd` parameter can be interpreted as  standard deviation on a Gaussian random effect
+or as approximately $1/\sqrt($\lambda)$ where $\lambda$ is a ridge penalty.
+
+Continuing with the coding, we add the parameters and negative log-likelihood to the model,
+making the negative log-likelihood a *sum* of the two terms in the integral above: the 
+NLL of the data (`-sum(dnorm(I_obs, ...))`) and the likelihood of the RBF parameters (`-sum(dnorm(b, ...))`):
+we fit both of the SD parameters on the log scale.
+
+```{r add_pens}
 simulator$add$matrices(I_sd = 1,
                        rbf_sd = 1)
 simulator$insert$expressions(
@@ -337,34 +373,67 @@ mat         | row | col | default
 log_I_sd    | 0   | 0   | 0
 log_rbf_sd  | 0	  | 0   | 1
 ")
-## add b as a RANDOM parameter
+simulator$replace$params_frame(params)
+```
+
+Finally, we add the `b` vector as a set of *random* parameters: this tells `macpan2` to apply
+the Laplace approximation to these parameters ...
+```{r random_params}
 rparams <- data.frame(
     mat  = "b",
     row = 0:19,
     col = 0,
     default = 0)
-simulator$replace$params_frame(params)
 simulator$replace$random_frame(rparams)
 ```
 
-```{r rbf_calib}
+Test the objective function:
+```{r rbf_test_objfun, results = "hide"}
+simulator$ad_fun()$fn(c(1,1))
+```
+(this step produces more output than usual because the Laplace approximation involves an additional "inner" step where the `b` parameters are optimized, even though we are only evaluating the objective for a single set of fixed parameters (`log_I_sd`, `log_rbf_sd`)
+
+**fixme**: note to developers, if we cache results we may need to call the `$retape()` function to restore internal structure when retrieving ...
+
+```{r rbf_calib, results = "hide"}
 ## testing: simulator$ad_fun()$fn()
 fit <- simulator$optimize$nlminb()
+```
+
+```{r rbf_after_calib}
 ## simulator$print$matrix_dims()
 ## fixed effects only:
 ## look at parameters, but skip the random-effects parameters
 ## 'random' holds the indices of the parameters that are treated
 ## as random effects
-with(simulator$ad_fun()$env,
-     last.par.best[-random])
+(fixed_params <- with(simulator$ad_fun()$env,
+                      last.par.best[-random]))
+## ???
 ## RE only
-with(simulator$ad_fun()$env,
-     last.par.best[random])
-## https://kaskr.github.io/adcomp/_book/Introduction.html
-## https://kaskr.github.io/adcomp/_book/Tutorial.html#statistical-modelling
-## https://arxiv.org/pdf/1509.00660.pdf
+(ran_params <- with(simulator$ad_fun()$env,
+                    last.par.best[random]))
+
 ```
 
+**fixme**: we need an incantation to extract the full parameters (including RE parameters) in order to make sure `$report` works properly? (In general, should caution about mutability/make sure we use `last.par.best` internally ...)
+
+Extract parameters, run the simulator for the best-fit parameters, compare with data ...
+
+```{r plot_sim, fig.width = 8, fig.height = 4}
+pp <- simulator$ad_fun()$env$last.par.best
+est_I <- (
+    simulator$report(pp, .phases = "during")
+    |> filter(row == "I", matrix == "state")
+    |> pull(value)
+)
+par(las = 1, bty = "l")
+plot(obs_I, xlab = "time", ylab = "prevalence")
+lines(est_I, col = 2, lwd = 2)
+```
+
+**fixme**: compare (1) unpenalized fit; (2) penalized fit without Laplace approximation ...
+
+**fixme**: discuss (somewhere) alternate bases for latent variables (random-walk, Gaussian process, ...)
 
 ## Generalized Linear Mixed Models (In-Progress)
 
@@ -465,3 +534,5 @@ plot(
 )
 abline(0, 1)
 ```
+
+## References
