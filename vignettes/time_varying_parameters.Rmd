@@ -337,7 +337,7 @@ and penalize the likelihood using
 
 $$
 \begin{split}
-I_{\textrm{obs}} & \sim \textrm{Normal}(I_\textrm{sim}(\beta, b), \sigma^2_I) \\
+I_{\textrm{obs}} & \sim \textrm{Normal}(I_\textrm{sim}(\beta, {\mathbf b}), \sigma^2_I) \\
 b_i & \sim \textrm{Normal}(0, \sigma^2_{\textrm{rbf}})
 \end{split}
 $$
@@ -345,6 +345,8 @@ and the likelihood is defined as:
 $$
 \int {\cal L}(I_{\textrm{obs}}|\beta, {\mathbf b}', \sigma^2_I) \cdot {\cal L}({\mathbf b}'|\sigma^2_{\textrm{rbf}}) \, d{\mathbf b}.
 $$
+
+(In the example here $\beta$ is empty/null; note that in statistical notation it represents a *parameter vector*, not a transmission coefficient as is generally the case in epidemic models ...)
 
 Although this looks awful, (1) the high-dimensional integral over $\mathbf b$ can be separated into a product of one-dimensional integrals and (2) the Laplace approximation gives us a quick, reasonable approximation to the one-dimensional integrals.
 
@@ -440,6 +442,11 @@ par(las = 1, bty = "l")
 plot(obs_I, xlab = "time", ylab = "prevalence")
 lines(est_I, col = 2, lwd = 2)
 ```
+
+**fixme**: there are a few artificialities about this example that could/should be relaxed
+
+- the only fixed parameters are the standard deviations. Normally we would also be estimating `gamma` (possibly with a prior? do we have any examples, say in the calibration vignette, of adding priors?)
+- the RBF function is penalized to zero. In general, we should augment the penalized RBF component (which determines the variation around the mean) with an unpenalized intercept/baseline transmission parameter. So, for example, the computation of the transmission coefficient should be `eta ~ gamma * (b0 + exp(X %*% b))`, where `b0` represents an unpenalized parameter that's allowed to vary freely ...
 
 **fixme**: compare (1) unpenalized fit; (2) penalized fit without Laplace approximation ...
 
