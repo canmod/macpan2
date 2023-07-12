@@ -307,8 +307,8 @@ value is much smaller than the true value.</p>
 <h2 id="radial-basis-functions-for-flexible-time-variation-in-progress">Radial Basis Functions for Flexible Time Variation
 (In-Progress)<a class="anchor" aria-label="anchor" href="#radial-basis-functions-for-flexible-time-variation-in-progress"></a>
 </h2>
-<p>This section uses radial basis functions to generate models with a
-flexible functional form for smooth changes in the transmission
+<p>This section uses radial basis functions (RBFs) to generate models
+with a flexible functional form for smooth changes in the transmission
 rate.</p>
 <p>Before we can add the fancy radial basis for the transmission rate,
 we need a base model. We use an SIR model that has been modified to
@@ -336,25 +336,26 @@ y = Xb
 <span><span class="va">n</span> <span class="op">=</span> <span class="fl">2500</span></span>
 <span><span class="va">X</span> <span class="op">=</span> <span class="fu"><a href="../reference/rbf.html">rbf</a></span><span class="op">(</span><span class="va">n</span>, <span class="va">d</span><span class="op">)</span></span>
 <span><span class="va">b</span> <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">rnorm</a></span><span class="op">(</span><span class="va">d</span>, sd <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">n</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="va">X</span><span class="op">)</span>, type <span class="op">=</span> <span class="st">"n"</span>,</span>
-<span>     xlab <span class="op">=</span> <span class="st">"time"</span>, ylab <span class="op">=</span> <span class="st">"basis functions"</span><span class="op">)</span></span>
-<span><span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="va">d</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="va">X</span><span class="op">[</span>,<span class="va">i</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">1</span><span class="op">)</span>, mar <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">4</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span> <span class="op">+</span> <span class="fl">0.1</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/matplot.html" class="external-link">matplot</a></span><span class="op">(</span><span class="va">X</span>, type <span class="op">=</span> <span class="st">"l"</span>, lty <span class="op">=</span> <span class="fl">1</span>, col <span class="op">=</span> <span class="fl">1</span>, ylab <span class="op">=</span> <span class="st">"basis functions"</span>, axes <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/axis.html" class="external-link">axis</a></span><span class="op">(</span>side <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/box.html" class="external-link">box</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/barplot.html" class="external-link">barplot</a></span><span class="op">(</span><span class="va">b</span>, xlab <span class="op">=</span> <span class="st">""</span>, ylab <span class="op">=</span> <span class="st">"weights"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mar <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">4</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span> <span class="op">+</span> <span class="fl">0.1</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">X</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">b</span>, type <span class="op">=</span> <span class="st">"l"</span>, xlab <span class="op">=</span> <span class="st">"time"</span>, ylab <span class="op">=</span> <span class="st">"output"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="time_varying_parameters_files/figure-html/unnamed-chunk-2-1.png" width="576"></p>
 <p>Here <code>d</code> is the dimension of the basis, or number of
 functions, and <code>n</code> is the number of time steps. By
-multiplying the uniform basis matrix (top panel) to a set of weights
-(middle panel), one can obtain a non-uniform curve (bottom panel). Note
-how the peaks in the output are associated with large positive
-weights.</p>
-<p>To transform the output of the matrix multiplication of the radial
-basis function matrix and the weights vector into a time-series for the
-transmission rate, <span class="math inline">\(\beta\)</span>. Although
-we could just use the output vector as the <span class="math inline">\(\beta\)</span> time series, it is more convenient
-to transform it a little so that the <span class="math inline">\(\beta\)</span> values yield more interesting
-dynamics in an SIR model. In particular, our model for <span class="math inline">\(\beta_t\)</span> as a function of time, <span class="math inline">\(t\)</span>, is as follows.</p>
+multiplying the uniform basis matrix (top panel) by a set of weights
+(middle panel), we obtain a non-uniform curve (bottom panel). Note how
+the peaks (troughs) in the output are associated with large positive
+(negative) weights.</p>
+<p>Now we want transform the output of the (matrix) product of the RBF
+matrix and the weights vector into a time-series for the transmission
+rate, <span class="math inline">\(\beta\)</span>. Although we could just
+use the output vector as the <span class="math inline">\(\beta\)</span>
+time series, it is more convenient to transform it so that the <span class="math inline">\(\beta\)</span> values yield more interesting
+dynamics in an SIR model. In particular, our model for <span class="math inline">\(\beta_t\)</span> as a function of time, <span class="math inline">\(t\)</span>, is</p>
 <p><span class="math display">\[
 \log(\beta_t) = \log(\gamma_t) + \log(N) - \log(S_t) + x_tb
 \]</span></p>
@@ -369,10 +370,16 @@ condition.</p>
 remains constant at time, <span class="math inline">\(t\)</span>. This
 means that positive values of <span class="math inline">\(b\)</span>
 will tend to generate outbreaks and negative values will tend to reduce
-transmission. Because of the local nature of radial basis functions, it
-is not necessary to set all coefficients of <span class="math inline">\(b\)</span> to zero to achieve the same results in
-practice – it is only necessary to work with the coefficients of the
-basis functions that are appreciably greater than zero at <span class="math inline">\(t\)</span>.</p>
+transmission. Because of the local nature of RBFs, we don’t need to set
+all coefficients of <span class="math inline">\(b\)</span> to zero to
+achieve the same results in practice – we only need to work with the
+coefficients of the basis functions that are appreciably greater than
+zero at <span class="math inline">\(t\)</span>. <strong>fixme</strong>:
+clarify last sentence?</p>
+<p><strong>fixme</strong>: I (BMB) understand why you’re setting the
+model up this way, but it’s an odd/non-standard setup - may confuse
+people who are already familiar with epidemic models (it confused me
+initially).</p>
 <p>Here is a simulation model with a radial basis for exogenous
 transmission rate dynamics.</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
@@ -429,8 +436,8 @@ different seed …)</p>
 <div class="section level3">
 <h3 id="calibration">Calibration<a class="anchor" aria-label="anchor" href="#calibration"></a>
 </h3>
-<p>Now we’re going to try to calibrate this to data. The main innovation
-here is that we will use a built-in feature of <a href="https://cran.r-project.org/package=TMB" class="external-link">TMB</a> (on which
+<p>Now we’re going to try to calibrate this model to data. The main
+innovation here is that we will use a built-in feature of <a href="https://cran.r-project.org/package=TMB" class="external-link">TMB</a> (on which
 <code>macpan2</code> is constructed), estimation of latent variables by
 <a href="https://en.wikipedia.org/wiki/Laplace%27s_approximation" class="external-link">Laplace
 approximation</a> to fit the time series efficiently without overfitting
@@ -473,19 +480,20 @@ parameter (<code>I_sd</code>) for the standard deviation of the noise in
 penalize the likelihood using</p>
 <p><span class="math display">\[
 \begin{split}
-I_{\textrm{obs}} &amp; \sim \textrm{Normal}(I_\textrm{sim}(\beta,
+I_{\textrm{obs}} &amp; \sim \textrm{Normal}(I_\textrm{sim}(\phi,
 {\mathbf b}), \sigma^2_I) \\
 b_i &amp; \sim \textrm{Normal}(0, \sigma^2_{\textrm{rbf}})
 \end{split}
 \]</span> and the likelihood is defined as: <span class="math display">\[
-\int {\cal L}(I_{\textrm{obs}}|\beta, {\mathbf b}', \sigma^2_I)
-\cdot {\cal L}({\mathbf b}'|\sigma^2_{\textrm{rbf}}) \, d{\mathbf
-b}.
+\int {\cal L}(I_{\textrm{obs}}|\phi, {\mathbf b}', \sigma^2_I) \cdot
+{\cal L}({\mathbf b}'|\sigma^2_{\textrm{rbf}}) \, d{\mathbf b}.
 \]</span></p>
-<p>(In the example here <span class="math inline">\(\beta\)</span> is
-empty/null; note that in statistical notation it represents a
-<em>parameter vector</em>, not a transmission coefficient as is
-generally the case in epidemic models …)</p>
+<p>The <span class="math inline">\(\phi\)</span> vector is a set of
+<em>fixed-effect</em> (unpenalized) parameters; in this case it is
+empty, but it could include (for example) time-constant recovery or
+immune-waning rates, or a baseline transmission rate (see note below).
+(The fixed-effect parameter is usually denoted as <span class="math inline">\(\beta\)</span> in statistical models, but we’ve
+already used that symbol for the transmission coefficient …)</p>
 <p>Although this looks awful, (1) the high-dimensional integral over
 <span class="math inline">\(\mathbf b\)</span> can be separated into a
 product of one-dimensional integrals and (2) the Laplace approximation
@@ -541,9 +549,9 @@ approximation to these parameters …</p>
 <span><span class="co">#&gt; iter: 5  value: 428917 mgc: 8625089 ustep: 1 </span></span>
 <span><span class="co">#&gt; iter: 6  value: 428886.9 mgc: 525976.1 ustep: 1 </span></span>
 <span><span class="co">#&gt; iter: 7  value: 428886.9 mgc: 5853.994 ustep: 1 </span></span>
-<span><span class="co">#&gt; iter: 8  value: 428886.9 mgc: 1.444758 ustep: 1 </span></span>
-<span><span class="co">#&gt; iter: 9  value: 428886.9 mgc: 9.867291e-06 ustep: 1 </span></span>
-<span><span class="co">#&gt; mgc: 6.757727e-06</span></span></code></pre></div>
+<span><span class="co">#&gt; iter: 8  value: 428886.9 mgc: 1.444768 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 9  value: 428886.9 mgc: 2.233791e-06 ustep: 1 </span></span>
+<span><span class="co">#&gt; mgc: 9.270754e-06</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt; [1] 429059.1</span></span>
 <span><span class="co">#&gt; attr(,"logarithm")</span></span>
 <span><span class="co">#&gt; [1] TRUE</span></span></code></pre>
@@ -612,9 +620,9 @@ priors?)</li>
 <li>the RBF function is penalized to zero. In general, we should augment
 the penalized RBF component (which determines the variation around the
 mean) with an unpenalized intercept/baseline transmission parameter. So,
-for example, the computation of the transmission coefficient should be
-<code>eta ~ gamma * (b0 + exp(X %*% b))</code>, where <code>b0</code>
-represents an unpenalized parameter that’s allowed to vary freely …</li>
+for example, the transmission rate should be computed as
+<code>b0 + exp(X %*% b)</code>, where <code>b0</code> represents an
+unpenalized parameter that’s allowed to vary freely …</li>
 </ul>
 <p><strong>fixme</strong>: compare (1) unpenalized fit; (2) penalized
 fit without Laplace approximation …</p>
