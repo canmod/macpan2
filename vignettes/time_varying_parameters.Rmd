@@ -277,6 +277,8 @@ simulator = sir$simulators$tmb(
 )
 ```
 
+**fixme**: explain what the first/unnamed argument of `$report()` is doing? Why are we setting it to a random value here? (As I understand it, it's the parameter vector; `rnorm()` is the same as the default setting for this parameter. Commenting out that term doesn't seem to change anything *because* we have just set the random-number seed? (The default value will be something different because it was evaluated with a different seed ...)
+
 ```{r plot_rbf, fig.height=8, fig.width=6}
 set.seed(5L)
 (simulator$report(## rnorm(d, sd = 0.01),
