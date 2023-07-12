@@ -409,18 +409,257 @@ transmission rate dynamics.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">5L</span><span class="op">)</span></span>
-<span><span class="op">(</span><span class="va">simulator</span><span class="op">$</span><span class="fu">report</span><span class="op">(</span><span class="fu"><a href="../reference/engine_functions.html">rnorm</a></span><span class="op">(</span><span class="va">d</span>, sd <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span>, .phases <span class="op">=</span> <span class="st">"during"</span><span class="op">)</span></span>
+<span><span class="op">(</span><span class="va">simulator</span><span class="op">$</span><span class="fu">report</span><span class="op">(</span><span class="co">## rnorm(d, sd = 0.01),</span></span>
+<span>                  .phases <span class="op">=</span> <span class="st">"during"</span>  <span class="co">## report only 'during' time steps</span></span>
+<span>                  <span class="op">)</span></span>
 <span>  <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>variable <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html" class="external-link">if_else</a></span><span class="op">(</span><span class="va">matrix</span> <span class="op">==</span> <span class="st">"state"</span>, <span class="va">row</span>, <span class="va">matrix</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span></span>
 <span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span> <span class="va">variable</span>, ncol <span class="op">=</span> <span class="fl">1</span>, scales <span class="op">=</span> <span class="st">'free'</span><span class="op">)</span></span>
 <span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">value</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="time_varying_parameters_files/figure-html/unnamed-chunk-4-1.png" width="576"></p>
+<p><img src="time_varying_parameters_files/figure-html/plot_rbf-1.png" width="576"></p>
+<div class="section level3">
+<h3 id="now-calibrate">now calibrate???<a class="anchor" aria-label="anchor" href="#now-calibrate"></a>
+</h3>
+<p>Simulate and add some noise:</p>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">obs_incidence</span> <span class="op">&lt;-</span> <span class="op">(</span></span>
+<span>    <span class="va">simulator</span><span class="op">$</span><span class="fu">report</span><span class="op">(</span>.phases <span class="op">=</span> <span class="st">"during"</span><span class="op">)</span></span>
+<span>    <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">row</span> <span class="op">==</span> <span class="st">"I"</span>, <span class="va">matrix</span> <span class="op">==</span> <span class="st">"state"</span><span class="op">)</span></span>
+<span>    <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/across.html" class="external-link">across</a></span><span class="op">(</span><span class="va">value</span>, <span class="op">~</span> <span class="fu"><a href="../reference/engine_functions.html">rnorm</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html" class="external-link">n</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">.</span>, sd <span class="op">=</span> <span class="fl">50</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/pull.html" class="external-link">pull</a></span><span class="op">(</span><span class="va">value</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">obs_incidence</span><span class="op">)</span></span></code></pre></div>
+<p><img src="time_varying_parameters_files/figure-html/noisy_sim-1.png" width="700"></p>
+<p>Add basic calibration boilerplate, including a parameter for the
+variance of the RBF term (<code>rbf_sd</code>); add a RBF penalty to the
+log-likelihood (<strong>note for later</strong>, may want to add a
+comment about centered/non-centered parameterizations of the penalty
+term …)</p>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">## copied from 'calibration/"hello world"' example</span></span>
+<span><span class="va">simulator</span><span class="op">$</span><span class="va">add</span><span class="op">$</span><span class="fu">matrices</span><span class="op">(</span></span>
+<span>              I_obs <span class="op">=</span> <span class="va">obs_incidence</span>,</span>
+<span>              I_sim <span class="op">=</span> <span class="va">empty_matrix</span>, </span>
+<span>              log_lik <span class="op">=</span> <span class="va">empty_matrix</span>,</span>
+<span>              .mats_to_save <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"I_sim"</span>, <span class="st">"log_lik"</span><span class="op">)</span>,</span>
+<span>              .mats_to_return <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"I_sim"</span>, <span class="st">"log_lik"</span><span class="op">)</span></span>
+<span>          <span class="op">)</span></span>
+<span><span class="va">simulator</span><span class="op">$</span><span class="va">insert</span><span class="op">$</span><span class="fu">expressions</span><span class="op">(</span></span>
+<span>                     <span class="va">I_sim</span> <span class="op">~</span> <span class="va">I</span>,</span>
+<span>                     .phase <span class="op">=</span> <span class="st">"during"</span>,</span>
+<span>                     .at <span class="op">=</span> <span class="cn">Inf</span></span>
+<span>                 <span class="op">)</span></span>
+<span><span class="co">## parameter for std dev of incidence</span></span>
+<span><span class="co">##  *and* a penalty parameter for the RBF coefficients</span></span>
+<span><span class="co">## (this is esentially a standard deviation on a Gaussian random effect ...</span></span>
+<span><span class="co">##  or approximately 1/sqrt(lambda) if lambda is a ridge penalty ...</span></span>
+<span><span class="va">simulator</span><span class="op">$</span><span class="va">add</span><span class="op">$</span><span class="fu">matrices</span><span class="op">(</span>I_sd <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>                       rbf_sd <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">simulator</span><span class="op">$</span><span class="va">insert</span><span class="op">$</span><span class="fu">expressions</span><span class="op">(</span></span>
+<span>                         <span class="va">log_lik</span> <span class="op">~</span> <span class="op">-</span><span class="fu"><a href="../reference/engine_functions.html">sum</a></span><span class="op">(</span><span class="fu"><a href="../reference/engine_functions.html">dnorm</a></span><span class="op">(</span><span class="va">I_obs</span>, <span class="fu"><a href="../reference/engine_functions.html">rbind_time</a></span><span class="op">(</span><span class="va">I_sim</span><span class="op">)</span>, <span class="va">I_sd</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>                             <span class="op">-</span><span class="fl">1</span><span class="op">*</span><span class="fu"><a href="../reference/engine_functions.html">sum</a></span><span class="op">(</span><span class="fu"><a href="../reference/engine_functions.html">dnorm</a></span><span class="op">(</span><span class="va">b</span>, <span class="fl">0.0</span>, <span class="va">rbf_sd</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>                         .phase <span class="op">=</span> <span class="st">"after"</span></span>
+<span>                 <span class="op">)</span></span>
+<span><span class="co">## initially forgot this: maybe we could warn when someone is missing this????</span></span>
+<span><span class="va">simulator</span><span class="op">$</span><span class="va">replace</span><span class="op">$</span><span class="fu">obj_fn</span><span class="op">(</span><span class="op">~</span> <span class="va">log_lik</span><span class="op">)</span></span>
+<span><span class="va">simulator</span><span class="op">$</span><span class="va">add</span><span class="op">$</span><span class="fu">transformations</span><span class="op">(</span><span class="fu"><a href="../reference/Transform.html">Log</a></span><span class="op">(</span><span class="st">"I_sd"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">simulator</span><span class="op">$</span><span class="va">add</span><span class="op">$</span><span class="fu">transformations</span><span class="op">(</span><span class="fu"><a href="../reference/Transform.html">Log</a></span><span class="op">(</span><span class="st">"rbf_sd"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">## not sure if this is required?</span></span>
+<span><span class="va">params</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.delim</a></span><span class="op">(</span>sep <span class="op">=</span> <span class="st">"|"</span>, header <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>                     strip.white <span class="op">=</span> <span class="cn">TRUE</span>, <span class="co">## important!</span></span>
+<span>                      text <span class="op">=</span> <span class="st">"</span></span>
+<span><span class="st">mat         | row | col | default</span></span>
+<span><span class="st">log_I_sd    | 0   | 0   | 0</span></span>
+<span><span class="st">log_rbf_sd  | 0   | 0   | 1</span></span>
+<span><span class="st">"</span><span class="op">)</span></span>
+<span><span class="co">## add b as a RANDOM parameter</span></span>
+<span><span class="va">rparams</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>    mat  <span class="op">=</span> <span class="st">"b"</span>,</span>
+<span>    row <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">19</span>,</span>
+<span>    col <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>    default <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
+<span><span class="va">simulator</span><span class="op">$</span><span class="va">replace</span><span class="op">$</span><span class="fu">params_frame</span><span class="op">(</span><span class="va">params</span><span class="op">)</span></span>
+<span><span class="va">simulator</span><span class="op">$</span><span class="va">replace</span><span class="op">$</span><span class="fu">random_frame</span><span class="op">(</span><span class="va">rparams</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">## testing: simulator$ad_fun()$fn()</span></span>
+<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="va">simulator</span><span class="op">$</span><span class="va">optimize</span><span class="op">$</span><span class="fu">nlminb</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Optimizing tape... Done</span></span>
+<span><span class="co">#&gt; iter: 1  value: 43081304 mgc: 14984665332 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 2  value: 9324443 mgc: 9697127198 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 3  value: 3692729 mgc: 2600980382 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 4  value: 3159319 mgc: 522572536 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 5  value: 3135896 mgc: 63731265 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 6  value: 3135673 mgc: 3886467 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 7  value: 3135673 mgc: 43255.5 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 8  value: 3135673 mgc: 10.67544 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 9  value: 3135673 mgc: 8.158166e-06 ustep: 1 </span></span>
+<span><span class="co">#&gt; mgc: 1.12217e-05 </span></span>
+<span><span class="co">#&gt; iter: 1  value: 3135673 mgc: 1.12217e-05 ustep: 1 </span></span>
+<span><span class="co">#&gt; mgc: 1.065613e-05 </span></span>
+<span><span class="co">#&gt; iter: 1  value: 3135673 mgc: 1.12217e-05 ustep: 1 </span></span>
+<span><span class="co">#&gt; mgc: 1.065613e-05 </span></span>
+<span><span class="co">#&gt; Matching hessian patterns... Done</span></span>
+<span><span class="co">#&gt; outer mgc:  6264195 </span></span>
+<span><span class="co">#&gt; iter: 1  value: 428886.9 mgc: 0.002498154 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 2  value: 428886.9 mgc: 7.879339e-06 ustep: 1 </span></span>
+<span><span class="co">#&gt; mgc: 3.996211e-06 </span></span>
+<span><span class="co">#&gt; iter: 1  value: 428886.9 mgc: 3.996211e-06 ustep: 1 </span></span>
+<span><span class="co">#&gt; mgc: 1.582521e-06 </span></span>
+<span><span class="co">#&gt; outer mgc:  845622.3 </span></span>
+<span><span class="co">#&gt; iter: 1  value: 315578 mgc: 0.01870879 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 2  value: 315578 mgc: 2.316653e-06 ustep: 1 </span></span>
+<span><span class="co">#&gt; mgc: 9.394006e-07 </span></span>
+<span><span class="co">#&gt; iter: 1  value: 315578 mgc: 9.394006e-07 ustep: 1 </span></span>
+<span><span class="co">#&gt; mgc: 2.473763e-06 </span></span>
+<span><span class="co">#&gt; outer mgc:  618263.9 </span></span>
+<span><span class="co">#&gt; iter: 1  value: 139059.7 mgc: 23.31714 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 2  value: 139059.7 mgc: 1.523019 ustep: 1 </span></span>
+<span><span class="co">#&gt; mgc: 8.284675e-07 </span></span>
+<span><span class="co">#&gt; iter: 1  value: 139059.7 mgc: 8.284675e-07 ustep: 1 </span></span>
+<span><span class="co">#&gt; mgc: 6.849825e-07 </span></span>
+<span><span class="co">#&gt; outer mgc:  263244.4 </span></span>
+<span><span class="co">#&gt; iter: 1  value: 78489.15 mgc: 26701.02 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 2  value: 78489.14 mgc: 11350.18 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 3  value: 78489.14 mgc: 1.465361 ustep: 1 </span></span>
+<span><span class="co">#&gt; mgc: 1.32219e-06 </span></span>
+<span><span class="co">#&gt; iter: 1  value: 78489.14 mgc: 1.32219e-06 ustep: 1 </span></span>
+<span><span class="co">#&gt; mgc: 8.074626e-07 </span></span>
+<span><span class="co">#&gt; outer mgc:  139312.3 </span></span>
+<span><span class="co">#&gt; iter: 1  value: 37879.17 mgc: 7746.4 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 2  value: 37879.16 mgc: 4600.689 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 3  value: 37879.16 mgc: 0.6835434 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 4  value: 37879.16 mgc: 2.015579e-07 ustep: 1 </span></span>
+<span><span class="co">#&gt; mgc: 4.565403e-07 </span></span>
+<span><span class="co">#&gt; iter: 1  value: 37879.16 mgc: 4.565403e-07 ustep: 1 </span></span>
+<span><span class="co">#&gt; mgc: 4.375074e-07 </span></span>
+<span><span class="co">#&gt; outer mgc:  57147.79 </span></span>
+<span><span class="co">#&gt; iter: 1  value: 23273.39 mgc: 26851.96 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 2  value: 23273.34 mgc: 9248.633 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 3  value: 23273.34 mgc: 8.432313 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 4  value: 23273.34 mgc: 3.287019e-05 ustep: 1 </span></span>
+<span><span class="co">#&gt; mgc: 8.09174e-08 </span></span>
+<span><span class="co">#&gt; iter: 1  value: 23273.34 mgc: 8.09174e-08 ustep: 1 </span></span>
+<span><span class="co">#&gt; mgc: 1.612473e-07 </span></span>
+<span><span class="co">#&gt; outer mgc:  24879.82 </span></span>
+<span><span class="co">#&gt; iter: 1  value: 15115.03 mgc: 5860.238 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 2  value: 15115.01 mgc: 3032.709 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 3  value: 15115.01 mgc: 4.20483 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 4  value: 15115.01 mgc: 5.335738e-05 ustep: 1 </span></span>
+<span><span class="co">#&gt; mgc: 1.092644e-07 </span></span>
+<span><span class="co">#&gt; iter: 1  value: 15115.01 mgc: 1.092644e-07 ustep: 1 </span></span>
+<span><span class="co">#&gt; mgc: 4.101234e-08 </span></span>
+<span><span class="co">#&gt; outer mgc:  7030.615 </span></span>
+<span><span class="co">#&gt; iter: 1  value: 13908.47 mgc: 26682.99 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 2  value: 13907.65 mgc: 17782.25 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 3  value: 13907.65 mgc: 140.1179 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 4  value: 13907.65 mgc: 0.02705945 ustep: 1 </span></span>
+<span><span class="co">#&gt; mgc: 6.360988e-09 </span></span>
+<span><span class="co">#&gt; iter: 1  mgc: 6.360988e-09 </span></span>
+<span><span class="co">#&gt; outer mgc:  1603.064 </span></span>
+<span><span class="co">#&gt; iter: 1  value: 13285.33 mgc: 8014.252 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 2  value: 13284.57 mgc: 9679.024 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 3  value: 13284.57 mgc: 136.3248 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 4  value: 13284.57 mgc: 0.1822533 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 5  value: 13284.57 mgc: 7.841439e-07 ustep: 1 </span></span>
+<span><span class="co">#&gt; mgc: 4.041782e-09 </span></span>
+<span><span class="co">#&gt; iter: 1  mgc: 4.041782e-09 </span></span>
+<span><span class="co">#&gt; outer mgc:  194.9082 </span></span>
+<span><span class="co">#&gt; iter: 1  value: 13279.62 mgc: 2.532248 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 2  value: 13279.62 mgc: 0.09123741 ustep: 1 </span></span>
+<span><span class="co">#&gt; mgc: 1.740445e-08 </span></span>
+<span><span class="co">#&gt; iter: 1  value: 13279.62 mgc: 1.740445e-08 ustep: 1 </span></span>
+<span><span class="co">#&gt; mgc: 8.130244e-09 </span></span>
+<span><span class="co">#&gt; outer mgc:  91.94347 </span></span>
+<span><span class="co">#&gt; iter: 1  value: 13275.45 mgc: 8.641502 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 2  value: 13275.45 mgc: 0.7492179 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 3  value: 13275.45 mgc: 2.131929e-07 ustep: 1 </span></span>
+<span><span class="co">#&gt; mgc: 4.74397e-09 </span></span>
+<span><span class="co">#&gt; iter: 1  mgc: 4.74397e-09 </span></span>
+<span><span class="co">#&gt; outer mgc:  60.48549 </span></span>
+<span><span class="co">#&gt; iter: 1  value: 13273.87 mgc: 7.599565 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 2  value: 13273.87 mgc: 0.4100377 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 3  value: 13273.87 mgc: 6.322979e-08 ustep: 1 </span></span>
+<span><span class="co">#&gt; mgc: 8.88368e-09 </span></span>
+<span><span class="co">#&gt; iter: 1  mgc: 8.88368e-09 </span></span>
+<span><span class="co">#&gt; outer mgc:  82.4271 </span></span>
+<span><span class="co">#&gt; iter: 1  value: 13267.83 mgc: 53.18646 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 2  value: 13267.83 mgc: 7.870479 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 3  value: 13267.83 mgc: 2.689114e-05 ustep: 1 </span></span>
+<span><span class="co">#&gt; mgc: 1.012824e-08 </span></span>
+<span><span class="co">#&gt; iter: 1  value: 13264.12 mgc: 268.9679 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 2  value: 13264.12 mgc: 35.90084 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 3  value: 13264.12 mgc: 0.001497525 ustep: 1 </span></span>
+<span><span class="co">#&gt; mgc: 5.589939e-09 </span></span>
+<span><span class="co">#&gt; iter: 1  mgc: 5.589939e-09 </span></span>
+<span><span class="co">#&gt; outer mgc:  169.2105 </span></span>
+<span><span class="co">#&gt; iter: 1  value: 13264.26 mgc: 181.388 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 2  value: 13264.26 mgc: 17.50901 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 3  value: 13264.26 mgc: 0.000446337 ustep: 1 </span></span>
+<span><span class="co">#&gt; mgc: 9.888506e-09 </span></span>
+<span><span class="co">#&gt; iter: 1  mgc: 9.888506e-09 </span></span>
+<span><span class="co">#&gt; outer mgc:  67.38602 </span></span>
+<span><span class="co">#&gt; iter: 1  value: 13262.66 mgc: 49.69669 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 2  value: 13262.66 mgc: 1.669537 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 3  value: 13262.66 mgc: 3.309544e-06 ustep: 1 </span></span>
+<span><span class="co">#&gt; mgc: 4.93619e-09 </span></span>
+<span><span class="co">#&gt; iter: 1  mgc: 4.93619e-09 </span></span>
+<span><span class="co">#&gt; outer mgc:  34.54276 </span></span>
+<span><span class="co">#&gt; iter: 1  value: 13261.97 mgc: 49.11243 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 2  value: 13261.97 mgc: 1.26423 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 3  value: 13261.97 mgc: 2.319474e-06 ustep: 1 </span></span>
+<span><span class="co">#&gt; mgc: 3.895491e-09 </span></span>
+<span><span class="co">#&gt; iter: 1  mgc: 3.895491e-09 </span></span>
+<span><span class="co">#&gt; outer mgc:  1.886538 </span></span>
+<span><span class="co">#&gt; iter: 1  value: 13262.09 mgc: 10.75282 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 2  value: 13262.09 mgc: 0.05741338 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 3  mgc: 5.448606e-09 </span></span>
+<span><span class="co">#&gt; iter: 1  mgc: 5.448606e-09 </span></span>
+<span><span class="co">#&gt; outer mgc:  0.8187962 </span></span>
+<span><span class="co">#&gt; iter: 1  value: 13262.09 mgc: 0.2886684 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 2  value: 13262.09 mgc: 4.204783e-05 ustep: 1 </span></span>
+<span><span class="co">#&gt; mgc: 5.74693e-09 </span></span>
+<span><span class="co">#&gt; iter: 1  mgc: 5.74693e-09 </span></span>
+<span><span class="co">#&gt; outer mgc:  0.06537638 </span></span>
+<span><span class="co">#&gt; iter: 1  value: 13262.09 mgc: 0.01798474 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 2  value: 13262.09 mgc: 1.886835e-07 ustep: 1 </span></span>
+<span><span class="co">#&gt; mgc: 3.251445e-08 </span></span>
+<span><span class="co">#&gt; iter: 1  value: 13262.09 mgc: 3.251445e-08 ustep: 1 </span></span>
+<span><span class="co">#&gt; mgc: 1.753477e-08 </span></span>
+<span><span class="co">#&gt; outer mgc:  5.147544e-05 </span></span>
+<span><span class="co">#&gt; iter: 1  value: 13262.09 mgc: 3.251445e-08 ustep: 1 </span></span>
+<span><span class="co">#&gt; mgc: 1.753477e-08 </span></span>
+<span><span class="co">#&gt; iter: 1  value: 13262.09 mgc: 3.251445e-08 ustep: 1 </span></span>
+<span><span class="co">#&gt; mgc: 1.753477e-08</span></span>
+<span><span class="co">## simulator$print$matrix_dims()</span></span>
+<span><span class="co">## fixed effects only:</span></span>
+<span><span class="co">## look at parameters, but skip the random-effects parameters</span></span>
+<span><span class="co">## 'random' holds the indices of the parameters that are treated</span></span>
+<span><span class="co">## as random effects</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="va">simulator</span><span class="op">$</span><span class="fu">ad_fun</span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="va">env</span>,</span>
+<span>     <span class="va">last.par.best</span><span class="op">[</span><span class="op">-</span><span class="va">random</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    params    params </span></span>
+<span><span class="co">#&gt;  3.916658 -4.764201</span></span>
+<span><span class="co">## RE only</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="va">simulator</span><span class="op">$</span><span class="fu">ad_fun</span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="va">env</span>,</span>
+<span>     <span class="va">last.par.best</span><span class="op">[</span><span class="va">random</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="co">#&gt;        random        random        random        random        random </span></span>
+<span><span class="co">#&gt;  0.0077623594  0.0106462453 -0.0033241271 -0.0152209556  0.0018056818 </span></span>
+<span><span class="co">#&gt;        random        random        random        random        random </span></span>
+<span><span class="co">#&gt;  0.0036394012 -0.0049338054 -0.0138082058 -0.0043197178  0.0074629697 </span></span>
+<span><span class="co">#&gt;        random        random        random        random        random </span></span>
+<span><span class="co">#&gt;  0.0067332443  0.0039721353  0.0027104366 -0.0021796443 -0.0103571897 </span></span>
+<span><span class="co">#&gt;        random        random        random        random        random </span></span>
+<span><span class="co">#&gt; -0.0069793171 -0.0028926299  0.0006549716  0.0079703675  0.0090849416</span></span>
+<span><span class="co">## https://kaskr.github.io/adcomp/_book/Introduction.html</span></span>
+<span><span class="co">## https://kaskr.github.io/adcomp/_book/Tutorial.html#statistical-modelling</span></span>
+<span><span class="co">## https://arxiv.org/pdf/1509.00660.pdf</span></span></code></pre></div>
+</div>
 </div>
 <div class="section level2">
 <h2 id="generalized-linear-mixed-models-in-progress">Generalized Linear Mixed Models (In-Progress)<a class="anchor" aria-label="anchor" href="#generalized-linear-mixed-models-in-progress"></a>
 </h2>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#set.seed(6L)</span></span>
 <span><span class="va">sir</span> <span class="op">=</span> <span class="fu"><a href="../reference/Compartmental.html">Compartmental</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"starter_models"</span>, <span class="st">"sir"</span>, package <span class="op">=</span> <span class="st">"macpan2"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">simulator_rand_beta</span> <span class="op">=</span> <span class="va">sir</span><span class="op">$</span><span class="va">simulators</span><span class="op">$</span><span class="fu">tmb</span><span class="op">(</span>time_steps <span class="op">=</span> <span class="fl">50</span></span>
@@ -445,7 +684,7 @@ transmission rate dynamics.</p>
 <span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">value</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">observed_I</span> <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">simulator_rand_beta</span><span class="op">$</span><span class="fu">report</span><span class="op">(</span>.phases <span class="op">=</span> <span class="st">"during"</span><span class="op">)</span>, <span class="va">row</span> <span class="op">==</span> <span class="st">"I"</span>, <span class="va">matrix</span> <span class="op">==</span> <span class="st">"state"</span><span class="op">)</span><span class="op">$</span><span class="va">value</span></span></code></pre></div>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir</span> <span class="op">=</span> <span class="fu"><a href="../reference/Compartmental.html">Compartmental</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"starter_models"</span>, <span class="st">"sir"</span>, package <span class="op">=</span> <span class="st">"macpan2"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">simulator_step_level_re</span> <span class="op">=</span> <span class="va">sir</span><span class="op">$</span><span class="va">simulators</span><span class="op">$</span><span class="fu">tmb</span><span class="op">(</span>time_steps <span class="op">=</span> <span class="fl">50</span></span>
 <span>  , state <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>S <span class="op">=</span> <span class="fl">99</span>, I <span class="op">=</span> <span class="fl">1</span>, R <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
@@ -503,7 +742,7 @@ transmission rate dynamics.</p>
 <span><span class="co">#simulator_step_level_re$ad_fun()$fn(0)</span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">simulator_step_level_re</span><span class="op">$</span><span class="va">current</span><span class="op">$</span><span class="fu">random_frame</span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">row</span>, <span class="va">current</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#simulator_step_level_re$cache$invalidate()</span></span>
 <span><span class="co">#simulator_step_level_re$ad_fun()$gr(-1.23)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span></span>
