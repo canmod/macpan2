@@ -106,7 +106,7 @@ model so that transmission rate is time-varying.</p>
 <span>  <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>state <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">state</span>, <span class="va">sir</span><span class="op">$</span><span class="va">labels</span><span class="op">$</span><span class="fu">state</span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">value</span>, colour <span class="op">=</span> <span class="va">state</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="time_varying_parameters_files/figure-html/baseline_sir-1.png" width="700"></p>
+<p><img src="time_varying_parameters_files/figure-html/baseline_sir-1.png" width="576"></p>
 </div>
 <div class="section level2">
 <h2 id="piecewise-time-variation">Piecewise Time Variation<a class="anchor" aria-label="anchor" href="#piecewise-time-variation"></a>
@@ -157,7 +157,7 @@ change-points, which we highlight with vertical lines.</p>
 <span>    data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">simulator</span><span class="op">$</span><span class="va">get</span><span class="op">$</span><span class="fu">initial</span><span class="op">(</span><span class="st">"beta_changepoints"</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="time_varying_parameters_files/figure-html/time_varying_graph-1.png" width="700"></p>
+<p><img src="time_varying_parameters_files/figure-html/time_varying_graph-1.png" width="576"></p>
 </div>
 <div class="section level2">
 <h2 id="calibrating-time-variation-parameters">Calibrating Time Variation Parameters<a class="anchor" aria-label="anchor" href="#calibrating-time-variation-parameters"></a>
@@ -171,7 +171,7 @@ the time-varying parameters.</p>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">s</span>, <span class="va">matrix</span> <span class="op">==</span> <span class="st">"state"</span>, <span class="va">row</span> <span class="op">==</span> <span class="st">"I"</span><span class="op">)</span><span class="op">$</span><span class="va">value</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">I_observed</span><span class="op">)</span></span></code></pre></div>
-<p><img src="time_varying_parameters_files/figure-html/noisy_data-1.png" width="700"></p>
+<p><img src="time_varying_parameters_files/figure-html/noisy_data-1.png" width="576"></p>
 <p>Then we add a few matrices to the model for keeping tracking of
 information used in model fitting.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
@@ -439,9 +439,8 @@ documentation</a> for more detail).</p>
 <span>    <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/across.html" class="external-link">across</a></span><span class="op">(</span><span class="va">value</span>, <span class="op">~</span> <span class="fu"><a href="../reference/engine_functions.html">rnorm</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html" class="external-link">n</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">.</span>, sd <span class="op">=</span> <span class="fl">50</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span>    <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/pull.html" class="external-link">pull</a></span><span class="op">(</span><span class="va">value</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>las <span class="op">=</span> <span class="fl">1</span>, bty <span class="op">=</span> <span class="st">"l"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">obs_I</span>, xlab <span class="op">=</span> <span class="st">"time"</span>, ylab <span class="op">=</span> <span class="st">"prevalence"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="time_varying_parameters_files/figure-html/noisy_sim-1.png" width="768"></p>
+<p><img src="time_varying_parameters_files/figure-html/noisy_sim-1.png" width="576"></p>
 <p>2. Add calibration information.</p>
 <p>We start by adding standard boilerplate stuff to include the observed
 data and store/return the results.</p>
@@ -521,19 +520,38 @@ approximation to these parameters …</p>
 <span><span class="va">simulator</span><span class="op">$</span><span class="va">replace</span><span class="op">$</span><span class="fu">random_frame</span><span class="op">(</span><span class="va">rparams</span><span class="op">)</span></span></code></pre></div>
 <p>Test the objective function:</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">simulator</span><span class="op">$</span><span class="fu">ad_fun</span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="fu">fn</span><span class="op">(</span><span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p>(this step produces more output than usual because the Laplace
-approximation involves an additional “inner” step where the
-<code>b</code> parameters are optimized, even though we are only
-evaluating the objective for a single set of fixed parameters
-(<code>log_I_sd</code>, <code>log_rbf_sd</code>)</p>
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="va">simulator</span><span class="op">$</span><span class="fu">ad_fun</span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="fu">fn</span><span class="op">(</span><span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Optimizing tape... Done</span></span>
+<span><span class="co">#&gt; iter: 1  value: 5834940 mgc: 2027953927 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 2  value: 1266446 mgc: 1312363455 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 3  value: 504276.1 mgc: 352004416 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 4  value: 432087 mgc: 70722502 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 5  value: 428917 mgc: 8625089 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 6  value: 428886.9 mgc: 525976.1 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 7  value: 428886.9 mgc: 5853.994 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 8  value: 428886.9 mgc: 1.444768 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 9  value: 428886.9 mgc: 2.233791e-06 ustep: 1 </span></span>
+<span><span class="co">#&gt; mgc: 9.270754e-06</span></span></code></pre></div>
+<pre><code><span><span class="co">#&gt; [1] 429059.1</span></span>
+<span><span class="co">#&gt; attr(,"logarithm")</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span></code></pre>
+<p><strong>fixme</strong>: can’t get objective function to shut up.
+Should have specified <code>silent = TRUE</code> when calling
+<code>MakeADFun()</code> initially, now have tried assigning the value
+in several different environments, without success …</p>
+<p>This step normally produces lots of output (more output than a model
+with random effects) because the Laplace approximation involves an
+additional “inner” step where the <code>b</code> parameters are
+optimized, even though we are only evaluating the objective for a single
+set of fixed parameters (<code>log_I_sd</code>,
+<code>log_rbf_sd</code>)</p>
 <p><strong>fixme</strong>: note to developers, if we cache results we
 may need to call the <code>$retape()</code> function to restore internal
 structure when retrieving …</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">## testing: simulator$ad_fun()$fn()</span></span>
 <span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="va">simulator</span><span class="op">$</span><span class="va">optimize</span><span class="op">$</span><span class="fu">nlminb</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">## simulator$print$matrix_dims()</span></span>
 <span><span class="co">## fixed effects only:</span></span>
 <span><span class="co">## look at parameters, but skip the random-effects parameters</span></span>
@@ -561,7 +579,7 @@ parameters (including RE parameters) in order to make sure
 mutability/make sure we use <code>last.par.best</code> internally …)</p>
 <p>Extract parameters, run the simulator for the best-fit parameters,
 compare with data …</p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pp</span> <span class="op">&lt;-</span> <span class="va">simulator</span><span class="op">$</span><span class="fu">ad_fun</span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="va">env</span><span class="op">$</span><span class="va">last.par.best</span></span>
 <span><span class="va">est_I</span> <span class="op">&lt;-</span> <span class="op">(</span></span>
 <span>    <span class="va">simulator</span><span class="op">$</span><span class="fu">report</span><span class="op">(</span><span class="va">pp</span>, .phases <span class="op">=</span> <span class="st">"during"</span><span class="op">)</span></span>
@@ -571,7 +589,7 @@ compare with data …</p>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>las <span class="op">=</span> <span class="fl">1</span>, bty <span class="op">=</span> <span class="st">"l"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">obs_I</span>, xlab <span class="op">=</span> <span class="st">"time"</span>, ylab <span class="op">=</span> <span class="st">"prevalence"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="va">est_I</span>, col <span class="op">=</span> <span class="fl">2</span>, lwd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
-<p><img src="time_varying_parameters_files/figure-html/plot_sim-1.png" width="768"></p>
+<p><img src="time_varying_parameters_files/figure-html/plot_sim-1.png" width="576"></p>
 <p><strong>fixme</strong>: compare (1) unpenalized fit; (2) penalized
 fit without Laplace approximation …</p>
 <p><strong>fixme</strong>: discuss (somewhere) alternate bases for
@@ -581,7 +599,7 @@ latent variables (random-walk, Gaussian process, …)</p>
 <div class="section level2">
 <h2 id="generalized-linear-mixed-models-in-progress">Generalized Linear Mixed Models (In-Progress)<a class="anchor" aria-label="anchor" href="#generalized-linear-mixed-models-in-progress"></a>
 </h2>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#set.seed(6L)</span></span>
 <span><span class="va">sir</span> <span class="op">=</span> <span class="fu"><a href="../reference/Compartmental.html">Compartmental</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"starter_models"</span>, <span class="st">"sir"</span>, package <span class="op">=</span> <span class="st">"macpan2"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">simulator_rand_beta</span> <span class="op">=</span> <span class="va">sir</span><span class="op">$</span><span class="va">simulators</span><span class="op">$</span><span class="fu">tmb</span><span class="op">(</span>time_steps <span class="op">=</span> <span class="fl">50</span></span>
@@ -606,7 +624,7 @@ latent variables (random-walk, Gaussian process, …)</p>
 <span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">value</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">observed_I</span> <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">simulator_rand_beta</span><span class="op">$</span><span class="fu">report</span><span class="op">(</span>.phases <span class="op">=</span> <span class="st">"during"</span><span class="op">)</span>, <span class="va">row</span> <span class="op">==</span> <span class="st">"I"</span>, <span class="va">matrix</span> <span class="op">==</span> <span class="st">"state"</span><span class="op">)</span><span class="op">$</span><span class="va">value</span></span></code></pre></div>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir</span> <span class="op">=</span> <span class="fu"><a href="../reference/Compartmental.html">Compartmental</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"starter_models"</span>, <span class="st">"sir"</span>, package <span class="op">=</span> <span class="st">"macpan2"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">simulator_step_level_re</span> <span class="op">=</span> <span class="va">sir</span><span class="op">$</span><span class="va">simulators</span><span class="op">$</span><span class="fu">tmb</span><span class="op">(</span>time_steps <span class="op">=</span> <span class="fl">50</span></span>
 <span>  , state <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>S <span class="op">=</span> <span class="fl">99</span>, I <span class="op">=</span> <span class="fl">1</span>, R <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
@@ -664,7 +682,7 @@ latent variables (random-walk, Gaussian process, …)</p>
 <span><span class="co">#simulator_step_level_re$ad_fun()$fn(0)</span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">simulator_step_level_re</span><span class="op">$</span><span class="va">current</span><span class="op">$</span><span class="fu">random_frame</span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">row</span>, <span class="va">current</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#simulator_step_level_re$cache$invalidate()</span></span>
 <span><span class="co">#simulator_step_level_re$ad_fun()$gr(-1.23)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span></span>
@@ -679,15 +697,13 @@ latent variables (random-walk, Gaussian process, …)</p>
 <div id="refs" class="references csl-bib-body hanging-indent">
 <div id="ref-kristensenTMB2016" class="csl-entry">
 Kristensen, Kasper, Anders Nielsen, Casper W. Berg, Hans Skaug, and
-Bradley M. Bell. 2016. <span>“<span>TMB</span> : <span>Automatic</span>
-<span>Differentiation</span> and {<span>Laplace</span>}
-<span>Approximation</span>.”</span> <em>Journal of Statistical
-Software</em> 70 (5). <a href="https://doi.org/10.18637/jss.v070.i05" class="external-link">https://doi.org/10.18637/jss.v070.i05</a>.
+Bradley M. Bell. 2016. <span>“<span>TMB</span>: Automatic
+Differentiation and <span>Laplace</span> Approximation.”</span>
+<em>Journal of Statistical Software</em> 70 (5). <a href="https://doi.org/10.18637/jss.v070.i05" class="external-link">https://doi.org/10.18637/jss.v070.i05</a>.
 </div>
 <div id="ref-madsenIntroduction2011" class="csl-entry">
-Madsen, Henrik, and Poul Thyregod. 2011. <em>Introduction to
-<span>General</span> and <span>Generalized</span> <span>Linear</span>
-<span>Models</span></em>. CRC Press.
+Madsen, Henrik, and Poul Thyregod. 2011. <em>Introduction to General and
+Generalized Linear Models</em>. CRC Press.
 </div>
 </div>
 </div>
