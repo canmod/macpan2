@@ -238,7 +238,7 @@ This condition assures that the number of infected individuals remains constant 
 
 Here is a simulation model with a radial basis for exogenous transmission rate dynamics.
 
-```{r}
+```{r sim_rbf}
 set.seed(1L)
 simulator = sir$simulators$tmb(
       time_steps = n
@@ -272,15 +272,99 @@ simulator = sir$simulators$tmb(
 )
 ```
 
-```{r, fig.height=8, fig.width=6}
+```{r plot_rbf, fig.height=8, fig.width=6}
 set.seed(5L)
-(simulator$report(rnorm(d, sd = 0.01), .phases = "during")
+(simulator$report(## rnorm(d, sd = 0.01),
+                  .phases = "during"  ## report only 'during' time steps
+                  )
   %>% mutate(variable = if_else(matrix == "state", row, matrix))
   %>% ggplot()
   + facet_wrap(~ variable, ncol = 1, scales = 'free')
   + geom_line(aes(time, value))
 )
 ```
+
+### now calibrate???
+
+Simulate and add some noise:
+
+```{r noisy_sim}
+obs_incidence <- (
+    simulator$report(.phases = "during")
+    |> filter(row == "I", matrix == "state")
+    |> mutate(across(value, ~ rnorm(n(), ., sd = 50)))
+    |> pull(value)
+)
+plot(obs_incidence)
+```
+
+Add basic calibration boilerplate, including a parameter for the variance of the RBF term (`rbf_sd`); add a RBF penalty to the log-likelihood (**note for later**, may want to add a comment about centered/non-centered parameterizations of the penalty term ...)
+
+```{r add_calib_info}
+## copied from 'calibration/"hello world"' example
+simulator$add$matrices(
+              I_obs = obs_incidence,
+              I_sim = empty_matrix, 
+              log_lik = empty_matrix,
+              .mats_to_save = c("I_sim", "log_lik"),
+              .mats_to_return = c("I_sim", "log_lik")
+          )
+simulator$insert$expressions(
+                     I_sim ~ I,
+                     .phase = "during",
+                     .at = Inf
+                 )
+## parameter for std dev of incidence
+##  *and* a penalty parameter for the RBF coefficients
+## (this is esentially a standard deviation on a Gaussian random effect ...
+##  or approximately 1/sqrt(lambda) if lambda is a ridge penalty ...
+simulator$add$matrices(I_sd = 1,
+                       rbf_sd = 1)
+simulator$insert$expressions(
+                         log_lik ~ -sum(dnorm(I_obs, rbind_time(I_sim), I_sd)) +
+                             -1*sum(dnorm(b, 0.0, rbf_sd)),
+                         .phase = "after"
+                 )
+## initially forgot this: maybe we could warn when someone is missing this????
+simulator$replace$obj_fn(~ log_lik)
+simulator$add$transformations(Log("I_sd"))
+simulator$add$transformations(Log("rbf_sd"))
+## not sure if this is required?
+params <- read.delim(sep = "|", header = TRUE,
+                     strip.white = TRUE, ## important!
+                      text = "
+mat         | row | col | default
+log_I_sd    | 0   | 0   | 0
+log_rbf_sd  | 0	  | 0   | 1
+")
+## add b as a RANDOM parameter
+rparams <- data.frame(
+    mat  = "b",
+    row = 0:19,
+    col = 0,
+    default = 0)
+simulator$replace$params_frame(params)
+simulator$replace$random_frame(rparams)
+```
+
+```{r rbf_calib}
+## testing: simulator$ad_fun()$fn()
+fit <- simulator$optimize$nlminb()
+## simulator$print$matrix_dims()
+## fixed effects only:
+## look at parameters, but skip the random-effects parameters
+## 'random' holds the indices of the parameters that are treated
+## as random effects
+with(simulator$ad_fun()$env,
+     last.par.best[-random])
+## RE only
+with(simulator$ad_fun()$env,
+     last.par.best[random])
+## https://kaskr.github.io/adcomp/_book/Introduction.html
+## https://kaskr.github.io/adcomp/_book/Tutorial.html#statistical-modelling
+## https://arxiv.org/pdf/1509.00660.pdf
+```
+
 
 ## Generalized Linear Mixed Models (In-Progress)
 
