@@ -465,8 +465,8 @@ parameter (<code>I_sd</code>) for the standard deviation of the noise in
 penalize the likelihood using</p>
 <p><span class="math display">\[
 \begin{split}
-I_{\textrm{obs}} &amp; \sim \textrm{Normal}(I_\textrm{sim}(\beta, b),
-\sigma^2_I) \\
+I_{\textrm{obs}} &amp; \sim \textrm{Normal}(I_\textrm{sim}(\beta,
+{\mathbf b}), \sigma^2_I) \\
 b_i &amp; \sim \textrm{Normal}(0, \sigma^2_{\textrm{rbf}})
 \end{split}
 \]</span> and the likelihood is defined as: <span class="math display">\[
@@ -474,6 +474,10 @@ b_i &amp; \sim \textrm{Normal}(0, \sigma^2_{\textrm{rbf}})
 \cdot {\cal L}({\mathbf b}'|\sigma^2_{\textrm{rbf}}) \, d{\mathbf
 b}.
 \]</span></p>
+<p>(In the example here <span class="math inline">\(\beta\)</span> is
+empty/null; note that in statistical notation it represents a
+<em>parameter vector</em>, not a transmission coefficient as is
+generally the case in epidemic models …)</p>
 <p>Although this looks awful, (1) the high-dimensional integral over
 <span class="math inline">\(\mathbf b\)</span> can be separated into a
 product of one-dimensional integrals and (2) the Laplace approximation
@@ -590,6 +594,20 @@ compare with data …</p>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">obs_I</span>, xlab <span class="op">=</span> <span class="st">"time"</span>, ylab <span class="op">=</span> <span class="st">"prevalence"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="va">est_I</span>, col <span class="op">=</span> <span class="fl">2</span>, lwd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
 <p><img src="time_varying_parameters_files/figure-html/plot_sim-1.png" width="576"></p>
+<p><strong>fixme</strong>: there are a few artificialities about this
+example that could/should be relaxed</p>
+<ul>
+<li>the only fixed parameters are the standard deviations. Normally we
+would also be estimating <code>gamma</code> (possibly with a prior? do
+we have any examples, say in the calibration vignette, of adding
+priors?)</li>
+<li>the RBF function is penalized to zero. In general, we should augment
+the penalized RBF component (which determines the variation around the
+mean) with an unpenalized intercept/baseline transmission parameter. So,
+for example, the computation of the transmission coefficient should be
+<code>eta ~ gamma * (b0 + exp(X %*% b))</code>, where <code>b0</code>
+represents an unpenalized parameter that’s allowed to vary freely …</li>
+</ul>
 <p><strong>fixme</strong>: compare (1) unpenalized fit; (2) penalized
 fit without Laplace approximation …</p>
 <p><strong>fixme</strong>: discuss (somewhere) alternate bases for
