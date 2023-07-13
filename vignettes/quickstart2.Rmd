@@ -15,6 +15,23 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 cat_file = function(...) cat(readLines(file.path(...)), sep = "\n")
+draw_vis = function(model, x_mult, y_mult) {
+  macpan2helpers:::vis_obj(
+    mutate(
+      macpan2helpers:::node_data(model), 
+      
+      ## FIXME: automate construction of these x-y 
+      ## coordinates and place in macpan2helpers
+      x = x_mult * c(-1:1, -1:1), 
+      y = y_mult * c(-1, -1, -1, 1, 1, 1), 
+      
+      physics = FALSE
+    ), 
+    macpan2helpers:::edge_data(model, label_flows = TRUE)
+  )
+}
+
+
 ```
 
 ```{r setup}
@@ -65,6 +82,8 @@ The only notable difference between the ``settings.json`` files for single strat
 
 ```{r example_model}
 sir_vax = Compartmental(sir_vax_dir)
+## TODO: add this 'facet grid' functionality to macpan2helpers::visCompartmental
+draw_vis(sir_vax, x_mult = 200, y_mult = 100)
 ```
 
 
