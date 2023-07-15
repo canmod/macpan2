@@ -161,7 +161,6 @@ sir_simulator$replace$obj_fn(~ -sum(log_lik))
 sir_simulator$add$transformations(Log("I_sd"))
 sir_simulator$add$transformations(Log("beta"))
 params <- read.delim(sep = "|", header = TRUE,
-                     strip.white = FALSE, ## important!
                      text = "
 mat       | row | col | default
 log_I_sd  | 0   | 0   | 0
@@ -171,14 +170,6 @@ sir_simulator$replace$params_frame(params)
 ```
 
 Using `$add_transformations(Log("var"))` automatically adds a variable called `log_var` to the list of matrices.
-
-**fixme**: if I fail to use `strip.white = TRUE` (so the `mat` names have trailing whitespace), then on the last line above I get a less-than-perfectly-useful error message:
-
-> Error in valid\$consistency_params_mats\$check(self\$model) : 
-> optimization parameters are not consistent with matrices
-> but validity could not be checked because:<br>
-> Error in if (any(!valid_pars)) { : missing value where TRUE/FALSE needed
-
 
 ### Step 5: do the fit
 
@@ -197,10 +188,31 @@ print(sir_simulator$current$params_frame())
 sir_simulator$report()
 ```
 
+Another sanity check: make sure that the starting values give a reasonable-looking trajectory.
+
+```{r plot1}
+(sir_simulator$report(c(0,1)) |>
+ filter(matrix == "state", row == "I") |>
+ ggplot(aes(time, value)) + geom_line()
+)
+```
+
+The simulated trajectory is **not** sensible in this case - the `log_beta` value is way too large (we set the default to $\exp(1) \approx 2.78$, while we know in this case that the true value is 0.2). Hopefully in a real system we would know enough to get reasonable order-of-magnitude starting values. (If we really knew that $\gamma \approx 0.1$, we would know that a starting value of $\log(\beta)=1$ would correspond to an ${\cal R}_0 \approx 28$, clearly unrealistic for most infectious diseases ...
+
+Setting $\log(\beta)=0$ instead gives us a trajectory that is still very unrealistic (the peak of our observed prevalence is only 16.7).
+
+```{r plot2}
+(sir_simulator$report(c(0,0)) |>
+ filter(matrix == "state", row == "I") |>
+ ggplot(aes(time, value)) + geom_line()
+)
+```
+
+**fixme**: easier way to substitute a single parameter value?  Way to modify starting conditions for optimizer on the fly? (Specifying `start` as an argument gives 'formal argument "start" matched by multiple actual arguments' -- there should be a "replace if present" functionality)
+
 ```{r sir_fit, results = "hide"}
 fit <- sir_simulator$optimize$nlminb()
 ```
-
 
 Print the results of `nlminb` - **always check the value of the convergence code** (if it's not 0, then something *may* have gone wrong ...)
 
@@ -243,6 +255,13 @@ gg0 + geom_line(data = sim_vals, aes(y= value), colour = "red")
 ```
 
 **fixme**: what next? Show a fit to real data? Comparison with [fitode](https://github.com/parksw3/fitode) ?
+
+**fixme**: more variations/examples:
+
+- fit multiple parameters
+- change objective function (Poisson, nbinom, SSQ, chi-squared stat ...)
+- add priors/regularization??
+- add accumulator compartment and compute incidence
 
 **fixme**: examples of (statistical) diagnostics? e.g. compute residuals, plot vs. time or vs fitted values, scale-location plot, etc. ?
 
@@ -542,7 +561,7 @@ mk_plot <- function(dd, arrows = TRUE, contours = TRUE,
 print(mk_plot(lik_surf))
 ```
 
-```{r results = "hide"}
+```{r plot_liksurf2, results = "hide"}
 lik_surf2 <- make_liksurf(lwr = c(-0.1, 0.9), upr = c(0.1, 1.1))
 print(mk_plot(lik_surf2, arrows = FALSE, cbrks = 1e4*(1:10)))
 ```
