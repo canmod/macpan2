@@ -11,7 +11,7 @@ editor_options:
   chunk_output_type: console
 ---
 
-[![status](https://img.shields.io/badge/stub-red)](https://canmod.github.io/macpan2/articles/vignette-status#stub)
+[![status](https://img.shields.io/badge/status-working%20draft-red)](https://canmod.github.io/macpan2/articles/vignette-status#working-draft)
 
 ``` {r pkgs, include = FALSE}
 library(macpan2)
