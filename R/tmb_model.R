@@ -527,6 +527,41 @@ OptParamsFile = function(file_path
   self = Files(dirname(file_path)
     , reader_spec(basename(file_path), csv_reader)
   )
+  self$.col_map = c(
+      Matrix = "mat"
+    , mat = "mat"
+    , Mat = "mat"
+    , Row = "row"
+    , row = "row"
+    , Column = "col"
+    , Col = "col"
+    , col = "col"
+    , type = "type"
+    , Type = "type"
+    , value = "default"
+    , Value = "default"
+    , Val = "default"
+    , val = "default"
+    , Default = "default"
+    , default = "default"
+  )
+  self$.param = c("param", "par", "fixed", "fixef")
+  self$.random = c("random", "ran", "rand", "ranef")
+  self$frame = function() {
+    x = self$get("parameters")
+    names(x) = self$.col_map[names(x)]
+    x
+  }
+  self$params_frame = function(.dimnames = list()) {
+    f = self$frame()
+    f[tolower(f[["type"]]) %in% self$.param, , drop = FALSE]
+    #if (nrow(f) == 0L) return(OptParamsList())
+  }
+  self$random_frame = function(.dimnames = list()) {
+    f = self$frame()
+    f[tolower(f[["type"]]) %in% self$.random, , drop = FALSE]
+    #if (nrow(f) == 0L) return(OptParamsList())
+  }
   self
 }
 

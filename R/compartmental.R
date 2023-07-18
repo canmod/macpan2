@@ -39,6 +39,74 @@ Compartmental = function(model_directory) {
   return_object(self, "Compartmental")
 }
 
+#' Compartmental Model Simulator (experimental)
+#'
+#' @param model_directory Path to a set of model definition files, defaults
+#' and parameterizations.
+#' @param time_steps Number of simulation steps.
+#' @param .mats_to_save Character vector of names of matrices to save. Defaults
+#' to \code{"state"}, which is the state vector. Other useful names include
+#' \code{"total_inflow"} (the incidence associated with each state variable)
+#' and \code{"total_outflow"} (the total leaving each state variable at each
+#' time step). One may also add any variable in `model$other_labels()`.
+#' See \code{\link{MatsList}} for details.
+#' @param .mats_to_return Character vector of names of matrices to return. Defaults
+#' to \code{"state"}, which is the state vector. Other useful names include
+#' \code{"total_inflow"} (the incidence associated with each state variable)
+#' and \code{"total_outflow"} (the total leaving each state variable at each
+#' time step). One may also add any variable in `model$other_labels()`.
+#' See \code{\link{MatsList}} for details.
+#' @param .dimnames Named list of \code{\link{dimnames}} for matrices that change
+#' their dimensions over the simulation steps. These names correspond to the
+#' names of the matrices. The output of the simulations will try their best
+#' to honor these names, but if the shape of the matrix is too inconsistent
+#' with the \code{\link{dimnames}} then numerical indices will be used instead.
+#' For matrices that do not change their dimensions, set \code{\link{dimnames}}
+#' by adding \code{\link{dimnames}} to the matrices passed to \code{...}.
+#' @param .tmb_cpp Name of a \code{C++} program defining the engine. Typically
+#' you just want to use the default, which is \code{macpan2}, unless you
+#' are extending the
+#' [engine](https://canmod.github.io/macpan2/articles/cpp_side.html)
+#' yourself.
+#' @param .initialize_ad_fun Should the automatic differentiation function (`ad_fun`)
+#' be produced with TMB? Choosing \code{FALSE} can be useful if this is
+#' expensive and you want to build up your simulator in steps without having
+#' to recreate the `ad_fun` more than necessary.
+#' @export
+CompartmentalSimulator = function(model_directory, time_steps
+    , .mats_to_save = .mats_to_return
+    , .mats_to_return = "state"
+    , .dimnames = list()
+    , .tmb_cpp = "macpan2"
+    , .initialize_ad_fun = TRUE
+  ) {
+    compartmental = Compartmental(model_directory)
+    defaults = Defaults(DefaultFiles(model_directory))
+    parameters = OptParamsFile(file.path(model_directory, "parameters.csv"))
+    all_labels = compartmental$variables$all()$labels()
+    all_init_labels = defaults$initialized_variables()$labels()
+    mats_init_as_empty = setdiff(all_labels, all_init_labels)
+    dot_mats = setdiff(defaults$matrix_names(), c("state", "flow"))
+    args = list(
+      time_steps = time_steps,
+      state = defaults$initialized_matrix("state"),
+      flow = defaults$initialized_matrix("flow")
+    )
+    for (m in dot_mats) args[[m]] = defaults$initialized_matrix(m)
+    for (m in mats_init_as_empty) args[[m]] = empty_matrix
+    args$.mats_to_save = .mats_to_save
+    args$.mats_to_return = .mats_to_return
+    args$.dimnames = .dimnames
+    args$.tmb_cpp = .tmb_cpp
+    args$.initialize_ad_fun = FALSE
+    simulator = do.call(compartmental$simulators$tmb, args)
+    dn = simulator$tmb_model$init_mats$.dimnames
+    simulator$replace$params_frame(parameters$params_frame(dn))
+    simulator$replace$random_frame(parameters$random_frame(dn))
+    if (.initialize_ad_fun) simulator$ad_fun()
+    simulator
+}
+
 CompartmentalMatsList = function(
       model
     , state
@@ -58,9 +126,10 @@ CompartmentalMatsList = function(
 
     settings = model$settings
     indices = model$indices
+
     MatsList(
-      state = state[settings$state()]
-    , flow = flow[settings$flow()]
+      state = as.matrix(state)[settings$state(), , drop = FALSE]
+    , flow = as.matrix(flow)[settings$flow(), , drop = FALSE]
     , ...
     , state_length = length(state)
     , per_capita_from = indices$flow$per_capita$from()

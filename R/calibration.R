@@ -36,8 +36,8 @@ TMBOptimizer = function(simulator) {
       )
       opt_obj = do.call(opt_func, c(args_from_object, args))
       self$simulator$optimization_history$save(opt_obj)
-      self$simulator$cache$sdreport$invalidate()
-      ad_fun$fn(opt_obj$par)
+      self$simulator$cache$sdreport$invalidate() ## now that we have optimized again, we need to invalidate the now out-of-date sdreport
+      ad_fun$fn(opt_obj$par) ## probably this should be last.par.best
       opt_obj
     }
     arg_updater(opt_method_nm, opt_func, unname(arg_mappings))

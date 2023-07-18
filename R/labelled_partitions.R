@@ -200,12 +200,12 @@ NumericPartition = function(frame, numeric_vector) {
     if (!all(all_names %in% row_col_names)) {
       stop("Some row/column labels not found in the partition.")
     }
-    v = self$filter_vector("state", .wrt = "Matrix")
+    v = self$filter_vector(name, .wrt = "Matrix")
     if (isTRUE(row_part == "")) {
       rn = ""
       i = 1
     } else {
-      r = self$partition$filter("state", .wrt = "Matrix")$partial_labels(row_part)
+      r = self$partition$filter(name, .wrt = "Matrix")$partial_labels(row_part)
       rn = unique(r)
       i = match(r, rn)
     }
@@ -213,7 +213,7 @@ NumericPartition = function(frame, numeric_vector) {
       cn = ""
       j = 1
     } else {
-      c = self$partition$filter("state", .wrt = "Matrix")$partial_labels(col_part)
+      c = self$partition$filter(name, .wrt = "Matrix")$partial_labels(col_part)
       cn = unique(c)
       j = match(c, cn)
     }
