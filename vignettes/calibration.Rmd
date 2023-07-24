@@ -15,8 +15,10 @@ editor_options:
 
 ```{r opts, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
+                      collapse = TRUE,
+                      fig.width = 6,
+                      fig.height = 4,
+                      comment = "#>"
 )
 ```
 
@@ -25,6 +27,9 @@ Setup:
 ```{r pkgs, message = FALSE}
 library(macpan2)
 library(macpan2helpers)
+if (packageVersion("macpan2helpers") < "0.0.2") {
+    stop("please install macpan2helpers version >= 0.0.2")
+}
 library(dplyr)
 library(ggplot2); theme_set(theme_bw())
 ```
@@ -37,18 +42,23 @@ We'll do the first thing you should always do when trying out a new fitting proc
 
 ### Step 0: set up simulator and generate 'data'
 
-First set up the model from the quickstart guide:
+First set up the model from the quickstart guide. For convenience (since we will be using several different versions of this model along the way, and modifying existing models is not quite as simple as it could be), we'll encapsulate this in a function so we can easily re-run it later to generate a new model:
+
 
 ```{r sir_setup}
-sir = Compartmental(system.file("starter_models", "sir", package = "macpan2"))
-sir_simulator = sir$simulators$tmb(
-  time_steps = 100,
-  state = c(S = 99, I = 1, R = 0),
-  flow = c(foi = NA, gamma = 0.1),
-  beta = 0.2,
-  N = empty_matrix
-  )
-## This is key!
+mk_sim <- function() {
+    sir = Compartmental(system.file("starter_models", "sir", package = "macpan2"))
+    sim <- sir$simulators$tmb(
+                       time_steps = 100,
+                       state = c(S = 99, I = 1, R = 0),
+                       flow = c(foi = NA, gamma = 0.1),
+                       beta = 0.2,
+                       N = empty_matrix
+                       )
+    return(sim)
+}
+sir_simulator <- mk_sim()
+## `.phases = "during"` is important so that the number of observations matches the number of time steps
 sir_results = sir_simulator$report(.phases = "during")
 ```
 
@@ -66,6 +76,130 @@ gg0 <- ggplot(sir_prevalence, aes(time)) +
     geom_point(aes(y = obs_val)) +
     geom_line(aes(y = value))
 print(gg0)
+```
+
+### Step 1: add calibration information
+
+Now we'll use the *experimental* `mk_calibrate()` function from `macpan2helpers` package
+
+```{r mk_calibrate}
+mk_calibrate(sir_simulator,
+     data = data.frame(I_obs = sir_prevalence$obs_val),
+     params = list(beta = 1, I_sd = 1),
+     transforms = list(beta = "log", I_sd = "log"),
+     exprs = list(log_lik ~ dnorm(I_obs, I, I_sd)),
+     )
+```
+
+Unlike typical R functions, this function modifies the `sim` object *in place* (!!)
+
+A sanity check: make sure that the starting values give a reasonable-looking trajectory.
+
+```{r plot1}
+(sir_simulator$report() |>
+ filter(matrix == "state", row == "I") |>
+ ggplot(aes(time, value)) + geom_line()
+)
+```
+
+The simulated trajectory is **not** sensible in this case - the `log_beta` value is way too large (we set the default to $\exp(1) \approx 2.78$, while we know in this case that the true value is 0.2). Hopefully in a real system we would know enough to get reasonable order-of-magnitude starting values. (If we really knew that $\gamma \approx 0.1$, we would know that a starting value of $\log(\beta)=1$ would correspond to an ${\cal R}_0 \approx 28$, clearly unrealistic for most infectious diseases ...
+
+Setting $\log(\beta)=0$ instead gives us a trajectory that is still very unrealistic (the peak of our observed prevalence is only 16.7), but at least it's smooth. As it turns out this will be good enough, but finding appropriate starting values (based on external information and some trial and error) is often a significant part of a modeling workflow.
+
+```{r plot2}
+(sir_simulator$report(c(0,0)) |>
+ filter(matrix == "state", row == "I") |>
+ ggplot(aes(time, value)) + geom_line()
+)
+```
+
+Let's replace the starting value for `log_beta` with 0:
+
+```{r repl_param}
+sir_simulator$replace$params(0, "log_beta")
+```
+
+(In a proper workflow we might prefer to go back upstream to wherever we defined the default values, rather than resetting the value on the fly ...)
+
+### Step 2: do the fit
+
+```{r sir_fit, results = "hide"}
+fit <- sir_simulator$optimize$nlminb()
+```
+
+Print the results of `nlminb` - **always check the value of the convergence code** (if it's not 0, then something *may* have gone wrong ...)
+
+```{r check_fit}
+print(fit)
+```
+
+Back-transform the parameters:
+
+```{r params}
+exp(fit$par)
+```
+
+Get more information (this is a little uglier than it should be ...)
+
+```{r params_fancy}
+ff <- sir_simulator$ad_fun()
+## ugh, shouldn't need to do this by hand
+par_names <- gsub("log_", "",
+                  sir_simulator$current$params_frame()$mat)
+class(ff) <- "TMB"
+if (requireNamespace("broom.mixed")) {
+    (broom.mixed::tidy(ff, conf.int = TRUE)
+        |> select(-c(type, std.error))
+        |> mutate(term = par_names)
+        |> mutate(across(where(is.numeric), exp))
+        |> as_tibble()
+    )
+}
+```
+
+These correspond to true values of 0.2, 1, so pretty close.
+
+**fixme**: can we handle back-transformation/parameter naming more nicely? `coef()`, `summary()` methods ... ??
+
+The best-fit parameters are stored *internally*, so if we re-run the `$report()` method we will get information about the predicted best-fit trajectory:
+
+```{r plot_results}
+sim_vals <- (sir_simulator$report(.phases = "during")
+    |> filter(matrix == "state", row == "I")
+)
+gg0 + geom_line(data = sim_vals, aes(y= value), colour = "red")
+```
+
+## Alternative model formulations
+
+Here we'll show off a few alternate choices you could have made. We'll (1) use real data instead of simulated; (2) fit `beta` *and* `gamma`, (3) use a negative binomial response (which needs a dispersion parameter `I_disp` instead of a standard deviation ... (should we worry about what "in bed" means? Do we need a more complex model? Or is that jumping too far ahead?)
+
+```{r next_example, eval = FALSE}
+if (require("outbreaks")) {
+    sir_simulator <- mk_sim()
+    mk_calibrate(sir_simulator,
+     data = influenza_england_1978_school["in_bed"],
+     params = list(beta = 1, gamma = 0.5, I_disp = 1),
+     transforms = list(beta = "log", gamma = "log", I_disp = "log"),
+     exprs = list(log_lik ~ dnbinom(I_obs, mu=I, size=I_disp)),
+     )
+}
+## replace N with 763
+## I can sir_simulator$current$simulator$get$initial("I"); how do I replace the value?
+## (and similarly for S)
+## show priors???
+```
+
+## 'Hello, World' the hard way
+
+This section explains what is going on under the hood in `macpan2helpers::mk_calibrate()`
+
+### Step 0: recreate the simulator
+
+Since trying to add the same matrix to a simulator twice causes an error, we'll re-run the `mk_sim()` function to create a new instance of the simulator:
+
+```{r rebuild1}
+sir_simulator <- mk_sim()
 ```
 
 ### Step 1: add observed data and slots for history etc.
@@ -180,78 +314,12 @@ sir_simulator$objective(c(1,1))
 sir_simulator$objective(c(0,1))
 ```
 
-```{r fit, eval = FALSE}
-## these were some other things I tried out when debugging ...
-print(sir_simulator$get$initial("log_I_sd"))
-print(sir_simulator$get$initial("log_beta"))
-print(sir_simulator$current$params_frame())
-sir_simulator$report()
-```
-
-Another sanity check: make sure that the starting values give a reasonable-looking trajectory.
-
-```{r plot1}
-(sir_simulator$report(c(0,1)) |>
- filter(matrix == "state", row == "I") |>
- ggplot(aes(time, value)) + geom_line()
-)
-```
-
-The simulated trajectory is **not** sensible in this case - the `log_beta` value is way too large (we set the default to $\exp(1) \approx 2.78$, while we know in this case that the true value is 0.2). Hopefully in a real system we would know enough to get reasonable order-of-magnitude starting values. (If we really knew that $\gamma \approx 0.1$, we would know that a starting value of $\log(\beta)=1$ would correspond to an ${\cal R}_0 \approx 28$, clearly unrealistic for most infectious diseases ...
-
-Setting $\log(\beta)=0$ instead gives us a trajectory that is still very unrealistic (the peak of our observed prevalence is only 16.7).
-
-```{r plot2}
-(sir_simulator$report(c(0,0)) |>
- filter(matrix == "state", row == "I") |>
- ggplot(aes(time, value)) + geom_line()
-)
-```
+If you get error messages when running the objective function, `sir_simulator$report()` will help you debug by printing the expression that gave rise to the errors. `sir_simulator$get$initial(<varname>)` will print the initial values being used, while `sir_simulator$current$params_frame()` will print the full parameter data frame.
 
 **fixme**: easier way to substitute a single parameter value?  Way to modify starting conditions for optimizer on the fly? (Specifying `start` as an argument gives 'formal argument "start" matched by multiple actual arguments' -- there should be a "replace if present" functionality)
 
-```{r sir_fit, results = "hide"}
+```{r sir_fit2, results = "hide"}
 fit <- sir_simulator$optimize$nlminb()
-```
-
-Print the results of `nlminb` - **always check the value of the convergence code** (if it's not 0, then something *may* have gone wrong ...)
-
-```{r check_fit}
-print(fit)
-```
-
-Back-transform the parameters:
-
-```{r params}
-exp(fit$par)
-```
-
-Get more information:
-
-```{r params_fancy}
-ff <- sir_simulator$ad_fun()
-class(ff) <- "TMB"
-if (requireNamespace("broom.mixed")) {
-    (broom.mixed::tidy(ff, conf.int = TRUE)
-        |> select(-c(type, std.error))
-        ## ugh, shouldn't need to do this by hand
-        |> mutate(term = c("I_sd", "beta"))
-        |> mutate(across(where(is.numeric), exp))
-    )
-}
-```
-
-These correspond to true values of 0.2, 1, so pretty close.
-
-**fixme**: can we handle back-transformation/parameter naming more nicely? `coef()`, `summary()` methods ... ??
-
-The best-fit parameters are stored *internally*, so if we re-run the `$report()` method we will get information about the predicted best-fit trajectory:
-
-```{r plot_results}
-sim_vals <- (sir_simulator$report(.phases = "during")
-    |> filter(matrix == "state", row == "I")
-)
-gg0 + geom_line(data = sim_vals, aes(y= value), colour = "red")
 ```
 
 **fixme**: what next? Show a fit to real data? Comparison with [fitode](https://github.com/parksw3/fitode) ?
