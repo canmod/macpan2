@@ -116,7 +116,7 @@ Setting $\log(\beta)=0$ instead gives us a trajectory that is still very unreali
 Let's replace the starting value for `log_beta` with 0:
 
 ```{r repl_param}
-sir_simulator$replace$params(0, "log_beta")
+sir_simulator$replace$params(c(0, 1), c("log_beta", "log_I_sd"))
 ```
 
 (In a proper workflow we might prefer to go back upstream to wherever we defined the default values, rather than resetting the value on the fly ...)
