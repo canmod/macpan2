@@ -283,7 +283,7 @@ the predicted best-fit trajectory:</p>
 </div>
 </div>
 <div class="section level2">
-<h2 id="alternative-model-formulations">Alternative model formulations<a class="anchor" aria-label="anchor" href="#alternative-model-formulations"></a>
+<h2 id="a-slightly-harder-more-realistic-example">A slightly harder, more realistic example<a class="anchor" aria-label="anchor" href="#a-slightly-harder-more-realistic-example"></a>
 </h2>
 <p>Here we’ll show off a few alternate choices you could have made.
 We’ll (1) use real data instead of simulated; (2) fit <code>beta</code>
@@ -297,7 +297,7 @@ standard deviation …)</p>
 <span>             data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>I_obs <span class="op">=</span> <span class="va">influenza_england_1978_school</span><span class="op">$</span><span class="va">in_bed</span><span class="op">)</span>,</span>
 <span>             params <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>beta <span class="op">=</span> <span class="fl">1</span>, gamma <span class="op">=</span> <span class="fl">0.5</span>, I_disp <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
 <span>             transforms <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>beta <span class="op">=</span> <span class="st">"log"</span>, gamma <span class="op">=</span> <span class="st">"log"</span>, I_disp <span class="op">=</span> <span class="st">"log"</span><span class="op">)</span>,</span>
-<span>             exprs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">log_lik</span> <span class="op">~</span> <span class="fu"><a href="../reference/engine_functions.html">dnbinom</a></span><span class="op">(</span><span class="va">I_obs</span>, <span class="va">I</span>, <span class="va">I_disp</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>             exprs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">log_lik</span> <span class="op">~</span> <span class="fu"><a href="../reference/engine_functions.html">dnbinom</a></span><span class="op">(</span><span class="va">I_obs</span>, <span class="va">I</span>, <span class="va">I_disp</span><span class="op">)</span><span class="op">)</span></span>
 <span>             <span class="op">)</span></span>
 <span><span class="co">#&gt; NULL</span></span>
 <span><span class="co">## basic sanity check</span></span>
@@ -329,8 +329,13 @@ parameters, then plots the results along with the data.)</p>
 <p><img src="calibration_files/figure-html/sim_test2-1.png" width="576"></p>
 <p><code>optimize$nlminb()</code> fails (obscurely) for our first set of
 starting values, but works OK if we increase <code>beta</code>:</p>
-<p><strong>fixme</strong>: diagnose why optimization fails (parameters
-aren’t <em>that</em> bad??)</p>
+<p><strong>fixme</strong>: (1) clarify that default parameters need to
+be transformed (i.e. this <em>does</em> work if we
+<code>$replace$params(log(c(1, 0.5, 1)), ...)</code>); (2) save loglik
+values per point so that we can see why the original (untransformed)
+values (1, 0.5, 1) lead to infinite log-likelihoods, even when we think
+we’re clamping variables … ?? (The simulated output doesn’t look
+<em>that</em> crazy …)</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_simulator</span><span class="op">$</span><span class="va">replace</span><span class="op">$</span><span class="fu">params</span><span class="op">(</span><span class="fu"><a href="../reference/engine_functions.html">log</a></span><span class="op">(</span><span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">0.5</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span>, <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"log_beta"</span>, <span class="st">"log_gamma"</span>, <span class="st">"log_I_disp"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="va">sir_simulator</span><span class="op">$</span><span class="va">optimize</span><span class="op">$</span><span class="fu">nlminb</span><span class="op">(</span><span class="op">)</span></span>
@@ -360,7 +365,18 @@ bed; we haven’t allowed for an exposed class …).</p>
 <li>add more information from the <a href="https://www-ncbi-nlm-nih-gov/pmc/articles/PMC1603269/pdf/brmedj00115-0064.pdf" class="external-link">original
 article</a> about probable starting date, duration, natural
 history?</li>
+<li>Comparison with <a href="https://github.com/parksw3/fitode" class="external-link">fitode</a> ?</li>
+<li>is it worth trying ‘non-statistical’ objective functions (SSQ,
+chi-squared stat)? Extend <code>mk_calibrate</code> to support?</li>
+<li>add priors/regularization??</li>
+<li>add accumulator compartment and compute incidence</li>
+<li>examples of (statistical) diagnostics? e.g. compute residuals, plot
+vs. time or vs fitted values, scale-location plot, etc. ?</li>
 </ul>
+<p><strong>fixme</strong>: <em>intermediate</em> examples (simple
+time-varying parameters, irregularly sampled data, fitting
+prevalence/hospitalization/death, fitting multiple data streams …) try
+to minimize ‘boiler plate’, focus on added features in each model …</p>
 </div>
 <div class="section level2">
 <h2 id="hello-world-the-hard-way">‘Hello, World’ the hard way<a class="anchor" aria-label="anchor" href="#hello-world-the-hard-way"></a>
@@ -530,25 +546,6 @@ value? Way to modify starting conditions for optimizer on the fly?
 “replace if present” functionality)</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="va">sir_simulator</span><span class="op">$</span><span class="va">optimize</span><span class="op">$</span><span class="fu">nlminb</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><strong>fixme</strong>: what next? Show a fit to real data?
-Comparison with <a href="https://github.com/parksw3/fitode" class="external-link">fitode</a>
-?</p>
-<p><strong>fixme</strong>: more variations/examples:</p>
-<ul>
-<li>fit multiple parameters</li>
-<li>change objective function (Poisson, nbinom, SSQ, chi-squared stat
-…)</li>
-<li>add priors/regularization??</li>
-<li>add accumulator compartment and compute incidence</li>
-</ul>
-<p><strong>fixme</strong>: examples of (statistical) diagnostics?
-e.g. compute residuals, plot vs. time or vs fitted values,
-scale-location plot, etc. ?</p>
-<p><strong>fixme</strong>: add some <em>intermediate</em> examples
-(simple time-varying parameters, Poisson/negative binomial responses,
-irregularly sampled data, fitting prevalence/hospitalization/death,
-fitting multiple data streams …) try to minimize ‘boiler plate’, focus
-on added features in each model …</p>
 </div>
 </div>
 <div class="section level2">
