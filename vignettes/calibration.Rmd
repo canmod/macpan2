@@ -169,7 +169,7 @@ sim_vals <- (sir_simulator$report(.phases = "during")
 gg0 + geom_line(data = sim_vals, aes(y= value), colour = "red")
 ```
 
-## Alternative model formulations
+## A slightly harder, more realistic example
 
 Here we'll show off a few alternate choices you could have made. We'll (1) use real data instead of simulated; (2) fit `beta` *and* `gamma`, (3) use a negative binomial response (which needs a dispersion parameter `I_disp` instead of a standard deviation ...)
 
@@ -180,7 +180,7 @@ mk_calibrate(sir_simulator,
              data = data.frame(I_obs = influenza_england_1978_school$in_bed),
              params = list(beta = 1, gamma = 0.5, I_disp = 1),
              transforms = list(beta = "log", gamma = "log", I_disp = "log"),
-             exprs = list(log_lik ~ dnbinom(I_obs, I, I_disp)),
+             exprs = list(log_lik ~ dnbinom(I_obs, I, I_disp))
              )
 ## basic sanity check
 sir_simulator$objective(log(c(1, 0.5, 1)))
@@ -210,9 +210,23 @@ Not great: it helps if we bump up the value of `beta` (to $\mathcal{R}_0 = 4$):
 sim_plot(pars = log(c(2, 0.5, 1)))
 ```
 
+```{r echo=FALSE, eval = FALSE}
+## FIXME: apparently current parameter values are *not* transformed when setting transformation??
+##  is this order-dependent? (i.e., need to set up transformation before sending parameters or vice versa?
+sir_simulator$current$params_frame()
+sir_simulator$objective(c(1, 0.5, 1)) ## NaN
+sim_plot(pars = c(1, 0.5, 1))
+sir_simulator$objective(log(c(1, 0.5, 1))) ## 94.7
+## testing
+sir_simulator$optimize$nlminb(control = list(trace = TRUE)) ## 1 iteration, objective function == Inf (clamping doesn't help)
+sir_simulator$replace$params(log(c(1, 0.5, 1)), c("log_beta", "log_gamma", "log_I_disp"))
+sir_simulator$optimize$nlminb(control = list(trace = TRUE)) ## 1 iteration, objective function == Inf (clamping doesn't help)
+```
+
 `optimize$nlminb()` fails (obscurely) for our first set of starting values, but works OK if we increase `beta`:
 
-**fixme**: diagnose why optimization fails (parameters aren't *that* bad??)
+**fixme**: (1) clarify that default parameters need to be transformed (i.e. this *does* work if we  `$replace$params(log(c(1, 0.5, 1)), ...)`); (2) save loglik values per point so that we can see why the original (untransformed) values (1, 0.5, 1) lead to infinite log-likelihoods, even when we think we're clamping variables ... ?? (The simulated output doesn't look *that* crazy ...)
+
 
 ```{r fit_real, eval=require("outbreaks")}
 sir_simulator$replace$params(log(c(2, 0.5, 1)), c("log_beta", "log_gamma", "log_I_disp"))
@@ -231,6 +245,13 @@ The fit isn't perfect, but we can think of a number of reasons for that (people 
 - illustrate priors?
 - illustrate fitting to incidence instead of prevalence?
 - add more information from the [original article](https://www-ncbi-nlm-nih-gov/pmc/articles/PMC1603269/pdf/brmedj00115-0064.pdf) about probable starting date, duration, natural history?
+- Comparison with [fitode](https://github.com/parksw3/fitode) ?
+- is it worth trying 'non-statistical' objective functions (SSQ, chi-squared stat)? Extend `mk_calibrate` to support?
+- add priors/regularization??
+- add accumulator compartment and compute incidence
+- examples of (statistical) diagnostics? e.g. compute residuals, plot vs. time or vs fitted values, scale-location plot, etc. ?
+
+**fixme**: *intermediate* examples (simple time-varying parameters, irregularly sampled data, fitting prevalence/hospitalization/death, fitting multiple data streams ...) try to minimize 'boiler plate', focus on added features in each model ...
 
 ## 'Hello, World' the hard way
 
@@ -361,19 +382,6 @@ If you get error messages when running the objective function, `sir_simulator$re
 ```{r sir_fit2, results = "hide"}
 fit <- sir_simulator$optimize$nlminb()
 ```
-
-**fixme**: what next? Show a fit to real data? Comparison with [fitode](https://github.com/parksw3/fitode) ?
-
-**fixme**: more variations/examples:
-
-- fit multiple parameters
-- change objective function (Poisson, nbinom, SSQ, chi-squared stat ...)
-- add priors/regularization??
-- add accumulator compartment and compute incidence
-
-**fixme**: examples of (statistical) diagnostics? e.g. compute residuals, plot vs. time or vs fitted values, scale-location plot, etc. ?
-
-**fixme**: add some *intermediate* examples (simple time-varying parameters, Poisson/negative binomial responses, irregularly sampled data, fitting prevalence/hospitalization/death, fitting multiple data streams ...) try to minimize 'boiler plate', focus on added features in each model ...
 
 ## Measles Data
 
