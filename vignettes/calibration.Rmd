@@ -140,20 +140,18 @@ exp(fit$par)
 
 Get more information (this is a little uglier than it should be ...)
 
-```{r params_fancy}
+```{r params_fancy, eval = require("broom.mixed")}
 ff <- sir_simulator$ad_fun()
 ## ugh, shouldn't need to do this by hand
 par_names <- gsub("log_", "",
                   sir_simulator$current$params_frame()$mat)
 class(ff) <- "TMB"
-if (requireNamespace("broom.mixed")) {
-    (broom.mixed::tidy(ff, conf.int = TRUE)
-        |> select(-c(type, std.error))
-        |> mutate(term = par_names)
-        |> mutate(across(where(is.numeric), exp))
-        |> as_tibble()
-    )
-}
+(broom.mixed::tidy(ff, conf.int = TRUE)
+    |> select(-c(type, std.error))
+    |> mutate(term = par_names)
+    |> mutate(across(where(is.numeric), exp))
+    |> as_tibble()
+)
 ```
 
 These correspond to true values of 0.2, 1, so pretty close.
@@ -240,7 +238,9 @@ sim_plot(pars = fit$par)
 The fit isn't perfect, but we can think of a number of reasons for that (people are complicated; our model is only tracking the number of current infected children, while the data are numbers of children in bed; we haven't allowed for an exposed class ...).
 
 
-**experimental** confidence intervals (first plot requires most recent macpan2). While this code isn't horribly complex, hopefully it will all be somewhat more streamlined/automated in the future. Computing confidence or prediction intervals is a fairly big subject; see Bolker (2008) chapter 7 for an introduction to some of the issues
+### computing and plotting confidence and prediction intervals (EXPERIMENTAL)
+
+While this code isn't horribly complex, hopefully it will all be somewhat more streamlined/automated in the future. Computing confidence or prediction intervals is a fairly big subject; see Bolker (2008) chapter 7 for an introduction to some of the issues.
 
 ```{r sdreport}
 ## sd vector corresponds to the same information as the
@@ -341,6 +341,22 @@ suppressWarnings(
 
 Unsurprisingly, the prediction intervals (ribbon) are much wider than the delta-method or ensemble-quantile (dashed and dotted lines) intervals.
 
+## Hamiltonian MC
+
+**under development**
+
+```{r tmbstan1, eval = require("tmbstan"), results = "hide"}
+library(TMB)
+library(tmbstan)
+stan1 <- tmbstan(sir_simulator$ad_fun(), seed = 101)
+```
+
+```{r tmbparams, eval = require("broom.mixed")
+broom.mixed::tidy(stan1, conf.int = TRUE)
+```
+
+Can extract samples via e.g. `as.data.frame()`  (or `tidybayes` package), run ensembles, ...
+
 **fixme**: 
 
 - add more information from the [original 1978-influenza article](https://www-ncbi-nlm-nih-gov/pmc/articles/PMC1603269/pdf/brmedj00115-0064.pdf) about probable starting date, duration, natural history?
@@ -350,11 +366,13 @@ Unsurprisingly, the prediction intervals (ribbon) are much wider than the delta-
 - examples of adding accumulator compartment and computing/matching to incidence
 - examples of (statistical) diagnostics? e.g. compute residuals, plot vs. time or vs fitted values, scale-location plot, etc. ?
 - more CI stuff: importance sampling, Juul et al. functional ribbons, ...
+- `tmbstan` example??
 - *intermediate* examples 
    - simple time-varying parameters
    - irregularly sampled data
    - fitting prevalence/hospitalization/death
    - fitting multiple data streams ...
+   - forecasting/scenarios
 
 ## 'Hello, World' the hard way
 

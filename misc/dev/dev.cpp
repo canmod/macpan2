@@ -8,6 +8,8 @@
 #include <map>
 #include <math.h> 	// isnan() is defined
 #include <sys/time.h>
+// https://github.com/kaskr/adcomp/wiki/Development#distributing-code
+#define TMB_LIB_INIT R_init_macpan2
 #include <TMB.hpp>
 #include <cppad/local/cond_exp.hpp>
 
@@ -2271,6 +2273,8 @@ Type objective_function<Type>::operator() ()
     }
 
     REPORT(values)
+    ADREPORT(values)
+      
 
     // 7 Calc the return of the objective function
     matrix<Type> ret;

@@ -31,7 +31,8 @@ Suggests:
     macpan2helpers,
     kableExtra,
     broom.mixed,
-    outbreaks
+    outbreaks,
+    tmbstan
 LinkingTo:
     TMB,
     RcppEigen,
