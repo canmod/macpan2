@@ -239,9 +239,59 @@ sim_plot(pars = fit$par)
 
 The fit isn't perfect, but we can think of a number of reasons for that (people are complicated; our model is only tracking the number of current infected children, while the data are numbers of children in bed; we haven't allowed for an exposed class ...).
 
+
+**experimental** delta-method-based confidence intervals (requires most recent macpan2
+
+```{r}
+## sd vector corresponds to the same information as the
+##  internal 'values' object, which consists of 4 columns
+##  of indices {matrix index, time, row index, column index}
+##  and a 5th column that is the actual values ...
+sdr <- TMB::sdreport(sir_simulator$ad_fun()) 
+ss <- sdr$sd |> matrix(ncol = 5)
+res <- (cbind(sir_simulator$report(), sd = ss[,5])
+    |> mutate(var = factor(row, levels = c("S", "I", "R")),
+              lwr_delta = value - 1.96*sd,
+              upr_delta = value + 1.96*sd)
+    |> select(-c(matrix, row, col))
+    ## don't necessarily need to keep sd column but ...
+)
+obs <- data.frame(time = seq(nrow(influenza_england_1978_school)),
+                  value = influenza_england_1978_school$in_bed)
+gg_base <- ggplot(res, aes(x = time, y = value)) + geom_line(aes(colour = var))
+    geom_point(data = obs)
+gg_ci1 <- gg_base +
+    geom_ribbon(aes(ymin = lwr_delta, ymax = upr_delta, fill = var),
+                alpha = 0.3, colour = NA)
+print(gg_ci1)
+```
+
+- These intervals are based on the *delta method*, as such they are approximate (nearly all CIs are approximations, but the delta method assumes both (1) multivariate normality of the sampling distribution and (2) a quadratic approximation to any nonlinearities in the model). You can see that this leads to *negative* values within the CI range at some points ...
+- These are confidence intervals, not prediction intervals (so we don't necessarily expect the points to lie within the envelope);
+prediction intervals for non-Normal errors are a little bit tricky (maybe something about this in Bolker 2008?), not worth doing right now.
+
+We can also generate intervals based on multivariate normal sampling, which relaxes the second assumption but not the first.
+
+```{r ci_ensemble}
+set.seed(101)
+nsim <- 1000
+parvals <- MASS::mvrnorm(nsim, mu = sdr$par.fixed, Sigma = sdr$cov.fixed)
+sim_ensemble <- apply(parvals, 1, function(p) sir_simulator$report(p)$value) ## 48 x 1000
+sim_quantiles <- (t(apply(sim_ensemble, 1, quantile, c(0.025, 0.975)))
+    |> as.data.frame()
+    |> setNames(c("lwr_ens", "upr_ens"))
+)
+res2 <- cbind(res, sim_quantiles)
+gg_ci2 <- (gg_base %+% res2) +
+    geom_ribbon(aes(ymin = lwr_delta, ymax = upr_delta, colour = var), lty = 2, fill = NA) +
+    geom_ribbon(aes(ymin = lwr_ens, ymax = upr_ens, fill = var), colour = NA, alpha = 0.3)
+print(gg_ci2)
+```
+
+In this case the delta-method (dotted liens) and ensemble CIs (ribbons) are not that different (we can see that the ensemble CIs take care of the negative values in the CI); we certainly wouldn't be badly misled by the delta method CIs in this case.
+
 **fixme**: 
 
-- SDs via `sdreport`? ensembles?
 - illustrate priors?
 - illustrate fitting to incidence instead of prevalence?
 - add more information from the [original article](https://www-ncbi-nlm-nih-gov/pmc/articles/PMC1603269/pdf/brmedj00115-0064.pdf) about probable starting date, duration, natural history?

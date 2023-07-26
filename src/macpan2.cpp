@@ -2272,6 +2272,7 @@ Type objective_function<Type>::operator() ()
     }
 
     REPORT(values)
+    ADREPORT(values)
 
     // 7 Calc the return of the objective function
     matrix<Type> ret;
