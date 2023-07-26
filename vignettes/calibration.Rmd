@@ -351,7 +351,7 @@ library(tmbstan)
 stan1 <- tmbstan(sir_simulator$ad_fun(), seed = 101)
 ```
 
-```{r tmbparams, eval = require("broom.mixed")
+```{r tmbparams, eval = require("broom.mixed")}
 broom.mixed::tidy(stan1, conf.int = TRUE)
 ```
 
