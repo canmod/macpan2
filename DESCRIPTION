@@ -30,7 +30,8 @@ Suggests:
     visNetwork,
     macpan2helpers,
     kableExtra,
-    broom.mixed
+    broom.mixed,
+    outbreaks
 LinkingTo:
     TMB,
     RcppEigen,

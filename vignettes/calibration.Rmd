@@ -173,7 +173,7 @@ gg0 + geom_line(data = sim_vals, aes(y= value), colour = "red")
 
 Here we'll show off a few alternate choices you could have made. We'll (1) use real data instead of simulated; (2) fit `beta` *and* `gamma`, (3) use a negative binomial response (which needs a dispersion parameter `I_disp` instead of a standard deviation ...)
 
-```{r next_example, eval = require("outbreaks")}
+```{r next_example, eval=require("outbreaks")}
 library(outbreaks)
 sir_simulator <- mk_sim(init_state = c(S = 760, I = 3, R = 0))
 mk_calibrate(sir_simulator,
@@ -190,7 +190,7 @@ How does this look with our default parameters? (To save typing I'm writing a ge
 
 **fixme**: some basic plotting functionality in `macpan2helpers` ?
 
-```{r sim_test, eval = require("outbreaks")}
+```{r sim_test, eval=require("outbreaks")}
 sim_plot <- function(pars = log(c(1, 0.5, 1))) {
     predvals <- (sir_simulator$report(pars, .phases = "during")
         |> filter(row == "I")
@@ -206,7 +206,7 @@ sim_plot()
 
 Not great: it helps if we bump up the value of `beta` (to $\mathcal{R}_0 = 4$):
 
-```{r sim_test2, eval = require("outbreaks")}
+```{r sim_test2, eval=require("outbreaks")}
 sim_plot(pars = log(c(2, 0.5, 1)))
 ```
 
@@ -214,12 +214,12 @@ sim_plot(pars = log(c(2, 0.5, 1)))
 
 **fixme**: diagnose why optimization fails (parameters aren't *that* bad??)
 
-```{r fit_real, eval = require("outbreaks")}
+```{r fit_real, eval=require("outbreaks")}
 sir_simulator$replace$params(log(c(2, 0.5, 1)), c("log_beta", "log_gamma", "log_I_disp"))
 fit <- sir_simulator$optimize$nlminb()
 ```
 
-```{r show_real, eval = require("outbreaks")}
+```{r show_real, eval=require("outbreaks")}
 sim_plot(pars = fit$par)
 ```
 
