@@ -261,7 +261,8 @@ value of the convergence code</strong> (if it’s not 0, then something
 <span><span class="co">#&gt; outer mgc:  63.85069 </span></span>
 <span><span class="co">#&gt; outer mgc:  63.73186 </span></span>
 <span><span class="co">#&gt; outer mgc:  0.1998001 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.2002001</span></span>
+<span><span class="co">#&gt; outer mgc:  0.2002001 </span></span>
+<span><span class="co">#&gt; outer mgc:  145.0178</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 2 × 4</span></span></span>
 <span><span class="co">#&gt;   term  estimate conf.low conf.high</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
@@ -357,9 +358,78 @@ we’re clamping variables … ?? (The simulated output doesn’t look
 that (people are complicated; our model is only tracking the number of
 current infected children, while the data are numbers of children in
 bed; we haven’t allowed for an exposed class …).</p>
+<p><strong>experimental</strong> delta-method-based confidence intervals
+(requires most recent macpan2</p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">## sd vector corresponds to the same information as the</span></span>
+<span><span class="co">##  internal 'values' object, which consists of 4 columns</span></span>
+<span><span class="co">##  of indices {matrix index, time, row index, column index}</span></span>
+<span><span class="co">##  and a 5th column that is the actual values ...</span></span>
+<span><span class="va">sdr</span> <span class="op">&lt;-</span> <span class="fu">TMB</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/TMB/man/sdreport.html" class="external-link">sdreport</a></span><span class="op">(</span><span class="va">sir_simulator</span><span class="op">$</span><span class="fu">ad_fun</span><span class="op">(</span><span class="op">)</span><span class="op">)</span> </span>
+<span><span class="co">#&gt; outer mgc:  5.385355e-14 </span></span>
+<span><span class="co">#&gt; outer mgc:  2.13555 </span></span>
+<span><span class="co">#&gt; outer mgc:  2.137123 </span></span>
+<span><span class="co">#&gt; outer mgc:  0.5301412 </span></span>
+<span><span class="co">#&gt; outer mgc:  0.5279318 </span></span>
+<span><span class="co">#&gt; outer mgc:  0.007252309 </span></span>
+<span><span class="co">#&gt; outer mgc:  0.007242641 </span></span>
+<span><span class="co">#&gt; outer mgc:  1437.535</span></span>
+<span><span class="va">ss</span> <span class="op">&lt;-</span> <span class="va">sdr</span><span class="op">$</span><span class="va">sd</span> <span class="op">|&gt;</span> <span class="fu"><a href="../reference/engine_functions.html">matrix</a></span><span class="op">(</span>ncol <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
+<span><span class="va">res</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="fu"><a href="../reference/engine_functions.html">cbind</a></span><span class="op">(</span><span class="va">sir_simulator</span><span class="op">$</span><span class="fu">report</span><span class="op">(</span><span class="op">)</span>, sd <span class="op">=</span> <span class="va">ss</span><span class="op">[</span>,<span class="fl">5</span><span class="op">]</span><span class="op">)</span></span>
+<span>    <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>var <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">row</span>, levels <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"S"</span>, <span class="st">"I"</span>, <span class="st">"R"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>              lwr_delta <span class="op">=</span> <span class="va">value</span> <span class="op">-</span> <span class="fl">1.96</span><span class="op">*</span><span class="va">sd</span>,</span>
+<span>              upr_delta <span class="op">=</span> <span class="va">value</span> <span class="op">+</span> <span class="fl">1.96</span><span class="op">*</span><span class="va">sd</span><span class="op">)</span></span>
+<span>    <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="va">matrix</span>, <span class="va">row</span>, <span class="va">col</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="co">## don't necessarily need to keep sd column but ...</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">obs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>time <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">seq</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">influenza_england_1978_school</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>                  value <span class="op">=</span> <span class="va">influenza_england_1978_school</span><span class="op">$</span><span class="va">in_bed</span><span class="op">)</span></span>
+<span><span class="va">gg_base</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">res</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">time</span>, y <span class="op">=</span> <span class="va">value</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>colour <span class="op">=</span> <span class="va">var</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">obs</span><span class="op">)</span></span>
+<span><span class="co">#&gt; geom_point: na.rm = FALSE</span></span>
+<span><span class="co">#&gt; stat_identity: na.rm = FALSE</span></span>
+<span><span class="co">#&gt; position_identity</span></span>
+<span><span class="va">gg_ci1</span> <span class="op">&lt;-</span> <span class="va">gg_base</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html" class="external-link">geom_ribbon</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>ymin <span class="op">=</span> <span class="va">lwr_delta</span>, ymax <span class="op">=</span> <span class="va">upr_delta</span>, fill <span class="op">=</span> <span class="va">var</span><span class="op">)</span>,</span>
+<span>                alpha <span class="op">=</span> <span class="fl">0.3</span>, colour <span class="op">=</span> <span class="cn">NA</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">gg_ci1</span><span class="op">)</span></span></code></pre></div>
+<p><img src="calibration_files/figure-html/unnamed-chunk-2-1.png" width="576"></p>
+<ul>
+<li>These intervals are based on the <em>delta method</em>, as such they
+are approximate (nearly all CIs are approximations, but the delta method
+assumes both (1) multivariate normality of the sampling distribution and
+(2) a quadratic approximation to any nonlinearities in the model). You
+can see that this leads to <em>negative</em> values within the CI range
+at some points …</li>
+<li>These are confidence intervals, not prediction intervals (so we
+don’t necessarily expect the points to lie within the envelope);
+prediction intervals for non-Normal errors are a little bit tricky
+(maybe something about this in Bolker 2008?), not worth doing right
+now.</li>
+</ul>
+<p>We can also generate intervals based on multivariate normal sampling,
+which relaxes the second assumption but not the first.</p>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">101</span><span class="op">)</span></span>
+<span><span class="va">nsim</span> <span class="op">&lt;-</span> <span class="fl">1000</span></span>
+<span><span class="va">parvals</span> <span class="op">&lt;-</span> <span class="fu">MASS</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/MASS/man/mvrnorm.html" class="external-link">mvrnorm</a></span><span class="op">(</span><span class="va">nsim</span>, mu <span class="op">=</span> <span class="va">sdr</span><span class="op">$</span><span class="va">par.fixed</span>, Sigma <span class="op">=</span> <span class="va">sdr</span><span class="op">$</span><span class="va">cov.fixed</span><span class="op">)</span></span>
+<span><span class="va">sim_ensemble</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">parvals</span>, <span class="fl">1</span>, <span class="kw">function</span><span class="op">(</span><span class="va">p</span><span class="op">)</span> <span class="va">sir_simulator</span><span class="op">$</span><span class="fu">report</span><span class="op">(</span><span class="va">p</span><span class="op">)</span><span class="op">$</span><span class="va">value</span><span class="op">)</span> <span class="co">## 48 x 1000</span></span>
+<span><span class="va">sim_quantiles</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="fu"><a href="../reference/engine_functions.html">t</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">sim_ensemble</span>, <span class="fl">1</span>, <span class="va">quantile</span>, <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="fl">0.025</span>, <span class="fl">0.975</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>    <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/stats/setNames.html" class="external-link">setNames</a></span><span class="op">(</span><span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"lwr_ens"</span>, <span class="st">"upr_ens"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">res2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/engine_functions.html">cbind</a></span><span class="op">(</span><span class="va">res</span>, <span class="va">sim_quantiles</span><span class="op">)</span></span>
+<span><span class="va">gg_ci2</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">gg_base</span> <span class="op"><a href="https://ggplot2.tidyverse.org/reference/gg-add.html" class="external-link">%+%</a></span> <span class="va">res2</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html" class="external-link">geom_ribbon</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>ymin <span class="op">=</span> <span class="va">lwr_delta</span>, ymax <span class="op">=</span> <span class="va">upr_delta</span>, colour <span class="op">=</span> <span class="va">var</span><span class="op">)</span>, lty <span class="op">=</span> <span class="fl">2</span>, fill <span class="op">=</span> <span class="cn">NA</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html" class="external-link">geom_ribbon</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>ymin <span class="op">=</span> <span class="va">lwr_ens</span>, ymax <span class="op">=</span> <span class="va">upr_ens</span>, fill <span class="op">=</span> <span class="va">var</span><span class="op">)</span>, colour <span class="op">=</span> <span class="cn">NA</span>, alpha <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">gg_ci2</span><span class="op">)</span></span></code></pre></div>
+<p><img src="calibration_files/figure-html/ci_ensemble-1.png" width="576"></p>
+<p>In this case the delta-method (dotted liens) and ensemble CIs
+(ribbons) are not that different (we can see that the ensemble CIs take
+care of the negative values in the CI); we certainly wouldn’t be badly
+misled by the delta method CIs in this case.</p>
 <p><strong>fixme</strong>:</p>
 <ul>
-<li>SDs via <code>sdreport</code>? ensembles?</li>
 <li>illustrate priors?</li>
 <li>illustrate fitting to incidence instead of prevalence?</li>
 <li>add more information from the <a href="https://www-ncbi-nlm-nih-gov/pmc/articles/PMC1603269/pdf/brmedj00115-0064.pdf" class="external-link">original
@@ -389,7 +459,7 @@ to minimize ‘boiler plate’, focus on added features in each model …</p>
 <p>Since trying to add the same matrix to a simulator twice causes an
 error, we’ll re-run the <code>mk_sim()</code> function to create a new
 instance of the simulator:</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_simulator</span> <span class="op">&lt;-</span> <span class="fu">mk_sim</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
@@ -419,7 +489,7 @@ compare with observed data</li>
 <li>declare a matrix to store the log-likelihood</li>
 <li>specify which matrices to save and/or return in the report</li>
 </ol>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_simulator</span><span class="op">$</span><span class="va">add</span><span class="op">$</span><span class="fu">matrices</span><span class="op">(</span></span>
 <span>  <span class="co">## observed data</span></span>
 <span>  I_obs <span class="op">=</span> <span class="va">sir_prevalence</span><span class="op">$</span><span class="va">obs_val</span>,</span>
@@ -449,7 +519,7 @@ adds components to an existing <code>TMBSimulator</code> object - in
 this case, expressions that will be computed during the simulation. (In
 this example, since we set <code>.phase = "during"</code>, the
 expressions will be computed at each time step.)</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_simulator</span><span class="op">$</span><span class="va">insert</span><span class="op">$</span><span class="fu">expressions</span><span class="op">(</span></span>
 <span>  <span class="va">I_sim</span> <span class="op">~</span> <span class="va">I</span>,</span>
 <span>  .phase <span class="op">=</span> <span class="st">"during"</span>,</span>
@@ -475,7 +545,7 @@ values)</li>
 simulation history of the <code>I_sim</code> matrix by binding together
 the rows at each iteration.</li>
 </ul>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_simulator</span><span class="op">$</span><span class="va">add</span><span class="op">$</span><span class="fu">matrices</span><span class="op">(</span> I_sd <span class="op">=</span> <span class="fl">1</span> <span class="op">)</span></span>
 <span><span class="va">sir_simulator</span><span class="op">$</span><span class="va">insert</span><span class="op">$</span><span class="fu">expressions</span><span class="op">(</span></span>
 <span>  <span class="va">log_lik</span> <span class="op">~</span> <span class="fu"><a href="../reference/engine_functions.html">dnorm</a></span><span class="op">(</span><span class="va">I_obs</span>, <span class="fu"><a href="../reference/engine_functions.html">rbind_time</a></span><span class="op">(</span><span class="va">I_sim</span><span class="op">)</span>, <span class="va">I_sd</span><span class="op">)</span>,</span>
@@ -483,7 +553,7 @@ the rows at each iteration.</li>
 <span>  <span class="op">)</span></span></code></pre></div>
 <p>Define the objective function (which will almost always be the sum of
 the negative log-likelihoods for each point):</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_simulator</span><span class="op">$</span><span class="va">replace</span><span class="op">$</span><span class="fu">obj_fn</span><span class="op">(</span><span class="op">~</span> <span class="op">-</span><span class="fu"><a href="../reference/engine_functions.html">sum</a></span><span class="op">(</span><span class="va">log_lik</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
@@ -507,7 +577,7 @@ from a CSV file (using <code>read.csv</code> from base R or
 <code>readr::read_csv()</code> from tidyverse), but here we can set up
 the data frame on the fly</li>
 </ul>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_simulator</span><span class="op">$</span><span class="va">add</span><span class="op">$</span><span class="fu">transformations</span><span class="op">(</span><span class="fu"><a href="../reference/Transform.html">Log</a></span><span class="op">(</span><span class="st">"I_sd"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">sir_simulator</span><span class="op">$</span><span class="va">add</span><span class="op">$</span><span class="fu">transformations</span><span class="op">(</span><span class="fu"><a href="../reference/Transform.html">Log</a></span><span class="op">(</span><span class="st">"beta"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">params</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.delim</a></span><span class="op">(</span>sep <span class="op">=</span> <span class="st">"|"</span>, header <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -527,7 +597,7 @@ adds a variable called <code>log_var</code> to the list of matrices.</p>
 objective function before you try to optimize: do you get finite values
 (for reasonable inputs)? Does changing the inputs change the returned
 value?</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_simulator</span><span class="op">$</span><span class="fu">objective</span><span class="op">(</span><span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 3565.546</span></span>
 <span><span class="va">sir_simulator</span><span class="op">$</span><span class="fu">objective</span><span class="op">(</span><span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
@@ -544,7 +614,7 @@ value? Way to modify starting conditions for optimizer on the fly?
 (Specifying <code>start</code> as an argument gives ‘formal argument
 “start” matched by multiple actual arguments’ – there should be a
 “replace if present” functionality)</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="va">sir_simulator</span><span class="op">$</span><span class="va">optimize</span><span class="op">$</span><span class="fu">nlminb</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
@@ -554,7 +624,7 @@ value? Way to modify starting conditions for optimizer on the fly?
 <p>Here is a reasonably difficult problem – fit an SIR model to weekly
 measles incidence data from London UK over about six decades.</p>
 <!-- FIXME: store data locally, don't rely on IIDA ... -->
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">measles</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span></span>
 <span>    <span class="st">"https://raw.githubusercontent.com/davidearn/iidda/master/data"</span>,</span>
@@ -569,7 +639,7 @@ measles incidence data from London UK over about six decades.</p>
 <p><img src="calibration_files/figure-html/sir_plot-1.png" width="576"></p>
 <p>We need to slightly extend the standard SIR model to include waning
 immunity.</p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir</span> <span class="op">=</span> <span class="fu"><a href="../reference/Compartmental.html">Compartmental</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"starter_models"</span>, <span class="st">"sir_waning"</span>, package <span class="op">=</span> <span class="st">"macpan2"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">sir</span><span class="op">$</span><span class="fu">flows</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   from to  flow       type</span></span>
@@ -581,7 +651,7 @@ basis functions</a> to model time-variation in the transmission rate. We
 also make a variety of questionable assumptions (TODO: fix these), but
 the point at the moment is just to illustrate usage and provide a proof
 of concept.</p>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">d</span> <span class="op">=</span> <span class="fl">100</span></span>
 <span><span class="va">n</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">measles</span><span class="op">)</span></span>
 <span><span class="va">simulator</span> <span class="op">=</span> <span class="va">sir</span><span class="op">$</span><span class="va">simulators</span><span class="op">$</span><span class="fu">tmb</span><span class="op">(</span></span>
@@ -633,7 +703,7 @@ of concept.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p>Here is an example simulation from this model, before fitting to
 data.</p>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1L</span><span class="op">)</span></span>
 <span><span class="va">simulated_incidence</span> <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">simulator</span><span class="op">$</span><span class="fu">report</span><span class="op">(</span>.phases <span class="op">=</span> <span class="st">"during"</span><span class="op">)</span>, <span class="va">matrix</span> <span class="op">==</span> <span class="st">"incidence"</span><span class="op">)</span><span class="op">$</span><span class="va">value</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">measles</span><span class="op">$</span><span class="va">date</span>, <span class="va">simulated_incidence</span>, type <span class="op">=</span> <span class="st">"l"</span>, xlab <span class="op">=</span> <span class="st">"time"</span><span class="op">)</span></span></code></pre></div>
@@ -643,7 +713,7 @@ the ability to generate complex incidence patterns not present in the
 simple SIR model without radial basis functions and waning immunity.</p>
 <p>We modify the simulation object to be able to fit to the measles
 data.</p>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">simulator</span><span class="op">$</span><span class="va">add</span><span class="op">$</span><span class="fu">matrices</span><span class="op">(</span></span>
 <span>    reports <span class="op">=</span> <span class="va">measles</span><span class="op">$</span><span class="va">cases</span></span>
 <span>  , log_lik <span class="op">=</span> <span class="va">empty_matrix</span></span>
@@ -674,9 +744,9 @@ data.</p>
 <span><span class="va">simulator</span><span class="op">$</span><span class="va">replace</span><span class="op">$</span><span class="fu">obj_fn</span><span class="op">(</span><span class="op">~</span> <span class="op">-</span> <span class="fu"><a href="../reference/engine_functions.html">sum</a></span><span class="op">(</span><span class="fu"><a href="../reference/engine_functions.html">dpois</a></span><span class="op">(</span><span class="va">reports</span>, <span class="va">sim_reports</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>The optimization takes quite a few minutes, and still doesn’t
 converge in 10000 function evaluations.</p>
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">simulator</span><span class="op">$</span><span class="va">optimize</span><span class="op">$</span><span class="fu">nlminb</span><span class="op">(</span>control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>eval.max <span class="op">=</span> <span class="fl">10000</span>, iter.max <span class="op">=</span> <span class="fl">10000</span>, trace <span class="op">=</span> <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">simulator</span><span class="op">$</span><span class="va">optimization_history</span><span class="op">$</span><span class="fu">get</span><span class="op">(</span><span class="op">)</span><span class="op">[[</span><span class="fl">3</span><span class="op">]</span><span class="op">]</span>  <span class="co">## the 3 is there because we tried two other times</span></span>
 <span><span class="co">#&gt; $par</span></span>
 <span><span class="co">#&gt;        params        params        params        params        params </span></span>
@@ -738,7 +808,7 @@ converge in 10000 function evaluations.</p>
 <span><span class="co">#&gt; $message</span></span>
 <span><span class="co">#&gt; [1] "function evaluation limit reached without convergence (9)"</span></span></code></pre></div>
 <p>Here the red data are fitted and black observed.</p>
-<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">simulated_incidence</span> <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">simulator</span><span class="op">$</span><span class="fu">report</span><span class="op">(</span>.phases <span class="op">=</span> <span class="st">"during"</span><span class="op">)</span>, <span class="va">matrix</span> <span class="op">==</span> <span class="st">"incidence"</span><span class="op">)</span><span class="op">$</span><span class="va">value</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">measles</span><span class="op">$</span><span class="va">date</span>, <span class="va">measles</span><span class="op">$</span><span class="va">cases</span>, xlab <span class="op">=</span> <span class="st">"time"</span>, type <span class="op">=</span> <span class="st">"l"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="va">measles</span><span class="op">$</span><span class="va">date</span>, <span class="va">simulated_incidence</span>, col <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
@@ -752,7 +822,7 @@ papering over the real challenges).</p>
 <p>Here we consider the problem of fitting an SIR model to a simulated
 dataset from this model, such that the simulations pose challenges to
 the fitting machinery.</p>
-<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir</span> <span class="op">=</span> <span class="fu"><a href="../reference/Compartmental.html">Compartmental</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"starter_models"</span>, <span class="st">"sir"</span>, package <span class="op">=</span> <span class="st">"macpan2"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">sir</span><span class="op">$</span><span class="fu">flows_expanded</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   from to  flow       type</span></span>
@@ -760,7 +830,7 @@ the fitting machinery.</p>
 <span><span class="co">#&gt; 2    I  R gamma per_capita</span></span></code></pre></div>
 <p>Our simulation model includes a logistically time-varying
 transmission rate.</p>
-<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">n</span> <span class="op">=</span> <span class="fl">2500</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1L</span><span class="op">)</span></span>
 <span><span class="va">simulator</span> <span class="op">=</span> <span class="va">sir</span><span class="op">$</span><span class="va">simulators</span><span class="op">$</span><span class="fu">tmb</span><span class="op">(</span></span>
@@ -793,7 +863,7 @@ transmission rate.</p>
 <span>  , mat <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">rep</a></span><span class="op">(</span><span class="st">"b"</span>, <span class="fl">2</span><span class="op">)</span></span>
 <span>  , row <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">1</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">5L</span><span class="op">)</span></span>
 <span><span class="va">sims</span> <span class="op">=</span> <span class="va">simulator</span><span class="op">$</span><span class="fu">report</span><span class="op">(</span>.phases <span class="op">=</span> <span class="st">"during"</span><span class="op">)</span></span>
 <span><span class="op">(</span><span class="va">sims</span></span>
@@ -805,7 +875,7 @@ transmission rate.</p>
 <p><img src="calibration_files/figure-html/logistic_plot2-1.png" width="576"></p>
 <p>Fitting to the simulation data, manages to converge, but to the wrong
 value.</p>
-<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">3L</span><span class="op">)</span> <span class="co">## different seeds do result in convergence on the correct value</span></span>
 <span><span class="va">reports</span> <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">sims</span>, <span class="va">matrix</span> <span class="op">==</span> <span class="st">"incidence"</span><span class="op">)</span><span class="op">$</span><span class="va">value</span></span>
 <span><span class="va">simulator</span><span class="op">$</span><span class="va">add</span><span class="op">$</span><span class="fu">matrices</span><span class="op">(</span>reports <span class="op">=</span> <span class="va">reports</span>, report_sim <span class="op">=</span> <span class="va">empty_matrix</span><span class="op">)</span></span>
@@ -867,7 +937,7 @@ with arrows representing the magnitude and direction of the down-hill
 gradient towards the optimum. Notice the very flat gradient in the
 direction along the valley containing the optimum at <span class="math inline">\((0, 1)\)</span>. The gradient is pointing towards
 the valley but not along it. I do not understand why.</p>
-<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">make_liksurf</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">lwr</span> <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">0</span><span class="op">)</span>, <span class="va">upr</span> <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span>,</span>
 <span>                         <span class="va">n</span> <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="fl">41</span>, <span class="fl">41</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="va">lik_surf</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span></span>
@@ -884,7 +954,7 @@ the valley but not along it. I do not understand why.</p>
 <span>    <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">lik_surf</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span><span class="va">lik_surf</span> <span class="op">&lt;-</span> <span class="fu">make_liksurf</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mk_plot</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">dd</span>, <span class="va">arrows</span> <span class="op">=</span> <span class="cn">TRUE</span>, <span class="va">contours</span> <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                    <span class="va">arrow_len</span> <span class="op">=</span> <span class="fl">0.05</span>,</span>
 <span>                    <span class="va">cbrks</span> <span class="op">=</span> <span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span><span class="op">*</span><span class="fl">1e5</span><span class="op">)</span> <span class="op">{</span></span>
@@ -917,12 +987,12 @@ the valley but not along it. I do not understand why.</p>
 <span><span class="op">}</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu">mk_plot</span><span class="op">(</span><span class="va">lik_surf</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="calibration_files/figure-html/logistic_plot_surf2-1.png" width="672"></p>
-<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">lik_surf2</span> <span class="op">&lt;-</span> <span class="fu">make_liksurf</span><span class="op">(</span>lwr <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">0.1</span>, <span class="fl">0.9</span><span class="op">)</span>, upr <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">1.1</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu">mk_plot</span><span class="op">(</span><span class="va">lik_surf2</span>, arrows <span class="op">=</span> <span class="cn">FALSE</span>, cbrks <span class="op">=</span> <span class="fl">1e4</span><span class="op">*</span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="calibration_files/figure-html/plot_liksurf2-1.png" width="576"></p>
 <p>Explore more carefully:</p>
-<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">make_mat</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="va">x</span>, <span class="fu"><a href="../reference/engine_functions.html">matrix</a></span><span class="op">(</span><span class="va">z</span>, <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">z</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>            dimnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>intercept <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">intercept_parameter</span><span class="op">)</span>,</span>
@@ -941,7 +1011,7 @@ points where each optimization attempt stopped?</p>
 <p><strong>experimental</strong>: working with <code>DEoptim</code>
 (haven’t included yet because I don’t want to have to
 <code>Suggest:</code> DEoptim …</p>
-<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/ArdiaD/DEoptim" class="external-link">DEoptim</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">101</span><span class="op">)</span></span>
 <span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu">DEoptim</span><span class="op">(</span><span class="va">simulator</span><span class="op">$</span><span class="va">objective</span>, lower <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">rep</a></span><span class="op">(</span><span class="op">-</span><span class="fl">10</span>, <span class="fl">2</span><span class="op">)</span>, upper <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">rep</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
