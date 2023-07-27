@@ -1,0 +1,12 @@
+{
+  "required_partitions" : ["Epi", "Age"],
+  "null_partition" : ["Null"],
+  "state_variables" : [
+    "S.young", "E.young", "R.young", "H.young", "I.young", "D.young",
+    "S.old", "E.old", "R.old", "H.old", "I.old", "D.old"
+  ],
+  "flow_variables" : [
+    "infection.young", "progression.young","hospitalization.young", "recovery.young", "discharge.young", "death_H.young","death_I.young",
+    "infection.old", "progression.old","hospitalization.old", "recovery.old", "discharge.old", "death_H.old","death_I.old"
+  ]
+}
