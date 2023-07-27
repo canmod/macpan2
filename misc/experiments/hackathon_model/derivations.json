@@ -1,0 +1,50 @@
+[
+  {
+    "simulation_phase" : "before",
+    "group_partition" : "Age",
+    "group_names" : ["lb0", "lb5", "lb10", "lb15", "lb20", "lb25", "lb30", "lb35", "lb40",
+                    "lb45", "lb50", "lb55", "lb60", "lb65", "lb70", "lb75", "lb80"],
+    "output_partition" : "Epi.Age",
+    "output_names" : ["N.lb0", "N.lb5", "N.lb10", "N.lb15", "N.lb20", "N.lb25", "N.lb30", "N.lb35", "N.lb40",
+                      "N.lb45", "N.lb50", "N.lb55", "N.lb60", "N.lb65", "N.lb70", "N.lb75", "N.lb80"],
+    "input_partition" : "Epi",
+    "arguments" : ["S", "E", "I", "H", "R", "D"],
+    "expression" : "sum(S, E, I, H, R, D)"
+  },
+  {
+    "simulation_phase" : "before",
+    "output_names" : "N.",
+    "argument_dots" : ["N.lb0", "N.lb5", "N.lb10", "N.lb15", "N.lb20", "N.lb25", "N.lb30", "N.lb35", "N.lb40",
+                      "N.lb45", "N.lb50", "N.lb55", "N.lb60", "N.lb65", "N.lb70", "N.lb75", "N.lb80"],
+    "expression" : "c(...)"
+  },
+  {
+    "simulation_phase" : "during_pre_update",
+    "output_names" : "infected.",
+    "argument_dots" : ["I.lb0", "I.lb5", "I.lb10", "I.lb15", "I.lb20", "I.lb25", "I.lb30", "I.lb35", "I.lb40",
+                  "I.lb45", "I.lb50", "I.lb55", "I.lb60", "I.lb65", "I.lb70", "I.lb75", "I.lb80"],
+    "expression" : "c(...)"
+  },
+  {
+    "simulation_phase" : "during_pre_update",
+    "output_names" : "scaled_infected.",
+    "arguments" : ["infected.", "transmission.", "N."],
+    "expression" : "infected. * transmission. / N."
+  },
+  {
+    "simulation_phase" : "during_pre_update",
+    "output_names" : "infection.",
+    "arguments" : ["contact.", "scaled_infected."],
+    "expression" : "contact. %*% scaled_infected."
+  },
+  {
+    "simulation_phase" : "during_pre_update",
+    "output_names" : "dummy.",
+    "arguments" : "infection.",
+    "argument_dots" : ["infection.lb0", "infection.lb5", "infection.lb10", "infection.lb15", "infection.lb20",
+                        "infection.lb25", "infection.lb30", "infection.lb35", "infection.lb40", "infection.lb45",
+                        "infection.lb50", "infection.lb55", "infection.lb60", "infection.lb65", "infection.lb70",
+                        "infection.lb75", "infection.lb80"],
+    "expression" : "unpack(infection., ...)"                    
+  }
+]

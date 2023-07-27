@@ -1,0 +1,42 @@
+{
+  "required_partitions" : ["Epi", "Age"],
+  "null_partition" : ["Null"],
+  "state_variables" : [
+    "S.lb0", "E.lb0", "I.lb0", "H.lb0", "R.lb0", "D.lb0",
+    "S.lb5", "E.lb5", "I.lb5", "H.lb5", "R.lb5", "D.lb5",
+    "S.lb10", "E.lb10", "I.lb10", "H.lb10", "R.lb10", "D.lb10",
+    "S.lb15", "E.lb15", "I.lb15", "H.lb15", "R.lb15", "D.lb15",
+    "S.lb20", "E.lb20", "I.lb20", "H.lb20", "R.lb20", "D.lb20",
+    "S.lb25", "E.lb25", "I.lb25", "H.lb25", "R.lb25", "D.lb25",
+    "S.lb30", "E.lb30", "I.lb30", "H.lb30", "R.lb30", "D.lb30",
+    "S.lb35", "E.lb35", "I.lb35", "H.lb35", "R.lb35", "D.lb35",
+    "S.lb40", "E.lb40", "I.lb40", "H.lb40", "R.lb40", "D.lb40",
+    "S.lb45", "E.lb45", "I.lb45", "H.lb45", "R.lb45", "D.lb45",
+    "S.lb50", "E.lb50", "I.lb50", "H.lb50", "R.lb50", "D.lb50",
+    "S.lb55", "E.lb55", "I.lb55", "H.lb55", "R.lb55", "D.lb55",
+    "S.lb60", "E.lb60", "I.lb60", "H.lb60", "R.lb60", "D.lb60",
+    "S.lb65", "E.lb65", "I.lb65", "H.lb65", "R.lb65", "D.lb65",
+    "S.lb70", "E.lb70", "I.lb70", "H.lb70", "R.lb70", "D.lb70",
+    "S.lb75", "E.lb75", "I.lb75", "H.lb75", "R.lb75", "D.lb75",
+    "S.lb80", "E.lb80", "I.lb80", "H.lb80", "R.lb80", "D.lb80"
+  ],
+  "flow_variables" : [
+    	"infection.lb0", "progression.lb0","hospitalization.lb0", "recovery.lb0", "discharge.lb0", "death_H.lb0","death_I.lb0"
+		, "infection.lb5", "progression.lb5","hospitalization.lb5", "recovery.lb5", "discharge.lb5", "death_H.lb5","death_I.lb5"
+		, "infection.lb10", "progression.lb10","hospitalization.lb10", "recovery.lb10", "discharge.lb10", "death_H.lb10","death_I.lb10"
+		, "infection.lb15", "progression.lb15","hospitalization.lb15", "recovery.lb15", "discharge.lb15", "death_H.lb15","death_I.lb15"
+		, "infection.lb20", "progression.lb20","hospitalization.lb20", "recovery.lb20", "discharge.lb20", "death_H.lb20","death_I.lb20"
+		, "infection.lb25", "progression.lb25","hospitalization.lb25", "recovery.lb25", "discharge.lb25", "death_H.lb25","death_I.lb25"
+		, "infection.lb30", "progression.lb30","hospitalization.lb30", "recovery.lb30", "discharge.lb30", "death_H.lb30","death_I.lb30"
+		, "infection.lb35", "progression.lb35","hospitalization.lb35", "recovery.lb35", "discharge.lb35", "death_H.lb35","death_I.lb35"
+		, "infection.lb40", "progression.lb40","hospitalization.lb40", "recovery.lb40", "discharge.lb40", "death_H.lb40","death_I.lb40"
+		, "infection.lb45", "progression.lb45","hospitalization.lb45", "recovery.lb45", "discharge.lb45", "death_H.lb45","death_I.lb45"
+		, "infection.lb50", "progression.lb50","hospitalization.lb50", "recovery.lb50", "discharge.lb50", "death_H.lb50","death_I.lb50"
+		, "infection.lb55", "progression.lb55","hospitalization.lb55", "recovery.lb55", "discharge.lb55", "death_H.lb55","death_I.lb55"
+		, "infection.lb60", "progression.lb60","hospitalization.lb60", "recovery.lb60", "discharge.lb60", "death_H.lb60","death_I.lb60"
+		, "infection.lb65", "progression.lb65","hospitalization.lb65", "recovery.lb65", "discharge.lb65", "death_H.lb65","death_I.lb65"
+		, "infection.lb70", "progression.lb70","hospitalization.lb70", "recovery.lb70", "discharge.lb70", "death_H.lb70","death_I.lb70"
+		, "infection.lb75", "progression.lb75","hospitalization.lb75", "recovery.lb75", "discharge.lb75", "death_H.lb75","death_I.lb75"
+		, "infection.lb80", "progression.lb80","hospitalization.lb80", "recovery.lb80", "discharge.lb80", "death_H.lb80","death_I.lb80"
+  ]
+}

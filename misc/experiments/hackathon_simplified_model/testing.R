@@ -8,9 +8,7 @@ m = Compartmental("misc/experiments/hackathon_simplified_model/"
   #   "S.old", "E.old", "R.old", "H.old", "I.old", "D.old"
     flow = c(infection.young  = 0.2, progression.young = 0.2, hospitalization.young = 0.1, recovery.young = 0.1, discharge.young = 0.1, death_H.young = 0.01, death_I.young = 0.01
              , infection.old = 0.2, progression.old = 0.2, hospitalization.old = 0.1, recovery.old = 0.1, discharge.old = 0.1, death_H.old = 0.01, death_I.old = 0.01),
-    transmission.young = 1.5,
-    transmission.old = 1.5,
-    transmission. = empty_matrix,
+    transmission. = rep(1.5, times = 2),
     contact. = matrix(data = rep(0.25, times = 4), nrow = 2, ncol = 2),
     N.young = empty_matrix,
     N.old = empty_matrix,
@@ -20,4 +18,4 @@ m = Compartmental("misc/experiments/hackathon_simplified_model/"
     infected. = empty_matrix,
     dummy. = empty_matrix
 )
-
+m$report()

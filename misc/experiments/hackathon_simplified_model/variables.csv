@@ -12,7 +12,6 @@ hospitalization,young
 discharge,young
 death_H,young
 death_I,young
-transmission,young
 infection,young
 S,old
 E,old
@@ -27,7 +26,6 @@ hospitalization,old
 discharge,old
 death_H,old
 death_I,old
-transmission,old
 infection,old
 N,
 transmission,

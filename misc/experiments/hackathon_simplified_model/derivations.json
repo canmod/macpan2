@@ -9,25 +9,19 @@
     "arguments" : ["S", "E", "I", "H", "R", "D"],
     "expression" : "sum(S, E, I, H, R, D)"
   },
-    {
-    "simulation_phase" : "before",
-    "output_names" : "transmission.",
-    "argument_dots" : ["transmission.young", "transmission.old"],
-    "expression" : "c(...)"
-  },
-    {
+  {
     "simulation_phase" : "before",
     "output_names" : "N.",
     "argument_dots" : ["N.young", "N.old"],
     "expression" : "c(...)"
   },
-    {
+  {
     "simulation_phase" : "during_pre_update",
     "output_names" : "infected.",
     "argument_dots" : ["I.young", "I.old"],
     "expression" : "c(...)"
   },
-    {
+  {
     "simulation_phase" : "during_pre_update",
     "output_names" : "scaled_infected.",
     "arguments" : ["infected.", "transmission.", "N."],
@@ -39,7 +33,7 @@
     "arguments" : ["contact.", "scaled_infected."],
     "expression" : "contact. %*% scaled_infected."
   },
-    {
+  {
     "simulation_phase" : "during_pre_update",
     "output_names" : "dummy.",
     "arguments" : "infection.",
