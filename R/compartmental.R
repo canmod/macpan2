@@ -118,6 +118,12 @@ CompartmentalMatsList = function(
     , .structure_labels = NullLabels()
   ) {
 
+    stopifnot(!is.null(names(state)))
+    stopifnot(!is.null(names(flow)))
+
+    stopifnot(all(names(state) %in% model$labels$state()))
+    stopifnot(all(names(flow) %in% model$labels$flow()))
+
     dot_names = names(list(...))
 
     check_auto_component_names(dot_names, "state", model$labels$state())
