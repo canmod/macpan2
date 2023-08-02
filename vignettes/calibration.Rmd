@@ -345,6 +345,8 @@ Unsurprisingly, the prediction intervals (ribbon) are much wider than the delta-
 
 **under development**
 
+Since Markov chain Monte Carlo samples a wider range of the parameter space, it's easier to get into numerical troubles - especially since we haven't specified any prior distributions. We can mitigate these problems slightly by (1) specifying a random-number seed (so that at least any problems we have will be reproducible) and (2) specifying starting conditions rather than allowing Stan to pick them at random. Starting from the best-fit parameters works, but is conservative - ideally we want to make sure that our chains start from *different* points. Our second strategy is to use the best-fit parameters as a baseline, but jitter them randomly by ±40%.
+
 ```{r tmbstan1, eval = require("tmbstan"), results = "hide"}
 library(TMB)
 library(tmbstan)
