@@ -291,7 +291,7 @@ nsim <- 1000
 ## sample from (assumed) multivariate normal distribution of parameters
 parvals <- MASS::mvrnorm(nsim, mu = sdr$par.fixed, Sigma = sdr$cov.fixed)
 ## simulate for each parameter set
-sim_ensemble <- apply(parvals, 1, function(p) sir_simulator$report(p, .phases = "during")$value) ## 48 x 1000
+sim_ensemble <- apply(parvals, 1, function(p) sir_simulator$report(p, .phases = "during")$value) ## 42 x 1000
 ## compute 95% quantiles across runs (pointwise)
 mk_quantiles <- function(ensemble, suffix = "ens", level = 0.95) {
     sim_quantiles <- (t(apply(ensemble, 1, quantile, c((1-level)/2, (1+level)/2)))
@@ -348,14 +348,37 @@ Unsurprisingly, the prediction intervals (ribbon) are much wider than the delta-
 ```{r tmbstan1, eval = require("tmbstan"), results = "hide"}
 library(TMB)
 library(tmbstan)
-stan1 <- tmbstan(sir_simulator$ad_fun(), seed = 101)
+stan1 <- tmbstan(sir_simulator$ad_fun(), seed = 101, init  = "last.par.best")
+init_fun <- function(jitter = 0.4) {
+    p <- sir_simulator$ad_fun()$env$last.par.best
+    p * runif(length(p), 1-jitter, 1+jitter)
+}
+stan2 <- tmbstan(sir_simulator$ad_fun(), init = init_fun, seed = 101)
 ```
 
 ```{r tmbparams, eval = require("broom.mixed")}
-broom.mixed::tidy(stan1, conf.int = TRUE)
+broom.mixed::tidy(stan2, conf.int = TRUE)
 ```
 
-Can extract samples via e.g. `as.data.frame()`  (or `tidybayes` package), run ensembles, ...
+(We should other diagnostics - check for divergent transitions, look at $\hat R$, traceplots, etc etc; see e.g. `bayestestR::diagnostic_posterior()`, `bayeslot::mcmc_rank_overlay()`, `shinyStan` ... brief examples [here](http://bbolker.github.io/bbmisc/bayes/examples.html).)
+
+In this case the MCMC quantile credible intervals (ribbons) are pretty close to the delta-method and MVN ensemble CIs (shown as dotted lines) ...
+```{r sim_ensemble}
+mcmc_pars <- as.data.frame(stan2, pars = "lp__", include = FALSE)
+sim_mcmc <- apply(mcmc_pars, 1, function(p) sir_simulator$report(p, .phases = "during")$value) ## 48 x 1000
+I_mcmc <- data.frame(time = obs$time, var = "I", mk_quantiles(sim_mcmc, suffix = "mcmc"))
+## attach to existing data
+res4 <- cbind(res3,  mk_quantiles(sim_mcmc, suffix = "mcmc"))
+gg_ci4 <- (gg_base %+% res4) +
+    geom_ribbon(aes(ymin = lwr_delta, ymax = upr_delta, colour = var), lty = 2, fill = NA) +
+    geom_ribbon(aes(ymin = lwr_ens, ymax = upr_ens, colour = var), lty = 3, fill = NA) +
+    geom_ribbon(aes(ymin = lwr_mcmc, ymax = upr_mcmc, fill = var), colour = NA, alpha = 0.3)
+## suppress warnings about 'no non-missing args' [because we don't have *_predens vars for S and R]
+suppressWarnings(
+    print(gg_ci4)
+    )
+```
+
 
 **fixme**: 
 
