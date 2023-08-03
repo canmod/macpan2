@@ -27,10 +27,12 @@ Setup:
 ```{r pkgs, message = FALSE}
 library(macpan2)
 library(macpan2helpers)
-if (packageVersion("macpan2helpers") < "0.0.2") {
-    stop("please install macpan2helpers version >= 0.0.2")
+mp2hver <- "0.0.3"
+if (packageVersion("macpan2helpers") < mp2hver) {
+    stop("please install macpan2helpers version >= ", mp2hver)
 }
 library(dplyr)
+library(tidyr)
 library(ggplot2); theme_set(theme_bw())
 ```
 
@@ -64,6 +66,7 @@ sir_results = sir_simulator$report(.phases = "during")
 **fixme**: providing mismatched time series (e.g. by forgetting to specify `.phases = "during"` when generating simulated data) gives cryptic/confusing errors and behaviour (warnings about failure to recycle, objective function values equal to zero). (We can make a reprex for this by leaving out `.phases = "during"` above ...
 
 Add some noise to the prevalence (`I`) value:
+
 ```{r sir_noise}
 set.seed(101)
 sir_prevalence = (sir_results
@@ -382,21 +385,62 @@ suppressWarnings(
 ```
 
 
+## Irregular data; multiple data streams
+
+For now we're going to revert to the previous fake/simulated data.
+We'll fit to both infection prevalence and number recovered, adding negative binomial observation noise and dropping 50% (approximately) of the observations at random
+
+```{r irreg1}
+sir_simulator <- mk_sim()
+## `.phases = "during"` is important so that the number of observations matches the number of time steps
+sir_results = sir_simulator$report(.phases = "during")
+set.seed(101)
+subsamp <- function(x, missprob = 0.5) { x[runif(length(x))<missprob] <- NA; x } 
+sir_simdat <- (sir_results
+    |> select(time, row, value)
+    |> filter(row %in% c("I", "R"))
+    |> pivot_wider(names_from = "row", values_from = "value")
+    |> mutate(I_obs = subsamp(rnbinom(n(), mu = I, size = 4)),
+              R_obs = subsamp(rnbinom(n(), mu = R, size = 8)))
+    |> select(time, I_obs, R_obs)
+)
+## re-pivot for plotting purposes ...
+plotdat <- sir_simdat |> pivot_longer(-time, names_to = "var", values_to = "count")
+ggplot(plotdat, aes(time, count, colour = var)) + geom_point() +
+    geom_smooth(method = "gam", method.args = list(family = quasipoisson))
+```
+
+Numbers of samples with missing observations:
+
+```{r na_vals}
+with(sir_simdat, table(I_missing=is.na(I_obs), R_missing=is.na(R_obs)))
+```
+
+```{r eval = FALSE}
+## won't work yet ... need more sophisticated obs/sim matching ...
+mk_calibrate(sir_simulator,
+             data = sir_simdat,
+             params = list(beta = 1, gamma = 0.5, I_disp = 1, R_disp = 1),
+             transforms = list(beta = "log", gamma = "log", I_disp = "log", R_disp = "log"),
+             exprs = list(log_lik ~ dnbinom(I_obs, I, I_disp) +
+                          dnbinom(R_obs, R, R_disp))
+             )
+```
+
+
 **fixme**: 
 
 - add more information from the [original 1978-influenza article](https://www-ncbi-nlm-nih-gov/pmc/articles/PMC1603269/pdf/brmedj00115-0064.pdf) about probable starting date, duration, natural history?
 - Comparison with [fitode](https://github.com/parksw3/fitode) ?
-- is it worth trying 'non-statistical' objective functions (SSQ, chi-squared stat)? Extend `mk_calibrate` to support?
-- examples of priors/regularization??
-- examples of adding accumulator compartment and computing/matching to incidence
-- examples of (statistical) diagnostics? e.g. compute residuals, plot vs. time or vs fitted values, scale-location plot, etc. ?
+- priors/regularization??
+- (statistical) diagnostics? e.g. compute residuals, plot vs. time or vs fitted values, scale-location plot, etc. ?
 - more CI stuff: importance sampling, Juul et al. functional ribbons, ...
-- `tmbstan` example??
 - *intermediate* examples 
    - simple time-varying parameters
-   - irregularly sampled data
-   - fitting prevalence/hospitalization/death
-   - fitting multiple data streams ...
+   - fitting multiple data streams (in progress)
+   - irregularly sampled data (in progress)
+   - estimate starting values 
+   - accumulators/differences: prevalence, deaths
    - forecasting/scenarios
 
 ## 'Hello, World' the hard way
