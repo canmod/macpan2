@@ -1007,22 +1007,22 @@ value.</p>
 <span>  , row <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">1</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">simulator</span><span class="op">$</span><span class="va">optimize</span><span class="op">$</span><span class="fu">nlminb</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; outer mgc:  11268970 </span></span>
-<span><span class="co">#&gt; outer mgc:  7215054 </span></span>
-<span><span class="co">#&gt; outer mgc:  3087372 </span></span>
-<span><span class="co">#&gt; outer mgc:  3522804 </span></span>
-<span><span class="co">#&gt; outer mgc:  470268.8 </span></span>
-<span><span class="co">#&gt; outer mgc:  802897.8 </span></span>
-<span><span class="co">#&gt; outer mgc:  133686.6 </span></span>
-<span><span class="co">#&gt; outer mgc:  4449.854 </span></span>
-<span><span class="co">#&gt; outer mgc:  5.260259 </span></span>
-<span><span class="co">#&gt; outer mgc:  8.0225e-06</span></span>
+<span><span class="co">#&gt; outer mgc:  55763403 </span></span>
+<span><span class="co">#&gt; outer mgc:  36022169 </span></span>
+<span><span class="co">#&gt; outer mgc:  15461649 </span></span>
+<span><span class="co">#&gt; outer mgc:  17572666 </span></span>
+<span><span class="co">#&gt; outer mgc:  2119712 </span></span>
+<span><span class="co">#&gt; outer mgc:  3697984 </span></span>
+<span><span class="co">#&gt; outer mgc:  624993.1 </span></span>
+<span><span class="co">#&gt; outer mgc:  19490.52 </span></span>
+<span><span class="co">#&gt; outer mgc:  20.31052 </span></span>
+<span><span class="co">#&gt; outer mgc:  2.435601e-05</span></span>
 <span><span class="co">#&gt; $par</span></span>
 <span><span class="co">#&gt;     params     params </span></span>
-<span><span class="co">#&gt; -1.0929130  0.1633477 </span></span>
+<span><span class="co">#&gt; -1.0927558  0.1634306 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $objective</span></span>
-<span><span class="co">#&gt; [1] 326073.6</span></span>
+<span><span class="co">#&gt; [1] 1618984</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $convergence</span></span>
 <span><span class="co">#&gt; [1] 0</span></span>
@@ -1038,8 +1038,8 @@ value.</p>
 <span><span class="co">#&gt; [1] "both X-convergence and relative convergence (5)"</span></span>
 <span><span class="va">simulator</span><span class="op">$</span><span class="va">current</span><span class="op">$</span><span class="fu">params_frame</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   par_id mat row col    default    current</span></span>
-<span><span class="co">#&gt; 1      0   b   0   0 -0.9619334 -1.0929130</span></span>
-<span><span class="co">#&gt; 2      1   b   1   0 -0.2925257  0.1633477</span></span>
+<span><span class="co">#&gt; 1      0   b   0   0 -0.9619334 -1.0927558</span></span>
+<span><span class="co">#&gt; 2      1   b   1   0 -0.2925257  0.1634306</span></span>
 <span><span class="va">fitted_incidence</span> <span class="op">=</span> <span class="op">(</span><span class="va">simulator</span><span class="op">$</span><span class="va">current</span><span class="op">$</span><span class="fu">params_vector</span><span class="op">(</span><span class="op">)</span></span>
 <span>  <span class="op">|&gt;</span> <span class="va">simulator</span><span class="op">$</span><span class="fu">report</span><span class="op">(</span><span class="op">)</span></span>
 <span>  <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">matrix</span> <span class="op">==</span> <span class="st">"incidence"</span><span class="op">)</span></span>
