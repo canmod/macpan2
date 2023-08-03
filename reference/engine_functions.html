@@ -922,7 +922,13 @@ components with those in <code>v</code>.</p>
 <ul><li><p><code>x</code> -- Matrix with elements to be distributed to
 the matrices passed through <code>...</code>.</p></li>
 <li><p><code>...</code> -- Matrices with elements to be replaced by
-the values of elements in <code>x</code> in column-major order.</p></li>
+the values of elements in <code>x</code> in column-major order.
+These matrices must be named matrices and not
+computed on the fly using expressions. Note that even
+subsetting (e.g. <code>unpack(x, y[0], y[3])</code>) counts as
+an expression. This use-case would require the
+<code>assign</code> function
+<code>assign(y, c(0, 3), 0, x)</code>.</p></li>
 </ul></div>
 
 <div class="section">
