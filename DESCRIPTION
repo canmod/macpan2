@@ -32,7 +32,9 @@ Suggests:
     kableExtra,
     broom.mixed,
     outbreaks,
-    tmbstan
+    tmbstan,
+    numDeriv,
+    parallel
 LinkingTo:
     TMB,
     RcppEigen,

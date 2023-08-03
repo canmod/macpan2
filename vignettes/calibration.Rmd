@@ -241,7 +241,7 @@ sim_plot(pars = fit$par)
 The fit isn't perfect, but we can think of a number of reasons for that (people are complicated; our model is only tracking the number of current infected children, while the data are numbers of children in bed; we haven't allowed for an exposed class ...).
 
 
-### computing and plotting confidence and prediction intervals (EXPERIMENTAL)
+### Computing and plotting confidence and prediction intervals
 
 While this code isn't horribly complex, hopefully it will all be somewhat more streamlined/automated in the future. Computing confidence or prediction intervals is a fairly big subject; see Bolker (2008) chapter 7 for an introduction to some of the issues.
 
@@ -286,13 +286,19 @@ print(gg_ci1)
 - These are confidence intervals, not prediction intervals (so we don't necessarily expect the points to lie within the envelope);
 prediction intervals for non-Normal errors are a little bit tricky (maybe something about this in Bolker 2008?), not worth doing right now.
 
-We can also generate intervals based on multivariate normal sampling, which relaxes the second assumption but not the first.
+We can also generate intervals based on multivariate normal sampling, which relaxes the second assumption but not the first. Sometimes `sdreport()` is memory-hungry, so below we show how to get the covariance matrix of the parameters directly from the fit (it does take some extra computation). 
 
-```{r ci_ensemble}
+```{r ci_ensemble, eval = require("numDeriv", quietly = TRUE)}
 set.seed(101)
 nsim <- 1000
+par <- fit$par
+H <- numDeriv::jacobian(sir_simulator$ad_fun()$gr, par)
+## FIXME: why doesn't this match?
+## H0 <- with(sir_simulator$ad_fun(), optimHess(par, fn = fn, gr = gr))
+Sigma <- solve(H)
+stopifnot(all.equal(Sigma, unname(sdr$cov.fixed), tolerance = 1e-5))
 ## sample from (assumed) multivariate normal distribution of parameters
-parvals <- MASS::mvrnorm(nsim, mu = sdr$par.fixed, Sigma = sdr$cov.fixed)
+parvals <- MASS::mvrnorm(nsim, mu = par, Sigma = Sigma)
 ## simulate for each parameter set
 sim_ensemble <- apply(parvals, 1, function(p) sir_simulator$report(p, .phases = "during")$value) ## 42 x 1000
 ## compute 95% quantiles across runs (pointwise)
@@ -312,6 +318,20 @@ print(gg_ci2)
 ```
 
 In this case the delta-method (dotted lines) and ensemble CIs (ribbons) are not that different (we can see that the ensemble CIs take care of the negative values in the CI); we certainly wouldn't be badly misled by the delta method CIs in this case.
+
+Since running the ensemble requires many (typically 500-1000) independent runs of the `$report()` method, you may want to do the computation in parallel. To do this, you can use any of the many available tools in R, for example: (`parallel::parApply` from base R, `doParallel`/`foreach`, `future`/`furrr`, etc.) For small models it may take longer to copy the `TMBsimulator` object over to all of the different workers than it takes to run the ensemble itself ...
+
+```{r parallel_ensemble, cache = TRUE}
+library(parallel)
+ncores <- max(1, getOption("ncores", round(detectCores()/2)))
+cl <- makeCluster(ncores)
+clusterExport(cl = cl, "sir_simulator") ## may take a little while
+sim2 <- parApply(cl = cl,
+                 parvals, 1,
+                 function(p) sir_simulator$report(p, .phases = "during")$value)
+stopCluster(cl)
+stopifnot(all.equal(sim_ensemble, sim2)) ## identical 
+```
 
 We can also compute prediction intervals via ensemble, by adding the appropriate amount of negative binomial noise to each simulation. However, it only makes sense to add this *observation error* to the I time series (if we had more than one observed time series we would probably want to estimate separate dispersion parameters for each series), so we'll adapt the ensemble code to pick out only the I values before adding noise:
 
