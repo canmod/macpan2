@@ -855,6 +855,12 @@ Unpack elements of a matrix into smaller matrices.
 the matrices passed through \code{...}.
 \item \code{...} -- Matrices with elements to be replaced by
 the values of elements in \code{x} in column-major order.
+These matrices must be named matrices and not
+computed on the fly using expressions. Note that even
+subsetting (e.g. \code{unpack(x, y[0], y[3])}) counts as
+an expression. This use-case would require the
+\code{\link{assign}} function
+\code{assign(y, c(0, 3), 0, x)}.
 }
 }
 

@@ -175,7 +175,6 @@ int RecycleInPlace(
     return 0;
 }
 
-
 template<class Type>
 struct ListOfMatrices {
     // below is a vector of matrices that passed from R
@@ -267,7 +266,19 @@ public:
                 for (int i=0; i<n; i++) {
                     args[i] = EvalExpr(hist, t, mats_save_hist, table_x, table_n, table_i, \
                                     valid_vars, valid_literals, table_i[row]+i);
-                    index2mats[i] = table_x[table_i[row]+i];
+
+                    // Check here if index2mats actually points at
+                    // a matrix and not a function. Later on if index2mats
+                    // is used one should check if it is -1, indicating that
+                    // it is not pointing at a named matrix and therefore
+                    // should fail.
+                    // TODO: named matrix indexing should really be a class
+                    // or something.
+                    if (table_n[table_i[row]+i] == 0) {
+                        index2mats[i] = table_x[table_i[row]+i];
+                    } else {
+                        index2mats[i] = -1;
+                    }
                     if (GetErrorCode()) return m;
                 }
 
@@ -1144,6 +1155,10 @@ public:
                             return args[0];
                         }
                         matIndex = index2mats[0]; // m
+                        if (matIndex == -1) {
+                          SetError(MP2_RBIND_TIME, "Can only rbind_time (or rbind_lag) named matrices not expressions of matrices", row);
+                          return args[0];
+                        }
 
                         if (n == 1) {
                             timeIndex = matrix<Type>::Zero(t - 1, 1);
@@ -1354,6 +1369,11 @@ public:
                     // #' of `x`
                     // #'
                         matIndex = index2mats[0]; // m
+                        if (matIndex == -1) {
+                          SetError(MP2_CONVOLUTION, "Can only convolve named matrices not expressions of matrices", row);
+                          return args[0];
+                        }
+
                         #ifdef MP_VERBOSE
                             std::cout << "matIndex: " << matIndex << std::endl << std::endl;
                         #endif
@@ -1719,7 +1739,12 @@ public:
                         for (int k=0; k<rows; k++) {
                             rowIndex = CppAD::Integer(args[1].coeff(k,0));
                             colIndex = CppAD::Integer(args[2].coeff(k,0));
-                            valid_vars.m_matrices[index2mats[0]].coeffRef(rowIndex,colIndex) = args[3].coeff(k,0);
+                            matIndex = index2mats[0];
+                            if (matIndex == -1) {
+                                SetError(MP2_ASSIGN, "Can only assign to named matrices not expressions of matrices", row);
+                                return args[0];
+                            }
+                            valid_vars.m_matrices[matIndex].coeffRef(rowIndex,colIndex) = args[3].coeff(k,0);
                         }
                         return m2; // empty matrix
 
@@ -1739,6 +1764,12 @@ public:
                     // #' the matrices passed through `...`.
                     // #' * `...` -- Matrices with elements to be replaced by
                     // #' the values of elements in `x` in column-major order.
+                    // #' These matrices must be named matrices and not
+                    // #' computed on the fly using expressions. Note that even
+                    // #' subsetting (e.g. `unpack(x, y[0], y[3])`) counts as
+                    // #' an expression. This use-case would require the
+                    // #' \code{\link{assign}} function
+                    // #' `assign(y, c(0, 3), 0, x)`.
                     // #'
                     // #' ### Return
                     // #'
@@ -1778,7 +1809,12 @@ public:
                                 m1 = m.block(start, 0, sz, 1);
                                 m1.resize(args[i].rows(), args[i].cols());
                                 //std::cout << "MATRIX " << valid_vars.m_matrices[index2mats[i]] << std::endl << std::endl;
-                                valid_vars.m_matrices[index2mats[i]] = m1;
+                                matIndex = index2mats[i];
+                                if (matIndex == -1) {
+                                    SetError(MP2_ASSIGN, "Can only unpack into named matrices not expressions of matrices", row);
+                                    return args[0];
+                                }
+                                valid_vars.m_matrices[matIndex] = m1;
                                 // args[i] = m1;
                                 size -= sz;
                                 start += sz;
@@ -2274,7 +2310,7 @@ Type objective_function<Type>::operator() ()
 
     REPORT(values)
     ADREPORT(values)
-      
+
 
     // 7 Calc the return of the objective function
     matrix<Type> ret;

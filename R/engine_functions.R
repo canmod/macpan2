@@ -701,6 +701,12 @@
 #' the matrices passed through `...`.
 #' * `...` -- Matrices with elements to be replaced by
 #' the values of elements in `x` in column-major order.
+#' These matrices must be named matrices and not
+#' computed on the fly using expressions. Note that even
+#' subsetting (e.g. `unpack(x, y[0], y[3])`) counts as
+#' an expression. This use-case would require the
+#' \code{\link{assign}} function
+#' `assign(y, c(0, 3), 0, x)`.
 #'
 #' ### Return
 #'
