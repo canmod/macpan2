@@ -1,4 +1,7 @@
-to_special_vecs = function(formula, component_list, matrix_list) {
+to_special_vecs = function(
+    formula, component_list, matrix_list,
+    component_vec_by = c(state = "state", flow = "flow"
+  )) {
   arg_signature = c(
     unlist(component_list, use.names = FALSE, recursive = FALSE),
     matrix_list
@@ -8,7 +11,12 @@ to_special_vecs = function(formula, component_list, matrix_list) {
   ee = MathExpressionFromStrings(form_parts[[3L]], arg_signature)
   hh = MathExpressionFromStrings(form_parts[[2L]], arg_signature)
   for (nm in names(component_list)) {
-    if (nm == "...RAW...INDICES...") { ## this token probably won't clash ... right??
+
+    ## this ...RAW...INDICES... token probably won't clash ... right??
+    ## it just means that if you
+    ## name a new special vector (e.g. state, flow) it cannot be called
+    ## ...RAW...INDICES..., which seems fine
+    if (component_vec_by[[nm]] == "...RAW...INDICES...") {
       component_list[[nm]] = as.character(seq_along(component_list[[nm]]) - 1L)
     } else {
       component_list[[nm]] = sprintf("%s[%s]", nm, seq_along(component_list[[nm]]) - 1L)

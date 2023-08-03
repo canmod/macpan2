@@ -57,16 +57,17 @@ TMBSimulatorInserter = function(simulator) {
   ) {
     if (.vec_by_states == "") .vec_by_states = "...RAW...INDICES..."
     if (.vec_by_flows == "") .vec_by_flows = "...RAW...INDICES..."
+    component_vec_by = c(state = .vec_by_states, flow = .vec_by_flows)
     if (inherits(self$model$init_mats$.structure_labels, "NullLabels")) {
       args = list(...)
     } else {
       mat_names = self$model$init_mats$.names()
       component_list = list(
-        self$model$init_mats$.structure_labels$state(),
-        self$model$init_mats$.structure_labels$flow()
-      ) |> setNames(c(.vec_by_states, .vec_by_flows))
+        state = self$model$init_mats$.structure_labels$state(),
+        flow = self$model$init_mats$.structure_labels$flow()
+      )# |> setNames(c(.vec_by_states, .vec_by_flows))
       args = (list(...)
-        |> lapply(to_special_vecs, component_list, mat_names)
+        |> lapply(to_special_vecs, component_list, mat_names, component_vec_by)
         |> lapply(to_assign)
       )
     }
