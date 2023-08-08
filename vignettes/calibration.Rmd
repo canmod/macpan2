@@ -143,15 +143,20 @@ exp(fit$par)
 
 Get more information (this is a little uglier than it should be ...)
 
+
+```{r coef_funs}
+coefnames <- function(x) {
+    x$current$params_frame()$mat
+}
+drop_trans <- function(x) gsub("(log|logit)_", "", x)
+```
+
 ```{r params_fancy, eval = require("broom.mixed")}
 ff <- sir_simulator$ad_fun()
-## ugh, shouldn't need to do this by hand
-par_names <- gsub("log_", "",
-                  sir_simulator$current$params_frame()$mat)
 class(ff) <- "TMB"
 (broom.mixed::tidy(ff, conf.int = TRUE)
     |> select(-c(type, std.error))
-    |> mutate(term = par_names)
+    |> mutate(term = drop_trans(coefnames(sir_simulator)))
     |> mutate(across(where(is.numeric), exp))
     |> as_tibble()
 )
@@ -371,7 +376,6 @@ Unsurprisingly, the prediction intervals (ribbon) are much wider than the delta-
 Since Markov chain Monte Carlo samples a wider range of the parameter space, it's easier to get into numerical troubles - especially since we haven't specified any prior distributions. We can mitigate these problems slightly by (1) specifying a random-number seed (so that at least any problems we have will be reproducible) and (2) specifying starting conditions rather than allowing Stan to pick them at random. Starting from the best-fit parameters works, but is conservative - ideally we want to make sure that our chains start from *different* points. Our second strategy is to use the best-fit parameters as a baseline, but jitter them randomly by ±40%.
 
 ```{r tmbstan1, eval = require("tmbstan"), results = "hide"}
-library(TMB)
 library(tmbstan)
 stan1 <- tmbstan(sir_simulator$ad_fun(), seed = 101, init  = "last.par.best")
 init_fun <- function(jitter = 0.4) {
@@ -447,6 +451,19 @@ mk_calibrate(sir_simulator,
              )
 ```
 
+
+## Alternative confidence intervals
+
+Likelihood profile CIs ...
+
+```{r lprof}
+(broom.mixed::tidy(ff, conf.int = TRUE, conf.method = "profile")
+    |> select(-c(type, std.error))
+    |> mutate(term = drop_trans(coefnames(sir_simulator)))
+    |> mutate(across(where(is.numeric), exp))
+    |> as_tibble()
+)
+```
 
 **fixme**: 
 
