@@ -61,7 +61,7 @@ mk_sim <- function(init_state = c(S = 99, I = 1, R = 0)) {
 sir_simulator <- mk_sim()
 ## `.phases = "during"` is important so that the number of observations matches the number of time steps
 sir_results = sir_simulator$report(.phases = "during")
-```
+``` 
 
 **fixme**: providing mismatched time series (e.g. by forgetting to specify `.phases = "during"` when generating simulated data) gives cryptic/confusing errors and behaviour (warnings about failure to recycle, objective function values equal to zero). (We can make a reprex for this by leaving out `.phases = "during"` above ...
 
