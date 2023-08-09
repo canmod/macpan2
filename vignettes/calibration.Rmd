@@ -93,7 +93,25 @@ mk_calibrate(sir_simulator,
      )
 ```
 
+---
+
+IP: It would be good to explain what each argument above is and point out that the starting values are assumed to already be transformed when transformations are provided, _i.e._ that you're giving $\log(\beta) = 1$ as the starting value not $\beta = 1 \Rightarrow \log(\beta) = 0$. I actually think it would be more natural to have the user specify the starting value on the original parameter scale and then transform it if a transform is provided. 
+
+IP: `mk_calibrate()` is not the most descriptive function name here... Based on the current functionality, something more like `update_to_calibrate()` is a bit more clear, though probably not perfect. We need something that gets at the fact that this function is setting up the simulator for calibration (and modifying it in place!!), but not actually performing the fit itself.
+
+IP: It may be obvious to some users why the log-likelihood expression above makes sense, but I think it merits a little explaining. 
+
+---
+
 Unlike typical R functions, this function modifies the `sim` object *in place* (!!)
+
+---
+
+IP: This is scary and needs to be emphasized more!! Can you explain more what gets modified in the simulator object?
+
+IP: What's the rationale of not just having `mk_calibrate()` return a new simulator? I feel like this approach makes reproducibility harder. I kind of liked the approach in macpan1.5 where you specify a simulator (`flexmodel`), then you attach stuff to it to update it to a `model_to_calibrate`, and then after fitting you have a `model_calibrated` object. This sequence means that you can use the same base `flexmodel` to perform various independent calibrations, without inadvertently undermining yourself because you modified the underlying simulator and forgot... This is less of a concern in a production pipeline, but could certainly be a problem in an interactive work setting.
+
+---
 
 A sanity check: make sure that the starting values give a reasonable-looking trajectory.
 
@@ -108,12 +126,35 @@ The simulated trajectory is **not** sensible in this case - the `log_beta` value
 
 Setting $\log(\beta)=0$ instead gives us a trajectory that is still very unrealistic (the peak of our observed prevalence is only 16.7), but at least it's smooth. As it turns out this will be good enough, but finding appropriate starting values (based on external information and some trial and error) is often a significant part of a modeling workflow.
 
+---
+
+IP: Wait, why did simulator return a jagged line at all? Isn't the simulator deterministic?
+
+---
+
 ```{r plot2}
 (sir_simulator$report(c(0,0)) |>
  filter(matrix == "state", row == "I") |>
  ggplot(aes(time, value)) + geom_line()
 )
 ```
+
+---
+
+IP: What is the argument of `report()` above specifying?
+
+IP: This is a bit of a larger point that Steve may want to weigh in on, but the object-oriented approach here makes it a little more difficult to understand how to get help with various functions. For instance, I can't just do `?report` to get info on the arguments for the function above. Perhaps including a short section on the home page of `macpan2` quickly explaining that `macpan2` is object-oriented and how one can get help on object methods would be helpful. I know I had [something about this in the first Quickstart guide](https://canmod.github.io/macpan2/articles/quickstart.html#side-note-macpan2-is-object-oriented), but it didn't go as far as to explain how to get help, which I think is as simple as
+
+```
+> class(sir_simulator)
+[1] "TMBSimulator"           "TMBSimulationFormatter"
+[3] "Base" 
+?TMBSimulator
+```
+
+and then scrolling down to the Methods section of the help page. It's easy once you know to do it, but it's not going to be intuitive to many R users. Even better would be to write a help method that looks up the most specific class of the object and then displays the corresponding help page.
+
+---
 
 Let's replace the starting value for `log_beta` with 0:
 
@@ -129,7 +170,9 @@ sir_simulator$replace$params(c(0, 1), c("log_beta", "log_I_sd"))
 fit <- sir_simulator$optimize$nlminb()
 ```
 
-Print the results of `nlminb` - **always check the value of the convergence code** (if it's not 0, then something *may* have gone wrong ...)
+IP: A bit more exposition on `nlminb()` and what it's doing + a reference to read?
+
+Print the results of `nlminb` - **always check the value of the convergence code** (if it's not 0, then something *may* have gone wrong ...) 
 
 ```{r check_fit}
 print(fit)
@@ -162,11 +205,27 @@ class(ff) <- "TMB"
 )
 ```
 
+IP: Explain the output here a bit more? What are the `outer mgc` values?
+
 These correspond to true values of 0.2, 1, so pretty close.
 
 **fixme**: can we handle back-transformation/parameter naming more nicely? `coef()`, `summary()` methods ... ??
 
+IP: We had methods for back-transformation/parameter naming in macpan1.5 and I definitely appreciated them. If you're going to bother doing that for the use case here, then the UI of `mk_calibrate()` could also be simplified as follows:
+
+```
+mk_calibrate(sir_simulator,
+   data = data.frame(I_obs = sir_prevalence$obs_val),
+   params = list(log_beta = 1, log_I_sd = 1),
+   exprs = list(log_lik ~ dnorm(I_obs, I, I_sd)),
+ )
+```
+
+This specification also makes it clearer that the initial conditions are already transformed.
+
 The best-fit parameters are stored *internally*, so if we re-run the `$report()` method we will get information about the predicted best-fit trajectory:
+
+IP: By the above, do you mean that the line `fit <- sir_simulator$optimize$nlminb()` _also_ updated the simulator invisibly in place? If so, be explicit about what was modified (I assume just that the fitted parameter values were updated to the best fit values?)
 
 ```{r plot_results}
 sim_vals <- (sir_simulator$report(.phases = "during")
@@ -192,7 +251,7 @@ mk_calibrate(sir_simulator,
 sir_simulator$objective(log(c(1, 0.5, 1)))
 ```
 
-How does this look with our default parameters? (To save typing I'm writing a generic function that runs the model with a specified set of parameters, then plots the results along with the data.)
+How does this look with our initial parameters? (To save typing I'm writing a generic function that runs the model with a specified set of parameters, then plots the results along with the data.)
 
 **fixme**: some basic plotting functionality in `macpan2helpers` ?
 
@@ -483,6 +542,8 @@ Likelihood profile CIs ...
 ## 'Hello, World' the hard way
 
 This section explains what is going on under the hood in `macpan2helpers::mk_calibrate()`
+
+IP: this almost feels like it could be its own vignette for those that want to build the calibration up from scratch...
 
 ### Step 0: recreate the simulator
 
