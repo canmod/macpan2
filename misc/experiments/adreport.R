@@ -2,6 +2,8 @@ library(macpan2)
 library(macpan2helpers)
 library(tidyverse)
 
+## note: typos in $tmb don't give warnings (assumes it's another matrix
+## you want to add ...)
 setup_everything <- function(v = 1.0) {
     ## can't call the arg do_pred_sdreport or we get a recursive
     ## default arg reference error ...
@@ -10,7 +12,7 @@ setup_everything <- function(v = 1.0) {
                        init_state = c(S = 99, I = 1, R = 0)) {
         sir = Compartmental(system.file("starter_models", "sir", package = "macpan2"))
     sim <- sir$simulators$tmb(
-                       do_pred_sdreport = do_pred_sdreport,
+                       .do_pred_sdreport = do_pred_sdreport,
                        time_steps = 100,
                        state = init_state,
                        flow = c(foi = NA, gamma = 0.1),
@@ -34,18 +36,20 @@ mk_calibrate(sir_simulator,
      exprs = list(log_lik ~ dnorm(I_obs, I, I_sd)),
      )
     fit <- sir_simulator$optimize$nlminb()
-    return(sir_simulator)
+    ss <- TMB::sdreport(sir_simulator$ad_fun())
+    return(ss)
 }
 
 S1 <- setup_everything()
-ss1 <- TMB::sdreport(S1$ad_fun())
 length(ss1$sd)
 
 S2 <- setup_everything(1L)
+all.equal(S1, S2)
 S3 <- setup_everything(TRUE)
-## Error in self$check(x) : 
-##   Error in valid$check(x) : mats component is not of type numeric
+all.equal(S1, S3)
 
 S4 <- setup_everything(0)
-ss4 <- TMB::sdreport(S4$ad_fun())
-length(ss4$sd)  ## ugh, same length ... 
+length(ss4$sd)
+
+S5 <- setup_everything(FALSE)
+all.equal(S4, S5)

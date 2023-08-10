@@ -53,11 +53,11 @@ Simulators = function(model) {
         , ...
         , .mats_to_save = .mats_to_return
         , .mats_to_return = "state"
-        , .do_pred_sdreport = TRUE
+        , .do_pred_sdreport = 1L
         , .dimnames = list()
         , .tmb_cpp = "macpan2"
         , .initialize_ad_fun = TRUE
-    ) {
+          ) {
       TMBModel(
         init_mats = CompartmentalMatsList(self$model, state, flow
           , ...
