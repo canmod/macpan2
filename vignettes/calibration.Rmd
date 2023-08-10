@@ -408,6 +408,20 @@ suppressWarnings(
     )
 ```
 
+## Alternative confidence intervals
+
+As above, we can also get likelihood profile CIs ...
+
+```{r lprof, eval = FALSE}
+ff <- sir_simulator$ad_fun()
+class(ff) <- "TMB"
+(broom.mixed::tidy(ff, conf.int = TRUE, conf.method = "profile")
+    |> select(-c(type, std.error))
+    |> mutate(term = drop_trans(coefnames(sir_simulator)))
+    |> mutate(across(where(is.numeric), exp))
+    |> as_tibble()
+)
+```
 
 ## Irregular data; multiple data streams
 
@@ -452,18 +466,6 @@ mk_calibrate(sir_simulator,
 ```
 
 
-## Alternative confidence intervals
-
-Likelihood profile CIs ...
-
-```{r lprof}
-(broom.mixed::tidy(ff, conf.int = TRUE, conf.method = "profile")
-    |> select(-c(type, std.error))
-    |> mutate(term = drop_trans(coefnames(sir_simulator)))
-    |> mutate(across(where(is.numeric), exp))
-    |> as_tibble()
-)
-```
 
 **fixme**: 
 
