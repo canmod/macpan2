@@ -176,10 +176,10 @@ reasonable-looking trajectory.</p>
 <p><img src="calibration_files/figure-html/plot1-1.png" width="576"></p>
 <p>The simulated trajectory is <strong>not</strong> sensible in this
 case - the <code>log_beta</code> value is way too large (we set the
-default to <span class="math inline">\(\exp(1) \approx 2.78\)</span>,
-while we know in this case that the true value is 0.2). Hopefully in a
-real system we would know enough to get reasonable order-of-magnitude
-starting values. (If we really knew that <span class="math inline">\(\gamma \approx 0.1\)</span>, we would know that a
+default to <span class="math inline">\(\exp(1) \approx `r round(exp(1),
+2)\)</span>), while we know in this case that the true value is 0.2).
+Hopefully in a real system we would know enough to get reasonable
+order-of-magnitude starting values. (If we really knew that <span class="math inline">\(\gamma \approx 0.1\)</span>, we would know that a
 starting value of <span class="math inline">\(\log(\beta)=1\)</span>
 would correspond to an <span class="math inline">\({\cal R}_0 \approx
 28\)</span>, clearly unrealistic for most infectious diseases …</p>
