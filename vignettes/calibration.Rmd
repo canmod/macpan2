@@ -104,7 +104,7 @@ A sanity check: make sure that the starting values give a reasonable-looking tra
 )
 ```
 
-The simulated trajectory is **not** sensible in this case - the `log_beta` value is way too large (we set the default to $\exp(1) \approx 2.78$, while we know in this case that the true value is 0.2). Hopefully in a real system we would know enough to get reasonable order-of-magnitude starting values. (If we really knew that $\gamma \approx 0.1$, we would know that a starting value of $\log(\beta)=1$ would correspond to an ${\cal R}_0 \approx 28$, clearly unrealistic for most infectious diseases ...
+The simulated trajectory is **not** sensible in this case - the `log_beta` value is way too large (we set the default to $\exp(1) \approx `r round(exp(1), 2)$), while we know in this case that the true value is 0.2). Hopefully in a real system we would know enough to get reasonable order-of-magnitude starting values. (If we really knew that $\gamma \approx 0.1$, we would know that a starting value of $\log(\beta)=1$ would correspond to an ${\cal R}_0 \approx 28$, clearly unrealistic for most infectious diseases ...
 
 Setting $\log(\beta)=0$ instead gives us a trajectory that is still very unrealistic (the peak of our observed prevalence is only 16.7), but at least it's smooth. As it turns out this will be good enough, but finding appropriate starting values (based on external information and some trial and error) is often a significant part of a modeling workflow.
 
