@@ -677,6 +677,7 @@ Daily = function(start_date, end_date) {
 #' @param random An object of class \code{\link{OptParamsList}}.
 #' @param obj_fn An object of class \code{\link{ObjectiveFunction}}.
 #' @param time_steps An object of class \code{\link{Time}}.
+#' @param do_pred_sdreport A logical flag (\code{FALSE}/\code{TRUE}, or any value evaluating to 1 for \code{TRUE}) indicating whether predicted values should be accessible via \code{TMB::sdreport()}
 #'
 #' @return Object of class \code{TMBModel} with the following methods.
 #'
@@ -738,7 +739,8 @@ TMBModel = function(
     params = OptParamsList(0),
     random = OptParamsList(),
     obj_fn = ObjectiveFunction(~0),
-    time_steps = Time(0L)
+    time_steps = Time(0L),
+    do_pred_sdreport = TRUE
   ) {
   ## Inheritance
   self = Base()
@@ -750,11 +752,12 @@ TMBModel = function(
   self$random = random
   self$obj_fn = obj_fn
   self$time_steps = time_steps
+  self$do_pred_sdreport = do_pred_sdreport
 
   ## Standard Methods
   self$data_arg = function() {
-    existing_literals = self$expr_list$.literals(self$init_mats$.names())
-    expr_list = self$expr_list$data_arg(self$init_mats$.names())
+   existing_literals = self$expr_list$.literals(self$init_mats$.names())
+   expr_list = self$expr_list$data_arg(self$init_mats$.names())
     c(
       self$init_mats$data_arg(),
       expr_list,
@@ -763,8 +766,8 @@ TMBModel = function(
       self$obj_fn$data_arg(self$init_mats$.names()
         , .existing_literals = existing_literals
       ),
-      self$time_steps$data_arg()
-
+      self$time_steps$data_arg(),
+      list(values_adreport = as.integer(self$do_pred_sdreport))
     )
   }
   self$param_arg = function() {

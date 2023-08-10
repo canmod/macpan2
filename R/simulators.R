@@ -53,6 +53,7 @@ Simulators = function(model) {
         , ...
         , .mats_to_save = .mats_to_return
         , .mats_to_return = "state"
+        , .do_pred_sdreport = TRUE
         , .dimnames = list()
         , .tmb_cpp = "macpan2"
         , .initialize_ad_fun = TRUE
@@ -66,7 +67,8 @@ Simulators = function(model) {
           , .structure_labels = self$model$labels
         ),
         expr_list = self$model$expr_list(),
-        time_steps = Time(time_steps)
+        time_steps = Time(time_steps),
+        do_pred_sdreport = .do_pred_sdreport
       )$simulator(tmb_cpp = .tmb_cpp, initialize_ad_fun = .initialize_ad_fun)
   }
   return_object(self, "Simulators")
