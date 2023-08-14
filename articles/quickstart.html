@@ -361,6 +361,9 @@ the <a href="https://github.com/canmod/macpan2helpers" class="external-link">mac
 package:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">vn</span> <span class="op">=</span> <span class="fu">macpan2helpers</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/macpan2helpers/man/visCompartmental.html" class="external-link">visCompartmental</a></span><span class="op">(</span><span class="va">sir</span>, label_flows <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">#&gt; Warning: `includeHTML()` was provided a `path` that appears to be a complete HTML document.</span></span>
+<span><span class="co">#&gt; <span style="color: #BB0000;">✖</span> Path: visnet.html</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> Use `tags$iframe()` to include an HTML document. You can either ensure `path` is accessible in your app or document (see e.g. `shiny::addResourcePath()`) and pass the relative path to the `src` argument. Or you can read the contents of `path` and pass the contents to `srcdoc`.</span></span></code></pre>
 
 
 <meta charset="utf-8">
@@ -5667,14 +5670,14 @@ HTMLWidgets.widget({
   
 });
 </script><div id="htmlwidget_container">
-<div id="htmlwidget-e75b93c745b35f6048e9" class="visNetwork html-widget html-fill-item-overflow-hidden html-fill-item" style="width:960px;height:500px;">
+<div id="htmlwidget-2ccfb3744c7d9d6fe05f" class="visNetwork html-widget html-fill-item-overflow-hidden html-fill-item" style="width:960px;height:500px;">
 
 </div>
 </div>
-<script type="application/json" data-for="htmlwidget-e75b93c745b35f6048e9">{"x":{"nodes":{"id":["S","I","R"],"label":["S","I","R"],"shape":["square","square","square"]},"edges":{"from":["S","I"],"to":["I","R"],"label":["foi","gamma"]},"nodesToDataframe":true,"edgesToDataframe":true,"options":{"width":"100%","height":"100%","nodes":{"shape":"dot"},"manipulation":{"enabled":false},"edges":{"arrows":"to"},"layout":{"hierarchical":{"enabled":true,"direction":"LR"}},"interaction":{"dragNodes":true,"dragView":true,"zoomView":false,"zoomSpeed":1}},"groups":null,"width":null,"height":null,"idselection":{"enabled":false},"byselection":{"enabled":false},"main":null,"submain":null,"footer":null,"background":"rgba(0, 0, 0, 0)","tooltipStay":300,"tooltipStyle":"position: fixed;visibility:hidden;padding: 5px;white-space: nowrap;font-family: verdana;font-size:14px;font-color:#000000;background-color: #f5f4ed;-moz-border-radius: 3px;-webkit-border-radius: 3px;border-radius: 3px;border: 1px solid #808074;box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);"},"evals":[],"jsHooks":[]}</script><script type="application/htmlwidget-sizing" data-for="htmlwidget-e75b93c745b35f6048e9">{"viewer":{"width":450,"height":350,"padding":15,"fill":true},"browser":{"width":960,"height":500,"padding":40,"fill":false}}</script><p>We can display the components of <code>macpan2</code> models
+<script type="application/json" data-for="htmlwidget-2ccfb3744c7d9d6fe05f">{"x":{"nodes":{"id":["S","I","R"],"label":["S","I","R"],"shape":["square","square","square"]},"edges":{"from":["S","I"],"to":["I","R"],"label":["foi","gamma"]},"nodesToDataframe":true,"edgesToDataframe":true,"options":{"width":"100%","height":"100%","nodes":{"shape":"dot"},"manipulation":{"enabled":false},"edges":{"arrows":"to"},"layout":{"hierarchical":{"enabled":true,"direction":"LR"}},"interaction":{"dragNodes":true,"dragView":true,"zoomView":false,"zoomSpeed":1}},"groups":null,"width":null,"height":null,"idselection":{"enabled":false},"byselection":{"enabled":false},"main":null,"submain":null,"footer":null,"background":"rgba(0, 0, 0, 0)","tooltipStay":300,"tooltipStyle":"position: fixed;visibility:hidden;padding: 5px;white-space: nowrap;font-family: verdana;font-size:14px;font-color:#000000;background-color: #f5f4ed;-moz-border-radius: 3px;-webkit-border-radius: 3px;border-radius: 3px;border: 1px solid #808074;box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);"},"evals":[],"jsHooks":[]}</script><script type="application/htmlwidget-sizing" data-for="htmlwidget-2ccfb3744c7d9d6fe05f">{"viewer":{"width":450,"height":350,"padding":15,"fill":true},"browser":{"width":960,"height":500,"padding":40,"fill":false}}</script><p>We can display the components of <code>macpan2</code> models
 (<code>Compartmental</code> objects), including the methods that operate
 on them, by listing their names:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">sir</span><span class="op">)</span></span>
 <span><span class="co">#&gt;  [1] "def"            "indices"        "labels"         "flows_expanded"</span></span>
 <span><span class="co">#&gt;  [5] "variables"      "simulators"     "expr_list"      "flows"         </span></span>
@@ -5700,7 +5703,7 @@ simulation engine available.</p>
 <p>We attach specific values for model variables when initializing the
 model simulator, <code>sir_simulator</code>, using the
 <code>sir$simulators$tmb()</code> function:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_simulator</span> <span class="op">=</span> <span class="va">sir</span><span class="op">$</span><span class="va">simulators</span><span class="op">$</span><span class="fu">tmb</span><span class="op">(</span></span>
 <span>  time_steps <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>  state <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>S <span class="op">=</span> <span class="fl">99</span>, I <span class="op">=</span> <span class="fl">1</span>, R <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>,</span>
@@ -5758,7 +5761,7 @@ represents all variables as <a href="https://canmod.github.io/macpan2/articles/c
 including scalars, in this case treated as 1 x 1 matrices.)</p>
 <p>What if we had specified a hard-coded value for <code>N</code> above?
 For instance:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_simulator2</span> <span class="op">=</span> <span class="va">sir</span><span class="op">$</span><span class="va">simulators</span><span class="op">$</span><span class="fu">tmb</span><span class="op">(</span></span>
 <span>  time_steps <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>  state <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>S <span class="op">=</span> <span class="fl">99</span>, I <span class="op">=</span> <span class="fl">1</span>, R <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>,</span>
@@ -5786,7 +5789,7 @@ that <code>N</code> will be computed by the simulator.</p>
 using one of its methods: <code>report()</code>. The results come out in
 <a href="https://en.wikipedia.org/wiki/Wide_and_narrow_data" class="external-link">long (or
 “narrow”) format</a>, where there is exactly one value per row:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_results</span> <span class="op">=</span> <span class="va">sir_simulator</span><span class="op">$</span><span class="fu">report</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">sir_results</span>, <span class="fl">9</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   matrix time row col     value</span></span>
@@ -5833,7 +5836,7 @@ to use with other data processing packages, like <code>ggplot2</code>,
 <code>dplyr</code>, and <code>tidyr</code>, all of which readily make
 use of data in long format.</p>
 <p>For example, we can generate a <code>ggplot</code> with:</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="op">(</span><span class="va">sir_results</span></span>
 <span>  <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>state <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">row</span>, levels <span class="op">=</span> <span class="va">sir</span><span class="op">$</span><span class="va">labels</span><span class="op">$</span><span class="fu">state</span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="op">|&gt;</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -5847,7 +5850,7 @@ otherwise we would have the alphabetically-ordered IRS model instead of
 the flow-ordered SIR.</p>
 <p>If you want to use base R plots, you can convert the long format data
 to wide format:</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_results_wide</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">sir_results</span></span>
 <span>    <span class="co">## drop 'matrix' (has only a single value) and 'col' (empty)</span></span>
 <span>    <span class="op">|&gt;</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="va">matrix</span>, <span class="va">col</span><span class="op">)</span><span class="op">)</span></span>
@@ -5863,14 +5866,14 @@ to wide format:</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>     2  98.6  1.21 0.210</span></span></code></pre></div>
 <p>(Above, we used the <a href="https://www.tidyverse.org/blog/2023/04/base-vs-magrittr-pipe/#pipes" class="external-link">base
 R pipe operator</a>, <code>|&gt;</code>.)</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="va">sir_results_wide</span>,</span>
 <span>     <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">time</span>,</span>
 <span>          y <span class="op">=</span> <span class="va">I</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="quickstart_files/figure-html/base_plot_ex-1.png" width="576"></p>
 <p>or</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>las <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="co">## horizontal y-axis ticks</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/matplot.html" class="external-link">matplot</a></span><span class="op">(</span><span class="va">sir_results_wide</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>,</span>
 <span>        <span class="va">sir_results_wide</span><span class="op">[</span>,<span class="op">-</span><span class="fl">1</span><span class="op">]</span>,</span>
@@ -5898,7 +5901,7 @@ corresponding box (there is an analogous <code>total_outflow</code>
 vector as well). To return this vector, one must declare that it is a
 matrix to return as in the following code (by default <code>state</code>
 is the only matrix to be returned).</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_simulator3</span> <span class="op">=</span> <span class="va">sir</span><span class="op">$</span><span class="va">simulators</span><span class="op">$</span><span class="fu">tmb</span><span class="op">(</span></span>
 <span>  time_steps <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>  state <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>S <span class="op">=</span> <span class="fl">99</span>, I <span class="op">=</span> <span class="fl">1</span>, R <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>,</span>
@@ -5914,7 +5917,7 @@ is the only matrix to be returned).</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p>The plotting code used above can be modified to plot inflow rather
 than state.</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="op">(</span><span class="va">sir_simulator3</span><span class="op">$</span><span class="fu">report</span><span class="op">(</span><span class="op">)</span></span>
 <span>  <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">matrix</span> <span class="op">==</span> <span class="st">"total_inflow"</span><span class="op">)</span></span>
 <span>  <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>state <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">row</span>, levels <span class="op">=</span> <span class="va">sir</span><span class="op">$</span><span class="va">labels</span><span class="op">$</span><span class="fu">state</span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
