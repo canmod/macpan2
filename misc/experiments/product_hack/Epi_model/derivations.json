@@ -1,0 +1,14 @@
+[
+  {
+    "simulation_phase" : "before",
+    "output_names" : "N",
+    "arguments" : ["S", "E", "I", "R"],
+    "expression" : "sum(S, E, I, R)"
+  },
+  {
+    "simulation_phase" : "before",
+    "output_names" : "per_capita_transmission",
+    "arguments" : ["transmissability", "N"],
+    "expression" : "transmissability / N"
+  }
+]
