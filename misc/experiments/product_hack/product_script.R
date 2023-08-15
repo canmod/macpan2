@@ -831,7 +831,7 @@ InsertRK4Expressions = function(model_simulator, during_phase_length, expanded_f
   ##end of state_rk4 computation
   
   args_state_update = list(
-    as.formula("state ~ (state_rk1 + 2*(state_rk2 + state_rk3) + state_rk4)/6"),
+    as.formula("state ~ initial_state + ((state_rk1 + 2*(state_rk2 + state_rk3) + state_rk4)/6)"),
     .at = during_phase_length + during_phase_length_increment + 1L,
     .phase = "during",
     .vec_by_flows = "flow",
