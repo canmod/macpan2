@@ -1,9 +1,40 @@
 library(macpan2)
 library(oor)
 
-Derivations2ExprListAlt = function(user_expr) {
+StandardExprAlt = function(model){
+  self = macpan2:::Indices(model)
+  self$.init_derivations_list = function(){
+    #This expression is only required to ensure every model has at least one expression.
+    #There is currently a bug where it is not possible to create a simulator for a model with no expressions at all
+    hack_expression_list = list(
+      output_names = "state",
+      expression = "1*state",
+      arguments = list("state"),
+      simulation_phase = "before"
+    )
+    
+    required_derivations = list(hack_expression_list)
+    
+    return(required_derivations)
+  }
+  self$.derivation_evaluator = function(derivation){
+    formula = MathExpressionFromStrings(derivation$expression, derivation$arguments)
+    derivation$expression = do.call(formula$symbolic$evaluate, derivation$arguments)
+    return(derivation)
+  }
+  self$.derivations_evaluator = function(){
+    return(lapply(self$.init_derivations_list(), self$.derivation_evaluator))
+  }
+  self$standard_expressions = self$.derivations_evaluator
+  self$as_derivations = function() lapply(self$standard_expressions(), lapply, as.character)
+  return_object(self, "StandardExpr")
+}
+
+Derivations2ExprListAlt = function(user_expr, standard_expr) {
   self = Base()
+  self$standard_expr = standard_expr
   self$user_expr = user_expr
+  self$.standard_expr_list = standard_expr$standard_expressions()
   self$.user_expr_list = user_expr$expand_vector_expressions()
   
   self$.expression_formatter = function(expression_list_element){
@@ -27,8 +58,15 @@ Derivations2ExprListAlt = function(user_expr) {
       character(1L),
       "simulation_phase"
     )
+    standard_phases = vapply(
+      self$.standard_expr_list,
+      getElement,
+      character(1L),
+      "simulation_phase"
+    )
     c(
-      self$.user_expr_list[user_phases == phase]
+      self$.user_expr_list[user_phases == phase],
+      self$.standard_expr_list[standard_phases == phase]
     )
   }
   self$expr_list_per_phase = function(
@@ -104,7 +142,7 @@ ModelAlt = function(definition) {
   }
   self$derivations = self$def$derivations  ## look like a field but actually method forwarding
   self$expr_list = function() {
-    Derivations2ExprListAlt(UserExpr(self))$expr_list()
+    Derivations2ExprListAlt(UserExpr(self), StandardExprAlt(self))$expr_list()
   }
   
   # Composition
@@ -133,59 +171,6 @@ CompartmentalAlt = function(model_directory){
 }
 
 InsertEulerExpressions = function(model_simulator, during_phase_length, expanded_flows){
-  args = list(
-    as.formula("per_capita ~ state[per_capita_from]*flow[per_capita_flow]"),
-    .at = during_phase_length + 1L,
-    .phase = "during",
-    .vec_by_flows = "flows",
-    .vec_by_states = "state"
-  )
-  model_simulator = do.call(model_simulator$insert$expressions, args)
-  
-  args = list(
-    as.formula("absolute ~ flow[absolute_flow]"),
-    .at = during_phase_length + 2L,
-    .phase = "during",
-    .vec_by_flows = "flows",
-    .vec_by_states = "state"
-  )
-  
-  args = list(
-    as.formula("per_capita_inflow ~ state[per_capita_inflow_from]*flow[per_capita_inflow_flow]"),
-    .at = during_phase_length + 3L,
-    .phase = "during",
-    .vec_by_flows = "flows",
-    .vec_by_states = "state"
-  )
-  model_simulator = do.call(model_simulator$insert$expressions, args)
-  
-  args = list(
-    as.formula("per_capita_outflow ~ state[per_capita_outflow_from]*flow[per_capita_outflow_flow]"),
-    .at = during_phase_length + 4L,
-    .phase = "during",
-    .vec_by_flows = "flow",
-    .vec_by_states = "state"
-  )
-  model_simulators = do.call(model_simulator$insert$expressions, args)
-  
-  args = list(
-    as.formula("absolute_inflow ~ flow[absolute_inflow_flow]"),
-    .at = during_phase_length + 5L,
-    .phase = "during",
-    .vec_by_flows = "flows",
-    .vec_by_states = "state"
-  )
-  model_simulator = do.call(model_simulator$insert$expressions, args)
-  
-  args = list(
-    as.formula("absolute_outflow ~ flow[absolute_outflow_flow]"),
-    .at = during_phase_length + 6L,
-    .phase = "during",
-    .vec_by_flows = "flows",
-    .vec_by_states = "state"
-  )
-  model_simulator = do.call(model_simulator$insert$expressions, args)
-  
   flow_types = list("per_capita",
                     "absolute",
                     "per_capita_inflow",
@@ -203,12 +188,67 @@ InsertEulerExpressions = function(model_simulator, during_phase_length, expanded
   flow_tester = function(flow_type) {
     macpan2:::valid$char1$assert(flow_type) %in% expanded_flows$type
   }
-  #present_flows = unlist(lapply(flow_types, flow_tester), use.names = FALSE)
+  present_flows = unlist(lapply(flow_types, flow_tester), use.names = FALSE)
   present_inflows = unlist(lapply(inflow_flow_types, flow_tester), use.names = FALSE)
   present_outflows = unlist(lapply(outflow_flow_types, flow_tester), use.names = FALSE)
   
+  args_per_capita = list(
+    as.formula("per_capita ~ state[per_capita_from]*flow[per_capita_flow]"),
+    .at = during_phase_length,
+    .phase = "during",
+    .vec_by_flows = "flows",
+    .vec_by_states = "state"
+  )
   
+  args_absolute = list(
+    as.formula("absolute ~ flow[absolute_flow]"),
+    .at = during_phase_length,
+    .phase = "during",
+    .vec_by_flows = "flows",
+    .vec_by_states = "state"
+  )
   
+  args_per_capita_inflow = list(
+    as.formula("per_capita_inflow ~ state[per_capita_inflow_from]*flow[per_capita_inflow_flow]"),
+    .at = during_phase_length,
+    .phase = "during",
+    .vec_by_flows = "flows",
+    .vec_by_states = "state"
+  )
+  
+  args_per_capita_outflow = list(
+    as.formula("per_capita_outflow ~ state[per_capita_outflow_from]*flow[per_capita_outflow_flow]"),
+    .at = during_phase_length,
+    .phase = "during",
+    .vec_by_flows = "flow",
+    .vec_by_states = "state"
+  )
+  
+  args_absolute_inflow = list(
+    as.formula("absolute_inflow ~ flow[absolute_inflow_flow]"),
+    .at = during_phase_length,
+    .phase = "during",
+    .vec_by_flows = "flows",
+    .vec_by_states = "state"
+  )
+  
+  args_absolute_outflow = list(
+    as.formula("absolute_outflow ~ flow[absolute_outflow_flow]"),
+    .at = during_phase_length ,
+    .phase = "during",
+    .vec_by_flows = "flows",
+    .vec_by_states = "state"
+  )
+
+  args_vct = c(args_per_capita, args_absolute, args_per_capita_inflow,
+               args_per_capita_outflow, args_absolute_inflow, args_absolute_outflow)
+  during_phase_length_increment = 1L
+  for(arguments in args_vct[present_flows]){
+    arguments$.at = arguments$.at + during_phase_length_increment
+    model_simulator = do.call(model_simulator$insert$expressions, arguments)
+    during_phase_length_increment = during_phase_length_increment + 1L
+  }
+
   total_outflow_expression_vct = c(
     "groupSums(per_capita, per_capita_from, state_length)",
     "groupSums(absolute, absolute_from, state_length)",
@@ -216,24 +256,25 @@ InsertEulerExpressions = function(model_simulator, during_phase_length, expanded
     "groupSums(absolute_outflow, absolute_outflow_from, state_length)"
   )
   
-  if(!any(unlist(present_outflows))){
-    args = list(
+  if(!any(present_outflows)){
+    args_total_outflow = list(
       as.formula("total_outflow ~ 0"),
-      .at = during_phase_length + 7L,
+      .at = during_phase_length + during_phase_length_increment +1L,
       .phase = "during",
       .vec_by_flows = "flows",
       .vec_by_states = "state"
     )
   } else {
-    args = list(
+    args_total_outflow = list(
       as.formula(paste0("total_outflow ~ ", paste0(total_outflow_expression_vct[present_outflows], collapse = "+"))),
-      .at = during_phase_length + 7L,
+      .at = during_phase_length + during_phase_length_increment +1L,
       .phase = "during",
       .vec_by_flows = "flows",
       .vec_by_states = "state"
     )
   }
-  model_simulator = do.call(model_simulator$insert$expressions, args)
+  model_simulator = do.call(model_simulator$insert$expressions, args_total_outflow)
+  during_phase_length_increment = during_phase_length_increment +1L
   
   total_inflow_expression_vct = c(
     "groupSums(per_capita, per_capita_to, state_length)",
@@ -242,33 +283,561 @@ InsertEulerExpressions = function(model_simulator, during_phase_length, expanded
     "groupSums(absolute_inflow, absolute_inflow_to, state_length)"
   ) 
   
-  if(!any(unlist(present_inflows))){
-    args = list(
+  if(!any(present_inflows)){
+    args_total_inflow = list(
       as.formula("total_inflow ~ 0"),
-      .at = during_phase_length + 8L,
+      .at = during_phase_length + during_phase_length_increment +1L,
       .phase = "during",
       .vec_by_flows = "flows",
       .vec_by_states = "state"
     )
   } else {
-    args = list(
+    args_total_inflow = list(
       as.formula(paste0("total_inflow ~ ", paste0(total_inflow_expression_vct[present_inflows], collapse = "+"))),
-      .at = during_phase_length + 8L,
+      .at = during_phase_length + during_phase_length_increment +1L,
       .phase = "during",
       .vec_by_flows = "flows",
       .vec_by_states = "state"
     )
   }
-  model_simulator = do.call(model_simulator$insert$expressions, args)
+  model_simulator = do.call(model_simulator$insert$expressions, args_total_inflow)
+  during_phase_length_increment = during_phase_length_increment +1L
   
-  args = list(
+  args_state_update = list(
     as.formula("state ~ state + total_inflow - total_outflow"),
-    .at = during_phase_length + 9L,
+    .at = during_phase_length + during_phase_length_increment +1L,
     .phase = "during",
     .vec_by_flows = "flows",
     .vec_by_states = "state"
   )
-  model_simulator = do.call(model_simulator$insert$expressions, args)
+  model_simulator = do.call(model_simulator$insert$expressions, args_state_update)
+  
+  return(model_simulator)
+}
+
+# Note that using the RK4 method requires 5 new matrices be created initial_state, state_rk1, state_rk2, state_rk3, state_rk4.
+# All should be initialized as empty_matrix.
+InsertRK4Expressions = function(model_simulator, during_phase_length, expanded_flows){
+  flow_types = list("per_capita",
+                    "absolute",
+                    "per_capita_inflow",
+                    "per_capita_outflow",
+                    "absolute_inflow",
+                    "absolute_outflow")
+  inflow_flow_types = list("per_capita",
+                           "absolute",
+                           "per_capita_inflow",
+                           "absolute_inflow")
+  outflow_flow_types = list("per_capita",
+                            "absolute",
+                            "per_capita_outflow",
+                            "absolute_outflow")
+  total_inflow_expression_vct = c(
+    "groupSums(per_capita, per_capita_to, state_length)",
+    "groupSums(absolute, absolute_to, state_length)",
+    "groupSums(per_capita_inflow, per_capita_inflow_to, state_length)",
+    "groupSums(absolute_inflow, absolute_inflow_to, state_length)"
+  ) 
+  total_outflow_expression_vct = c(
+    "groupSums(per_capita, per_capita_from, state_length)",
+    "groupSums(absolute, absolute_from, state_length)",
+    "groupSums(per_capita_outflow, per_capita_outflow_from, state_length)",
+    "groupSums(absolute_outflow, absolute_outflow_from, state_length)"
+  ) 
+  
+  flow_tester = function(flow_type) {
+    macpan2:::valid$char1$assert(flow_type) %in% expanded_flows$type
+  }
+  present_flows = unlist(lapply(flow_types, flow_tester), use.names = FALSE)
+  present_inflows = unlist(lapply(inflow_flow_types, flow_tester), use.names = FALSE)
+  present_outflows = unlist(lapply(outflow_flow_types, flow_tester), use.names = FALSE)
+  
+  during_phase_length_increment = 1L
+  
+  args_initial_state = list(
+    as.formula("initial_state ~ state"),
+    .at = during_phase_length + during_phase_length_increment,
+    .phase = "during",
+    .vec_by_flows = "flows",
+    .vec_by_states = "state"
+  )
+  model_simulator = do.call(model_simulator$insert$expressions, args_initial_state)
+  during_phase_length_increment = during_phase_length_increment + 1L
+  
+  args_per_capita = list(
+    as.formula("per_capita ~ state[per_capita_from]*flow[per_capita_flow]"),
+    .at = during_phase_length,
+    .phase = "during",
+    .vec_by_flows = "flows",
+    .vec_by_states = "state"
+  )
+  
+  args_absolute = list(
+    as.formula("absolute ~ flow[absolute_flow]"),
+    .at = during_phase_length,
+    .phase = "during",
+    .vec_by_flows = "flows",
+    .vec_by_states = "state"
+  )
+  
+  args_per_capita_inflow = list(
+    as.formula("per_capita_inflow ~ state[per_capita_inflow_from]*flow[per_capita_inflow_flow]"),
+    .at = during_phase_length,
+    .phase = "during",
+    .vec_by_flows = "flows",
+    .vec_by_states = "state"
+  )
+  
+  args_per_capita_outflow = list(
+    as.formula("per_capita_outflow ~ state[per_capita_outflow_from]*flow[per_capita_outflow_flow]"),
+    .at = during_phase_length,
+    .phase = "during",
+    .vec_by_flows = "flow",
+    .vec_by_states = "state"
+  )
+  
+  args_absolute_inflow = list(
+    as.formula("absolute_inflow ~ flow[absolute_inflow_flow]"),
+    .at = during_phase_length,
+    .phase = "during",
+    .vec_by_flows = "flows",
+    .vec_by_states = "state"
+  )
+  
+  args_absolute_outflow = list(
+    as.formula("absolute_outflow ~ flow[absolute_outflow_flow]"),
+    .at = during_phase_length ,
+    .phase = "during",
+    .vec_by_flows = "flows",
+    .vec_by_states = "state"
+  )
+  
+  args_vct = c(args_per_capita, args_absolute, args_per_capita_inflow,
+               args_per_capita_outflow, args_absolute_inflow, args_absolute_outflow)
+
+  for(arguments in args_vct[present_flows]){
+    arguments$.at = arguments$.at + during_phase_length_increment
+    model_simulator = do.call(model_simulator$insert$expressions, arguments)
+    during_phase_length_increment = during_phase_length_increment + 1L
+  }
+  
+  if(!any(present_outflows)){
+    args_total_outflow = list(
+      as.formula("total_outflow ~ 0"),
+      .at = during_phase_length + during_phase_length_increment +1L,
+      .phase = "during",
+      .vec_by_flows = "flows",
+      .vec_by_states = "state"
+    )
+  } else {
+    args_total_outflow = list(
+      as.formula(paste0("total_outflow ~ ", paste0(total_outflow_expression_vct[present_outflows], collapse = "+"))),
+      .at = during_phase_length + during_phase_length_increment +1L,
+      .phase = "during",
+      .vec_by_flows = "flows",
+      .vec_by_states = "state"
+    )
+  }
+  model_simulator = do.call(model_simulator$insert$expressions, args_total_outflow)
+  during_phase_length_increment = during_phase_length_increment +1L
+  
+  if(!any(present_inflows)){
+    args_total_inflow = list(
+      as.formula("total_inflow ~ 0"),
+      .at = during_phase_length + during_phase_length_increment +1L,
+      .phase = "during",
+      .vec_by_flows = "flows",
+      .vec_by_states = "state"
+    )
+  } else {
+    args_total_inflow = list(
+      as.formula(paste0("total_inflow ~ ", paste0(total_inflow_expression_vct[present_inflows], collapse = "+"))),
+      .at = during_phase_length + during_phase_length_increment +1L,
+      .phase = "during",
+      .vec_by_flows = "flows",
+      .vec_by_states = "state"
+    )
+  }
+  model_simulator = do.call(model_simulator$insert$expressions, args_total_inflow)
+  during_phase_length_increment = during_phase_length_increment +1L
+  
+  args_state_rk1_update = list(
+    as.formula("state_rk1 ~ initial_state + total_inflow - total_outflow"),
+    .at = during_phase_length + during_phase_length_increment + 1L,
+    .phase = "during",
+    .vec_by_flows = "flows",
+    .vec_by_states = "state"
+  )
+  model_simulator = do.call(model_simulator$insert$expressions, args_state_rk1_update)
+  during_phase_length_increment = during_phase_length_increment +1L
+  
+  ##end of state_rk1 computation
+  
+  args_tmp_state_update_1 = list(
+    as.formula("state ~ initial_state + (state_rk1/2)"),
+    .at = during_phase_length + during_phase_length_increment + 1L,
+    .phase = "during",
+    .vec_by_flows = "flows",
+    .vec_by_states = "state"
+  )
+  model_simulator = do.call(model_simulator$insert$expressions, args_tmp_state_update_1)
+  during_phase_length_increment = during_phase_length_increment + 1L
+  
+  args_per_capita = list(
+    as.formula("per_capita ~ state[per_capita_from]*flow[per_capita_flow]"),
+    .at = during_phase_length,
+    .phase = "during",
+    .vec_by_flows = "flows",
+    .vec_by_states = "state"
+  )
+  
+  args_absolute = list(
+    as.formula("absolute ~ flow[absolute_flow]"),
+    .at = during_phase_length,
+    .phase = "during",
+    .vec_by_flows = "flows",
+    .vec_by_states = "state"
+  )
+  
+  args_per_capita_inflow = list(
+    as.formula("per_capita_inflow ~ state[per_capita_inflow_from]*flow[per_capita_inflow_flow]"),
+    .at = during_phase_length,
+    .phase = "during",
+    .vec_by_flows = "flows",
+    .vec_by_states = "state"
+  )
+  
+  args_per_capita_outflow = list(
+    as.formula("per_capita_outflow ~ state[per_capita_outflow_from]*flow[per_capita_outflow_flow]"),
+    .at = during_phase_length,
+    .phase = "during",
+    .vec_by_flows = "flow",
+    .vec_by_states = "state"
+  )
+  
+  args_absolute_inflow = list(
+    as.formula("absolute_inflow ~ flow[absolute_inflow_flow]"),
+    .at = during_phase_length,
+    .phase = "during",
+    .vec_by_flows = "flows",
+    .vec_by_states = "state"
+  )
+  
+  args_absolute_outflow = list(
+    as.formula("absolute_outflow ~ flow[absolute_outflow_flow]"),
+    .at = during_phase_length ,
+    .phase = "during",
+    .vec_by_flows = "flows",
+    .vec_by_states = "state"
+  )
+  
+  args_vct = c(args_per_capita, args_absolute, args_per_capita_inflow,
+               args_per_capita_outflow, args_absolute_inflow, args_absolute_outflow)
+
+  for(arguments in args_vct[present_flows]){
+    arguments$.at = arguments$.at + during_phase_length_increment
+    model_simulator = do.call(model_simulator$insert$expressions, arguments)
+    during_phase_length_increment = during_phase_length_increment + 1L
+  }
+  
+  if(!any(present_outflows)){
+    args_total_outflow = list(
+      as.formula("total_outflow ~ 0"),
+      .at = during_phase_length + during_phase_length_increment +1L,
+      .phase = "during",
+      .vec_by_flows = "flows",
+      .vec_by_states = "state"
+    )
+  } else {
+    args_total_outflow = list(
+      as.formula(paste0("total_outflow ~ ", paste0(total_outflow_expression_vct[present_outflows], collapse = "+"))),
+      .at = during_phase_length + during_phase_length_increment +1L,
+      .phase = "during",
+      .vec_by_flows = "flows",
+      .vec_by_states = "state"
+    )
+  }
+  model_simulator = do.call(model_simulator$insert$expressions, args_total_outflow)
+  during_phase_length_increment = during_phase_length_increment +1L
+  
+  if(!any(present_inflows)){
+    args_total_inflow = list(
+      as.formula("total_inflow ~ 0"),
+      .at = during_phase_length + during_phase_length_increment +1L,
+      .phase = "during",
+      .vec_by_flows = "flows",
+      .vec_by_states = "state"
+    )
+  } else {
+    args_total_inflow = list(
+      as.formula(paste0("total_inflow ~ ", paste0(total_inflow_expression_vct[present_inflows], collapse = "+"))),
+      .at = during_phase_length + during_phase_length_increment +1L,
+      .phase = "during",
+      .vec_by_flows = "flows",
+      .vec_by_states = "state"
+    )
+  }
+  model_simulator = do.call(model_simulator$insert$expressions, args_total_inflow)
+  during_phase_length_increment = during_phase_length_increment +1L
+  
+  args_state_rk2_update = list(
+    as.formula("state_rk2 ~ initial_state + ((total_inflow - total_outflow)/2)"),
+    .at = during_phase_length + during_phase_length_increment + 1L,
+    .phase = "during",
+    .vec_by_flows = "flows",
+    .vec_by_states = "state"
+  )
+  model_simulator = do.call(model_simulator$insert$expressions, args_state_rk2_update)
+  during_phase_length_increment = during_phase_length_increment +1L
+  
+  ##end of state_rk2 computation
+  
+  args_tmp_state_update_2 = list(
+    as.formula("state ~ initial_state + (state_rk2/2)"),
+    .at = during_phase_length + during_phase_length_increment + 1L,
+    .phase = "during",
+    .vec_by_flows = "flows",
+    .vec_by_states = "state"
+  )
+  model_simulator = do.call(model_simulator$insert$expressions, args_tmp_state_update_2)
+  during_phase_length_increment = during_phase_length_increment + 1L
+  
+  args_per_capita = list(
+    as.formula("per_capita ~ state[per_capita_from]*flow[per_capita_flow]"),
+    .at = during_phase_length,
+    .phase = "during",
+    .vec_by_flows = "flows",
+    .vec_by_states = "state"
+  )
+  
+  args_absolute = list(
+    as.formula("absolute ~ flow[absolute_flow]"),
+    .at = during_phase_length,
+    .phase = "during",
+    .vec_by_flows = "flows",
+    .vec_by_states = "state"
+  )
+  
+  args_per_capita_inflow = list(
+    as.formula("per_capita_inflow ~ state[per_capita_inflow_from]*flow[per_capita_inflow_flow]"),
+    .at = during_phase_length,
+    .phase = "during",
+    .vec_by_flows = "flows",
+    .vec_by_states = "state"
+  )
+  
+  args_per_capita_outflow = list(
+    as.formula("per_capita_outflow ~ state[per_capita_outflow_from]*flow[per_capita_outflow_flow]"),
+    .at = during_phase_length,
+    .phase = "during",
+    .vec_by_flows = "flow",
+    .vec_by_states = "state"
+  )
+  
+  args_absolute_inflow = list(
+    as.formula("absolute_inflow ~ flow[absolute_inflow_flow]"),
+    .at = during_phase_length,
+    .phase = "during",
+    .vec_by_flows = "flows",
+    .vec_by_states = "state"
+  )
+  
+  args_absolute_outflow = list(
+    as.formula("absolute_outflow ~ flow[absolute_outflow_flow]"),
+    .at = during_phase_length ,
+    .phase = "during",
+    .vec_by_flows = "flows",
+    .vec_by_states = "state"
+  )
+  
+  args_vct = c(args_per_capita, args_absolute, args_per_capita_inflow,
+               args_per_capita_outflow, args_absolute_inflow, args_absolute_outflow)
+
+  for(arguments in args_vct[present_flows]){
+    arguments$.at = arguments$.at + during_phase_length_increment
+    model_simulator = do.call(model_simulator$insert$expressions, arguments)
+    during_phase_length_increment = during_phase_length_increment + 1L
+  }
+  
+  if(!any(present_outflows)){
+    args_total_outflow = list(
+      as.formula("total_outflow ~ 0"),
+      .at = during_phase_length + during_phase_length_increment +1L,
+      .phase = "during",
+      .vec_by_flows = "flows",
+      .vec_by_states = "state"
+    )
+  } else {
+    args_total_outflow = list(
+      as.formula(paste0("total_outflow ~ ", paste0(total_outflow_expression_vct[present_outflows], collapse = "+"))),
+      .at = during_phase_length + during_phase_length_increment +1L,
+      .phase = "during",
+      .vec_by_flows = "flows",
+      .vec_by_states = "state"
+    )
+  }
+  model_simulator = do.call(model_simulator$insert$expressions, args_total_outflow)
+  during_phase_length_increment = during_phase_length_increment +1L
+  
+  if(!any(present_inflows)){
+    args_total_inflow = list(
+      as.formula("total_inflow ~ 0"),
+      .at = during_phase_length + during_phase_length_increment +1L,
+      .phase = "during",
+      .vec_by_flows = "flows",
+      .vec_by_states = "state"
+    )
+  } else {
+    args_total_inflow = list(
+      as.formula(paste0("total_inflow ~ ", paste0(total_inflow_expression_vct[present_inflows], collapse = "+"))),
+      .at = during_phase_length + during_phase_length_increment +1L,
+      .phase = "during",
+      .vec_by_flows = "flows",
+      .vec_by_states = "state"
+    )
+  }
+  model_simulator = do.call(model_simulator$insert$expressions, args_total_inflow)
+  during_phase_length_increment = during_phase_length_increment +1L
+  
+  args_state_rk3_update = list(
+    as.formula("state_rk3 ~ initial_state + ((total_inflow - total_outflow)/2)"),
+    .at = during_phase_length + during_phase_length_increment + 1L,
+    .phase = "during",
+    .vec_by_flows = "flows",
+    .vec_by_states = "state"
+  )
+  model_simulator = do.call(model_simulator$insert$expressions, args_state_rk3_update)
+  during_phase_length_increment = during_phase_length_increment +1L
+  
+  ##end of state_rk3 computation
+  
+  args_tmp_state_update_3 = list(
+    as.formula("state ~ initial_state + state_rk3"),
+    .at = during_phase_length + during_phase_length_increment + 1L,
+    .phase = "during",
+    .vec_by_flows = "flows",
+    .vec_by_states = "state"
+  )
+  model_simulator = do.call(model_simulator$insert$expressions, args_tmp_state_update_3)
+  during_phase_length_increment = during_phase_length_increment + 1L
+  
+  args_per_capita = list(
+    as.formula("per_capita ~ state[per_capita_from]*flow[per_capita_flow]"),
+    .at = during_phase_length,
+    .phase = "during",
+    .vec_by_flows = "flows",
+    .vec_by_states = "state"
+  )
+  
+  args_absolute = list(
+    as.formula("absolute ~ flow[absolute_flow]"),
+    .at = during_phase_length,
+    .phase = "during",
+    .vec_by_flows = "flows",
+    .vec_by_states = "state"
+  )
+  
+  args_per_capita_inflow = list(
+    as.formula("per_capita_inflow ~ state[per_capita_inflow_from]*flow[per_capita_inflow_flow]"),
+    .at = during_phase_length,
+    .phase = "during",
+    .vec_by_flows = "flows",
+    .vec_by_states = "state"
+  )
+  
+  args_per_capita_outflow = list(
+    as.formula("per_capita_outflow ~ state[per_capita_outflow_from]*flow[per_capita_outflow_flow]"),
+    .at = during_phase_length,
+    .phase = "during",
+    .vec_by_flows = "flow",
+    .vec_by_states = "state"
+  )
+  
+  args_absolute_inflow = list(
+    as.formula("absolute_inflow ~ flow[absolute_inflow_flow]"),
+    .at = during_phase_length,
+    .phase = "during",
+    .vec_by_flows = "flows",
+    .vec_by_states = "state"
+  )
+  
+  args_absolute_outflow = list(
+    as.formula("absolute_outflow ~ flow[absolute_outflow_flow]"),
+    .at = during_phase_length ,
+    .phase = "during",
+    .vec_by_flows = "flows",
+    .vec_by_states = "state"
+  )
+  
+  args_vct = c(args_per_capita, args_absolute, args_per_capita_inflow,
+               args_per_capita_outflow, args_absolute_inflow, args_absolute_outflow)
+
+  for(arguments in args_vct[present_flows]){
+    arguments$.at = arguments$.at + during_phase_length_increment
+    model_simulator = do.call(model_simulator$insert$expressions, arguments)
+    during_phase_length_increment = during_phase_length_increment + 1L
+  }
+  
+  if(!any(present_outflows)){
+    args_total_outflow = list(
+      as.formula("total_outflow ~ 0"),
+      .at = during_phase_length + during_phase_length_increment +1L,
+      .phase = "during",
+      .vec_by_flows = "flows",
+      .vec_by_states = "state"
+    )
+  } else {
+    args_total_outflow = list(
+      as.formula(paste0("total_outflow ~ ", paste0(total_outflow_expression_vct[present_outflows], collapse = "+"))),
+      .at = during_phase_length + during_phase_length_increment +1L,
+      .phase = "during",
+      .vec_by_flows = "flows",
+      .vec_by_states = "state"
+    )
+  }
+  model_simulator = do.call(model_simulator$insert$expressions, args_total_outflow)
+  during_phase_length_increment = during_phase_length_increment +1L
+  
+  if(!any(present_inflows)){
+    args_total_inflow = list(
+      as.formula("total_inflow ~ 0"),
+      .at = during_phase_length + during_phase_length_increment +1L,
+      .phase = "during",
+      .vec_by_flows = "flows",
+      .vec_by_states = "state"
+    )
+  } else {
+    args_total_inflow = list(
+      as.formula(paste0("total_inflow ~ ", paste0(total_inflow_expression_vct[present_inflows], collapse = "+"))),
+      .at = during_phase_length + during_phase_length_increment +1L,
+      .phase = "during",
+      .vec_by_flows = "flows",
+      .vec_by_states = "state"
+    )
+  }
+  model_simulator = do.call(model_simulator$insert$expressions, args_total_inflow)
+  during_phase_length_increment = during_phase_length_increment +1L
+  
+  args_state_rk4_update = list(
+    as.formula("state_rk4 ~ initial_state + total_inflow - total_outflow"),
+    .at = during_phase_length + during_phase_length_increment + 1L,
+    .phase = "during",
+    .vec_by_flows = "flows",
+    .vec_by_states = "state"
+  )
+  model_simulator = do.call(model_simulator$insert$expressions, args_state_rk4_update)
+  during_phase_length_increment = during_phase_length_increment +1L
+  
+  ##end of state_rk4 computation
+  
+  args_state_update = list(
+    as.formula("state ~ (state_rk1 + 2*(state_rk2 + state_rk3) + state_rk4)/6"),
+    .at = during_phase_length + during_phase_length_increment + 1L,
+    .phase = "during",
+    .vec_by_flows = "flow",
+    .vec_by_states = "state"
+  )
+  model_simulator = do.call(model_simulator$insert$expressions, args_state_update)
   
   return(model_simulator)
 }
@@ -294,6 +863,7 @@ SimulatorConstructor = function(model, ...){
     during_phase_length = during_phase_length + 1L
   }
   model_simulator = InsertEulerExpressions(model_simulator, during_phase_length, expanded_flows)
+  #model_simulator = InsertRK4Expressions(model_simulator, during_phase_length, expanded_flows)
   
   return(model_simulator)
 }
@@ -315,6 +885,11 @@ epi_simulator = SimulatorConstructor(epi_model,
                                      N = empty_matrix,
                                      transmissability = 0.75,
                                      per_capita_transmission = empty_matrix,
+                                     #initial_state = empty_matrix,
+                                     #state_rk1 = empty_matrix,
+                                     #state_rk2 = empty_matrix,
+                                     #state_rk3 = empty_matrix,
+                                     #state_rk4 = empty_matrix,
                                      .mats_to_return = c("state")
                                      )
 epi_simulator$report()
@@ -324,6 +899,11 @@ age_simulator = SimulatorConstructor(age_model,
                                      state = c(young = 333, medium = 333, old = 333),
                                      flow = c(ageing_rate = 0.03, birth_rate = 5, death_rate = 0.01),
                                      per_capita_transmission = empty_matrix,
+                                     #initial_state = empty_matrix,
+                                     #state_rk1 = empty_matrix,
+                                     #state_rk2 = empty_matrix,
+                                     #state_rk3 = empty_matrix,
+                                     #state_rk4 = empty_matrix,
                                      .mats_to_return = c("state")
                                      )
 
