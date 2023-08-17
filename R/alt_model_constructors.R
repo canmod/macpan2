@@ -169,7 +169,6 @@ CompartmentalAlt = function(model_directory){
 
 SimulatorConstructor = function(model, ...){
   
-  during_phase_length = length(model$expr_list()$during)
   model_simulator = model$simulators$tmb(...)
   infection_flow = model$settings$infection_flow()
   infectious_state = model$settings$infectious_state()
@@ -179,13 +178,13 @@ SimulatorConstructor = function(model, ...){
   if(length(infection_flow)>0){
     args_infection_flow = list(
       as.formula(paste0(c(infection_flow), paste0(" ~ per_capita_transmission %*% ", c(infectious_state)))),
-      .at = during_phase_length + 1L,
+      .at = Inf,
       .phase = "during",
       .vec_by_flows = "flow",
       .vec_by_states = "state"
     )
-    model_simulator = do.call(model_simulator$insert$expressions, args_infection_flow)
   }
+
   #model_simulator = InsertEulerExpressions(model_simulator, expanded_flows)
   model_simulator = InsertRK4Expressions(model_simulator, expanded_flows)
   

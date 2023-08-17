@@ -57,11 +57,11 @@ SettingsProduct = function(model1, model2, product_variables) {
               infected_state_variables, infectious_flow_variables))
 }
 
-ModelProduct(model1, model2){
-  variables = VariablesProduct(model1, model2)
-  flows = FlowsProduct(model1, model2)
-  settings = SettingsProduct(model1, model2, variables)
-  
-  #TODO: turn the above into a model object
-  #TODO: return model object
-}
+# ModelProduct = function(model1, model2){
+#   variables = VariablesProduct(model1, model2)
+#   flows = FlowsProduct(model1, model2)
+#   settings = SettingsProduct(model1, model2, variables)
+#   
+#   #TODO: turn the above into a model object
+#   #TODO: return model object
+# }
