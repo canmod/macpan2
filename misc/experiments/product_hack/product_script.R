@@ -2,9 +2,13 @@ library(macpan2)
 library(oor)
 source("../../../R/simulation_methods.R")
 source("../../../R/alt_model_constructors.R")
+source("../../../R/model_products.R")
 
 epi_dir = "Epi_model"
 age_dir = "Age_model"
+
+epi_files = ModelFiles("Epi_model")
+age_files = ModelFiles("Age_model")
 
 epi_model = CompartmentalAlt(epi_dir)
 age_model = CompartmentalAlt(age_dir)
@@ -77,3 +81,12 @@ age_simulator_2$print$expressions()
 age_simulator_2$report()
 
 
+
+var_prd = VariablesProduct(epi_model, age_model)
+var_prd$frame()
+
+flw_prd = FlowsProduct(epi_model, age_model)
+flw_prd
+
+stg_prd = SettingsProduct(epi_model, age_model)
+stg_prd

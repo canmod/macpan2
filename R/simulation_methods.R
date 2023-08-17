@@ -16,10 +16,10 @@ InsertTotalFLowExpressions = function(model_simulator, expanded_flows){
   flow_tester = function(flow_type) {
     macpan2:::valid$char1$assert(flow_type) %in% expanded_flows$type
   }
+  
   present_flows = unlist(lapply(flow_types, flow_tester), use.names = FALSE)
   present_inflows = unlist(lapply(inflow_flow_types, flow_tester), use.names = FALSE)
   present_outflows = unlist(lapply(outflow_flow_types, flow_tester), use.names = FALSE)
-  
   
   args_per_capita = list(
     as.formula("per_capita ~ state[per_capita_from]*flow[per_capita_flow]"),
@@ -150,6 +150,9 @@ InsertEulerExpressions = function(model_simulator, expanded_flows){
 
 # Note that using the RK4 method requires 5 new matrices be created initial_state, rk1, rk2, rk3, rk4.
 # All should be initialized as empty_matrix.
+# Currently this method is incomplete. In principle "per_capita_transmission" and "infection_flows" should both
+# be recomputed before each call to "InsertTotalFlowExpressions". This method should still work provided 
+# all per capita flow rates are approximately constant at the scale of a single time step.
 InsertRK4Expressions = function(model_simulator, expanded_flows){
   
   args_record_initial_state = list(
