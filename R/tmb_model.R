@@ -806,6 +806,12 @@ TMBModel = function(
   )
 }
 
+TMBCompartmentalSimulator = function(tmb_simulator, compartmental_model) {
+  self = tmb_simulator
+  self$compartmental_model = compartmental_model
+  return_object(self, "TMBCompartmentalSimulator")
+}
+
 # SimulatorsList = function() {
 #   self = Base()
 #   self$.simulators = list()
