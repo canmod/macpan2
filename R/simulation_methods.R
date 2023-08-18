@@ -21,6 +21,19 @@ InsertTotalFLowExpressions = function(model_simulator, expanded_flows){
   present_inflows = unlist(lapply(inflow_flow_types, flow_tester), use.names = FALSE)
   present_outflows = unlist(lapply(outflow_flow_types, flow_tester), use.names = FALSE)
   
+  infection_flow = model_simulator$compartmental_model$settings$infection_flow()
+  infectious_state = model_simulator$compartmental_model$settings$infectious_state()
+    
+  if(length(infection_flow)>0){
+  args_infection_flow = list(
+      as.formula(paste0(c(infection_flow), paste0(" ~ per_capita_transmission %*% ", c(infectious_state)))),
+      .at = Inf,
+      .phase = "during",
+      .vec_by_flows = "flow",
+      .vec_by_states = "state"
+    )
+  }
+  
   args_per_capita = list(
     as.formula("per_capita ~ state[per_capita_from]*flow[per_capita_flow]"),
     .at = Inf,
@@ -119,12 +132,16 @@ InsertTotalFLowExpressions = function(model_simulator, expanded_flows){
     )
   }
   
-  
-  args_list = list(args_per_capita, args_absolute, args_per_capita_inflow,
+  if(length(infection_flow)>0){
+    args_list = list(args_infection_flow, args_per_capita, args_absolute, args_per_capita_inflow,
+                     args_per_capita_outflow, args_absolute_inflow, args_absolute_outflow, args_total_inflow, args_total_outflow)
+    present_args = c(TRUE, present_flows, rep(TRUE, times = 2))
+  }
+  else{
+    args_list = list(args_per_capita, args_absolute, args_per_capita_inflow,
                   args_per_capita_outflow, args_absolute_inflow, args_absolute_outflow, args_total_inflow, args_total_outflow)
-  
-  present_args = c(present_flows, rep(TRUE, times = 2))
-  
+    present_args = c(present_flows, rep(TRUE, times = 2))
+  }
   for(arguments in args_list[present_args]){
     model_simulator = do.call(model_simulator$insert$expressions, arguments)
   }
@@ -150,9 +167,9 @@ InsertEulerExpressions = function(model_simulator, expanded_flows){
 
 # Note that using the RK4 method requires 5 new matrices be created initial_state, rk1, rk2, rk3, rk4.
 # All should be initialized as empty_matrix.
-# Currently this method is incomplete. In principle "per_capita_transmission" and "infection_flows" should both
+# Currently this method is incomplete. In principle "per_capita_transmission" should
 # be recomputed before each call to "InsertTotalFlowExpressions". This method should still work provided 
-# all per capita flow rates are approximately constant at the scale of a single time step.
+# "per_capita_transmission" is constant or approximately constant at the scale of a single time step.
 InsertRK4Expressions = function(model_simulator, expanded_flows){
   
   args_record_initial_state = list(
@@ -185,6 +202,7 @@ InsertRK4Expressions = function(model_simulator, expanded_flows){
   )
   model_simulator = do.call(model_simulator$insert$expressions, args_rk2_state_update)
   
+
   model_simulator = InsertTotalFLowExpressions(model_simulator, expanded_flows)
   
   args_rk2 = list(
@@ -205,6 +223,7 @@ InsertRK4Expressions = function(model_simulator, expanded_flows){
   )
   model_simulator = do.call(model_simulator$insert$expressions, args_rk3_state_update)
   
+
   model_simulator = InsertTotalFLowExpressions(model_simulator, expanded_flows)
   
   args_rk3 = list(
@@ -225,6 +244,7 @@ InsertRK4Expressions = function(model_simulator, expanded_flows){
   )
   model_simulator = do.call(model_simulator$insert$expressions, args_rk4_state_update)
   
+
   model_simulator = InsertTotalFLowExpressions(model_simulator, expanded_flows)
   
   
