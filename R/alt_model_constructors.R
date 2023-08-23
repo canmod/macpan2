@@ -9,9 +9,9 @@ StandardExprAlt = function(model){
       arguments = list("state"),
       simulation_phase = "before"
     )
-    
+
     required_derivations = list(hack_expression_list)
-    
+
     return(required_derivations)
   }
   self$.derivation_evaluator = function(derivation){
@@ -33,21 +33,21 @@ Derivations2ExprListAlt = function(user_expr, standard_expr) {
   self$user_expr = user_expr
   self$.standard_expr_list = standard_expr$standard_expressions()
   self$.user_expr_list = user_expr$expand_vector_expressions()
-  
+
   self$.expression_formatter = function(expression_list_element){
     macpan2:::two_sided(
       expression_list_element$output_names,
       expression_list_element$expression
     )
   }
-  
+
   self$.expression_phase_sorter = function(
     phase = c(
       "before",
       "during_pre_update", "during_update", "during_post_update",
       "after")
   ) {
-    
+
     phase = match.arg(phase)
     user_phases = vapply(
       self$.user_expr_list,
@@ -74,7 +74,7 @@ Derivations2ExprListAlt = function(user_expr, standard_expr) {
     if (phases == "during") {
       phases = c("during_pre_update", "during_update", "during_post_update")
     }
-    
+
     l = list()
     for (phase in phases) {
       l = append(l, lapply(
@@ -95,7 +95,7 @@ Derivations2ExprListAlt = function(user_expr, standard_expr) {
   self$math_expr_list = function(
     phase = c("before", "during", "after", "during_pre_update", "during_update", "during_post_update")
   ) {
-    
+
   }
   return_object(self, "Derivations2ExprList")
 }
@@ -103,16 +103,16 @@ Derivations2ExprListAlt = function(user_expr, standard_expr) {
 ModelAlt = function(definition) {
   # Inheritance
   self = oor:::Base()
-  
+
   # Args / Composition
   self$def = definition ## ModelFiles object
-  
+
   # Compositions
   self$settings = macpan2:::Settings(self)
   self$variables = macpan2:::Variables(self)
   self$labels = macpan2:::VariableLabels(self$variables)
   self$indices = macpan2:::VariableIndices(self$labels)
-  
+
   # Standard Methods
   self$flows = function() self$def$flows()
   self$flows_expanded = function() {
@@ -122,15 +122,15 @@ ModelAlt = function(definition) {
   self$flows_explicit = function() {
     optional_fields = c("from_partition", "to_partition", "flow_partition",
                         "from_to_partition", "from_flow_partition", "to_flow_partition")
-    
+
     required_partition = self$settings$name()
     null_partition = self$settings$null()
-    
+
     default_entries = data.frame(required_partition, required_partition, required_partition, "", "", null_partition)
     names(default_entries) = optional_fields
-    
+
     default_entries = do.call("rbind", replicate(nrow(self$flows()), default_entries, simplify = FALSE))
-    
+
     is_missing = function(field_name){
       return(!any(names(self$flows()) == field_name))
     }
@@ -141,10 +141,10 @@ ModelAlt = function(definition) {
   self$expr_list = function() {
     Derivations2ExprListAlt(UserExpr(self), StandardExprAlt(self))$expr_list()
   }
-  
+
   # Composition
   self$simulators = Simulators(self)
-  
+
   # Set the cache in the underlying ModelFiles object
   # so that when the model definition files change
   # on disk, the caches that depend on these files
@@ -154,7 +154,7 @@ ModelAlt = function(definition) {
     self$labels$cache,
     self$indices$flow ## invalidate method outside of the cache for convenience
   )
-  
+
   # Validate and Return
   (self
     |> macpan2:::assert_variables()
@@ -168,19 +168,22 @@ CompartmentalAlt = function(model_directory){
 }
 
 #' Simulator Constructor
-#' 
-#' @param model_directory A string giving a path to a directory containing model definition files
-#' @param ... Arguments to pass to \link{\code{TMBModel}}
+#'
+#' @param model_directory A string giving a path to a directory containing
+#' model definition files.
+#' @param integration_method One of the functions described in
+#' \link{integration_methods}, used to integrate the dynamical system.
+#' @param ... Arguments to pass to \code{\link{TMBModel}}.
 #' @export
-SimulatorConstructor = function(model_directory, ...){
+SimulatorConstructor = function(model_directory, integration_method = RK4, ...){
   model = CompartmentalAlt(model_directory)
-  
+
   model_simulator = model$simulators$tmb(..., .bundle_compartmental_model = TRUE)
-  
+
   expanded_flows = model$flows_expanded()
 
   #model_simulator = InsertEulerExpressions(model_simulator, expanded_flows)
   model_simulator = InsertRK4Expressions(model_simulator, expanded_flows)
-  
+
   return(model_simulator)
 }

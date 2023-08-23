@@ -4,12 +4,16 @@
 \alias{SimulatorConstructor}
 \title{Simulator Constructor}
 \usage{
-SimulatorConstructor(model_directory, ...)
+SimulatorConstructor(model_directory, integration_method = RK4, ...)
 }
 \arguments{
-\item{model_directory}{A string giving a path to a directory containing model definition files}
+\item{model_directory}{A string giving a path to a directory containing
+model definition files.}
 
-\item{...}{Arguments to pass to \link{\code{TMBModel}}}
+\item{integration_method}{One of the functions described in
+\link{integration_methods}, used to integrate the dynamical system.}
+
+\item{...}{Arguments to pass to \code{\link{TMBModel}}.}
 }
 \description{
 Simulator Constructor
