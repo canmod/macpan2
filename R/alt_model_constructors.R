@@ -167,7 +167,13 @@ CompartmentalAlt = function(model_directory){
   return_object(self, "Compartmental")
 }
 
-SimulatorConstructor = function(model, ...){
+#' Simulator Constructor
+#' 
+#' @param model_directory A string giving a path to a directory containing model definition files
+#' @param ... Arguments to pass to \link{\code{TMBModel}}
+#' @export
+SimulatorConstructor = function(model_directory, ...){
+  model = CompartmentalAlt(model_directory)
   
   model_simulator = model$simulators$tmb(..., .bundle_compartmental_model = TRUE)
   
