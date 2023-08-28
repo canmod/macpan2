@@ -162,7 +162,7 @@ NULL
 Euler = function(model_simulator) {
   InsertEulerExpressions(
     model_simulator,
-    model_simulator$model$expanded_flows()
+    model_simulator$compartmental_model$flows_expanded()
   )
 }
 
@@ -170,7 +170,7 @@ Euler = function(model_simulator) {
 RK4 = function(model_simulator) {
   InsertRK4Expressions(
     model_simulator,
-    model_simulator$model$expanded_flows()
+    model_simulator$compartmental_model$flows_expanded()
   )
 }
 
