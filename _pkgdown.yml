@@ -19,6 +19,7 @@ articles:
   contents:
   - quickstart
   - quickstart2
+  - quickstart_products
   - time_varying_parameters
   - calibration
   - example_models

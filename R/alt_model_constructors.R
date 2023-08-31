@@ -179,11 +179,11 @@ SimulatorConstructor = function(model_directory, integration_method = RK4, ...){
   model = CompartmentalAlt(model_directory)
 
   model_simulator = model$simulators$tmb(..., .bundle_compartmental_model = TRUE)
+  
 
   expanded_flows = model$flows_expanded()
 
-  #model_simulator = InsertEulerExpressions(model_simulator, expanded_flows)
-  model_simulator = InsertRK4Expressions(model_simulator, expanded_flows)
+  model_simulator = do.call(integration_method, list(model_simulator))
 
   return(model_simulator)
 }

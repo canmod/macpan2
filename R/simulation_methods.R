@@ -168,6 +168,8 @@ Euler = function(model_simulator) {
 
 #' @describeIn integration_methods Runge Kutta 4 method.
 RK4 = function(model_simulator) {
+  model_simulator = model_simulator$add$matrices(initial_state = empty_matrix, rk1 = empty_matrix, rk2 = empty_matrix,
+                                                 rk3 = empty_matrix, rk4 = empty_matrix)
   InsertRK4Expressions(
     model_simulator,
     model_simulator$compartmental_model$flows_expanded()

@@ -68,7 +68,9 @@ SettingsProduct = function(model1, model2, product_variables) {
   return(output_settings)
 }
 
-ModelProduct = function(model1, model2){
+ModelProduct = function(model1_simulator, model2_simulator){
+  model1 = model1_simulator$compartmental_model
+  model2 = model2_simulator$compartmental_model
   variables = VariablesProduct(model1, model2)
   flows = FlowsProduct(model1, model2)
   settings = SettingsProduct(model1, model2, variables)

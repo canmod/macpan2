@@ -1,0 +1,5 @@
+from ,to   ,flow   ,type       ,from_partition ,to_partition ,flow_partition ,from_to_partition ,from_flow_partition ,to_flow_partition
+young,medium,ageing_rate,per_capita,Age,Age,Age,,,
+medium,old,ageing_rate,per_capita,Age,Age,Age,,,
+young,young,birth_rate,absolute_inflow,Age,Age,Age,,,
+old,old,death_rate,per_capita_outflow,Age,Age,Age,,,
