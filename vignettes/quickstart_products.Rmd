@@ -4,7 +4,7 @@ output:
   rmarkdown::html_vignette:
     toc: true
 vignette: >
-  %\VignetteIndexEntry{Standard Expressions}
+  %\VignetteIndexEntry{"Quickstart Guide: Runge Kutta and model products"}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
