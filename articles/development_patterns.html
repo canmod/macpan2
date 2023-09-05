@@ -141,9 +141,9 @@ principles.</p>
 <div class="section level3">
 <h3 id="alternative-classes">Alternative Classes<a class="anchor" aria-label="anchor" href="#alternative-classes"></a>
 </h3>
-<p>Alterative versions of a class have the same set of methods as the
+<p>Alternative versions of a class have the same set of methods as the
 initial version. It needs change then it becomes easy to swap out one
-alterative for another. For example, the <code><a href="../reference/Reader.html">Reader()</a></code> classes
+alternative for another. For example, the <code><a href="../reference/Reader.html">Reader()</a></code> classes
 all have a single method – <code>$read()</code> – without arguments.
 Therefore, any bit of functionality that requires data to be read in can
 be modified simply by writing a new reader and swapping it in for the
@@ -157,12 +157,12 @@ can and should vary.</p>
 </h3>
 <p>There should only be the following types of object components.</p>
 <ol style="list-style-type: decimal">
-<li>Standard methods – Methods computing and returning values derived
-from arguments to the constructor</li>
-<li>Composition – Objects with further fields and methods</li>
 <li>Args – Fields storing arguments to the constructor</li>
 <li>Static – Fields storing values derived from arguments to the
 constructor</li>
+<li>Standard methods – Methods computing and returning values derived
+from arguments to the constructor</li>
+<li>Composition – Objects with further fields and methods</li>
 <li>A <code>$refesh()</code> method that can be called to update #3
 components in-place</li>
 <li>Private methods – Methods that should only be called by other
@@ -170,12 +170,58 @@ methods in the class</li>
 </ol>
 <p>How to decide what kind of component to use for each piece of
 information will depend on the following considerations.</p>
+<div class="section level4">
+<h4 id="argument-fields">Argument Fields<a class="anchor" aria-label="anchor" href="#argument-fields"></a>
+</h4>
+<p>These are the simplest kinds of object components, and essentially
+behave as lists. For example here is an object with two argument
+fields.</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">A</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">...</span></span>
+<span>  <span class="va">self</span><span class="op">$</span><span class="va">x</span> <span class="op">=</span> <span class="va">x</span></span>
+<span>  <span class="va">self</span><span class="op">$</span><span class="va">y</span> <span class="op">=</span> <span class="va">y</span></span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<p>These fields can be accessed using the standard <code>$</code> or
+<code>[[</code> operators.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">a</span> <span class="op">=</span> <span class="fu">A</span><span class="op">(</span>x <span class="op">=</span> <span class="fl">10</span>, y <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span>
+<span><span class="va">a</span><span class="op">$</span><span class="va">x</span> <span class="op">==</span> <span class="fl">10</span> <span class="co">## TRUE</span></span>
+<span><span class="va">a</span><span class="op">$</span><span class="va">y</span> <span class="op">==</span> <span class="fl">20</span> <span class="co">## TRUE</span></span></code></pre></div>
+<p>Note that although it is possible to set such fields, it is not
+recommended. Rather one should use <code>$refresh()</code> methods as
+described below.</p>
+</div>
+<div class="section level4">
+<h4 id="static-fields">Static Fields<a class="anchor" aria-label="anchor" href="#static-fields"></a>
+</h4>
+<p>Static fields are similar to argument fields, but the contain derived
+quantities that depend on the arguments rather than the arguments
+themselves. A simple example is to store the sum of two arguments in a
+static field.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">A</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">...</span></span>
+<span>  <span class="va">self</span><span class="op">$</span><span class="va">z</span> <span class="op">=</span> <span class="va">x</span> <span class="op">+</span> <span class="va">y</span></span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<p>Note that static fields may need to be updated by
+<code>$refresh()</code> methods.</p>
+</div>
+<div class="section level4">
+<h4 id="standard-methods">Standard Methods<a class="anchor" aria-label="anchor" href="#standard-methods"></a>
+</h4>
 <p>Standard methods should only be used if they are cheap to run, so
 that regeneration and consistency are balanced. But this pattern is
 generally the preferred option, because it is simplest to reason about
 and maintain because it more directly ensures consistency.</p>
+</div>
+<div class="section level4">
+<h4 id="composition">Composition<a class="anchor" aria-label="anchor" href="#composition"></a>
+</h4>
 <p>Composition of objects and classes looks like this.</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">A</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">...</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">...</span></span>
 <span>  <span class="va">self</span><span class="op">$</span><span class="va">b</span> <span class="op">=</span> <span class="fu">B</span><span class="op">(</span><span class="va">self</span><span class="op">)</span></span>
@@ -188,7 +234,7 @@ and maintain because it more directly ensures consistency.</p>
 <span>  <span class="va">...</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>Then other developers and users can do the following.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">a</span> <span class="op">=</span> <span class="fu">A</span><span class="op">(</span><span class="va">...</span><span class="op">)</span></span>
 <span><span class="va">a</span><span class="op">$</span><span class="va">b</span><span class="op">$</span><span class="fu">method</span><span class="op">(</span><span class="va">...</span><span class="op">)</span></span></code></pre></div>
 <p>This keeps classes small because <code>B</code> can have methods
@@ -196,6 +242,10 @@ instead of <code>A</code>, and small classes are easier to test and
 stabilize. Testing of <code>A</code> can focus on the methods directly
 in <code>A</code>, and then <code>A</code> can be extended by composing
 new classes like <code>B</code>.</p>
+</div>
+<div class="section level4">
+<h4 id="refresh-methods">Refresh Methods<a class="anchor" aria-label="anchor" href="#refresh-methods"></a>
+</h4>
 <p>Static fields should be used if they are expensive to compute.
 Consistency can be managed by producing static fields in a
 <code>$refresh()</code> method – this is a good way to balance
@@ -206,7 +256,7 @@ way static fields and <code>$refresh()</code> methods work together to
 balance the cost of regeneration with the necessity of consistency.</p>
 <p>In the constructor, this <code>$refresh()</code> pattern looks like
 this.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">A</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">...</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">...</span></span>
 <span>  <span class="va">self</span><span class="op">$</span><span class="va">refresh</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="op">)</span> <span class="op">{</span></span>
@@ -227,12 +277,16 @@ this.</p>
 <span>  <span class="va">self</span><span class="op">$</span><span class="va">a</span><span class="op">$</span><span class="fu">refresh</span><span class="op">(</span><span class="op">)</span></span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">}</span></span></code></pre></div>
+</div>
+<div class="section level4">
+<h4 id="private-methods">Private Methods<a class="anchor" aria-label="anchor" href="#private-methods"></a>
+</h4>
 <p>Private methods should only be used by other methods in the class.
 There is nothing stoping a developer or a user from calling a private
 method, but there is no guarantee that the private method with have
 consistent behaviour or even exist. To communicate privacy, private
 methods should start with a dot as the following example shows.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">A</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">...</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">...</span></span>
 <span>  <span class="va">self</span><span class="op">$</span><span class="va">.private</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">...</span><span class="op">)</span> <span class="op">{</span><span class="va">...</span><span class="op">}</span></span>
@@ -243,6 +297,7 @@ methods should start with a dot as the following example shows.</p>
 <span>    <span class="va">...</span></span>
 <span>  <span class="op">}</span></span>
 <span><span class="op">}</span></span></code></pre></div>
+</div>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
