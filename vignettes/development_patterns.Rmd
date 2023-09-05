@@ -48,22 +48,60 @@ Here are some design patterns for complying with these principles.
 
 ### Alternative Classes
 
-Alterative versions of a class have the same set of methods as the initial version. It needs change then it becomes easy to swap out one alterative for another. For example, the `Reader()` classes all have a single method -- `$read()` -- without arguments. Therefore, any bit of functionality that requires data to be read in can be modified simply by writing a new reader and swapping it in for the old one, without needing to modify any of the code that calls the `$read()` method. The methods in alternative classes should return the same type of object, but obviously the return value itself can and should vary.
+Alternative versions of a class have the same set of methods as the initial version. It needs change then it becomes easy to swap out one alternative for another. For example, the `Reader()` classes all have a single method -- `$read()` -- without arguments. Therefore, any bit of functionality that requires data to be read in can be modified simply by writing a new reader and swapping it in for the old one, without needing to modify any of the code that calls the `$read()` method. The methods in alternative classes should return the same type of object, but obviously the return value itself can and should vary.
 
 ### Types of Object Components
 
 There should only be the following types of object components.
 
-1. Standard methods -- Methods computing and returning values derived from arguments to the constructor
-2. Composition -- Objects with further fields and methods
-3. Args -- Fields storing arguments to the constructor
-4. Static -- Fields storing values derived from arguments to the constructor
+1. Args -- Fields storing arguments to the constructor
+2. Static -- Fields storing values derived from arguments to the constructor
+3. Standard methods -- Methods computing and returning values derived from arguments to the constructor
+4. Composition -- Objects with further fields and methods
 5. A `$refesh()` method that can be called to update #3 components in-place
 6. Private methods -- Methods that should only be called by other methods in the class
 
 How to decide what kind of component to use for each piece of information will depend on the following considerations.
 
+#### Argument Fields
+
+These are the simplest kinds of object components, and essentially behave as lists. For example here is an object with two argument fields.
+```{r, eval = FALSE}
+A = function(x, y) {
+  ...
+  self$x = x
+  self$y = y
+  ...
+}
+```
+
+These fields can be accessed using the standard `$` or `[[` operators.
+```{r, eval = FALSE}
+a = A(x = 10, y = 20)
+a$x == 10 ## TRUE
+a$y == 20 ## TRUE
+```
+
+Note that although it is possible to set such fields, it is not recommended. Rather one should use `$refresh()` methods as described below.
+
+#### Static Fields
+
+Static fields are similar to argument fields, but the contain derived quantities that depend on the arguments rather than the arguments themselves. A simple example is to store the sum of two arguments in a static field.
+```{r, eval = FALSE}
+A = function(x, y) {
+  ...
+  self$z = x + y
+  ...
+}
+```
+
+Note that static fields may need to be updated by `$refresh()` methods.
+
+#### Standard Methods
+
 Standard methods should only be used if they are cheap to run, so that regeneration and consistency are balanced. But this pattern is generally the preferred option, because it is simplest to reason about and maintain because it more directly ensures consistency.
+
+#### Composition
 
 Composition of objects and classes looks like this.
 
@@ -89,6 +127,8 @@ a$b$method(...)
 ```
 
 This keeps classes small because `B` can have methods instead of `A`, and small classes are easier to test and stabilize.  Testing of `A` can focus on the methods directly in `A`, and then `A` can be extended by composing new classes like `B`.
+
+#### Refresh Methods
 
 Static fields should be used if they are expensive to compute. Consistency can be managed by producing static fields in a `$refresh()` method -- this is a good way to balance regeneration with consistency. This way, developers of other classes that are composed components can make use of the `$refresh()` method to reliably keep everything up-to-date and consistent. In this way static fields and `$refresh()` methods work together to balance the cost of regeneration with the necessity of consistency.
 
@@ -116,6 +156,8 @@ B = function(a) {
   ...
 }
 ```
+
+#### Private Methods
 
 Private methods should only be used by other methods in the class. There is nothing stoping a developer or a user from calling a private method, but there is no guarantee that the private method with have consistent behaviour or even exist.  To communicate privacy, private methods should start with a dot as the following example shows.
 
