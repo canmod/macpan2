@@ -108,6 +108,10 @@ enum macpan2_func {
     //, MP2_LOGIT = 46 // fwrap,null: logit(x)
 };
 
+enum macpan2_meth {
+      METH_ROW_EXTRACT = 1
+};
+
 // Helper function
 template<class Type>
 int CheckIndices(
@@ -206,6 +210,98 @@ struct ListOfMatrices {
     }
 };
 
+
+// struct ListOfIntVecs {
+//
+//   vector<vector<int> > v_vectors;
+//
+//   ListOfIntVecs(SEXP ii) {
+//     int n = length(ii);
+//     vector<vector<int> > vs(n);
+//     v_vectors = vs;
+//
+//     for (int i = 0; i < n; i++) {
+//       v_vectors[i] = asVector<int>(VECTOR_ELT(ii, i));
+//     }
+//   }
+//   ListOfIntVecs() {
+//   }
+//
+//   ListOfIntVecs(const ListOfIntVecs& another) {
+//     v_vectors = another.v_vectors;
+//   }
+//
+//   ListOfIntVecs & operator=(const ListOfIntVecs& another) {
+//     v_vectors = another.v_vectors;
+//     return *this;
+//   }
+// };
+
+
+class ListOfIntVecs {
+public:
+    std::vector<std::vector<int>> nestedVector;
+
+    // Constructor that takes all_ints and vec_lens vectors
+    ListOfIntVecs(const std::vector<int>& all_ints, const std::vector<int>& vec_lens) {
+        size_t totalElements = 0;
+        for (int size : vec_lens) {
+            totalElements += size;
+        }
+
+        if (all_ints.size() != totalElements) {
+            // Handle mismatched sizes as needed
+            throw std::invalid_argument("all_ints and vec_lens sizes do not match.");
+        }
+
+        size_t xIndex = 0;
+        for (int size : vec_lens) {
+            std::vector<int> innerVector;
+            for (int i = 0; i < size; ++i) {
+                innerVector.push_back(all_ints[xIndex++]);
+            }
+            nestedVector.push_back(innerVector);
+        }
+    }
+
+    // Overload [] operator to access the inner vectors by index
+    std::vector<int>& operator[](size_t index) {
+        if (index < nestedVector.size()) {
+            return nestedVector[index];
+        } else {
+            // Handle out-of-range access here (you can throw an exception or handle it as needed)
+            throw std::out_of_range("Index out of range");
+        }
+    }
+
+    // Method to return the number of vector<int> objects in the struct
+    size_t size() const {
+        return nestedVector.size();
+    }
+
+    // Member function to filter the ListOfIntVecs by indices in a vector<int> object
+    ListOfIntVecs filterByIndices(const std::vector<int>& i) const {
+        std::vector<int> filtered_all_ints;
+        std::vector<int> filtered_vec_lens;
+
+        for (int index : i) {
+            if (index >= 0 && static_cast<size_t>(index) < nestedVector.size()) {
+                const std::vector<int>& innerVector = nestedVector[static_cast<size_t>(index)];
+                filtered_all_ints.insert(filtered_all_ints.end(), innerVector.begin(), innerVector.end());
+                filtered_vec_lens.push_back(innerVector.size());
+            } else {
+                // Handle out-of-range index or negative index as needed
+                throw std::out_of_range("Index out of range");
+            }
+        }
+
+        return ListOfIntVecs(filtered_all_ints, filtered_vec_lens);
+    }
+};
+
+
+
+
 template<class Type>
 class ExprEvaluator {
 public:
@@ -238,6 +334,10 @@ public:
         const vector<int>& table_x,
         const vector<int>& table_n,
         const vector<int>& table_i,
+        const vector<int>& meth_type_id, // vector over user defined methods, identifying a type of method
+        ListOfIntVecs& meth_mats,
+        ListOfIntVecs& meth_int_vecs,
+        ListOfIntVecs& valid_int_vecs,
         ListOfMatrices<Type>& valid_vars,
         const vector<Type>& valid_literals,
         int row = 0
@@ -245,27 +345,49 @@ public:
     {
         // Variables to use locally in function bodies
         matrix<Type> m, m1, m2;  // return values
+        vector<int> v;
         matrix<Type> timeIndex; // for rbind_time
         Type sum, s, eps, var, by;  // intermediate scalars
-        int rows, cols, lag, rowIndex, colIndex, matIndex, reps, cp, off, size, sz, start, err_code, err_code1, err_code2;
+        int rows, cols, lag, rowIndex, colIndex, matIndex, reps, cp, off, size, sz, start, err_code, err_code1, err_code2, curr_meth_id;
 
         if (GetErrorCode()) return m; // Check if error has already happened at some point of the recursive call.
 
         switch (table_n[row]) {
+            case -2: // methods (pre-processed matrices)
+                std::cout << "--------------" << "IN METHODS CASE" << std::endl << "--------------" << std::endl;
+                curr_meth_id = table_x[row]+1;
+                v = meth_mats.size();
+
+                // vector<vector<int> > int_vec_args(meth_int_vecs.v_vectors.size());
+                // for (int i=0; i<meth_mats.v_vectors.size(); i++)
+                //     mat_args[i] = valid_vars.m_matrices[meth_mats.v_vectors[i]];
+                // for (int i=0; i<meth_int_vecs.v_vectors.size(); i++)
+                //     int_vec_args[i] = valid_int_vecs.v_vectors[meth_int_vecs.v_vectors[i]];
+                switch(meth_type_id[curr_meth_id]) {
+                    case METH_ROW_EXTRACT:
+                        // m1 = matrix<Type>::Zero(v.size(), m.cols());
+                        // for (int i=0; i<int_vec_args[0].size(); i++)
+                        //     m1.row(i) = mat_args[0].row(int_vec_args[0][i]);
+                        return m1;
+                    default:
+                        SetError(254, "invalid method in arithmetic expression", row);
+                        return m;
+                }
             case -1: // literals
                 m = matrix<Type>::Zero(1,1);
                 m.coeffRef(0,0) = valid_literals[table_x[row]];
                 return m;
-            case 0:
+            case 0: // matrices
                 m = valid_vars.m_matrices[table_x[row]];
                 return m;
-            default:
+            default: // expressions
                 int n = table_n[row];
                 vector<matrix<Type> > args(n);
                 vector<int> index2mats(n);
                 for (int i=0; i<n; i++) {
                     args[i] = EvalExpr(hist, t, mats_save_hist, table_x, table_n, table_i, \
-                                    valid_vars, valid_literals, table_i[row]+i);
+                                       meth_type_id, meth_mats, meth_int_vecs, valid_int_vecs, \
+                                       valid_vars, valid_literals, table_i[row]+i);
 
                     // Check here if index2mats actually points at
                     // a matrix and not a function. Later on if index2mats
@@ -1985,6 +2107,18 @@ Type objective_function<Type>::operator() ()
     // Literals
     DATA_VECTOR(literals);
 
+    // Methods
+    DATA_IVECTOR(meth_type_id);
+    // DATA_IVECTOR(meth_id);
+    DATA_IVECTOR(meth_n_mats);
+    DATA_IVECTOR(meth_n_int_vecs);
+    DATA_IVECTOR(meth_mat_id);
+    DATA_IVECTOR(meth_int_vec_id);
+
+    // Constant Integer Vectors
+    DATA_IVECTOR(const_int_vec);
+    DATA_IVECTOR(const_n_int_vecs);
+
     // Objective function parse table
     DATA_IVECTOR(o_table_n);
     DATA_IVECTOR(o_table_x);
@@ -2054,6 +2188,9 @@ Type objective_function<Type>::operator() ()
     );
 
 
+    ListOfIntVecs const_int_vecs(const_int_vec, const_n_int_vecs);
+    ListOfIntVecs meth_mats(meth_mat_id, meth_n_mats);
+    ListOfIntVecs meth_int_vecs(meth_int_vec_id, meth_n_int_vecs);
 
     //////////////////////////////////
     // Define an expression evaluator
@@ -2079,6 +2216,7 @@ Type objective_function<Type>::operator() ()
                     p_table_x,
                     p_table_n,
                     p_table_i,
+                    meth_type_id, meth_mats, meth_int_vecs, const_int_vecs,
                     mats,
                     literals,
                     p_table_row
@@ -2093,6 +2231,7 @@ Type objective_function<Type>::operator() ()
                 p_table_x,
                 p_table_n,
                 p_table_i,
+                meth_type_id, meth_mats, meth_int_vecs, const_int_vecs,
                 mats,
                 literals,
                 p_table_row
@@ -2141,6 +2280,7 @@ Type objective_function<Type>::operator() ()
                         p_table_x,
                         p_table_n,
                         p_table_i,
+                        meth_type_id, meth_mats, meth_int_vecs, const_int_vecs,
                         mats,
                         literals,
                         p_table_row2
@@ -2155,6 +2295,7 @@ Type objective_function<Type>::operator() ()
                     p_table_x,
                     p_table_n,
                     p_table_i,
+                    meth_type_id, meth_mats, meth_int_vecs, const_int_vecs,
                     mats,
                     literals,
                     p_table_row2
@@ -2203,6 +2344,7 @@ Type objective_function<Type>::operator() ()
                     p_table_x,
                     p_table_n,
                     p_table_i,
+                    meth_type_id, meth_mats, meth_int_vecs, const_int_vecs,
                     mats,
                     literals,
                     p_table_row
@@ -2217,6 +2359,7 @@ Type objective_function<Type>::operator() ()
                 p_table_x,
                 p_table_n,
                 p_table_i,
+                meth_type_id, meth_mats, meth_int_vecs, const_int_vecs,
                 mats,
                 literals,
                 p_table_row
@@ -2321,6 +2464,7 @@ Type objective_function<Type>::operator() ()
               o_table_x,
               o_table_n,
               o_table_i,
+              meth_type_id, meth_mats, meth_int_vecs, const_int_vecs,
               mats,
               literals,
               0

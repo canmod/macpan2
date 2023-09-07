@@ -27,7 +27,15 @@ knitr::opts_chunk$set(
 ```
 
 ```{r, echo = FALSE}
-model_repo = "../inst/starter_models"
+print("GETWD!!")
+print(getwd())
+if (macpan2:::dev_in_root()) {
+  model_repo = "inst/starter_models"
+} else if (macpan2:::dev_in_vig()) {
+  model_repo = "../inst/starter_models"
+} else {
+  stop("dunno")
+}
 make_model_files = function(path){
   try(ModelFiles(path), silent = TRUE)
 }

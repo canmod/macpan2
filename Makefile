@@ -41,9 +41,15 @@ quick-doc-install: R/*.R misc/dev/dev.cpp
 	make quick-install
 
 
+quick-test-all:
+	make quick-doc-install
+	make run-vignette-code
+	make run-tests
+	make run-examples
+
+
 quick-test:
 	make quick-doc-install
-	make run-examples
 	make run-tests
 
 
@@ -53,6 +59,11 @@ run-examples:
 
 run-tests:
 	Rscript -e "library(macpan2); testthat::test_package(\"macpan2\")"
+
+
+run-vignette-code:
+	cd vignettes
+	Rscript misc/build/run_vignette_code.R
 
 
 coverage-report:: coverage.html

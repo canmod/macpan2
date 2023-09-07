@@ -702,7 +702,7 @@ plot(measles$date, simulated_incidence, type = "l", xlab = "time")
 It looks nothing like the observed measles series, but illustrates the ability to generate complex incidence patterns not present in the simple SIR model without radial basis functions and waning immunity.
 
 
-```{r rbf_model, echo=FALSE}
+```{r rbf_model, eval=FALSE, echo=TRUE}
 simulator = ("https://github.com"
   |> file.path("canmod/macpan2")
   |> file.path("raw/main")
@@ -714,7 +714,7 @@ simulator = ("https://github.com"
 
 We modify the simulation object to be able to fit to the measles data.
 
-```{r rbf_modify, eval=FALSE}
+```{r rbf_modify, eval=TRUE}
 simulator$add$matrices(
     reports = measles$cases
   , log_lik = empty_matrix
@@ -752,12 +752,12 @@ simulator$optimize$nlminb(control = list(eval.max = 10000, iter.max = 10000, tra
 
 
 
-```{r rbf_opt_get}
+```{r rbf_opt_get, eval = FALSE}
 simulator$optimization_history$get()[[3]]  ## the 3 is there because we tried two other times
 ```
 
 Here the red data are fitted and black observed.
-```{r plot_rbf_res, fig.width=6}
+```{r plot_rbf_res, fig.width=6, eval = FALSE}
 simulated_incidence = filter(simulator$report(.phases = "during"), matrix == "incidence")$value
 plot(measles$date, measles$cases, xlab = "time", type = "l")
 lines(measles$date, simulated_incidence, col = 2)

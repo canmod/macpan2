@@ -10,7 +10,9 @@ TMBModel(
   params = OptParamsList(0),
   random = OptParamsList(),
   obj_fn = ObjectiveFunction(~0),
-  time_steps = Time(0L)
+  time_steps = Time(0L),
+  meth_list = MethList(),
+  const_int_vecs = ConstIntVecs()
 )
 }
 \arguments{
@@ -25,6 +27,10 @@ TMBModel(
 \item{obj_fn}{An object of class \code{\link{ObjectiveFunction}}.}
 
 \item{time_steps}{An object of class \code{\link{Time}}.}
+
+\item{meth_list}{An object of class \code{\link{MethList}}.}
+
+\item{const_int_vecs}{An object of class \code{\link{ConstIntVecs}}.}
 }
 \value{
 Object of class \code{TMBModel} with the following methods.
@@ -82,5 +88,6 @@ sir = TMBModel(
 )
 sir$data_arg()
 sir$param_arg()
+sir$simulator()$report()
 
 }

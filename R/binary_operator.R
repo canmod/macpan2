@@ -25,7 +25,11 @@ valid_binop = oor::ValidityMessager(
 #'
 #' Convert a function that represents an elementwise binary
 #' operator into one that is consistent with the \code{C++}
-#' engine.
+#' engine. This function is intended to clarify how \pkg{macpan2}
+#' treats binary operators, which is a little different from
+#' base \proglang{R}. The difference is clarified in
+#' `vignette("binary_operator")`, and \code{BinaryOperator} is
+#' primarily used as a resource for that vignette.
 #'
 #' @param operator A binary operator. r binop_validity_message
 #' @return A binary operator consistent with the \code{C++} engine.

@@ -275,13 +275,23 @@ MatsList = function(...
   # )
   self = Base()
 
-  ## Args -- TODO: these shouldn't be private
-  self$.initial_mats = lapply(list(...), as.matrix)
+  ## Args
+  ## TODO: these shouldn't be private but we have a problem.
+  ## the original sin was putting dots in front of arguments that
+  ## correspond to public Arg fields. this will require a breaking
+  ## change to fix where we remove dots from all arguments that should
+  ## actually be stored publicly. i initially was implicitly thinking
+  ## of arguments starting with dots as arguments that aren't really
+  ## part of the method signature being depended on, but this is silly
+  ## in hindsight ... what does that even mean?
   self$.mats_to_save = .mats_to_save
   self$.mats_to_return = .mats_to_return
   self$.dimnames = .dimnames
   self$.structure_labels = .structure_labels
   #self$.init_saved_dims = .init_saved_dims
+
+  # Static
+  self$.initial_mats = lapply(list(...), as.matrix)
 
   self$mats_save_hist = function() names(self$.initial_mats) %in% self$.mats_to_save
   self$mats_return = function() names(self$.initial_mats) %in% self$.mats_to_return
@@ -666,6 +676,34 @@ Daily = function(start_date, end_date) {
 }
 
 
+#' Constant Integer Vectors
+#'
+#' Make a list of integer vectors available for engine methods.
+#'
+#' @param ... Named arguments, each of which can be coerced to an integer vector.
+#' @export
+ConstIntVecs = function(...) {
+  self = Base()
+
+  # Args
+  self$list = lapply(list(...), as.integer)
+  if (length(self$list) == 0L) self$list = list(integer())
+
+  # Standard Methods
+  self$data_arg = function() {
+    # DATA_IVECTOR(const_int_vec);
+    # DATA_IVECTOR(const_n_int_vecs);
+    list(
+      const_int_vec = unlist(self$list, use.names = FALSE),
+      const_n_int_vecs = unlist(lapply(self$list, length), use.names = FALSE)
+    )
+  }
+  self$const_names = function() names(self$list)
+
+  return_object(self, "ConstIntVecs")
+}
+
+
 #' TMB Model
 #'
 #' Define a compartmental model in TMB. This model uses the spec
@@ -677,6 +715,8 @@ Daily = function(start_date, end_date) {
 #' @param random An object of class \code{\link{OptParamsList}}.
 #' @param obj_fn An object of class \code{\link{ObjectiveFunction}}.
 #' @param time_steps An object of class \code{\link{Time}}.
+#' @param meth_list An object of class \code{\link{MethList}}.
+#' @param const_int_vecs An object of class \code{\link{ConstIntVecs}}.
 #'
 #' @return Object of class \code{TMBModel} with the following methods.
 #'
@@ -728,17 +768,20 @@ Daily = function(start_date, end_date) {
 #' )
 #' sir$data_arg()
 #' sir$param_arg()
+#' sir$simulator()$report()
 #'
 #' @useDynLib macpan2
 #' @importFrom TMB MakeADFun
 #' @export
 TMBModel = function(
-    init_mats = MatsList(),
-    expr_list = ExprList(),
-    params = OptParamsList(0),
-    random = OptParamsList(),
-    obj_fn = ObjectiveFunction(~0),
-    time_steps = Time(0L)
+     init_mats = MatsList()
+    , expr_list = ExprList()
+    , params = OptParamsList(0)
+    , random = OptParamsList()
+    , obj_fn = ObjectiveFunction(~0)
+    , time_steps = Time(0L)
+    , meth_list = MethList()
+    , const_int_vecs = ConstIntVecs()
   ) {
   ## Inheritance
   self = Base()
@@ -750,21 +793,23 @@ TMBModel = function(
   self$random = random
   self$obj_fn = obj_fn
   self$time_steps = time_steps
+  self$meth_list = meth_list
+  self$const_int_vecs = const_int_vecs
 
   ## Standard Methods
   self$data_arg = function() {
     existing_literals = self$expr_list$.literals(self$init_mats$.names())
-    expr_list = self$expr_list$data_arg(self$init_mats$.names())
     c(
       self$init_mats$data_arg(),
-      expr_list,
+      self$expr_list$data_arg(self$init_mats$.names()),
       self$params$data_arg(self$init_mats$.names()),
       self$random$data_arg(self$init_mats$.names(), .type_string = "r"),
       self$obj_fn$data_arg(self$init_mats$.names()
         , .existing_literals = existing_literals
       ),
-      self$time_steps$data_arg()
-
+      self$time_steps$data_arg(),
+      self$meth_list$data_arg(),
+      self$const_int_vecs$data_arg()
     )
   }
   self$param_arg = function() {
