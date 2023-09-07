@@ -58,6 +58,7 @@ make_expr_parser = function(
   # convert a formula to the initial state of a list that could be
   # recursively parsed using parse_expr
   formula_to_parsing_list = function(x) {
+    if (interactive()) browser()
     stopifnot(
       "formulas are the only calls that can be parsed" =
         as.character(x[[1]]) == '~'
@@ -275,13 +276,22 @@ empty_matrix = matrix(numeric(0L), 0L, 0L)
 #' Parse Expression List
 #'
 #' Parse a list of one-sided formulas representing expressions
-#' in a compartmental model.
+#' in a compartmental model. All parsed expressions in the
+#' output list will share an environment.
+#' this environment contains the same set of
+#' functions, variables (aka matrices),
+#' literals, methods, and offset. these components are key
+#' to the definition of the model and therefore should be common for each
+#' expression in the model.
 #'
 #' @param expr_list List of one-sided formulas.
 #' @param valid_vars Named list of numerical matrices that can
 #' be referred to in the formulas.
-#' @param valid_literals An optional existing numeric vector of valid literals
-#' from a related expression list.
+#' @param valid_literals An optional numeric vector of initial valid literals
+#' from a related expression list. Additional literals in the expressions
+#' themselves will be discovered and added to this list.
+#' @param valid_methods \code{\link{MethList}} object.
+#' @param valid_int_vecs \code{\link{ConstIntVecs}} object.
 #' @param offset The zero-based row index for the first row of the table.
 #' This is useful when combining tables.
 #'
@@ -289,14 +299,32 @@ empty_matrix = matrix(numeric(0L), 0L, 0L)
 parse_expr_list = function(expr_list
     , valid_vars
     , valid_literals = numeric(0L)
+    , valid_methods = MethList()
+    , valid_int_vecs = ConstIntVecs()
     , offset = 0L
   ) {
-  eval_env = list2env(nlist(valid_funcs, valid_vars, valid_literals, offset))
+  eval_env = nlist(
+    valid_funcs, valid_vars, valid_literals,
+    valid_methods, valid_int_vecs, offset
+  ) |> list2env()
   pe_list = list()
   for (i in seq_along(expr_list)) {
+
+    ## all expressions should share an environment.
+    ## this environment contains the same set of
+    ## functions, variables (aka matrices),
+    ## literals, methods, and offset. these components
+    ## define the model
     environment(expr_list[[i]]) = eval_env
+
+    ## do the parsing
     pe_list[[i]] = parse_expr(expr_list[[i]])
+
+    ## grow valid literals as they are discovered in the expressions
     eval_env$valid_literals = pe_list[[i]]$valid_literals
+
+    ## bump the row-index offset to prepare for the next expression
+    ## to be parsed
     eval_env$offset = eval_env$offset + nrow(pe_list[[i]]$parse_table)
   }
   p_tables = lapply(pe_list, getElement, "parse_table")

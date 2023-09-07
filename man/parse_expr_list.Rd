@@ -8,6 +8,8 @@ parse_expr_list(
   expr_list,
   valid_vars,
   valid_literals = numeric(0L),
+  valid_methods = MethList(),
+  valid_int_vecs = ConstIntVecs(),
   offset = 0L
 )
 }
@@ -17,13 +19,24 @@ parse_expr_list(
 \item{valid_vars}{Named list of numerical matrices that can
 be referred to in the formulas.}
 
-\item{valid_literals}{An optional existing numeric vector of valid literals
-from a related expression list.}
+\item{valid_literals}{An optional numeric vector of initial valid literals
+from a related expression list. Additional literals in the expressions
+themselves will be discovered and added to this list.}
+
+\item{valid_methods}{\code{\link{MethList}} object.}
+
+\item{valid_int_vecs}{\code{\link{ConstIntVecs}} object.}
 
 \item{offset}{The zero-based row index for the first row of the table.
 This is useful when combining tables.}
 }
 \description{
 Parse a list of one-sided formulas representing expressions
-in a compartmental model.
+in a compartmental model. All parsed expressions in the
+output list will share an environment.
+this environment contains the same set of
+functions, variables (aka matrices),
+literals, methods, and offset. these components are key
+to the definition of the model and therefore should be common for each
+expression in the model.
 }

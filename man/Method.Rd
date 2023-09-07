@@ -9,11 +9,11 @@ Method(name, mat_args, const_args)
 \arguments{
 \item{name}{Method name.}
 
-\item{mat_args}{List of names of matrices that will be used by the method
-to produce an output matrix.}
+\item{mat_args}{Character vector of names of matrices that will be used by
+the method to produce an output matrix.}
 
-\item{const_args}{List of names of constants that will be used by the method
-to produce an output matrix.}
+\item{const_args}{Character vector of names of constants that will be used
+by the method to produce an output matrix.}
 }
 \description{
 Engine methods allow users to interact with the engine

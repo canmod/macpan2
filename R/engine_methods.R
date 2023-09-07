@@ -49,10 +49,11 @@ MethList = function(...) {
 #' for computing matrices from other matrices and constants.
 #'
 #' @param name Method name.
-#' @param mat_args List of names of matrices that will be used by the method
-#' to produce an output matrix.
-#' @param const_args List of names of constants that will be used by the method
-#' to produce an output matrix.
+#' @param mat_args Character vector of names of matrices that will be used by
+#' the method to produce an output matrix.
+#' @param const_args Character vector of names of constants that will be used
+#' by the method to produce an output matrix.
+#' @export
 Method = function(name, mat_args, const_args) {
   self = Base()
 

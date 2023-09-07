@@ -1,8 +1,13 @@
 #' Radial Basis Functions
 #'
+#' Compute a set of radial basis functions (`dimension` of them).
+#'
 #' @param time_steps number of time steps in the model
 #' @param dimension number of gaussians in the basis
 #' @param scale width of the gaussians
+#'
+#' @examples
+#' matplot(rbf(100, 5), type = "l")
 #'
 #' @export
 rbf = function(time_steps, dimension, scale = time_steps / dimension) {

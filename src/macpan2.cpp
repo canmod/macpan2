@@ -368,7 +368,7 @@ public:
             case -2: // methods (pre-processed matrices)
                 std::cout << "--------------" << "IN METHODS CASE" << std::endl << "--------------" << std::endl;
                 curr_meth_id = table_x[row]+1;
-                v = meth_mats.size();
+                // v = meth_mats.size();
 
                 // vector<vector<int> > int_vec_args(meth_int_vecs.v_vectors.size());
                 // for (int i=0; i<meth_mats.v_vectors.size(); i++)

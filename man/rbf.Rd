@@ -14,5 +14,9 @@ rbf(time_steps, dimension, scale = time_steps/dimension)
 \item{scale}{width of the gaussians}
 }
 \description{
-Radial Basis Functions
+Compute a set of radial basis functions (\code{dimension} of them).
+}
+\examples{
+matplot(rbf(100, 5), type = "l")
+
 }
