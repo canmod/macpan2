@@ -195,8 +195,7 @@ struct ListOfMatrices {
         }
     }
 
-    ListOfMatrices() { // Default Constructor
-    }
+    ListOfMatrices() {} // Default constructor
 
     // Copy constructor
     ListOfMatrices(const ListOfMatrices& another) {
@@ -208,39 +207,31 @@ struct ListOfMatrices {
         m_matrices = another.m_matrices;
         return *this;
     }
+
+    // Square bracket operator to get more than one matrix back
+    ListOfMatrices operator[](const std::vector<int>& indices) const {
+        ListOfMatrices<Type> result;
+
+        for (int index : indices) {
+            if (index >= 0 && index < m_matrices.size()) {
+                result.m_matrices.push_back(m_matrices[index]);
+            } else {
+                // Handle out-of-range index or negative index as needed
+                throw std::out_of_range("Index out of range");
+            }
+        }
+
+        return result;
+    }
 };
-
-
-// struct ListOfIntVecs {
-//
-//   vector<vector<int> > v_vectors;
-//
-//   ListOfIntVecs(SEXP ii) {
-//     int n = length(ii);
-//     vector<vector<int> > vs(n);
-//     v_vectors = vs;
-//
-//     for (int i = 0; i < n; i++) {
-//       v_vectors[i] = asVector<int>(VECTOR_ELT(ii, i));
-//     }
-//   }
-//   ListOfIntVecs() {
-//   }
-//
-//   ListOfIntVecs(const ListOfIntVecs& another) {
-//     v_vectors = another.v_vectors;
-//   }
-//
-//   ListOfIntVecs & operator=(const ListOfIntVecs& another) {
-//     v_vectors = another.v_vectors;
-//     return *this;
-//   }
-// };
 
 
 class ListOfIntVecs {
 public:
     std::vector<std::vector<int>> nestedVector;
+
+    // Default constructor
+    ListOfIntVecs() {}
 
     // Constructor that takes all_ints and vec_lens vectors
     ListOfIntVecs(const std::vector<int>& all_ints, const std::vector<int>& vec_lens) {
@@ -279,23 +270,20 @@ public:
         return nestedVector.size();
     }
 
-    // Member function to filter the ListOfIntVecs by indices in a vector<int> object
-    ListOfIntVecs filterByIndices(const std::vector<int>& i) const {
-        std::vector<int> filtered_all_ints;
-        std::vector<int> filtered_vec_lens;
+    // Square bracket operator with a vector<int> argument
+    ListOfIntVecs operator[](const std::vector<int>& indices) const {
+        ListOfIntVecs result;
 
-        for (int index : i) {
+        for (int index : indices) {
             if (index >= 0 && static_cast<size_t>(index) < nestedVector.size()) {
-                const std::vector<int>& innerVector = nestedVector[static_cast<size_t>(index)];
-                filtered_all_ints.insert(filtered_all_ints.end(), innerVector.begin(), innerVector.end());
-                filtered_vec_lens.push_back(innerVector.size());
+                result.nestedVector.push_back(nestedVector[static_cast<size_t>(index)]);
             } else {
                 // Handle out-of-range index or negative index as needed
                 throw std::out_of_range("Index out of range");
             }
         }
 
-        return ListOfIntVecs(filtered_all_ints, filtered_vec_lens);
+        return result;
     }
 };
 
@@ -304,11 +292,42 @@ public:
 
 template<class Type>
 class ExprEvaluator {
+private:
+    vector<int> mats_save_hist;
+    vector<int> table_x;
+    vector<int> table_n;
+    vector<int> table_i;
+    vector<int> meth_type_id; // vector over user defined methods, identifying a type of method
+    ListOfIntVecs meth_mats;
+    ListOfIntVecs meth_int_vecs;
+    ListOfIntVecs valid_int_vecs;
+    vector<Type> valid_literals;
 public:
     // constructor
-    ExprEvaluator() {
+    ExprEvaluator(
+        vector<int>& mats_save_hist_,
+        vector<int>& table_x_,
+        vector<int>& table_n_,
+        vector<int>& table_i_,
+        vector<int>& meth_type_id_,
+        ListOfIntVecs& meth_mats_,
+        ListOfIntVecs& meth_int_vecs_,
+        ListOfIntVecs& valid_int_vecs_,
+        vector<Type>& valid_literals_
+
+    ) {
         error_code = 0;	// non-zero means error has occurred; otherwise, no error
         expr_row = 0;
+        mats_save_hist = mats_save_hist_;
+        table_x = table_x_;
+        table_n = table_n_;
+        table_i = table_i_;
+        meth_type_id = meth_type_id_;
+        meth_mats = meth_mats_;
+        meth_int_vecs = meth_int_vecs_;
+        valid_int_vecs = valid_int_vecs_;
+        valid_literals = valid_literals_;
+
         strcpy(error_message, "OK");
     };
 
@@ -328,21 +347,13 @@ public:
 
     // evaluators
     matrix<Type> EvalExpr(
-        const vector<ListOfMatrices<Type> >& hist,
-        int t,
-        const vector<int>& mats_save_hist,
-        const vector<int>& table_x,
-        const vector<int>& table_n,
-        const vector<int>& table_i,
-        const vector<int>& meth_type_id, // vector over user defined methods, identifying a type of method
-        ListOfIntVecs& meth_mats,
-        ListOfIntVecs& meth_int_vecs,
-        ListOfIntVecs& valid_int_vecs,
-        ListOfMatrices<Type>& valid_vars,
-        const vector<Type>& valid_literals,
-        int row = 0
+        const vector<ListOfMatrices<Type> >& hist, // current simulation history
+        int t, // current time step
+        ListOfMatrices<Type>& valid_vars, // current list of values of each matrix
+        int row = 0 // current expression parse table row being evaluated
     )
     {
+
         // Variables to use locally in function bodies
         matrix<Type> m, m1, m2;  // return values
         vector<int> v;
@@ -356,7 +367,7 @@ public:
             case -2: // methods (pre-processed matrices)
                 std::cout << "--------------" << "IN METHODS CASE" << std::endl << "--------------" << std::endl;
                 curr_meth_id = table_x[row]+1;
-                v = meth_mats.size();
+                // v = meth_mats.size();
 
                 // vector<vector<int> > int_vec_args(meth_int_vecs.v_vectors.size());
                 // for (int i=0; i<meth_mats.v_vectors.size(); i++)
@@ -385,9 +396,7 @@ public:
                 vector<matrix<Type> > args(n);
                 vector<int> index2mats(n);
                 for (int i=0; i<n; i++) {
-                    args[i] = EvalExpr(hist, t, mats_save_hist, table_x, table_n, table_i, \
-                                       meth_type_id, meth_mats, meth_int_vecs, valid_int_vecs, \
-                                       valid_vars, valid_literals, table_i[row]+i);
+                    args[i] = EvalExpr(hist, t, valid_vars, table_i[row]+i);
 
                     // Check here if index2mats actually points at
                     // a matrix and not a function. Later on if index2mats
@@ -2194,7 +2203,28 @@ Type objective_function<Type>::operator() ()
 
     //////////////////////////////////
     // Define an expression evaluator
-    ExprEvaluator<Type> exprEvaluator;
+    ExprEvaluator<Type> exprEvaluator(
+        mats_save_hist,
+        p_table_x,
+        p_table_n,
+        p_table_i,
+        meth_type_id,
+        meth_mats,
+        meth_int_vecs,
+        const_int_vecs,
+        literals
+    );
+    ExprEvaluator<Type> objFunEvaluator(
+        mats_save_hist, // this seems odd given that objective functions can't access history
+        o_table_x,
+        o_table_n,
+        o_table_i,
+        meth_type_id,
+        meth_mats,
+        meth_int_vecs,
+        const_int_vecs,
+        literals
+    );
     //////////////////////////////////
 
     // 3 Pre-simulation
@@ -2209,32 +2239,14 @@ Type objective_function<Type>::operator() ()
         matrix<Type> result;
         if (expr_sim_block[i]==1) {
             SIMULATE {
-                result  = exprEvaluator.EvalExpr(
-                    simulation_history,
-                    0,
-                    mats_save_hist,
-                    p_table_x,
-                    p_table_n,
-                    p_table_i,
-                    meth_type_id, meth_mats, meth_int_vecs, const_int_vecs,
-                    mats,
-                    literals,
-                    p_table_row
+                result = exprEvaluator.EvalExpr(
+                    simulation_history, 0, mats, p_table_row
                 );
             }
         }
         else
-            result  = exprEvaluator.EvalExpr(
-                simulation_history,
-                0,
-                mats_save_hist,
-                p_table_x,
-                p_table_n,
-                p_table_i,
-                meth_type_id, meth_mats, meth_int_vecs, const_int_vecs,
-                mats,
-                literals,
-                p_table_row
+            result = exprEvaluator.EvalExpr(
+                simulation_history, 0, mats, p_table_row
             );
 
         if (exprEvaluator.GetErrorCode()) {
@@ -2274,31 +2286,13 @@ Type objective_function<Type>::operator() ()
             if (expr_sim_block[i]==1) {
                 SIMULATE {
                     result = exprEvaluator.EvalExpr(
-                        simulation_history,
-                        k+1,
-                        mats_save_hist,
-                        p_table_x,
-                        p_table_n,
-                        p_table_i,
-                        meth_type_id, meth_mats, meth_int_vecs, const_int_vecs,
-                        mats,
-                        literals,
-                        p_table_row2
+                        simulation_history, k+1, mats, p_table_row2
                    );
                 }
             }
             else
                 result = exprEvaluator.EvalExpr(
-                    simulation_history,
-                    k+1,
-                    mats_save_hist,
-                    p_table_x,
-                    p_table_n,
-                    p_table_i,
-                    meth_type_id, meth_mats, meth_int_vecs, const_int_vecs,
-                    mats,
-                    literals,
-                    p_table_row2
+                    simulation_history, k+1, mats, p_table_row2
                );
 
             if (exprEvaluator.GetErrorCode()) {
@@ -2338,31 +2332,13 @@ Type objective_function<Type>::operator() ()
         if (expr_sim_block[i]==1) {
             SIMULATE {
                 result = exprEvaluator.EvalExpr(
-                    simulation_history,
-                    time_steps+1,
-                    mats_save_hist,
-                    p_table_x,
-                    p_table_n,
-                    p_table_i,
-                    meth_type_id, meth_mats, meth_int_vecs, const_int_vecs,
-                    mats,
-                    literals,
-                    p_table_row
+                    simulation_history, time_steps+1, mats, p_table_row
                 );
             }
         }
         else
             result  = exprEvaluator.EvalExpr(
-                simulation_history,
-                time_steps+1,
-                mats_save_hist,
-                p_table_x,
-                p_table_n,
-                p_table_i,
-                meth_type_id, meth_mats, meth_int_vecs, const_int_vecs,
-                mats,
-                literals,
-                p_table_row
+                simulation_history, time_steps+1, mats, p_table_row
             );
 
         if (exprEvaluator.GetErrorCode()) {
@@ -2457,18 +2433,7 @@ Type objective_function<Type>::operator() ()
 
     // 7 Calc the return of the objective function
     matrix<Type> ret;
-    ret = exprEvaluator.EvalExpr(
-              simulation_history,
-              time_steps+2,
-              mats_save_hist,
-              o_table_x,
-              o_table_n,
-              o_table_i,
-              meth_type_id, meth_mats, meth_int_vecs, const_int_vecs,
-              mats,
-              literals,
-              0
-          );
+    ret = objFunEvaluator.EvalExpr(simulation_history, time_steps+2, mats, 0);
 
     if (exprEvaluator.GetErrorCode()) {
         REPORT_ERROR;
