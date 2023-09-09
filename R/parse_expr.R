@@ -58,7 +58,7 @@ make_expr_parser = function(
   # convert a formula to the initial state of a list that could be
   # recursively parsed using parse_expr
   formula_to_parsing_list = function(x) {
-    if (interactive()) browser()
+    #if (interactive()) browser()
     stopifnot(
       "formulas are the only calls that can be parsed" =
         as.character(x[[1]]) == '~'
@@ -226,7 +226,7 @@ get_indices = function(x, vec, vec_type, expr_as_string, zero_based = FALSE) {
       "\nthe expression given by:\n",
       expr_as_string, "\n\n",
       "contained the following ", vec_type, ":\n",
-      paste0(missing_items, collapse = " "), "\n\n",
+      paste0(unique(missing_items), collapse = " "), "\n\n",
       " that were not found in the list of available ", vec_type, ":\n",
       paste0(vec, collapse = " "), # TODO: smarter pasting when this list gets big
       pointers

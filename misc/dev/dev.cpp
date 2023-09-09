@@ -2011,12 +2011,13 @@ private:
 #define REPORT_ERROR { \
     int error = exprEvaluator.GetErrorCode(); \
     int expr_row = exprEvaluator.GetExprRow(); \
+    const char* err_msg = exprEvaluator.GetErrorMessage(); \
     REPORT(error); \
     REPORT(expr_row); \
  \
     logfile.open (LOG_FILE_NAME, std::ios_base::app); \
     logfile << "Error code = " << error << std::endl; \
-    logfile << "Error message = " << exprEvaluator.GetErrorMessage() << std::endl; \
+    logfile << "Error message = " << err_msg << std::endl; \
     logfile << "Expression row = " << expr_row << std::endl; \
     logfile.close(); \
 }
