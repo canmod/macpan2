@@ -90,6 +90,259 @@
     
 <p><a href="https://canmod.github.io/macpan2/articles/vignette-status#stub"><img src="https://img.shields.io/badge/status-stub-red" alt="status"></a></p>
 <div class="section level2">
+<h2 id="prerequisits">Prerequisits<a class="anchor" aria-label="anchor" href="#prerequisits"></a>
+</h2>
+</div>
+<div class="section level2">
+<h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
+</h2>
+<p>The <code>macpan2</code> package uses the standard S3 object-oriented
+framework for <code>R</code>. All objects in <code>macpan2</code> are
+standard <code>R</code> <code>environments</code>, with standard S3
+<code>class</code> <code>attributes</code>. This approach allows us to
+integrate with standard generic S3 methods (e.g. <code>print</code>,
+<code>predict</code>), while retaining the benefits of programming
+styles that are common outside of <code>R</code> such as data-code
+bundling and passing by reference. We can get these benefits without
+dependencies on third-party packages such as <code>R6</code> and instead
+use standard <code>R</code> tools, but in an unorthodox yet interesting
+(to us) way.</p>
+</div>
+<div class="section level2">
+<h2 id="basics-of-the-macpan2-object-oriented-framework">Basics of the <code>macpan2</code> Object Oriented Framework<a class="anchor" aria-label="anchor" href="#basics-of-the-macpan2-object-oriented-framework"></a>
+</h2>
+<div class="section level3">
+<h3 id="constructing-and-using-objects">Constructing and Using Objects<a class="anchor" aria-label="anchor" href="#constructing-and-using-objects"></a>
+</h3>
+<p>To understand <code>macpan2</code>, users and developers need to
+understand how to construct objects. Objects in <code>macpan2</code>
+have <code>S3</code> class attributes and are standard <code>R</code>
+<code>environment</code>s with some additional restrictions. Before
+looking at those restrictions, we will illustrate the basic idea with an
+example.</p>
+<p>The <code>macpan2</code> package comes with a set of
+<code><a href="../articles/example_models.html">vignette("example_models", package = "macpan2")</a></code>. One simple
+example is an SIR model stored here.</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="op">(</span><span class="va">sir_path</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"starter_models"</span>, <span class="st">"sir"</span>, package <span class="op">=</span> <span class="st">"macpan2"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "/home/runner/work/_temp/Library/macpan2/starter_models/sir"</span></span></code></pre></div>
+<p>This path points to a directory with the following files.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="va">sir_path</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "derivations.json" "flows.csv"        "README.md"        "settings.json"   </span></span>
+<span><span class="co">#&gt; [5] "variables.csv"</span></span></code></pre></div>
+<p>We could read in one of these files using standard R methods, but
+here we illustrate objects by using the <code>CSVReader</code> function.
+This function returns an object of class <code>CSVReader</code>.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sir_flows_reader</span> <span class="op">=</span> <span class="fu"><a href="../reference/Reader.html">CSVReader</a></span><span class="op">(</span><span class="va">sir_path</span>, <span class="st">"flows.csv"</span><span class="op">)</span></span>
+<span><span class="va">sir_flows_reader</span></span>
+<span><span class="co">#&gt; Classes 'CSVReader', 'Reader', 'Base' &lt;environment: 0x55839e1e2dd0&gt; </span></span>
+<span><span class="co">#&gt; read : function ()</span></span></code></pre></div>
+<p>We get a print out of the <code>S3</code> class of the object, which
+is a vector with three items.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">sir_flows_reader</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "CSVReader" "Reader"    "Base"</span></span></code></pre></div>
+<p>Why are there three items? This is the standard <code>S3</code>
+method of inheritance. If this doesn’t make sense, it doesn’t matter
+now.</p>
+<p>We also saw that this item is just an <code>R</code>
+<code>environment</code>. More about this later.</p>
+<p>The more important thing is that there is a <code>read</code>
+function listed. This function is a method, but importantly this is not
+a standard <code>S3</code> method. Why is it not an <code>S3</code>
+method? You guessed it, we will cover that below.</p>
+<p>We call methods, like the <code>read()</code> method, in the
+following way.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sir_flows_reader</span><span class="op">$</span><span class="fu">read</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   from to  flow       type from_partition to_partition flow_partition</span></span>
+<span><span class="co">#&gt; 1    S  I   foi per_capita            Epi          Epi            Epi</span></span>
+<span><span class="co">#&gt; 2    I  R gamma per_capita            Epi          Epi            Epi</span></span>
+<span><span class="co">#&gt;   from_to_partition from_flow_partition to_flow_partition</span></span>
+<span><span class="co">#&gt; 1                                                    Null</span></span>
+<span><span class="co">#&gt; 2                                                    Null</span></span></code></pre></div>
+<p>This <code>sir_flows_reader</code> has read in the CSV file that it
+is configured to read.</p>
+<p>This syntax might look strange to many R users, who will be used to
+something more like this.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">sir_path</span>, <span class="st">"flows.csv"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    from  to   flow       type from_partition to_partition flow_partition</span></span>
+<span><span class="co">#&gt; 1 S     I   foi    per_capita            Epi          Epi            Epi</span></span>
+<span><span class="co">#&gt; 2 I     R   gamma  per_capita            Epi          Epi            Epi</span></span>
+<span><span class="co">#&gt;   from_to_partition from_flow_partition to_flow_partition</span></span>
+<span><span class="co">#&gt; 1                NA                  NA              Null</span></span>
+<span><span class="co">#&gt; 2                NA                  NA              Null</span></span></code></pre></div>
+<p>The reason why <code>sir_reader$read()</code> works without any
+arguments is that the path to read is stored in the
+<code>sir_reader</code> object. We can see (almost) everything stored in
+an object using the <code>ls</code> function.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/ls.html" class="external-link">ls</a></span><span class="op">(</span><span class="va">sir_flows_reader</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "file" "read"</span></span></code></pre></div>
+<p>Here we see that, along with the <code>read</code> method, there is
+something else called <code>file</code>, which is just the file path
+that the reader is configured to read.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sir_flows_reader</span><span class="op">$</span><span class="va">file</span></span>
+<span><span class="co">#&gt; [1] "/home/runner/work/_temp/Library/macpan2/starter_models/sir/flows.csv"</span></span></code></pre></div>
+<p>Object components like this <code>file</code> component, which are
+not methods, are called fields.</p>
+<p>That’s the basic idea of how to use objects in <code>macpan2</code>.
+Here’s a summary.</p>
+<ul>
+<li>Objects are standard <code>R</code> <code>environment</code>s</li>
+<li>Objects have standard <code>R</code> S3 <code>class</code>es</li>
+<li>Objects have fields and methods</li>
+<li>Object methods are functions that can make use of other object
+components</li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="defining-classes">Defining Classes<a class="anchor" aria-label="anchor" href="#defining-classes"></a>
+</h3>
+<p>To define a class we write a function called a constructor. We have
+aleady seen a constructor – the <code>CSVReader</code> function above.
+Let’s make our own. Let’s make a class that can generate sequences of
+numbers.</p>
+<p>To warm up we will create a class that does nothing and contains
+nothing, but which illustrates the basic boilerplate code for creating a
+class.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">DoesNothing</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">self</span> <span class="op">=</span> <span class="fu">Base</span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="fu">return_object</span><span class="op">(</span><span class="va">self</span>, <span class="st">"DoesNothing"</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">does_nothing</span> <span class="op">=</span> <span class="fu">DoesNothing</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">does_nothing</span></span>
+<span><span class="co">#&gt; Classes 'DoesNothing', 'Base' &lt;environment: 0x558399d30cb8&gt;</span></span></code></pre></div>
+<p>The first line in this constructor uses the <code>Base</code>
+function to create an <code>environment</code> called <code>self</code>.
+The second line sets <code>self</code>s S3 <code>class</code> to
+<code>DoesNothing</code> and returns this newly created S3 object.</p>
+<p>To make this class more interesting we store an integer as a
+field.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">DoesNothing</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">n</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">self</span> <span class="op">=</span> <span class="fu">Base</span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="va">self</span><span class="op">$</span><span class="va">n</span> <span class="op">=</span> <span class="va">n</span>  <span class="co">## save value of the argument in the object</span></span>
+<span>  <span class="fu">return_object</span><span class="op">(</span><span class="va">self</span>, <span class="st">"DoesNothing"</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">does_nothing</span> <span class="op">=</span> <span class="fu">DoesNothing</span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span>
+<span><span class="va">does_nothing</span></span>
+<span><span class="co">#&gt; Classes 'DoesNothing', 'Base' &lt;environment: 0x55839a61b788&gt;</span></span></code></pre></div>
+<p>This looks identical to the first version, but now we have stored a
+value for <code>n</code>.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">does_nothing</span><span class="op">$</span><span class="va">n</span> <span class="op">==</span> <span class="fl">10</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<p>Finally we add a method so that we can do something, and change the
+name do describe what it can do.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">SimpleSequence</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">n</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">self</span> <span class="op">=</span> <span class="fu">Base</span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="va">self</span><span class="op">$</span><span class="va">n</span> <span class="op">=</span> <span class="va">n</span></span>
+<span>  <span class="va">self</span><span class="op">$</span><span class="va">generate</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">self</span><span class="op">$</span><span class="va">n</span><span class="op">)</span></span>
+<span>  <span class="fu">return_object</span><span class="op">(</span><span class="va">self</span>, <span class="st">"SimpleSequence"</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">simple_sequence</span> <span class="op">=</span> <span class="fu">SimpleSequence</span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span>
+<span><span class="va">simple_sequence</span><span class="op">$</span><span class="fu">generate</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt;  [1]  1  2  3  4  5  6  7  8  9 10</span></span></code></pre></div>
+<p>Notice that all fields and methods stored in <code>self</code>
+(e.g. <code>self$n</code>) can be used in methods by using the
+<code>$</code> operator to extract the value of the field or method from
+<code>self</code>. The technical reason why this works is that the
+<code>self</code> <code>environment</code> is in the
+<code>environment</code> of every method in the <code>self</code>
+<code>environment</code>. In fact, the <code>self</code>
+<code>environment</code> is the only thing in the
+<code>environment</code> of each method. If this seems mind-bending,
+don’t worry about it.</p>
+<p>Those are the basics of class definitions. Here’s a summary.</p>
+<ul>
+<li>Class definitions are functions for constructing objects of that
+class</li>
+<li>The first thing to do in a class definition is create the
+<code>self</code> <code>environment</code>
+</li>
+<li>The last thing to do in a class definition is return the
+<code>self</code> <code>environment</code> as an S3 object</li>
+<li>In the middle of a class definition one adds methods and fields to
+the <code>self</code> <code>environment</code>
+</li>
+<li>The <code>self</code> <code>environment</code> is the only thing in
+the <code>environment</code>s of the methods in <code>self</code> (don’t
+worry about it)</li>
+</ul>
+</div>
+</div>
+<div class="section level2">
+<h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a>
+</h2>
+<div class="section level3">
+<h3 id="objects">Objects<a class="anchor" aria-label="anchor" href="#objects"></a>
+</h3>
+<p>In <code>macpan2</code>, objects are standard <code>R</code>
+<code>environment</code>s with an S3 <code>class</code> attribute.
+Therefore, our object oriented style involves only basic foundational
+<code>R</code> concepts: <code>environment</code>s and S3 classes.</p>
+<p>There are two types of <code>environment</code>s in this setup. The
+first kind of <code>environment</code> is the</p>
+<ul>
+<li>An S3 <code>class</code> <code>attribute</code>
+</li>
+<li>The <code>environment</code> of every function in this
+<code>environment</code> is an</li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="class-definitions">Class Definitions<a class="anchor" aria-label="anchor" href="#class-definitions"></a>
+</h3>
+<p>Developers can define a class by defining a standard R function that
+returns an instance of that class.</p>
+<p>We talked a bit about technical details that you shouldn’t worry
+about in the basics of defining classes. But there is one technicality
+that you should worry about. Objects created in a constructor can only
+be used in methods if they are accessible through the <code>self</code>
+<code>environment</code>. So for example, the following code fails.</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">BadClass</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">self</span> <span class="op">=</span> <span class="fu">Base</span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="va">x</span> <span class="op">=</span> <span class="fl">10</span></span>
+<span>  <span class="va">self</span><span class="op">$</span><span class="va">f</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="op">)</span> <span class="va">x</span><span class="op">^</span><span class="fl">2</span></span>
+<span>  <span class="fu">return_object</span><span class="op">(</span><span class="va">self</span>, <span class="st">"BadClass"</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/try.html" class="external-link">try</a></span><span class="op">(</span><span class="fu">BadClass</span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="fu">f</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Error in BadClass()$f() : object 'x' not found</span></span></code></pre></div>
+<p>This is good because it forces you to be specific about where method
+dependencies are coming from. What would have been worse is if the above
+code succeeded in the following way.</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">x</span> <span class="op">=</span> <span class="fl">10</span></span>
+<span><span class="fu">BadClass</span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="fu">f</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 100</span></span></code></pre></div>
+<p>Why did this ‘work’ now? It doesn’t matter because you will never
+have this problem if you just always refer to <code>self</code>
+explicitly in methods. In particular, the proper approach would be the
+following.</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">GoodClass</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">self</span> <span class="op">=</span> <span class="fu">Base</span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="va">self</span><span class="op">$</span><span class="va">x</span> <span class="op">=</span> <span class="fl">10</span></span>
+<span>  <span class="va">self</span><span class="op">$</span><span class="va">f</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="op">)</span> <span class="va">self</span><span class="op">$</span><span class="va">x</span><span class="op">^</span><span class="fl">2</span></span>
+<span>  <span class="fu">return_object</span><span class="op">(</span><span class="va">self</span>, <span class="st">"GoodClass"</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="fu">GoodClass</span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="fu">f</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 100</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="inheritance">Inheritance<a class="anchor" aria-label="anchor" href="#inheritance"></a>
+</h3>
+</div>
+</div>
+<div class="section level2">
 <h2 id="principles">Principles<a class="anchor" aria-label="anchor" href="#principles"></a>
 </h2>
 <p>There will be trade-offs among these principles, but they are good
@@ -153,30 +406,12 @@ return the same type of object, but obviously the return value itself
 can and should vary.</p>
 </div>
 <div class="section level3">
-<h3 id="types-of-object-components">Types of Object Components<a class="anchor" aria-label="anchor" href="#types-of-object-components"></a>
+<h3 id="argument-fields">Argument Fields<a class="anchor" aria-label="anchor" href="#argument-fields"></a>
 </h3>
-<p>There should only be the following types of object components.</p>
-<ol style="list-style-type: decimal">
-<li>Args – Fields storing arguments to the constructor</li>
-<li>Static – Fields storing values derived from arguments to the
-constructor</li>
-<li>Standard methods – Methods computing and returning values derived
-from arguments to the constructor</li>
-<li>Composition – Objects with further fields and methods</li>
-<li>A <code>$refesh()</code> method that can be called to update #3
-components in-place</li>
-<li>Private methods – Methods that should only be called by other
-methods in the class</li>
-</ol>
-<p>How to decide what kind of component to use for each piece of
-information will depend on the following considerations.</p>
-<div class="section level4">
-<h4 id="argument-fields">Argument Fields<a class="anchor" aria-label="anchor" href="#argument-fields"></a>
-</h4>
 <p>These are the simplest kinds of object components, and essentially
-behave as lists. For example here is an object with two argument
-fields.</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+behave as lists. Argument fields store arguments to the constructor. For
+example here is an object with two argument fields.</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">A</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">...</span></span>
 <span>  <span class="va">self</span><span class="op">$</span><span class="va">x</span> <span class="op">=</span> <span class="va">x</span></span>
@@ -185,7 +420,7 @@ fields.</p>
 <span><span class="op">}</span></span></code></pre></div>
 <p>These fields can be accessed using the standard <code>$</code> or
 <code>[[</code> operators.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">a</span> <span class="op">=</span> <span class="fu">A</span><span class="op">(</span>x <span class="op">=</span> <span class="fl">10</span>, y <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span>
 <span><span class="va">a</span><span class="op">$</span><span class="va">x</span> <span class="op">==</span> <span class="fl">10</span> <span class="co">## TRUE</span></span>
 <span><span class="va">a</span><span class="op">$</span><span class="va">y</span> <span class="op">==</span> <span class="fl">20</span> <span class="co">## TRUE</span></span></code></pre></div>
@@ -193,14 +428,15 @@ fields.</p>
 recommended. Rather one should use <code>$refresh()</code> methods as
 described below.</p>
 </div>
-<div class="section level4">
-<h4 id="static-fields">Static Fields<a class="anchor" aria-label="anchor" href="#static-fields"></a>
-</h4>
-<p>Static fields are similar to argument fields, but the contain derived
+<div class="section level3">
+<h3 id="static-fields">Static Fields<a class="anchor" aria-label="anchor" href="#static-fields"></a>
+</h3>
+<p>Static fields store values derived from arguments to the constructor.
+Static fields are similar to argument fields, but they contain derived
 quantities that depend on the arguments rather than the arguments
 themselves. A simple example is to store the sum of two arguments in a
 static field.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">A</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">...</span></span>
 <span>  <span class="va">self</span><span class="op">$</span><span class="va">z</span> <span class="op">=</span> <span class="va">x</span> <span class="op">+</span> <span class="va">y</span></span>
@@ -209,19 +445,21 @@ static field.</p>
 <p>Note that static fields may need to be updated by
 <code>$refresh()</code> methods.</p>
 </div>
-<div class="section level4">
-<h4 id="standard-methods">Standard Methods<a class="anchor" aria-label="anchor" href="#standard-methods"></a>
-</h4>
-<p>Standard methods should only be used if they are cheap to run, so
-that regeneration and consistency are balanced. But this pattern is
-generally the preferred option, because it is simplest to reason about
-and maintain because it more directly ensures consistency.</p>
+<div class="section level3">
+<h3 id="standard-methods">Standard Methods<a class="anchor" aria-label="anchor" href="#standard-methods"></a>
+</h3>
+<p>Standard methods compute and return values derived from arguments to
+the constructor. These methods should only be used if they are cheap to
+run, so that regeneration and consistency are balanced. But this pattern
+is generally the preferred option, because it is simplest to reason
+about and maintain because it more directly ensures consistency.</p>
 </div>
-<div class="section level4">
-<h4 id="composition">Composition<a class="anchor" aria-label="anchor" href="#composition"></a>
-</h4>
-<p>Composition of objects and classes looks like this.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="section level3">
+<h3 id="composition">Composition<a class="anchor" aria-label="anchor" href="#composition"></a>
+</h3>
+<p>Objects can be composed of other objects. Composition of objects and
+classes looks like this.</p>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">A</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">...</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">...</span></span>
 <span>  <span class="va">self</span><span class="op">$</span><span class="va">b</span> <span class="op">=</span> <span class="fu">B</span><span class="op">(</span><span class="va">self</span><span class="op">)</span></span>
@@ -234,7 +472,7 @@ and maintain because it more directly ensures consistency.</p>
 <span>  <span class="va">...</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>Then other developers and users can do the following.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">a</span> <span class="op">=</span> <span class="fu">A</span><span class="op">(</span><span class="va">...</span><span class="op">)</span></span>
 <span><span class="va">a</span><span class="op">$</span><span class="va">b</span><span class="op">$</span><span class="fu">method</span><span class="op">(</span><span class="va">...</span><span class="op">)</span></span></code></pre></div>
 <p>This keeps classes small because <code>B</code> can have methods
@@ -243,50 +481,22 @@ stabilize. Testing of <code>A</code> can focus on the methods directly
 in <code>A</code>, and then <code>A</code> can be extended by composing
 new classes like <code>B</code>.</p>
 </div>
-<div class="section level4">
-<h4 id="refresh-methods">Refresh Methods<a class="anchor" aria-label="anchor" href="#refresh-methods"></a>
-</h4>
-<p>Static fields should be used if they are expensive to compute.
-Consistency can be managed by producing static fields in a
-<code>$refresh()</code> method – this is a good way to balance
-regeneration with consistency. This way, developers of other classes
-that are composed components can make use of the <code>$refresh()</code>
-method to reliably keep everything up-to-date and consistent. In this
-way static fields and <code>$refresh()</code> methods work together to
-balance the cost of regeneration with the necessity of consistency.</p>
-<p>In the constructor, this <code>$refresh()</code> pattern looks like
-this.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">A</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">...</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">...</span></span>
-<span>  <span class="va">self</span><span class="op">$</span><span class="va">refresh</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="va">self</span><span class="op">$</span><span class="va">expensive_field_1</span> <span class="op">=</span> <span class="fu">f_1</span><span class="op">(</span><span class="va">...</span><span class="op">)</span></span>
-<span>    <span class="va">...</span></span>
-<span>    <span class="va">self</span><span class="op">$</span><span class="va">expensive_field_n</span> <span class="op">=</span> <span class="fu">f_n</span><span class="op">(</span><span class="va">...</span><span class="op">)</span></span>
-<span>  <span class="op">}</span></span>
-<span>  <span class="va">self</span><span class="op">$</span><span class="fu">refresh</span><span class="op">(</span><span class="op">)</span></span>
-<span>  <span class="va">...</span></span>
-<span>  <span class="va">self</span><span class="op">$</span><span class="va">b</span> <span class="op">=</span> <span class="fu">B</span><span class="op">(</span><span class="va">a</span><span class="op">)</span></span>
-<span><span class="op">}</span></span>
-<span><span class="va">...</span></span>
-<span><span class="va">B</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">a</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">...</span></span>
-<span>  <span class="va">self</span><span class="op">$</span><span class="va">a</span> <span class="op">=</span> <span class="va">a</span>  <span class="co">## an instance of `A`</span></span>
-<span>  <span class="va">...</span></span>
-<span>  <span class="va">self</span><span class="op">$</span><span class="va">method_to_modify_a</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">...</span><span class="op">)</span> <span class="op">{</span><span class="va">...</span><span class="op">}</span></span>
-<span>  <span class="va">self</span><span class="op">$</span><span class="va">a</span><span class="op">$</span><span class="fu">refresh</span><span class="op">(</span><span class="op">)</span></span>
-<span>  <span class="va">...</span></span>
-<span><span class="op">}</span></span></code></pre></div>
+<div class="section level3">
+<h3 id="refresh-methods">Refresh Methods<a class="anchor" aria-label="anchor" href="#refresh-methods"></a>
+</h3>
+<p>Methods refreshing fields when shallow copies of those fields are in
+several composed objects … When a field gets edited, the simplest thing
+to do is</p>
 </div>
-<div class="section level4">
-<h4 id="private-methods">Private Methods<a class="anchor" aria-label="anchor" href="#private-methods"></a>
-</h4>
+<div class="section level3">
+<h3 id="private-methods">Private Methods<a class="anchor" aria-label="anchor" href="#private-methods"></a>
+</h3>
 <p>Private methods should only be used by other methods in the class.
 There is nothing stoping a developer or a user from calling a private
 method, but there is no guarantee that the private method with have
 consistent behaviour or even exist. To communicate privacy, private
 methods should start with a dot as the following example shows.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">A</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">...</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">...</span></span>
 <span>  <span class="va">self</span><span class="op">$</span><span class="va">.private</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">...</span><span class="op">)</span> <span class="op">{</span><span class="va">...</span><span class="op">}</span></span>
@@ -298,6 +508,63 @@ methods should start with a dot as the following example shows.</p>
 <span>  <span class="op">}</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 </div>
+<div class="section level3">
+<h3 id="object-editing">Object Editing<a class="anchor" aria-label="anchor" href="#object-editing"></a>
+</h3>
+</div>
+<div class="section level3">
+<h3 id="method-caching">Method Caching<a class="anchor" aria-label="anchor" href="#method-caching"></a>
+</h3>
+<p>Developers can manage the performance costs of computationally
+expensive methods through method caching. When a developer calls a
+cached method for the first time, it computes the result, stores it in a
+cache, and returns the result. Subsequent method evaluations simply
+retrieve the cached value, improving efficiency. Developers can ensure
+consistency by invalidating the cache whenever objects change, allowing
+them to balance the cost of regeneration with the need for
+consistency.</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>A <span class="ot">=</span> <span class="cf">function</span>(..., method_dependency, ...) {</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  ...</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  self<span class="sc">$</span>method_dependency <span class="ot">=</span> method_dependency</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  ...</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  self<span class="sc">$</span>expensive_method_1 <span class="ot">=</span> <span class="cf">function</span>() {</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>    ...</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>  ...</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>  self<span class="sc">$</span>expensive_method_2 <span class="ot">=</span> <span class="cf">function</span>() {</span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>    ...</span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>  ...</span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>  self<span class="sc">$</span>cheap_method <span class="ot">=</span> <span class="cf">function</span>() {</span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>    ...</span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>  ...</span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>  self<span class="sc">$</span>modify_dependency <span class="ot">=</span> <span class="cf">function</span>(...) {</span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>    ...</span>
+<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>cache<span class="sc">$</span>expensive_method_1<span class="sc">$</span><span class="fu">invalidate</span>()</span>
+<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>cache<span class="sc">$</span>expensive_method_2<span class="sc">$</span><span class="fu">invalidate</span>()</span>
+<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a>    ...</span>
+<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a>  ...</span>
+<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">initialize_cache</span>(self, <span class="st">"expensive_method_1"</span>, <span class="st">"expensive_method_2"</span>)</span>
+<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a>  ...</span>
+<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a>a <span class="ot">=</span> <span class="fu">A</span>()</span>
+<span id="cb22-29"><a href="#cb22-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-30"><a href="#cb22-30" aria-hidden="true" tabindex="-1"></a><span class="co"># takes time to return</span></span>
+<span id="cb22-31"><a href="#cb22-31" aria-hidden="true" tabindex="-1"></a>a<span class="sc">$</span><span class="fu">expensive_method</span>() </span>
+<span id="cb22-32"><a href="#cb22-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-33"><a href="#cb22-33" aria-hidden="true" tabindex="-1"></a><span class="co"># return immediately by returning the same value computed previously </span></span>
+<span id="cb22-34"><a href="#cb22-34" aria-hidden="true" tabindex="-1"></a><span class="co"># and stored in the cache</span></span>
+<span id="cb22-35"><a href="#cb22-35" aria-hidden="true" tabindex="-1"></a>a<span class="sc">$</span><span class="fu">expensive_method</span>()</span>
+<span id="cb22-36"><a href="#cb22-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-37"><a href="#cb22-37" aria-hidden="true" tabindex="-1"></a><span class="co"># change object and invalidate the cache to enforce consistency</span></span>
+<span id="cb22-38"><a href="#cb22-38" aria-hidden="true" tabindex="-1"></a>a<span class="sc">$</span><span class="fu">modify_dependency</span>(...)</span>
+<span id="cb22-39"><a href="#cb22-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-40"><a href="#cb22-40" aria-hidden="true" tabindex="-1"></a><span class="co"># again takes time to return, but the value is different because the</span></span>
+<span id="cb22-41"><a href="#cb22-41" aria-hidden="true" tabindex="-1"></a><span class="co"># object was modified</span></span>
+<span id="cb22-42"><a href="#cb22-42" aria-hidden="true" tabindex="-1"></a>a<span class="sc">$</span><span class="fu">expensive_method</span>()</span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
