@@ -6,20 +6,22 @@ binop_validity_message = paste(
   sep = "\n"
 )
 
-valid_binop = oor::ValidityMessager(
-  All(
-    is.function,
-    TestPipeline(
-      Summarizer(args, formals, length),
-      TestRange(2L, 2L)
-    ),
-    TestPipeline(
-      Summarizer(args, formals, names),
-      Not(MappedAnyTest(TestSubset("...")))
+ValidBinop = function() {
+  oor::ValidityMessager(
+    All(
+        is.function
+      , TestPipeline(
+          Summarizer(args, formals, length),
+          TestRange(2L, 2L)
+        )
+      , TestPipeline(
+          Summarizer(args, formals, names),
+          Not(MappedAnyTest(TestSubset("...")))
+        )
     )
-  ),
-  binop_validity_message
-)
+    , binop_validity_message
+  )
+}
 
 #' Binary Operator
 #'
@@ -41,7 +43,7 @@ valid_binop = oor::ValidityMessager(
 #'
 #' @export
 BinaryOperator = function(operator) {
-  op = valid_binop$assert(operator)
+  op = ValidBinop()$assert(operator)
   function(x, y) {
     x = valid$num_mat$assert(x)
     y = valid$num_mat$assert(y)

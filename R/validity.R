@@ -5,6 +5,7 @@ extract_with_name = function(name) function(x) x[[name]]
 subset_with_names = function(names) function(x) x[names]
 starts_with_this = function(prefix) function(x) startsWith(x, prefix)
 ends_with_this = function(prefix) function(x) endsWith(x, prefix)
+grep_filter = function(pattern) function(x) grep(pattern, x, perl = TRUE, value = TRUE, invert = TRUE)
 
 is_opt_par_name = function(x) {
   is_good = grepl("(p|r)_(par|mat|row|col)_id", x)
@@ -19,8 +20,9 @@ is_opt_par_name = function(x) {
   TRUE
 }
 
+valid_variable_name_re = "^([A-Za-z.]{1}[A-Za-z0-9_.]*|)$"
 are_matrix_list_names = function(x) {
-  is_good = grepl("^([A-Za-z.]{1}[A-Za-z0-9_.]*|)$", x) | (x == "")
+  is_good = grepl(valid_variable_name_re, x) | (x == "")
   all_good = all(is_good, na.rm = FALSE)
   if (!all_good) {
     message(
@@ -125,7 +127,7 @@ AllValid = function(..., .msg = "") {
 #' @importFrom oor TestTrue TestFalse
 #' @importFrom oor TestPipeline Summarizer
 #' @importFrom oor MappedAllTest MappedAnyTest MappedSummarizer
-#' @importFrom oor TestHomo TestRange TestSubset
+#' @importFrom oor TestHomo TestRange TestSubset TestLenZero
 #' @importFrom oor Base Unclean return_object return_facade
 BaseTypeChecking = function() {
   self = Base()

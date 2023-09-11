@@ -10,5 +10,8 @@ run_eg = function(f) {
     }
   }
 }
-.trash = lapply(list.files("man", full.names = TRUE), run_eg)
+for (eg in list.files("man", full.names = TRUE)) {
+  message("Running example:\n", eg)
+  .trash = run_eg(eg)
+}
 print("success!")

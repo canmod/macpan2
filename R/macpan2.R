@@ -5,5 +5,5 @@
 ##' [McMasterPandemic](https://github.com/mac-theobio/mcmasterpandemic)
 ##' package on compartmental epidemic modelling for
 ##' forecasting and analysis of infectious diseases.
-##'
+##' @importFrom oor oor_debug
 "_PACKAGE"

@@ -68,7 +68,7 @@ Model = function(definition) {
 }
 
 assert_variables = function(model) {
-  make_pipeline = function(setting, set) {
+  subset_pipeline = function(setting, set) {
     TestPipeline(
       Summarizer(
         extract_with_name("def"),
@@ -78,18 +78,70 @@ assert_variables = function(model) {
       TestSubset(set)
     )
   }
+  valid_flow_names = TestPipeline(
+    Summarizer(
+      run_no_op_method("flows"),
+      unlist,
+      unique,
+      grep_filter(valid_variable_name_re)
+    ),
+    TestLenZero()
+  )
+  valid_flow_type_names = TestPipeline(
+    Summarizer(
+      run_no_op_method("flows"),
+      extract_with_name("type"),
+      unlist,
+      unique,
+      grep_filter("^([A-Za-z]{1}[A-Za-z0-9_]*|)$")
+    ),
+    TestLenZero()
+  )
   v = model$variables$all()
   AllValid(
-      ValidityMessager(make_pipeline("required_partitions", v$names()), "Required partitions in Settings.json are not names of columns in Variables.csv"),
-      ValidityMessager(make_pipeline("state_variables", v$labels()), "State variables in Settings.json are not dot-separated concatentations of the required partitions in the Variables.csv"),
-      ValidityMessager(make_pipeline("flow_variables", v$labels()), "Flow variables in Settings.json are not expanded labels for variables in Flows.csv"),
-      ValidityMessager(make_pipeline("infectious_state_variables", v$labels()), "blah"),
-      ValidityMessager(make_pipeline("infected_state_variables", v$labels()), "blah"),
-      ValidityMessager(make_pipeline("infection_flow_variables", v$labels()), "blah"),
+      ValidityMessager(subset_pipeline("required_partitions", v$names())
+        , "Required partitions in settings.json are not names of columns in variables.csv"
+      ),
+      ValidityMessager(subset_pipeline("state_variables", v$labels())
+        , "State variables in settings.json are not dot-separated concatentations of the required partitions in the variables.csv"
+      ),
+      ValidityMessager(subset_pipeline("flow_variables", v$labels())
+        , "Flow variables in settings.json are not expanded labels for variables in flows.csv"
+      ),
+      ValidityMessager(subset_pipeline("infectious_state_variables", v$labels())
+        , "Infectious state variables in settings.json are not"
+        , "declared as rows in variables.csv as dot-separated"
+        , "concatenations of the required partitions"
+      ),
+      ValidityMessager(subset_pipeline("infected_state_variables", v$labels())
+        , "Infected state variables in settings.json are not"
+        , "declared as rows in variables.csv as dot-separated"
+        , "concatenations of the required partitions"
+      ),
+      ValidityMessager(subset_pipeline("infection_flow_variables", v$labels())
+        , "Infection flow variables in settings.json are not"
+        , "declared as rows in variables.csv as dot-separated"
+        , "concatenations of the required partitions"
+      ),
       .msg = "the settings.json file is not consistent with the variables.csv file"
-    )$assert(model)
+    )$check(model)
+  AllValid(
+    ValidityMessager(valid_flow_names
+      , "names in flows.csv must follow these rules:"
+      , "  - only characters, digits, underscores, and dots"
+      , "  - no white space"
+      , "  - no underscores or digits at the start of the string"
+    ),
+    ValidityMessager(valid_flow_type_names
+      , "flow types in flows.csv must follow these rules:"
+      , "  - only characters, digits, underscores"
+      , "  - no white space"
+      , "  - no underscores or digits at the start of the string"
+    ),
+    .msg = "the flows.csv file does not follow the rules"
+  )$check(model)
+  model
 }
-
 
 #' Model Starter
 #'
