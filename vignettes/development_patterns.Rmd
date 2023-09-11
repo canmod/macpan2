@@ -14,9 +14,192 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+library(macpan2)
+library(oor)
 ```
 
 [![status](https://img.shields.io/badge/status-stub-red)](https://canmod.github.io/macpan2/articles/vignette-status#stub)
+
+## Prerequisits
+
+## Introduction
+
+The `macpan2` package uses the standard S3 object-oriented framework for `R`. All objects in `macpan2` are standard `R` `environments`, with standard S3 `class` `attributes`. This approach allows us to integrate with standard generic S3 methods (e.g. `print`, `predict`), while retaining the benefits of programming styles that are common outside of `R` such as data-code bundling and passing by reference. We can get these benefits without dependencies on third-party packages such as `R6` and instead use standard `R` tools, but in an unorthodox yet interesting (to us) way.
+
+## Basics of the `macpan2` Object Oriented Framework
+
+### Constructing and Using Objects
+
+To understand `macpan2`, users and developers need to understand how to construct objects. Objects in `macpan2` have `S3` class attributes and are standard `R` `environment`s with some additional restrictions. Before looking at those restrictions, we will illustrate the basic idea with an example.
+
+The `macpan2` package comes with a set of `vignette("example_models", package = "macpan2")`. One simple example is an SIR model stored here.
+```{r sir_path}
+(sir_path = system.file("starter_models", "sir", package = "macpan2"))
+```
+
+This path points to a directory with the following files.
+```{r sir_ls}
+list.files(sir_path)
+```
+
+We could read in one of these files using standard R methods, but here we illustrate objects by using the `CSVReader` function. This function returns an object of class `CSVReader`.
+```{r}
+sir_flows_reader = CSVReader(sir_path, "flows.csv")
+sir_flows_reader
+```
+
+We get a print out of the `S3` class of the object, which is a vector with three items.
+```{r}
+class(sir_flows_reader)
+```
+
+Why are there three items? This is the standard `S3` method of inheritance. If this doesn't make sense, it doesn't matter now.
+
+We also saw that this item is just an `R` `environment`. More about this later.
+
+The more important thing is that there is a `read` function listed. This function is a method, but importantly this is not a standard `S3` method. Why is it not an `S3` method? You guessed it, we will cover that below.
+
+We call methods, like the `read()` method, in the following way.
+
+```{r}
+sir_flows_reader$read()
+```
+
+This `sir_flows_reader` has read in the CSV file that it is configured to read.
+
+This syntax might look strange to many R users, who will be used to something more like this.
+
+```{r}
+read.csv(file.path(sir_path, "flows.csv"))
+```
+
+The reason why `sir_reader$read()` works without any arguments is that the path to read is stored in the `sir_reader` object. We can see (almost) everything stored in an object using the `ls` function.
+
+```{r}
+ls(sir_flows_reader)
+```
+
+Here we see that, along with the `read` method, there is something else called `file`, which is just the file path that the reader is configured to read.
+
+```{r}
+sir_flows_reader$file
+```
+
+Object components like this `file` component, which are not methods, are called fields.
+
+That's the basic idea of how to use objects in `macpan2`. Here's a summary.
+
+* Objects are standard `R` `environment`s
+* Objects have standard `R` S3 `class`es
+* Objects have fields and methods
+* Object methods are functions that can make use of other object components
+
+### Defining Classes
+
+To define a class we write a function called a constructor. We have aleady seen a constructor -- the `CSVReader` function above. Let's make our own. Let's make a class that can generate sequences of numbers.
+
+To warm up we will create a class that does nothing and contains nothing, but which illustrates the basic boilerplate code for creating a class.
+
+```{r}
+DoesNothing = function() {
+  self = Base()
+  return_object(self, "DoesNothing")
+}
+does_nothing = DoesNothing()
+does_nothing
+```
+
+The first line in this constructor uses the `Base` function to create an `environment` called `self`. The second line sets `self`s S3 `class` to `DoesNothing` and returns this newly created S3 object.
+
+To make this class more interesting we store an integer as a field.
+
+```{r}
+DoesNothing = function(n) {
+  self = Base()
+  self$n = n  ## save value of the argument in the object
+  return_object(self, "DoesNothing")
+}
+does_nothing = DoesNothing(10)
+does_nothing
+```
+
+This looks identical to the first version, but now we have stored a value for `n`.
+```{r}
+does_nothing$n == 10
+```
+
+Finally we add a method so that we can do something, and change the name do describe what it can do.
+
+```{r}
+SimpleSequence = function(n) {
+  self = Base()
+  self$n = n
+  self$generate = function() seq_len(self$n)
+  return_object(self, "SimpleSequence")
+}
+simple_sequence = SimpleSequence(10)
+simple_sequence$generate()
+```
+
+Notice that all fields and methods stored in `self` (e.g. `self$n`) can be used in methods by using the `$` operator to extract the value of the field or method from `self`. The technical reason why this works is that the `self` `environment` is in the `environment` of every method in the `self` `environment`. In fact, the `self` `environment` is the only thing in the `environment` of each method. If this seems mind-bending, don't worry about it.
+
+
+Those are the basics of class definitions. Here's a summary.
+
+* Class definitions are functions for constructing objects of that class
+* The first thing to do in a class definition is create the `self` `environment`
+* The last thing to do in a class definition is return the `self` `environment` as an S3 object
+* In the middle of a class definition one adds methods and fields to the `self` `environment`
+* The `self` `environment` is the only thing in the `environment`s of the methods in `self` (don't worry about it)
+
+
+## Details
+
+### Objects
+
+In `macpan2`, objects are standard `R` `environment`s with an S3 `class` attribute. Therefore, our object oriented style involves only basic foundational `R` concepts:  `environment`s and S3 classes. 
+
+There are two types of `environment`s in this setup. The first kind of `environment` is the 
+
+* An S3 `class` `attribute`
+* The `environment` of every function in this `environment` is an  
+
+### Class Definitions
+
+Developers can define a class by defining a standard R function that returns an instance of that class.
+
+We talked a bit about technical details that you shouldn't worry about in the basics of defining classes. But there is one technicality that you should worry about. Objects created in a constructor can only be used in methods if they are accessible through the `self` `environment`. So for example, the following code fails.
+
+```{r}
+BadClass = function() {
+  self = Base()
+  x = 10
+  self$f = function() x^2
+  return_object(self, "BadClass")
+}
+try(BadClass()$f())
+```
+
+This is good because it forces you to be specific about where method dependencies are coming from. What would have been worse is if the above code succeeded in the following way.
+
+```{r}
+x = 10
+BadClass()$f()
+```
+
+Why did this 'work' now? It doesn't matter because you will never have this problem if you just always refer to `self` explicitly in methods. In particular, the proper approach would be the following.
+
+```{r}
+GoodClass = function() {
+  self = Base()
+  self$x = 10
+  self$f = function() self$x^2
+  return_object(self, "GoodClass")
+}
+GoodClass()$f()
+```
+
+### Inheritance
 
 ## Principles
 
@@ -50,22 +233,9 @@ Here are some design patterns for complying with these principles.
 
 Alternative versions of a class have the same set of methods as the initial version. It needs change then it becomes easy to swap out one alternative for another. For example, the `Reader()` classes all have a single method -- `$read()` -- without arguments. Therefore, any bit of functionality that requires data to be read in can be modified simply by writing a new reader and swapping it in for the old one, without needing to modify any of the code that calls the `$read()` method. The methods in alternative classes should return the same type of object, but obviously the return value itself can and should vary.
 
-### Types of Object Components
+### Argument Fields
 
-There should only be the following types of object components.
-
-1. Args -- Fields storing arguments to the constructor
-2. Static -- Fields storing values derived from arguments to the constructor
-3. Standard methods -- Methods computing and returning values derived from arguments to the constructor
-4. Composition -- Objects with further fields and methods
-5. A `$refesh()` method that can be called to update #3 components in-place
-6. Private methods -- Methods that should only be called by other methods in the class
-
-How to decide what kind of component to use for each piece of information will depend on the following considerations.
-
-#### Argument Fields
-
-These are the simplest kinds of object components, and essentially behave as lists. For example here is an object with two argument fields.
+These are the simplest kinds of object components, and essentially behave as lists. Argument fields store arguments to the constructor. For example here is an object with two argument fields.
 ```{r, eval = FALSE}
 A = function(x, y) {
   ...
@@ -84,9 +254,9 @@ a$y == 20 ## TRUE
 
 Note that although it is possible to set such fields, it is not recommended. Rather one should use `$refresh()` methods as described below.
 
-#### Static Fields
+### Static Fields
 
-Static fields are similar to argument fields, but the contain derived quantities that depend on the arguments rather than the arguments themselves. A simple example is to store the sum of two arguments in a static field.
+Static fields store values derived from arguments to the constructor. Static fields are similar to argument fields, but they contain derived quantities that depend on the arguments rather than the arguments themselves. A simple example is to store the sum of two arguments in a static field.
 ```{r, eval = FALSE}
 A = function(x, y) {
   ...
@@ -97,13 +267,13 @@ A = function(x, y) {
 
 Note that static fields may need to be updated by `$refresh()` methods.
 
-#### Standard Methods
+### Standard Methods
 
-Standard methods should only be used if they are cheap to run, so that regeneration and consistency are balanced. But this pattern is generally the preferred option, because it is simplest to reason about and maintain because it more directly ensures consistency.
+Standard methods compute and return values derived from arguments to the constructor. These methods should only be used if they are cheap to run, so that regeneration and consistency are balanced. But this pattern is generally the preferred option, because it is simplest to reason about and maintain because it more directly ensures consistency.
 
-#### Composition
+### Composition
 
-Composition of objects and classes looks like this.
+Objects can be composed of other objects. Composition of objects and classes looks like this.
 
 ```{r, eval = FALSE}
 A = function(...) {
@@ -128,36 +298,12 @@ a$b$method(...)
 
 This keeps classes small because `B` can have methods instead of `A`, and small classes are easier to test and stabilize.  Testing of `A` can focus on the methods directly in `A`, and then `A` can be extended by composing new classes like `B`.
 
-#### Refresh Methods
+### Refresh Methods
 
-Static fields should be used if they are expensive to compute. Consistency can be managed by producing static fields in a `$refresh()` method -- this is a good way to balance regeneration with consistency. This way, developers of other classes that are composed components can make use of the `$refresh()` method to reliably keep everything up-to-date and consistent. In this way static fields and `$refresh()` methods work together to balance the cost of regeneration with the necessity of consistency.
+Methods refreshing fields when shallow copies of those fields are in several composed objects ...  When a field gets edited, the simplest thing to do is 
 
-In the constructor, this `$refresh()` pattern looks like this.
 
-```{r, eval = FALSE}
-A = function(...) {
-  ...
-  self$refresh = function() {
-    self$expensive_field_1 = f_1(...)
-    ...
-    self$expensive_field_n = f_n(...)
-  }
-  self$refresh()
-  ...
-  self$b = B(a)
-}
-...
-B = function(a) {
-  ...
-  self$a = a  ## an instance of `A`
-  ...
-  self$method_to_modify_a = function(...) {...}
-  self$a$refresh()
-  ...
-}
-```
-
-#### Private Methods
+### Private Methods
 
 Private methods should only be used by other methods in the class. There is nothing stoping a developer or a user from calling a private method, but there is no guarantee that the private method with have consistent behaviour or even exist.  To communicate privacy, private methods should start with a dot as the following example shows.
 
@@ -173,3 +319,59 @@ A = function(...) {
   }
 }
 ```
+
+
+### Object Editing
+
+
+
+### Method Caching
+
+Developers can manage the performance costs of computationally expensive methods through method caching. When a developer calls a cached method for the first time, it computes the result, stores it in a cache, and returns the result. Subsequent method evaluations simply retrieve the cached value, improving efficiency. Developers can ensure consistency by invalidating the cache whenever objects change, allowing them to balance the cost of regeneration with the need for consistency.
+
+```{r, eval = FALSE}
+A = function(..., method_dependency, ...) {
+  ...
+  self$method_dependency = method_dependency
+  ...
+  self$expensive_method_1 = function() {
+    ...
+  }
+  ...
+  self$expensive_method_2 = function() {
+    ...
+  }
+  ...
+  self$cheap_method = function() {
+    ...
+  }
+  ...
+  self$modify_dependency = function(...) {
+    ...
+    self$cache$expensive_method_1$invalidate()
+    self$cache$expensive_method_2$invalidate()
+    ...
+  }
+  ...
+  initialize_cache(self, "expensive_method_1", "expensive_method_2")
+  ...
+}
+
+a = A()
+
+# takes time to return
+a$expensive_method() 
+
+# return immediately by returning the same value computed previously 
+# and stored in the cache
+a$expensive_method()
+
+# change object and invalidate the cache to enforce consistency
+a$modify_dependency(...)
+
+# again takes time to return, but the value is different because the
+# object was modified
+a$expensive_method()
+```
+
+
