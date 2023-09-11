@@ -72,7 +72,7 @@ Method = function(name, mat_args, const_args) {
   self$.const_ids = function(const_names) match(self$const_args, const_names) - 1L
 
   # Standard Methods
-  self$data_arg = function(method_names, mat_names, const_names) {
+  self$data_arg = function(mat_names, const_names) {
     list(
       ## these must be length-1 integer vectors
         meth_type_id = self$meth_type_id
