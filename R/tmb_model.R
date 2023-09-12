@@ -11,6 +11,7 @@
 #' @param time_steps An object of class \code{\link{Time}}.
 #' @param meth_list An object of class \code{\link{MethList}}.
 #' @param const_int_vecs An object of class \code{\link{ConstIntVecs}}.
+#' @param log_file An object of class \code{\link{LogFile}}.
 #'
 #' @return Object of class \code{TMBModel} with the following methods.
 #'
@@ -76,6 +77,7 @@ TMBModel = function(
     , time_steps = Time(0L)
     , meth_list = MethList()
     , const_int_vecs = ConstIntVecs()
+    , log_file = LogFile()
   ) {
   ## Inheritance
   self = Base()
@@ -89,6 +91,7 @@ TMBModel = function(
   self$time_steps = time_steps
   self$meth_list = meth_list
   self$const_int_vecs = const_int_vecs
+  self$log_file = log_file
 
   ## Standard Methods
   self$data_arg = function() {
@@ -101,7 +104,8 @@ TMBModel = function(
       self$obj_fn$data_arg(existing_literals),
       self$time_steps$data_arg(),
       self$meth_list$data_arg(),
-      self$const_int_vecs$data_arg()
+      self$const_int_vecs$data_arg(),
+      self$log_file$data_arg()
     )
   }
   self$param_arg = function() {
@@ -261,7 +265,15 @@ TMBSimulationUtils = function() {
     expr_num = min(which(row < cumsum(expr_num_p_table_rows)))
     deparse1(self$tmb_model$expr_list$expr_list()[[expr_num]])
   }
-  self$.runner = function(..., .phases = c("before", "during", "after"), .method = c("report", "simulate")) {
+  self$.err_msg = function() {
+    re = "^Error message = "
+    m = grep(re, self$tmb_model$log_file$log(), value = TRUE)
+    sub(re, "", m)
+  }
+  self$.runner = function(...
+      , .phases = c("before", "during", "after")
+      , .method = c("report", "simulate")
+  ) {
     .method = match.arg(.method)
     fixed_params = as.numeric(unlist(list(...)))
     if (length(fixed_params) == 0L) {
@@ -271,7 +283,9 @@ TMBSimulationUtils = function() {
     }
     if (r$error != 0L) {
       stop(
-        "\nError thrown by the TMB engine at the following expression:\n",
+        "\nThe following error was thrown by the TMB engine:\n  ",
+        self$.err_msg(),
+        "\nThis error occurred at the following expression:\n  ",
         self$.find_problematic_expression(r$expr_row)
       )
     }

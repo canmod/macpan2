@@ -23,7 +23,7 @@ test_that("recycling is up to spec", {
   ## fail to recycle a row vector to add matrix columns
   expect_error(
     engine_eval(~ recycle(t(x), 1, 2), x = x),
-    "Error thrown by the TMB engine"
+    "The following error was thrown by the TMB engine"
   )
 
   ## recycle a row vector to add matrix rows
@@ -35,23 +35,23 @@ test_that("recycling is up to spec", {
   ## fail to recycle a column vector to add matrix rows
   expect_error(
     engine_eval(~ recycle(x, 2, 1), x = x),
-    "Error thrown by the TMB engine"
+    "The following error was thrown by the TMB engine"
   )
 
   ## fail to 'multiplicatively recycle'
   expect_error(
     engine_eval(~ recycle(x, 6, 6), x = x),
-    "Error thrown by the TMB engine"
+    "The following error was thrown by the TMB engine"
   )
 
   ## fail if one of the requested dimensions is just totally off,
   ## either multiplicatively or otherwise
   expect_error(
     engine_eval(~ recycle(A, 5, 3), A = A),
-    "Error thrown by the TMB engine"
+    "The following error was thrown by the TMB engine"
   )
   expect_error(
     engine_eval(~ recycle(A, 4, 4), A = A),
-    "Error thrown by the TMB engine"
+    "The following error was thrown by the TMB engine"
   )
 })

@@ -12,7 +12,8 @@ TMBModel(
   obj_fn = ObjectiveFunction(~0),
   time_steps = Time(0L),
   meth_list = MethList(),
-  const_int_vecs = ConstIntVecs()
+  const_int_vecs = ConstIntVecs(),
+  log_file = LogFile()
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ TMBModel(
 \item{meth_list}{An object of class \code{\link{MethList}}.}
 
 \item{const_int_vecs}{An object of class \code{\link{ConstIntVecs}}.}
+
+\item{log_file}{An object of class \code{\link{LogFile}}.}
 }
 \value{
 Object of class \code{TMBModel} with the following methods.

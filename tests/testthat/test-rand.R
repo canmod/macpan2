@@ -1,6 +1,6 @@
 test_that("random number generators handle not-enough parameter errors", {
-  expect_error(engine_eval(~rnorm(0)), "Error thrown by the TMB engine")
-  expect_error(engine_eval(~rnbinom(0)), "Error thrown by the TMB engine")
+  expect_error(engine_eval(~rnorm(0)), "The following error was thrown by the TMB engine")
+  expect_error(engine_eval(~rnbinom(0)), "The following error was thrown by the TMB engine")
 })
 
 test_that("negative binomial simulation respects seeds and math", {
