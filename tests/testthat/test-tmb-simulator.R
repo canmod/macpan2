@@ -5,6 +5,6 @@ test_that("informative messages are given when non-existant functions or variabl
   )
   expect_error(
     engine_eval(~ x),
-    "that were not found in the list of available variables"
+    "that were not found in the list of available symbols"
   )
 })

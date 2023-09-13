@@ -31,3 +31,4 @@ source_r_code_from_vignettes <- function(vignette_directory) {
 }
 
 source_r_code_from_vignettes("vignettes")
+message("Vignette success!")

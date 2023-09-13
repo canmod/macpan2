@@ -61,6 +61,7 @@ ObjectiveFunction = function(obj_fn_expr) {
 
   ## Composition
   self$init_mats = MatsList()
+  self$meth_list = MethList()
 
   return_object(self, "ObjectiveFunction")
 }

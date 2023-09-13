@@ -2,7 +2,9 @@
 
 S3method(c,String)
 S3method(c,StringData)
+S3method(names,ConstIntVecs)
 S3method(names,MatsList)
+S3method(names,MethList)
 S3method(print,MathExpression)
 S3method(print,Partition)
 S3method(print,String)

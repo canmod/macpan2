@@ -343,7 +343,8 @@ public:
         error_code = code;
         expr_row = row;
         strcpy(error_message, message);
-        std::cout << "MACPAN ERROR #" << (int) code << ": " << message << std::endl;
+        // std::cout << "MACPAN ERROR #" << (int) code << ": " << message << std::endl;
+        // Rf_error(message);
     };
 
     // evaluators
@@ -2016,7 +2017,7 @@ private:
     REPORT(error); \
     REPORT(expr_row); \
  \
-    logfile.open (LOG_FILE_NAME, std::ios_base::app); \
+    logfile.open (log_file, std::ios_base::app); \
     logfile << "Error code = " << error << std::endl; \
     logfile << "Error message = " << err_msg << std::endl; \
     logfile << "Expression row = " << expr_row << std::endl; \
@@ -2059,7 +2060,7 @@ void UpdateSimulationHistory(
 }
 
 
-const char LOG_FILE_NAME[] = "macpan2.log";
+// const char LOG_FILE_NAME[] = "macpan2.log";
 
 // "main" function
 template<class Type>
@@ -2069,8 +2070,12 @@ Type objective_function<Type>::operator() ()
         std::cout << "============== objective_function =============" << std::endl;
     #endif
 
+    // Log file path
+    DATA_STRING(log_file);
+
     std::ofstream logfile;
-    logfile.open (LOG_FILE_NAME);
+    logfile.open (log_file);
+    //logfile.open (LOG_FILE_NAME);
     logfile << "======== log file of MacPan2 ========\n";
     logfile.close();
 

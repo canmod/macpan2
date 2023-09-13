@@ -8,18 +8,11 @@ MethList = function(...) {
   # Args
   self$methods = list(...)
 
-    # DATA_IVECTOR(meth_type_id);
-    # // DATA_IVECTOR(meth_id);
-    # DATA_IVECTOR(meth_n_mats);
-    # DATA_IVECTOR(meth_n_int_vecs);
-    # DATA_IVECTOR(meth_mat_id);
-    # DATA_IVECTOR(meth_int_vec_id);
   # Static
   self$.null_data_arg = setNames(
     rep(list(integer()), 5),
     sprintf("meth_%s", c(
           "type_id"
-        #, "id"
         , "n_mats"
         , "n_int_vecs"
         , "mat_id"
@@ -28,18 +21,21 @@ MethList = function(...) {
     )
   )
 
-  self$data_arg = function(method_names, mat_names, const_names) {
+  self$data_arg = function() {
     l = self$.null_data_arg
-    for (i in seq_along(self$methods)) {
-      new_arg = self$methods[[i]]$data_arg(method_names, mat_names, const_names)
-      for (e in names(l)) {
-        l[[e]] = c(l[[e]], as.integer(new_arg[[e]]))
-      }
+    new_args = method_apply(self$methods, "data_arg")
+    for (a in names(l)) {
+      l[[a]] = c(l[[a]], unlist(lapply(new_args, `[[`, a), recursive = FALSE, use.names = FALSE))
     }
     l
   }
 
   return_object(self, "MethList")
+}
+
+#' @export
+names.MethList = function(x) {
+  vapply(x$methods, getElement, character(1L), "name")
 }
 
 #' Engine Method Class
@@ -51,40 +47,40 @@ MethList = function(...) {
 #' @param name Method name.
 #' @param mat_args Character vector of names of matrices that will be used by
 #' the method to produce an output matrix.
-#' @param const_args Character vector of names of constants that will be used
+#' @param int_vec_args Character vector of names of constants that will be used
 #' by the method to produce an output matrix.
 #' @export
-Method = function(name, mat_args, const_args) {
+Method = function(name, mat_args, int_vec_args) {
   self = Base()
 
   # Args
   self$name = name
   self$mat_args = mat_args
-  self$const_args = const_args
+  self$int_vec_args = int_vec_args
 
   # Static
   ## abstract -- instantiate with implementation classes (e.g. MethodRowIndexer)
   self$meth_type_id = NA_integer_
 
   # Private
-  self$.method_id = function(method_names) match(self$name, method_names) - 1L
-  self$.mat_ids = function(mat_names) match(self$mat_args, mat_names) - 1L
-  self$.const_ids = function(const_names) match(self$const_args, const_names) - 1L
+  self$.mat_ids = function() match(self$mat_args, names(self$init_mats)) - 1L
+  self$.int_vec_ids = function() match(self$int_vec_args, names(self$const_int_vecs)) - 1L
 
   # Standard Methods
-  self$data_arg = function(mat_names, const_names) {
+  self$data_arg = function() {
     list(
       ## these must be length-1 integer vectors
         meth_type_id = self$meth_type_id
-      , meth_id = self$meth_type_id
       , meth_n_mats = length(self$mat_args)
-      , meth_n_const = length(self$const_args)
-
+      , meth_n_int_vecs = length(self$int_vec_args)
       ## these must be length-meth_n_mats and length-meth_n_const respectively
-      , meth_mat_id = self$.mat_ids(mat_names)
-      , meth_const_id = self$.const_ids(const_names)
+      , meth_mat_id = self$.mat_ids()
+      , meth_int_vec_id = self$.int_vec_ids()
     )
   }
+
+  self$init_mats = MatsList()
+  self$const_int_vecs = ConstIntVecs()
 
   return_object(self, "Method")
 }
@@ -104,3 +100,11 @@ mk_meth_cls = function(cls_nm, meth_type_id) {
   assign(cls_nm, f, envir = pf)
 }
 for (i in seq_along(meth_cls_types)) mk_meth_cls(meth_cls_types[i], i)
+
+
+#'
+EngineMethods = function(...) {
+  meth_exprs = list(...)
+
+
+}

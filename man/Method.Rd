@@ -4,7 +4,7 @@
 \alias{Method}
 \title{Engine Method Class}
 \usage{
-Method(name, mat_args, const_args)
+Method(name, mat_args, int_vec_args)
 }
 \arguments{
 \item{name}{Method name.}
@@ -12,7 +12,7 @@ Method(name, mat_args, const_args)
 \item{mat_args}{Character vector of names of matrices that will be used by
 the method to produce an output matrix.}
 
-\item{const_args}{Character vector of names of constants that will be used
+\item{int_vec_args}{Character vector of names of constants that will be used
 by the method to produce an output matrix.}
 }
 \description{

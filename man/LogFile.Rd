@@ -7,8 +7,20 @@
 LogFile(directory = tempdir())
 }
 \arguments{
-\item{directory}{Directory within which to store a log file for a
-model object.}
+\item{directory}{Directory within which to try to store a log file for a
+model object. If appropriate file access is not available, a temporary
+file will be used instead.}
+}
+\value{
+Object of class \code{LogFile} with the following methods.
+\itemize{
+\item \verb{$log()} -- Character vector containing the lines in the log file.
+\item \verb{$data_arg()} -- List containing the components of the \code{TMB} data
+structure related to log files.
+\item \verb{$copy(...)} -- Make a copy of the log file at \code{file.path(...)}.
+\item \verb{$err_msg()} -- Return the current error message in the log file, if any.
+\item Other methods inherited from \code{\link{Files}}
+}
 }
 \description{
 Log File

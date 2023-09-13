@@ -4,7 +4,7 @@ SED_RE = \(\,\)*[ ]*\/\/[ ]*\(.*\)
 ALIAS_RE = [ ]*MP2_\(.*\)\: \(.*\)(\(.*\))
 ROXY_RE = ^.*\(\#'.*\)$
 VERSION := $(shell sed -n '/^Version: /s///p' DESCRIPTION)
-
+TEST := "testthat::test_package(\"macpan2\", reporter = \"progress\")"
 
 all:
 	make src-update
@@ -58,7 +58,7 @@ run-examples:
 
 
 run-tests:
-	Rscript -e "library(macpan2); testthat::test_package(\"macpan2\")"
+	Rscript -e "library(macpan2); $(TEST)"
 
 
 run-vignette-code:

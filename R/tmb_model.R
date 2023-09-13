@@ -151,6 +151,7 @@ TMBModel = function(
     self$obj_fn$init_mats = init_mats
     self$params$init_mats = init_mats
     self$random$init_mats = init_mats
+    for (m in self$meth_list$methods) m$init_mats = init_mats
   }
   self$refresh_expr_list = function(expr_list) {
     self$expr_list = expr_list
@@ -168,7 +169,19 @@ TMBModel = function(
     self$random = random
     self$refresh_init_mats(self$init_mats)
   }
+  self$refresh_const_int_vecs = function(const_int_vecs) {
+    self$const_int_vecs = const_int_vecs
+    for (m in self$meth_list$methods) m$const_int_vecs = const_int_vecs
+  }
+  self$refresh_meth_list = function(meth_list) {
+    self$meth_list = meth_list
+    self$expr_list$meth_list = meth_list
+    self$obj_fn$meth_list = meth_list
+    self$refresh_const_int_vecs(self$const_int_vecs)
+    self$refresh_init_mats(self$init_mats)
+  }
   self$refresh_init_mats(self$init_mats)
+  self$refresh_meth_list(self$meth_list)
 
   return_object(
     valid$tmb_model$assert(self),
@@ -265,11 +278,6 @@ TMBSimulationUtils = function() {
     expr_num = min(which(row < cumsum(expr_num_p_table_rows)))
     deparse1(self$tmb_model$expr_list$expr_list()[[expr_num]])
   }
-  self$.err_msg = function() {
-    re = "^Error message = "
-    m = grep(re, self$tmb_model$log_file$log(), value = TRUE)
-    sub(re, "", m)
-  }
   self$.runner = function(...
       , .phases = c("before", "during", "after")
       , .method = c("report", "simulate")
@@ -284,7 +292,7 @@ TMBSimulationUtils = function() {
     if (r$error != 0L) {
       stop(
         "\nThe following error was thrown by the TMB engine:\n  ",
-        self$.err_msg(),
+        self$tmb_model$log_file$err_msg(),
         "\nThis error occurred at the following expression:\n  ",
         self$.find_problematic_expression(r$expr_row)
       )

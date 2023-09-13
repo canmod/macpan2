@@ -24,3 +24,6 @@ ConstIntVecs = function(...) {
 
   return_object(self, "ConstIntVecs")
 }
+
+#' @export
+names.ConstIntVecs = function(x) names(x$list)

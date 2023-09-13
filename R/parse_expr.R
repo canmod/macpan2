@@ -75,6 +75,7 @@ make_expr_parser = function(
       valid_funcs = environment(x)$valid_funcs,
       valid_vars = environment(x)$valid_vars,
       valid_literals = environment(x)$valid_literals,
+      valid_methods = environment(x)$valid_methods,
       offset = offset,
       input_expr_as_string = as.character(x)[2L]
     )
@@ -151,8 +152,9 @@ finalizer_char = function(x) {
 finalizer_index = function(x) {
   valid_funcs = x$valid_funcs
   valid_vars = x$valid_vars
+  valid_methods = x$valid_methods
   valid_literals = as.numeric(x$valid_literals)
-  x$valid_funcs = x$valid_vars = x$valid_literals = NULL
+  x$valid_funcs = x$valid_vars = x$valid_literals = x$valid_methods = NULL
 
   # remove the tilde function, which is in the first position,
   # and adjust the indices in i accordingly
@@ -164,17 +166,36 @@ finalizer_index = function(x) {
     i[i == -1L] = 0L
   })
 
+  x_char = unlist(lapply(x$x, as.character))
+
   # classify the different types of objects
   is_literal = unlist(lapply(x$x, is.numeric))
   is_func = x$n != 0L
-  is_var = (!is_func) & (!is_literal)
+  is_meth = x_char %in% names(valid_methods)
+  is_var = x_char %in% names(valid_vars)
+  is_not_found = !(is_literal | is_func | is_meth | is_var)
+
+  if (any(is_not_found)) {
+    missing_items = x_char[is_not_found]
+    stop(
+      "\nthe expression given by:\n",
+      x$expr_as_string, "\n\n",
+      "contained the following symbols:\n",
+      paste0(unique(missing_items), collapse = " "), "\n\n",
+      " that were not found in the list of available symbols:\n",
+      paste0(x_char[!is_literal], collapse = " "), # TODO: smarter pasting when this list gets big
+      "\n\nConsider adding these missing symbols somewhere in your model."
+    )
+  }
 
   # identify literals with -1 in the 'number of arguments'
   new_valid_literals = as.numeric(x$x[is_literal])
   x$n[is_literal] = -1L
 
+  # identify methods with -2 in the 'number of arguments'
+  x$n[is_meth] = -2L
+
   # convert character identifiers to integers
-  x_char = unlist(lapply(x$x, as.character))
   x_int = integer(length(x$x))
   if (any(is_func)) {
     x_int[is_func] = get_indices(x_char[is_func]
@@ -193,14 +214,25 @@ finalizer_index = function(x) {
     )
   }
   if (any(is_literal)) {
-    x_int[is_literal] = length(valid_literals) + seq_along(new_valid_literals) - 1L
+    x_int[is_literal] = (length(valid_literals)
+      + seq_along(new_valid_literals)
+      - 1L
+    )
     valid_literals = c(valid_literals, new_valid_literals)
+  }
+  if (any(is_meth)) {
+    get_indices(x_char[is_meth]
+      , vec = valid_methods
+      , vec_type = "methods"
+      , expr_as_string = x$input_expr_as_string
+      , zero_based = FALSE
+    )
   }
   x$x = as.integer(x_int)
   x$i = as.integer(x$i)
   nlist(
     parse_table = as.data.frame(x),
-    valid_funcs, valid_vars, valid_literals
+    valid_funcs, valid_vars, valid_methods, valid_literals
   )
 }
 
@@ -219,6 +251,13 @@ get_indices = function(x, vec, vec_type, expr_as_string, zero_based = FALSE) {
         "\nEven variables that are derived and not dependencies of",
         "\nother expressions must at least be initialized as an ?empty_matrix.",
         "\n",
+        sep = ""
+      )
+    } else if (vec_type == "methods") {
+      pointers = "\nHelp for ?engine_methods is under construction."
+    } else if (vec_type == "integer") {
+      pointers = paste(
+        "\nPlease ensure that engine methods refer to the right integer vectors",
         sep = ""
       )
     }
