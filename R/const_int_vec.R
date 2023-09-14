@@ -4,7 +4,7 @@
 #'
 #' @param ... Named arguments, each of which can be coerced to an integer vector.
 #' @export
-ConstIntVecs = function(...) {
+IntVecs = function(...) {
   self = Base()
 
   # Args
@@ -22,8 +22,8 @@ ConstIntVecs = function(...) {
   }
   self$const_names = function() names(self$list)
 
-  return_object(self, "ConstIntVecs")
+  return_object(self, "IntVecs")
 }
 
 #' @export
-names.ConstIntVecs = function(x) names(x$list)
+names.IntVecs = function(x) names(x$list)

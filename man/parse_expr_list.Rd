@@ -9,7 +9,7 @@ parse_expr_list(
   valid_vars,
   valid_literals = numeric(0L),
   valid_methods = MethList(),
-  valid_int_vecs = ConstIntVecs(),
+  valid_int_vecs = IntVecs(),
   offset = 0L
 )
 }
@@ -25,7 +25,7 @@ themselves will be discovered and added to this list.}
 
 \item{valid_methods}{\code{\link{MethList}} object.}
 
-\item{valid_int_vecs}{\code{\link{ConstIntVecs}} object.}
+\item{valid_int_vecs}{\code{\link{IntVecs}} object.}
 
 \item{offset}{The zero-based row index for the first row of the table.
 This is useful when combining tables.}

@@ -1,4 +1,5 @@
 #define MP_VERBOSE
+#define TMB_LIB_INIT R_init_macpan2
 #define EIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS
 #include <Eigen/Eigen>
 #include <iostream>
@@ -9,7 +10,6 @@
 #include <math.h> 	// isnan() is defined
 #include <sys/time.h>
 // https://github.com/kaskr/adcomp/wiki/Development#distributing-code
-#define TMB_LIB_INIT R_init_macpan2
 #include <TMB.hpp>
 #include <cppad/local/cond_exp.hpp>
 
@@ -226,14 +226,23 @@ struct ListOfMatrices {
 };
 
 
+// class for lists of integer vectors that have been
+// 'flattened' into two integer vectors -- one
+// containing the concatenation of the vectors and
+// another containing the lengths of each concatenated
+// vector
 class ListOfIntVecs {
 public:
+    // this nestedVector will contain examples of unflattened
+    // integer vectors
     std::vector<std::vector<int>> nestedVector;
 
     // Default constructor
     ListOfIntVecs() {}
 
     // Constructor that takes all_ints and vec_lens vectors
+    //   all_ints: concatenated integer vectors
+    //   vec_lens: lengths of each concatenated integer vectors
     ListOfIntVecs(const std::vector<int>& all_ints, const std::vector<int>& vec_lens) {
         size_t totalElements = 0;
         for (int size : vec_lens) {
@@ -255,7 +264,7 @@ public:
         }
     }
 
-    // Overload [] operator to access the inner vectors by index
+    // Overload [] operator to access the unflattened vectors by index
     std::vector<int>& operator[](size_t index) {
         if (index < nestedVector.size()) {
             return nestedVector[index];
@@ -265,7 +274,7 @@ public:
         }
     }
 
-    // Method to return the number of vector<int> objects in the struct
+    // Method to return the number of unflattened vectors
     size_t size() const {
         return nestedVector.size();
     }
@@ -285,8 +294,18 @@ public:
 
         return result;
     }
-};
 
+    // Method to print each vector in the list
+    void printVectors() const {
+        for (const std::vector<int>& innerVector : nestedVector) {
+            std::cout << "Vector:";
+            for (int element : innerVector) {
+                std::cout << " " << element;
+            }
+            std::cout << std::endl;
+        }
+    }
+};
 
 
 
@@ -342,8 +361,6 @@ public:
         error_code = code;
         expr_row = row;
         strcpy(error_message, message);
-        // std::cout << "MACPAN ERROR #" << (int) code << ": " << message << std::endl;
-        // Rf_error(message);
     };
 
     // evaluators
@@ -360,26 +377,55 @@ public:
         vector<int> v;
         matrix<Type> timeIndex; // for rbind_time
         Type sum, s, eps, var, by;  // intermediate scalars
-        int rows, cols, lag, rowIndex, colIndex, matIndex, reps, cp, off, size, sz, start, err_code, err_code1, err_code2, curr_meth_id;
+        int rows, cols, lag, rowIndex, colIndex, matIndex, reps, cp, off, size;
+        int sz, start, err_code, err_code1, err_code2, curr_meth_id;
+        size_t numMats;
+        size_t numIntVecs;
+        std::vector<int> curr_meth_mat_id_vec;
+        std::vector<int> curr_meth_int_id_vec;
+        vector<matrix<Type>> meth_args(meth_mats.size());
+        ListOfIntVecs meth_int_args;
 
         if (GetErrorCode()) return m; // Check if error has already happened at some point of the recursive call.
 
         switch (table_n[row]) {
             case -2: // methods (pre-processed matrices)
+                // Access and manipulate meth_mats
+                numMats = meth_mats.size();
+                numIntVecs = meth_int_vecs.size();
+                // for (size_t i = 0; i < numMats; ++i) {
+                //     curr_meth_mat_id_vec = meth_mats[i];
+                //
+                //     // Print the elements of the vector
+                //     std::cout << "single vector: ";
+                //     for (int element : curr_meth_mat_id_vec) {
+                //         std::cout << element << ' ';
+                //     }
+                //     std::cout << std::endl;
+                // }
                 std::cout << "--------------" << "IN METHODS CASE" << std::endl << "--------------" << std::endl;
-                curr_meth_id = table_x[row]+1;
-                // v = meth_mats.size();
 
-                // vector<vector<int> > int_vec_args(meth_int_vecs.v_vectors.size());
-                // for (int i=0; i<meth_mats.v_vectors.size(); i++)
-                //     mat_args[i] = valid_vars.m_matrices[meth_mats.v_vectors[i]];
-                // for (int i=0; i<meth_int_vecs.v_vectors.size(); i++)
-                //     int_vec_args[i] = valid_int_vecs.v_vectors[meth_int_vecs.v_vectors[i]];
+                curr_meth_id = table_x[row];
+                curr_meth_mat_id_vec = meth_mats[curr_meth_id];
+                curr_meth_int_id_vec = meth_int_vecs[curr_meth_id];
+
+                std::cout << "curr_meth_id: " << curr_meth_id << std::endl;
+                std::cout << "meth_type_id: " << meth_type_id[curr_meth_id] << std::endl;
+
+                for (int i=0; i<numMats; i++) {
+                    meth_args[i] = valid_vars.m_matrices[curr_meth_mat_id_vec[i]];
+                    std::cout << "method matrix argument: " << meth_args[i] << std::endl;
+                }
+                meth_int_args = valid_int_vecs[curr_meth_int_id_vec];
+                meth_int_args.printVectors();
+
                 switch(meth_type_id[curr_meth_id]) {
                     case METH_ROW_EXTRACT:
+                        std::cout << "--------------" << "IN METH_ROW_EXTRACT" << std::endl << "--------------" << std::endl;
+                        m1 = matrix<Type>::Zero(meth_int_args[0].size(), meth_args[0].cols());
                         // m1 = matrix<Type>::Zero(v.size(), m.cols());
-                        // for (int i=0; i<int_vec_args[0].size(); i++)
-                        //     m1.row(i) = mat_args[0].row(int_vec_args[0][i]);
+                        for (int i=0; i<meth_int_args[0].size(); i++)
+                            m1.row(i) = meth_args[0].row(meth_int_args[0][i]);
                         return m1;
                     default:
                         SetError(254, "invalid method in arithmetic expression", row);

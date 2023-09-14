@@ -44,12 +44,7 @@ MatsList = function(...
     , .mats_to_return = character(0L)
     , .dimnames = list()
     , .structure_labels = NullLabels()
-    #, .init_saved_dims = list()
   ) {
-  # self = EditableArgs(MatsList
-  #   , lapply(list(...), as.matrix)
-  #   , list()
-  # )
   self = Base()
 
   ## Args
@@ -65,7 +60,6 @@ MatsList = function(...
   self$.mats_to_return = .mats_to_return
   self$.dimnames = .dimnames
   self$.structure_labels = .structure_labels
-  #self$.init_saved_dims = .init_saved_dims
 
   # Static
   self$.initial_mats = lapply(list(...), as.matrix)
@@ -73,16 +67,6 @@ MatsList = function(...
 
   self$mats_save_hist = function() names(self$.initial_mats) %in% self$.mats_to_save
   self$mats_return = function() names(self$.initial_mats) %in% self$.mats_to_return
-  # self$mats_save_dims = function() {
-  #   msh = self$mats_save_hist()
-  #   msd = setNames(
-  #     lapply(self$.initial_mats[msh], dim),
-  #     self$.names()[msh]
-  #   )
-  #   for (m in names(self$.init_saved_dims)) {
-  #
-  #   }
-  # }
 
   ## Standard methods
   self$get = function(variable_name) {
@@ -133,6 +117,10 @@ MatsList = function(...
   self$mat_dims = function() {
     data.frame(mat = self$.names(), nrow = self$.nrow, ncol = self$.ncol)
   }
+
+  self$dimnames = function() self$.dimnames
+  self$rownames = function() lapply(self$dimnames(), getElement, 1L)
+  self$colnames = function() lapply(self$dimnames(), getElement, 2L)
   self$data_arg = function() {
     r = list(
       mats = self$.mats(),
@@ -188,4 +176,3 @@ MatsList = function(...
 
 #' @export
 names.MatsList = function(x) x$.names()
-

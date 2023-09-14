@@ -10,7 +10,7 @@ CompartmentalSimulator(
   .mats_to_save = .mats_to_return,
   .mats_to_return = "state",
   .dimnames = list(),
-  .tmb_cpp = "macpan2",
+  .tmb_cpp = getOption("macpan2_dll"),
   .initialize_ad_fun = TRUE
 )
 }

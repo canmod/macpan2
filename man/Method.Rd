@@ -4,7 +4,13 @@
 \alias{Method}
 \title{Engine Method Class}
 \usage{
-Method(name, mat_args, int_vec_args)
+Method(
+  name,
+  mat_args,
+  int_vec_args,
+  init_mats = MatsList(),
+  int_vecs = IntVecs()
+)
 }
 \arguments{
 \item{name}{Method name.}

@@ -4,7 +4,7 @@ SED_RE = \(\,\)*[ ]*\/\/[ ]*\(.*\)
 ALIAS_RE = [ ]*MP2_\(.*\)\: \(.*\)(\(.*\))
 ROXY_RE = ^.*\(\#'.*\)$
 VERSION := $(shell sed -n '/^Version: /s///p' DESCRIPTION)
-TEST := "testthat::test_package(\"macpan2\", reporter = \"progress\")"
+TEST := testthat::test_package(\"macpan2\", reporter = \"progress\")
 
 all:
 	make src-update

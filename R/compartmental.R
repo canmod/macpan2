@@ -77,7 +77,7 @@ CompartmentalSimulator = function(model_directory, time_steps
     , .mats_to_save = .mats_to_return
     , .mats_to_return = "state"
     , .dimnames = list()
-    , .tmb_cpp = "macpan2"
+    , .tmb_cpp = getOption("macpan2_dll") #"macpan2"
     , .initialize_ad_fun = TRUE
   ) {
     compartmental = Compartmental(model_directory)

@@ -4,7 +4,11 @@
 \alias{TMBSimulator}
 \title{TMB Simulator}
 \usage{
-TMBSimulator(tmb_model, tmb_cpp = "macpan2", initialize_ad_fun = TRUE)
+TMBSimulator(
+  tmb_model,
+  tmb_cpp = getOption("macpan2_dll"),
+  initialize_ad_fun = TRUE
+)
 }
 \arguments{
 \item{tmb_model}{An object of class \code{\link{TMBModel}}.}

@@ -6,7 +6,6 @@ dev_in_vig = function() "vignette_status.Rmd" %in% list.files(full.names = FALSE
 dev_file = function(suffix = "", ext = "cpp") {
   cpp = function(path) {
     pp = file.path(path, sprintf("dev%s.%s", suffix, ext))
-    print("YESYYSYSE")
     print(pp)
     print(file.exists(pp))
     print(getwd())

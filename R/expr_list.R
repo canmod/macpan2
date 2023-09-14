@@ -14,7 +14,7 @@ ExprListUtils = function() {
       , valid_vars = self$.init_valid_vars()
       , valid_literals = .existing_literals
       , offset = .offset
-      , valid_methods = self$meth_list
+      , valid_methods = self$engine_methods$methods()
     )
   }
   self$.set_name_prefix = function(x, prefix) {
@@ -222,7 +222,7 @@ ExprList = function(
 
   # Composition
   self$init_mats = MatsList()
-  self$meth_list = MethList()
+  self$engine_methods = EngineMethods()
 
   return_object(self, "ExprList")
 }

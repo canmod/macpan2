@@ -11,8 +11,7 @@ TMBModel(
   random = OptParamsList(),
   obj_fn = ObjectiveFunction(~0),
   time_steps = Time(0L),
-  meth_list = MethList(),
-  const_int_vecs = ConstIntVecs(),
+  engine_methods = EngineMethods(),
   log_file = LogFile()
 )
 }
@@ -29,11 +28,11 @@ TMBModel(
 
 \item{time_steps}{An object of class \code{\link{Time}}.}
 
+\item{log_file}{An object of class \code{\link{LogFile}}.}
+
 \item{meth_list}{An object of class \code{\link{MethList}}.}
 
-\item{const_int_vecs}{An object of class \code{\link{ConstIntVecs}}.}
-
-\item{log_file}{An object of class \code{\link{LogFile}}.}
+\item{int_vecs}{An object of class \code{\link{IntVecs}}.}
 }
 \value{
 Object of class \code{TMBModel} with the following methods.

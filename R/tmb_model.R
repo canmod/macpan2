@@ -10,7 +10,7 @@
 #' @param obj_fn An object of class \code{\link{ObjectiveFunction}}.
 #' @param time_steps An object of class \code{\link{Time}}.
 #' @param meth_list An object of class \code{\link{MethList}}.
-#' @param const_int_vecs An object of class \code{\link{ConstIntVecs}}.
+#' @param int_vecs An object of class \code{\link{IntVecs}}.
 #' @param log_file An object of class \code{\link{LogFile}}.
 #'
 #' @return Object of class \code{TMBModel} with the following methods.
@@ -75,8 +75,7 @@ TMBModel = function(
     , random = OptParamsList()
     , obj_fn = ObjectiveFunction(~0)
     , time_steps = Time(0L)
-    , meth_list = MethList()
-    , const_int_vecs = ConstIntVecs()
+    , engine_methods = EngineMethods()
     , log_file = LogFile()
   ) {
   ## Inheritance
@@ -89,8 +88,9 @@ TMBModel = function(
   self$random = random
   self$obj_fn = obj_fn
   self$time_steps = time_steps
-  self$meth_list = meth_list
-  self$const_int_vecs = const_int_vecs
+  #self$meth_list = meth_list
+  #self$int_vecs = int_vecs
+  self$engine_methods = engine_methods
   self$log_file = log_file
 
   ## Standard Methods
@@ -103,8 +103,8 @@ TMBModel = function(
       self$random$data_arg("r"),
       self$obj_fn$data_arg(existing_literals),
       self$time_steps$data_arg(),
-      self$meth_list$data_arg(),
-      self$const_int_vecs$data_arg(),
+      self$engine_methods$methods()$data_arg(),
+      self$engine_methods$int_vecs()$data_arg(),
       self$log_file$data_arg()
     )
   }
@@ -120,7 +120,7 @@ TMBModel = function(
     if (length(self$random$vector()) == 0L) return(NULL)
     return("random")
   }
-  self$make_ad_fun_arg = function(tmb_cpp = "macpan2") {
+  self$make_ad_fun_arg = function(tmb_cpp = getOption("macpan2_dll")) {
     list(
         data = self$data_arg(),
         parameters = self$param_arg(),
@@ -128,11 +128,11 @@ TMBModel = function(
         DLL = tmb_cpp
     )
   }
-  self$ad_fun = function(tmb_cpp = "macpan2") {
+  self$ad_fun = function(tmb_cpp = getOption("macpan2_dll")) {
     do.call(TMB::MakeADFun, self$make_ad_fun_arg(tmb_cpp))
   }
 
-  self$simulator = function(tmb_cpp = "macpan2", initialize_ad_fun = TRUE) {
+  self$simulator = function(tmb_cpp = getOption("macpan2_dll"), initialize_ad_fun = TRUE) {
     TMBSimulator(self, tmb_cpp = tmb_cpp, initialize_ad_fun = initialize_ad_fun)
   }
 
@@ -151,7 +151,7 @@ TMBModel = function(
     self$obj_fn$init_mats = init_mats
     self$params$init_mats = init_mats
     self$random$init_mats = init_mats
-    for (m in self$meth_list$methods) m$init_mats = init_mats
+    self$engine_methods$refresh_init_mats(init_mats)
   }
   self$refresh_expr_list = function(expr_list) {
     self$expr_list = expr_list
@@ -169,19 +169,14 @@ TMBModel = function(
     self$random = random
     self$refresh_init_mats(self$init_mats)
   }
-  self$refresh_const_int_vecs = function(const_int_vecs) {
-    self$const_int_vecs = const_int_vecs
-    for (m in self$meth_list$methods) m$const_int_vecs = const_int_vecs
-  }
-  self$refresh_meth_list = function(meth_list) {
-    self$meth_list = meth_list
-    self$expr_list$meth_list = meth_list
-    self$obj_fn$meth_list = meth_list
-    self$refresh_const_int_vecs(self$const_int_vecs)
+  self$refresh_engine_methods = function(engine_methods) {
+    self$engine_methods = engine_methods
+    self$expr_list$engine_methods = engine_methods
+    self$obj_fn$engine_methods = engine_methods
     self$refresh_init_mats(self$init_mats)
   }
   self$refresh_init_mats(self$init_mats)
-  self$refresh_meth_list(self$meth_list)
+  self$refresh_engine_methods(self$engine_methods)
 
   return_object(
     valid$tmb_model$assert(self),
@@ -239,7 +234,7 @@ TMBSimulationUtils = function() {
       c("matrix", "time", "row", "col", "value")
     )  ## get raw simulation output from TMB and supply column names (which don't exist on the TMB side)
     r$matrix = self$matrix_names()[r$matrix + 1L]  ## replace matrix indices with matrix names
-    dn = self$tmb_model$init_mats$.dimnames ## get the row and column names of matrices with such names
+    dn = self$tmb_model$init_mats$dimnames()  ## get the row and column names of matrices with such names
     for (mat in names(dn)) {
       i = r$matrix == mat
 
@@ -335,7 +330,7 @@ TMBSimulationUtils = function() {
 #'
 #' @importFrom MASS mvrnorm
 #' @export
-TMBSimulator = function(tmb_model, tmb_cpp = "macpan2", initialize_ad_fun = TRUE) {
+TMBSimulator = function(tmb_model, tmb_cpp = getOption("macpan2_dll"), initialize_ad_fun = TRUE) {
   self = TMBSimulationUtils()
 
   ## Args
