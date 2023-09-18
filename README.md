@@ -23,10 +23,9 @@ The [Public Health Risk Sciences Division](https://github.com/phac-nml-phrsd) at
 
 ## Installation
 
-Users should install with the following R commands.
+Users should install with the following R command.
 
 ```
-remotes::install_github("canmod/oor")
 remotes::install_github("canmod/macpan2")
 ```
 
