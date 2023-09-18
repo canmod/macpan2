@@ -109,8 +109,38 @@ enum macpan2_func {
 };
 
 enum macpan2_meth {
-      METH_ROW_EXTRACT = 1
+      METH_FROM_ROWS = 1 // ~ Y[i], "Y", "i"
+    , METH_MATMULT_TO_ROWS = 2 // Y[i] ~ A %*% X[j], c("Y", "A", "X"), c("i", "j")
+    , METH_GROUP_SUMS = 3 // ~ groupSums(Y, i, n), "Y", c("i", "n")
 };
+
+void printIntVector(const std::vector<int>& intVector) {
+    for (int element : intVector) {
+        std::cout << element << ' ';
+    }
+    std::cout << std::endl;
+}
+
+void printIntVectorWithLabel(const std::vector<int>& intVector, const std::string& label) {
+    std::cout << label << ": ";
+    printIntVector(intVector);
+}
+
+// Define the function to print a single matrix here
+template <class Type>
+void printMatrix(const matrix<Type>& mat) {
+    // Implement the logic to print a matrix here
+    // You can use a loop to iterate through rows and columns
+    // and print each element.
+    // Example:
+    for (int i = 0; i < mat.rows(); ++i) {
+        for (int j = 0; j < mat.cols(); ++j) {
+            std::cout << mat.coeff(i, j) << ' ';
+        }
+        std::cout << std::endl;
+    }
+}
+
 
 // Helper function
 template<class Type>
@@ -208,21 +238,35 @@ struct ListOfMatrices {
         return *this;
     }
 
-    // Square bracket operator to get more than one matrix back
     ListOfMatrices operator[](const std::vector<int>& indices) const {
+        std::cout << "hereherher 1" << std::endl;
         ListOfMatrices<Type> result;
-
+        //result.m_matrices.clear(); // Ensure the result vector is empty
+        //result.m_matrices.reserve(indices.size()); // Reserve memory for expected matrices
+        std::cout << "hereherher 1" << std::endl;
         for (int index : indices) {
             if (index >= 0 && index < m_matrices.size()) {
-                result.m_matrices.push_back(m_matrices[index]);
+                result.m_matrices[index] = m_matrices[index];
             } else {
                 // Handle out-of-range index or negative index as needed
                 throw std::out_of_range("Index out of range");
             }
         }
+        std::cout << "hereherher 2" << std::endl;
 
         return result;
     }
+
+        // Method to print specific matrices in the list
+    void printMatrices(const std::vector<int>& indices, const std::string& label) const {
+        std::cout << label << ": " << std::endl;
+        for (int index : indices) {
+            const matrix<Type>& mat = m_matrices[index];
+            std::cout << "  inner matrix:" << std::endl;
+            printMatrix(mat);
+        }
+    }
+
 };
 
 
@@ -251,7 +295,7 @@ public:
 
         if (all_ints.size() != totalElements) {
             // Handle mismatched sizes as needed
-            throw std::invalid_argument("all_ints and vec_lens sizes do not match.");
+            Rf_error("all_ints and vec_lens sizes do not match.");
         }
 
         size_t xIndex = 0;
@@ -270,7 +314,7 @@ public:
             return nestedVector[index];
         } else {
             // Handle out-of-range access here (you can throw an exception or handle it as needed)
-            throw std::out_of_range("Index out of range");
+            Rf_error("Index out of range");
         }
     }
 
@@ -288,7 +332,7 @@ public:
                 result.nestedVector.push_back(nestedVector[static_cast<size_t>(index)]);
             } else {
                 // Handle out-of-range index or negative index as needed
-                throw std::out_of_range("Index out of range");
+                Rf_error("Index out of range");
             }
         }
 
@@ -296,17 +340,52 @@ public:
     }
 
     // Method to print each vector in the list
-    void printVectors() const {
+    void printVectors(const std::string& label) const {
+        std::cout << label << ": " << std::endl;
         for (const std::vector<int>& innerVector : nestedVector) {
-            std::cout << "Vector:";
+            std::cout << "  inner vector: ";
             for (int element : innerVector) {
                 std::cout << " " << element;
             }
             std::cout << std::endl;
         }
     }
+
 };
 
+vector<int> getNthIntVec(
+        int vec_number,
+        int curr_meth_id,
+        ListOfIntVecs& valid_int_vecs,
+        ListOfIntVecs& meth_int_vecs
+    ) {
+    vector<int> result = valid_int_vecs[meth_int_vecs[curr_meth_id]][vec_number];
+    return result;
+}
+
+
+int getNthMatIndex(
+        int mat_number,
+        int curr_meth_id,
+        ListOfIntVecs& meth_mats
+) {
+    int result = meth_mats[curr_meth_id][mat_number];
+    return result;
+}
+
+
+template<class Type>
+matrix<Type> getNthMat(
+        int mat_number,
+        int curr_meth_id,
+        ListOfMatrices<Type>& valid_vars,
+        ListOfIntVecs& meth_mats
+
+) {
+    int i = getNthMatIndex(mat_number, curr_meth_id, meth_mats);
+    matrix<Type> result = valid_vars.m_matrices[i];
+    return result;
+}
 
 
 template<class Type>
@@ -372,61 +451,98 @@ public:
     )
     {
 
-        // Variables to use locally in function bodies
-        matrix<Type> m, m1, m2;  // return values
-        vector<int> v;
+        // Variables to use locally in 'macpan2 function' and
+        // 'macpan2 method' bodies -- scare quotes to clarify that
+        // these are not real functions and methods in either the
+        // c++ or r sense.
+        matrix<Type> m, m1, m2, m3, m4, m5;  // return values
+        vector<int>  v, v1, v2, v3, v4, v5;  // method integer vectors
+        vector<int> u;
+        matrix<Type> Y, X, A;
         matrix<Type> timeIndex; // for rbind_time
         Type sum, s, eps, var, by;  // intermediate scalars
         int rows, cols, lag, rowIndex, colIndex, matIndex, reps, cp, off, size;
         int sz, start, err_code, err_code1, err_code2, curr_meth_id;
-        size_t numMats;
-        size_t numIntVecs;
+        // size_t numMats;
+        // size_t numIntVecs;
         std::vector<int> curr_meth_mat_id_vec;
         std::vector<int> curr_meth_int_id_vec;
         vector<matrix<Type>> meth_args(meth_mats.size());
         ListOfIntVecs meth_int_args;
 
-        if (GetErrorCode()) return m; // Check if error has already happened at some point of the recursive call.
+        // Check if error has already happened at some point
+        // of the recursive call.
+        if (GetErrorCode()) return m;
 
         switch (table_n[row]) {
             case -2: // methods (pre-processed matrices)
-                // Access and manipulate meth_mats
-                numMats = meth_mats.size();
-                numIntVecs = meth_int_vecs.size();
-                // for (size_t i = 0; i < numMats; ++i) {
-                //     curr_meth_mat_id_vec = meth_mats[i];
-                //
-                //     // Print the elements of the vector
-                //     std::cout << "single vector: ";
-                //     for (int element : curr_meth_mat_id_vec) {
-                //         std::cout << element << ' ';
-                //     }
-                //     std::cout << std::endl;
-                // }
-                std::cout << "--------------" << "IN METHODS CASE" << std::endl << "--------------" << std::endl;
+
+                std::cout << "---------------" << std::endl;
+                std::cout << "IN METHODS CASE" << std::endl;
+                std::cout << "---------------" << std::endl;
 
                 curr_meth_id = table_x[row];
-                curr_meth_mat_id_vec = meth_mats[curr_meth_id];
-                curr_meth_int_id_vec = meth_int_vecs[curr_meth_id];
-
-                std::cout << "curr_meth_id: " << curr_meth_id << std::endl;
-                std::cout << "meth_type_id: " << meth_type_id[curr_meth_id] << std::endl;
-
-                for (int i=0; i<numMats; i++) {
-                    meth_args[i] = valid_vars.m_matrices[curr_meth_mat_id_vec[i]];
-                    std::cout << "method matrix argument: " << meth_args[i] << std::endl;
-                }
-                meth_int_args = valid_int_vecs[curr_meth_int_id_vec];
-                meth_int_args.printVectors();
 
                 switch(meth_type_id[curr_meth_id]) {
-                    case METH_ROW_EXTRACT:
-                        std::cout << "--------------" << "IN METH_ROW_EXTRACT" << std::endl << "--------------" << std::endl;
-                        m1 = matrix<Type>::Zero(meth_int_args[0].size(), meth_args[0].cols());
-                        // m1 = matrix<Type>::Zero(v.size(), m.cols());
-                        for (int i=0; i<meth_int_args[0].size(); i++)
-                            m1.row(i) = meth_args[0].row(meth_int_args[0][i]);
+                    case METH_FROM_ROWS:
+                        std::cout << "-----------------" << std::endl;
+                        std::cout << "IN METH_FROM_ROWS" << std::endl;
+                        std::cout << "-----------------" << std::endl;
+                        m = getNthMat(0, curr_meth_id, valid_vars, meth_mats);
+                        printMatrix(m);
+                        v = getNthIntVec(0, curr_meth_id, valid_int_vecs, meth_int_vecs);
+                        printIntVectorWithLabel(v, "");
+                        m1 = matrix<Type>::Zero(v.size(), m.cols());
+                        for (int i=0; i<v.size(); i++)
+                            m1.row(i) = m.row(v[i]);
                         return m1;
+                    case METH_MATMULT_TO_ROWS:
+                        // Y_u. = AX_v.
+                        std::cout << "-----------------------" << std::endl;
+                        std::cout << "IN METH_MATMULT_TO_ROWS" << std::endl;
+                        std::cout << "-----------------------" << std::endl;
+
+                        matIndex = getNthMatIndex(0, curr_meth_id, meth_mats);
+                        m = getNthMat(1, curr_meth_id, valid_vars, meth_mats);
+                        m1 = getNthMat(2, curr_meth_id, valid_vars, meth_mats);
+                        v = getNthIntVec(0, curr_meth_id, valid_int_vecs, meth_int_vecs);
+                        v1 = getNthIntVec(1, curr_meth_id, valid_int_vecs, meth_int_vecs);
+                        m2 = matrix<Type>::Zero(v1.size(), m1.cols());
+
+                        std::cout << "Y index" << matIndex << std::endl;
+                        std::cout << "A" << m << std::endl;
+                        std::cout << "X" << m1 << std::endl;
+                        printIntVectorWithLabel(v, "i");
+                        printIntVectorWithLabel(v1, "j");
+
+                        for (int i=0; i<v1.size(); i++) {
+                            std::cout << m1.row(v1[i]) << std::endl;
+                            std::cout << "here" << std::endl;
+                            m2.row(i) = m1.row(v1[i]);
+                            std::cout << "now here" << std::endl;
+                        }
+
+                        std::cout << "X_j" << m1 << std::endl;
+
+                        m3 = m * m2;
+
+                        for (int k=0; k<v.size(); k++)
+                            valid_vars.m_matrices[matIndex].row(v[k]) = m3.row(k);
+
+                        return m4; // empty matrix
+
+                    case METH_GROUP_SUMS:
+                        m = getNthMat(0, curr_meth_id, valid_vars, meth_mats);
+                        v = getNthIntVec(0, curr_meth_id, valid_int_vecs, meth_int_vecs);
+                        rows = getNthIntVec(1, curr_meth_id, valid_int_vecs, meth_int_vecs)[0];
+                        m1 = matrix<Type>::Zero(rows, 1);
+
+                        for (int i = 0; i < m.rows(); i++) {
+                            rowIndex = v[i];
+                            m1.coeffRef(rowIndex,0) += m.coeff(i,0);
+                        }
+                        return m1;
+
                     default:
                         SetError(254, "invalid method in arithmetic expression", row);
                         return m;

@@ -221,11 +221,11 @@ finalizer_index = function(x) {
     valid_literals = c(valid_literals, new_valid_literals)
   }
   if (any(is_meth)) {
-    get_indices(x_char[is_meth]
+    x_int[is_meth] = get_indices(x_char[is_meth]
       , vec = valid_methods
       , vec_type = "methods"
       , expr_as_string = x$input_expr_as_string
-      , zero_based = FALSE
+      , zero_based = TRUE
     )
   }
   x$x = as.integer(x_int)
@@ -237,6 +237,7 @@ finalizer_index = function(x) {
 }
 
 parse_expr = make_expr_parser(finalizer = finalizer_index)
+method_parser = make_expr_parser("method_parser", finalizer_char)
 
 get_indices = function(x, vec, vec_type, expr_as_string, zero_based = FALSE) {
   if (!is.character(vec)) vec = names(vec)

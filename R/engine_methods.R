@@ -1,66 +1,53 @@
+#' Engine Methods
+#'
+#' List of methods for pre-processing matrices before returning or
+#' assigning them. One benefit of these methods is that they can make use
+#' of user-supplied integer vectors that are stored in C++ as integers. Another
+#' benefit can be readability but this is subjective.
+#'
+#' @param exprs A named `list` of formulas that can be matched to one of the
+#' method prototypes (TODO: describe these).
+#' @param int_vecs An \code{\link{IntVecs}} object containing integer vectors
+#' that can be used by the methods.
+#'
 #' @export
-EngineMethods = function(...) {
+EngineMethods = function(exprs = list(), int_vecs = IntVecs()) {
   self = Base()
-  self$method_exprs = list(...)
 
-  self$methods = function() {
-    method_objs = list()
-    for (meth_nm in names(self$method_exprs)) {
-      m = self$method_exprs[[meth_nm]]
-      args = c(
-        as.list(c(meth_nm, m$mat, m$id_nm)),
-        init_mats = m$init_mats,
-        int_vecs = self$int_vecs()
-      )
-      method_objs[[meth_nm]] = do.call(m$constructor, args)
-    }
-    do.call(MethList, method_objs)
-  }
-  self$int_vecs = function() {
-    int_vec_objs = list()
-    for (meth_nm in names(self$method_exprs)) {
-      m = self$method_exprs[[meth_nm]]
-      int_vec_objs[[m$id_nm]] = m$indices()
-    }
-    do.call(IntVecs, int_vec_objs)
-  }
+  # Args
+  self$exprs = exprs
+  self$int_vecs = int_vecs
+
+  # Composition
+  self$method_types = MethodTypes()
+  self$meth_list = MethListFromEngineMethods(self)
+
+  # Refreshments
   self$refresh_init_mats = function(init_mats) {
-    for (meth_nm in names(self$method_exprs)) {
-      m = self$method_exprs[[meth_nm]]$init_mats = init_mats
+    for (meth_nm in names(self$meth_list)) {
+      self$meth_list$methods[[meth_nm]]$init_mats = init_mats
     }
   }
   return_object(self, "EngineMethods")
 }
 
-MethodRowIndexer = NULL
-
-#' @export
-FromRows = function(mat
-    , by
-    , id_nm
-    , init_mats = MatsList()
-  ) {
-  self = Base()
-
-  self$mat = mat
-  self$by = by
-  self$id_nm = id_nm
-  self$init_mats = init_mats
-
-  self$call = deparse1(match.call())
-  self$constructor = MethodRowIndexer
-
-  self$indices = function() {
-    l = list()
-    l[[self$id_nm]] = get_indices(self$by
-      , vec = self$init_mats$rownames()[[self$mat]]
-      , vec_type = "variables"
-      , expr_as_string = self$call
-      , zero_based = TRUE
-    )
-    l
+#' Construct a Method List from Engine Methods
+#'
+#' Alternative constuctor for `MethList`.
+#'
+#' The engine interacts with `MethList` objects, but the user interacts
+#' with `EngineMethods` objects. This allows developers to convert between
+#' the two.
+#'
+#' @param engine_methods An object of class EngineMethods
+#' @nord
+MethListFromEngineMethods = function(engine_methods) {
+  l = list()
+  for (nm in names(engine_methods$exprs)) {
+    l[[nm]] = engine_methods$method_types$make_method(engine_methods$exprs[[nm]], nm)
+    l[[nm]]$int_vecs = engine_methods$int_vecs
   }
-  return_object(self, "FromRows")
+  do.call(MethList, l)
 }
 
 
@@ -77,13 +64,8 @@ MethList = function(...) {
   # Static
   self$.null_data_arg = setNames(
     rep(list(integer()), 5),
-    sprintf("meth_%s", c(
-          "type_id"
-        , "n_mats"
-        , "n_int_vecs"
-        , "mat_id"
-        , "int_vec_id"
-      )
+    sprintf("meth_%s",
+      c("type_id", "n_mats", "n_int_vecs", "mat_id", "int_vec_id")
     )
   )
 
@@ -91,7 +73,11 @@ MethList = function(...) {
     l = self$.null_data_arg
     new_args = method_apply(self$methods, "data_arg")
     for (a in names(l)) {
-      l[[a]] = c(l[[a]], unlist(lapply(new_args, `[[`, a), recursive = FALSE, use.names = FALSE))
+      l[[a]] = c(l[[a]], unlist(
+        lapply(new_args, `[[`, a),
+        recursive = FALSE
+        , use.names = FALSE
+      ))
     }
     l
   }
@@ -133,9 +119,42 @@ Method = function(name, mat_args, int_vec_args, init_mats = MatsList(), int_vecs
   # Private
   self$.mat_ids = function() match(self$mat_args, names(self$init_mats)) - 1L
   self$.int_vec_ids = function() match(self$int_vec_args, names(self$int_vecs)) - 1L
+  self$.check_args = function() {
+    missing_mats = self$mat_args[!self$mat_args %in% names(self$init_mats)]
+    missing_int_vecs = self$int_vec_args[!self$int_vec_args %in% names(self$int_vecs)]
+    if (length(missing_mats) != 0L) {
+      mixup = missing_mats[missing_mats %in% names(self$int_vecs)]
+      if (length(mixup) != 0L) {
+        stop(
+            "\nThe ", self$name, " method had the following integer vectors passed"
+          , "\nto arguments that require matrices:\n"
+          , paste(mixup, collapse = "\n")
+        )
+      }
+      stop(
+          "\nThe ", self$name, " method could not find the following matrices:\n"
+        , paste(missing_mats, collapse = "\n")
+      )
+    }
+    if (length(missing_int_vecs) != 0L) {
+      mixup = missing_int_vecs[missing_int_vecs %in% names(self$init_mats)]
+      if (length(mixup) != 0L) {
+        stop(
+            "\nThe ", self$name, " method had the following matrices passed"
+          , "\nto arguments that require integer vectors:\n"
+          , paste(mixup, collapse = "\n")
+        )
+      }
+      stop(
+          "\nThe ", self$name, " method coult not find the following integer vectors:\n"
+        , paste(missing_int_vecs, collapse = "\n")
+      )
+    }
+  }
 
   # Standard Methods
   self$data_arg = function() {
+    self$.check_args()
     list(
       ## these must be length-1 integer vectors
         meth_type_id = self$meth_type_id
@@ -149,19 +168,3 @@ Method = function(name, mat_args, int_vec_args, init_mats = MatsList(), int_vecs
 
   return_object(self, "Method")
 }
-
-meth_cls_types = c("MethodRowIndexer")
-
-mk_meth_cls = function(cls_nm, meth_type_id) {
-  pf = parent.frame()
-  force(pf)
-  force(cls_nm)
-  force(meth_type_id)
-  f = function(name, mat_args, const_args, init_mats = MatsList(), int_vecs = IntVecs()) {
-    self = Method(name, mat_args, const_args, init_mats, int_vecs)
-    self$meth_type_id = meth_type_id
-    return_object(self, cls_nm)
-  }
-  assign(cls_nm, f, envir = pf)
-}
-for (i in seq_along(meth_cls_types)) mk_meth_cls(meth_cls_types[i], i)

@@ -56,7 +56,7 @@ Simulators = function(model) {
         , .dimnames = list()
         , .tmb_cpp = "macpan2"
         , .initialize_ad_fun = TRUE
-        , .bundle_compartmental_model = FALSE
+        , .bundle_compartmental_model = TRUE  ## TODO: always be TRUE?
     ) {
       tmb_simulator = TMBModel(
         init_mats = CompartmentalMatsList(self$model, state, flow

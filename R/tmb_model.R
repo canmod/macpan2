@@ -9,8 +9,7 @@
 #' @param random An object of class \code{\link{OptParamsList}}.
 #' @param obj_fn An object of class \code{\link{ObjectiveFunction}}.
 #' @param time_steps An object of class \code{\link{Time}}.
-#' @param meth_list An object of class \code{\link{MethList}}.
-#' @param int_vecs An object of class \code{\link{IntVecs}}.
+#' @param engine_methods An object of class \code{\link{EngineMethods}}.
 #' @param log_file An object of class \code{\link{LogFile}}.
 #'
 #' @return Object of class \code{TMBModel} with the following methods.
@@ -88,8 +87,6 @@ TMBModel = function(
   self$random = random
   self$obj_fn = obj_fn
   self$time_steps = time_steps
-  #self$meth_list = meth_list
-  #self$int_vecs = int_vecs
   self$engine_methods = engine_methods
   self$log_file = log_file
 
@@ -103,8 +100,8 @@ TMBModel = function(
       self$random$data_arg("r"),
       self$obj_fn$data_arg(existing_literals),
       self$time_steps$data_arg(),
-      self$engine_methods$methods()$data_arg(),
-      self$engine_methods$int_vecs()$data_arg(),
+      self$engine_methods$meth_list$data_arg(),
+      self$engine_methods$int_vecs$data_arg(),
       self$log_file$data_arg()
     )
   }
@@ -191,40 +188,6 @@ TMBCompartmentalSimulator = function(tmb_simulator, compartmental_model) {
   return_object(self, "TMBCompartmentalSimulator")
 }
 
-# SimulatorsList = function() {
-#   self = Base()
-#   self$.simulators = list()
-#   self$simulators = function() self$.simulators
-#   self$add = function(simulator) {
-#     if (!any(vapply(self$.simulators, identical, logical, simulator))) {
-#       self$.simulators = append(self$.simulators, simulator)
-#     }
-#   }
-#   return_object(self, "SimulatorsList")
-# }
-
-## The copied method acts on the source when called by the target.
-## This is useful when the target has the source as a composed object.
-# copy_method = function(
-#       method ## string giving the name of the method to transfer
-#     , source ## source object to donate the method
-#     , target ## target object to receive the method
-#     , return = TRUE ## should the return value in the source be returned in the target?
-#   ) {
-#   force(method); force(source); force(target)
-#   target[[method]] = function() {
-#     named_args = as.list(environment())
-#     dot_args = try(list(...), silent = TRUE)
-#     if (inherits(dot_args, "try-error")) dot_args = list()
-#     args = c(named_args, dot_args)
-#     y = do.call(source[[method]], args)
-#     if (return) return(y)
-#   }
-#   formals(target[[method]]) = formals(source[[method]])
-# }
-# copy_methods = function(methods, source, target, return = TRUE) {
-#   for (method in methods) copy_method(method, source, target, return)
-# }
 
 TMBSimulationUtils = function() {
   self = Base()

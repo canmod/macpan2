@@ -1,8 +1,9 @@
 StandardExprAlt = function(model){
-  self = macpan2:::Indices(model)
+  self = Indices(model)
   self$.init_derivations_list = function(){
-    #This expression is only required to ensure every model has at least one expression.
-    #There is currently a bug where it is not possible to create a simulator for a model with no expressions at all
+    # This expression is only required to ensure every model has at least
+    # one expression. There is currently a bug where it is not possible to
+    # create a simulator for a model with no expressions at all.
     hack_expression_list = list(
       output_names = "state",
       expression = "1*state",
@@ -35,7 +36,7 @@ Derivations2ExprListAlt = function(user_expr, standard_expr) {
   self$.user_expr_list = user_expr$expand_vector_expressions()
 
   self$.expression_formatter = function(expression_list_element){
-    macpan2:::two_sided(
+    two_sided(
       expression_list_element$output_names,
       expression_list_element$expression
     )
@@ -102,16 +103,16 @@ Derivations2ExprListAlt = function(user_expr, standard_expr) {
 
 ModelAlt = function(definition) {
   # Inheritance
-  self = oor:::Base()
+  self = Base()
 
   # Args / Composition
   self$def = definition ## ModelFiles object
 
   # Compositions
-  self$settings = macpan2:::Settings(self)
-  self$variables = macpan2:::Variables(self)
-  self$labels = macpan2:::VariableLabels(self$variables)
-  self$indices = macpan2:::VariableIndices(self$labels)
+  self$settings = Settings(self)
+  self$variables = Variables(self)
+  self$labels = VariableLabels(self$variables)
+  self$indices = VariableIndices(self$labels)
 
   # Standard Methods
   self$flows = function() self$def$flows()
@@ -149,7 +150,7 @@ ModelAlt = function(definition) {
   # so that when the model definition files change
   # on disk, the caches that depend on these files
   # are invalidated.
-  self$def$cache = macpan2:::CacheList(
+  self$def$cache = CacheList(
     self$variables$cache,
     self$labels$cache,
     self$indices$flow ## invalidate method outside of the cache for convenience
@@ -157,8 +158,8 @@ ModelAlt = function(definition) {
 
   # Validate and Return
   (self
-    |> macpan2:::assert_variables()
-    |> oor:::return_object("Model")
+    |> assert_variables()
+    |> return_object("Model")
   )
 }
 
@@ -179,7 +180,7 @@ SimulatorConstructor = function(model_directory, integration_method = RK4, ...){
   model = CompartmentalAlt(model_directory)
 
   model_simulator = model$simulators$tmb(..., .bundle_compartmental_model = TRUE)
-  
+
 
   expanded_flows = model$flows_expanded()
 

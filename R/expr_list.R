@@ -14,7 +14,7 @@ ExprListUtils = function() {
       , valid_vars = self$.init_valid_vars()
       , valid_literals = .existing_literals
       , offset = .offset
-      , valid_methods = self$engine_methods$methods()
+      , valid_methods = self$engine_methods$meth_list
     )
   }
   self$.set_name_prefix = function(x, prefix) {

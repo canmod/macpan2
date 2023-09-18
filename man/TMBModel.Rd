@@ -28,11 +28,9 @@ TMBModel(
 
 \item{time_steps}{An object of class \code{\link{Time}}.}
 
+\item{engine_methods}{An object of class \code{\link{EngineMethods}}.}
+
 \item{log_file}{An object of class \code{\link{LogFile}}.}
-
-\item{meth_list}{An object of class \code{\link{MethList}}.}
-
-\item{int_vecs}{An object of class \code{\link{IntVecs}}.}
 }
 \value{
 Object of class \code{TMBModel} with the following methods.
