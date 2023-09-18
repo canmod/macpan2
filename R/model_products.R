@@ -1,19 +1,19 @@
-variables_product = function(model1, model2){
+VariablesProduct = function(model1, model2){
   output_vars = union_vars(
     cartesian(model1$variables$state(), model2$variables$state()),
     cartesian(model1$variables$state(), model2$variables$flow()),
-    cartesian(model1$variables$flow(), model2$variables$state()),
-    model1$variables$other(),
-    model2$variables$other()
+    cartesian(model1$variables$flow(), model2$variables$state())
+    #model1$variables$other(),
+    #model2$variables$other()
   )
   return(output_vars)
 }
 
 
-flows_product = function(model1, model2){
+FlowsProduct = function(model1, model2){
 
   is_empty = function(x) nchar(x) == 0L
-  dot = function(...) paste0(..., collapse = ".")
+  #dot = function(...) paste0(..., collapse = ".")
   cdot = function(x, y) {
     ifelse(
       is_empty(x),
@@ -37,6 +37,44 @@ flows_product = function(model1, model2){
 }
 
 
-derivations_product = function(model1, model2) {}
+SettingsProduct = function(model1, model2, product_variables) {
+  model1_required_partitions = model1$settings$name()
+  model2_required_partitions = model2$settings$name()
+  
+  required_partitions = c(model1$settings$names(), model2$settings$names())
+  
+  null_partitions = "Null"
+  
+  state_variables = cartesian(model1$variables$state(), model2$variables$state())$labels()
+  
+  flow_variables = union_vars(cartesian(model1$variables$state(), model2$variables$flow()),
+                              cartesian(model1$variables$flow(), model2$variables$state()))$labels()
+  
+  infectious_state_variables = union_vars(cartesian(model1$variables$infectious_state(), model2$variables$state()),
+                                          cartesian(model1$variables$state(), model2$variables$infectious_state()))$labels()
+  
+  infected_state_variables = union_vars(cartesian(model1$variables$infected_state(), model2$variables$state()),
+                                        cartesian(model1$variables$state(), model2$variables$infected_state()))$labels()
+  
+  infectious_flow_variables = union_vars(cartesian(model1$variables$infection_flow(), model2$variables$state()),
+                                         cartesian(model1$variables$state(), model2$variables$infection_flow()))$labels()
+  
+  output_settings = list(required_partitions, null_partitions, state_variables, infectious_state_variables,
+                         infected_state_variables, infectious_flow_variables)
+  
+  names(output_settings) = c("required_partitions", "null_partitions", "state_variables", "infectious_state_variables",
+                             "infected_state_variables", "infectious_flow_variables")
+  
+  return(output_settings)
+}
 
-settings_product = function(model1, model2) {}
+ModelProduct = function(model1_simulator, model2_simulator){
+  model1 = model1_simulator$compartmental_model
+  model2 = model2_simulator$compartmental_model
+  variables = VariablesProduct(model1, model2)
+  flows = FlowsProduct(model1, model2)
+  settings = SettingsProduct(model1, model2, variables)
+  derivations = list()
+
+  #TODO$ write the above to a model definition directory
+}

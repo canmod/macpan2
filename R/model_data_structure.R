@@ -79,17 +79,15 @@ assert_variables = function(model) {
     )
   }
   v = model$variables$all()
-  ValidityMessager(
-    All(
-      make_pipeline("required_partitions", v$names()),
-      make_pipeline("state_variables", v$labels()),
-      make_pipeline("flow_variables", v$labels()),
-      make_pipeline("infectious_state_variables", v$labels()),
-      make_pipeline("infected_state_variables", v$labels()),
-      make_pipeline("infection_flow_variables", v$labels())
-    ),
-    "the settings.json file is not consistent with the variables.csv file"
-  )$assert(model)
+  AllValid(
+      ValidityMessager(make_pipeline("required_partitions", v$names()), "Required partitions in Settings.json are not names of columns in Variables.csv"),
+      ValidityMessager(make_pipeline("state_variables", v$labels()), "State variables in Settings.json are not dot-separated concatentations of the required partitions in the Variables.csv"),
+      ValidityMessager(make_pipeline("flow_variables", v$labels()), "Flow variables in Settings.json are not expanded labels for variables in Flows.csv"),
+      ValidityMessager(make_pipeline("infectious_state_variables", v$labels()), "blah"),
+      ValidityMessager(make_pipeline("infected_state_variables", v$labels()), "blah"),
+      ValidityMessager(make_pipeline("infection_flow_variables", v$labels()), "blah"),
+      .msg = "the settings.json file is not consistent with the variables.csv file"
+    )$assert(model)
 }
 
 

@@ -1,0 +1,9 @@
+{
+  "required_partitions" : "Age",
+  "null_partitions" : "Null",
+  "state_variables" : ["young", "medium", "old"],
+  "flow_variables" : ["ageing_rate", "birth_rate", "death_rate"],
+  "infectious_state_variables" : [],
+  "infected_state_variables" : [],
+  "infection_flow_variables" : []
+}

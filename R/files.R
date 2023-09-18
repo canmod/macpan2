@@ -23,6 +23,7 @@ Collection = function(...) {
   self$.components = nlist(...)
   self$get = function(component_name) self$.components[[component_name]]
   self$freeze = function() self
+  self$write = function() stop("under construction")
   return_object(self, "Collection")
 }
 
@@ -161,5 +162,17 @@ reader_spec = function(file, reader, optional = FALSE) {
       reader = reader(..., file)
     }
     setNames(list(reader), component_name)
+  }
+}
+
+writer_spec = function(file, writer, optional = FALSE) {
+  component_name = tools::file_path_sans_ext(file)
+  function(...) {
+    if (optional & !file.exists(file.path(..., file))) {
+      stop("null writers do not yet exist")
+    } else {
+      writer = writer(..., file)
+    }
+    setNames(list(writer), component_name)
   }
 }

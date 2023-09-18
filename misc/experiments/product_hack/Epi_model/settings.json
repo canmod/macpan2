@@ -1,0 +1,9 @@
+{
+  "required_partitions" : "Epi",
+  "null_partition" : "Null",
+  "state_variables" : ["S", "E", "I", "R"],
+  "flow_variables" : ["total_foi", "progression", "recovery"],
+  "infectious_state_variables" : ["I"],
+  "infected_state_variables" : ["E", "I"],
+  "infection_flow_variables" : ["total_foi"]
+}

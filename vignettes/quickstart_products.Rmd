@@ -1,0 +1,78 @@
+---
+title: "Quickstart Guide: Runge Kutta and model products"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{"Quickstart Guide: Runge Kutta and model products"}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+[![status](https://img.shields.io/badge/status-working%20draft-red)](https://canmod.github.io/macpan2/articles/vignette-status#working-draft)
+
+``` {r pkgs, include = FALSE}
+library(macpan2)
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  eval = TRUE,
+  comment = "#>"
+)
+```
+
+```{r model_paths}
+epi_dir = system.file("starter_models", "product_example", "Epi_model", package = "macpan2")
+age_dir = system.file("starter_models", "product_example", "Age_model", package = "macpan2")
+
+```
+
+Model definition directories can be converted directly into simulators using the "SimulatorConstructor" function. When using this function users must input the usual arguments for creating a simulator (e.g. state, flow, parameters) as well as "per_capita_transmission" a matrix with a number of columns equal to the number of infectious compartments and a number of rows equal to the number of infectious flows. The "per_capita_transmission" matrix can either be filled directly with numerical values or it can be created as an "empty_matrix" and computed via expressions in the "derivations.R" file. 
+
+The SimulatorConstructor function can create simulators that use one of two different integration methods, the specific method is set using the "integration_method" argument. The defult option is "RK4" which denotes the Runge-Kutta 4 algorithm, to use Eulers method set "integration_method = Euler".
+
+```{r RK4 method simulators}
+epi_rk4 = SimulatorConstructor(epi_dir,
+                               time_steps = 25L,
+                               state = c(S = 999, E = 1, I = 0, R = 0),
+                               flow = c(total_foi = NA, progression = 0.1, recovery = 0.05),
+                               N = empty_matrix,
+                               transmissability = 0.75,
+                               per_capita_transmission = empty_matrix,
+                               .mats_to_return = c("state"))
+epi_rk4$report()
+
+
+age_rk4 = SimulatorConstructor(age_dir,
+                                     time_steps = 25L,
+                                     state = c(young = 333, medium = 333, old = 333),
+                                     flow = c(ageing_rate = 0.03, birth_rate = 5, death_rate = 0.01),
+                                     per_capita_transmission = empty_matrix,
+                                     .mats_to_return = c("state"))
+age_rk4$report()
+```
+
+```{r Euler method simulators}
+epi_euler = SimulatorConstructor(epi_dir,
+                                 integration_method = Euler,
+                                 time_steps = 25L,
+                                 state = c(S = 999, E = 1, I = 0, R = 0),
+                                 flow = c(total_foi = NA, progression = 0.1, recovery = 0.05),
+                                 N = empty_matrix,
+                                 transmissability = 0.75,
+                                 per_capita_transmission = empty_matrix,
+                                 .mats_to_return = c("state"))
+epi_euler$report()
+
+age_euler = SimulatorConstructor(age_dir,
+                                 integration_method = Euler,
+                                 time_steps = 25L,
+                                 state = c(young = 333, medium = 333, old = 333),
+                                 flow = c(ageing_rate = 0.03, birth_rate = 5, death_rate = 0.01),
+                                 per_capita_transmission = empty_matrix,
+                                 .mats_to_return = c("state"))
+age_euler$report()
+```
+
+Eventually it will be possible to create a new model directory that corresponds to the product of two models using the "ModelProduct" function. This function accepts as arguments two model simulators and will write a model definition corresponding to the product of those models. Currently the file writing capability is unavailable so this function is not complete. Note that every model directory created this way will have a blank "derivations.json" file, the use must either give numerical values for the "per_capita_transmission" matrix directly or add expressions to "derivations.json" that compute the "per_capita_transmission" matrix from some other supplied parameters.

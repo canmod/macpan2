@@ -57,8 +57,9 @@ Simulators = function(model) {
         , .dimnames = list()
         , .tmb_cpp = "macpan2"
         , .initialize_ad_fun = TRUE
-          ) {
-      TMBModel(
+        , .bundle_compartmental_model = FALSE
+    ) {
+      tmb_simulator = TMBModel(
         init_mats = CompartmentalMatsList(self$model, state, flow
           , ...
           , .mats_to_save = .mats_to_save
@@ -70,6 +71,8 @@ Simulators = function(model) {
         time_steps = Time(time_steps),
         do_pred_sdreport = .do_pred_sdreport
       )$simulator(tmb_cpp = .tmb_cpp, initialize_ad_fun = .initialize_ad_fun)
+      if (!.bundle_compartmental_model) return(tmb_simulator)
+      TMBCompartmentalSimulator(tmb_simulator, self$model)
   }
   return_object(self, "Simulators")
 }
