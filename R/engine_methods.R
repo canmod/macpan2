@@ -101,6 +101,8 @@ names.MethList = function(x) {
 #' the method to produce an output matrix.
 #' @param int_vec_args Character vector of names of constants that will be used
 #' by the method to produce an output matrix.
+#' @param init_mats Object of class \code{\link{MatsList}}.
+#' @param int_vecs = Object of class \code{\link{IntVecs}}.
 #' @export
 Method = function(name, mat_args, int_vec_args, init_mats = MatsList(), int_vecs = IntVecs()) {
   self = Base()

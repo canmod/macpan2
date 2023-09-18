@@ -112,6 +112,7 @@ enum macpan2_meth {
       METH_FROM_ROWS = 1 // ~ Y[i], "Y", "i"
     , METH_MATMULT_TO_ROWS = 2 // Y[i] ~ A %*% X[j], c("Y", "A", "X"), c("i", "j")
     , METH_GROUP_SUMS = 3 // ~ groupSums(Y, i, n), "Y", c("i", "n")
+    , METH_TIME_BLOCK = 4 // ~ time_block(Y, t, n)
 };
 
 void printIntVector(const std::vector<int>& intVector) {
@@ -542,6 +543,14 @@ public:
                             m1.coeffRef(rowIndex,0) += m.coeff(i,0);
                         }
                         return m1;
+
+                    case METH_TIME_BLOCK:
+                        // ~ time_block(Y, t, n)
+                        m = getNthMat(0, curr_meth_id, valid_vars, meth_mats); // Y -- row-binded blocks, each corresponding to a change-point
+                        v = getNthIntVec(0, curr_meth_id, valid_int_vecs, meth_int_vecs); // t -- change-point times
+                        rows = getNthIntVec(1, curr_meth_id, valid_int_vecs, meth_int_vecs)[0]; // n -- block size
+                        m1 = matrix<Type>::Zero(rows, m.cols());
+
 
                     default:
                         SetError(254, "invalid method in arithmetic expression", row);

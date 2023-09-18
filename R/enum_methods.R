@@ -133,9 +133,10 @@ MethodTypeUtils = function() {
 }
 MethodTypes = function() {
    self = MethodTypeUtils()
-  self$method_ordering = c("meth_from_rows", "meth_matmult_to_rows", "meth_group_sums")
+  self$method_ordering = c("meth_from_rows", "meth_matmult_to_rows", "meth_group_sums", "meth_time_block")
   self$meth_from_rows = MethodPrototype(~ Y[i], "Y", "i")
   self$meth_matmult_to_rows = MethodPrototype(Y[i] ~ A %*% X[j], c("Y", "A", "X"), c("i", "j"))
   self$meth_group_sums = MethodPrototype(~ groupSums(Y, i, n), "Y", c("i", "n"))
+  self$meth_time_block = MethodPrototype(~ time_block(Y, t, n))
   return_object(self, "MethodTypes")
 }

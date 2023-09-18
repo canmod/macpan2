@@ -20,6 +20,10 @@ the method to produce an output matrix.}
 
 \item{int_vec_args}{Character vector of names of constants that will be used
 by the method to produce an output matrix.}
+
+\item{init_mats}{Object of class \code{\link{MatsList}}.}
+
+\item{int_vecs}{= Object of class \code{\link{IntVecs}}.}
 }
 \description{
 Engine methods allow users to interact with the engine
