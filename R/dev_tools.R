@@ -1,12 +1,11 @@
 dev_in_root = function() "inst" %in% list.dirs(full.names = FALSE)
 dev_in_dev = function() "dev.cpp" %in% list.files(full.names = FALSE)
 dev_in_test = function() "testthat" %in% list.dirs("..", full.names = FALSE)
-## TODO: dev_in_test or something like that
+dev_in_vig = function() "vignette_status.Rmd" %in% list.files(full.names = FALSE)
 
 dev_file = function(suffix = "", ext = "cpp") {
   cpp = function(path) {
     pp = file.path(path, sprintf("dev%s.%s", suffix, ext))
-    print("YESYYSYSE")
     print(pp)
     print(file.exists(pp))
     print(getwd())

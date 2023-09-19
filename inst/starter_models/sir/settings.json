@@ -3,5 +3,6 @@
   "null_partition" : "Null",
   "state_variables" : ["S", "I", "R"],
   "flow_variables" : ["foi", "gamma"],
-  "infection_flow_variables" : ["foi"]
+  "infection_flow_variables" : ["foi"],
+  "infectious_state_variables" : ["I"]
 }

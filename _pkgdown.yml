@@ -34,6 +34,7 @@ articles:
   desc: Vignettes aimed at package developers
   contents:
   - development_patterns
+  - debugging
   - composing_simulation_models
   - elementwise_binary_operators
   - state_dependent_rates

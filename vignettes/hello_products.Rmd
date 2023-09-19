@@ -24,9 +24,9 @@ knitr::opts_chunk$set(
 cat_file = function(...) {
   cat(readLines(file.path(...)), sep = "\n")
 }
-prod_dir = file.path("..", "inst", "starter_models", "SI_products", "hello_products")
-si_dir = file.path("..", "inst", "starter_models", "SI_products", "hello_si")
-age_dir = file.path("..", "inst", "starter_models", "SI_products", "hello_age")
+prod_dir = system.file("starter_models", "SI_products", "hello_products", package = "macpan2")
+si_dir = system.file("starter_models", "SI_products", "hello_si", package = "macpan2")
+age_dir = system.file("starter_models", "SI_products", "hello_age", package = "macpan2")
 ```
 
 ## Read Models
@@ -163,6 +163,8 @@ prod$flows()
 ## Combining the Transmission Matrices
 
 ## Combining the Derivations
+
+
 
 ## Simulating the Resulting Product Model
 

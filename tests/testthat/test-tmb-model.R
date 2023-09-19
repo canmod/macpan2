@@ -15,4 +15,7 @@ test_that("simulator method works", {
       row.names = integer(0), class = "data.frame"
     )
   )
+
+  null_model = TMBModel()
+  null_model$init_mats$.names()
 })

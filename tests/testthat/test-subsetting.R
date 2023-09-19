@@ -24,11 +24,11 @@ test_that("index bounds are checked", {
   x = 0.1 * (1:5)
   expect_error(
     engine_eval(~x[-1], x = x),
-    "Error thrown by the TMB engine"
+    "The following error was thrown by the TMB engine"
   )
   expect_error(
     engine_eval(~x[-5], x = x),
-    "Error thrown by the TMB engine"
+    "The following error was thrown by the TMB engine"
   )
   expect_equal(
     engine_eval(~x[0], x = x),

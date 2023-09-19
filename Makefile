@@ -4,11 +4,12 @@ SED_RE = \(\,\)*[ ]*\/\/[ ]*\(.*\)
 ALIAS_RE = [ ]*MP2_\(.*\)\: \(.*\)(\(.*\))
 ROXY_RE = ^.*\(\#'.*\)$
 VERSION := $(shell sed -n '/^Version: /s///p' DESCRIPTION)
-
+TEST := testthat::test_package(\"macpan2\", reporter = \"progress\")
 
 all:
 	make src-update
 	make enum-update
+	make enum-meth-update
 	make engine-doc-update
 	make doc-update
 	make pkg-build
@@ -20,6 +21,7 @@ all:
 full-install:
 	make src-update
 	make enum-update
+	make enum-meth-update
 	make engine-doc-update
 	make doc-update
 	make pkg-build
@@ -29,7 +31,7 @@ full-install:
 # Use this rule if (1) you are in a development cycle, (2) you
 # haven't updated macpan.cpp (but have perhaps modified dev.cpp)
 # and (3) do not require a roxygen update.
-quick-install: enum-update
+quick-install: enum-update enum-meth-update
 	R CMD INSTALL --no-multiarch --install-tests .
 
 install-deps:
@@ -41,9 +43,15 @@ quick-doc-install: R/*.R misc/dev/dev.cpp
 	make quick-install
 
 
+quick-test-all:
+	make quick-doc-install
+	make run-vignette-code
+	make run-tests
+	make run-examples
+
+
 quick-test:
 	make quick-doc-install
-	make run-examples
 	make run-tests
 
 
@@ -52,7 +60,12 @@ run-examples:
 
 
 run-tests:
-	Rscript -e "library(macpan2); testthat::test_package(\"macpan2\")"
+	Rscript -e "library(macpan2); $(TEST)"
+
+
+run-vignette-code:
+	cd vignettes
+	Rscript misc/build/run_vignette_code.R
 
 
 coverage-report:: coverage.html
@@ -68,6 +81,11 @@ R/enum.R: misc/dev/dev.cpp misc/build/enum_tail.R
 	echo ")" >> $@
 	cat misc/build/enum_tail.R >> $@
 	echo "valid_funcs = setNames(as.list(valid_funcs), valid_funcs)" >> $@
+
+
+enum-meth-update:: R/enum_methods.R
+R/enum_methods.R: misc/dev/dev.cpp misc/build/method_head.R misc/build/build_from_enum_methods.R
+	Rscript misc/build/build_from_enum_methods.R
 
 
 src-update:: src/macpan2.cpp

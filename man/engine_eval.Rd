@@ -8,7 +8,7 @@ engine_eval(
   e,
   ...,
   .matrix_to_return,
-  .tmb_cpp = "macpan2",
+  .tmb_cpp = getOption("macpan2_dll"),
   .structure_labels = NullLabels()
 )
 }

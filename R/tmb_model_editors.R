@@ -40,6 +40,8 @@ TMBInserter = function(model) {
       , .phase = .phase
       , .simulate_exprs = .simulate_exprs
     )
+    self$model$expr_list$init_mats = self$model$init_mats
+    self$model$obj_fn$init_mats = self$model$init_mats
     invisible(self$model)
   }
   return_object(self, "TMBInserter")
@@ -74,9 +76,9 @@ TMBSimulatorInserter = function(simulator) {
     args$.at = .at
     args$.phase = .phase
     args$.simulate_exprs = .simulate_exprs
-    self$model$expr_list = do.call(
-      self$model$expr_list$insert,
-      args
+    (self$model$expr_list$insert
+      |> do.call(args)
+      |> self$model$refresh_expr_list()
     )
     self$simulator$cache$invalidate()
     invisible(self$simulator)
@@ -112,11 +114,11 @@ TMBSimulatorAdder = function(simulator) {
     , .mats_to_return = character(0L)
     , .dimnames = list()
   ) {
-    self$model$init_mats = self$model$init_mats$add_mats(...
+    self$model$init_mats$add_mats(...
       , .mats_to_save = .mats_to_save
       , .mats_to_return = .mats_to_return
       , .dimnames = .dimnames
-    )
+    ) |> self$model$refresh_init_mats()
     self$simulator$cache$invalidate()
     invisible(self$simulator)
   }
@@ -157,7 +159,10 @@ TMBSimulatorAdder = function(simulator) {
 TMBReplacer = function(model) {
   self = TMBEditor(model)
   self$obj_fn = function(obj_fn_expr) {
-    self$model$obj_fn = ObjectiveFunction(obj_fn_expr)
+    (obj_fn_expr
+      |> ObjectiveFunction()
+      |> self$model$refresh_obj_fn()
+    )
     self$model
   }
   return_object(self, "TMBReplacer")
@@ -167,12 +172,16 @@ TMBSimulatorReplacer = function(simulator) {
   self = TMBReplacer(simulator$tmb_model)
   self$simulator = simulator
   self$obj_fn = function(obj_fn_expr) {
-    self$model$obj_fn = ObjectiveFunction(obj_fn_expr)
+    (obj_fn_expr
+      |> ObjectiveFunction()
+      |> self$model$refresh_obj_fn()
+    )
     self$simulator$cache$invalidate()
     invisible(self$simulator)
   }
   self$params_frame = function(frame) {
-    self$model$params = OptParamsFrame(frame, self$model$init_mats$.dimnames)
+    new_params = OptParamsFrame(frame, self$model$init_mats$dimnames())
+    self$model$refresh_params(new_params)
     self$simulator$cache$invalidate()
     valid$consistency_params_mats$check(self$model)
     invisible(self$simulator)
@@ -181,7 +190,8 @@ TMBSimulatorReplacer = function(simulator) {
     self$params_frame(data.frame(default, mat, row, col))
   }
   self$random_frame = function(frame) {
-    self$model$random = OptParamsFrame(frame, self$model$init_mats$.dimnames)
+    new_random = OptParamsFrame(frame, self$model$init_mats$dimnames())
+    self$model$refresh_random(new_random)
     self$simulator$cache$invalidate()
     valid$consistency_random_mats$check(self$model)
     invisible(self$simulator)

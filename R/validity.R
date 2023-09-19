@@ -387,7 +387,7 @@ TMBAdaptorValidity <- function() {
     self$all_int,
     self$component_lengths("eval_schedule", 3L, 3L),
     self$component_ranges("p_table_x", 0L, Inf),
-    self$component_ranges("p_table_n", -1L, Inf),
+    self$component_ranges("p_table_n", -2L, Inf),
     self$component_ranges("p_table_i", -1L, Inf),
     self$component_ranges("expr_output_id", 0L, Inf),
     self$component_ranges("expr_sim_block", 0L, 1L),

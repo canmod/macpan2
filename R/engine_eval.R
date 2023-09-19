@@ -34,7 +34,7 @@
 #'   , .matrix_to_return = "x"
 #' )
 #' @importFrom stats as.formula
-engine_eval = function(e, ..., .matrix_to_return, .tmb_cpp = "macpan2", .structure_labels = NullLabels()) {
+engine_eval = function(e, ..., .matrix_to_return, .tmb_cpp = getOption("macpan2_dll"), .structure_labels = NullLabels()) {
   dot_mats = list(...)
 
   ## force two-sided formula for compliance with TMBSimulator

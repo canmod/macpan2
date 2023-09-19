@@ -1,4 +1,5 @@
 #define MP_VERBOSE
+#define TMB_LIB_INIT R_init_macpan2
 #define EIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS
 #include <Eigen/Eigen>
 #include <iostream>
@@ -9,7 +10,6 @@
 #include <math.h> 	// isnan() is defined
 #include <sys/time.h>
 // https://github.com/kaskr/adcomp/wiki/Development#distributing-code
-#define TMB_LIB_INIT R_init_macpan2
 #include <TMB.hpp>
 #include <cppad/local/cond_exp.hpp>
 
@@ -108,6 +108,44 @@ enum macpan2_func {
     //, MP2_LOGIT = 46 // fwrap,null: logit(x)
 };
 
+enum macpan2_meth {
+      METH_FROM_ROWS = 1 // ~ Y[i], "Y", "i"
+    , METH_TO_ROWS = 2 // Y[i] ~ X, c("Y", "X"), "i"
+    , METH_ROWS_TO_ROWS = 3 // Y[i] ~ X[j], c("Y", "X"), c("i", "j")
+    , METH_MAT_MULT_TO_ROWS = 4 // Y[i] ~ A %*% X[j], c("Y", "A", "X"), c("i", "j")
+    , METH_TV_MAT_MULT_TO_ROWS = 5 // Y[i] ~ time_var(A, change_points, block_size, change_pointer) %*% X[j], c("Y", "A", "X"), c("i", "j", "change_points", "block_size", "change_pointer")
+    , METH_GROUP_SUMS = 6 // ~ groupSums(Y, i, n), "Y", c("i", "n")
+    , METH_TV_MAT = 7 // ~ time_var(Y, change_points, block_size, change_pointer), "Y", c("change_points", "block_size", "change_pointer")
+};
+
+void printIntVector(const std::vector<int>& intVector) {
+    for (int element : intVector) {
+        std::cout << element << ' ';
+    }
+    std::cout << std::endl;
+}
+
+void printIntVectorWithLabel(const std::vector<int>& intVector, const std::string& label) {
+    std::cout << label << ": ";
+    printIntVector(intVector);
+}
+
+// Define the function to print a single matrix here
+template <class Type>
+void printMatrix(const matrix<Type>& mat) {
+    // Implement the logic to print a matrix here
+    // You can use a loop to iterate through rows and columns
+    // and print each element.
+    // Example:
+    for (int i = 0; i < mat.rows(); ++i) {
+        for (int j = 0; j < mat.cols(); ++j) {
+            std::cout << mat.coeff(i, j) << ' ';
+        }
+        std::cout << std::endl;
+    }
+}
+
+
 // Helper function
 template<class Type>
 int CheckIndices(
@@ -191,8 +229,7 @@ struct ListOfMatrices {
         }
     }
 
-    ListOfMatrices() { // Default Constructor
-    }
+    ListOfMatrices() {} // Default constructor
 
     // Copy constructor
     ListOfMatrices(const ListOfMatrices& another) {
@@ -204,15 +241,228 @@ struct ListOfMatrices {
         m_matrices = another.m_matrices;
         return *this;
     }
+
+    ListOfMatrices operator[](const std::vector<int>& indices) const {
+        ListOfMatrices<Type> result;
+        //result.m_matrices.clear(); // Ensure the result vector is empty
+        //result.m_matrices.reserve(indices.size()); // Reserve memory for expected matrices
+        for (int index : indices) {
+            if (index >= 0 && index < m_matrices.size()) {
+                result.m_matrices[index] = m_matrices[index];
+            } else {
+                // Handle out-of-range index or negative index as needed
+                throw std::out_of_range("Index out of range");
+            }
+        }
+
+        return result;
+    }
+
+        // Method to print specific matrices in the list
+    void printMatrices(const std::vector<int>& indices, const std::string& label) const {
+        std::cout << label << ": " << std::endl;
+        for (int index : indices) {
+            const matrix<Type>& mat = m_matrices[index];
+            std::cout << "  inner matrix:" << std::endl;
+            printMatrix(mat);
+        }
+    }
+
 };
+
+
+// class for lists of integer vectors that have been
+// 'flattened' into two integer vectors -- one
+// containing the concatenation of the vectors and
+// another containing the lengths of each concatenated
+// vector
+class ListOfIntVecs {
+public:
+    // this nestedVector will contain examples of unflattened
+    // integer vectors
+    std::vector<std::vector<int>> nestedVector;
+
+    // Default constructor
+    ListOfIntVecs() {}
+
+    // Constructor that takes all_ints and vec_lens vectors
+    //   all_ints: concatenated integer vectors
+    //   vec_lens: lengths of each concatenated integer vectors
+    ListOfIntVecs(const std::vector<int>& all_ints, const std::vector<int>& vec_lens) {
+        size_t totalElements = 0;
+        for (int size : vec_lens) {
+            totalElements += size;
+        }
+
+        if (all_ints.size() != totalElements) {
+            // Handle mismatched sizes as needed
+            Rf_error("all_ints and vec_lens sizes do not match.");
+        }
+
+        size_t xIndex = 0;
+        for (int size : vec_lens) {
+            std::vector<int> innerVector;
+            for (int i = 0; i < size; ++i) {
+                innerVector.push_back(all_ints[xIndex++]);
+            }
+            nestedVector.push_back(innerVector);
+        }
+    }
+
+    // Overload [] operator to access the unflattened vectors by index
+    std::vector<int>& operator[](size_t index) {
+        if (index < nestedVector.size()) {
+            return nestedVector[index];
+        } else {
+            // Handle out-of-range access here (you can throw an exception or handle it as needed)
+            Rf_error("Index out of range");
+        }
+    }
+
+    // Method to return the number of unflattened vectors
+    size_t size() const {
+        return nestedVector.size();
+    }
+
+    // Square bracket operator with a vector<int> argument
+    ListOfIntVecs operator[](const std::vector<int>& indices) const {
+        ListOfIntVecs result;
+
+        for (int index : indices) {
+            if (index >= 0 && static_cast<size_t>(index) < nestedVector.size()) {
+                result.nestedVector.push_back(nestedVector[static_cast<size_t>(index)]);
+            } else {
+                // Handle out-of-range index or negative index as needed
+                Rf_error("Index out of range");
+            }
+        }
+
+        return result;
+    }
+
+    // Method to print each vector in the list
+    void printVectors(const std::string& label) const {
+        std::cout << label << ": " << std::endl;
+        for (const std::vector<int>& innerVector : nestedVector) {
+            std::cout << "  inner vector: ";
+            for (int element : innerVector) {
+                std::cout << " " << element;
+            }
+            std::cout << std::endl;
+        }
+    }
+
+    // Method to set the value of the n'th integer vector
+    void setNthIntVec(size_t vec_number, const std::vector<int>& new_vector) {
+        if (vec_number < nestedVector.size()) {
+            nestedVector[vec_number] = new_vector;
+        } else {
+            // Handle out-of-range access here
+            Rf_error("Index out of range");
+        }
+    }
+
+};
+
+vector<int> getNthIntVec(
+        int vec_number,
+        int curr_meth_id,
+        ListOfIntVecs& valid_int_vecs,
+        ListOfIntVecs& meth_int_vecs
+    ) {
+    vector<int> result = valid_int_vecs[meth_int_vecs[curr_meth_id]][vec_number];
+    return result;
+}
+
+
+void setNthIntVec(
+    int vec_number,
+    int curr_meth_id,
+    ListOfIntVecs& valid_int_vecs,
+    ListOfIntVecs& meth_int_vecs,
+    const std::vector<int>& new_vector
+) {
+    vec_number = meth_int_vecs[curr_meth_id][vec_number];
+    if (vec_number >= 0 && vec_number < valid_int_vecs.size()) {
+        valid_int_vecs.setNthIntVec(vec_number, new_vector);
+    }
+    //curr_meth_int_vecs = std::vector<int>
+    //if (curr_meth_id >= 0 && curr_meth_id < curr_meth_int_vecs.size()) {
+    //    curr_meth_int_vecs = meth_int_vecs[curr_meth_id];
+    //} else {
+    //    Rf_error("curr_meth_id is out of range.");
+    //}
+    //if (vec_number >= 0 && vec_number < valid_int_vecs.size()) {
+    //    valid_int_vecs.setNthIntVec(vec_number, new_vector);
+    //} else {
+    //    Rf_error("vec_number is out of range.");
+    //}
+}
+
+
+int getNthMatIndex(
+        int mat_number,
+        int curr_meth_id,
+        ListOfIntVecs& meth_mats
+) {
+    //printIntVectorWithLabel(meth_mats[curr_meth_id], "mat index: ");
+    int result = meth_mats[curr_meth_id][mat_number];
+    return result;
+}
+
+
+template<class Type>
+matrix<Type> getNthMat(
+        int mat_number,
+        int curr_meth_id,
+        ListOfMatrices<Type>& valid_vars,
+        ListOfIntVecs& meth_mats
+
+) {
+    int i = getNthMatIndex(mat_number, curr_meth_id, meth_mats);
+    matrix<Type> result = valid_vars.m_matrices[i];
+    return result;
+}
+
 
 template<class Type>
 class ExprEvaluator {
+private:
+    vector<int> mats_save_hist;
+    vector<int> table_x;
+    vector<int> table_n;
+    vector<int> table_i;
+    vector<int> meth_type_id; // vector over user defined methods, identifying a type of method
+    ListOfIntVecs meth_mats;
+    ListOfIntVecs meth_int_vecs;
+    ListOfIntVecs valid_int_vecs;
+    vector<Type> valid_literals;
 public:
     // constructor
-    ExprEvaluator() {
+    ExprEvaluator(
+        vector<int>& mats_save_hist_,
+        vector<int>& table_x_,
+        vector<int>& table_n_,
+        vector<int>& table_i_,
+        vector<int>& meth_type_id_,
+        ListOfIntVecs& meth_mats_,
+        ListOfIntVecs& meth_int_vecs_,
+        ListOfIntVecs& valid_int_vecs_,
+        vector<Type>& valid_literals_
+
+    ) {
         error_code = 0;	// non-zero means error has occurred; otherwise, no error
         expr_row = 0;
+        mats_save_hist = mats_save_hist_;
+        table_x = table_x_;
+        table_n = table_n_;
+        table_i = table_i_;
+        meth_type_id = meth_type_id_;
+        meth_mats = meth_mats_;
+        meth_int_vecs = meth_int_vecs_;
+        valid_int_vecs = valid_int_vecs_;
+        valid_literals = valid_literals_;
+
         strcpy(error_message, "OK");
     };
 
@@ -227,45 +477,181 @@ public:
         error_code = code;
         expr_row = row;
         strcpy(error_message, message);
-        std::cout << "MACPAN ERROR #" << (int) code << ": " << message << std::endl;
     };
 
     // evaluators
     matrix<Type> EvalExpr(
-        const vector<ListOfMatrices<Type> >& hist,
-        int t,
-        const vector<int>& mats_save_hist,
-        const vector<int>& table_x,
-        const vector<int>& table_n,
-        const vector<int>& table_i,
-        ListOfMatrices<Type>& valid_vars,
-        const vector<Type>& valid_literals,
-        int row = 0
+        const vector<ListOfMatrices<Type> >& hist, // current simulation history
+        int t, // current time step
+        ListOfMatrices<Type>& valid_vars, // current list of values of each matrix
+        int row = 0 // current expression parse table row being evaluated
     )
     {
-        // Variables to use locally in function bodies
-        matrix<Type> m, m1, m2;  // return values
+
+        // Variables to use locally in 'macpan2 function' and
+        // 'macpan2 method' bodies -- scare quotes to clarify that
+        // these are not real functions and methods in either the
+        // c++ or r sense.
+        matrix<Type> m, m1, m2, m3, m4, m5;  // return values
+        vector<int>  v, v1, v2, v3, v4, v5;  // method integer vectors
+        vector<int> u;
+        matrix<Type> Y, X, A;
         matrix<Type> timeIndex; // for rbind_time
         Type sum, s, eps, var, by;  // intermediate scalars
-        int rows, cols, lag, rowIndex, colIndex, matIndex, reps, cp, off, size, sz, start, err_code, err_code1, err_code2;
+        int rows, cols, lag, rowIndex, colIndex, matIndex, grpIndex, reps, cp, off, size;
+        int sz, start, err_code, err_code1, err_code2, curr_meth_id;
+        // size_t numMats;
+        // size_t numIntVecs;
+        std::vector<int> curr_meth_mat_id_vec;
+        std::vector<int> curr_meth_int_id_vec;
+        vector<matrix<Type>> meth_args(meth_mats.size());
+        ListOfIntVecs meth_int_args;
 
-        if (GetErrorCode()) return m; // Check if error has already happened at some point of the recursive call.
+        // Check if error has already happened at some point
+        // of the recursive call.
+        if (GetErrorCode()) return m;
 
         switch (table_n[row]) {
+            case -2: // methods (pre-processed matrices)
+
+                //std::cout << "---------------" << std::endl;
+                //std::cout << "IN METHODS CASE" << std::endl;
+                //std::cout << "---------------" << std::endl;
+
+                // METH_FROM_ROWS = 1 // ~ Y[i], "Y", "i"
+                // METH_TO_ROWS = 2 // Y[i] ~ X, c("Y", "X"), "i"
+                // METH_ROWS_TO_ROWS = 3 // Y[i] ~ X[j], c("Y", "X"), c("i", "j")
+                // METH_MAT_MULT_TO_ROWS = 4 // Y[i] ~ A %*% X[j], c("Y", "A", "X"), c("i", "j")
+                // METH_TV_MAT_MULT_TO_ROWS = 5 // Y[i] ~ time_var(A, change_points, block_size, change_pointer) %*% X[j], c("Y", "A", "X"), c("i", "j", "change_points", "block_size", "change_pointer")
+                // METH_GROUP_SUMS = 6 // ~ groupSums(Y, i, n), "Y", c("i", "n")
+                // METH_TV_MAT = 7 // ~ time_var(Y, change_points, block_size, change_pointer), "Y", c("change_points", "block_size", "change_pointer")
+
+                curr_meth_id = table_x[row];
+
+                switch(meth_type_id[curr_meth_id]) {
+                    case METH_FROM_ROWS:
+                        //std::cout << "-----------------" << std::endl;
+                        //std::cout << "IN METH_FROM_ROWS" << std::endl;
+                        //std::cout << "-----------------" << std::endl;
+                        m = getNthMat(0, curr_meth_id, valid_vars, meth_mats);
+                        //printMatrix(m);
+                        v = getNthIntVec(0, curr_meth_id, valid_int_vecs, meth_int_vecs);
+                        //printIntVectorWithLabel(v, "");
+                        m1 = matrix<Type>::Zero(v.size(), m.cols());
+                        for (int i=0; i<v.size(); i++)
+                            m1.row(i) = m.row(v[i]);
+                        return m1;
+                    case METH_MAT_MULT_TO_ROWS:
+                        //std::cout << "-----------------------" << std::endl;
+                        //std::cout << "IN METH_MATMULT_TO_ROWS" << std::endl;
+                        //std::cout << "-----------------------" << std::endl;
+
+                        matIndex = getNthMatIndex(0, curr_meth_id, meth_mats);
+                        m = getNthMat(1, curr_meth_id, valid_vars, meth_mats);
+                        m1 = getNthMat(2, curr_meth_id, valid_vars, meth_mats);
+                        v = getNthIntVec(0, curr_meth_id, valid_int_vecs, meth_int_vecs);
+                        v1 = getNthIntVec(1, curr_meth_id, valid_int_vecs, meth_int_vecs);
+                        m2 = matrix<Type>::Zero(v1.size(), m1.cols());
+
+                        //std::cout << "Y index" << matIndex << std::endl;
+                        //std::cout << "A" << m << std::endl;
+                        //std::cout << "X" << m1 << std::endl;
+                        //printIntVectorWithLabel(v, "i");
+                        //printIntVectorWithLabel(v1, "j");
+
+                        for (int i=0; i<v1.size(); i++) {
+                            //std::cout << m1.row(v1[i]) << std::endl;
+                            //std::cout << "here" << std::endl;
+                            m2.row(i) = m1.row(v1[i]);
+                            //std::cout << "now here" << std::endl;
+                        }
+
+                        //std::cout << "X_j" << m1 << std::endl;
+
+                        m3 = m * m2;
+
+                        for (int k=0; k<v.size(); k++)
+                            valid_vars.m_matrices[matIndex].row(v[k]) = m3.row(k);
+
+                        return m4; // empty matrix
+
+                    case METH_GROUP_SUMS:
+                        m = getNthMat(0, curr_meth_id, valid_vars, meth_mats);
+                        v = getNthIntVec(0, curr_meth_id, valid_int_vecs, meth_int_vecs);
+                        rows = getNthIntVec(1, curr_meth_id, valid_int_vecs, meth_int_vecs)[0];
+                        m1 = matrix<Type>::Zero(rows, 1);
+
+                        for (int i = 0; i < m.rows(); i++) {
+                            rowIndex = v[i];
+                            m1.coeffRef(rowIndex,0) += m.coeff(i,0);
+                        }
+                        return m1;
+
+                    case METH_TV_MAT:
+                        //std::cout << "--------------" << std::endl;
+                        //std::cout << "IN METH_TV_MAT" << std::endl;
+                        //std::cout << "--------------" << std::endl;
+                        m = getNthMat(0, curr_meth_id, valid_vars, meth_mats); // Y -- row-binded blocks, each corresponding to a change-point
+                        v = getNthIntVec(0, curr_meth_id, valid_int_vecs, meth_int_vecs); // t -- change-point times
+                        rows = getNthIntVec(1, curr_meth_id, valid_int_vecs, meth_int_vecs)[0]; // n -- block size
+                        cols = m.cols();
+                        u = getNthIntVec(2, curr_meth_id, valid_int_vecs, meth_int_vecs); // i -- time-group pointer
+
+                        //std::cout << "m: " << m << std::endl;
+                        //printIntVectorWithLabel(v, "v");
+                        //printIntVectorWithLabel(u, "u");
+                        //std::cout << "rows: " << rows << std::endl;
+                        //std::cout << "cols: " << cols << std::endl;
+
+                        //printIntVectorWithLabel(v, "v");
+                        off = u[0];
+                        grpIndex = off + 1;
+                        //std::cout << "off: " << off << std::endl;
+                        if (grpIndex < v.size()) {
+                            if (v[grpIndex] == t) {
+                                //std::cout << "here" << std::endl;
+                                //std::cout << "off: " << off << std::endl;
+                                u[0] = grpIndex;
+                                //printIntVectorWithLabel(u, "u");
+                                setNthIntVec(2, curr_meth_id, valid_int_vecs, meth_int_vecs, u);
+                            }
+                        }
+                        //std::cout << "t: " << t << std::endl;
+                        //std::cout << "cp: " << cp << std::endl;
+
+                        //cp = v[u[0] + 1];
+                        //if (cp == t) {
+                        //    u[0] = u[0] + 1;
+                        //}
+                        //std::cout << "off:  " << off << std::endl;
+                        return m.block(rows * off, 0, rows, cols);
+
+                        // m = args[0];
+                        // off = CppAD::Integer(args[0].coeff(0, 0));
+                        // cp = CppAD::Integer(args[1].coeff(off + 1, 0));
+                        // if (cp == t) {
+                        //     m.coeffRef(0,0) = off + 1;
+                        // }
+
+
+
+                    default:
+                        SetError(254, "invalid method in arithmetic expression", row);
+                        return m;
+                }
             case -1: // literals
                 m = matrix<Type>::Zero(1,1);
                 m.coeffRef(0,0) = valid_literals[table_x[row]];
                 return m;
-            case 0:
+            case 0: // matrices
                 m = valid_vars.m_matrices[table_x[row]];
                 return m;
-            default:
+            default: // expressions
                 int n = table_n[row];
                 vector<matrix<Type> > args(n);
                 vector<int> index2mats(n);
                 for (int i=0; i<n; i++) {
-                    args[i] = EvalExpr(hist, t, mats_save_hist, table_x, table_n, table_i, \
-                                    valid_vars, valid_literals, table_i[row]+i);
+                    args[i] = EvalExpr(hist, t, valid_vars, table_i[row]+i);
 
                     // Check here if index2mats actually points at
                     // a matrix and not a function. Later on if index2mats
@@ -1880,12 +2266,13 @@ private:
 #define REPORT_ERROR { \
     int error = exprEvaluator.GetErrorCode(); \
     int expr_row = exprEvaluator.GetExprRow(); \
+    const char* err_msg = exprEvaluator.GetErrorMessage(); \
     REPORT(error); \
     REPORT(expr_row); \
  \
-    logfile.open (LOG_FILE_NAME, std::ios_base::app); \
+    logfile.open (log_file, std::ios_base::app); \
     logfile << "Error code = " << error << std::endl; \
-    logfile << "Error message = " << exprEvaluator.GetErrorMessage() << std::endl; \
+    logfile << "Error message = " << err_msg << std::endl; \
     logfile << "Expression row = " << expr_row << std::endl; \
     logfile.close(); \
 }
@@ -1926,7 +2313,7 @@ void UpdateSimulationHistory(
 }
 
 
-const char LOG_FILE_NAME[] = "macpan2.log";
+// const char LOG_FILE_NAME[] = "macpan2.log";
 
 // "main" function
 template<class Type>
@@ -1936,8 +2323,12 @@ Type objective_function<Type>::operator() ()
         std::cout << "============== objective_function =============" << std::endl;
     #endif
 
+    // Log file path
+    DATA_STRING(log_file);
+
     std::ofstream logfile;
-    logfile.open (LOG_FILE_NAME);
+    logfile.open (log_file);
+    //logfile.open (LOG_FILE_NAME);
     logfile << "======== log file of MacPan2 ========\n";
     logfile.close();
 
@@ -1984,6 +2375,18 @@ Type objective_function<Type>::operator() ()
 
     // Literals
     DATA_VECTOR(literals);
+
+    // Methods
+    DATA_IVECTOR(meth_type_id);
+    // DATA_IVECTOR(meth_id);
+    DATA_IVECTOR(meth_n_mats);
+    DATA_IVECTOR(meth_n_int_vecs);
+    DATA_IVECTOR(meth_mat_id);
+    DATA_IVECTOR(meth_int_vec_id);
+
+    // Constant Integer Vectors
+    DATA_IVECTOR(const_int_vec);
+    DATA_IVECTOR(const_n_int_vecs);
 
     // Objective function parse table
     DATA_IVECTOR(o_table_n);
@@ -2057,10 +2460,34 @@ Type objective_function<Type>::operator() ()
     );
 
 
+    ListOfIntVecs const_int_vecs(const_int_vec, const_n_int_vecs);
+    ListOfIntVecs meth_mats(meth_mat_id, meth_n_mats);
+    ListOfIntVecs meth_int_vecs(meth_int_vec_id, meth_n_int_vecs);
 
     //////////////////////////////////
     // Define an expression evaluator
-    ExprEvaluator<Type> exprEvaluator;
+    ExprEvaluator<Type> exprEvaluator(
+        mats_save_hist,
+        p_table_x,
+        p_table_n,
+        p_table_i,
+        meth_type_id,
+        meth_mats,
+        meth_int_vecs,
+        const_int_vecs,
+        literals
+    );
+    ExprEvaluator<Type> objFunEvaluator(
+        mats_save_hist, // this seems odd given that objective functions can't access history
+        o_table_x,
+        o_table_n,
+        o_table_i,
+        meth_type_id,
+        meth_mats,
+        meth_int_vecs,
+        const_int_vecs,
+        literals
+    );
     //////////////////////////////////
 
     // 3 Pre-simulation
@@ -2075,30 +2502,14 @@ Type objective_function<Type>::operator() ()
         matrix<Type> result;
         if (expr_sim_block[i]==1) {
             SIMULATE {
-                result  = exprEvaluator.EvalExpr(
-                    simulation_history,
-                    0,
-                    mats_save_hist,
-                    p_table_x,
-                    p_table_n,
-                    p_table_i,
-                    mats,
-                    literals,
-                    p_table_row
+                result = exprEvaluator.EvalExpr(
+                    simulation_history, 0, mats, p_table_row
                 );
             }
         }
         else
-            result  = exprEvaluator.EvalExpr(
-                simulation_history,
-                0,
-                mats_save_hist,
-                p_table_x,
-                p_table_n,
-                p_table_i,
-                mats,
-                literals,
-                p_table_row
+            result = exprEvaluator.EvalExpr(
+                simulation_history, 0, mats, p_table_row
             );
 
         if (exprEvaluator.GetErrorCode()) {
@@ -2138,29 +2549,13 @@ Type objective_function<Type>::operator() ()
             if (expr_sim_block[i]==1) {
                 SIMULATE {
                     result = exprEvaluator.EvalExpr(
-                        simulation_history,
-                        k+1,
-                        mats_save_hist,
-                        p_table_x,
-                        p_table_n,
-                        p_table_i,
-                        mats,
-                        literals,
-                        p_table_row2
+                        simulation_history, k+1, mats, p_table_row2
                    );
                 }
             }
             else
                 result = exprEvaluator.EvalExpr(
-                    simulation_history,
-                    k+1,
-                    mats_save_hist,
-                    p_table_x,
-                    p_table_n,
-                    p_table_i,
-                    mats,
-                    literals,
-                    p_table_row2
+                    simulation_history, k+1, mats, p_table_row2
                );
 
             if (exprEvaluator.GetErrorCode()) {
@@ -2200,29 +2595,13 @@ Type objective_function<Type>::operator() ()
         if (expr_sim_block[i]==1) {
             SIMULATE {
                 result = exprEvaluator.EvalExpr(
-                    simulation_history,
-                    time_steps+1,
-                    mats_save_hist,
-                    p_table_x,
-                    p_table_n,
-                    p_table_i,
-                    mats,
-                    literals,
-                    p_table_row
+                    simulation_history, time_steps+1, mats, p_table_row
                 );
             }
         }
         else
             result  = exprEvaluator.EvalExpr(
-                simulation_history,
-                time_steps+1,
-                mats_save_hist,
-                p_table_x,
-                p_table_n,
-                p_table_i,
-                mats,
-                literals,
-                p_table_row
+                simulation_history, time_steps+1, mats, p_table_row
             );
 
         if (exprEvaluator.GetErrorCode()) {
@@ -2319,17 +2698,7 @@ Type objective_function<Type>::operator() ()
 
     // 7 Calc the return of the objective function
     matrix<Type> ret;
-    ret = exprEvaluator.EvalExpr(
-              simulation_history,
-              time_steps+2,
-              mats_save_hist,
-              o_table_x,
-              o_table_n,
-              o_table_i,
-              mats,
-              literals,
-              0
-          );
+    ret = objFunEvaluator.EvalExpr(simulation_history, time_steps+2, mats, 0);
 
     if (exprEvaluator.GetErrorCode()) {
         REPORT_ERROR;
