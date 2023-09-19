@@ -110,9 +110,12 @@ enum macpan2_func {
 
 enum macpan2_meth {
       METH_FROM_ROWS = 1 // ~ Y[i], "Y", "i"
-    , METH_MATMULT_TO_ROWS = 2 // Y[i] ~ A %*% X[j], c("Y", "A", "X"), c("i", "j")
-    , METH_GROUP_SUMS = 3 // ~ groupSums(Y, i, n), "Y", c("i", "n")
-    , METH_TIME_BLOCK = 4 // ~ time_block(Y, t, n)
+    , METH_TO_ROWS = 2 // Y[i] ~ X, c("Y", "X"), "i"
+    , METH_ROWS_TO_ROWS = 3 // Y[i] ~ X[j], c("Y", "X"), c("i", "j")
+    , METH_MAT_MULT_TO_ROWS = 4 // Y[i] ~ A %*% X[j], c("Y", "A", "X"), c("i", "j")
+    , METH_TV_MAT_MULT_TO_ROWS = 5 // Y[i] ~ time_var(A, change_points, block_size, change_pointer) %*% X[j], c("Y", "A", "X"), c("i", "j", "change_points", "block_size", "change_pointer")
+    , METH_GROUP_SUMS = 6 // ~ groupSums(Y, i, n), "Y", c("i", "n")
+    , METH_TV_MAT = 7 // ~ time_var(Y, change_points, block_size, change_pointer), "Y", c("change_points", "block_size", "change_pointer")
 };
 
 void printIntVector(const std::vector<int>& intVector) {
@@ -240,11 +243,9 @@ struct ListOfMatrices {
     }
 
     ListOfMatrices operator[](const std::vector<int>& indices) const {
-        std::cout << "hereherher 1" << std::endl;
         ListOfMatrices<Type> result;
         //result.m_matrices.clear(); // Ensure the result vector is empty
         //result.m_matrices.reserve(indices.size()); // Reserve memory for expected matrices
-        std::cout << "hereherher 1" << std::endl;
         for (int index : indices) {
             if (index >= 0 && index < m_matrices.size()) {
                 result.m_matrices[index] = m_matrices[index];
@@ -253,7 +254,6 @@ struct ListOfMatrices {
                 throw std::out_of_range("Index out of range");
             }
         }
-        std::cout << "hereherher 2" << std::endl;
 
         return result;
     }
@@ -352,6 +352,16 @@ public:
         }
     }
 
+    // Method to set the value of the n'th integer vector
+    void setNthIntVec(size_t vec_number, const std::vector<int>& new_vector) {
+        if (vec_number < nestedVector.size()) {
+            nestedVector[vec_number] = new_vector;
+        } else {
+            // Handle out-of-range access here
+            Rf_error("Index out of range");
+        }
+    }
+
 };
 
 vector<int> getNthIntVec(
@@ -365,11 +375,37 @@ vector<int> getNthIntVec(
 }
 
 
+void setNthIntVec(
+    int vec_number,
+    int curr_meth_id,
+    ListOfIntVecs& valid_int_vecs,
+    ListOfIntVecs& meth_int_vecs,
+    const std::vector<int>& new_vector
+) {
+    vec_number = meth_int_vecs[curr_meth_id][vec_number];
+    if (vec_number >= 0 && vec_number < valid_int_vecs.size()) {
+        valid_int_vecs.setNthIntVec(vec_number, new_vector);
+    }
+    //curr_meth_int_vecs = std::vector<int>
+    //if (curr_meth_id >= 0 && curr_meth_id < curr_meth_int_vecs.size()) {
+    //    curr_meth_int_vecs = meth_int_vecs[curr_meth_id];
+    //} else {
+    //    Rf_error("curr_meth_id is out of range.");
+    //}
+    //if (vec_number >= 0 && vec_number < valid_int_vecs.size()) {
+    //    valid_int_vecs.setNthIntVec(vec_number, new_vector);
+    //} else {
+    //    Rf_error("vec_number is out of range.");
+    //}
+}
+
+
 int getNthMatIndex(
         int mat_number,
         int curr_meth_id,
         ListOfIntVecs& meth_mats
 ) {
+    //printIntVectorWithLabel(meth_mats[curr_meth_id], "mat index: ");
     int result = meth_mats[curr_meth_id][mat_number];
     return result;
 }
@@ -462,7 +498,7 @@ public:
         matrix<Type> Y, X, A;
         matrix<Type> timeIndex; // for rbind_time
         Type sum, s, eps, var, by;  // intermediate scalars
-        int rows, cols, lag, rowIndex, colIndex, matIndex, reps, cp, off, size;
+        int rows, cols, lag, rowIndex, colIndex, matIndex, grpIndex, reps, cp, off, size;
         int sz, start, err_code, err_code1, err_code2, curr_meth_id;
         // size_t numMats;
         // size_t numIntVecs;
@@ -478,30 +514,37 @@ public:
         switch (table_n[row]) {
             case -2: // methods (pre-processed matrices)
 
-                std::cout << "---------------" << std::endl;
-                std::cout << "IN METHODS CASE" << std::endl;
-                std::cout << "---------------" << std::endl;
+                //std::cout << "---------------" << std::endl;
+                //std::cout << "IN METHODS CASE" << std::endl;
+                //std::cout << "---------------" << std::endl;
+
+                // METH_FROM_ROWS = 1 // ~ Y[i], "Y", "i"
+                // METH_TO_ROWS = 2 // Y[i] ~ X, c("Y", "X"), "i"
+                // METH_ROWS_TO_ROWS = 3 // Y[i] ~ X[j], c("Y", "X"), c("i", "j")
+                // METH_MAT_MULT_TO_ROWS = 4 // Y[i] ~ A %*% X[j], c("Y", "A", "X"), c("i", "j")
+                // METH_TV_MAT_MULT_TO_ROWS = 5 // Y[i] ~ time_var(A, change_points, block_size, change_pointer) %*% X[j], c("Y", "A", "X"), c("i", "j", "change_points", "block_size", "change_pointer")
+                // METH_GROUP_SUMS = 6 // ~ groupSums(Y, i, n), "Y", c("i", "n")
+                // METH_TV_MAT = 7 // ~ time_var(Y, change_points, block_size, change_pointer), "Y", c("change_points", "block_size", "change_pointer")
 
                 curr_meth_id = table_x[row];
 
                 switch(meth_type_id[curr_meth_id]) {
                     case METH_FROM_ROWS:
-                        std::cout << "-----------------" << std::endl;
-                        std::cout << "IN METH_FROM_ROWS" << std::endl;
-                        std::cout << "-----------------" << std::endl;
+                        //std::cout << "-----------------" << std::endl;
+                        //std::cout << "IN METH_FROM_ROWS" << std::endl;
+                        //std::cout << "-----------------" << std::endl;
                         m = getNthMat(0, curr_meth_id, valid_vars, meth_mats);
-                        printMatrix(m);
+                        //printMatrix(m);
                         v = getNthIntVec(0, curr_meth_id, valid_int_vecs, meth_int_vecs);
-                        printIntVectorWithLabel(v, "");
+                        //printIntVectorWithLabel(v, "");
                         m1 = matrix<Type>::Zero(v.size(), m.cols());
                         for (int i=0; i<v.size(); i++)
                             m1.row(i) = m.row(v[i]);
                         return m1;
-                    case METH_MATMULT_TO_ROWS:
-                        // Y_u. = AX_v.
-                        std::cout << "-----------------------" << std::endl;
-                        std::cout << "IN METH_MATMULT_TO_ROWS" << std::endl;
-                        std::cout << "-----------------------" << std::endl;
+                    case METH_MAT_MULT_TO_ROWS:
+                        //std::cout << "-----------------------" << std::endl;
+                        //std::cout << "IN METH_MATMULT_TO_ROWS" << std::endl;
+                        //std::cout << "-----------------------" << std::endl;
 
                         matIndex = getNthMatIndex(0, curr_meth_id, meth_mats);
                         m = getNthMat(1, curr_meth_id, valid_vars, meth_mats);
@@ -510,20 +553,20 @@ public:
                         v1 = getNthIntVec(1, curr_meth_id, valid_int_vecs, meth_int_vecs);
                         m2 = matrix<Type>::Zero(v1.size(), m1.cols());
 
-                        std::cout << "Y index" << matIndex << std::endl;
-                        std::cout << "A" << m << std::endl;
-                        std::cout << "X" << m1 << std::endl;
-                        printIntVectorWithLabel(v, "i");
-                        printIntVectorWithLabel(v1, "j");
+                        //std::cout << "Y index" << matIndex << std::endl;
+                        //std::cout << "A" << m << std::endl;
+                        //std::cout << "X" << m1 << std::endl;
+                        //printIntVectorWithLabel(v, "i");
+                        //printIntVectorWithLabel(v1, "j");
 
                         for (int i=0; i<v1.size(); i++) {
-                            std::cout << m1.row(v1[i]) << std::endl;
-                            std::cout << "here" << std::endl;
+                            //std::cout << m1.row(v1[i]) << std::endl;
+                            //std::cout << "here" << std::endl;
                             m2.row(i) = m1.row(v1[i]);
-                            std::cout << "now here" << std::endl;
+                            //std::cout << "now here" << std::endl;
                         }
 
-                        std::cout << "X_j" << m1 << std::endl;
+                        //std::cout << "X_j" << m1 << std::endl;
 
                         m3 = m * m2;
 
@@ -544,12 +587,52 @@ public:
                         }
                         return m1;
 
-                    case METH_TIME_BLOCK:
-                        // ~ time_block(Y, t, n)
+                    case METH_TV_MAT:
+                        //std::cout << "--------------" << std::endl;
+                        //std::cout << "IN METH_TV_MAT" << std::endl;
+                        //std::cout << "--------------" << std::endl;
                         m = getNthMat(0, curr_meth_id, valid_vars, meth_mats); // Y -- row-binded blocks, each corresponding to a change-point
                         v = getNthIntVec(0, curr_meth_id, valid_int_vecs, meth_int_vecs); // t -- change-point times
                         rows = getNthIntVec(1, curr_meth_id, valid_int_vecs, meth_int_vecs)[0]; // n -- block size
-                        m1 = matrix<Type>::Zero(rows, m.cols());
+                        cols = m.cols();
+                        u = getNthIntVec(2, curr_meth_id, valid_int_vecs, meth_int_vecs); // i -- time-group pointer
+
+                        //std::cout << "m: " << m << std::endl;
+                        //printIntVectorWithLabel(v, "v");
+                        //printIntVectorWithLabel(u, "u");
+                        //std::cout << "rows: " << rows << std::endl;
+                        //std::cout << "cols: " << cols << std::endl;
+
+                        //printIntVectorWithLabel(v, "v");
+                        off = u[0];
+                        grpIndex = off + 1;
+                        //std::cout << "off: " << off << std::endl;
+                        if (grpIndex < v.size()) {
+                            if (v[grpIndex] == t) {
+                                //std::cout << "here" << std::endl;
+                                //std::cout << "off: " << off << std::endl;
+                                u[0] = grpIndex;
+                                //printIntVectorWithLabel(u, "u");
+                                setNthIntVec(2, curr_meth_id, valid_int_vecs, meth_int_vecs, u);
+                            }
+                        }
+                        //std::cout << "t: " << t << std::endl;
+                        //std::cout << "cp: " << cp << std::endl;
+
+                        //cp = v[u[0] + 1];
+                        //if (cp == t) {
+                        //    u[0] = u[0] + 1;
+                        //}
+                        //std::cout << "off:  " << off << std::endl;
+                        return m.block(rows * off, 0, rows, cols);
+
+                        // m = args[0];
+                        // off = CppAD::Integer(args[0].coeff(0, 0));
+                        // cp = CppAD::Integer(args[1].coeff(off + 1, 0));
+                        // if (cp == t) {
+                        //     m.coeffRef(0,0) = off + 1;
+                        // }
+
 
 
                     default:

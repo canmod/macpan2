@@ -132,11 +132,14 @@ MethodTypeUtils = function() {
   return_object(self, "MethodTypesUtil")
 }
 MethodTypes = function() {
-   self = MethodTypeUtils()
-  self$method_ordering = c("meth_from_rows", "meth_matmult_to_rows", "meth_group_sums", "meth_time_block")
+  self = MethodTypeUtils()
+  self$method_ordering = c("meth_from_rows", "meth_to_rows", "meth_rows_to_rows", "meth_mat_mult_to_rows", "meth_tv_mat_mult_to_rows", "meth_group_sums", "meth_tv_mat")
   self$meth_from_rows = MethodPrototype(~ Y[i], "Y", "i")
-  self$meth_matmult_to_rows = MethodPrototype(Y[i] ~ A %*% X[j], c("Y", "A", "X"), c("i", "j"))
+  self$meth_to_rows = MethodPrototype(Y[i] ~ X, c("Y", "X"), "i")
+  self$meth_rows_to_rows = MethodPrototype(Y[i] ~ X[j], c("Y", "X"), c("i", "j"))
+  self$meth_mat_mult_to_rows = MethodPrototype(Y[i] ~ A %*% X[j], c("Y", "A", "X"), c("i", "j"))
+  self$meth_tv_mat_mult_to_rows = MethodPrototype(Y[i] ~ time_var(A, change_points, block_size, change_pointer) %*% X[j], c("Y", "A", "X"), c("i", "j", "change_points", "block_size", "change_pointer"))
   self$meth_group_sums = MethodPrototype(~ groupSums(Y, i, n), "Y", c("i", "n"))
-  self$meth_time_block = MethodPrototype(~ time_block(Y, t, n))
+  self$meth_tv_mat = MethodPrototype(~ time_var(Y, change_points, block_size, change_pointer), "Y", c("change_points", "block_size", "change_pointer"))
   return_object(self, "MethodTypes")
 }
