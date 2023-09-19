@@ -740,7 +740,7 @@ TMBModel = function(
     random = OptParamsList(),
     obj_fn = ObjectiveFunction(~0),
     time_steps = Time(0L),
-    do_pred_sdreport = 1L
+    do_pred_sdreport = TRUE
   ) {
   ## Inheritance
   self = Base()

@@ -612,7 +612,7 @@ If you get error messages when running the objective function, `sir_simulator$re
 fit <- sir_simulator$optimize$nlminb()
 ```
 
-## Measles Data
+## Measles Data -- In-Progress
 
 Here is a reasonably difficult problem -- fit an SIR model to weekly measles incidence data from London UK over about six decades.
 
@@ -702,7 +702,7 @@ plot(measles$date, simulated_incidence, type = "l", xlab = "time")
 It looks nothing like the observed measles series, but illustrates the ability to generate complex incidence patterns not present in the simple SIR model without radial basis functions and waning immunity.
 
 
-```{r rbf_model, echo=FALSE}
+```{r rbf_model, echo=FALSE, eval=FALSE}
 simulator = ("https://github.com"
   |> file.path("canmod/macpan2")
   |> file.path("raw/main")
@@ -752,12 +752,12 @@ simulator$optimize$nlminb(control = list(eval.max = 10000, iter.max = 10000, tra
 
 
 
-```{r rbf_opt_get}
+```{r rbf_opt_get, eval = FALSE}
 simulator$optimization_history$get()[[3]]  ## the 3 is there because we tried two other times
 ```
 
 Here the red data are fitted and black observed.
-```{r plot_rbf_res, fig.width=6}
+```{r plot_rbf_res, fig.width=6, eval = FALSE}
 simulated_incidence = filter(simulator$report(.phases = "during"), matrix == "incidence")$value
 plot(measles$date, measles$cases, xlab = "time", type = "l")
 lines(measles$date, simulated_incidence, col = 2)
