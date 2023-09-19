@@ -2393,6 +2393,9 @@ Type objective_function<Type>::operator() ()
     DATA_IVECTOR(o_table_x);
     DATA_IVECTOR(o_table_i);
 
+    // Flags
+    DATA_INTEGER(values_adreport);
+
     // DATA_STRUCT(settings, settings_struct);
 
     #ifdef MP_VERBOSE
@@ -2688,7 +2691,9 @@ Type objective_function<Type>::operator() ()
     }
 
     REPORT(values)
-    ADREPORT(values)
+    if (values_adreport == 1) {
+       ADREPORT(values)
+    }
 
 
     // 7 Calc the return of the objective function

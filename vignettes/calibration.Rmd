@@ -612,7 +612,7 @@ If you get error messages when running the objective function, `sir_simulator$re
 fit <- sir_simulator$optimize$nlminb()
 ```
 
-## Measles Data
+## Measles Data -- In-Progress
 
 Here is a reasonably difficult problem -- fit an SIR model to weekly measles incidence data from London UK over about six decades.
 

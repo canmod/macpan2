@@ -11,6 +11,7 @@ TMBModel(
   random = OptParamsList(),
   obj_fn = ObjectiveFunction(~0),
   time_steps = Time(0L),
+  do_pred_sdreport = TRUE,
   engine_methods = EngineMethods(),
   log_file = LogFile()
 )
@@ -28,9 +29,12 @@ TMBModel(
 
 \item{time_steps}{An object of class \code{\link{Time}}.}
 
+\item{do_pred_sdreport}{A logical flag (\code{FALSE}/\code{TRUE}, or any value evaluating to 1 for \code{TRUE}) indicating whether predicted values should be accessible via \code{TMB::sdreport()}}
+
 \item{engine_methods}{An object of class \code{\link{EngineMethods}}.}
 
 \item{log_file}{An object of class \code{\link{LogFile}}.}
+
 }
 \value{
 Object of class \code{TMBModel} with the following methods.

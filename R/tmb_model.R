@@ -9,6 +9,7 @@
 #' @param random An object of class \code{\link{OptParamsList}}.
 #' @param obj_fn An object of class \code{\link{ObjectiveFunction}}.
 #' @param time_steps An object of class \code{\link{Time}}.
+#' @param do_pred_sdreport A logical flag (\code{FALSE}/\code{TRUE}, or any value evaluating to 1 for \code{TRUE}) indicating whether predicted values should be accessible via \code{TMB::sdreport()}
 #' @param engine_methods An object of class \code{\link{EngineMethods}}.
 #' @param log_file An object of class \code{\link{LogFile}}.
 #'
@@ -68,7 +69,7 @@
 #' @importFrom TMB MakeADFun
 #' @export
 TMBModel = function(
-     init_mats = MatsList()
+      init_mats = MatsList()
     , expr_list = ExprList()
     , params = OptParamsList(0)
     , random = OptParamsList()
@@ -76,6 +77,7 @@ TMBModel = function(
     , time_steps = Time(0L)
     , engine_methods = EngineMethods()
     , log_file = LogFile()
+    , do_pred_sdreport = TRUE
   ) {
   ## Inheritance
   self = Base()
@@ -87,6 +89,7 @@ TMBModel = function(
   self$random = random
   self$obj_fn = obj_fn
   self$time_steps = time_steps
+  self$do_pred_sdreport = do_pred_sdreport
   self$engine_methods = engine_methods
   self$log_file = log_file
 
@@ -102,7 +105,8 @@ TMBModel = function(
       self$time_steps$data_arg(),
       self$engine_methods$meth_list$data_arg(),
       self$engine_methods$int_vecs$data_arg(),
-      self$log_file$data_arg()
+      self$log_file$data_arg(),
+      list(values_adreport = as.integer(self$do_pred_sdreport))
     )
   }
   self$param_arg = function() {
