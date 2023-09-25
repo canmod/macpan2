@@ -117,6 +117,7 @@ enum macpan2_meth {
     , METH_TV_MAT_MULT_TO_ROWS = 5 // Y[i] ~ time_var(A, change_points, block_size, change_pointer) %*% X[j], c("Y", "A", "X"), c("i", "j", "change_points", "block_size", "change_pointer")
     , METH_GROUP_SUMS = 6 // ~ groupSums(Y, i, n), "Y", c("i", "n")
     , METH_TV_MAT = 7 // ~ time_var(Y, change_points, block_size, change_pointer), "Y", c("change_points", "block_size", "change_pointer")
+    , METH_ROWS_TIMES_ROWS = 8 // ~ A[i] * X[j], c("A", "X"), c("i", "j")
 };
 
 void printIntVector(const std::vector<int>& intVector) {
@@ -635,6 +636,27 @@ public:
                         // }
 
 
+                    case METH_ROWS_TIMES_ROWS:
+                        m = getNthMat(0, curr_meth_id, valid_vars, meth_mats);
+                        m1 = getNthMat(1, curr_meth_id, valid_vars, meth_mats);
+                        u = getNthIntVec(0, curr_meth_id, valid_int_vecs, meth_int_vecs);
+                        v = getNthIntVec(0, curr_meth_id, valid_int_vecs, meth_int_vecs);
+
+                        if (u.size() != v.size()) {
+                            SetError(201, "The two operands do not have the same number of rows", row);
+                            return m2;
+                        }
+                        if (m.cols() != m1.cols()) {
+                            SetError(202, "The two operands do not have the same number of columns", row);
+                            return m2;
+                        }
+                        m2 = matrix<Type>::Zero(u.size(), m.cols());
+                        m3 = matrix<Type>::Zero(v.size(), m1.cols());
+                        for (int i=0; i<u.size(); i++) {
+                            m2.row(i) = m.row(u[i]);
+                            m3.row(i) = m1.row(v[i]);
+                        }
+                        return m2.cwiseProduct(m3);
 
                     default:
                         SetError(254, "invalid method in arithmetic expression", row);

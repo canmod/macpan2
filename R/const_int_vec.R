@@ -13,8 +13,6 @@ IntVecs = function(...) {
 
   # Standard Methods
   self$data_arg = function() {
-    # DATA_IVECTOR(const_int_vec);
-    # DATA_IVECTOR(const_n_int_vecs);
     list(
       const_int_vec = unlist(self$list, use.names = FALSE),
       const_n_int_vecs = unlist(lapply(self$list, length), use.names = FALSE)

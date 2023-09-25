@@ -13,7 +13,8 @@ valid_undotted = ValidityMessager(
   All(
     is.character,
     TestPipeline(Summarizer(valid_undotted_chars, all), TestTrue())
-  )
+  ),
+  "vector contained strings with dots"
 )
 valid_dotted = ValidityMessager(
   All(

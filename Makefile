@@ -108,17 +108,17 @@ doc-update: R/*.R misc/dev/dev.cpp
 	echo "suppressWarnings(roxygen2::roxygenize(\".\",roclets = c(\"collate\", \"rd\", \"namespace\")))" | R --slave
 
 
-pkg-build:: macpan2_$(VERSION).tar.gz
-macpan2_$(VERSION).tar.gz: DESCRIPTION man/*.Rd R/*.R src/*.cpp tests/testthat/test-*.R tests/testthat.R inst/starter_models/**/*.csv inst/starter_models/**/*.json
+pkg-build:: ../macpan2_$(VERSION).tar.gz
+../macpan2_$(VERSION).tar.gz: DESCRIPTION man/*.Rd R/*.R src/*.cpp tests/testthat/test-*.R tests/testthat.R inst/starter_models/**/*.csv inst/starter_models/**/*.json
 	R CMD build .
 
 
-pkg-check: macpan2_$(VERSION).tar.gz
-	R CMD check macpan2_$(VERSION).tar.gz
+pkg-check: ../macpan2_$(VERSION).tar.gz
+	R CMD check ../macpan2_$(VERSION).tar.gz
 
 
-pkg-install: macpan2_$(VERSION).tar.gz
-	R CMD INSTALL --no-multiarch --install-tests macpan2_$(VERSION).tar.gz
+pkg-install: ../macpan2_$(VERSION).tar.gz
+	R CMD INSTALL --no-multiarch --install-tests ../macpan2_$(VERSION).tar.gz
 
 
 compile-dev: misc/dev/dev.cpp

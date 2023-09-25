@@ -41,16 +41,7 @@ FlowExpander = function(model) {
   self$f = self$.add_missing_columns(model$flows())
   self$.namer = Namer()
   self$.filter = FilterBlanksNotSpecial()
-
-  ## only rate makes sense now, but adding others to prepare for them
-  valid_flow_types = sprintf("%s_variables", c("flow"))
-  flow_settings = self$s[valid_flow_types]
-  ## TODO: add check to enforce that no variable is in more than one type??
-  ## TODO: make sure that flow_settings is a valid character vector even
-  ## though many of these types will not be present in any given model
-  self$.flow_variables = do.call(c, flow_settings)
-
-
+  self$.flow_variables = self$s$flow_variables
 
   self$filter_flow = function(flow_number, component_type) {
     filter_partitions = paste(component_type, "partition", sep = "_")
@@ -62,7 +53,6 @@ FlowExpander = function(model) {
       , to = self$s$state_variables
       , flow = self$s$flow_variables
     )
-    #namer$v_to_psl_with_pn(partition_set, s$required_partitions)
     partition_set[
       self$.namer$v_to_psl_with_pn(partition_set, self$s$required_partitions) %in%
         component_filter
@@ -98,6 +88,8 @@ FlowExpander = function(model) {
     z
   }
 
+  ## take a single row in flows.csv and return several rows that each
+  ## represent a single flow
   self$expand_flow = function(flow_number) {
     from_to = self$matching_flow(flow_number, c("from", "to"))
     from_flow = self$matching_flow(flow_number, c("from", "flow"))

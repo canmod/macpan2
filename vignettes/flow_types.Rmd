@@ -1,10 +1,10 @@
 ---
-title: "Flow Types"
+title: "Flows"
 output: 
   rmarkdown::html_vignette:
     toc: true
 vignette: >
-  %\VignetteIndexEntry{Flow Types}
+  %\VignetteIndexEntry{Flows}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -18,11 +18,48 @@ library(macpan2)
 library(macpan2helpers)
 library(dplyr)
 library(ggplot2)
+library(igraph)
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
 cat_file = function(...) cat(readLines(file.path(...)), sep = "\n")
+```
+
+## Structured Flows
+
+
+
+```{r, echo=FALSE, fig.width=7}
+d = system.file("starter_models", "sir_vax", package = "macpan2")
+model = Compartmental(d)
+e = model$flows_expanded()
+v = data.frame(id = model$labels$state())
+
+|> graph.data.frame(vertices = ))
+coords = layout_(g, on_grid(width = 3, height = 2))
+par(mar=c(0,0,0,0))
+plot(g, layout = coords, asp = 0.2)
+#   , vertex.color = "lightgrey"
+#   , vertex.shape = "rectangle"
+#   , vertex.size = 60
+#   , vertex.size2 = 40
+#   , asp = 0.5
+# )
+```
+
+```{r}
+cat_file(d, "flows.csv")
+cat_file(d, "variables.csv")
+cat_file(d, "derivations.json")
+```
+
+
+
+The flows 
+```{r}
+model$flows()
+model$flows_explicit()
 ```
 
 ## Types of Flows

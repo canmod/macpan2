@@ -70,7 +70,6 @@ Derivations2ExprListAlt = function(user_expr, standard_expr) {
   self$expr_list_per_phase = function(
     phase = c("before", "during", "after", "during_pre_update", "during_update", "during_post_update")
   ) {
-    #browser()
     phases = match.arg(phase)
     if (phases == "during") {
       phases = c("during_pre_update", "during_update", "during_post_update")
@@ -138,7 +137,7 @@ ModelAlt = function(definition) {
     missing_fields = which(lapply(optional_fields, is_missing) == TRUE)
     return(cbind(self$flows(), default_entries[,missing_fields]))
   }
-  self$derivations = self$def$derivations  ## look like a field but actually method forwarding
+  self$derivations = self$def$derivations
   self$expr_list = function() {
     Derivations2ExprListAlt(UserExpr(self), StandardExprAlt(self))$expr_list()
   }
@@ -174,17 +173,12 @@ CompartmentalAlt = function(model_directory){
 #' model definition files.
 #' @param integration_method One of the functions described in
 #' \link{integration_methods}, used to integrate the dynamical system.
-#' @param ... Arguments to pass to \code{\link{TMBModel}}.
+#' @param ... Arguments to pass to the simulator constructor.
 #' @export
 SimulatorConstructor = function(model_directory, integration_method = RK4, ...){
   model = CompartmentalAlt(model_directory)
 
-  model_simulator = model$simulators$tmb(..., .bundle_compartmental_model = TRUE)
-
-
-  expanded_flows = model$flows_expanded()
-
-  model_simulator = do.call(integration_method, list(model_simulator))
+  model_simulator = model$simulators$tmb(...) |> integration_method()
 
   return(model_simulator)
 }

@@ -13,7 +13,7 @@ model definition files.}
 \item{integration_method}{One of the functions described in
 \link{integration_methods}, used to integrate the dynamical system.}
 
-\item{...}{Arguments to pass to \code{\link{TMBModel}}.}
+\item{...}{Arguments to pass to the simulator constructor.}
 }
 \description{
 Simulator Constructor

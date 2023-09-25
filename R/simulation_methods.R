@@ -35,7 +35,7 @@ InsertTotalFLowExpressions = function(model_simulator, expanded_flows){
   }
 
   args_per_capita = list(
-    as.formula("per_capita ~ state[per_capita_from]*flow[per_capita_flow]"),
+    per_capita ~ state[per_capita_from]*flow[per_capita_flow],
     .at = Inf,
     .phase = "during",
     .vec_by_flows = "flows",
@@ -43,7 +43,7 @@ InsertTotalFLowExpressions = function(model_simulator, expanded_flows){
   )
 
   args_absolute = list(
-    as.formula("absolute ~ flow[absolute_flow]"),
+    absolute ~ flow[absolute_flow],
     .at = Inf,
     .phase = "during",
     .vec_by_flows = "flows",
@@ -51,7 +51,7 @@ InsertTotalFLowExpressions = function(model_simulator, expanded_flows){
   )
 
   args_per_capita_inflow = list(
-    as.formula("per_capita_inflow ~ state[per_capita_inflow_from]*flow[per_capita_inflow_flow]"),
+    per_capita_inflow ~ state[per_capita_inflow_from]*flow[per_capita_inflow_flow],
     .at = Inf,
     .phase = "during",
     .vec_by_flows = "flows",
@@ -59,7 +59,7 @@ InsertTotalFLowExpressions = function(model_simulator, expanded_flows){
   )
 
   args_per_capita_outflow = list(
-    as.formula("per_capita_outflow ~ state[per_capita_outflow_from]*flow[per_capita_outflow_flow]"),
+    per_capita_outflow ~ state[per_capita_outflow_from]*flow[per_capita_outflow_flow],
     .at = Inf,
     .phase = "during",
     .vec_by_flows = "flow",
@@ -67,7 +67,7 @@ InsertTotalFLowExpressions = function(model_simulator, expanded_flows){
   )
 
   args_absolute_inflow = list(
-    as.formula("absolute_inflow ~ flow[absolute_inflow_flow]"),
+    absolute_inflow ~ flow[absolute_inflow_flow],
     .at = Inf,
     .phase = "during",
     .vec_by_flows = "flows",
@@ -75,7 +75,7 @@ InsertTotalFLowExpressions = function(model_simulator, expanded_flows){
   )
 
   args_absolute_outflow = list(
-    as.formula("absolute_outflow ~ flow[absolute_outflow_flow]"),
+    absolute_outflow ~ flow[absolute_outflow_flow],
     .at = Inf,
     .phase = "during",
     .vec_by_flows = "flows",

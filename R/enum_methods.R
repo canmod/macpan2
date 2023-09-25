@@ -1,4 +1,5 @@
 ## Auto-generated - do not edit by hand
+
 #' Method Prototype
 #'
 #' Define a method type using a prototype. These prototypes can be compared
@@ -33,18 +34,18 @@ MethodPrototype = function(formula, mat_arg_nms, int_vec_arg_nms) {
     that$x[which_int_vecs]
   }
   self$as_character = function() deparse(self$formula)
-  self$is_assignment = function(other_formula) {
-    (length(self$formula) == 3L) & (length(other_formula) == 3L)
+  self$is_setter = function(other_formula) {
+    two_sided(self$formula) & two_sided(other_formula)
   }
-  self$is_return = function(other_formula) {
-    (length(self$formula) == 2L) & (length(other_formula) == 2L)
+  self$is_getter = function(other_formula) {
+    one_sided(self$formula) & one_sided(other_formula)
   }
   self$parse_table = function() {
     method_parser(self$formula)
   }
   self$consistent = function(other_formula) {
-    this = self$.concat_parse_table(self$formula)
-    that = self$.concat_parse_table(other_formula)
+    this = concat_parse_table(self$formula)
+    that = concat_parse_table(other_formula)
     this_funs = this$x[this$n > 0L]
     that_funs = that$x[that$n > 0L]
     good_n_sig = identical(this$n, that$n)
@@ -52,13 +53,6 @@ MethodPrototype = function(formula, mat_arg_nms, int_vec_arg_nms) {
     good_n_sig & good_fun_names
   }
 
-  ## Private
-  self$.lhs = function(two_sided_formula) two_sided_formula[-3L]
-  self$.rhs = function(two_sided_formula) two_sided_formula[-2L]
-  self$.concat_parse_table = function(formula) {
-    if (length(formula) == 2L) return(method_parser(formula))
-    rbind(method_parser(self$.lhs(formula)), method_parser(self$.rhs(formula)))
-  }
   return_object(self, "MethodPrototype")
 }
 
@@ -129,11 +123,20 @@ MethodTypeUtils = function() {
     )
   }
 
+  self$could_make_method = function(formula) {
+    v = setNames(logical(length(self$method_ordering)), self$method_ordering)
+    for (meth_type_nm in self$method_ordering) {
+      v[meth_type_nm] = self[[meth_type_nm]]$consistent(formula)
+    }
+    any(v)
+  }
+
   return_object(self, "MethodTypesUtil")
 }
+
 MethodTypes = function() {
   self = MethodTypeUtils()
-  self$method_ordering = c("meth_from_rows", "meth_to_rows", "meth_rows_to_rows", "meth_mat_mult_to_rows", "meth_tv_mat_mult_to_rows", "meth_group_sums", "meth_tv_mat")
+  self$method_ordering = c("meth_from_rows", "meth_to_rows", "meth_rows_to_rows", "meth_mat_mult_to_rows", "meth_tv_mat_mult_to_rows", "meth_group_sums", "meth_tv_mat", "meth_rows_times_rows")
   self$meth_from_rows = MethodPrototype(~ Y[i], "Y", "i")
   self$meth_to_rows = MethodPrototype(Y[i] ~ X, c("Y", "X"), "i")
   self$meth_rows_to_rows = MethodPrototype(Y[i] ~ X[j], c("Y", "X"), c("i", "j"))
@@ -141,5 +144,6 @@ MethodTypes = function() {
   self$meth_tv_mat_mult_to_rows = MethodPrototype(Y[i] ~ time_var(A, change_points, block_size, change_pointer) %*% X[j], c("Y", "A", "X"), c("i", "j", "change_points", "block_size", "change_pointer"))
   self$meth_group_sums = MethodPrototype(~ groupSums(Y, i, n), "Y", c("i", "n"))
   self$meth_tv_mat = MethodPrototype(~ time_var(Y, change_points, block_size, change_pointer), "Y", c("change_points", "block_size", "change_pointer"))
+  self$meth_rows_times_rows = MethodPrototype(~ A[i] * X[j], c("A", "X"), c("i", "j"))
   return_object(self, "MethodTypes")
 }

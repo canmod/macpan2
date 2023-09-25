@@ -128,3 +128,11 @@ to_matrix_with_rownames = function(x, nms) {
   }
   x[nms, , drop = FALSE]
 }
+
+#' @export
+labelled_zero_vector = function(labels) {
+  (rep(0, length(labels))
+   |> setNames(labels)
+   |> dput()
+  )
+}
