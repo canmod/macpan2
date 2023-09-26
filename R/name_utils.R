@@ -111,3 +111,21 @@ frame_to_part = function(frame) {
   }
   y
 }
+
+to_matrix_with_rownames = function(x, nms) {
+  x = as.matrix(x)
+  if (!all(rownames(x) %in% nms)) {
+    stop("Matrix rownames are not all in supplied rownames.")
+  }
+  missing_nms = nms[!nms %in% rownames(x)]
+  if (length(missing_nms) > 0L) {
+    y = matrix(NA
+      , length(missing_nms)
+      , ncol(x)
+      , dimnames = list(missing_nms, colnames(x))
+    )
+    x = rbind(x, y)
+  }
+  x[nms, , drop = FALSE]
+}
+
