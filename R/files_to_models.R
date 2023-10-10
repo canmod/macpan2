@@ -1,3 +1,103 @@
+# init_mats = MatsList(
+#       state = c(S = 1 - 1e-5, E = 1e-5, I = 0, R = 0)
+#     , flow = c(total_foi = NA_real_, progression = 0.1, recovery = 0.1)
+#     , per_capita_transmission = 0.2
+#     , per_capita = empty_matrix
+#     , per_capita_inflow = empty_matrix
+#     , per_capita_outflow = empty_matrix
+#     , absolute = empty_matrix
+#     , absolute_inflow = empty_matrix
+#     , absolute_outflow = empty_matrix
+#     , total_inflow = empty_matrix
+#     , total_outflow = empty_matrix
+#     , . = empty_matrix
+#     , .mats_to_save = c("state", "absolute")
+#     , .mats_to_return = c("state", "absolute")
+#   ),
+#   expr_list = ExprList(
+#     during = list(
+#         . ~ set_infection_flow
+#       , per_capita ~ get_per_capita
+#       , per_capita_inflow ~ get_per_capita_inflow
+#       , per_capita_outflow ~ get_per_capita_outflow
+#       , absolute ~ get_absolute
+#       , absolute_inflow ~ get_absolute_inflow
+#       , absolute_outflow ~ get_absolute_outflow
+#       , total_inflow ~ get_per_capita_state_in + get_per_capita_state_in + get_per_capita_inflow_state_in + get_absolute_inflow_state_in
+#       , total_outflow ~ get_per_capita_state_out + get_absolute_state_out + get_per_capita_outflow_state_out + get_absolute_outflow_state_out
+#       , state ~ state + total_inflow - total_outflow
+#     )
+#   ),
+#   engine_methods = EngineMethods(
+#     exprs = list(
+#         set_infection_flow = flow[infection] ~ per_capita_transmission %*% state[infectious]
+#       , get_per_capita = ~ state[per_capita_from] * flow[per_capita_flow]
+#       , get_absolute = ~ flow[absolute_flow]
+#       , get_per_capita_inflow = ~ state[per_capita_inflow_from] * flow[per_capita_inflow_flow]
+#       , get_per_capita_outflow = ~ state[per_capita_outflow_from] * flow[per_capita_outflow_flow]
+#       , get_absolute_inflow = ~ flow[absolute_inflow_flow]
+#       , get_absolute_outflow = ~ flow[absolute_outflow_flow]
+#       , get_per_capita_state_in = ~ groupSums(per_capita, per_capita_to, state_length)
+#       , get_per_capita_state_in = ~ groupSums(absolute, absolute_to, state_length)
+#       , get_per_capita_inflow_state_in = ~ groupSums(per_capita_inflow, per_capita_inflow_to, state_length)
+#       , get_absolute_inflow_state_in = ~ groupSums(absolute_inflow, absolute_inflow_to, state_length)
+#       , get_per_capita_state_out = ~ groupSums(per_capita, per_capita_from, state_length)
+#       , get_absolute_state_out = ~ groupSums(absolute, absolute_from, state_length)
+#       , get_per_capita_outflow_state_out = ~ groupSums(per_capita_outflow, per_capita_outflow_from, state_length)
+#       , get_absolute_outflow_state_out = ~ groupSums(absolute_outflow, absolute_outflow_from, state_length)
+#     ),
+#     int_vecs = IntVecs(
+#         state_length = length(model$labels$state())
+#
+#       , per_capita_from = indices$flow$per_capita$from()
+#       , per_capita_to = indices$flow$per_capita$to()
+#       , per_capita_flow = indices$flow$per_capita$flow()
+#
+#       , absolute_from = indices$flow$absolute$from()
+#       , absolute_to = indices$flow$absolute$to()
+#       , absolute_flow = indices$flow$absolute$flow()
+#
+#       , per_capita_inflow_from = indices$flow$per_capita_inflow$from()
+#       , per_capita_inflow_to = indices$flow$per_capita_inflow$to()
+#       , per_capita_inflow_flow = indices$flow$per_capita_inflow$flow()
+#
+#       , per_capita_outflow_from = indices$flow$per_capita_outflow$from()
+#       , per_capita_outflow_flow = indices$flow$per_capita_outflow$flow()
+#
+#       , absolute_inflow_to = indices$flow$absolute_inflow$to()
+#       , absolute_inflow_flow = indices$flow$absolute_inflow$flow()
+#
+#       , absolute_outflow_from = indices$flow$absolute_outflow$from()
+#       , absolute_outflow_flow = indices$flow$absolute_outflow$flow()
+#
+#
+#     )
+#   ),
+#   time_steps = Time(100L)
+# )
+#
+
+TransmissionExprs = function(model) {
+  self = Base()
+  self$model = model
+  self$expr_list = function() list(. ~ set_infection_flow)
+  self$engine_method_exprs = function() {
+    list(
+      set_infection_flow = flow[infection] ~ beta_matrix %*% state[infectious]
+    )
+  }
+  self$engine_method_int_vecs = function() {
+    list(
+        infection = model$indices$transmission$infection_flow()
+      , infectious = model$indices$transmission$infectious_state()
+
+    )
+  }
+  return_object(self, "TransmissionExprs")
+}
+
+
+
 DerivationUtils = function(model) {
   self = Base()
 
@@ -172,7 +272,7 @@ DerivationExtractor = function(model){
 
   # TODO: change this name to `extract`
   self$extract_derivations = function(){
-    derivation_list = self$model$derivations()
+    derivation_list = self$model$def$derivations()
     return(lapply(derivation_list, self$extract_derivation))
   }
 
@@ -199,22 +299,22 @@ Scalar2Vector = function(derivation_extractor){
   self$model = derivation_extractor$model
   self$extracted_derivations = derivation_extractor$extract_derivations()
   self$.state_pointer = function(scalar_name){
-    return(as.numeric(which(scalar_name == self$model$def$settings()[["state_variables"]])) - 1)
+    return(as.numeric(which(scalar_name == self$model$labels$state())) - 1)
   }
   self$.state_replacer = function(scalar_name){
     return(paste0("state[", paste0(self$.state_pointer(scalar_name), "]")))
   }
   self$.flow_pointer = function(scalar_name){
-    return(as.numeric(which(scalar_name == self$model$def$settings()[["flow_variables"]])) - 1)
+    return(as.numeric(which(scalar_name == self$model$labels$flow())) - 1)
   }
   self$.flow_replacer = function(scalar_name){
     return(paste0("flow[", paste0(self$.flow_pointer(scalar_name), "]")))
   }
   self$.replacer = function(scalar_name){
-    if (any(scalar_name == self$model$def$settings()[["state_variables"]])) {
+    if (any(scalar_name == self$model$labels$state())) {
       return(self$.state_replacer(scalar_name))
     }
-    else if (any(scalar_name == self$model$def$settings()[["flow_variables"]])) {
+    else if (any(scalar_name == self$model$labels$flow())) {
       return(self$.flow_replacer(scalar_name))
     }
     else return(scalar_name)
@@ -244,7 +344,7 @@ Scalar2Vector = function(derivation_extractor){
     new_derivation$expression = paste0("assign(vect_name, vect_index, 0, ", paste0(extracted_derivation$expression, ")"))
     s = self$model$def$settings()
     for (i in 1:length(extracted_derivation$outputs)) {
-      if (any(extracted_derivation$outputs[[i]] == s[["state_variables"]])) {
+      if (any(extracted_derivation$outputs[[i]] == self$model$labels$state())) {
         new_derivation$outputs = c(new_derivation$outputs, "dummy")
         if (length(extracted_derivation$variables) != 0L) {
           new_derivation$variables = c(
@@ -259,7 +359,7 @@ Scalar2Vector = function(derivation_extractor){
         }
         if (length(extracted_derivation$variable_dots) != 0) new_derivation$variable_dots = c(new_derivation$variable_dots, list(extracted_derivation$variable_dots[[i]]))
       }
-      else if (any(extracted_derivation$outputs[[i]] == s[["flow_variables"]])) {
+      else if (any(extracted_derivation$outputs[[i]] == self$model$labels$flow())) {
         new_derivation$outputs = c(new_derivation$outputs, "dummy")
         if (length(extracted_derivation$variables) != 0L) new_derivation$variables = c(new_derivation$variables, list(c("flow", self$.flow_pointer(extracted_derivation$outputs[[i]]), extracted_derivation$variables[[i]])))
         if (length(extracted_derivation$variable_dots) != 0) new_derivation$variable_dots = c(new_derivation$variable_dots, list(extracted_derivation$variable_dots[[i]]))

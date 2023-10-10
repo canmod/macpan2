@@ -3,16 +3,6 @@ NameAndLabelUtilities = function() {
 
   self$.csv = function(x) paste0(as.character(x), collapse = ",")
   self$.dot = function(x) paste0(as.character(x), collapse = ".")
-  self$.tager = MathExpressionFromFunc(function(label, partition) partition[label])
-  self$.tag = function(labels, partitions) {
-    mapply(
-      self$.tager$symbolic$evaluate,
-      labels,
-      partitions,
-      USE.NAMES = FALSE,
-      SIMPLIFY = TRUE
-    )
-  }
   self$.mat = function(x) {
     m = vapply(x, as.character, character(nrow(x)))
     if (is.null(dim(m))) m = matrix(m, nrow = 1L)

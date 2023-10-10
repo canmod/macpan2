@@ -5,6 +5,7 @@ Settings = function(model) {
   self$name = function() to_name(self$.settings()$required_partition)
   self$names = function() to_names(self$.settings()$required_partition)
   self$null = function() self$.settings()$null_partition
+  self$var_partitions = function() self$.settings()$var_partitions
   self$variable = function(type) {
     type_nm = sprintf("%s_variables", type)
     var_nms = self$.settings()[[type_nm]]

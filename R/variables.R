@@ -5,7 +5,14 @@ Variables = function(model) {
   self$all = function() Partition(self$model$def$variables())
   self$.type = function(type) {
     labels_this_type = self$model$settings$variable(type)
+    var_part = self$model$settings$var_partitions()
     wrt = self$model$settings$name()
+    if (is.null(var_part)) {
+      vars = self$all()$filter_ordered(labels_this_type, .wrt = wrt)
+    } else {
+      vars = self$all()$filter(labels_this_type, .wrt = var_part)
+    }
+    vars
     # if (length(var_nms) == 0L) {
     #   warning(
     #     "\nThere are no ",
@@ -15,7 +22,6 @@ Variables = function(model) {
     #   )
     #   return(NULL)
     # }
-    self$all()$filter_ordered(labels_this_type, .wrt = wrt)
   }
   self$flow = function() self$.type("flow")
   self$state = function() self$.type("state")
@@ -66,14 +72,15 @@ VariableLabels = function(variables) {
     if (is.null(v)) return(v)
     v$labels()
   }
-  self$all = function() self$variables$all()$labels()
-  self$flow = function() self$variables$flow()$labels()
-  self$state = function() self$variables$state()$labels()
-  self$infectious_state = function() self$variables$infectious_state()$labels()
-  self$infected_state = function() self$variables$infected_state()$labels()
-  self$infection_flow = function() self$variables$infection_flow()$labels()
+  self$rp = function() self$variables$model$settings$names()
+  self$all = function() self$variables$all()$select(self$rp())$labels()
+  self$flow = function() self$variables$flow()$select(self$rp())$labels()
+  self$state = function() self$variables$state()$select(self$rp())$labels()
+  self$infectious_state = function() self$variables$infectious_state()$select(self$rp())$labels()
+  self$infected_state = function() self$variables$infected_state()$select(self$rp())$labels()
+  self$infection_flow = function() self$variables$infection_flow()$select(self$rp())$labels()
   self$other = function() setdiff(self$all(), c(self$state(), self$flow()))
-  initialize_cache(self, "all", "flow", "state", "infectious_state", "infection_flow", "other")
+  initialize_cache(self, "all", "flow", "state", "infectious_state", "infection_flow", "other", "rp")
   return_object(self, "VariableLabels")
 }
 

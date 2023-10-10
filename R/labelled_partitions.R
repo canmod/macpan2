@@ -148,6 +148,18 @@ empty_frame = function(...) {
   setNames(as.data.frame(matrix(character(), 0L, ncol)), colnames)
 }
 
+enforce_schema = function(frame, ...) {
+  anchor = as.list(macpan2:::empty_frame(...))
+  for (c in names(anchor)) {
+    if (c %in% names(frame)) {
+      anchor[[c]] = frame[[c]]
+    } else {
+      anchor[[c]] = rep("", nrow(frame))
+    }
+  }
+  as.data.frame(anchor)
+}
+
 #' Union of Variables
 #'
 #' Take the union of a set of variable lists, each of which is represented
@@ -223,75 +235,4 @@ NumericPartition = function(frame, numeric_vector) {
     m
   }
   return_object(self, "NumericPartition")
-}
-
-
-
-if (FALSE) {
-  model_dirs = list.files(system.file("starter_models", package = "macpan2"), full.names = TRUE)
-  models = setNames(lapply(model_dirs, ModelFiles), basename(model_dirs))
-  pp = Partition(models$seir_symp_vax$variables$all())
-  qq = pp$filter("S", "E", "I", "R", .wrt = "Epi")$filter("unvax", .wrt = "Vax")
-  Partition(pp$select("Epi", "Vax")$dotted())
-  pp$frame()
-  #pp$filter(qq$select("Epi", "Vax"), "foi.unvax" , .wrt = "Epi.Vax")
-  qq = pp$select("Epi")$filter("S", .wrt = "Epi")
-  pp$filter(qq)
-  pp$filter("S", "I", .wrt = "Epi")$filter("unstructured", "component", .wrt = "SympStruc")
-  pp$filter("I.component", .wrt = "Epi.SympStruc")
-  pp$name()
-  pp$names()
-  pp$labels()
-  pp$frame()
-  pp$dotted()
-
-  pp$filter("S", .wrt = "Epi", .comparison_function = not_all_equal)
-  pp$filter_out("S", .wrt = "Epi")
-  seir = Partition(models$seir$variables$all())
-  vax = Partition(models$vax$variables$all())
-
-  models$seir$settings()$required_partitions
-  models$seir$settings()$state_variables
-
-  m = Model(models$seir_symp_vax)
-  m$variables$all()
-  m$variables$flow()
-  m$variables$state()
-  m$flows()
-  m$flows_expanded()
-  m$derivations()
-}
-
-if (FALSE) {
-  make_expression = function(model, expr_id, grp_id) {
-    v = model$variables$all()
-    e = model$derivations()[[expr_id]]
-    if (!is.null(e$filter_partition)) {
-      v = v$filter(e$filter_names, .wrt = e$filter_partition)
-    }
-    if (!is.null(e$group_partition)) {
-      g = v$filter(e$group_names[grp_id], .wrt = e$group_partition)
-      o = v$filter(e$output_names[grp_id], .wrt = e$output_partition)
-    } else {
-      g = v
-      o = v$filter(e$output_names[1], .wrt = e$output_partition)
-    }
-    a = c(character(0L), e$arguments, e$argument_dots)
-    a
-  }
-}
-
-if (FALSE) {
-
-i = 3
-j = 1
-ee = m$derivations()[[i]]
-vv = m$variables$all()
-gg = vv$filter(ee$group_names[j], .wrt = ee$group_partition)
-oo = vv$filter(ee$output_names[j], .wrt = ee$output_partition)
-##ii = gg$filter(ee$argument_dots, .wrt = ee$input_partition)
-##ff = MathExpressionFromStrings(ee$expression, character(0L), include_dots = TRUE)
-ii = gg$filter(ee$arguments, .wrt = ee$input_partition)
-ff = MathExpressionFromStrings(ee$expression, ee$arguments)
-do.call(ff$symbolic$evaluate, as.list(ii$labels()))
 }

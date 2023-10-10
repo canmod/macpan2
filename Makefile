@@ -6,6 +6,7 @@ ROXY_RE = ^.*\(\#'.*\)$
 VERSION := $(shell sed -n '/^Version: /s///p' DESCRIPTION)
 TEST := testthat::test_package(\"macpan2\", reporter = \"progress\")
 
+
 all:
 	make src-update
 	make enum-update
@@ -15,6 +16,11 @@ all:
 	make pkg-build
 	make pkg-install
 	make pkg-check
+
+
+install-deps:
+	Rscript -e "remotes::install_github('canmod/oor@validity')"
+
 
 # Use this rule if you are doing R development or want to promote
 # dev.cpp to macpan2.cpp before doing R development.
@@ -34,8 +40,6 @@ full-install:
 quick-install: enum-update enum-meth-update
 	R CMD INSTALL --no-multiarch --install-tests .
 
-install-deps:
-	Rscript -e "remotes::install_github('canmod/oor')"
 
 quick-doc-install: R/*.R misc/dev/dev.cpp
 	make engine-doc-update

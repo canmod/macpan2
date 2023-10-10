@@ -21,15 +21,15 @@ MethodPrototype = function(formula, mat_arg_nms, int_vec_arg_nms) {
   self$int_vec_arg_nms = int_vec_arg_nms
   self$mat_args = function(other_formula) {
     stopifnot(self$consistent(other_formula))
-    that = self$.concat_parse_table(other_formula)
-    this = self$.concat_parse_table(self$formula)
+    that = concat_parse_table(other_formula)
+    this = concat_parse_table(self$formula)
     which_mats = this$x %in% self$mat_arg_nms
     that$x[which_mats]
   }
   self$int_vec_args = function(other_formula) {
     stopifnot(self$consistent(other_formula))
-    that = self$.concat_parse_table(other_formula)
-    this = self$.concat_parse_table(self$formula)
+    that = concat_parse_table(other_formula)
+    this = concat_parse_table(self$formula)
     which_int_vecs = this$x %in% self$int_vec_arg_nms
     that$x[which_int_vecs]
   }

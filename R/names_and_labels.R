@@ -1,3 +1,4 @@
+valid_char = ValidityMessager(is.character)
 valid_undotted_chars = function(x) {
   #browser()
   if (length(x) == 0L) return(is.character(x))
@@ -55,11 +56,17 @@ test_is = local({
   )
 })
 
+valid_labels_dv = ValidityMessager(test_is$DottedVector)
+valid_names_ds = ValidityMessager(test_is$DottedScalar)
+valid_labels_um = ValidityMessager(test_is$UndottedMatrix)
+valid_names_uv = ValidityMessager(test_is$UndottedVector)
+
 #' Comparison Functions
 #'
 #' @param x \code{\link{character}} object
 #' @param y \code{\link{character}} object
 #'
+#' @importFrom memoise memoise
 #' @name comparison
 NULL
 
@@ -82,6 +89,28 @@ not_all_equal = function(x, y) !all_equal(x, y)
 #' @export
 all_not_equal = function(x, y) isTRUE(all(x != y))
 
+## used in $filter() of StringUndottedMatrix
+character_comparison = function(x, y, comparison_function) {
+  z = logical(nrow(x))
+  for (i in seq_row(x)) {
+    for (j in seq_row(y)) {
+      z[i] = comparison_function(x[i, , drop = TRUE], y[j, , drop = TRUE])
+      if (z[i]) break
+    }
+  }
+  z
+}
+
+## these functions are bottlenecks that
+## get repeatedly called for the same inputs.
+## so we use memoisation to solve this performance issue
+## https://en.wikipedia.org/wiki/memoization
+character_comparison = memoise(character_comparison)
+# all_equal = memoise(all_equal)
+# all_consistent = memoise(all_consistent)
+# not_all_equal = memoise(not_all_equal)
+# all_not_equal = memoise(all_not_equal)
+
 seq_row = function(x) seq_len(nrow(x))
 seq_col = function(x) seq_len(ncol(x))
 
@@ -94,9 +123,8 @@ seq_col = function(x) seq_len(ncol(x))
 ## UndottedScalar, DottedMatrix
 
 String = function(x) {
-  valid = ValidityMessager(is.character)
   self = Base()
-  self$.value = valid$assert(x)
+  self$.value = valid_char$assert(x)
   self$value = function() self$.value
   return_object(self, "String")
 }
@@ -209,16 +237,10 @@ StringUndottedMatrix = function(...) {
     StringDottedVector(v)
   }
   self$which_in = function(other, comparison_function) {
-    x = self$value()
-    y = other$undot()$value()
-    z = logical(nrow(x))
-    for (i in seq_row(x)) {
-      for (j in seq_row(y)) {
-        z[i] = comparison_function(x[i,,drop = TRUE], y[j,,drop = TRUE])
-        if (z[i]) break
-      }
-    }
-    z
+    character_comparison(self$value()
+      , other$undot()$value()
+      , comparison_function
+    )
   }
   self$which_not_in = function(other, comparison_function) {
     x = self$value()
@@ -306,9 +328,8 @@ c.StringData = function(...) {
 }
 
 StringDottedData = function(labels, names) {
-  valid_labels = ValidityMessager(test_is$DottedVector)
-  valid_names = ValidityMessager(test_is$DottedScalar)
-  self = StringData(valid_labels$assert(labels), valid_names$assert(names))
+
+  self = StringData(valid_labels_dv$assert(labels), valid_names_ds$assert(names))
   if (any(duplicated(self$names()$undot()$value()))) {
     stop("String data cannot have duplicated names.")
   }
@@ -338,9 +359,7 @@ StringDottedData = function(labels, names) {
 }
 
 StringUndottedData = function(labels, names) {
-  valid_labels = ValidityMessager(test_is$UndottedMatrix)
-  valid_names = ValidityMessager(test_is$UndottedVector)
-  self = StringData(valid_labels$assert(labels), valid_names$assert(names))
+  self = StringData(valid_labels_um$assert(labels), valid_names_uv$assert(names))
   if (any(duplicated(self$names()$value()))) {
     stop("String data cannot have duplicated names.")
   }

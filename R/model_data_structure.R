@@ -17,13 +17,12 @@ Model = function(definition) {
   self$variables = Variables(self)
   self$labels = VariableLabels(self$variables)
   self$indices = VariableIndices(self$labels)
+  self$flows_info = Flows(self$def$flows(), self$variables)
+  self$trans_info = Trans(self$def$trans(), self$variables)
 
   # Standard Methods
   self$flows = function() self$def$flows()
-  self$flows_expanded = function() {
-    expander = FlowExpander(self$def)
-    expander$expand_flows()
-  }
+  self$flows_expanded = function() self$flows_info$frame() #self$expander$expand_flows()
   self$flows_explicit = function() {
     optional_fields = c("from_partition", "to_partition", "flow_partition",
     "from_to_partition", "from_flow_partition", "to_flow_partition")
@@ -31,10 +30,17 @@ Model = function(definition) {
     required_partition = self$settings$name()
     null_partition = self$settings$null()
 
-    default_entries = data.frame(required_partition, required_partition, required_partition, "", "", null_partition)
+    default_entries = data.frame(required_partition
+      , required_partition
+      , required_partition
+      , "", ""
+      , null_partition
+    )
     names(default_entries) = optional_fields
 
-    default_entries = do.call("rbind", replicate(nrow(self$flows()), default_entries, simplify = FALSE))
+    default_entries = do.call("rbind"
+      , replicate(nrow(self$flows()), default_entries, simplify = FALSE)
+    )
 
     is_missing = function(field_name){
       return(!any(names(self$flows()) == field_name))
@@ -42,13 +48,22 @@ Model = function(definition) {
     missing_fields = which(lapply(optional_fields, is_missing) == TRUE)
     return(cbind(self$flows(), default_entries[,missing_fields]))
   }
-  self$derivations = self$def$derivations  ## look like a field but actually method forwarding
+  self$trans = function() self$def$trans()
+  self$trans_expanded = function() self$trans_info$frame()
+  self$trans_explicit = function() stop("under construction")
+  #self$derivations = self$def$derivations  ## look like a field but actually method forwarding
+  self$derivations = Derivations(self)
   self$expr_list = function() {
-    Derivations2ExprList(UserExpr(self), StandardExpr(self))$expr_list()
+    self$derivations_2_expr_list = Derivations2ExprList(
+        UserExpr(self)
+      , StandardExpr(self)
+    )
+    self$derivations_2_expr_list$expr_list()
   }
 
   # Composition
   self$simulators = Simulators(self)
+  self$expander = FlowExpander(self$def)
 
   # Set the cache in the underlying ModelFiles object
   # so that when the model definition files change
@@ -81,8 +96,8 @@ assert_variables = function(model) {
   v = model$variables$all()
   AllValid(
       ValidityMessager(make_pipeline("required_partitions", v$names()), "Required partitions in Settings.json are not names of columns in Variables.csv"),
-      ValidityMessager(make_pipeline("state_variables", v$labels()), "State variables in Settings.json are not dot-separated concatentations of the required partitions in the Variables.csv"),
-      ValidityMessager(make_pipeline("flow_variables", v$labels()), "Flow variables in Settings.json are not expanded labels for variables in Flows.csv"),
+      #ValidityMessager(make_pipeline("state_variables", v$labels()), "State variables in Settings.json are not dot-separated concatentations of the required partitions in the Variables.csv"),
+      #ValidityMessager(make_pipeline("flow_variables", v$labels()), "Flow variables in Settings.json are not expanded labels for variables in Flows.csv"),
       ValidityMessager(make_pipeline("infectious_state_variables", v$labels()), "blah"),
       ValidityMessager(make_pipeline("infected_state_variables", v$labels()), "blah"),
       ValidityMessager(make_pipeline("infection_flow_variables", v$labels()), "blah"),

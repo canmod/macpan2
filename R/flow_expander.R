@@ -8,8 +8,13 @@ FlowExpander = function(model) {
   self = Base()
   model = model$freeze()
 
+  ## at a minimum, only from, to, flow, and type are required columns
+  ## in flows.csv files. this function adds the filtering and matching
+  ## columns
   self$.add_missing_columns = function(flows) {
     cols_on_file = names(flows)
+
+    ## check that required columns are present
     required_cols = c("from",	"to",	"flow",	"type")
     if (!all(required_cols %in% cols_on_file)) {
       stop(
@@ -18,15 +23,31 @@ FlowExpander = function(model) {
         required_cols
       )
     }
+
+    ## if filtering columns are not present, create them and set them
+    ## equal to the required partition that is found in the settings file
     rp = StringUndottedVector(self$s$required_partitions)$dot()$value()
-    filtering_cols = c("from_partition",	"to_partition",	"flow_partition")
+    filtering_cols = c(
+      "from_partition",
+      "to_partition",
+      "flow_partition"
+    )
     for (col in filtering_cols) {
       if (!col %in% cols_on_file) {
         flows[[col]] = rp
       }
     }
+
+    ## if the matching columns are not present, create them and set them
+    ## equal to either blank or the null partition that is found in the
+    ## settings file. a blank value means 'match with everything' but a
+    ## null value means 'match with nothing'
     mp = c("", "", self$s$null_partition)
-    matching_cols = c("from_to_partition",	"from_flow_partition",	"to_flow_partition")
+    matching_cols = c(
+      "from_to_partition",
+      "from_flow_partition",
+      "to_flow_partition"
+    )
     for (col in matching_cols) {
       if (!col %in% cols_on_file) {
         flows[[col]] = mp[col == matching_cols]
@@ -43,11 +64,17 @@ FlowExpander = function(model) {
   self$.filter = FilterBlanksNotSpecial()
   self$.flow_variables = self$s$flow_variables
 
+  ##
+  ## @param flow_number -- integer giving the row number of flow.csv
+  ## @param component_type -- string of one of the three types of filters
+  ## ("from", "to", "flow")
   self$filter_flow = function(flow_number, component_type) {
     filter_partitions = paste(component_type, "partition", sep = "_")
     partition_label = self$f[flow_number, component_type]
     partition_set_name = self$f[flow_number, filter_partitions]
-    partition_set = self$.filter$filter(self$v, partition_set_name, partition_label)
+    #partition_set = self$.filter$filter(self$v, partition_set_name, partition_label)
+    variables = Partition(self$v)
+    partition_set = variables$filter(partition_label, .wrt = partition_set_name)$frame()
     component_filter = switch(component_type
       , from = self$s$state_variables
       , to = self$s$state_variables

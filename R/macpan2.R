@@ -6,4 +6,5 @@
 ##' package on compartmental epidemic modelling for
 ##' forecasting and analysis of infectious diseases.
 ##'
+##' @keywords internal
 "_PACKAGE"

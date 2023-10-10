@@ -76,6 +76,7 @@ make_expr_parser = function(
       valid_vars = environment(x)$valid_vars,
       valid_literals = environment(x)$valid_literals,
       valid_methods = environment(x)$valid_methods,
+      valid_int_vecs = environment(x)$valid_int_vecs,
       offset = offset,
       input_expr_as_string = as.character(x)[2L]
     )
@@ -153,8 +154,9 @@ finalizer_index = function(x) {
   valid_funcs = x$valid_funcs
   valid_vars = x$valid_vars
   valid_methods = x$valid_methods
+  valid_int_vecs = x$valid_int_vecs
   valid_literals = as.numeric(x$valid_literals)
-  x$valid_funcs = x$valid_vars = x$valid_literals = x$valid_methods = NULL
+  x$valid_funcs = x$valid_vars = x$valid_literals = x$valid_methods = x$valid_int_vecs = NULL
 
   # remove the tilde function, which is in the first position,
   # and adjust the indices in i accordingly
@@ -172,8 +174,9 @@ finalizer_index = function(x) {
   is_literal = unlist(lapply(x$x, is.numeric))
   is_func = x$n != 0L
   is_meth = x_char %in% names(valid_methods)
+  is_int_vec = x_char %in% names(valid_int_vecs)
   is_var = x_char %in% names(valid_vars)
-  is_not_found = !(is_literal | is_func | is_meth | is_var)
+  is_not_found = !(is_literal | is_func | is_meth | is_int_vec | is_var)
 
   if (any(is_not_found)) {
     missing_items = x_char[is_not_found]
@@ -194,6 +197,9 @@ finalizer_index = function(x) {
 
   # identify methods with -2 in the 'number of arguments'
   x$n[is_meth] = -2L
+
+  # identify integer vectors with -2 in the 'number of arguments'
+  x$n[is_int_vec] = -3L
 
   # convert character identifiers to integers
   x_int = integer(length(x$x))
@@ -228,11 +234,19 @@ finalizer_index = function(x) {
       , zero_based = TRUE
     )
   }
+  if (any(is_int_vec)) {
+    x_int[is_int_vec] = get_indices(x_char[is_int_vec]
+      , vec = valid_int_vecs
+      , vec_type = "int_vecs"
+      , expr_as_string = x$input_expr_as_string
+      , zero_based = TRUE
+    )
+  }
   x$x = as.integer(x_int)
   x$i = as.integer(x$i)
   nlist(
     parse_table = as.data.frame(x),
-    valid_funcs, valid_vars, valid_methods, valid_literals
+    valid_funcs, valid_vars, valid_methods, valid_int_vecs, valid_literals
   )
 }
 
@@ -256,7 +270,7 @@ get_indices = function(x, vec, vec_type, expr_as_string, zero_based = FALSE) {
       )
     } else if (vec_type == "methods") {
       pointers = "\nHelp for ?engine_methods is under construction."
-    } else if (vec_type == "integer") {
+    } else if (vec_type == "int_vecs") {
       pointers = paste(
         "\nPlease ensure that engine methods refer to the right integer vectors",
         sep = ""
