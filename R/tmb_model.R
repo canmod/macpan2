@@ -101,7 +101,7 @@ TMBModel = function(
       self$expr_list$data_arg(),
       self$params$data_arg(),
       self$random$data_arg("r"),
-      self$obj_fn$data_arg(existing_literals),
+      self$obj_fn$data_arg(),
       self$time_steps$data_arg(),
       self$engine_methods$meth_list$data_arg(),
       self$engine_methods$int_vecs$data_arg(),
@@ -145,39 +145,21 @@ TMBModel = function(
   self$replace = TMBReplacer(self)
 
 
-  ## Refreshments
-  self$refresh_init_mats = function(init_mats) {
-    self$init_mats = init_mats
-    self$expr_list$init_mats = init_mats
-    self$obj_fn$init_mats = init_mats
-    self$params$init_mats = init_mats
-    self$random$init_mats = init_mats
-    self$engine_methods$refresh_init_mats(init_mats)
-  }
-  self$refresh_expr_list = function(expr_list) {
-    self$expr_list = expr_list
-    self$refresh_init_mats(self$init_mats)
-  }
-  self$refresh_obj_fn = function(obj_fn) {
-    self$obj_fn = obj_fn
-    self$refresh_init_mats(self$init_mats)
-  }
-  self$refresh_params = function(params) {
-    self$params = params
-    self$refresh_init_mats(self$init_mats)
-  }
-  self$refresh_random = function(random) {
-    self$random = random
-    self$refresh_init_mats(self$init_mats)
-  }
-  self$refresh_engine_methods = function(engine_methods) {
-    self$engine_methods = engine_methods
-    self$expr_list$engine_methods = engine_methods
-    self$obj_fn$engine_methods = engine_methods
-    self$refresh_init_mats(self$init_mats)
-  }
-  self$refresh_init_mats(self$init_mats)
-  self$refresh_engine_methods(self$engine_methods)
+  ## Dependency management
+  self$dependencies = Dependencies(self
+      , init_mats = "MatsList"
+      , expr_list = "ExprList"
+      , obj_fn = "ObjectiveFunction"
+      , engine_methods = "EngineMethods"
+      , params = "OptParamsList"
+      , random = "OptParamsList"
+      , time_steps = "Time"
+  )
+  self$refresh = Refresher(self$dependencies)
+  self$refresh$init_mats(self$init_mats)
+  self$refresh$expr_list(self$expr_list)
+  self$refresh$engine_methods(self$engine_methods)
+  self$refresh$obj_fn(self$obj_fn)
 
   return_object(
     valid$tmb_model$assert(self),
@@ -238,7 +220,7 @@ TMBSimulationUtils = function() {
   self$.find_problematic_expression = function(row) {
     expr_num_p_table_rows = self$tmb_model$data_arg()$expr_num_p_table_rows
     expr_num = min(which(row < cumsum(expr_num_p_table_rows)))
-    deparse1(self$tmb_model$expr_list$expr_list()[[expr_num]])
+    deparse1(self$tmb_model$expr_list$formula_list()[[expr_num]])
   }
   self$.runner = function(...
       , .phases = c("before", "during", "after")

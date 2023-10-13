@@ -39,28 +39,24 @@ ObjectiveFunction = function(obj_fn_expr) {
   self$obj_fn_expr = obj_fn_expr
 
   ## Standard Methods
-  self$expr_list = function() list(self$obj_fn_expr)
-  self$.literals = function(.existing_literals) {
-    self$.parsed_expr_list(
-      names(self$init_mats),
-      .existing_literals = .existing_literals
-    )$valid_literals
+  self$formula_list = function() list(self$obj_fn_expr)
+  self$.literals = function() {
+    self$.parsed_expr_list(rhs, self$expr_list$.literals())$valid_literals
   }
-  self$.parse_table = function(.existing_literals) {
-    l = as.list(self$.parsed_expr_list(
-      names(self$init_mats),
-      .existing_literals = .existing_literals
-    )$parse_table)
-    self$.set_name_prefix(l[c("x", "n", "i")], "o_table_")
+  self$.o_table = function() {
+    l = self$.parsed_expr_list(rhs, self$expr_list$.literals())
+    o_table = l$parse_table[c("x", "n", "i")] |> as.list()
+    self$.set_name_prefix(o_table, "o_table_")
   }
-  self$data_arg = function(.existing_literals) {
-    p = self$.parse_table(.existing_literals = .existing_literals)
-    p$literals = self$.literals(.existing_literals = .existing_literals)
-    p
+  self$data_arg = function() {
+    l = self$.o_table()
+    l$literals = self$.literals()
+    l
   }
 
   ## Composition
   self$init_mats = MatsList()
+  self$expr_list = ExprList()
   self$engine_methods = EngineMethods()
 
   return_object(self, "ObjectiveFunction")

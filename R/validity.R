@@ -377,21 +377,29 @@ TMBAdaptorValidity <- function() {
 
   # model component compound validity
   self$expr_arg = AllValid(
-    self$n_components(7L),
+    self$n_components(10L),
     self$component_names(
-      "expr_output_id", "expr_sim_block", "expr_num_p_table_rows",
-      "eval_schedule", "p_table_x", "p_table_n", "p_table_i"
+      "expr_sim_block",
+      "expr_num_p_table_rows", "assign_num_a_table_rows",
+      "eval_schedule",
+      "p_table_x", "p_table_n", "p_table_i",
+      "a_table_x", "a_table_n", "a_table_i"
     ),
     self$homo_length_components("expr_", "expressions"),
-    self$homo_length_components("p_", "the parse table"),
+    self$homo_length_components("p_", "the expression parse table"),
+    self$homo_length_components("a_", "the assignment parse table"),
     self$all_int,
     self$component_lengths("eval_schedule", 3L, 3L),
     self$component_ranges("p_table_x", 0L, Inf),
-    self$component_ranges("p_table_n", -2L, Inf),
+    self$component_ranges("p_table_n", -3L, Inf),
     self$component_ranges("p_table_i", -1L, Inf),
-    self$component_ranges("expr_output_id", 0L, Inf),
+    self$component_ranges("a_table_x", 0L, Inf),
+    self$component_ranges("a_table_n", -3L, Inf),
+    self$component_ranges("a_table_i", -1L, Inf),
+    #self$component_ranges("expr_output_id", 0L, Inf),
     self$component_ranges("expr_sim_block", 0L, 1L),
     self$component_ranges("expr_num_p_table_rows", 1L, Inf),
+    self$component_ranges("assign_num_a_table_rows", 1L, Inf),
     .msg = "expression information passed to c++ is not valid"
   )
 

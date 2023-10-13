@@ -84,7 +84,10 @@ OptParamsList = function(...
     )
     valid$opt_params_list_arg$assert(r)
   }
+
+  ## Composition
   self$init_mats = MatsList()
+
   return_object(self, "OptParamsList")
 }
 

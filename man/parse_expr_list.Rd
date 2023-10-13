@@ -9,8 +9,7 @@ parse_expr_list(
   valid_vars,
   valid_literals = numeric(0L),
   valid_methods = MethList(),
-  valid_int_vecs = IntVecs(),
-  offset = 0L
+  valid_int_vecs = IntVecs()
 )
 }
 \arguments{
@@ -26,9 +25,6 @@ themselves will be discovered and added to this list.}
 \item{valid_methods}{\code{\link{MethList}} object.}
 
 \item{valid_int_vecs}{\code{\link{IntVecs}} object.}
-
-\item{offset}{The zero-based row index for the first row of the table.
-This is useful when combining tables.}
 }
 \description{
 Parse a list of one-sided formulas representing expressions

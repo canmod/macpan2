@@ -104,6 +104,7 @@ IndexUtilities = function(labels) {
     function() {
       f = self$model$flows_expanded()
       flow_labels = f[[flow_component]][f$type == flow_type]
+      #if (length(flow_labels) == 0L) return(integer(0L))
       self$match(flow_labels, self$labels[[vector_name]]())
     }
   }

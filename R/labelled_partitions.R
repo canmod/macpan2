@@ -70,6 +70,7 @@ Partition = function(frame) {
       , .filter_type = "filter"
     )
   }
+  self$filter = memoise(self$filter)
   self$filter_out = function(..., .wrt, .comparison_function = not_all_equal) {
     self$.filter(...
       , .wrt = .wrt
@@ -100,6 +101,7 @@ Partition = function(frame) {
   }
   return_object(self, "Partition")
 }
+Partition = memoise(Partition)
 
 NullPartition = function(...) {
   self = Base()
@@ -149,7 +151,9 @@ empty_frame = function(...) {
 }
 
 enforce_schema = function(frame, ...) {
-  anchor = as.list(macpan2:::empty_frame(...))
+  anchor = macpan2:::empty_frame(...)
+  if (is.null(frame)) return(anchor)
+  anchor = as.list(anchor)
   for (c in names(anchor)) {
     if (c %in% names(frame)) {
       anchor[[c]] = frame[[c]]

@@ -6,15 +6,18 @@ ExprListUtils = function() {
   self$.init_valid_vars = function() {
     initial_valid_vars(names(self$init_mats))
   }
-  self$.parsed_expr_list = function(...
+  self$.parsed_expr_list = function(
+        .get_formula_side = rhs
       , .existing_literals = numeric(0L)
-      , .offset = 0L
     ) {
-    parse_expr_list(self$.all_rhs(self$expr_list())
-      , valid_vars = self$.init_valid_vars()
-      , valid_literals = .existing_literals
-      , offset = .offset
-      , valid_methods = self$engine_methods$meth_list
+    (self$formula_list()
+     |> lapply(.get_formula_side)
+     |> parse_expr_list(
+          valid_vars = self$.init_valid_vars()
+        , valid_literals = .existing_literals
+        , valid_methods = self$engine_methods$meth_list
+        , valid_int_vecs = self$engine_methods$int_vecs
+      )
     )
   }
   self$.set_name_prefix = function(x, prefix) {
@@ -23,15 +26,49 @@ ExprListUtils = function() {
   self$.does_assign = function(x) {
     raw_lhs = self$.lhs(x)
   }
-  self$.lhs = function(x) {
-    as.character(x[[2L]])
+  self$.eval_schedule = function() {
+    c(length(self$before), length(self$during), length(self$after))
   }
-  self$.rhs = function(x) {
-    if (length(x) == 3L) e = x[c(1L, 3L)] else e = x
-    e
+
+  self$.expr_sim_block = function() {
+    as.integer(self$expr_nms() %in% self$.simulate_exprs)
   }
-  self$.all_lhs = function(x) vapply(x, self$.lhs, character(1L))
-  self$.all_rhs = function(x) lapply(x, self$.rhs)
+
+  self$.expr_output_id = function() {
+    all_names = names(self$init_mats)
+    output_names = valid$engine_outputs(all_names)$assert(
+      self$.all_lhs(self$formula_list())
+    )
+    m = match(output_names, all_names)
+    if (any(is.na(m))) {
+      stop(
+        "\nThe following updated variables are not "
+      )
+    }
+    as.integer(m - 1L)
+  }
+  self$.p_table = function() {
+    l = self$.parsed_expr_list(rhs)
+    p_table = l$parse_table[c("x", "n", "i")] |> as.list()
+    self$.set_name_prefix(p_table, "p_table_")
+  }
+  self$.a_table = function() {
+    l = self$.parsed_expr_list(lhs, self$.expr_literals())
+    a_table = l$parse_table[c("x", "n", "i")] |> as.list()
+    self$.set_name_prefix(a_table, "a_table_")
+  }
+  self$.expr_literals = function() {
+    self$.parsed_expr_list(rhs)$valid_literals
+  }
+  self$.literals = function() {
+    self$.parsed_expr_list(lhs, self$.expr_literals())$valid_literals
+  }
+  self$.expr_num_p_table_rows = function() {
+    self$.parsed_expr_list(rhs)$num_p_table_rows
+  }
+  self$.assign_num_a_table_rows = function() {
+    self$.parsed_expr_list(lhs, self$.expr_literals())$num_p_table_rows
+  }
   return_object(self, "ExprListUtils")
 }
 
@@ -95,14 +132,16 @@ ExprList = function(
     , .simulate_exprs = character(0L)
   ) {
   self = ExprListUtils()
-  lhs = function(x) x[[2L]]
   valid_expr_list = ValidityMessager(
     All(
       is.list,  ## list of ...
       MappedAllTest(Is("formula")),  ## ... formulas that are ...
-      TestPipeline(MappedSummarizer(length), MappedAllTest(TestRange(3L, 3L))),  ## ... two-sided formula
-      TestPipeline(MappedSummarizer(lhs, is.symbol), MappedAllTest(TestTrue()))  ## ... only one symbol on the lhs
+      TestPipeline(MappedSummarizer(length), MappedAllTest(TestRange(3L, 3L)))  ## ... two-sided formula
+      #TestPipeline(MappedSummarizer(lhs, is.symbol), MappedAllTest(TestTrue()))  ## ... only one symbol on the lhs
     ),
+    ## TODO: fix this error message now that expressions can have formulas
+    ## on the left-hand-side. should also make a new test that actually
+    ## checks the requirements.
     "Model expressions must be two-sided assignment formulas,",
     "without subsetting on the left-hand-side",
     "(i.e. x ~ 1 is fine, but x[0] ~ 1 is not)."
@@ -114,58 +153,23 @@ ExprList = function(
   self$after = valid_expr_list$assert(after)
   self$.simulate_exprs = valid$char$assert(.simulate_exprs)
 
-  self$expr_list = function() unname(c(self$before, self$during, self$after))
+  self$formula_list = function() unname(c(self$before, self$during, self$after))
   self$expr_nms = function() {
     nms = names(c(self$before, self$during, self$after))
-    if (is.null(nms)) nms = rep("", length(self$expr_list()))
+    if (is.null(nms)) nms = rep("", length(self$formula_list()))
     nms
   }
 
-  self$.eval_schedule = function() {
-    c(length(self$before), length(self$during), length(self$after))
-  }
-
-  self$.expr_sim_block = function() {
-    as.integer(self$expr_nms() %in% self$.simulate_exprs)
-  }
-
-  self$.expr_output_id = function() {
-    all_names = names(self$init_mats)
-    output_names = valid$engine_outputs(all_names)$assert(
-      self$.all_lhs(self$expr_list())
-    )
-    m = match(output_names, all_names)
-    if (any(is.na(m))) {
-      stop(
-        "\nThe following updated variables are not "
-      )
-    }
-    as.integer(m - 1L)
-  }
-  self$.expr_num_p_table_rows = function(...) {
-    self$.parsed_expr_list(...)$num_p_table_rows
-  }
-
-  ## list of three equal length integer vectors
-  ## p_table_x, p_table_n, p_table_i
-  self$.parse_table = function(...) {
-    l = as.list(self$.parsed_expr_list(...)$parse_table[c("x", "n", "i")])
-    self$.set_name_prefix(l, "p_table_")
-  }
-  self$.literals = function(...) {
-    self$.parsed_expr_list(...)$valid_literals
-  }
-
   self$data_arg = function() {
-    expr_output_id = self$.expr_output_id()
     r = c(
       list(
-        expr_output_id = as.integer(expr_output_id),
         expr_sim_block = as.integer(self$.expr_sim_block()),
         expr_num_p_table_rows = as.integer(self$.expr_num_p_table_rows()),
+        assign_num_a_table_rows = as.integer(self$.assign_num_a_table_rows()),
         eval_schedule = as.integer(self$.eval_schedule())
       ),
-      self$.parse_table()
+      self$.p_table(),
+      self$.a_table()
     )
     valid$expr_arg$assert(r)
   }
@@ -190,7 +194,7 @@ ExprList = function(
     )
     for (i in 1:3) {
       if (self$.eval_schedule()[i] > 0L) {
-        expr_strings = lapply(self$expr_list()[from[i]:to[i]], deparse)
+        expr_strings = lapply(self$formula_list()[from[i]:to[i]], deparse)
         tab_size = nchar(self$.eval_schedule()[i])
         fmt = sprintf("%%%ii: %%s", tab_size)
         tab = paste0(rep(" ", tab_size), collapse = "")

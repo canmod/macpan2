@@ -131,6 +131,7 @@ Connection = function(row, variables
     }
     unique(rbind(from_conn, to_conn))
   }
+  initialize_cache(self, "frame", "from_to_merge", "from_conn_merge", "to_conn_merge")
 
   return_object(self, "Connection")
 }
@@ -138,7 +139,7 @@ Connection = function(row, variables
 connection_merge = function(x, y, by, output_cols) {
   merge(x, y, by = by, sort = FALSE)[, output_cols]
 }
-connection_merge = memoise(connection_merge)
+#connection_merge = memoise(connection_merge)
 
 
 
@@ -168,7 +169,7 @@ Flows = function(flows, variables) {
 #' @export
 Trans = function(trans, variables) {
   self = Base()
-  self$trans = process_trans_frame(trans)
+  self$trans = enforce_schema(trans, "state", "flow", "pop", "type")
   self$variables = variables
   self$connections = list()
   for (i in seq_row(self$trans)) {
@@ -191,16 +192,12 @@ Trans = function(trans, variables) {
   return_object(self, "Trans")
 }
 
-process_trans_frame = function(trans) {
-  if (is.null(trans)) trans = empty_frame("state", "flow", "pop", "type")
-  trans
-}
-
 labelled_frame = function(partition, label_name = "label") {
   f = partition$frame()
   f[[label_name]] = partition$labels()
   f
 }
+labelled_frame = memoise(labelled_frame)
 
 if (FALSE) {
   library(macpan2)

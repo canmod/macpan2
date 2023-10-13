@@ -346,8 +346,6 @@ empty_matrix = matrix(numeric(0L), 0L, 0L)
 #' themselves will be discovered and added to this list.
 #' @param valid_methods \code{\link{MethList}} object.
 #' @param valid_int_vecs \code{\link{IntVecs}} object.
-#' @param offset The zero-based row index for the first row of the table.
-#' This is useful when combining tables.
 #'
 #' @export
 parse_expr_list = function(expr_list
@@ -355,8 +353,8 @@ parse_expr_list = function(expr_list
     , valid_literals = numeric(0L)
     , valid_methods = MethList()
     , valid_int_vecs = IntVecs()
-    , offset = 0L
   ) {
+  offset = 0L
   eval_env = nlist(
     valid_funcs, valid_vars, valid_literals,
     valid_methods, valid_int_vecs, offset
@@ -388,3 +386,4 @@ parse_expr_list = function(expr_list
     num_p_table_rows = vapply(p_tables, nrow, integer(1L))
   )
 }
+parse_expr_list = memoise(parse_expr_list)
