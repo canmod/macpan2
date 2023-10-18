@@ -18,7 +18,7 @@ Model = function(definition) {
   self$labels = VariableLabels(self$variables)
   self$indices = VariableIndices(self$labels)
   self$flows_info = Flows(self$def$flows(), self$variables)
-  self$trans_info = Trans(self$def$trans(), self$variables)
+  self$infection_info = Infection(self$def$infection(), self$variables)
 
   # Standard Methods
   self$flows = function() self$def$flows()
@@ -63,7 +63,7 @@ Model = function(definition) {
 
   # Composition
   self$simulators = Simulators(self)
-  self$expander = FlowExpander(self$def)
+  #self$expander = FlowExpander(self$def)
 
   # Set the cache in the underlying ModelFiles object
   # so that when the model definition files change

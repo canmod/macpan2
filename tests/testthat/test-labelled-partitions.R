@@ -37,7 +37,7 @@ test_that("model files can be read in and used", {
   expect_identical(nrow(m$flows()), 4L)
   expect_identical(nrow(m$flows_expanded()), 17L)
   m$variables$all()$labels()
-  m$derivations()
+  m$def$derivations()
 })
 
 test_that("labels, name, and names conversion is correct", {

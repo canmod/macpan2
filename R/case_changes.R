@@ -15,3 +15,12 @@ var_case_to_cls_case = function(...) {
     , SIMPLIFY = FALSE
   ) |> vapply(paste, character(1L), collapse = "")
 }
+
+cls_case_to_var_case = function(...) {
+  x = unlist(list(...), recursive = TRUE, use.names = FALSE)
+  y = strsplit(x, "(?<=[a-z0-9])(?=[A-Z])", perl = TRUE)
+  words = unlist(lapply(y, function(z) {
+    tolower(z)
+  }))
+  paste(words, collapse = "_")
+}

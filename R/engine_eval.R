@@ -43,10 +43,10 @@ engine_eval = function(e, ..., .matrix_to_return, .tmb_cpp = getOption("macpan2_
     left_hand_side = paste0(c("output", names(dot_mats)), collapse = "_")
     e = as.formula(paste0(c(left_hand_side, as.character(e)), collapse = " "))
   } else {
-    stop(
-      "\nThe expression must be given as the",
-      "\nright-hand-side of a one-sided formula."
-    )
+    msg(
+      "The expression must be given as the",
+      "right-hand-side of a one-sided formula."
+    ) |> stop()
   }
 
   if (missing(.matrix_to_return)) .matrix_to_return = left_hand_side
@@ -74,7 +74,18 @@ engine_eval = function(e, ..., .matrix_to_return, .tmb_cpp = getOption("macpan2_
     obj_fn = ObjectiveFunction(~0)
   )
 
-  TMBSimulator(m, tmb_cpp = .tmb_cpp)$matrix(NA, matrix_name = .matrix_to_return, time_step = 1L)
+  TMBSimulator(m, tmb_cpp = .tmb_cpp)$matrix(NA
+    , matrix_name = .matrix_to_return
+
+    # because the number of time steps, T = 0,
+    # we have T + 1 = 1 here because we pick up the answers
+    # after the simulation loop
+    , time_step = 1L
+
+    # even though we evaluate "before", we pick up the
+    # answers after because we do not save results
+    , .phases = "after"
+  )
 }
 
 

@@ -44,6 +44,11 @@ Partition = function(frame) {
   self$names = function() names(self$frame())
   self$name = function() names(self$dotted())
   self$labels = function() self$dotted()[[1L]]
+  self$prefix = function(prefix) {
+    f = self$frame()
+    names(f) = sprintf("%s%s", prefix, self$names())
+    Partition(f)
+  }
   self$partial_labels = function(...) {
     new_names = list_to_names(...)
     self$.partition$change_coordinates(new_names)$dot()$frame()[[1L]]
@@ -102,6 +107,19 @@ Partition = function(frame) {
   return_object(self, "Partition")
 }
 Partition = memoise(Partition)
+
+#' Read Partition
+#'
+#' Read a CSV file in as a \code{\link{Partition}}.
+#'
+#' @param ... File path components to pass to \code{\link{CSVReader}}, and
+#' subsequently to \code{\link{file.path}}.
+#'
+#' @export
+read_partition = function(...) CSVReader(...)$read() |> Partition()
+
+#' @export
+partition = function(...) data.frame(...) |> Partition()
 
 NullPartition = function(...) {
   self = Base()

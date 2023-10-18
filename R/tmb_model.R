@@ -210,10 +210,10 @@ TMBSimulationUtils = function() {
       r = r[r$time != 0L,,drop = FALSE]
     }
     if (!"during" %in% .phases) {
-      r = r[(r$time < 1L) | (r$time > num_t),,drop = FALSE]
+      r = r[(r$time == 0L) | (r$time == num_t + 1L),,drop = FALSE]
     }
     if (!"after" %in% .phases) {
-      r = r[r$time < num_t + 1,,drop = FALSE]
+      r = r[r$time != num_t + 1L,,drop = FALSE]
     }
     r
   }
@@ -223,7 +223,7 @@ TMBSimulationUtils = function() {
     deparse1(self$tmb_model$expr_list$formula_list()[[expr_num]])
   }
   self$.runner = function(...
-      , .phases = c("before", "during", "after")
+      , .phases = "during"
       , .method = c("report", "simulate")
   ) {
     .method = match.arg(.method)
@@ -306,14 +306,14 @@ TMBSimulator = function(tmb_model, tmb_cpp = getOption("macpan2_dll"), initializ
   self$sdreport = function() TMB::sdreport(self$ad_fun())
   self$cov.fixed = function() self$sdreport()$cov.fixed
   self$par.fixed = function() self$sdreport()$par.fixed
-  self$report = function(..., .phases = c("before", "during", "after")) {
+  self$report = function(..., .phases = "during") {
     self$.runner(..., .phases = .phases, .method = "report")
   }
-  self$report_values = function(..., .phases = c("before", "during", "after")) {
+  self$report_values = function(..., .phases = "during") {
     self$report(..., .phases = .phases)$value
   }
   self$report_ensemble = function(...
-      , .phases = c("before", "during", "after")
+      , .phases = "during"
       , .n = 100
       , .probs = c(0.025, 0.5, 0.975)
     ) {
@@ -325,11 +325,11 @@ TMBSimulator = function(tmb_model, tmb_cpp = getOption("macpan2_dll"), initializ
     )
     cbind(r, rr)
   }
-  self$simulate = function(..., .phases = c("before", "during", "after")) {
+  self$simulate = function(..., .phases = "during") {
     self$.runner(..., .phases = .phases, .method = "simulate")
   }
-  self$matrix = function(..., matrix_name, time_step) {
-    r = self$report(...)
+  self$matrix = function(..., matrix_name, time_step, .phases = "during") {
+    r = self$report(..., .phases = .phases)
     i = (r$matrix == as.character(matrix_name)) & (r$time == as.integer(time_step))
     rr = r[i, c("row", "col", "value")]
     if (!any(is.na(as.integer(rr$row)))) {

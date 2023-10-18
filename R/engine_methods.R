@@ -127,30 +127,41 @@ Method = function(name, mat_args, int_vec_args, init_mats = MatsList(), int_vecs
     if (length(missing_mats) != 0L) {
       mixup = missing_mats[missing_mats %in% names(self$int_vecs)]
       if (length(mixup) != 0L) {
-        stop(
-            "\nThe ", self$name, " method had the following integer vectors passed"
-          , "\nto arguments that require matrices:\n"
-          , paste(mixup, collapse = "\n")
-        )
+        msg_colon(
+          msg(
+            "The", self$name,
+            "method had the following integer vectors passed",
+            "to arguments that require matrices"
+          ),
+          msg_indent(mixup)
+        ) |> stop()
       }
-      stop(
-          "\nThe ", self$name, " method could not find the following matrices:\n"
-        , paste(missing_mats, collapse = "\n")
-      )
+      msg_colon(
+        msg(
+          "The", self$name,
+          "method could not find the following matrices"
+        ),
+        msg_indent(missing_mats)
+      ) |> stop()
     }
     if (length(missing_int_vecs) != 0L) {
       mixup = missing_int_vecs[missing_int_vecs %in% names(self$init_mats)]
       if (length(mixup) != 0L) {
-        stop(
-            "\nThe ", self$name, " method had the following matrices passed"
-          , "\nto arguments that require integer vectors:\n"
-          , paste(mixup, collapse = "\n")
-        )
+        msg_colon(
+          msg(
+            "The", self$name, "method had the following matrices passed",
+            "to arguments that require integer vectors"
+          ),
+          msg_indent(mixup)
+        ) |> stop()
       }
-      stop(
-          "\nThe ", self$name, " method coult not find the following integer vectors:\n"
-        , paste(missing_int_vecs, collapse = "\n")
-      )
+      msg_colon(
+        msg(
+          "The", self$name,
+          "method could not find the following integer vectors"
+        ),
+        msg_indent(missing_int_vecs)
+      ) |> stop()
     }
   }
 

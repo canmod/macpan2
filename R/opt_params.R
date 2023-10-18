@@ -129,6 +129,7 @@ OptParamsFile = function(file_path
   )
   self$.col_map = c(
       Matrix = "mat"
+    , matrix = "mat"
     , mat = "mat"
     , Mat = "mat"
     , Row = "row"

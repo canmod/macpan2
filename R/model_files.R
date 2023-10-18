@@ -72,7 +72,7 @@ ModelFiles = function(model_directory
     , reader_spec("derivations.json", json_reader)
     , reader_spec("flows.csv", csv_reader)
     , reader_spec("settings.json", json_reader)
-    , reader_spec("trans.csv", csv_reader, optional = TRUE)
+    , reader_spec("infection.csv", csv_reader, optional = TRUE)
     , reader_spec("transmission_matrices.csv", csv_reader, optional = TRUE)
     , reader_spec("transmission_dimensions.csv", csv_reader, optional = TRUE)
   )
@@ -84,7 +84,7 @@ ModelFiles = function(model_directory
   self$variables = function() self$get("variables")
   self$derivations = function() self$get("derivations")
   self$flows = function() self$get("flows")
-  self$trans = function() self$get("trans", optional = TRUE)
+  self$infection = function() self$get("infection", optional = TRUE)
   self$settings = function() self$get("settings")
   self$transmission_matrices = function() {
     self$get("transmission_matrices", optional = TRUE)

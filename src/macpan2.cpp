@@ -152,71 +152,68 @@ void printMatrix(const matrix<Type>& mat) {
 
 
 // Helper function
-template<class Type>
-int CheckIndices(
-    matrix<Type>& x,
-    matrix<Type>& rowIndices,
-    matrix<Type>& colIndices
-) {
-    int rows = x.rows();
-    int cols = x.cols();
-    Type maxRowIndex = rowIndices.maxCoeff();
-    Type maxColIndex = colIndices.maxCoeff();
-    Type minRowIndex = rowIndices.minCoeff();
-    Type minColIndex = colIndices.minCoeff();
+// template<class Type>
+// int CheckIndices(
+//     matrix<Type>& x,
+//     matrix<Type>& rowIndices,
+//     matrix<Type>& colIndices
+// ) {
+//     int rows = x.rows();
+//     int cols = x.cols();
+//     Type maxRowIndex = rowIndices.maxCoeff();
+//     Type maxColIndex = colIndices.maxCoeff();
+//     Type minRowIndex = rowIndices.minCoeff();
+//     Type minColIndex = colIndices.minCoeff();
+//
+//     if ((maxRowIndex < rows) & (maxColIndex < cols) && (minRowIndex > -0.1) && (minColIndex > -0.1)) {
+//         return 0;
+//     }
+//     return 1;
+// }
 
-    if ((maxRowIndex < rows) & (maxColIndex < cols) && (minRowIndex > -0.1) && (minColIndex > -0.1)) {
-        return 0;
-    }
-    return 1;
-}
-
-// Helper function
-template<class Type>
-int RecycleInPlace(
-    matrix<Type>& mat,
-    int rows,
-    int cols
-) {
-    #ifdef MP_VERBOSE
-        std::cout << "recycling ... " << std::endl;
-    #endif
-    if (mat.rows()==rows && mat.cols()==cols) // don't need to do anything.
-        return 0;
-
-    matrix<Type> m(rows, cols);
-    if (mat.rows()==1 && mat.cols()==1) {
-        m = matrix<Type>::Constant(rows, cols, mat.coeff(0,0));
-    }
-    else if (mat.rows()==rows) {
-        if (mat.cols()==1) {
-            #ifdef MP_VERBOSE
-                std::cout << "recycling columns ... " << std::endl;
-            #endif
-            for (int i=0; i<cols; i++)
-                m.col(i) = mat.col(0);
-        } else
-            return 501;
-            //SetError(501, "cannot recycle columns because the input is neither a scalar nor a column vector", row);
-    }
-    else if (mat.cols()==cols) {
-        if (mat.rows()==1) {
-            #ifdef MP_VERBOSE
-                std::cout << "recycling rows ... " << std::endl;
-            #endif
-            for (int i=0; i<rows; i++)
-                m.row(i) = mat.row(0);
-        } else
-            return 501;
-            //SetError(501, "cannot recycle rows because the input is neither a scalar nor a row vector", row);
-    } else
-        return 501;
-        //SetError(501, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row);
-
-    // final step
-    mat = m;
-    return 0;
-}
+// // Helper function
+// template<class Type>
+// int RecycleInPlace(
+//     matrix<Type>& mat,
+//     int rows,
+//     int cols
+// ) {
+//     #ifdef MP_VERBOSE
+//         std::cout << "recycling ... " << std::endl;
+//     #endif
+//     if (mat.rows()==rows && mat.cols()==cols) // don't need to do anything.
+//         return 0;
+//
+//     matrix<Type> m(rows, cols);
+//     if (mat.rows()==1 && mat.cols()==1) {
+//         m = matrix<Type>::Constant(rows, cols, mat.coeff(0,0));
+//     }
+//     else if (mat.rows()==rows) {
+//         if (mat.cols()==1) {
+//             #ifdef MP_VERBOSE
+//                 std::cout << "recycling columns ... " << std::endl;
+//             #endif
+//             for (int i=0; i<cols; i++)
+//                 m.col(i) = mat.col(0);
+//         } else
+//             return 501;
+//     }
+//     else if (mat.cols()==cols) {
+//         if (mat.rows()==1) {
+//             #ifdef MP_VERBOSE
+//                 std::cout << "recycling rows ... " << std::endl;
+//             #endif
+//             for (int i=0; i<rows; i++)
+//                 m.row(i) = mat.row(0);
+//         } else
+//             return 501;
+//     } else
+//         return 501;
+//
+//     // final step
+//     mat = m;
+//     return 0;
+// }
 
 template<class Type>
 struct ListOfMatrices {
@@ -419,10 +416,10 @@ matrix<Type> getNthMat(
 }
 
 
-template <typename T>
+template <typename Type>
 class ArgList {
 public:
-    using ItemType = std::variant<matrix<T>, std::vector<int>>;
+    using ItemType = std::variant<matrix<Type>, std::vector<int>>;
 
     ArgList(int size) : items_(size), size_(size) {}
 
@@ -433,13 +430,13 @@ public:
         items_[index] = item;
     }
 
-    matrix<T> get_as_mat(int i) {
+    matrix<Type> get_as_mat(int i) const {
         if (i < 0 || i >= items_.size()) {
             throw std::out_of_range("Index out of range");
         }
 
-        if (std::holds_alternative<matrix<T>>(items_[i])) {
-            return std::get<matrix<T>>(items_[i]);
+        if (std::holds_alternative<matrix<Type>>(items_[i])) {
+            return std::get<matrix<Type>>(items_[i]);
         } else {
             throw std::runtime_error("Item at index is not a matrix");
         }
@@ -453,7 +450,7 @@ public:
         if (std::holds_alternative<std::vector<int>>(items_[i])) {
             return std::get<std::vector<int>>(items_[i]);
         } else {
-            matrix<T> m = get_as_mat(i);
+            matrix<Type> m = get_as_mat(i);
             std::vector<int> v(m.rows());
             for (int i=0; i<v.size(); i++) {
                 v[i] = CppAD::Integer(m.coeff(i,0));
@@ -462,13 +459,166 @@ public:
         }
     }
 
-    matrix<T> operator[](int i) {
+    matrix<Type> operator[](int i) {
         return get_as_mat(i);
     }
+
+    // Method to recycle elements, rows, and columns to make operands compatible for binary operations
+    ArgList<Type> recycle_for_bin_op() const {
+        ArgList<Type> result = *this; // Create a new ArgList as a copy of the current instance
+
+        matrix<Type> mat0 = result.get_as_mat(0);
+        matrix<Type> mat1 = result.get_as_mat(1);
+
+        if (mat0.rows() == mat1.rows()) {
+            if (mat0.cols() != mat1.cols()) {
+                if (mat0.cols() == 1) { // Vector vs matrix or scalar vs vector
+                    matrix<Type> m = mat0;
+                    mat0 = mat1; // for the shape
+                    for (int i = 0; i < mat0.cols(); i++) {
+                        mat0.col(i) = m.col(0);
+                    }
+                } else if (mat1.cols() == 1) { // Vector vs matrix or scalar vs vector
+                    matrix<Type> m = mat1;
+                    //result.set(1, mat0); // Set for the shape
+                    mat1 = mat0;
+                    for (int i = 0; i < mat1.cols(); i++) {
+                        mat1.col(i) = m.col(0);
+                    }
+                } else {
+                    result.set_error_code(201); // Set the error code for "The two operands do not have the same number of columns"
+                }
+            }
+            // else: do nothing
+        } else {
+            if (mat0.cols() == mat1.cols()) { // Only one compatible dimension
+                if (mat0.rows() == 1) { // Vector vs matrix or scalar vs vector
+                    matrix<Type> m = mat0;
+                    mat0 = mat1;
+                    for (int i = 0; i < mat0.rows(); i++) {
+                        mat0.row(i) = m.row(0);
+                    }
+                } else if (mat1.rows() == 1) { // Vector vs matrix or scalar vs vector
+                    matrix<Type> m = mat1;
+                    mat1 = mat0;
+                    for (int i = 0; i < mat0.rows(); i++) {
+                        mat1.row(i) = m.row(0);
+                    }
+                } else {
+                    result.set_error_code(202); // Set the error code for "The two operands do not have the same number of rows"
+                }
+            } else { // No dimensions are equal
+                if (mat0.rows() == 1 && mat0.cols() == 1) { // Scalar vs non-scalar
+                    Type s = mat0.coeff(0, 0);
+                    mat0 = mat1;
+                    mat0.setConstant(s);
+                } else if (mat1.rows() == 1 && mat1.cols() == 1) { // Scalar vs non-scalar
+                    Type s = mat1.coeff(0, 0);
+                    mat1 = mat0;
+                    mat1.setConstant(s);
+                } else {
+                    result.set_error_code(203); // Set the error code for "The two operands do not have the same number of columns or rows"
+                }
+            }
+        }
+        result.set(0, mat0);
+        result.set(1, mat1);
+        return result;
+    }
+
+
+    // Method to recycle elements of all arguments so that they match a given shape
+    ArgList<Type> recycle_to_shape(const std::vector<int>& indices, int rows, int cols) const {
+        ArgList<Type> result = *this; // Create a new ArgList as a copy of the current instance
+
+        int error_code = 0; // Initialize the error code
+
+        for (int index : indices) {
+            matrix<Type> mat = result.get_as_mat(index);
+
+            if (mat.rows() == rows && mat.cols() == cols) {
+                // No further action needed for this matrix
+                continue;
+            }
+
+            matrix<Type> m(rows, cols);
+
+            if (mat.rows() == 1 && mat.cols() == 1) {
+                m = matrix<Type>::Constant(rows, cols, mat.coeff(0, 0));
+            } else if (mat.rows() == rows) {
+                if (mat.cols() == 1) {
+                    for (int i = 0; i < cols; i++) {
+                        m.col(i) = mat.col(0);
+                    }
+                } else {
+                    error_code = 501;
+                    break; // Exit the loop on error
+                }
+            } else if (mat.cols() == cols) {
+                if (mat.rows() == 1) {
+                    for (int i = 0; i < rows; i++) {
+                        m.row(i) = mat.row(0);
+                    }
+                } else {
+                    error_code = 501;
+                    break; // Exit the loop on error
+                }
+            } else {
+                error_code = 501;
+                break; // Exit the loop on error
+            }
+
+            if (error_code != 0) {
+                result.set_error_code(error_code);
+                break; // Exit the loop on error
+            }
+
+            // If recycling is successful, update the result ArgList object
+            result.set(index, m);
+        }
+
+        return result;
+    }
+
+    int check_indices(int mat_index, const std::vector<int>& row_indices, const std::vector<int>& col_indices) const {
+        if (mat_index < 0 || mat_index >= items_.size()) {
+            return 2; // Return an error code for an invalid index
+        }
+
+        matrix<Type> x = get_as_mat(mat_index);
+        int rows = x.rows();
+        int cols = x.cols();
+
+        for (int row_index : row_indices) {
+            if (row_index < 0 || row_index >= rows) {
+                return 1; // Indices are not valid
+            }
+        }
+
+        for (int col_index : col_indices) {
+            if (col_index < 0 || col_index >= cols) {
+                return 1; // Indices are not valid
+            }
+        }
+
+        return 0; // Indices are valid
+    }
+
+    // Method to set an error code
+    void set_error_code(int error) {
+        error_code_ = error;
+    }
+
+    // Getter for the error code
+    int get_error_code() const {
+        return error_code_;
+    }
+
 
 private:
     std::vector<ItemType> items_;
     int size_;
+    int error_code_ = 0; // Initialize the error code to 0 (no error) by default
 };
 
 
@@ -543,9 +693,9 @@ public:
         vector<int> u;
         matrix<Type> Y, X, A;
         matrix<Type> timeIndex; // for rbind_time
-        Type sum, s, eps, var, by;  // intermediate scalars
+        Type sum, eps, var, by;  // intermediate scalars
         int rows, cols, lag, rowIndex, colIndex, matIndex, grpIndex, reps, cp, off, size;
-        int sz, start, err_code, err_code1, err_code2, curr_meth_id;
+        int sz, start, err_code, curr_meth_id;
         // size_t numMats;
         // size_t numIntVecs;
         std::vector<int> curr_meth_mat_id_vec;
@@ -560,65 +710,29 @@ public:
         switch (table_n[row]) {
             case -2: // methods (pre-processed matrices)
 
-                //std::cout << "---------------" << std::endl;
-                //std::cout << "IN METHODS CASE" << std::endl;
-                //std::cout << "---------------" << std::endl;
-
-                // METH_FROM_ROWS = 1 // ~ Y[i], "Y", "i"
-                // METH_TO_ROWS = 2 // Y[i] ~ X, c("Y", "X"), "i"
-                // METH_ROWS_TO_ROWS = 3 // Y[i] ~ X[j], c("Y", "X"), c("i", "j")
-                // METH_MAT_MULT_TO_ROWS = 4 // Y[i] ~ A %*% X[j], c("Y", "A", "X"), c("i", "j")
-                // METH_TV_MAT_MULT_TO_ROWS = 5 // Y[i] ~ time_var(A, change_points, block_size, change_pointer) %*% X[j], c("Y", "A", "X"), c("i", "j", "change_points", "block_size", "change_pointer")
-                // METH_GROUP_SUMS = 6 // ~ groupSums(Y, i, n), "Y", c("i", "n")
-                // METH_TV_MAT = 7 // ~ time_var(Y, change_points, block_size, change_pointer), "Y", c("change_points", "block_size", "change_pointer")
-
                 curr_meth_id = table_x[row];
 
                 switch(meth_type_id[curr_meth_id]) {
                     case METH_FROM_ROWS:
-                        //std::cout << "-----------------" << std::endl;
-                        //std::cout << "IN METH_FROM_ROWS" << std::endl;
-                        //std::cout << "-----------------" << std::endl;
                         m = getNthMat(0, curr_meth_id, valid_vars, meth_mats);
-                        //printMatrix(m);
                         v = getNthIntVec(0, curr_meth_id, valid_int_vecs, meth_int_vecs);
-                        //printIntVectorWithLabel(v, "");
                         m1 = matrix<Type>::Zero(v.size(), m.cols());
                         for (int i=0; i<v.size(); i++)
                             m1.row(i) = m.row(v[i]);
                         return m1;
                     case METH_MAT_MULT_TO_ROWS:
-                        //std::cout << "-----------------------" << std::endl;
-                        //std::cout << "IN METH_MATMULT_TO_ROWS" << std::endl;
-                        //std::cout << "-----------------------" << std::endl;
-
                         matIndex = getNthMatIndex(0, curr_meth_id, meth_mats);
                         m = getNthMat(1, curr_meth_id, valid_vars, meth_mats);
                         m1 = getNthMat(2, curr_meth_id, valid_vars, meth_mats);
                         v = getNthIntVec(0, curr_meth_id, valid_int_vecs, meth_int_vecs);
                         v1 = getNthIntVec(1, curr_meth_id, valid_int_vecs, meth_int_vecs);
                         m2 = matrix<Type>::Zero(v1.size(), m1.cols());
-
-                        //std::cout << "Y index" << matIndex << std::endl;
-                        //std::cout << "A" << m << std::endl;
-                        //std::cout << "X" << m1 << std::endl;
-                        //printIntVectorWithLabel(v, "i");
-                        //printIntVectorWithLabel(v1, "j");
-
                         for (int i=0; i<v1.size(); i++) {
-                            //std::cout << m1.row(v1[i]) << std::endl;
-                            //std::cout << "here" << std::endl;
                             m2.row(i) = m1.row(v1[i]);
-                            //std::cout << "now here" << std::endl;
                         }
-
-                        //std::cout << "X_j" << m1 << std::endl;
-
                         m3 = m * m2;
-
                         for (int k=0; k<v.size(); k++)
                             valid_vars.m_matrices[matIndex].row(v[k]) = m3.row(k);
-
                         return m4; // empty matrix
 
                     case METH_GROUP_SUMS:
@@ -634,51 +748,20 @@ public:
                         return m1;
 
                     case METH_TV_MAT:
-                        //std::cout << "--------------" << std::endl;
-                        //std::cout << "IN METH_TV_MAT" << std::endl;
-                        //std::cout << "--------------" << std::endl;
                         m = getNthMat(0, curr_meth_id, valid_vars, meth_mats); // Y -- row-binded blocks, each corresponding to a change-point
                         v = getNthIntVec(0, curr_meth_id, valid_int_vecs, meth_int_vecs); // t -- change-point times
                         rows = getNthIntVec(1, curr_meth_id, valid_int_vecs, meth_int_vecs)[0]; // n -- block size
                         cols = m.cols();
                         u = getNthIntVec(2, curr_meth_id, valid_int_vecs, meth_int_vecs); // i -- time-group pointer
-
-                        //std::cout << "m: " << m << std::endl;
-                        //printIntVectorWithLabel(v, "v");
-                        //printIntVectorWithLabel(u, "u");
-                        //std::cout << "rows: " << rows << std::endl;
-                        //std::cout << "cols: " << cols << std::endl;
-
-                        //printIntVectorWithLabel(v, "v");
                         off = u[0];
                         grpIndex = off + 1;
-                        //std::cout << "off: " << off << std::endl;
                         if (grpIndex < v.size()) {
                             if (v[grpIndex] == t) {
-                                //std::cout << "here" << std::endl;
-                                //std::cout << "off: " << off << std::endl;
                                 u[0] = grpIndex;
-                                //printIntVectorWithLabel(u, "u");
                                 setNthIntVec(2, curr_meth_id, valid_int_vecs, meth_int_vecs, u);
                             }
                         }
-                        //std::cout << "t: " << t << std::endl;
-                        //std::cout << "cp: " << cp << std::endl;
-
-                        //cp = v[u[0] + 1];
-                        //if (cp == t) {
-                        //    u[0] = u[0] + 1;
-                        //}
-                        //std::cout << "off:  " << off << std::endl;
                         return m.block(rows * off, 0, rows, cols);
-
-                        // m = args[0];
-                        // off = CppAD::Integer(args[0].coeff(0, 0));
-                        // cp = CppAD::Integer(args[1].coeff(off + 1, 0));
-                        // if (cp == t) {
-                        //     m.coeffRef(0,0) = off + 1;
-                        // }
-
 
                     case METH_ROWS_TIMES_ROWS:
                         m = getNthMat(0, curr_meth_id, valid_vars, meth_mats);
@@ -745,73 +828,24 @@ public:
 
                 // Check dimensions compatibility. If needed, expand one operand to make its dimensions compatible with the other
                 if (table_x[row]+1<6 && table_n[row]==2) { // elementwise binary operations + - * / ^
-                    if (args[0].rows()==args[1].rows()) {
-                        if (args[0].cols()!=args[1].cols()) {
-                            if (args[0].cols()==1) { // vector vs matrix or scalar vs vector
-                                m = args[0];
-                                args[0] = args[1]; // for the shape
-                                for (int i=0; i<args[0].cols(); i++)
-                                    args[0].col(i) = m.col(0);
-                            }
-                            else if (args[1].cols()==1) { // vector vs matrix or scalar vs vector
-                                m = args[1];
-                                args[1] = args[0]; // for the shape
-                                for (int i=0; i<args[1].cols(); i++)
-                                    args[1].col(i) = m.col(0);
-                            }
-                            else {
-                                SetError(201, "The two operands do not have the same number of columns", row);
-                                return m;
-                                //Rf_error("The two operands do not have the same number of columns");
-                            }
-                        }
-                        // else: do nothing
-                    }
-                    else {
-                        if (args[0].cols()==args[1].cols()) { // only one compatible dimension
-                            if (args[0].rows()==1) { // vector vs matrix or scalar vs vector
-                                m = args[0];
-                                args[0] = args[1]; // for the shape
-                                for (int i=0; i<args[0].rows(); i++)
-                                    args[0].row(i) = m.row(0);
-                            }
-                            else if (args[1].rows()==1) { // vector vs matrix or scalar vs vector
-                                m = args[1];
-                                args[1] = args[0]; // for the shape
-                                for (int i=0; i<args[1].rows(); i++)
-                                    args[1].row(i) = m.row(0);
-                            }
-                            else {
-                                SetError(202, "The two operands do not have the same number of rows", row);
-                                return m;
-                                // Rf_error("The two operands do not have the same number of rows");
-                            }
-                        }
-                        else { // no dimensions are equal
-                            if (args[0].rows()==1 && args[0].cols()==1) { // scalar vs non-scalar
-                                s = args[0].coeff(0,0);
-                                args[0] = args[1];
-                                args[0].setConstant(s);
-                            }
-                            else if (args[1].rows()==1 && args[1].cols()==1) { // scalar vs non-scalar
-                                s = args[1].coeff(0,0);
-                                args[1] = args[0];
-                                args[1].setConstant(s);
-                            }
-                            else {
-                                SetError(203, "The two operands do not have the same number of columns or rows", row);
-                                return m;
-                                //Rf_error("The dimensions of the two operands are not equal to each other");
-                            }
-                        }
+                    args = args.recycle_for_bin_op();
+                    err_code = args.get_error_code();
+                    switch (err_code) {
+                        case 201:
+                            SetError(err_code, "The two operands do not have the same number of columns", row);
+                            return m;
+                        case 202:
+                            SetError(err_code, "The two operands do not have the same number of rows", row);
+                            return m;
+                        case 203:
+                            SetError(err_code, "The two operands do not have the same number of columns or rows", row);
+                            return m;
                     }
                 }
                 else if (table_x[row]+1==11) { // %*% matrix multiplication
-                    //std::cout << "mat mult index" << MP2_MATRIX_MULTIPLY << std::endl;
                     if (args[0].cols()!=args[1].rows()) {
                         SetError(204, "The two operands are not compatible to do matrix multiplication", row);
                         return m;
-                        //Rf_error("The two operands are not compatible to do matrix multiplication");
                     }
                 }
 
@@ -1535,7 +1569,6 @@ public:
                         int nrow;
                         int ncol;
 
-                        m = args[0];
                         v1 = args.get_as_int_vec(1);
                         nrow = v1.size();
                         if (n == 2) {
@@ -1545,6 +1578,12 @@ public:
                             v2 = args.get_as_int_vec(2);
                             ncol = v2.size();
                         }
+                        err_code = args.check_indices(0, v1, v2);// CheckIndices(args[0], args[1], m1);
+                        if (err_code) {
+                            SetError(MP2_SQUARE_BRACKET, "Illegal index to square bracket", row);
+                            return m;
+                        }
+                        m = args[0];
                         m1 = matrix<Type>::Zero(nrow,ncol);
                         for (int i=0; i<nrow; i++) {
                             for (int j=0; j<ncol; j++) {
@@ -1987,11 +2026,14 @@ public:
                         }
                         rows = args[0].rows();
                         cols = args[0].cols();
+                        v1.push_back(1);
+                        args = args.recycle_to_shape(v1, rows, cols);
+                        err_code = args.get_error_code();
                         // err_code = RecycleInPlace(args[1], rows, cols);
-                        // if (err_code != 0) {
-                        //   SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row);
-                        //   return m;
-                        // }
+                        if (err_code != 0) {
+                          SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row);
+                          return m;
+                        }
                         m = matrix<Type>::Zero(rows, cols);
                         for (int i=0; i<rows; i++) {
                             for (int j=0; j<cols; j++) {
@@ -2007,13 +2049,17 @@ public:
                         }
                         rows = args[0].rows();
                         cols = args[0].cols();
+                        v1.push_back(1);
+                        v1.push_back(2);
+                        args = args.recycle_to_shape(v1, rows, cols);
+                        err_code = args.get_error_code();
                         // err_code1 = RecycleInPlace(args[1], rows, cols);
                         // err_code2 = RecycleInPlace(args[2], rows, cols);
                         // err_code = err_code1 + err_code2;
-                        // if (err_code != 0) {
-                        //     SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row);
-                        //     return m;
-                        // }
+                        if (err_code != 0) {
+                            SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row);
+                            return m;
+                        }
                         //   var ~ variance
                         //   mu ~ mean
                         //   k ~ overdispersion parameter = sp[this->spi[0]]
@@ -2037,13 +2083,17 @@ public:
                         }
                         rows = args[0].rows();
                         cols = args[0].cols();
+                        v1.push_back(1);
+                        v1.push_back(2);
+                        args = args.recycle_to_shape(v1, rows, cols);
+                        err_code = args.get_error_code();
                         // err_code1 = RecycleInPlace(args[1], rows, cols);
                         // err_code2 = RecycleInPlace(args[2], rows, cols);
                         // err_code = err_code1 + err_code2;
-                        // if (err_code != 0) {
-                        //     SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row);
-                        //     return m;
-                        // }
+                        if (err_code != 0) {
+                            SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row);
+                            return m;
+                        }
                         m = matrix<Type>::Zero(rows, cols);
                         for (int i=0; i<rows; i++) {
                             for (int j=0; j<cols; j++) {
@@ -2100,11 +2150,14 @@ public:
                         eps = 1e-8;
                         rows = args[0].rows();
                         cols = args[0].cols();
+                        v1.push_back(1);
+                        args = args.recycle_to_shape(v1, rows, cols);
+                        err_code = args.get_error_code();
                         // err_code = RecycleInPlace(args[1], rows, cols);
-                        // if (err_code != 0) {
-                        //     SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row);
-                        //     return m;
-                        // }
+                        if (err_code != 0) {
+                            SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row);
+                            return m;
+                        }
                         m = matrix<Type>::Zero(rows, cols);
                         for (int i=0; i<rows; i++) {
                             for (int j=0; j<cols; j++) {
@@ -2126,11 +2179,14 @@ public:
                         }
                         rows = args[0].rows();
                         cols = args[0].cols();
+                        v1.push_back(1);
+                        args = args.recycle_to_shape(v1, rows, cols);
+                        err_code = args.get_error_code();
                         // err_code = RecycleInPlace(args[1], rows, cols);
-                        // if (err_code != 0) {
-                        //     SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row);
-                        //     return m;
-                        // }
+                        if (err_code != 0) {
+                            SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row);
+                            return m;
+                        }
                         m = matrix<Type>::Zero(rows, cols);
                         for (int i=0; i<rows; i++) {
                             for (int j=0; j<cols; j++) {
@@ -2214,11 +2270,15 @@ public:
                         rows = args[3].rows();
                         // err_code1 = RecycleInPlace(args[1], rows, cols);
                         // err_code2 = RecycleInPlace(args[2], rows, cols);
+                        v1.push_back(1);
+                        v1.push_back(2);
+                        args = args.recycle_to_shape(v1, rows, cols);
+                        err_code = args.get_error_code();
                         // err_code = err_code1 + err_code2;
-                        // if (err_code != 0) {
-                        //     SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row);
-                        //     return m;
-                        // }
+                        if (err_code != 0) {
+                            SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row);
+                            return m;
+                        }
 
                         for (int k=0; k<rows; k++) {
                             rowIndex = CppAD::Integer(args[1].coeff(k,0));
@@ -2309,21 +2369,24 @@ public:
                         return m2; // empty matrix
 
                     case MP2_RECYCLE:
-                        m = args[0];
                         rows = CppAD::Integer(args[1].coeff(0,0));
                         cols = CppAD::Integer(args[2].coeff(0,0));
+                        v1.push_back(0);
+                        args = args.recycle_to_shape(v1, rows, cols);
+                        err_code = args.get_error_code();
                         // err_code = RecycleInPlace(m, rows, cols);
-                        // if (err_code != 0) {
-                        //     SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row);
-                        //     return m;
-                        // }
+                        m = args[0];
+                        if (err_code != 0) {
+                            SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row);
+                            return m;
+                        }
                         return m;
 
                     default:
                         SetError(255, "invalid operator in arithmetic expression", row);
                         return m;
                 }
-        }
+        } // switch (table_n[row])
     };
 
 private:
@@ -2390,48 +2453,48 @@ public:
     ) {
         int n = table_n[row];
         int x = table_x[row];
+        int x1;
         matrix<Type> m;
         std::vector<int> v1;
         std::vector<int> v2;
-        std::cout << "---- assignment ----" << std::endl;
-        std::cout << "n: " << n << std::endl;
-        std::cout << "x: " << n << std::endl;
-        if (n == -1) {
-            Rf_error("trying to assign to a literal, which is not allowed");
-        } else if (n == -2) {
-            Rf_error("trying to assign to an engine method, which is not allowed");
-        } else if (n == -3) {
-            Rf_error("trying to assign to an integer vector, which is not allowed");
-        } else if (n == 1) {
-            Rf_error("assignment error -- TODO: be more specific");
-        } else if (n == 0) {
-            valid_vars.m_matrices[x] = assignment_value;
-        } else {
-            if (x + 1 != MP2_SQUARE_BRACKET) {
-                Rf_error("square bracket is the only function allowed on the left-hand-side");
-            }
-            if (n == 3) {
-                v2 = valid_int_vecs[table_x[table_i[row] + 2]];
-            } else if (n == 2) {
-                v2.push_back(0);
-            } else {
-                Rf_error("incorrect numbers of arguments");
-            }
-            int x1 = table_x[table_i[row]];
-            m = valid_vars.m_matrices[x1];
-            std::cout << "matrix: " << m << std::endl;
-            v1 = valid_int_vecs[table_x[table_i[row] + 1]];
-            printIntVector(v1);
-            printIntVector(v2);
-            std::cout << "value: " << assignment_value << std::endl;
-            for (int i = 0; i < v1.size(); i++) {
-                for (int j = 0; j < v2.size(); j++) {
-                    m.coeffRef(v1[i], v2[j]) = assignment_value.coeff(i, j);
+        // std::cout << "---- assignment ----" << std::endl;
+        // std::cout << "n: " << n << std::endl;
+        // std::cout << "x: " << n << std::endl;
+        switch (n) {
+            case -1:
+                Rf_error("trying to assign to a literal, which is not allowed");
+            case -2:
+                Rf_error("trying to assign to an engine method, which is not allowed");
+            case -3:
+                Rf_error("trying to assign to an integer vector, which is not allowed");
+            case 1:
+                Rf_error("assignment error -- TODO: be more specific");
+            case 0:
+                valid_vars.m_matrices[x] = assignment_value;
+                return;
+            case 2:
+                if (table_n[table_i[row] + 1] != -3) {
+                    Rf_error("indexing on the left-hand-side needs to be done using integer vectors");
                 }
-            }
-            valid_vars.m_matrices[x1] = m;
-            //valid_vars.m_matrices[matIndex].coeffRef(rowIndex,colIndex) = args[3].coeff(k,0);
-        }
+                v2.push_back(0);
+            case 3:
+                if (x + 1 != MP2_SQUARE_BRACKET) {
+                   Rf_error("square bracket is the only function allowed on the left-hand-side");
+                }
+                x1 = table_x[table_i[row]];
+                if (n == 3) v2 = valid_int_vecs[table_x[table_i[row] + 2]];
+                m = valid_vars.m_matrices[x1];
+                v1 = valid_int_vecs[table_x[table_i[row] + 1]];
+                for (int i = 0; i < v1.size(); i++) {
+                    for (int j = 0; j < v2.size(); j++) {
+                        m.coeffRef(v1[i], v2[j]) = assignment_value.coeff(i, j);
+                    }
+                }
+                valid_vars.m_matrices[x1] = m;
+                return;
+            default:
+                Rf_error("incorrect numbers of arguments");
+        } // switch (n)
     };
 };
 

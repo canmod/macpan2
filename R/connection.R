@@ -16,9 +16,9 @@ Connection = function(row, variables
   self$join_ref = join_ref
   self$type_ref = type_ref
 
-  self$from_universe = variables[[self$from_set]]
-  self$to_universe = variables[[self$to_set]]
-  self$conn_universe = variables[[self$conn_set]]
+  self$from_universe = connection_universe(variables, self$from_set)
+  self$to_universe = connection_universe(variables, self$to_set)
+  self$conn_universe = connection_universe(variables, self$conn_set)
 
   self$from = self$row[[self$from_ref]]
   self$to = self$row[[self$to_ref]]
@@ -131,7 +131,7 @@ Connection = function(row, variables
     }
     unique(rbind(from_conn, to_conn))
   }
-  initialize_cache(self, "frame", "from_to_merge", "from_conn_merge", "to_conn_merge")
+  #initialize_cache(self, "frame", "from_to_merge", "from_conn_merge", "to_conn_merge")
 
   return_object(self, "Connection")
 }
@@ -141,6 +141,10 @@ connection_merge = function(x, y, by, output_cols) {
 }
 #connection_merge = memoise(connection_merge)
 
+connection_universe = function(v, s) {
+  if (!isTRUE(s %in% v$.all_types())) return(NULL)
+  v[[s]]
+}
 
 
 #' @export
@@ -167,29 +171,29 @@ Flows = function(flows, variables) {
 }
 
 #' @export
-Trans = function(trans, variables) {
+Infection = function(infection, variables) {
   self = Base()
-  self$trans = enforce_schema(trans, "state", "flow", "pop", "type")
+  self$infection = enforce_schema(infection, "state", "flow")
   self$variables = variables
   self$connections = list()
-  for (i in seq_row(self$trans)) {
+  for (i in seq_row(self$infection)) {
     self$connections[[i]] = Connection(
-        row = self$trans[i, , drop = FALSE]
+        row = self$infection[i, , drop = FALSE]
       , variables = self$variables
       , from_ref = "state"
       , to_ref = "flow"
-      , conn_ref = "pop"
-      , type_ref = "type"
-      , from_set = "state", to_set = "flow", conn_set = "all"
+      , conn_ref = ""
+      , type_ref = ""
+      , from_set = "state", to_set = "flow", conn_set = ""
       , filter_ref = "partition"
       , join_ref = "partition"
     )
   }
   self$frame = function() {
-    if (ncol(self$trans) < 4) return(self$trans)
+    if (ncol(self$infection) < 3) return(self$infection)
     do.call(rbind, method_apply(self$connections, "frame"))
   }
-  return_object(self, "Trans")
+  return_object(self, "Infection")
 }
 
 labelled_frame = function(partition, label_name = "label") {

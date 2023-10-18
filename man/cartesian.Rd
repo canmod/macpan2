@@ -7,9 +7,9 @@
 cartesian(x, y)
 }
 \arguments{
-\item{x}{Object with a \verb{$frame} method that returns a data frame.}
+\item{x}{A \code{\link{Partition}} object.}
 
-\item{y}{Object with a \verb{$frame} method that returns a data frame.}
+\item{y}{A \code{\link{Partition}} object.}
 }
 \description{
 Cartesian Product

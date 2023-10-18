@@ -14,14 +14,15 @@ dev_file = function(suffix = "", ext = "cpp") {
   if (dev_in_root()) return(cpp("misc/dev"))
   if (dev_in_dev()) return(cpp(""))
   if (dev_in_test()) return(cpp("../../misc/dev"))
-  stop(
-    "\n------",
-    "\nYou are developing here:\n", getwd(), ",",
-    "\nwhich is not where you should be developing.",
-    "\nThe current options are in the root of macpan2,",
-    "\nor in misc/dev or tests within a macpan2 project.",
-    "\n------"
-  )
+
+  msg_break(
+    msg_colon("You are developing here", getwd()),
+    msg(
+      "which is not where you should be developing.",
+      "The current options are in the root of macpan2,",
+      "or in misc/dev or tests within a macpan2 project."
+    )
+  ) |> stop()
 }
 
 dev_obj = function(suffix = "", ext = "cpp") {

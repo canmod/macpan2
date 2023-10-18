@@ -9,7 +9,7 @@
 Reader = function(...) {
   self = Base()
   self$file = normalizePath(file.path(...), mustWork = TRUE)
-  self$read = function() {
+  self$read_base = function() {
     suggestion = switch(file_ext(self$file)
       , csv = "CSVReader"
       , json = "JSONReader"
@@ -21,6 +21,15 @@ Reader = function(...) {
       suggestion, "."
     )
   }
+  ## wrapper for handling errors in the reading functions
+  self$read = function() {
+    x = try(self$read_base())
+    if (inherits(x, "try-error")) {
+      stop("\nCouldn't read this file:\n", self$file)
+    }
+    x
+  }
+
   return_object(self, "Reader")
 }
 
@@ -32,7 +41,7 @@ CSVReader = function(...) {
   self$.empty = function(row) {
     isTRUE(all((row == "") | startsWith(row, " ")))
   }
-  self$read = function() {
+  self$read_base = function() {
     data_frame = read.table(
       self$file, sep = ",", quote = "", na.strings = character(0L),
       colClasses = "character", header = TRUE,
@@ -50,11 +59,12 @@ CSVReader = function(...) {
 #' @export
 JSONReader = function(...) {
   self = Reader(...)
-  self$read = function() {
-    jsonlite::fromJSON(self$file
+  self$read_base = function() {
+    l = jsonlite::fromJSON(self$file
       , simplifyDataFrame = FALSE
       , simplifyMatrix = FALSE
     )
+
   }
   return_object(self, "JSONReader")
 }
@@ -63,14 +73,14 @@ JSONReader = function(...) {
 #' @export
 TXTReader = function(...) {
   self = Reader(...)
-  self$read = function() readLines(self$file)
+  self$read_base = function() readLines(self$file)
   return_object(self, "TXTReader")
 }
 
 #' @describeIn Reader Placeholder reader that always returns \code{NULL}.
 #' @export
 NULLReader = function(...) {
-  self = self = Base()
+  self = Base()
   self$file = ""
   self$read = function() NULL
   return_object(self, "NULLReader")

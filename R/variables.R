@@ -5,7 +5,7 @@ Variables = function(model) {
   self$all = function() Partition(self$model$def$variables())
   self$.type = function(type) {
     labels_this_type = self$model$settings$variable(type)
-    var_part = self$model$settings$var_partitions()
+    var_part = self$model$settings$var_part()
     wrt = self$model$settings$name()
     if (is.null(var_part)) {
       vars = self$all()$filter_ordered(labels_this_type, .wrt = wrt)
@@ -32,7 +32,6 @@ Variables = function(model) {
     # TODO: A better way to handle the NULL case would make it possible
     # to return a null Partition object. This is currently not possible
     # for 'technical' reasons.
-    all_types = c("flow", "state", "infectious_state", "infected_state", "infection_flow")
     if (length(self$model$labels$other()) == 0L) {
       warning(
         "\nThere are no other variables in this model",
@@ -46,6 +45,7 @@ Variables = function(model) {
       .wrt = s$required_partitions
     )
   }
+  self$.all_types = function() setdiff(ls(self), c("cache", "model"))
   initialize_cache(self, "all")
   return_object(self, "Variables")
 }

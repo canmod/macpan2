@@ -3,6 +3,7 @@
 .RData
 .Ruserdata
 inst/doc
+hoard
 *.o
 *.so
 *.DS_Store

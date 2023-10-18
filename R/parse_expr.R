@@ -261,30 +261,35 @@ get_indices = function(x, vec, vec_type, expr_as_string, zero_based = FALSE) {
     if (vec_type == "functions") {
       pointers = "\nPlease see ?engine_functions for more information on the available functions."
     } else if (vec_type == "variables") {
-      pointers = paste(
-        "\nPlease ensure that all variables are being initialized",
-        "\nEven variables that are derived and not dependencies of",
-        "\nother expressions must at least be initialized as an ?empty_matrix.",
-        "\n",
-        sep = ""
+      pointers = msg(
+        "Please ensure that all variables are being initialized",
+        "Even variables that are derived and not dependencies of",
+        "other expressions must at least be initialized as an",
+        "?empty_matrix.\n"
       )
     } else if (vec_type == "methods") {
-      pointers = "\nHelp for ?engine_methods is under construction."
+      pointers = msg("Help for ?engine_methods is under construction.")
     } else if (vec_type == "int_vecs") {
-      pointers = paste(
-        "\nPlease ensure that engine methods refer to the right integer vectors",
-        sep = ""
+      pointers = msg(
+        "Please ensure that engine methods refer",
+        "to the right integer vectors"
       )
     }
-    stop(
-      "\nthe expression given by:\n",
-      expr_as_string, "\n\n",
-      "contained the following ", vec_type, ":\n",
-      paste0(unique(missing_items), collapse = " "), "\n\n",
-      " that were not found in the list of available ", vec_type, ":\n",
-      paste0(vec, collapse = " "), # TODO: smarter pasting when this list gets big
+    msg_break(
+      msg_colon(
+        "The expression given by",
+        msg_indent(expr_as_string)
+      ),
+      msg_colon(
+        msg("contained the following", vec_type),
+        msg_indent(missing_items)
+      ),
+      msg_colon(
+        msg("that were not found in the list of available", vec_type),
+        msg_indent(vec)
+      ),
       pointers
-    )
+    ) |> stop()
   }
   one_based = apply(outer(as.character(x), vec, "=="), 1, which)
   if (zero_based) return(one_based - 1L)
