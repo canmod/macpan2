@@ -1,0 +1,29 @@
+<mxfile host="65bd71144e">
+    <diagram id="oTzWw2j2ZEqmw9C_AoM1" name="Page-1">
+        <mxGraphModel dx="1066" dy="647" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="700" pageHeight="1400" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="39" value="S" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="40" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="40" value="I" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="200" y="40" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="46" style="edgeStyle=none;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;dashed=1;endArrow=none;endFill=0;jumpStyle=arc;" parent="1" source="40" target="47" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="220" y="30"/>
+                            <mxPoint x="140" y="30"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="47" value="infection" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="39" target="40" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="110" y="60" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
