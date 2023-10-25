@@ -249,6 +249,7 @@ public:
         matrix<Type> timeIndex; // for rbind_time
         Type sum, s, eps, var, by;  // intermediate scalars
         int rows, cols, lag, rowIndex, colIndex, matIndex, reps, cp, off, size, sz, start, err_code, err_code1, err_code2;
+        std::vector<int> testing_this_vector;
 
         if (GetErrorCode()) return m; // Check if error has already happened at some point of the recursive call.
 
