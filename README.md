@@ -23,7 +23,9 @@ The [Public Health Risk Sciences Division](https://github.com/phac-nml-phrsd) at
 
 ## Installation
 
-Users should install with the following R command.
+If you're on a Windows system, please install `Rtools` matching your R version from [here](https://cran.r-project.org/bin/windows/Rtools/). This ensures you have a C++ compiler, which is required to install `macpan2` from source (as below).
+
+Then, install the `macpan2` package with the following R command.
 
 ```
 remotes::install_github("canmod/macpan2")
