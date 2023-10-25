@@ -13,7 +13,6 @@
 // https://github.com/kaskr/adcomp/wiki/Development#distributing-code
 #include <TMB.hpp>
 #include <cppad/local/cond_exp.hpp>
-#include <stdexcept>
 #include <variant>
 
 

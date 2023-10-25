@@ -116,16 +116,6 @@ MethodTypeUtils = function() {
         return(method)
       }
     }
-    msg_break(
-      msg_colon(
-        msg("The following engine method formula"),
-        msg_indent(deparse(formula))
-      ),
-      msg_colon(
-        msg("is inconsistent with all of the available prototypes"),
-        msg_break(self$all_prototype_formulas())
-      )
-    )
     stop(
         "\nThe following engine method formula ...\n\n", deparse(formula), "\n\n"
       , "... is inconsistent with all of the available prototypes:\n\n"
