@@ -11,7 +11,7 @@
 
 Although `macpan2` is designed as a compartmental modelling tool that is agnostic about the underlying computational engine, it currently makes use of [template model builder](https://github.com/kaskr/adcomp). Template model builder (TMB) is an `R` modelling package based on a `C++` framework incorporating mature [automatic differentiation](https://cppad.readthedocs.io/en/latest/user_guide.html) and [matrix algebra](http://eigen.tuxfamily.org/index.php?title=Main_Page) libraries.
 
-The [Public Health Risk Sciences Division](https://github.com/phac-nml-phrsd) at the [Public Health Agency of Canada](https://www.canada.ca/en/public-health.html) uses `macpan2` (for example, [here](https://github.com/phac-nml-phrsd/EPACmodel)).
+The [Public Health Risk Sciences Division](https://github.com/phac-nml-phrsd) at the [Public Health Agency of Canada](https://www.canada.ca/en/public-health.html) uses `macpan2` (for example, [here](https://phac-nml-phrsd.github.io/EPACmodel/)).
 
 ## Documentation
 
@@ -23,7 +23,9 @@ The [Public Health Risk Sciences Division](https://github.com/phac-nml-phrsd) at
 
 ## Installation
 
-Users should install with the following R command.
+If you're on a Windows system, please install `Rtools` matching your R version from [here](https://cran.r-project.org/bin/windows/Rtools/). This ensures you have a C++ compiler, which is required to install `macpan2` from source (as below).
+
+Then, install the `macpan2` package with the following R command.
 
 ```
 remotes::install_github("canmod/macpan2")
