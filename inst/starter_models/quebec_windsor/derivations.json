@@ -1,0 +1,11 @@
+[
+  {
+    "filter_partition" : "GeogType",
+    "filter_names" : ["connection"],
+    "output_partition" : "GeogEntity.GeogType",
+    "output_names" : ["travel_matrix.collection"],
+    "input_partition" : "From.To",
+    "dots" : [],
+    "expression" : ""
+  }
+]

@@ -1,0 +1,2 @@
+from ,to  ,flow        ,type       ,from_partition ,to_partition ,flow_partition ,from_to_partition ,from_flow_partition ,to_flow_partition
+S.a  ,E.a ,infection.a ,per_capita ,Epi.Strain     ,Epi.Strain   ,Epi.Strain     ,                  ,                    ,Null

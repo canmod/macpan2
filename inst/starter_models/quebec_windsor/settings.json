@@ -1,0 +1,8 @@
+{
+  "required_partitions" : ["GeogEntity"],
+  "null_partition" : "Null",
+  "state_partition_name" : "GeogType",
+  "state_variable_labels" : ["city"],
+  "flow_partition_name" : "GeogType",
+  "flow_variable_labels" : ["connection"]
+}

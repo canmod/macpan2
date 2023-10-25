@@ -196,9 +196,10 @@ Infection = function(infection, variables) {
   return_object(self, "Infection")
 }
 
-labelled_frame = function(partition, label_name = "label") {
+#' @export
+labelled_frame = function(partition, label_by, label_name = "label") {
   f = partition$frame()
-  f[[label_name]] = partition$labels()
+  f[[label_name]] = partition$partial_labels(label_by)
   f
 }
 labelled_frame = memoise(labelled_frame)

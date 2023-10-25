@@ -1,0 +1,8 @@
+{
+  "required_partitions" : ["Epi", "Age"],
+  "null_partition" : "Null",
+  "state_variables" : ["S.young", "I.young", "R.young", "S.old", "I.old", "R.old"],
+  "flow_variables" : ["infection.young", "infection.old", "gamma.young", "gamma.old", ".old_rate"],
+  "infection_flow_variables" : ["infection.young", "infection.old"],
+  "infectious_state_variables" : ["I.young", "I.old"]
+}

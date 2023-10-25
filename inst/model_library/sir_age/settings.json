@@ -1,0 +1,7 @@
+{
+    "labelling_partition" : ["Epi", "Age"],
+    "null_partition" : "Null",
+    "vec_partition" : "Vec",
+    "state" : ["state"],
+    "flow" : ["flow_rates"]
+}

@@ -1,0 +1,6 @@
+Epi    ,Type         ,Vec
+S      ,susceptible  ,state
+I      ,infectious   ,state
+R      ,immune       ,state
+lambda ,infection    ,flow
+gamma  ,recovery     ,flow

@@ -1,0 +1,2 @@
+flow   ,state ,norm ,type             ,flow_partition ,state_partition ,norm_partition ,flow_state_partition ,flow_norm_partition ,state_norm_partition
+lambda ,I     ,N    ,state_normalized ,Epi            ,Epi             ,Epi            ,                     ,                    ,Null

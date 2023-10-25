@@ -42,11 +42,16 @@ Partition = function(frame) {
   self$frame = function() self$.partition$frame()
   self$dotted = function() self$.partition$dot()$frame()
   self$names = function() names(self$frame())
-  self$name = function() names(self$dotted())
+  self$name = function() names(self$dotted()) ## inefficient without memoisation
   self$labels = function() self$dotted()[[1L]]
   self$prefix = function(prefix) {
     f = self$frame()
     names(f) = sprintf("%s%s", prefix, self$names())
+    Partition(f)
+  }
+  self$constant = function(name, value) {
+    f = self$frame()
+    f[[name]] = value
     Partition(f)
   }
   self$partial_labels = function(...) {
@@ -67,6 +72,15 @@ Partition = function(frame) {
       p = Partition(self$.partition[[.filter_type]](filterer, .comparison_function)$frame())
     }
     return(p)
+  }
+  self$blank_on = function(.wrt) {
+    f = self$frame()
+    cols = to_names(.wrt)
+    z = rep(TRUE, nrow(f))
+    for (col in cols) {
+      z = z & (f[[col]] == "")
+    }
+    Partition(f[z, , drop = FALSE])
   }
   self$filter = function(..., .wrt, .comparison_function = all_equal) {
     self$.filter(...
@@ -108,6 +122,367 @@ Partition = function(frame) {
 }
 Partition = memoise(Partition)
 
+ColumnGetter = function(labelled_partition, dimension_name, column_name) {
+  self = Base()
+  self$labelled_partition = labelled_partition
+  self$dimension_name = dimension_name
+  self$column_name = column_name
+  self$get = function() {
+    lp = self$labelled_partition
+    i = lp$column_map[[self$dimension_name]][[self$column_name]]
+    lp$frame[[i]]
+  }
+  self = return_object(self, "ColumnGetter")
+  self$get
+}
+
+FrameGetter = function(labelled_partition, dimension_name) {
+  self = Base()
+  self$labelled_partition = labelled_partition
+  self$dimension_name = dimension_name
+  self$get_frame = function() {
+    i = unlist(
+      self$labelled_partition$column_map[[self$dimension_name]],
+      use.names = FALSE
+    )
+    setNames(
+      self$labelled_partition$frame[, i, drop = FALSE],
+      names(self$labelled_partition$column_map[[self$dimension_name]])
+    )
+  }
+  self$get_partition = function() self$get_frame() |> Partition()
+  self$get_labels = function() {
+    i = self$labelled_partition$labelling_names
+    f = self$get_frame()
+    i = i[i %in% names(f)]
+    f[, i, drop = FALSE] |> as.list()
+    do.call(paste, c(f, sep = "."))
+  }
+  return_object(self, "FrameGetter")
+}
+
+#' @export
+initial_column_map = function(column_names, dimension_name) {
+  setNames(
+    list(setNames(as.list(column_names), column_names)),
+    dimension_name
+  )
+}
+
+## take two Merge objects and merge their frames
+## and update the prevenance-preserving column maps
+merge_util = function(x, y, by.x, by.y) {
+
+  ## ----
+  ## resolve non-unique column names in the output, with
+  ## names of the original tables used to this point
+  ## ----
+  suffixes = c(
+    paste0(sprintf(":%s", names(x$column_map)), collapse = ""),
+    paste0(sprintf(":%s", names(y$column_map)), collapse = "")
+  )
+
+  ## ----
+  ## the merge itself
+  ## ----
+  z = merge(
+    x$frame, y$frame,
+    by.x = by.x, by.y = by.y,
+    suffixes = suffixes
+  )
+
+  ## ----
+  ## update the column name map to preserve provenance
+  ## ----
+
+  # column names in inputs and output
+  x_cnms = names(x$frame)
+  y_cnms = names(y$frame)
+  z_cnms = names(z)
+
+  # numbers of types of output columns
+  n_common = length(by.x)
+  n_x_only = length(x_cnms) - n_common
+  n_y_only = length(y_cnms) - n_common
+
+  # column names in the output categorized
+  # by contributing input table(s)
+  z_common = z_cnms[seq_len(n_common)]
+  z_x_only = z_cnms[n_common + seq_len(n_x_only)]
+  z_y_only = z_cnms[n_common + n_x_only + seq_len(n_y_only)]
+
+  # column names in the input tables, ordered
+  # as they are in the output table
+  x_z_order = c(by.x, x_cnms[!x_cnms %in% by.x])
+  y_z_order = c(by.y, y_cnms[!y_cnms %in% by.y])
+
+  # these can be used to update the column map,
+  # by looping through the existing map and
+  # translating to the new column names with these
+  # x|y_map vectors. of course you will also need
+  # to concatenate the column maps first
+  x_map = setNames(c(z_common, z_x_only), x_z_order)
+  y_map = setNames(c(z_common, z_y_only), y_z_order)
+
+  x_cmap = x$column_map
+  y_cmap = y$column_map
+  for (tnm in names(x_cmap)) {
+    for (cnm in names(x_cmap[[tnm]])) {
+      old_cnm = x_cmap[[tnm]][[cnm]]
+      x_cmap[[tnm]][[cnm]] = x_map[[old_cnm]]
+    }
+  }
+  for (tnm in names(y_cmap)) {
+    for (cnm in names(y_cmap[[tnm]])) {
+      old_cnm = y_cmap[[tnm]][[cnm]]
+      y_cmap[[tnm]][[cnm]] = y_map[[old_cnm]]
+    }
+  }
+
+  z_column_map = c(x_cmap, y_cmap)
+
+  ## ----
+  ## wrap up the result with provenance-preserving column map
+  ## ----
+  Merged(
+    z,
+    union(x$labelling_names, y$labelling_names),
+    z_column_map
+  )
+}
+
+#' @export
+init_merge = function(frame, dimension_name, labelling_names = names(frame)) {
+  Merged(frame
+    , labelling_names
+    , initial_column_map(names(frame), dimension_name)
+  )
+}
+
+
+#' @export
+core = function(..., labelling_names) {
+  f = data.frame(...)
+  if (missing(labelling_names)) labelling_names = names(f)
+  Core(f, to_names(labelling_names))
+}
+
+#' @export
+Core = function(frame, labelling_names = names(frame)) {
+  self = Base()
+  self$labelling_names = to_names(labelling_names)
+  self$partition = Partition(frame)
+  self$labels = function() self$partition$select(self$labelling_names)$labels()
+  return_object(self, "Core")
+}
+
+#' @export
+print.Core = function(x, ...) print(x$partition)
+
+#' @export
+mp_cartesian = function(x, y) {
+  labelling_names = union(x$labelling_names, y$labelling_names)
+  f = join_partitions(x$partition$frame(), y$partition$frame())
+  Core(f, labelling_names = labelling_names)
+}
+
+#' @export
+mp_union = function(...) {
+  l = list(...)
+  partitions = lapply(l, getElement, "partition")
+  labelling_names = (l
+    |> lapply(getElement, "labelling_names")
+    |> unlist(recursive = FALSE, use.names = FALSE)
+    |> unique()
+  )
+  Core(do.call(union_vars, partitions)$frame(), labelling_names)
+}
+
+#' @export
+mp_subset = function(x, subset_name, ...) {
+  l = list(...)
+  p = x$partition
+  for (cc in names(l)) {
+    vals = l[[cc]]
+    is_blank = nchar(vals) == 0L
+    vals = setdiff(vals, "")
+    if (any(is_blank)) {
+      p = union_vars(p$blank_on(cc), p$filter(vals, .wrt = cc))
+    } else {
+      p = p$filter(vals, .wrt = cc)
+    }
+  }
+  init_merge(p$frame(), subset_name, x$labelling_names)
+}
+
+#' @export
+mp_join = function(...) {
+  args = list(...)
+  is_core = vapply(args, inherits, logical(1L), "Core")
+  is_merged = vapply(args, inherits, logical(1L), "Merged")
+  table_list = args[is_core | is_merged]
+  by_list = args[!is_core & !is_merged]
+  z = table_list[[1L]]
+  for (i in 2:length(table_list)) {
+    args = c(
+      list(x = z, y = table_list[[i]]),
+      by_list
+    )
+    z = do.call(merge_generic_by_util, args)
+  }
+  z
+}
+
+#' @export
+mp_group = function(group, grouping_name, subset) {
+  map = subset$column_map
+  map[[grouping_name]] = list(group$labelling_names) |> setNames(group$labelling_names)
+  Merged(subset$frame, subset$labelling_names, map)
+}
+
+#' @export
+mp_select = function(core, group_name, grouping_dimension) {
+  frame = core$partition$select(grouping_dimension)$frame()
+  init_merge(
+    frame,
+    group_name,
+    labelling_names = names(frame)
+  )
+}
+
+
+split_by = function(by, table_origins) UseMethod("split_by")
+
+#' @export
+split_by.character = function(by, table_origins) {
+  by = to_names(by)
+  orig = to_names(table_origins)
+  list(by, by) |> setNames(orig)
+}
+
+#' @export
+split_by.formula = function(by, table_origins) {
+  orig = to_names(table_origins)
+  list(
+    to_names(lhs(by)[[2L]]),
+    to_names(rhs(by)[[2L]])
+  ) |> setNames(orig)
+}
+
+## change to Mergable
+
+#' @export
+Merged = function(frame, labelling_names, column_map) {
+  self = Base()
+  self$frame = frame
+  self$labelling_names = to_names(labelling_names)
+  self$column_map = column_map
+  self$labels_by_dim = list()
+  self$labels_frame = function() {
+    l = list()
+    for (d in names(self$column_map)) l[[d]] = self$labels_by_dim[[d]]()
+    l |> as.data.frame()
+  }
+  self$frame_by_dim = list()
+  self$labels_by_dim = list()
+  self$partition_by_dim = list()
+  for (d in names(self$column_map)) {
+    getter = FrameGetter(self, d)
+    self$frame_by_dim[[d]] = getter$get_frame
+    self$labels_by_dim[[d]] = getter$get_labels
+    self$partition_by_dim[[d]] = getter$get_partition
+  }
+  self$column_by_dim = list()
+  for (d in names(self$column_map)) {
+    self$column_by_dim[[d]] = list()
+    for (c in names(self$column_map[[d]])) {
+      self$column_by_dim[[d]][[c]] = ColumnGetter(self, d, c)
+    }
+  }
+  self$filter = function(condition) {
+    condition = substitute(condition)
+    i = eval(condition, envir = c(self$column_by_dim, self$frame))
+    Merged(self$frame[i,,drop = FALSE]
+      , labelling_names = self$labelling_names
+      , column_map = self$column_map
+    )
+  }
+  self$partition = self$partition_by_dim[[1L]]()  ## hack! should probably have a method and then change the partition field in Core to a method as well
+  return_object(self, "Merged")
+}
+
+apply_col_map = function(map, orig_table_nm, by) {
+  map[[orig_table_nm]][by] |> unlist(use.names = FALSE)
+}
+
+filter_by_list = function(x_orig, y_orig, by_list) {
+  l = list()
+  nms = names(by_list)
+  for (i in seq_along(by_list)) {
+    nm_i = nms[[i]]
+    nms_i = to_names(nm_i)
+    if ((nms_i[[1L]] %in% x_orig) & (nms_i[[2L]] %in% y_orig)) {
+      l[[nm_i]] = by_list[[nm_i]]
+    }
+  }
+  l
+}
+
+
+merge_generic_by_util = function(x, y, ...) {
+  by = filter_by_list(
+    names(x$column_map),
+    names(y$column_map),
+    list(...)
+  )
+  by = mapply(split_by
+    , by
+    , names(by)
+    , SIMPLIFY = FALSE
+    , USE.NAMES = FALSE
+  ) |> setNames(names(by))
+  by.x = character()
+  by.y = character()
+  for (nm in names(by)) {
+    orig = names(by[[nm]])
+    by.x = append(
+      by.x,
+      apply_col_map(x$column_map, orig[[1L]], by[[nm]][[1L]])
+    )
+    by.y = append(
+      by.y,
+      apply_col_map(y$column_map, orig[[2L]], by[[nm]][[2L]])
+    )
+  }
+  merge_util(x, y, by.x, by.y)
+}
+
+#' @export
+print.Merged = function(x, ...) print(cbind(x$labels_frame(), x$frame))
+
+CompartmentalPartition = function(frame
+    , special_partitions = c(vec = "Vec", type = "Type")
+  ) {
+  special_partitions = c(vec, type)
+  if (!all(special_partitions %in% names(frame))) {
+    msg_break(
+      msg_colon(
+        msg_csv(
+          "The vec or type arguments",
+          special_partitions,
+          "are not in the names of the frame"),
+        msg_indent(names(frame))
+      )
+    )
+  }
+  self = Base()
+  self$partition = Partition(frame)
+  self$vec = "Vec"
+  self$state = function() vec(self, "state", self$vec)
+  self$flow = function() vec(self, "flow", self$vec)
+  return_object(self, "CompartmentalPartition")
+}
+
 #' Read Partition
 #'
 #' Read a CSV file in as a \code{\link{Partition}}.
@@ -116,10 +491,34 @@ Partition = memoise(Partition)
 #' subsequently to \code{\link{file.path}}.
 #'
 #' @export
-read_partition = function(...) CSVReader(...)$read() |> Partition()
+read_partition = function(...) read_frame(...) |> Partition()
+
+#' @export
+read_frame = function(...) CSVReader(...)$read()
 
 #' @export
 partition = function(...) data.frame(...) |> Partition()
+
+#' @export
+atomic_partition = function(state_variables, flow_rates, partition_name) {
+  l = list(
+    c(state_variables, flow_rates),
+    c(
+      rep("state", length(state_variables)),
+      rep("flow", length(flow_rates))
+    )
+  )
+  (l
+    |> setNames(c(partition_name, "Vec"))
+    |> as.data.frame()
+    |> CompartmentalPartition()
+  )
+}
+
+vec = function(x, vec_name, vec_partition = "Vec") {
+  x$filter(vec_name, .wrt = vec_partition)$select_out(vec_partition)
+}
+
 
 NullPartition = function(...) {
   self = Base()
@@ -150,6 +549,10 @@ NullPartition = function(...) {
   self$union = function(other) {
     new_name = name_set_op(self$name(), other$name(), union)
     other$expand(new_name)
+  }
+  self$new = function(frame) {
+    if (nrow(frame) == 0L) return(NullPartition(names(frame)))
+    Partition(frame)
   }
   self = return_object(self, "Partition")
   return_object(self, "NullPartition")
@@ -193,6 +596,7 @@ enforce_schema = function(frame, ...) {
 union_vars = function(...) {
   not_null = function(x) !is.null(x)
   l = Filter(not_null, list(...))
+  #vec_parts = vec_part_names(l)
   y = l[[1L]]
   if (length(l) > 1L) {
     for (i in 2:length(l)) {
@@ -200,6 +604,19 @@ union_vars = function(...) {
     }
   }
   y
+}
+
+renew_part = function(x, vec_parts) {
+  if (length(vec_parts) == 1L) x = CompartmentalPartition(x, vec_parts)
+  x
+}
+
+vec_part_names = function(...) {
+  (list(...)
+   |> lapply(getElement, "vec")
+   |> unlist(recursive = FALSE, use.names = FALSE)
+   |> unique()
+  )
 }
 
 NumericPartition = function(frame, numeric_vector) {
@@ -258,3 +675,56 @@ NumericPartition = function(frame, numeric_vector) {
   }
   return_object(self, "NumericPartition")
 }
+
+#' @export
+join_partitions = function(x, y, by = "") {
+  by = by_(by)
+  merge(x, y
+    , by.x = by$x, by.y = by$y
+    , suffixes = suffixes_(x, y)
+    , sort = FALSE
+  )
+}
+
+by_ = function(by) UseMethod("by_")
+by_.character = function(by) {
+  if (identical(nchar(by), 0L) | isTRUE(is.na(by))) return(list())
+  by = process_by_char(by)
+  list(x = by, y = by)
+}
+by_.formula = function(by) {
+  if (is_one_sided(by)) return(by_(rhs_char(by)))
+  list(
+    x = process_by_char(lhs_char(by)),
+    y = process_by_char(rhs_char(by))
+  )
+}
+by_.NULL = function(by) list()
+suffixes_ = function(x, y) {
+  s = c(names(x)[ncol(x)], names(y)[ncol(y)])
+  sprintf(":%s", s)
+}
+process_by_char = function(by) {
+  (by
+   |> undot_anything()
+   #|> wrap_colon_terms()
+  )
+}
+
+  # if (length(bad_names) != 0L) {
+  #   macpan2:::msg_break(
+  #     macpan2:::msg_colon(
+  #       macpan2:::msg(
+  #         "These partition names where asked for (via the include argument)",
+  #         "but were not present in the output"
+  #       ),
+  #       macpan2:::msg_indent(bad_names)
+  #     ),
+  #     macpan2:::msg_colon(
+  #       "Only these were available",
+  #       macpan2:::msg_indent(names(z))
+  #     )
+  #   ) |> stop()
+  # }
+  #z[, include, drop = FALSE] |> Partition()
+#}

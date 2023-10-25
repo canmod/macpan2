@@ -15,7 +15,7 @@ valid_undotted = ValidityMessager(
     is.character,
     TestPipeline(Summarizer(valid_undotted_chars, all), TestTrue())
   ),
-  "vector contained strings with dots"
+  "vector contained invalid strings"
 )
 valid_dotted = ValidityMessager(
   All(
@@ -101,6 +101,15 @@ character_comparison = function(x, y, comparison_function) {
   z
 }
 
+character_mat_scal_comparison = function(x, y, comparison_function) {
+  z = logical(nrow(x))
+  for (i in seq_row(x)) {
+    z[i] = comparison_function(x[i, , drop = TRUE], y)
+    if (z[i]) break
+  }
+  z
+}
+
 ## these functions are bottlenecks that
 ## get repeatedly called for the same inputs.
 ## so we use memoisation to solve this performance issue
@@ -151,12 +160,16 @@ StringDottedScalar = function(...) {
     StringDottedVector(do.call(c, value_list))
   }
   self$undot = function() {
-    d = read.table(text = self$value()
-      , sep = "."
-      , na.strings = character()
-      , colClasses = "character"
-    )
-    StringUndottedVector(unlist(d, use.names = FALSE))
+    v = self$value()
+    if (!identical(v, "")) {
+      d = read.table(text = v
+        , sep = "."
+        , na.strings = character()
+        , colClasses = "character"
+      )
+      v = unlist(d, use.names = FALSE)
+    }
+    StringUndottedVector(v)
   }
   self$tuple_length = function() {
     length(self$undot()$value())
@@ -179,13 +192,18 @@ StringDottedVector = function(...) {
   self = StringDotted(valid_vector$assert(c(...)))
   self$regenerate = function(value) StringDottedVector(value)
   self$undot = function() {
-    d = read.table(text = self$value()
-      , sep = "."
-      , na.strings = character()
-      , colClasses = "character"
-    )
-    m = as.matrix(d)
-    rownames(m) = colnames(m) = NULL
+    v = self$value()
+    if (!identical(v, "")) {
+      d = read.table(text = v
+        , sep = "."
+        , na.strings = character()
+        , colClasses = "character"
+      )
+      m = as.matrix(d)
+      rownames(m) = colnames(m) = NULL
+    } else {
+      m = matrix(v)
+    }
     StringUndottedMatrix(m)
   }
   self$which_in = function(other, comparison_function) {

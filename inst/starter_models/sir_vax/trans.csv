@@ -1,0 +1,2 @@
+state ,flow      ,trans ,type      ,state_partition ,flow_partition ,trans_partition ,state_flow_partition ,state_trans_partition ,flow_trans_partition
+I     ,infection ,beta  ,normalize ,Epi             ,Epi            ,Epi             ,                     ,                      ,Null

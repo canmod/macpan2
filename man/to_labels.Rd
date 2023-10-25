@@ -13,5 +13,5 @@ to_labels(x)
 Character vector that can be used as labels.
 }
 \description{
-Convert objects to labels, which are vectors that can be dotted.
+Convert objects to labels, which are vectors that might be dotted.
 }

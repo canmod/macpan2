@@ -1,0 +1,3 @@
+from ,to ,flow      ,type       ,from_partition ,to_partition ,flow_partition ,from_to_partition ,from_flow_partition ,to_flow_partition
+S    ,I  ,infection ,per_capita ,Epi            ,Epi          ,Epi            ,                  ,                    ,Null
+I    ,R  ,recovery  ,per_capita ,Epi            ,Epi          ,Epi            ,Age               ,Age                 ,Null

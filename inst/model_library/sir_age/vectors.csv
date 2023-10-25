@@ -1,0 +1,7 @@
+vector ,subset     ,components ,partition
+state  ,           ,state      ,Vec
+state  ,infectious ,infectious ,Infect
+flow   ,           ,flow       ,Vec
+flow   ,infection  ,infection  ,Infect
+trans  ,           ,infectious ,Infect
+norm      ,           ,norm       ,Vec

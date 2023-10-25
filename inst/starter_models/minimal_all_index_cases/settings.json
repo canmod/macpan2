@@ -1,0 +1,8 @@
+{
+    "required_partitions" : ["Epi", "Symp", "Vax"],
+    "null_partition" : "Null",
+    "var_partitions" : ["Var"],
+    "state_variables" : ["state"],
+    "flow_variables" : ["flow"],
+    "pop_variables" : ["pop"]
+}

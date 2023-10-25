@@ -1,9 +1,9 @@
-Epi
-S
-I
-R
-N
-beta
-foi
-gamma
-per_capita_transmission
+Epi                     ,Vec
+S                       ,state
+I                       ,state
+R                       ,state
+N                       ,
+beta                    ,
+foi                     ,flow_rates
+gamma                   ,flow_rates
+per_capita_transmission ,

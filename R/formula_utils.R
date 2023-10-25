@@ -103,6 +103,12 @@ lhs_char = function(formula) {
   ""
 }
 
+rhs_char = function(formula) {
+  i = 2L
+  if (is_two_sided(formula)) i = 3L
+  deparse(formula[[i]], 500)
+}
+
 # formula parsing in macpan2 works one side at a time. but sometimes
 # it is helpful to parse two-sided formulas. this function does so
 # by parsing each side at a time and rbinding the results.

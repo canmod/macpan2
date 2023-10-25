@@ -3,8 +3,380 @@ library(macpan2helpers)
 library(oor)
 library(ggplot2)
 library(dplyr)
+# m = Compartmental(file.path("inst", "starter_models", "sir"))
+# m$simulators$tmb(100
+#   , state = c(S = 99, I = 1)
+# )
 
-debug(macpan2:::get_indices)
+
+flow_file = CSVReader("inst/model_library/sir_age/flows.csv")$read()
+vars_file = CSVReader("inst/model_library/sir_age/variables.csv")$read()
+settings_file = JSONReader("inst/model_library/sir_age/settings.json")$read()
+
+make_core = function(vec_name, vars_table, settings_list, vec_part_field, lab_part_field) {
+  vec_labs = to_labels(vars_table[settings_list[[vec_part_field]]])
+  core(
+    vars_table[vec_labs == vec_name, , drop = FALSE],
+    labelling_names = to_name(settings_list[[lab_part_field]])
+  )
+}
+state = make_core("state", vars_file, settings_file, "vec_partition", "labelling_partition")
+flow_rates = make_core("flow_rates", vars_file, settings_file, "vec_partition", "labelling_partition")
+
+state$labels()
+flow_rates$labels()
+tag = function(key, val) list(val) |> setNames(key)
+flow_file
+i = 1L
+flow = flow_file[i,,drop=FALSE]
+mp_join(
+  mp_subset(state, "from", flow$from_partition,
+  mp_subset(state, "to", Epi = flow$to),
+  mp_subset(flow_rates, "flow", Epi = flow$flow),
+  from.to = "Epi"
+)
+
+sir_state = core(Epi = c("S", "I", "R"))
+sir_flow_rates = core(Epi = c("lambda", "gamma"))
+loc_state = core(
+  Loc = c("ham", "tor", "mon"),
+  Move = ""
+)
+loc_flow_rates = core(
+  Loc = c("ham", "tor", "tor", "mon"),
+  Move = c("tor", "ham", "mon", "tor")
+)
+
+
+state = mp_cartesian(sir_state, loc_state)
+flow_rates = mp_union(mp_cartesian(sir_flow_rates, loc_state), loc_flow_rates)
+
+N = mp_select(state, "N", "Loc")
+active = mp_subset(state, "active", Epi = c("S", "I"))
+infectious = mp_subset(state, "infectious", Epi = "I")
+mp_join(N, infectious, N.infectious = "Loc")
+
+mp_join(xx, yy, N.norm_inf = "Loc")$labels_frame()
+mp_join(N, mp_subset(state, "infectious", Epi = "I"))
+
+
+match(N$labels_frame()$active, state$labels()) - 1L
+match(N$labels_frame()$N, unique(N$labels_frame()$N)) - 1L
+groupSums(state[active], strata, length(active))
+
+xx = mp_join(
+  mp_subset(state, "state"),
+  mp_select(state, "N", "Loc"),
+  state.N = "Loc"
+)
+xx$labels_by_dim$state()
+xx$labels_by_dim$N()
+
+mp_init_vec = function(components, ...) {
+  values = unlist(list(...))
+  labs = components$labels()
+  vec = setNames(numeric(length(labs)), labs)
+  vec[names(values)] = values
+  vec
+}
+mp_init_vec(state, S.tor = 99)
+mp_join(
+    mp_subset(state, "infectious", Epi = "I"),
+    mp_subset(flow_rates, "infection", Epi = "lambda"),
+    infectious.infection = "Loc"
+)$labels_frame()
+
+mp_union(
+  mp_join(
+      mp_subset(state, "from")
+    , mp_subset(state, "to")
+    , mp_subset(flow_rates, "flow", Epi = "")
+    , from.to = "Epi"
+    , from.flow = "Loc"
+    , to.flow = "Loc" ~ "Move"
+  ),
+  mp_join(
+      mp_subset(state, "from", Epi = "S")
+    , mp_subset(state, "to", Epi = "I")
+    , mp_subset(flow_rates, "flow", Epi = "lambda")
+    , from.to = "Loc"
+    , from.flow = "Loc"
+  )
+)
+
+match(ff$from, state$labels()) - 1L
+match(ff$to, state$labels()) - 1L
+match(ff$flow, flow_rates$labels()) - 1L
+
+merge_generic_by_util(
+  from,
+  to,
+  from.to = "Epi"
+) |> merge_generic_by_util(
+  flow,
+  from.flow = "Loc",
+  to.flow = "Loc" ~ "Move"
+)
+
+#mp_join = function(table_list, by_list) {
+  z = table_list[[1L]]
+  for (i in 2:length(table_list)) {
+    args = c(
+      list(x = z, y = table_list[[i]]),
+      by_list
+    )
+    z = do.call(merge_generic_by_util, args)
+  }
+  z
+}
+
+is_orig_col_nm = function(by) {
+  nn = (by
+   |> strsplit(":")
+   |> vapply(length, integer(1L))
+  )
+  nn == 1L
+}
+
+z = merge_util(
+  from,
+  to,
+  by.x = "Epi",
+  by.y = "Epi"
+)
+
+fix_column_provenence = function(nms, table_nms) {
+  split_nms = nms |> strsplit(":")
+  orig_nms = split_nms |> vapply(getElement, character(1L), 1L)
+  inv_map = lapply(split_nms, setdiff, orig_nms)
+  for (nm in unique(orig_nms)) {
+    v = unique(unlist(inv_map[orig_nms == nm], use.names = FALSE))
+  }
+}
+
+column_map_from_names = function(nms) {
+  split_nms = nms |> strsplit(":")
+  orig_nms = split_nms |> vapply(getElement, character(1L), 1L)
+  inv_map = lapply(split_nms, setdiff, orig_nms)
+  table_nms = inv_map |> unlist(use.names = FALSE) |> unique()
+  l = list()
+  for (nm in table_nms) {
+    l[[nm]] = list()
+    for (i in seq_along(inv_map)) {
+      if (nm %in% inv_map[[i]]) l[[nm]][[orig_nms[[i]]]] = nms[[i]]
+    }
+  }
+  l
+}
+split_nms |> vapply(function(x) "from" %in% x, logical(1L))
+split_nms |> vapply(function(x) "to" %in% x, logical(1L))
+names(z) |> strsplit(":") |> lapply(setdiff, original_colnames)
+
+hh = merge_util(
+  from,
+  to,
+  by.x = "Epi",
+  by.y = "Epi"
+)
+
+ii = merge_util(
+  hh,
+  flow,
+  by.x = c("Loc:from", "Loc:to"),
+  by.y = c("Loc", "Move")
+)
+
+ii$column_map
+
+
+prod_state = cartesian(
+    sir_state$partition_by_dim$component()
+  , loc_state$partition_by_dim$component()
+)
+prod_flow_rates = union_vars(
+  cartesian(sir$flow_rates, loc$state_variables),
+  loc_flow_rates
+)
+
+
+
+state_components = sir_state$partition_by_dim$component()$filter("S", .wrt = "Epi")
+state_components$filter("S", .wrt = "Epi")
+state_components$.filter
+filter_lp = function(partition, x) {
+  eval(macpan2:::rhs(x)[[2L]], envir = partition$column_by_dim)
+}
+filter_lp(loc_flow_rates, ~ flow_rates$Move() == "tor")
+
+
+x = prod$join3(
+  prod$from(),
+  prod$to(),
+  prod$flow(),
+  "Loc",
+  Loc:to ~ Move:flow
+)
+x = x[setdiff(names(x), c("from", "to"))]
+
+l = list(
+  from = list(
+    Loc = "Loc",
+    Epi = "Epi:from"
+  ),
+  to = list(
+    Loc = "Loc",
+    Epi = "Epi:to"
+  )
+)
+
+tt = LabelledPartition(x, l, "Epi.Loc")
+tt$labels()
+tt$labels_by_dim$from()
+tt$labels_by_dim$from()
+tt$frame_by_dim$to()
+tt$column_by_dim$from$Epi()
+
+
+sir = Quantities(sir_state, sir_flow_rates, "Epi")
+loc = Quantities(loc_state, loc_flow_rates, "Loc.Move")
+
+
+method_parser = macpan2:::method_parser
+method_parser(Move[flow]~Loc)
+
+loc$join(loc$from(), loc$from()) |> loc$join(loc$from()) |> loc$join(loc$from())
+loc$join3(loc$flow(), loc$from(), loc$to(), Loc~Loc, Move[flow]~Loc)
+
+sir$join3(
+  sir$from("S", filter_by = "Epi"),
+  sir$to("I", filter_by = "Epi"),
+  sir$flow("lambda", filter_by = "Epi")
+)
+
+
+
+
+prod = Quantities(
+  cartesian(sir$state_variables, loc$state_variables),
+  union_vars(
+    cartesian(sir$flow_rates, loc$state_variables),
+    loc_flow_rates
+  ),
+  labelling_descriptors = "Epi.Loc.Move"
+)
+
+## learned lots about joining and a bit about filtering:
+##
+## 1. inner joins are commutative so we can just use from-to-flow order
+##    (maybe later we can optimize)
+## 2. need to be able to map across partitions when matching (for example:
+##    the Move column in a flow rate to the Loc column in a to variable)
+## 3. we can have partition matching for all 3 tables (the Loc model is
+##    a good example from #2 above). this all just means that the first
+##    criterion (e.g. from_to) is used in the first join and both of the
+##    two remaining criteria (e.g. from_flow, to_flow) are used in the
+##    second join.
+## 4. multiple ways to represent partition matching:
+##    a) in flows.csv we have a formula for each from_to, from_flow, to_flow.
+##       these formulas are things like Epi.Loc ~ Epi.Move.
+##    b) in the ... arguments of a 'mechanism' function we need things like
+##       Loc[to] ~ Move[flow], Epi[from] ~ Epi[to], ...
+##    c) in the by arguments of a non-user-facing wrapper for merge, we need
+##       things like Loc:from.Loc:to ~ Loc.Move.  this version is not
+##       readible but connects with merge well.
+##    d) however, maybe we do not need (c) and instead just need to supply
+##       things like by.x = c("Loc:from", "Loc:to"), by.y = c("Loc", "Move").
+##       yes i think this is better
+##    so we will need to have a generic representation of partition matching
+##    that can accept and convert among all of these forms
+## 5. when filtering there are a few cases:
+##    a) no-op : just return all of the, either, state variables or flow rates
+##    b) ... but no filter_by :
+##    b) only filter_by :
+##    probably need to think more about filtering cases.
+
+list(
+    prod$from()
+  , prod$to()
+  , prod$flow()
+  , from_to = Epi ~ Epi
+  , from_flow = Loc ~ Loc
+  , to_flow = Loc ~ Move
+)
+from_to = macpan2:::join_partitions(prod$from(), prod$to(), ~Epi)
+macpan2:::join_partitions(from_to, prod$flow(), Loc:from.Loc:to ~ Loc.Move)[c("from", "to", "flow")]
+
+
+
+prod$flow_mechanism(
+  prod$from("S", filter_by = "Epi"),
+  prod$to("I", filter_by = "Epi"),
+  prod$flow("lambda", filter_by = "Epi"),
+  Loc ~ Loc,
+  Loc ~ Loc
+)
+
+
+
+prod$join(
+  x = prod$state_variables$frame(),
+  y = prod$flow_rates$frame(),
+  by = "Loc",
+  main = "y"
+)
+
+
+join_partitions(
+  from("S", dimensions = prod_state, filter_by = "Epi", label_by = "Epi.Loc"),
+  to("I", dimensions = prod_state, filter_by = "Epi", label_by = "Epi.Loc"),
+  by = "Loc"
+)
+
+
+x = labelled_frame(prod_state$filter("S", .wrt = "Epi"), "from")
+y = labelled_frame(prod_state$filter("I", .wrt = "Epi"), "to")
+z = merge(x, y, by = "Loc")
+setdiff(intersect(names(x), names(y)), "Loc")
+
+
+macpan2:::labelled_frame(sir_state, "from")
+
+merge(
+  macpan2:::labelled_frame(sir_state$filter("I"), "from"),
+  macpan2:::labelled_frame(sir_flow_rates$filter("lambda"), "to"),
+  by = character(0L)
+)[,c("from", "to"),drop = FALSE]
+
+macpan2:::Connection(
+  data.frame(
+    from = "S", to = "I", flow = "lambda", type = "per_capita",
+    from_filter = "Epi", to_filter = "Epi", flow_filter = "Epi",
+    from_to_join = "", from_flow_join = "", to_flow_join = "Null"
+  ),
+  union_vars(sir_state, sir_flow_rates),
+  conn_ref = "flow"
+)
+
+
+map_partitions = function(x, y, x_name, y_name)
+
+cartesian(sir_state$filter("I"), sir_flow$filter("lambda"))
+join_partitions(
+  sir_state$filter("I"),
+  sir_flow_rates$filter("lambda"),
+  by = NULL,
+  x_suffix = "State",
+  y_suffix = "Flow",
+  include = "EpiState.EpiFlow"
+)
+
+
+sir_loc_state = cartesian(sir_state, loc_state)
+sir_loc_flow = union_vars(
+  cartesian(sir_state, loc_flow),
+  cartesian(sir_flow, loc_state)
+)
+
 
 
 dir = file.path("inst", "model_library", "sir_age")

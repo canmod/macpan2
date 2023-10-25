@@ -1,0 +1,17 @@
+Epi         ,Symp   ,Vax   ,Vital ,Var
+S           ,       ,unvax ,alive       ,state
+S           ,       ,vax   ,alive       ,state
+I           ,mild   ,      ,alive       ,state
+I           ,severe ,      ,alive       ,state
+R           ,       ,      ,alive       ,state
+infection   ,mild   ,unvax ,            ,flow
+infection   ,severe ,unvax ,            ,flow
+infection   ,mild   ,vax   ,            ,flow
+vaccination ,       ,      ,            ,flow
+waning      ,       ,      ,            ,flow
+recovery    ,mild   ,      ,            ,flow
+recovery    ,severe ,      ,            ,flow
+birth       ,       ,      ,            ,flow
+death       ,       ,      ,            ,flow
+importation ,       ,      ,            ,flow
+N           ,       ,      ,            ,pop

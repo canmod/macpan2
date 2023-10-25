@@ -1,0 +1,5 @@
+from ,to  ,flow      ,type       ,from_partition ,to_partition ,flow_partition ,from_to_partition ,from_flow_partition ,to_flow_partition
+S    ,I   ,infection ,per-capita ,Epi            ,Epi          ,Epi            ,Geog              ,Geog                ,Null
+I    ,R   ,recovery  ,per-capita ,Epi            ,Epi          ,Epi            ,Geog              ,Geog                ,Null
+tor  ,mon ,move      ,per-capita ,Geog           ,Geog         ,Geog           ,Epi               ,Epi                 ,Null
+mon  ,tor ,move      ,per-capita ,Geog           ,Geog         ,Geog           ,Epi               ,Epi                 ,Null

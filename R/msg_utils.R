@@ -39,6 +39,9 @@ msg <- function(..., .max_char_limit = 70, .sep = "\n") {
 
 msg_colon = function(x, y) sprintf("%s:\n%s", x, y)
 msg_break = function(...) paste(paste(..., sep = "\n"), collapse = "\n")
+msg_csv = function(..., .max_char_limit = 68) {
+  paste
+}
 msg_indent = function(..., .max_char_limit = 66) {
   (msg(..., .max_char_limit = .max_char_limit, .sep = "\n    ")
    |> trimws(which = "left", whitespace = "[\n]")

@@ -1,6 +1,6 @@
 #' To Labels
 #'
-#' Convert objects to labels, which are vectors that can be dotted.
+#' Convert objects to labels, which are vectors that might be dotted.
 #'
 #' @param x Object to convert to labels.
 #' @return Character vector that can be used as labels.
@@ -13,6 +13,9 @@ to_labels.character = function(x) valid_dotted$assert(x)
 
 #' @export
 to_labels.Partition = function(x) x$labels()
+
+#' @export
+to_labels.data.frame = function(x) StringDataFromFrame(x)$dot()$labels()$value()
 
 #' @export
 to_labels.StringData = function(x) x$dot()$labels()$value()
@@ -37,6 +40,9 @@ to_labels.Labels = function(x) x$dot()$value()
 #'
 #' @export
 to_names = function(x) UseMethod("to_names")
+
+#' @export
+to_names.NULL = function(x) character(0L)
 
 #' @export
 to_names.character = function(x) {
@@ -96,6 +102,7 @@ to_name.Scalar = function(x) x$dot()$value()
 #' @export
 to_name.Names = function(x) x$dot()$value()
 
+
 list_to_labels = function(...) unlist(lapply(list(...), to_labels), use.names = FALSE)
 list_to_names = function(...) unlist(lapply(list(...), to_names), use.names = FALSE)
 
@@ -112,6 +119,7 @@ frame_to_part = function(frame) {
   y
 }
 #frame_to_part = memoise(frame_to_part)
+#
 
 to_matrix_with_rownames = function(x, nms) {
   x = as.matrix(x)
@@ -136,4 +144,18 @@ labelled_zero_vector = function(labels) {
    |> setNames(labels)
    |> dput()
   )
+}
+
+undot_anything = function(x) {
+  (x
+   |> as.character()
+   |> strsplit("\\.")
+   |> unlist(use.names = FALSE)
+  )
+}
+
+wrap_colon_terms = function(x) {
+  i = which(grepl(":", x))
+  x[i] = sprintf("(%s)", x[i])
+  x
 }
