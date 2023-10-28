@@ -1,4 +1,4 @@
-msg <- function(..., .max_char_limit = 70, .sep = "\n") {
+msg <- function(..., .sep = "", .max_char_limit = getOption("width")) {
   input_string = (list(...)
     |> lapply(as.character)
     |> unlist(recursive = TRUE, use.names = FALSE)
@@ -37,12 +37,15 @@ msg <- function(..., .max_char_limit = 70, .sep = "\n") {
   )
 }
 
+msg_hline = function(.max_char_limit = getOption("width")) {
+  ("-"
+   |> rep(.max_char_limit)
+   |> paste0(collapse = "")
+  )
+}
 msg_colon = function(x, y) sprintf("%s:\n%s", x, y)
 msg_break = function(...) paste(paste(..., sep = "\n"), collapse = "\n")
-msg_csv = function(..., .max_char_limit = 68) {
-  paste
-}
-msg_indent = function(..., .max_char_limit = 66) {
+msg_indent = function(..., .max_char_limit = getOption("width") - 4L) {
   (msg(..., .max_char_limit = .max_char_limit, .sep = "\n    ")
    |> trimws(which = "left", whitespace = "[\n]")
   )
@@ -56,6 +59,7 @@ msg_indent_break = function(...) {
 }
 msg_paste = function(...) paste(..., sep = "")
 msg_space = function(...) paste(..., sep = " ")
+msg_csv   = function(...) paste(..., sep = ", ")
 
 if (FALSE) {
 

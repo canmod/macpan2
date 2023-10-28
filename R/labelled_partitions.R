@@ -122,6 +122,9 @@ Partition = function(frame) {
 }
 Partition = memoise(Partition)
 
+#' @export
+names.Partition = function(x) x$names()
+
 ColumnGetter = function(labelled_partition, dimension_name, column_name) {
   self = Base()
   self$labelled_partition = labelled_partition
@@ -152,7 +155,7 @@ FrameGetter = function(labelled_partition, dimension_name) {
   }
   self$get_partition = function() self$get_frame() |> Partition()
   self$get_labels = function() {
-    i = self$labelled_partition$labelling_names
+    i = self$labelled_partition$labelling_names()
     f = self$get_frame()
     i = i[i %in% names(f)]
     f[, i, drop = FALSE] |> as.list()
@@ -170,7 +173,7 @@ initial_column_map = function(column_names, dimension_name) {
 }
 
 ## take two Merge objects and merge their frames
-## and update the prevenance-preserving column maps
+## and update the provenance-preserving column maps
 merge_util = function(x, y, by.x, by.y) {
 
   ## ----
@@ -246,26 +249,123 @@ merge_util = function(x, y, by.x, by.y) {
   ## ----
   Merged(
     z,
-    union(x$labelling_names, y$labelling_names),
     z_column_map
   )
 }
 
 #' @export
-init_merge = function(frame, dimension_name, labelling_names = names(frame)) {
+init_merge = function(frame, dimension_name) {
   Merged(frame
-    , labelling_names
     , initial_column_map(names(frame), dimension_name)
   )
 }
 
+mp = function(mp_func) {
+  f = ("mp_%s"
+    |> sprintf(mp_func)
+    |> getFromNamespace("macpan2")
+  )
+  prototype = function(...) {l = list(...)}
+  target_e = body(f)[[2L]]
+  proto_e = body(prototype)[[2L]]
+  if (!identical(target_e, proto_e)) stop("developer error: invalid mp function")
+  body(f)[[2L]][[3L]] = (~unlist(list(...), recursive = FALSE))[[2L]]
+  f
+}
 
+#' @export
+mp_map_to_selection = function(x, filter_cond, select_cond) {
+  filter = mp("filter")(x, "filter", filter_cond, select_cond)
+  replacement = mp_select(filter, "select", names(select_cond))
+  mp_join(filter, replacement, filter.select = names(select_cond))
+}
 
 #' @export
 mp_cartesian = function(x, y) {
   labelling_names = union(x$labelling_names, y$labelling_names)
   f = join_partitions(x$partition$frame(), y$partition$frame())
-  Core(f, labelling_names = labelling_names)
+  Basis(f, labelling_names = labelling_names)
+}
+
+#' @export
+mp_square = function(x, y_labelling_names) {
+  nms = to_names(y_labelling_names)
+  y = (x$partition$frame()
+    |> setNames(nms)
+    |> Basis(nms)
+  )
+  mp_cartesian(x, y)
+}
+
+#' @export
+mp_triangle = function(x, y_labelling_names, exclude_diag = TRUE, lower_tri = FALSE) {
+  f = x$partition$frame()
+  g = setNames(f, y_labelling_names)
+  n = nrow(f)
+  if (exclude_diag) {
+    k = 2:n
+    i = sequence(k - 1)
+    j = rep(k, k - 1)
+  } else if (!exclude_diag) {
+    k = seq_len(n)
+    i = sequence(k)
+    j = rep(k, k)
+  }
+  if (lower_tri) {
+    ii = i
+    i = j
+    j = ii
+  }
+  f = cbind(
+    f[i, , drop = FALSE],
+    g[j, , drop = FALSE]
+  )
+  Basis(f, names(f))
+}
+
+#' @export
+mp_symmetric = function(x, y_labelling_names, exclude_diag = TRUE) {
+  f = x$partition$frame()
+  g = setNames(f, y_labelling_names)
+  n = nrow(f)
+  k = seq_len(n)
+
+  if (exclude_diag) {
+    i = rep(    k , times = n - 1L)
+    j = rep(rev(k), each  = n - 1L)
+  } else {
+    i = rep(k, times = n)
+    j = rep(k, each  = n)
+  }
+
+  f = cbind(
+    f[i, , drop = FALSE],
+    g[j, , drop = FALSE]
+  )
+  Basis(f, names(f))
+}
+
+#' @export
+mp_linear = function(x, y_labelling_names) {
+  f = x$partition$frame()
+  g = setNames(f, y_labelling_names)
+  n = nrow(f)
+
+  k = c(1L, rep(2L, n - 2L), 1L)
+  i = rep(seq_len(n), k)
+  j = sequence(k, c(2, seq_len(n - 2L), n - 1L), by = 2)
+
+  f = cbind(
+    f[i, , drop = FALSE],
+    g[j, , drop = FALSE]
+  )
+  Basis(f, names(f))
+}
+
+#' @export
+mp_subset = function(x, ...) {
+  partition = mp_filter(x, "pick", ...)$partition
+  Basis(partition, x$labelling_names)
 }
 
 #' @export
@@ -277,11 +377,11 @@ mp_union = function(...) {
     |> unlist(recursive = FALSE, use.names = FALSE)
     |> unique()
   )
-  Core(do.call(union_vars, partitions)$frame(), labelling_names)
+  Basis(do.call(union_vars, partitions)$frame(), labelling_names)
 }
 
 #' @export
-mp_subset = function(x, subset_name, ...) {
+mp_filter = function(x, subset_name, ...) {
   l = list(...)
   p = x$partition
   for (cc in names(l)) {
@@ -294,16 +394,27 @@ mp_subset = function(x, subset_name, ...) {
       p = p$filter(vals, .wrt = cc)
     }
   }
-  init_merge(p$frame(), subset_name, x$labelling_names)
+  init_merge(p$frame(), subset_name)
+}
+
+#' @export
+mp_filter_out = function(x, subset_name, ...) {
+  l = list(...)
+  p = x$partition
+  for (cc in names(l)) {
+    vals = l[[cc]]
+    p = p$filter_out(vals, .wrt = cc)
+  }
+  init_merge(p$frame(), subset_name)
 }
 
 #' @export
 mp_join = function(...) {
   args = list(...)
-  is_core = vapply(args, inherits, logical(1L), "Core")
+  is_basis = vapply(args, inherits, logical(1L), "Basis")
   is_merged = vapply(args, inherits, logical(1L), "Merged")
-  table_list = args[is_core | is_merged]
-  by_list = args[!is_core & !is_merged]
+  table_list = args[is_basis | is_merged]
+  by_list = args[!is_basis & !is_merged]
   z = table_list[[1L]]
   for (i in 2:length(table_list)) {
     args = c(
@@ -316,22 +427,47 @@ mp_join = function(...) {
 }
 
 #' @export
-mp_group = function(group, grouping_name, subset) {
-  map = subset$column_map
-  map[[grouping_name]] = list(group$labelling_names) |> setNames(group$labelling_names)
-  Merged(subset$frame, subset$labelling_names, map)
+mp_group = function(group, group_nm, group_labelling_names, ...) {
+  filter = list(...)
+
 }
 
 #' @export
-mp_select = function(core, group_name, grouping_dimension) {
-  frame = core$partition$select(grouping_dimension)$frame()
-  init_merge(
-    frame,
-    group_name,
-    labelling_names = names(frame)
-  )
+mp_select = function(basis, grouping_dimension) {
+  frame = basis$partition$select(to_names(grouping_dimension))$frame()
+  nms = names(frame)[names(frame) %in% basis$labelling_names]
+  frame |> Basis(labelling_names = nms)
 }
 
+#' @export
+mp_indicator = function(x, ...) {
+  l = list(...)
+  for (nm in names(l)) {
+    l[[nm]] = x$partition$partial_labels(nm) %in% l[[nm]]
+  }
+  Reduce(`&`, l)
+}
+
+#' @export
+mp_indices = function(x, table) {
+  match(x, table) - 1L
+}
+
+#' @export
+mp_labels = function(x, labelling_names) {
+  UseMethod("mp_labels")
+}
+
+#' @export
+mp_labels.Basis = function(x, labelling_names) {
+  if (missing(labelling_names)) return(x$labels())
+  x$partial_labels(labelling_names)
+}
+
+#' @export
+mp_labels.Merged = function(x, labelling_names) {
+  x$labels_for[[labelling_names]]()
+}
 
 split_by = function(by, table_origins) UseMethod("split_by")
 
@@ -354,24 +490,30 @@ split_by.formula = function(by, table_origins) {
 ## change to Mergable
 
 #' @export
-Merged = function(frame, labelling_names, column_map) {
+Merged = function(frame, column_map) {
   self = Base()
   self$frame = frame
-  self$labelling_names = to_names(labelling_names)
   self$column_map = column_map
-  self$labels_by_dim = list()
+  self$labelling_names = function() {
+    l = self$partition_list()
+    for (nm in names(l)) {
+      l[[nm]] = names(l[[nm]])
+    }
+    unlist(l, use.names = FALSE) |> unique()
+  }
+  self$labels_for = list()
   self$labels_frame = function() {
     l = list()
-    for (d in names(self$column_map)) l[[d]] = self$labels_by_dim[[d]]()
+    for (d in names(self$column_map)) l[[d]] = self$labels_for[[d]]()
     l |> as.data.frame()
   }
   self$frame_by_dim = list()
-  self$labels_by_dim = list()
+  self$labels_for = list()
   self$partition_by_dim = list()
   for (d in names(self$column_map)) {
     getter = FrameGetter(self, d)
     self$frame_by_dim[[d]] = getter$get_frame
-    self$labels_by_dim[[d]] = getter$get_labels
+    self$labels_for[[d]] = getter$get_labels
     self$partition_by_dim[[d]] = getter$get_partition
   }
   self$column_by_dim = list()
@@ -381,15 +523,22 @@ Merged = function(frame, labelling_names, column_map) {
       self$column_by_dim[[d]][[c]] = ColumnGetter(self, d, c)
     }
   }
+  self$partition_list = function() {
+    l = list()
+    for (dn in names(self$partition_by_dim)) {
+      l[[dn]] = self$partition_by_dim[[dn]]()
+    }
+    l
+  }
+  self$frame_list = function() method_apply(self$partition_list(), "frame")
   self$filter = function(condition) {
     condition = substitute(condition)
     i = eval(condition, envir = c(self$column_by_dim, self$frame))
     Merged(self$frame[i,,drop = FALSE]
-      , labelling_names = self$labelling_names
       , column_map = self$column_map
     )
   }
-  self$partition = self$partition_by_dim[[1L]]()  ## hack! should probably have a method and then change the partition field in Core to a method as well
+  self$partition = self$partition_by_dim[[1L]]()  ## hack! should probably have a method and then change the partition field in Basis to a method as well
   return_object(self, "Merged")
 }
 
@@ -436,11 +585,92 @@ merge_generic_by_util = function(x, y, ...) {
       apply_col_map(y$column_map, orig[[2L]], by[[nm]][[2L]])
     )
   }
-  merge_util(x, y, by.x, by.y)
+  by = data.frame(x = by.x, y = by.y) |> unique()
+  merge_util(x, y, by$x, by$y)
 }
 
 #' @export
-print.Merged = function(x, ...) print(cbind(x$labels_frame(), x$frame))
+summary.Merged = function(object, ...) {
+  formats = c("name", "combined")
+  structure(
+    sapply(formats, merged_format_picker, x = object, simplify = FALSE, USE.NAMES = TRUE),
+    class = "summary.Merged"
+  )
+}
+
+#' @export
+print.summary.Merged = function(x, ...) {
+  msg_hline() |> message()
+  msg(
+    "Merged object from macpan2 describing",
+    "an aspect of model shape"
+  ) |> message()
+  msg_hline() |> message()
+  print(x$name)
+  print(x$combined, row.names = FALSE)
+}
+
+#' @export
+names.Merged = function(x) to_names(x$labelling_names())
+
+merged_format_picker = function(x
+    , format = c("labels", "merged", "combined", "separate", "name", "names")
+  ) {
+  switch (match.arg(format)
+    , labels = x$labels_frame()
+    , merged = x$frame
+    , combined = cbind(x$labels_frame(), x$frame)
+    , separate = x$frame_list()
+    , name = to_name(x$labelling_names())
+    , names = to_names(x$labelling_names())
+  )
+}
+
+#' @export
+print.Merged = function(x
+    , format = c("labels", "merged", "combined", "separate", "name", "names")
+    , ...
+  ) {
+  x = merged_format_picker(x, format)
+  print(x, row.names = FALSE, ...)
+}
+
+#' @export
+head.Merged = function(x
+    , n = 6L
+    , format = c("labels", "merged", "combined", "separate", "name", "names")
+    , ...
+  ) {
+  x = merged_format_picker(x, format)
+  if (format == "separate") {
+    return(lapply(x, head, n = n, ...))
+  } else {
+    return(head(x, n = n, ...))
+  }
+}
+
+#' @export
+tail.Merged = function(x
+    , n = 6L
+    , format = c("labels", "merged", "combined", "separate", "name", "names")
+    , ...
+  ) {
+  x = merged_format_picker(x, format)
+  if (format == "separate") {
+    return(lapply(x, tail, n = n, ...))
+  } else {
+    return(tail(x, n = n, ...))
+  }
+}
+
+#' @export
+str.Merged = function(x
+    , format = c("labels", "merged", "combined", "separate", "name", "names")
+    , ...
+) {
+  x = merged_format_picker(x, format)
+  str(x, ...)
+}
 
 CompartmentalPartition = function(frame
     , special_partitions = c(vec = "Vec", type = "Type")
@@ -541,7 +771,7 @@ NullPartition = function(...) {
 }
 
 #' @export
-print.Partition = function(x, ...) print(x$frame())
+print.Partition = function(x, ...) print(x$frame(), row.names = FALSE)
 
 empty_frame = function(...) {
   colnames = unlist(

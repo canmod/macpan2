@@ -15,6 +15,9 @@ to_labels.character = function(x) valid_dotted$assert(x)
 to_labels.Partition = function(x) x$labels()
 
 #' @export
+to_labels.Basis = function(x) x$labels()
+
+#' @export
 to_labels.data.frame = function(x) StringDataFromFrame(x)$dot()$labels()$value()
 
 #' @export
@@ -33,7 +36,7 @@ to_labels.Labels = function(x) x$dot()$value()
 #'
 #' Convert objects to names, which are character vectors with the following
 #' restrictions:  (1) they cannot have dots, (2) all values must start with
-#' a letter, (3) all characters must be letters, numbers, or underscores.
+#' a letter, (3) all characters must be letters, numbers, or underscore.
 #'
 #' @param x Object to convert to names.
 #' @return Character vector that can be used as names.
@@ -60,6 +63,9 @@ to_names.character = function(x) {
 to_names.Partition = function(x) x$names()
 
 #' @export
+to_names.Basis = function(x) x$partition$names()
+
+#' @export
 to_names.StringData = function(x) x$undot()$names()$value()
 
 #' @export
@@ -67,6 +73,7 @@ to_names.Scalar = function(x) x$undot()$value()
 
 #' @export
 to_names.Names = function(x) x$undot()$value()
+
 
 #' To Name
 #'
@@ -92,6 +99,9 @@ to_name.character = function(x) {
 
 #' @export
 to_name.Partition = function(x) x$name()
+
+#' @export
+to_name.Basis = function(x) x$partition$name()
 
 #' @export
 to_name.StringData = function(x) x$dot()$names()$value()
