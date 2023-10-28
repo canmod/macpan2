@@ -13,6 +13,7 @@
 #define TMB_LIB_INIT R_init_macpan2
 #include <TMB.hpp>
 #include <cppad/local/cond_exp.hpp>
+#include <variant>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Macpan2 is redesigned architecture. The spec is
