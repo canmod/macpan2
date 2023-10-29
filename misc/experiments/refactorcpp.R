@@ -10,16 +10,16 @@ library(dplyr)
 
 ## factor model bases ---------------
 
-state_sir = basis(
+state_sir = descriptors(
   Epi = c("S", "I", "R", "D"),
   Vital = c("alive", "alive", "alive", "dead"),
   labelling_names = "Epi"
 )
-flow_rates_sir = basis(Epi = c("lambda", "gamma", "mu"))
-trans_rates_sir = basis(Epi = "beta")
-cities = basis(Loc = c("cal", "ham", "que"))
+flow_rates_sir = descriptors(Epi = c("lambda", "gamma", "mu"))
+trans_rates_sir = descriptors(Epi = "beta")
+cities = descriptors(Loc = c("cal", "ham", "que"))
 movement = mp_linear(cities, "Move")
-age = basis(Age = c("young", "old"))
+age = descriptors(Age = c("young", "old"))
 contact = mp_square(age, "Contact")
 
 ## product model bases -------------
@@ -47,39 +47,74 @@ trans_rates = (trans_rates_sir
   |> mp_cartesian(contact)
 )
 
-strata = mp_select(state, "Loc.Age")
-alive = mp_subset(state, Vital = "alive")
-mp_indices(alive$partial_labels("Loc.Age"), strata$labels())
-mp_labels(alive, "Loc.Age")
-mp_labels(strata)
-merge(alive$partition$frame(), strata$partition$frame(), c("Loc", "Age"))
+N_expr = mp_expr_group_sum(state
+  , "Loc.Age"
+  , "N", "state", "alive", "alive_groups", "length_N"
+  , Vital = "alive"
+)
+N_expr$strata$labels()
+
+xx = mp_join(
+  mp_choose(N_expr$strata, "N"),
+  mp_choose(state, "infectious", Epi = "I"),
+  N.infectious = N_expr$strata$labelling_names
+)
+xx$labels_for$infectious()
+xx$frame
+
+state_strata = mp_select(state, "Loc.Age")
+alive_states = mp_subset(state, Vital = "alive")
+alive_groups = mp_indices(
+  mp_labels(alive_states, "Loc.Age"),
+  mp_labels(state_strata)
+)
+alive = mp_indices(
+  mp_labels(alive_states),
+  mp_labels(state)
+)
+N_vector = Vector(state_strata)
+state_vector = Vector(state)
+state_vector$set_numbers(Epi = c(I = 1), Loc.Age = "ham.young")
+S_numbers = mp_zero_vector(state, "Loc.Age", Epi = "S")
+S_numbers[] = round(abs(rnorm(length(S_numbers), 1000, 1000)))
+state_vector$set_numbers(Loc.Age = S_numbers, Epi = "S")
+
+alive_groups
+alive
+engine_eval(
+  ~ groupSums(state[alive], alive_groups, n_strata),
+  state = state_vector$numbers(),
+  alive = alive,
+  alive_groups = alive_groups,
+  n_strata = length(N_vector)
+)
 
 
 movement_flows = mp_join(
-  mp_filter(state, "from", Vital = "alive"),
-  mp_filter(state, "to", Vital = "alive"),
-  mp_filter(flow_rates, "rate", Epi = ""),
+  mp_choose(state, "from", Vital = "alive"),
+  mp_choose(state, "to", Vital = "alive"),
+  mp_choose(flow_rates, "rate", Epi = ""),
   from.to = "Epi.Age",
   from.rate = "Loc",
   to.rate = "Loc" ~ "Move"
 )
 infection_flows = mp_join(
-  mp_filter(state, "from", Epi = "S"),
-  mp_filter(state, "to", Epi = "I"),
-  mp_filter(flow_rates, "rate", Epi = "lambda"),
+  mp_choose(state, "from", Epi = "S"),
+  mp_choose(state, "to", Epi = "I"),
+  mp_choose(flow_rates, "rate", Epi = "lambda"),
   from.to = "Loc.Age",
   from.rate = "Loc.Age"
 )
 recovery_flows = mp_join(
-  mp_filter(state, "from", Epi = "I"),
-  mp_filter(state, "to", Epi = "R"),
-  mp_filter(flow_rates, "rate", Epi = "gamma"),
+  mp_choose(state, "from", Epi = "I"),
+  mp_choose(state, "to", Epi = "R"),
+  mp_choose(flow_rates, "rate", Epi = "gamma"),
   from.to = "Loc.Age"
 )
 death_flows = mp_join(
-  mp_filter(state, "from", Vital = "alive"),
-  mp_filter(state, "to", Vital = "dead"),
-  mp_filter(flow_rates, "rate", Epi = "mu"),
+  mp_choose(state, "from", Vital = "alive"),
+  mp_choose(state, "to", Vital = "dead"),
+  mp_choose(flow_rates, "rate", Epi = "mu"),
   from.to = "Loc.Age",
   from.rate = "Age"
 )
@@ -92,9 +127,9 @@ flows = rbind(
   , death_flows$labels_frame()
 )
 influences = mp_join(
-  mp_filter(state, "infectious", Epi = "I"),
-  mp_filter(flow_rates, "infection", Epi = "lambda"),
-  mp_filter(trans_rates, "rate", Epi = "beta"),
+  mp_choose(state, "infectious", Epi = "I"),
+  mp_choose(flow_rates, "infection", Epi = "lambda"),
+  mp_choose(trans_rates, "rate", Epi = "beta"),
   infectious.infection = "Loc",
   infectious.rate = "Age.Loc",
   infection.rate = "Loc.Age" ~ "Loc.Contact"
@@ -128,7 +163,7 @@ vec$state$set_numbers(
 )
 
 N = mp_select(state, "N", "Loc")
-alive = mp_filter(state, "alive", Epi = c("S", "I", "R"))
+alive = mp_choose(state, "alive", Epi = c("S", "I", "R"))
 
 VectorMerged = function(labeller) {
   self = Base()
@@ -150,7 +185,7 @@ mp_indices(alive$labels_for$alive(), state$labels())
 
 
 
-I = mp_filter(state, "I", Epi = "I")
+I = mp_choose(state, "I", Epi = "I")
 
 
 
@@ -166,15 +201,15 @@ flow_file = CSVReader("inst/model_library/sir_age/flows.csv")$read()
 vars_file = CSVReader("inst/model_library/sir_age/variables.csv")$read()
 settings_file = JSONReader("inst/model_library/sir_age/settings.json")$read()
 
-make_basis = function(vec_name, vars_table, settings_list, vec_part_field, lab_part_field) {
+make_descriptors = function(vec_name, vars_table, settings_list, vec_part_field, lab_part_field) {
   vec_labs = to_labels(vars_table[settings_list[[vec_part_field]]])
-  basis(
+  descriptors(
     vars_table[vec_labs == vec_name, , drop = FALSE],
     labelling_names = to_name(settings_list[[lab_part_field]])
   )
 }
-state = make_basis("state", vars_file, settings_file, "vec_partition", "labelling_partition")
-flow_rates = make_basis("flow_rates", vars_file, settings_file, "vec_partition", "labelling_partition")
+state = make_descriptors("state", vars_file, settings_file, "vec_partition", "labelling_partition")
+flow_rates = make_descriptors("flow_rates", vars_file, settings_file, "vec_partition", "labelling_partition")
 
 
 
@@ -185,20 +220,20 @@ flow_file
 i = 1L
 flow = flow_file[i,,drop=FALSE]
 mp_join(
-  mp_filter(state, "from", flow$from_partition),
-  mp_filter(state, "to", Epi = flow$to),
-  mp_filter(flow_rates, "flow", Epi = flow$flow),
+  mp_choose(state, "from", flow$from_partition),
+  mp_choose(state, "to", Epi = flow$to),
+  mp_choose(flow_rates, "flow", Epi = flow$flow),
   from.to = "Epi"
 )
 
 
 N = mp_select(state, "N", "Loc")
-active = mp_filter(state, "active", Epi = c("S", "I"))
-infectious = mp_filter(state, "infectious", Epi = "I")
+active = mp_choose(state, "active", Epi = c("S", "I"))
+infectious = mp_choose(state, "infectious", Epi = "I")
 mp_join(N, infectious, N.infectious = "Loc")
 
 mp_join(xx, yy, N.norm_inf = "Loc")$labels_frame()
-mp_join(N, mp_filter(state, "infectious", Epi = "I"))
+mp_join(N, mp_choose(state, "infectious", Epi = "I"))
 
 
 match(N$labels_frame()$active, state$labels()) - 1L
@@ -206,7 +241,7 @@ match(N$labels_frame()$N, unique(N$labels_frame()$N)) - 1L
 groupSums(state[active], strata, length(active))
 
 xx = mp_join(
-  mp_filter(state, "state"),
+  mp_choose(state, "state"),
   mp_select(state, "N", "Loc"),
   state.N = "Loc"
 )
@@ -222,24 +257,24 @@ mp_init_vec = function(components, ...) {
 }
 mp_init_vec(state, S.tor = 99)
 mp_join(
-    mp_filter(state, "infectious", Epi = "I"),
-    mp_filter(flow_rates, "infection", Epi = "lambda"),
+    mp_choose(state, "infectious", Epi = "I"),
+    mp_choose(flow_rates, "infection", Epi = "lambda"),
     infectious.infection = "Loc"
 )$labels_frame()
 
 mp_union(
   mp_join(
-      mp_filter(state, "from")
-    , mp_filter(state, "to")
-    , mp_filter(flow_rates, "flow", Epi = "")
+      mp_choose(state, "from")
+    , mp_choose(state, "to")
+    , mp_choose(flow_rates, "flow", Epi = "")
     , from.to = "Epi"
     , from.flow = "Loc"
     , to.flow = "Loc" ~ "Move"
   ),
   mp_join(
-      mp_filter(state, "from", Epi = "S")
-    , mp_filter(state, "to", Epi = "I")
-    , mp_filter(flow_rates, "flow", Epi = "lambda")
+      mp_choose(state, "from", Epi = "S")
+    , mp_choose(state, "to", Epi = "I")
+    , mp_choose(flow_rates, "flow", Epi = "lambda")
     , from.to = "Loc"
     , from.flow = "Loc"
   )

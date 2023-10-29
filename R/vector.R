@@ -10,13 +10,13 @@ Vector = function(labeller) {
     self$.numbers[i]
   }
   self$set_numbers = function(...) {
-    ## generate list with: filter_cond, select_cond, select_nm
+    ## generate list with: value, filter_cond, select_cond, select_nm
     l = process_grouping_dots(...)
 
     args = c(list(self$labeller), l$filter_cond, l$select_cond)
     filter = do.call(mp_subset, args)
     replacement_values = setNames(
-      value[filter$partition$partial_labels(l$select_nm)],
+      l$value[filter$partition$partial_labels(l$select_nm)],
       filter$labels()
     )
 
@@ -29,8 +29,10 @@ Vector = function(labeller) {
       values = unname(self$numbers())
     )
   }
+  self$length = function() length(self$.numbers)
   return_object(self, "Vector")
 }
+
 
 process_grouping_dots = function(...) {
   l = list(...)
@@ -40,8 +42,11 @@ process_grouping_dots = function(...) {
   value = replacement[[1L]]
   select_cond = lapply(replacement, names)
   select_nm = names(select_cond)
-  nlist(filter_cond, select_cond, select_nm)
+  nlist(value, filter_cond, select_cond, select_nm)
 }
+
+#' @export
+length.Vector = function(x) x$length()
 
 #' @export
 print.Vector = function(x, ...) print(x$numbers())

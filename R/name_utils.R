@@ -15,7 +15,7 @@ to_labels.character = function(x) valid_dotted$assert(x)
 to_labels.Partition = function(x) x$labels()
 
 #' @export
-to_labels.Basis = function(x) x$labels()
+to_labels.Descriptors = function(x) x$labels()
 
 #' @export
 to_labels.data.frame = function(x) StringDataFromFrame(x)$dot()$labels()$value()
@@ -63,7 +63,7 @@ to_names.character = function(x) {
 to_names.Partition = function(x) x$names()
 
 #' @export
-to_names.Basis = function(x) x$partition$names()
+to_names.Descriptors = function(x) x$labelling_names
 
 #' @export
 to_names.StringData = function(x) x$undot()$names()$value()
@@ -101,7 +101,7 @@ to_name.character = function(x) {
 to_name.Partition = function(x) x$name()
 
 #' @export
-to_name.Basis = function(x) x$partition$name()
+to_name.Descriptors = function(x) to_names(x) |> to_name()
 
 #' @export
 to_name.StringData = function(x) x$dot()$names()$value()
