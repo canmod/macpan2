@@ -104,18 +104,21 @@ R/engine_functions.R: src/macpan2.cpp
 
 doc-update: R/*.R misc/dev/dev.cpp
 	echo "suppressWarnings(roxygen2::roxygenize(\".\",roclets = c(\"collate\", \"rd\", \"namespace\")))" | R --slave
+	touch doc-update
 
 
 pkg-build:: ../macpan2_$(VERSION).tar.gz
-../macpan2_$(VERSION).tar.gz: DESCRIPTION man/*.Rd R/*.R src/*.cpp tests/testthat/test-*.R tests/testthat.R inst/starter_models/**/*.csv inst/starter_models/**/*.json
+../macpan2_$(VERSION).tar.gz: DESCRIPTION man/*.Rd R/*.R src/*.cpp tests/testthat/test-*.R tests/testthat.R inst/starter_models/**/*.csv inst/starter_models/**/*.json doc-update
 	cd .. && R CMD build --no-build-vignettes macpan2
+	touch pkg-build
 
 
-pkg-check: ../macpan2_$(VERSION).tar.gz
+pkg-check: ../macpan2_$(VERSION).tar.gz pkg-build
 	cd .. && R CMD check macpan2_$(VERSION).tar.gz
+	touch pkg-check
 
 
-pkg-install: ../macpan2_$(VERSION).tar.gz
+pkg-install: ../macpan2_$(VERSION).tar.gz pkg-build
 	cd .. && R CMD INSTALL --no-multiarch --install-tests macpan2_$(VERSION).tar.gz
 
 

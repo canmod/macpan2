@@ -11,12 +11,6 @@ mp = function(mp_func) {
   f
 }
 
-#' @export
-mp_map_to_selection = function(x, filter_cond, select_cond) {
-  filter = mp("filter")(x, "filter", filter_cond, select_cond)
-  replacement = mp_select(filter, "select", names(select_cond))
-  mp_join(filter, replacement, filter.select = names(select_cond))
-}
 
 #' @export
 mp_cartesian = function(x, y) {

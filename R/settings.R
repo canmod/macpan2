@@ -27,13 +27,15 @@ Settings = function(model) {
         |> stop()
       )
     }
-    nms[which.min(i)] # take the first synonym found
+    nms[min(which(i))] # take the first synonym found
   }
   self$lab_part = function() self$.resolve_synonyms("lab_part")
   self$name = function() to_name(self$.settings()[[self$lab_part()]])
   self$names = function() to_names(self$.settings()[[self$lab_part()]])
   self$null = function() self$.settings()$null_partition
-  self$var_part = function() self$.resolve_synonyms("var_part")
+  self$var_part = function() {
+    self$.settings()[[self$.resolve_synonyms("var_part")]]
+  }
   self$variable = function(type) {
     type_nm = sprintf("%s_variables", type)
     var_nms = self$.settings()[[type_nm]]

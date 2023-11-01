@@ -2,8 +2,8 @@
   "required_partitions" : ["Epi"],
   "null_partition" : "Null",
   "vector_partition" : ["Vec"],
-  "state" : ["state"],
-  "flow_rates" : ["flow_rates"],
+  "state_variables" : ["state"],
+  "flow_variables" : ["flow_rates"],
   "infection_flow_variables" : ["foi"],
   "infectious_state_variables" : ["I"]
 }
