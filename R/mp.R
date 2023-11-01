@@ -22,15 +22,22 @@ mp_map_to_selection = function(x, filter_cond, select_cond) {
 mp_cartesian = function(x, y) {
   labelling_names = union(x$labelling_names, y$labelling_names)
   f = join_partitions(x$partition$frame(), y$partition$frame())
-  Descriptors(f, labelling_names = labelling_names)
+  Index(f, labelling_names = labelling_names)
 }
 
 #' @export
-mp_square = function(x, y_labelling_names) {
-  nms = to_names(y_labelling_names)
+mp_square = function(x, suffixes = c("A", "B")) {
+  l1 = sprintf("%s%s", x$labelling_names, suffixes[1L])
+  l2 = sprintf("%s%s", x$labelling_names, suffixes[2L])
+  n1 = sprintf("%s%s", names(x), suffixes[1L])
+  n2 = sprintf("%s%s", names(x), suffixes[2L])
+  x = (x$partition$frame()
+    |> setNames(n1)
+    |> Index(l1)
+  )
   y = (x$partition$frame()
-    |> setNames(nms)
-    |> Descriptors(nms)
+    |> setNames(n2)
+    |> Index(l2)
   )
   mp_cartesian(x, y)
 }
@@ -58,7 +65,7 @@ mp_triangle = function(x, y_labelling_names, exclude_diag = TRUE, lower_tri = FA
     f[i, , drop = FALSE],
     g[j, , drop = FALSE]
   )
-  Descriptors(f, names(f))
+  Index(f, names(f))
 }
 
 #' @export
@@ -80,7 +87,7 @@ mp_symmetric = function(x, y_labelling_names, exclude_diag = TRUE) {
     f[i, , drop = FALSE],
     g[j, , drop = FALSE]
   )
-  Descriptors(f, names(f))
+  Index(f, names(f))
 }
 
 #' @export
@@ -97,17 +104,20 @@ mp_linear = function(x, y_labelling_names) {
     f[i, , drop = FALSE],
     g[j, , drop = FALSE]
   )
-  Descriptors(f, names(f))
+  Index(f, names(f))
 }
 
 #' @export
 mp_subset = function(x, ...) {
   partition = mp_choose(x, "pick", ...)$partition
-  Descriptors(partition, x$labelling_names)
+  Index(partition, x$labelling_names, x)
 }
 
 #' @export
-mp_union = function(...) {
+mp_union = function(...) UseMethod("mp_union")
+
+#' @export
+mp_union.Index = function(...) {
   l = list(...)
   partitions = lapply(l, getElement, "partition")
   labelling_names = (l
@@ -115,8 +125,60 @@ mp_union = function(...) {
     |> unlist(recursive = FALSE, use.names = FALSE)
     |> unique()
   )
-  Descriptors(do.call(union_vars, partitions)$frame(), labelling_names)
+  Index(do.call(union_vars, partitions)$frame(), labelling_names)
 }
+
+#' @export
+mp_union.Link = function(...) {
+  l = list(...)
+  column_map = lapply(l, getElement, "column_map") |> unique()
+  if (length(column_map) != 1L) {
+    msg_colon(
+      msg(
+        "Union of inconsistent Link objects.",
+        "All Link objects must have the same",
+        "column_map, but the following distinct",
+        "maps were found:"
+      ),
+      msg_indent_break(lapply(column_map, unlist))
+    ) |> stop()
+  }
+  ## TODO: should really be checking for reference_index_list
+  labelling_names_list = method_apply(l, "labelling_names_list") |> unique()
+  if (length(labelling_names_list) != 1L) {
+    msg_colon(
+      msg(
+        "Union of inconsistent Link objects.",
+        "All Link objects must have the same",
+        "labelling_names_list, but the following",
+        "distinct maps were found:"
+      ),
+      msg_indent_break(lapply(labelling_names_list, unlist))
+    ) |> stop()
+  }
+  frame = mp_rbind(...)
+  FormulaData(frame, l[[1L]]$reference_index_list)
+}
+
+#' @export
+mp_rbind = function(...) {
+  (list(...)
+   |> lapply(as.data.frame)
+   |> do.call(what = bind_rows)  ## bind_rows is in frame_utils.R
+  )
+}
+
+## how does this work for Index objects?
+## might be ok because it is just another
+## way to get columns for formulas. on the
+## other hand it doesn't sound right at all.
+## should probably throw an error here if
+## Indices are passed.
+#' @export
+mp_formula_data = function(...) {
+  mp_union(...)
+}
+
 
 #' @export
 mp_choose = function(x, subset_name, ...) {
@@ -132,7 +194,7 @@ mp_choose = function(x, subset_name, ...) {
       p = p$filter(vals, .wrt = cc)
     }
   }
-  init_merge(p$frame(), subset_name, x$labelling_names)
+  init_merge(p$frame(), subset_name, x$reference_index())
 }
 
 #' @export
@@ -149,10 +211,41 @@ mp_choose_out = function(x, subset_name, ...) {
 #' @export
 mp_join = function(...) {
   args = list(...)
-  is_basis = vapply(args, inherits, logical(1L), "Descriptors")
-  is_relationship = vapply(args, inherits, logical(1L), "Relationship")
-  table_list = args[is_basis | is_relationship]
-  by_list = args[!is_basis & !is_relationship]
+  is_index = vapply(args, inherits, logical(1L), "Index")
+  is_link = vapply(args, inherits, logical(1L), "Link")
+  table_list = args[is_index | is_link]
+  by_list = args[!is_index & !is_link]
+  by_nms = names(by_list) |> strsplit(".", fixed = TRUE)
+  table_nms = names(table_list)
+  if (!is.null(table_nms)) {
+    for (nm in names(table_list)) {
+      if (nm != "" & inherits(table_list[[nm]], "Index")) {
+        table_list[[nm]] = mp_choose(table_list[[nm]], nm)
+      }
+    }
+  }
+  orig_tab_nms = (table_list
+    |> method_apply("table_names")
+    |> unname()
+    |> unlist(recursive = FALSE)
+  )
+  table_nm_diffs = (by_nms
+    |> lapply(factor, levels = orig_tab_nms)
+    |> lapply(as.integer)
+    |> vapply(diff, integer(1L))
+  )
+  bad_by_args = table_nm_diffs < 1L ## table names in the wrong order
+  if (any(bad_by_args)) {
+    fixed_by_nms = (by_nms[bad_by_args]
+      |> lapply(rev)
+      |> lapply(paste0, collapse = ".")
+    )
+    fixed_by_args = (by_list[bad_by_args]
+      |> lapply(swap_sides)
+    )
+    by_list[bad_by_args] = fixed_by_args
+    names(by_list)[bad_by_args] = fixed_by_nms
+  }
   z = table_list[[1L]]
   for (i in 2:length(table_list)) {
     args = c(
@@ -165,16 +258,127 @@ mp_join = function(...) {
 }
 
 #' @export
-mp_group = function(group, group_nm, group_labelling_names, ...) {
-  filter = list(...)
+mp_aggregate = function(formula
+  , group_by
+  , index
+  , ...
+) {
+  prototypes = list(
+    group_sums = macpan2:::MethodPrototype(y ~ groupSums(x), c("x", "y"), character())
+  )
+  consistent_agg_meths = (prototypes
+    |> method_apply("consistent", formula)
+    |> vapply(c, logical(1L), USE.NAMES = TRUE)
+  )
+  if (!any(consistent_agg_meths)) {
+    f = method_apply(prototypes, "as_character")
+    msg_break(
+      msg_colon(
+        "The following aggregation formula",
+        msg_indent(formula_as_character(formula))
+      ),
+      msg_colon(
+        msg(
+          "was not consistent with any of the",
+          "available aggregation prototypes"
+        ),
+        msg_indent_break(f)
+      )
+    ) |> stop()
+  }
+  agg_meth = (consistent_agg_meths
+    |> which()
+    |> names()
+    |> getElement(1L)  ## first match takes precedence
+  )
+  agg = prototypes[[agg_meth]]
 
+  strata = mp_select(x, stratify_by)
+  subset = mp_subset(x, ...)
+  grouping_indices = mp_indices(
+    mp_labels(subset, stratify_by),
+    mp_labels(strata)
+  )
+  subset_indices = mp_indices(
+    mp_labels(subset),
+    mp_labels(x)
+  )
+
+}
+
+
+#' @export
+mp_decompose = function(formula, index, decomp_name, ...) {
+  input_formula = formula
+  table_args = list(...)
+  output_name = lhs_char(formula)
+  by_args = table_args
+  names(by_args) = sprintf("%s.%s", output_name, names(table_args))
+  for (nm in names(table_args)) {
+    table_args[[nm]] = mp_select(index, table_args[[nm]])
+  }
+  linked_indices = do.call(mp_join,
+    c(setNames(list(index), output_name), table_args, by_args)
+  )
+  int_vecs = setNames(
+    vector(mode = "list", length(table_args)),
+    sprintf("%s_%s", names(table_args), decomp_name)
+  )
+  iv_nms = names(int_vecs)
+  tab_nms = names(table_args)
+  expand_iv_nms = sprintf("%s[%s]", tab_nms, iv_nms)
+  replacement_formulas = mapply(two_sided
+    , tab_nms, expand_iv_nms
+    , SIMPLIFY = FALSE, USE.NAMES = FALSE
+  )
+
+  for (i in seq_along(table_args)) {
+    int_vecs[[iv_nms[i]]] = mp_indices(
+      linked_indices$labels_for[[tab_nms[i]]](),
+      linked_indices$partition_for[[tab_nms[i]]]()$labels()
+    )
+  }
+  formula = update_formula(formula, replacement_formulas)
+  nlist(
+    formula,
+    input_formula,
+    linked_indices,
+    int_vecs
+  )
+}
+
+
+#' @export
+mp_rename = function(x, ...) {
+  l = list(...)
+  new_nms = names(l)
+  old_nms = unlist(l, recursive = FALSE, use.names = FALSE)
+  f = x$partition$frame()
+  labs = x$labelling_names
+  i = match(old_nms, names(f))
+  if (any(is.na(i))) {
+    msg_break(
+      msg_colon(
+        "Attempted to replace the following names that do not exist",
+        msg_indent(old_nms[is.na(i)])
+      ),
+      msg_colon(
+        "These are the only names that are available",
+        msg_indent(names(f))
+      )
+    ) |> stop()
+  }
+  j = match(old_nms, labs)
+  names(f)[i] = new_nms
+  labs[j[!is.na(j)]] = new_nms[!is.na(j)]
+  Index(f, labs)
 }
 
 #' @export
 mp_select = function(basis, grouping_dimension) {
   frame = basis$partition$select(to_names(grouping_dimension))$frame()
   nms = names(frame)[names(frame) %in% basis$labelling_names]
-  frame |> Descriptors(labelling_names = nms)
+  frame |> Index(labelling_names = nms, basis$partition)
 }
 
 #' @export
@@ -197,7 +401,7 @@ mp_labels = function(x, labelling_names) {
 }
 
 #' @export
-mp_labels.Descriptors = function(x, labelling_names) {
+mp_labels.Index = function(x, labelling_names) {
   if (missing(labelling_names)) return(x$labels())
   x$partial_labels(labelling_names)
 }
@@ -212,7 +416,7 @@ mp_zero_vector = function(x, labelling_names, ...) {
 }
 
 #' @export
-mp_labels.Relationship = function(x, labelling_names) {
+mp_labels.Link = function(x, labelling_names) {
   x$labels_for[[labelling_names]]()
 }
 

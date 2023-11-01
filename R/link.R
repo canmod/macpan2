@@ -1,25 +1,48 @@
-#' Relationship
+#' Link
+#'
+#' Make an object to describe links between the entities in an
+#' \code{\link{Index}}. \code{Link} object are created by operating on existing
+#' \code{\link{Index}} objects. For example, here the \code{\link{mp_join}}
+#' combines two
+#' ```{r}
+#' age = mp_index(Age = c("young", "old"))
+#' state = mp_cartesian(
+#'   mp_index(Epi = c("S", "I", "R")),
+#'   age
+#' )
+#' mp_join(
+#'   mp_choose(state, "from", Epi = "S"),
+#'   mp_choose(state, "to",   Epi = "I"),
+#'   from.to = "Age"
+#' )
+#' ```
 #'
 #' @export
-Relationship = function(frame, column_map, labelling_names_list) {
+Link = function(frame, column_map, reference_index_list) {
   self = Base()
   self$frame = frame
   self$column_map = column_map
-  self$labelling_names_list = labelling_names_list
+  self$reference_index_list = reference_index_list
+  self$labelling_names_list = function() {
+    lapply(self$reference_index_list, getElement, "labelling_names")
+  }
+  self$table_names = function() names(self$column_map)
   self$labels_for = list()
   self$labels_frame = function() {
     l = list()
     for (d in names(self$column_map)) l[[d]] = self$labels_for[[d]]()
     l |> as.data.frame()
   }
-  self$frame_by_dim = list()
+  self$frame_for = list()
   self$labels_for = list()
-  self$partition_by_dim = list()
+  self$partition_for = list()
+  self$index_for = list()
   for (d in names(self$column_map)) {
     getter = FrameGetter(self, d)
-    self$frame_by_dim[[d]] = getter$get_frame
+    self$frame_for[[d]] = getter$get_frame
     self$labels_for[[d]] = getter$get_labels
-    self$partition_by_dim[[d]] = getter$get_partition
+    self$partition_for[[d]] = getter$get_partition
+    self$index_for[[d]] = getter$get_index
   }
   self$column_by_dim = list()
   for (d in names(self$column_map)) {
@@ -30,8 +53,8 @@ Relationship = function(frame, column_map, labelling_names_list) {
   }
   self$partition_list = function() {
     l = list()
-    for (dn in names(self$partition_by_dim)) {
-      l[[dn]] = self$partition_by_dim[[dn]]()
+    for (dn in names(self$partition_for)) {
+      l[[dn]] = self$partition_for[[dn]]()
     }
     l
   }
@@ -39,22 +62,22 @@ Relationship = function(frame, column_map, labelling_names_list) {
   self$filter = function(condition) {
     condition = substitute(condition)
     i = eval(condition, envir = c(self$column_by_dim, self$frame))
-    Relationship(self$frame[i, , drop = FALSE]
+    Link(self$frame[i, , drop = FALSE]
       , column_map = self$column_map
-      , labelling_names_list = self$labelling_names_list
+      , reference_index_list = self$reference_index_list
     )
   }
-  self$partition = self$partition_by_dim[[1L]]()  ## hack! should probably have a method and then change the partition field in Descriptors to a method as well
-  return_object(self, "Relationship")
+  self$partition = self$partition_for[[1L]]()  ## hack! should probably have a method and then change the partition field in Index to a method as well
+  return_object(self, "Link")
 }
 
-ColumnGetter = function(relationship, dimension_name, column_name) {
+ColumnGetter = function(link, dimension_name, column_name) {
   self = Base()
-  self$relationship = relationship
+  self$link = link
   self$dimension_name = dimension_name
   self$column_name = column_name
   self$get = function() {
-    lp = self$relationship
+    lp = self$link
     i = lp$column_map[[self$dimension_name]][[self$column_name]]
     lp$frame[[i]]
   }
@@ -62,23 +85,27 @@ ColumnGetter = function(relationship, dimension_name, column_name) {
   self$get
 }
 
-FrameGetter = function(relationship, dimension_name) {
+FrameGetter = function(link, dimension_name) {
   self = Base()
-  self$relationship = relationship
+  self$link = link
   self$dimension_name = dimension_name
   self$get_frame = function() {
     i = unlist(
-      self$relationship$column_map[[self$dimension_name]],
+      self$link$column_map[[self$dimension_name]],
       use.names = FALSE
     )
     setNames(
-      self$relationship$frame[, i, drop = FALSE],
-      names(self$relationship$column_map[[self$dimension_name]])
+      self$link$frame[, i, drop = FALSE],
+      names(self$link$column_map[[self$dimension_name]])
     )
   }
   self$get_partition = function() self$get_frame() |> Partition()
+  self$get_index = function() Index(
+    self$get_partition(),
+    self$link$labelling_names_list()[[self$dimension_name]]
+  )
   self$get_labels = function() {
-    i = self$relationship$labelling_names_list[[self$dimension_name]]
+    i = self$link$labelling_names_list()[[self$dimension_name]]
     f = self$get_frame()[, i, drop = FALSE]
     l = as.list(f)
     paste_args = c(l, sep = ".")
@@ -94,6 +121,11 @@ initial_column_map = function(column_names, dimension_name) {
   )
 }
 
+initial_reference_index_list = function(index, dimension_name) {
+  setNames(list(index), dimension_name)
+}
+
+## TODO XXX
 initial_labelling_names_list = function(labelling_names, dimension_name) {
   setNames(
     list(labelling_names),
@@ -172,15 +204,15 @@ merge_util = function(x, y, by.x, by.y) {
   }
 
   z_column_map = c(x_cmap, y_cmap)
-  z_lab_names_list = c(x$labelling_names_list, y$labelling_names_list)
+  z_reference_index_list = c(x$reference_index_list, y$reference_index_list)
 
   ## ----
   ## wrap up the result with provenance-preserving column map
   ## ----
-  Relationship(
+  Link(
     z,
     z_column_map,
-    z_lab_names_list
+    z_reference_index_list
   )
 }
 
@@ -198,10 +230,10 @@ filter_by_list = function(x_orig, y_orig, by_list) {
 }
 
 #' @export
-init_merge = function(frame, dimension_name, labelling_names) {
-  Relationship(frame
+init_merge = function(frame, dimension_name, reference_index) {
+  Link(frame
     , initial_column_map(names(frame), dimension_name)
-    , initial_labelling_names_list(labelling_names, dimension_name)
+    , initial_reference_index_list(reference_index, dimension_name)
   )
 }
 
@@ -230,6 +262,45 @@ apply_col_map = function(map, orig_table_nm, by) {
   map[[orig_table_nm]][by] |> unlist(use.names = FALSE)
 }
 
+
+is_provenance_implicit = function(x, col_nm) {
+  (x$column_map
+   |> lapply(getElement, col_nm)
+   |> Filter(f = Negate(is.null))
+   |> vapply(`==`, logical(1L), col_nm)
+  )
+}
+
+explicit_provenance = function(x, col_nm) {
+  m = x$column_map
+  implicit = is_provenance_implicit(x, col_nm)
+  if (length(implicit) == 0L) {
+    macpan2:::msg_colon(
+      macpan2:::msg("Column", col_nm, "not found in any of the original tables"),
+      macpan2:::msg_indent(names(m))
+    ) |> stop()
+  }
+  if (!any(implicit)) return(x)
+
+  tabs_to_fix = (implicit
+    |> Filter(f = isTRUE)
+    |> names()
+  )
+
+  f = x$frame
+  l = x$labelling_names_list()
+
+  orig_col = f[[col_nm]]
+  for (tab_nm in tabs_to_fix) {
+    new_col_nm = sprintf("%s:%s", col_nm, tab_nm)
+    f[[new_col_nm]] = orig_col
+    m[[tab_nm]][[col_nm]] = new_col_nm
+  }
+  f[[col_nm]] = NULL
+  Link(f, m, l)
+}
+
+
 merge_generic_by_util = function(x, y, ...) {
   by = filter_by_list(
     names(x$column_map),
@@ -256,23 +327,38 @@ merge_generic_by_util = function(x, y, ...) {
     )
   }
   by = data.frame(x = by.x, y = by.y) |> unique()
-  merge_util(x, y, by$x, by$y)
+
+  dup.x = duplicated(by$x)
+  if (any(dup.x)) {
+    cols_to_fix = by$x[dup.x]
+    for (col_nm in cols_to_fix) {
+      x = explicit_provenance(x, col_nm)
+    }
+    merge_generic_by_util(x, y, ...)
+  } else {
+    merge_util(x, y, by$x, by$y)
+  }
 }
 
 #' @export
-summary.Relationship = function(object, ...) {
+as.data.frame.Link = function(x, row.names = NULL, optional = FALSE, ...) {
+  x$labels_frame()
+}
+
+#' @export
+summary.Link = function(object, ...) {
   formats = c("name", "combined")
   structure(
-    sapply(formats, relationship_format_picker, x = object, simplify = FALSE, USE.NAMES = TRUE),
-    class = "summary.Relationship"
+    sapply(formats, link_format_picker, x = object, simplify = FALSE, USE.NAMES = TRUE),
+    class = "summary.Link"
   )
 }
 
 #' @export
-print.summary.Relationship = function(x, ...) {
+print.summary.Link = function(x, ...) {
   msg_hline() |> message()
   msg(
-    "Relationship object from macpan2 describing",
+    "Link object from macpan2 describing",
     "an aspect of model shape"
   ) |> message()
   msg_hline() |> message()
@@ -280,35 +366,40 @@ print.summary.Relationship = function(x, ...) {
   print(x$combined, row.names = FALSE)
 }
 
-#names.Relationship = function(x) to_names(x$labelling_names())
+#' @export
+names.Link = function(x) names(x$frame)
 
-relationship_format_picker = function(x
-    , format = c("labels", "relationship", "combined", "separate")
+#' @export
+labelling_names.Link = function(x) x$labelling_names_list()
+
+
+link_format_picker = function(x
+    , format = c("labels", "link", "combined", "separate")
   ) {
-  switch (match.arg(format)
+  switch(match.arg(format)
     , labels = x$labels_frame()
-    , relationship = x$frame
+    , link = x$frame
     , combined = cbind(x$labels_frame(), x$frame)
     , separate = x$frame_list()
   )
 }
 
 #' @export
-print.Relationship = function(x
-    , format = c("labels", "relationship", "combined", "separate")
+print.Link = function(x
+    , format = c("labels", "link", "combined", "separate")
     , ...
   ) {
-  x = relationship_format_picker(x, format)
+  x = link_format_picker(x, format)
   print(x, row.names = FALSE, ...)
 }
 
 #' @export
-head.Relationship = function(x
+head.Link = function(x
     , n = 6L
-    , format = c("labels", "relationship", "combined", "separate")
+    , format = c("labels", "link", "combined", "separate")
     , ...
   ) {
-  x = relationship_format_picker(x, format)
+  x = link_format_picker(x, format)
   if (format == "separate") {
     return(lapply(x, head, n = n, ...))
   } else {
@@ -317,12 +408,12 @@ head.Relationship = function(x
 }
 
 #' @export
-tail.Relationship = function(x
+tail.Link = function(x
     , n = 6L
-    , format = c("labels", "relationship", "combined", "separate")
+    , format = c("labels", "link", "combined", "separate")
     , ...
   ) {
-  x = relationship_format_picker(x, format)
+  x = link_format_picker(x, format)
   if (format == "separate") {
     return(lapply(x, tail, n = n, ...))
   } else {
@@ -331,10 +422,10 @@ tail.Relationship = function(x
 }
 
 #' @export
-str.Relationship = function(x
-    , format = c("labels", "relationship", "combined", "separate")
+str.Link = function(x
+    , format = c("labels", "link", "combined", "separate")
     , ...
 ) {
-  x = relationship_format_picker(x, format)
+  x = link_format_picker(x, format)
   str(x, ...)
 }

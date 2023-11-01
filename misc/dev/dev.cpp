@@ -457,6 +457,24 @@ public:
         }
     }
 
+    int get_as_int(int i) {
+        if (i < 0 || i >= items_.size()) {
+            throw std::out_of_range("Index out of range");
+        }
+        if (std::holds_alternative<std::vector<int>>(items_[i])) {
+            std::vector<int> v = get_as_int_vec(i);
+            return v[0];
+        } else {
+            matrix<Type> m = get_as_mat(i);
+            int j = m.rows();
+            if (j == 1) {
+              std::vector<int> v = get_as_int_vec(i);
+              return v[0];
+            }
+            return j;
+        }
+    }
+
     matrix<Type> operator[](int i) {
         return get_as_mat(i);
     }
@@ -1490,7 +1508,7 @@ public:
 
                         m = args[0];
                         v1 = args.get_as_int_vec(1);
-                        rows = args.get_as_int_vec(2)[0];
+                        rows = args.get_as_int(2);
                         m1 = matrix<Type>::Zero(rows, 1);
 
                         for (int i = 0; i < m.rows(); i++) {

@@ -3,24 +3,21 @@ library(macpan2helpers)
 library(oor)
 library(ggplot2)
 library(dplyr)
-# m = Compartmental(file.path("inst", "starter_models", "sir"))
-# m$simulators$tmb(100
-#   , state = c(S = 99, I = 1)
-# )
 
-## factor model bases ---------------
 
-state_sir = descriptors(
+## factor model indices ---------------
+
+state_sir = mp_index(
   Epi = c("S", "I", "R", "D"),
   Vital = c("alive", "alive", "alive", "dead"),
   labelling_names = "Epi"
 )
-flow_rates_sir = descriptors(Epi = c("lambda", "gamma", "mu"))
-trans_rates_sir = descriptors(Epi = "beta")
-cities = descriptors(Loc = c("cal", "ham", "que"))
+flow_rates_sir = mp_index(Epi = c("lambda", "gamma", "mu"))
+trans_rates_sir = mp_index(Epi = "beta")
+cities = mp_index(Loc = c("cal", "ham", "que"))
 movement = mp_linear(cities, "Move")
-age = descriptors(Age = c("young", "old"))
-contact = mp_square(age, "Contact")
+age = mp_index(Age = c("young", "old"))
+contact = mp_square(age, c("Infectious", "Infection"))
 
 ## product model bases -------------
 
@@ -31,8 +28,8 @@ state = (state_sir
 flow_rates = mp_union(
   (flow_rates_sir
     |> mp_subset(Epi = "lambda")
-    |> mp_cartesian(age)
     |> mp_cartesian(cities)
+    |> mp_cartesian(age)
   ),
   (flow_rates_sir
     |> mp_subset(Epi = "mu")
@@ -42,9 +39,115 @@ flow_rates = mp_union(
   movement
 )
 trans_rates = (trans_rates_sir
-  |> mp_subset(Epi = "beta")
   |> mp_cartesian(cities)
   |> mp_cartesian(contact)
+)
+
+mp_join(
+  alive = mp_subset(state, Vital = "alive"),
+  N = mp_select(state, "Loc.Age"),
+  alive.N = "Loc.Age"
+)
+
+mp_choose(mp_select(state, "Loc.Age"), "N")
+
+
+yy = Vector(state)
+yy$numbers()
+yy$set_numbers(Loc = c(cal = 1000, ham = 2000, que = 3000), Epi = "S")
+yy$set_numbers(Epi = c(I = 1), Loc.Age = "ham.young")
+
+infection_flows = mp_join(
+    to = mp_subset(state, Epi = "S")
+  , from = mp_subset(state, Epi = "I")
+  , rate = mp_subset(flow_rates, Epi = "lambda")
+  , to.rate = "Age.Loc"
+  , rate.from = "Age.Loc"
+  , from.to = "Age.Loc"
+)
+
+influence = mp_join(
+    state = mp_subset(state, Epi = "I")
+  , flow = mp_subset(flow_rates, Epi = "lambda")
+  , trans = mp_subset(trans_rates, Epi = "beta")
+
+    ## can't infect someone at a different location
+  , state.flow = "Loc"
+
+    ## location and age specific transmission rates
+    ## for each infectious state
+  , state.trans = "Loc.Age" ~ "Loc.AgeInfectious"
+
+    ## location and age specific transmission rates
+    ## for each infection flow
+  , flow.trans = "Loc.Age" ~ "Loc.AgeInfection"
+)
+
+# mp_aggregate = function(
+#     formula, index
+#   )
+
+# mp_expr_group_sum(state
+#   , stratify_by = "Loc.Age"
+#   , output_name = "N"
+#   , vector_name = "state"
+#   , subset_name = "alive"
+#   , grouping_name = sprintf("%s_groups", output_name)
+#   , length_name = sprintf("%s_length", output_name)
+#   , Vital = "alive"
+# )
+
+mp_aggregate(N ~ groupSums(state)
+  , group_by = "Loc.Age"
+  , index = state
+  , Vital = "alive"
+)
+
+
+
+
+trans_decomp = mp_decompose(
+    beta ~ contact * infectivity * susceptibility
+  , index = mp_subset(trans_rates, Epi = "beta")
+  , decomp_name = "trans"
+
+  ## define dimensions over-which each component of the
+  ## decomposition will vary. these all must be dimensions
+  ## in the index.
+  , contact = "Loc.AgeInfectious.AgeInfection"
+  , infectivity = "Loc"
+  , susceptibility = "AgeInfection"
+)
+trans_decomp$linked_indices
+
+trans_decomp$formula
+trans_decomp$input_formula
+macpan2:::update_formula(g ~ y * x * z, g ~ friend)
+
+
+
+hh = function(e) {
+  e = substitute(e)
+  eval(e, list(x = as.symbol("lkjg"), y = as.symbol("LKJDSF")))
+}
+hh(x + y)
+
+x = function(e, ...) {
+  self = new.env(parent = emptyenv())
+  self$`*` = function(...) paste(..., sep = " * ")
+  self$e
+}
+y = x(A * B * C, A[friend], "A")
+y$e
+
+trans_decomp$formula
+trans_decomp$int_vecs
+trans_decomp$labels_for$beta()
+trans_decomp$labels_for$infectivity()
+
+mp_indices(
+  trans_decomp$labels_for$susceptibility(),
+  trans_decomp$partition_for$susceptibility()$labels()
 )
 
 N_expr = mp_expr_group_sum(state
@@ -52,7 +155,7 @@ N_expr = mp_expr_group_sum(state
   , "N", "state", "alive", "alive_groups", "length_N"
   , Vital = "alive"
 )
-N_expr$strata$labels()
+
 
 xx = mp_join(
   mp_choose(N_expr$strata, "N"),
@@ -201,15 +304,15 @@ flow_file = CSVReader("inst/model_library/sir_age/flows.csv")$read()
 vars_file = CSVReader("inst/model_library/sir_age/variables.csv")$read()
 settings_file = JSONReader("inst/model_library/sir_age/settings.json")$read()
 
-make_descriptors = function(vec_name, vars_table, settings_list, vec_part_field, lab_part_field) {
+make_mp_index = function(vec_name, vars_table, settings_list, vec_part_field, lab_part_field) {
   vec_labs = to_labels(vars_table[settings_list[[vec_part_field]]])
-  descriptors(
+  mp_index(
     vars_table[vec_labs == vec_name, , drop = FALSE],
     labelling_names = to_name(settings_list[[lab_part_field]])
   )
 }
-state = make_descriptors("state", vars_file, settings_file, "vec_partition", "labelling_partition")
-flow_rates = make_descriptors("flow_rates", vars_file, settings_file, "vec_partition", "labelling_partition")
+state = make_mp_index("state", vars_file, settings_file, "vec_partition", "labelling_partition")
+flow_rates = make_mp_index("flow_rates", vars_file, settings_file, "vec_partition", "labelling_partition")
 
 
 
@@ -438,7 +541,7 @@ prod = Quantities(
     cartesian(sir$flow_rates, loc$state_variables),
     loc_flow_rates
   ),
-  labelling_descriptors = "Epi.Loc.Move"
+  labelling_index = "Epi.Loc.Move"
 )
 
 ## learned lots about joining and a bit about filtering:

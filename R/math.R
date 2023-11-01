@@ -35,7 +35,10 @@ SymbolicMath = function() {
     if (y == "") return(self$wrap(paste("-", x, sep = "")))
 
     ## actual binop -- binary operator -- case
-    self$wrap(paste(x, y, sep = op))
+    z = paste(x, y, sep = op)
+
+    ## wrapping makes stuff ugly
+    self$wrap(z)
   }
 
   ## 1. all functions in self take string (i.e. length-1 character vector)

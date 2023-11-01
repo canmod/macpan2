@@ -7,7 +7,12 @@
 Partition(frame)
 }
 \arguments{
-\item{frame}{Data frame representing the partition.}
+\item{frame}{Data frame representing the partition. The column names must
+consist only of letters, numbers, and start with a letter. The columns of
+the data frame must be character vectors such that each value is composed
+entirely of letters, numbers, underscore, and must start with a letter
+unless it is a blank string. Missing values are not allowed, but blank
+strings are. Each row must be unique.}
 }
 \value{
 Object of class \code{Partition} with the following methods.

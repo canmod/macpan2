@@ -64,12 +64,40 @@ to_assign = function(formula, dummy = "dummy") {
   as.formula(do.call(sprintf, args))
 }
 
+## update formula symbolically with additional formulas
+## in ..., each of which has a lhs matching a symbol in
+## the focal formula and a rhs to replace that symbol with
+update_formula = function(formula, replacers) {
+  nms = lapply(replacers, lhs_char)
+  l = lapply(replacers, rhs_expr) |> setNames(nms)
+  do.call('substitute', list(formula, l))
+}
+
 ## for character vectors lhs and rhs, return a formula
 one_sided = function(rhs) {
   as.formula(sprintf("~ %s", as.character(rhs)))
 }
 two_sided = function(lhs, rhs) {
   as.formula(sprintf("%s ~ %s", as.character(lhs), as.character(rhs)))
+}
+
+
+
+swap_sides = function(x) UseMethod("swap_sides")
+
+#' @export
+swap_sides.formula = function(x) {
+  stopifnot(is_two_sided(x))
+  formula = x
+  formula[[2L]] = x[[3L]]
+  formula[[3L]] = x[[2L]]
+  formula
+}
+
+#' @export
+swap_sides.character = function(x) {
+  stopifnot(length(x) == 1L)
+  x
 }
 
 ## how many sides does a formula have?
@@ -96,6 +124,18 @@ lhs = function(formula) {
   formula
 }
 
+rhs_expr = function(formula) {
+  if (is_two_sided(formula)) return(formula[[3L]])
+  formula[[2L]]
+}
+lhs_expr = function(formula) {
+  if (is_two_sided(formula)) return(formula[[2L]])
+  msg_colon(
+    "There is no left-hand-side in this formula",
+    deparse(formula, width.cutoff = 500)
+  ) |> stop()
+}
+
 lhs_char = function(formula) {
   if (is_two_sided(formula)) {
     return(deparse(formula[[2L]], 500))
@@ -107,6 +147,10 @@ rhs_char = function(formula) {
   i = 2L
   if (is_two_sided(formula)) i = 3L
   deparse(formula[[i]], 500)
+}
+
+formula_as_character = function(formula) {
+  sprintf("%s ~ %s", lhs_char(formula), rhs_char(formula))
 }
 
 # formula parsing in macpan2 works one side at a time. but sometimes
