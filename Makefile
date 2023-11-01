@@ -8,13 +8,7 @@ TEST := testthat::test_package(\"macpan2\", reporter = \"progress\")
 
 
 all:
-	make src-update
-	make enum-update
-	make enum-meth-update
-	make engine-doc-update
-	make doc-update
-	make pkg-build
-	make pkg-install
+	make full-install
 	make pkg-check
 
 
