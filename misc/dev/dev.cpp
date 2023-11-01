@@ -12,7 +12,6 @@
 // https://github.com/kaskr/adcomp/wiki/Development#distributing-code
 #include <TMB.hpp>
 #include <cppad/local/cond_exp.hpp>
-#include <variant>
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -417,15 +416,24 @@ matrix<Type> getNthMat(
 template <typename Type>
 class ArgList {
 public:
-    using ItemType = std::variant<matrix<Type>, std::vector<int>>;
+    enum class ItemType { Matrix, IntVector };
 
     ArgList(int size) : items_(size), size_(size) {}
 
-    void set(int index, const ItemType& item) {
+    void set(int index, const matrix<Type>& mat) {
         if (index < 0 || index >= size_) {
             throw std::out_of_range("Index out of range");
         }
-        items_[index] = item;
+        items_[index].type = ItemType::Matrix;
+        items_[index].mat = mat;
+    }
+
+    void set(int index, const std::vector<int>& intVec) {
+        if (index < 0 || index >= size_) {
+            throw std::out_of_range("Index out of range");
+        }
+        items_[index].type = ItemType::IntVector;
+        items_[index].intVec = intVec;
     }
 
     matrix<Type> get_as_mat(int i) const {
@@ -433,8 +441,8 @@ public:
             throw std::out_of_range("Index out of range");
         }
 
-        if (std::holds_alternative<matrix<Type>>(items_[i])) {
-            return std::get<matrix<Type>>(items_[i]);
+        if (items_[i].type == ItemType::Matrix) {
+            return items_[i].mat;
         } else {
             throw std::runtime_error("Item at index is not a matrix");
         }
@@ -445,35 +453,74 @@ public:
             throw std::out_of_range("Index out of range");
         }
 
-        if (std::holds_alternative<std::vector<int>>(items_[i])) {
-            return std::get<std::vector<int>>(items_[i]);
+        if (items_[i].type == ItemType::IntVector) {
+            return items_[i].intVec;
         } else {
             matrix<Type> m = get_as_mat(i);
             std::vector<int> v(m.rows());
-            for (int i=0; i<v.size(); i++) {
-                v[i] = CppAD::Integer(m.coeff(i,0));
+            for (int i = 0; i < v.size(); i++) {
+                v[i] = CppAD::Integer(m.coeff(i, 0));
             }
             return v;
         }
     }
 
+
+    // void set(int index, const ItemType& item) {
+    //     if (index < 0 || index >= size_) {
+    //         throw std::out_of_range("Index out of range");
+    //     }
+    //     items_[index] = item;
+    // }
+    //
+    // matrix<Type> get_as_mat(int i) const {
+    //     if (i < 0 || i >= items_.size()) {
+    //         throw std::out_of_range("Index out of range");
+    //     }
+    //
+    //     if (std::holds_alternative<matrix<Type>>(items_[i])) {
+    //         return std::get<matrix<Type>>(items_[i]);
+    //     } else {
+    //         throw std::runtime_error("Item at index is not a matrix");
+    //     }
+    // }
+    //
+    // std::vector<int> get_as_int_vec(int i) {
+    //     if (i < 0 || i >= items_.size()) {
+    //         throw std::out_of_range("Index out of range");
+    //     }
+    //
+    //     if (std::holds_alternative<std::vector<int>>(items_[i])) {
+    //         return std::get<std::vector<int>>(items_[i]);
+    //     } else {
+    //         matrix<Type> m = get_as_mat(i);
+    //         std::vector<int> v(m.rows());
+    //         for (int i=0; i<v.size(); i++) {
+    //             v[i] = CppAD::Integer(m.coeff(i,0));
+    //         }
+    //         return v;
+    //     }
+    // }
+
     int get_as_int(int i) {
         if (i < 0 || i >= items_.size()) {
             throw std::out_of_range("Index out of range");
         }
-        if (std::holds_alternative<std::vector<int>>(items_[i])) {
+
+        if (items_[i].type == ItemType::IntVector) {
             std::vector<int> v = get_as_int_vec(i);
             return v[0];
         } else {
             matrix<Type> m = get_as_mat(i);
             int j = m.rows();
             if (j == 1) {
-              std::vector<int> v = get_as_int_vec(i);
-              return v[0];
+                std::vector<int> v = get_as_int_vec(i);
+                return v[0];
             }
             return j;
         }
     }
+
 
     matrix<Type> operator[](int i) {
         return get_as_mat(i);
@@ -630,12 +677,22 @@ public:
         return error_code_;
     }
 
-
 private:
-    std::vector<ItemType> items_;
+    struct Item {
+        ItemType type;
+        matrix<Type> mat;
+        std::vector<int> intVec;
+    };
+
+    std::vector<Item> items_;
     int size_;
     int error_code_ = 0; // Initialize the error code to 0 (no error) by default
 };
+// private:
+//     std::vector<ItemType> items_;
+//     int size_;
+//     int error_code_ = 0; // Initialize the error code to 0 (no error) by default
+// };
 
 
 template<class Type>
