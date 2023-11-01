@@ -470,7 +470,6 @@ public:
             int j = m.rows();
             if (j == 1) {
               std::vector<int> v = get_as_int_vec(i);
-              // std::cout << "HI" << v[0] << std::endl;
               return v[0];
             }
             return j;

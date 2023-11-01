@@ -144,7 +144,7 @@ mp_union.Link = function(...) {
     ) |> stop()
   }
   ## TODO: should really be checking for reference_index_list
-  labelling_names_list = method_apply(l, "labelling_names_list") |> unique()
+  labelling_names_list = lapply(l, getElement, "labelling_names_list") |> unique()
   if (length(labelling_names_list) != 1L) {
     msg_colon(
       msg(
@@ -157,7 +157,7 @@ mp_union.Link = function(...) {
     ) |> stop()
   }
   frame = mp_rbind(...)
-  FormulaData(frame, l[[1L]]$reference_index_list)
+  FormulaData(frame, l[[1L]]$reference_index_list, l[[1L]]$labelling_names_list)
 }
 
 #' @export
@@ -194,7 +194,7 @@ mp_choose = function(x, subset_name, ...) {
       p = p$filter(vals, .wrt = cc)
     }
   }
-  init_merge(p$frame(), subset_name, x$reference_index())
+  init_merge(p$frame(), subset_name, x$reference_index(), x$labelling_names)
 }
 
 #' @export
@@ -205,7 +205,7 @@ mp_choose_out = function(x, subset_name, ...) {
     vals = l[[cc]]
     p = p$filter_out(vals, .wrt = cc)
   }
-  init_merge(p$frame(), subset_name, x$labelling_names)
+  init_merge(p$frame(), subset_name, x$reference_index(), x$labelling_names)
 }
 
 #' @export
@@ -375,10 +375,10 @@ mp_rename = function(x, ...) {
 }
 
 #' @export
-mp_select = function(basis, grouping_dimension) {
-  frame = basis$partition$select(to_names(grouping_dimension))$frame()
-  nms = names(frame)[names(frame) %in% basis$labelling_names]
-  frame |> Index(labelling_names = nms, basis$partition)
+mp_select = function(index, grouping_dimension) {
+  frame = index$partition$select(to_names(grouping_dimension))$frame()
+  nms = names(frame)[names(frame) %in% index$labelling_names]
+  frame |> Index(labelling_names = nms, index)
 }
 
 #' @export

@@ -18,14 +18,15 @@
 #' ```
 #'
 #' @export
-Link = function(frame, column_map, reference_index_list) {
+Link = function(frame, column_map, reference_index_list, labelling_names_list) {
   self = Base()
   self$frame = frame
   self$column_map = column_map
   self$reference_index_list = reference_index_list
-  self$labelling_names_list = function() {
-    lapply(self$reference_index_list, getElement, "labelling_names")
-  }
+  self$labelling_names_list = labelling_names_list
+  # function() {
+  #   lapply(self$reference_index_list, getElement, "labelling_names")
+  # }
   self$table_names = function() names(self$column_map)
   self$labels_for = list()
   self$labels_frame = function() {
@@ -65,6 +66,7 @@ Link = function(frame, column_map, reference_index_list) {
     Link(self$frame[i, , drop = FALSE]
       , column_map = self$column_map
       , reference_index_list = self$reference_index_list
+      , labelling_names_list = self$labelling_names_list
     )
   }
   self$partition = self$partition_for[[1L]]()  ## hack! should probably have a method and then change the partition field in Index to a method as well
@@ -102,10 +104,10 @@ FrameGetter = function(link, dimension_name) {
   self$get_partition = function() self$get_frame() |> Partition()
   self$get_index = function() Index(
     self$get_partition(),
-    self$link$labelling_names_list()[[self$dimension_name]]
+    self$link$labelling_names_list[[self$dimension_name]]
   )
   self$get_labels = function() {
-    i = self$link$labelling_names_list()[[self$dimension_name]]
+    i = self$link$labelling_names_list[[self$dimension_name]]
     f = self$get_frame()[, i, drop = FALSE]
     l = as.list(f)
     paste_args = c(l, sep = ".")
@@ -125,7 +127,7 @@ initial_reference_index_list = function(index, dimension_name) {
   setNames(list(index), dimension_name)
 }
 
-## TODO XXX
+
 initial_labelling_names_list = function(labelling_names, dimension_name) {
   setNames(
     list(labelling_names),
@@ -205,6 +207,7 @@ merge_util = function(x, y, by.x, by.y) {
 
   z_column_map = c(x_cmap, y_cmap)
   z_reference_index_list = c(x$reference_index_list, y$reference_index_list)
+  z_lab_names_list = c(x$labelling_names_list, y$labelling_names_list)
 
   ## ----
   ## wrap up the result with provenance-preserving column map
@@ -212,7 +215,8 @@ merge_util = function(x, y, by.x, by.y) {
   Link(
     z,
     z_column_map,
-    z_reference_index_list
+    z_reference_index_list,
+    z_lab_names_list
   )
 }
 
@@ -230,10 +234,11 @@ filter_by_list = function(x_orig, y_orig, by_list) {
 }
 
 #' @export
-init_merge = function(frame, dimension_name, reference_index) {
+init_merge = function(frame, dimension_name, reference_index, labelling_names) {
   Link(frame
     , initial_column_map(names(frame), dimension_name)
     , initial_reference_index_list(reference_index, dimension_name)
+    , initial_labelling_names_list(labelling_names, dimension_name)
   )
 }
 
@@ -288,7 +293,7 @@ explicit_provenance = function(x, col_nm) {
   )
 
   f = x$frame
-  l = x$labelling_names_list()
+  l = x$labelling_names_list
 
   orig_col = f[[col_nm]]
   for (tab_nm in tabs_to_fix) {
@@ -297,6 +302,7 @@ explicit_provenance = function(x, col_nm) {
     m[[tab_nm]][[col_nm]] = new_col_nm
   }
   f[[col_nm]] = NULL
+  ## TODO: update with four-arg form of Link
   Link(f, m, l)
 }
 
@@ -370,7 +376,7 @@ print.summary.Link = function(x, ...) {
 names.Link = function(x) names(x$frame)
 
 #' @export
-labelling_names.Link = function(x) x$labelling_names_list()
+labelling_names.Link = function(x) x$labelling_names_list
 
 
 link_format_picker = function(x

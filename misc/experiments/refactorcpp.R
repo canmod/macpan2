@@ -43,14 +43,18 @@ trans_rates = (trans_rates_sir
   |> mp_cartesian(contact)
 )
 
-mp_join(
+xx = mp_join(
   alive = mp_subset(state, Vital = "alive"),
   N = mp_select(state, "Loc.Age"),
   alive.N = "Loc.Age"
 )
 
-mp_choose(mp_select(state, "Loc.Age"), "N")
 
+
+mp_labels
+xx$reference_index_list$N$labelling_names
+yy = mp_formula_data(xx)
+yy$reference_index_list
 
 yy = Vector(state)
 yy$numbers()
@@ -118,8 +122,8 @@ trans_decomp = mp_decompose(
   , infectivity = "Loc"
   , susceptibility = "AgeInfection"
 )
-trans_decomp$linked_indices
 
+trans_decomp
 trans_decomp$formula
 trans_decomp$input_formula
 macpan2:::update_formula(g ~ y * x * z, g ~ friend)

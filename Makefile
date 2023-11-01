@@ -114,15 +114,15 @@ doc-update: R/*.R misc/dev/dev.cpp
 
 pkg-build:: ../macpan2_$(VERSION).tar.gz
 ../macpan2_$(VERSION).tar.gz: DESCRIPTION man/*.Rd R/*.R src/*.cpp tests/testthat/test-*.R tests/testthat.R inst/starter_models/**/*.csv inst/starter_models/**/*.json
-	R CMD build --no-build-vignettes .
+	cd .. && R CMD build --no-build-vignettes macpan2
 
 
 pkg-check: ../macpan2_$(VERSION).tar.gz
-	R CMD check ../macpan2_$(VERSION).tar.gz
+	cd .. && R CMD check macpan2_$(VERSION).tar.gz
 
 
 pkg-install: ../macpan2_$(VERSION).tar.gz
-	R CMD INSTALL --no-multiarch --install-tests ../macpan2_$(VERSION).tar.gz
+	cd .. && R CMD INSTALL --no-multiarch --install-tests macpan2_$(VERSION).tar.gz
 
 
 compile-dev: misc/dev/dev.cpp
