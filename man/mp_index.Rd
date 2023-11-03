@@ -2,28 +2,138 @@
 % Please edit documentation in R/index.R
 \name{mp_index}
 \alias{mp_index}
-\title{Create Index Object}
+\alias{print.Index}
+\alias{names.Index}
+\alias{labelling_column_names.Index}
+\alias{to_labels.Index}
+\alias{labels.Index}
+\title{Model Component Index}
 \usage{
-mp_index(..., labelling_names)
+mp_index(..., labelling_column_names)
+
+\method{print}{Index}(x, ...)
+
+\method{names}{Index}(x)
+
+\method{labelling_column_names}{Index}(x)
+
+\method{to_labels}{Index}(x)
+
+\method{labels}{Index}(x, ...)
 }
 \arguments{
-\item{...}{Character vectors to combine into an \code{\link{Index}}.
-object.}
+\item{...}{Character vectors to combine to produce an index.}
 
-\item{labelling_names}{See \code{\link{Index}}.}
+\item{labelling_column_names}{A \code{\link{character}} vector of the names
+of the index that will be used to label the model components (i.e. rows)
+being described. The \code{labelling_column_names} cannot have duplicates
+and must contain at least one name. The index given by the
+\code{labelling_column_names} must uniquely identify each row.}
 }
 \description{
-Create an \code{\link{Index}} object from a set of
-character vectors. This function is analogous to the
-\code{\link{data.frame}} function for creating data frames.
+Make an index object to represent descriptions of model components and their
+dimensions of variation. These objects generalize and wrap
+\code{\link{data.frame}}s. Each row of this \code{\link{data.frame}}-like
+object is an entry in the index, and each column provides a description of
+the entries. Each of these entries describes an element of a model component.
+For example, the following index describes the
+state variables of an age-structured SIR model. Each row corresponds to a
+state variable and each state variable is described by columns \code{Epi} and
+\code{Age}.
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{#>  Epi   Age
+#>    S young
+#>    I young
+#>    R young
+#>    S   old
+#>    I   old
+#>    R   old
+}\if{html}{\out{</div>}}
+
+Each index can produce labels for the elements by dot-concatenating the
+values in each row. The labels of the state variables in this
+age-structured SIR example model are as follows.
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{#> [1] "S.young" "I.young" "R.young" "S.old"   "I.old"   "R.old"
+}\if{html}{\out{</div>}}
+
+These labels can be used to create 'multidimensional' names for the elements
+of vectors. Here is the above example expressed in vector form.
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{#> S.young I.young R.young   S.old   I.old   R.old 
+#>    1000       0       0    1000       1       0
+}\if{html}{\out{</div>}}
+
+This example vector could be stored as a 3-by-2 matrix. But other examples
+cannot, making this indexing approach more general. For example, consider
+the following index.
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{#>  Epi Symptoms
+#>    S         
+#>    I     mild
+#>    I   severe
+#>    R
+}\if{html}{\out{</div>}}
+
+This index has an associated indexed vector that cannot be expressed
+as a matrix.
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{#>       S.   I.mild I.severe       R. 
+#>     1000        0        1        0
+}\if{html}{\out{</div>}}
+
+Dots are not allowed in the index so that the labels can be inverted to
+reproduce the original index (provided that the column names can be
+retrieved). See the details below for more restrictions.
 }
+\details{
+This function is analogous to the
+\code{\link{data.frame}} function for creating data frames.
+
+All values in the index must contain only letters, numbers, and underscores,
+and blank empty string entries are also allowed. No value can be missing.
+These restrictions ensure that the dot-concatenation of each row can be
+unambiguously inverted and that these dot-concatenations produce
+syntactically valid names (see \code{\link{make.names}}). These
+dot-concatenations are used to provide labels for the model components.
+
+By convention, it is recommended to use CamalCase for the columns of
+indexes and either snake_case (aging_rate) or single uppercase
+letters (e.g. S, I). This helps when reading code that contains
+references to both column names and values in an index.
+}
+\section{Functions}{
+\itemize{
+\item \code{print(Index)}: Print an index.
+
+\item \code{names(Index)}: Get the names of the columns of an index.
+
+\item \code{labelling_column_names(Index)}: Retrieve the \code{labelling_column_names} of
+an index. These are the names of the columns that are used to label
+the model components.
+
+\item \code{to_labels(Index)}: Convert an index into
+a character vector giving labels associated with each model component
+(i.e. row) being described.
+
+\item \code{labels(Index)}: Convert an index into
+a character vector giving labels associated with each model component
+(i.e. row) being described.
+
+}}
 \examples{
-mp_index(
+state = mp_index(
   Epi = c("S", "I", "S", "I"),
   Age = c("young", "young", "old", "old")
 )
+print(state)
+labels(state)
+state_vector = (state
+  |> mp_vector()
+  |> mp_set_numbers(Epi = c(S = 1000))
+  |> mp_set_numbers(Epi = c(I = 1), Age = "old")
+)
+print(state_vector)
+mp_cartesian(state, mp_index(City = c("hamilton", "toronto")))
 
-}
-\seealso{
-\code{\link[=Index]{Index()}}
 }

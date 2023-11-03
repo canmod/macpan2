@@ -19,14 +19,14 @@ strain_nms = letters[seq_len(n_strains)]
 strains = mp_index(
   Strain = strain_nms[-n_strains],
   Replace = strain_nms[-1L],
-  labelling_names = "Strain"
+  labelling_column_names = "Strain"
 )
 
 replacement_state = mp_union(
 
   ## naive part
   mp_index(Epi = "S", Strain = "", Replace = "a"
-    , labelling_names = "Epi.Strain"
+    , labelling_column_names = "Epi.Strain"
   ),
 
   ## non-naive part
@@ -51,8 +51,8 @@ xx = macpan2:::FormulaData(
 )
 
 
-replacement_infection$labelling_names_list
-replacement_progression$labelling_names_list
+replacement_infection$labelling_column_names_list
+replacement_progression$labelling_column_names_list
 
 replacement_infection$column_map
 replacement_progression$column_map
@@ -101,7 +101,7 @@ xx$labels()
 state_sir = mp_index(
   Epi = c("S", "I", "R", "D"),
   Vital = c("alive", "alive", "alive", "dead"),
-  labelling_names = "Epi"
+  labelling_column_names = "Epi"
 )
 flow_rates_sir = mp_index(Epi = c("lambda", "gamma", "mu"))
 trans_rates_sir = mp_index(Epi = "beta")
@@ -189,7 +189,7 @@ death_flows = mp_join(
   )
 )
 
-flows = mp_formula_data(
+flows = mp_index_data(
     movement_flows
   , infection_flows
   , recovery_flows
@@ -216,7 +216,7 @@ state_aggregation = mp_join(
   alive = alive,
   group_by = strata,
   by = list(alive.group_by = "Loc.Age")
-) |> mp_formula_data()
+) |> mp_index_data()
 ## N ~ groupSums(state[alive], group_by, N)
 state_vector = Vector(state)
 state_vector$set_numbers(Epi = c(I = 1))$set_numbers(Epi.Loc.Age = c(S.cal.young = 1000))
@@ -276,8 +276,8 @@ self$frame
 self$reference_index_list$N$labels()
 groupSums()
 mp_labels
-xx$reference_index_list$N$labelling_names
-yy = mp_formula_data(xx)
+xx$reference_index_list$N$labelling_column_names
+yy = mp_index_data(xx)
 yy$reference_index_list
 
 yy = Vector(state)
@@ -388,7 +388,7 @@ N_expr = mp_expr_group_sum(state
 xx = mp_join(
   mp_subset(N_expr$strata, "N"),
   mp_subset(state, "infectious", Epi = "I"),
-  N.infectious = N_expr$strata$labelling_names
+  N.infectious = N_expr$strata$labelling_column_names
 )
 xx$labels_for$infectious()
 xx$frame
@@ -508,7 +508,7 @@ make_mp_index = function(vec_name, vars_table, settings_list, vec_part_field, la
   vec_labs = to_labels(vars_table[settings_list[[vec_part_field]]])
   mp_index(
     vars_table[vec_labs == vec_name, , drop = FALSE],
-    labelling_names = to_name(settings_list[[lab_part_field]])
+    labelling_column_names = to_name(settings_list[[lab_part_field]])
   )
 }
 state = make_mp_index("state", vars_file, settings_file, "vec_partition", "labelling_partition")

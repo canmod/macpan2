@@ -12,17 +12,66 @@ mp = function(mp_func) {
 }
 
 
+#' Cartesian Product of Indexes
+#'
+#' Produce a new index by taking all possible pairwise combinations
+#' of the input indexes. This is useful for producing product models
+#' that expand model components through stratification.
+#'
+#' @param x,y Objects produced by \code{\link{mp_index}} or derived
+#' from such an object using one of (TODO: list the functions that
+#' will preserve indexness).
+#'
+#' @examples
+#' mp_cartesian(
+#'   mp_index(Epi = c("S", "I")),
+#'   mp_index(Age = c("young", "old"))
+#' )
+#'
+#' si = mp_index(Epi = c("S", "I"))
+#' age = mp_index(Age = c("young", "old"))
+#' loc = mp_index(City = c("hamilton", "toronto"))
+#' vax = mp_index(Vax = c("unvax", "vax"))
+#' (si
+#'   |> mp_cartesian(age)
+#'   |> mp_cartesian(loc)
+#'   |> mp_cartesian(vax)
+#' )
+#'
+#' flow_rates = mp_index(Epi = c("infection", "recovery"))
+#' mp_union(
+#'   mp_cartesian(
+#'     mp_subset(flow_rates, Epi = "infection"),
+#'     age
+#'   ),
+#'   mp_subset(flow_rates, Epi = "recovery")
+#' )
+#'
 #' @export
 mp_cartesian = function(x, y) {
-  labelling_names = union(x$labelling_names, y$labelling_names)
+  shared_columns = intersect(names(x), names(y))
+  if (length(shared_columns) != 0) {
+    msg_break(
+      msg_colon(
+        msg(
+          "Cannot take the Cartesian product of two indexes that",
+          "share columns names. But the input indexes share the",
+          "following columns"
+        ),
+        msg_indent(shared_columns)
+      ),
+      msg("Perhaps mp_join is more suitable?")
+    ) |> stop()
+  }
+  labelling_column_names = union(x$labelling_column_names, y$labelling_column_names)
   f = join_partitions(x$partition$frame(), y$partition$frame())
-  Index(f, labelling_names = labelling_names)
+  Index(f, labelling_column_names = labelling_column_names)
 }
 
 #' @export
 mp_square = function(x, suffixes = c("A", "B")) {
-  l1 = sprintf("%s%s", x$labelling_names, suffixes[1L])
-  l2 = sprintf("%s%s", x$labelling_names, suffixes[2L])
+  l1 = sprintf("%s%s", x$labelling_column_names, suffixes[1L])
+  l2 = sprintf("%s%s", x$labelling_column_names, suffixes[2L])
   n1 = sprintf("%s%s", names(x), suffixes[1L])
   n2 = sprintf("%s%s", names(x), suffixes[2L])
   x = (x$partition$frame()
@@ -37,9 +86,9 @@ mp_square = function(x, suffixes = c("A", "B")) {
 }
 
 #' @export
-mp_triangle = function(x, y_labelling_names, exclude_diag = TRUE, lower_tri = FALSE) {
+mp_triangle = function(x, y_labelling_column_names, exclude_diag = TRUE, lower_tri = FALSE) {
   f = x$partition$frame()
-  g = setNames(f, y_labelling_names)
+  g = setNames(f, y_labelling_column_names)
   n = nrow(f)
   if (exclude_diag) {
     k = 2:n
@@ -63,9 +112,9 @@ mp_triangle = function(x, y_labelling_names, exclude_diag = TRUE, lower_tri = FA
 }
 
 #' @export
-mp_symmetric = function(x, y_labelling_names, exclude_diag = TRUE) {
+mp_symmetric = function(x, y_labelling_column_names, exclude_diag = TRUE) {
   f = x$partition$frame()
-  g = setNames(f, y_labelling_names)
+  g = setNames(f, y_labelling_column_names)
   n = nrow(f)
   k = seq_len(n)
 
@@ -85,9 +134,9 @@ mp_symmetric = function(x, y_labelling_names, exclude_diag = TRUE) {
 }
 
 #' @export
-mp_linear = function(x, y_labelling_names) {
+mp_linear = function(x, y_labelling_column_names) {
   f = x$partition$frame()
-  g = setNames(f, y_labelling_names)
+  g = setNames(f, y_labelling_column_names)
   n = nrow(f)
 
   k = c(1L, rep(2L, n - 2L), 1L)
@@ -101,18 +150,30 @@ mp_linear = function(x, y_labelling_names) {
   Index(f, names(f))
 }
 
+#' Subset of Indexes
+#'
+#' Take a subset of the rows of an index to produce another index.
+#'
+#' @param x Model index.
+#' @param ... Tagged character vectors used to determine the subset that is
+#' taken. The tags refer to columns (or sets of columns using dot-concatenation)
+#' in \code{x} and the values of the character vectors refer to labels with
+#' respect to those columns.
+#'
 #' @export
 mp_subset = function(x, ...) {
   partition = mp_choose(x, "pick", ...)$partition
-  Index(partition, x$labelling_names, x)
+  Index(partition, x$labelling_column_names, x)
 }
 
+#' @rdname mp_subset
 #' @export
 mp_setdiff = function(x, ...) {
   partition = mp_choose_out(x, "pick", ...)$partition
-  Index(partition, x$labelling_names, x)
+  Index(partition, x$labelling_column_names, x)
 }
 
+#' Union of Indexes
 #' @export
 mp_union = function(...) UseMethod("mp_union")
 
@@ -120,15 +181,15 @@ mp_union = function(...) UseMethod("mp_union")
 mp_union.Index = function(...) {
   l = list(...)
   partitions = lapply(l, getElement, "partition")
-  labelling_names = (l
-    |> lapply(getElement, "labelling_names")
+  labelling_column_names = (l
+    |> lapply(getElement, "labelling_column_names")
     |> unlist(recursive = FALSE, use.names = FALSE)
     |> unique()
   )
-  Index(do.call(union_vars, partitions)$frame(), labelling_names)
+  Index(do.call(union_vars, partitions)$frame(), labelling_column_names)
 }
 
-#' @export
+## not used anymore?
 mp_union.Link = function(...) {
   l = list(...)
   column_map = lapply(l, getElement, "column_map") |> unique()
@@ -144,23 +205,23 @@ mp_union.Link = function(...) {
     ) |> stop()
   }
   ## TODO: should really be checking for reference_index_list
-  labelling_names_list = lapply(l, getElement, "labelling_names_list") |> unique()
-  if (length(labelling_names_list) != 1L) {
+  labelling_column_names_list = lapply(l, getElement, "labelling_column_names_list") |> unique()
+  if (length(labelling_column_names_list) != 1L) {
     msg_colon(
       msg(
         "Union of inconsistent Link objects.",
         "All Link objects must have the same",
-        "labelling_names_list, but the following",
+        "labelling_column_names_list, but the following",
         "distinct maps were found:"
       ),
-      msg_indent_break(lapply(labelling_names_list, unlist))
+      msg_indent_break(lapply(labelling_column_names_list, unlist))
     ) |> stop()
   }
   frame = mp_rbind(...)
-  FormulaData(frame, l[[1L]]$reference_index_list, l[[1L]]$labelling_names_list)
+  FormulaData(frame, l[[1L]]$reference_index_list, l[[1L]]$labelling_column_names_list)
 }
 
-#' @export
+## not used anymore?
 mp_rbind = function(...) {
   (list(...)
    |> lapply(as.data.frame)
@@ -173,6 +234,7 @@ mp_rbind = function(...) {
 #' @export
 mp_choose = function(x, subset_name, ...) {
   l = list(...)
+  if (length(l) != 0L) valid$named_list$check(l)
   p = x$partition
   for (cc in names(l)) {
     vals = l[[cc]]
@@ -184,7 +246,7 @@ mp_choose = function(x, subset_name, ...) {
       p = p$filter(vals, .wrt = cc)
     }
   }
-  init_merge(p$frame(), subset_name, x$reference_index(), x$labelling_names)
+  init_merge(p$frame(), subset_name, x$reference_index(), x$labelling_column_names)
 }
 
 #' @export
@@ -195,16 +257,23 @@ mp_choose_out = function(x, subset_name, ...) {
     vals = l[[cc]]
     p = p$filter_out(vals, .wrt = cc)
   }
-  init_merge(p$frame(), subset_name, x$reference_index(), x$labelling_names)
+  init_merge(p$frame(), subset_name, x$reference_index(), x$labelling_column_names)
 }
 
 
 #' @export
 mp_join = function(..., by = list()) {
-  table_list = list(...)
-  by_list = assert_named_list(by)
-  by_nms = names(by_list) |> strsplit(".", fixed = TRUE)
+  table_list = valid$named_list$assert(list(...))
   table_nms = names(table_list)
+  if (length(table_nms) < 2L) stop("cannot join fewer than two index objects.")
+  if (is.character(by)) {
+    if (length(table_nms) != 2L) {
+      stop("joining more than one index requires a list-valued by argument.")
+    }
+    by = setNames(list(by), to_name(table_nms))
+  }
+  by_list = valid$named_list$assert(by)
+  by_nms = names(by_list) |> strsplit(".", fixed = TRUE)
   good_by_nms = (by_nms
     |> lapply(`%in%`, table_nms)
     |> vapply(all, logical(1L))
@@ -355,6 +424,12 @@ mp_decompose = function(formula, index, decomp_name, ...) {
   )
 }
 
+#' @export
+mp_extract = function(x, dimension_name) {
+  ii = x$index_for[[dimension_name]]()
+  ii$reset_reference_index()
+  ii
+}
 
 #' @export
 mp_rename = function(x, ...) {
@@ -362,7 +437,7 @@ mp_rename = function(x, ...) {
   new_nms = names(l)
   old_nms = unlist(l, recursive = FALSE, use.names = FALSE)
   f = x$partition$frame()
-  labs = x$labelling_names
+  labs = x$labelling_column_names
   i = match(old_nms, names(f))
   if (any(is.na(i))) {
     msg_break(
@@ -385,8 +460,8 @@ mp_rename = function(x, ...) {
 #' @export
 mp_group = function(index, by) {
   frame = index$partition$select(to_names(by))$frame()
-  nms = names(frame)[names(frame) %in% index$labelling_names]
-  Index(frame, labelling_names = nms)
+  nms = names(frame)[names(frame) %in% index$labelling_column_names]
+  Index(frame, labelling_column_names = nms)
 }
 
 #' @export
@@ -404,28 +479,28 @@ mp_indices = function(x, table) {
 }
 
 #' @export
-mp_labels = function(x, labelling_names) {
+mp_labels = function(x, labelling_column_names) {
   UseMethod("mp_labels")
 }
 
 #' @export
-mp_labels.Index = function(x, labelling_names) {
-  if (missing(labelling_names)) return(x$labels())
-  x$partial_labels(labelling_names)
+mp_labels.Index = function(x, labelling_column_names) {
+  if (missing(labelling_column_names)) return(x$labels())
+  x$partial_labels(labelling_column_names)
 }
 
 #' @export
-mp_zero_vector = function(x, labelling_names, ...) {
+mp_zero_vector = function(x, labelling_column_names, ...) {
   (x
    |> mp_subset(...)
-   |> mp_labels(labelling_names)
+   |> mp_labels(labelling_column_names)
    |> zero_vector()
   )
 }
 
 #' @export
-mp_labels.Link = function(x, labelling_names) {
-  x$labels_for[[labelling_names]]()
+mp_labels.Link = function(x, labelling_column_names) {
+  x$labels_for[[labelling_column_names]]()
 }
 
 #' @export

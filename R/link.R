@@ -18,14 +18,14 @@
 #' ```
 #'
 #' @export
-Link = function(frame, column_map, reference_index_list, labelling_names_list) {
+Link = function(frame, column_map, reference_index_list, labelling_column_names_list) {
   self = Base()
   self$frame = frame
   self$column_map = column_map
   self$reference_index_list = reference_index_list
-  self$labelling_names_list = labelling_names_list
+  self$labelling_column_names_list = labelling_column_names_list
   # function() {
-  #   lapply(self$reference_index_list, getElement, "labelling_names")
+  #   lapply(self$reference_index_list, getElement, "labelling_column_names")
   # }
   self$table_names = function() names(self$column_map)
   self$labels_for = list()
@@ -72,7 +72,7 @@ Link = function(frame, column_map, reference_index_list, labelling_names_list) {
     Link(self$frame[i, , drop = FALSE]
       , column_map = self$column_map
       , reference_index_list = self$reference_index_list
-      , labelling_names_list = self$labelling_names_list
+      , labelling_column_names_list = self$labelling_column_names_list
     )
   }
   self$expr = function(condition) {
@@ -115,12 +115,12 @@ FrameGetter = function(link, dimension_name) {
   self$get_index = function() {
     Index(
       self$get_partition(),
-      self$link$labelling_names_list[[self$dimension_name]],
+      self$link$labelling_column_names_list[[self$dimension_name]],
       self$link$reference_index_list[[self$dimension_name]]
     )
   }
   self$get_labels = function() {
-    i = self$link$labelling_names_list[[self$dimension_name]]
+    i = self$link$labelling_column_names_list[[self$dimension_name]]
     f = self$get_frame()[, i, drop = FALSE]
     l = as.list(f)
     paste_args = c(l, sep = ".")
@@ -154,9 +154,9 @@ initial_reference_index_list = function(index, dimension_name) {
 }
 
 
-initial_labelling_names_list = function(labelling_names, dimension_name) {
+initial_labelling_column_names_list = function(labelling_column_names, dimension_name) {
   setNames(
-    list(labelling_names),
+    list(labelling_column_names),
     dimension_name
   )
 }
@@ -180,7 +180,8 @@ merge_util = function(x, y, by.x, by.y) {
   z = merge(
     x$frame, y$frame,
     by.x = by.x, by.y = by.y,
-    suffixes = suffixes
+    suffixes = suffixes,
+    sort = FALSE
   )
 
   ## ----
@@ -233,7 +234,7 @@ merge_util = function(x, y, by.x, by.y) {
 
   z_column_map = c(x_cmap, y_cmap)
   z_reference_index_list = c(x$reference_index_list, y$reference_index_list)
-  z_lab_names_list = c(x$labelling_names_list, y$labelling_names_list)
+  z_lab_names_list = c(x$labelling_column_names_list, y$labelling_column_names_list)
 
   ## ----
   ## wrap up the result with provenance-preserving column map
@@ -260,11 +261,11 @@ filter_by_list = function(x_orig, y_orig, by_list) {
 }
 
 #' @export
-init_merge = function(frame, dimension_name, reference_index, labelling_names) {
+init_merge = function(frame, dimension_name, reference_index, labelling_column_names) {
   Link(frame
     , initial_column_map(names(frame), dimension_name)
     , initial_reference_index_list(reference_index, dimension_name)
-    , initial_labelling_names_list(labelling_names, dimension_name)
+    , initial_labelling_column_names_list(labelling_column_names, dimension_name)
   )
 }
 
@@ -293,7 +294,8 @@ apply_col_map = function(map, orig_table_nm, by) {
   map[[orig_table_nm]][by] |> unlist(use.names = FALSE)
 }
 
-
+## @param x Link object
+## @param col_nm Name of a column to check for implicit provenance
 is_provenance_implicit = function(x, col_nm) {
   (x$column_map
    |> lapply(getElement, col_nm)
@@ -302,6 +304,7 @@ is_provenance_implicit = function(x, col_nm) {
   )
 }
 
+## @param x Link object
 explicit_provenance = function(x, col_nm) {
   m = x$column_map
   implicit = is_provenance_implicit(x, col_nm)
@@ -319,7 +322,8 @@ explicit_provenance = function(x, col_nm) {
   )
 
   f = x$frame
-  l = x$labelling_names_list
+  l = x$labelling_column_names_list
+  ii = x$reference_index_list
 
   orig_col = f[[col_nm]]
   for (tab_nm in tabs_to_fix) {
@@ -329,7 +333,8 @@ explicit_provenance = function(x, col_nm) {
   }
   f[[col_nm]] = NULL
   ## TODO: update with four-arg form of Link
-  Link(f, m, l)
+  ## frame, column_map, reference_index_list, labelling_column_names_list
+  Link(f, m, ii, l)
 }
 
 
@@ -402,7 +407,7 @@ print.summary.Link = function(x, ...) {
 names.Link = function(x) names(x$frame)
 
 #' @export
-labelling_names.Link = function(x) x$labelling_names_list
+labelling_column_names.Link = function(x) x$labelling_column_names_list
 
 
 link_format_picker = function(x
@@ -461,3 +466,4 @@ str.Link = function(x
   x = link_format_picker(x, format)
   str(x, ...)
 }
+

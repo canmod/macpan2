@@ -2,13 +2,13 @@ FormulaData = function(...) {
   self = Base()
   self$link_list = list(...)
 
-  labelling_names_list = (self$link_list
-    |> lapply(getElement, "labelling_names_list")
+  labelling_column_names_list = (self$link_list
+    |> lapply(getElement, "labelling_column_names_list")
     |> unname()
     |> unique()
   )
-  stopifnot(length(labelling_names_list) == 1L)
-  self$labelling_names_list = labelling_names_list[[1L]]
+  stopifnot(length(labelling_column_names_list) == 1L)
+  self$labelling_column_names_list = labelling_column_names_list[[1L]]
 
   reference_index_list = (self$link_list
     |> lapply(getElement, "reference_index_list")
@@ -55,14 +55,14 @@ FormulaData = function(...) {
 
 
 #' @export
-mp_formula_data = function(...) FormulaData(...)
+mp_index_data = function(...) FormulaData(...)
 
 #' Indexed Expressions
 #'
 #' @param ... Formula objects that reference the columns in the
 #' \code{index_data}, the vectors in \code{vector_list} and the matrices
 #' in \code{unstructured_matrix_list}.
-#' @param index_data An object produced using \code{\link{mp_formula_data}}.
+#' @param index_data An object produced using \code{\link{mp_index_data}}.
 #' @param vector_list Named list of objected produced using
 #' \code{\link{mp_vector}}.
 #' @param unstructured_matrix_list Named list of objects that can be coerced

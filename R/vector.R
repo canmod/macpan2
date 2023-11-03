@@ -2,8 +2,9 @@
 Vector = function(x, ...) UseMethod("Vector")
 
 #' @export
-Vector.data.frame = function(x, index, values_name = "values", ...) {
+Vector.data.frame = function(x, index = NULL, values_name = "values", ...) {
   nms = setdiff(names(x), values_name)
+  if (is.null(index)) index = mp_index(x[, nms, drop = FALSE])
   bad_names = !nms %in% names(index)
   if (any(bad_names)) {
     msg_break(
@@ -24,7 +25,7 @@ Vector.data.frame = function(x, index, values_name = "values", ...) {
   index_names = !names(x) %in% values_name
   test_index = try(Index(x[, index_names, drop = FALSE]))
   if (inherits(test_index, "try-error")) stop("Incompatible values data frame")
-  bad_labels = !test_index$labels() %in% index$partial_labels(test_index$labelling_names)
+  bad_labels = !test_index$labels() %in% index$partial_labels(test_index$labelling_column_names)
   if (any(bad_labels)) {
     msg_colon(
       msg(
@@ -39,13 +40,13 @@ Vector.data.frame = function(x, index, values_name = "values", ...) {
   index_names = !names(f) %in% values_name  ## redefine index_names after merge
   mangled_order = Index(
     f[, index_names, drop = FALSE],
-    labelling_names = index$labelling_names
+    labelling_column_names = index$labelling_column_names
   )$labels()
   sorted_positions = match(index$labels(), mangled_order)
   values = f[[values_name]][sorted_positions]
   values[is.na(values)] = 0  ## that's the way we roll
   f = f[sorted_positions, index_names, drop = FALSE]
-  index = Index(f, labelling_names = index$labelling_names)
+  index = Index(f, labelling_column_names = index$labelling_column_names)
   v = Vector(index)
   v$set_all_numbers(values)
 }
@@ -53,7 +54,7 @@ Vector.data.frame = function(x, index, values_name = "values", ...) {
 #' @export
 Vector.numeric = function(x, index, ...) {
   v = Vector(index)
-  args = setNames(list(x), to_name(index$labelling_names))
+  args = setNames(list(x), to_name(index$labelling_column_names))
   do.call(v$set_numbers, args)
 }
 
@@ -101,6 +102,10 @@ Vector.Index = function(x, ...) {
     write.csv(self$frame(), file, row.names = FALSE, quote = FALSE)
   }
   self$length = function() length(self$.numbers)
+  self$clone = function() {
+    new = Vector(self$index)
+    new$set_all_numbers(self$numbers())
+  }
   return_object(self, "Vector")
 }
 
@@ -128,7 +133,24 @@ as.matrix.Vector = function(x, ...) x$numbers() |> as.matrix()
 zero_vector = function(labels) setNames(rep(0, length(labels)), labels)
 
 #' @export
-mp_vector = Vector
+mp_vector = function(x, ...) UseMethod("mp_vector")
 
 #' @export
-mp_set_numbers = function(vector, ...) vector$set_numbers(...)
+mp_vector.Index = Vector.Index
+
+#' @export
+mp_vector.data.frame = Vector.data.frame
+
+#' @export
+mp_vector.numeric = Vector.numeric
+
+#' @export
+mp_vector.character = function(x, ...) zero_vector(x)
+
+#' @export
+mp_vector.Link = function(x, dimension_name, ...) {
+  mp_vector(x$labels_for[[dimension_name]]())
+}
+
+#' @export
+mp_set_numbers = function(vector, ...) vector$clone()$set_numbers(...)

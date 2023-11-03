@@ -156,9 +156,14 @@ formula_as_character = function(formula) {
 # formula parsing in macpan2 works one side at a time. but sometimes
 # it is helpful to parse two-sided formulas. this function does so
 # by parsing each side at a time and rbinding the results.
-concat_parse_table = function(formula) {
+concat_parse_table = function(formula, side = c("both", "left", "right")) {
+  side = match.arg(side)
   if (is_one_sided(formula)) return(method_parser(formula))
-  rbind(method_parser(lhs(formula)), method_parser(rhs(formula)))
+  switch(side
+    , both = rbind(method_parser(lhs(formula)), method_parser(rhs(formula)))
+    , left = method_parser(lhs(formula))
+    , right = method_parser(rhs(formula))
+  )
 }
 
 # When looking at a formula without any additional information (e.g.
@@ -173,8 +178,8 @@ concat_parse_table = function(formula) {
 #
 # This function returns a list with three components each giving a list of
 # the components of that type.
-formula_components = function(formula) {
-  parse_table = concat_parse_table(formula)
+formula_components = function(formula, side = c("both", "left", "right")) {
+  parse_table = concat_parse_table(formula, side)
   is_var_or_lit = parse_table$n == 0L
   is_func = parse_table$n > 0L
   is_lit = grepl("^[0-9]*\\.?[0-9]*$", parse_table$x)

@@ -159,9 +159,9 @@ ExprList = function(
     if (is.null(nms)) nms = rep("", length(self$formula_list()))
     nms
   }
-  self$all_formula_vars = function() {
+  self$all_formula_vars = function(side = c("both", "left", "right")) {
     (self$formula_list()
-      |> lapply(formula_components)
+      |> lapply(formula_components, side)
       |> lapply(getElement, "variables")
       |> unlist(use.names = FALSE, recursive = FALSE)
       |> unique()

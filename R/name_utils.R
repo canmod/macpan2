@@ -61,7 +61,7 @@ to_names.character = function(x) {
 to_names.Partition = function(x) x$names()
 
 #' @export
-to_names.Index = function(x) x$labelling_names
+to_names.Index = function(x) x$labelling_column_names
 
 #' @export
 to_names.StringData = function(x) x$undot()$names()$value()

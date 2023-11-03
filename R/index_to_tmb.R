@@ -5,7 +5,7 @@ mp_tmb_simulator = function(expr_list = ExprList()
       , unstruc_mats = list()
       , time_steps = 0L
       , mats_to_save = names(indexed_vecs)
-      , mats_to_return = names(indexed_vecs)
+      , mats_to_return = mats_to_save
       , ...
 ) {
   int_vecs = (index_data

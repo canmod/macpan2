@@ -4,7 +4,7 @@
 \alias{Link}
 \title{Link}
 \usage{
-Link(frame, column_map, reference_index_list, labelling_names_list)
+Link(frame, column_map, reference_index_list, labelling_column_names_list)
 }
 \description{
 Make an object to describe links between the entities in an
