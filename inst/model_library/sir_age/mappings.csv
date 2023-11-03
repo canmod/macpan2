@@ -1,9 +1,0 @@
-mapping ,state   ,flow
-trans   ,I.young ,lambda.young
-trans   ,I.old   ,lambda.young
-trans   ,I.young ,lambda.old
-trans   ,I.old   ,lambda.old
-contact ,I.young ,lambda.young
-contact ,I.old   ,lambda.young
-contact ,I.young ,lambda.old
-contact ,I.old   ,lambda.old
