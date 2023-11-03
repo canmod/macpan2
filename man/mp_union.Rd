@@ -6,6 +6,17 @@
 \usage{
 mp_union(...)
 }
+\arguments{
+\item{...}{Indexes.}
+}
 \description{
 Union of Indexes
 }
+\seealso{
+Other functions that return indexes
+\code{\link{mp_cartesian}()},
+\code{\link{mp_index}()},
+\code{\link{mp_rename}()},
+\code{\link{mp_subset}()}
+}
+\concept{indexes}

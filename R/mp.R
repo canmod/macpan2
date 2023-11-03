@@ -47,6 +47,7 @@ mp = function(mp_func) {
 #'   mp_subset(flow_rates, Epi = "recovery")
 #' )
 #'
+#' @family indexes
 #' @export
 mp_cartesian = function(x, y) {
   shared_columns = intersect(names(x), names(y))
@@ -155,11 +156,12 @@ mp_linear = function(x, y_labelling_column_names) {
 #' Take a subset of the rows of an index to produce another index.
 #'
 #' @param x Model index.
-#' @param ... Tagged character vectors used to determine the subset that is
-#' taken. The tags refer to columns (or sets of columns using dot-concatenation)
-#' in \code{x} and the values of the character vectors refer to labels with
-#' respect to those columns.
+#' @param ... Name-value pairs. The names are columns (or sets of columns
+#' using dot-concatenation) in \code{x} and the values are character vectors
+#' that refer to labels with respect to those columns. These values
+#' determine the resulting subset.
 #'
+#' @family indexes
 #' @export
 mp_subset = function(x, ...) {
   partition = mp_choose(x, "pick", ...)$partition
@@ -174,6 +176,10 @@ mp_setdiff = function(x, ...) {
 }
 
 #' Union of Indexes
+#'
+#' @param ... Indexes.
+#'
+#' @family indexes
 #' @export
 mp_union = function(...) UseMethod("mp_union")
 
@@ -431,6 +437,12 @@ mp_extract = function(x, dimension_name) {
   ii
 }
 
+#' Rename Index Columns
+#'
+#' @param ... Name-value pairs. The name gives the new name and the value
+#' is a character vector giving the old name.
+#'
+#' @family indexes
 #' @export
 mp_rename = function(x, ...) {
   l = list(...)

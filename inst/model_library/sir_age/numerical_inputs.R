@@ -5,7 +5,7 @@ library(tidyr)
 
 indexed_vecs$state = (indexed_vecs$state
   |> mp_set_numbers(Epi = c(S = 1000)) ## ridiculous even age distribution
-  |> mp_set_numbers(Epi = c(I = 1), Age = "lb90") ## initial infectious 90-year-old
+  |> mp_set_numbers(Epi = c(I = 1), Age = "lb90") ## initial infectious 80-year-old
 )
 indexed_vecs$flow_rates = (indexed_vecs$flow_rates
   |> mp_set_numbers(Epi = c(lambda = NA, gamma = 0.1))

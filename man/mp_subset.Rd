@@ -12,11 +12,19 @@ mp_setdiff(x, ...)
 \arguments{
 \item{x}{Model index.}
 
-\item{...}{Tagged character vectors used to determine the subset that is
-taken. The tags refer to columns (or sets of columns using dot-concatenation)
-in \code{x} and the values of the character vectors refer to labels with
-respect to those columns.}
+\item{...}{Name-value pairs. The names are columns (or sets of columns
+using dot-concatenation) in \code{x} and the values are character vectors
+that refer to labels with respect to those columns. These values
+determine the resulting subset.}
 }
 \description{
 Take a subset of the rows of an index to produce another index.
 }
+\seealso{
+Other functions that return indexes
+\code{\link{mp_cartesian}()},
+\code{\link{mp_index}()},
+\code{\link{mp_rename}()},
+\code{\link{mp_union}()}
+}
+\concept{indexes}

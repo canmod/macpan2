@@ -42,3 +42,11 @@ mp_union(
 )
 
 }
+\seealso{
+Other functions that return indexes
+\code{\link{mp_index}()},
+\code{\link{mp_rename}()},
+\code{\link{mp_subset}()},
+\code{\link{mp_union}()}
+}
+\concept{indexes}

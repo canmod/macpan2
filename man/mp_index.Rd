@@ -22,7 +22,10 @@ mp_index(..., labelling_column_names)
 \method{labels}{Index}(x, ...)
 }
 \arguments{
-\item{...}{Character vectors to combine to produce an index.}
+\item{...}{Character vectors to combine to produce an index. Alternatively,
+any number of data frames of character-valued columns. If data frames are
+supplied, their rows will be binded and the result converted to an index
+if possible.}
 
 \item{labelling_column_names}{A \code{\link{character}} vector of the names
 of the index that will be used to label the model components (i.e. rows)
@@ -135,5 +138,12 @@ state_vector = (state
 )
 print(state_vector)
 mp_cartesian(state, mp_index(City = c("hamilton", "toronto")))
-
 }
+\seealso{
+Other functions that return indexes
+\code{\link{mp_cartesian}()},
+\code{\link{mp_rename}()},
+\code{\link{mp_subset}()},
+\code{\link{mp_union}()}
+}
+\concept{indexes}

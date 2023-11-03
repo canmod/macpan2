@@ -61,7 +61,10 @@
 #' letters (e.g. S, I). This helps when reading code that contains
 #' references to both column names and values in an index.
 #'
-#' @param ... Character vectors to combine to produce an index.
+#' @param ... Character vectors to combine to produce an index. Alternatively,
+#' any number of data frames of character-valued columns. If data frames are
+#' supplied, their rows will be binded and the result converted to an index
+#' if possible.
 #' @param labelling_column_names A \code{\link{character}} vector of the names
 #' of the index that will be used to label the model components (i.e. rows)
 #' being described. The \code{labelling_column_names} cannot have duplicates
@@ -82,7 +85,7 @@
 #' )
 #' print(state_vector)
 #' mp_cartesian(state, mp_index(City = c("hamilton", "toronto")))
-#'
+#' @family indexes
 #' @export
 mp_index = function(..., labelling_column_names) UseMethod("mp_index")
 
@@ -208,7 +211,7 @@ mp_index.character = function(..., labelling_column_names) {
 
 #' @export
 mp_index.data.frame = function(..., labelling_column_names) {
-  f = list(...)[[1L]]
+  f = list(...) |> bind_rows()
   if (missing(labelling_column_names)) labelling_column_names = names(f)
   Index(f, to_names(labelling_column_names))
 }
