@@ -16,3 +16,14 @@ nlist = function(...) {
     }
     setNames(L, nm)
 }
+
+assert_named_list = function(l) {
+  if (is.null(names(l))) {
+    if (length(l) == 0L) {
+      l = setNames(list(), character())
+    } else {
+      stop("Developer error: missing names")
+    }
+  }
+  l
+}

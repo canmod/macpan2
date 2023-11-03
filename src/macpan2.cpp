@@ -149,70 +149,6 @@ void printMatrix(const matrix<Type>& mat) {
 }
 
 
-// Helper function
-// template<class Type>
-// int CheckIndices(
-//     matrix<Type>& x,
-//     matrix<Type>& rowIndices,
-//     matrix<Type>& colIndices
-// ) {
-//     int rows = x.rows();
-//     int cols = x.cols();
-//     Type maxRowIndex = rowIndices.maxCoeff();
-//     Type maxColIndex = colIndices.maxCoeff();
-//     Type minRowIndex = rowIndices.minCoeff();
-//     Type minColIndex = colIndices.minCoeff();
-//
-//     if ((maxRowIndex < rows) & (maxColIndex < cols) && (minRowIndex > -0.1) && (minColIndex > -0.1)) {
-//         return 0;
-//     }
-//     return 1;
-// }
-
-// // Helper function
-// template<class Type>
-// int RecycleInPlace(
-//     matrix<Type>& mat,
-//     int rows,
-//     int cols
-// ) {
-//     #ifdef MP_VERBOSE
-//         std::cout << "recycling ... " << std::endl;
-//     #endif
-//     if (mat.rows()==rows && mat.cols()==cols) // don't need to do anything.
-//         return 0;
-//
-//     matrix<Type> m(rows, cols);
-//     if (mat.rows()==1 && mat.cols()==1) {
-//         m = matrix<Type>::Constant(rows, cols, mat.coeff(0,0));
-//     }
-//     else if (mat.rows()==rows) {
-//         if (mat.cols()==1) {
-//             #ifdef MP_VERBOSE
-//                 std::cout << "recycling columns ... " << std::endl;
-//             #endif
-//             for (int i=0; i<cols; i++)
-//                 m.col(i) = mat.col(0);
-//         } else
-//             return 501;
-//     }
-//     else if (mat.cols()==cols) {
-//         if (mat.rows()==1) {
-//             #ifdef MP_VERBOSE
-//                 std::cout << "recycling rows ... " << std::endl;
-//             #endif
-//             for (int i=0; i<rows; i++)
-//                 m.row(i) = mat.row(0);
-//         } else
-//             return 501;
-//     } else
-//         return 501;
-//
-//     // final step
-//     mat = m;
-//     return 0;
-// }
-
 template<class Type>
 struct ListOfMatrices {
     // below is a vector of matrices that passed from R
@@ -465,43 +401,6 @@ public:
             return v;
         }
     }
-
-
-    // void set(int index, const ItemType& item) {
-    //     if (index < 0 || index >= size_) {
-    //         throw std::out_of_range("Index out of range");
-    //     }
-    //     items_[index] = item;
-    // }
-    //
-    // matrix<Type> get_as_mat(int i) const {
-    //     if (i < 0 || i >= items_.size()) {
-    //         throw std::out_of_range("Index out of range");
-    //     }
-    //
-    //     if (std::holds_alternative<matrix<Type>>(items_[i])) {
-    //         return std::get<matrix<Type>>(items_[i]);
-    //     } else {
-    //         throw std::runtime_error("Item at index is not a matrix");
-    //     }
-    // }
-    //
-    // std::vector<int> get_as_int_vec(int i) {
-    //     if (i < 0 || i >= items_.size()) {
-    //         throw std::out_of_range("Index out of range");
-    //     }
-    //
-    //     if (std::holds_alternative<std::vector<int>>(items_[i])) {
-    //         return std::get<std::vector<int>>(items_[i]);
-    //     } else {
-    //         matrix<Type> m = get_as_mat(i);
-    //         std::vector<int> v(m.rows());
-    //         for (int i=0; i<v.size(); i++) {
-    //             v[i] = CppAD::Integer(m.coeff(i,0));
-    //         }
-    //         return v;
-    //     }
-    // }
 
     int get_as_int(int i) {
         if (i < 0 || i >= items_.size()) {

@@ -4,7 +4,7 @@
 \alias{simple_sims}
 \title{Simple Iterated Simulation}
 \usage{
-simple_sims(iteration_exprs, time_steps, ...)
+simple_sims(iteration_exprs, time_steps, int_vecs = list(), mats = list())
 }
 \arguments{
 \item{iteration_exprs}{List of expressions to pass to the

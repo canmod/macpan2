@@ -4,8 +4,99 @@ library(oor)
 library(ggplot2)
 library(dplyr)
 
+sir = mp_index(Epi = c("S", "I", "R"))
+sir_two_strains = (mp_rename(sir, A = "Epi")
+  |> mp_cartesian(mp_rename(sir, B = "Epi"))
+  |> mp_cartesian(mp_rename(sir, C = "Epi"))
+  |> mp_setdiff(A.B = "I.I", A.C = "I.I", B.C = "I.I")
+)
 
-## factor model indices ---------------
+## replacement model
+
+n_strains = 10L
+strain_nms = letters[seq_len(n_strains)]
+
+strains = mp_index(
+  Strain = strain_nms[-n_strains],
+  Replace = strain_nms[-1L],
+  labelling_names = "Strain"
+)
+
+replacement_state = mp_union(
+
+  ## naive part
+  mp_index(Epi = "S", Strain = "", Replace = "a"
+    , labelling_names = "Epi.Strain"
+  ),
+
+  ## non-naive part
+  mp_cartesian(
+    mp_index(Epi = c("I", "E", "R")),
+    strains
+  )
+)
+
+
+xx = macpan2:::FormulaData(
+  infection = mp_join(
+    from = mp_subset(replacement_state, Epi = c("S", "R")),
+    to = mp_subset(replacement_state, Epi = "E"),
+    by = list(from.to = "Replace" ~ "Strain")
+  ),
+  progression = mp_join(
+    from = mp_subset(replacement_state, Epi = "E"),
+    to = mp_subset(replacement_state, Epi = "I"),
+    by = list(from.to = "Strain")
+  )
+)
+
+
+replacement_infection$labelling_names_list
+replacement_progression$labelling_names_list
+
+replacement_infection$column_map
+replacement_progression$column_map
+
+macpan2:::bind_rows(
+  replacement_infection$frame,
+  replacement_progression$frame
+)
+
+
+replacement_progression$frame
+
+
+mp_union(replacement_infection, replacement_progression)
+
+replacement_progression$reference_positions_for$from()
+
+mp_vector(c(S. = 1000, I.a = 1), replacement_state)
+
+
+replacement_state$labels()[replacement_progression$positions_for$from()]
+initial_replacement_state = data.frame(
+  Epi    = c("S",  "I"),
+  Strain = c("",  "a"),
+  values = c(1000,  1 )
+)
+state_vector = mp_vector(initial_replacement_state, replacement_state)
+state_vector
+state_vector$frame()
+state_vector$csv("state-test-write.csv")
+
+
+xx = mp_vector(replacement_state)
+xx$set_numbers(Strain = "a", Epi = c(I = 1, E = 1))
+
+
+mp_subset(replacement_state, Epi = "E")$position()
+mp_subset(replacement_state, Epi = "E")$reference_position()
+
+xx = mp_group(replacement_state, "Strain")
+xx$reference_labels()
+xx$labels()
+
+## atomic model indices ---------------
 
 state_sir = mp_index(
   Epi = c("S", "I", "R", "D"),
@@ -19,7 +110,7 @@ movement = mp_linear(cities, "Move")
 age = mp_index(Age = c("young", "old"))
 contact = mp_square(age, c("Infectious", "Infection"))
 
-## product model bases -------------
+## structured model indices -------------
 
 state = (state_sir
   |> mp_cartesian(cities)
@@ -37,20 +128,153 @@ flow_rates = mp_union(
   ),
   mp_subset(flow_rates_sir, Epi = "gamma"),
   movement
-)
+) |> mp_group("Epi.Age.Loc.Move")
 trans_rates = (trans_rates_sir
   |> mp_cartesian(cities)
   |> mp_cartesian(contact)
 )
 
-xx = mp_join(
-  alive = mp_subset(state, Vital = "alive"),
-  N = mp_select(state, "Loc.Age"),
-  alive.N = "Loc.Age"
+## index groups and subsets of indexes ------------
+
+strata = mp_group(state, by = "Loc.Age")
+alive = mp_subset(state, Epi = c("S", "I", "R"))
+infectious = mp_subset(state, Epi = "I")
+beta = mp_subset(trans_rates, Epi = "beta")
+lambda = mp_subset(flow_rates, Epi = "lambda")
+
+## create vectors for particular indexes -----------
+
+state_vector = Vector(state)
+state_vector$
+  set_numbers(Epi = c(I = 1))$
+  set_numbers(Epi.Loc.Age = c(S.cal.young = 1000))
+N = Vector(strata)
+flow_rate_vector = Vector(flow_rates)
+flow_rate_vector$set_numbers(Epi = c(lambda = 0.15, gamma = 0.1, mu = 0.01))
+
+## links between entries in the indexes -----------
+
+movement_flows = mp_join(
+  from = mp_subset(state, Epi = c("S", "I", "R")),
+  to = mp_subset(state, Epi = c("S", "I","R")),
+  link = mp_subset(flow_rates, Epi = ""),
+  by = list(
+    from.to = "Epi.Age",
+    from.link = "Loc",
+    to.link = "Loc" ~ "Move"
+  )
+)
+infection_flows = mp_join(
+  from = mp_subset(state, Epi = "S"),
+  to = mp_subset(state, Epi = "I"),
+  link = mp_subset(flow_rates, Epi = "lambda"),
+  by = list(
+    from.to = "Loc.Age",
+    from.link = "Loc.Age"
+  )
+)
+recovery_flows = mp_join(
+  from = mp_subset(state, Epi = "I"),
+  to = mp_subset(state, Epi = "R"),
+  link = mp_subset(flow_rates, Epi = "gamma"),
+  by = list(from.to = "Loc.Age")
+)
+death_flows = mp_join(
+  from = mp_subset(state, Vital = "alive"),
+  to = mp_subset(state, Vital = "dead"),
+  link = mp_subset(flow_rates, Epi = "mu"),
+  by = list(
+    from.to = "Loc.Age",
+    from.link = "Age"
+  )
+)
+
+flows = mp_formula_data(
+    movement_flows
+  , infection_flows
+  , recovery_flows
+  , death_flows
+)
+
+vv = IndexedExpressions(
+    flows_per_time ~ state[from] * flow_rates[link]
+  , inflow ~ groupSums(flows_per_time, to, state)
+  , outflow ~ groupSums(flows_per_time, from, state)
+  , state ~ state + inflow - outflow
+  , index_data = flows
+  , vector_list = list(
+      state = state_vector
+    , flow_rates = flow_rate_vector
+  )
+)
+vv$mats_list()
+vv$int_vecs(TRUE)
+filter(vv$simulate(20), matrix == "state", row == "S.cal.young")
+
+
+state_aggregation = mp_join(
+  alive = alive,
+  group_by = strata,
+  by = list(alive.group_by = "Loc.Age")
+) |> mp_formula_data()
+## N ~ groupSums(state[alive], group_by, N)
+state_vector = Vector(state)
+state_vector$set_numbers(Epi = c(I = 1))$set_numbers(Epi.Loc.Age = c(S.cal.young = 1000))
+hh = IndexedExpressions(
+    N ~ groupSums(state[alive], group_by, N)
+  , index_data = state_aggregation
+  , vector_list = list(
+      N = Vector(strata)
+    , state = state_vector
+  )
+)
+filter(hh$simulate(10), matrix == "N")
+state_normalization = mp_join(
+  infectious = infectious,
+  strata = strata,
+  by = list(infectious.strata = "Loc.Age")
+)
+## Inorm ~ state[infectious] / N[strata]
+
+transmission = mp_join(
+  infectious = infectious,
+  infection = lambda,
+  transmission = beta,
+
 )
 
 
 
+
+
+## performance sanity check ---------
+if (FALSE) {
+  cities = mp_index(Loc = letters)
+  state_sir = mp_cartesian(
+    mp_index(EpiA = rep(LETTERS)),
+    mp_index(EpiB = rep(LETTERS))
+  ) |> mp_cartesian(cities)
+  flow_rates = mp_cartesian(
+    mp_index(EpiA = paste(letters[1:25], letters[2:26], sep = "")),
+    mp_index(EpiB = paste(letters[1:25], letters[2:26], sep = ""))
+  ) |> mp_cartesian(cities)
+  flow = mp_join(
+    from = mp_subset(state, EpiA = "S"),
+    to = mp_subset(state, EpiA = "I"),
+    rate = mp_subset(flow_rates, EpiA = "gh"),
+    from.to = "Loc",
+    from.rate = "Loc",
+    to.rate = "Loc"
+  )
+  flow
+}
+
+
+
+self$reference_index_list$N
+self$frame
+self$reference_index_list$N$labels()
+groupSums()
 mp_labels
 xx$reference_index_list$N$labelling_names
 yy = mp_formula_data(xx)
@@ -162,14 +386,14 @@ N_expr = mp_expr_group_sum(state
 
 
 xx = mp_join(
-  mp_choose(N_expr$strata, "N"),
-  mp_choose(state, "infectious", Epi = "I"),
+  mp_subset(N_expr$strata, "N"),
+  mp_subset(state, "infectious", Epi = "I"),
   N.infectious = N_expr$strata$labelling_names
 )
 xx$labels_for$infectious()
 xx$frame
 
-state_strata = mp_select(state, "Loc.Age")
+state_strata = mp_group(state, "Loc.Age")
 alive_states = mp_subset(state, Vital = "alive")
 alive_groups = mp_indices(
   mp_labels(alive_states, "Loc.Age"),
@@ -197,34 +421,6 @@ engine_eval(
 )
 
 
-movement_flows = mp_join(
-  mp_choose(state, "from", Vital = "alive"),
-  mp_choose(state, "to", Vital = "alive"),
-  mp_choose(flow_rates, "rate", Epi = ""),
-  from.to = "Epi.Age",
-  from.rate = "Loc",
-  to.rate = "Loc" ~ "Move"
-)
-infection_flows = mp_join(
-  mp_choose(state, "from", Epi = "S"),
-  mp_choose(state, "to", Epi = "I"),
-  mp_choose(flow_rates, "rate", Epi = "lambda"),
-  from.to = "Loc.Age",
-  from.rate = "Loc.Age"
-)
-recovery_flows = mp_join(
-  mp_choose(state, "from", Epi = "I"),
-  mp_choose(state, "to", Epi = "R"),
-  mp_choose(flow_rates, "rate", Epi = "gamma"),
-  from.to = "Loc.Age"
-)
-death_flows = mp_join(
-  mp_choose(state, "from", Vital = "alive"),
-  mp_choose(state, "to", Vital = "dead"),
-  mp_choose(flow_rates, "rate", Epi = "mu"),
-  from.to = "Loc.Age",
-  from.rate = "Age"
-)
 
 
 flows = rbind(
@@ -234,9 +430,9 @@ flows = rbind(
   , death_flows$labels_frame()
 )
 influences = mp_join(
-  mp_choose(state, "infectious", Epi = "I"),
-  mp_choose(flow_rates, "infection", Epi = "lambda"),
-  mp_choose(trans_rates, "rate", Epi = "beta"),
+  mp_subset(state, "infectious", Epi = "I"),
+  mp_subset(flow_rates, "infection", Epi = "lambda"),
+  mp_subset(trans_rates, "rate", Epi = "beta"),
   infectious.infection = "Loc",
   infectious.rate = "Age.Loc",
   infection.rate = "Loc.Age" ~ "Loc.Contact"
@@ -269,8 +465,8 @@ vec$state$set_numbers(
   Epi = "S"
 )
 
-N = mp_select(state, "N", "Loc")
-alive = mp_choose(state, "alive", Epi = c("S", "I", "R"))
+N = mp_group(state, "N", "Loc")
+alive = mp_subset(state, "alive", Epi = c("S", "I", "R"))
 
 VectorMerged = function(labeller) {
   self = Base()
@@ -292,7 +488,7 @@ mp_indices(alive$labels_for$alive(), state$labels())
 
 
 
-I = mp_choose(state, "I", Epi = "I")
+I = mp_subset(state, "I", Epi = "I")
 
 
 
@@ -327,20 +523,20 @@ flow_file
 i = 1L
 flow = flow_file[i,,drop=FALSE]
 mp_join(
-  mp_choose(state, "from", flow$from_partition),
-  mp_choose(state, "to", Epi = flow$to),
-  mp_choose(flow_rates, "flow", Epi = flow$flow),
+  mp_subset(state, "from", flow$from_partition),
+  mp_subset(state, "to", Epi = flow$to),
+  mp_subset(flow_rates, "flow", Epi = flow$flow),
   from.to = "Epi"
 )
 
 
-N = mp_select(state, "N", "Loc")
-active = mp_choose(state, "active", Epi = c("S", "I"))
-infectious = mp_choose(state, "infectious", Epi = "I")
+N = mp_group(state, "N", "Loc")
+active = mp_subset(state, "active", Epi = c("S", "I"))
+infectious = mp_subset(state, "infectious", Epi = "I")
 mp_join(N, infectious, N.infectious = "Loc")
 
 mp_join(xx, yy, N.norm_inf = "Loc")$labels_frame()
-mp_join(N, mp_choose(state, "infectious", Epi = "I"))
+mp_join(N, mp_subset(state, "infectious", Epi = "I"))
 
 
 match(N$labels_frame()$active, state$labels()) - 1L
@@ -348,8 +544,8 @@ match(N$labels_frame()$N, unique(N$labels_frame()$N)) - 1L
 groupSums(state[active], strata, length(active))
 
 xx = mp_join(
-  mp_choose(state, "state"),
-  mp_select(state, "N", "Loc"),
+  mp_subset(state, "state"),
+  mp_group(state, "N", "Loc"),
   state.N = "Loc"
 )
 xx$labels_for$state()
@@ -364,24 +560,24 @@ mp_init_vec = function(components, ...) {
 }
 mp_init_vec(state, S.tor = 99)
 mp_join(
-    mp_choose(state, "infectious", Epi = "I"),
-    mp_choose(flow_rates, "infection", Epi = "lambda"),
+    mp_subset(state, "infectious", Epi = "I"),
+    mp_subset(flow_rates, "infection", Epi = "lambda"),
     infectious.infection = "Loc"
 )$labels_frame()
 
 mp_union(
   mp_join(
-      mp_choose(state, "from")
-    , mp_choose(state, "to")
-    , mp_choose(flow_rates, "flow", Epi = "")
+      mp_subset(state, "from")
+    , mp_subset(state, "to")
+    , mp_subset(flow_rates, "flow", Epi = "")
     , from.to = "Epi"
     , from.flow = "Loc"
     , to.flow = "Loc" ~ "Move"
   ),
   mp_join(
-      mp_choose(state, "from", Epi = "S")
-    , mp_choose(state, "to", Epi = "I")
-    , mp_choose(flow_rates, "flow", Epi = "lambda")
+      mp_subset(state, "from", Epi = "S")
+    , mp_subset(state, "to", Epi = "I")
+    , mp_subset(flow_rates, "flow", Epi = "lambda")
     , from.to = "Loc"
     , from.flow = "Loc"
   )

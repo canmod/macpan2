@@ -35,15 +35,21 @@ Link = function(frame, column_map, reference_index_list, labelling_names_list) {
     l |> as.data.frame()
   }
   self$frame_for = list()
-  self$labels_for = list()
   self$partition_for = list()
   self$index_for = list()
+  self$labels_for = list()
+  self$reference_labels_for = list()
+  self$positions_for = list()
+  self$reference_positions_for = list()
   for (d in names(self$column_map)) {
     getter = FrameGetter(self, d)
     self$frame_for[[d]] = getter$get_frame
     self$labels_for[[d]] = getter$get_labels
     self$partition_for[[d]] = getter$get_partition
     self$index_for[[d]] = getter$get_index
+    self$reference_labels_for[[d]] = getter$get_reference_labels
+    self$positions_for[[d]] = getter$get_positions
+    self$reference_positions_for[[d]] = getter$get_reference_positions
   }
   self$column_by_dim = list()
   for (d in names(self$column_map)) {
@@ -68,6 +74,10 @@ Link = function(frame, column_map, reference_index_list, labelling_names_list) {
       , reference_index_list = self$reference_index_list
       , labelling_names_list = self$labelling_names_list
     )
+  }
+  self$expr = function(condition) {
+    substitute(condition)
+    eval(condition, envir = c(self$column_by_dim, self$frame))
   }
   self$partition = self$partition_for[[1L]]()  ## hack! should probably have a method and then change the partition field in Index to a method as well
   return_object(self, "Link")
@@ -102,16 +112,32 @@ FrameGetter = function(link, dimension_name) {
     )
   }
   self$get_partition = function() self$get_frame() |> Partition()
-  self$get_index = function() Index(
-    self$get_partition(),
-    self$link$labelling_names_list[[self$dimension_name]]
-  )
+  self$get_index = function() {
+    Index(
+      self$get_partition(),
+      self$link$labelling_names_list[[self$dimension_name]],
+      self$link$reference_index_list[[self$dimension_name]]
+    )
+  }
   self$get_labels = function() {
     i = self$link$labelling_names_list[[self$dimension_name]]
     f = self$get_frame()[, i, drop = FALSE]
     l = as.list(f)
     paste_args = c(l, sep = ".")
     do.call(paste, paste_args)
+  }
+  self$get_reference_labels = function() {
+    self$get_index()$reference_labels()
+  }
+  self$get_positions = function(zero_based = FALSE) {
+    i = match(self$get_labels(), self$get_reference_labels())
+    if (zero_based) i = i - 1L
+    i
+  }
+  self$get_reference_positions = function(zero_based = FALSE) {
+    i = match(self$get_reference_labels(), self$get_labels())
+    if (zero_based) i = i - 1L
+    i
   }
   return_object(self, "FrameGetter")
 }
@@ -280,9 +306,9 @@ explicit_provenance = function(x, col_nm) {
   m = x$column_map
   implicit = is_provenance_implicit(x, col_nm)
   if (length(implicit) == 0L) {
-    macpan2:::msg_colon(
-      macpan2:::msg("Column", col_nm, "not found in any of the original tables"),
-      macpan2:::msg_indent(names(m))
+    msg_colon(
+      msg("Column", col_nm, "not found in any of the original tables"),
+      msg_indent(names(m))
     ) |> stop()
   }
   if (!any(implicit)) return(x)

@@ -159,6 +159,14 @@ ExprList = function(
     if (is.null(nms)) nms = rep("", length(self$formula_list()))
     nms
   }
+  self$all_formula_vars = function() {
+    (self$formula_list()
+      |> lapply(formula_components)
+      |> lapply(getElement, "variables")
+      |> unlist(use.names = FALSE, recursive = FALSE)
+      |> unique()
+    )
+  }
 
   self$data_arg = function() {
     r = c(
@@ -230,3 +238,6 @@ ExprList = function(
 
   return_object(self, "ExprList")
 }
+
+#' @export
+mp_expr_list = ExprList

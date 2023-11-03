@@ -108,6 +108,12 @@ mp_subset = function(x, ...) {
 }
 
 #' @export
+mp_setdiff = function(x, ...) {
+  partition = mp_choose_out(x, "pick", ...)$partition
+  Index(partition, x$labelling_names, x)
+}
+
+#' @export
 mp_union = function(...) UseMethod("mp_union")
 
 #' @export
@@ -162,16 +168,6 @@ mp_rbind = function(...) {
   )
 }
 
-## how does this work for Index objects?
-## might be ok because it is just another
-## way to get columns for formulas. on the
-## other hand it doesn't sound right at all.
-## should probably throw an error here if
-## Indices are passed.
-#' @export
-mp_formula_data = function(...) {
-  mp_union(...)
-}
 
 
 #' @export
@@ -202,15 +198,33 @@ mp_choose_out = function(x, subset_name, ...) {
   init_merge(p$frame(), subset_name, x$reference_index(), x$labelling_names)
 }
 
+
 #' @export
-mp_join = function(...) {
-  args = list(...)
-  is_index = vapply(args, inherits, logical(1L), "Index")
-  is_link = vapply(args, inherits, logical(1L), "Link")
-  table_list = args[is_index | is_link]
-  by_list = args[!is_index & !is_link]
+mp_join = function(..., by = list()) {
+  table_list = list(...)
+  by_list = assert_named_list(by)
   by_nms = names(by_list) |> strsplit(".", fixed = TRUE)
   table_nms = names(table_list)
+  good_by_nms = (by_nms
+    |> lapply(`%in%`, table_nms)
+    |> vapply(all, logical(1L))
+  )
+  if (any(!good_by_nms)) {
+    msg_break(
+      msg_colon(
+        "Indices to join were given the following names for the join output",
+        table_nms
+      ),
+      msg_colon(
+        msg(
+          "But the names of arguments that specify what columns will be",
+          "The following arguments were supplied to",
+          "determine what columns to join on"
+        ),
+        msg_indent_break(by_nms[!good_by_nms])
+      ),
+    ) |> stop()
+  }
   if (!is.null(table_nms)) {
     for (nm in names(table_list)) {
       if (nm != "" & inherits(table_list[[nm]], "Index")) {
@@ -369,10 +383,10 @@ mp_rename = function(x, ...) {
 }
 
 #' @export
-mp_select = function(index, grouping_dimension) {
-  frame = index$partition$select(to_names(grouping_dimension))$frame()
+mp_group = function(index, by) {
+  frame = index$partition$select(to_names(by))$frame()
   nms = names(frame)[names(frame) %in% index$labelling_names]
-  frame |> Index(labelling_names = nms, index)
+  Index(frame, labelling_names = nms)
 }
 
 #' @export

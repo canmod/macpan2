@@ -80,6 +80,19 @@ Index.Partition = function(partition
   ## Standard Methods
   self$labels = function() self$partition$select(self$labelling_names)$labels()
   self$partial_labels = function(...) self$partition$partial_labels(...)
+  self$reference_labels = function() {
+    self$reference_index()$partial_labels(self$labelling_names)
+  }
+  self$reference_positions = function(zero_based = FALSE) {
+    i = match(self$reference_labels(), self$labels())
+    if (zero_based) i = i - 1L
+    i
+  }
+  self$positions = function(zero_based = FALSE) {
+    i = match(self$labels(), self$reference_labels())
+    if (zero_based) i = i - 1L
+    i
+  }
 
   return_object(self, "Index")
 }
@@ -154,8 +167,18 @@ labels.Index = function(x, ...) x$labels()
 #' )
 #'
 #' @export
-mp_index = function(..., labelling_names) {
+mp_index = function(..., labelling_names) UseMethod("mp_index")
+
+#' @export
+mp_index.character = function(..., labelling_names) {
   f = data.frame(...)
+  if (missing(labelling_names)) labelling_names = names(f)
+  Index(f, to_names(labelling_names))
+}
+
+#' @export
+mp_index.data.frame = function(..., labelling_names) {
+  f = list(...)[[1L]]
   if (missing(labelling_names)) labelling_names = names(f)
   Index(f, to_names(labelling_names))
 }

@@ -12,7 +12,7 @@ Make an object to describe links between the entities in an
 \code{\link{Index}} objects. For example, here the \code{\link{mp_join}}
 combines two
 
-\if{html}{\out{<div class="sourceCode r">}}\preformatted{age = mp_index(Age = c("young", "old"))
+\if{html}{\out{<div class="sourceCode {r}">}}\preformatted{age = mp_index(Age = c("young", "old"))
 state = mp_cartesian(
   mp_index(Epi = c("S", "I", "R")),
   age
@@ -22,8 +22,5 @@ mp_join(
   mp_choose(state, "to",   Epi = "I"),
   from.to = "Age"
 )
-#>     from      to
-#>    S.old   I.old
-#>  S.young I.young
 }\if{html}{\out{</div>}}
 }

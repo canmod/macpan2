@@ -12,14 +12,13 @@
 #' method in \code{\link{TMBSimulator}}.
 #'
 #' @export
-simple_sims = function(iteration_exprs, time_steps, ...) {
-  mat_names = names(list(...))
+simple_sims = function(iteration_exprs, time_steps, int_vecs = list(), mats = list()) {
+  mat_names = names(mats)
+
   TMBModel(
-    init_mats = MatsList(...
-      , .mats_to_return = mat_names
-      , .mats_to_save = mat_names
-    ),
+    init_mats = do.call(MatsList, c(mats, list(.mats_to_return = mat_names, .mats_to_save = mat_names))),
     expr_list = ExprList(during = iteration_exprs),
+    engine_methods = EngineMethods(int_vecs = do.call(IntVecs, int_vecs)),
     time_steps = Time(time_steps)
   )$simulator()$report(.phases = c("before", "during"))
 }
