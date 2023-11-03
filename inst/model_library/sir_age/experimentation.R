@@ -1,10 +1,12 @@
 library(dplyr)
 library(ggplot2)
 library(tidyr)
+library(stringr)
 
 (sir$report()
   |> filter(matrix == "state")
   |> separate(row, c("epi", "age"))
+  |> mutate(age = ordered(as.integer(str_remove(age, "^lb"))))
   |> mutate(epi = factor(epi, levels = c("S", "I", "R")))
   |> ggplot()
   + geom_line(aes(time, value, colour = age))
