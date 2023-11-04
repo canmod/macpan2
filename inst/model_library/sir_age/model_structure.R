@@ -8,7 +8,7 @@ trans_rates_sir = mp_index(Epi = "beta")
 
 ## model strata indexes ------------------------
 
-age = mp_index(Age = sprintf("lb%s", seq(from = 0, to = 90, by = 10)))
+age = mp_index(Age = c("young", "old"))
 age_contact = mp_cartesian(
   mp_rename(age, AgeInfectious  = "Age"),
   mp_rename(age, AgeSusceptible = "Age")
@@ -16,7 +16,9 @@ age_contact = mp_cartesian(
 
 ## structured model --------
 
-state = mp_cartesian(state_sir, age)
+state = (state_sir
+  |> mp_cartesian(age)
+)
 flow_rates = mp_union(
   mp_cartesian(
     mp_subset(flow_rates_sir, Epi = "lambda"),
@@ -24,7 +26,9 @@ flow_rates = mp_union(
   ),
   mp_subset(flow_rates_sir, Epi = "gamma")
 )
-trans_rates = mp_cartesian(trans_rates_sir, age_contact)
+trans_rates = (trans_rates_sir
+  |> mp_cartesian(age_contact)
+)
 
 ## subset and grouping indexes -----------------
 
@@ -35,9 +39,10 @@ R      = mp_subset(state, Epi = "R")
 lambda = mp_subset(flow_rates, Epi = "lambda")
 gamma  = mp_subset(flow_rates, Epi = "gamma")
 
-alive  = mp_subset(state, Epi = c("S", "I", "R"))
-strata = mp_group(state, "Age")
+alive  = mp_subset(state, Epi = c("S", "I", "R")) ## all states are alive in this model
+strata = mp_group(state, "Age") ## stratify by age for normalizing I
 
+## for decomposing beta into three components
 susceptibility = mp_group(trans_rates, "AgeSusceptible")
 contact        = mp_group(trans_rates, "AgeInfectious.AgeSusceptible")
 infectivity    = mp_group(trans_rates, "AgeInfectious")
@@ -70,12 +75,12 @@ trans_decomposition = mp_join(
 ## linking states and rates -----------
 
 transmission = mp_join(
-  infectious = norm_state,
-  infection = lambda,
+  infectious_state = norm_state,
+  infection_flow = lambda,
   transmission = trans_rates,
   by = list(
-    infectious.transmission = "Age" ~ "AgeInfectious",
-    infection.transmission  = "Age" ~ "AgeSusceptible"
+    infectious_state.transmission = "Age" ~ "AgeInfectious",
+    infection_flow.transmission  = "Age" ~ "AgeSusceptible"
   )
 )
 infection = mp_join(
@@ -87,12 +92,18 @@ recovery  = mp_join(
   by = list(from.to = "Age")
 )
 
+## wrapping the results of joins ------------
+
+## wrap up decomposition, aggregation, normalization,
+## flows, and influences into a data structure that
+## is used by the dynamic model expressions that appear below.
+
 index_data = list(
     mp_index_data(trans_decomposition)
   , mp_index_data(aggregation)
   , mp_index_data(normalization)
   , mp_index_data(infection, recovery)  ## flows
-  , mp_index_data(transmission)
+  , mp_index_data(transmission)  ## influences
 )
 
 ## expressions that define model dynamics ---------
@@ -101,12 +112,12 @@ index_data = list(
 ## as model structure changes
 expr_list = mp_expr_list(
   before = list(
-    trans_rates ~ susceptibility[s] * contact[si] * infectivity[i]
+    trans_rates[decomp] ~  infectivity[i] * contact[si] * susceptibility[s]
   ),
   during = list(
       N ~ groupSums(state[alive], groups, N)
     , norm_state ~ state[norm] / N[denominator]
-    , flow_rates[infection] ~ norm_state[infectious] * trans_rates[transmission]
+    , flow_rates[infection_flow] ~ norm_state[infectious_state] * trans_rates[transmission]
     , flows_per_time ~ state[from] * flow_rates[edge]
     , inflow ~ groupSums(flows_per_time, to, state)
     , outflow ~ groupSums(flows_per_time, from, state)
@@ -128,3 +139,7 @@ indexed_vecs = list(
   contact = mp_vector(contact),
   infectivity = mp_vector(infectivity)
 )
+
+## vectors and matrices without model structure
+## (e.g. scalar factor like beta0)
+unstruc_mats = list()

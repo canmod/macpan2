@@ -22,11 +22,12 @@ beta   = mp_subset(rates, Epi = "beta")
 
 ## links between entries in the indexes -----------
 
-index_data = list(
-  flow = mp_index_data(
-    infection = mp_join(from = S, to = I, flow = lambda),
-    recovery  = mp_join(from = I, to = R, flow = gamma)
-  ),
+mp_join(
+  infection = mp_join(from = S, to = I, flow = lambda),
+  recovery  = mp_join(from = I, to = R, flow = gamma)
+)
+
+
   influences = mp_index_data(
     transmission = mp_join(
       infectious = I,
