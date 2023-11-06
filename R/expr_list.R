@@ -241,3 +241,6 @@ ExprList = function(
 
 #' @export
 mp_expr_list = ExprList
+
+#' @export
+print.ExprList = function(x, ...) x$print_exprs()

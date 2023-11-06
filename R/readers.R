@@ -77,6 +77,14 @@ TXTReader = function(...) {
   return_object(self, "TXTReader")
 }
 
+#' @describeIn Reader Read R files.
+#' @export
+RReader = function(...) {
+  self = Reader(...)
+  self$read_base = function() readLines(self$file)
+  return_object(self, "RReader")
+}
+
 #' @describeIn Reader Placeholder reader that always returns \code{NULL}.
 #' @export
 NULLReader = function(...) {

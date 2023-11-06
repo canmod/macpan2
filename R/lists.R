@@ -17,6 +17,8 @@ nlist = function(...) {
     setNames(L, nm)
 }
 
+empty_named_list = function() list() |> setNames(character(0L))
+
 assert_named_list = function(l) {
   if (is.null(names(l))) {
     if (length(l) == 0L) {

@@ -224,7 +224,7 @@ mp_union.Link = function(...) {
     ) |> stop()
   }
   frame = mp_rbind(...)
-  FormulaData(frame, l[[1L]]$reference_index_list, l[[1L]]$labelling_column_names_list)
+  LinkData(frame, l[[1L]]$reference_index_list, l[[1L]]$labelling_column_names_list)
 }
 
 ## not used anymore?
@@ -268,7 +268,7 @@ mp_choose_out = function(x, subset_name, ...) {
 
 
 #' @export
-mp_join = function(..., by = list()) {
+mp_join = function(..., by = empty_named_list()) {
   table_list = valid$named_list$assert(list(...))
   table_nms = names(table_list)
   if (length(table_nms) < 2L) stop("cannot join fewer than two index objects.")

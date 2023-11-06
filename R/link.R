@@ -467,3 +467,31 @@ str.Link = function(x
   str(x, ...)
 }
 
+
+#' @export
+LinkList = function() {
+  self = Base()
+  self$list = list() |> setNames(as.character())
+  self$add = function(new_link, ...) {
+      new_links = list(...)
+    if (missing(new_link)) {
+      macpan2:::valid$named_list$check(new_links)
+    } else if(length(new_links) == 0L) {
+      new_nm = deparse1(substitute(new_link))
+      new_links = setNames(list(new_link), new_nm)
+    } else {
+      stop("If supplying more than one join result, please name them with {name} = {join_result}")
+    }
+
+    for (nm in names(new_links)) {
+      if (nm %in% names(self$list)) {
+        msg(
+          "Join result", nm, "is already in the list.",
+          "Overwriting the existing one."
+        ) |> message()
+      }
+      self$list[[nm]] = new_links[[nm]]
+    }
+  }
+  return_object(self, "LinkList")
+}

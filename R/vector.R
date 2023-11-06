@@ -154,3 +154,38 @@ mp_vector.Link = function(x, dimension_name, ...) {
 
 #' @export
 mp_set_numbers = function(vector, ...) vector$clone()$set_numbers(...)
+
+
+
+
+#' @export
+VectorList = function() {
+  self = Base()
+  self$list = list() |> setNames(as.character())
+  self$add = function(new_vec, ...) {
+      new_vecs = list(...)
+    if (missing(new_vec)) {
+      macpan2:::valid$named_list$check(new_vecs)
+    } else if(length(new_vecs) == 0L) {
+      new_nm = deparse1(substitute(new_vec))
+      new_vecs = setNames(list(new_vec), new_nm)
+    } else {
+      stop("If supplying more than one vector, please name them with {name} = {vector}")
+    }
+
+    for (nm in names(new_vecs)) {
+      if (nm %in% names(self$list)) {
+        msg(
+          "Vector", nm, "is already in the list.",
+          "Overwriting the existing one."
+        ) |> message()
+      }
+      if (inherits(new_vecs[[nm]], "Index")) {
+        new_vecs[[nm]] = mp_vector(new_vecs[[nm]])
+      }
+      self$list[[nm]] = new_vecs[[nm]]
+    }
+  }
+  return_object(self, "VectorList")
+}
+

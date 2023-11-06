@@ -1,20 +1,56 @@
+#' @importFrom oor method_apply
 #' @export
-mp_tmb_simulator = function(expr_list = ExprList()
-      , index_data = list()
-      , indexed_vecs = list()
-      , unstruc_mats = list()
+mp_tmb_simulator = function(dynamic_model
       , time_steps = 0L
-      , mats_to_save = names(indexed_vecs)
+      , vectors = NULL
+      , unstruc_mats = NULL
+      , mats_to_save = names(vectors)
       , mats_to_return = mats_to_save
+      , params = OptParamsList(0)
+      , random = OptParamsList()
+      , obj_fn = ObjectiveFunction(~0)
+      , log_file = LogFile()
+      , do_pred_sdreport = TRUE
+      , tmb_cpp = "macpan2"
+      , initialize_ad_fun = TRUE
       , ...
 ) {
-  int_vecs = (index_data
+  UseMethod("mp_tmb_simulator")
+}
+
+#' @export
+mp_tmb_simulator.DynamicModel = function(dynamic_model
+      , time_steps = 0L
+      , vectors = NULL
+      , unstruc_mats = NULL
+      , mats_to_save = names(vectors)
+      , mats_to_return = mats_to_save
+      , params = OptParamsList(0)
+      , random = OptParamsList()
+      , obj_fn = ObjectiveFunction(~0)
+      , log_file = LogFile()
+      , do_pred_sdreport = TRUE
+      , tmb_cpp = "macpan2"
+      , initialize_ad_fun = TRUE
+      , ...
+) {
+  link_data = dynamic_model$link_data
+  expr_list = dynamic_model$expr_list
+  int_vecs = (link_data
    |> method_apply("positions_frame", zero_based = TRUE)
    |> lapply(as.list)
    |> unname()
    |> unlist(recursive = FALSE)
   )
-  indexed_mats = lapply(indexed_vecs, as.matrix)
+  if (is.null(vectors)) {
+    indexed_mats = dynamic_model$init_vecs
+    mats_to_save = names(indexed_mats)
+  } else {
+    indexed_mats = lapply(vectors, as.matrix)
+  }
+  if (is.null(unstruc_mats)) {
+    unstruc_mats = dynamic_model$unstruc_mats
+  }
 
   all_vars = expr_list$all_formula_vars()
 
@@ -39,7 +75,35 @@ mp_tmb_simulator = function(expr_list = ExprList()
     , expr_list = expr_list
     , engine_methods = engine_methods
     , time_steps = Time(time_steps)
-    , ...
+    , params = params
+    , random = random
+    , obj_fn = obj_fn
+    , log_file = log_file
+    , do_pred_sdreport = do_pred_sdreport
   )
-  tmb_model$simulator()
+  tmb_model$simulator(tmb_cpp = tmb_cpp, initialize_ad_fun = initialize_ad_fun)
 }
+
+#' @export
+mp_tmb_simulator.ModelDefRun = function(dynamic_model
+      , time_steps = 0L
+      , vectors = NULL
+      , unstruc_mats = NULL
+      , mats_to_save = names(vectors)
+      , mats_to_return = mats_to_save
+      , params = OptParamsList(0)
+      , random = OptParamsList()
+      , obj_fn = ObjectiveFunction(~0)
+      , log_file = LogFile()
+      , do_pred_sdreport = TRUE
+      , tmb_cpp = "macpan2"
+      , initialize_ad_fun = TRUE
+      , ...
+) {
+  args = c(as.list(environment()), list(...))
+  args$dynamic_model = dynamic_model$dynamic_model
+  do.call(mp_tmb_simulator, args)
+}
+
+#' @export
+mp_report = function(simulator, ...) simulator$report()

@@ -3,7 +3,7 @@ library(ggplot2)
 library(tidyr)
 library(stringr)
 
-(sir$report()
+(mp_report(sir_sim)
   |> filter(matrix == "state")
   |> separate(row, c("epi", "age"))
   |> mutate(epi = factor(epi, levels = c("S", "I", "R")))

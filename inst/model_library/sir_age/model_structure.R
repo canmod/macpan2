@@ -1,5 +1,44 @@
 library(macpan2)
 
+## dynamics ---------------------------------------------
+
+expr_list = mp_expr_list(
+  before = list(
+
+      sub_population_sizes =
+        N ~ groupSums(state[alive], groups, N)
+
+    , decompose_transmission_rate =
+        trans_rates[decomp] ~ infectivity[i] * contact[si] * susceptibility[s]
+  ),
+  during = list(
+
+      normalize_infectious_states =
+        norm_state ~ state[norm] / N[denominator]
+
+    , update_force_of_infection =
+        flow_rates[infection_flow] ~
+          norm_state[infectious_state] * trans_rates[transmission]
+
+    , update_flows_per_time =
+        flows_per_time ~ state[from] * flow_rates[edge]
+
+    , update_inflows_per_time =
+        total_inflow ~ groupSums(flows_per_time, to, state)
+
+    , update_outflows_per_time =
+        total_outflow ~ groupSums(flows_per_time, from, state)
+
+    , update_state =
+        state ~ state + total_inflow - total_outflow
+  )
+)
+
+## going to add all required vectors to this list as we go through
+## each set of expressions in the dynamics above
+#vecs = VectorList()
+#joins = LinkList()
+
 ## basic model indexes -------------------------
 
 state_sir = mp_index(Epi = c("S", "I", "R"))
@@ -30,6 +69,39 @@ trans_rates = (trans_rates_sir
   |> mp_cartesian(age_contact)
 )
 
+
+## Vectorizing sub-population size computations -------
+
+#expr_list$before$sub_population_sizes
+## N ~ groupSums(state[alive], groups, N)
+
+#N = mp_group(state, "Age")
+#state_alive = mp_subset(state, Epi = c("S", "I", "R"))
+#joins$add(sub_population_sizes =
+#  mp_join(groups = N, alive = state_alive, by = "Age")
+#)
+#vecs$add(N)
+#vecs$add(state)
+
+#oor::method_apply(joins$list, "labels_frame") |> lapply(as.list) |> unlist(use.names = FALSE, recursive = FALSE)
+#joins$list$sub_population_sizes
+
+## grouped indices ----------
+
+### stratify by age for normalizing I
+N = mp_group(state, "Age")
+
+### decomposing transmission into three components:
+#### 1. component that characterizes the susceptible categories
+susceptibility = mp_group(trans_rates, "AgeSusceptible")
+#### 2. component that characterizes the infectious-susceptible pairs
+contact        = mp_group(trans_rates, "AgeInfectious.AgeSusceptible")
+#### 3. component that characterizes the infectious categories
+infectivity    = mp_group(trans_rates, "AgeInfectious")
+
+
+## initialize vectors
+
 ## subset and grouping indexes -----------------
 
 S      = mp_subset(state, Epi = "S")
@@ -39,22 +111,21 @@ R      = mp_subset(state, Epi = "R")
 lambda = mp_subset(flow_rates, Epi = "lambda")
 gamma  = mp_subset(flow_rates, Epi = "gamma")
 
-alive  = mp_subset(state, Epi = c("S", "I", "R")) ## all states are alive in this model
-strata = mp_group(state, "Age") ## stratify by age for normalizing I
-
-## for decomposing beta into three components
-susceptibility = mp_group(trans_rates, "AgeSusceptible")
-contact        = mp_group(trans_rates, "AgeInfectious.AgeSusceptible")
-infectivity    = mp_group(trans_rates, "AgeInfectious")
 
 ## aggregations, normalizations, summarizations ---------------
 
+### N ~ groupSums(state[alive], groups, N)
+### norm_state ~ state[norm] / N[denominator]
+
+alive  = mp_subset(state, Epi = c("S", "I", "R")) ## all states are alive in this model
+
 ### lining up vectors that are involved
-aggregation   = mp_join(alive = alive, groups      = strata, by = "Age")
-normalization = mp_join(norm  = I    , denominator = strata, by = "Age")
+aggregation   = mp_join(alive = alive, groups      = N, by = "Age")
+normalization = mp_join(norm  = I    , denominator = N, by = "Age")
 
 ### creating new indexes for some of these vectors
-N          = mp_extract(aggregation  , "groups")
+#N = mp_index(Age = c("old", "young"))
+#N          = mp_extract(aggregation  , "groups") ## necessary?
 norm_state = mp_extract(normalization, "norm")
 
 ## decompositions -----------------------------
@@ -98,48 +169,39 @@ recovery  = mp_join(
 ## flows, and influences into a data structure that
 ## is used by the dynamic model expressions that appear below.
 
-index_data = list(
-    mp_index_data(trans_decomposition)
-  , mp_index_data(aggregation)
-  , mp_index_data(normalization)
-  , mp_index_data(infection, recovery)  ## flows
-  , mp_index_data(transmission)  ## influences
+link_data = list(
+    decomposition = mp_link_data(trans_decomposition)
+  , aggregation = mp_link_data(aggregation)
+  , normalization = mp_link_data(normalization)
+  , influences = mp_link_data(transmission)
+  , flows = mp_link_data(infection, recovery)
 )
 
 ## expressions that define model dynamics ---------
 
 ## these expressions are very general and should remain robust
 ## as model structure changes
-expr_list = mp_expr_list(
-  before = list(
-    trans_rates[decomp] ~  infectivity[i] * contact[si] * susceptibility[s]
-  ),
-  during = list(
-      N ~ groupSums(state[alive], groups, N)
-    , norm_state ~ state[norm] / N[denominator]
-    , flow_rates[infection_flow] ~ norm_state[infectious_state] * trans_rates[transmission]
-    , flows_per_time ~ state[from] * flow_rates[edge]
-    , inflow ~ groupSums(flows_per_time, to, state)
-    , outflow ~ groupSums(flows_per_time, from, state)
-    , state ~ state + inflow - outflow
-  )
-)
 
 ## instantiate numeric vectors labelled with particular indexes -----------
 
 ## TODO: give automatic advice or just automatically initialize
 ##       vectors required given an analysis of the expression graph
-indexed_vecs = list(
+init_vecs = list(
   state = mp_vector(state),
   flow_rates = mp_vector(flow_rates),
   trans_rates = mp_vector(trans_rates),
-  N = mp_vector(mp_extract(aggregation, "groups")),
+  N = mp_vector(N),
+  #N = mp_vector(mp_extract(aggregation, "groups")),
   norm_state = mp_vector(mp_extract(normalization, "norm")),
   susceptibility = mp_vector(susceptibility),
   contact = mp_vector(contact),
   infectivity = mp_vector(infectivity)
 )
 
-## vectors and matrices without model structure
-## (e.g. scalar factor like beta0)
-unstruc_mats = list()
+
+dynamic_model = DynamicModel(
+  expr_list = expr_list,
+  link_data = link_data,
+  init_vecs = init_vecs,
+  unstruc_mats = list()
+)

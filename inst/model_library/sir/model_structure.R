@@ -4,11 +4,18 @@ library(macpan2)
 
 expr_list = mp_expr_list(
   before = list(
+    ## aggregations
       N ~ sum(state)
   ),
   during = list(
-      flow_rates[infection_flow] ~ state[infectious_state] * trans_rates[transmission] / N
+    ## influences
+      flow_rates[infection_flow] ~
+        state[infectious_state] * trans_rates[transmission] / N
+
+    ## flows
     , flows_per_time ~ state[from] * flow_rates[edge]
+
+    ## state update
     , total_inflow ~ groupSums(flows_per_time, to, state)
     , total_outflow ~ groupSums(flows_per_time, from, state)
     , state ~ state + total_inflow - total_outflow
@@ -21,13 +28,7 @@ state = mp_index(Epi = c("S", "I", "R"))
 flow_rates = mp_index(Epi = c("lambda", "gamma"))
 trans_rates = mp_index(Epi = "beta")
 
-## model products (none in this model) --------
-
-## subset and grouping indexes -----------------
-
-### note: this section is more interesting in structured models.
-###       in particular these are all single row indexes. also
-###       there are no grouping indexes, only subsets.
+## subset indexes -----------------
 
 S      = mp_subset(state, Epi = "S")
 I      = mp_subset(state, Epi = "I")
@@ -38,22 +39,37 @@ beta   = mp_subset(trans_rates, Epi = "beta")
 
 ## links between entries in the indexes -----------
 
+# flows_per_time ~ state[from] * flow_rates[edge]
 infection = mp_join(from = S, to = I, edge = lambda)
 recovery  = mp_join(from = I, to = R, edge = gamma)
 
+
+# flow_rates[infection_flow] ~
+#         state[infectious_state] * trans_rates[transmission] / N
 transmission =  mp_join(
   infectious_state = I,
   infection_flow = lambda,
   transmission = beta
 )
 
-index_data = list(
-    transmission = mp_index_data(transmission)  ## influences
-  , update = mp_index_data(infection, recovery)  ## flows
+link_data = list(
+    influences = mp_link_data(transmission)
+  , flows = mp_link_data(infection, recovery)
 )
 
-vecs = list(
+## Initialize indexed vectors (to all zeros) --------------
+
+init_vecs = list(
   state = mp_vector(state),
   flow_rates = mp_vector(flow_rates),
   trans_rates = mp_vector(trans_rates)
+)
+
+## Final output -----------------
+
+dynamic_model = DynamicModel(
+  expr_list = expr_list,
+  link_data = link_data,
+  init_vecs = init_vecs,
+  unstruc_mats = list()
 )

@@ -40,3 +40,13 @@ dev_compile = function(suffix = "", ext = "cpp") {
   TMB::compile(ff)
   dyn.load(TMB::dynlib(dev_obj(suffix = suffix, ext = ext)))
 }
+
+render_model_readme = function(file) {
+  rmarkdown::render(input = file, output_format = "md_document", intermediates_dir = NULL)
+  f = basename(file) |> tools::file_path_sans_ext()
+  output_file = sprintf("%s.md", f)
+  d = dirname(file)
+  readLines(output_file)
+  readLines(file)
+
+}

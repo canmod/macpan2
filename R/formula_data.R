@@ -1,4 +1,4 @@
-FormulaData = function(...) {
+LinkData = function(...) {
   self = Base()
   self$link_list = list(...)
 
@@ -45,24 +45,24 @@ FormulaData = function(...) {
     bind_rows(positions_list)
   }
 
-  return_object(self, "FormulaData")
+  return_object(self, "LinkData")
 }
 
 #' #' @export
-#' print.FormulaData = function(x, ...) {
+#' print.LinkData = function(x, ...) {
 #'   print(x$frame, row.names = FALSE)
 #' }
 
 
 #' @export
-mp_index_data = function(...) FormulaData(...)
+mp_link_data = function(...) LinkData(...)
 
 #' Indexed Expressions
 #'
 #' @param ... Formula objects that reference the columns in the
 #' \code{index_data}, the vectors in \code{vector_list} and the matrices
 #' in \code{unstructured_matrix_list}.
-#' @param index_data An object produced using \code{\link{mp_index_data}}.
+#' @param index_data An object produced using \code{\link{mp_link_data}}.
 #' @param vector_list Named list of objected produced using
 #' \code{\link{mp_vector}}.
 #' @param unstructured_matrix_list Named list of objects that can be coerced

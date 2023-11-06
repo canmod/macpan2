@@ -37,7 +37,7 @@ replacement_state = mp_union(
 )
 
 
-xx = macpan2:::FormulaData(
+xx = macpan2:::LinkData(
   infection = mp_join(
     from = mp_subset(replacement_state, Epi = c("S", "R")),
     to = mp_subset(replacement_state, Epi = "E"),
@@ -189,7 +189,7 @@ death_flows = mp_join(
   )
 )
 
-flows = mp_index_data(
+flows = mp_link_data(
     movement_flows
   , infection_flows
   , recovery_flows
@@ -216,7 +216,7 @@ state_aggregation = mp_join(
   alive = alive,
   group_by = strata,
   by = list(alive.group_by = "Loc.Age")
-) |> mp_index_data()
+) |> mp_link_data()
 ## N ~ groupSums(state[alive], group_by, N)
 state_vector = Vector(state)
 state_vector$set_numbers(Epi = c(I = 1))$set_numbers(Epi.Loc.Age = c(S.cal.young = 1000))
@@ -277,7 +277,7 @@ self$reference_index_list$N$labels()
 groupSums()
 mp_labels
 xx$reference_index_list$N$labelling_column_names
-yy = mp_index_data(xx)
+yy = mp_link_data(xx)
 yy$reference_index_list
 
 yy = Vector(state)
