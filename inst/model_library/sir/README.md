@@ -1,3 +1,8 @@
+---
+title: "Basic SIR"
+index_entry: "A very simple epidemic model"
+author: Steve Walker
+---
 This is (nearly) the simplest possible ‘vanilla’ epidemic model,
 implemented as an example.
 
