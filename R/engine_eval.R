@@ -58,10 +58,11 @@ engine_eval = function(e, ..., .matrix_to_return, .tmb_cpp = getOption("macpan2_
   )
 
   if (!inherits(.structure_labels, "NullLabels")) {
-    component_list = list(
-      state = .structure_labels$state(),
-      flow = .structure_labels$flow()
-    )
+    component_list = .structure_labels$component_list()
+    # list(
+    #   state = .structure_labels$state(),
+    #   flow = .structure_labels$flow()
+    # )
     e = to_special_vecs(e, component_list, c(left_hand_side, names(dot_mats)))
   }
 

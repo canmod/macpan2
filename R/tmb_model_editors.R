@@ -54,22 +54,21 @@ TMBSimulatorInserter = function(simulator) {
     , .at = 1L
     , .phase = c("before", "during", "after")
     , .simulate_exprs = character(0L)
-    , .vec_by_states = "state"
-    , .vec_by_flows = "flow"
+    , .vec_by = getOption("macpan2_vec_by")
   ) {
-    if (.vec_by_states == "") .vec_by_states = "...RAW...INDICES..."
-    if (.vec_by_flows == "") .vec_by_flows = "...RAW...INDICES..."
-    component_vec_by = c(state = .vec_by_states, flow = .vec_by_flows)
+    for (v in names(.vec_by)) {
+      if (.vec_by[v] == "") .vec_by[v] = "...RAW...INDICES..."
+    }
+    # if (.vec_by_states == "") .vec_by_states = "...RAW...INDICES..."
+    # if (.vec_by_flows == "") .vec_by_flows = "...RAW...INDICES..."
+    #component_vec_by = c(state = .vec_by_states, flow = .vec_by_flows)
     if (inherits(self$model$init_mats$.structure_labels, "NullLabels")) {
       args = list(...)
     } else {
       mat_names = names(self$model$init_mats)
-      component_list = list(
-        state = self$model$init_mats$.structure_labels$state(),
-        flow = self$model$init_mats$.structure_labels$flow()
-      )
+      component_list = self$model$init_mats$.structure_labels$component_list()
       args = (list(...)
-        |> lapply(to_special_vecs, component_list, mat_names, component_vec_by)
+        |> lapply(to_special_vecs, component_list, mat_names, .vec_by)
         |> lapply(to_assign)
       )
     }
@@ -78,7 +77,7 @@ TMBSimulatorInserter = function(simulator) {
     args$.simulate_exprs = .simulate_exprs
     (self$model$expr_list$insert
       |> do.call(args)
-      |> self$model$refresh_expr_list()
+      |> self$model$refresh$expr_list()
     )
     self$simulator$cache$invalidate()
     invisible(self$simulator)
@@ -118,7 +117,7 @@ TMBSimulatorAdder = function(simulator) {
       , .mats_to_save = .mats_to_save
       , .mats_to_return = .mats_to_return
       , .dimnames = .dimnames
-    ) |> self$model$refresh_init_mats()
+    ) |> self$model$refresh$init_mats()
     self$simulator$cache$invalidate()
     invisible(self$simulator)
   }
@@ -161,7 +160,7 @@ TMBReplacer = function(model) {
   self$obj_fn = function(obj_fn_expr) {
     (obj_fn_expr
       |> ObjectiveFunction()
-      |> self$model$refresh_obj_fn()
+      |> self$model$refresh$obj_fn()
     )
     self$model
   }
@@ -174,14 +173,14 @@ TMBSimulatorReplacer = function(simulator) {
   self$obj_fn = function(obj_fn_expr) {
     (obj_fn_expr
       |> ObjectiveFunction()
-      |> self$model$refresh_obj_fn()
+      |> self$model$refresh$obj_fn()
     )
     self$simulator$cache$invalidate()
     invisible(self$simulator)
   }
   self$params_frame = function(frame) {
     new_params = OptParamsFrame(frame, self$model$init_mats$dimnames())
-    self$model$refresh_params(new_params)
+    self$model$refresh$params(new_params)
     self$simulator$cache$invalidate()
     valid$consistency_params_mats$check(self$model)
     invisible(self$simulator)
@@ -191,7 +190,7 @@ TMBSimulatorReplacer = function(simulator) {
   }
   self$random_frame = function(frame) {
     new_random = OptParamsFrame(frame, self$model$init_mats$dimnames())
-    self$model$refresh_random(new_random)
+    self$model$refresh$random(new_random)
     self$simulator$cache$invalidate()
     valid$consistency_random_mats$check(self$model)
     invisible(self$simulator)

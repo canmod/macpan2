@@ -57,6 +57,7 @@ LinkData = function(...) {
 #' @export
 mp_link_data = function(...) LinkData(...)
 
+
 #' Indexed Expressions
 #'
 #' @param ... Formula objects that reference the columns in the

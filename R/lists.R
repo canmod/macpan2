@@ -29,3 +29,5 @@ assert_named_list = function(l) {
   }
   l
 }
+
+self_named_vector = function(...) c(...) |> setNames(c(...))

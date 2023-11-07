@@ -432,9 +432,31 @@ mp_decompose = function(formula, index, decomp_name, ...) {
 
 #' @export
 mp_extract = function(x, dimension_name) {
+  UseMethod("mp_extract")
+}
+
+#' @export
+mp_extract.Link = function(x, dimension_name) {
   ii = x$index_for[[dimension_name]]()
   ii$reset_reference_index()
   ii
+}
+
+#' @export
+mp_extract.DynamicModel = function(x, dimension_name) {
+  y = try(x$init_vecs[[dimension_name]]$index, silent = TRUE)
+  if (!inherits(y, "Index")) {
+    msg(
+      "Failed to find an index for",
+      dimension_name, "in this object"
+    ) |> stop()
+  }
+  y
+}
+
+#' @export
+mp_extract.ModelDefRun = function(x, dimension_name) {
+  mp_extract(x$dynamic_model, dimension_name)
 }
 
 #' Rename Index Columns

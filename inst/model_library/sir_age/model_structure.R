@@ -151,9 +151,9 @@ recovery  = mp_join(
 ## wrapping up the links defined by the joins above ------------
 
 link_data = list(
-    decomposition = mp_link_data(trans_decomposition)
-  , aggregation = mp_link_data(aggregation)
-  , normalization = mp_link_data(normalization)
+    decompositions = mp_link_data(trans_decomposition)
+  , aggregations = mp_link_data(aggregation)
+  , normalizations = mp_link_data(normalization)
   , influences = mp_link_data(transmission)
   , flows = mp_link_data(infection, recovery)
 )
@@ -173,7 +173,7 @@ init_vecs = list(
 
 ## wrap up the above definition -----------------
 
-dynamic_model = DynamicModel(
+dynamic_model = mp_dynamic_model(
   expr_list = expr_list,
   link_data = link_data,
   init_vecs = init_vecs,

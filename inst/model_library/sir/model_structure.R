@@ -7,7 +7,7 @@ expr_list = mp_expr_list(
     ## aggregations
       N ~ sum(state)
   ),
-  during = list(
+  during = list( ## this is a for loop over time steps
     ## influences
       flow_rates[infection_flow] ~
         state[infectious_state] * trans_rates[transmission] / N
@@ -20,6 +20,16 @@ expr_list = mp_expr_list(
     , total_outflow ~ groupSums(flows_per_time, from, state)
     , state ~ state + total_inflow - total_outflow
   )
+)
+
+data.frame(
+  flow = runif(10),
+  from = rep(1:4, times = 1:4)
+)
+
+data.frame(
+  flow = runif(10),
+  from = rep(1:2, 5)
 )
 
 ## basic model indexes -------------------------
@@ -67,7 +77,7 @@ init_vecs = list(
 
 ## Final output -----------------
 
-dynamic_model = DynamicModel(
+dynamic_model = mp_dynamic_model(
   expr_list = expr_list,
   link_data = link_data,
   init_vecs = init_vecs,

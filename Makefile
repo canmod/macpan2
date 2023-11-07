@@ -128,3 +128,9 @@ compile-dev: misc/dev/dev.cpp
 
 misc/dev/%.run: misc/dev/%.R
 	cd misc/dev; Rscript ../../$^
+
+inst/model_library/%/README.md: inst/model_library/%/README.Rmd
+	echo "rmarkdown::render(input = \"$^\", intermediates_dir = NULL)" | R --slave
+	cat $(dir $@)/header.yaml $(dir $@)/README.md > $(dir $@)/tmp.md
+	cp $(dir $@)/tmp.md $(dir $@)/README.md
+	rm $(dir $@)/tmp.md

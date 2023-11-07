@@ -161,7 +161,6 @@ CompartmentalMatsList = function(
     , absolute_outflow = empty_matrix
     , total_inflow = empty_matrix
     , total_outflow = empty_matrix
-    , dummy = empty_matrix
     , .mats_to_save = .mats_to_save
     , .mats_to_return = .mats_to_return
     , .dimnames = .dimnames

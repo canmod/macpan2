@@ -67,7 +67,8 @@ mp_tmb_simulator.DynamicModel = function(dynamic_model
   mats = c(indexed_mats, unstruc_mats, derived_mats)
   mats_list_options = list(
     .mats_to_save = mats_to_save,
-    .mats_to_return = mats_to_return
+    .mats_to_return = mats_to_return,
+    .structure_labels = dynamic_model$labels
   )
   engine_methods = EngineMethods(int_vecs = do.call(IntVecs, int_vecs))
   tmb_model = TMBModel(
@@ -81,7 +82,10 @@ mp_tmb_simulator.DynamicModel = function(dynamic_model
     , log_file = log_file
     , do_pred_sdreport = do_pred_sdreport
   )
-  tmb_model$simulator(tmb_cpp = tmb_cpp, initialize_ad_fun = initialize_ad_fun)
+  TMBDynamicSimulator(
+    tmb_model$simulator(tmb_cpp = tmb_cpp, initialize_ad_fun = initialize_ad_fun),
+    dynamic_model
+  )
 }
 
 #' @export

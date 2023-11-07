@@ -128,6 +128,9 @@ length.Vector = function(x) x$length()
 print.Vector = function(x, ...) print(x$numbers())
 
 #' @export
+names.Vector = function(x) x$numbers() |> names()
+
+#' @export
 as.matrix.Vector = function(x, ...) x$numbers() |> as.matrix()
 
 zero_vector = function(labels) setNames(rep(0, length(labels)), labels)
