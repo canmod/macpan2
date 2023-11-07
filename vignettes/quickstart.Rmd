@@ -1,5 +1,5 @@
 ---
-title: "Quickstart Guide: specifying and simulating a simple compartmental model"
+title: "Quickstart part 1: understanding model specification in `macpan2`"
 output: 
   rmarkdown::html_vignette:
     toc: true
@@ -18,197 +18,165 @@ library(macpan2)
 ```
 
 
-# Motivation/nomenclature
+# Motivation
 
-- goal is to teach a user how models are specified in `macpan2` via a familiar and simple model
+A common approach to modelling is to start with a simple model and then expand and/or stratify as further complexity is needed. In reality, this process can be full of friction as one implements and re-implements the model for numerical simulation. One of the goals of `macpan2` is to provide a grammar for model specification that streamlines model expansion.
 
-`macpan2`'s model specification is extremely flexible, which is also what can make it difficult to learn to work with at first. The key is to understand that there is no built-in or prescribed method to perform simulations; for instance, when simulating a compartmental model, how each state variables is updated must be specified by the user. This can be difficult to 
+# Amuse bouche: a (simple) metapopulation SIR model
 
-- unstructured model = a pure epidemic compartmental model, where each state is only denoted using a disease status (_e.g._ $S$ = susceptible, $I$ = infected, etc.)
-- structured model = an epidemic model **crossed** with something else, like locations to generate a meta-population model or age groups to generate an age-stratified model
+- define model used in slides (ignoring contact matrices???)
+- point out that there is a lot of repetition
+- introduce the idea of calculation archetypes (formulas? patterns?) that get repeated
 
-As we explore the model specification for a simple, unstructured model in the [next section]{#SIR}, it will likely seem overly complicated at first. However, when we then expand this simple model to include more structure (stratification) [later](#SIR-age) may seem like overkill for a simple model, we will demonstrate later how the model specification can be used to quickly and efficiently generate a complicated, structured model by expanding a simple model
+`macpan2`'s flexibility is derived from the ability to identify calculation archetypes that may or may not be repeated throughout the model. For instance, consider the following simple metapopulation SIR model, cast as a system of difference equations (as is often the case when numerically simulating ordinary differential equation models): 
 
-# A simple, unstructured model {#SIR}
+[insert diagram with three cities and the same set of SIR difference equations within. note that we've simplified the usual metapop model by not considering movement between cities... does that make it an overly simple stratified model?? ugh, i dont know. maybe we would be better off with a model that has two forces of infection and explain calculation archetypes with that ??]
 
-We will start with the SIR model, which is the simplest epidemic model that is routinely used as a basis for much more complicated epidemic models. The SIR model is generally cast as a system of ordinary differential equations
-
-\begin{align}
-\frac{dS}{dt} &= -\beta S(t) I(t)/N, \\ 
-\frac{dI}{dt} &= \beta S(t) I(t)/N - \gamma I(t), \\ 
-\frac{dR}{dt} &= \gamma I(t),
-\label{eqn:SIR-ode}
-\end{align}
-
-where 
+[define states and rates with this diagram
 - $S$, $I$, and $R$ are the number of susceptible, infected, and recovered individuals, respectively,
 - $N$ is the total population size ($S + I + R$),
 - $\beta$ is the transmission rate,
 - $\gamma$ is the recovery rate.
+]
 
-For a system of ordinary differential equations, we assume time is continuous, but it will be more useful to think of the SIR model in terms of a system of difference equations (in discrete time) as that is how we will simulate it numerically:
+Each city has an infection flow, a recovery flow, and a force of infection that need to be computed for each time step in the numerical simulation of the model. But the **form** of each of these calculations is essentially the same! Instead of manually writing out each calculation, for instance as 
+
+```
+S.calgary[t+1] = - lambda.calgary * S.calgary[t]
+S.hamilton[t+1] = - lambda.hamilton * S.hamilton[t]
+S.quebec[t+1] = - lambda.quebec * S.quebec[t]
+```
+we will specify a single calculation archetype for it, for instance something like,
+```
+S[t+1] = -lambda * S[t]
+```
+and then attach information to the model object about which specific calculations to do under this archetype (one per city).
+
+# Appetizer: specifying the basic SIR model {#SIR}
+
+Let's start with the basic epidemic model being repeated across cities and learn how to specify that in `macpan2`. We will start with the SIR model, which is the simplest epidemic model that is routinely used as a basis for much more complicated epidemic models:
 
 \begin{align}
-S_{t+1} &= -\beta S_t I_t \\ 
-I_{t+1} &= \beta S_t I_t - \gamma I_t \\ 
-R_{t+1} &= \gamma I_t
+S_{t+1} &= -\beta S_t I_t/N, \\ 
+I_{t+1} &= \beta S_t I_t/N - \gamma I_t, \\ 
+R_{t+1} &= \gamma I_t.
 \label{eqn:SIR-difference}
 \end{align}
 
-Most flows in SIR-type compartmental models are of the form $rX$ where $r$ is a flow and $X$ is the name of the "from" compartment, that is the compartment from which the flow originates. These flows translate to 
-
-
-We call the rates $r$ in such terms **flow rates**, and we could re-cast (\ref{eqn:SIR-difference}) to be purely in terms of flow rates, by setting $\lambda = \beta I_t$:
+It will be helpful to set $\lambda = \beta I_t/N$ and recast the equations as:
 
 \begin{align}
-S_{t+1} &= -\lambda S_t \\ 
-I_{t+1} &= \lambda S_t - \gamma I_t \\ 
-R_{t+1} &= \gamma I_t
+S_{t+1} &= -\lambda S_t, \\ 
+I_{t+1} &= \lambda S_t - \gamma I_t, \\ 
+R_{t+1} &= \gamma I_t.
 \label{eqn:SIR-difference}
 \end{align}
 
-Now the model is stated purely in terms of the **flow rates** $\lambda$ and $\gamma$.^[In epidemic modelling, $\lambda$ is chosen suggestively as it models the [force of infection](https://en.wikipedia.org/wiki/Force_of_infection) denoted by the same character.] This framing enables us to start building our simulator.
+(In epidemic modelling, $\lambda$ is chosen suggestively as it models the [force of infection](https://en.wikipedia.org/wiki/Force_of_infection) denoted by the same character.)
 
-However, $\lambda$ is special from a simulation standpoint as it depends on a state variable ($I_t$), so it must be recomputed at every step of the simulation (unlike $\gamma$, which is generally fixed and chosen by the modeller when specifying the model). $\lambda$ also depends on $\beta$, which is what a modeller would actually want to specify. So we 
-
-In order to specify a model, we must first decide on the labels we will use for model components. For the SIR model (and most compartmental models), these components will be:
-
-- **States**: Names of the compartments.
-- **Flow rates**: Names of rates used in flow expressions of the form $rX$, where $r$ is the rate and $X$ is the "from" state---the state from which the flow originates. In the SIR model above, these would be $\gamma$ and $\lambda$.
-- **Influence rates**: Names of rates used in flow expressions that additionally include a state other than the "from" state, such as (but not limited to) those of the form $rYX$, where $r$ is the influence rate, $X$ is the "from" state and $Y$ is the "to" state. In the SIR model above, $\beta$ would be an influence rate.
-
-The distinction between flow and influence rates is not always made when working with compartmental epidemic models (_i.e._ $\beta$ is sometimes called a flow rate), but flow and influence rates are processed differently in `macpan2` for the purpose of simulating the model, and so we must also make this distinction when specifying the model.
-
-For the SIR model, the labels (_indices_) are generated as follows:
+The focus of this quickstart guide is to help a user begin to understand how models are specified using `macpan2`. The following function has been created to sweep some of the details of initializing an SIR model object under the rug (for now). Please ignore this function's definition on your first read and just understand that it will output a model object from which we can then build a simulator. In order to do that, we have to create each of the inputs of this function, which is what the rest of this section will be about.
 
 ```{r}
-state = mp_index(Epi = c("S", "I", "R"))
-flow_rates = mp_index(Epi = c("lambda", "gamma"))
-influence_rates = mp_index(Epi = "beta")
+## links between entries in the indexes -----------
+SIR_starter = function(
+  # indices for model quantities
+  state,
+  flow_rates,
+  # ledgers for calculation archetypes
+  infection,
+  recovery,
+  force_of_infection
+){
+  
+  ## Set up expressions list for each calculation archetype --------------
+  expr_list = mp_expr_list(
+    before = list(
+      ## aggregations
+        N ~ sum(state)
+    ),
+    during = list(
+      ## force of infections
+        flow_rates[infection_flow] ~
+          state[infectious_state] * flow_rates[rate] / N
+  
+      ## unsigned individual flows
+      , flows_per_time ~ state[from] * flow_rates[rate]
+  
+      ## state update
+      , total_inflow ~ groupSums(flows_per_time, to, state)
+      , total_outflow ~ groupSums(flows_per_time, from, state)
+      , state ~ state + total_inflow - total_outflow
+    )
+  )
+  
+  ## Ledgers for each specific calculation --------------
+  link_data = list(
+    flows = mp_link_data(infection, recovery),
+    fois = mp_link_data(force_of_infection)
+  )
+  
+  ## Initialize indexed vectors (to all zeros) --------------
+  # used as placeholders for user input
+  init_vecs = list(
+    state = mp_vector(state),
+    flow_rates = mp_vector(flow_rates)
+  )
+  
+  ## Initialize model object -----------------
+  DynamicModel(
+    expr_list = expr_list,
+    link_data = link_data,
+    init_vecs = init_vecs,
+    unstruc_mats = list()
+  )
+}
 ```
 
-We start by 
+Now that we have our equations, we can start by naming the main quantities used in specifying and simulating the model. Quantities are named using "indices", which you can think of for now as labels for each quantity:
+
+```{r}
+## indices (labels) for model quantities -------------------------
+
+state = mp_index(Epi = c("S", "I", "R"))
+flow_rates = mp_index(Epi = c("beta", "gamma", "lambda"))
+```
+
+You can think of the `mp_index()` fuction a setting up data frames with model quantity labels:
 
 ```{r}
 state
 ```
 
-# Stratifying a simple model with age structure {#SIR-age}
-
-# Interlude: simplifying model spec
-
-This is just me trying to see if we can simplify the model specification further to lower the barrier to entry.
-
-```{r model-working}
-expr_list = mp_expr_list(
-  before = list(
-    ## aggregations
-      N ~ sum(state)
-  ),
-  during = list(
-    ## influences
-      flow_rates[infection_flow] ~
-        state[infectious_state] * influence_rates[transmission] / N
-
-    ## flows
-    , flows_per_time ~ state[from] * flow_rates[edge]
-
-    ## state update
-    , total_inflow ~ groupSums(flows_per_time, to, state)
-    , total_outflow ~ groupSums(flows_per_time, from, state)
-    , state ~ state + total_inflow - total_outflow
-  )
-)
-
-## basic model indexes -------------------------
-
-state = mp_index(Epi = c("S", "I", "R"))
-# flow_rates = mp_index(Epi = c("lambda", "gamma", "beta"))
-flow_rates = mp_index(Epi = c("lambda", "gamma"))
-influence_rates = mp_index(Epi = "beta")
-
-## subset indexes -----------------
-
-S      = mp_subset(state, Epi = "S")
-I      = mp_subset(state, Epi = "I")
-R      = mp_subset(state, Epi = "R")
-lambda = mp_subset(flow_rates, Epi = "lambda")
-gamma  = mp_subset(flow_rates, Epi = "gamma")
-beta   = mp_subset(influence_rates, Epi = "beta")
-# beta   = mp_subset(flow_rates, Epi = "beta")
-
-## links between entries in the indexes -----------
-
-# flows_per_time ~ state[from] * flow_rates[edge]
-infection = mp_join(from = S, to = I, rate = lambda)
-recovery  = mp_join(from = I, to = R, rate = gamma)
-
-# flow_rates[infection_flow] ~
-#         state[infectious_state] * influence_rates[transmission] / N
-transmission =  mp_join(
-  infectious_state = I,
-  infection_flow = lambda,
-  transmission = beta
-)
-
-link_data = list(
-    influences = mp_link_data(transmission)
-  , flows = mp_link_data(infection, recovery)
-)
-
-## Initialize indexed vectors (to all zeros) --------------
-
-init_vecs = list(
-  state = mp_vector(state),
-  flow_rates = mp_vector(flow_rates),
-  influence_rates = mp_vector(influence_rates)
-)
-
-## Final output -----------------
-
-dynamic_model = DynamicModel(
-  expr_list = expr_list,
-  link_data = link_data,
-  init_vecs = init_vecs,
-  unstruc_mats = list()
-)
-
-sir_sim = mp_tmb_simulator(dynamic_model
-  , vectors = list(
-      state = c(S = 999, I = 1, R = 0),
-      flow_rates = c(lambda = NA, gamma = 0.1),
-      influence_rates = c(beta = 0.25)
-    )
-  , time_steps = 100L
-)
-
-sim.working = mp_report(sir_sim)
+```{r}
+flow_rates
 ```
 
-```{r model-edited}
-## indices (labels) for model quantities -------------------------
+(Ignore the column name `Epi` for now.)
 
-state = mp_index(Epi = c("S", "I", "R"))
-flow_rates = mp_index(Epi = c("beta", "gamma", "lambda"))
+In this model, we have three main calculation archetypes. In this case, we're thinking of calculation archetypes not as repeated calculations, but as calculations that a modeller may want to repeat down the line, as they expand the model. The archetypes are:
 
-## connect simulation calculations to indices -----------
+1. infection: flows between susceptible and infected classes
+2. recovery: flows between infected and recovered classes
+3. force of infection: prevalence-dependent rates involved in calculating infection flows
 
-# there are three main calculation archetypes in simulating the SIR model
-# that a modeller may want to have control over to expand later:
-# 1. infection: the flow between susceptible and infected classes (if there are multiple)
-# 2. recovery: the flow between infected and recovered classes
-# 3. force of infection: the prevalence-dependent rate involved in calculating infection above
+For each of these calculation archetypes, we need to write down a ledger cataloguing each specific calculation that uses each archetype. (Note that the SIR model is so simple that there will only be one infection flow calculation, one recovery flow calculation, and one force of infection calculation, but we will see later with a structured model that these ledgers give us the flexbility to easily expand a model without being redundant.)
 
-# for each of these calculation archetypes, we need to write down a ledger cataloguing each specific calculation
-# the SIR model is so simple that there will only be one infection flow calculation, one recovery flow calculation, and one force of infection calculation, but we will see with a structured model that these ledgers give us the flexbility to easily expand a model without being redundant
+We start by creating the infection ledger:
 
-# infection
+```{r}
+# infection ledger
 infection = mp_join(
   from = mp_subset(state, Epi = "S"),
   to = mp_subset(state, Epi = "I"), 
   rate = mp_subset(flow_rates, Epi = "lambda")
 )
+```
 
+- explain what the `mp_join()` function is doing (at a high level)... mention that the argument names are flexible an depend on how the calculation archetypes are specified, but we should ignore this for now.
+
+Then we create the remaining ledgers:
+
+```{r}
 # recovery
 recovery  = mp_join(
   from = mp_subset(state, Epi = "I"),
@@ -222,72 +190,22 @@ force_of_infection = mp_join(
   infectious_state = mp_subset(state, Epi = "I"),
   rate = mp_subset(flow_rates, Epi = "beta")
 )
+```
 
-## links between entries in the indexes -----------
-SIR_starter = function(
-  # indices for model quantities
-  state,
-  flow_rates,
-  # ledgers for calculation archetypes
-  infection,
-  recovery,
-  force_of_infection
-){
-  
-  link_data = list(
-    flows = mp_link_data(infection, recovery),
-    fois = mp_link_data(force_of_infection)
-  )
-  
-  ## Initialize indexed vectors (to all zeros) --------------
-  
-  init_vecs = list(
-    state = mp_vector(state),
-    flow_rates = mp_vector(flow_rates)
-  )
-  
-  ## Set up expressions list --------------
-  expr_list = mp_expr_list(
-    before = list(
-      ## aggregations
-        N ~ sum(state)
-    ),
-    during = list(
-      ## influences
-        flow_rates[infection_flow] ~
-          state[infectious_state] * flow_rates[rate] / N
-  
-      ## flows
-      , flows_per_time ~ state[from] * flow_rates[rate]
-  
-      ## state update
-      , total_inflow ~ groupSums(flows_per_time, to, state)
-      , total_outflow ~ groupSums(flows_per_time, from, state)
-      , state ~ state + total_inflow - total_outflow
-    )
-  )
-  
-  ## Final output -----------------
-  
-  DynamicModel(
-    expr_list = expr_list,
-    link_data = link_data,
-    init_vecs = init_vecs,
-    unstruc_mats = list()
-  )
-}
+Now we can use the `SIR_starter()` function to initialize our model object:
 
+```{r}
 model = SIR_starter(
   state,
   flow_rates,
   infection,
   recovery,
-  transmission
+  force_of_infection
 )
+```
 
-
-
-sir_sim_edited = mp_tmb_simulator(model
+```{r}
+sir_simulator = mp_tmb_simulator(model
   , vectors = list(
       state = c(S = 999, I = 1, R = 0),
       flow_rates = c(beta = 0.25, gamma = 0.1, lambda = NA)
@@ -295,17 +213,13 @@ sir_sim_edited = mp_tmb_simulator(model
   , time_steps = 100L
 )
 
-sim.edited = mp_report(sir_sim_edited)
+sim_report = mp_report(sir_simulator)
 ```
 
-```{r}
-uniformize = function(sim){
-  (sim
-   |> dplyr::filter(matrix == "state"))
-}
+# Main course: expanding the basic SIR into a metapopulation SIR
 
-waldo::compare(uniformize(sim.working), 
-               uniformize(sim.edit))
-```
+- here is where we see the power of macpan
 
+# Desert: understanding model simulation in `macpan2`
 
+- follow up vignette, tentative title: "Quickstart part 2: understanding model simulation in `macpan2`"
