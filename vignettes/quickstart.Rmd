@@ -11,9 +11,9 @@ editor_options:
   chunk_output_type: console
 ---
 
-[![status](https://img.shields.io/badge/status-stub-red)](https://canmod.github.io/macpan2/articles/vignette-status#stub)
+[![status](https://img.shields.io/badge/status-working%20draft-red)](https://canmod.github.io/macpan2/articles/vignette-status#working-draft)
 
-```{r setup, echo = FALSE}
+```{r setup, echo = FALSE, message = FALSE}
 library(macpan2)
 library(ggplot2)
 library(dplyr)
