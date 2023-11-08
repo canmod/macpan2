@@ -15,6 +15,8 @@ editor_options:
 
 ```{r setup, echo = FALSE}
 library(macpan2)
+library(ggplot2)
+library(dplyr)
 ```
 
 
@@ -97,7 +99,7 @@ SIR_starter = function(
     during = list(
       ## force of infections
         flow_rates[infection_flow] ~
-          state[infectious_state] * flow_rates[rate] / N
+          state[infectious_state] * flow_rates[trans_rate] / N
   
       ## unsigned individual flows
       , flows_per_time ~ state[from] * flow_rates[rate]
@@ -126,8 +128,7 @@ SIR_starter = function(
   DynamicModel(
     expr_list = expr_list,
     link_data = link_data,
-    init_vecs = init_vecs,
-    unstruc_mats = list()
+    init_vecs = init_vecs
   )
 }
 ```
@@ -188,9 +189,74 @@ recovery  = mp_join(
 force_of_infection = mp_join(
   infection_flow = mp_subset(flow_rates, Epi = "lambda"),
   infectious_state = mp_subset(state, Epi = "I"),
-  rate = mp_subset(flow_rates, Epi = "beta")
+  trans_rate = mp_subset(flow_rates, Epi = "beta")
 )
 ```
+
+Note that in the infection and recovery flow ledgers we used `rate` as the name of the third index, but in the force of infection we have used `trans_rate`. Each set of ledgers must use unique names because they are accessed globally during model simulation do extract elements from particular vectors, and if the same name is used for two vectors of different length the spec will not make sense.
+
+- TODO: Clean up this last paragraph
+- TODO: Give a more informative error message when the same name is used !!
+
+Aside for Irena to explain what happened with naming.
+```{r, eval=FALSE}
+## copied from func above
+ld = link_data = list(
+  flows = mp_link_data(infection, recovery),
+  fois = mp_link_data(force_of_infection)
+)
+
+## get the position vectors that will be passed to c++
+## (but with one-based indexing for sanity in R 
+## -- c++ uses zero-based)
+(flow_pos = ld$flows$positions_frame(zero_based = FALSE))
+(fois_pos = ld$fois$positions_frame(zero_based = FALSE))
+
+## get the vectors from which we will extract
+s = c(S = 999, I = 1, R = 0)
+r = c(beta = 0.25, gamma = 0.1, lambda = NA)
+
+## we can reconstruct the edge matrix:
+edge = data.frame(
+  from = s[flow_pos$from],
+  to = s[flow_pos$to],
+  rate = r[flow_pos$rate]
+)
+print(edge)
+
+## and the 'transmission-edge' matrix:
+edge_trans = data.frame(
+  state = s[fois_pos$infectious_state],
+  flow = s[fois_pos$infection_flow],
+  trans = r[fois_pos$trans_rate]
+)
+print(edge_trans)
+
+## but if we tried to do this using `flow_pos$rate` instead 
+## of `fois_pos$trans_rate` we would get a warning 
+## (but a bad one!) because the vectors don't line up as 
+## they need to to form a data frame.
+data.frame(
+  state = s[fois_pos$infectious_state],
+  flow = s[fois_pos$infection_flow],
+  trans = r[flow_pos$rate]
+)
+```
+
+- On the R-side we have these lists and so we could clearly
+distinguish between `flow_pos$rate` and `fois_pos$rate`,
+but on the C-side we have to (for now at least!) names
+and not names-in-lists. but more to the point, in the archetypes (awesome name) we have:
+```
+  ## force of infections
+    flow_rates[infection_flow] ~
+      state[infectious_state] * flow_rates[trans_rate] / N
+  
+  ## unsigned individual flows
+  , flows_per_time ~ state[from] * flow_rates[rate]
+```
+- This `trans_rate` and `rate`, as we saw, are just completely different integer vectors. If we gave them the same name, one would overwrite the other, and the specific formulas in the archetypes would just not line up correctly.
+
 
 Now we can use the `SIR_starter()` function to initialize our model object:
 
@@ -214,6 +280,12 @@ sir_simulator = mp_tmb_simulator(model
 )
 
 sim_report = mp_report(sir_simulator)
+(sim_report
+  |> filter(matrix == "state")
+  |> mutate(state = factor(row, levels = c("S", "I", "R")))
+  |> ggplot(aes(time, value, colour = state))
+  +  geom_line()
+)
 ```
 
 # Main course: expanding the basic SIR into a metapopulation SIR
