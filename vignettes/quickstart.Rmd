@@ -19,12 +19,13 @@ library(ggplot2)
 library(dplyr)
 ```
 
+[change "link_data" to "ledgers" in `mp_*()` API]
 
 # Motivation
 
 A common approach to modelling is to start with a simple model and then expand and/or stratify as further complexity is needed. In reality, this process can be full of friction as one implements and re-implements the model for numerical simulation. One of the goals of `macpan2` is to provide a grammar for model specification that streamlines model expansion.
 
-# Amuse bouche: a (simple) metapopulation SIR model
+# Amuse bouche: a structured SIR model {#amuse-bouche}
 
 - define model used in slides (ignoring contact matrices???)
 - point out that there is a lot of repetition
@@ -32,17 +33,21 @@ A common approach to modelling is to start with a simple model and then expand a
 
 `macpan2`'s flexibility is derived from the ability to identify calculation archetypes that may or may not be repeated throughout the model. For instance, consider the following simple metapopulation SIR model, cast as a system of difference equations (as is often the case when numerically simulating ordinary differential equation models): 
 
-[insert diagram with three cities and the same set of SIR difference equations within. note that we've simplified the usual metapop model by not considering movement between cities... does that make it an overly simple stratified model?? ugh, i dont know. maybe we would be better off with a model that has two forces of infection and explain calculation archetypes with that ??]
+[insert diagram of SIR with symptom strata, remark that we could be considering much more complicated structure]
 
-[define states and rates with this diagram
+[define states and rates with this diagram]
+
 - $S$, $I$, and $R$ are the number of susceptible, infected, and recovered individuals, respectively,
+
 - $N$ is the total population size ($S + I + R$),
+
 - $\beta$ is the transmission rate,
+
 - $\gamma$ is the recovery rate.
-]
 
-Each city has an infection flow, a recovery flow, and a force of infection that need to be computed for each time step in the numerical simulation of the model. But the **form** of each of these calculations is essentially the same! Instead of manually writing out each calculation, for instance as 
+Each infectious state is associated with a different force of infection (FOI) that need to be computed for each time step in the numerical simulation of the model. But the **form** of each FOI calculation is essentially the same! Instead of manually writing out each calculation, for instance as 
 
+[redo below]
 ```
 S.calgary[t+1] = - lambda.calgary * S.calgary[t]
 S.hamilton[t+1] = - lambda.hamilton * S.hamilton[t]
@@ -52,9 +57,11 @@ we will specify a single calculation archetype for it, for instance something li
 ```
 S[t+1] = -lambda * S[t]
 ```
-and then attach information to the model object about which specific calculations to do under this archetype (one per city).
+and then attach a "ledger" to the model object that tabulates which specific calculations to do under this archetype. In this case, we would have one infection calculation per city.
 
-# Appetizer: specifying the basic SIR model {#SIR}
+[not that impressive with this simple example with infection strata, but you can imagine if you have 10 age groups and you want to repeat the force of infection for each of them, you're actually calculating 100 forces of infection (one for each combination of age groups), this repetition gets pretty rote!]
+
+# Appetizer: specifying the basic SIR model
 
 Let's start with the basic epidemic model being repeated across cities and learn how to specify that in `macpan2`. We will start with the SIR model, which is the simplest epidemic model that is routinely used as a basis for much more complicated epidemic models:
 
@@ -62,7 +69,6 @@ Let's start with the basic epidemic model being repeated across cities and learn
 S_{t+1} &= -\beta S_t I_t/N, \\ 
 I_{t+1} &= \beta S_t I_t/N - \gamma I_t, \\ 
 R_{t+1} &= \gamma I_t.
-\label{eqn:SIR-difference}
 \end{align}
 
 It will be helpful to set $\lambda = \beta I_t/N$ and recast the equations as:
@@ -71,19 +77,18 @@ It will be helpful to set $\lambda = \beta I_t/N$ and recast the equations as:
 S_{t+1} &= -\lambda S_t, \\ 
 I_{t+1} &= \lambda S_t - \gamma I_t, \\ 
 R_{t+1} &= \gamma I_t.
-\label{eqn:SIR-difference}
 \end{align}
 
 (In epidemic modelling, $\lambda$ is chosen suggestively as it models the [force of infection](https://en.wikipedia.org/wiki/Force_of_infection) denoted by the same character.)
 
-The focus of this quickstart guide is to help a user begin to understand how models are specified using `macpan2`. The following function has been created to sweep some of the details of initializing an SIR model object under the rug (for now). Please ignore this function's definition on your first read and just understand that it will output a model object from which we can then build a simulator. In order to do that, we have to create each of the inputs of this function, which is what the rest of this section will be about.
+The focus of this quickstart guide is to help a user begin to understand how models are specified using `macpan2`. We have defined an `SIR_starter()` function to sweep some of the details of initializing a model object under the rug (for now, though we will revisit it [later](#dessert)). All you need to know about `SIR_starter()` at this stage is that we will pass it some inputs to define the model and it will output a model object from which we can build a simulator. Our focus for the remainder of this vignette will be how the inputs to `SIR_starter()` are created.
 
-```{r}
-## links between entries in the indexes -----------
+```{r SIR-starter, echo = FALSE}
+## helper function to simplify the exposition in this vigette -----------
 SIR_starter = function(
   # indices for model quantities
   state,
-  flow_rates,
+  rate,
   # ledgers for calculation archetypes
   infection,
   recovery,
@@ -98,30 +103,30 @@ SIR_starter = function(
     ),
     during = list(
       ## force of infections
-        flow_rates[infection_flow] ~
-          state[infectious_state] * flow_rates[trans_rate] / N
+        rate[infection_flow_rates] ~
+          state[infectious_states] * rate[transmission_rates] / N
   
       ## unsigned individual flows
-      , flows_per_time ~ state[from] * flow_rates[rate]
+      , flow_per_time ~ state[from_states] * rate[flow_rates]
   
       ## state update
-      , total_inflow ~ groupSums(flows_per_time, to, state)
-      , total_outflow ~ groupSums(flows_per_time, from, state)
+      , total_inflow ~ groupSums(flow_per_time, to_states, state)
+      , total_outflow ~ groupSums(flow_per_time, from_states, state)
       , state ~ state + total_inflow - total_outflow
     )
   )
   
   ## Ledgers for each specific calculation --------------
   link_data = list(
-    flows = mp_link_data(infection, recovery),
-    fois = mp_link_data(force_of_infection)
+    flow = mp_link_data(infection, recovery),
+    force_of_infection = mp_link_data(force_of_infection)
   )
   
   ## Initialize indexed vectors (to all zeros) --------------
   # used as placeholders for user input
   init_vecs = list(
     state = mp_vector(state),
-    flow_rates = mp_vector(flow_rates)
+    rate = mp_vector(rate)
   )
   
   ## Initialize model object -----------------
@@ -133,165 +138,309 @@ SIR_starter = function(
 }
 ```
 
-Now that we have our equations, we can start by naming the main quantities used in specifying and simulating the model. Quantities are named using "indices", which you can think of for now as labels for each quantity:
+The inputs to `SIR_starter()` are of two types:
+- **indices** (labels) for model quantities, 
+- **ledgers** that tabulate specific calculations required to simulate the model equations (based on the included calculation archetypes).
+
+The **indices** we need to specify fall into two groups:
+- `state`: state names, $S$, $I$, and $R$ from the model equations
+- `rate`: rate names, $\beta$, $\gamma$, and the derived rate $\lambda$
+
+We have identified three useful calculation archetypes that we have baked into `SIR_starter()`. In this case, we're thinking of calculation archetypes not as repeated calculations in this particular model, but as calculations that a modeller may want to repeat down the line, as they expand this simple model with additional structure (as we will do [below](#main-course)). The archetypes are:
+
+- `infection`, the flow from susceptible classes to infectious classes at some rate
+- `recovery`, the flow from infectious classes to recovered classes at some rate
+- `force_of_infection`, the prevalence-dependent per capita rate of flow from susceptible classes to infectious classes, used in calculating the `infection` flow
+
+For each of these archetypes, we need to write down a ledger cataloging each specific calculation that uses each archetype. (The SIR model is so simple that there will only be one specific calculation per archetype, but we will see [later](#main-course) that these ledgers give us the flexibility to easily expand a model while avoiding cumbersome redundancy.)
+
+We start by creating the `state` and `rate` indices:
 
 ```{r}
 ## indices (labels) for model quantities -------------------------
-
 state = mp_index(Epi = c("S", "I", "R"))
-flow_rates = mp_index(Epi = c("beta", "gamma", "lambda"))
+rate = mp_index(Epi = c("beta", "gamma", "lambda"))
 ```
 
-You can think of the `mp_index()` fuction a setting up data frames with model quantity labels:
+You can think of the `mp_index()` function a setting up data frames tabulating the model quantity labels:
 
 ```{r}
 state
 ```
 
 ```{r}
-flow_rates
+rate
 ```
 
-(Ignore the column name `Epi` for now.)
+The `Epi` column name is not really useful in this simple model, but it will be key to stratifying model quantities with different features (such as epidemiological status, infection type, age group, location) in more complicated models.
 
-In this model, we have three main calculation archetypes. In this case, we're thinking of calculation archetypes not as repeated calculations, but as calculations that a modeller may want to repeat down the line, as they expand the model. The archetypes are:
+For the ledgers, the `infection` and `recovery` ledgers are tied to the same calculation archetype, which requires one to specify flows using a from state (`from_states`), a to state (`to_states`), and a flow rate name (`flow_rates`).
 
-1. infection: flows between susceptible and infected classes
-2. recovery: flows between infected and recovered classes
-3. force of infection: prevalence-dependent rates involved in calculating infection flows
-
-For each of these calculation archetypes, we need to write down a ledger cataloguing each specific calculation that uses each archetype. (Note that the SIR model is so simple that there will only be one infection flow calculation, one recovery flow calculation, and one force of infection calculation, but we will see later with a structured model that these ledgers give us the flexbility to easily expand a model without being redundant.)
-
-We start by creating the infection ledger:
+We use the `mp_join()` function to create the `infection` ledger like so:
 
 ```{r}
 # infection ledger
 infection = mp_join(
-  from = mp_subset(state, Epi = "S"),
-  to = mp_subset(state, Epi = "I"), 
-  rate = mp_subset(flow_rates, Epi = "lambda")
+  from_states = mp_subset(state, Epi = "S"),
+  to_states = mp_subset(state, Epi = "I"), 
+  flow_rates = mp_subset(rate, Epi = "lambda")
 )
 ```
 
-- explain what the `mp_join()` function is doing (at a high level)... mention that the argument names are flexible an depend on how the calculation archetypes are specified, but we should ignore this for now.
+The `mp_join()` function takes the options provided in each argument `from_states`, `to_states`, and `flow_rates`, namely
 
-Then we create the remaining ledgers:
+```{r}
+mp_subset(state, Epi = "S")
+```
+
+```{r}
+mp_subset(state, Epi = "I")
+```
+
+and
+
+```{r}
+mp_subset(rate, Epi = "lambda")
+```
+
+and by default creates one entry in the ledger for each combination of these values (_i.e._,  "[full join](https://dplyr.tidyverse.org/reference/mutate-joins.html#outer-joins)"). However, since there is only one value in each column, there is only one entry in the resulting ledger in this case!
+
+```{r}
+infection
+```
+
+As a side note, the names of the arguments in the `mp_join()` function are tied to the calculation archetypes baked into `SIR_starter()`, but in general they are completely up to the modeller and how they choose to specify their calculation archetypes.^[There is only one `mp_join()` argument name that is not available to the user, and that is `by`, which has a special role that we will see [later](#main-course).]
+
+Since the `recovery` ledger uses the same calculation archetype as `infection`, we create it in much the same way:
 
 ```{r}
 # recovery
 recovery  = mp_join(
-  from = mp_subset(state, Epi = "I"),
-  to = mp_subset(state, Epi = "R"),
-  rate = mp_subset(flow_rates, Epi = "gamma")
+  from_states = mp_subset(state, Epi = "I"),
+  to_states = mp_subset(state, Epi = "R"),
+  flow_rates = mp_subset(rate, Epi = "gamma")
 )
 
+recovery
+```
+
+Finally, the `force_of_infection` ledger is slightly different as it corresponds to a different calculation archetype in `SIR_starter()` (so the `mp_join()` argument names are different):
+
+```{r}
 # infection additionally involves the calculation of a force of infection
 force_of_infection = mp_join(
-  infection_flow = mp_subset(flow_rates, Epi = "lambda"),
-  infectious_state = mp_subset(state, Epi = "I"),
-  trans_rate = mp_subset(flow_rates, Epi = "beta")
+  infectious_states = mp_subset(state, Epi = "I"),
+  transmission_rates = mp_subset(rate, Epi = "beta"),
+  infection_flow_rates = mp_subset(rate, Epi = "lambda")
 )
 ```
 
-Note that in the infection and recovery flow ledgers we used `rate` as the name of the third index, but in the force of infection we have used `trans_rate`. Each set of ledgers must use unique names because they are accessed globally during model simulation do extract elements from particular vectors, and if the same name is used for two vectors of different length the spec will not make sense.
-
-- TODO: Clean up this last paragraph
-- TODO: Give a more informative error message when the same name is used !!
-
-Aside for Irena to explain what happened with naming.
-```{r, eval=FALSE}
-## copied from func above
-ld = link_data = list(
-  flows = mp_link_data(infection, recovery),
-  fois = mp_link_data(force_of_infection)
-)
-
-## get the position vectors that will be passed to c++
-## (but with one-based indexing for sanity in R 
-## -- c++ uses zero-based)
-(flow_pos = ld$flows$positions_frame(zero_based = FALSE))
-(fois_pos = ld$fois$positions_frame(zero_based = FALSE))
-
-## get the vectors from which we will extract
-s = c(S = 999, I = 1, R = 0)
-r = c(beta = 0.25, gamma = 0.1, lambda = NA)
-
-## we can reconstruct the edge matrix:
-edge = data.frame(
-  from = s[flow_pos$from],
-  to = s[flow_pos$to],
-  rate = r[flow_pos$rate]
-)
-print(edge)
-
-## and the 'transmission-edge' matrix:
-edge_trans = data.frame(
-  state = s[fois_pos$infectious_state],
-  flow = s[fois_pos$infection_flow],
-  trans = r[fois_pos$trans_rate]
-)
-print(edge_trans)
-
-## but if we tried to do this using `flow_pos$rate` instead 
-## of `fois_pos$trans_rate` we would get a warning 
-## (but a bad one!) because the vectors don't line up as 
-## they need to to form a data frame.
-data.frame(
-  state = s[fois_pos$infectious_state],
-  flow = s[fois_pos$infection_flow],
-  trans = r[flow_pos$rate]
-)
-```
-
-- On the R-side we have these lists and so we could clearly
-distinguish between `flow_pos$rate` and `fois_pos$rate`,
-but on the C-side we have to (for now at least!) names
-and not names-in-lists. but more to the point, in the archetypes (awesome name) we have:
-```
-  ## force of infections
-    flow_rates[infection_flow] ~
-      state[infectious_state] * flow_rates[trans_rate] / N
-  
-  ## unsigned individual flows
-  , flows_per_time ~ state[from] * flow_rates[rate]
-```
-- This `trans_rate` and `rate`, as we saw, are just completely different integer vectors. If we gave them the same name, one would overwrite the other, and the specific formulas in the archetypes would just not line up correctly.
-
+For this calculation archetype, we need to specify the `transmission_rates` and `infectious_states` involved in computing the force of infection, as well as the names where we want to store the results of this calculation (`infection_flow_rates`) for use in the `infection` flow calculations. 
 
 Now we can use the `SIR_starter()` function to initialize our model object:
 
 ```{r}
 model = SIR_starter(
   state,
-  flow_rates,
+  rate,
   infection,
   recovery,
   force_of_infection
 )
 ```
 
-```{r}
-sir_simulator = mp_tmb_simulator(model
-  , vectors = list(
-      state = c(S = 999, I = 1, R = 0),
-      flow_rates = c(beta = 0.25, gamma = 0.1, lambda = NA)
-    )
-  , time_steps = 100L
-)
+We can create a model simulator using `mp_tmb_simulator()`, provided we give it the model object (`model`), initial values for the states and rates (`vectors`), as well as the number of total time steps in the simulation (`time_steps`):
 
-sim_report = mp_report(sir_simulator)
-(sim_report
-  |> filter(matrix == "state")
-  |> mutate(state = factor(row, levels = c("S", "I", "R")))
+```{r}
+sir_simulator = mp_tmb_simulator(
+  model,
+  vectors = list(
+    state = c(S = 999, I = 1, R = 0),
+    rate = c(beta = 0.25, gamma = 0.1, lambda = NA)
+  ),
+  time_steps = 100L
+)
+```
+
+Then we can actually simulate the model by passing our model simulator to `mp_report()`:
+
+```{r}
+sir_results = mp_report(sir_simulator)
+```
+
+The output of the simulation is a [long data frame](https://r4ds.had.co.nz/tidy-data.html#longer) that can easily be manipulated and plotted with standard tools, like `dplyr` and `ggplot2`:
+
+```{r}
+(sir_results
+  |> filter(matrix == "state") # keep state variables at each point in time
+  |> mutate(state = factor(row, levels = c("S", "I", "R"))) # to enforce logical state ordering in plot
   |> ggplot(aes(time, value, colour = state))
   +  geom_line()
 )
 ```
 
-# Main course: expanding the basic SIR into a metapopulation SIR
+(Above, we used the [base R pipe operator](https://www.tidyverse.org/blog/2023/04/base-vs-magrittr-pipe/#pipes), `|>`.)
+
+If you want to use base R for plotting, you can convert the long format data to wide format:
+
+```{r pivot_wider}
+sir_results_wide <- (sir_results
+    ## drop 'matrix' (has only a single value) and 'col' (empty)
+    |> dplyr::select(-c(matrix, col))
+    |> tidyr::pivot_wider(id_cols = time, names_from = row)
+)
+
+head(sir_results_wide, n = 3)
+```
+
+```{r base_plot_ex, fig.width = 6}
+with(sir_results_wide,
+     plot(x = time,
+          y = I)
+)
+```
+
+or
+
+```{r base_matplot_ex, fig.width = 6}
+par(las = 1) ## horizontal y-axis ticks
+matplot(sir_results_wide[, 1],
+        sir_results_wide[,-1],
+        type = "l",
+        log = "y",
+        xlab = "time", ylab = "")
+# legend("bottom", col = 1:3, lty = 1:3, legend = model$labels$state())
+```
+
+# Main course: expanding the basic SIR into a metapopulation SIR {#main-course}
 
 - here is where we see the power of macpan
+- re-write the equations with stratified symptom statuses and point out the repetition of the FOI term form. We already have a calculation archetype for this baked into `SIR_starter()`! Let's leverage that.
 
-# Desert: understanding model simulation in `macpan2`
+- expand the states and rates to include infecteds stratified by symptom status
+
+```{r}
+# new indices for infection type
+# (asymptomatic and symptomatic)
+InfType_indices = c("asymp", "symp")
+```
+
+```{r}
+state = mp_union(
+  # stratify I by infection type
+  # asymptomatic and symptomatic
+  mp_cartesian(
+    mp_subset(state, Epi = "I"),
+    mp_index(InfType = InfType_indices)
+  ),
+  # keep S and R as before
+  mp_subset(state, Epi = c("S", "R"))
+)
+```
+
+explain `mp_cartesian()`, mention other types of products?
+
+```{r}
+rate = 
+  mp_union(
+  # stratify rates involved in the infection
+  # process by infection type
+  mp_cartesian(
+    mp_subset(rate, Epi = c("beta", "lambda")),
+    mp_index(InfType = InfType_indices)
+  ),
+  # recovery rate will be the same across symptom types
+  mp_subset(rate, Epi = "gamma")
+)
+```
+
+- maybe overkill to do it this way, easy to write out states and rates here by hand, but you can imagine if you have many more states or many more rates or many more desired strata that this way is very powerful.
+
+- redo ledgers with stratification
+- start with infection join
+- if we just do the join as before...
+
+```{r}
+# infection ledger from before
+mp_join(
+  from_states = mp_subset(state, Epi = "S"),
+  to_states = mp_subset(state, Epi = "I"), 
+  flow_rates = mp_subset(rate, Epi = "lambda")
+)
+```
+
+We get infection flows with all possible combinations between the `from_states`, the `to_states`, and the `flow_rates` (the full join). However, for this model, we only want two of these flows:
+
+- a flow between `S` and `I.asymp` with flow rate `lambda.asymp`
+- a flow between `S` and `I.symp` with flow rate `lambda.symp`
+
+In other words, we want the `InfType` index on `I` to match with the `InfType` index on `lambda`. We can specify this within `mp_join()` when building the ledger like so:
+
+```{r}
+# new infection ledger
+infection = mp_join(
+  from_states = mp_subset(state, Epi = "S"),
+  to_states = mp_subset(state, Epi = "I"), 
+  flow_rates = mp_subset(rate, Epi = "lambda"),
+  by = list(
+    to_states.flow_rates = "InfType"
+  )
+)
+
+infection
+```
+
+- explain what the `mp_join()` function is doing (at a high level)... mention that the argument names are flexible an depend on how the calculation archetypes are specified, but we should ignore this for now.
+- explain `by` syntax and how the dot concatenation needs to be pairwise
+
+Then we create the recovery ledger:
+
+```{r}
+recovery =
+  mp_join(
+  from_states = mp_subset(state, Epi = "I"),
+  to_states = mp_subset(state, Epi = "R"),
+  flow_rates = mp_subset(rate, Epi = "gamma")
+)
+recovery
+```
+
+This is exactly the code as before for the recovery ledger, and it's what we want (same recovery rate for both infectious classes).
+
+Finally, for the force of infection ledger, the previous version yields a full join again:
+
+```{r}
+mp_join(
+  infection_flow_rates = mp_subset(rate, Epi = "lambda"),
+  infectious_states = mp_subset(state, Epi = "I"),
+  transmission_rates = mp_subset(rate, Epi = "beta")
+)
+```
+
+For this model, we want the infectious states and the transmission rates to be matched up on the `InfType` index, but we want each `I` and `beta` pair to be used in all `lambda` expressions, so we do:
+
+```{r}
+force_of_infection = mp_join(
+  infection_flow_rates = mp_subset(rate, Epi = "lambda"),
+  infectious_states = mp_subset(state, Epi = "I"),
+  transmission_rates = mp_subset(rate, Epi = "beta"),
+  by = list(
+    infectious_states.transmission_rates = "InfType"
+  )
+)
+force_of_infection
+```
+
+# Dessert: understanding model simulation in `macpan2` {#desert}
 
 - follow up vignette, tentative title: "Quickstart part 2: understanding model simulation in `macpan2`"
+- set of ledgers are associated with a set of archetypes, column names need to match across these paired sets of ledgers and archetypes, but between the paired sets, columns names to be unique 
+
+explain that we will explain:
+
+```{r}
+<<SIR-starter>>
+```
+
+
+
