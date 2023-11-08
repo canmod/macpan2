@@ -19,51 +19,74 @@ library(ggplot2)
 library(dplyr)
 ```
 
-[change "link_data" to "ledgers" in `mp_*()` API]
+[
+
+- change "link_data" to "ledgers" in `mp_*()` API
+- consolidate spec in examples with steve's presentation
+
+]
 
 # Motivation
 
-A common approach to modelling is to start with a simple model and then expand and/or stratify as further complexity is needed. In reality, this process can be full of friction as one implements and re-implements the model for numerical simulation. One of the goals of `macpan2` is to provide a grammar for model specification that streamlines model expansion.
+One of the main goals of `macpan2` is to provide a flexible grammar for model specification that reduces friction when build upon and expanding an existing model. This goal complements the standard approach of modelling, which is to start simply and add complexity as needed. 
+
+There is a trade-off between the flexibility and the simplicity of the model grammar: specifying a simple model may not always be very concise, and there is a learning curve to the model grammar. However, it can be very powerful when it comes to specifying **structured** models, such as models including:
+
+- age-structure
+- multiple locations (a metapopulation model)
+- strain replacement
+- testing processes to identify infections
+- vaccination status
+- infection types (asymptomatic, symptomatic)
+
+[add links to papers with these?]
+
+This vignette seeks to explain `macpan2`'s model specification grammar and in particular how one could take a simple model and expand it with additional structure. The package also comes with a model library (see `vignette("example_models")`) to get users started with commonly used basic models, and to demonstrate some more complex cases. 
 
 # Amuse bouche: a structured SIR model {#amuse-bouche}
 
-- define model used in slides (ignoring contact matrices???)
-- point out that there is a lot of repetition
-- introduce the idea of calculation archetypes (formulas? patterns?) that get repeated
+[i'm now worried that this model is _too_ simple (there are actually only two component FOIs because we're not crossing with different types of susceptibles, like when we have age structure or a metapopulation...) perhaps a two-age-group model would be better? but then you have to deal with subpopulation sizes and contact matrix terms, so more names...? i don't know, maybe this is OK. let's see how an updated [main course](#main-course) section looks]
 
-`macpan2`'s flexibility is derived from the ability to identify calculation archetypes that may or may not be repeated throughout the model. For instance, consider the following simple metapopulation SIR model, cast as a system of difference equations (as is often the case when numerically simulating ordinary differential equation models): 
+A key to `macpan2`'s flexible model grammar is the use of **archetypes** to repeat the same kinds of calculation across model structures. For instance, consider an SIR model that has two infection states:
 
-[insert diagram of SIR with symptom strata, remark that we could be considering much more complicated structure]
+[insert diagram of SIR with symptom strata]
 
-[define states and rates with this diagram]
+Here, 
 
-- $S$, $I$, and $R$ are the number of susceptible, infected, and recovered individuals, respectively,
+- $S$, $I_a$, $I_s$, and $R$ are the number of susceptible, asymptomatic infectious, symptomatic infectious, and recovered individuals, respectively,
+- $\beta_a$ and $\beta_s$ are the transmission rates for asymptomatic and symptomatic individuals, respectively, reflecting that symptom status can affect the infectiousness of individuals,
+- $\gamma$ is the recovery rate for all infecteds.
 
-- $N$ is the total population size ($S + I + R$),
+We can cast this model as a system of difference equations:
 
-- $\beta$ is the transmission rate,
+\begin{align}
+S_{t+1} &= - [\beta_a (I_a)_t/N - \beta_s (I_s)_t/N] S_t, \\ 
+(I_a)_{t+1} &= (1-\sigma)[\beta_a (I_a)_t/N - \beta_s (I_s)_t/N] S_t - \gamma (I_a)_t, \\ 
+(I_s)_{t+1} &= \sigma[\beta_a (I_a)_t/N - \beta_s (I_s)_t/N] S_t - \gamma (I_s)_t, \\ 
+R_{t+1} &= \gamma (I_a)_t + \gamma (I_s)_t.
+\end{align}
 
-- $\gamma$ is the recovery rate.
+where $\sigma$ is severity (proportion of symptomatic infections) and $N$ is the total population size ($S + I_a + I_s + R$). We notice that each force of infection, $\lambda_a = \beta_a (I_a)/N$ and  $\lambda_s = \beta_s (I_s)/N$ has the same **form**, that is, using an expression like $\lambda = \beta I / N$.
 
-Each infectious state is associated with a different force of infection (FOI) that need to be computed for each time step in the numerical simulation of the model. But the **form** of each FOI calculation is essentially the same! Instead of manually writing out each calculation, for instance as 
+When numerically simulating this model, it doesn't take much effort to write out each calculation separately as something like:
 
-[redo below]
 ```
-S.calgary[t+1] = - lambda.calgary * S.calgary[t]
-S.hamilton[t+1] = - lambda.hamilton * S.hamilton[t]
-S.quebec[t+1] = - lambda.quebec * S.quebec[t]
+lambda.a = beta.a I.a/N
+lambda.s = beta.s I.s/N
 ```
-we will specify a single calculation archetype for it, for instance something like,
-```
-S[t+1] = -lambda * S[t]
-```
-and then attach a "ledger" to the model object that tabulates which specific calculations to do under this archetype. In this case, we would have one infection calculation per city.
 
-[not that impressive with this simple example with infection strata, but you can imagine if you have 10 age groups and you want to repeat the force of infection for each of them, you're actually calculating 100 forces of infection (one for each combination of age groups), this repetition gets pretty rote!]
+However, in `macpan2`, we can specify a single calculation archetype for it, for instance something like,
+```
+lambda = beta * I / N
+```
+
+and then attach a **ledger** to the model object that tabulates which specific calculations to do under this archetype, that is, a record of which specific `lambda`, `beta`, and `I` to use each time we invoke this archetype during the simulation. Here, there would only be two calculations in the force of infection ledger (one calculation per infectious class), but one can easily imagine a more complicated case. For instance, we could consider an age-structured metapopulation model with 10 age groups within each of the 11 patches: there would be 10x10x11 = `r 10*10*11` force of infection terms with the exact same form (one per combination of age groups to capture the options for susceptible and infected interaction, repeated for each of the 11 patches).
+
+By using calculation **archetypes** and **ledgers**, the modeller can focus on the modelling (deciding on an expression for all forces of infection in the model), while `macpan2` will handle the bookkeeping (matching stratified variables with each other each time the expression must be calculated). This approach cuts down on rote repetition when setting up model calculations, which in turn reduces the opportunity for bugs in the simulation code. It also means that expanding a model can be as simple as updating the calculation ledger. 
 
 # Appetizer: specifying the basic SIR model
 
-Let's start with the basic epidemic model being repeated across cities and learn how to specify that in `macpan2`. We will start with the SIR model, which is the simplest epidemic model that is routinely used as a basis for much more complicated epidemic models:
+Let's start with specifying the basic SIR model in `macpan2`, which is the foundation of the infection-stratified model above:
 
 \begin{align}
 S_{t+1} &= -\beta S_t I_t/N, \\ 
@@ -71,7 +94,7 @@ I_{t+1} &= \beta S_t I_t/N - \gamma I_t, \\
 R_{t+1} &= \gamma I_t.
 \end{align}
 
-It will be helpful to set $\lambda = \beta I_t/N$ and recast the equations as:
+It will be helpful to set $\lambda = \beta I/N$ and recast the equations as:
 
 \begin{align}
 S_{t+1} &= -\lambda S_t, \\ 
@@ -79,9 +102,7 @@ I_{t+1} &= \lambda S_t - \gamma I_t, \\
 R_{t+1} &= \gamma I_t.
 \end{align}
 
-(In epidemic modelling, $\lambda$ is chosen suggestively as it models the [force of infection](https://en.wikipedia.org/wiki/Force_of_infection) denoted by the same character.)
-
-The focus of this quickstart guide is to help a user begin to understand how models are specified using `macpan2`. We have defined an `SIR_starter()` function to sweep some of the details of initializing a model object under the rug (for now, though we will revisit it [later](#dessert)). All you need to know about `SIR_starter()` at this stage is that we will pass it some inputs to define the model and it will output a model object from which we can build a simulator. Our focus for the remainder of this vignette will be how the inputs to `SIR_starter()` are created.
+Since the focus of this quickstart guide is `macpan2`'s model specification grammar, we have defined an `SIR_starter()` function to sweep some of the details of initializing a model object under the rug (for now, though we will revisit it [later](#dessert)). All you need to know about `SIR_starter()` at this stage is that we will pass it some inputs to define the model using the model grammar and it will output a model object from which we can build a simulator. Our focus for the remainder of this vignette will be how the inputs to `SIR_starter()` are created.
 
 ```{r SIR-starter, echo = FALSE}
 ## helper function to simplify the exposition in this vigette -----------
@@ -139,10 +160,12 @@ SIR_starter = function(
 ```
 
 The inputs to `SIR_starter()` are of two types:
+
 - **indices** (labels) for model quantities, 
 - **ledgers** that tabulate specific calculations required to simulate the model equations (based on the included calculation archetypes).
 
 The **indices** we need to specify fall into two groups:
+
 - `state`: state names, $S$, $I$, and $R$ from the model equations
 - `rate`: rate names, $\beta$, $\gamma$, and the derived rate $\lambda$
 
@@ -151,6 +174,8 @@ We have identified three useful calculation archetypes that we have baked into `
 - `infection`, the flow from susceptible classes to infectious classes at some rate
 - `recovery`, the flow from infectious classes to recovered classes at some rate
 - `force_of_infection`, the prevalence-dependent per capita rate of flow from susceptible classes to infectious classes, used in calculating the `infection` flow
+
+[these's some repeition below that we can cut down on given the latest version of the [amuse bouche](#amuse-bouche)]
 
 For each of these archetypes, we need to write down a ledger cataloging each specific calculation that uses each archetype. (The SIR model is so simple that there will only be one specific calculation per archetype, but we will see [later](#main-course) that these ledgers give us the flexibility to easily expand a model while avoiding cumbersome redundancy.)
 
@@ -203,7 +228,7 @@ and
 mp_subset(rate, Epi = "lambda")
 ```
 
-and by default creates one entry in the ledger for each combination of these values (_i.e._,  "[full join](https://dplyr.tidyverse.org/reference/mutate-joins.html#outer-joins)"). However, since there is only one value in each column, there is only one entry in the resulting ledger in this case!
+and by default creates one entry in the ledger for each combination of these values (_i.e._, a "[full join](https://dplyr.tidyverse.org/reference/mutate-joins.html#outer-joins)"). However, since there is only one value in each column, there is only one entry in the resulting ledger in this case!
 
 ```{r}
 infection
@@ -285,6 +310,7 @@ If you want to use base R for plotting, you can convert the long format data to 
 
 ```{r pivot_wider}
 sir_results_wide <- (sir_results
+    |> dplyr::filter(matrix == "state") # keep state variables at each point in time
     ## drop 'matrix' (has only a single value) and 'col' (empty)
     |> dplyr::select(-c(matrix, col))
     |> tidyr::pivot_wider(id_cols = time, names_from = row)
@@ -307,15 +333,16 @@ par(las = 1) ## horizontal y-axis ticks
 matplot(sir_results_wide[, 1],
         sir_results_wide[,-1],
         type = "l",
-        log = "y",
         xlab = "time", ylab = "")
-# legend("bottom", col = 1:3, lty = 1:3, legend = model$labels$state())
+legend("bottom", col = 1:3, lty = 1:3, legend = state$labels())
 ```
 
-# Main course: expanding the basic SIR into a metapopulation SIR {#main-course}
+# Main course: expanding the basic SIR into an SIR with infection types {#main-course}
 
 - here is where we see the power of macpan
 - re-write the equations with stratified symptom statuses and point out the repetition of the FOI term form. We already have a calculation archetype for this baked into `SIR_starter()`! Let's leverage that.
+
+[TODO: update model defintion to what's currently in [amuse bouche](#amuse-bouche)]
 
 - expand the states and rates to include infecteds stratified by symptom status
 
@@ -425,6 +452,7 @@ force_of_infection = mp_join(
   infectious_states = mp_subset(state, Epi = "I"),
   transmission_rates = mp_subset(rate, Epi = "beta"),
   by = list(
+    infection_flow_rates.infectious_states = "InfType",
     infectious_states.transmission_rates = "InfType"
   )
 )
