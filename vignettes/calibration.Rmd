@@ -85,7 +85,7 @@ print(gg0)
 Now we'll use the *experimental* `mk_calibrate()` function from `macpan2helpers` package
 
 ```{r mk_calibrate}
-mk_calibrate(sir_simulator,
+macpan2::mk_calibrate(sir_simulator,
    data = data.frame(I_obs = sir_prevalence$obs_val),
    params = list(trans_rates = c(beta = 1), I_sd = 1),
    transforms = list(trans_rates = c(beta  = "log"), I_sd = "log"),
