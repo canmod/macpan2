@@ -60,8 +60,8 @@ Here,
 We can cast this model as a system of difference equations:
 
 \begin{align}
-S_{t+1} &= - [\beta_a (I_a)_t/N - \beta_s (I_s)_t/N] S_t, \\ 
-(I_a)_{t+1} &= (1-\sigma)[\beta_a (I_a)_t/N - \beta_s (I_s)_t/N] S_t - \gamma (I_a)_t, \\ 
+S_{t+1} &= - [\beta_a (I_a)_t/N + \beta_s (I_s)_t/N] S_t, \\ 
+(I_a)_{t+1} &= (1-\sigma)[\beta_a (I_a)_t/N + \beta_s (I_s)_t/N] S_t - \gamma (I_a)_t, \\ 
 (I_s)_{t+1} &= \sigma[\beta_a (I_a)_t/N - \beta_s (I_s)_t/N] S_t - \gamma (I_s)_t, \\ 
 R_{t+1} &= \gamma (I_a)_t + \gamma (I_s)_t.
 \end{align}
@@ -80,9 +80,9 @@ However, in `macpan2`, we can specify a single calculation archetype for it, for
 lambda = beta * I / N
 ```
 
-and then attach a **ledger** to the model object that tabulates which specific calculations to do under this archetype, that is, a record of which specific `lambda`, `beta`, and `I` to use each time we invoke this archetype during the simulation. Here, there would only be two calculations in the force of infection ledger (one calculation per infectious class), but one can easily imagine a more complicated case. For instance, we could consider an age-structured metapopulation model with 10 age groups within each of the 11 patches: there would be 10x10x11 = `r 10*10*11` force of infection terms with the exact same form (one per combination of age groups to capture the options for susceptible and infected interaction, repeated for each of the 11 patches).
+and then attach a **ledger** to the model object that tabulates which specific calculations to do under this archetype, that is, a record of which specific `lambda`, `beta`, and `I` to use each time we invoke this archetype during the simulation. Here, there would only be two calculations in the force of infection ledger (one calculation per infectious class), but one can easily imagine a more complicated case. For instance, we could consider an age-structured metapopulation model with 10 age groups within each of the 11 patches: there would be 10x10x11 = `r 10*10*11` force of infection terms with the exact same form (one per combination of age groups to capture the options for susceptible and infected interaction, repeated in each of the 11 patches).
 
-By using calculation **archetypes** and **ledgers**, the modeller can focus on the modelling (deciding on an expression for all forces of infection in the model), while `macpan2` will handle the bookkeeping (matching stratified variables with each other each time the expression must be calculated). This approach cuts down on rote repetition when setting up model calculations, which in turn reduces the opportunity for bugs in the simulation code. It also means that expanding a model can be as simple as updating the calculation ledger. 
+By using calculation **archetypes** and **ledgers**, the modeller can focus on the modelling (designing model structure and choosing on an expression for the forces of infection), while `macpan2` will handle the bookkeeping (matching stratified variables with each other each time the expression must be calculated). This approach cuts down on rote repetition when setting up model calculations, which in turn reduces the opportunity for bugs in the simulation code. It also means that expanding a model can be as simple as updating the calculation ledger, as opposed to directly editing specific calculations in the simulation code. 
 
 # Appetizer: specifying the basic SIR model
 
