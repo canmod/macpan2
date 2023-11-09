@@ -45,34 +45,34 @@ This vignette seeks to explain `macpan2`'s model specification grammar and in pa
 
 # Amuse bouche: a structured SIR model {#amuse-bouche}
 
-[i'm now worried that this model is _too_ simple (there are actually only two component FOIs because we're not crossing with different types of susceptibles, like when we have age structure or a metapopulation...) perhaps a two-age-group model would be better? but then you have to deal with subpopulation sizes and contact matrix terms, so more names...? i don't know, maybe this is OK. let's see how an updated [main course](#main-course) section looks]
+[update this spec to the two-strain model]
 
-A key to `macpan2`'s flexible model grammar is the use of **archetypes** to repeat the same kinds of calculation across model structures. For instance, consider an SIR model that has two infection states:
+A key to `macpan2`'s flexible model grammar is the use of **archetypes** to repeat the same kinds of calculation across model structures. For instance, consider an SIR model that has two pathogen strains (without co-infections):
 
-[insert diagram of SIR with symptom strata]
+[insert diagram of SIR with two strains]
 
 Here, 
 
-- $S$, $I_a$, $I_s$, and $R$ are the number of susceptible, asymptomatic infectious, symptomatic infectious, and recovered individuals, respectively,
-- $\beta_a$ and $\beta_s$ are the transmission rates for asymptomatic and symptomatic individuals, respectively, reflecting that symptom status can affect the infectiousness of individuals,
+- $S$, $I_A$, $I_B$, and $R$ are the number of individuals that are susceptible, infectious with strain A, infectious with strain B, and recovered, respectively,
+- $\beta_A$ and $\beta_B$ are the transmission rates for strains A and B, respectively,
 - $\gamma$ is the recovery rate for all infecteds.
 
 We can cast this model as a system of difference equations:
 
 \begin{align}
-S_{t+1} &= - [\beta_a (I_a)_t/N + \beta_s (I_s)_t/N] S_t, \\ 
-(I_a)_{t+1} &= (1-\sigma)[\beta_a (I_a)_t/N + \beta_s (I_s)_t/N] S_t - \gamma (I_a)_t, \\ 
-(I_s)_{t+1} &= \sigma[\beta_a (I_a)_t/N - \beta_s (I_s)_t/N] S_t - \gamma (I_s)_t, \\ 
-R_{t+1} &= \gamma (I_a)_t + \gamma (I_s)_t.
+S_{t+1} &= - [\beta_a (I_A)_t/N + \beta_s (I_B)_t/N] S_t, \\ 
+(I_A)_{t+1} &= \beta_A (I_A)_t/N - \gamma (I_A)_t, \\ 
+(I_B)_{t+1} &= \beta_B (I_B)_t/N - \gamma (I_B)_t, \\ 
+R_{t+1} &= \gamma (I_A)_t + \gamma (I_B)_t.
 \end{align}
 
-where $\sigma$ is severity (proportion of symptomatic infections) and $N$ is the total population size ($S + I_a + I_s + R$). We notice that each force of infection, $\lambda_a = \beta_a (I_a)/N$ and  $\lambda_s = \beta_s (I_s)/N$ has the same **form**, that is, using an expression like $\lambda = \beta I / N$.
+where $N$ is the total population size ($S + I_A + I_B + R$). We notice that each force of infection, $\lambda_A = \beta_A (I_A)/N$ and  $\lambda_B = \beta_B (I_B)/N$ has the same **form**, that is, using an expression like $\lambda = \beta I / N$.
 
 When numerically simulating this model, it doesn't take much effort to write out each calculation separately as something like:
 
 ```
-lambda.a = beta.a I.a/N
-lambda.s = beta.s I.s/N
+lambda.A = beta.A I.A/N
+lambda.B = beta.B I.B/N
 ```
 
 However, in `macpan2`, we can specify a single calculation archetype for it, for instance something like,
@@ -80,13 +80,15 @@ However, in `macpan2`, we can specify a single calculation archetype for it, for
 lambda = beta * I / N
 ```
 
-and then attach a **ledger** to the model object that tabulates which specific calculations to do under this archetype, that is, a record of which specific `lambda`, `beta`, and `I` to use each time we invoke this archetype during the simulation. Here, there would only be two calculations in the force of infection ledger (one calculation per infectious class), but one can easily imagine a more complicated case. For instance, we could consider an age-structured metapopulation model with 10 age groups within each of the 11 patches: there would be 10x10x11 = `r 10*10*11` force of infection terms with the exact same form (one per combination of age groups to capture the options for susceptible and infected interaction, repeated in each of the 11 patches).
+and then attach a **ledger** to the model object that tabulates which specific calculations to do under this archetype, that is, a record of which specific `lambda`, `beta`, and `I` to use each time we invoke this archetype during the simulation. 
 
-By using calculation **archetypes** and **ledgers**, the modeller can focus on the modelling (designing model structure and choosing on an expression for the forces of infection), while `macpan2` will handle the bookkeeping (matching stratified variables with each other each time the expression must be calculated). This approach cuts down on rote repetition when setting up model calculations, which in turn reduces the opportunity for bugs in the simulation code. It also means that expanding a model can be as simple as updating the calculation ledger, as opposed to directly editing specific calculations in the simulation code. 
+Here, there would only be two calculations in the force of infection ledger (one calculation per strain), but one can easily imagine a more complicated case. For instance, consider an age-structured metapopulation model with 10 age groups within each of the 11 patches: there would be 10x10x11 = `r 10*10*11` force of infection terms of the same form (one per combination of age groups to capture the options for susceptible and infected interaction, repeated in each of the 11 patches).
+
+By using calculation **archetypes** and **ledgers**, the modeller can focus on the modelling (designing model structure, choosing an expression for the forces of infection), while `macpan2` will handle the bookkeeping (matching stratified variables with each other each time the expression must be calculated). This approach cuts down on rote repetition when setting up model calculations, which in turn reduces the opportunity for bugs in the simulation code. It also means that expanding a model can be as simple as updating the calculation ledger, as opposed to directly editing specific calculations in the simulation code. 
 
 # Appetizer: specifying the basic SIR model
 
-Let's start with specifying the basic SIR model in `macpan2`, which is the foundation of the infection-stratified model above:
+Let's start with specifying the basic SIR model in `macpan2`, which is the foundation of the two-strain model above:
 
 \begin{align}
 S_{t+1} &= -\beta S_t I_t/N, \\ 
