@@ -45,8 +45,6 @@ This vignette seeks to explain `macpan2`'s model specification grammar and in pa
 
 # Amuse bouche: a structured SIR model {#amuse-bouche}
 
-[update this spec to the two-strain model]
-
 A key to `macpan2`'s flexible model grammar is the use of **archetypes** to repeat the same kinds of calculation across model structures. For instance, consider an SIR model that has two pathogen strains (without co-infections):
 
 [insert diagram of SIR with two strains]
@@ -263,14 +261,16 @@ For this calculation archetype, we need to specify the `transmission_rates` and 
 Now we can use the `SIR_starter()` function to initialize our model object:
 
 ```{r}
-model = SIR_starter(
-  state,
-  rate,
+sir = SIR_starter(
+  # indices
+  state = state,
+  rate = rate,
+  # ledgers
   flow = list(
     infection,
     recovery
   ),
-  force_of_infection
+  force_of_infection = force_of_infection
 )
 ```
 
@@ -278,7 +278,7 @@ We can create a model simulator using `mp_tmb_simulator()`, provided we give it 
 
 ```{r}
 sir_simulator = mp_tmb_simulator(
-  model,
+  sir,
   vectors = list(
     state = c(S = 999, I = 1, R = 0),
     rate = c(beta = 0.25, gamma = 0.1, lambda = NA)
@@ -339,55 +339,80 @@ matplot(sir_results_wide[, 1],
 legend("bottom", col = 1:3, lty = 1:3, legend = state$labels())
 ```
 
-# Main course: expanding the basic SIR into an SIR with infection types {#main-course}
+# Main course: expanding the basic SIR with additional structure {#main-course}
 
-- here is where we see the power of macpan
-- re-write the equations with stratified symptom statuses and point out the repetition of the FOI term form. We already have a calculation archetype for this baked into `SIR_starter()`! Let's leverage that.
+As previously noted, we created a `force_of_infection` archetype of the form $\beta I / N$ despite it only being used once to define the SIR model. However, if we consider the two-strain model from [before](#amuse-bouche), we see this calculation is repeated for each strain:
 
-[TODO: update model defintion to what's currently in [amuse bouche](#amuse-bouche)]
+\begin{align}
+\lambda_A &= \beta_A I_A/N \\ 
+\lambda_B &= \beta_B I_B/N
+\end{align}
 
-- expand the states and rates to include infecteds stratified by symptom status
+Since we already have an archetype for the force of infection, we can easily expand our basic SIR with the strain-related structure to get the two-strain SIR model.
+
+We start by creating a new index for the strains:
 
 ```{r}
-# new indices for infection type
-# (asymptomatic and symptomatic)
-InfType_indices = c("asymp", "symp")
+Strain_indices = c("A", "B")
 ```
+
+Now we expand the states and rates associated with different strains. For the state, we want to cross $I$ with the different strains to create one $I$ compartment per strain. We can do so easily using the `mp_cartesian()` function, which takes the Cartesian product of indices (all possible combinations across sets):
+
+```{r}
+I_index = mp_cartesian(
+  mp_subset(state, Epi = "I"),
+  mp_index(Strain = Strain_indices)
+)
+
+I_index
+```
+
+We then combine the newly-stratified $I$ indices with the other states that remain unchanged using the `mp_union()` function:
 
 ```{r}
 state = mp_union(
-  # stratify I by infection type
-  # asymptomatic and symptomatic
-  mp_cartesian(
-    mp_subset(state, Epi = "I"),
-    mp_index(InfType = InfType_indices)
-  ),
-  # keep S and R as before
-  mp_subset(state, Epi = c("S", "R"))
+  mp_subset(state, Epi = "S"),
+  I_index, 
+  mp_subset(state, Epi = "R")
 )
+
+state
 ```
 
-explain `mp_cartesian()`, mention other types of products?
+We update the rates similarly:
 
 ```{r}
 rate = 
   mp_union(
-  # stratify rates involved in the infection
-  # process by infection type
+  # stratify rates involved in the infection process by strain
   mp_cartesian(
     mp_subset(rate, Epi = c("beta", "lambda")),
-    mp_index(InfType = InfType_indices)
+    mp_index(Strain = Strain_indices)
   ),
-  # recovery rate will be the same across symptom types
+  # recovery rate will be the same across strains
   mp_subset(rate, Epi = "gamma")
+)
+
+rate
+```
+
+It may seem like overkill to use `mp_subset()`, `mp_cartesian()`, and `mp_union()` here to define the indices using the original ones from the SIR when they could be written out by hand quickly as
+
+```{r eval = FALSE}
+state = mp_index(
+  Epi = c("S", rep("I", 2), "R"),
+  Strain = c("", Strain_indices, "")
+)
+
+rate = mp_index(
+  Epi = c(rep(c("beta", "lambda"), 2), "gamma"),
+  Strain = c(rep(c("A", "B"), each = 2), "")
 )
 ```
 
-- maybe overkill to do it this way, easy to write out states and rates here by hand, but you can imagine if you have many more states or many more rates or many more desired strata that this way is very powerful.
+but you can imagine if you're building off of an existing, working model and you want to stratify many states into many new categories, the first way of building the indices might be preferred, which is why we demonstrated it above.
 
-- redo ledgers with stratification
-- start with infection join
-- if we just do the join as before...
+For the `infection` ledger, let's see what our previous code for generating it yields now that we have some stratification by `Strain`:
 
 ```{r}
 # infection ledger from before
@@ -398,12 +423,12 @@ mp_join(
 )
 ```
 
-We get infection flows with all possible combinations between the `from_states`, the `to_states`, and the `flow_rates` (the full join). However, for this model, we only want two of these flows:
+As before, the default in `mp_join()` is to give all possible combinations for the indices (the full join). However, for this model, we want only two of these flows:
 
-- a flow between `S` and `I.asymp` with flow rate `lambda.asymp`
-- a flow between `S` and `I.symp` with flow rate `lambda.symp`
+- a flow between `S` and `I.A` with flow rate `lambda.A`
+- a flow between `S` and `I.B` with flow rate `lambda.B`
 
-In other words, we want the `InfType` index on `I` to match with the `InfType` index on `lambda`. We can specify this within `mp_join()` when building the ledger like so:
+In other words, we want the `Strain` index on `I` to match with the `Strain` index on `lambda`. We can specify this within `mp_join()` when building the ledger like so:
 
 ```{r}
 # new infection ledger
@@ -412,31 +437,27 @@ infection = mp_join(
   to_states = mp_subset(state, Epi = "I"), 
   flow_rates = mp_subset(rate, Epi = "lambda"),
   by = list(
-    to_states.flow_rates = "InfType"
+    to_states.flow_rates = "Strain"
   )
 )
 
 infection
 ```
 
-- explain what the `mp_join()` function is doing (at a high level)... mention that the argument names are flexible an depend on how the calculation archetypes are specified, but we should ignore this for now.
-- explain `by` syntax and how the dot concatenation needs to be pairwise
+Note the syntax of the `by` argument here. Each `by` list element will correspond to a pairwise join of two index tables passed to `mp_join()`. Which indices are involved in the join will correspond to the dot concatenated list name (`to_states.flow_rates`), with the names coming from argument names in `mp_join()` (`to_states`, `flow_rates`). The value should be a character name of the index type upon which to match. In this case, the value is `"Strain"` because we want the to state labels and the flow rate labels to match based on the strain label (`I.A` with `lambda.A` and `I.B` with `lambda.B`.
 
-Then we create the recovery ledger:
+For the recovery ledger, we haven't stratified `gamma` or `R`, so the default full join with the `I` labels yields exactly the flows we want:
 
 ```{r}
-recovery =
-  mp_join(
-  from_states = mp_subset(state, Epi = "I"),
-  to_states = mp_subset(state, Epi = "R"),
-  flow_rates = mp_subset(rate, Epi = "gamma")
+recovery = mp_join(
+    from_states = mp_subset(state, Epi = "I"),
+    to_states = mp_subset(state, Epi = "R"),
+    flow_rates = mp_subset(rate, Epi = "gamma")
 )
 recovery
 ```
 
-This is exactly the code as before for the recovery ledger, and it's what we want (same recovery rate for both infectious classes).
-
-Finally, for the force of infection ledger, the previous version yields a full join again:
+For the force of infection ledger, the full join yields all sorts of combinations that we don't want:
 
 ```{r}
 mp_join(
@@ -446,7 +467,7 @@ mp_join(
 )
 ```
 
-For this model, we want the infectious states and the transmission rates to be matched up on the `InfType` index, but we want each `I` and `beta` pair to be used in all `lambda` expressions, so we do:
+We want the `lambda`, `I`, and `beta` labels all matched on the stain index. But recall that `mp_join()` only performs pairwise joins, so we cannot specify a three-way join. Instead, we will specify two pairwise joins:
 
 ```{r}
 force_of_infection = mp_join(
@@ -454,11 +475,46 @@ force_of_infection = mp_join(
   infectious_states = mp_subset(state, Epi = "I"),
   transmission_rates = mp_subset(rate, Epi = "beta"),
   by = list(
-    infection_flow_rates.infectious_states = "InfType",
-    infectious_states.transmission_rates = "InfType"
+    infection_flow_rates.infectious_states = "Strain",
+    infectious_states.transmission_rates = "Strain"
   )
 )
+
 force_of_infection
+```
+
+Now we're ready to build the two-strain model object and simulate it:
+
+```{r}
+two_strain_model = SIR_starter(
+  # indices
+  state = state,
+  rate = rate,
+  # ledgers
+  flow = list(
+    infection,
+    recovery
+  ),
+  force_of_infection = force_of_infection
+)
+
+two_strain_simulator = mp_tmb_simulator(
+  two_strain_model,
+  vectors = list(
+    state = c(S = 998, I.A = 1, I.B = 1, R = 0),
+    rate = c(beta.A = 0.25, lambda.A = NA, beta.B = 0.2, lambda.B = NA, gamma = 0.1)
+  ),
+  time_steps = 100L
+)
+
+two_strain_results = mp_report(two_strain_simulator)
+
+(two_strain_results
+  |> filter(matrix == "state") # keep state variables at each point in time
+  |> mutate(state = factor(row, levels = c("S", "I.A", "I.B", "R"))) # to enforce logical state ordering in plot
+  |> ggplot(aes(time, value, colour = state))
+  +  geom_line()
+)
 ```
 
 # Dessert: understanding model simulation in `macpan2` {#desert}
