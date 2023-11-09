@@ -113,8 +113,7 @@ SIR_starter = function(
   state,
   rate,
   # ledgers for calculation archetypes
-  infection,
-  recovery,
+  flow, # list of individual ledgers
   force_of_infection
 ){
   
@@ -141,7 +140,7 @@ SIR_starter = function(
   
   ## Ledgers for each specific calculation --------------
   link_data = list(
-    flow = mp_link_data(infection, recovery),
+    flow = mp_link_data(flow[[1]], flow[[2]]),
     force_of_infection = mp_link_data(force_of_infection)
   )
   
@@ -171,15 +170,12 @@ The **indices** we need to specify fall into two groups:
 - `state`: state names, $S$, $I$, and $R$ from the model equations
 - `rate`: rate names, $\beta$, $\gamma$, and the derived rate $\lambda$
 
-We have identified three useful calculation archetypes that we have baked into `SIR_starter()`. In this case, we're thinking of calculation archetypes not as repeated calculations in this particular model, but as calculations that a modeller may want to repeat down the line, as they expand this simple model with additional structure (as we will do [below](#main-course)). The archetypes are:
+We have identified two useful calculation archetypes that we have baked into `SIR_starter()`. In this case, we're thinking of calculation archetypes not as repeated calculations in this particular model, but as calculations that a modeller may want to repeat down the line, as they expand this simple model with additional structure (as we will do [below](#main-course)). The archetypes are:
 
-- `infection`, the flow from susceptible classes to infectious classes at some rate
-- `recovery`, the flow from infectious classes to recovered classes at some rate
+- `flow`: Flows from one class to another, where the flow takes the form $rX$, with $r$ being the flow rate and $X$ being the state from which the flow originates. This calculation is repeated for all terms on the right-hand side of the recast system of difference equations above.
 - `force_of_infection`, the prevalence-dependent per capita rate of flow from susceptible classes to infectious classes, used in calculating the `infection` flow
 
-[these's some repeition below that we can cut down on given the latest version of the [amuse bouche](#amuse-bouche)]
-
-For each of these archetypes, we need to write down a ledger cataloging each specific calculation that uses each archetype. (The SIR model is so simple that there will only be one specific calculation per archetype, but we will see [later](#main-course) that these ledgers give us the flexibility to easily expand a model while avoiding cumbersome redundancy.)
+In this case, the `flow` archetype is repeated within the model equations but the `force_of_infection` archetype is only used once. However, we've identified the force of infection as an archetype since we will want to repeat it later when [expanding into the two-strain model](#main-course). In either case, these archetypes are already baked into `SIR_starter()`, so our task will be creating a calculation **ledger** for each of these archetypes.  
 
 We start by creating the `state` and `rate` indices:
 
@@ -201,7 +197,7 @@ rate
 
 The `Epi` column name is not really useful in this simple model, but it will be key to stratifying model quantities with different features (such as epidemiological status, infection type, age group, location) in more complicated models.
 
-For the ledgers, the `infection` and `recovery` ledgers are tied to the same calculation archetype, which requires one to specify flows using a from state (`from_states`), a to state (`to_states`), and a flow rate name (`flow_rates`).
+For the `flow` archetype, we will create two ledgers: `infection` for the flow from $S$ to $I$ and `recovery` for the flow from $I$ to $R$. We specify flows using a from state (`from_states`), a to state (`to_states`), and a flow rate name (`flow_rates`).
 
 We use the `mp_join()` function to create the `infection` ledger like so:
 
@@ -238,7 +234,7 @@ infection
 
 As a side note, the names of the arguments in the `mp_join()` function are tied to the calculation archetypes baked into `SIR_starter()`, but in general they are completely up to the modeller and how they choose to specify their calculation archetypes.^[There is only one `mp_join()` argument name that is not available to the user, and that is `by`, which has a special role that we will see [later](#main-course).]
 
-Since the `recovery` ledger uses the same calculation archetype as `infection`, we create it in much the same way:
+We create the `recovery` ledger in a similar way:
 
 ```{r}
 # recovery
@@ -270,13 +266,15 @@ Now we can use the `SIR_starter()` function to initialize our model object:
 model = SIR_starter(
   state,
   rate,
-  infection,
-  recovery,
+  flow = list(
+    infection,
+    recovery
+  ),
   force_of_infection
 )
 ```
 
-We can create a model simulator using `mp_tmb_simulator()`, provided we give it the model object (`model`), initial values for the states and rates (`vectors`), as well as the number of total time steps in the simulation (`time_steps`):
+We can create a model simulator using `mp_tmb_simulator()`, provided we give it the model object (`model`), initial values for the indices (`vectors`), as well as the number of total time steps in the simulation (`time_steps`):
 
 ```{r}
 sir_simulator = mp_tmb_simulator(
@@ -288,6 +286,8 @@ sir_simulator = mp_tmb_simulator(
   time_steps = 100L
 )
 ```
+
+Note that we've specified `NA` for `lambda` as it will be calculated internally using the `force_of_infection` archetype.
 
 Then we can actually simulate the model by passing our model simulator to `mp_report()`:
 
