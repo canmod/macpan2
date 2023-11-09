@@ -113,8 +113,7 @@ SIR_starter = function(
   state,
   rate,
   # ledgers for calculation archetypes
-  infection,
-  recovery,
+  flow,
   force_of_infection
 ){
   
@@ -141,7 +140,7 @@ SIR_starter = function(
   
   ## Ledgers for each specific calculation --------------
   link_data = list(
-    flow = mp_link_data(infection, recovery),
+    flow = mp_link_data(flow),
     force_of_infection = mp_link_data(force_of_infection)
   )
   
@@ -171,15 +170,13 @@ The **indices** we need to specify fall into two groups:
 - `state`: state names, $S$, $I$, and $R$ from the model equations
 - `rate`: rate names, $\beta$, $\gamma$, and the derived rate $\lambda$
 
-We have identified three useful calculation archetypes that we have baked into `SIR_starter()`. In this case, we're thinking of calculation archetypes not as repeated calculations in this particular model, but as calculations that a modeller may want to repeat down the line, as they expand this simple model with additional structure (as we will do [below](#main-course)). The archetypes are:
+There are two useful calculation archetypes that we have baked into `SIR_starter()`. The archetypes are:
 
-- `infection`, the flow from susceptible classes to infectious classes at some rate
-- `recovery`, the flow from infectious classes to recovered classes at some rate
-- `force_of_infection`, the prevalence-dependent per capita rate of flow from susceptible classes to infectious classes, used in calculating the `infection` flow
+- `flow`: Flows from one class to another, where the flow takes the form $rX$, with $r$ being the flow rate and $X$ being the state from which the flow originates. This calculation is repeated for all terms on the right-hand side of the recast system of difference equations above.
 
-[these's some repeition below that we can cut down on given the latest version of the [amuse bouche](#amuse-bouche)]
+- `force_of_infection`: The prevalence-dependent per capita rate of flow from susceptible classes to infectious classes with form $\beta I / N$, used in calculating the $\lambda$ `flow` rates.
 
-For each of these archetypes, we need to write down a ledger cataloging each specific calculation that uses each archetype. (The SIR model is so simple that there will only be one specific calculation per archetype, but we will see [later](#main-course) that these ledgers give us the flexibility to easily expand a model while avoiding cumbersome redundancy.)
+In this case, the `flow` archetype is repeated within the model equations but the `force_of_infection` archetype is only used once. However, we've identified the force of infection as an archetype since we will want to repeat it later when [expanding into the two-strain model](#main-course). In either case, these archetypes are already baked into `SIR_starter()`, so our task will be creating a calculation **ledger** for each of these archetypes.  
 
 We start by creating the `state` and `rate` indices:
 
@@ -201,9 +198,9 @@ rate
 
 The `Epi` column name is not really useful in this simple model, but it will be key to stratifying model quantities with different features (such as epidemiological status, infection type, age group, location) in more complicated models.
 
-For the ledgers, the `infection` and `recovery` ledgers are tied to the same calculation archetype, which requires one to specify flows using a from state (`from_states`), a to state (`to_states`), and a flow rate name (`flow_rates`).
+The `flow` ledger requires one to specify flows using a from state (`from_states`), a to state (`to_states`), and a flow rate name (`flow_rates`).
 
-We use the `mp_join()` function to create the `infection` ledger like so:
+We use the `mp_join()` function to create the `flow` ledger by first specifying infection and recovery flows separately:
 
 ```{r}
 # infection ledger
@@ -212,9 +209,16 @@ infection = mp_join(
   to_states = mp_subset(state, Epi = "I"), 
   flow_rates = mp_subset(rate, Epi = "lambda")
 )
+
+# recovery ledger
+recovery  = mp_join(
+  from_states = mp_subset(state, Epi = "I"),
+  to_states = mp_subset(state, Epi = "R"),
+  flow_rates = mp_subset(rate, Epi = "gamma")
+)
 ```
 
-The `mp_join()` function takes the options provided in each argument `from_states`, `to_states`, and `flow_rates`, namely
+The `mp_join()` function takes the options provided in each argument `from_states`, `to_states`, and `flow_rates`, like
 
 ```{r}
 mp_subset(state, Epi = "S")
@@ -238,17 +242,10 @@ infection
 
 As a side note, the names of the arguments in the `mp_join()` function are tied to the calculation archetypes baked into `SIR_starter()`, but in general they are completely up to the modeller and how they choose to specify their calculation archetypes.^[There is only one `mp_join()` argument name that is not available to the user, and that is `by`, which has a special role that we will see [later](#main-course).]
 
-Since the `recovery` ledger uses the same calculation archetype as `infection`, we create it in much the same way:
+We combine these two ledgers into one `flow` ledger with `mp_union()`:
 
 ```{r}
-# recovery
-recovery  = mp_join(
-  from_states = mp_subset(state, Epi = "I"),
-  to_states = mp_subset(state, Epi = "R"),
-  flow_rates = mp_subset(rate, Epi = "gamma")
-)
-
-recovery
+flow = mp_union(infection, recovery)
 ```
 
 Finally, the `force_of_infection` ledger is slightly different as it corresponds to a different calculation archetype in `SIR_starter()` (so the `mp_join()` argument names are different):
@@ -270,8 +267,7 @@ Now we can use the `SIR_starter()` function to initialize our model object:
 model = SIR_starter(
   state,
   rate,
-  infection,
-  recovery,
+  flow,
   force_of_infection
 )
 ```
@@ -339,28 +335,20 @@ matplot(sir_results_wide[, 1],
 legend("bottom", col = 1:3, lty = 1:3, legend = state$labels())
 ```
 
-# Main course: expanding the basic SIR into an SIR with infection types {#main-course}
-
-- here is where we see the power of macpan
-- re-write the equations with stratified symptom statuses and point out the repetition of the FOI term form. We already have a calculation archetype for this baked into `SIR_starter()`! Let's leverage that.
-
-[TODO: update model defintion to what's currently in [amuse bouche](#amuse-bouche)]
-
-- expand the states and rates to include infecteds stratified by symptom status
+# Main course: expanding the basic SIR into an SIR with two pathogen strains {#main-course}
 
 ```{r}
 # new indices for infection type
 # (asymptomatic and symptomatic)
-InfType_indices = c("asymp", "symp")
+Strain_indices = c("A", "B")
 ```
 
 ```{r}
 state = mp_union(
-  # stratify I by infection type
-  # asymptomatic and symptomatic
+  # stratify I by strain
   mp_cartesian(
     mp_subset(state, Epi = "I"),
-    mp_index(InfType = InfType_indices)
+    mp_index(Strain = Strain_indices)
   ),
   # keep S and R as before
   mp_subset(state, Epi = c("S", "R"))
@@ -372,11 +360,10 @@ explain `mp_cartesian()`, mention other types of products?
 ```{r}
 rate = 
   mp_union(
-  # stratify rates involved in the infection
-  # process by infection type
+  # stratify rates involved in the infection process by strain
   mp_cartesian(
     mp_subset(rate, Epi = c("beta", "lambda")),
-    mp_index(InfType = InfType_indices)
+    mp_index(Strain = InfType_indices)
   ),
   # recovery rate will be the same across symptom types
   mp_subset(rate, Epi = "gamma")
@@ -460,6 +447,23 @@ force_of_infection = mp_join(
 )
 force_of_infection
 ```
+
+## Prototyping...
+
+```{r}
+trans_rates_sir = mp_index(Epi = "beta")
+infection_type = mp_index(InfType = InfType_indices)
+infection_type
+trans_rates = mp_cartesian(
+trans_rates_sir,
+mp_cartesian(
+mp_rename(infection_type, InfTypeInfectious = "InfType"),
+mp_rename(infection_type, InfTypeSusceptible = "InfType")
+)
+)
+trans_rates
+```
+
 
 # Dessert: understanding model simulation in `macpan2` {#desert}
 
