@@ -1,8 +1,9 @@
 ---
 title: "Quickstart 1: understanding `macpan2`'s model specification grammar"
 output: 
-  rmarkdown::html_vignette:
+  html_document:
     toc: true
+    keep_md: yes
 vignette: >
   %\VignetteIndexEntry{Quickstart Guide: specifying and simulating a simple compartmental model}
   %\VignetteEncoding{UTF-8}
@@ -11,24 +12,6 @@ editor_options:
   chunk_output_type: console
 ---
 
-```{r dot-ex, engine = "dot", fig.cap = "SIR Model", cache=TRUE, echo = FALSE}
-digraph G {
-  layout=dot
-  rankdir="LR"
-  
-  node [fontcolor=blue fontname="Courier New"]
-  edge [fontcolor=blue fontname="Courier New"]
-  
-  SI [label=<&lambda;*S> shape=plaintext]
-  IR [label=<&gamma;*I> shape=plaintext]
-  
-  S:e->SI:w [arrowhead=none]
-  SI:e->I:w 
-  I:e->IR:w [arrowhead=none]
-  IR:e->R:w
-  I:s->SI:s [label=<&lambda;=&beta;*I/N> style=dotted]
-}
-```
 
 [![status](https://img.shields.io/badge/status-working%20draft-red)](https://canmod.github.io/macpan2/articles/vignette-status#working-draft)
 
@@ -66,6 +49,8 @@ This vignette seeks to explain `macpan2`'s model specification grammar and in pa
 A key to `macpan2`'s flexible model grammar is the use of **archetypes** to repeat the same kinds of calculation across model structures. For instance, consider an SIR model that has two pathogen strains (without co-infections):
 
 [insert diagram of SIR with two strains]
+
+![](../misc/images/sir.png)
 
 Here, 
 
