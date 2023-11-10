@@ -24,7 +24,6 @@ library(dplyr)
 
 TO DO:
 
-- make diagram for two-strain model and include it below
 - make sure all functions used have good help pages
 - get model library ready (or remove text below referencing it)
 
