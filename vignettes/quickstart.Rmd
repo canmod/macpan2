@@ -11,6 +11,25 @@ editor_options:
   chunk_output_type: console
 ---
 
+```{r dot-ex, engine = "dot", fig.cap = "SIR Model", cache=TRUE, echo = FALSE}
+digraph G {
+  layout=dot
+  rankdir="LR"
+  
+  node [fontcolor=blue fontname="Courier New"]
+  edge [fontcolor=blue fontname="Courier New"]
+  
+  SI [label=<&lambda;*S> shape=plaintext]
+  IR [label=<&gamma;*I> shape=plaintext]
+  
+  S:e->SI:w [arrowhead=none]
+  SI:e->I:w 
+  I:e->IR:w [arrowhead=none]
+  IR:e->R:w
+  I:s->SI:s [label=<&lambda;=&beta;*I/N> style=dotted]
+}
+```
+
 [![status](https://img.shields.io/badge/status-working%20draft-red)](https://canmod.github.io/macpan2/articles/vignette-status#working-draft)
 
 ```{r setup, echo = FALSE, message = FALSE}
