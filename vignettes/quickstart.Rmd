@@ -46,7 +46,9 @@ This vignette seeks to explain `macpan2`'s model specification grammar and in pa
 
 A key to `macpan2`'s flexible model grammar is the use of **archetypes** to repeat the same kinds of calculations across model structures. For instance, consider an SIR model that has two pathogen strains (without co-infections):
 
+<center>
 ![](../misc/diagrams/quickstart/two-strain.png)
+</center>
 
 Here, 
 
