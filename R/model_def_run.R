@@ -18,6 +18,7 @@ Compartmental2 = function(model_directory) {
     stopifnot(inherits(x, "Index"))
     x
   }
+
   self$flow_ledgers = function() self$dynamic_model$ledgers$flows
   self$influence_ledgers = function() self$dynamic_model$ledgers$influences
   #self$ledgers_type = function(type) {
@@ -54,12 +55,48 @@ LabelsScripts = function(model) {
   self = Base()
   self$model = model
   self$variables = model$variables
-  self$state = function() self$variables$state()$labels()
-  self$flow_rates = function() self$variables$flow_rates()$labels()
-  self$influence_rates = function() self$variables$influence_rates()$labels()
-  self$aggregated_states = function() self$variables$aggregated_states()$labels()
-  self$normalized_state = function() self$variables$normalized_state()$labels()
+
+  self$dynamic_model = model$dynamic_model
+  vs = self$dynamic_model$init_vecs
+  for (nm in names(vs)) self[[nm]] = LabelsGetter(self$dynamic_model, nm)
+  self$component_list = function() {
+    l = list()
+    vs = self$dynamic_model$init_vecs
+    for (nm in names(vs)) l[[nm]] = self[[nm]]()
+    l
+  }
+
+  # self$state = function() self$variables$state()$labels()
+  # self$flow_rates = function() self$variables$flow_rates()$labels()
+  # self$influence_rates = function() self$variables$influence_rates()$labels()
+  # self$aggregated_states = function() self$variables$aggregated_states()$labels()
+  # self$normalized_state = function() self$variables$normalized_state()$labels()
+  # self$component_list = function() {
+  #
+  # }
   return_object(self, "LabelsScripts")
+}
+
+LabelsGetter = function(dynamic_model, vector_name) {
+  self = Base()
+  self$dynamic_model = dynamic_model
+  self$vector_name = vector_name
+  self$get = function() self$dynamic_model$init_vecs[[self$vector_name]] |> names()
+  self$get
+}
+
+LabelsDynamic = function(dynamic_model) {
+  self = Base()
+  self$dynamic_model = dynamic_model
+  vs = self$dynamic_model$init_vecs
+  for (nm in names(vs)) self[[nm]] = LabelsGetter(self$dynamic_model, nm)
+  self$component_list = function() {
+    l = list()
+    vs = self$dynamic_model$init_vecs
+    for (nm in names(vs)) l[[nm]] = self[[nm]]()
+    l
+  }
+  return_object(self, "LabelsDynamic")
 }
 
 #' @export
@@ -69,5 +106,15 @@ DynamicModel = function(expr_list = ExprList(), ledgers = list(), init_vecs = li
   self$ledgers = ledgers
   self$init_vecs = init_vecs
   self$unstruc_mats = unstruc_mats
+  self$labels = LabelsDynamic(self)
   return_object(self, "DynamicModel")
+}
+
+
+#' @export
+mp_dynamic_model = DynamicModel
+
+#' @export
+print.DynamicModel = function(x, ...) {
+  print(x$expr_list)
 }

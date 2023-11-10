@@ -68,6 +68,7 @@ mp_ledgers = function(...) {
   do.call(LedgerData, args)
 }
 
+
 #' Indexed Expressions
 #'
 #' @param ... Formula objects that reference the columns in the

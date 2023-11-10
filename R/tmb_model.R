@@ -174,6 +174,47 @@ TMBCompartmentalSimulator = function(tmb_simulator, compartmental_model) {
   return_object(self, "TMBCompartmentalSimulator")
 }
 
+TMBDynamicSimulator = function(tmb_simulator, dynamic_model) {
+  self = tmb_simulator
+  self$dynamic_model = dynamic_model
+  return_object(self, "TMBDynamicSimulator")
+}
+
+#' @export
+labels.VariableLabels = function(object, ...) object$component_list()
+
+#' @export
+labels.Compartmental = function(object, ...) labels(object$labels)
+
+#' @export
+labels.TMBCompartmentalSimulator = function(object, ...) {
+  labels(object$compartmental_model)
+}
+
+#' @export
+labels.ModelDefRun = function(object, ...) {
+  labels(object$labels)
+}
+
+#' @export
+labels.TMBDynamicSimulator = function(object, ...) {
+  labels(object$dynamic_model)
+}
+
+#' @export
+labels.DynamicModel = function(object, ...) {
+  labels(object$labels)
+}
+
+#' @export
+labels.LabelsDynamic = function(object, ...) {
+  object$component_list()
+}
+
+#' @export
+labels.LabelsScripts = function(object, ...) {
+  object$component_list()
+}
 
 TMBSimulationUtils = function() {
   self = Base()

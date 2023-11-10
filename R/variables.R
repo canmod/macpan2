@@ -72,6 +72,12 @@ VariableLabels = function(variables) {
     if (is.null(v)) return(v)
     v$labels()
   }
+  self$component_list = function() {
+    list(
+      state = self$state(),
+      flow = self$flow()
+    )
+  }
   self$rp = function() self$variables$model$settings$names()
   self$all = function() self$variables$all()$select(self$rp())$labels()
   self$flow = function() self$variables$flow()$select(self$rp())$labels()

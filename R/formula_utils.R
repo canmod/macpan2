@@ -16,7 +16,7 @@
 #' @noRd
 to_special_vecs = function(
     formula, component_list, matrix_list,
-    component_vec_by = c(state = "state", flow = "flow")
+    component_vec_by = getOption("macpan2_vec_by")
   ) {
   arg_signature = c(
     unlist(component_list, use.names = FALSE, recursive = FALSE),

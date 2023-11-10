@@ -44,6 +44,7 @@ MatsList = function(...
     , .mats_to_return = character(0L)
     , .dimnames = list()
     , .structure_labels = NullLabels()
+    , .dummy = "dummy"
   ) {
   self = Base()
 
@@ -60,9 +61,22 @@ MatsList = function(...
   self$.mats_to_return = .mats_to_return
   self$.dimnames = .dimnames
   self$.structure_labels = .structure_labels
+  self$.dummy = .dummy
 
   # Static
-  self$.initial_mats = lapply(list(...), as.matrix)
+  l = list(...)
+
+  ## FIXME: still required because int_vecs and not literals are required on
+  ## the lhs so we still need the dummy ~ assign... construction for those
+  ## cases
+  if (!is.null(.dummy)) {
+    if (!.dummy %in% names(l)) {
+      l = c(l, setNames(list(empty_matrix), .dummy))
+    }
+  }
+
+  self$.initial_mats = lapply(l, as.matrix)
+
   if (length(self$.initial_mats) == 0L) names(self$.initial_mats) = character()
 
   self$mats_save_hist = function() names(self$.initial_mats) %in% self$.mats_to_save

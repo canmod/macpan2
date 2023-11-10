@@ -46,7 +46,12 @@ render_model_readme = function(file) {
   f = basename(file) |> tools::file_path_sans_ext()
   output_file = sprintf("%s.md", f)
   d = dirname(file)
-  readLines(output_file)
-  readLines(file)
-
+  output_lines = readLines(file.path(d, output_file))
+  input_lines = readLines(file)
+  potential_yaml = which(grepl("^---", input_lines))
+  if (potential_yaml[1L] == 1L) {
+    if (length(potential_yaml) > 1L) {
+      file[seq_len(potential_yaml[2L])]
+    }
+  }
 }

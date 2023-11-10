@@ -24,7 +24,7 @@ sir_sim = mp_tmb_simulator(sir_mod
 The state variables and rates in this model are as follows.
 
 ```{r print_vars_and_rates} 
-
+mp_extract(sir_mod, "state")
 ```
 
 ```{r print_flows_and_influences}
