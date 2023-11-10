@@ -1,8 +1,8 @@
-LinkData = function(...) {
+LedgerData = function(...) {
   self = Base()
-  self$link_list = list(...)
+  self$ledger_list = list(...)
 
-  labelling_column_names_list = (self$link_list
+  labelling_column_names_list = (self$ledger_list
     |> lapply(getElement, "labelling_column_names_list")
     |> unname()
     |> unique()
@@ -10,7 +10,7 @@ LinkData = function(...) {
   stopifnot(length(labelling_column_names_list) == 1L)
   self$labelling_column_names_list = labelling_column_names_list[[1L]]
 
-  reference_index_list = (self$link_list
+  reference_index_list = (self$ledger_list
     |> lapply(getElement, "reference_index_list")
     |> unname()
     |> unique()
@@ -18,7 +18,7 @@ LinkData = function(...) {
   stopifnot(length(reference_index_list) == 1L)
   self$reference_index_list = reference_index_list[[1L]]
 
-  table_names = (self$link_list
+  table_names = (self$ledger_list
     |> method_apply("table_names")
     |> unname()
     |> unique()
@@ -27,7 +27,7 @@ LinkData = function(...) {
   self$table_names = table_names[[1L]]
 
   self$labels_frame = function() {
-    (self$link_list
+    (self$ledger_list
       |> method_apply("labels_frame")
       |> bind_rows()
     )
@@ -35,27 +35,38 @@ LinkData = function(...) {
 
   self$positions_frame = function(zero_based = FALSE) {
     positions_list = list()
-    for (i in seq_along(self$link_list)) {
+    for (i in seq_along(self$ledger_list)) {
       positions_list[[i]] = list()
       for (d in self$table_names) {
-        positions_list[[i]][[d]] = self$link_list[[i]]$positions_for[[d]](zero_based)
+        positions_list[[i]][[d]] = self$ledger_list[[i]]$positions_for[[d]](zero_based)
       }
       positions_list[[i]] = as.data.frame(positions_list[[i]])
     }
     bind_rows(positions_list)
   }
 
-  return_object(self, "LinkData")
+  return_object(self, "LedgerData")
 }
 
 #' #' @export
-#' print.LinkData = function(x, ...) {
+#' print.LedgerData = function(x, ...) {
 #'   print(x$frame, row.names = FALSE)
 #' }
 
 
 #' @export
-mp_link_data = function(...) LinkData(...)
+mp_ledgers = function(...) {
+  wrap_ledgers_in_one_element_lists = function(x) {
+    if (inherits(x, "Ledger")) return(list(x))
+    if (inherits(x, "list")) return(x)
+    stop("You can only pass ledgers and/or lists of ledgers.")
+  }
+  args = (list(...)
+    |> lapply(wrap_ledgers_in_one_element_lists)
+    |> unlist(recursive = FALSE, use.names = FALSE)
+  )
+  do.call(LedgerData, args)
+}
 
 
 #' Indexed Expressions
@@ -63,7 +74,7 @@ mp_link_data = function(...) LinkData(...)
 #' @param ... Formula objects that reference the columns in the
 #' \code{index_data}, the vectors in \code{vector_list} and the matrices
 #' in \code{unstructured_matrix_list}.
-#' @param index_data An object produced using \code{\link{mp_link_data}}.
+#' @param ledgers An object produced using \code{\link{mp_ledgers}}.
 #' @param vector_list Named list of objected produced using
 #' \code{\link{mp_vector}}.
 #' @param unstructured_matrix_list Named list of objects that can be coerced

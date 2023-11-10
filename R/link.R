@@ -1,7 +1,7 @@
-#' Link
+#' Ledger
 #'
-#' Make an object to describe links between the entities in an
-#' \code{\link{Index}}. \code{Link} object are created by operating on existing
+#' Make an object to describe ledgers between the entities in an
+#' \code{\link{Index}}. \code{Ledger} object are created by operating on existing
 #' \code{\link{Index}} objects. For example, here the \code{\link{mp_join}}
 #' combines two
 #' ```{r}
@@ -18,7 +18,7 @@
 #' ```
 #'
 #' @export
-Link = function(frame, column_map, reference_index_list, labelling_column_names_list) {
+Ledger = function(frame, column_map, reference_index_list, labelling_column_names_list) {
   self = Base()
   self$frame = frame
   self$column_map = column_map
@@ -69,7 +69,7 @@ Link = function(frame, column_map, reference_index_list, labelling_column_names_
   self$filter = function(condition) {
     condition = substitute(condition)
     i = eval(condition, envir = c(self$column_by_dim, self$frame))
-    Link(self$frame[i, , drop = FALSE]
+    Ledger(self$frame[i, , drop = FALSE]
       , column_map = self$column_map
       , reference_index_list = self$reference_index_list
       , labelling_column_names_list = self$labelling_column_names_list
@@ -79,8 +79,18 @@ Link = function(frame, column_map, reference_index_list, labelling_column_names_
     substitute(condition)
     eval(condition, envir = c(self$column_by_dim, self$frame))
   }
-  self$partition = self$partition_for[[1L]]()  ## hack! should probably have a method and then change the partition field in Index to a method as well
-  return_object(self, "Link")
+  self$reorder = function(table_names_order) {
+    ## NB: in-place!
+    self$labelling_column_names_list = self$labelling_column_names_list[table_names_order]
+    self$column_map = self$column_map[table_names_order]
+    self$reference_index_list = self$reference_index_list[table_names_order]
+    self
+  }
+
+  ## hack! should probably have a method and then change the partition
+  ## field in Index to a method as well
+  self$partition = self$partition_for[[1L]]()
+  return_object(self, "Ledger")
 }
 
 ColumnGetter = function(link, dimension_name, column_name) {
@@ -239,7 +249,7 @@ merge_util = function(x, y, by.x, by.y) {
   ## ----
   ## wrap up the result with provenance-preserving column map
   ## ----
-  Link(
+  Ledger(
     z,
     z_column_map,
     z_reference_index_list,
@@ -262,7 +272,7 @@ filter_by_list = function(x_orig, y_orig, by_list) {
 
 #' @export
 init_merge = function(frame, dimension_name, reference_index, labelling_column_names) {
-  Link(frame
+  Ledger(frame
     , initial_column_map(names(frame), dimension_name)
     , initial_reference_index_list(reference_index, dimension_name)
     , initial_labelling_column_names_list(labelling_column_names, dimension_name)
@@ -294,7 +304,7 @@ apply_col_map = function(map, orig_table_nm, by) {
   map[[orig_table_nm]][by] |> unlist(use.names = FALSE)
 }
 
-## @param x Link object
+## @param x Ledger object
 ## @param col_nm Name of a column to check for implicit provenance
 is_provenance_implicit = function(x, col_nm) {
   (x$column_map
@@ -304,7 +314,7 @@ is_provenance_implicit = function(x, col_nm) {
   )
 }
 
-## @param x Link object
+## @param x Ledger object
 explicit_provenance = function(x, col_nm) {
   m = x$column_map
   implicit = is_provenance_implicit(x, col_nm)
@@ -332,9 +342,9 @@ explicit_provenance = function(x, col_nm) {
     m[[tab_nm]][[col_nm]] = new_col_nm
   }
   f[[col_nm]] = NULL
-  ## TODO: update with four-arg form of Link
+
   ## frame, column_map, reference_index_list, labelling_column_names_list
-  Link(f, m, ii, l)
+  Ledger(f, m, ii, l)
 }
 
 
@@ -366,10 +376,19 @@ merge_generic_by_util = function(x, y, ...) {
   by = data.frame(x = by.x, y = by.y) |> unique()
 
   dup.x = duplicated(by$x)
-  if (any(dup.x)) {
-    cols_to_fix = by$x[dup.x]
-    for (col_nm in cols_to_fix) {
-      x = explicit_provenance(x, col_nm)
+  dup.y = duplicated(by$y)
+  if (any(dup.x) | any(dup.y)) {
+    if (any(dup.x)) {
+      cols_to_fix = by$x[dup.x]
+      for (col_nm in cols_to_fix) {
+        x = explicit_provenance(x, col_nm)
+      }
+    }
+    if (any(dup.y)) {
+      cols_to_fix = by$y[dup.y]
+      for (col_nm in cols_to_fix) {
+        y = explicit_provenance(y, col_nm)
+      }
     }
     merge_generic_by_util(x, y, ...)
   } else {
@@ -378,24 +397,24 @@ merge_generic_by_util = function(x, y, ...) {
 }
 
 #' @export
-as.data.frame.Link = function(x, row.names = NULL, optional = FALSE, ...) {
+as.data.frame.Ledger = function(x, row.names = NULL, optional = FALSE, ...) {
   x$labels_frame()
 }
 
 #' @export
-summary.Link = function(object, ...) {
+summary.Ledger = function(object, ...) {
   formats = c("name", "combined")
   structure(
     sapply(formats, link_format_picker, x = object, simplify = FALSE, USE.NAMES = TRUE),
-    class = "summary.Link"
+    class = "summary.Ledger"
   )
 }
 
 #' @export
-print.summary.Link = function(x, ...) {
+print.summary.Ledger = function(x, ...) {
   msg_hline() |> message()
   msg(
-    "Link object from macpan2 describing",
+    "Ledger object from macpan2 describing",
     "an aspect of model shape"
   ) |> message()
   msg_hline() |> message()
@@ -404,10 +423,10 @@ print.summary.Link = function(x, ...) {
 }
 
 #' @export
-names.Link = function(x) names(x$frame)
+names.Ledger = function(x) names(x$frame)
 
 #' @export
-labelling_column_names.Link = function(x) x$labelling_column_names_list
+labelling_column_names.Ledger = function(x) x$labelling_column_names_list
 
 
 link_format_picker = function(x
@@ -422,7 +441,7 @@ link_format_picker = function(x
 }
 
 #' @export
-print.Link = function(x
+print.Ledger = function(x
     , format = c("labels", "link", "combined", "separate")
     , ...
   ) {
@@ -431,7 +450,7 @@ print.Link = function(x
 }
 
 #' @export
-head.Link = function(x
+head.Ledger = function(x
     , n = 6L
     , format = c("labels", "link", "combined", "separate")
     , ...
@@ -445,7 +464,7 @@ head.Link = function(x
 }
 
 #' @export
-tail.Link = function(x
+tail.Ledger = function(x
     , n = 6L
     , format = c("labels", "link", "combined", "separate")
     , ...
@@ -459,7 +478,7 @@ tail.Link = function(x
 }
 
 #' @export
-str.Link = function(x
+str.Ledger = function(x
     , format = c("labels", "link", "combined", "separate")
     , ...
 ) {
@@ -469,29 +488,29 @@ str.Link = function(x
 
 
 #' @export
-LinkList = function() {
+LedgerList = function() {
   self = Base()
   self$list = list() |> setNames(as.character())
   self$add = function(new_link, ...) {
-      new_links = list(...)
+      new_ledgers = list(...)
     if (missing(new_link)) {
-      macpan2:::valid$named_list$check(new_links)
-    } else if(length(new_links) == 0L) {
+      macpan2:::valid$named_list$check(new_ledgers)
+    } else if(length(new_ledgers) == 0L) {
       new_nm = deparse1(substitute(new_link))
-      new_links = setNames(list(new_link), new_nm)
+      new_ledgers = setNames(list(new_link), new_nm)
     } else {
       stop("If supplying more than one join result, please name them with {name} = {join_result}")
     }
 
-    for (nm in names(new_links)) {
+    for (nm in names(new_ledgers)) {
       if (nm %in% names(self$list)) {
         msg(
           "Join result", nm, "is already in the list.",
           "Overwriting the existing one."
         ) |> message()
       }
-      self$list[[nm]] = new_links[[nm]]
+      self$list[[nm]] = new_ledgers[[nm]]
     }
   }
-  return_object(self, "LinkList")
+  return_object(self, "LedgerList")
 }

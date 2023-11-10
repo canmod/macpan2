@@ -34,9 +34,9 @@ mp_tmb_simulator.DynamicModel = function(dynamic_model
       , initialize_ad_fun = TRUE
       , ...
 ) {
-  link_data = dynamic_model$link_data
+  ledgers = dynamic_model$ledgers
   expr_list = dynamic_model$expr_list
-  int_vecs = (link_data
+  int_vecs = (ledgers
    |> method_apply("positions_frame", zero_based = TRUE)
    |> lapply(as.list)
    |> unname()

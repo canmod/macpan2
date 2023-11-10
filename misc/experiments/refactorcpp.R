@@ -13,11 +13,11 @@ sir_two_strains = (mp_rename(sir, A = "Epi")
 
 ## replacement model
 
-n_strains = 10L
-strain_nms = letters[seq_len(n_strains)]
+n_strains = 2L
+strain_nms = letters[seq_len(n_strains + 1L)]
 
 strains = mp_index(
-  Strain = strain_nms[-n_strains],
+  Strain = strain_nms[-(n_strains + 1L)],
   Replace = strain_nms[-1L],
   labelling_column_names = "Strain"
 )
@@ -34,6 +34,16 @@ replacement_state = mp_union(
     mp_index(Epi = c("I", "E", "R")),
     strains
   )
+)
+infection = mp_join(
+  from = mp_subset(replacement_state, Epi = c("S", "R")),
+  to = mp_subset(replacement_state, Epi = "E"),
+  by = list(from.to = "Replace" ~ "Strain")
+)
+progression = mp_join(
+  from = mp_subset(replacement_state, Epi = "E"),
+  to = mp_subset(replacement_state, Epi = "I"),
+  by = list(from.to = "Strain")
 )
 
 
@@ -98,17 +108,100 @@ xx$labels()
 
 ## atomic model indices ---------------
 
-state_sir = mp_index(
-  Epi = c("S", "I", "R", "D"),
-  Vital = c("alive", "alive", "alive", "dead"),
-  labelling_column_names = "Epi"
+state = mp_index(
+  Epi = c("S", "I", "R")
+  #Vital = c("alive", "alive", "alive", "dead"),
+  #labelling_column_names = "Epi"
 )
 flow_rates_sir = mp_index(Epi = c("lambda", "gamma", "mu"))
 trans_rates_sir = mp_index(Epi = "beta")
 cities = mp_index(Loc = c("cal", "ham", "que"))
+
 movement = mp_linear(cities, "Move")
+mp_square(cities, c("Loc", "Move"))
+
 age = mp_index(Age = c("young", "old"))
 contact = mp_square(age, c("Infectious", "Infection"))
+
+
+library(macpan2)
+
+sir = mp_index(Epi = c("S", "I", "R", "lambda", "gamma"))
+strain = mp_index(Strain = c("a", "b"))
+state = mp_union(
+  mp_cartesian(mp_subset(sir, Epi = "I"), strain),
+  mp_subset(sir, Epi = c("S", "R"))
+)
+
+flow_rates = mp_union(
+  mp_cartesian(mp_subset(sir, Epi = "lambda"), strain),
+  mp_subset(sir, Epi = "gamma")
+)
+trans_rates = mp_cartesian(
+  mp_index(Epi = "beta"),
+  strain
+)
+
+state
+strain
+flow_rates
+trans_rates
+
+ll = mp_join(
+  state = mp_subset(state, Epi = "I"),
+  flow = mp_subset(flow_rates, Epi = "lambda"),
+  trans = trans_rates,
+  by = list(
+    state.flow = "Strain",
+    flow.trans = "Strain"
+  )
+)
+list(group = list())
+hh = function(index, by = "Group", ledger_column = "group") {
+  index_columns = to_names(by)
+  if (length(index_columns) == 1L & !index_columns %in% names(index)) {
+    partition = index$partition$constant(by, "a")
+    index = Index(partition)
+  } else {
+    partition = index$partition
+  }
+  Link(
+    partition$frame(),
+    macpan2:::initial_column_map(names(partition), ledger_column),
+    macpan2:::initial_reference_index_list(index, ledger_column),
+    setNames(list(index_columns), ledger_column)
+  )
+}
+hh(movement, by = "Move", ledger_column = "move")
+hh(movement)
+mp_link_data(hh(state))$positions_frame(TRUE)
+hh = function(len) {
+  data.frame(group = rep("group", len))
+
+}
+Link(
+  ,
+  column_map = macpan2:::initial_column_map()
+)
+
+mp_join(
+  state = mp_subset(state, Epi = "I"),
+  rate = trans_rates,
+  by = list(
+    state.rate = "Strain"
+  )
+)
+
+mp_join(
+  flow = mp_subset(flow_rates, Epi = "lambda"),
+  rate = trans_rates,
+  by = list(
+    flow.rate = "Strain"
+  )
+)
+
+
+
 
 ## structured model indices -------------
 

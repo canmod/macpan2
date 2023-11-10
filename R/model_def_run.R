@@ -13,23 +13,24 @@ Compartmental2 = function(model_directory) {
   )
   self$dynamic_model = self$def_env[[self$settings()[["model_object"]]]]
 
-  self$link_data_type = function(type) {
-    self$dynamic_model$link_data[[self$settings()[[type]]]]
-  }
   self$index_data_type = function(type) {
     x = self$def_env[[self$settings()[[type]]]]
     stopifnot(inherits(x, "Index"))
     x
   }
-  self$flow_links = function() self$dynamic_model$link_data$flows
-  self$influence_links = function() self$dynamic_model$link_data$influences
-  self$normalization_links = function() self$dynamic_model$link_data$normalization
-  self$aggregation_links = function() self$dynamic_model$link_data$aggregation
 
-  self$flows = function() self$flow_links()$labels_frame()
-  self$influences = function() self$influence_links()$labels_frame()
-  #self$normalization = function() self$normalization_links()$labels_frame()
-  #self$aggregation = function() self$aggregation_links()$labels_frame()
+  self$flow_ledgers = function() self$dynamic_model$ledgers$flows
+  self$influence_ledgers = function() self$dynamic_model$ledgers$influences
+  #self$ledgers_type = function(type) {
+  #  self$dynamic_model$ledgers[[self$settings()[[type]]]]
+  #}
+  #self$normalization_ledgers = function() self$ledgers_type("normalization")
+  #self$aggregation_ledgers = function() self$ledgers_type("aggregation")
+
+  self$flows = function() self$flow_ledgers()$labels_frame()
+  self$influences = function() self$influence_ledgers()$labels_frame()
+  #self$normalization = function() self$normalization_ledgers()$labels_frame()
+  #self$aggregation = function() self$aggregation_ledgers()$labels_frame()
   self$expr_list = function() self$def_env[[self$settings()[["expr_list"]]]]
 
   ## back-compatibility
@@ -99,10 +100,10 @@ LabelsDynamic = function(dynamic_model) {
 }
 
 #' @export
-DynamicModel = function(expr_list = ExprList(), link_data = list(), init_vecs = list(), unstruc_mats = list()) {
+DynamicModel = function(expr_list = ExprList(), ledgers = list(), init_vecs = list(), unstruc_mats = list()) {
   self = Base()
   self$expr_list = expr_list
-  self$link_data = link_data
+  self$ledgers = ledgers
   self$init_vecs = init_vecs
   self$unstruc_mats = unstruc_mats
   self$labels = LabelsDynamic(self)

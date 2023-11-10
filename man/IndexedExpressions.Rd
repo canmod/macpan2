@@ -16,13 +16,13 @@ IndexedExpressions(
 \code{index_data}, the vectors in \code{vector_list} and the matrices
 in \code{unstructured_matrix_list}.}
 
-\item{index_data}{An object produced using \code{\link{mp_link_data}}.}
-
 \item{vector_list}{Named list of objected produced using
 \code{\link{mp_vector}}.}
 
 \item{unstructured_matrix_list}{Named list of objects that can be coerced
 to a matrix.}
+
+\item{ledgers}{An object produced using \code{\link{mp_ledgers}}.}
 }
 \description{
 Indexed Expressions
