@@ -295,7 +295,7 @@ sir_results = mp_report(sir_simulator)
 
 The output of the simulation is a [long data frame](https://r4ds.had.co.nz/tidy-data.html#longer):
 
-```{r}
+```{r sir-results-head}
 head(sir_results)
 ```
 
@@ -303,7 +303,7 @@ head(sir_results)
 
 This output can be manipulated and plotted easily with standard tools, like `dplyr` and `ggplot2`:
 
-```{r sir-ggplot-example, fig.width = 6}
+```{r sir-ggplot-example, fig.width = 6, fig.height = 4}
 (sir_results
   |> filter(matrix == "state") # keep just the state variables at each point in time
   |> mutate(state = factor(row, levels = c("S", "I", "R"))) # to enforce logical state ordering in plot
@@ -497,7 +497,7 @@ force_of_infection
 
 Now we're ready to build the two-strain model object and simulate it:
 
-```{r two-strain-results, fig.width = 6}
+```{r two-strain-results, fig.width = 6, fig.height = 4}
 two_strain_model = SIR_starter(
   # indices
   state = state,
