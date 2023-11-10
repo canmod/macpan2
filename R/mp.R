@@ -192,7 +192,7 @@ mp_aggregate = function(index, by = "Group", ledger_column = "group") {
   } else {
     partition = index$partition
   }
-  Link(
+  Ledger(
     partition$frame(),
     macpan2:::initial_column_map(names(partition), ledger_column),
     macpan2:::initial_reference_index_list(index, ledger_column),
@@ -222,14 +222,14 @@ mp_union.Index = function(...) {
 
 ## not used anymore?
 #' @export
-mp_union.Link = function(...) {
+mp_union.Ledger = function(...) {
   l = list(...)
   column_map = lapply(l, getElement, "column_map") |> unique()
   if (length(column_map) != 1L) {
     msg_colon(
       msg(
-        "Union of inconsistent Link objects.",
-        "All Link objects must have the same",
+        "Union of inconsistent Ledger objects.",
+        "All Ledger objects must have the same",
         "column_map, but the following distinct",
         "maps were found:"
       ),
@@ -241,8 +241,8 @@ mp_union.Link = function(...) {
   if (length(labelling_column_names_list) != 1L) {
     msg_colon(
       msg(
-        "Union of inconsistent Link objects.",
-        "All Link objects must have the same",
+        "Union of inconsistent Ledger objects.",
+        "All Ledger objects must have the same",
         "labelling_column_names_list, but the following",
         "distinct maps were found:"
       ),
@@ -250,7 +250,7 @@ mp_union.Link = function(...) {
     ) |> stop()
   }
   frame = mp_rbind(...)
-  LinkData(frame, l[[1L]]$reference_index_list, l[[1L]]$labelling_column_names_list)
+  LedgerData(frame, l[[1L]]$reference_index_list, l[[1L]]$labelling_column_names_list)
 }
 
 ## not used anymore?
@@ -328,12 +328,17 @@ mp_join = function(..., by = empty_named_list()) {
   }
 
   by_list = valid$named_list$assert(by)
-  table_order = (by_list
-    |> names()
-    |> lapply(to_names)
-    |> unlist()
-    |> unique()
-  )
+  if (length(by_list) > 1L) {
+    table_order = (by_list
+      |> names()
+      |> lapply(to_names)
+      |> unlist()
+      |> unique()
+      |> union(names(table_list))
+    )
+  } else {
+    table_order = names(table_list)
+  }
   ordered_table_list = table_list[table_order]
 
   by_nms = names(by_list) |> strsplit(".", fixed = TRUE)
@@ -393,14 +398,13 @@ mp_join = function(..., by = empty_named_list()) {
     args = c(
       list(
         x = z,
-        y = ordered_table_list[[i]],
-        table_names_order = names(table_list)
+        y = ordered_table_list[[i]]
       ),
       by_list
     )
     z = do.call(merge_generic_by_util, args)
   }
-  z
+  z$reorder(names(table_list))
 }
 
 mp_aggregate_old = function(formula
@@ -573,7 +577,7 @@ mp_zero_vector = function(x, labelling_column_names, ...) {
 }
 
 #' @export
-mp_labels.Link = function(x, labelling_column_names) {
+mp_labels.Ledger = function(x, labelling_column_names) {
   x$labels_for[[labelling_column_names]]()
 }
 
