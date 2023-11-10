@@ -53,9 +53,11 @@ A key to `macpan2`'s flexible model grammar is the use of **archetypes** to repe
 
 Here, 
 
-- $S$, $I_A$, $I_B$, and $R$ are the numbers of individuals that are susceptible, infected with strain A, infected with strain B, and recovered, respectively,
-- $\beta_A$ and $\beta_B$ are the transmission rates for strains A and B, respectively,
-- $\gamma$ is the recovery rate for all infected individuals.
+- $S$, $I_x$, and $R$ are the numbers of individuals that are susceptible, infected with strain $x$ ($A$ or $B$), and recovered, respectively,
+- $N= S + I_A + I_B + R$ is the total population size,
+- $\beta_x$ is the transmission rate for strain $x$,
+- $\gamma$ is the recovery rate for infected individuals,
+- $\lambda_x = \beta_x (I_x)/N$ is the force of infection for strain $x$. 
 
 We can cast this model as a system of difference equations, since this is how we will iterate them numerically in our simulation:
 
@@ -66,9 +68,7 @@ S_{t+1} &= - [\beta_a (I_A)_t/N + \beta_s (I_B)_t/N] S_t, \\
 R_{t+1} &= \gamma (I_A)_t + \gamma (I_B)_t.
 \end{align}
 
-where $N = S + I_A + I_B + R$ is the total population size. Note that each force of infection, $\lambda_A = \beta_A (I_A)/N$ and  $\lambda_B = \beta_B (I_B)/N$ has the same **form**, that is, using an expression like $\lambda = \beta I / N$.
-
-When numerically simulating this model, it doesn't take much effort to write out each calculation separately as something like:
+Each force of infection, $\lambda_A = \beta_A (I_A)/N$ and  $\lambda_B = \beta_B (I_B)/N$ has the same **form**, that is, using an expression like $\lambda = \beta I / N$. When numerically simulating this model, it doesn't take much effort to write out each calculation separately as something like:
 
 ```
 lambda.A = beta.A * I.A / N
@@ -76,6 +76,7 @@ lambda.B = beta.B * I.B / N
 ```
 
 However, in `macpan2`, we can specify a single calculation archetype for it, for instance something like,
+
 ```
 lambda = beta * I / N
 ```
