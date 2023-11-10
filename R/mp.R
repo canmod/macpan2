@@ -221,6 +221,7 @@ mp_union.Index = function(...) {
 }
 
 ## not used anymore?
+#' @export
 mp_union.Link = function(...) {
   l = list(...)
   column_map = lapply(l, getElement, "column_map") |> unique()
