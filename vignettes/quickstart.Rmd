@@ -141,7 +141,7 @@ SIR_starter = function(
   
   ## Ledgers for each specific calculation --------------
   ledgers = list(
-    flow = mp_ledgers(flow[[1]], flow[[2]]),
+    flow = mp_ledgers(flow),
     force_of_infection = mp_ledgers(force_of_infection)
   )
   

@@ -55,7 +55,18 @@ LedgerData = function(...) {
 
 
 #' @export
-mp_ledgers = function(...) LedgerData(...)
+mp_ledgers = function(...) {
+  wrap_ledgers_in_one_element_lists = function(x) {
+    if (inherits(x, "Ledger")) return(list(x))
+    if (inherits(x, "list")) return(x)
+    stop("You can only pass ledgers and/or lists of ledgers.")
+  }
+  args = (list(...)
+    |> lapply(wrap_ledgers_in_one_element_lists)
+    |> unlist(recursive = FALSE, use.names = FALSE)
+  )
+  do.call(LedgerData, args)
+}
 
 #' Indexed Expressions
 #'
