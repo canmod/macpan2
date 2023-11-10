@@ -163,7 +163,7 @@ initial_labelling_column_names_list = function(labelling_column_names, dimension
 
 ## take two Merge objects and merge their frames
 ## and update the provenance-preserving column maps
-merge_util = function(x, y, by.x, by.y) {
+merge_util = function(x, y, by.x, by.y, table_names_order) {
 
   ## ----
   ## resolve non-unique column names in the output, with
@@ -241,9 +241,9 @@ merge_util = function(x, y, by.x, by.y) {
   ## ----
   Link(
     z,
-    z_column_map,
-    z_reference_index_list,
-    z_lab_names_list
+    z_column_map[table_names_order],
+    z_reference_index_list[table_names_order],
+    z_lab_names_list[table_names_order]
   )
 }
 
@@ -338,7 +338,7 @@ explicit_provenance = function(x, col_nm) {
 }
 
 
-merge_generic_by_util = function(x, y, ...) {
+merge_generic_by_util = function(x, y, table_names_order, ...) {
   by = filter_by_list(
     names(x$column_map),
     names(y$column_map),
@@ -366,14 +366,23 @@ merge_generic_by_util = function(x, y, ...) {
   by = data.frame(x = by.x, y = by.y) |> unique()
 
   dup.x = duplicated(by$x)
-  if (any(dup.x)) {
-    cols_to_fix = by$x[dup.x]
-    for (col_nm in cols_to_fix) {
-      x = explicit_provenance(x, col_nm)
+  dup.y = duplicated(by$y)
+  if (any(dup.x) | any(dup.y)) {
+    if (any(dup.x)) {
+      cols_to_fix = by$x[dup.x]
+      for (col_nm in cols_to_fix) {
+        x = explicit_provenance(x, col_nm)
+      }
+    }
+    if (any(dup.y)) {
+      cols_to_fix = by$y[dup.y]
+      for (col_nm in cols_to_fix) {
+        y = explicit_provenance(y, col_nm)
+      }
     }
     merge_generic_by_util(x, y, ...)
   } else {
-    merge_util(x, y, by$x, by$y)
+    merge_util(x, y, by$x, by$y, table_names_order)
   }
 }
 

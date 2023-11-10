@@ -3,11 +3,11 @@ Title: Fast and Flexible Compartmental Modelling
 Version: 1.0.0
 Authors@R: c(
   person("Steve Walker", email="swalk@mcmaster.ca", role=c("cre", "aut")),
-  person("Darren Flynn-Primrose", role="aut"),
+  person("Irena Papst", role="ctb"),
+  person("Michael Li", role="ctb"),
   person("Weiguang Guan", role="aut"),
   person("Ben Bolker", role="aut"),
-  person("Michael Li", role="ctb"),
-  person("Irena Papst", role="ctb")
+  person("Darren Flynn-Primrose", role="aut")
   )		
 Description: Fast and flexible compartmental modelling with Template Model Builder.
 License: GPL-3

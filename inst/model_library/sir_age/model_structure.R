@@ -48,6 +48,18 @@ age_contact = mp_cartesian(
   mp_rename(age, AgeSusceptible = "Age")
 )
 
+
+
+trans_rates_sir = mp_index(Epi = "beta")
+symptoms = mp_index(Symp = c("mild", "severe"))
+trans_rates = mp_cartesian(
+  trans_rates_sir,
+  mp_cartesian(
+    mp_rename(symptoms, SympInfectious  = "Symp"),
+    mp_rename(symptoms, SympSusceptible = "Symp")
+  )
+)
+
 ## structured model --------
 
 state = (state_sir

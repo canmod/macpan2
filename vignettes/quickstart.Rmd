@@ -120,7 +120,7 @@ SIR_starter = function(
   expr_list = mp_expr_list(
     before = list(
       ## aggregations
-        N ~ sum(state)
+        N ~ groupSums(state, alive, state)
     ),
     during = list(
       ## force of infections

@@ -175,6 +175,31 @@ mp_setdiff = function(x, ...) {
   Index(partition, x$labelling_column_names, x)
 }
 
+# mp_aggregate = function(x, by = "Group", ) {
+#   mp_join(
+#     alive = x,
+#     group = mp_group(x, by),
+#     by = by
+#   )
+# }
+
+#' @export
+mp_aggregate = function(index, by = "Group", ledger_column = "group") {
+  index_columns = to_names(by)
+  if (length(index_columns) == 1L & !index_columns %in% names(index)) {
+    partition = index$partition$constant(by, "a")
+    index = Index(partition)
+  } else {
+    partition = index$partition
+  }
+  Link(
+    partition$frame(),
+    macpan2:::initial_column_map(names(partition), ledger_column),
+    macpan2:::initial_reference_index_list(index, ledger_column),
+    setNames(list(index_columns), ledger_column)
+  )
+}
+
 #' Union of Indexes
 #'
 #' @param ... Indexes.
@@ -235,8 +260,6 @@ mp_rbind = function(...) {
   )
 }
 
-
-
 #' @export
 mp_choose = function(x, subset_name, ...) {
   l = list(...)
@@ -266,11 +289,35 @@ mp_choose_out = function(x, subset_name, ...) {
   init_merge(p$frame(), subset_name, x$reference_index(), x$labelling_column_names)
 }
 
-
+#' Join Indexes
+#'
+#' @param ... Named arguments giving indexes created by
+#' \code{\link{mp_index}} or another function that manipulates indexes.
+#' Each argument will become a position vector used to subset
+#' or expand numeric vectors in archetype formulas.
+#' @param by What columns to use to join the indexes. If there are
+#' only two indexes in \code{...} the `by` argument can be either
+#' (1) a string giving the dot-concatenation of columns to join on
+#' that are common among the tables or (2) a two-sided formula with
+#' strings on either side. In the formula case, the left-hand-side
+#' is a dot-concatenation of columns in the first index and the
+#' right-hand-side is a dot-concatenation of the columns in the second
+#' index. This formula notation is useful if the name of a column in
+#' one index is different from a column in the other index that
+#' should be joined on. If there are more than two indexes in \code{...}
+#' the `by` argument is a named list of strings and/or formulas.
+#' Each item in the list corresponds to a pair of indexes and how
+#' their columns are to be matched. The name of each item is a dot
+#' contactenation of the names of the corresponding pairs of arguments
+#' in \code{...}. The value of each item follows the same rules as the
+#' case given above with two indexes. TODO: create examples and point
+#' to them.
+#'
 #' @export
 mp_join = function(..., by = empty_named_list()) {
   table_list = valid$named_list$assert(list(...))
   table_nms = names(table_list)
+
   if (length(table_nms) < 2L) stop("cannot join fewer than two index objects.")
   if (is.character(by)) {
     if (length(table_nms) != 2L) {
@@ -278,7 +325,16 @@ mp_join = function(..., by = empty_named_list()) {
     }
     by = setNames(list(by), to_name(table_nms))
   }
+
   by_list = valid$named_list$assert(by)
+  table_order = (by_list
+    |> names()
+    |> lapply(to_names)
+    |> unlist()
+    |> unique()
+  )
+  ordered_table_list = table_list[table_order]
+
   by_nms = names(by_list) |> strsplit(".", fixed = TRUE)
   good_by_nms = (by_nms
     |> lapply(`%in%`, table_nms)
@@ -301,13 +357,13 @@ mp_join = function(..., by = empty_named_list()) {
     ) |> stop()
   }
   if (!is.null(table_nms)) {
-    for (nm in names(table_list)) {
-      if (nm != "" & inherits(table_list[[nm]], "Index")) {
-        table_list[[nm]] = mp_choose(table_list[[nm]], nm)
+    for (nm in names(ordered_table_list)) {
+      if (nm != "" & inherits(ordered_table_list[[nm]], "Index")) {
+        ordered_table_list[[nm]] = mp_choose(ordered_table_list[[nm]], nm)
       }
     }
   }
-  orig_tab_nms = (table_list
+  orig_tab_nms = (ordered_table_list
     |> method_apply("table_names")
     |> unname()
     |> unlist(recursive = FALSE)
@@ -317,6 +373,7 @@ mp_join = function(..., by = empty_named_list()) {
     |> lapply(as.integer)
     |> vapply(diff, integer(1L))
   )
+
   bad_by_args = table_nm_diffs < 1L ## table names in the wrong order
   if (any(bad_by_args)) {
     fixed_by_nms = (by_nms[bad_by_args]
@@ -329,10 +386,15 @@ mp_join = function(..., by = empty_named_list()) {
     by_list[bad_by_args] = fixed_by_args
     names(by_list)[bad_by_args] = fixed_by_nms
   }
-  z = table_list[[1L]]
-  for (i in 2:length(table_list)) {
+
+  z = ordered_table_list[[1L]]
+  for (i in 2:length(ordered_table_list)) {
     args = c(
-      list(x = z, y = table_list[[i]]),
+      list(
+        x = z,
+        y = ordered_table_list[[i]],
+        table_names_order = names(table_list)
+      ),
       by_list
     )
     z = do.call(merge_generic_by_util, args)
@@ -340,8 +402,7 @@ mp_join = function(..., by = empty_named_list()) {
   z
 }
 
-#' @export
-mp_aggregate = function(formula
+mp_aggregate_old = function(formula
   , group_by
   , index
   , ...
