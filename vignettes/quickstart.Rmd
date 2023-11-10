@@ -26,6 +26,7 @@ TO DO:
 
 - make sure all functions used have good help pages
 - get model library ready (or remove text below referencing it)
+- update `mp_report()` so that row names are reset before outputting the results df
 
 ]
 
@@ -298,8 +299,6 @@ The output of the simulation is a [long data frame](https://r4ds.had.co.nz/tidy-
 ```{r sir-results-head}
 head(sir_results)
 ```
-
-[IP: small point, but i assume the row index starts at 4 because the first three entries (where `time = 0`) are the initial conditions. it would be a little cleaner if those row names were removed before output from `mp_report()`.]
 
 This output can be manipulated and plotted easily with standard tools, like `dplyr` and `ggplot2`:
 
