@@ -56,16 +56,16 @@ Here,
 - $S$, $I_x$, and $R$ are the numbers of individuals that are susceptible, infected with strain $x$ ($A$ or $B$), and recovered, respectively,
 - $N= S + I_A + I_B + R$ is the total population size,
 - $\beta_x$ is the transmission rate for strain $x$,
-- $\gamma$ is the recovery rate for infected individuals,
+- $\gamma$ is the recovery rate for infected individuals,^[in this model we are choosing to make the recovery rate (and hence the infectious period) the same for both strains, but it would be easy to relax this assumption]
 - $\lambda_x = \beta_x (I_x)/N$ is the force of infection for strain $x$. 
 
 We can cast this model as a system of difference equations, since this is how we will iterate them numerically in our simulation:
 
 \begin{align}
-S_{t+1} &= - [\beta_a (I_A)_t/N + \beta_s (I_B)_t/N] S_t, \\ 
-(I_A)_{t+1} &= \beta_A (I_A)_t/N - \gamma (I_A)_t, \\ 
-(I_B)_{t+1} &= \beta_B (I_B)_t/N - \gamma (I_B)_t, \\ 
-R_{t+1} &= \gamma (I_A)_t + \gamma (I_B)_t.
+S_{t+1} & = - [\beta_a (I_A)_t/N + \beta_s (I_B)_t/N] S_t, \\ 
+(I_A)_{t+1} &= \phantom{-[} \beta_A (I_A)_t/N - \gamma (I_A)_t, \\ 
+(I_B)_{t+1} &= \phantom{-[} \beta_B (I_B)_t/N - \gamma (I_B)_t, \\ 
+R_{t+1} &= \phantom{-[}  \gamma (I_A)_t + \gamma (I_B)_t.
 \end{align}
 
 Each force of infection, $\lambda_A = \beta_A (I_A)/N$ and  $\lambda_B = \beta_B (I_B)/N$ has the same **form**, that is, using an expression like $\lambda = \beta I / N$. When numerically simulating this model, it doesn't take much effort to write out each calculation separately as something like:
@@ -75,7 +75,7 @@ lambda.A = beta.A * I.A / N
 lambda.B = beta.B * I.B / N
 ```
 
-However, in `macpan2`, we can specify a single calculation archetype for it, for instance something like,
+However, in `macpan2`, we can specify a single calculation archetype for it, for instance
 
 ```
 lambda = beta * I / N
@@ -85,26 +85,26 @@ and then attach a **ledger** to the model object that tabulates which specific c
 
 In this case, there would only be two calculations in the force of infection ledger (one calculation per strain), but one can easily imagine a more complicated case. For instance, consider a relatively simple two-city age-structured metapopulation model with 10 age groups within each its two patches: there would be 10x10x2 = `r 10*10*2` force of infection terms of the same form (one per combination of age groups to capture the options for susceptible and infected interaction, repeated for each of the two patches).
 
-**By using calculation archetypes and ledgers, the modeller can focus on the modelling**, like designing model structure and choosing an expression for the forces of infection, **while `macpan2` will handle the bookkeeping**, matching stratified variables with each other each time an expression must be calculated. This approach cuts down on rote repetition when setting up model calculations, which in turn reduces the opportunity for bugs in the simulation code. It also means that expanding a model can be as simple as updating the calculation ledger, as opposed to directly editing specific calculations in the simulation code. 
+**Using calculation archetypes and ledgers allows the modeller to focus on modelling questions**, like the design of the model structure and the choice of expressions for the forces of infection, while **`macpan2` handles the bookkeeping**, matching stratified variables with each other when calculating expressions. This approach cuts down on rote repetition when setting up model calculations, which in turn reduces the opportunity for bugs in the simulation code. It also means that expanding a model can be as simple as updating the calculation ledger, rather than error-prone editing of calculations in the simulation code. 
 
-While a modeller could certainly write their own code to cut down on repetition when expanding a simple model (and many do), the idea behind `macpan2` is to give individuals a ready-made model specification grammar that enables easy model extension, especially when building [product models](https://arxiv.org/abs/2307.10308), and that can readily interface with fast simulation engines, like [TMB](https://cran.r-project.org/web/packages/TMB/index.html). 
+While a modeller could write their own code to cut down on repetition when expanding a simple model (and many do), `macpan2` provides a ready-made model specification grammar that enables easy model extension, especially when building [product models](https://arxiv.org/abs/2307.10308), and that can readily interface with fast simulation and calibration engines, like [TMB](https://cran.r-project.org/web/packages/TMB/index.html). 
 
 # Appetizer: specifying the basic SIR model
 
-Let's start with specifying the basic SIR model in `macpan2`, which is the foundation of the two-strain model above:
+Let's start with specifying the basic SIR model, the foundation of the two-strain model above, in `macpan2`:
 
 \begin{align}
 S_{t+1} &= -\beta S_t I_t/N, \\ 
-I_{t+1} &= \beta S_t I_t/N - \gamma I_t, \\ 
-R_{t+1} &= \gamma I_t.
+I_{t+1} &= \phantom{-} \beta S_t I_t/N - \gamma I_t, \\ 
+R_{t+1} &=  \phantom{-} \gamma I_t.
 \end{align}
 
 It will be helpful to set $\lambda = \beta I/N$ and recast the equations as:
 
 \begin{align}
 S_{t+1} &= -\lambda S_t, \\ 
-I_{t+1} &= \lambda S_t - \gamma I_t, \\ 
-R_{t+1} &= \gamma I_t.
+I_{t+1} &=  \phantom{-} \lambda S_t - \gamma I_t, \\ 
+R_{t+1} &=  \phantom{-} \gamma I_t.
 \end{align}
 
 Since the focus of this quickstart guide is `macpan2`'s model specification grammar, we have defined an `SIR_starter()` function to sweep some of the details of initializing a model object under the rug (for now, though we will revisit it [later](#dessert)). All you need to know about `SIR_starter()` at this stage is that we will pass it some inputs to define the model using the model grammar and it will output a model object from which we can build a simulator. Our primary focus for the remainder of this vignette will be how the inputs to `SIR_starter()` are created.
@@ -226,7 +226,7 @@ and by default creates one entry in the ledger for each combination of these val
 infection
 ```
 
-As a side note, the names of the arguments in the `mp_join()` function are tied to the calculation archetypes baked into `SIR_starter()`, but in general they are completely up to the modeller and how they choose to specify their calculation archetypes.^[There is only one `mp_join()` argument name that is not available to the user, and that is `by`, which has a special role that we will see [later](#main-course).]
+The names of the arguments in the `mp_join()` function are tied to the calculation archetypes baked into `SIR_starter()`, but in general modellers can choose their calculation archetypes and the corresponding argument names however they like.^[There is only one `mp_join()` argument name that is not available to the user &mdash; `by`, which has a special role that we will see [later](#main-course).]
 
 We create the `recovery` ledger in a similar way:
 
@@ -272,7 +272,7 @@ sir = SIR_starter(
 )
 ```
 
-We can create a model simulator using `mp_tmb_simulator()`, provided we give it the model object (`model`), initial values for the indices (`vectors`), as well as the number of total time steps in the simulation (`time_steps`):
+We can create a model simulator using `mp_tmb_simulator()`^[`tmb` stands for "template model builder", the underlying simulation engine provided by the [TMB package](https://kaskr.github.io/adcomp/Introduction.html)], provided we give it the model object (`model`), initial values for the indices (`vectors`), as well as the number of total time steps in the simulation (`time_steps`):
 
 ```{r sir-simulator}
 ## SIR model simulator -------------------------
