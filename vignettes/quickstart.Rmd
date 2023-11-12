@@ -14,7 +14,7 @@ editor_options:
 
 [![status](https://img.shields.io/badge/status-working%20draft-red)](https://canmod.github.io/macpan2/articles/vignette-status#working-draft)
 
-```{r setup, echo = FALSE, message = FALSE}
+```{r setup, echo = FALSE, message = FALSE, warning = FALSE}
 library(macpan2)
 library(ggplot2)
 library(dplyr)
@@ -27,6 +27,7 @@ TO DO:
 - make sure all functions used have good help pages
 - get model library ready (or remove text below referencing it)
 - update `mp_report()` so that row names are reset before outputting the results df
+- be sure `DynamicModel()` is exported
 
 ]
 
@@ -56,7 +57,7 @@ Here,
 - $S$, $I_x$, and $R$ are the numbers of individuals that are susceptible, infected with strain $x$ ($A$ or $B$), and recovered, respectively,
 - $N= S + I_A + I_B + R$ is the total population size,
 - $\beta_x$ is the transmission rate for strain $x$,
-- $\gamma$ is the recovery rate for infected individuals,^[in this model we are choosing to make the recovery rate (and hence the infectious period) the same for both strains, but it would be easy to relax this assumption]
+- $\gamma$ is the recovery rate for infected individuals,^[In this model we are choosing to make the recovery rate (and hence the infectious period) the same for both strains, but it would be easy to relax this assumption in the model specification by following the way in which we stratify the state variable $I$ by strain below.]
 - $\lambda_x = \beta_x (I_x)/N$ is the force of infection for strain $x$. 
 
 We can cast this model as a system of difference equations, since this is how we will iterate them numerically in our simulation:
@@ -111,7 +112,7 @@ Since the focus of this quickstart guide is `macpan2`'s model specification gram
 
 ```{r SIR-starter, echo = FALSE}
 ## helper function to simplify the exposition in this vigette -----------
-SIR_starter = function(
+SIR_starter <- function(
   # indices for model quantities
   state,
   rate,
@@ -121,9 +122,9 @@ SIR_starter = function(
 ){
   
   ## Set up expressions list for each calculation archetype --------------
-  ## names are when the calculation gets performed relative to 
-  ## the simulation loop (before, during, ...)
-  expr_list = mp_expr_list(
+  ## names refer to when the calculation gets performed relative to 
+  ## the simulation time-step loop (before, during, ...)
+  expr_list <- mp_expr_list(
     before = list(
       ## aggregations
         N ~ sum(state)
@@ -144,14 +145,14 @@ SIR_starter = function(
   )
   
   ## Ledgers for each specific calculation --------------
-  ledgers = list(
+  ledgers <- list(
     flow = mp_ledgers(flow),
     force_of_infection = mp_ledgers(force_of_infection)
   )
   
   ## Initialize indexed vectors (to all zeros) --------------
   # used as placeholders for user input
-  init_vecs = list(
+  init_vecs <- list(
     state = mp_vector(state),
     rate = mp_vector(rate)
   )
@@ -177,17 +178,17 @@ The indices we need to specify fall into two groups:
 
 We have identified two useful **calculation archetypes** that we have baked into `SIR_starter()`. In this case, we're thinking of calculation archetypes not necessarily as repeated calculations in this particular model, but as calculations that a modeller may want to repeat down the line, as they expand this simple model with additional structure (as we will do [below](#main-course)). The archetypes are:
 
-- `flow`: Unsigned flows from one class to another of the form $rX$, with $r$ being the *per capita* flow rate and $X$ being the occupancy of the state from which the flow originates. This calculation is repeated for all terms on the right-hand side of the recast system of difference equations above.
+- `flow`: Unsigned flows from one class to another of the form $rX$, with $r>0$ being the *per capita* flow rate and $X$ being the occupancy of the state from which the flow originates. This calculation is repeated for all terms on the right-hand side of the recast system of difference equations above.
 - `force_of_infection`: The prevalence-dependent *per capita* rate of flow from susceptible classes to infectious classes of the form $\lambda = \beta I /N$, used in calculating infection flows.
 
-In this case, the `flow` archetype is actually repeated within these model equations but the `force_of_infection` archetype is only used once. We've identified the force of infection as an archetype since we will want to repeat it later when [expanding into the two-strain model](#main-course). Either way, these archetypes are already baked into `SIR_starter()`, so our task will be creating a calculation ledger for each of these archetypes.  
+In this case, the `flow` archetype is actually repeated within these model equations but the `force_of_infection` archetype is used only once. We've identified the force of infection as an archetype since we will want to repeat it later when [expanding into the two-strain model](#main-course). Either way, these archetypes are already baked into `SIR_starter()`, so our task will be creating a calculation ledger for each of these archetypes.  
 
 We start by creating the `state` and `rate` indices:
 
 ```{r sir-indices}
 ## indices (labels) for model quantities -------------------------
-state = mp_index(Epi = c("S", "I", "R"))
-rate = mp_index(Epi = c("beta", "gamma", "lambda"))
+state <- mp_index(Epi = c("S", "I", "R"))
+rate <- mp_index(Epi = c("beta", "gamma", "lambda"))
 ```
 
 The `mp_index()` function sets structures like data frames that tabulate the model quantity labels:
@@ -206,7 +207,7 @@ We use the `mp_join()` function to create the `infection` ledger like so:
 
 ```{r sir-infection-ledger}
 ## infection ledger -------------------------
-infection = mp_join(
+infection <- mp_join(
   from_states = mp_subset(state, Epi = "S"),
   to_states = mp_subset(state, Epi = "I"), 
   flow_rates = mp_subset(rate, Epi = "lambda")
@@ -233,7 +234,7 @@ We create the `recovery` ledger in a similar way:
 
 ```{r sir-recovery-ledger}
 ## recovery ledger -------------------------
-recovery  = mp_join(
+recovery  <- mp_join(
   from_states = mp_subset(state, Epi = "I"),
   to_states = mp_subset(state, Epi = "R"),
   flow_rates = mp_subset(rate, Epi = "gamma")
@@ -247,7 +248,7 @@ Finally, the `force_of_infection` ledger is slightly different as it corresponds
 ```{r sir-foi-ledger}
 ## force of infection ledger -------------------------
 # infection additionally involves the calculation of a force of infection
-force_of_infection = mp_join(
+force_of_infection <- mp_join(
   infectious_states = mp_subset(state, Epi = "I"),
   transmission_rates = mp_subset(rate, Epi = "beta"),
   infection_flow_rates = mp_subset(rate, Epi = "lambda")
@@ -260,7 +261,7 @@ Now we can use the `SIR_starter()` function to initialize our model object:
 
 ```{r sir}
 ## SIR model object -------------------------
-sir = SIR_starter(
+sir <- SIR_starter(
   # indices
   state = state,
   rate = rate,
@@ -277,8 +278,8 @@ We can create a model simulator using `mp_tmb_simulator()`^[`tmb` stands for "te
 
 ```{r sir-simulator}
 ## SIR model simulator -------------------------
-sir_simulator = mp_tmb_simulator(
-  sir,
+sir_simulator <- mp_tmb_simulator(
+  dynamic_model = sir,
   vectors = list(
     state = c(S = 999, I = 1, R = 0),
     rate = c(beta = 0.25, gamma = 0.1, lambda = NA)
@@ -294,7 +295,7 @@ Then we can actually simulate the model by passing our model simulator to `mp_re
 
 ```{r sir-results}
 ## SIR model simulation results -------------------------
-sir_results = mp_report(sir_simulator)
+sir_results <- mp_report(sir_simulator)
 ```
 
 The output of the simulation is a [long data frame](https://r4ds.had.co.nz/tidy-data.html#longer):
@@ -302,6 +303,14 @@ The output of the simulation is a [long data frame](https://r4ds.had.co.nz/tidy-
 ```{r sir-results-head}
 head(sir_results)
 ```
+
+The simulation output has several columns:
+
+- `matrix`: The matrix storing our values internally, corresponding to our two indices, `state` and `rate`.
+- `time`: An internal time index, where `time = 0` corresponds to the user-provided values (initial conditions).
+- `row`: The primary label for the `value` (the row name in the corresponding `matrix`).
+- `column`: A secondary label for the `value` (the column name in the corresponding `matrix`). Since the states and rates in this model are not stratified by a secondary property (like age or location), this column is empty for all entries.
+- `value`: The numerical value.
 
 This output can be manipulated and plotted with standard tools, like `dplyr` and `ggplot2`, e.g.:
 
@@ -361,29 +370,49 @@ As previously noted, we created a `force_of_infection` archetype of the form $\b
 
 Since we already have an archetype for the force of infection, we can easily expand our basic SIR with the strain-related structure to get the two-strain SIR model.
 
+To define the two-strain model, we again must specify our `state` and `rate` indices, as well as our `infection`, `recovery`, and `force_of_infection` ledgers.
+
 We start by creating a new index for the strains:
 
 ```{r strain-indices}
-Strain_indices = c("A", "B")
+Strain_indices <- c("A", "B")
 ```
 
-Now we expand the states and rates associated with different strains. For the state, we want to cross $I$ with the different strains to create one $I$ compartment per strain. We can do so using the `mp_cartesian()` function, which takes the [Cartesian product](https://en.wikipedia.org/wiki/Cartesian_product) of indices (all possible combinations across sets)^[`mp_cartesian()` is analogous to `expand.grid()` in base R, or `tidyr::expand()` in the tidyverse]:
+A simple approach would be to define the new state and rate names directly using the `mp_index()` function, as we did above:
+
+```{r two-strain-state-rate-manual, eval = FALSE}
+state <- mp_index(
+  Epi = c("S", rep("I", 2), "R"),
+  Strain = c("", Strain_indices, "")
+)
+
+rate <- mp_index(
+  Epi = c(rep(c("beta", "lambda"), 2), "gamma"),
+  Strain = c(rep(c("A", "B"), each = 2), "")
+)
+```
+
+However, this approach is less flexible if we want to build a complex model or if we already have a simpler, working model (like the SIR above) and want expand it with many strata and/or several different types of strata. We present an alternative approach below that is more verbose but far more flexible.
+
+For the state, we want to cross $I$ with the different strains to create one $I$ compartment per strain. We can do so using the `mp_cartesian()` function, which takes the [Cartesian product](https://en.wikipedia.org/wiki/Cartesian_product) of indices (all possible combinations across sets)^[`mp_cartesian()` is analogous to `expand.grid()` in base R, or `tidyr::expand()` in the tidyverse]:
 
 ```{r strain-expand-I}
-I_index = mp_cartesian(
+I_indices <- mp_cartesian(
   mp_subset(state, Epi = "I"),
   mp_index(Strain = Strain_indices)
 )
 
-I_index
+I_indices
 ```
+
+This table stores all indices associated with the $I$ compartment.^[In standard mathematical notation, one would typically write $I_A$ and $I_B$, with only $A$ and $B$ referred to as indices, but we've taken the abstraction one step further and chosen to refer to state variable names, like $I$, as indices as well. This choice was made deliberately when developing `macpan2` so that state variable names are be treated like any other component used to label a particular compartment (like location or age group).]
 
 We then combine the newly-stratified $I$ indices with the other states that remain unchanged using the `mp_union()` function:
 
 ```{r two-strain-state}
-state = mp_union(
+state <- mp_union(
   mp_subset(state, Epi = "S"),
-  I_index, 
+  I_indices, 
   mp_subset(state, Epi = "R")
 )
 
@@ -393,7 +422,7 @@ state
 We update the rates similarly:
 
 ```{r two-strain-rate}
-rate = 
+rate <- 
   mp_union(
   # stratify rates involved in the infection process by strain
   mp_cartesian(
@@ -406,22 +435,6 @@ rate =
 
 rate
 ```
-
-It may seem like overkill to use `mp_subset()`, `mp_cartesian()`, and `mp_union()` here to define the indices using the original ones from the SIR model when they could be written out by hand quickly as
-
-```{r two-strain-state-rate-manual, eval = FALSE}
-state = mp_index(
-  Epi = c("S", rep("I", 2), "R"),
-  Strain = c("", Strain_indices, "")
-)
-
-rate = mp_index(
-  Epi = c(rep(c("beta", "lambda"), 2), "gamma"),
-  Strain = c(rep(c("A", "B"), each = 2), "")
-)
-```
-
-but the more implicit approach with `mp_subset()` etc. is much easier if you are building a model with many strata or crossing several different strata, or adding strata to an existing model.
 
 For the `infection` ledger, let's see what our previous code for generating it yields now that we are (partially) stratifying by `Strain`:
 
@@ -445,7 +458,7 @@ In other words, we want the `Strain` index on `I` to match with the `Strain` ind
 
 ```{r two-strain-infection-ledger}
 ## new infection ledger -------------------------
-infection = mp_join(
+infection <- mp_join(
   from_states = mp_subset(state, Epi = "S"),
   to_states = mp_subset(state, Epi = "I"), 
   flow_rates = mp_subset(rate, Epi = "lambda"),
@@ -462,7 +475,7 @@ Note the syntax of the `by` argument here. Each `by` list element will correspon
 For the recovery ledger, we haven't stratified `gamma` or `R`, so the default full join with the `I` labels yields exactly the flows we want:
 
 ```{r two-strain-recovery-ledger}
-recovery = mp_join(
+recovery <- mp_join(
     from_states = mp_subset(state, Epi = "I"),
     to_states = mp_subset(state, Epi = "R"),
     flow_rates = mp_subset(rate, Epi = "gamma")
@@ -484,7 +497,7 @@ We want the `lambda`, `I`, and `beta` labels all matched on the `Strain` column 
 
 ```{r two-strain-foi-ledger}
 ## new force of infection ledger -------------------------
-force_of_infection = mp_join(
+force_of_infection <- mp_join(
   infection_flow_rates = mp_subset(rate, Epi = "lambda"),
   infectious_states = mp_subset(state, Epi = "I"),
   transmission_rates = mp_subset(rate, Epi = "beta"),
@@ -500,7 +513,7 @@ force_of_infection
 Now we're ready to build the two-strain model object and simulate it:
 
 ```{r two-strain-results, fig.width = 6, fig.height = 4}
-two_strain_model = SIR_starter(
+two_strain_model <- SIR_starter(
   # indices
   state = state,
   rate = rate,
@@ -512,8 +525,8 @@ two_strain_model = SIR_starter(
   force_of_infection = force_of_infection
 )
 
-two_strain_simulator = mp_tmb_simulator(
-  two_strain_model,
+two_strain_simulator <- mp_tmb_simulator(
+  dynamic_model = two_strain_model,
   vectors = list(
     state = c(S = 998, I.A = 1, I.B = 1, R = 0),
     rate = c(beta.A = 0.25, lambda.A = NA, beta.B = 0.2, lambda.B = NA, gamma = 0.1)
@@ -521,11 +534,11 @@ two_strain_simulator = mp_tmb_simulator(
   time_steps = 100L
 )
 
-two_strain_results = (mp_report(two_strain_simulator)
+two_strain_results <- (mp_report(two_strain_simulator)
   |> filter(matrix == "state")                    
 )
 
-levels = unique(two_strain_results$row) # get state variables in the desired order
+levels <- unique(two_strain_results$row) # get state variables in the desired order
 
 (two_strain_results # keep state variables at each point in time
   |> mutate(state = factor(row, levels = levels)) # to enforce logical state ordering in plot
