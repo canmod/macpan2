@@ -158,7 +158,7 @@ SIR_starter <- function(
   )
   
   ## Initialize model object -----------------
-  DynamicModel(
+  mp_dynamic_model(
     expr_list = expr_list,
     ledgers = ledgers,
     init_vecs = init_vecs
