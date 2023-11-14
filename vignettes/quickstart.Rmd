@@ -20,15 +20,6 @@ library(ggplot2)
 library(dplyr)
 ```
 
-[
-
-TO DO:
-
-- be sure `DynamicModel()` is exported
-- harmonize presentation with quickstart
-
-]
-
 One of the main goals of `macpan2` is to provide a flexible grammar for model specification that reduces friction when building upon and expanding an existing model. This goal complements the standard approach of modelling, which is to start simply and add complexity as needed. 
 
 There is a trade-off between the flexibility and the simplicity of the model grammar: specifying a simple model may not always be very concise, and there is a learning curve to the model grammar. However, it can be very powerful when it comes to specifying **structured** models, especially when they are cast as expansions of simple models. Such [structured models](https://idpjournal.biomedcentral.com/articles/10.1186/s40249-022-01001-y) can include:
