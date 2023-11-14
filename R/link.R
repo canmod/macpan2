@@ -1,9 +1,10 @@
-#' Ledger
+#' Ledgers
 #'
-#' Make an object to describe ledgers between the entities in an
-#' \code{\link{Index}}. \code{Ledger} object are created by operating on existing
-#' \code{\link{Index}} objects. For example, here the \code{\link{mp_join}}
-#' combines two
+#' A ledger is a table with rows that identify specific instances of a
+#' functional form used to define a \code{\link{mp_dynamic_model}}. Ledgers
+#' are most commonly
+#' created using the \code{\link{mp_join}} function as in the following
+#' example.
 #' ```{r}
 #' age = mp_index(Age = c("young", "old"))
 #' state = mp_cartesian(
@@ -16,8 +17,10 @@
 #'   from.to = "Age"
 #' )
 #' ```
-#'
-#' @export
+#' @name LedgerDefinition
+NULL
+
+
 Ledger = function(frame, column_map, reference_index_list, labelling_column_names_list) {
   self = Base()
   self$frame = frame

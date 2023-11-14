@@ -2,18 +2,18 @@
 % Please edit documentation in R/mp.R
 \name{mp_cartesian}
 \alias{mp_cartesian}
-\title{Cartesian Product of Indexes}
+\title{Cartesian Product of Index Tables}
 \usage{
 mp_cartesian(x, y)
 }
 \arguments{
-\item{x, y}{Objects produced by \code{\link{mp_index}} or derived
-from such an object using one of (TODO: list the functions that
-will preserve indexness).}
+\item{x}{Index table (see \code{\link{mp_index}}).}
+
+\item{y}{Index table (see \code{\link{mp_index}}).}
 }
 \description{
-Produce a new index by taking all possible pairwise combinations
-of the input indexes. This is useful for producing product models
+Produce a new index table by taking all possible pairwise combinations
+of the input tables. This is useful for producing product models
 that expand model components through stratification.
 }
 \examples{
@@ -43,10 +43,17 @@ mp_union(
 
 }
 \seealso{
-Other functions that return indexes
+Other functions that return index tables
 \code{\link{mp_index}()},
 \code{\link{mp_rename}()},
 \code{\link{mp_subset}()},
 \code{\link{mp_union}()}
+
+Other functions that take products of index tables and return one index tables
+\code{\link{mp_linear}()},
+\code{\link{mp_square}()},
+\code{\link{mp_symmetric}()},
+\code{\link{mp_triangle}()}
 }
 \concept{indexes}
+\concept{products}

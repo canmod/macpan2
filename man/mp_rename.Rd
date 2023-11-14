@@ -14,7 +14,7 @@ is a character vector giving the old name.}
 Rename Index Columns
 }
 \seealso{
-Other functions that return indexes
+Other functions that return index tables
 \code{\link{mp_cartesian}()},
 \code{\link{mp_index}()},
 \code{\link{mp_subset}()},

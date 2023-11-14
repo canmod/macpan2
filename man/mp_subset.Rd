@@ -18,10 +18,12 @@ that refer to labels with respect to those columns. These values
 determine the resulting subset.}
 }
 \description{
-Take a subset of the rows of an index to produce another index.
+Take a subset of the rows of an index table (see \code{\link{mp_index}})
+to produce another index table. The \code{mp_subset} function gives rows that
+match a certain criterion and \code{mp_setdiff} gives rows that do not match.
 }
 \seealso{
-Other functions that return indexes
+Other functions that return index tables
 \code{\link{mp_cartesian}()},
 \code{\link{mp_index}()},
 \code{\link{mp_rename}()},

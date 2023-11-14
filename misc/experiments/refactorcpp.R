@@ -11,6 +11,11 @@ sir_two_strains = (mp_rename(sir, A = "Epi")
   |> mp_setdiff(A.B = "I.I", A.C = "I.I", B.C = "I.I")
 )
 
+
+gg = mp_aggregate(sir_two_strains, by = "A", ledger_column = "a_strain")
+gg$positions_for$a_strain()
+
+
 ## replacement model
 
 n_strains = 2L
