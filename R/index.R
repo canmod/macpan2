@@ -78,12 +78,6 @@
 #' )
 #' print(state)
 #' labels(state)
-#' state_vector = (state
-#'   |> mp_vector()
-#'   |> mp_set_numbers(Epi = c(S = 1000))
-#'   |> mp_set_numbers(Epi = c(I = 1), Age = "old")
-#' )
-#' print(state_vector)
 #' mp_cartesian(state, mp_index(City = c("hamilton", "toronto")))
 #' @family indexes
 #' @export

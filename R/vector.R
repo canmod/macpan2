@@ -161,6 +161,19 @@ zero_vector = function(labels) setNames(rep(0, length(labels)), labels)
 #' ```{r, echo = FALSE}
 #' mp_vector(symp)$set_numbers(Epi = c(S = 1000))$set_numbers(Epi = c(I = 1), Symptoms = "severe")
 #' ```
+#' 
+#' @examples
+#' state = mp_index(
+#'   Epi = c("S", "I", "S", "I"),
+#'   Age = c("young", "young", "old", "old")
+#' )
+#' state_vector = (state
+#'   |> mp_vector()
+#'   |> mp_set_numbers(Epi = c(S = 1000))
+#'   |> mp_set_numbers(Epi = c(I = 1), Age = "old")
+#' )
+#' print(state_vector)
+#' 
 #' @export
 mp_vector = function(x, ...) UseMethod("mp_vector")
 
