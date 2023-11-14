@@ -1,8 +1,8 @@
-#' Model Component Index Table
+#' Model Quantity Index Table
 #'
-#' Make an index table to tabulate model quantity labels by category. These
+#' Make an index table to enumerate model quantity labels by category. These
 #' objects generalize and wrap \code{\link{data.frame}}s, where each column is a
-#' label category and each row is an entry in the index. Indices must contain 
+#' label category and each row is an index. Indices must contain 
 #' only letters, numbers, and underscores. Blank empty string entries are 
 #' allowed, but missing values (`NA`s) are not.
 #'
