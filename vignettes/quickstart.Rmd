@@ -26,7 +26,6 @@ TO DO:
 
 - make sure all functions used have good help pages
 - get model library ready (or remove text below referencing it)
-- update `mp_report()` so that row names are reset before outputting the results df
 - be sure `DynamicModel()` is exported
 - harmonize presentation with quickstart
 
