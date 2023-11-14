@@ -113,7 +113,7 @@ Since the focus of this quickstart guide is `macpan2`'s model specification gram
 ```{r SIR-starter, echo = FALSE}
 ## helper function to simplify the exposition in this vigette -----------
 SIR_starter <- function(
-  # indices for model quantities
+  # index tables for model quantities
   state,
   rate,
   # ledgers for calculation archetypes
@@ -150,7 +150,7 @@ SIR_starter <- function(
     force_of_infection = mp_ledgers(force_of_infection)
   )
   
-  ## Initialize indexed vectors (to all zeros) --------------
+  ## Initialize vectors from index tables (with all zeros for values) --------------
   # used as placeholders for user input
   init_vecs <- list(
     state = mp_vector(state),
@@ -168,10 +168,10 @@ SIR_starter <- function(
 
 The inputs to `SIR_starter()` are of two types:
 
-- **indices** (labels) for model quantities, 
+- **index tables** containing indices (labels) of model quantities, 
 - **ledgers** that tabulate specific calculations required to simulate the model equations (based on the included calculation archetypes).
 
-The indices we need to specify fall into two groups:
+The index tables we need to specify fall into two groups:
 
 - `state`: state names, $S$, $I$, and $R$ from the model equations
 - `rate`: rate names, $\beta$, $\gamma$, and the derived rate $\lambda$
@@ -183,16 +183,15 @@ We have identified two useful **calculation archetypes** that we have baked into
 
 In this case, the `flow` archetype is actually repeated within these model equations but the `force_of_infection` archetype is used only once. We've identified the force of infection as an archetype since we will want to repeat it later when [expanding into the two-strain model](#main-course). Either way, these archetypes are already baked into `SIR_starter()`, so our task will be creating a calculation ledger for each of these archetypes.  
 
-We start by creating the `state` and `rate` indices:
+We start by creating the `state` and `rate` index tables:
 
-```{r sir-indices}
-## indices (labels) for model quantities -------------------------
+```{r sir-index-tables}
+## index tables to label model quantities -------------------------
 state <- mp_index(Epi = c("S", "I", "R"))
 rate <- mp_index(Epi = c("beta", "gamma", "lambda"))
 ```
 
 The `mp_index()` function sets structures like data frames that tabulate the model quantity labels:
-[BMB: tabulate → enumerate? list?]
 
 ```{r sir-state-and-rate}
 state
@@ -262,7 +261,7 @@ Now we can use the `SIR_starter()` function to initialize our model object:
 ```{r sir}
 ## SIR model object -------------------------
 sir <- SIR_starter(
-  # indices
+  # index tables
   state = state,
   rate = rate,
   # ledgers
@@ -274,7 +273,7 @@ sir <- SIR_starter(
 )
 ```
 
-We can create a model simulator using `mp_tmb_simulator()`^[`tmb` stands for "template model builder", the underlying simulation engine provided by the [TMB package](https://kaskr.github.io/adcomp/Introduction.html)], giving it the model object (`model`), initial values for the indices (`vectors`), as well as the number of total time steps in the simulation (`time_steps`):
+We can create a model simulator using `mp_tmb_simulator()`^[`tmb` stands for "template model builder", the underlying simulation engine provided by the [TMB package](https://kaskr.github.io/adcomp/Introduction.html)], giving it the model object (`model`), initial values for each index (`vectors`), as well as the number of total time steps in the simulation (`time_steps`):
 
 ```{r sir-simulator}
 ## SIR model simulator -------------------------
@@ -305,8 +304,8 @@ head(sir_results)
 
 The simulation output has several columns:
 
-- `matrix`: The matrix storing our values internally, corresponding to our two indices, `state` and `rate`.
-- `time`: An internal time index, where `time = 0` corresponds to the user-provided values (initial conditions). [SW: note that the default now more intuitively starts at time = 1]
+- `matrix`: The matrix storing our values internally, corresponding to our two index tables, `state` and `rate`.
+- `time`: An internal time index, where `time = 1` is the result after the first step through the simulation loop. 
 - `row`: The primary label for the `value` (the row name in the corresponding `matrix`).
 - `col`: A secondary label for the `value` (the column name in the corresponding `matrix`). Since the outputs of this model (i.e. states and rates) are specified as vectors and not matrices, this column is empty for all entries. TODO: When would this be useful?
 - `value`: The numerical value.
@@ -369,15 +368,15 @@ As previously noted, we created a `force_of_infection` archetype of the form $\b
 
 Since we already have an archetype for the force of infection, we can easily expand our basic SIR with the strain-related structure to get the two-strain SIR model.
 
-To define the two-strain model, we again must specify our `state` and `rate` indices, as well as our `infection`, `recovery`, and `force_of_infection` ledgers.
+To define the two-strain model, we again must specify our `state` and `rate` index tables, as well as our `infection`, `recovery`, and `force_of_infection` ledgers.
 
-We start by creating a new index for the strains:
+We start by creating a new set of indices for the strains:
 
 ```{r strain-indices}
 Strain_indices <- c("A", "B")
 ```
 
-A simple approach would be to define the new state and rate names directly using the `mp_index()` function, as we did above:
+A simple approach would be to define a table of the new state and rate indices directly using the `mp_index()` function, as we did above:
 
 ```{r two-strain-state-rate-manual, eval = FALSE}
 state <- mp_index(
@@ -393,7 +392,7 @@ rate <- mp_index(
 
 However, this approach is less flexible if we want to build a complex model or if we already have a simpler, working model (like the SIR above) and want expand it with many strata and/or several different types of strata. We present an alternative approach below that is more verbose but far more flexible.
 
-For the state, we want to cross $I$ with the different strains to create one $I$ compartment per strain. We can do so using the `mp_cartesian()` function, which takes the [Cartesian product](https://en.wikipedia.org/wiki/Cartesian_product) of indices (all possible combinations across sets)^[`mp_cartesian()` is analogous to `expand.grid()` in base R, or `tidyr::expand()` in the tidyverse]:
+For the state, we want to cross $I$ with the different strains to create one $I$ compartment name per strain. We can do so using the `mp_cartesian()` function, which takes the [Cartesian product](https://en.wikipedia.org/wiki/Cartesian_product) of indices (all possible combinations across sets)^[`mp_cartesian()` is analogous to `expand.grid()` in base R, or `tidyr::expand()` in the tidyverse]:
 
 ```{r strain-expand-I}
 I_indices <- mp_cartesian(
@@ -404,9 +403,9 @@ I_indices <- mp_cartesian(
 I_indices
 ```
 
-This table stores all indices associated with the $I$ compartment.^[In standard mathematical notation, one would typically write $I_A$ and $I_B$, with only $A$ and $B$ referred to as indices, but we've taken the abstraction one step further and chosen to refer to state variable names, like $I$, as indices as well. This choice was made deliberately when developing `macpan2` so that state variable names are to be treated like any other component used to label a particular compartment (like location or age group).]
+This table stores all indices associated with the $I$ compartment.^[In standard mathematical notation, one would typically write $I_A$ and $I_B$, with only $A$ and $B$ referred to as indices, but we've taken the abstraction one step further and chosen to refer to state variable names, like $I$, as indices as well. This choice was made deliberately when developing `macpan2` so that state variable names get treated like any other component used to label a particular compartment (like location or age group).]
 
-We then combine the newly-stratified $I$ indices with the other states that remain unchanged using the `mp_union()` function:
+We then combine the newly-stratified $I$ indices with the other states that remain unchanged using the `mp_union()` function to make a `state` index table:
 
 ```{r two-strain-state}
 state <- mp_union(
@@ -418,7 +417,7 @@ state <- mp_union(
 state
 ```
 
-We update the rates similarly:
+We update the `rate` index table similarly:
 
 ```{r two-strain-rate}
 rate <- 
@@ -469,7 +468,7 @@ infection <- mp_join(
 infection
 ```
 
-Note the syntax of the `by` argument here. Each `by` list element will correspond to a pairwise join of two of the index tables passed to `mp_join()`. Which indices are involved in the join will correspond to the dot concatenated list element name (`to_states.flow_rates`), with the names coming from `mp_join()`'s argument names (`to_states`, `flow_rates`). The list element value should be a character name of the index type upon which to match. In this case, the value is `"Strain"` because we want the "to state" labels and the "flow rate" labels to match based on the strain index (`I.A` with `lambda.A` and `I.B` with `lambda.B`).
+Note the syntax of the `by` argument here. Each `by` list element will correspond to a pairwise join of two of the index tables passed to `mp_join()`. Which indices are involved in the join will correspond to the dot concatenated list element name (`to_states.flow_rates`), with the names coming from `mp_join()`'s argument names (`to_states`, `flow_rates`). The list element value should be a character string corresponding to the index table column name upon which to perform matches. In this case, the value is `"Strain"` because we want the "to state" labels and the "flow rate" labels to match based on the `Strain` index table column (`I.A` with `lambda.A` and `I.B` with `lambda.B`).
 
 For the recovery ledger, we haven't stratified `gamma` or `R`, so the default full join with the `I` labels yields exactly the flows we want:
 
@@ -492,7 +491,7 @@ mp_join(
 )
 ```
 
-We want the `lambda`, `I`, and `beta` labels all matched on the `Strain` column of the respective indices. Internally, `mp_join()` performs pairwise joins, so we cannot specify a three-way `by` argument. Instead, we will specify two pairwise joins to the same effect:
+We want the `lambda`, `I`, and `beta` labels all matched on the `Strain` column of the respective index tables. Internally, `mp_join()` performs pairwise joins, so we cannot specify a three-way `by` argument. Instead, we will specify two pairwise joins to the same effect:
 
 ```{r two-strain-foi-ledger}
 ## new force of infection ledger -------------------------
@@ -513,7 +512,7 @@ Now we're ready to build the two-strain model object and simulate it:
 
 ```{r two-strain-results, fig.width = 6, fig.height = 4}
 two_strain_model <- SIR_starter(
-  # indices
+  # index tables
   state = state,
   rate = rate,
   # ledgers
