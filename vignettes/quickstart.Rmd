@@ -49,7 +49,7 @@ This vignette seeks to explain `macpan2`'s model specification grammar and in pa
 A key to `macpan2`'s flexible model grammar is the use of **archetypes** to repeat the same kinds of calculations across model structures. For instance, consider an SIR model that has two pathogen strains (without co-infections):
 
 <center>
-![](../misc/diagrams/quickstart/two-strain.png)
+![](../misc/diagrams/quickstart/two-strain.svg)
 </center>
 
 Here, 
@@ -63,7 +63,7 @@ Here,
 We can cast this model as a system of difference equations, since this is how we will iterate them numerically in our simulation:
 
 \begin{align}
-S_{t+1} & = - [\beta_a (I_A)_t/N + \beta_s (I_B)_t/N] S_t, \\ 
+S_{t+1} & = - [\beta_A (I_A)_t/N + \beta_B (I_B)_t/N] S_t, \\ 
 (I_A)_{t+1} &= \phantom{-[} \beta_A (I_A)_t/N - \gamma (I_A)_t, \\ 
 (I_B)_{t+1} &= \phantom{-[} \beta_B (I_B)_t/N - \gamma (I_B)_t, \\ 
 R_{t+1} &= \phantom{-[}  \gamma (I_A)_t + \gamma (I_B)_t.
@@ -84,7 +84,7 @@ lambda = beta * I / N
 
 and then attach a **ledger** to the model object that tabulates which specific calculations to do under this archetype, that is, a table of which specific subscripted `lambda`, `beta`, and `I` to use each time we invoke this archetype during the simulation. 
 
-In this case, there would only be two calculations in the force of infection ledger (one calculation per strain), but one can easily imagine a more complicated case. For instance, consider a relatively simple two-city age-structured metapopulation model with 10 age groups within each its two patches: there would be 10x10x2 = `r 10*10*2` force of infection terms of the same form (one per combination of age groups to capture the options for susceptible and infected interaction, repeated for each of the two patches).
+In this case, there would only be two calculations in the force of infection ledger (one calculation per strain), but one can easily imagine a more complicated case. For instance, consider a relatively simple two-city age-structured metapopulation model with 10 age groups within each of two patches: there would be 10x10x2 = `r 10*10*2` force of infection terms of the same form (one per combination of age groups to capture the options for susceptible and infected interaction, repeated for each of the two patches).
 
 **Using calculation archetypes and ledgers allows the modeller to focus on modelling questions**, like the design of the model structure and the choice of expressions for the forces of infection, while **`macpan2` handles the bookkeeping**, matching stratified variables with each other when calculating expressions. This approach cuts down on rote repetition when setting up model calculations, which in turn reduces the opportunity for bugs in the simulation code. It also means that expanding a model can be as simple as updating the calculation ledger, rather than error-prone editing of calculations in the simulation code. 
 

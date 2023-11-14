@@ -48,8 +48,8 @@ First set up the model from the quickstart guide. For convenience (since we will
 
 ```{r sir_setup}
 mk_sim <- function(init_state = c(S = 99, I = 1, R = 0)) {
-    #sir = Compartmental(system.file("starter_models", "sir", package = "macpan2"))
-    sir = Compartmental2(system.file("model_library", "sir", package = "macpan2"))
+    sir = Compartmental(system.file("starter_models", "sir", package = "macpan2"))
+    #sir = Compartmental2(system.file("model_library", "sir", package = "macpan2"))
     sim <- mp_tmb_simulator(sir,
                        time_steps = 100,
                        vectors = list(
@@ -85,7 +85,7 @@ print(gg0)
 Now we'll use the *experimental* `mk_calibrate()` function from `macpan2helpers` package
 
 ```{r mk_calibrate}
-macpan2::mk_calibrate(sir_simulator,
+macpan2helpers::mk_calibrate(sir_simulator,
    data = data.frame(I_obs = sir_prevalence$obs_val),
    params = list(trans_rates = c(beta = 1), I_sd = 1),
    transforms = list(trans_rates = c(beta  = "log"), I_sd = "log"),
