@@ -135,6 +135,45 @@ as.matrix.Vector = function(x, ...) x$numbers() |> as.matrix()
 
 zero_vector = function(labels) setNames(rep(0, length(labels)), labels)
 
+#' Stub
+#' 
+#' This documentation was originally in [mp_index()] and should be cleaned up
+#' See issue #131
+#' 
+#' #' These labels can be used to create 'multidimensional' names for the elements
+#' of vectors. Here is the above example expressed in vector form.
+#' ```{r, echo = FALSE}
+#' v = Vector(prod)
+#' v$set_numbers(Epi = c(S = 1000))$set_numbers(Epi = c(I = 1), Age = "old")
+#' ```
+#' This example vector could be stored as a 3-by-2 matrix. But other examples
+#' cannot, making this indexing approach more general. For example, consider the
+#' following index.
+#' ```{r, echo = FALSE}
+# symp = mp_index(
+#  Epi = c("S", "I", "I", "R"),
+#  Symptoms = c("", "mild", "severe", "")
+# )
+# symp
+#' ```
+#' This index has an associated indexed vector that cannot be expressed as a
+#' matrix.
+#' ```{r, echo = FALSE}
+#' mp_vector(symp)$set_numbers(Epi = c(S = 1000))$set_numbers(Epi = c(I = 1), Symptoms = "severe")
+#' ```
+#' 
+#' @examples
+#' state = mp_index(
+#'   Epi = c("S", "I", "S", "I"),
+#'   Age = c("young", "young", "old", "old")
+#' )
+#' state_vector = (state
+#'   |> mp_vector()
+#'   |> mp_set_numbers(Epi = c(S = 1000))
+#'   |> mp_set_numbers(Epi = c(I = 1), Age = "old")
+#' )
+#' print(state_vector)
+#' 
 #' @export
 mp_vector = function(x, ...) UseMethod("mp_vector")
 
