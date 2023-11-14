@@ -292,28 +292,80 @@ mp_choose_out = function(x, subset_name, ...) {
 
 #' Join Indexes
 #'
+#' Join two or more index tables (see \code{\link{mp_index}}) to produce a
+#' ledger (see \code{\link{mp_ledgers}}).
+#'
+#' When two index tables are passed to `...`, `mp_join` behaves very much like
+#' an ordinary [inner join](https://en.wikipedia.org/wiki/Join_(SQL)).
+#' When more than two tables are passed to `...`, `mp_join` iteratively joins
+#' pairs of tables to produce a final ledger. For example, if index tables `A`
+#' `B`, and `C` are passed to `mp_join`, an inner join of `A` and `B` is
+#' performed and the result is joined with `C`. In each of these successive
+#' internal joins. The properties of inner
+#' joins ensures that the order of tables does not affect the set of rows in
+#' the final table (SW states without proof!).
+#'
+#' When two index tables are passed to `...`, the `by` argument is just a
+#' character vector of column names on which to join (as in standard R functions
+#' for joining data frames), or the dot-concatenation of these column names.
+#' For example,
+#' ```{r, echo = TRUE, eval = TRUE}
+#' state = mp_index(
+#'   Epi = c("S", "I", "S", "I"),
+#'   Age = c("young", "young", "old", "old")
+#' )
+#' mp_join(
+#'   from = mp_subset(state, Epi = "S"),
+#'   to = mp_subset(state, Epi = "I"),
+#'   by = "Age"
+#' )
+#' ```
+#' If there are more than two tables then the `by` argument must be a named
+#' list of character vectors, each describing how to join the columns of
+#' a pair of tables in `...`. The names of this list are dot-concatenations
+#' of the names of pairs of tables in `...`. For example,
+#' ```{r, echo = TRUE, eval = TRUE}
+#' rates = mp_index(
+#'   Epi = c("lambda", "lambda"),
+#'   Age = c("young", "old")
+#' )
+#' mp_join(
+#'   from = mp_subset(state, Epi = "S"),
+#'   to = mp_subset(state, Epi = "I"),
+#'   rate = mp_subset(rates, Epi = "lambda"),
+#'   by = list(
+#'     from.to = "Age",
+#'     from.rate = "Age"
+#'   )
+#' )
+#' ```
+#' If the `by` columns have different names in two tables, then you can
+#' specify these using formula notation where the left-hand-side
+#' is a dot-concatenation of columns in the first table and the
+#' right-hand-side is a dot-concatenation of the columns in the second
+#' table. For example,
+#' ```{r}
+#' contact = mp_index(
+#'   AgeSusceptible = c("young", "young", "old", "old"),
+#'   AgeInfectious = c("young", "old", "young", "old")
+#' )
+#' mp_join(
+#'   sus = mp_subset(state, Epi = "S"),
+#'   inf = mp_subset(state, Epi = "I"),
+#'   con = contact,
+#'   by = list(
+#'     sus.con = "Age" ~ "AgeSusceptible",
+#'     inf.con = "Age" ~ "AgeInfectious"
+#'   )
+#' )
+#' ```
+#'
 #' @param ... Named arguments giving indexes created by
 #' \code{\link{mp_index}} or another function that manipulates indexes.
 #' Each argument will become a position vector used to subset
 #' or expand numeric vectors in archetype formulas.
-#' @param by What columns to use to join the indexes. If there are
-#' only two indexes in \code{...} the `by` argument can be either
-#' (1) a string giving the dot-concatenation of columns to join on
-#' that are common among the tables or (2) a two-sided formula with
-#' strings on either side. In the formula case, the left-hand-side
-#' is a dot-concatenation of columns in the first index and the
-#' right-hand-side is a dot-concatenation of the columns in the second
-#' index. This formula notation is useful if the name of a column in
-#' one index is different from a column in the other index that
-#' should be joined on. If there are more than two indexes in \code{...}
-#' the `by` argument is a named list of strings and/or formulas.
-#' Each item in the list corresponds to a pair of indexes and how
-#' their columns are to be matched. The name of each item is a dot
-#' contactenation of the names of the corresponding pairs of arguments
-#' in \code{...}. The value of each item follows the same rules as the
-#' case given above with two indexes. TODO: create examples and point
-#' to them.
-#'
+#' @param by What columns to use to join the indexes. See below on
+#' how to specify this argument.
 #' @export
 mp_join = function(..., by = empty_named_list()) {
   table_list = valid$named_list$assert(list(...))

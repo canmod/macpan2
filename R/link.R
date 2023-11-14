@@ -11,8 +11,8 @@
 #'   age
 #' )
 #' mp_join(
-#'   mp_choose(state, "from", Epi = "S"),
-#'   mp_choose(state, "to",   Epi = "I"),
+#'   from = mp_subset(state, Epi = "S"),
+#'   to = mp_subset(state, Epi = "I"),
 #'   from.to = "Age"
 #' )
 #' ```
@@ -193,6 +193,8 @@ merge_util = function(x, y, by.x, by.y) {
     suffixes = suffixes,
     sort = FALSE
   )
+
+  if (nrow(z) == 0L) stop("Nothing matched in a join resulting in a ledger with zero rows, which is not allowed")
 
   ## ----
   ## update the column name map to preserve provenance

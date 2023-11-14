@@ -12,7 +12,93 @@ mp_join(..., by = empty_named_list())
 Each argument will become a position vector used to subset
 or expand numeric vectors in archetype formulas.}
 
-\item{by}{What columns to use to join the indexes. If there are
+\item{by}{What columns to use to join the indexes. See below on
+how to specify this argument.}
+}
+\description{
+Join two or more index tables (see \code{\link{mp_index}}) to produce a
+ledger (see \code{\link{mp_ledgers}}).
+}
+\details{
+When two index tables are passed to \code{...}, \code{mp_join} behaves very much like
+an ordinary \href{https://en.wikipedia.org/wiki/Join_(SQL)}{inner join}.
+When more than two tables are passed to \code{...}, \code{mp_join} iteratively joins
+pairs of tables to produce a final ledger. For example, if index tables \code{A}
+\code{B}, and \code{C} are passed to \code{mp_join}, an inner join of \code{A} and \code{B} is
+performed and the result is joined with \code{C}. In each of these successive
+internal joins. The properties of inner
+joins ensures that the order of tables does not affect the set of rows in
+the final table (SW states without proof!).
+
+When two index tables are passed to \code{...}, the \code{by} argument is just a
+character vector of column names on which to join (as in standard R functions
+for joining data frames), or the dot-concatenation of these column names.
+For example,
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{state = mp_index(
+  Epi = c("S", "I", "S", "I"),
+  Age = c("young", "young", "old", "old")
+)
+mp_join(
+  from = mp_subset(state, Epi = "S"),
+  to = mp_subset(state, Epi = "I"),
+  by = "Age"
+)
+#>     from      to
+#>  S.young I.young
+#>    S.old   I.old
+}\if{html}{\out{</div>}}
+
+If there are more than two tables then the \code{by} argument must be a named
+list of character vectors, each describing how to join the columns of
+a pair of tables in \code{...}. The names of this list are dot-concatenations
+of the names of pairs of tables in \code{...}. For example,
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{rates = mp_index(
+  Epi = c("lambda", "lambda"),
+  Age = c("young", "old")
+)
+mp_join(
+  from = mp_subset(state, Epi = "S"),
+  to = mp_subset(state, Epi = "I"),
+  rate = mp_subset(rates, Epi = "lambda"),
+  by = list(
+    from.to = "Age",
+    from.rate = "Age"
+  )
+)
+#>     from      to         rate
+#>  S.young I.young lambda.young
+#>    S.old   I.old   lambda.old
+}\if{html}{\out{</div>}}
+
+If the \code{by} columns have different names in two tables, then you can
+specify these using formula notation where the left-hand-side
+is a dot-concatenation of columns in the first table and the
+right-hand-side is a dot-concatenation of the columns in the second
+table. For example,
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{contact = mp_index(
+  AgeSusceptible = c("young", "young", "old", "old"),
+  AgeInfectious = c("young", "old", "young", "old")
+)
+mp_join(
+  sus = mp_subset(state, Epi = "S"),
+  inf = mp_subset(state, Epi = "I"),
+  con = contact,
+  by = list(
+    sus.con = "Age" ~ "AgeSusceptible",
+    inf.con = "Age" ~ "AgeInfectious"
+  )
+)
+#>      sus     inf         con
+#>  S.young I.young young.young
+#>    S.old I.young   old.young
+#>  S.young   I.old   young.old
+#>    S.old   I.old     old.old
+}\if{html}{\out{</div>}}
+
+If there are
 only two indexes in \code{...} the \code{by} argument can be either
 (1) a string giving the dot-concatenation of columns to join on
 that are common among the tables or (2) a two-sided formula with
@@ -28,8 +114,5 @@ their columns are to be matched. The name of each item is a dot
 contactenation of the names of the corresponding pairs of arguments
 in \code{...}. The value of each item follows the same rules as the
 case given above with two indexes. TODO: create examples and point
-to them.}
-}
-\description{
-Join Indexes
+to them.
 }

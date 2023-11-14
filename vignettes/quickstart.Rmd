@@ -404,7 +404,7 @@ I_indices <- mp_cartesian(
 I_indices
 ```
 
-This table stores all indices associated with the $I$ compartment.^[In standard mathematical notation, one would typically write $I_A$ and $I_B$, with only $A$ and $B$ referred to as indices, but we've taken the abstraction one step further and chosen to refer to state variable names, like $I$, as indices as well. This choice was made deliberately when developing `macpan2` so that state variable names are be treated like any other component used to label a particular compartment (like location or age group).]
+This table stores all indices associated with the $I$ compartment.^[In standard mathematical notation, one would typically write $I_A$ and $I_B$, with only $A$ and $B$ referred to as indices, but we've taken the abstraction one step further and chosen to refer to state variable names, like $I$, as indices as well. This choice was made deliberately when developing `macpan2` so that state variable names are to be treated like any other component used to label a particular compartment (like location or age group).]
 
 We then combine the newly-stratified $I$ indices with the other states that remain unchanged using the `mp_union()` function:
 
