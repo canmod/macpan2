@@ -174,7 +174,7 @@ hh = function(index, by = "Group", ledger_column = "group") {
 }
 hh(movement, by = "Move", ledger_column = "move")
 hh(movement)
-mp_link_data(hh(state))$positions_frame(TRUE)
+mp_ledgers(hh(state))$positions_frame(TRUE)
 hh = function(len) {
   data.frame(group = rep("group", len))
 
@@ -282,7 +282,7 @@ death_flows = mp_join(
   )
 )
 
-flows = mp_link_data(
+flows = mp_ledgers(
     movement_flows
   , infection_flows
   , recovery_flows
@@ -309,7 +309,7 @@ state_aggregation = mp_join(
   alive = alive,
   group_by = strata,
   by = list(alive.group_by = "Loc.Age")
-) |> mp_link_data()
+) |> mp_ledgers()
 ## N ~ groupSums(state[alive], group_by, N)
 state_vector = Vector(state)
 state_vector$set_numbers(Epi = c(I = 1))$set_numbers(Epi.Loc.Age = c(S.cal.young = 1000))
@@ -370,7 +370,7 @@ self$reference_index_list$N$labels()
 groupSums()
 mp_labels
 xx$reference_index_list$N$labelling_column_names
-yy = mp_link_data(xx)
+yy = mp_ledgers(xx)
 yy$reference_index_list
 
 yy = Vector(state)

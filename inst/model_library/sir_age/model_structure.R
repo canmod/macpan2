@@ -162,12 +162,12 @@ recovery  = mp_join(
 
 ## wrapping up the links defined by the joins above ------------
 
-link_data = list(
-    decompositions = mp_link_data(trans_decomposition)
-  , aggregations = mp_link_data(aggregation)
-  , normalizations = mp_link_data(normalization)
-  , influences = mp_link_data(transmission)
-  , flows = mp_link_data(infection, recovery)
+ledgers = list(
+    decompositions = mp_ledgers(trans_decomposition)
+  , aggregations = mp_ledgers(aggregation)
+  , normalizations = mp_ledgers(normalization)
+  , influences = mp_ledgers(transmission)
+  , flows = mp_ledgers(infection, recovery)
 )
 
 ## instantiate numeric vectors labelled with particular indexes -----------
@@ -187,7 +187,7 @@ init_vecs = list(
 
 dynamic_model = mp_dynamic_model(
   expr_list = expr_list,
-  link_data = link_data,
+  ledgers = ledgers,
   init_vecs = init_vecs,
   unstruc_mats = list()
 )

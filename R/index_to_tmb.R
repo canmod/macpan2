@@ -114,5 +114,13 @@ mp_tmb_simulator.ModelDefRun = function(dynamic_model
 #' @export
 mp_report = function(simulator, parameter_vector = numeric(), phases = "during") {
   if (length(parameter_vector) == 0L) parameter_vector = 0
-  do.call(simulator$report, c(as.list(parameter_vector), list(.phases = phases)))
+  r = do.call(
+    simulator$report,
+    c(
+      as.list(parameter_vector),
+      list(.phases = phases)
+    )
+  )
+  rownames(r) = NULL
+  r
 }

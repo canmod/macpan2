@@ -62,9 +62,9 @@ transmission =  mp_join(
   transmission = beta
 )
 
-link_data = list(
-    influences = mp_link_data(transmission)
-  , flows = mp_link_data(infection, recovery)
+ledgers = list(
+    influences = mp_ledgers(transmission)
+  , flows = mp_ledgers(infection, recovery)
 )
 
 ## Initialize indexed vectors (to all zeros) --------------
@@ -79,7 +79,7 @@ init_vecs = list(
 
 dynamic_model = mp_dynamic_model(
   expr_list = expr_list,
-  link_data = link_data,
+  ledgers = ledgers,
   init_vecs = init_vecs,
   unstruc_mats = list()
 )
