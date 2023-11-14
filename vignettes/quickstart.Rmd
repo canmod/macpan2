@@ -28,6 +28,7 @@ TO DO:
 - get model library ready (or remove text below referencing it)
 - update `mp_report()` so that row names are reset before outputting the results df
 - be sure `DynamicModel()` is exported
+- harmonize presentation with quickstart
 
 ]
 
@@ -284,10 +285,9 @@ sir_simulator <- mp_tmb_simulator(
     state = c(S = 999, I = 1, R = 0),
     rate = c(beta = 0.25, gamma = 0.1, lambda = NA)
   ),
-  time_steps = 100L
+  time_steps = 100
 )
 ```
-[BMB: the `L` syntax for specifying an integer quantity might be unfamiliar. Is it important here or can we leave it out?]
 
 Note that we've specified `NA` for `lambda` as it will be calculated for us using the `force_of_infection` archetype. [BMB: is this required, or could `macpan2` assume that unspecified values are set to `NA` automatically? (There could be an implicit/explicit design tradeoff here - i.e. it would be convenient to do this automatically but might be better to force users to be explicit ...)]
 
@@ -531,7 +531,7 @@ two_strain_simulator <- mp_tmb_simulator(
     state = c(S = 998, I.A = 1, I.B = 1, R = 0),
     rate = c(beta.A = 0.25, lambda.A = NA, beta.B = 0.2, lambda.B = NA, gamma = 0.1)
   ),
-  time_steps = 100L
+  time_steps = 100
 )
 
 two_strain_results <- (mp_report(two_strain_simulator)
