@@ -24,8 +24,6 @@ library(dplyr)
 
 TO DO:
 
-- make sure all functions used have good help pages
-- get model library ready (or remove text below referencing it)
 - be sure `DynamicModel()` is exported
 - harmonize presentation with quickstart
 
@@ -42,7 +40,7 @@ There is a trade-off between the flexibility and the simplicity of the model gra
 - testing processes to identify infections
 - vaccination status
 
-This vignette seeks to explain `macpan2`'s model specification grammar and in particular how one could take a simple model and expand it with additional structure. The package also comes with a model library (see `vignette("example_models")`) to get users started with commonly used basic models, and to demonstrate some more complex cases.
+This vignette seeks to explain `macpan2`'s model specification grammar and in particular how one could take a simple model and expand it with additional structure.
 
 # Amuse bouche: a structured SIR model {#amuse-bouche}
 
