@@ -309,7 +309,7 @@ The simulation output has several columns:
 - `matrix`: The matrix storing our values internally, corresponding to our two indices, `state` and `rate`.
 - `time`: An internal time index, where `time = 0` corresponds to the user-provided values (initial conditions). [SW: note that the default now more intuitively starts at time = 1]
 - `row`: The primary label for the `value` (the row name in the corresponding `matrix`).
-- `column`: A secondary label for the `value` (the column name in the corresponding `matrix`). Since the states and rates in this model are not stratified by a secondary property (like age or location), this column is empty for all entries.
+- `col`: A secondary label for the `value` (the column name in the corresponding `matrix`). Since the outputs of this model (i.e. states and rates) are specified as vectors and not matrices, this column is empty for all entries. TODO: When would this be useful
 - `value`: The numerical value.
 
 This output can be manipulated and plotted with standard tools, like `dplyr` and `ggplot2`, e.g.:
