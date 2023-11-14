@@ -46,7 +46,7 @@ This vignette seeks to explain `macpan2`'s model specification grammar and in pa
 
 # Amuse bouche: a structured SIR model {#amuse-bouche}
 
-A key to `macpan2`'s flexible model grammar is the use of **archetypes** to repeat the same kinds of calculations across model structures. For instance, consider an SIR model that has two pathogen strains (without co-infections):
+A key to `macpan2`'s flexible model grammar is the use of **functional forms** to repeat the same kinds of calculations across model structures. For instance, consider an SIR model that has two pathogen strains (without co-infections):
 
 <center>
 ![](../misc/diagrams/quickstart/two-strain.svg)
@@ -69,24 +69,24 @@ S_{t+1} & = - [\beta_A (I_A)_t/N + \beta_B (I_B)_t/N] S_t, \\
 R_{t+1} &= \phantom{-[}  \gamma (I_A)_t + \gamma (I_B)_t.
 \end{align}
 
-Each force of infection, $\lambda_A = \beta_A (I_A)/N$ and  $\lambda_B = \beta_B (I_B)/N$ has the same **form**, that is, using an expression like $\lambda = \beta I / N$. When numerically simulating this model, it doesn't take much effort to write out each calculation separately as something like:
+Each force of infection, $\lambda_A = \beta_A (I_A)/N$ and  $\lambda_B = \beta_B (I_B)/N$ has the same **functional form**, that is, using an expression like $\lambda = \beta I / N$. When numerically simulating this model, it doesn't take much effort to write out each calculation separately as something like:
 
 ```
 lambda.A = beta.A * I.A / N
 lambda.B = beta.B * I.B / N
 ```
 
-However, in `macpan2`, we can specify a single calculation archetype for it, for instance
+However, in `macpan2`, we can specify a single functional form for it, for instance
 
 ```
 lambda = beta * I / N
 ```
 
-and then attach a **ledger** to the model object that tabulates which specific calculations to do under this archetype, that is, a table of which specific subscripted `lambda`, `beta`, and `I` to use each time we invoke this archetype during the simulation. 
+and then attach a **ledger** to the model object that tabulates specific instances of when this functional form is used to define a component of the model. In other words, this ledger should enumerate which specific subscripted `lambda`, `beta`, and `I` to use each time we invoke the associated functional form during the simulation. 
 
 In this case, there would only be two calculations in the force of infection ledger (one calculation per strain), but one can easily imagine a more complicated case. For instance, consider a relatively simple two-city age-structured metapopulation model with 10 age groups within each of two patches: there would be 10x10x2 = `r 10*10*2` force of infection terms of the same form (one per combination of age groups to capture the options for susceptible and infected interaction, repeated for each of the two patches).
 
-**Using calculation archetypes and ledgers allows the modeller to focus on modelling questions**, like the design of the model structure and the choice of expressions for the forces of infection, while **`macpan2` handles the bookkeeping**, matching stratified variables with each other when calculating expressions. This approach cuts down on rote repetition when setting up model calculations, which in turn reduces the opportunity for bugs in the simulation code. It also means that expanding a model can be as simple as updating the calculation ledger, rather than error-prone editing of calculations in the simulation code. 
+**Using functional forms and ledgers allows the modeller to focus on modelling questions**, like the design of the model structure and the choice of expressions for the forces of infection, while **`macpan2` handles the bookkeeping**, matching stratified variables with each other when calculating expressions. This approach cuts down on rote repetition when setting up model calculations, which in turn reduces the opportunity for bugs in the simulation code. It also means that expanding a model can be as simple as updating the calculation ledger, rather than error-prone editing of calculations in the simulation code. 
 
 While a modeller could write their own code to cut down on repetition when expanding a simple model (and many do), `macpan2` provides a ready-made model specification grammar that enables easy model extension, especially when building [product models](https://arxiv.org/abs/2307.10308), and that can readily interface with fast simulation and calibration engines, like [TMB](https://cran.r-project.org/web/packages/TMB/index.html). 
 
@@ -116,12 +116,12 @@ SIR_starter <- function(
   # index tables for model quantities
   state,
   rate,
-  # ledgers for calculation archetypes
+  # ledgers tabulating the use of different functional forms
   flow, # list of individual ledgers
   force_of_infection
 ){
   
-  ## Set up expressions list for each calculation archetype --------------
+  ## Set up expressions list for each functional form --------------
   ## names refer to when the calculation gets performed relative to 
   ## the simulation time-step loop (before, during, ...)
   expr_list <- mp_expr_list(
@@ -169,19 +169,19 @@ SIR_starter <- function(
 The inputs to `SIR_starter()` are of two types:
 
 - **index tables** containing indices (labels) of model quantities, 
-- **ledgers** that tabulate specific calculations required to simulate the model equations (based on the included calculation archetypes).
+- **ledgers** that tabulate specific calculations required to simulate the model equations (based on the included functional forms).
 
 The index tables we need to specify fall into two groups:
 
 - `state`: state names, $S$, $I$, and $R$ from the model equations
 - `rate`: rate names, $\beta$, $\gamma$, and the derived rate $\lambda$
 
-We have identified two useful **calculation archetypes** that we have baked into `SIR_starter()`. In this case, we're thinking of calculation archetypes not necessarily as repeated calculations in this particular model, but as calculations that a modeller may want to repeat down the line, as they expand this simple model with additional structure (as we will do [below](#main-course)). The archetypes are:
+We have identified two useful **functional forms** that we have baked into `SIR_starter()`. In this case, we're thinking of these forms not necessarily as repeated calculations in this particular model, but as calculations that a modeller may want to repeat down the line, as they expand this simple model with additional structure (as we will do [below](#main-course)). The forms are:
 
-- `flow`: Unsigned flows from one class to another of the form $rX$, with $r>0$ being the *per capita* flow rate and $X$ being the occupancy of the state from which the flow originates. This calculation is repeated for all terms on the right-hand side of the recast system of difference equations above.
-- `force_of_infection`: The prevalence-dependent *per capita* rate of flow from susceptible classes to infectious classes of the form $\lambda = \beta I /N$, used in calculating infection flows.
+- **flow**: Unsigned flows from one class to another of the form $rX$, with $r>0$ being the *per capita* flow rate and $X$ being the occupancy of the state from which the flow originates. This calculation is repeated for all terms on the right-hand side of the recast system of difference equations above.
+- **force of infection**: The prevalence-dependent *per capita* rate of flow from susceptible classes to infectious classes of the form $\lambda = \beta I /N$, used in calculating infection flows.
 
-In this case, the `flow` archetype is actually repeated within these model equations but the `force_of_infection` archetype is used only once. We've identified the force of infection as an archetype since we will want to repeat it later when [expanding into the two-strain model](#main-course). Either way, these archetypes are already baked into `SIR_starter()`, so our task will be creating a calculation ledger for each of these archetypes.  
+In this case, the flow form is repeated within these model equations, while the force of infection form is used only once. We've identified the force of infection as a functional form since we will want to repeat it later when [expanding into the two-strain model](#main-course). Either way, these forms are already baked into `SIR_starter()`, so our task will be creating a ledger for each of these forms to input into the function.  
 
 We start by creating the `state` and `rate` index tables:
 
@@ -200,7 +200,7 @@ rate
 
 The `Epi` column name is unimportant in this simple model, but it will be key to stratifying model quantities with different features (such as epidemiological status, infection type, age group, location) in more complicated models.
 
-For the `flow` archetype, we will create two ledgers: `infection` for the flow from $S$ to $I$ and `recovery` for the flow from $I$ to $R$. We specify flows using the name of the state from which it originates (`from_states`), the state to which it goes (`to_states`), and a flow rate name (`flow_rates`).
+For the flow form, we will create two ledgers: `infection` for the flow from $S$ to $I$ and `recovery` for the flow from $I$ to $R$ and then pass these as a list to the `flow` argument of `SIR_starter()`. We specify flows using the name of the state from which it originates (`from_states`), the state to which it goes (`to_states`), and a flow rate name (`flow_rates`).
 
 We use the `mp_join()` function to create the `infection` ledger like so:
 
@@ -227,7 +227,7 @@ and by default creates one entry in the ledger for each combination of these val
 infection
 ```
 
-The names of the arguments in the `mp_join()` function are tied to the calculation archetypes baked into `SIR_starter()`, but in general modellers can choose their calculation archetypes and the corresponding argument names however they like.^[There is only one `mp_join()` argument name that is not available to the user &mdash; `by`, which has a special role that we will see [later](#main-course).]
+The names of the arguments in the `mp_join()` function are tied to how the functional form baked into `SIR_starter()` is specified, but in general modellers can define their functional forms and the corresponding `mp_join()` argument names however they like.^[There is only one `mp_join()` argument name that is not available to the user &mdash; `by`, which has a special role that we will see [later](#main-course).]
 
 We create the `recovery` ledger in a similar way:
 
@@ -242,7 +242,7 @@ recovery  <- mp_join(
 recovery
 ```
 
-Finally, the `force_of_infection` ledger is slightly different as it corresponds to a different calculation archetype in `SIR_starter()` (so the `mp_join()` argument names are different):
+Finally, the `force_of_infection` ledger is slightly different as it corresponds to a different functional form in `SIR_starter()` (so the `mp_join()` argument names are different):
 
 ```{r sir-foi-ledger}
 ## force of infection ledger -------------------------
@@ -254,7 +254,7 @@ force_of_infection <- mp_join(
 )
 ```
 
-For this calculation archetype, we need to specify the `transmission_rates` and `infectious_states` involved in computing the force of infection, as well as the names where we want to store the results of this calculation (`infection_flow_rates`) for use in the `infection` flow calculations. 
+For this functional form, we need to specify the `transmission_rates` and `infectious_states` involved in computing the force of infection, as well as the names where we want to store the results of this calculation (`infection_flow_rates`) for use in the `infection` flow calculations. 
 
 Now we can use the `SIR_starter()` function to initialize our model object:
 
@@ -287,7 +287,7 @@ sir_simulator <- mp_tmb_simulator(
 )
 ```
 
-Note that we've specified `NA` for `lambda` as it will be calculated for us using the `force_of_infection` archetype. [BMB: is this required, or could `macpan2` assume that unspecified values are set to `NA` automatically? (There could be an implicit/explicit design tradeoff here - i.e. it would be convenient to do this automatically but might be better to force users to be explicit ...)]
+Note that we've specified `NA` for `lambda` as it will be calculated for us using the force of infection functional form.
 
 Then we can actually simulate the model by passing our model simulator to `mp_report()`:
 
@@ -359,14 +359,14 @@ legend("left", col = 1:3, lty = 1:3, legend = state$labels())
 
 # Main course: expanding the basic SIR with additional structure {#main-course}
 
-As previously noted, we created a `force_of_infection` archetype of the form $\beta I / N$ despite it only being used once to define the SIR model. However, if we consider the two-strain model from [before](#amuse-bouche), we see this calculation is repeated for each strain:
+As previously noted, we created a force of infection functional form ($\beta I / N$) despite it only being used once to define the SIR model. However, if we consider the two-strain model from [before](#amuse-bouche), we see this calculation is repeated for each strain:
 
 \begin{align}
 \lambda_A &= \beta_A I_A/N \\ 
 \lambda_B &= \beta_B I_B/N
 \end{align}
 
-Since we already have an archetype for the force of infection, we can easily expand our basic SIR with the strain-related structure to get the two-strain SIR model.
+Since we already have a form for the force of infection, we can easily expand our basic SIR with the strain-related structure to get the two-strain SIR model.
 
 To define the two-strain model, we again must specify our `state` and `rate` index tables, as well as our `infection`, `recovery`, and `force_of_infection` ledgers.
 
@@ -553,7 +553,7 @@ As mentioned, we've hidden some of the details of initializing a model object wi
 <<SIR-starter>>
 ```
 
-This function definition shows how all the pieces fit together. The expressions list `expr_list` is perhaps the most interesting as it contains all of the calculation archetypes used to simulate the model, including some we explored above (for the forces of infection and the unsigned flows), as well as some that we didn't discuss, like the archetypes for total inflow, total outflow, and state update. The `ledgers` and `init_vecs` are set up to ensure that the ledgers and initial conditions for simulation get attached to the model object correctly.
+This function definition shows how all the pieces fit together. The expressions list `expr_list` is perhaps the most interesting as it contains all of the functional forms used to simulate the model, including some we explored above (unsigned flows, force of infection), as well as some that we didn't discuss (total inflow, total outflow, state update). The `ledgers` and `init_vecs` are just set up to ensure that the ledgers and initial conditions for simulation get attached to the model object correctly.
 
 These topics will be discussed fully in a future vignette.
 
