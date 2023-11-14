@@ -18,8 +18,8 @@ state = mp_cartesian(
   age
 )
 mp_join(
-  mp_choose(state, "from", Epi = "S"),
-  mp_choose(state, "to",   Epi = "I"),
+  from = mp_subset(state, Epi = "S"),
+  to = mp_subset(state, Epi = "I"),
   from.to = "Age"
 )
 }\if{html}{\out{</div>}}
