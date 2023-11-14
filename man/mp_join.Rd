@@ -97,22 +97,10 @@ mp_join(
 #>  S.young   I.old   young.old
 #>    S.old   I.old     old.old
 }\if{html}{\out{</div>}}
-
-If there are
-only two indexes in \code{...} the \code{by} argument can be either
-(1) a string giving the dot-concatenation of columns to join on
-that are common among the tables or (2) a two-sided formula with
-strings on either side. In the formula case, the left-hand-side
-is a dot-concatenation of columns in the first index and the
-right-hand-side is a dot-concatenation of the columns in the second
-index. This formula notation is useful if the name of a column in
-one index is different from a column in the other index that
-should be joined on. If there are more than two indexes in \code{...}
-the \code{by} argument is a named list of strings and/or formulas.
-Each item in the list corresponds to a pair of indexes and how
-their columns are to be matched. The name of each item is a dot
-contactenation of the names of the corresponding pairs of arguments
-in \code{...}. The value of each item follows the same rules as the
-case given above with two indexes. TODO: create examples and point
-to them.
 }
+\seealso{
+Other functions that return ledgers
+\code{\link{LedgerDefinition}},
+\code{\link{mp_aggregate}()}
+}
+\concept{ledgers}

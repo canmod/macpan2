@@ -12,15 +12,14 @@ mp = function(mp_func) {
 }
 
 
-#' Cartesian Product of Indexes
+#' Cartesian Product of Index Tables
 #'
-#' Produce a new index by taking all possible pairwise combinations
-#' of the input indexes. This is useful for producing product models
+#' Produce a new index table by taking all possible pairwise combinations
+#' of the input tables. This is useful for producing product models
 #' that expand model components through stratification.
 #'
-#' @param x,y Objects produced by \code{\link{mp_index}} or derived
-#' from such an object using one of (TODO: list the functions that
-#' will preserve indexness).
+#' @param x Index table (see \code{\link{mp_index}}).
+#' @param y Index table (see \code{\link{mp_index}}).
 #'
 #' @examples
 #' mp_cartesian(
@@ -48,6 +47,7 @@ mp = function(mp_func) {
 #' )
 #'
 #' @family indexes
+#' @family products
 #' @export
 mp_cartesian = function(x, y) {
   shared_columns = intersect(names(x), names(y))
@@ -69,6 +69,12 @@ mp_cartesian = function(x, y) {
   Index(f, labelling_column_names = labelling_column_names)
 }
 
+#' Self Cartesian Product
+#'
+#' @param suffixes Length-2 character vector giving suffixes that
+#' disambiguate the column names in the output.
+#' @inheritParams cartesian
+#' @family products
 #' @export
 mp_square = function(x, suffixes = c("A", "B")) {
   l1 = sprintf("%s%s", x$labelling_column_names, suffixes[1L])
@@ -86,6 +92,15 @@ mp_square = function(x, suffixes = c("A", "B")) {
   mp_cartesian(x, y)
 }
 
+#' Self Cartesian Product Excluding One Off-Diagonal Side
+#'
+#' @inheritParams cartesian
+#' @param y_labelling_column_names TODO
+#' @param exclude_diag Should 'diagonal' commponents be excluded from the output.
+#' @param lower_tri Should the lower triangular components be include from the
+#' output. If \code{FALSE} the result is upper triangular.
+#'
+#' @family products
 #' @export
 mp_triangle = function(x, y_labelling_column_names, exclude_diag = TRUE, lower_tri = FALSE) {
   f = x$partition$frame()
@@ -112,6 +127,10 @@ mp_triangle = function(x, y_labelling_column_names, exclude_diag = TRUE, lower_t
   Index(f, names(f))
 }
 
+#' Symmetric Self Cartesian Product
+#'
+#' @inheritParams mp_triangle
+#' @family products
 #' @export
 mp_symmetric = function(x, y_labelling_column_names, exclude_diag = TRUE) {
   f = x$partition$frame()
@@ -134,6 +153,12 @@ mp_symmetric = function(x, y_labelling_column_names, exclude_diag = TRUE) {
   Index(f, names(f))
 }
 
+#' Linear Chain Product
+#'
+#' TODO: what does this mean?
+#'
+#' @inheritParams mp_square
+#' @family products
 #' @export
 mp_linear = function(x, y_labelling_column_names) {
   f = x$partition$frame()
@@ -153,7 +178,9 @@ mp_linear = function(x, y_labelling_column_names) {
 
 #' Subset of Indexes
 #'
-#' Take a subset of the rows of an index to produce another index.
+#' Take a subset of the rows of an index table (see \code{\link{mp_index}})
+#' to produce another index table. The `mp_subset` function gives rows that
+#' match a certain criterion and `mp_setdiff` gives rows that do not match.
 #'
 #' @param x Model index.
 #' @param ... Name-value pairs. The names are columns (or sets of columns
@@ -183,6 +210,12 @@ mp_setdiff = function(x, ...) {
 #   )
 # }
 
+#' Aggregate an Index
+#'
+#' Create a one-column ledger (see \code{\link{LedgerDefinition}}) with rows
+#' identifying instances of an aggregation.
+#'
+#' @family ledgers
 #' @export
 mp_aggregate = function(index, by = "Group", ledger_column = "group") {
   index_columns = to_names(by)
@@ -194,8 +227,8 @@ mp_aggregate = function(index, by = "Group", ledger_column = "group") {
   }
   Ledger(
     partition$frame(),
-    macpan2:::initial_column_map(names(partition), ledger_column),
-    macpan2:::initial_reference_index_list(index, ledger_column),
+    initial_column_map(names(partition), ledger_column),
+    initial_reference_index_list(index, ledger_column),
     setNames(list(index_columns), ledger_column)
   )
 }
@@ -293,7 +326,7 @@ mp_choose_out = function(x, subset_name, ...) {
 #' Join Indexes
 #'
 #' Join two or more index tables (see \code{\link{mp_index}}) to produce a
-#' ledger (see \code{\link{mp_ledgers}}).
+#' ledger (see \code{\link{LedgerDefinition}}).
 #'
 #' When two index tables are passed to `...`, `mp_join` behaves very much like
 #' an ordinary [inner join](https://en.wikipedia.org/wiki/Join_(SQL)).
@@ -366,6 +399,8 @@ mp_choose_out = function(x, subset_name, ...) {
 #' or expand numeric vectors in archetype formulas.
 #' @param by What columns to use to join the indexes. See below on
 #' how to specify this argument.
+#'
+#' @family ledgers
 #' @export
 mp_join = function(..., by = empty_named_list()) {
   table_list = valid$named_list$assert(list(...))

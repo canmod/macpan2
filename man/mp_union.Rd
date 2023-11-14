@@ -13,7 +13,7 @@ mp_union(...)
 Union of Indexes
 }
 \seealso{
-Other functions that return indexes
+Other functions that return index tables
 \code{\link{mp_cartesian}()},
 \code{\link{mp_index}()},
 \code{\link{mp_rename}()},

@@ -53,7 +53,11 @@ LedgerData = function(...) {
 #'   print(x$frame, row.names = FALSE)
 #' }
 
-
+#' Bundle up Ledgers
+#'
+#' Bundle up several ledgers (see \code{\link{LedgerDefinition}}) to pass
+#' to \code{\link{mp_dynamic_model}}.
+#'
 #' @export
 mp_ledgers = function(...) {
   wrap_ledgers_in_one_element_lists = function(x) {
