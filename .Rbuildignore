@@ -19,3 +19,13 @@ LICENSE
 ^doc$
 ^Meta$
 drat/
+
+^vignettes/calibration[.]Rmd$
+^vignettes/example_models[.]Rmd$
+^vignettes/flow_types[.]Rmd$
+^vignettes/hello_products[.]Rmd$
+^vignettes/model_definitions[.]Rmd$
+^vignettes/quickstart2[.]Rmd$
+^vignettes/quickstart_products[.]Rmd$
+^vignettes/sir_radial_basis_transmission[.]Rmd$
+^vignettes/time_varying_parameters[.]Rmd$

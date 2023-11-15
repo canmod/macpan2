@@ -367,7 +367,7 @@ Strain_indices <- c("A", "B")
 
 A simple approach would be to define a table of the new state and rate indices directly using the `mp_index()` function, as we did above:
 
-```{r two-strain-state-rate-manual, eval = FALSE}
+```
 state <- mp_index(
   Epi = c("S", rep("I", 2), "R"),
   Strain = c("", Strain_indices, "")
