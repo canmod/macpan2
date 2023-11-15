@@ -54,7 +54,9 @@ Vector.data.frame = function(x, index = NULL, values_name = "values", ...) {
 #' @export
 Vector.numeric = function(x, index, ...) {
   v = Vector(index)
-  args = setNames(list(x), to_name(index$labelling_column_names))
+  index_name = to_name(index$labelling_column_names)
+  names(x) = extrapolate_dots(names(x), index_name)
+  args = setNames(list(x), index_name)
   do.call(v$set_numbers, args)
 }
 

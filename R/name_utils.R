@@ -167,3 +167,10 @@ wrap_colon_terms = function(x) {
   x[i] = sprintf("(%s)", x[i])
   x
 }
+
+n_dots = function(x) nchar(x) - nchar(gsub(".", "", x, fixed = TRUE))
+make_n_dots = function(n) lapply(n, rep, x = ".") |> vapply(paste0, character(1L), collapse = "")
+extrapolate_dots = function(x, string_with_all_dots) {
+  required_n_dots = n_dots(string_with_all_dots[[1L]]) - n_dots(x)
+  sprintf("%s%s", x, make_n_dots(required_n_dots))
+}
