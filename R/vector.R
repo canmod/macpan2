@@ -59,12 +59,18 @@ Vector.numeric = function(x, index, ...) {
 }
 
 #' @export
+Vector.Vector = function(x, index, ...) {
+  Vector(x$numbers(), index, ...)
+}
+
+#' @export
 Vector.Index = function(x, ...) {
   self = Base()
   self$index = x
   self$.numbers = zero_vector(self$index$labels())
   self$numbers = function(...) {
     l = list(...)
+    ## check if all numbers
     if (length(l) == 0L) return(self$.numbers)
     i = mp_subset(self$index, ...)$labels()
     self$.numbers[i]
@@ -131,15 +137,17 @@ print.Vector = function(x, ...) print(x$numbers())
 names.Vector = function(x) x$numbers() |> names()
 
 #' @export
-as.matrix.Vector = function(x, ...) x$numbers() |> as.matrix()
+as.matrix.Vector = function(x, ...) {
+  x$numbers() |> as.matrix()
+}
 
 zero_vector = function(labels) setNames(rep(0, length(labels)), labels)
 
 #' Stub
-#' 
+#'
 #' This documentation was originally in [mp_index()] and should be cleaned up
 #' See issue #131
-#' 
+#'
 #' #' These labels can be used to create 'multidimensional' names for the elements
 #' of vectors. Here is the above example expressed in vector form.
 #' ```{r, echo = FALSE}
@@ -161,7 +169,7 @@ zero_vector = function(labels) setNames(rep(0, length(labels)), labels)
 #' ```{r, echo = FALSE}
 #' mp_vector(symp)$set_numbers(Epi = c(S = 1000))$set_numbers(Epi = c(I = 1), Symptoms = "severe")
 #' ```
-#' 
+#'
 #' @examples
 #' state = mp_index(
 #'   Epi = c("S", "I", "S", "I"),
@@ -173,7 +181,7 @@ zero_vector = function(labels) setNames(rep(0, length(labels)), labels)
 #'   |> mp_set_numbers(Epi = c(I = 1), Age = "old")
 #' )
 #' print(state_vector)
-#' 
+#'
 #' @export
 mp_vector = function(x, ...) UseMethod("mp_vector")
 

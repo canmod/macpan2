@@ -7,11 +7,11 @@
 mp_aggregate(index, by = "Group", ledger_column = "group")
 }
 \description{
-Create
+Create a one-column ledger (see \code{\link{LedgerDefinition}}) with rows
+identifying instances of an aggregation.
 }
 \seealso{
 Other functions that return ledgers
-\code{\link{LedgerDefinition}},
 \code{\link{mp_join}()}
 }
 \concept{ledgers}

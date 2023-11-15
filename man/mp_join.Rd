@@ -17,7 +17,7 @@ how to specify this argument.}
 }
 \description{
 Join two or more index tables (see \code{\link{mp_index}}) to produce a
-ledger (see \code{\link{mp_ledgers}}).
+ledger (see \code{\link{LedgerDefinition}}).
 }
 \details{
 When two index tables are passed to \code{...}, \code{mp_join} behaves very much like
@@ -100,7 +100,6 @@ mp_join(
 }
 \seealso{
 Other functions that return ledgers
-\code{\link{LedgerDefinition}},
 \code{\link{mp_aggregate}()}
 }
 \concept{ledgers}

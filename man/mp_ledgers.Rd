@@ -5,13 +5,12 @@
 \title{#' @export
 print.LedgerData = function(x, ...) {
 print(x$frame, row.names = FALSE)
-}}
+}
+Bundle up Ledgers}
 \usage{
 mp_ledgers(...)
 }
 \description{
-#' @export
-print.LedgerData = function(x, ...) {
-print(x$frame, row.names = FALSE)
-}
+Bundle up several ledgers (see \code{\link{LedgerDefinition}}) to pass
+to \code{\link{mp_dynamic_model}}.
 }

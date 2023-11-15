@@ -270,7 +270,7 @@ sir_simulator <- mp_tmb_simulator(
   dynamic_model = sir,
   vectors = list(
     state = c(S = 999, I = 1, R = 0),
-    rate = c(beta = 0.25, gamma = 0.1, lambda = NA)
+    rate = c(beta = 0.25, gamma = 0.1)
   ),
   time_steps = 100
 )
@@ -515,8 +515,8 @@ two_strain_model <- SIR_starter(
 two_strain_simulator <- mp_tmb_simulator(
   dynamic_model = two_strain_model,
   vectors = list(
-    state = c(S = 998, I.A = 1, I.B = 1, R = 0),
-    rate = c(beta.A = 0.25, lambda.A = NA, beta.B = 0.2, lambda.B = NA, gamma = 0.1)
+    state = c(S. = 998, I.A = 1, I.B = 1, R. = 0),
+    rate = c(beta.A = 0.25, gamma. = 0.1, beta.B = 0.2)
   ),
   time_steps = 100
 )

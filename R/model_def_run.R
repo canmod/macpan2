@@ -111,6 +111,10 @@ DynamicModel = function(expr_list = ExprList(), ledgers = list(), init_vecs = li
 }
 
 
+#' Dynamic Model
+#'
+#'
+#'
 #' @export
 mp_dynamic_model = DynamicModel
 

@@ -1,3 +1,13 @@
+#' TMB Simulator from Dynamic Model
+#'
+#' @param dynamic_model Object product by \code{\link{dynamic_model}}.
+#' @param vectors Named list of named vectors as initial values for the
+#' simulations that are referenced in the expression list in the dynamic model.
+#' @param unstruc_mats = Named list of objects that can be coerced to
+#' numerical matrices that are used in the expression list of the
+#' dynamic model.
+#' @inheritParams TMBModel
+#'
 #' @importFrom oor method_apply
 #' @export
 mp_tmb_simulator = function(dynamic_model
@@ -46,6 +56,12 @@ mp_tmb_simulator.DynamicModel = function(dynamic_model
     indexed_mats = dynamic_model$init_vecs
     mats_to_save = names(indexed_mats)
   } else {
+    for (v in names(vectors)) {
+      vectors[[v]] = Vector(
+        vectors[[v]],
+        dynamic_model$init_vecs[[v]]$index
+      )
+    }
     indexed_mats = lapply(vectors, as.matrix)
   }
   if (is.null(unstruc_mats)) {
