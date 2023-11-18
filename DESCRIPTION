@@ -36,6 +36,8 @@ Suggests:
     tmbstan,
     numDeriv,
     parallel
+Remotes:
+    canmod/oor
 LinkingTo:
     TMB,
     RcppEigen,
