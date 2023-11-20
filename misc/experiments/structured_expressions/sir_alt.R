@@ -57,7 +57,7 @@ input_mats = list(
 #   `(`,
 #   `c`, `matrix`,
 #   `%*%`, `sum`, `rep`,
-#   `rowSums`, `colSums`,
+#   `row_sums`, `col_sums`,
 #   `[`, `t`
 # )
 valid_funcs = macpan2:::valid_funcs

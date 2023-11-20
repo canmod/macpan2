@@ -46,7 +46,7 @@ m = TMBModel(
       , dummy ~ assign(rate, 0, 0, foi.unvax)
       , dummy ~ assign(rate, 7, 0, foi.vax)
       , flow ~ rate*state[from]
-      , state ~ state +groupSums(flow, to, 8) - groupSums(flow, from, 8)
+      , state ~ state +group_sums(flow, to, 8) - group_sums(flow, from, 8)
     ),
   ),
   params = OptParamsList(0.25, 0.07,

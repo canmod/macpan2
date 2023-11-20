@@ -296,8 +296,8 @@ flows = mp_ledgers(
 
 vv = IndexedExpressions(
     flows_per_time ~ state[from] * flow_rates[link]
-  , inflow ~ groupSums(flows_per_time, to, state)
-  , outflow ~ groupSums(flows_per_time, from, state)
+  , inflow ~ group_sums(flows_per_time, to, state)
+  , outflow ~ group_sums(flows_per_time, from, state)
   , state ~ state + inflow - outflow
   , index_data = flows
   , vector_list = list(
@@ -315,11 +315,11 @@ state_aggregation = mp_join(
   group_by = strata,
   by = list(alive.group_by = "Loc.Age")
 ) |> mp_ledgers()
-## N ~ groupSums(state[alive], group_by, N)
+## N ~ group_sums(state[alive], group_by, N)
 state_vector = Vector(state)
 state_vector$set_numbers(Epi = c(I = 1))$set_numbers(Epi.Loc.Age = c(S.cal.young = 1000))
 hh = IndexedExpressions(
-    N ~ groupSums(state[alive], group_by, N)
+    N ~ group_sums(state[alive], group_by, N)
   , index_data = state_aggregation
   , vector_list = list(
       N = Vector(strata)
@@ -372,7 +372,7 @@ if (FALSE) {
 self$reference_index_list$N
 self$frame
 self$reference_index_list$N$labels()
-groupSums()
+group_sums()
 mp_labels
 xx$reference_index_list$N$labelling_column_names
 yy = mp_ledgers(xx)
@@ -423,7 +423,7 @@ influence = mp_join(
 #   , Vital = "alive"
 # )
 
-mp_aggregate(N ~ groupSums(state)
+mp_aggregate(N ~ group_sums(state)
   , group_by = "Loc.Age"
   , index = state
   , Vital = "alive"
@@ -511,7 +511,7 @@ state_vector$set_numbers(Loc.Age = S_numbers, Epi = "S")
 alive_groups
 alive
 engine_eval(
-  ~ groupSums(state[alive], alive_groups, n_strata),
+  ~ group_sums(state[alive], alive_groups, n_strata),
   state = state_vector$numbers(),
   alive = alive,
   alive_groups = alive_groups,
@@ -639,7 +639,7 @@ mp_join(N, mp_subset(state, "infectious", Epi = "I"))
 
 match(N$labels_frame()$active, state$labels()) - 1L
 match(N$labels_frame()$N, unique(N$labels_frame()$N)) - 1L
-groupSums(state[active], strata, length(active))
+group_sums(state[active], strata, length(active))
 
 xx = mp_join(
   mp_subset(state, "state"),
@@ -983,7 +983,7 @@ cartesian_self(v, "infection", "infectious", "Type")
 
 if (FALSE) {
 engine_eval(~1)
-engine_eval(~ groupSums(x, i, 2), x = 1:6, i = c(0,0,0,1,1,1))
+engine_eval(~ group_sums(x, i, 2), x = 1:6, i = c(0,0,0,1,1,1))
 oor_debug$flag(".simulation_formatter", "TMBSimulator")
 
 #options(macpan2_dll = "dev")
@@ -1067,15 +1067,15 @@ m = TMBModel(
       , absolute_inflow ~ flow[absolute_inflow_flow]
       , absolute_outflow ~ flow[absolute_outflow_flow]
       , total_inflow ~
-          groupSums(per_capita, per_capita_to, state_length) +
-          groupSums(absolute, absolute_to, state_length) +
-          groupSums(per_capita_inflow, per_capita_inflow_to, state_length) +
-          groupSums(absolute_inflow, absolute_inflow_to, state_length)
+          group_sums(per_capita, per_capita_to, state_length) +
+          group_sums(absolute, absolute_to, state_length) +
+          group_sums(per_capita_inflow, per_capita_inflow_to, state_length) +
+          group_sums(absolute_inflow, absolute_inflow_to, state_length)
       , total_outflow ~
-          groupSums(per_capita, per_capita_from, state_length) +
-          groupSums(absolute, absolute_from, state_length) +
-          groupSums(per_capita_inflow, per_capita_outflow_from, state_length) +
-          groupSums(absolute_inflow, absolute_outflow_from, state_length)
+          group_sums(per_capita, per_capita_from, state_length) +
+          group_sums(absolute, absolute_from, state_length) +
+          group_sums(per_capita_inflow, per_capita_outflow_from, state_length) +
+          group_sums(absolute_inflow, absolute_outflow_from, state_length)
       , state ~ state + total_inflow - total_outflow
     )
   ),
@@ -1359,14 +1359,14 @@ TMBModel(
       , get_per_capita_outflow = ~ state[per_capita_outflow_from] * flow[per_capita_outflow_flow]
       , get_absolute_inflow = ~ flow[absolute_inflow_flow]
       , get_absolute_outflow = ~ flow[absolute_outflow_flow]
-      , get_per_capita_state_in = ~ groupSums(per_capita, per_capita_to, state_length)
-      , get_absolute_state_in = ~ groupSums(absolute, absolute_to, state_length)
-      , get_per_capita_inflow_state_in = ~ groupSums(per_capita_inflow, per_capita_inflow_to, state_length)
-      , get_absolute_inflow_state_in = ~ groupSums(absolute_inflow, absolute_inflow_to, state_length)
-      , get_per_capita_state_out = ~ groupSums(per_capita, per_capita_from, state_length)
-      , get_absolute_state_out = ~ groupSums(absolute, absolute_from, state_length)
-      , get_per_capita_outflow_state_out = ~ groupSums(per_capita_outflow, per_capita_outflow_from, state_length)
-      , get_absolute_outflow_state_out = ~ groupSums(absolute_outflow, absolute_outflow_from, state_length)
+      , get_per_capita_state_in = ~ group_sums(per_capita, per_capita_to, state_length)
+      , get_absolute_state_in = ~ group_sums(absolute, absolute_to, state_length)
+      , get_per_capita_inflow_state_in = ~ group_sums(per_capita_inflow, per_capita_inflow_to, state_length)
+      , get_absolute_inflow_state_in = ~ group_sums(absolute_inflow, absolute_inflow_to, state_length)
+      , get_per_capita_state_out = ~ group_sums(per_capita, per_capita_from, state_length)
+      , get_absolute_state_out = ~ group_sums(absolute, absolute_from, state_length)
+      , get_per_capita_outflow_state_out = ~ group_sums(per_capita_outflow, per_capita_outflow_from, state_length)
+      , get_absolute_outflow_state_out = ~ group_sums(absolute_outflow, absolute_outflow_from, state_length)
     ),
     int_vecs = IntVecs(
         state_length = length(model$labels$state())
@@ -1441,8 +1441,8 @@ m = TMBModel(
       , infectious_states = ~ state[infectious_indices]
       , update_infection_flows = flow[infection_indices] ~
           per_capita_transmission_matrix %*% state[infectious_indices]
-      , inflow = ~ groupSums(per_capita, to_indices, state_length)
-      , outflow = ~ groupSums(per_capita, from_indices, state_length)
+      , inflow = ~ group_sums(per_capita, to_indices, state_length)
+      , outflow = ~ group_sums(per_capita, from_indices, state_length)
       , beta = ~ time_var(beta_ts, beta_cp, beta_n, beta_group)
     ),
     int_vecs = IntVecs(

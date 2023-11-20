@@ -47,8 +47,8 @@ sir_for_fake_data = TMBModel(
           , flow_pars[beta_index] * state_vector[I_index] / N
         )
       , flows ~ flow_vector * state_vector[from_indices]
-      , incidence ~ groupSums(flows, to_indices, n_states)
-      , outflow ~ groupSums(flows, from_indices, n_states)
+      , incidence ~ group_sums(flows, to_indices, n_states)
+      , outflow ~ group_sums(flows, from_indices, n_states)
       , state_vector ~ state_vector + incidence - outflow
       , noisy_state ~ rnbinom(state_vector, 10)
     )

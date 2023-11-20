@@ -23,7 +23,7 @@ self$standard_expressions = function(){
   flw_frml = MathExpressionFromStrings("state[from]*rate", list("state", "from", "rate"))
   symblc_flw_frml = do.call(flw_frml$symbolic$evaluate, list("state", "from", "rate"))
   
-  stt_frml = MathExpressionFromStrings("state - groupSums(state, from, from_lngth)+groupSums(state, to, to_lngth)", list("state", "from", "from_lngth", "to", "to_lngth"))
+  stt_frml = MathExpressionFromStrings("state - group_sums(state, from, from_lngth)+group_sums(state, to, to_lngth)", list("state", "from", "from_lngth", "to", "to_lngth"))
   symblc_stt_frml = do.call(stt_frml$symbolic$evaluate, list("state", "from", "from_lngth", "to", "to_lngth"))
   
   return(list(list("flow", symblc_flw_frml), list("state", symblc_stt_frml)))

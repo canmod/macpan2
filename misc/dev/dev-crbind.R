@@ -19,7 +19,7 @@ correct_answer = function(den = 89){
   flowmat_hist = list(as.matrix(flowmat))
   for (i in 1:2){
     flowmat = sweep(ratemat, 1, state, "*")
-    state = state - rowSums(flowmat) + t(colSums(flowmat))
+    state = state - row_sums(flowmat) + t(col_sums(flowmat))
     state_hist = c(state_hist, list(as.matrix(state)))
     flowmat_hist = c(flowmat_hist, list(as.matrix(flowmat)))
   }
@@ -72,13 +72,13 @@ correct_answer = function(den = 89){
 # 32         3         2        32
 # 33         9         0         0
 # 34         0         0         0
-## state ~ state - rowSums(flowmat) + t(colSums(flowmat))
-# 35         1         2        35  `+`(`-`(state,rowSums(flowmat)),t(colSums(flowmat)))
-# 36         2         2        37  `-`(state,rowSums(flowmat))
-# 37        15         1        39  t(colSums(flowmat))
+## state ~ state - row_sums(flowmat) + t(col_sums(flowmat))
+# 35         1         2        35  `+`(`-`(state,row_sums(flowmat)),t(col_sums(flowmat)))
+# 36         2         2        37  `-`(state,row_sums(flowmat))
+# 37        15         1        39  t(col_sums(flowmat))
 # 38         0         0         0  matrix = state
-# 39        12         1        40  rowSums(flowmat)
-# 40        13         1        41  colSums(flowmat)
+# 39        12         1        40  row_sums(flowmat)
+# 40        13         1        41  col_sums(flowmat)
 # 41        10         0         0  matrix = flowmat
 # 42        10         0         0  matrix = flowmat
 
@@ -112,7 +112,7 @@ bindingModel = TMBModel(
     ),
     during = list(
       flowmat ~ ratemat*state,
-      state ~ state - rowSums(flowmat) + t(colSums(flowmat))
+      state ~ state - row_sums(flowmat) + t(col_sums(flowmat))
     )
   ),
   params = OptParamsList(89
@@ -122,7 +122,7 @@ bindingModel = TMBModel(
     , col_id = 0L
   ),
   random = OptParamsList(),
-  obj_fn = ObjectiveFunction(~ sum(rowSums(flowmat))),
+  obj_fn = ObjectiveFunction(~ sum(row_sums(flowmat))),
   time_steps = Time(time_steps = 2L)
 )
 

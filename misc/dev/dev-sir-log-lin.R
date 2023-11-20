@@ -37,7 +37,7 @@ m = TMBModel(init_mats = MatsList(
       , foi ~ beta_curr * state[I,0] / N
       , rate ~ c(foi, gamma)
       , flow ~ state[from, 0] * rate
-      , state ~ state - groupSums(flow, from, 3) + groupSums(flow, to, 3)
+      , state ~ state - group_sums(flow, from, 3) + group_sums(flow, to, 3)
     )
   )
   , params = OptParamsList(-1.6, -0.04

@@ -23,7 +23,7 @@ error_model = TMBModel(
     )),
     during = list(
     flowmat ~ ratemat*state,
-    state ~ state - rowSums(flowmat) + t(colSums(flowmat))
+    state ~ state - row_sums(flowmat) + t(col_sums(flowmat))
     )
   ),
   OptParamsList(0.3, par_id = 0L, mat = "const1", row_id = 0L, col_id = 0L),

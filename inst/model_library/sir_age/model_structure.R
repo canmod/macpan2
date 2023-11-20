@@ -6,14 +6,14 @@ expr_list = mp_expr_list(
   before = list(
 
       sub_population_sizes =
-        N ~ groupSums(state[alive], groups, N)
+        N ~ group_sums(state[alive], groups, N)
 
     , decompose_transmission_rate =
         trans_rates[decomp] ~ infectivity[i] * contact[si] * susceptibility[s]
   ),
   during = list(
 
-      normalize_infectious_states =
+    normalize_infectious_states =
         norm_state ~ state[norm] / N[denominator]
 
     , update_force_of_infection =
@@ -24,10 +24,10 @@ expr_list = mp_expr_list(
         flows_per_time ~ state[from] * flow_rates[edge]
 
     , update_inflows_per_time =
-        total_inflow ~ groupSums(flows_per_time, to, state)
+        total_inflow ~ group_sums(flows_per_time, to, state)
 
     , update_outflows_per_time =
-        total_outflow ~ groupSums(flows_per_time, from, state)
+        total_outflow ~ group_sums(flows_per_time, from, state)
 
     , update_state =
         state ~ state + total_inflow - total_outflow
@@ -110,7 +110,7 @@ gamma  = mp_subset(flow_rates, Epi = "gamma")
 
 ## aggregating states ---------------
 
-### N ~ groupSums(state[alive], groups, N)
+### N ~ group_sums(state[alive], groups, N)
 aggregation = mp_join(
     alive = mp_subset(state, Epi = c("S", "I", "R")) ## all states are alive in this model
   , groups = mp_group(state, "Age")
@@ -146,9 +146,9 @@ transmission = mp_join(
 ### update_flows_per_time =
 ###     flows_per_time ~ state[from] * flow_rates[edge]
 ### update_inflows_per_time =
-###     total_inflow ~ groupSums(flows_per_time, to, state)
+###     total_inflow ~ group_sums(flows_per_time, to, state)
 ### update_outflows_per_time =
-###     total_outflow ~ groupSums(flows_per_time, from, state)
+###     total_outflow ~ group_sums(flows_per_time, from, state)
 ### update_state =
 ###     state ~ state + total_inflow - total_outflow
 infection = mp_join(

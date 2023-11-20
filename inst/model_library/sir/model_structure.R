@@ -16,8 +16,8 @@ expr_list = mp_expr_list(
     , flows_per_time ~ state[from] * flow_rates[edge]
 
     ## state update
-    , total_inflow ~ groupSums(flows_per_time, to, state)
-    , total_outflow ~ groupSums(flows_per_time, from, state)
+    , total_inflow ~ group_sums(flows_per_time, to, state)
+    , total_outflow ~ group_sums(flows_per_time, from, state)
     , state ~ state + total_inflow - total_outflow
   )
 )

@@ -93,7 +93,7 @@ correct_answer = function(){
     )
 
     flowmat = sweep(ratemat, 1, state, "*")
-    state = state - rowSums(flowmat) + colSums(flowmat)
+    state = state - row_sums(flowmat) + col_sums(flowmat)
     state_hist = c(state_hist, list(as.matrix(state)))
     N_hist = c(N_hist, list(as.matrix(N)))
     foi_hist = c(foi_hist, list(as.matrix(foi)))
@@ -138,7 +138,7 @@ input_mats = list(
 #   `(`,
 #   `c`, `matrix`,
 #   `%*%`, `sum`, `rep`,
-#   `rowSums`, `colSums`,
+#   `row_sums`, `col_sums`,
 #   `[`, `t`
 # )
 
@@ -262,7 +262,7 @@ flowmat = parse_expr(flowmat_expr)
 valid_vars = c(valid_vars, list(flowmat = matrix(0, 12, 12)))
 literals_list = c(literals_list, list(flowmat$valid_literals))
 
-state_update_expr = ~ state - rowSums(flowmat) + t(colSums(flowmat))
+state_update_expr = ~ state - row_sums(flowmat) + t(col_sums(flowmat))
 state_update = parse_expr(state_update_expr)
 literals_list = c(literals_list, list(state_update$valid_literals))
 

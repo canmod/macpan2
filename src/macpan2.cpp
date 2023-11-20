@@ -75,9 +75,9 @@ enum macpan2_func {
     , MP2_MATRIX_MULTIPLY = 11 // binop,null: `%*%`(x, y)
     , MP2_SUM = 12 // null,null: sum(...)
     , MP2_REPLICATE = 13 // fwrap,null: rep(x, times)
-    , MP2_ROWSUMS = 14 // fwrap,null: rowSums(x)
-    , MP2_COLSUMS = 15 // fwrap,null: colSums(x)
-    , MP2_GROUPSUMS = 16 // fwrap,null: groupSums(x, f, n)
+    , MP2_ROWSUMS = 14 // fwrap,null: row_sums(x)
+    , MP2_COLSUMS = 15 // fwrap,null: col_sums(x)
+    , MP2_GROUPSUMS = 16 // fwrap,null: group_sums(x, f, n)
     , MP2_SQUARE_BRACKET = 17 // null,null: `[`(x, i, j)
     , MP2_BLOCK = 18 // fwrap,fail: block(x, i, j, n, m)
     , MP2_TRANSPOSE = 19 // fwrap,null: t(x)
@@ -422,9 +422,23 @@ public:
     }
 
 
+    int rows(int i) {
+        if (i < 0 || i >= items_.size()) {
+            throw std::out_of_range("Index out of range");
+        }
+
+        if (items_[i].type == ItemType::IntVector) {
+            return items_[i].intVec.size();
+        } else {
+            return items_[i].mat.rows();
+        }
+    }
+
+
     matrix<Type> operator[](int i) {
         return get_as_mat(i);
     }
+
 
     // Method to recycle elements, rows, and columns to make operands compatible for binary operations
     ArgList<Type> recycle_for_bin_op() const {
@@ -1397,11 +1411,11 @@ public:
                     // #'
                     // #' * `sum(...)` -- Sum all of the elements of all of the
                     // #' matrices passed to `...`.
-                    // #' * `colSums(x)` -- Row vector containing the sums
+                    // #' * `col_sums(x)` -- Row vector containing the sums
                     // #' of each column.
-                    // #' * `rowSums(x)` -- Column vector containing the sums
+                    // #' * `row_sums(x)` -- Column vector containing the sums
                     // #' of each row.
-                    // #' * `groupSums(x, f, n)` -- Column vector containing the
+                    // #' * `group_sums(x, f, n)` -- Column vector containing the
                     // #' sums of groups of elements in `x`. The groups are
                     // #' determined by the integers in `f` and the order of
                     // #' the sums in the output is determined by these
@@ -1411,7 +1425,7 @@ public:
                     // #'
                     // #' * `...` -- Any number of matrices of any shape.
                     // #' * `x` -- A matrix of any dimensions, except for
-                    // #' `groupSums` that expects `x` to be a column vector.
+                    // #' `group_sums` that expects `x` to be a column vector.
                     // #' * `f` -- A column vector the same length as `x`
                     // #' containing integers between `0` and `n-`.
                     // #' * `n` -- Length of the output column vector.
@@ -1460,26 +1474,23 @@ public:
                         #endif
                         return m;
 
-                    case MP2_GROUPSUMS: // groupSums
-                        // rows = CppAD::Integer(args[1].maxCoeff()+0.1f) + 1;
+                    case MP2_GROUPSUMS: // group_sums
 
                         m = args[0];
                         v1 = args.get_as_int_vec(1);
-                        rows = args.get_as_int(2);
+                        // rows = args.get_as_int(2);
+                        rows = args.rows(2);
                         m1 = matrix<Type>::Zero(rows, 1);
+                        if (v1.size() != m.rows()) {
+                          SetError(MP2_GROUPSUMS, "Number of rows in x must equal the number of indices in f in group_sums(x, f, x)", row);
+                              return m;
+                        }
 
                         for (int i = 0; i < m.rows(); i++) {
                             m1.coeffRef(v1[i], 0) += m.coeff(i, 0);
                         }
                         return m1;
 
-                        // rows = CppAD::Integer(args[2].coeff(0,0)+0.1f);
-                        // m = matrix<Type>::Zero(rows, 1);
-                        // for (int i = 0; i < args[0].rows(); i++) {
-                        //     rowIndex = CppAD::Integer(args[1].coeff(i,0)+0.1f);
-                        //     m.coeffRef(rowIndex,0) += args[0].coeff(i,0);
-                        // }
-                        // return m;
                     // #' ### Examples
                     // #'
                     // #' ```
@@ -1488,9 +1499,9 @@ public:
                     // #' A = matrix(1:12, 4, 3)
                     // #' engine_eval(~ sum(y), y = y)
                     // #' engine_eval(~sum(x, y, A), x = x, y = y, z = z)
-                    // #' engine_eval(~ colSums(A), A = A)
-                    // #' engine_eval(~ rowSums(A), A = A)
-                    // #' engine_eval(~ groupSums(x, f, n), x = 1:10, f = rep(0:3, 1:4), n = 4)
+                    // #' engine_eval(~ col_sums(A), A = A)
+                    // #' engine_eval(~ row_sums(A), A = A)
+                    // #' engine_eval(~ group_sums(x, f, n), x = 1:10, f = rep(0:3, 1:4), n = 4)
                     // #' ```
                     // #'
 
