@@ -15,9 +15,9 @@
 \alias{`\%*\%`}
 \alias{sum}
 \alias{rep}
-\alias{rowSums}
-\alias{colSums}
-\alias{groupSums}
+\alias{row_sums}
+\alias{col_sums}
+\alias{group_sums}
 \alias{`[`}
 \alias{block}
 \alias{t}
@@ -406,11 +406,11 @@ engine_eval(~from_diag(to_diag(from_diag(matrix(1:9, 3, 3)))))
 \itemize{
 \item \code{sum(...)} -- Sum all of the elements of all of the
 matrices passed to \code{...}.
-\item \code{colSums(x)} -- Row vector containing the sums
+\item \code{col_sums(x)} -- Row vector containing the sums
 of each column.
-\item \code{rowSums(x)} -- Column vector containing the sums
+\item \code{row_sums(x)} -- Column vector containing the sums
 of each row.
-\item \code{groupSums(x, f, n)} -- Column vector containing the
+\item \code{group_sums(x, f, n)} -- Column vector containing the
 sums of groups of elements in \code{x}. The groups are
 determined by the integers in \code{f} and the order of
 the sums in the output is determined by these
@@ -422,7 +422,7 @@ integers.
 \itemize{
 \item \code{...} -- Any number of matrices of any shape.
 \item \code{x} -- A matrix of any dimensions, except for
-\code{groupSums} that expects \code{x} to be a column vector.
+\code{group_sums} that expects \code{x} to be a column vector.
 \item \code{f} -- A column vector the same length as \code{x}
 containing integers between \code{0} and \verb{n-}.
 \item \code{n} -- Length of the output column vector.
@@ -455,9 +455,9 @@ y = 1:3
 A = matrix(1:12, 4, 3)
 engine_eval(~ sum(y), y = y)
 engine_eval(~sum(x, y, A), x = x, y = y, z = z)
-engine_eval(~ colSums(A), A = A)
-engine_eval(~ rowSums(A), A = A)
-engine_eval(~ groupSums(x, f, n), x = 1:10, f = rep(0:3, 1:4), n = 4)
+engine_eval(~ col_sums(A), A = A)
+engine_eval(~ row_sums(A), A = A)
+engine_eval(~ group_sums(x, f, n), x = 1:10, f = rep(0:3, 1:4), n = 4)
 }\if{html}{\out{</div>}}
 }
 

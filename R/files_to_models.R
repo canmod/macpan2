@@ -37,14 +37,14 @@
 #       , get_per_capita_outflow = ~ state[per_capita_outflow_from] * flow[per_capita_outflow_flow]
 #       , get_absolute_inflow = ~ flow[absolute_inflow_flow]
 #       , get_absolute_outflow = ~ flow[absolute_outflow_flow]
-#       , get_per_capita_state_in = ~ groupSums(per_capita, per_capita_to, state_length)
-#       , get_per_capita_state_in = ~ groupSums(absolute, absolute_to, state_length)
-#       , get_per_capita_inflow_state_in = ~ groupSums(per_capita_inflow, per_capita_inflow_to, state_length)
-#       , get_absolute_inflow_state_in = ~ groupSums(absolute_inflow, absolute_inflow_to, state_length)
-#       , get_per_capita_state_out = ~ groupSums(per_capita, per_capita_from, state_length)
-#       , get_absolute_state_out = ~ groupSums(absolute, absolute_from, state_length)
-#       , get_per_capita_outflow_state_out = ~ groupSums(per_capita_outflow, per_capita_outflow_from, state_length)
-#       , get_absolute_outflow_state_out = ~ groupSums(absolute_outflow, absolute_outflow_from, state_length)
+#       , get_per_capita_state_in = ~ group_sums(per_capita, per_capita_to, state_length)
+#       , get_per_capita_state_in = ~ group_sums(absolute, absolute_to, state_length)
+#       , get_per_capita_inflow_state_in = ~ group_sums(per_capita_inflow, per_capita_inflow_to, state_length)
+#       , get_absolute_inflow_state_in = ~ group_sums(absolute_inflow, absolute_inflow_to, state_length)
+#       , get_per_capita_state_out = ~ group_sums(per_capita, per_capita_from, state_length)
+#       , get_absolute_state_out = ~ group_sums(absolute, absolute_from, state_length)
+#       , get_per_capita_outflow_state_out = ~ group_sums(per_capita_outflow, per_capita_outflow_from, state_length)
+#       , get_absolute_outflow_state_out = ~ group_sums(absolute_outflow, absolute_outflow_from, state_length)
 #     ),
 #     int_vecs = IntVecs(
 #         state_length = length(model$labels$state())
@@ -551,10 +551,10 @@ StandardExpr = function(model){
     present_outflows = unlist(lapply(self$.outflow_flow_types, self$.flow_tester), use.names = FALSE)
 
     total_inflow_expression_vct = c(
-      "groupSums(per_capita, per_capita_to, state_length)",
-      "groupSums(absolute, absolute_to, state_length)",
-      "groupSums(per_capita_inflow, per_capita_inflow_to, state_length)",
-      "groupSums(absolute_inflow, absolute_inflow_to, state_length)"
+      "group_sums(per_capita, per_capita_to, state_length)",
+      "group_sums(absolute, absolute_to, state_length)",
+      "group_sums(per_capita_inflow, per_capita_inflow_to, state_length)",
+      "group_sums(absolute_inflow, absolute_inflow_to, state_length)"
     )
     total_inflow_argument_list = list(
       "per_capita", "per_capita_to", "absolute", "absolute_to", "per_capita_inflow",
@@ -562,10 +562,10 @@ StandardExpr = function(model){
     )
 
     total_outflow_expression_vct = c(
-      "groupSums(per_capita, per_capita_from, state_length)",
-      "groupSums(absolute, absolute_from, state_length)",
-      "groupSums(per_capita_outflow, per_capita_outflow_from, state_length)",
-      "groupSums(absolute_outflow, absolute_outflow_from, state_length)"
+      "group_sums(per_capita, per_capita_from, state_length)",
+      "group_sums(absolute, absolute_from, state_length)",
+      "group_sums(per_capita_outflow, per_capita_outflow_from, state_length)",
+      "group_sums(absolute_outflow, absolute_outflow_from, state_length)"
     )
     total_outflow_argument_list = list(
       "per_capita", "per_capita_from", "absolute", "absolute_from", "per_capita_outflow",
@@ -722,10 +722,10 @@ StandardExprHazard = function(model){
     present_outflows = unlist(lapply(self$.outflow_flow_types, self$.flow_tester), use.names = FALSE)
 
     total_inflow_expression_vct = c(
-      "groupSums(per_capita, per_capita_to, state_length)",
-      "groupSums(absolute, absolute_to, state_length)",
-      "groupSums(per_capita_inflow, per_capita_inflow_to, state_length)",
-      "groupSums(absolute_inflow, absolute_inflow_to, state_length)"
+      "group_sums(per_capita, per_capita_to, state_length)",
+      "group_sums(absolute, absolute_to, state_length)",
+      "group_sums(per_capita_inflow, per_capita_inflow_to, state_length)",
+      "group_sums(absolute_inflow, absolute_inflow_to, state_length)"
     )
     total_inflow_argument_list = list(
       "per_capita", "per_capita_to", "absolute", "absolute_to", "per_capita_inflow",
@@ -733,10 +733,10 @@ StandardExprHazard = function(model){
     )
 
     total_outflow_expression_vct = c(
-      "groupSums(per_capita, per_capita_from, state_length)",
-      "groupSums(absolute, absolute_from, state_length)",
-      "groupSums(per_capita_outflow, per_capita_outflow_from, state_length)",
-      "groupSums(absolute_outflow, absolute_outflow_from, state_length)"
+      "group_sums(per_capita, per_capita_from, state_length)",
+      "group_sums(absolute, absolute_from, state_length)",
+      "group_sums(per_capita_outflow, per_capita_outflow_from, state_length)",
+      "group_sums(absolute_outflow, absolute_outflow_from, state_length)"
     )
     total_outflow_argument_list = list(
       "per_capita", "per_capita_from", "absolute", "absolute_from", "per_capita_outflow",

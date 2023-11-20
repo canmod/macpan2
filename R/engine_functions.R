@@ -313,11 +313,11 @@
 #'
 #' * `sum(...)` -- Sum all of the elements of all of the
 #' matrices passed to `...`.
-#' * `colSums(x)` -- Row vector containing the sums
+#' * `col_sums(x)` -- Row vector containing the sums
 #' of each column.
-#' * `rowSums(x)` -- Column vector containing the sums
+#' * `row_sums(x)` -- Column vector containing the sums
 #' of each row.
-#' * `groupSums(x, f, n)` -- Column vector containing the
+#' * `group_sums(x, f, n)` -- Column vector containing the
 #' sums of groups of elements in `x`. The groups are
 #' determined by the integers in `f` and the order of
 #' the sums in the output is determined by these
@@ -327,7 +327,7 @@
 #'
 #' * `...` -- Any number of matrices of any shape.
 #' * `x` -- A matrix of any dimensions, except for
-#' `groupSums` that expects `x` to be a column vector.
+#' `group_sums` that expects `x` to be a column vector.
 #' * `f` -- A column vector the same length as `x`
 #' containing integers between `0` and `n-`.
 #' * `n` -- Length of the output column vector.
@@ -356,9 +356,9 @@
 #' A = matrix(1:12, 4, 3)
 #' engine_eval(~ sum(y), y = y)
 #' engine_eval(~sum(x, y, A), x = x, y = y, z = z)
-#' engine_eval(~ colSums(A), A = A)
-#' engine_eval(~ rowSums(A), A = A)
-#' engine_eval(~ groupSums(x, f, n), x = 1:10, f = rep(0:3, 1:4), n = 4)
+#' engine_eval(~ col_sums(A), A = A)
+#' engine_eval(~ row_sums(A), A = A)
+#' engine_eval(~ group_sums(x, f, n), x = 1:10, f = rep(0:3, 1:4), n = 4)
 #' ```
 #'
 #' ## Extracting Matrix Elements
@@ -744,9 +744,9 @@
 #' @aliases `%*%`
 #' @aliases sum
 #' @aliases rep
-#' @aliases rowSums
-#' @aliases colSums
-#' @aliases groupSums
+#' @aliases row_sums
+#' @aliases col_sums
+#' @aliases group_sums
 #' @aliases `[`
 #' @aliases block
 #' @aliases t

@@ -202,14 +202,6 @@ mp_setdiff = function(x, ...) {
   Index(partition, x$labelling_column_names, x)
 }
 
-# mp_aggregate = function(x, by = "Group", ) {
-#   mp_join(
-#     alive = x,
-#     group = mp_group(x, by),
-#     by = by
-#   )
-# }
-
 #' Aggregate an Index
 #'
 #' Create a one-column ledger (see \code{\link{LedgerDefinition}}) with rows
@@ -221,10 +213,11 @@ mp_aggregate = function(index, by = "Group", ledger_column = "group") {
   index_columns = to_names(by)
   if (length(index_columns) == 1L & !index_columns %in% names(index)) {
     partition = index$partition$constant(by, "a")
-    index = Index(partition)
   } else {
     partition = index$partition
   }
+  index = Index(partition) |> mp_group(by)
+
   Ledger(
     partition$frame(),
     initial_column_map(names(partition), ledger_column),
@@ -500,7 +493,7 @@ mp_aggregate_old = function(formula
   , ...
 ) {
   prototypes = list(
-    group_sums = macpan2:::MethodPrototype(y ~ groupSums(x), c("x", "y"), character())
+    group_sums = macpan2:::MethodPrototype(y ~ group_sums(x), c("x", "y"), character())
   )
   consistent_agg_meths = (prototypes
     |> method_apply("consistent", formula)
@@ -584,12 +577,24 @@ mp_decompose = function(formula, index, decomp_name, ...) {
 }
 
 #' @export
+mp_reference = function(x, dimension_name) {
+  UseMethod("mp_reference")
+}
+
+#' @export
+mp_reference.Ledger = function(x, dimension_name) {
+  ii = x$reference_index_list[[dimension_name]]
+  ii$reset_reference_index()
+  ii
+}
+
+#' @export
 mp_extract = function(x, dimension_name) {
   UseMethod("mp_extract")
 }
 
 #' @export
-mp_extract.Link = function(x, dimension_name) {
+mp_extract.Ledger = function(x, dimension_name) {
   ii = x$index_for[[dimension_name]]()
   ii$reset_reference_index()
   ii
@@ -712,7 +717,7 @@ mp_expr_group_sum = function(x
   )
   length_int = strata$labels() |> length()
   e_lhs = output_name
-  e_rhs = sprintf("groupSums(%s[%s], %s, %s)"
+  e_rhs = sprintf("group_sums(%s[%s], %s, %s)"
     , vector_name
     , subset_name
     , grouping_name

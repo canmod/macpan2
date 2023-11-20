@@ -83,10 +83,10 @@ InsertTotalFLowExpressions = function(model_simulator, expanded_flows){
   )
 
   total_inflow_expression_vct = c(
-    "groupSums(per_capita, per_capita_to, state_length)",
-    "groupSums(absolute, absolute_to, state_length)",
-    "groupSums(per_capita_inflow, per_capita_inflow_to, state_length)",
-    "groupSums(absolute_inflow, absolute_inflow_to, state_length)"
+    "group_sums(per_capita, per_capita_to, state_length)",
+    "group_sums(absolute, absolute_to, state_length)",
+    "group_sums(per_capita_inflow, per_capita_inflow_to, state_length)",
+    "group_sums(absolute_inflow, absolute_inflow_to, state_length)"
   )
 
   if(!any(present_inflows)){
@@ -108,10 +108,10 @@ InsertTotalFLowExpressions = function(model_simulator, expanded_flows){
   }
 
   total_outflow_expression_vct = c(
-    "groupSums(per_capita, per_capita_from, state_length)",
-    "groupSums(absolute, absolute_from, state_length)",
-    "groupSums(per_capita_outflow, per_capita_outflow_from, state_length)",
-    "groupSums(absolute_outflow, absolute_outflow_from, state_length)"
+    "group_sums(per_capita, per_capita_from, state_length)",
+    "group_sums(absolute, absolute_from, state_length)",
+    "group_sums(per_capita_outflow, per_capita_outflow_from, state_length)",
+    "group_sums(absolute_outflow, absolute_outflow_from, state_length)"
   )
 
   if(!any(present_outflows)){

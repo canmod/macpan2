@@ -76,7 +76,7 @@ sir = TMBModel(
         foi, 0,     0,
         0,   gamma, 0), 3, 3),
       flowmat ~ ratemat * state,
-      state ~ state - rowSums(flowmat) + t(colSums(flowmat))
+      state ~ state - row_sums(flowmat) + t(col_sums(flowmat))
     )
   ),
   params = OptParamsList(0.3

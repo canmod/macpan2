@@ -106,6 +106,18 @@ DynamicModel = function(expr_list = ExprList(), ledgers = list(), init_vecs = li
   self$ledgers = ledgers
   self$init_vecs = init_vecs
   self$unstruc_mats = unstruc_mats
+  self$int_vec_names = function() {
+    lapply(self$ledgers, getElement, "table_names") |> unlist(use.names = TRUE) |> unique()
+  }
+  self$derived_matrix_names = function() {
+    setdiff(self$expr_list$all_formula_vars()
+      , c(
+            names(self$init_vecs)
+          , self$int_vec_names()
+          , names(self$unstruc_mats)
+      )
+    )
+  }
   self$labels = LabelsDynamic(self)
   return_object(self, "DynamicModel")
 }
@@ -117,6 +129,23 @@ DynamicModel = function(expr_list = ExprList(), ledgers = list(), init_vecs = li
 #'
 #' @export
 mp_dynamic_model = DynamicModel
+
+#' @export
+mp_test_tmb = function(..., ledgers, vectors, unstruc_mats) {
+  m = mp_dynamic_model(
+      expr_list = mp_expr_list(before = list(...))
+    , ledgers = ledgers
+    , init_vecs = vectors
+    , unstruc_mats = unstruc_mats
+  )
+  mp_tmb_simulator(m
+    , time_steps = 0L
+    , vectors = method_apply(vectors, "numbers")
+    , unstruc_mats = unstruc_mats
+    , mats_to_return = m$derived_matrix_names()
+    , mats_to_save = m$derived_matrix_names()
+  ) |> mp_report(phases = "before")
+}
 
 #' @export
 print.DynamicModel = function(x, ...) {

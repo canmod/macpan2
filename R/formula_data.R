@@ -1,7 +1,6 @@
 LedgerData = function(...) {
   self = Base()
   self$ledger_list = list(...)
-
   labelling_column_names_list = (self$ledger_list
     |> lapply(getElement, "labelling_column_names_list")
     |> unname()

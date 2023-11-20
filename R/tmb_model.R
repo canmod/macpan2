@@ -48,7 +48,7 @@
 #'         foi, 0,     0,
 #'         0,   gamma, 0), 3, 3),
 #'       flowmat ~ ratemat * state,
-#'       state ~ state - rowSums(flowmat) + t(colSums(flowmat))
+#'       state ~ state - row_sums(flowmat) + t(col_sums(flowmat))
 #'     )
 #'   ),
 #'   params = OptParamsList(0.3
@@ -95,7 +95,7 @@ TMBModel = function(
 
   ## Standard Methods
   self$data_arg = function() {
-    existing_literals = self$expr_list$.literals()
+    # sexisting_literals = self$expr_list$.literals()
     c(
       self$init_mats$data_arg(),
       self$expr_list$data_arg(),
