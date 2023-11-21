@@ -2,6 +2,22 @@
 # dX/dt = alpha*X - beta*Y*X = alpha*X - r1*X
 # dY/dt = gamma*X*Y - delta*Y = r2*Y - delta*Y
 
+# fx(X, Y) = X + alpha*X - beta*Y*X
+# fy(X, Y) = Y + gamma*X*Y - delta*Y
+
+# jacobian
+# 1 + alpha - beta*Y,     -beta*X
+#            gamma*Y, 1 + gamma*X - delta
+
+# equilibrium
+# Y = alpha / beta
+# X = delta / gamma
+
+# jacobian at equilibrium
+# 1                    , -beta * delta / gamma
+# gamma * alpha / beta , 1
+
+
 ## index tables (model quantities)
 
 state = mp_index(
@@ -36,22 +52,22 @@ interaction_predator = mp_join(
 outflows = list(
   mp_join(
     outflow_rate = mp_subset(rate, Eco = "r1"),
-    flow_state = mp_subset(state, Eco = "X")
+    outflow_flow_state = mp_subset(state, Eco = "X")
   ),
   mp_join(
     outflow_rate = mp_subset(rate, Eco = "delta"),
-    flow_state = mp_subset(state, Eco = "Y")
+    outflow_flow_state = mp_subset(state, Eco = "Y")
   )
 )
 
 inflows = list(
   mp_join(
     inflow_rate = mp_subset(rate, Eco = "alpha"),
-    flow_state = mp_subset(state, Eco = "X")
+    inflow_flow_state = mp_subset(state, Eco = "X")
   ),
   mp_join(
     inflow_rate = mp_subset(rate, Eco = "r2"),
-    flow_state = mp_subset(state, Eco = "Y")
+    inflow_flow_state = mp_subset(state, Eco = "Y")
   )
 )
 
@@ -60,30 +76,29 @@ inflows = list(
 # flow terms: alpha*X, -delta*Y
 
 ## Set up expressions list for each functional form --------------
-## names refer to when the calculation gets performed relative to 
+## names refer to when the calculation gets performed relative to
 ## the simulation time-step loop (before, during, ...)
 expr_list <- mp_expr_list(
   during = list(
     # calculate interaction flow rates
     rate[interaction_flow_rate] ~ rate[interaction_rate]*state[interaction_state]
-    
+
     # individual outflows and inflows in order to add sign
-  , outflows ~ -rate[outflow_rate]*state[flow_state]
-  , inflows ~ rate[inflow_rate]*state[flow_state]
-  
-    # combine all flows
-  , flows ~ rbind(outflows, inflows)
-    
+  , outflows ~ rate[outflow_rate]*state[outflow_flow_state]
+  , inflows ~ rate[inflow_rate]*state[inflow_flow_state]
+
     # sum flow for each "to" state
-  , net_flow ~ groupSums(flows, flow_state, state)
+  , net_flow ~ (
+      + groupSums(inflows, inflow_flow_state, state)
+      - groupSums(outflows, outflow_flow_state, state)
+    )
   , state ~ state + net_flow
   )
 )
 
 ## Ledgers for each specific calculation --------------
 ledgers <- list(
-  interaction_prey = mp_ledgers(interaction_prey),
-  interaction_predator = mp_ledgers(interaction_predator),
+  interaction = mp_ledgers(interaction_prey, interaction_predator),
   outflows = mp_ledgers(outflows),
   inflows = mp_ledgers(inflows)
 )
