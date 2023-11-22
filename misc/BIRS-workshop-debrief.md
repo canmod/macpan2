@@ -13,3 +13,14 @@
     - think about reducing the naming burden (unique column names in ledgers for different expressions)
         - expression list that doesn’t directly reference the ledgers but just expresses the logic… e.g. `lambda = beta*S` vs `rate[force_of_infection] ~ rate[transmission_rate]*state[from_state]`
         - make the expression list look more like deSolve
+
+---
+
+# To do
+
+- merge `main` into `refactorcpp` and clean up techincal debt (make tests pass, get rid of old code/examples except for model examples (later?), etc.)
+- merge `refactorcpp` into `main` as v1.0.0 (full API change will be v2.0.0)
+- a real quickstart (simulation)
+- go back and translate model examples into new interface and use that to inform the development of a "friendlier" `macpan2` API
+- developing a friendlier `macpan2` API
+- "quickstart: calibration" and "quickstart: product models"
