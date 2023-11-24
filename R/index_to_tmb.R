@@ -33,8 +33,8 @@ mp_tmb_simulator.DynamicModel = function(dynamic_model
       , time_steps = 0L
       , vectors = NULL
       , unstruc_mats = NULL
-      , mats_to_save = names(vectors)
-      , mats_to_return = mats_to_save
+      , mats_to_save = NULL
+      , mats_to_return = NULL
       , params = OptParamsList(0)
       , random = OptParamsList()
       , obj_fn = ObjectiveFunction(~0)
@@ -52,9 +52,12 @@ mp_tmb_simulator.DynamicModel = function(dynamic_model
    |> unname()
    |> unlist(recursive = FALSE)
   )
+  if (is.null(int_vecs)) int_vecs = list()
   if (is.null(vectors)) {
     indexed_mats = dynamic_model$init_vecs
-    mats_to_save = names(indexed_mats)
+    if (length(indexed_mats) != 0L) {
+      mats_to_save = names(indexed_mats)
+    }
   } else {
     for (v in names(vectors)) {
       vectors[[v]] = Vector(
@@ -73,6 +76,13 @@ mp_tmb_simulator.DynamicModel = function(dynamic_model
   derived_nms = setdiff(all_vars, c(
     names(int_vecs), names(indexed_mats), names(unstruc_mats)
   ))
+
+  ## FIXME: default should be anything on the left-hand-side
+  ## in a during expression
+  supplied_nms = c(names(indexed_mats), names(unstruc_mats))
+
+  if (is.null(mats_to_return)) mats_to_return = supplied_nms
+  if (is.null(mats_to_save)) mats_to_save = mats_to_return
 
   derived_mats = (empty_matrix
     |> list()

@@ -106,8 +106,9 @@ enum macpan2_func {
     , MP2_FROM_DIAG = 42 // fwrap,fail: from_diag(x)
     , MP2_TIME_GROUP = 43 //fwrap,fail: time_group(i, change_points)
     , MP2_COS = 44 // fwrap,null: cos(x)
-    //, MP2_LOGISTIC = 45 // fwrap,null: logistic(x)
-    //, MP2_LOGIT = 46 // fwrap,null: logit(x)
+    , MP2_PRINT = 45 // fwrap,null: print(x)
+    //, MP2_LOGISTIC = 46 // fwrap,null: logistic(x)
+    //, MP2_LOGIT = 47 // fwrap,null: logit(x)
 };
 
 enum macpan2_meth {
@@ -2364,6 +2365,11 @@ public:
                             SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row);
                             return m;
                         }
+                        return m;
+
+                case MP2_PRINT:
+                        std::cout << "printing matrix number " << index2mats[0] << " :" << std::endl;
+                        std::cout << args[0] << std::endl;
                         return m;
 
                     default:

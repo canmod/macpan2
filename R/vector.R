@@ -188,6 +188,9 @@ zero_vector = function(labels) setNames(rep(0, length(labels)), labels)
 mp_vector = function(x, ...) UseMethod("mp_vector")
 
 #' @export
+mp_vector.Vector = function(x, ...) x
+
+#' @export
 mp_vector.Index = Vector.Index
 
 #' @export

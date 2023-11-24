@@ -219,6 +219,12 @@ mp_index.data.frame = function(..., labelling_column_names) {
 #' @export
 mp_catalogue = function(name, ..., labelling_column_names) {
   l = list(...)
-  for (i in seq_along(l)) l[[i]] = do.call(mp_index, setNames(l[i], name))
+  for (i in seq_along(l)) {
+    args = setNames(l[i], name)
+    if (!missing(labelling_column_names)) {
+      args = c(args, list(labelling_column_names = labelling_column_names))
+    }
+    l[[i]] = do.call(mp_index, args)
+  }
   l
 }

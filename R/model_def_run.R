@@ -1,4 +1,9 @@
 #' @export
+mp_library = function(...) {
+  system.file("model_library", ..., package = "macpan2") |> Compartmental2()
+}
+
+#' @export
 Compartmental2 = function(model_directory) {
   self = Base()
   self$model_directory = model_directory
@@ -100,11 +105,16 @@ LabelsDynamic = function(dynamic_model) {
 }
 
 #' @export
-DynamicModel = function(expr_list = ExprList(), ledgers = list(), init_vecs = list(), unstruc_mats = list()) {
+DynamicModel = function(
+      expr_list = ExprList()
+    , ledgers = list()
+    , init_vecs = list()
+    , unstruc_mats = list()
+  ) {
   self = Base()
   self$expr_list = expr_list
   self$ledgers = ledgers
-  self$init_vecs = init_vecs
+  self$init_vecs = lapply(init_vecs, mp_vector)
   self$unstruc_mats = unstruc_mats
   self$int_vec_names = function() {
     lapply(self$ledgers, getElement, "table_names") |> unlist(use.names = TRUE) |> unique()

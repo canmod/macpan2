@@ -46,6 +46,7 @@
 \alias{from_diag}
 \alias{time_group}
 \alias{cos}
+\alias{print}
 \title{Engine Functions}
 \description{
 Functions currently supported by the C++ TMB engine

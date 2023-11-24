@@ -71,6 +71,12 @@ coverage.html: R/*.R src/macpan2.cpp tests/testthat/*.R
 	Rscript -e "covr::report(file = \"coverage.html\")"
 
 
+readme:: README.md
+README.md: misc/build/README.Rmd
+	Rscript -e "rmarkdown::render('misc/build/README.Rmd', output_dir = '.', output_file = 'README.md', output_format = 'md_document', knit_root_dir = '../..')"
+	echo '<!-- Auto-generated - do not edit by hand -->' | cat - $@ > temp && mv temp $@
+
+
 enum-update:: R/enum.R
 R/enum.R: misc/dev/dev.cpp misc/build/enum_tail.R
 	echo "## Auto-generated - do not edit by hand" > $@

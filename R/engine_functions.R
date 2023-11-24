@@ -775,4 +775,5 @@
 #' @aliases from_diag
 #' @aliases time_group
 #' @aliases cos
+#' @aliases print
 NULL

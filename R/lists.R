@@ -31,3 +31,9 @@ assert_named_list = function(l) {
 }
 
 self_named_vector = function(...) c(...) |> setNames(c(...))
+
+## works even if names are not unique
+get_elements_by_names = function(l, ...) {
+  nms = list(...) |> lapply(as.character) |> unlist(use.names = FALSE) |> unique()
+  l[names(l) %in% nms]
+}
