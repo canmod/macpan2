@@ -74,7 +74,8 @@ coverage.html: R/*.R src/macpan2.cpp tests/testthat/*.R
 readme:: README.md
 README.md: misc/build/README.Rmd
 	Rscript -e "rmarkdown::render('misc/build/README.Rmd', output_dir = '.', output_file = 'README.md', output_format = 'md_document', knit_root_dir = '../..')"
-	echo '<!-- Auto-generated - do not edit by hand -->' | cat - $@ > temp && mv temp $@
+	echo '<!-- Auto-generated - do not edit by hand -->' > temp
+	echo '<!-- Edit misc/build/README.Rmd instead -->' | cat - $@ >> temp && mv temp $@
 
 
 enum-update:: R/enum.R

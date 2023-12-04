@@ -189,3 +189,32 @@ formula_components = function(formula, side = c("both", "left", "right")) {
     literals = parse_table$x[is_var_or_lit & is_lit] |> as.numeric() |> unique()
   )
 }
+
+lhs_pieces = function(formula) {
+  table = method_parser(formula)
+
+  subset_vector_case = all(
+    identical(table$x[1:2], c("~", "[")),
+    identical(table$n, c(1L, 2L, 0L, 0L)),
+    identical(table$i, c(1L, 2L, 0L, 0L))
+  )
+
+  matrix_case = all(
+    identical(table$x[1], "~"),
+    identical(table$n = c(1L, 0L)),
+    identical(table$i = c(1L, 0L))
+  )
+
+  if (subset_vector_case) {
+    list(
+      variable = table$x[3L],
+      positions = table$x[4L]
+    )
+  } else if (matrix_case) {
+    list(
+      variable = table$x[2L],
+      positions = character()
+    )
+  }
+
+}

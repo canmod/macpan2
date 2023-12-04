@@ -589,6 +589,11 @@ mp_reference.Ledger = function(x, dimension_name) {
 }
 
 #' @export
+mp_reference.Index = function(x, dimension_name) {
+  x$reference_index
+}
+
+#' @export
 mp_extract = function(x, dimension_name) {
   UseMethod("mp_extract")
 }
