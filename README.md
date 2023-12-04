@@ -179,6 +179,8 @@ For example one might combine an SIR model with an age-group contact
 model to produce an age structured model. The modular model components
 are called atomic models.
 
+#### Structure in Expressions
+
 Models are composed of expression lists. Each expression in an
 unstructured model can be converted into a structured expression to
 create a structured model. For example, the following unstructured
@@ -214,9 +216,9 @@ now have two scalar-valued infection expressions.
 
 With two patches it is fine to write out all scalar-valued infection
 expressions, but with more patches and with different types of structure
-(e.g. age groups, infection status, hospitalization, immunity status,
-etc …) it will become crucial to have software that handles the
-bookkeeping internally.
+(e.g. age groups, symptom status, hospitalization, immunity status, etc
+…) it will become crucial to have software that handles the bookkeeping
+internally.
 
 To see how easy this can be, note that this two-patch infection
 expression can be powerfully and compactly expressed as our original
@@ -263,32 +265,84 @@ patches.
     infection[old.old.west]     ~ beta[old.old.west]     * state[S.old.west]   * state[I.old.west]   / N[old.west]
 
 This still isn’t so bad, as we just have the first four expressions for
-`east` and the last four for `west`. But now let’s introduce two
-infection status categories: `mild` and `severe`.
+`east` and the last four for `west`. But now let’s introduce two symptom
+status categories: `mild` and `severe`.
 
-    infection[young.young.east.mild]   ~ beta[young.young.east.mild]   * state[S.young.east.] * state[I.young.east.mild]   / N[young.east]
-    infection[young.old.east.mild]     ~ beta[young.old.east.mild]     * state[S.young.east.] * state[I.old.east.mild]     / N[old.east]
-    infection[old.young.east.mild]     ~ beta[old.young.east.mild]     * state[S.old.east.]   * state[I.young.east.mild]   / N[young.east]
-    infection[old.old.east.mild]       ~ beta[old.old.east.mild]       * state[S.old.east.]   * state[I.old.east.mild]     / N[old.east]
-    infection[young.young.east.severe] ~ beta[young.young.east.severe] * state[S.young.east.] * state[I.young.east.severe] / N[young.east]
-    infection[young.old.east.severe]   ~ beta[young.old.east.severe]   * state[S.young.east.] * state[I.old.east.severe]   / N[old.east]
-    infection[old.young.east.severe]   ~ beta[old.young.east.severe]   * state[S.old.east.]   * state[I.young.east.severe] / N[young.east]
-    infection[old.old.east.severe]     ~ beta[old.old.east.severe]     * state[S.old.east.]   * state[I.old.east.severe]   / N[old.east]
-    infection[young.young.west.mild]   ~ beta[young.young.west.mild]   * state[S.young.west.] * state[I.young.west.mild]   / N[young.west]
-    infection[young.old.west.mild]     ~ beta[young.old.west.mild]     * state[S.young.west.] * state[I.old.west.mild]     / N[old.west]
-    infection[old.young.west.mild]     ~ beta[old.young.west.mild]     * state[S.old.west.]   * state[I.young.west.mild]   / N[young.west]
-    infection[old.old.west.mild]       ~ beta[old.old.west.mild]       * state[S.old.west.]   * state[I.old.west.mild]     / N[old.west]
-    infection[young.young.west.severe] ~ beta[young.young.west.severe] * state[S.young.west.] * state[I.young.west.severe] / N[young.west]
-    infection[young.old.west.severe]   ~ beta[young.old.west.severe]   * state[S.young.west.] * state[I.old.west.severe]   / N[old.west]
-    infection[old.young.west.severe]   ~ beta[old.young.west.severe]   * state[S.old.west.]   * state[I.young.west.severe] / N[young.west]
-    infection[old.old.west.severe]     ~ beta[old.old.west.severe]     * state[S.old.west.]   * state[I.old.west.severe]   / N[old.west]
+    infection[young.young.east.mild.mild]     ~ beta[young.young.east.mild.mild]     * state[S.young.east] * state[I.young.east.mild]   / N[young.east]
+    infection[young.young.east.mild.severe]   ~ beta[young.young.east.mild.severe]   * state[S.young.east] * state[I.young.east.severe] / N[young.east]
+    infection[young.young.east.severe.mild]   ~ beta[young.young.east.severe.mild]   * state[S.young.east] * state[I.young.east.mild]   / N[young.east]
+    infection[young.young.east.severe.severe] ~ beta[young.young.east.severe.severe] * state[S.young.east] * state[I.young.east.severe] / N[young.east]
+    infection[young.old.east.mild.mild]       ~ beta[young.old.east.mild.mild]       * state[S.young.east] * state[I.old.east.mild]     / N[old.east]
+    infection[young.old.east.mild.severe]     ~ beta[young.old.east.mild.severe]     * state[S.young.east] * state[I.old.east.severe]   / N[old.east]
+    infection[young.old.east.severe.mild]     ~ beta[young.old.east.severe.mild]     * state[S.young.east] * state[I.old.east.mild]     / N[old.east]
+    infection[young.old.east.severe.severe]   ~ beta[young.old.east.severe.severe]   * state[S.young.east] * state[I.old.east.severe]   / N[old.east]
+    infection[old.young.east.mild.mild]       ~ beta[old.young.east.mild.mild]       * state[S.old.east]   * state[I.young.east.mild]   / N[young.east]
+    infection[old.young.east.mild.severe]     ~ beta[old.young.east.mild.severe]     * state[S.old.east]   * state[I.young.east.severe] / N[young.east]
+    infection[old.young.east.severe.mild]     ~ beta[old.young.east.severe.mild]     * state[S.old.east]   * state[I.young.east.mild]   / N[young.east]
+    infection[old.young.east.severe.severe]   ~ beta[old.young.east.severe.severe]   * state[S.old.east]   * state[I.young.east.severe] / N[young.east]
+    infection[old.old.east.mild.mild]         ~ beta[old.old.east.mild.mild]         * state[S.old.east]   * state[I.old.east.mild]     / N[old.east]
+    infection[old.old.east.mild.severe]       ~ beta[old.old.east.mild.severe]       * state[S.old.east]   * state[I.old.east.severe]   / N[old.east]
+    infection[old.old.east.severe.mild]       ~ beta[old.old.east.severe.mild]       * state[S.old.east]   * state[I.old.east.mild]     / N[old.east]
+    infection[old.old.east.severe.severe]     ~ beta[old.old.east.severe.severe]     * state[S.old.east]   * state[I.old.east.severe]   / N[old.east]
+    infection[young.young.west.mild.mild]     ~ beta[young.young.west.mild.mild]     * state[S.young.west] * state[I.young.west.mild]   / N[young.west]
+    infection[young.young.west.mild.severe]   ~ beta[young.young.west.mild.severe]   * state[S.young.west] * state[I.young.west.severe] / N[young.west]
+    infection[young.young.west.severe.mild]   ~ beta[young.young.west.severe.mild]   * state[S.young.west] * state[I.young.west.mild]   / N[young.west]
+    infection[young.young.west.severe.severe] ~ beta[young.young.west.severe.severe] * state[S.young.west] * state[I.young.west.severe] / N[young.west]
+    infection[young.old.west.mild.mild]       ~ beta[young.old.west.mild.mild]       * state[S.young.west] * state[I.old.west.mild]     / N[old.west]
+    infection[young.old.west.mild.severe]     ~ beta[young.old.west.mild.severe]     * state[S.young.west] * state[I.old.west.severe]   / N[old.west]
+    infection[young.old.west.severe.mild]     ~ beta[young.old.west.severe.mild]     * state[S.young.west] * state[I.old.west.mild]     / N[old.west]
+    infection[young.old.west.severe.severe]   ~ beta[young.old.west.severe.severe]   * state[S.young.west] * state[I.old.west.severe]   / N[old.west]
+    infection[old.young.west.mild.mild]       ~ beta[old.young.west.mild.mild]       * state[S.old.west]   * state[I.young.west.mild]   / N[young.west]
+    infection[old.young.west.mild.severe]     ~ beta[old.young.west.mild.severe]     * state[S.old.west]   * state[I.young.west.severe] / N[young.west]
+    infection[old.young.west.severe.mild]     ~ beta[old.young.west.severe.mild]     * state[S.old.west]   * state[I.young.west.mild]   / N[young.west]
+    infection[old.young.west.severe.severe]   ~ beta[old.young.west.severe.severe]   * state[S.old.west]   * state[I.young.west.severe] / N[young.west]
+    infection[old.old.west.mild.mild]         ~ beta[old.old.west.mild.mild]         * state[S.old.west]   * state[I.old.west.mild]     / N[old.west]
+    infection[old.old.west.mild.severe]       ~ beta[old.old.west.mild.severe]       * state[S.old.west]   * state[I.old.west.severe]   / N[old.west]
+    infection[old.old.west.severe.mild]       ~ beta[old.old.west.severe.mild]       * state[S.old.west]   * state[I.old.west.mild]     / N[old.west]
+    infection[old.old.west.severe.severe]     ~ beta[old.old.west.severe.severe]     * state[S.old.west]   * state[I.old.west.severe]   / N[old.west]
 
-Above we used dot-concatenation to represent the two model strata
-(epidemiological status and geographic location) in the state variable
-names: `S.east`, `S.west`, `I.east`, and `I.west`. But as the state
-vector gets more structured it becomes more convenient to describe its
-variables using an index table, the rows of which describe each state
-variable.
+This is intense. The names in square brackets get much less clear in
+several ways as the model gets more structured. This lack of clarity
+makes it difficult to see a variety of model assumptions by looking at
+scalar-valued expressions. The `infection` and `beta` vectors depend on
+two age categories and two symptom statuses, but only one location. This
+is because young people can infect old people (and vice versa), because
+mildly infectious people can cause severe infection (and vice versa),
+and because infectious people in the east cannot infect people in the
+west (and vice versa). For labels associated with two ages, what does
+the first age mean, relative to the second age? To discover this you
+need to know to look at the ages associated with the `S` and `I` states,
+and once you do this you can see that the first age category is
+associated with the susceptible individual and the second with the
+infectious individual. There is a related issue with symptom status, but
+it is expressed differently because `S` individuals are not structured
+by symptom status. In this case we match the second symptom status
+associated with `infection` and `beta` to the symptom status of the `I`
+states, which means that the first symptom status implicitly refers to
+the status of the newly infected individuals and not the infectious
+individuals. Another way to look at this last issue is that `I` boxes
+play two different roles. The first role is as an individual that
+infects an `S` individual, and the second is as the individual that that
+`S` individual becomes after it is infected. None of this is obvious
+from the scalar-valued expressions above, and it is difficult to imagine
+a clearer way to explicitly write each expression.
+
+Our approach is to do the bookkeeping in a different way. In particular
+we believe that a constructive approach to structure provides a more
+comprehensible description, as we describe next. In brief, we believe
+that a grammar for specifying the steps associated with adding structure
+can be clearer than a description of the final structured model.
+
+#### Constructive Descriptions of Model Structure
+
+The first step to being more constructive is to have a better
+representation of the structured vectors. Above we used
+dot-concatenation to represent the model strata. For example, in the
+two-patch SI model we have both epidemiological status and geographic
+location in the state variable names: `S.east`, `S.west`, `I.east`, and
+`I.west`. But as the state vector gets more structured it becomes more
+convenient to describe its variables using an index table, the rows of
+which describe each state variable.
 
     state = mp_cartesian(
       mp_index(Epi = c("S", "I")),
@@ -301,6 +355,8 @@ variable.
     ##    I east
     ##    S west
     ##    I west
+
+    beta = mp_group(state, "Epi")
 
 With this representation we can get subsets of the state vector that
 represent each epidemiological status.
@@ -316,20 +372,6 @@ represent each epidemiological status.
     ##  Epi  Loc
     ##    I east
     ##    I west
-
--   The symbols `S` and `I` are subsets of a structured vector, in this
-    case called `state`, and so are replaced in the following way.
-    -   `S` -&gt; `state[S_infection]`
-    -   `I` -&gt; `state[I_infection]`
--   The functions `*` and `/` are binary operators in this case. In the
-    structured model they are vectorized, which means that `*` and `/`
-    is applied element-wise. For example, `S * I` means that the
-    resulting vector has a first element given by the product of the
-    first element of `S` and the first element of `I`, etc …
-
-<!-- -->
-
-    flows_per_time[infection] ~ beta[infection_beta] * state[infection_S] * state[infection_I] / N[infection_N]
 
 #### Structured Vectors
 

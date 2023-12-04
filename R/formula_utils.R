@@ -201,8 +201,8 @@ lhs_pieces = function(formula) {
 
   matrix_case = all(
     identical(table$x[1], "~"),
-    identical(table$n = c(1L, 0L)),
-    identical(table$i = c(1L, 0L))
+    identical(table$n, c(1L, 0L)),
+    identical(table$i, c(1L, 0L))
   )
 
   if (subset_vector_case) {
