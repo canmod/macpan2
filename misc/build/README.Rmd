@@ -100,7 +100,8 @@ But it is not convenient if you would just like to simulate from it, which is wh
 ```
 
 TODO:
-- [ ] Reuse the tools for the older concept of starter models.
+
+- [ ] Reuse the tools for the older concept of starter models
 - [ ] Establish a specification
 
 ### Calibration

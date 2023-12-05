@@ -167,8 +167,10 @@ which is what the model library is for.
     ## 9       I    9   0   0 7.082401
     ## 10      I   10   0   0 8.727601
 
-TODO: - \[ \] Reuse the tools for the older concept of starter models. -
-\[ \] Establish a specification
+TODO:
+
+-   ☐ Reuse the tools for the older concept of starter models
+-   ☐ Establish a specification
 
 ### Calibration
 
