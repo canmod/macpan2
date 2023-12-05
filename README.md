@@ -191,10 +191,15 @@ frame take?
 One option is the same format as the output of `mp_report`. This would
 have several benefits.
 
-    * Consistency with input and output formats, making it a little easier to learn.
-    * Easy to manipulate output into input for testing calibration functionality.
-    * Possibly simpler argument list to `mp_calibrate` because we would just relate the observed data to simulated data with the same name, of course we would still need an interface for distributional assumptions.
-    * Naturally handles missing values
+-   Consistency with input and output formats, making it a little easier
+    to learn.
+-   Easy to manipulate output into input for testing calibration
+    functionality.
+-   Possibly simpler argument list to `mp_calibrate` because we would
+    just relate the observed data to simulated data with the same name,
+    of course we would still need an interface for distributional
+    assumptions.
+-   Naturally handles missing values
 
 The main disadvantage of this is that format could differ from the
 indexed vectors discussed below.
