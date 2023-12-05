@@ -172,6 +172,47 @@ TODO: - \[ \] Reuse the tools for the older concept of starter models. -
 
 ### Calibration
 
+We will build a function, `mp_calibrate`, which takes a `DynamicModel`
+object and other information for calibrating it. This information
+includes.
+
+-   A data frame (or data frames) containing observed (possibly uneven)
+    time series to compare with model simulations. What form should this
+    take? Could be the same as the output of `mp_report`. This would
+    have several benefits but also disadvantages.
+    -   Consistency with input and output formats, making it a little
+        easier to learn.
+    -   Easy to manipulate output into input for testing calibration
+        functionality.
+    -   Possibly simpler argument list to `mp_calibrate` because we
+        would just relate the observed data to simulated data with the
+        same name, of course we would still need an interface for
+        distributional assumptions.
+    -   Naturally handles missing values
+-   Distributional assumptions. Probably should be a few ways to do this
+    depending on how many different assumptions need to be made. At one
+    extreme every observation gets the same distribution, which is
+    easily specified in an argument to `mp_calibrate`. At the other
+    extreme each observation gets its own distribution, which could be
+    specified by adding additional columns to the data frame with
+    observed values. Designs for interfaces for use cases that are
+    somewhere between these two extremes seem less obvious.
+-   Identifying existing quantities to be fitted, creating new
+    quantities to be fitted (e.g. distributional scale parameters
+    created in the previous bullet point), and the scale (e.g. log,
+    logit) on which to fit these parameters. The new distributional
+    parameters should go into a new indexed vector called something like
+    `distributional_parameters`. (TODO: more general name for new
+    parameters that are part of the observation model).
+
+The output of `mp_calibrate` should be a `DynamicModel` that contains
+new default parameter values given by fits and additional stochasticity
+resulting from parameter estimation uncertainty.
+
+### Time-Varying Parameters
+
+TODO
+
 ### Model Structure and Bookkeeping
 
 Structured models are combinations of simpler modular model components.
@@ -380,6 +421,8 @@ These are column vectors, the rows of which
 ### Structure Encourages Reparameterization
 
 ### Alternative Engines
+
+TODO
 
 ### Combining Expression Lists
 
