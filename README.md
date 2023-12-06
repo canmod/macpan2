@@ -87,6 +87,41 @@ the following hello-world SIR model.
 
 ## Architecture
 
+Modularity is a key principle of `macpan2` design in a few ways.
+
+First, `macpan2` is meant to plug into standard R workflows for data
+pre-processing and simulation post-processing. There is very little
+functionality in `macpan2` for configuring how data are prepared as
+input and out simulation outputs are processed. Instead, `macpan2`
+accepts standard data objects (data frames, matrices, vectors) and
+returns simulations as long-format data frames that can be processed
+using standard tools like `dplyr` and `ggplot2`. This design principle
+is illustrated in the architecture diagram below that has two outer
+layers representing standard non-`macpan2` workflows that contain two
+inner layers representing workflows that depend on `macpan2` data
+structures and objects. The challenges of building the inner layers is
+big enough that we prefer to avoid reinventing the wheel of pre- and
+post-processing.
+
+Second, `macpan2` uses an engine plug-in architecture. The third layer
+in the diagram below represents an engine that can be swapped out if
+necessary. Loosely speaking an engine is wrapping around an existing
+modelling tool that allows it to be controlled by our structured
+compartmental modelling grammar/language, which is represented by the
+second layer in the diagram. Currently we only have a single engine,
+which is a wrapping around the TMB package. We are currently considering
+building upon AdaptiveTau, which can be used for Gillespie simulation.
+
+Third, each of the middle `macpan2` layers can be used on their own. For
+example, the TMB engine is quite powerful and flexible and can be used
+to quickly [specify dynamic model
+simulators](#general-dynamic-simulation-with-tmb) and calibrators that
+are executed in C++, without needing to write in C++. This approach
+would bypass the second structured modelling layer. Conversely, one
+could use the structured modelling layer to build descriptions of
+structured models and data without using them to interface with an
+engine.
+
 ![](misc/diagrams/engine-dsl-separation.svg)
 
 ## Product Management
@@ -96,10 +131,10 @@ the details of bugs, tasks, and feature development. But the following
 narrative will provide context on product development themes, their
 current state, and plans for improvement and implementation.
 
-### General Dynamic Simulation
+### General Dynamic Simulation with TMB
 
 One can define a generic set of update steps that are iterated to
-produce a dynamic simulation.
+produce a dynamic simulation model in TMB.
 
     library(macpan2)
     si = mp_dynamic_model(
@@ -149,7 +184,7 @@ many modellers where they are, which is with the ability to write down a
 set of transitions/state updates.
 
 But it is not convenient if you would just like to simulate from it,
-which is what the model library is for.
+which is what the [model library](#model-library) is for.
 
 ### Model Library
 
