@@ -85,6 +85,10 @@ the following hello-world SIR model.
     )
     sir_sims = simulator$report()
 
+## Architecture
+
+![](misc/diagrams/engine-dsl-separation.svg)
+
 ## Product Management
 
 The [project board](https://github.com/orgs/canmod/projects/2) tracks
@@ -182,6 +186,11 @@ be another object for simulating model trajectories that contains new
 default parameter values given by fits and additional stochasticity
 resulting from parameter estimation uncertainty.
 
+A big question with calibration is do we want there to be an
+engine-agnostic DSL layer, or do we just want it to make sense for
+engines where it makes sense? I think the latter, because otherwise we
+are making things difficult.
+
 #### Specifying Data to Fit
 
 A data frame (or data frames) containing observed (possibly uneven) time
@@ -210,10 +219,10 @@ Probably should be a few ways to do this depending on how many different
 assumptions need to be made. At one extreme every observation gets the
 same distribution, which is easily specified in an argument to
 `mp_calibrate`. At the other extreme each observation gets its own
-distribution (including hyperparameters like spread and shape), which
-could be specified by adding additional columns to the data frame with
-observed values. Designs for interfaces for use cases that are somewhere
-between these two extremes seem less obvious.
+distribution (including distributional parameters like spread and
+shape), which could be specified by adding additional columns to the
+data frame with observed values. Designs for interfaces for use cases
+that are somewhere between these two extremes seem less obvious.
 
 #### Specifying Parameters to Fit
 
@@ -222,12 +231,16 @@ There are two kinds of parameters to fit.
 -   Existing quantities to be fitted (e.g. `beta`, initial number of
     susceptible individuals `S`).
 -   Creating new quantities to be fitted (e.g. distributional scale
-    parameters declared along with (#distributional-assumptions).
+    parameters declared along with [distributional
+    asumptions](#specifying-distributional-assumptions).
 
-and the scale (e.g. log, logit) on which to fit these parameters. The
-new distributional parameters should go into a new indexed vector called
-something like `distributional_parameters`. (TODO: more general name for
-new parameters that are part of the observation model).
+The scale (e.g. log, logit) on which to fit these parameters must also
+be specified.
+
+The new distributional parameters should go into a new indexed vector
+called something like `distributional_parameters`. (TODO: more general
+name for new parameters that are part of the observation model,
+e.g. convolution kernel parameters).
 
 ### Time-Varying Parameters
 
