@@ -96,21 +96,21 @@ input and out simulation outputs are processed. Instead, `macpan2`
 accepts standard data objects (data frames, matrices, vectors) and
 returns simulations as long-format data frames that can be processed
 using standard tools like `dplyr` and `ggplot2`. This design principle
-is illustrated in the architecture diagram below that has two outer
+is illustrated in the architecture diagram below that has two blue outer
 layers representing standard non-`macpan2` workflows that contain two
-inner layers representing workflows that depend on `macpan2` data
+red inner layers representing workflows that depend on `macpan2` data
 structures and objects. The challenges of building the inner layers is
 big enough that we prefer to avoid reinventing the wheel of pre- and
 post-processing.
 
 Second, `macpan2` uses an engine plug-in architecture. The third layer
 in the diagram below represents an engine that can be swapped out if
-necessary. Loosely speaking an engine is wrapping around an existing
-modelling tool that allows it to be controlled by our structured
-compartmental modelling grammar/language, which is represented by the
-second layer in the diagram. Currently we only have a single engine,
-which is a wrapping around the TMB package. We are currently considering
-building upon AdaptiveTau, which can be used for Gillespie simulation.
+necessary. An engine is a wrapper around an existing modelling tool that
+allows it to be controlled by our structured compartmental modelling
+grammar/language, which is represented by the second layer in the
+diagram. Currently we only have a single engine, which is a wrapping
+around the TMB package. We are currently considering building upon
+AdaptiveTau, which can be used for Gillespie simulation.
 
 Third, each of the middle `macpan2` layers can be used on their own. For
 example, the TMB engine is quite powerful and flexible and can be used
