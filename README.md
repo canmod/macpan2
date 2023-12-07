@@ -87,6 +87,37 @@ the following hello-world SIR model.
 
 ## Architecture
 
+The high-level design of `macpan2` is given in the following diagram,
+which we describe immediately below.
+
+![](misc/diagrams/engine-dsl-separation.svg)
+
+### Flow of Information
+
+Information flows from the top to the bottom of the diagram. Note that
+[users are not required to follow this entire
+path](#architectural-layers-of-modularity), but we will start with this
+assumption to describe the full vision. The major steps of data
+transformation are numbered in the diagram, and we describe each of
+these in what follows.
+
+1.  The flow begins with accessing and preparing numerical information
+    from various data sources, with the output being numerical R
+    objects. Depending on the nature of the analysis to follow, this
+    information could include default parameter values
+    (e.g. transmission rate), initial values for the state variables
+    (e.g. initial number of infectious individuals), operational
+    schedules (e.g. timing of lockdown events or vaccine roll-out
+    schedules), and data for model fitting (e.g. time series of hospital
+    utilization). This step could involve connecting to real-time
+    surveillance platforms or reading in static data files. There is not
+    any functionality within `macpan2` for conducting this step –
+    `macpan2` [does not try to reinvent the wheel in data access and
+    preparation](#architectural-layers-of-modularity).
+2.  
+
+### Architectural Layers of Modularity
+
 Modularity is a key principle of `macpan2` design in a few ways.
 
 First, `macpan2` is meant to plug into standard R workflows for data
@@ -121,8 +152,6 @@ would bypass the second structured modelling layer. Conversely, one
 could use the structured modelling layer to build descriptions of
 structured models and data without using them to interface with an
 engine.
-
-![](misc/diagrams/engine-dsl-separation.svg)
 
 ## Product Management
 
@@ -224,7 +253,8 @@ resulting from parameter estimation uncertainty.
 A big question with calibration is do we want there to be an
 engine-agnostic DSL layer, or do we just want it to make sense for
 engines where it makes sense? I think the latter, because otherwise we
-are making things difficult.
+are making things difficult. We can try to be wise making reusable
+calibration machinery across engines if it comes to that.
 
 #### Specifying Data to Fit
 
