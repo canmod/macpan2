@@ -184,15 +184,14 @@ Here we zoom into parts of the architectural diagram to illustrate the
       )
       , time_steps = Time(10L)
     )
-    print(si)
+    print(si$expr_list)
 
-    ## Classes 'TMBModel', 'Base' <environment: 0x7fd8f7930780> 
-    ## ad_fun : function (tmb_cpp = getOption("macpan2_dll"))  
-    ## data_arg : function ()  
-    ## make_ad_fun_arg : function (tmb_cpp = getOption("macpan2_dll"))  
-    ## param_arg : function ()  
-    ## random_arg : function ()  
-    ## simulator : function (tmb_cpp = getOption("macpan2_dll"), initialize_ad_fun = TRUE)
+    ## ---------------------
+    ## At every iteration of the simulation loop (t = 1 to T):
+    ## ---------------------
+    ## 1: infection ~ beta * S * I/N
+    ## 2: S ~ S - infection
+    ## 3: I ~ I + infection
 
 Simulating from this model can be done like so.
 
