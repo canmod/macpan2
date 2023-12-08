@@ -183,28 +183,20 @@ Here we zoom into parts of the architectural diagram to illustrate the
         , .mats_to_return = "I", .mats_to_save = "I"
       )
       , time_steps = Time(10L)
-    )$simulator()
+    )
     print(si)
 
-    ## Classes 'TMBSimulator', 'TMBSimulationFormatter', 'Base' <environment: 0x7f8e527996a0> 
-    ## ad_fun : function ()  
-    ## cov.fixed : function ()  
-    ## error_code : function (...)  
-    ## gradient : function (...)  
-    ## hessian : function (...)  
-    ## matrix : function (..., matrix_name, time_step, .phases = "during")  
-    ## matrix_names : function ()  
-    ## objective : function (...)  
-    ## par.fixed : function ()  
-    ## report : function (..., .phases = "during")  
-    ## report_ensemble : function (..., .phases = "during", .n = 100, .probs = c(0.025, 0.5, 0.975))  
-    ## report_values : function (..., .phases = "during")  
-    ## sdreport : function ()  
-    ## simulate : function (..., .phases = "during")
+    ## Classes 'TMBModel', 'Base' <environment: 0x7fd8f7930780> 
+    ## ad_fun : function (tmb_cpp = getOption("macpan2_dll"))  
+    ## data_arg : function ()  
+    ## make_ad_fun_arg : function (tmb_cpp = getOption("macpan2_dll"))  
+    ## param_arg : function ()  
+    ## random_arg : function ()  
+    ## simulator : function (tmb_cpp = getOption("macpan2_dll"), initialize_ad_fun = TRUE)
 
 Simulating from this model can be done like so.
 
-    si$report()
+    si$simulator()$report()
 
     ##    matrix time row col    value
     ## 2       I    1   0   0 1.247500
