@@ -153,6 +153,27 @@ could use the structured modelling layer to build descriptions of
 structured models and data without using them to interface with an
 engine.
 
+-   Transition
+    -   Purpose: Defining state transitions
+    -   Arguments:
+        -   `from`:
+        -   `rate`: Expression defining the rate of flow of individuals
+            from the `from` box to the `to` box
+    -   Sub-Types:
+        -   Absolute: Default
+        -   Per Capita: Specify transition rates proportional to the
+            from box
+        -   
+-   State Update
+-   Raw
+    -   Purpose: Passing engine-specific calculations with
+        engine-agnostic calculations
+    -   Arguments:
+        -   Named list of (optionally named) lists
+            -   Outer names give the name of the engine
+            -   Inner names are used by the specific engine
+    -   
+
 ## Product Management
 
 The [project board](https://github.com/orgs/canmod/projects/2) tracks
