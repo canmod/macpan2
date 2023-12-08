@@ -164,6 +164,10 @@ engine-agnostic fashion.
 
 ![](misc/diagrams/tmb-calibration.svg)
 
+### Specification of Models Directly in the TMB Engine
+
+![](misc/diagrams/tmb-model-specification.svg)
+
 ### Model Library
 
 ![](misc/diagrams/model-library.svg)
