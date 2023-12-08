@@ -164,6 +164,10 @@ engine-agnostic fashion.
 
 ![](misc/diagrams/tmb-calibration.svg)
 
+### Model Library
+
+![](misc/diagrams/model-library.svg)
+
 ## Product Management
 
 The [project board](https://github.com/orgs/canmod/projects/2) tracks
