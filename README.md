@@ -170,6 +170,54 @@ Here we zoom into parts of the architectural diagram to illustrate the
 
 ![](misc/diagrams/tmb-model-specification.svg)
 
+    si = TMBModel(
+        expr_list = ExprList(
+          during = list(
+              infection ~ beta * S * I / N
+            , S ~ S - infection
+            , I ~ I + infection
+          )
+        )
+      , init_mats = MatsList(
+          S = 99, I = 1, beta = 0.25, N = 100, infection = empty_matrix
+        , .mats_to_return = "I", .mats_to_save = "I"
+      )
+      , time_steps = Time(10L)
+    )$simulator()
+    print(si)
+
+    ## Classes 'TMBSimulator', 'TMBSimulationFormatter', 'Base' <environment: 0x7f8e527996a0> 
+    ## ad_fun : function ()  
+    ## cov.fixed : function ()  
+    ## error_code : function (...)  
+    ## gradient : function (...)  
+    ## hessian : function (...)  
+    ## matrix : function (..., matrix_name, time_step, .phases = "during")  
+    ## matrix_names : function ()  
+    ## objective : function (...)  
+    ## par.fixed : function ()  
+    ## report : function (..., .phases = "during")  
+    ## report_ensemble : function (..., .phases = "during", .n = 100, .probs = c(0.025, 0.5, 0.975))  
+    ## report_values : function (..., .phases = "during")  
+    ## sdreport : function ()  
+    ## simulate : function (..., .phases = "during")
+
+Simulating from this model can be done like so.
+
+    si$report()
+
+    ##    matrix time row col    value
+    ## 2       I    1   0   0 1.247500
+    ## 3       I    2   0   0 1.555484
+    ## 4       I    3   0   0 1.938307
+    ## 5       I    4   0   0 2.413491
+    ## 6       I    5   0   0 3.002301
+    ## 7       I    6   0   0 3.730342
+    ## 8       I    7   0   0 4.628139
+    ## 9       I    8   0   0 5.731624
+    ## 10      I    9   0   0 7.082401
+    ## 11      I   10   0   0 8.727601
+
 #### (2d) Calibrating Models in the TMB Engine
 
 ![](misc/diagrams/tmb-calibration.svg)
