@@ -200,7 +200,7 @@ Simulating from this model can be done like so.
      |> ggplot() + geom_line(aes(time, prevalence))
     )
 
-![](misc/build/figures/plot-tmb-si-1.png)
+![](figures/plot-tmb-si-1.png)
 
 #### (2d) Calibrating Models in the TMB Engine
 
