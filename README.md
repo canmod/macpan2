@@ -164,9 +164,6 @@ Here we zoom into parts of the architectural diagram to illustrate the
 
 #### (2b) Engine-Agnostic Model Specifications
 
-Here we zoom into the 2c family of functions for specifying models in an
-engine-agnostic fashion.
-
 ![](misc/diagrams/engine-agnostic-model-specification.svg)
 
 #### (2c) Specification of Models Directly in the TMB Engine
