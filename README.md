@@ -195,19 +195,13 @@ Here we zoom into parts of the architectural diagram to illustrate the
 
 Simulating from this model can be done like so.
 
-    si$simulator()$report()
+    (si$simulator()$report()
+     |> rename(prevalence = value)
+     |> ggplot()
+     + geom_line(aes(time, prevalence))
+    )
 
-    ##    matrix time row col    value
-    ## 2       I    1   0   0 1.247500
-    ## 3       I    2   0   0 1.555484
-    ## 4       I    3   0   0 1.938307
-    ## 5       I    4   0   0 2.413491
-    ## 6       I    5   0   0 3.002301
-    ## 7       I    6   0   0 3.730342
-    ## 8       I    7   0   0 4.628139
-    ## 9       I    8   0   0 5.731624
-    ## 10      I    9   0   0 7.082401
-    ## 11      I   10   0   0 8.727601
+![](/Users/stevenwalker/Development/macpan2/README_files/figure-markdown_strict/unnamed-chunk-7-1.png)
 
 #### (2d) Calibrating Models in the TMB Engine
 
