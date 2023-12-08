@@ -197,11 +197,10 @@ Simulating from this model can be done like so.
 
     (si$simulator()$report()
      |> rename(prevalence = value)
-     |> ggplot()
-     + geom_line(aes(time, prevalence))
+     |> ggplot() + geom_line(aes(time, prevalence))
     )
 
-![](/Users/stevenwalker/Development/macpan2/README_files/figure-markdown_strict/unnamed-chunk-7-1.png)
+![](/Users/stevenwalker/Development/macpan2/README_files/figure-markdown_strict/plot-tmb-si-1.png)
 
 #### (2d) Calibrating Models in the TMB Engine
 
