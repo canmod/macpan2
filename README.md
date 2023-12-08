@@ -153,24 +153,29 @@ could use the structured modelling layer to build descriptions of
 structured models and data without using them to interface with an
 engine.
 
-### Engine-Agnostic Model Specifications
+### Methods for Producing a Model Object
+
+Here we zoom into parts of the architectural diagram to illustrate the
+(currently four) ways to produce a model object.
+
+#### (2a) Model Library
+
+![](misc/diagrams/model-library.svg)
+
+#### (2b) Engine-Agnostic Model Specifications
 
 Here we zoom into the 2c family of functions for specifying models in an
 engine-agnostic fashion.
 
 ![](misc/diagrams/engine-agnostic-model-specification.svg)
 
-### Calibrating Models in the TMB Engine
-
-![](misc/diagrams/tmb-calibration.svg)
-
-### Specification of Models Directly in the TMB Engine
+#### (2c) Specification of Models Directly in the TMB Engine
 
 ![](misc/diagrams/tmb-model-specification.svg)
 
-### Model Library
+#### (2d) Calibrating Models in the TMB Engine
 
-![](misc/diagrams/model-library.svg)
+![](misc/diagrams/tmb-calibration.svg)
 
 ## Product Management
 
