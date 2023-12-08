@@ -160,6 +160,10 @@ engine-agnostic fashion.
 
 ![](misc/diagrams/engine-agnostic-model-specification.svg)
 
+### Calibrating Models in the TMB Engine
+
+![](misc/diagrams/tmb-calibration.svg)
+
 ## Product Management
 
 The [project board](https://github.com/orgs/canmod/projects/2) tracks
