@@ -1,5 +1,5 @@
 <!-- Auto-generated - do not edit by hand -->
-<!-- Edit misc/build/README.Rmd instead -->
+<!-- Edit README.Rmd instead -->
 # macpan2
 
     print(getwd())
