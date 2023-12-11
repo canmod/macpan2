@@ -1,4 +1,24 @@
+---
+output: github_document
+---
+
 # macpan2
+
+```{r}
+print(getwd())
+```
+
+```{r opts, echo = FALSE}
+knitr::opts_chunk$set(
+  fig.path = "misc/build/figures/"
+)
+```
+
+```{r, echo = FALSE, eval = TRUE, message=FALSE, warning=FALSE, error=FALSE}
+library(macpan2)
+library(ggplot2)
+library(dplyr)
+```
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/canmod/macpan2/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/canmod/macpan2/actions/workflows/R-CMD-check.yaml)
@@ -53,13 +73,100 @@ simulator = sir$simulators$tmb(time_steps = 100
 sir_sims = simulator$report()
 ```
 
+
+## Architecture
+
+The high-level design of `macpan2` is given in the following diagram, which we describe immediately below.
+
+```{r, echo=FALSE}
+knitr::include_graphics("misc/diagrams/engine-dsl-separation.svg")
+```
+
+### Flow of Information
+
+Information flows from the top to the bottom of the diagram. Note that [users are not required to follow this entire path](#architectural-layers-of-modularity), but we will start with this assumption to describe the full vision. The major steps of data transformation are numbered in the diagram, and we describe each of these in what follows.
+
+1. The flow begins with accessing and preparing numerical information from various data sources, with the output being numerical R objects. Depending on the nature of the analysis to follow, this information could include default parameter values (e.g. transmission rate), initial values for the state variables (e.g. initial number of infectious individuals), operational schedules (e.g. timing of lockdown events or vaccine roll-out schedules), and data for model fitting (e.g. time series of hospital utilization). This step could involve connecting to real-time surveillance platforms or reading in static data files. There is not any functionality within `macpan2` for conducting this step -- `macpan2` [does not try to reinvent the wheel in data access and preparation](#architectural-layers-of-modularity).
+2. 
+
+### Architectural Layers of Modularity
+
+Modularity is a key principle of `macpan2` design in a few ways.
+
+First, `macpan2` is meant to plug into standard R workflows for data pre-processing and simulation post-processing. There is very little functionality in `macpan2` for configuring how data are prepared as input and out simulation outputs are processed. Instead, `macpan2` accepts standard data objects (data frames, matrices, vectors) and returns simulations as long-format data frames that can be processed using standard tools like `dplyr` and `ggplot2`. This design principle is illustrated in the architecture diagram below that has two blue outer layers representing standard non-`macpan2` workflows that contain two red inner layers representing workflows that depend on `macpan2` data structures and objects. The challenges of building the inner layers is big enough that we prefer to avoid reinventing the wheel of pre- and post-processing.
+
+Second, `macpan2` uses an engine plug-in architecture. The third layer in the diagram below represents an engine that can be swapped out if necessary. An engine is a wrapper around an existing modelling tool that allows it to be controlled by our structured compartmental modelling grammar/language, which is represented by the second layer in the diagram. Currently we only have a single engine, which is a wrapping around the TMB package. We are currently considering building upon AdaptiveTau, which can be used for Gillespie simulation.
+
+Third, each of the middle `macpan2` layers can be used on their own. For example, the TMB engine is quite powerful and flexible and can be used to quickly [specify dynamic model simulators](#general-dynamic-simulation-with-tmb) and calibrators that are executed in C++, without needing to write in C++.  This approach would bypass the second structured modelling layer.  Conversely, one could use the structured modelling layer to build descriptions of structured models and data without using them to interface with an engine.
+
+### Methods for Producing a Model Object
+
+Here we zoom into parts of the architectural diagram to illustrate the (currently four) ways to produce a model object.
+
+#### (2a) Model Library
+
+```{r, echo=FALSE}
+knitr::include_graphics("misc/diagrams/model-library.svg")
+```
+
+
+#### (2b) Engine-Agnostic Model Specifications
+
+```{r, echo=FALSE}
+knitr::include_graphics("misc/diagrams/engine-agnostic-model-specification.svg")
+```
+
+
+#### (2c) Specification of Models Directly in the TMB Engine
+
+```{r, echo=FALSE}
+knitr::include_graphics("misc/diagrams/tmb-model-specification.svg")
+```
+
+```{r}
+si = TMBModel(
+    expr_list = ExprList(
+      during = list(
+          infection ~ beta * S * I / N
+        , S ~ S - infection
+        , I ~ I + infection
+      )
+    )
+  , init_mats = MatsList(
+      S = 99, I = 1, beta = 0.25, N = 100, infection = empty_matrix
+    , .mats_to_return = "I", .mats_to_save = "I"
+  )
+  , time_steps = Time(10L)
+)
+print(si$expr_list)
+```
+
+Simulating from this model can be done like so.
+```{r plot-tmb-si}
+(si$simulator()$report()
+ |> rename(prevalence = value)
+ |> ggplot() + geom_line(aes(time, prevalence))
+)
+```
+
+
+#### (2d) Calibrating Models in the TMB Engine
+
+```{r, echo=FALSE}
+knitr::include_graphics("misc/diagrams/tmb-calibration.svg")
+```
+
+
+
+
+
 ## Product Management
 
 The [project board](https://github.com/orgs/canmod/projects/2) tracks the details of bugs, tasks, and feature development. But the following narrative will provide context on product development themes, their current state, and plans for improvement and implementation.
 
-### General Dynamic Simulation
+### General Dynamic Simulation with TMB
 
-One can define a generic set of update steps that are iterated to produce a dynamic simulation.
+One can define a generic set of update steps that are iterated to produce a dynamic simulation model in TMB.
 
 ```{r}
 library(macpan2)
@@ -87,7 +194,7 @@ getwd()
 
 This part of the package is general, stable, and flexible. It also meets many modellers where they are, which is with the ability to write down a set of transitions/state updates.
 
-But it is not convenient if you would just like to simulate from it, which is what the model library is for.
+But it is not convenient if you would just like to simulate from it, which is what the [model library](#model-library) is for.
 
 ### Model Library
 
@@ -108,6 +215,8 @@ TODO:
 
 We will build a function, `mp_calibrate`, which takes (1) an object for simulating model trajectories and (2) other information for calibrating certain quantities of this model. This second type of information is detailed in the following sections. The output of `mp_calibrate` should be another object for simulating model trajectories that contains new default parameter values given by fits and additional stochasticity resulting from parameter estimation uncertainty.
 
+A big question with calibration is do we want there to be an engine-agnostic DSL layer, or do we just want it to make sense for engines where it makes sense? I think the latter, because otherwise we are making things difficult. We can try to be wise making reusable calibration machinery across engines if it comes to that.
+
 #### Specifying Data to Fit
 
 A data frame (or data frames) containing observed (possibly uneven) time series to compare with model simulations. What form should this data frame take?
@@ -124,16 +233,18 @@ The main disadvantage of this is that format could differ from the indexed vecto
 
 #### Specifying Distributional Assumptions
 
-Probably should be a few ways to do this depending on how many different assumptions need to be made. At one extreme every observation gets the same distribution, which is easily specified in an argument to `mp_calibrate`. At the other extreme each observation gets its own distribution (including hyperparameters like spread and shape), which could be specified by adding additional columns to the data frame with observed values. Designs for interfaces for use cases that are somewhere between these two extremes seem less obvious.
+Probably should be a few ways to do this depending on how many different assumptions need to be made. At one extreme every observation gets the same distribution, which is easily specified in an argument to `mp_calibrate`. At the other extreme each observation gets its own distribution (including distributional parameters like spread and shape), which could be specified by adding additional columns to the data frame with observed values. Designs for interfaces for use cases that are somewhere between these two extremes seem less obvious.
 
 #### Specifying Parameters to Fit
 
 There are two kinds of parameters to fit.
 
 * Existing quantities to be fitted (e.g. `beta`, initial number of susceptible individuals `S`).
-* Creating new quantities to be fitted (e.g. distributional scale parameters declared along with (#distributional-assumptions).
+* Creating new quantities to be fitted (e.g. distributional scale parameters declared along with [distributional asumptions](#specifying-distributional-assumptions).
 
-and the scale (e.g. log, logit) on which to fit these parameters. The new distributional parameters should go into a new indexed vector called something like `distributional_parameters`. (TODO: more general name for new parameters that are part of the observation model).
+The scale (e.g. log, logit) on which to fit these parameters must also be specified. 
+
+The new distributional parameters should go into a new indexed vector called something like `distributional_parameters`. (TODO: more general name for new parameters that are part of the observation model, e.g. convolution kernel parameters).
 
 
 ### Time-Varying Parameters

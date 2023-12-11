@@ -2,6 +2,10 @@
 <!-- Edit misc/build/README.Rmd instead -->
 # macpan2
 
+    print(getwd())
+
+    ## [1] "/Users/stevenwalker/Development/macpan2"
+
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/canmod/macpan2/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/canmod/macpan2/actions/workflows/R-CMD-check.yaml)
@@ -90,7 +94,7 @@ the following hello-world SIR model.
 The high-level design of `macpan2` is given in the following diagram,
 which we describe immediately below.
 
-![](../diagrams/engine-dsl-separation.svg)
+![](misc/diagrams/engine-dsl-separation.svg)
 
 ### Flow of Information
 
@@ -160,15 +164,15 @@ Here we zoom into parts of the architectural diagram to illustrate the
 
 #### (2a) Model Library
 
-![](../diagrams/model-library.svg)
+![](misc/diagrams/model-library.svg)
 
 #### (2b) Engine-Agnostic Model Specifications
 
-![](../diagrams/engine-agnostic-model-specification.svg)
+![](misc/diagrams/engine-agnostic-model-specification.svg)
 
 #### (2c) Specification of Models Directly in the TMB Engine
 
-![](../diagrams/tmb-model-specification.svg)
+![](misc/diagrams/tmb-model-specification.svg)
 
     si = TMBModel(
         expr_list = ExprList(
@@ -200,11 +204,11 @@ Simulating from this model can be done like so.
      |> ggplot() + geom_line(aes(time, prevalence))
     )
 
-![](misc/build/figure_test/plot-tmb-si-1.png)
+![](misc/build/figures/plot-tmb-si-1.png)
 
 #### (2d) Calibrating Models in the TMB Engine
 
-![](../diagrams/tmb-calibration.svg)
+![](misc/diagrams/tmb-calibration.svg)
 
 ## Product Management
 
@@ -242,7 +246,7 @@ Simulating from this model takes the following steps.
 
     getwd()
 
-    ## [1] "/Users/stevenwalker/Development/macpan2/misc/build"
+    ## [1] "/Users/stevenwalker/Development/macpan2"
 
     (si
      |> mp_tmb_simulator(time_steps = 10, mats_to_return = "I")
