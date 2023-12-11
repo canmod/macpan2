@@ -1,10 +1,7 @@
 <!-- Auto-generated - do not edit by hand -->
 <!-- Edit README.Rmd instead -->
+
 # macpan2
-
-    print(getwd())
-
-    ## [1] "/Users/stevenwalker/Development/macpan2"
 
 <!-- badges: start -->
 
@@ -94,7 +91,7 @@ the following hello-world SIR model.
 The high-level design of `macpan2` is given in the following diagram,
 which we describe immediately below.
 
-![](misc/diagrams/engine-dsl-separation.svg)
+![](misc/diagrams/engine-dsl-separation.svg)<!-- -->
 
 ### Flow of Information
 
@@ -164,31 +161,33 @@ Here we zoom into parts of the architectural diagram to illustrate the
 
 #### (2a) Model Library
 
-![](misc/diagrams/model-library.svg)
+![](misc/diagrams/model-library.svg)<!-- -->
 
 #### (2b) Engine-Agnostic Model Specifications
 
-![](misc/diagrams/engine-agnostic-model-specification.svg)
+![](misc/diagrams/engine-agnostic-model-specification.svg)<!-- -->
 
 #### (2c) Specification of Models Directly in the TMB Engine
 
-![](misc/diagrams/tmb-model-specification.svg)
+![](misc/diagrams/tmb-model-specification.svg)<!-- -->
 
-    si = TMBModel(
-        expr_list = ExprList(
-          during = list(
-              infection ~ beta * S * I / N
-            , S ~ S - infection
-            , I ~ I + infection
-          )
-        )
-      , init_mats = MatsList(
-          S = 99, I = 1, beta = 0.25, N = 100, infection = empty_matrix
-        , .mats_to_return = "I", .mats_to_save = "I"
+``` r
+si = TMBModel(
+    expr_list = ExprList(
+      during = list(
+          infection ~ beta * S * I / N
+        , S ~ S - infection
+        , I ~ I + infection
       )
-      , time_steps = Time(10L)
     )
-    print(si$expr_list)
+  , init_mats = MatsList(
+      S = 99, I = 1, beta = 0.25, N = 100, infection = empty_matrix
+    , .mats_to_return = "I", .mats_to_save = "I"
+  )
+  , time_steps = Time(10L)
+)
+print(si$expr_list)
+```
 
     ## ---------------------
     ## At every iteration of the simulation loop (t = 1 to T):
@@ -199,16 +198,18 @@ Here we zoom into parts of the architectural diagram to illustrate the
 
 Simulating from this model can be done like so.
 
-    (si$simulator()$report()
-     |> rename(prevalence = value)
-     |> ggplot() + geom_line(aes(time, prevalence))
-    )
+``` r
+(si$simulator()$report()
+ |> rename(prevalence = value)
+ |> ggplot() + geom_line(aes(time, prevalence))
+)
+```
 
-![](misc/build/figures/plot-tmb-si-1.png)
+![](misc/build/figures/plot-tmb-si-1.png)<!-- -->
 
 #### (2d) Calibrating Models in the TMB Engine
 
-![](misc/diagrams/tmb-calibration.svg)
+![](misc/diagrams/tmb-calibration.svg)<!-- -->
 
 ## Product Management
 
@@ -222,18 +223,20 @@ current state, and plans for improvement and implementation.
 One can define a generic set of update steps that are iterated to
 produce a dynamic simulation model in TMB.
 
-    library(macpan2)
-    si = mp_dynamic_model(
-      expr_list = ExprList(
-        during = list(
-            infection ~ beta * S * I / N
-          , S ~ S - infection
-          , I ~ I + infection
-        )
-      ),
-      unstruc_mats = list(S = 99, I = 1, beta = 0.25, N = 100)
+``` r
+library(macpan2)
+si = mp_dynamic_model(
+  expr_list = ExprList(
+    during = list(
+        infection ~ beta * S * I / N
+      , S ~ S - infection
+      , I ~ I + infection
     )
-    print(si)
+  ),
+  unstruc_mats = list(S = 99, I = 1, beta = 0.25, N = 100)
+)
+print(si)
+```
 
     ## ---------------------
     ## At every iteration of the simulation loop (t = 1 to T):
@@ -244,14 +247,18 @@ produce a dynamic simulation model in TMB.
 
 Simulating from this model takes the following steps.
 
-    getwd()
+``` r
+getwd()
+```
 
     ## [1] "/Users/stevenwalker/Development/macpan2"
 
-    (si
-     |> mp_tmb_simulator(time_steps = 10, mats_to_return = "I")
-     |> mp_report()
-    )
+``` r
+(si
+ |> mp_tmb_simulator(time_steps = 10, mats_to_return = "I")
+ |> mp_report()
+)
+```
 
     ##    matrix time row col    value
     ## 1       I    1   0   0 1.247500
@@ -274,11 +281,13 @@ which is what the [model library](#model-library) is for.
 
 ### Model Library
 
-    ("unstructured/si"
-     |> mp_library()
-     |> mp_tmb_simulator(time_steps = 10, mats_to_return = "I")
-     |> mp_report()
-    )
+``` r
+("unstructured/si"
+ |> mp_library()
+ |> mp_tmb_simulator(time_steps = 10, mats_to_return = "I")
+ |> mp_report()
+)
+```
 
     ##    matrix time row col    value
     ## 1       I    1   0   0 1.247500
@@ -294,8 +303,8 @@ which is what the [model library](#model-library) is for.
 
 TODO:
 
--   ☐ Reuse the tools for the older concept of starter models
--   ☐ Establish a specification
+-   [ ] Reuse the tools for the older concept of starter models
+-   [ ] Establish a specification
 
 ### Calibration
 
@@ -382,7 +391,9 @@ unstructured model can be converted into a structured expression to
 create a structured model. For example, the following unstructured
 expression defines the rate at which new infections emerge.
 
-    infection ~ beta * S * I / N
+``` r
+infection ~ beta * S * I / N
+```
 
 Each symbol in this expression has a certain type within a structured
 model, and this type determines how it gets translated into a structured
@@ -391,7 +402,9 @@ expression. The simplest structured model is one that collects `S` and
 interpretation of the `S` and `I` symbols, the structured infection
 expression gets translated internally to the following.
 
-    infection ~ beta * state[S] * state[I] / N
+``` r
+infection ~ beta * state[S] * state[I] / N
+```
 
 Here `S` and `I` become symbols for extracting subsets of the `state`
 vector. In this case the expression itself remains a scalar expression
@@ -407,8 +420,10 @@ patch would involve a four-dimensional state vector with the following
 elements: `S.east`, `S.west`, `I.east`, and `I.west`. In this case we
 now have two scalar-valued infection expressions.
 
-    infection[east] ~ beta * state[S.east] * state[I.east] / N
-    infection[west] ~ beta * state[S.west] * state[I.west] / N
+``` r
+infection[east] ~ beta * state[S.east] * state[I.east] / N
+infection[west] ~ beta * state[S.west] * state[I.west] / N
+```
 
 With two patches it is fine to write out all scalar-valued infection
 expressions, but with more patches and with different types of structure
@@ -441,61 +456,67 @@ more annoying. In an age-stratified model with two age groups, we now
 get four scalar-valued infection expressions of the form
 `infection ~ beta * S * I / N`.
 
-    infection[young.young] ~ beta[young.young] * state[S.young] * state[I.young] / N[young]
-    infection[young.old]   ~ beta[young.old]   * state[S.young] * state[I.old]   / N[old]
-    infection[old.young]   ~ beta[old.young]   * state[S.old]   * state[I.young] / N[young]
-    infection[old.old]     ~ beta[old.old]     * state[S.old]   * state[I.old]   / N[old]
+``` r
+infection[young.young] ~ beta[young.young] * state[S.young] * state[I.young] / N[young]
+infection[young.old]   ~ beta[young.old]   * state[S.young] * state[I.old]   / N[old]
+infection[old.young]   ~ beta[old.young]   * state[S.old]   * state[I.young] / N[young]
+infection[old.old]     ~ beta[old.old]     * state[S.old]   * state[I.old]   / N[old]
+```
 
 Here the first expression is for a young individual infecting an old
 individual, the second is for an old individual infecting a young
 individual, etc … Things get worse if we have two age groups in two
 patches.
 
-    infection[young.young.east] ~ beta[young.young.east] * state[S.young.east] * state[I.young.east] / N[young.east]
-    infection[young.old.east]   ~ beta[young.old.east]   * state[S.young.east] * state[I.old.east]   / N[old.east]
-    infection[old.young.east]   ~ beta[old.young.east]   * state[S.old.east]   * state[I.young.east] / N[young.east]
-    infection[old.old.east]     ~ beta[old.old.east]     * state[S.old.east]   * state[I.old.east]   / N[old.east]
-    infection[young.young.west] ~ beta[young.young.west] * state[S.young.west] * state[I.young.west] / N[young.west]
-    infection[young.old.west]   ~ beta[young.old.west]   * state[S.young.west] * state[I.old.west]   / N[old.west]
-    infection[old.young.west]   ~ beta[old.young.west]   * state[S.old.west]   * state[I.young.west] / N[young.west]
-    infection[old.old.west]     ~ beta[old.old.west]     * state[S.old.west]   * state[I.old.west]   / N[old.west]
+``` r
+infection[young.young.east] ~ beta[young.young.east] * state[S.young.east] * state[I.young.east] / N[young.east]
+infection[young.old.east]   ~ beta[young.old.east]   * state[S.young.east] * state[I.old.east]   / N[old.east]
+infection[old.young.east]   ~ beta[old.young.east]   * state[S.old.east]   * state[I.young.east] / N[young.east]
+infection[old.old.east]     ~ beta[old.old.east]     * state[S.old.east]   * state[I.old.east]   / N[old.east]
+infection[young.young.west] ~ beta[young.young.west] * state[S.young.west] * state[I.young.west] / N[young.west]
+infection[young.old.west]   ~ beta[young.old.west]   * state[S.young.west] * state[I.old.west]   / N[old.west]
+infection[old.young.west]   ~ beta[old.young.west]   * state[S.old.west]   * state[I.young.west] / N[young.west]
+infection[old.old.west]     ~ beta[old.old.west]     * state[S.old.west]   * state[I.old.west]   / N[old.west]
+```
 
 This still isn’t so bad, as we just have the first four expressions for
 `east` and the last four for `west`. But now let’s introduce two symptom
 status categories: `mild` and `severe`.
 
-    infection[young.young.east.mild.mild]     ~ beta[young.young.east.mild.mild]     * state[S.young.east] * state[I.young.east.mild]   / N[young.east]
-    infection[young.young.east.mild.severe]   ~ beta[young.young.east.mild.severe]   * state[S.young.east] * state[I.young.east.severe] / N[young.east]
-    infection[young.young.east.severe.mild]   ~ beta[young.young.east.severe.mild]   * state[S.young.east] * state[I.young.east.mild]   / N[young.east]
-    infection[young.young.east.severe.severe] ~ beta[young.young.east.severe.severe] * state[S.young.east] * state[I.young.east.severe] / N[young.east]
-    infection[young.old.east.mild.mild]       ~ beta[young.old.east.mild.mild]       * state[S.young.east] * state[I.old.east.mild]     / N[old.east]
-    infection[young.old.east.mild.severe]     ~ beta[young.old.east.mild.severe]     * state[S.young.east] * state[I.old.east.severe]   / N[old.east]
-    infection[young.old.east.severe.mild]     ~ beta[young.old.east.severe.mild]     * state[S.young.east] * state[I.old.east.mild]     / N[old.east]
-    infection[young.old.east.severe.severe]   ~ beta[young.old.east.severe.severe]   * state[S.young.east] * state[I.old.east.severe]   / N[old.east]
-    infection[old.young.east.mild.mild]       ~ beta[old.young.east.mild.mild]       * state[S.old.east]   * state[I.young.east.mild]   / N[young.east]
-    infection[old.young.east.mild.severe]     ~ beta[old.young.east.mild.severe]     * state[S.old.east]   * state[I.young.east.severe] / N[young.east]
-    infection[old.young.east.severe.mild]     ~ beta[old.young.east.severe.mild]     * state[S.old.east]   * state[I.young.east.mild]   / N[young.east]
-    infection[old.young.east.severe.severe]   ~ beta[old.young.east.severe.severe]   * state[S.old.east]   * state[I.young.east.severe] / N[young.east]
-    infection[old.old.east.mild.mild]         ~ beta[old.old.east.mild.mild]         * state[S.old.east]   * state[I.old.east.mild]     / N[old.east]
-    infection[old.old.east.mild.severe]       ~ beta[old.old.east.mild.severe]       * state[S.old.east]   * state[I.old.east.severe]   / N[old.east]
-    infection[old.old.east.severe.mild]       ~ beta[old.old.east.severe.mild]       * state[S.old.east]   * state[I.old.east.mild]     / N[old.east]
-    infection[old.old.east.severe.severe]     ~ beta[old.old.east.severe.severe]     * state[S.old.east]   * state[I.old.east.severe]   / N[old.east]
-    infection[young.young.west.mild.mild]     ~ beta[young.young.west.mild.mild]     * state[S.young.west] * state[I.young.west.mild]   / N[young.west]
-    infection[young.young.west.mild.severe]   ~ beta[young.young.west.mild.severe]   * state[S.young.west] * state[I.young.west.severe] / N[young.west]
-    infection[young.young.west.severe.mild]   ~ beta[young.young.west.severe.mild]   * state[S.young.west] * state[I.young.west.mild]   / N[young.west]
-    infection[young.young.west.severe.severe] ~ beta[young.young.west.severe.severe] * state[S.young.west] * state[I.young.west.severe] / N[young.west]
-    infection[young.old.west.mild.mild]       ~ beta[young.old.west.mild.mild]       * state[S.young.west] * state[I.old.west.mild]     / N[old.west]
-    infection[young.old.west.mild.severe]     ~ beta[young.old.west.mild.severe]     * state[S.young.west] * state[I.old.west.severe]   / N[old.west]
-    infection[young.old.west.severe.mild]     ~ beta[young.old.west.severe.mild]     * state[S.young.west] * state[I.old.west.mild]     / N[old.west]
-    infection[young.old.west.severe.severe]   ~ beta[young.old.west.severe.severe]   * state[S.young.west] * state[I.old.west.severe]   / N[old.west]
-    infection[old.young.west.mild.mild]       ~ beta[old.young.west.mild.mild]       * state[S.old.west]   * state[I.young.west.mild]   / N[young.west]
-    infection[old.young.west.mild.severe]     ~ beta[old.young.west.mild.severe]     * state[S.old.west]   * state[I.young.west.severe] / N[young.west]
-    infection[old.young.west.severe.mild]     ~ beta[old.young.west.severe.mild]     * state[S.old.west]   * state[I.young.west.mild]   / N[young.west]
-    infection[old.young.west.severe.severe]   ~ beta[old.young.west.severe.severe]   * state[S.old.west]   * state[I.young.west.severe] / N[young.west]
-    infection[old.old.west.mild.mild]         ~ beta[old.old.west.mild.mild]         * state[S.old.west]   * state[I.old.west.mild]     / N[old.west]
-    infection[old.old.west.mild.severe]       ~ beta[old.old.west.mild.severe]       * state[S.old.west]   * state[I.old.west.severe]   / N[old.west]
-    infection[old.old.west.severe.mild]       ~ beta[old.old.west.severe.mild]       * state[S.old.west]   * state[I.old.west.mild]     / N[old.west]
-    infection[old.old.west.severe.severe]     ~ beta[old.old.west.severe.severe]     * state[S.old.west]   * state[I.old.west.severe]   / N[old.west]
+``` r
+infection[young.young.east.mild.mild]     ~ beta[young.young.east.mild.mild]     * state[S.young.east] * state[I.young.east.mild]   / N[young.east]
+infection[young.young.east.mild.severe]   ~ beta[young.young.east.mild.severe]   * state[S.young.east] * state[I.young.east.severe] / N[young.east]
+infection[young.young.east.severe.mild]   ~ beta[young.young.east.severe.mild]   * state[S.young.east] * state[I.young.east.mild]   / N[young.east]
+infection[young.young.east.severe.severe] ~ beta[young.young.east.severe.severe] * state[S.young.east] * state[I.young.east.severe] / N[young.east]
+infection[young.old.east.mild.mild]       ~ beta[young.old.east.mild.mild]       * state[S.young.east] * state[I.old.east.mild]     / N[old.east]
+infection[young.old.east.mild.severe]     ~ beta[young.old.east.mild.severe]     * state[S.young.east] * state[I.old.east.severe]   / N[old.east]
+infection[young.old.east.severe.mild]     ~ beta[young.old.east.severe.mild]     * state[S.young.east] * state[I.old.east.mild]     / N[old.east]
+infection[young.old.east.severe.severe]   ~ beta[young.old.east.severe.severe]   * state[S.young.east] * state[I.old.east.severe]   / N[old.east]
+infection[old.young.east.mild.mild]       ~ beta[old.young.east.mild.mild]       * state[S.old.east]   * state[I.young.east.mild]   / N[young.east]
+infection[old.young.east.mild.severe]     ~ beta[old.young.east.mild.severe]     * state[S.old.east]   * state[I.young.east.severe] / N[young.east]
+infection[old.young.east.severe.mild]     ~ beta[old.young.east.severe.mild]     * state[S.old.east]   * state[I.young.east.mild]   / N[young.east]
+infection[old.young.east.severe.severe]   ~ beta[old.young.east.severe.severe]   * state[S.old.east]   * state[I.young.east.severe] / N[young.east]
+infection[old.old.east.mild.mild]         ~ beta[old.old.east.mild.mild]         * state[S.old.east]   * state[I.old.east.mild]     / N[old.east]
+infection[old.old.east.mild.severe]       ~ beta[old.old.east.mild.severe]       * state[S.old.east]   * state[I.old.east.severe]   / N[old.east]
+infection[old.old.east.severe.mild]       ~ beta[old.old.east.severe.mild]       * state[S.old.east]   * state[I.old.east.mild]     / N[old.east]
+infection[old.old.east.severe.severe]     ~ beta[old.old.east.severe.severe]     * state[S.old.east]   * state[I.old.east.severe]   / N[old.east]
+infection[young.young.west.mild.mild]     ~ beta[young.young.west.mild.mild]     * state[S.young.west] * state[I.young.west.mild]   / N[young.west]
+infection[young.young.west.mild.severe]   ~ beta[young.young.west.mild.severe]   * state[S.young.west] * state[I.young.west.severe] / N[young.west]
+infection[young.young.west.severe.mild]   ~ beta[young.young.west.severe.mild]   * state[S.young.west] * state[I.young.west.mild]   / N[young.west]
+infection[young.young.west.severe.severe] ~ beta[young.young.west.severe.severe] * state[S.young.west] * state[I.young.west.severe] / N[young.west]
+infection[young.old.west.mild.mild]       ~ beta[young.old.west.mild.mild]       * state[S.young.west] * state[I.old.west.mild]     / N[old.west]
+infection[young.old.west.mild.severe]     ~ beta[young.old.west.mild.severe]     * state[S.young.west] * state[I.old.west.severe]   / N[old.west]
+infection[young.old.west.severe.mild]     ~ beta[young.old.west.severe.mild]     * state[S.young.west] * state[I.old.west.mild]     / N[old.west]
+infection[young.old.west.severe.severe]   ~ beta[young.old.west.severe.severe]   * state[S.young.west] * state[I.old.west.severe]   / N[old.west]
+infection[old.young.west.mild.mild]       ~ beta[old.young.west.mild.mild]       * state[S.old.west]   * state[I.young.west.mild]   / N[young.west]
+infection[old.young.west.mild.severe]     ~ beta[old.young.west.mild.severe]     * state[S.old.west]   * state[I.young.west.severe] / N[young.west]
+infection[old.young.west.severe.mild]     ~ beta[old.young.west.severe.mild]     * state[S.old.west]   * state[I.young.west.mild]   / N[young.west]
+infection[old.young.west.severe.severe]   ~ beta[old.young.west.severe.severe]   * state[S.old.west]   * state[I.young.west.severe] / N[young.west]
+infection[old.old.west.mild.mild]         ~ beta[old.old.west.mild.mild]         * state[S.old.west]   * state[I.old.west.mild]     / N[old.west]
+infection[old.old.west.mild.severe]       ~ beta[old.old.west.mild.severe]       * state[S.old.west]   * state[I.old.west.severe]   / N[old.west]
+infection[old.old.west.severe.mild]       ~ beta[old.old.west.severe.mild]       * state[S.old.west]   * state[I.old.west.mild]     / N[old.west]
+infection[old.old.west.severe.severe]     ~ beta[old.old.west.severe.severe]     * state[S.old.west]   * state[I.old.west.severe]   / N[old.west]
+```
 
 This is intense. The names in square brackets get much less clear in
 several ways as the model gets more structured. This lack of clarity
@@ -540,11 +561,13 @@ location in the state variable names: `S.east`, `S.west`, `I.east`, and
 convenient to describe its variables using an index table, the rows of
 which describe each state variable.
 
-    state = mp_cartesian(
-      mp_index(Epi = c("S", "I")),
-      mp_index(Loc = c("east", "west"))
-    )
-    state
+``` r
+state = mp_cartesian(
+  mp_index(Epi = c("S", "I")),
+  mp_index(Loc = c("east", "west"))
+)
+state
+```
 
     ##  Epi  Loc
     ##    S east
@@ -552,18 +575,24 @@ which describe each state variable.
     ##    S west
     ##    I west
 
-    beta = mp_group(state, "Epi")
+``` r
+beta = mp_group(state, "Epi")
+```
 
 With this representation we can get subsets of the state vector that
 represent each epidemiological status.
 
-    mp_subset(state, Epi = "S")
+``` r
+mp_subset(state, Epi = "S")
+```
 
     ##  Epi  Loc
     ##    S east
     ##    S west
 
-    mp_subset(state, Epi = "I")
+``` r
+mp_subset(state, Epi = "I")
+```
 
     ##  Epi  Loc
     ##    I east
@@ -587,23 +616,25 @@ the dynamics of the si model separate from under-reporting and reporting
 delay corrections to the raw prevalence (TODO: should really use
 incidence).
 
-    library(macpan2)
-    si_dynamics = list(
-        transition_rate = infection ~ beta * S * I / N
-      , state_update = S ~ S - infection
-      , state_update = I ~ I + infection
-    )
-    reporting_correction = list(
-      post_processing = reports ~ convolution(I, c(0.5, 0.25, 0.25))
-    )
-    si = mp_dynamic_model(
-      expr_list = ExprList(during = c(si_dynamics, reporting_correction)),
-      unstruc_mats = list(S = 99, I = 1, beta = 0.25, N = 100)
-    )
-    (si
-      |> mp_tmb_simulator(time_steps = 10, mats_to_return = "reports")
-      |> mp_report()
-    )
+``` r
+library(macpan2)
+si_dynamics = list(
+    transition_rate = infection ~ beta * S * I / N
+  , state_update = S ~ S - infection
+  , state_update = I ~ I + infection
+)
+reporting_correction = list(
+  post_processing = reports ~ convolution(I, c(0.5, 0.25, 0.25))
+)
+si = mp_dynamic_model(
+  expr_list = ExprList(during = c(si_dynamics, reporting_correction)),
+  unstruc_mats = list(S = 99, I = 1, beta = 0.25, N = 100)
+)
+(si
+  |> mp_tmb_simulator(time_steps = 10, mats_to_return = "reports")
+  |> mp_report()
+)
+```
 
     ##     matrix time row col     value
     ## 1  reports    1   0   0 0.6237500
