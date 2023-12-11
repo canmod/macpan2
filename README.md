@@ -90,7 +90,7 @@ the following hello-world SIR model.
 The high-level design of `macpan2` is given in the following diagram,
 which we describe immediately below.
 
-![](misc/diagrams/engine-dsl-separation.svg)
+![](../diagrams/engine-dsl-separation.svg)
 
 ### Flow of Information
 
@@ -160,15 +160,15 @@ Here we zoom into parts of the architectural diagram to illustrate the
 
 #### (2a) Model Library
 
-![](misc/diagrams/model-library.svg)
+![](../diagrams/model-library.svg)
 
 #### (2b) Engine-Agnostic Model Specifications
 
-![](misc/diagrams/engine-agnostic-model-specification.svg)
+![](../diagrams/engine-agnostic-model-specification.svg)
 
 #### (2c) Specification of Models Directly in the TMB Engine
 
-![](misc/diagrams/tmb-model-specification.svg)
+![](../diagrams/tmb-model-specification.svg)
 
     si = TMBModel(
         expr_list = ExprList(
@@ -200,11 +200,11 @@ Simulating from this model can be done like so.
      |> ggplot() + geom_line(aes(time, prevalence))
     )
 
-![](misc/build/plot-tmb-si-1.png)
+![](misc/build/figure_test/plot-tmb-si-1.png)
 
 #### (2d) Calibrating Models in the TMB Engine
 
-![](misc/diagrams/tmb-calibration.svg)
+![](../diagrams/tmb-calibration.svg)
 
 ## Product Management
 
@@ -242,7 +242,7 @@ Simulating from this model takes the following steps.
 
     getwd()
 
-    ## [1] "/Users/stevenwalker/Development/macpan2"
+    ## [1] "/Users/stevenwalker/Development/macpan2/misc/build"
 
     (si
      |> mp_tmb_simulator(time_steps = 10, mats_to_return = "I")
