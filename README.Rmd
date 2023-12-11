@@ -4,10 +4,6 @@ output: github_document
 
 # macpan2
 
-```{r}
-print(getwd())
-```
-
 ```{r opts, echo = FALSE}
 knitr::opts_chunk$set(
   fig.path = "misc/build/figures/"
