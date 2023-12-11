@@ -18,8 +18,7 @@ mp = function(mp_func) {
 #' of the input tables. This is useful for producing product models
 #' that expand model components through stratification.
 #'
-#' @param x Index table (see \code{\link{mp_index}}).
-#' @param y Index table (see \code{\link{mp_index}}).
+#' @param ... Index tables (see \code{\link{mp_index}}).
 #'
 #' @examples
 #' mp_cartesian(
@@ -49,7 +48,9 @@ mp = function(mp_func) {
 #' @family indexes
 #' @family products
 #' @export
-mp_cartesian = function(x, y) {
+mp_cartesian = function(...) Reduce(mp_cartesian_binary, list(...))
+
+mp_cartesian_binary = function(x, y) {
   shared_columns = intersect(names(x), names(y))
   if (length(shared_columns) != 0) {
     msg_break(
@@ -590,7 +591,7 @@ mp_reference.Ledger = function(x, dimension_name) {
 
 #' @export
 mp_reference.Index = function(x, dimension_name) {
-  x$reference_index
+  x$reference_index()
 }
 
 #' @export
@@ -749,3 +750,47 @@ mp_expr_binop = function(x, y
   , length_name
   , ...
 ) {}
+
+
+#' Lookup
+#'
+#' Lookup a subset or factor index associated with a symbol, and return the
+#' index associated with that symbol.
+#'
+#' @param index Index table (see \code{\link{mp_index}}).
+#' @param symbol Character string that could possibly be assoicated with a
+#' subset or factor of `index`.
+#'
+#' @export
+mp_lookup = function(index, symbol) {
+
+  ## check if we are referring to possibly multiple grouping factors
+  dim_names = to_names(symbol)
+  if (all(dim_names %in% names(index))) {
+    return(mp_group(index, symbol))
+  }
+  all_dim_names = names(index)
+  ii = increasing_int_seq(length(all_dim_names), length(dim_names))
+  for (i in ii) {
+    named_symbol = (symbol
+      |> list()
+      |> setNames(to_name(all_dim_names[i]))
+    )
+    args = c(list(index), named_symbol)
+    guess = try(do.call(mp_subset, args), silent = TRUE)
+    if (!inherits(guess, "try-error")) return(guess)
+  }
+  for (i in ii) {
+    all_perms = apply_permutations(i)
+    for (j in seq_len(nrow(all_perms))) {
+      named_symbol = (symbol
+        |> list()
+        |> setNames(to_name(all_dim_names[all_perms[j,]]))
+      )
+      args = c(list(index), named_symbol)
+      guess = try(do.call(mp_subset, args), silent = TRUE)
+      if (!inherits(guess, "try-error")) return(guess)
+    }
+  }
+  stop("failed to find symbol")
+}

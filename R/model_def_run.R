@@ -104,6 +104,7 @@ LabelsDynamic = function(dynamic_model) {
   return_object(self, "LabelsDynamic")
 }
 
+
 #' @export
 DynamicModel = function(
       expr_list = ExprList()

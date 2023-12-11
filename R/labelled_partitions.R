@@ -65,7 +65,11 @@ Partition = function(frame) {
   }
   self$.filter = function(..., .wrt, .comparison_function, .filter_type) {
     if (missing(.wrt)) .wrt = self$name()
-    .wrt = name_set_op(self$name(), .wrt, intersect)
+
+    ## order in .wrt matters. .wrt has to come first or ordering can get
+    ## mangled by the set intersection operation
+    .wrt = name_set_op(.wrt, self$name(), intersect)
+
     nms = to_names(.wrt)
     labels = list_to_labels(...)
     if (is.null(labels)) {  ## no filtering names are supplied

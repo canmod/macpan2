@@ -10,6 +10,7 @@ ExprListUtils = function() {
         .get_formula_side = rhs
       , .existing_literals = numeric(0L)
     ) {
+    ## TODO: handle the null case
     (self$formula_list()
      |> lapply(.get_formula_side)
      |> parse_expr_list(
@@ -47,15 +48,21 @@ ExprListUtils = function() {
     }
     as.integer(m - 1L)
   }
+  self$.init_table = function(parse_table, prefix) {
+    if (is.null(parse_table)) {
+      p_table = data.frame(x = integer(), n = integer(), i = integer())
+    } else {
+      p_table = parse_table[c("x", "n", "i")] |> as.list()
+    }
+    self$.set_name_prefix(p_table, prefix)
+  }
   self$.p_table = function() {
     l = self$.parsed_expr_list(rhs)
-    p_table = l$parse_table[c("x", "n", "i")] |> as.list()
-    self$.set_name_prefix(p_table, "p_table_")
+    p_table = self$.init_table(l$parse_table, "p_table_")
   }
   self$.a_table = function() {
     l = self$.parsed_expr_list(lhs, self$.expr_literals())
-    a_table = l$parse_table[c("x", "n", "i")] |> as.list()
-    self$.set_name_prefix(a_table, "a_table_")
+    p_table = self$.init_table(l$parse_table, "a_table_")
   }
   self$.expr_literals = function() {
     self$.parsed_expr_list(rhs)$valid_literals

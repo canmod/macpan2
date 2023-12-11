@@ -167,6 +167,11 @@ TMBModel = function(
   )
 }
 
+mp_tmb_model = function(expr_list, init_mats, time_steps) {
+
+}
+
+
 
 TMBCompartmentalSimulator = function(tmb_simulator, compartmental_model) {
   self = tmb_simulator

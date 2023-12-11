@@ -5,7 +5,8 @@ ALIAS_RE = [ ]*MP2_\(.*\)\: \(.*\)(\(.*\))
 ROXY_RE = ^.*\(\#'.*\)$
 VERSION := $(shell sed -n '/^Version: /s///p' DESCRIPTION)
 TEST := testthat::test_package(\"macpan2\", reporter = \"progress\")
-
+IMAGES := $(shell grep 'knitr::include_graphics' README.Rmd | sed 's|knitr::include_graphics||' | tr -d '()"' | tr '\n' ' ')
+FIGURES := $(shell ls misc/build/figures/*.png | tr '\n' ' ')
 
 all:
 	make full-install
@@ -71,11 +72,30 @@ coverage.html: R/*.R src/macpan2.cpp tests/testthat/*.R
 	Rscript -e "covr::report(file = \"coverage.html\")"
 
 
+misc/dev/%.run: misc/dev/%.R
+	cd misc/dev; Rscript ../../$^
+
+
+svg:: misc/diagrams/*.svg
+misc/diagrams/%.svg: misc/diagrams/%.drawio
+	draw.io --export $^ --format svg
+
+
+png:: misc/diagrams/*.png
+misc/diagrams/%.png: misc/diagrams/%.drawio
+	draw.io --export $^ --format png
+
+# TODO: make this work for others -- currently convenience for sw
+push-readme:
+	make README.md
+	git_push_one_at_a_time.sh $(IMAGES) $(FIGURES) README.md
+
+
 readme:: README.md
-README.md: misc/build/README.Rmd
-	Rscript -e "rmarkdown::render('misc/build/README.Rmd', output_dir = '.', output_file = 'README.md', output_format = 'md_document', knit_root_dir = '../..')"
+README.md: README.Rmd $(IMAGES)
+	Rscript -e "rmarkdown::render('README.Rmd', output_dir = '.', output_file = 'README.md', output_format = 'md_document')"
 	echo '<!-- Auto-generated - do not edit by hand -->' > temp
-	echo '<!-- Edit misc/build/README.Rmd instead -->' | cat - $@ >> temp && mv temp $@
+	echo '<!-- Edit README.Rmd instead -->' | cat - $@ >> temp && mv temp $@
 
 
 enum-update:: R/enum.R
@@ -133,11 +153,10 @@ compile-dev: misc/dev/dev.cpp
 	cd misc/dev; echo "TMB::compile(\"dev.cpp\")" | R --slave
 
 
-misc/dev/%.run: misc/dev/%.R
-	cd misc/dev; Rscript ../../$^
-
 inst/model_library/%/README.md: inst/model_library/%/README.Rmd
 	echo "rmarkdown::render(input = \"$^\", intermediates_dir = NULL)" | R --slave
 	cat $(dir $@)/header.yaml $(dir $@)/README.md > $(dir $@)/tmp.md
 	cp $(dir $@)/tmp.md $(dir $@)/README.md
 	rm $(dir $@)/tmp.md
+
+

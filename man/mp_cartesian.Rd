@@ -4,12 +4,10 @@
 \alias{mp_cartesian}
 \title{Cartesian Product of Index Tables}
 \usage{
-mp_cartesian(x, y)
+mp_cartesian(...)
 }
 \arguments{
-\item{x}{Index table (see \code{\link{mp_index}}).}
-
-\item{y}{Index table (see \code{\link{mp_index}}).}
+\item{...}{Index tables (see \code{\link{mp_index}}).}
 }
 \description{
 Produce a new index table by taking all possible pairwise combinations

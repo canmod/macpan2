@@ -176,19 +176,36 @@ finalizer_index = function(x) {
   is_meth = x_char %in% names(valid_methods)
   is_int_vec = x_char %in% names(valid_int_vecs)
   is_var = x_char %in% names(valid_vars)
-  is_not_found = !(is_literal | is_func | is_meth | is_int_vec | is_var)
+  is_found = is_literal | is_func | is_meth | is_int_vec | is_var
+  is_not_found = !is_found
+  is_broad_sense_var = is_var | is_meth | is_int_vec
 
   if (any(is_not_found)) {
     missing_items = x_char[is_not_found]
-    stop(
-      "\nthe expression given by:\n",
-      x$expr_as_string, "\n\n",
-      "contained the following symbols:\n",
-      paste0(unique(missing_items), collapse = " "), "\n\n",
-      " that were not found in the list of available symbols:\n",
-      paste0(x_char[!is_literal], collapse = " "), # TODO: smarter pasting when this list gets big
-      "\n\nConsider adding these missing symbols somewhere in your model."
+    available_items = x_char[is_broad_sense_var]
+    expr_msg = msg_colon(
+        "The expression given by"
+      , msg_indent(x$input_expr_as_string)
     )
+    missing_msg = msg_colon(
+        msg(
+            "contained the following symbols"
+          , "representing model variables"
+        )
+        , msg_indent(missing_items)
+    )
+    if (length(available_items) == 0L) {
+      issue_msg = "but no variables were declared in the model."
+    } else {
+      issue_msg = msg_colon(
+        msg(
+            "that were neither functions nor one of"
+          , "the following valid variables"
+        ),
+        msg_indent(available_items)
+      )
+    }
+    msg_break(expr_msg, missing_msg, issue_msg) |> msg_hline() |> stop()
   }
 
   # identify literals with -1 in the 'number of arguments'
@@ -391,4 +408,4 @@ parse_expr_list = function(expr_list
     num_p_table_rows = vapply(p_tables, nrow, integer(1L))
   )
 }
-parse_expr_list = memoise(parse_expr_list)
+#parse_expr_list = memoise(parse_expr_list)

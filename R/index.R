@@ -70,6 +70,8 @@
 #'   being described. The \code{labelling_column_names} cannot have duplicates
 #'   and must contain at least one name. The index given by the
 #'   \code{labelling_column_names} must uniquely identify each row.
+#'   The default \code{NULL} gives the set of columns, in order starting with
+#'   the first column, that are required to uniquely identify each row.
 #'
 #' @examples
 #' state = mp_index(
@@ -94,11 +96,14 @@ mp_index = function(..., labelling_column_names) UseMethod("mp_index")
 #' @param partition A data frame (or data frame-like) object containing
 #'   definitions of the index. This object can be a \code{\link{data.frame}},
 #'   \code{\link{Partition}}, or another \code{\link{Index}} object.
+#' @param vector_name An optional \code{\link{character}} string giving the
+#' name of the vector being indexed.
 #' @param labelling_column_names A \code{\link{character}} vector of the names of the
 #'   index that will be used to label the model components (i.e. rows) being
 #'   described. The \code{labelling_column_names} cannot have duplicates and must
 #'   contain at least one name. The index given by the \code{labelling_column_names}
-#'   must uniquely identify each row.
+#'   must uniquely identify each row. The default \code{NULL} uses the minimal
+#'   number of
 #' @param reference_index (Advanced) An optional partition to use when
 #'        computing subset indices.
 #' @param x \code{Index} object.
@@ -108,19 +113,30 @@ mp_index = function(..., labelling_column_names) UseMethod("mp_index")
 #' @noRd
 #' @keywords internal
 #' @export
-Index = function(partition, labelling_column_names = names(partition), reference_index = NULL) {
+Index = function(partition
+    , vector_name = NULL
+    , labelling_column_names = NULL
+    , reference_index = NULL
+  ) {
   UseMethod("Index")
 }
 
 #' @export
 Index.Partition = function(partition
-    , labelling_column_names = names(partition)
+    , vector_name = NULL
+    , labelling_column_names = NULL
     , reference_index = NULL
   ) {
+
+  if (is.null(labelling_column_names)) {
+    labelling_column_names = infer_labelling_columns(partition)
+  }
+
   self = Base()
 
   ## Args
   self$partition = partition
+  self$vector_name = vector_name
   self$labelling_column_names = to_names(labelling_column_names)
 
   ## Private Arg
@@ -157,12 +173,20 @@ Index.Partition = function(partition
 }
 
 #' @export
-Index.data.frame = function(partition, labelling_column_names = names(partition), reference_index = NULL) {
+Index.data.frame = function(partition
+    , vector_name = NULL
+    , labelling_column_names = NULL
+    , reference_index = NULL
+  ) {
   partition |> Partition() |> Index(labelling_column_names, reference_index)
 }
 
 #' @export
-Index.Index = function(partition, labelling_column_names = names(partition), reference_index = NULL) {
+Index.Index = function(partition
+    , vector_name = NULL
+    , labelling_column_names = NULL
+    , reference_index = NULL
+  ) {
   partition$partition |> Index(labelling_column_names, reference_index)
 }
 
@@ -227,4 +251,23 @@ mp_catalogue = function(name, ..., labelling_column_names) {
     l[[i]] = do.call(mp_index, args)
   }
   l
+}
+
+
+# compute the incremental contribution of each column in a partition
+# to uniquely identifying each row
+info_curve = function(partition) {
+  nms = names(partition)
+  get_nrows = function(i) nrow(partition$select(nms[1:i])$frame())
+  (nms
+    |> seq_along()
+    |> vapply(get_nrows, integer(1L))
+    |> setNames(nms)
+  )
+}
+
+# return minimal set of columns, in order starting with the first column,
+# that are required to uniquely identify each row.
+infer_labelling_columns = function(partition) {
+  names(partition)[seq_len(which.max(info_curve(partition)))]
 }
