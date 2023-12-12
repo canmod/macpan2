@@ -391,6 +391,7 @@ TMBSimulator = function(tmb_model, tmb_cpp = getOption("macpan2_dll"), initializ
   self$insert = TMBSimulatorInserter(self)
   self$add = TMBSimulatorAdder(self)
   self$replace = TMBSimulatorReplacer(self)
+  self$update = TMBSimulatorUpdater(self)
   self$current = TMBCurrentParams(self)
   self$get = TMBSimulatorGetters(self)
 

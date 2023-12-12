@@ -1,5 +1,7 @@
 ---
 output: github_document
+  github_document:
+    toc: true
 ---
 
 # macpan2

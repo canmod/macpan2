@@ -37,7 +37,7 @@ msg <- function(..., .sep = "", .max_char_limit = getOption("width")) {
   )
 }
 
-msg_hline = function(x, .max_char_limit = getOption("width")) {
+msg_hline = function(x = "", .max_char_limit = getOption("width")) {
   line = ("-"
    |> rep(.max_char_limit)
    |> paste0(collapse = "")

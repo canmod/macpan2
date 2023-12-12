@@ -7,11 +7,17 @@ VERSION := $(shell sed -n '/^Version: /s///p' DESCRIPTION)
 TEST := testthat::test_package(\"macpan2\", reporter = \"progress\")
 IMAGES := $(shell grep 'knitr::include_graphics' README.Rmd | sed 's|knitr::include_graphics||' | tr -d '()"' | tr '\n' ' ')
 FIGURES := $(shell ls misc/build/figures/*.png | tr '\n' ' ')
+DRAWIO := $(shell echo $(IMAGES) | sed -e 's|\.svg|\.drawio|')
+IMAGES := $(shell grep 'knitr::include_graphics' README.Rmd | sed 's|knitr::include_graphics||' | tr -d '()"' | tr '\n' ' ')
+
+
 
 all:
 	make full-install
 	make pkg-check
 
+print-stuff:
+	echo $(DRAWIO)
 
 install-deps:
 	Rscript -e "remotes::install_github('canmod/oor@validity')"
@@ -93,7 +99,7 @@ push-readme:
 
 readme:: README.md
 README.md: README.Rmd $(IMAGES)
-	Rscript -e "rmarkdown::render('README.Rmd', output_dir = '.', output_file = 'README.md', output_format = 'md_document')"
+	Rscript -e "rmarkdown::render('README.Rmd')"
 	echo '<!-- Auto-generated - do not edit by hand -->' > temp
 	echo '<!-- Edit README.Rmd instead -->' | cat - $@ >> temp && mv temp $@
 

@@ -217,7 +217,7 @@ TMBUpdater = function(model) {
   return_object(self, "TMBUpdater")
 }
 
-TMBSimulationUpdater = function(simulator) {
+TMBSimulatorUpdater = function(simulator) {
   self = TMBUpdater(simulator$tmb_model)
   self$simulator = simulator
   self$matrices = function(...
@@ -251,5 +251,5 @@ TMBSimulationUpdater = function(simulator) {
     self$simulator$cache$invalidate()
     invisible(self$simulator)
   }
-  return_object(self, "TMBSimulationUpdater")
+  return_object(self, "TMBSimulatorUpdater")
 }
