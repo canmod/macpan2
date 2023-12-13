@@ -20,7 +20,7 @@ observed_data = tmb_simulator$report(log(true_beta))
 observed_data$value = rpois(100, observed_data$value)
 
 if (interactive()) {
-  plot(observed_data$value, type = "l")
+  plot(observed_data$value, type = "l", las = 1)
 }
 
 
@@ -45,7 +45,7 @@ if (interactive()) {
     , tmb_simulator$objective
     , numeric(1L)
   )
-  plot(exp(log_betas), ll, type = "l")
+  plot(exp(log_betas), ll, type = "l", las = 1)
   abline(v = true_beta)
 }
 
@@ -57,6 +57,6 @@ if (interactive()) {
 tmb_simulator$optimize$nlminb()
 
 if (interactive()) {
-  plot(observed_data$value, type = "l")
+  plot(observed_data$value, type = "l", las = 1)
   lines(tmb_simulator$report_values(), col = "red")
 }
