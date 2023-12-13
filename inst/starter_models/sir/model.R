@@ -11,22 +11,19 @@ computations = list(
 ## absolute flow rates (per time only)
 flow_rates = list(
     infection ~ S * I * beta / N
-  , recovered ~ gamma * I
+  , recovery ~ gamma * I
 )
 
 ## state updates
 state_updates = list(
     S ~ S - infection
-  , I ~ I + infection - recovered
-  , R ~ R + recovered
+  , I ~ I + infection - recovery
+  , R ~ R + recovery
 )
 
 model_evaluation = list(
   log_likelihood ~ dpois(I_obs, rbind_time(I, I_obs_times))
 )
-
-## data model comparison
-obj_fn = ~ -sum(log_likelihood)
 
 ## simple unstructured scalar expression
 expr_list =  ExprList(
@@ -44,7 +41,7 @@ init_mats = MatsList(
    , gamma = 0.1
    , N = 100
    , infection = empty_matrix
-   , recovered = empty_matrix
+   , recovery = empty_matrix
    , log_likelihood = empty_matrix
    , I_obs = empty_matrix
    , I_obs_times = empty_matrix
@@ -52,19 +49,13 @@ init_mats = MatsList(
    , .mats_to_return = "I"
 )
 
+obj_fn = ObjectiveFunction(~ -sum(log_likelihood))
+
 ## simulator
 ###################################################
 
 tmb_simulator = TMBModel(
     init_mats = init_mats
   , expr_list = expr_list
-  , time_steps = Time(100L)
-  , params = OptParamsList(
-       init_mats$get("beta")
-     , par_id = c(0L)
-     , mat = c("beta")
-     , row_id = c(0L)
-     , col_id = c(0L)
-  )
-  , obj_fn = ObjectiveFunction(obj_fn)
+  , obj_fn = obj_fn
 )$simulator()
