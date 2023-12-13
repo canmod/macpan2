@@ -694,7 +694,6 @@ public:
         // Check if error has already happened at some point
         // of the recursive call.
         if (GetErrorCode()) return m;
-
         switch (table_n[row]) {
             case -2: // methods (pre-processed matrices)
 
@@ -1657,13 +1656,15 @@ public:
                     case MP2_RBIND_LAG:
                         args[1] = -args[1];
                         args[1].array() += t; // += t+0.1f; // +0.1 won't work when t<0
+                        std::cout << "here lag" << std::endl;
                     case MP2_RBIND_TIME:
+                        std::cout << "here time" << std::endl;
                         if (t == 0) {
                             SetError(154, "The simulation loop has not yet begun and so rbind_time (or rbind_lag) cannot be used", row);
                             return args[0];
                         }
                         matIndex = index2mats[0]; // m
-                        if (matIndex == -1) {
+                        if (matIndex < 0) {
                           SetError(MP2_RBIND_TIME, "Can only rbind_time (or rbind_lag) named matrices not expressions of matrices", row);
                           return args[0];
                         }
@@ -1675,6 +1676,11 @@ public:
                             }
                         } else {
                             timeIndex = args[1];
+                        }
+                        std::cout << "here out" << std::endl;
+                        if (timeIndex.size() == 0) {
+                            std::cout << "here in" << std::endl;
+                            return m; // return empty matrix if no time indices are provided
                         }
                         if (mats_save_hist[matIndex]==0 && !(timeIndex.size()==1 && CppAD::Integer(timeIndex.coeff(0,0))==t)) {
                             SetError(MP2_RBIND_TIME, "Can only rbind_time (or rbind_lag) initialized matrices with saved history", row);
@@ -2624,6 +2630,7 @@ Type objective_function<Type>::operator() ()
     // Flags
     DATA_INTEGER(values_adreport);
 
+
     #ifdef MP_VERBOSE
     std::cout << "params = " << params << std::endl;
 
@@ -2719,6 +2726,7 @@ Type objective_function<Type>::operator() ()
         literals
     );
 
+
     // 3 Pre-simulation
     int expr_index = 0;
     int p_table_row = 0;
@@ -2752,7 +2760,7 @@ Type objective_function<Type>::operator() ()
 
         p_table_row += expr_num_p_table_rows[i];
         a_table_row += assign_num_a_table_rows[i];
-    }
+    } // p_table_row is fine here
 
     //simulation_history[0] = mats;
     UpdateSimulationHistory(
@@ -2766,8 +2774,10 @@ Type objective_function<Type>::operator() ()
     // 4 During simulation
     expr_index += eval_schedule[0];
 
-    int p_table_row2;
-    int a_table_row2;
+    // p_table_row2 lets us restart the parse table row every time the
+    // simulation loop is iterated
+    int p_table_row2 = p_table_row;
+    int a_table_row2 = a_table_row;
     for (int k=0; k<time_steps; k++) {
         p_table_row2 = p_table_row;
         a_table_row2 = a_table_row;
@@ -2836,10 +2846,11 @@ Type objective_function<Type>::operator() ()
                 );
             }
         }
-        else
+        else {
             result  = exprEvaluator.EvalExpr(
                 simulation_history, time_steps+1, mats, p_table_row
             );
+        }
 
         if (exprEvaluator.GetErrorCode()) {
             REPORT_ERROR
@@ -2928,6 +2939,7 @@ Type objective_function<Type>::operator() ()
             }
         }
     }
+
 
     REPORT(values)
     if (values_adreport == 1) {

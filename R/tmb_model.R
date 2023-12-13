@@ -408,4 +408,7 @@ TMBSimulator = function(tmb_model, tmb_cpp = getOption("macpan2_dll"), initializ
   return_object(self, "TMBSimulator")
 }
 
-
+#' @export
+print.TMBSimulator = function(x, ...) {
+  print(x$tmb_model$expr_list$print_exprs())
+}
