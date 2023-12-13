@@ -1657,7 +1657,6 @@ public:
                         args[1].array() += t; // += t+0.1f; // +0.1 won't work when t<0
                         std::cout << "here lag" << std::endl;
                     case MP2_RBIND_TIME:
-                        std::cout << "here time" << std::endl;
                         if (t == 0) {
                             SetError(154, "The simulation loop has not yet begun and so rbind_time (or rbind_lag) cannot be used", row);
                             return args[0];
@@ -1676,9 +1675,7 @@ public:
                         } else {
                             timeIndex = args[1];
                         }
-                        std::cout << "here out" << std::endl;
                         if (timeIndex.size() == 0) {
-                            std::cout << "here in" << std::endl;
                             return m; // return empty matrix if no time indices are provided
                         }
                         if (mats_save_hist[matIndex]==0 && !(timeIndex.size()==1 && CppAD::Integer(timeIndex.coeff(0,0))==t)) {

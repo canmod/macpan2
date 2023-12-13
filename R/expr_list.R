@@ -199,14 +199,23 @@ ExprList = function(
     input$.simulate_exprs = unique(c(self$.simulate_exprs, .simulate_exprs))
     do.call(ExprList, input)
   }
-  self$print_exprs = function(file = "") {
+  self$print_exprs = function(file = "", time_steps = "T") {
     to = cumsum(self$.eval_schedule())
     from = c(0L, to[1:2]) + 1L
+    if (is.numeric(time_steps)) {
+      time_steps_p1 = as.character(as.integer(time_steps + 1))
+    } else {
+      time_steps_p1 = paste(as.character(time_steps), "1", sep = " + ")
+    }
     msgs = c(
       "Before the simulation loop (t = 0):",
-      "At every iteration of the simulation loop (t = 1 to T):",
-      "After the simulation loop (t = T):"
+      sprintf("At every iteration of the simulation loop (t = 1 to %s):", as.character(time_steps)),
+      sprintf("After the simulation loop (t = %s):", time_steps_p1)
     )
+
+    ## TODO: give better advice here on how to engage the simulation loop.
+    if (time_steps == 0) msgs[2L] = "At every iteration of the simulation loop (number of iterations = 0):"
+
     for (i in 1:3) {
       if (self$.eval_schedule()[i] > 0L) {
         expr_strings = lapply(self$formula_list()[from[i]:to[i]], deparse)
