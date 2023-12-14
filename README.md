@@ -118,13 +118,13 @@ si = TMBModel(
         S = 99, I = 1, beta = 0.25, N = 100, infection = empty_matrix
       , .mats_to_return = "I", .mats_to_save = "I"
   )
-  , time_steps = Time(100L)
+  , time_steps = Time(50L)
 )$simulator()
 print(si)
 ```
 
     ## ---------------------
-    ## At every iteration of the simulation loop (t = 1 to 100):
+    ## At every iteration of the simulation loop (t = 1 to 50):
     ## ---------------------
     ## 1: infection ~ beta * S * I/N
     ## 2: S ~ S - infection
