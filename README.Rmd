@@ -1,5 +1,5 @@
 ---
-output: github_document
+output: 
   github_document:
     toc: true
 ---
@@ -8,7 +8,7 @@ output: github_document
 
 ```{r opts, echo = FALSE}
 knitr::opts_chunk$set(
-  fig.path = "misc/build/figures/"
+  fig.path = "misc/readme/"
 )
 ```
 
@@ -74,10 +74,8 @@ sir_sims = simulator$report()
 
 ## Architecture
 
-The high-level design of `macpan2` is given in the following diagram, which we describe immediately below.
-
 ```{r, echo=FALSE}
-knitr::include_graphics("misc/diagrams/engine-dsl-separation.svg")
+knitr::include_graphics("misc/readme/design-concepts.svg")
 ```
 
 ### Flow of Information
