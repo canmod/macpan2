@@ -171,32 +171,27 @@ processing are numbered in the diagram, and we describe each of these.
 2.  The structure of a compartmental model is defined in one of three
     ways. In all cases the output is ultimately a [model
     simulator](#model-simulator).
-
-<!-- -->
-
-1.  A model is chosen from a model library and read into `R`, optionally
-    updating the model structure using an [engine-agnostic model
-    specification
-    language](#engine-agnostic-model-specification-language).
-2.  A model is written from scratch using the [engine-agnostic model
-    specification
-    language](#engine-agnostic-model-specification-language).
-3.  A model is written from scratch using one of the [engine-specific
-    model specification
-    languages](#engine-specific-model-specification-languages). These
-    three are alternatives, in that if 2a is chosen then 2b and 2c are
-    automatically executed and if 2b is chosen that 2c is automatic. The
-    choice here is just how close (2c) or far (2a) from the actual
-    computation engine do you want to be when specifying models. There
-    are several [considerations when choosing a model specification
-    workflow](#engine-agnostic-versus-engine-specific) when deciding
-    which alternative to use. No matter which of these approaches is
-    taken, the output of step 2 is a model simulator that can be used to
-    generate modelling outputs like simulated incidence time-series or
-    reproduction numbers.
-
-<!-- -->
-
+    -   (2a) A model is chosen from a model library and read into `R`,
+        optionally updating the model structure using an
+        [engine-agnostic model specification
+        language](#engine-agnostic-model-specification-language).
+    -   (2b) A model is written from scratch using the [engine-agnostic
+        model specification
+        language](#engine-agnostic-model-specification-language).
+    -   (2c) A model is written from scratch using one of the
+        [engine-specific model specification
+        languages](#engine-specific-model-specification-languages).
+        These three are alternatives, in that if 2a is chosen then 2b
+        and 2c are automatically executed and if 2b is chosen that 2c is
+        automatic. The choice here is just how close (2c) or far (2a)
+        from the actual computation engine do you want to be when
+        specifying models. There are several [considerations when
+        choosing a model specification
+        workflow](#engine-agnostic-versus-engine-specific) when deciding
+        which alternative to use. No matter which of these approaches is
+        taken, the output of step 2 is a model simulator that can be
+        used to generate modelling outputs like simulated incidence
+        time-series or reproduction numbers.
 3.  Although model simulators come with default initial values so that
     they can be used immediately, typically one would like to modify
     these values without needing to edit the model specifications from
