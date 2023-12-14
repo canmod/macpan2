@@ -9,12 +9,19 @@ computations = list(
 )
 
 ## absolute flow rates (per time only)
+
+## engine-agnostic (not done)
+##   infection = mp_flow(~ I * beta / N, from = S, to = I)
+##   recovery = mp_flow(~ gamma, from = I, to = R)
+##   state_update = mp_update(type = "R4K")
+
+## engine-specific
 flow_rates = list(
     infection ~ S * I * beta / N
   , recovery ~ gamma * I
 )
 
-## state updates
+##
 state_updates = list(
     S ~ S - infection
   , I ~ I + infection - recovery
