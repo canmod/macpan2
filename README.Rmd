@@ -69,7 +69,7 @@ si = TMBModel(
         S = 99, I = 1, beta = 0.25, N = 100, infection = empty_matrix
       , .mats_to_return = "I", .mats_to_save = "I"
   )
-  , time_steps = Time(100L)
+  , time_steps = Time(50L)
 )$simulator()
 print(si)
 ```
