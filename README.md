@@ -1,6 +1,39 @@
 <!-- Auto-generated - do not edit by hand -->
 <!-- Edit README.Rmd instead -->
 
+-   <a href="#macpan2" id="toc-macpan2">macpan2</a>
+    -   <a href="#documentation" id="toc-documentation">Documentation</a>
+    -   <a href="#installation" id="toc-installation">Installation</a>
+    -   <a href="#hello-world" id="toc-hello-world">Hello World</a>
+    -   <a href="#architecture" id="toc-architecture">Architecture</a>
+        -   <a href="#flow-of-information" id="toc-flow-of-information">Flow of
+            Information</a>
+        -   <a href="#architectural-layers-of-modularity"
+            id="toc-architectural-layers-of-modularity">Architectural Layers of
+            Modularity</a>
+        -   <a href="#methods-for-producing-a-model-object"
+            id="toc-methods-for-producing-a-model-object">Methods for Producing a
+            Model Object</a>
+    -   <a href="#product-management" id="toc-product-management">Product
+        Management</a>
+        -   <a href="#general-dynamic-simulation-with-tmb"
+            id="toc-general-dynamic-simulation-with-tmb">General Dynamic Simulation
+            with TMB</a>
+        -   <a href="#model-library" id="toc-model-library">Model Library</a>
+        -   <a href="#calibration" id="toc-calibration">Calibration</a>
+        -   <a href="#time-varying-parameters"
+            id="toc-time-varying-parameters">Time-Varying Parameters</a>
+        -   <a href="#model-structure-and-bookkeeping"
+            id="toc-model-structure-and-bookkeeping">Model Structure and
+            Bookkeeping</a>
+        -   <a href="#structure-encourages-reparameterization"
+            id="toc-structure-encourages-reparameterization">Structure Encourages
+            Reparameterization</a>
+        -   <a href="#alternative-engines" id="toc-alternative-engines">Alternative
+            Engines</a>
+        -   <a href="#combining-expression-lists"
+            id="toc-combining-expression-lists">Combining Expression Lists</a>
+
 # macpan2
 
 <!-- badges: start -->
@@ -88,10 +121,7 @@ the following hello-world SIR model.
 
 ## Architecture
 
-The high-level design of `macpan2` is given in the following diagram,
-which we describe immediately below.
-
-![](misc/diagrams/engine-dsl-separation.svg)<!-- -->
+![](misc/readme/design-concepts.svg)<!-- -->
 
 ### Flow of Information
 
@@ -205,7 +235,7 @@ Simulating from this model can be done like so.
 )
 ```
 
-![](misc/build/figures/plot-tmb-si-1.png)<!-- -->
+![](misc/readme/plot-tmb-si-1.png)<!-- -->
 
 #### (2d) Calibrating Models in the TMB Engine
 
