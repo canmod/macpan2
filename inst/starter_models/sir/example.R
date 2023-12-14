@@ -15,14 +15,20 @@ tmb_simulator  ## note the new expression before the simulation loop
 time_steps = 100L
 true_beta = 0.4
 
+## set time_steps value
 tmb_simulator$replace$time_steps(time_steps)
+
+## feed log(true_beta) to the simulator because we have
+## already specified log-transformation of this parameter
 observed_data = tmb_simulator$report(log(true_beta))
+
+## .mats_to_return is set to "I", so observed_data$value is
+## the prevalence (density of I) over time
 observed_data$value = rpois(time_steps, observed_data$value)
 
 if (interactive()) {
   plot(observed_data$value, type = "l", las = 1)
 }
-
 
 ## -------------------------
 ## update simulator with fake data to fit to
@@ -35,7 +41,7 @@ tmb_simulator$update$matrices(
 
 
 ## -------------------------
-## plot likelihood surface
+## plot likelihood surface (curve)
 ## -------------------------
 
 if (interactive()) {
@@ -51,11 +57,12 @@ if (interactive()) {
 
 
 ## -------------------------
-## optimize the model
+## fit parameters
 ## -------------------------
 
 tmb_simulator$optimize$nlminb()
 
+## plot observed vs predicted value
 if (interactive()) {
   print(tmb_simulator$current$params_frame())
   plot(observed_data$value, type = "l", las = 1)
