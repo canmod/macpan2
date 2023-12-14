@@ -15,9 +15,9 @@ tmb_simulator  ## note the new expression before the simulation loop
 time_steps = 100L
 true_beta = 0.4
 
-tmb_simulator$replace$time_steps(100L)
+tmb_simulator$replace$time_steps(time_steps)
 observed_data = tmb_simulator$report(log(true_beta))
-observed_data$value = rpois(100, observed_data$value)
+observed_data$value = rpois(time_steps, observed_data$value)
 
 if (interactive()) {
   plot(observed_data$value, type = "l", las = 1)
@@ -57,6 +57,7 @@ if (interactive()) {
 tmb_simulator$optimize$nlminb()
 
 if (interactive()) {
+  print(tmb_simulator$current$params_frame())
   plot(observed_data$value, type = "l", las = 1)
   lines(tmb_simulator$report_values(), col = "red")
 }
