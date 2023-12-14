@@ -5,19 +5,12 @@ ALIAS_RE = [ ]*MP2_\(.*\)\: \(.*\)(\(.*\))
 ROXY_RE = ^.*\(\#'.*\)$
 VERSION := $(shell sed -n '/^Version: /s///p' DESCRIPTION)
 TEST := testthat::test_package(\"macpan2\", reporter = \"progress\")
-IMAGES := $(shell grep 'knitr::include_graphics' README.Rmd | sed 's|knitr::include_graphics||' | tr -d '()"' | tr '\n' ' ')
-FIGURES := $(shell ls misc/build/figures/*.png | tr '\n' ' ')
-DRAWIO := $(shell echo $(IMAGES) | sed -e 's|\.svg|\.drawio|')
-IMAGES := $(shell grep 'knitr::include_graphics' README.Rmd | sed 's|knitr::include_graphics||' | tr -d '()"' | tr '\n' ' ')
-
 
 
 all:
 	make full-install
 	make pkg-check
 
-print-stuff:
-	echo $(DRAWIO)
 
 install-deps:
 	Rscript -e "remotes::install_github('canmod/oor@validity')"
@@ -82,26 +75,29 @@ misc/dev/%.run: misc/dev/%.R
 	cd misc/dev; Rscript ../../$^
 
 
-svg:: misc/diagrams/*.svg
-misc/diagrams/%.svg: misc/diagrams/%.drawio
+misc/**/%.svg: misc/**/%.drawio
 	draw.io --export $^ --format svg
 
 
-png:: misc/diagrams/*.png
-misc/diagrams/%.png: misc/diagrams/%.drawio
+misc/**/%.png: misc/**/%.drawio
 	draw.io --export $^ --format png
+
+
+svg-readme:: misc/readme/*.svg
+png-readme:: misc/readme/*.png
+
+
+readme:: README.md
+README.md: README.Rmd misc/readme/*.svg
+	Rscript -e "rmarkdown::render('README.Rmd')"
+	echo '<!-- Auto-generated - do not edit by hand -->' > temp
+	echo '<!-- Edit README.Rmd instead -->' | cat - $@ >> temp && mv temp $@
+
 
 # TODO: make this work for others -- currently convenience for sw
 push-readme:
 	make README.md
-	git_push_one_at_a_time.sh $(IMAGES) $(FIGURES) README.md
-
-
-readme:: README.md
-README.md: README.Rmd $(IMAGES)
-	Rscript -e "rmarkdown::render('README.Rmd')"
-	echo '<!-- Auto-generated - do not edit by hand -->' > temp
-	echo '<!-- Edit README.Rmd instead -->' | cat - $@ >> temp && mv temp $@
+	git_push_one_at_a_time.sh misc/readme/*.svg misc/readme/*.png README.md README.Rmd
 
 
 enum-update:: R/enum.R
@@ -164,5 +160,3 @@ inst/model_library/%/README.md: inst/model_library/%/README.Rmd
 	cat $(dir $@)/header.yaml $(dir $@)/README.md > $(dir $@)/tmp.md
 	cp $(dir $@)/tmp.md $(dir $@)/README.md
 	rm $(dir $@)/tmp.md
-
-
