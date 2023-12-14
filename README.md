@@ -5,15 +5,16 @@
     -   <a href="#documentation" id="toc-documentation">Documentation</a>
     -   <a href="#installation" id="toc-installation">Installation</a>
     -   <a href="#hello-world" id="toc-hello-world">Hello World</a>
-    -   <a href="#architecture" id="toc-architecture">Architecture</a>
-        -   <a href="#flow-of-information" id="toc-flow-of-information">Flow of
-            Information</a>
-        -   <a href="#architectural-layers-of-modularity"
-            id="toc-architectural-layers-of-modularity">Architectural Layers of
-            Modularity</a>
-        -   <a href="#methods-for-producing-a-model-object"
-            id="toc-methods-for-producing-a-model-object">Methods for Producing a
-            Model Object</a>
+    -   <a href="#design-concepts" id="toc-design-concepts">Design Concepts</a>
+        -   <a href="#information-processing"
+            id="toc-information-processing">Information Processing</a>
+        -   <a href="#modularity" id="toc-modularity">Modularity</a>
+        -   <a href="#engine-agnostic-model-specification-language"
+            id="toc-engine-agnostic-model-specification-language">Engine-Agnostic
+            Model Specification Language</a>
+        -   <a href="#engine-specific-model-specification-languages"
+            id="toc-engine-specific-model-specification-languages">Engine-Specific
+            Model Specification Languages</a>
     -   <a href="#product-management" id="toc-product-management">Product
         Management</a>
         -   <a href="#general-dynamic-simulation-with-tmb"
@@ -104,103 +105,6 @@ the following command.
 
 ## Hello World
 
-This [quick-start
-guide](https://canmod.github.io/macpan2/articles/quickstart) describes
-the following hello-world SIR model.
-
-    library(macpan2)
-    sir = Compartmental(system.file("starter_models", "sir", package = "macpan2"))
-    N = 100
-    simulator = sir$simulators$tmb(time_steps = 100
-      , state = c(S = N - 1, I = 1, R = 0)
-      , flow = c(foi = 0, gamma = 0.1)
-      , N = N
-      , beta = 0.2
-    )
-    sir_sims = simulator$report()
-
-## Architecture
-
-![](misc/readme/design-concepts.svg)<!-- -->
-
-### Flow of Information
-
-Information flows from the top to the bottom of the diagram. Note that
-[users are not required to follow this entire
-path](#architectural-layers-of-modularity), but we will start with this
-assumption to describe the full vision. The major steps of data
-transformation are numbered in the diagram, and we describe each of
-these in what follows.
-
-1.  The flow begins with accessing and preparing numerical information
-    from various data sources, with the output being numerical R
-    objects. Depending on the nature of the analysis to follow, this
-    information could include default parameter values
-    (e.g. transmission rate), initial values for the state variables
-    (e.g. initial number of infectious individuals), operational
-    schedules (e.g. timing of lockdown events or vaccine roll-out
-    schedules), and data for model fitting (e.g. time series of hospital
-    utilization). This step could involve connecting to real-time
-    surveillance platforms or reading in static data files. There is not
-    any functionality within `macpan2` for conducting this step –
-    `macpan2` [does not try to reinvent the wheel in data access and
-    preparation](#architectural-layers-of-modularity).
-2.  
-
-### Architectural Layers of Modularity
-
-Modularity is a key principle of `macpan2` design in a few ways.
-
-First, `macpan2` is meant to plug into standard R workflows for data
-pre-processing and simulation post-processing. There is very little
-functionality in `macpan2` for configuring how data are prepared as
-input and out simulation outputs are processed. Instead, `macpan2`
-accepts standard data objects (data frames, matrices, vectors) and
-returns simulations as long-format data frames that can be processed
-using standard tools like `dplyr` and `ggplot2`. This design principle
-is illustrated in the architecture diagram below that has two blue outer
-layers representing standard non-`macpan2` workflows that contain two
-red inner layers representing workflows that depend on `macpan2` data
-structures and objects. The challenges of building the inner layers is
-big enough that we prefer to avoid reinventing the wheel of pre- and
-post-processing.
-
-Second, `macpan2` uses an engine plug-in architecture. The third layer
-in the diagram below represents an engine that can be swapped out if
-necessary. An engine is a wrapper around an existing modelling tool that
-allows it to be controlled by our structured compartmental modelling
-grammar/language, which is represented by the second layer in the
-diagram. Currently we only have a single engine, which is a wrapping
-around the TMB package. We are currently considering building upon
-AdaptiveTau, which can be used for Gillespie simulation.
-
-Third, each of the middle `macpan2` layers can be used on their own. For
-example, the TMB engine is quite powerful and flexible and can be used
-to quickly [specify dynamic model
-simulators](#general-dynamic-simulation-with-tmb) and calibrators that
-are executed in C++, without needing to write in C++. This approach
-would bypass the second structured modelling layer. Conversely, one
-could use the structured modelling layer to build descriptions of
-structured models and data without using them to interface with an
-engine.
-
-### Methods for Producing a Model Object
-
-Here we zoom into parts of the architectural diagram to illustrate the
-(currently four) ways to produce a model object.
-
-#### (2a) Model Library
-
-![](misc/diagrams/model-library.svg)<!-- -->
-
-#### (2b) Engine-Agnostic Model Specifications
-
-![](misc/diagrams/engine-agnostic-model-specification.svg)<!-- -->
-
-#### (2c) Specification of Models Directly in the TMB Engine
-
-![](misc/diagrams/tmb-model-specification.svg)<!-- -->
-
 ``` r
 si = TMBModel(
     expr_list = ExprList(
@@ -211,25 +115,27 @@ si = TMBModel(
       )
     )
   , init_mats = MatsList(
-      S = 99, I = 1, beta = 0.25, N = 100, infection = empty_matrix
-    , .mats_to_return = "I", .mats_to_save = "I"
+        S = 99, I = 1, beta = 0.25, N = 100, infection = empty_matrix
+      , .mats_to_return = "I", .mats_to_save = "I"
   )
-  , time_steps = Time(10L)
-)
-print(si$expr_list)
+  , time_steps = Time(100L)
+)$simulator()
+print(si)
 ```
 
     ## ---------------------
-    ## At every iteration of the simulation loop (t = 1 to T):
+    ## At every iteration of the simulation loop (t = 1 to 100):
     ## ---------------------
     ## 1: infection ~ beta * S * I/N
     ## 2: S ~ S - infection
     ## 3: I ~ I + infection
+    ## 
+    ## NULL
 
 Simulating from this model can be done like so.
 
 ``` r
-(si$simulator()$report()
+(si$report()
  |> rename(prevalence = value)
  |> ggplot() + geom_line(aes(time, prevalence))
 )
@@ -237,9 +143,124 @@ Simulating from this model can be done like so.
 
 ![](misc/readme/plot-tmb-si-1.png)<!-- -->
 
-#### (2d) Calibrating Models in the TMB Engine
+## Design Concepts
 
-![](misc/diagrams/tmb-calibration.svg)<!-- -->
+![](misc/readme/design-concepts.svg)<!-- -->
+
+### Information Processing
+
+Like other statistical modelling software, the high-level purpose of
+`macpan2` is to process data sources (top-left) into results
+(bottom-left). In the case of `macpan2`, this processing is done using
+compartmental modelling (right). The major steps of this information
+processing are numbered in the diagram, and we describe each of these.
+
+1.  Information processing begins with accessing and preparing numerical
+    information from various data sources, with the output being
+    standard numerical R objects. Depending on the nature of the
+    analysis to follow, this information could include default values
+    for parameters (e.g. transmission rate), initial values for the
+    state variables (e.g. initial number of infectious individuals),
+    operational schedules (e.g. timing of lockdown events or vaccine
+    roll-out schedules), and data for model fitting (e.g. time series of
+    hospital utilization). This step could involve connecting to
+    real-time surveillance platforms or reading in static data files.
+    There is not any functionality within `macpan2` for conducting this
+    step – [`macpan2` does not try to reinvent the wheel in data access
+    and preparation](#modularity).
+2.  The structure of a compartmental model is defined in one of three
+    ways. In all cases the output is ultimately a [model
+    simulator](#model-simulator).
+
+<!-- -->
+
+1.  A model is chosen from a model library and read into `R`, optionally
+    updating the model structure using an [engine-agnostic model
+    specification
+    language](#engine-agnostic-model-specification-language).
+2.  A model is written from scratch using the [engine-agnostic model
+    specification
+    language](#engine-agnostic-model-specification-language).
+3.  A model is written from scratch using one of the [engine-specific
+    model specification
+    languages](#engine-specific-model-specification-languages). These
+    three are alternatives, in that if 2a is chosen then 2b and 2c are
+    automatically executed and if 2b is chosen that 2c is automatic. The
+    choice here is just how close (2c) or far (2a) from the actual
+    computation engine do you want to be when specifying models. There
+    are several [considerations when choosing a model specification
+    workflow](#engine-agnostic-versus-engine-specific) when deciding
+    which alternative to use. No matter which of these approaches is
+    taken, the output of step 2 is a model simulator that can be used to
+    generate modelling outputs like simulated incidence time-series or
+    reproduction numbers.
+
+<!-- -->
+
+3.  Although model simulators come with default initial values so that
+    they can be used immediately, typically one would like to modify
+    these values without needing to edit the model specifications from
+    step 2. There are two main use-cases involving such numerical
+    modifications to the model simulators: In order to formally
+    calibrate model parameters by fitting the model to observed
+    time-series data and/or modifying default parameter values to
+    reflect a what-if scenario. In both use-cases, a model simulator is
+    used as input and another model simulator is produced as output.
+4.  Once the model defining and numerical initialization steps have been
+    completed, model outputs are produced in long-format data frames.
+5.  Finally these model outputs are incorporated into forecasts, plots,
+    reports, and diagnostics using standard tools outside of `macpan2`.
+
+### Modularity
+
+Modularity is a key principle of `macpan2` design in a few ways.
+
+First, `macpan2` is meant to plug into standard R workflows for data
+pre-processing and simulation post-processing. There is very little
+functionality in `macpan2` for configuring how data are prepared as
+input and modelling outputs are processed. Instead, `macpan2` accepts
+standard data objects (data frames, matrices, vectors) and returns
+simulations as long-format data frames that can be processed using
+standard tools like `dplyr` and `ggplot2`. This design principle is
+illustrated in the architecture diagram above that has blue steps
+representing standard non-`macpan2` workflows and red steps representing
+workflows that depend on `macpan2` data structures and objects. The
+challenges of building the red steps is big enough that we prefer to
+avoid reinventing the wheel of pre- and post-processing.
+
+Second, `macpan2` uses an engine plug-in architecture. Models defined in
+the [engine-agnostic model specification
+language](#engine-agnostic%20model%20specification%20language) can be
+rendered in a particular computational engine so that multiple
+computational approaches can be used to generate modelling outputs for a
+single model definition. This can be useful if different model outputs
+are more efficient or convenient for different computational approaches.
+For example, engines such as TMB that are capable of automatic
+differentiation are great for fast optimization of parameters and for
+computing $\mathcal{R}_0$ in models with arbitrary complexity, whereas
+other engines such as Adaptive Tau are better at stochastic simulation
+techniques like the Gillespie algorithm. Sometimes an engine will be
+unable to generate a particular output at all or with sufficient
+difficulty on the part of the user so as to render the use-case
+practically impossible. For example, it is not possible to conveniently
+utilize differential equation solvers in the TMB engine, limiting it to
+Euler or simple RK4-type solvers. Being able to swap out the TMB engine
+for one based on `deSolve` (or other similar package) would allow for
+more convenient and accurate solutions to differential equations without
+having to leave `macpan2`.
+
+Third, TODO: describe how the model specification language can be used
+to build up models modularly (e.g. swap out alternative state-updaters
+as discussed above but also add in model structures like age-groups and
+spatial structure to a simple unstructured model)
+
+### Engine-Agnostic Model Specification Language
+
+TODO
+
+### Engine-Specific Model Specification Languages
+
+TODO
 
 ## Product Management
 
