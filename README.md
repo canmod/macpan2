@@ -106,25 +106,23 @@ the following command.
 ## Hello World
 
 ``` r
-si = TMBModel(
-    expr_list = ExprList(
-      during = list(
-          infection ~ beta * S * I / N
-        , S ~ S - infection
-        , I ~ I + infection
-      )
+si = mp_tmb_model_simulator(
+    during = list(
+        infection ~ beta * S * I / N
+      , S ~ S - infection
+      , I ~ I + infection
     )
-  , init_mats = MatsList(
-        S = 99, I = 1, beta = 0.25, N = 100, infection = empty_matrix
-      , .mats_to_return = "I", .mats_to_save = "I"
+  , initial_values = list(
+        S = 99, I = 1
+      , beta = 0.25, N = 100
+      , infection = empty_matrix
   )
-  , time_steps = Time(50L)
-)$simulator()
+)
 print(si)
 ```
 
     ## ---------------------
-    ## At every iteration of the simulation loop (t = 1 to 50):
+    ## At every iteration of the simulation loop (number of iterations = 0):
     ## ---------------------
     ## 1: infection ~ beta * S * I/N
     ## 2: S ~ S - infection
@@ -135,7 +133,8 @@ print(si)
 Simulating from this model can be done like so.
 
 ``` r
-(si$report()
+(si
+ |> mp_trajectory(time_steps = 50, matrices = "I")
  |> rename(prevalence = value)
  |> ggplot() + geom_line(aes(time, prevalence))
 )
