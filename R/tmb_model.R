@@ -168,16 +168,34 @@ TMBModel = function(
 }
 
 #' @export
-mp_tmb_simulator = function(before = list(), during = list(), after = list(), initial_values = list()) {
+mp_tmb_model_simulator = function(before = list(), during = list(), after = list(), initial_values = list()) {
+  ## FIXME: don't love this name, but trying to avoid conflicting with
+  ## mp_tmb_simulator for now at least. ultimately this should all be one
+  ## concept, and probably mp_tmb_simulator will be the best final name.
+  ## using mp_tmb_model_simulator for now so that we can move forward with
+  ## the readme file on the refactorcpp branch.
   TMBModel(
     init_mats = do.call(MatsList, initial_values),
     expr_list = ExprList(before, during, after)
   )$simulator()
 }
 
+
 #' @export
-mp_tmb_simulate = function(simulator, time_steps, mats_to_return) {
-  simulator$replace$time_steps(time_steps)$update$matrices(.mats_to_return = mats_to_return, .mats_to_save = mats_to_return)$report()
+mp_trajectory = function(model_simulator, ...) {
+  UseMethod("mp_trajectory")
+}
+
+#' @export
+mp_trajectory = function(model_simulator, time_steps, matrices, params = NULL) {
+  ## FIXME: this is just a stub to get the readme file working
+  (model_simulator
+    $replace
+    $time_steps(time_steps)
+    $update
+    $matrices(.mats_to_return = matrices, .mats_to_save = matrices)
+    $report(params)
+  )
 }
 
 
@@ -421,6 +439,6 @@ print.TMBSimulator = function(x, ...) {
   m = x$tmb_model
   time_steps = m$time_steps$time_steps
   printer = m$expr_list$print_exprs
-  print(printer(time_steps = time_steps))
+  printer(time_steps = time_steps)
   invisible(x)
 }

@@ -88,7 +88,7 @@ png-readme:: misc/readme/*.png
 
 
 readme:: README.md
-README.md: README.Rmd misc/readme/*.svg
+README.md: README.Rmd misc/readme/*.svg R/*.R
 	Rscript -e "rmarkdown::render('README.Rmd')"
 	echo '<!-- Auto-generated - do not edit by hand -->' > temp
 	echo '<!-- Edit README.Rmd instead -->' | cat - $@ >> temp && mv temp $@
