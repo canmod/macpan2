@@ -127,8 +127,6 @@ print(si)
     ## 1: infection ~ beta * S * I/N
     ## 2: S ~ S - infection
     ## 3: I ~ I + infection
-    ## 
-    ## NULL
 
 Simulating from this model can be done like so.
 
