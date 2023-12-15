@@ -167,10 +167,18 @@ TMBModel = function(
   )
 }
 
-mp_tmb_model = function(expr_list, init_mats, time_steps) {
-
+#' @export
+mp_tmb_simulator = function(before = list(), during = list(), after = list(), initial_values = list()) {
+  TMBModel(
+    init_mats = do.call(MatsList, initial_values),
+    expr_list = ExprList(before, during, after)
+  )$simulator()
 }
 
+#' @export
+mp_tmb_simulate = function(simulator, time_steps, mats_to_return) {
+  simulator$replace$time_steps(time_steps)$update$matrices(.mats_to_return = mats_to_return, .mats_to_save = mats_to_return)$report()
+}
 
 
 TMBCompartmentalSimulator = function(tmb_simulator, compartmental_model) {
