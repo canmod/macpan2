@@ -94,10 +94,14 @@ README.md: README.Rmd misc/readme/*.svg R/*.R
 	echo '<!-- Edit README.Rmd instead -->' | cat - $@ >> temp && mv temp $@
 
 
-# TODO: make this work for others -- currently convenience for sw
 push-readme:
 	make README.md
-	git_push_one_at_a_time.sh misc/readme/*.svg misc/readme/*.png README.md README.Rmd
+	git add misc/readme/*.svg
+	git add misc/readme/*.png
+	git add misc/readme/*.drawio
+	git add README.md README.Rmd
+	git commit -m "update readme" || true
+	git push || true
 
 
 enum-update:: R/enum.R
