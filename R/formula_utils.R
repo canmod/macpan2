@@ -206,15 +206,20 @@ lhs_pieces = function(formula) {
   )
 
   if (subset_vector_case) {
-    list(
+    l = list(
       variable = table$x[3L],
       positions = table$x[4L]
     )
   } else if (matrix_case) {
-    list(
+    l = list(
       variable = table$x[2L],
       positions = character()
     )
+  } else {
+    l = list(
+      variable = character(),
+      positions = character()
+    )
   }
-
+  return(l)
 }

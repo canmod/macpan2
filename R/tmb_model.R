@@ -168,16 +168,62 @@ TMBModel = function(
 }
 
 #' @export
-mp_tmb_model_simulator = function(before = list(), during = list(), after = list(), initial_values = list()) {
+mp_tmb_model_simulator = function(
+      before = list()
+    , during = list()
+    , after = list()
+    , default_values = list()
+  ) {
   ## FIXME: don't love this name, but trying to avoid conflicting with
   ## mp_tmb_simulator for now at least. ultimately this should all be one
   ## concept, and probably mp_tmb_simulator will be the best final name.
   ## using mp_tmb_model_simulator for now so that we can move forward with
   ## the readme file on the refactorcpp branch.
+  e = ExprList(before, during, after)
+  dv = setdiff(e$all_derived_vars(), names(default_values))
+  em = rep(list(empty_matrix), length(dv)) |> setNames(dv)
+  
   TMBModel(
-    init_mats = do.call(MatsList, initial_values),
-    expr_list = ExprList(before, during, after)
+    init_mats = do.call(MatsList, c(default_values, em)),
+    expr_list = e
   )$simulator()
+}
+
+#' @export
+mp_default = function(model_simulator, ...) {
+  UseMethod("mp_default")
+}
+
+#' @export
+mp_initial = function(model_simulator, ...) {
+  UseMethod("mp_initial")
+}
+
+mp_initial.TMBSimulator = function(model_simulator, matrices, params = NULL) {
+  (model_simulator
+    $replace
+    $time_steps(time_steps)
+    $update
+    $matrices(.mats_to_return = matrices, .mats_to_save = matrices)
+    $report(params, .phases = "before")
+  )
+}
+
+
+#' @export
+mp_final = function(model_simulator, ...) {
+  UseMethod("mp_final")
+}
+
+
+mp_final.TMBSimulator = function(model_simulator, time_steps, matrices, params = NULL) {
+  (model_simulator
+    $replace
+    $time_steps(time_steps)
+    $update
+    $matrices(.mats_to_return = matrices, .mats_to_save = matrices)
+    $report(params, .phases = "after")
+  )
 }
 
 
@@ -187,7 +233,7 @@ mp_trajectory = function(model_simulator, ...) {
 }
 
 #' @export
-mp_trajectory = function(model_simulator, time_steps, matrices, params = NULL) {
+mp_trajectory.TMBSimulator = function(model_simulator, time_steps, matrices, params = NULL) {
   ## FIXME: this is just a stub to get the readme file working
   (model_simulator
     $replace

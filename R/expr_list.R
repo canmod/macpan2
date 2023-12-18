@@ -174,6 +174,30 @@ ExprList = function(
       |> unique()
     )
   }
+  
+  self$all_derived_vars = function() {
+    all_vars = self$all_formula_vars()
+    all_exprs = self$formula_list()
+    lhs_list = (all_exprs
+      |> lapply(formula_components, "left")
+      |> lapply(getElement, "variables")
+    )
+    rhs_list = (all_exprs
+      |> lapply(formula_components, "right")
+      |> lapply(getElement, "variables")
+    )
+    full_matrix_assign = vapply(lhs_list, length, integer(1L)) == 1L
+    lhs_matrix_name = vapply(lhs_list, getElement, character(1L), 1L)
+    
+    is_var_derived = function(var_nm) {
+      made = (var_nm == lhs_matrix_name) & full_matrix_assign
+      used = vapply(rhs_list, `%in%`, logical(1L), x = var_nm)
+      if (!any(made)) return(FALSE)
+      if (!any(used)) return(TRUE)
+      which(made)[1L] < which(used)[1L]
+    }
+    Filter(is_var_derived, all_vars)
+  }
 
   self$data_arg = function() {
     r = c(
