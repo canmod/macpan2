@@ -63,7 +63,7 @@ si = mp_tmb_model_simulator(
       , S ~ S - infection
       , I ~ I + infection
     )
-  , initial_values = list(
+  , default_values = list(
         S = 99, I = 1
       , beta = 0.25, N = 100
       , infection = empty_matrix

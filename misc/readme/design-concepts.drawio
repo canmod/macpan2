@@ -1,0 +1,202 @@
+<mxfile host="65bd71144e">
+    <diagram id="UPbcNdtjv1JDstjJegHL" name="Page-1">
+        <mxGraphModel dx="-296" dy="647" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="700" pageHeight="1400" math="1" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="2" value="Data Manipulation" style="swimlane;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=#F0F7FF;collapsible=0;" parent="1" vertex="1">
+                    <mxGeometry x="1406" y="34.37" width="204" height="655.63" as="geometry">
+                        <mxRectangle x="1630" y="30" width="210" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="3" value="Results&lt;br&gt;(e.g. forecasts)&lt;br&gt;(e.g. plots)&lt;br&gt;(e.g. reports)&lt;br&gt;(e.g. diagnostics)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="2" vertex="1">
+                    <mxGeometry x="12.5" y="530.63" width="137.5" height="114.37" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" value="Data sources" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="2" vertex="1">
+                    <mxGeometry x="12.5" y="30" width="137.5" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="4" value="Numerical information &lt;br&gt;in standard formats&lt;br&gt;(e.g. R vectors)&lt;br&gt;(e.g. R matrices)&lt;br&gt;(e.g. R data frames)&lt;br&gt;(e.g. CSV files)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="2" vertex="1">
+                    <mxGeometry x="15" y="205.63" width="135" height="170" as="geometry"/>
+                </mxCell>
+                <mxCell id="28" value="Outside macpan2" style="swimlane;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;collapsible=0;" parent="1" vertex="1">
+                    <mxGeometry x="1406" y="10" width="204" height="680" as="geometry"/>
+                </mxCell>
+                <mxCell id="6" value="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="28" vertex="1">
+                    <mxGeometry x="61.25" y="140" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="9" value="5" style="rhombus;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="28" vertex="1">
+                    <mxGeometry x="61.25" y="460" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="29" value="Inside macpan2" style="swimlane;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;collapsible=0;" parent="1" vertex="1">
+                    <mxGeometry x="1610" y="10" width="270" height="680" as="geometry"/>
+                </mxCell>
+                <mxCell id="12" value="Model Use" style="swimlane;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;swimlaneFillColor=#F0F7FF;collapsible=0;" parent="29" vertex="1">
+                    <mxGeometry y="460" width="270" height="220" as="geometry">
+                        <mxRectangle x="1860" y="480" width="100" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="13" value="Modelling outputs&lt;br&gt;(e.g. incidence time-series)&lt;br&gt;(e.g. reproduction numbers)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=1;" parent="12" vertex="1">
+                    <mxGeometry x="10" y="140" width="160" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="39" value="Model simulator" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=1;" parent="12" vertex="1">
+                    <mxGeometry x="144" y="45" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="14" value="3" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="12" vertex="1">
+                    <mxGeometry x="50" y="55" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="47" style="edgeStyle=elbowEdgeStyle;html=1;exitX=0.25;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeWidth=1;" parent="12" source="39" target="14" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="120" y="30"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="46" style="edgeStyle=elbowEdgeStyle;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;strokeWidth=1;" parent="12" source="14" target="39" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="120" y="120"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="40" value="4" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="12" vertex="1">
+                    <mxGeometry x="184" y="130" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="52" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.75;entryDx=0;entryDy=0;" parent="12" source="40" target="13" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="204" y="193"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="41" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontFamily=Helvetica;fontSize=12;fontColor=default;" parent="12" source="39" target="40" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="15" value="Model Definition" style="swimlane;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;swimlaneFillColor=#F0F7FF;collapsible=0;" parent="29" vertex="1">
+                    <mxGeometry y="24" width="270" height="436" as="geometry">
+                        <mxRectangle x="1860" y="30" width="130" height="30" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="16" value="Library model" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="15" vertex="1">
+                    <mxGeometry x="144" y="30" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="17" value="Engine-agnostic model specification" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="15" vertex="1">
+                    <mxGeometry x="144" y="170" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="18" value="Engine adapter&lt;br&gt;(e.g. TMB)&lt;br&gt;(e.g. TMB-stan)&lt;br&gt;(e.g. TMB-AdaptiveTau)&lt;br&gt;(e.g. deSolve)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="15" vertex="1">
+                    <mxGeometry x="10" y="210" width="120" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="33" value="2c" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="15" vertex="1">
+                    <mxGeometry x="184" y="390" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="31" value="Engine-specific &lt;br&gt;model specification" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="15" vertex="1">
+                    <mxGeometry x="144" y="310" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="34" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontFamily=Helvetica;fontSize=12;fontColor=default;" parent="15" source="31" target="33" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="35" value="2b" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="15" vertex="1">
+                    <mxGeometry x="184" y="250" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="44" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontFamily=Helvetica;fontSize=12;fontColor=default;" parent="15" source="17" target="35" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="45" value="" style="edgeStyle=none;html=1;fontFamily=Helvetica;fontSize=12;fontColor=default;" parent="15" source="18" target="35" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="36" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontFamily=Helvetica;fontSize=12;fontColor=default;" parent="15" source="35" target="31" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="37" value="Model structure updates&lt;br&gt;(in an engine-agnostic modelling language)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="15" vertex="1">
+                    <mxGeometry x="10" y="89.37" width="120" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="30" value="2a" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="15" vertex="1">
+                    <mxGeometry x="184" y="114.37" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="38" value="" style="edgeStyle=none;html=1;fontFamily=Helvetica;fontSize=12;fontColor=default;" parent="15" source="37" target="30" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="oo8vOw_-nZG-M6_xqcRx-49" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="15" source="16" target="30" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="43" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontFamily=Helvetica;fontSize=12;fontColor=default;" parent="15" source="30" target="17" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="32" value="" style="edgeStyle=none;html=1;strokeWidth=1;" parent="29" source="33" target="39" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="49" value="&lt;h1&gt;Glossary&lt;/h1&gt;&lt;div&gt;&lt;b&gt;Engine&lt;/b&gt;: A set of computational tools that macpan2 uses to produce &lt;b&gt;modelling outputs&lt;/b&gt;, and to calibrate &lt;b&gt;model simulators&lt;/b&gt;;&amp;nbsp;macpan2 is designed to support multiple &lt;b&gt;engines&lt;/b&gt;.&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;b&gt;Engine-agnostic model specification&lt;/b&gt;: A model written as a set of declarations in a language that is independent of the computational &lt;b&gt;engine&lt;/b&gt;, allowing for a choice of computational tools.&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;b&gt;Engine-specific model specification&lt;/b&gt;: A model stored in a format that can be used by a specific &lt;b&gt;engine&lt;/b&gt;, often more flexible but also more technical than an &lt;b&gt;engine-agnostic model specification&lt;/b&gt;.&lt;/div&gt;&lt;div&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;b&gt;Engine adapter:&lt;/b&gt;&amp;nbsp;A mechanism for users to choose an&amp;nbsp;&lt;b&gt;engine&lt;/b&gt;, and for developers to define how &lt;b&gt;engine-agnostic model specifications&lt;/b&gt;&amp;nbsp;are translated into &lt;b&gt;engine-specific model specifications&lt;/b&gt;.&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;div style=&quot;border-color: var(--border-color);&quot;&gt;&lt;b style=&quot;border-color: var(--border-color);&quot;&gt;Library model&lt;/b&gt;: A compartmental model, available online, and defined using an &lt;b&gt;engine-agnostic model specification&lt;/b&gt; language.&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;b&gt;Model simulator: &lt;/b&gt;An engine-enabled compartmental model for generating model outputs.&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;b&gt;Modelling outputs:&lt;/b&gt;&amp;nbsp;Raw numerical outputs from a &lt;b&gt;model simulator&lt;/b&gt;. Examples include time-series of simulated prevalence, incidence, and hospital utilization, as well as model summaries like&amp;nbsp;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;p&gt;&lt;/p&gt;" style="text;html=1;strokeColor=#666666;fillColor=#f0f7ff;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;fontColor=#333333;" parent="1" vertex="1">
+                    <mxGeometry x="1880" y="10" width="216" height="680" as="geometry"/>
+                </mxCell>
+                <mxCell id="7" value="" style="edgeStyle=none;html=1;fontFamily=Helvetica;fontSize=12;fontColor=default;" parent="1" source="5" target="6" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="11" value="" style="edgeStyle=none;html=1;fontFamily=Helvetica;fontSize=12;fontColor=default;" parent="1" source="9" target="3" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="8" value="" style="edgeStyle=none;html=1;fontFamily=Helvetica;fontSize=12;fontColor=default;" parent="1" source="6" target="4" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="10" value="" style="edgeStyle=none;html=1;fontFamily=Helvetica;fontSize=12;fontColor=default;" parent="1" source="4" target="9" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="22" value="&lt;h1&gt;Workflow Steps&lt;/h1&gt;&lt;div&gt;1. Access and prepare data&lt;/div&gt;&lt;div&gt;2. Define models (2a, 2b, and 2c are alternative entry points)&lt;/div&gt;&lt;div&gt;3. Calibrate models or define scenarios and counterfactuals&lt;/div&gt;&lt;div&gt;4. Generate model outputs (e.g. simulations, reproduction numbers)&lt;/div&gt;&lt;div&gt;5. Prepare modelling results&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;Repeat 1-5 as required&lt;/span&gt;&lt;br&gt;&lt;/div&gt;&lt;p&gt;&lt;/p&gt;" style="text;html=1;strokeColor=#666666;fillColor=#f0f7ff;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;fontColor=#333333;" parent="1" vertex="1">
+                    <mxGeometry x="1406" y="691" width="374" height="170" as="geometry"/>
+                </mxCell>
+                <mxCell id="23" value="&lt;h1&gt;Legend&lt;/h1&gt;&lt;br&gt;&lt;p&gt;&lt;/p&gt;" style="text;html=1;strokeColor=#666666;fillColor=#f0f7ff;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;fontColor=#333333;" parent="1" vertex="1">
+                    <mxGeometry x="1780" y="691" width="316" height="170" as="geometry"/>
+                </mxCell>
+                <mxCell id="24" value="" style="rhombus;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="1798" y="801" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="25" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="1798" y="741" width="50" height="28" as="geometry"/>
+                </mxCell>
+                <mxCell id="26" value="Family of objects" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+                    <mxGeometry x="1858" y="740" width="60" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="27" value="Family of functions" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+                    <mxGeometry x="1858" y="806" width="60" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="53" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1">
+                    <mxGeometry x="1953" y="741" width="50" height="28" as="geometry"/>
+                </mxCell>
+                <mxCell id="54" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="1953" y="807" width="50" height="28" as="geometry"/>
+                </mxCell>
+                <mxCell id="55" value="Inside macpan2" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+                    <mxGeometry x="2013" y="739" width="60" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="56" value="Outside macpan2" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+                    <mxGeometry x="2013" y="805" width="60" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="57" value="&lt;span style=&quot;color: rgb(51, 51, 51); font-family: Helvetica; font-size: 12px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: left; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(251, 251, 251); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; float: none; display: inline !important;&quot;&gt;$$\mathcal{R}_0.$$&lt;/span&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+                    <mxGeometry x="1957.5" y="649" width="47" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="21" style="html=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=1;" parent="1" source="4" target="14" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1522" y="460"/>
+                            <mxPoint x="1560" y="460"/>
+                            <mxPoint x="1590" y="460"/>
+                            <mxPoint x="1590" y="545"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="19" style="edgeStyle=elbowEdgeStyle;html=1;exitX=1;exitY=0.75;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=1;" parent="1" source="4" target="33" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1600" y="400"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="20" style="edgeStyle=elbowEdgeStyle;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=1;" parent="1" source="13" target="9" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1566" y="604.37"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
