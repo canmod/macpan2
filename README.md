@@ -107,20 +107,22 @@ the following command.
 
 ``` r
 si = mp_tmb_model_simulator(
-    during = list(
+    before = list(S ~ N - I)
+  , during = list(
         infection ~ beta * S * I / N
       , S ~ S - infection
       , I ~ I + infection
     )
-  , default_values = list(
-        S = 99, I = 1
-      , beta = 0.25, N = 100
-      , infection = empty_matrix
-  )
+  , default_values = list(N = 100, I = 1, beta = 0.25)
 )
 print(si)
 ```
 
+    ## ---------------------
+    ## Before the simulation loop (t = 0):
+    ## ---------------------
+    ## 1: S ~ N - I
+    ## 
     ## ---------------------
     ## At every iteration of the simulation loop (number of iterations = 0):
     ## ---------------------
