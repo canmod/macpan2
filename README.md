@@ -279,57 +279,9 @@ current state, and plans for improvement and implementation.
 
 ### General Dynamic Simulation with TMB
 
-One can define a generic set of update steps that are iterated to
-produce a dynamic simulation model in TMB.
-
-``` r
-library(macpan2)
-si = mp_dynamic_model(
-  expr_list = ExprList(
-    during = list(
-        infection ~ beta * S * I / N
-      , S ~ S - infection
-      , I ~ I + infection
-    )
-  ),
-  unstruc_mats = list(S = 99, I = 1, beta = 0.25, N = 100)
-)
-print(si)
-```
-
-    ## ---------------------
-    ## At every iteration of the simulation loop (t = 1 to T):
-    ## ---------------------
-    ## 1: infection ~ beta * S * I/N
-    ## 2: S ~ S - infection
-    ## 3: I ~ I + infection
-
-Simulating from this model takes the following steps.
-
-``` r
-getwd()
-```
-
-    ## [1] "/Users/stevenwalker/Development/macpan2"
-
-``` r
-(si
- |> mp_tmb_simulator(time_steps = 10, mats_to_return = "I")
- |> mp_report()
-)
-```
-
-    ##    matrix time row col    value
-    ## 1       I    1   0   0 1.247500
-    ## 2       I    2   0   0 1.555484
-    ## 3       I    3   0   0 1.938307
-    ## 4       I    4   0   0 2.413491
-    ## 5       I    5   0   0 3.002301
-    ## 6       I    6   0   0 3.730342
-    ## 7       I    7   0   0 4.628139
-    ## 8       I    8   0   0 5.731624
-    ## 9       I    9   0   0 7.082401
-    ## 10      I   10   0   0 8.727601
+One can [define a generic set of update steps](#hello-world) that are
+iterated to produce a dynamic simulation model in TMB, and that can be
+used to generate model simulations.
 
 This part of the package is general, stable, and flexible. It also meets
 many modellers where they are, which is with the ability to write down a
@@ -341,24 +293,23 @@ which is what the [model library](#model-library) is for.
 ### Model Library
 
 ``` r
-("unstructured/si"
- |> mp_library()
- |> mp_tmb_simulator(time_steps = 10, mats_to_return = "I")
- |> mp_report()
+("starter_models"
+ |> mp_tmb_library("sir")
+ |> mp_trajectory(time_steps = 10, matrices = "I")
 )
 ```
 
     ##    matrix time row col    value
-    ## 1       I    1   0   0 1.247500
-    ## 2       I    2   0   0 1.555484
-    ## 3       I    3   0   0 1.938307
-    ## 4       I    4   0   0 2.413491
-    ## 5       I    5   0   0 3.002301
-    ## 6       I    6   0   0 3.730342
-    ## 7       I    7   0   0 4.628139
-    ## 8       I    8   0   0 5.731624
-    ## 9       I    9   0   0 7.082401
-    ## 10      I   10   0   0 8.727601
+    ## 2       I    1   0   0 1.098000
+    ## 3       I    2   0   0 1.205169
+    ## 4       I    3   0   0 1.322276
+    ## 5       I    4   0   0 1.450133
+    ## 6       I    5   0   0 1.589599
+    ## 7       I    6   0   0 1.741573
+    ## 8       I    7   0   0 1.906995
+    ## 9       I    8   0   0 2.086833
+    ## 10      I    9   0   0 2.282085
+    ## 11      I   10   0   0 2.493761
 
 TODO:
 

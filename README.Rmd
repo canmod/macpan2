@@ -129,31 +129,7 @@ The [project board](https://github.com/orgs/canmod/projects/2) tracks the detail
 
 ### General Dynamic Simulation with TMB
 
-One can define a generic set of update steps that are iterated to produce a dynamic simulation model in TMB.
-
-```{r}
-library(macpan2)
-si = mp_dynamic_model(
-  expr_list = ExprList(
-    during = list(
-        infection ~ beta * S * I / N
-      , S ~ S - infection
-      , I ~ I + infection
-    )
-  ),
-  unstruc_mats = list(S = 99, I = 1, beta = 0.25, N = 100)
-)
-print(si)
-```
-
-Simulating from this model takes the following steps.
-```{r}
-getwd()
-(si
- |> mp_tmb_simulator(time_steps = 10, mats_to_return = "I")
- |> mp_report()
-)
-```
+One can [define a generic set of update steps](#hello-world) that are iterated to produce a dynamic simulation model in TMB, and that can be used to generate model simulations.
 
 This part of the package is general, stable, and flexible. It also meets many modellers where they are, which is with the ability to write down a set of transitions/state updates.
 
@@ -162,10 +138,9 @@ But it is not convenient if you would just like to simulate from it, which is wh
 ### Model Library
 
 ```{r}
-("unstructured/si"
- |> mp_library()
- |> mp_tmb_simulator(time_steps = 10, mats_to_return = "I")
- |> mp_report()
+("starter_models"
+ |> mp_tmb_library("sir")
+ |> mp_trajectory(time_steps = 10, matrices = "I")
 )
 ```
 
