@@ -4,6 +4,17 @@ mp_library = function(...) {
 }
 
 #' @export
+mp_tmb_library = function(...) {
+  model_directory = system.file(..., package = "macpan2")
+  def_env = new.env(parent = parent.frame())
+  sys.source(file.path(model_directory, "tmb.R")
+    , envir = def_env
+    , chdir = TRUE
+  )
+  def_env$spec
+}
+
+#' @export
 Compartmental2 = function(model_directory) {
   self = Base()
   self$model_directory = model_directory

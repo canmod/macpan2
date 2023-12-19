@@ -168,25 +168,78 @@ TMBModel = function(
 }
 
 #' @export
-mp_tmb_model_simulator = function(
+TMBModelSpec = function(
       before = list()
     , during = list()
     , after = list()
-    , default_values = list()
+    , default = list()
+    , integers = list()
   ) {
+  self = Base()
+  self$before = before
+  self$during = during
+  self$after = after
+  self$default = default
+  self$integers = integers
+  self$simulator_fresh = function(
+        time_steps = 0
+      , sim_exprs = character(0L)
+      , mats_to_return = character(0L)
+      , mats_to_save = mats_to_return
+    ) {
+    TMBModel(
+        init_mats = do.call(
+          MatsList
+        , c(
+            self$default
+          , .mats_to_return = mats_to_return
+          , .mats_to_save = mats_to_save
+        )
+      )
+      , expr_list = ExprList(
+          before = self$before
+        , during = self$during 
+        , after = self$after
+        , .simulate_exprs = sim_exprs
+      )
+      , engine_methods = EngineMethods(
+        int_vecs = do.call(IntVecs, self$integers)
+      )
+      , time_steps = Time(as.integer(time_steps))
+    )$simulator()
+  }
+  self$simulator_cached = memoise(self$simulator_fresh)
+  return_object(self, "TMBModelSpec")
+}
+
+#' @export
+print.TMBModelSpec = function(x, ...) {
+  print(ExprList(x$before, x$during, x$after))
+}
+
+#' @export
+mp_tmb_model_spec = function(
+      before = list()
+    , during = list()
+    , after = list()
+    , default = list()
+    , integers = list()
+  ) {
+  ## TODO: make this work when integers != list()
+  e = ExprList(before, during, after)
+  dv = setdiff(e$all_derived_vars(), names(default))
+  em = rep(list(empty_matrix), length(dv)) |> setNames(dv)
+  TMBModelSpec(before, during, after, c(default, em), integers)
+}
+
+#' @export
+mp_tmb_model_simulator = function(model_spec, ...) {
   ## FIXME: don't love this name, but trying to avoid conflicting with
   ## mp_tmb_simulator for now at least. ultimately this should all be one
   ## concept, and probably mp_tmb_simulator will be the best final name.
   ## using mp_tmb_model_simulator for now so that we can move forward with
   ## the readme file on the refactorcpp branch.
-  e = ExprList(before, during, after)
-  dv = setdiff(e$all_derived_vars(), names(default_values))
-  em = rep(list(empty_matrix), length(dv)) |> setNames(dv)
-  
-  TMBModel(
-    init_mats = do.call(MatsList, c(default_values, em)),
-    expr_list = e
-  )$simulator()
+  model_spec$simulator_fresh(...)
 }
 
 #' @export
@@ -228,20 +281,28 @@ mp_final.TMBSimulator = function(model_simulator, time_steps, matrices, params =
 
 
 #' @export
-mp_trajectory = function(model_simulator, ...) {
+mp_trajectory = function(model, ...) {
   UseMethod("mp_trajectory")
 }
 
 #' @export
-mp_trajectory.TMBSimulator = function(model_simulator, time_steps, matrices, params = NULL) {
+mp_trajectory.TMBSimulator = function(model, time_steps, matrices, params = NULL) {
   ## FIXME: this is just a stub to get the readme file working
-  (model_simulator
+  (model
     $replace
     $time_steps(time_steps)
     $update
     $matrices(.mats_to_return = matrices, .mats_to_save = matrices)
     $report(params)
   )
+}
+
+#' @export
+mp_trajectory.TMBModelSpec = function(model, time_steps, matrices, params = NULL) {
+  model$simulator_fresh(
+      time_steps = time_steps
+    , mats_to_return = matrices
+  )$report(params)
 }
 
 
