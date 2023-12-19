@@ -40,10 +40,9 @@ The size of the total population is,  $ N = S + I + R$.
     }
   }
 }%%
-
-flowchart LR
-    S(S) -- &beta;I-->  I(I)
-    I -- &gamma; --> R(R)
+flowchart LR;
+    S(S) -- &beta;I-->  I(I);
+    I -- &gamma; --> R(R);
 ```
 
 
