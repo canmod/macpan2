@@ -58,6 +58,20 @@ project is to re-imagine `McMasterPandemic`, building it from the ground
 up with architectural and technological decisions that address the many
 lessons that we learned from COVID-19 about software.
 
+Impactful applied public health modelling requires many
+interdisciplinary steps along the path from epidemiological research
+teams to operational decision makers. Researchers must quickly tailor a
+model to an emerging public-health concern, validate and calibrate it to
+data, work with decision makers to define model outputs useful for
+stakeholders, configure models to generate those outputs, and package up
+those insights in an appropriate format for stakeholders. Unlike
+traditional modelling approaches, `macpan2` tackles this challenge from
+a software-engineering perspective, which allows us to systematically
+address bottlenecks along this path to impact in ways that will make
+future solutions easier to achieve. The goal is to enable researchers to
+focus on their core strengths and fill knowledge gaps efficiently and
+effectively.
+
 Although `macpan2` is designed as a compartmental modelling tool that is
 agnostic about the underlying computational engine, it currently makes
 use of [template model builder](https://github.com/kaskr/adcomp).
@@ -106,14 +120,14 @@ the following command.
 ## Hello World
 
 ``` r
-si = mp_tmb_model_simulator(
+si = mp_tmb_model_spec(
     before = list(S ~ N - I)
   , during = list(
-        infection ~ beta * S * I / N
+        infection ~ beta * S * I/N
       , S ~ S - infection
       , I ~ I + infection
     )
-  , default_values = list(N = 100, I = 1, beta = 0.25)
+  , default = list(N = 100, I = 1, beta = 0.25)
 )
 print(si)
 ```
@@ -124,7 +138,7 @@ print(si)
     ## 1: S ~ N - I
     ## 
     ## ---------------------
-    ## At every iteration of the simulation loop (number of iterations = 0):
+    ## At every iteration of the simulation loop (t = 1 to T):
     ## ---------------------
     ## 1: infection ~ beta * S * I/N
     ## 2: S ~ S - infection
