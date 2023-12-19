@@ -14,7 +14,7 @@ This is (nearly) the simplest possible 'vanilla' epidemic model, implemented as 
 | I | Number of infectious individuals |
 | R | Number of recovered individuals | 
 
-The size of the total population is,  $ N = S + I + R$.
+The size of the total population is,  $N = S + I + R$.
 # Parameters
 
 | variable | description |
