@@ -60,13 +60,16 @@ remotes::install_github("canmod/macpan2@v0.0.3")
 
 ```{r}
 si = mp_tmb_model_spec(
-    before = list(S ~ N - I)
+    before = list(
+        I ~ 1
+      , S ~ N - I
+    )
   , during = list(
         infection ~ beta * S * I/N
       , S ~ S - infection
       , I ~ I + infection
     )
-  , default = list(N = 100, I = 1, beta = 0.25)
+  , default = list(N = 100, beta = 0.25)
 )
 print(si)
 ```

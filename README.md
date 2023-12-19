@@ -121,13 +121,16 @@ the following command.
 
 ``` r
 si = mp_tmb_model_spec(
-    before = list(S ~ N - I)
+    before = list(
+        I ~ 1
+      , S ~ N - I
+    )
   , during = list(
         infection ~ beta * S * I/N
       , S ~ S - infection
       , I ~ I + infection
     )
-  , default = list(N = 100, I = 1, beta = 0.25)
+  , default = list(N = 100, beta = 0.25)
 )
 print(si)
 ```
@@ -135,7 +138,8 @@ print(si)
     ## ---------------------
     ## Before the simulation loop (t = 0):
     ## ---------------------
-    ## 1: S ~ N - I
+    ## 1: I ~ 1
+    ## 2: S ~ N - I
     ## 
     ## ---------------------
     ## At every iteration of the simulation loop (t = 1 to T):
