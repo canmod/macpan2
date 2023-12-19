@@ -27,19 +27,6 @@ The size of the total population is,  $ N = S + I + R$.
 
 
 ```mermaid
-%%{
-  init: {
-    'theme': 'base',
-    'themeVariables': {
-      'primaryColor': '#FDBF57',
-      'primaryTextColor': '#000',
-      'primaryBorderColor': '#5E6A71',
-      'lineColor': '#7A003C',
-      'secondaryColor': '#fff',
-      'tertiaryColor': '#fff'
-    }
-  }
-}%%
 flowchart LR;
     S(S) -- &beta;I-->  I(I);
     I -- &gamma; --> R(R);
