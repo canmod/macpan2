@@ -12,7 +12,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r, echo = FALSE, eval = TRUE, message=FALSE, warning=FALSE, error=FALSE}
+```{r packages, echo = FALSE, eval = TRUE, message=FALSE, warning=FALSE, error=FALSE}
 library(macpan2)
 library(ggplot2)
 library(dplyr)
@@ -58,14 +58,14 @@ remotes::install_github("canmod/macpan2@v0.0.3")
 
 ## Hello World
 
-```{r}
+```{r hello-world}
 si = mp_tmb_model_spec(
     before = list(
         I ~ 1
       , S ~ N - I
     )
   , during = list(
-        infection ~ beta * S * I/N
+        infection ~ beta * S * I / N
       , S ~ S - infection
       , I ~ I + infection
     )
@@ -77,7 +77,7 @@ print(si)
 Simulating from this model can be done like so.
 ```{r plot-tmb-si}
 (si
- |> mp_trajectory(time_steps = 50, matrices = "I")
+ |> mp_trajectory(time_steps = 50, quantities = "I")
  |> rename(prevalence = value)
  |> ggplot() + geom_line(aes(time, prevalence))
 )
@@ -86,7 +86,7 @@ Simulating from this model can be done like so.
 
 ## Design Concepts
 
-```{r, echo=FALSE}
+```{r design-concepts, echo=FALSE}
 knitr::include_graphics("misc/readme/design-concepts.svg")
 ```
 
@@ -140,10 +140,10 @@ But it is not convenient if you would just like to simulate from it, which is wh
 
 ### Model Library
 
-```{r}
+```{r tmb-library}
 ("starter_models"
  |> mp_tmb_library("sir")
- |> mp_trajectory(time_steps = 10, matrices = "I")
+ |> mp_trajectory(time_steps = 10, quantities = "I")
 )
 ```
 
@@ -192,6 +192,44 @@ The new distributional parameters should go into a new indexed vector called som
 
 TODO
 
+### Vectors in the TMB Engine
+
+This is a TMB-engine-specific warm-up to [model structure](#model-structure-and-bookkeeping).
+
+```{r tmb-with-indices}
+state_labels = c("S", "I", "R")
+flow = data.frame(
+    rate = c("infection", "recovery")
+  , from = c("S"        , "I"       )
+  , to   = c("I"        , "R"       )
+)
+sir = mp_tmb_model_spec(
+    before = list(
+        state[I] ~ 1
+      , state[S] ~ N - 1
+      , state[R] ~ 0
+    )
+  , during = list(
+        flow_rate[infection] ~ beta * state[S] * state[I] / N
+      , flow_rate[recovery] ~ gamma * state[I]
+      , state ~ state + group_sums(flow_rate, to, state) - group_sums(flow_rate, from, state)
+  )
+  , default = list(
+      state     = macpan2:::zero_vector(state_labels)
+    , flow_rate = macpan2:::zero_vector(flow$rate)
+    , N = 100
+    , beta = 0.25
+    , gamma = 0.1
+  )
+  , integers = list(
+       from = mp_indices(flow$from, state_labels)
+     , to   = mp_indices(flow$to  , state_labels)
+  )
+)
+mp_trajectory(sir, time_steps = 10, quantities = c("I"))
+```
+
+
 ### Model Structure and Bookkeeping
 
 Structured models are combinations of simpler modular model components. For example one might combine an SIR model with an age-group contact model to produce an age structured model. The modular model components are called atomic models.
@@ -200,13 +238,13 @@ Structured models are combinations of simpler modular model components. For exam
 
 Models are composed of expression lists. Each expression in an unstructured model can be converted into a structured expression to create a structured model. For example, the following unstructured expression defines the rate at which new infections emerge.
 
-```{r, eval = FALSE}
+```{r scalar-infection, eval = FALSE}
 infection ~ beta * S * I / N
 ```
 
 Each symbol in this expression has a certain type within a structured model, and this type determines how it gets translated into a structured expression. The simplest structured model is one that collects `S` and `I` into a `state` vector with elements `S` and `I`. With this interpretation of the `S` and `I` symbols, the structured infection expression gets translated internally to the following.
 
-```{r, eval = FALSE}
+```{r subset-scalar-infection, eval = FALSE}
 infection ~ beta * state[S] * state[I] / N
 ```
 
@@ -215,7 +253,7 @@ Here `S` and `I` become symbols for extracting subsets of the `state` vector. In
 
 We will have a vector-valued expression, for example, in a model with an expanded state vector that tracks the geographic location of `S` and `I` individuals. For example, a two patch model with an `east` and `west` patch would involve a four-dimensional state vector with the following elements: `S.east`, `S.west`, `I.east`, and `I.west`. In this case we now have two scalar-valued infection expressions.
 
-```{r, eval = FALSE}
+```{r vector-infection, eval = FALSE}
 infection[east] ~ beta * state[S.east] * state[I.east] / N
 infection[west] ~ beta * state[S.west] * state[I.west] / N
 ```
@@ -227,7 +265,7 @@ To see how easy this can be, note that this two-patch infection expression can b
 Why is this powerful? Because it separates the math of the dynamic mechanism, `infection ~ beta * S * I / N`, from the bookkeeping required in structured models where the same mechanism is applied again and again to different model strata. This is often how modellers think. For example, I might have a location-structured SIR model that I need to expand to be both age- and location-structured. In this case, infection is still the same process, whereby a susceptible individual contacts an infectious individual to create a flow from susceptible individuals to infectious individuals. The same math applies to all strata of the model. The boring but necessary part is to connect the math to the bookkeeping associated with the model structure, and so software should focus on making these bookkeeping changes as easy as possible and with minimal changes required to the underlying mathematical expressions.
 
 Let's look at more examples of infection, and watch the bookkeeping get more annoying. In an age-stratified model with two age groups, we now get four scalar-valued infection expressions of the form `infection ~ beta * S * I / N`.
-```{r, eval = FALSE}
+```{r age-structured-infection, eval = FALSE}
 infection[young.young] ~ beta[young.young] * state[S.young] * state[I.young] / N[young]
 infection[young.old]   ~ beta[young.old]   * state[S.young] * state[I.old]   / N[old]
 infection[old.young]   ~ beta[old.young]   * state[S.old]   * state[I.young] / N[young]
@@ -236,7 +274,7 @@ infection[old.old]     ~ beta[old.old]     * state[S.old]   * state[I.old]   / N
 
 Here the first expression is for a young individual infecting an old individual, the second is for an old individual infecting a young individual, etc ...  Things get worse if we have two age groups in two patches.
 
-```{r, eval = FALSE}
+```{r age-location-structured-infection, eval = FALSE}
 infection[young.young.east] ~ beta[young.young.east] * state[S.young.east] * state[I.young.east] / N[young.east]
 infection[young.old.east]   ~ beta[young.old.east]   * state[S.young.east] * state[I.old.east]   / N[old.east]
 infection[old.young.east]   ~ beta[old.young.east]   * state[S.old.east]   * state[I.young.east] / N[young.east]
@@ -249,7 +287,7 @@ infection[old.old.west]     ~ beta[old.old.west]     * state[S.old.west]   * sta
 
 This still isn't so bad, as we just have the first four expressions for `east` and the last four for `west`. But now let's introduce two symptom status categories: `mild` and `severe`.
 
-```{r, eval = FALSE}
+```{r age-location-symptom-structured-infection, eval = FALSE}
 infection[young.young.east.mild.mild]     ~ beta[young.young.east.mild.mild]     * state[S.young.east] * state[I.young.east.mild]   / N[young.east]
 infection[young.young.east.mild.severe]   ~ beta[young.young.east.mild.severe]   * state[S.young.east] * state[I.young.east.severe] / N[young.east]
 infection[young.young.east.severe.mild]   ~ beta[young.young.east.severe.mild]   * state[S.young.east] * state[I.young.east.mild]   / N[young.east]
@@ -292,7 +330,7 @@ Our approach is to do the bookkeeping in a different way. In particular we belie
 
 The first step to being more constructive is to have a better representation of the structured vectors. Above we used dot-concatenation to represent the model strata. For example, in the two-patch SI model we have both epidemiological status and geographic location in the state variable names: `S.east`, `S.west`, `I.east`, and `I.west`. But as the state vector gets more structured it becomes more convenient to describe its variables using an index table, the rows of which describe each state variable.
 
-```{r}
+```{r cartesian}
 state = mp_cartesian(
   mp_index(Epi = c("S", "I")),
   mp_index(Loc = c("east", "west"))
@@ -300,13 +338,13 @@ state = mp_cartesian(
 state
 ```
 
-```{r}
+```{r group}
 beta = mp_group(state, "Epi")
 ```
 
 With this representation we can get subsets of the state vector that represent each epidemiological status.
 
-```{r}
+```{r subset}
 mp_subset(state, Epi = "S")
 mp_subset(state, Epi = "I")
 ```
@@ -330,7 +368,7 @@ TODO
 
 Because expression lists are really just lists of expressions, they can be combined as lists would normally be combined. In this example we keep the dynamics of the si model separate from under-reporting and reporting delay corrections to the raw prevalence (TODO: should really use incidence).
 
-```{r}
+```{r combining-expression-lists}
 library(macpan2)
 si_dynamics = list(
     transition_rate = infection ~ beta * S * I / N
@@ -349,3 +387,5 @@ si = mp_dynamic_model(
   |> mp_report()
 )
 ```
+
+

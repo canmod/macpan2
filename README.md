@@ -24,6 +24,8 @@
         -   <a href="#calibration" id="toc-calibration">Calibration</a>
         -   <a href="#time-varying-parameters"
             id="toc-time-varying-parameters">Time-Varying Parameters</a>
+        -   <a href="#vectors-in-the-tmb-engine"
+            id="toc-vectors-in-the-tmb-engine">Vectors in the TMB Engine</a>
         -   <a href="#model-structure-and-bookkeeping"
             id="toc-model-structure-and-bookkeeping">Model Structure and
             Bookkeeping</a>
@@ -126,7 +128,7 @@ si = mp_tmb_model_spec(
       , S ~ N - I
     )
   , during = list(
-        infection ~ beta * S * I/N
+        infection ~ beta * S * I / N
       , S ~ S - infection
       , I ~ I + infection
     )
@@ -152,7 +154,7 @@ Simulating from this model can be done like so.
 
 ``` r
 (si
- |> mp_trajectory(time_steps = 50, matrices = "I")
+ |> mp_trajectory(time_steps = 50, quantities = "I")
  |> rename(prevalence = value)
  |> ggplot() + geom_line(aes(time, prevalence))
 )
@@ -299,7 +301,7 @@ which is what the [model library](#model-library) is for.
 ``` r
 ("starter_models"
  |> mp_tmb_library("sir")
- |> mp_trajectory(time_steps = 10, matrices = "I")
+ |> mp_trajectory(time_steps = 10, quantities = "I")
 )
 ```
 
@@ -390,6 +392,56 @@ e.g. convolution kernel parameters).
 ### Time-Varying Parameters
 
 TODO
+
+### Vectors in the TMB Engine
+
+This is a TMB-engine-specific warm-up to [model
+structure](#model-structure-and-bookkeeping).
+
+``` r
+state_labels = c("S", "I", "R")
+flow = data.frame(
+    rate = c("infection", "recovery")
+  , from = c("S"        , "I"       )
+  , to   = c("I"        , "R"       )
+)
+sir = mp_tmb_model_spec(
+    before = list(
+        state[I] ~ 1
+      , state[S] ~ N - 1
+      , state[R] ~ 0
+    )
+  , during = list(
+        flow_rate[infection] ~ beta * state[S] * state[I] / N
+      , flow_rate[recovery] ~ gamma * state[I]
+      , state ~ state + group_sums(flow_rate, to, state) - group_sums(flow_rate, from, state)
+  )
+  , default = list(
+      state     = macpan2:::zero_vector(state_labels)
+    , flow_rate = macpan2:::zero_vector(flow$rate)
+    , N = 100
+    , beta = 0.25
+    , gamma = 0.1
+  )
+  , integers = list(
+       from = mp_indices(flow$from, state_labels)
+     , to   = mp_indices(flow$to  , state_labels)
+  )
+)
+mp_trajectory(sir, time_steps = 10, quantities = c("I"))
+```
+
+    ##    matrix time row col    value
+    ## 5   state    1   I     1.147500
+    ## 8   state    2   I     1.316046
+    ## 11  state    3   I     1.508417
+    ## 14  state    4   I     1.727685
+    ## 17  state    5   I     1.977228
+    ## 20  state    6   I     2.260727
+    ## 23  state    7   I     2.582154
+    ## 26  state    8   I     2.945748
+    ## 29  state    9   I     3.355960
+    ## 32  state   10   I     3.817384
 
 ### Model Structure and Bookkeeping
 
