@@ -317,7 +317,7 @@ mp_trajectory.TMBModelSpec = function(model, time_steps, quantities, ...) {
     |> c(matrix_quantities)
     |> unique()
   )
-  model$simulator_fresh(
+  s = model$simulator_fresh(
       time_steps = time_steps
     , mats_to_return = mats_to_return
   )$report(...) |> 
@@ -325,6 +325,8 @@ mp_trajectory.TMBModelSpec = function(model, time_steps, quantities, ...) {
         (matrix %in% matrix_quantities) 
       | (row %in% row_quantities)
     )
+  rownames(s) = NULL
+  s
 }
 
 
