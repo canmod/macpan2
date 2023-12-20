@@ -145,6 +145,7 @@ as.matrix.Vector = function(x, ...) {
 
 zero_vector = function(labels) setNames(rep(0, length(labels)), labels)
 
+
 #' Stub
 #'
 #' This documentation was originally in [mp_index()] and should be cleaned up

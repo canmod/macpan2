@@ -225,6 +225,14 @@ mp_tmb_model_spec = function(
     , default = list()
     , integers = list()
   ) {
+  integers = (default
+    |> lapply(names) 
+    |> Filter(f = is.character)
+    |> lapply(to_positions)
+    |> unname()
+    |> unlist()
+    |> c(integers)
+  )
   ## TODO: make this work when integers != list()
   e = ExprList(before, during, after)
   dv = setdiff(e$all_derived_vars(), names(default))
@@ -269,40 +277,54 @@ mp_final = function(model_simulator, ...) {
 }
 
 
-mp_final.TMBSimulator = function(model_simulator, time_steps, matrices, params = NULL) {
+mp_final.TMBSimulator = function(model_simulator, time_steps, quantities, ...) {
   (model_simulator
     $replace
     $time_steps(time_steps)
     $update
-    $matrices(.mats_to_return = matrices, .mats_to_save = matrices)
-    $report(params, .phases = "after")
+    $matrices(.mats_to_return = quantities, .mats_to_save = quantities)
+    $report(..., .phases = "after")
   )
 }
 
 
 #' @export
-mp_trajectory = function(model, ...) {
+mp_trajectory = function(model, time_steps, quantities, ...) {
   UseMethod("mp_trajectory")
 }
 
 #' @export
-mp_trajectory.TMBSimulator = function(model, time_steps, matrices, params = NULL) {
+mp_trajectory.TMBSimulator = function(model, time_steps, quantities, ...) {
   ## FIXME: this is just a stub to get the readme file working
   (model
     $replace
     $time_steps(time_steps)
     $update
-    $matrices(.mats_to_return = matrices, .mats_to_save = matrices)
-    $report(params)
+    $matrices(.mats_to_return = quantities, .mats_to_save = quantities)
+    $report(...)
   )
 }
 
 #' @export
-mp_trajectory.TMBModelSpec = function(model, time_steps, matrices, params = NULL) {
+mp_trajectory.TMBModelSpec = function(model, time_steps, quantities, ...) {
+  matrix_quantities = intersect(quantities, names(model$default))
+  row_quantities = setdiff(quantities, matrix_quantities)
+  mats_to_return = (model$default
+    |> lapply(names)
+    |> Filter(f = is.character)
+    |> Filter(f = \(x) any(x %in% row_quantities))
+    |> names()
+    |> c(matrix_quantities)
+    |> unique()
+  )
   model$simulator_fresh(
       time_steps = time_steps
-    , mats_to_return = matrices
-  )$report(params)
+    , mats_to_return = mats_to_return
+  )$report(...) |> 
+    macpan2:::filter(
+        (matrix %in% matrix_quantities) 
+      | (row %in% row_quantities)
+    )
 }
 
 

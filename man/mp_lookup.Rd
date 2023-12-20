@@ -9,7 +9,7 @@ mp_lookup(index, symbol)
 \arguments{
 \item{index}{Index table (see \code{\link{mp_index}}).}
 
-\item{symbol}{Character string that could possibly be assoicated with a
+\item{symbol}{Character string that could possibly be associated with a
 subset or factor of \code{index}.}
 }
 \description{

@@ -111,6 +111,15 @@ to_name.Scalar = function(x) x$dot()$value()
 to_name.Names = function(x) x$dot()$value()
 
 
+#' @export
+to_positions = function(x) UseMethod("to_positions")
+
+#' @export
+to_positions.character = function(x) setNames(seq_along(x) - 1L, x)
+
+#' @export
+to_positions.numeric = as.integer
+
 list_to_labels = function(...) unlist(lapply(list(...), to_labels), use.names = FALSE)
 list_to_names = function(...) unlist(lapply(list(...), to_names), use.names = FALSE)
 
@@ -162,6 +171,7 @@ undot_anything = function(x) {
    |> unlist(use.names = FALSE)
   )
 }
+
 
 wrap_colon_terms = function(x) {
   i = which(grepl(":", x))
