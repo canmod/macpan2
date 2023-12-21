@@ -154,9 +154,15 @@ Simulating from this model can be done like so.
 
 ``` r
 (si
- |> mp_trajectory(time_steps = 50, quantities = "I")
- |> rename(prevalence = value)
- |> ggplot() + geom_line(aes(time, prevalence))
+ |> mp_simulator(time_steps = 50, quantities = c("I", "infection"))
+ |> mp_trajectory()
+ |> mutate(quantity = case_match(matrix
+    , "I" ~ "prevalance"
+    , "infection" ~ "incidence"
+  ))
+ |> ggplot() 
+ + geom_line(aes(time, value)) 
+ + facet_wrap(~quantity, scales = "free")
 )
 ```
 
@@ -300,22 +306,23 @@ which is what the [model library](#model-library) is for.
 
 ``` r
 ("starter_models"
- |> mp_tmb_library("sir")
- |> mp_trajectory(time_steps = 10, quantities = "I")
+ |> mp_tmb_library("sir", package = "macpan2")
+ |> mp_simulator(time_steps = 10, quantities = "I")
+ |> mp_trajectory()
 )
 ```
 
     ##    matrix time row col    value
-    ## 1       I    1   0   0 1.098000
-    ## 2       I    2   0   0 1.205169
-    ## 3       I    3   0   0 1.322276
-    ## 4       I    4   0   0 1.450133
-    ## 5       I    5   0   0 1.589599
-    ## 6       I    6   0   0 1.741573
-    ## 7       I    7   0   0 1.906995
-    ## 8       I    8   0   0 2.086833
-    ## 9       I    9   0   0 2.282085
-    ## 10      I   10   0   0 2.493761
+    ## 2       I    1   0   0 1.098000
+    ## 3       I    2   0   0 1.205169
+    ## 4       I    3   0   0 1.322276
+    ## 5       I    4   0   0 1.450133
+    ## 6       I    5   0   0 1.589599
+    ## 7       I    6   0   0 1.741573
+    ## 8       I    7   0   0 1.906995
+    ## 9       I    8   0   0 2.086833
+    ## 10      I    9   0   0 2.282085
+    ## 11      I   10   0   0 2.493761
 
 TODO:
 
@@ -428,20 +435,23 @@ sir = mp_tmb_model_spec(
      , to   = mp_indices(flow$to  , state_labels)
   )
 )
-mp_trajectory(sir, time_steps = 10, quantities = c("I"))
+(sir
+  |> mp_simulator(time_steps = 10, quantities = "I")
+  |> mp_trajectory()
+)
 ```
 
     ##    matrix time row col    value
-    ## 1   state    1   I     1.147500
-    ## 2   state    2   I     1.316046
-    ## 3   state    3   I     1.508417
-    ## 4   state    4   I     1.727685
-    ## 5   state    5   I     1.977228
-    ## 6   state    6   I     2.260727
-    ## 7   state    7   I     2.582154
-    ## 8   state    8   I     2.945748
-    ## 9   state    9   I     3.355960
-    ## 10  state   10   I     3.817384
+    ## 5   state    1   I     1.147500
+    ## 8   state    2   I     1.316046
+    ## 11  state    3   I     1.508417
+    ## 14  state    4   I     1.727685
+    ## 17  state    5   I     1.977228
+    ## 20  state    6   I     2.260727
+    ## 23  state    7   I     2.582154
+    ## 26  state    8   I     2.945748
+    ## 29  state    9   I     3.355960
+    ## 32  state   10   I     3.817384
 
 ### Model Structure and Bookkeeping
 

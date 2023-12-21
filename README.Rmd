@@ -77,9 +77,15 @@ print(si)
 Simulating from this model can be done like so.
 ```{r plot-tmb-si}
 (si
- |> mp_trajectory(time_steps = 50, quantities = "I")
- |> rename(prevalence = value)
- |> ggplot() + geom_line(aes(time, prevalence))
+ |> mp_simulator(time_steps = 50, quantities = c("I", "infection"))
+ |> mp_trajectory()
+ |> mutate(quantity = case_match(matrix
+    , "I" ~ "prevalance"
+    , "infection" ~ "incidence"
+  ))
+ |> ggplot() 
+ + geom_line(aes(time, value)) 
+ + facet_wrap(~quantity, scales = "free")
 )
 ```
 
@@ -113,7 +119,7 @@ First, `macpan2` is meant to plug into standard R workflows for data pre-process
 Second, `macpan2` uses an engine plug-in architecture. Models defined in the [engine-agnostic model specification language](#engine-agnostic model specification language) can be rendered in a particular computational engine so that multiple computational approaches can be used to generate modelling outputs for a single model definition. This can be useful if different model outputs are more efficient or convenient for different computational approaches. For example, engines such as TMB that are capable of automatic differentiation are great for fast optimization of parameters and for computing $\mathcal{R}_0$ in models with arbitrary complexity, whereas other engines such as Adaptive Tau are better at stochastic simulation techniques like the Gillespie algorithm. Sometimes an engine will be unable to generate a particular output at all or with sufficient difficulty on the part of the user so as to render the use-case practically impossible. For example, it is not possible to conveniently utilize differential equation solvers in the TMB engine, limiting it to Euler or simple RK4-type solvers. Being able to swap out the TMB engine for one based on `deSolve` (or other similar package) would allow for more convenient and accurate solutions to differential equations without having to leave `macpan2`. 
 
 Third, TODO: describe how the model specification language can be used to build up models modularly (e.g. swap out alternative state-updaters as discussed above but also add in model structures like age-groups and spatial structure to a simple unstructured model)
- 
+
 
 ### Engine-Agnostic Model Specification Language
 
@@ -142,8 +148,9 @@ But it is not convenient if you would just like to simulate from it, which is wh
 
 ```{r tmb-library}
 ("starter_models"
- |> mp_tmb_library("sir")
- |> mp_trajectory(time_steps = 10, quantities = "I")
+ |> mp_tmb_library("sir", package = "macpan2")
+ |> mp_simulator(time_steps = 10, quantities = "I")
+ |> mp_trajectory()
 )
 ```
 
@@ -226,7 +233,10 @@ sir = mp_tmb_model_spec(
      , to   = mp_indices(flow$to  , state_labels)
   )
 )
-mp_trajectory(sir, time_steps = 10, quantities = c("I"))
+(sir
+  |> mp_simulator(time_steps = 10, quantities = "I")
+  |> mp_trajectory()
+)
 ```
 
 
