@@ -34,19 +34,19 @@ knitr::knit_hooks$set(basefig = basefig_setup)
 Here we modify an [SIR](https://canmod.github.io/macpan2/articles/quickstart) model so that transmission rate is time-varying.
 
 ```{r baseline_sir}
-sir = Compartmental(system.file("starter_models", "sir", package = "macpan2"))
-simulator = sir$simulators$tmb(time_steps = 50
-  , state = c(S = 99, I = 1, R = 0)
-  , flow = c(foi = NA, gamma = 0.2)
-  , N = empty_matrix
-  , beta = 0.8
+state_labels = c("S", "I", "R")
+simulator = ("starter_models"
+  |> mp_tmb_library("sir", package = "macpan2")
+  |> mp_simulator(time_steps = 50
+    , outputs = state_labels
+    , default = list(beta = 0.8, gamma = 0.2)
+  )
 )
-(simulator$report(.phases = "during")
-  %>% rename(state = row)
-  %>% mutate(state = factor(state, sir$labels$state()))
-  %>% ggplot() + geom_line(aes(time, value, colour = state))
+(simulator
+  |> mp_trajectory()
+  |> mutate(state = factor(matrix, state_labels))
+  |> ggplot() + geom_line(aes(time, value, colour = state))
 )
-
 ```
 
 ## Piecewise Time Variation
@@ -84,10 +84,9 @@ simulator$insert$expressions(
 
 And that's it.  Now we plot the updated simulations using these change-points, which we highlight with vertical lines.
 ```{r time_varying_graph}
-s = simulator$report(.phases = "during")
+s = mp_trajectory(simulator)
 (s
-  %>% rename(state = row)
-  %>% mutate(state = factor(state, sir$labels$state()))
+  %>% mutate(state = factor(matrix, state_labels))
   %>% ggplot()
   + geom_line(aes(time, value, colour = state))
   + geom_vline(
@@ -106,7 +105,7 @@ First we simulate data to fit our model to, to see if we can recover the time-va
 set.seed(1L)
 I_observed = rpois(
   50, 
-  filter(s, matrix == "state", row == "I")$value
+  filter(s, matrix == "I")$value
 )
 plot(I_observed)
 ```
@@ -123,7 +122,7 @@ simulator$add$matrices(
   
   ## location of I in the state vector
   ## (the `-1L` bit is to get 0-based indices instead of 1-based)
-  I_index = match("I", sir$labels$state()) - 1L, 
+  I_index = match("I", state_labels) - 1L, 
   
   ## matrix to contain the log likelihood values at 
   ## each time step
@@ -137,7 +136,7 @@ simulator$add$matrices(
 Now we need some new expressions. The first expression pulls out the I state from the state vector.
 ```{r pull_out_trajectory}
 simulator$insert$expressions(
-  I_sim ~ state[I_index],
+  I_sim ~ I,
   .phase = "during"
 )
 ```

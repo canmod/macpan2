@@ -174,7 +174,9 @@ ExprList = function(
       |> unique()
     )
   }
-  
+  self$all_default_vars = function() {
+    setdiff(self$all_formula_vars(), self$all_derived_vars())
+  }
   self$all_derived_vars = function() {
     all_vars = self$all_formula_vars()
     all_exprs = self$formula_list()

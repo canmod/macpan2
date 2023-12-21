@@ -136,12 +136,12 @@ TMBModel = function(
   self$simulator = function(
         tmb_cpp = getOption("macpan2_dll")
       , initialize_ad_fun = TRUE
-      , quantities = NULL
+      , outputs = NULL
     ) {
     TMBSimulator(self
       , tmb_cpp = tmb_cpp
       , initialize_ad_fun = initialize_ad_fun
-      , quantities = quantities
+      , outputs = outputs
     )
   }
 
@@ -195,16 +195,20 @@ TMBModelSpec = function(
   self$must_save = must_save
   self$must_not_save = must_not_save
   self$sim_exprs = sim_exprs
-  self$simulator_fresh = function(time_steps = 0, quantities = character()) {
+  self$simulator_fresh = function(
+        time_steps = 0
+      , outputs = character()
+      , default = list()
+    ) {
     initial_mats = self$default
-    matrix_quantities = intersect(quantities, names(initial_mats))
-    row_quantities = setdiff(quantities, matrix_quantities)
+    matrix_outputs = intersect(outputs, names(initial_mats))
+    row_outputs = setdiff(outputs, matrix_outputs)
     mats_to_return = (initial_mats
       |> lapply(names)
       |> Filter(f = is.character)
-      |> Filter(f = \(x) any(x %in% row_quantities))
+      |> Filter(f = \(x) any(x %in% row_outputs))
       |> names()
-      |> c(matrix_quantities)
+      |> c(matrix_outputs)
       |> unique()
     )
     mats_to_save = (mats_to_return
@@ -232,7 +236,9 @@ TMBModelSpec = function(
         int_vecs = do.call(IntVecs, self$integers)
       )
       , time_steps = Time(as.integer(time_steps))
-    )$simulator(quantities = quantities)
+    )$simulator(outputs = outputs, initialize_ad_fun = FALSE)
+    do.call(s$update$matrices, default)
+    s$ad_fun()
     s
   }
   self$simulator_cached = memoise(self$simulator_fresh)
@@ -241,7 +247,12 @@ TMBModelSpec = function(
 
 #' @export
 print.TMBModelSpec = function(x, ...) {
-  print(ExprList(x$before, x$during, x$after))
+  e = ExprList(x$before, x$during, x$after)
+  cat("\n---------------------\n")
+  msg("Default values:\n") |> cat()
+  cat("\n---------------------\n")
+  print(x$default[e$all_default_vars()])
+  print(e)
 }
 
 #' @export
@@ -267,15 +278,32 @@ mp_tmb_model_spec = function(
   TMBModelSpec(before, during, after, c(default, em), integers)
 }
 
+
+#' Simulator
+#' 
+#' Construct a simulator from a model specification object.
+#' 
+#' @param model A model specification object.
+#' @param time_steps How many time steps should be simulated when simulations
+#' are requested?
+#' @param outputs Character vector of names of model quantities that will be
+#' outputted when simulations are requested.
+#' @param default Named list of numerical objects that will update the default
+#' values defined in the model specification object. Any number of objects
+#' can be updated or not.
+#' 
 #' @export
-mp_simulator = function(model, time_steps, quantities) {
+mp_simulator = function(model, time_steps, outputs, default = list()) {
   UseMethod("mp_simulator")
 }
 
 #' @export
-mp_simulator.TMBModelSpec = function(model, time_steps, quantities) {
-  model$simulator_fresh(time_steps, quantities)
+mp_simulator.TMBModelSpec = function(model, time_steps, outputs, default = list()) {
+  model$simulator_fresh(time_steps, outputs, default)
 }
+
+#' @export
+mp_calibrate = function(model, data) {}
 
 #' @export
 mp_default = function(model_simulator, ...) {
@@ -304,12 +332,12 @@ mp_final = function(model_simulator, ...) {
 }
 
 
-mp_final.TMBSimulator = function(model_simulator, time_steps, quantities, ...) {
+mp_final.TMBSimulator = function(model_simulator, time_steps, outputs, ...) {
   (model_simulator
     $replace
     $time_steps(time_steps)
     $update
-    $matrices(.mats_to_return = quantities, .mats_to_save = quantities)
+    $matrices(.mats_to_return = outputs, .mats_to_save = outputs)
     $report(..., .phases = "after")
   )
 }
@@ -325,34 +353,6 @@ mp_trajectory.TMBSimulator = function(model) {
   model$report()
 }
 
-# @export
-# mp_trajectory.TMBModelSpec = function(model) {
-#   (model
-#    |> mp_tmb_simulator(time_steps, quantities)
-#    |> mp_trajectory(time_steps, quantities)
-#   )
-  
-  # matrix_quantities = intersect(quantities, names(model$default))
-  # row_quantities = setdiff(quantities, matrix_quantities)
-  # mats_to_return = (model$default
-  #   |> lapply(names)
-  #   |> Filter(f = is.character)
-  #   |> Filter(f = \(x) any(x %in% row_quantities))
-  #   |> names()
-  #   |> c(matrix_quantities)
-  #   |> unique()
-  # )
-  # simulations = model$simulator_fresh(
-  #     time_steps = time_steps
-  #   , mats_to_return = mats_to_return
-  # )$report()
-    # macpan2:::filter(
-    #     (matrix %in% matrix_quantities) 
-    #   | (row %in% row_quantities)
-    # )
-  # rownames(simulations) = NULL
-  # simulations
-#}
 
 
 TMBCompartmentalSimulator = function(tmb_simulator, compartmental_model) {
@@ -444,8 +444,8 @@ TMBSimulationUtils = function() {
       r = r[r$time != num_t + 1L,,drop = FALSE]
     }
     r |> macpan2:::filter(
-        (matrix %in% self$matrix_quantities())
-      | (row %in% self$row_quantities())
+        (matrix %in% self$matrix_outputs())
+      | (row %in% self$row_outputs())
     )
   }
   self$.find_problematic_expression = function(row) {
@@ -513,23 +513,23 @@ TMBSimulationUtils = function() {
 TMBSimulator = function(tmb_model
     , tmb_cpp = getOption("macpan2_dll")
     , initialize_ad_fun = TRUE
-    , quantities = NULL  ## character vector of matrix and/or row names
+    , outputs = NULL  ## character vector of matrix and/or row names
   ) {
   self = TMBSimulationUtils()
 
   ## Args
   self$tmb_model = tmb_model
   self$tmb_cpp = tmb_cpp
-  self$quantities = quantities
+  self$outputs = outputs
   
-  self$matrix_quantities = function() {
-    if (is.null(self$quantities)) return(self$tmb_model$init_mats$.mats_to_return)
+  self$matrix_outputs = function() {
+    if (is.null(self$outputs)) return(self$tmb_model$init_mats$.mats_to_return)
     initial_mats = self$tmb_model$init_mats$.initial_mats
-    intersect(self$quantities, names(initial_mats))
+    intersect(self$outputs, names(initial_mats))
   }
-  self$row_quantities = function() {
-    if (is.null(self$quantities)) return(character(0L))
-    setdiff(self$quantities, self$matrix_quantities())
+  self$row_outputs = function() {
+    if (is.null(self$outputs)) return(character(0L))
+    setdiff(self$outputs, self$matrix_outputs())
   }
   
   ## Standard Methods
