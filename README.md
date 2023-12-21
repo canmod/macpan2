@@ -122,7 +122,7 @@ the following command.
 ## Hello World
 
 The following code specifies an SI model, which is I think is the
-simplest possible epidemiological transmission model.
+simplest possible model of epidemiological transmission.
 
 ``` r
 si = mp_tmb_model_spec(
@@ -164,12 +164,13 @@ code.
  |> mp_simulator(time_steps = 50, quantities = c("I", "infection"))
  |> mp_trajectory()
  |> mutate(quantity = case_match(matrix
-    , "I" ~ "prevalance"
-    , "infection" ~ "incidence"
+    , "I" ~ "Prevalance"
+    , "infection" ~ "Incidence"
   ))
  |> ggplot() 
  + geom_line(aes(time, value)) 
- + facet_wrap(~quantity, scales = "free")
+ + facet_wrap(~ quantity, scales = "free")
+ + theme_bw()
 )
 ```
 
