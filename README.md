@@ -174,7 +174,7 @@ code.
 )
 ```
 
-![](misc/readme/plot-tmb-si-1.png)<!-- -->
+![](misc/readme/plot-tmb-si-1.svg)<!-- -->
 
 ## Design Concepts
 
