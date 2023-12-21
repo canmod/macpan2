@@ -121,8 +121,8 @@ the following command.
 
 ## Hello World
 
-Here is an SI model specification, which is I think the simplest
-possible epidemiological transmission model.
+The following code specifies an SI model, which is I think is the
+simplest possible epidemiological transmission model.
 
 ``` r
 si = mp_tmb_model_spec(
