@@ -250,8 +250,8 @@ print.TMBModelSpec = function(x, ...) {
   e = ExprList(x$before, x$during, x$after)
   cat("\n---------------------\n")
   msg("Default values:\n") |> cat()
-  cat("\n---------------------\n")
-  print(x$default[e$all_default_vars()])
+  cat("---------------------\n")
+  str(x$default)
   print(e)
 }
 
