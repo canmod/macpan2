@@ -1,5 +1,7 @@
 <!-- Auto-generated - do not edit by hand -->
 <!-- Edit README.Rmd instead -->
+macpan2
+================
 
 -   <a href="#documentation" id="toc-documentation">Documentation</a>
 -   <a href="#installation" id="toc-installation">Installation</a>
