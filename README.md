@@ -143,12 +143,10 @@ print(si)
     ## ---------------------
     ## Default values:
     ## ---------------------
-    ## List of 5
-    ##  $ N        : num 100
-    ##  $ beta     : num 0.25
-    ##  $ I        : num[0 , 0 ] 
-    ##  $ S        : num[0 , 0 ] 
-    ##  $ infection: num[0 , 0 ] 
+    ##   row col value.N value.beta
+    ##     N         100       0.25
+    ##  beta         100       0.25
+    ## 
     ## ---------------------
     ## Before the simulation loop (t = 0):
     ## ---------------------
