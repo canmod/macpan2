@@ -1,43 +1,40 @@
 <!-- Auto-generated - do not edit by hand -->
 <!-- Edit README.Rmd instead -->
 
--   <a href="#macpan2" id="toc-macpan2">macpan2</a>
-    -   <a href="#documentation" id="toc-documentation">Documentation</a>
-    -   <a href="#installation" id="toc-installation">Installation</a>
-    -   <a href="#hello-world" id="toc-hello-world">Hello World</a>
-    -   <a href="#design-concepts" id="toc-design-concepts">Design Concepts</a>
-        -   <a href="#information-processing"
-            id="toc-information-processing">Information Processing</a>
-        -   <a href="#modularity" id="toc-modularity">Modularity</a>
-        -   <a href="#engine-agnostic-model-specification-language"
-            id="toc-engine-agnostic-model-specification-language">Engine-Agnostic
-            Model Specification Language</a>
-        -   <a href="#engine-specific-model-specification-languages"
-            id="toc-engine-specific-model-specification-languages">Engine-Specific
-            Model Specification Languages</a>
-    -   <a href="#product-management" id="toc-product-management">Product
-        Management</a>
-        -   <a href="#general-dynamic-simulation-with-tmb"
-            id="toc-general-dynamic-simulation-with-tmb">General Dynamic Simulation
-            with TMB</a>
-        -   <a href="#model-library" id="toc-model-library">Model Library</a>
-        -   <a href="#calibration" id="toc-calibration">Calibration</a>
-        -   <a href="#time-varying-parameters"
-            id="toc-time-varying-parameters">Time-Varying Parameters</a>
-        -   <a href="#vectors-in-the-tmb-engine"
-            id="toc-vectors-in-the-tmb-engine">Vectors in the TMB Engine</a>
-        -   <a href="#model-structure-and-bookkeeping"
-            id="toc-model-structure-and-bookkeeping">Model Structure and
-            Bookkeeping</a>
-        -   <a href="#structure-encourages-reparameterization"
-            id="toc-structure-encourages-reparameterization">Structure Encourages
-            Reparameterization</a>
-        -   <a href="#alternative-engines" id="toc-alternative-engines">Alternative
-            Engines</a>
-        -   <a href="#combining-expression-lists"
-            id="toc-combining-expression-lists">Combining Expression Lists</a>
-
-# macpan2
+-   <a href="#documentation" id="toc-documentation">Documentation</a>
+-   <a href="#installation" id="toc-installation">Installation</a>
+-   <a href="#hello-world" id="toc-hello-world">Hello World</a>
+-   <a href="#design-concepts" id="toc-design-concepts">Design Concepts</a>
+    -   <a href="#information-processing"
+        id="toc-information-processing">Information Processing</a>
+    -   <a href="#modularity" id="toc-modularity">Modularity</a>
+    -   <a href="#engine-agnostic-model-specification-language"
+        id="toc-engine-agnostic-model-specification-language">Engine-Agnostic
+        Model Specification Language</a>
+    -   <a href="#engine-specific-model-specification-languages"
+        id="toc-engine-specific-model-specification-languages">Engine-Specific
+        Model Specification Languages</a>
+-   <a href="#product-management" id="toc-product-management">Product
+    Management</a>
+    -   <a href="#general-dynamic-simulation-with-tmb"
+        id="toc-general-dynamic-simulation-with-tmb">General Dynamic Simulation
+        with TMB</a>
+    -   <a href="#model-library" id="toc-model-library">Model Library</a>
+    -   <a href="#calibration" id="toc-calibration">Calibration</a>
+    -   <a href="#time-varying-parameters"
+        id="toc-time-varying-parameters">Time-Varying Parameters</a>
+    -   <a href="#vectors-in-the-tmb-engine"
+        id="toc-vectors-in-the-tmb-engine">Vectors in the TMB Engine</a>
+    -   <a href="#model-structure-and-bookkeeping"
+        id="toc-model-structure-and-bookkeeping">Model Structure and
+        Bookkeeping</a>
+    -   <a href="#structure-encourages-reparameterization"
+        id="toc-structure-encourages-reparameterization">Structure Encourages
+        Reparameterization</a>
+    -   <a href="#alternative-engines" id="toc-alternative-engines">Alternative
+        Engines</a>
+    -   <a href="#combining-expression-lists"
+        id="toc-combining-expression-lists">Combining Expression Lists</a>
 
 <!-- badges: start -->
 
