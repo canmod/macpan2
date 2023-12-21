@@ -7,7 +7,8 @@
 TMBSimulator(
   tmb_model,
   tmb_cpp = getOption("macpan2_dll"),
-  initialize_ad_fun = TRUE
+  initialize_ad_fun = TRUE,
+  quantities = NULL
 )
 }
 \arguments{

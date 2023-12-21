@@ -4,8 +4,12 @@ mp_library = function(...) {
 }
 
 #' @export
-mp_tmb_library = function(...) {
-  model_directory = system.file(..., package = "macpan2")
+mp_tmb_library = function(..., package = NULL) {
+  if (is.null(package)) {
+    model_directory = file.path(...)
+  } else {
+    model_directory = system.file(..., package = package)
+  }
   def_env = new.env(parent = parent.frame())
   sys.source(file.path(model_directory, "tmb.R")
     , envir = def_env

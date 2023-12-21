@@ -133,8 +133,16 @@ TMBModel = function(
     do.call(TMB::MakeADFun, self$make_ad_fun_arg(tmb_cpp))
   }
 
-  self$simulator = function(tmb_cpp = getOption("macpan2_dll"), initialize_ad_fun = TRUE) {
-    TMBSimulator(self, tmb_cpp = tmb_cpp, initialize_ad_fun = initialize_ad_fun)
+  self$simulator = function(
+        tmb_cpp = getOption("macpan2_dll")
+      , initialize_ad_fun = TRUE
+      , quantities = NULL
+    ) {
+    TMBSimulator(self
+      , tmb_cpp = tmb_cpp
+      , initialize_ad_fun = initialize_ad_fun
+      , quantities = quantities
+    )
   }
 
 
@@ -174,6 +182,9 @@ TMBModelSpec = function(
     , after = list()
     , default = list()
     , integers = list()
+    , must_save = character()
+    , must_not_save = character()
+    , sim_exprs = character()
   ) {
   self = Base()
   self$before = before
@@ -181,32 +192,48 @@ TMBModelSpec = function(
   self$after = after
   self$default = default
   self$integers = integers
-  self$simulator_fresh = function(
-        time_steps = 0
-      , sim_exprs = character(0L)
-      , mats_to_return = character(0L)
-      , mats_to_save = mats_to_return
-    ) {
-    TMBModel(
+  self$must_save = must_save
+  self$must_not_save = must_not_save
+  self$sim_exprs = sim_exprs
+  self$simulator_fresh = function(time_steps = 0, quantities = character()) {
+    initial_mats = self$default
+    matrix_quantities = intersect(quantities, names(initial_mats))
+    row_quantities = setdiff(quantities, matrix_quantities)
+    mats_to_return = (initial_mats
+      |> lapply(names)
+      |> Filter(f = is.character)
+      |> Filter(f = \(x) any(x %in% row_quantities))
+      |> names()
+      |> c(matrix_quantities)
+      |> unique()
+    )
+    mats_to_save = (mats_to_return
+      |> union(self$must_save)
+      |> setdiff(self$must_not_save)
+    )
+    s = TMBModel(
         init_mats = do.call(
           MatsList
         , c(
             self$default
-          , .mats_to_return = mats_to_return
-          , .mats_to_save = mats_to_save
+          , list(
+              .mats_to_return = mats_to_return
+            , .mats_to_save = mats_to_save
+          )
         )
       )
       , expr_list = ExprList(
           before = self$before
         , during = self$during 
         , after = self$after
-        , .simulate_exprs = sim_exprs
+        , .simulate_exprs = self$sim_exprs
       )
       , engine_methods = EngineMethods(
         int_vecs = do.call(IntVecs, self$integers)
       )
       , time_steps = Time(as.integer(time_steps))
-    )$simulator()
+    )$simulator(quantities = quantities)
+    s
   }
   self$simulator_cached = memoise(self$simulator_fresh)
   return_object(self, "TMBModelSpec")
@@ -241,13 +268,13 @@ mp_tmb_model_spec = function(
 }
 
 #' @export
-mp_tmb_model_simulator = function(model_spec, ...) {
-  ## FIXME: don't love this name, but trying to avoid conflicting with
-  ## mp_tmb_simulator for now at least. ultimately this should all be one
-  ## concept, and probably mp_tmb_simulator will be the best final name.
-  ## using mp_tmb_model_simulator for now so that we can move forward with
-  ## the readme file on the refactorcpp branch.
-  model_spec$simulator_fresh(...)
+mp_simulator = function(model, time_steps, quantities) {
+  UseMethod("mp_simulator")
+}
+
+#' @export
+mp_simulator.TMBModelSpec = function(model, time_steps, quantities) {
+  model$simulator_fresh(time_steps, quantities)
 }
 
 #' @export
@@ -289,45 +316,43 @@ mp_final.TMBSimulator = function(model_simulator, time_steps, quantities, ...) {
 
 
 #' @export
-mp_trajectory = function(model, time_steps, quantities, ...) {
+mp_trajectory = function(model) {
   UseMethod("mp_trajectory")
 }
 
 #' @export
-mp_trajectory.TMBSimulator = function(model, time_steps, quantities, ...) {
-  ## FIXME: this is just a stub to get the readme file working
-  (model
-    $replace
-    $time_steps(time_steps)
-    $update
-    $matrices(.mats_to_return = quantities, .mats_to_save = quantities)
-    $report(...)
-  )
+mp_trajectory.TMBSimulator = function(model) {
+  model$report()
 }
 
-#' @export
-mp_trajectory.TMBModelSpec = function(model, time_steps, quantities, ...) {
-  matrix_quantities = intersect(quantities, names(model$default))
-  row_quantities = setdiff(quantities, matrix_quantities)
-  mats_to_return = (model$default
-    |> lapply(names)
-    |> Filter(f = is.character)
-    |> Filter(f = \(x) any(x %in% row_quantities))
-    |> names()
-    |> c(matrix_quantities)
-    |> unique()
-  )
-  s = model$simulator_fresh(
-      time_steps = time_steps
-    , mats_to_return = mats_to_return
-  )$report(...) |> 
-    macpan2:::filter(
-        (matrix %in% matrix_quantities) 
-      | (row %in% row_quantities)
-    )
-  rownames(s) = NULL
-  s
-}
+# @export
+# mp_trajectory.TMBModelSpec = function(model) {
+#   (model
+#    |> mp_tmb_simulator(time_steps, quantities)
+#    |> mp_trajectory(time_steps, quantities)
+#   )
+  
+  # matrix_quantities = intersect(quantities, names(model$default))
+  # row_quantities = setdiff(quantities, matrix_quantities)
+  # mats_to_return = (model$default
+  #   |> lapply(names)
+  #   |> Filter(f = is.character)
+  #   |> Filter(f = \(x) any(x %in% row_quantities))
+  #   |> names()
+  #   |> c(matrix_quantities)
+  #   |> unique()
+  # )
+  # simulations = model$simulator_fresh(
+  #     time_steps = time_steps
+  #   , mats_to_return = mats_to_return
+  # )$report()
+    # macpan2:::filter(
+    #     (matrix %in% matrix_quantities) 
+    #   | (row %in% row_quantities)
+    # )
+  # rownames(simulations) = NULL
+  # simulations
+#}
 
 
 TMBCompartmentalSimulator = function(tmb_simulator, compartmental_model) {
@@ -418,7 +443,10 @@ TMBSimulationUtils = function() {
     if (!"after" %in% .phases) {
       r = r[r$time != num_t + 1L,,drop = FALSE]
     }
-    r
+    r |> macpan2:::filter(
+        (matrix %in% self$matrix_quantities())
+      | (row %in% self$row_quantities())
+    )
   }
   self$.find_problematic_expression = function(row) {
     expr_num_p_table_rows = self$tmb_model$data_arg()$expr_num_p_table_rows
@@ -482,13 +510,28 @@ TMBSimulationUtils = function() {
 #'
 #' @importFrom MASS mvrnorm
 #' @export
-TMBSimulator = function(tmb_model, tmb_cpp = getOption("macpan2_dll"), initialize_ad_fun = TRUE) {
+TMBSimulator = function(tmb_model
+    , tmb_cpp = getOption("macpan2_dll")
+    , initialize_ad_fun = TRUE
+    , quantities = NULL  ## character vector of matrix and/or row names
+  ) {
   self = TMBSimulationUtils()
 
   ## Args
   self$tmb_model = tmb_model
   self$tmb_cpp = tmb_cpp
-
+  self$quantities = quantities
+  
+  self$matrix_quantities = function() {
+    if (is.null(self$quantities)) return(self$tmb_model$init_mats$.mats_to_return)
+    initial_mats = self$tmb_model$init_mats$.initial_mats
+    intersect(self$quantities, names(initial_mats))
+  }
+  self$row_quantities = function() {
+    if (is.null(self$quantities)) return(character(0L))
+    setdiff(self$quantities, self$matrix_quantities())
+  }
+  
   ## Standard Methods
   self$matrix_names = function() self$tmb_model$init_mats$.names()
   self$ad_fun = function() self$tmb_model$ad_fun(self$tmb_cpp)

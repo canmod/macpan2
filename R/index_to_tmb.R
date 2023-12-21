@@ -10,21 +10,7 @@
 #'
 #' @importFrom oor method_apply
 #' @export
-mp_tmb_simulator = function(dynamic_model
-      , time_steps = 0L
-      , vectors = NULL
-      , unstruc_mats = NULL
-      , mats_to_save = names(vectors)
-      , mats_to_return = mats_to_save
-      , params = OptParamsList(0)
-      , random = OptParamsList()
-      , obj_fn = ObjectiveFunction(~0)
-      , log_file = LogFile()
-      , do_pred_sdreport = TRUE
-      , tmb_cpp = "macpan2"
-      , initialize_ad_fun = TRUE
-      , ...
-) {
+mp_tmb_simulator = function(...) {
   UseMethod("mp_tmb_simulator")
 }
 

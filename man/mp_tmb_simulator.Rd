@@ -4,27 +4,10 @@
 \alias{mp_tmb_simulator}
 \title{TMB Simulator from Dynamic Model}
 \usage{
-mp_tmb_simulator(
-  dynamic_model,
-  time_steps = 0L,
-  vectors = NULL,
-  unstruc_mats = NULL,
-  mats_to_save = names(vectors),
-  mats_to_return = mats_to_save,
-  params = OptParamsList(0),
-  random = OptParamsList(),
-  obj_fn = ObjectiveFunction(~0),
-  log_file = LogFile(),
-  do_pred_sdreport = TRUE,
-  tmb_cpp = "macpan2",
-  initialize_ad_fun = TRUE,
-  ...
-)
+mp_tmb_simulator(...)
 }
 \arguments{
 \item{dynamic_model}{Object product by \code{\link{dynamic_model}}.}
-
-\item{time_steps}{An object of class \code{\link{Time}}.}
 
 \item{vectors}{Named list of named vectors as initial values for the
 simulations that are referenced in the expression list in the dynamic model.}
@@ -32,16 +15,6 @@ simulations that are referenced in the expression list in the dynamic model.}
 \item{unstruc_mats}{= Named list of objects that can be coerced to
 numerical matrices that are used in the expression list of the
 dynamic model.}
-
-\item{params}{An object of class \code{\link{OptParamsList}}.}
-
-\item{random}{An object of class \code{\link{OptParamsList}}.}
-
-\item{obj_fn}{An object of class \code{\link{ObjectiveFunction}}.}
-
-\item{log_file}{An object of class \code{\link{LogFile}}.}
-
-\item{do_pred_sdreport}{A logical flag (\code{FALSE}/\code{TRUE}, or any value evaluating to 1 for \code{TRUE}) indicating whether predicted values should be accessible via \code{TMB::sdreport()}}
 }
 \description{
 TMB Simulator from Dynamic Model
