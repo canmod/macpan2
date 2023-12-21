@@ -2,7 +2,7 @@
 output: 
   github_document:
     toc: true
-toc-title: macpan2
+toc-title: "macpan2"
 ---
 
 ```{r opts, echo = FALSE}
