@@ -143,9 +143,9 @@ print(si)
     ## ---------------------
     ## Default values:
     ## ---------------------
-    ##   row col value.N value.beta
-    ##     N         100       0.25
-    ##  beta         100       0.25
+    ##  matrix row col  value
+    ##       N   1     100.00
+    ##    beta   1       0.25
     ## 
     ## ---------------------
     ## Before the simulation loop (t = 0):
