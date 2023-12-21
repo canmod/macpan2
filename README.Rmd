@@ -214,8 +214,8 @@ flow = data.frame(
 )
 sir = mp_tmb_model_spec(
     before = list(
-        state[I] ~ 1
-      , state[S] ~ N - 1
+        state[S] ~ N - 1
+      , state[I] ~ 1
       , state[R] ~ 0
     )
   , during = list(

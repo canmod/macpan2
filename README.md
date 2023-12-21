@@ -143,12 +143,12 @@ print(si)
     ## ---------------------
     ## Default values:
     ## ---------------------
-    ## $N
-    ## [1] 100
-    ## 
-    ## $beta
-    ## [1] 0.25
-    ## 
+    ## List of 5
+    ##  $ N        : num 100
+    ##  $ beta     : num 0.25
+    ##  $ I        : num[0 , 0 ] 
+    ##  $ S        : num[0 , 0 ] 
+    ##  $ infection: num[0 , 0 ] 
     ## ---------------------
     ## Before the simulation loop (t = 0):
     ## ---------------------
@@ -430,8 +430,8 @@ flow = data.frame(
 )
 sir = mp_tmb_model_spec(
     before = list(
-        state[I] ~ 1
-      , state[S] ~ N - 1
+        state[S] ~ N - 1
+      , state[I] ~ 1
       , state[R] ~ 0
     )
   , during = list(
