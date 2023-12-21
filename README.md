@@ -431,8 +431,8 @@ sir = mp_tmb_model_spec(
       , state ~ state + group_sums(flow_rate, to, state) - group_sums(flow_rate, from, state)
   )
   , default = list(
-      state     = macpan2:::zero_vector(state_labels)
-    , flow_rate = macpan2:::zero_vector(flow$rate)
+      state     = mp_zero_vector(state_labels)
+    , flow_rate = mp_zero_vector(flow$rate)
     , N = 100
     , beta = 0.25
     , gamma = 0.1
