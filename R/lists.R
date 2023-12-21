@@ -17,6 +17,36 @@ nlist = function(...) {
     setNames(L, nm)
 }
 
+
+melt_matrix = function(x) {
+  dn = dimnames(x)
+  nms = names(x)
+  dm = dim(x)
+  if (is.null(dm)) {
+    col = ""
+    if (is.null(nms)) {
+      row = seq_along(x) |> as.character()
+    } else {
+      row = names(x)
+    }
+  } else if (is.null(dn)) {
+    row = rep(seq_len(dm[1]), each = dm[2]) |> as.character()
+    col = rep(seq_len(dm[2]), times = dm[1]) |> as.character()
+  } else {
+    row = rep(rownames(x), times = dm[2])
+    col = rep(colnames(x), each = dm[1])
+  }
+  data.frame(row = row, col = col, value = as.vector(x))
+}
+melt_default_matrix_list = function(x) {
+  f = (x
+   |> lapply(melt_matrix)
+   |> macpan2:::bind_rows(.id = "matrix")
+  )
+  rownames(f) = NULL
+  f
+}
+
 empty_named_list = function() list() |> setNames(character(0L))
 
 assert_named_list = function(l) {

@@ -195,12 +195,20 @@ TMBModelSpec = function(
   self$must_save = must_save
   self$must_not_save = must_not_save
   self$sim_exprs = sim_exprs
+  
+  self$empty_matrices = function() {
+    e = ExprList(self$before, self$during, self$after)
+    dv = setdiff(e$all_derived_vars(), names(self$default))
+    rep(list(empty_matrix), length(dv)) |> setNames(dv)
+  }
+  self$matrices = function() c(self$default, self$empty_matrices())
+  
   self$simulator_fresh = function(
         time_steps = 0
       , outputs = character()
       , default = list()
     ) {
-    initial_mats = self$default
+    initial_mats = self$matrices()
     matrix_outputs = intersect(outputs, names(initial_mats))
     row_outputs = setdiff(outputs, matrix_outputs)
     mats_to_return = (initial_mats
@@ -219,7 +227,7 @@ TMBModelSpec = function(
         init_mats = do.call(
           MatsList
         , c(
-            self$default
+            self$matrices()
           , list(
               .mats_to_return = mats_to_return
             , .mats_to_save = mats_to_save
@@ -251,7 +259,8 @@ print.TMBModelSpec = function(x, ...) {
   cat("\n---------------------\n")
   msg("Default values:\n") |> cat()
   cat("---------------------\n")
-  str(x$default)
+  print(melt_matrix(x$default), row.names = FALSE)
+  cat("\n")
   print(e)
 }
 
@@ -271,11 +280,7 @@ mp_tmb_model_spec = function(
     |> unlist()
     |> c(integers)
   )
-  ## TODO: make this work when integers != list()
-  e = ExprList(before, during, after)
-  dv = setdiff(e$all_derived_vars(), names(default))
-  em = rep(list(empty_matrix), length(dv)) |> setNames(dv)
-  TMBModelSpec(before, during, after, c(default, em), integers)
+  TMBModelSpec(before, during, after, default, integers)
 }
 
 
