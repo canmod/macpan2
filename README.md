@@ -121,6 +121,9 @@ the following command.
 
 ## Hello World
 
+Here is an SI model specification, which is I think the simplest
+possible epidemiological transmission model.
+
 ``` r
 si = mp_tmb_model_spec(
     before = list(
@@ -150,7 +153,11 @@ print(si)
     ## 2: S ~ S - infection
     ## 3: I ~ I + infection
 
-Simulating from this model can be done like so.
+Simulating from this model requires choosing the number of time-steps to
+run and the model quantities to simulate. Syntax for simulating
+`macpan2` models is [designed to combine with standard data prep and
+plotting tools in R](#modularity), as we demonstrate with the following
+code.
 
 ``` r
 (si
