@@ -139,6 +139,17 @@ si = mp_tmb_model_spec(
 print(si)
 ```
 
+    ## 
+    ## ---------------------
+    ## Default values:
+    ## 
+    ## ---------------------
+    ## $N
+    ## [1] 100
+    ## 
+    ## $beta
+    ## [1] 0.25
+    ## 
     ## ---------------------
     ## Before the simulation loop (t = 0):
     ## ---------------------
@@ -153,14 +164,13 @@ print(si)
     ## 3: I ~ I + infection
 
 Simulating from this model requires choosing the number of time-steps to
-run and the model quantities to simulate. Syntax for simulating
-`macpan2` models is [designed to combine with standard data prep and
-plotting tools in R](#modularity), as we demonstrate with the following
-code.
+run and the model outputs to generate. Syntax for simulating `macpan2`
+models is [designed to combine with standard data prep and plotting
+tools in R](#modularity), as we demonstrate with the following code.
 
 ``` r
 (si
- |> mp_simulator(time_steps = 50, quantities = c("I", "infection"))
+ |> mp_simulator(time_steps = 50, outputs = c("I", "infection"))
  |> mp_trajectory()
  |> mutate(quantity = case_match(matrix
     , "I" ~ "Prevalance"
@@ -314,7 +324,7 @@ which is what the [model library](#model-library) is for.
 ``` r
 ("starter_models"
  |> mp_tmb_library("sir", package = "macpan2")
- |> mp_simulator(time_steps = 10, quantities = "I")
+ |> mp_simulator(time_steps = 10, outputs = "I")
  |> mp_trajectory()
 )
 ```
@@ -443,7 +453,7 @@ sir = mp_tmb_model_spec(
   )
 )
 (sir
-  |> mp_simulator(time_steps = 10, quantities = "I")
+  |> mp_simulator(time_steps = 10, outputs = "I")
   |> mp_trajectory()
 )
 ```
