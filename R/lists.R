@@ -25,19 +25,32 @@ melt_matrix = function(x) {
   if (is.null(dm)) {
     col = ""
     if (is.null(nms)) {
-      row = seq_along(x) |> as.character()
+      if (length(x) == 1L) {
+        row = ""
+      } else {
+        row = seq_along(x) |> as.character()
+      }
     } else {
       row = names(x)
     }
   } else if (is.null(dn)) {
-    row = rep(seq_len(dm[1]), each = dm[2]) |> as.character()
-    col = rep(seq_len(dm[2]), times = dm[1]) |> as.character()
+    if (dm[1] == 1L) {
+      row = ""
+    } else {
+      row = rep(seq_len(dm[1]), each = dm[2]) |> as.character()
+    }
+    if (dm[2] == 1L) {
+      col = ""
+    } else {
+      col = rep(seq_len(dm[2]), times = dm[1]) |> as.character()
+    }
   } else {
     row = rep(rownames(x), times = dm[2])
     col = rep(colnames(x), each = dm[1])
   }
   data.frame(row = row, col = col, value = as.vector(x))
 }
+
 melt_default_matrix_list = function(x) {
   f = (x
    |> lapply(melt_matrix)

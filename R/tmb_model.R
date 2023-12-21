@@ -259,7 +259,7 @@ print.TMBModelSpec = function(x, ...) {
   cat("\n---------------------\n")
   msg("Default values:\n") |> cat()
   cat("---------------------\n")
-  print(melt_matrix(x$default), row.names = FALSE)
+  print(melt_default_matrix_list(x$default), row.names = FALSE)
   cat("\n")
   print(e)
 }
