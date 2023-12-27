@@ -4,12 +4,12 @@
 \alias{model_starter}
 \title{Model Starter}
 \usage{
-model_starter(starter_name, dir_name)
+model_starter(starter_name, dir)
 }
 \arguments{
 \item{starter_name}{Currently can only be \code{sir}.}
 
-\item{dir_name}{String giving the path to a directory for copying the
+\item{dir}{String giving the path to a directory for copying the
 template model definition.}
 }
 \description{

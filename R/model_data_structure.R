@@ -111,18 +111,18 @@ assert_variables = function(model) {
 #' Create a directory with a template model definition.
 #'
 #' @param starter_name Currently can only be \code{sir}.
-#' @param dir_name String giving the path to a directory for copying the
+#' @param dir String giving the path to a directory for copying the
 #' template model definition.
 #'
 #' @export
-model_starter = function(starter_name, dir_name) {
-  starter_dir = system.file("starter_models", starter_name, package = "macpan2")
+model_starter = function(starter_name, dir) {
+  starter_dir = system.file("starter_models"
+    , starter_name
+    , package = "macpan2"
+  )
   starter_files = list.files(starter_dir)
   required_files = c(
-    variables_file = "variables.csv",
-    derivations_file = "derivations.json",
-    flows_file = "flows.csv",
-    settings_file = "settings.json"
+    tmb_engine_file = "tmb.R"
   )
   if (!all(required_files %in% starter_files)) {
     stop("Could not find a valid starter model by that name.")
@@ -133,9 +133,12 @@ model_starter = function(starter_name, dir_name) {
     names(required_files)
   )
 
-  if (dir.exists(dir_name)) stop("Directory for the model already exists.")
-  dir.create(dir_name, recursive = TRUE)
+  if (dir.exists(dir)) stop("Directory for the model already exists.")
+  dir.create(dir, recursive = TRUE)
 
-  file.copy(starter_paths, dir_name)
-  ModelFiles(dir_name)
+  file.copy(starter_paths, dir)
+  
+  ## TODO: handle the multi-engine case
+  ## TODO: implement proper file update monitoring (e.g. Files objects)
+  mp_tmb_library(dir)
 }

@@ -256,7 +256,7 @@ TMBModelSpec = function(
 #' @export
 print.TMBModelSpec = function(x, ...) {
   e = ExprList(x$before, x$during, x$after)
-  cat("\n---------------------\n")
+  cat("---------------------\n")
   msg("Default values:\n") |> cat()
   cat("---------------------\n")
   print(melt_default_matrix_list(x$default), row.names = FALSE)
