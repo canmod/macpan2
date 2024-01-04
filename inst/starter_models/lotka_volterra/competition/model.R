@@ -7,7 +7,6 @@ library(macpan2)
 ## none
 
 ## absolute flow rates (per time only)
-## reference 
 flow_rates = list(
   ## growth rate of species X and Y
     growth_x ~ rx * X
@@ -18,11 +17,30 @@ flow_rates = list(
   ## species Y on Y
   , intraspecific_y ~ growth_y * ayy * Y
   ## interspecific effect
-  ## species X on Y
-  , interspecific_xy ~ growth_x * ayx * Y
   ## species Y on X
-  , interspecific_yx ~ growth_y * axy * X
+  , interspecific_xy ~ growth_x * axy * Y
+  ## species X on Y
+  , interspecific_yx ~ growth_y * ayx * X
 )
+
+## alternate parameterization of model by carrying 
+## capacity and relative interspecific effects
+flow_rates = list(
+  ## growth rate of species X and Y
+    growth_x ~ rx * X
+  , growth_y ~ ry * Y
+  ## intraspecific effect
+  ## species X on X
+  , intraspecific_x ~ growth_x * X / Kx
+  ## species Y on Y
+  , intraspecific_y ~ growth_y * Y / Ky
+  ## interspecific effect
+  ## species Y on X
+  , interspecific_xy ~ growth_x * alpha_xy * Y / Kx
+  ## species X on Y
+  , interspecific_yx ~ growth_y * alpha_yx * X / Ky
+)
+
 
 ## state updates
 state_updates = list(
