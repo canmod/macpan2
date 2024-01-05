@@ -10,8 +10,8 @@ computations = list(
 
 ## absolute flow rates (per time only)
 flow_rates = list(
-    infection ~ S * I * beta / N
-  , exposure ~ alpha * E
+    exposure ~ S * I * beta / N
+  , infection ~ alpha * E
   , recovery ~ gamma * I
 )
 
