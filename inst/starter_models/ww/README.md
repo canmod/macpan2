@@ -63,6 +63,7 @@ The size of the total population is,  $ N = S + E + I_a + I_p + I_m + I_s + H + 
 
 # Dynamics 
 
+$$
 \begin{split}
 \frac{dS}{dt} &= -\beta_0\left(C_aI_a +C_pI_p + C_mI_m(1-\text{iso}_m) + C_sI_s(1-\text{iso}_s)\right)S/N \\
 \frac{dE}{dt} &= \beta_0\left(C_aI_a +C_pI_p + C_mI_m(1-\text{iso}_m) + C_sI_s(1-\text{iso}_s)\right)S/N - \sigma E \\
@@ -79,6 +80,7 @@ The size of the total population is,  $ N = S + E + I_a + I_p + I_m + I_s + H + 
 \frac{dW}{dt} &= \nu I_a + \nu I_p + \nu I_m + \nu I_s - \xi W \\
 \frac{dA}{dt} &= \xi W A
 \end{split}
+$$
 
 When there were discrepancies with how the model is expressed in Papst (TBD) versus model definition files, the latter was chosen.
 
