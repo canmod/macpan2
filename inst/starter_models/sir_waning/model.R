@@ -12,7 +12,7 @@ computations = list(
 flow_rates = list(
     infection ~ S * I * beta / N
   , recovery ~ gamma * I
-  , waning_immunity ~ wane * R
+  , waning_immunity ~ phi * R
 )
 
 ## state updates
@@ -29,4 +29,17 @@ expr_list =  ExprList(
       flow_rates
     , state_updates
   )
+)
+
+## default values
+init_mats = MatsList(
+    S = 99
+  , I = 1
+  , R = 0
+  , beta = 0.2
+  , gamma = 0.2
+  , wane = 0.01
+  , N = 100
+  , .mats_to_save = "I"
+  , .mats_to_return = "I"
 )
