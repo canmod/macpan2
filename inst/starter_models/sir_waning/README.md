@@ -14,7 +14,7 @@ Endemic pathogens can sometimes be modelled by sending R back to S, thereby cont
 | I        | Number of infectious individuals  |
 | R        | Number of recovered individuals   |
 
-The size of the total population is,  $ N = S + I + R$.
+The size of the total population is,  $N = S + I + R$.
 
 # Parameters
 
@@ -22,15 +22,15 @@ The size of the total population is,  $ N = S + I + R$.
 | -------- | ------------------------------- |
 | $\beta$  | per capita transmission rate    |
 | $\gamma$ | per capita recovery rate        |
-| $\delta$ | per capita waning immunity rate |
+| $\phi$   | per capita waning immunity rate |
 
 # Dynamics 
 
 $$
 \begin{align*}
-\frac{dS}{dt} &= -\beta SI + \delta R\\
+\frac{dS}{dt} &= -\beta SI + \phi R\\
 \frac{dI}{dt} &= \beta SI - \gamma I \\
-\frac{dR}{dt} &= \gamma I  - \delta R
+\frac{dR}{dt} &= \gamma I  - \phi R
 \end{align*}
 $$
 
