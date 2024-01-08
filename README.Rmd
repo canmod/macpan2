@@ -197,6 +197,33 @@ The scale (e.g. log, logit) on which to fit these parameters must also be specif
 The new distributional parameters should go into a new indexed vector called something like `distributional_parameters`. (TODO: more general name for new parameters that are part of the observation model, e.g. convolution kernel parameters).
 
 
+### Alternative Trajectory Solvers
+
+Let $x$ be the state vector and $b$ be the vector of per-capita flow rates. Let $z$ and $y$ be the vectors of from and to states -- that is $z$ ($y$) is the vector the same length of $b$ containing the elements of $x$ associated with the from (to) state for each flow. Therefore, the $i$th flow is from $z[i]$ to $y[i]$ at per-capita rate $b[i]$.
+
+The other way to think about it is that for a single flow, $x_i$ is the from state, $x_j$ is the to state, and $b_k$ is the per-capita flow rate.
+
+* Euler
+  * Inflow: $x_i b_k$
+  * Outflow: $x_i b_k$
+* Mean Euler-Multimomial
+  * Inflow 
+  * Outflow: $$
+
+
+```
+outflow ~ group_sums(state * flow_rates, from, state)
+```
+
+
+
+#### Euler Step
+
+#### Mean Euler-Multinomial (a.k.a. Hazard Correction)
+
+#### Runge-Kutta 4
+
+
 ### Time-Varying Parameters
 
 TODO

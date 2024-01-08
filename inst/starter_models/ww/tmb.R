@@ -24,7 +24,7 @@ flow_rates = list(
   , IsICUd ~ Is * (1 - nonhosp_mort) * (1 - phi1) * phi2 * gamma_s
   , ICUdD ~ ICUd * psi2
   , HR ~ H * rho
-  , IaW ~ Ia * nu # or * or N?
+  , IaW ~ Ia * nu
   , IpW ~ Ip * nu 
   , ImW ~ Im * nu
   , IsW ~ Is * nu

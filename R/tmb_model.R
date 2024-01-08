@@ -272,14 +272,23 @@ mp_tmb_model_spec = function(
     , default = list()
     , integers = list()
   ) {
-  integers = (default
+  implied_integers = (default
     |> lapply(names) 
     |> Filter(f = is.character)
     |> lapply(to_positions)
     |> unname()
+    |> unique()
     |> unlist()
-    |> c(integers)
+    |> as.list()
   )
+  integers = c(
+    implied_integers, 
+    integers
+  )
+  
+  ambiguous = integers |> names() |> duplicated() |> any()
+  if (ambiguous) stop("Defaults and integers are ambiguously named.")
+  
   TMBModelSpec(before, during, after, default, integers)
 }
 
@@ -355,7 +364,7 @@ mp_trajectory = function(model) {
 
 #' @export
 mp_trajectory.TMBSimulator = function(model) {
-  model$report()
+  model$report() |> reset_rownames()
 }
 
 

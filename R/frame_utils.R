@@ -89,3 +89,9 @@ filter <- function(.data, ...) {
   rows <- Reduce("&", rows)
   .data[rows & !is.na(rows), ]
 }
+
+
+reset_rownames = function(x) {
+  rownames(x) = NULL
+  x
+}
