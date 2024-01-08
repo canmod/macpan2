@@ -486,7 +486,8 @@ TMBSimulationUtils = function() {
         self$.find_problematic_expression(r$expr_row)
       )
     }
-    self$.simulation_formatter(r, .phases)
+    s = self$.simulation_formatter(r, .phases)
+    s[order(s$time), , drop = FALSE] ## TODO: move sorting by time to the c++ side
   }
   return_object(self, "TMBSimulationFormatter")
 }
