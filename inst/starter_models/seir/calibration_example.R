@@ -15,18 +15,18 @@ obj_fn = ObjectiveFunction(~ -sum(log_likelihood))
 
 # old simulator object
 old_tmb_simulator = TMBModel(
-  init_mats = init_mats
+    init_mats = init_mats
   , expr_list = expr_list
   , obj_fn = obj_fn
 )$simulator()
 
 # simulator object
 tmb_simulator = mp_simulator(  
-  model = model_spec
+   model = model_spec
  , time_steps = time_steps
  , outputs = c("I","E")
  # if you want to update defaults (use this for log_beta?)
- , default = list(beta ~ log(model_spec$default$beta))
+ #, default = list(log_beta ~ log(model_spec$default$beta))
 )
 
 
@@ -35,7 +35,7 @@ tmb_simulator = mp_simulator(
 ## -------------------------
 
 tmb_simulator$update$transformations(Log("beta"))
-#tmb_simulator$replace$params(log(model_spec$default$beta), "log_beta")
+tmb_simulator$replace$params(log(model_spec$default$beta), "log_beta")
 tmb_simulator
 
 old_tmb_simulator$update$transformations(Log("beta"))
@@ -95,12 +95,11 @@ tmb_simulator$optimize$nlminb()
 
 ## plot observed vs predicted
 if (interactive()) {
-  # no output?
   print(tmb_simulator$current$params_frame())
-  # print(paste0("exp(default) ",exp(tmb_simulator$current$params_frame()$default)))
-  # print(paste0("exp(current) ",exp(tmb_simulator$current$params_frame()$current)))
+  print(paste0("exp(default) ",exp(tmb_simulator$current$params_frame()$default)))
+  print(paste0("exp(current) ",exp(tmb_simulator$current$params_frame()$current)))
   plot(I_obs, type = "l", las = 1)
-  lines(tmb_simulator$report_values(), col = "red")
+  lines(tmb_simulator$report_values()[1:time_steps], col = "red")
 }
 
 ## -------------------------

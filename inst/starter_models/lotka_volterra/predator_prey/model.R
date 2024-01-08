@@ -6,7 +6,7 @@ library(macpan2)
 ## free form computations for convenience (none)
 
 ## functional responses
-## Holling type I is trivial (modify beta as needed)
+## Holling type I is trivial (modify beta/delta as needed?)
 
 #' Holling type II
 #'
