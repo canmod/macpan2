@@ -23,6 +23,9 @@ macpan2
         with TMB</a>
     -   <a href="#model-library" id="toc-model-library">Model Library</a>
     -   <a href="#calibration" id="toc-calibration">Calibration</a>
+    -   <a href="#alternative-trajectory-solvers"
+        id="toc-alternative-trajectory-solvers">Alternative Trajectory
+        Solvers</a>
     -   <a href="#time-varying-parameters"
         id="toc-time-varying-parameters">Time-Varying Parameters</a>
     -   <a href="#vectors-in-the-tmb-engine"
@@ -139,7 +142,6 @@ si = mp_tmb_model_spec(
 print(si)
 ```
 
-    ## 
     ## ---------------------
     ## Default values:
     ## ---------------------
@@ -327,16 +329,16 @@ which is what the [model library](#model-library) is for.
 ```
 
     ##    matrix time row col    value
-    ## 2       I    1   0   0 1.098000
-    ## 3       I    2   0   0 1.205169
-    ## 4       I    3   0   0 1.322276
-    ## 5       I    4   0   0 1.450133
-    ## 6       I    5   0   0 1.589599
-    ## 7       I    6   0   0 1.741573
-    ## 8       I    7   0   0 1.906995
-    ## 9       I    8   0   0 2.086833
-    ## 10      I    9   0   0 2.282085
-    ## 11      I   10   0   0 2.493761
+    ## 1       I    1   0   0 1.098000
+    ## 2       I    2   0   0 1.205169
+    ## 3       I    3   0   0 1.322276
+    ## 4       I    4   0   0 1.450133
+    ## 5       I    5   0   0 1.589599
+    ## 6       I    6   0   0 1.741573
+    ## 7       I    7   0   0 1.906995
+    ## 8       I    8   0   0 2.086833
+    ## 9       I    9   0   0 2.282085
+    ## 10      I   10   0   0 2.493761
 
 TODO:
 
@@ -410,6 +412,35 @@ called something like `distributional_parameters`. (TODO: more general
 name for new parameters that are part of the observation model,
 e.g. convolution kernel parameters).
 
+### Alternative Trajectory Solvers
+
+Let $x$ be the state vector and $b$ be the vector of per-capita flow
+rates. Let $z$ and $y$ be the vectors of from and to states – that is
+$z$ ($y$) is the vector the same length of $b$ containing the elements
+of $x$ associated with the from (to) state for each flow. Therefore, the
+$i$th flow is from $z[i]$ to $y[i]$ at per-capita rate $b[i]$.
+
+The other way to think about it is that for a single flow, $x_i$ is the
+from state, $x_j$ is the to state, and $b_k$ is the per-capita flow
+rate.
+
+-   Euler
+    -   Inflow: $x_i b_k$
+    -   Outflow: $x_i b_k$
+-   Mean Euler-Multimomial
+    -   Inflow
+    -   Outflow: \$\$
+
+<!-- -->
+
+    outflow ~ group_sums(state * flow_rates, from, state)
+
+#### Euler Step
+
+#### Mean Euler-Multinomial (a.k.a. Hazard Correction)
+
+#### Runge-Kutta 4
+
 ### Time-Varying Parameters
 
 TODO
@@ -456,16 +487,16 @@ sir = mp_tmb_model_spec(
 ```
 
     ##    matrix time row col    value
-    ## 5   state    1   I     1.147500
-    ## 8   state    2   I     1.316046
-    ## 11  state    3   I     1.508417
-    ## 14  state    4   I     1.727685
-    ## 17  state    5   I     1.977228
-    ## 20  state    6   I     2.260727
-    ## 23  state    7   I     2.582154
-    ## 26  state    8   I     2.945748
-    ## 29  state    9   I     3.355960
-    ## 32  state   10   I     3.817384
+    ## 1   state    1   I     1.147500
+    ## 2   state    2   I     1.316046
+    ## 3   state    3   I     1.508417
+    ## 4   state    4   I     1.727685
+    ## 5   state    5   I     1.977228
+    ## 6   state    6   I     2.260727
+    ## 7   state    7   I     2.582154
+    ## 8   state    8   I     2.945748
+    ## 9   state    9   I     3.355960
+    ## 10  state   10   I     3.817384
 
 ### Model Structure and Bookkeeping
 
