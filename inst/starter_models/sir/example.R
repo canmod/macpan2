@@ -1,34 +1,66 @@
-source("inst/starter_models/sir/tmb.R")
-sir = mp_simulator(spec, time_steps = 50L, outputs = "I")
+#source("inst/starter_models/sir/tmb.R")
+library(dplyr)
+library(macpan2)
+
+## -------------------------
+## get model spec from library
+## -------------------------
+
+spec = mp_tmb_library("starter_models","sir",package="macpan2")
+spec
+
+## -------------------------
+## define simulator
+## -------------------------
+
+# set number of time steps in simulation
+time_steps = 100L
+
+# simulator object
+sir = mp_simulator(  
+    model = spec
+  , time_steps = time_steps
+  , outputs = "I"
+)
+
+## -------------------------
+## specify objective function
+## -------------------------
+
+# function must be specified as a valid argument to macpan2::ObjectiveFunction()
+# spec$after shows how log_likelihood is computed
+obj_fn = ~ -sum(log_likelihood)
+
+# update simulator to include this function
+sir$replace$obj_fn(obj_fn)
 
 ## -------------------------
 ## parameterize model
 ## -------------------------
 
 sir$update$transformations(Log("beta"))
-sir$replace$params(log(init_mats$get("beta")), "log_beta")
-sir  ## note the new expression before the simulation loop
+
+# choose which parameter(s) to estimate
+sir$replace$params(log(spec$default$beta), "log_beta")
+sir
 
 ## -------------------------
 ## simulate fake data
 ## -------------------------
 
-time_steps = 100L
+# beta value to simulate data with
 true_beta = 0.4
-
-## set time_steps value
-sir$replace$time_steps(time_steps)
 
 ## feed log(true_beta) to the simulator because we have
 ## already specified log-transformation of this parameter
 observed_data = sir$report(log(true_beta))
 
-## .mats_to_return is set to "I", so observed_data$value is
-## the prevalence (density of I) over time
-observed_data$value = rpois(time_steps, observed_data$value)
+## compute incidence for observed data
+I_obs = rpois(time_steps, subset(observed_data, matrix == "I", select = c(value)) %>% pull())
+I_obs_times = subset(observed_data, matrix == "I", select = c(time)) %>% pull()
 
 if (interactive()) {
-  plot(observed_data$value, type = "l", las = 1)
+  plot(I_obs, type = "l", las = 1)
 }
 
 ## -------------------------
@@ -36,10 +68,9 @@ if (interactive()) {
 ## -------------------------
 
 sir$update$matrices(
-    I_obs = observed_data$value
-  , I_obs_times = observed_data$time
+    I_obs = I_obs
+  , I_obs_times = I_obs_times
 )
-
 
 ## -------------------------
 ## plot likelihood surface (curve)
@@ -66,6 +97,8 @@ sir$optimize$nlminb()
 ## plot observed vs predicted value
 if (interactive()) {
   print(sir$current$params_frame())
-  plot(observed_data$value, type = "l", las = 1)
+  print(paste0("exp(default) ",exp(sir$current$params_frame()$default)))
+  print(paste0("exp(current) ",exp(sir$current$params_frame()$current)))
+  plot(I_obs, type = "l", las = 1)
   lines(sir$report_values(), col = "red")
 }
