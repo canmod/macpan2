@@ -1,10 +1,10 @@
 ---
-title: "basic SIR"
+title: "basic SI"
 index_entry: "a very simple epidemic model"
-author: Steve Walker
+author: Jennifer Freeman
 ---
 
-This is (nearly) the simplest possible 'vanilla' epidemic model, implemented as an example.
+This is the simplest possible epidemic model.
 
 # States
 
@@ -12,24 +12,21 @@ This is (nearly) the simplest possible 'vanilla' epidemic model, implemented as 
 | -------- | --------------------------------- |
 | S        | Number of susceptible individuals |
 | I        | Number of infectious individuals  |
-| R        | Number of recovered individuals   |
 
-The size of the total population is,  $N = S + I + R$.
+The size of the total population is,  $N = S + I$.
 
 # Parameters
 
 | variable | description                  |
 | -------- | ---------------------------- |
 | $\beta$  | per capita transmission rate |
-| $\gamma$ | per capita recovery rate     |
 
 # Dynamics 
 
 $$
 \begin{align*}
 \frac{dS}{dt} &= -\beta SI \\
-\frac{dI}{dt} &= \beta SI - \gamma I \\
-\frac{dR}{dt} &= \gamma I
+\frac{dI}{dt} &= \beta SI \\
 \end{align*}
 $$
 

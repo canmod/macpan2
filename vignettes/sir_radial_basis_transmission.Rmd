@@ -31,8 +31,11 @@ cat_file = function(...) cat(readLines(file.path(...)), sep = "\n")
 Before we can add the fancy radial basis for the transmission rate, we need a base model. We use an SIR model that has been modified to include waning.
 
 ```{r}
-sir = Compartmental(system.file("starter_models", "sir_waning", package = "macpan2"))
-sir$flows()
+source(system.file("starter_models", "sir_waning", "model.R", package = "macpan2"))
+tmb_simulator = TMBModel(
+   expr_list = expr_list
+)
+expr_list
 ```
 
 
