@@ -1029,8 +1029,8 @@ public:
                     // #' the two inputs.
                     // #'
                         int from, to;
-                        from = CppAD::Integer(args[0].coeff(0,0));
-                        to = CppAD::Integer(args[1].coeff(0,0));
+                        from = args.get_as_int(0);
+                        to = args.get_as_int(1);
                         if (from>to) {
                             SetError(MP2_COLON, "Lower bound greater than upper bound in : operation", row);
                             return m;
@@ -1053,8 +1053,8 @@ public:
                     // #' as the default.
                     // #'
                         int length;
-                        from = CppAD::Integer(args[0].coeff(0,0));
-                        length = CppAD::Integer(args[1].coeff(0,0));
+                        from = args.get_as_int(0);
+                        length = args.get_as_int(1);
                         by = args[2].coeff(0,0);
                         if (length<=0) {
                             SetError(MP2_SEQUENCE, "Sequence length is less than or equal to zero in seq operation", row);
