@@ -1,89 +1,98 @@
-source("inst/starter_models/seir/tmb.R")
+#source("inst/starter_models/seir/tmb.R")
+library(macpan2)
 library(ggplot2)
 library(dplyr)
 
+## -------------------------
+## get model spec from library
+## -------------------------
+
+spec = mp_tmb_library("starter_models","seir",package="macpan2")
+spec 
 
 ## -------------------------
 ## define simulator
 ## -------------------------
 
-true_beta = 0.5
+# set number of time steps in simulation
 time_steps = 100L
 
-# define objective function
-obj_fn = ObjectiveFunction(~ -sum(log_likelihood))
-
-# old simulator object
-old_tmb_simulator = TMBModel(
-    init_mats = init_mats
-  , expr_list = expr_list
-  , obj_fn = obj_fn
-)$simulator()
-
 # simulator object
-tmb_simulator = mp_simulator(  
-   model = model_spec
- , time_steps = time_steps
- , outputs = c("I","E")
- # if you want to update defaults (use this for log_beta?)
- #, default = list(log_beta ~ log(model_spec$default$beta))
+seir = mp_simulator(  
+    model = spec
+  , time_steps = time_steps
+  , outputs = c("S", "E", "I","R")
 )
+
+## -------------------------
+## specify objective function
+## -------------------------
+
+# negative log likelihood
+# choosing to use E to estimate alpha
+obj_fn = ~ -sum(dpois(E_obs, rbind_time(E, E_obs_times)))
+
+# update simulator to create new variables 
+seir$update$matrices(
+    E_obs = empty_matrix
+  , E_obs_times = empty_matrix
+)
+
+# update simulator to include this function
+seir$replace$obj_fn(obj_fn)
 
 
 ## -------------------------
 ## parameterize model
 ## -------------------------
 
-tmb_simulator$update$transformations(Log("beta"))
-tmb_simulator$replace$params(log(model_spec$default$beta), "log_beta")
-tmb_simulator
+# choose which parameter(s) to estimate
+# 1/alpha = time spent in E compartment
+seir$replace$params(spec$default$alpha,"alpha")
 
-old_tmb_simulator$update$transformations(Log("beta"))
-old_tmb_simulator$replace$params(log(model_spec$default$beta), "log_beta")
-old_tmb_simulator
-
-identical(old_tmb_simulator, tmb_simulator)
-
-# better way to update transformations in new simulator?
 
 ## -------------------------
 ## simulate fake data
 ## -------------------------
 
-## feed log(true_beta) to the simulator because we have
-## already specified log-transformation of this parameter
-observed_data = tmb_simulator$report(log(true_beta))
+# alpha value to simulate data with
+true_alpha = 1/5
 
-## compute incidence for observed data
-I_obs = rpois(time_steps, subset(observed_data, matrix == "I", select = c(value)) %>% pull())
-I_obs_times = subset(observed_data, matrix == "I", select = c(time)) %>% pull()
+## simulate observed data using true parameters
+observed_data = seir$report(true_alpha)
+
+## compute exposure for each time step
+E_obs = rpois(time_steps, subset(observed_data, matrix == "E", select = c(value)) %>% pull())
+E_obs_times = subset(observed_data, matrix == "E", select = c(time)) %>% pull()
 
 if (interactive()) {
-  plot(I_obs, type = "l", las = 1)
+  plot(E_obs, type = "l", las = 1)
 }
+
 
 ## -------------------------
 ## update simulator with fake data to fit to
 ## -------------------------
 
-tmb_simulator$update$matrices(
-    I_obs = I_obs
-  , I_obs_times = I_obs_times
+seir$update$matrices(
+    E_obs = E_obs
+  , E_obs_times = E_obs_times
 )
+
 
 ## -------------------------
 ## plot likelihood surface (curve)
 ## -------------------------
 
 if (interactive()) {
-  log_betas = seq(from = log(0.1), to = log(1), length = 100)
+  alphas = seq(from = 1/100, to = 1, length = 100)
   ll = vapply(
-      log_betas
-    , tmb_simulator$objective
+      alphas
+    , seir$objective
     , numeric(1L)
   )
-  plot(exp(log_betas), ll, type = "l", las = 1)
-  abline(v = true_beta)
+  plot(alphas, ll, type = "l", las = 1)
+  abline(v = true_alpha)
 }
 
 ## -------------------------
@@ -91,23 +100,27 @@ if (interactive()) {
 ## -------------------------
 
 ## optimize and check convergence
-tmb_simulator$optimize$nlminb()
+## converges with a warning
+seir$optimize$nlminb()
 
 ## plot observed vs predicted
 if (interactive()) {
-  print(tmb_simulator$current$params_frame())
-  print(paste0("exp(default) ",exp(tmb_simulator$current$params_frame()$default)))
-  print(paste0("exp(current) ",exp(tmb_simulator$current$params_frame()$current)))
-  plot(I_obs, type = "l", las = 1)
-  lines(tmb_simulator$report_values()[1:time_steps], col = "red")
+  print(seir$current$params_frame())
+  print(paste0("default alpha ",seir$current$params_frame()$default))
+  print(paste0("current alpha ",seir$current$params_frame()$current))
+  plot(E_obs, type = "l", las = 1)
+  lines(seir$report() %>% filter(matrix=="E") %>% select(time,value), col = "red")
 }
 
 ## -------------------------
 ## exploring
 ## -------------------------
 
-## plot exposed density
+## plot all densities
 if (interactive()) {
-  plot(tmb_simulator$report_values()[time_steps + (1:time_steps)], type = "l", las = 1, ylab='E')
+  ggplot(seir$report(), aes(x=time, y=value, colour=matrix))+
+    geom_line()+
+    theme_bw()+
+    ylab("individuals")
 }
 

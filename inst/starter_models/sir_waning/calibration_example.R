@@ -1,44 +1,72 @@
-source("inst/starter_models/sir_waning/tmb.R")
+#source("inst/starter_models/sir_waning/tmb.R")
+library(macpan2)
 library(ggplot2)
 library(dplyr)
 
+## -------------------------
+## get model spec from library
+## -------------------------
+
+spec = mp_tmb_library("starter_models","sir_waning",package="macpan2")
+spec
 
 ## -------------------------
 ## define simulator
 ## -------------------------
 
-# define objective function
-obj_fn = ObjectiveFunction(~ -sum(log_likelihood))
+# set number of time steps in simulation
+time_steps = 100L
 
 # simulator object
-tmb_simulator = TMBModel(
-    init_mats = init_mats
-  , expr_list = expr_list
-  , obj_fn = obj_fn
-)$simulator()
+sir_waning = mp_simulator(  
+    model = spec
+  , time_steps = time_steps
+  , outputs = c("I","S", "waning_immunity")
+)
 
+## -------------------------
+## specify objective function
+## -------------------------
+
+# negative log likelihood
+obj_fn = ~ -sum(dpois(I_obs, rbind_time(I, I_obs_times)))
+
+# update simulator to create new variables 
+# I_obs and I_obs_times and initialize
+sir_waning$update$matrices(
+    I_obs = empty_matrix
+  , I_obs_times = empty_matrix
+)
+
+# update simulator to include this function
+sir_waning$replace$obj_fn(obj_fn)
 
 ## -------------------------
 ## parameterize model
 ## -------------------------
 
-tmb_simulator$update$transformations(Log("beta"))
-tmb_simulator$replace$params(log(init_mats$get("beta")), "log_beta")
-tmb_simulator
+sir_waning$update$transformations(Log("beta"))
+
+# choose which parameter(s) to estimate - log(beta) and phi
+sir_waning$replace$params(c(log(spec$default$beta),spec$default$phi),
+                          c("log_beta","phi")
+                          )
+
+sir_waning
+
 
 ## -------------------------
 ## simulate fake data
 ## -------------------------
 
-true_beta = 0.5
-time_steps = 100L
+# beta value to simulate data with
+true_beta = 0.3
 
-## set time_steps value
-tmb_simulator$replace$time_steps(time_steps)
+# phi value to simulate data with
+true_phi = 0.09
 
-## feed log(true_beta) to the simulator because we have
-## already specified log-transformation of this parameter
-observed_data = tmb_simulator$report(log(true_beta))
+## simulate observed data using true parameters
+observed_data = sir_waning$report(c(log(true_beta),true_phi))
 
 ## compute incidence for observed data
 I_obs = rpois(time_steps, subset(observed_data, matrix == "I", select = c(value)) %>% pull())
@@ -48,11 +76,12 @@ if (interactive()) {
   plot(I_obs, type = "l", las = 1)
 }
 
+
 ## -------------------------
 ## update simulator with fake data to fit to
 ## -------------------------
 
-tmb_simulator$update$matrices(
+sir_waning$update$matrices(
     I_obs = I_obs
   , I_obs_times = I_obs_times
 )
@@ -61,15 +90,27 @@ tmb_simulator$update$matrices(
 ## plot likelihood surface (curve)
 ## -------------------------
 
+# plot surface as contours
 if (interactive()) {
   log_betas = seq(from = log(0.1), to = log(1), length = 100)
-  ll = vapply(
-      log_betas
-    , tmb_simulator$objective
-    , numeric(1L)
-  )
-  plot(exp(log_betas), ll, type = "l", las = 1)
-  abline(v = true_beta)
+  phis = seq(from = 1e-3, to = 0.2, length = 100)
+  x_y = expand.grid(log_betas, phis) %>% setNames(c("log_betas","phis"))
+
+  ll = apply(
+      x_y
+    , 1
+    , function(z) {sir_waning$objective(z["log_betas"], z["phis"])}
+  ) 
+  
+  dat_for_plot <- cbind(x_y, ll)
+  
+  ggplot(dat_for_plot, aes(log_betas, phis, z=ll)) +
+    geom_contour_filled()+
+    ## add true parameter values to compare
+    geom_vline(xintercept = log(true_beta), col='red')+
+    geom_hline(yintercept = true_phi, col='red')
+
+
 }
 
 ## -------------------------
@@ -77,27 +118,48 @@ if (interactive()) {
 ## -------------------------
 
 ## optimize and check convergence
-tmb_simulator$optimize$nlminb()
+## warning message, but converges
+sir_waning$optimize$nlminb()
 
 ## plot observed vs predicted
 if (interactive()) {
-  print(tmb_simulator$current$params_frame())
-  print(paste0("exp(default) ",exp(tmb_simulator$current$params_frame()$default)))
-  print(paste0("exp(current) ",exp(tmb_simulator$current$params_frame()$current)))
-  plot(I_obs, type = "l", las = 1)
-  lines(tmb_simulator$report_values(), col = "red")
+  
+  ## estimates are close to true values
+  print(sir_waning$current$params_frame())
+  print(paste0("exp(default beta) ",exp(sir_waning$current$params_frame()$default[1])))
+  print(paste0("exp(current beta) ",exp(sir_waning$current$params_frame()$current[1])))
+  print(paste0("default phi ",sir_waning$current$params_frame()$default[2]))
+  print(paste0("current phi ",sir_waning$current$params_frame()$current[2]))
+  
+  
+  data_to_plot <- (cbind(as.numeric(I_obs),1:time_steps)
+                   %>% data.frame()
+                   %>% setNames(c("value","time"))
+                   %>% mutate(type="observed")
+  ) %>% union(sir_waning$report() 
+              %>% filter(matrix=="I") 
+              %>% select(time,value)
+              %>% mutate(type="predicted")
+  )
+
+  ggplot(data_to_plot, aes(x=time, y=value, col=type))+
+    geom_line()+
+    theme_bw()+
+    ylab("I")
+
 }
 
 ## -------------------------
 ## exploring
 ## -------------------------
 
-## plot recovered
+## plot S
 if (interactive()) {
-  plot(tmb_simulator$report_values()[time_steps + (1:time_steps)], type = "l", las = 1, ylab='R')
+  plot(sir_waning$report() %>% filter(matrix=="S") %>% select(time,value),
+       type="l", las = 1, ylab='S')
 }
 
-## plot waning immunity
+## plot waning immunity (phi*R)
 if (interactive()) {
-  plot(tmb_simulator$report_values()[(time_steps*2) + (1:time_steps)], type = "l", las = 1, ylab='Waning Immunity')
+  plot(sir_waning$report() %>% filter(matrix=="waning_immunity") %>% select(time,value), type = "l", las = 1, ylab='Waning Immunity')
 }

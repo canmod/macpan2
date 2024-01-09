@@ -27,9 +27,17 @@ sir = mp_simulator(
 ## specify objective function
 ## -------------------------
 
-# function must be specified as a valid argument to macpan2::ObjectiveFunction()
-# spec$after shows how log_likelihood is computed
-obj_fn = ~ -sum(log_likelihood)
+# negative log likelihood
+# I_obs = observed I
+obj_fn = ~ -sum(dpois(I_obs, rbind_time(I, I_obs_times)))
+
+# update simulator to create new variables 
+# I_obs and I_obs_times and initialize
+sir$update$matrices(
+    I_obs = empty_matrix
+  , I_obs_times = empty_matrix
+)
+
 
 # update simulator to include this function
 sir$replace$obj_fn(obj_fn)
@@ -38,6 +46,7 @@ sir$replace$obj_fn(obj_fn)
 ## parameterize model
 ## -------------------------
 
+# apply parameter transformation
 sir$update$transformations(Log("beta"))
 
 # choose which parameter(s) to estimate
@@ -102,3 +111,4 @@ if (interactive()) {
   plot(I_obs, type = "l", las = 1)
   lines(sir$report_values(), col = "red")
 }
+
