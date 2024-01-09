@@ -37,7 +37,7 @@ flow_rates = list(
 
 state_updates = list(
   S ~ S - S.E
-  , E ~ E + S.E - EI.a - EI.p
+  , E ~ E + S.E - E.Ia - E.Ip
   , Ia ~ Ia + E.Ia - Ia.R
   , Ip ~ Ip + E.Ip - Ip.Im - Ip.Is
   , Im ~ Im + Ip.Im - Im.R
@@ -88,7 +88,7 @@ default = list(
 
 ## model spec
 spec =  mp_tmb_model_spec(
-    before = computations
+    before = c(initialize_state, computations)
   , during = c(flow_rates, state_updates)
   , default = default
 )
