@@ -6,7 +6,6 @@ initialize_state = list(
   , R ~ 0
   , H ~ 0, ICUs ~ 0, ICUd ~ 0, H2 ~ 0
   , D ~ 0
-  , W ~ 0, A ~ 0
 )
 
 computations = list(
@@ -14,7 +13,7 @@ computations = list(
 )
 
 flow_rates = list(
-  S.E ~ S * (beta0 / N) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s))
+    S.E ~ S * (beta0 / N) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s))
   , E.Ia ~ E * alpha * sigma
   , E.Ip ~ E * (1 - alpha)* sigma
   , Ia.R ~ Ia * gamma_a
@@ -28,16 +27,11 @@ flow_rates = list(
   , Is.H ~ Is * (1 - nonhosp_mort) * phi1 * gamma_s
   , ICUd.D ~ ICUd * psi2
   , H.R ~ H * rho
-  , Ia.W ~ Ia * nu
-  , Ip.W ~ Ip * nu 
-  , Im.W ~ Im * nu
-  , Is.W ~ Is * nu
-  , W.A ~ W * xi
 )
 
-state_updates = list(
-  S ~ S - S.E
-  , E ~ E + S.E - EI.a - EI.p
+update_state = list(
+    S ~ S - S.E
+  , E ~ E + S.E - E.Ia - E.Ip
   , Ia ~ Ia + E.Ia - Ia.R
   , Ip ~ Ip + E.Ip - Ip.Im - Ip.Is
   , Im ~ Im + Ip.Im - Im.R
@@ -48,11 +42,10 @@ state_updates = list(
   , H2 ~ H2 + ICUs.H2 - H2.R
   , R ~ R + Ia.R + Im.R + H.R + H2.R
   , D ~ D + ICUd.D
-  , W ~ W + Ia.W + Ip.W + Im.W + Is.W - W.A
-  , A ~ A + W.A
 )
 
-# set defaults
+
+## set defaults
 default = list(
     beta0        = 1        # Baseline (non-intervention) transmission across categories
   , Ca           = 2/3      # relative asymptomatic transmission (or contact)
@@ -68,7 +61,6 @@ default = list(
   , rho          = 1/10     # 1/time in hospital (acute care)
   , delta        = 0        # Fraction of acute-care cases that are fatal
   , mu           = 0.956    # Fraction of symptomatic cases that are mild
-  #, E0           = 5        # Initial number exposed
   , nonhosp_mort = 0        # probability of mortality without hospitalization
   , iso_m        = 0        # Relative self-isolation/distancing of mild cases
   , iso_s        = 0        # Relative self-isolation/distancing of severe cases
@@ -82,13 +74,11 @@ default = list(
   , c_delay_cv   = 0.25     # coefficient of variation of testing delay
   , proc_disp    = 0        # dispersion parameter for process error (0=demog stoch only)
   , zeta         = 0        # phenomenological heterogeneity parameter
-  , nu           = 0.1        # something to do with waste-water
-  , xi           = 0.5        # something to do with waste-water
 )
 
-## model spec
-spec =  mp_tmb_model_spec(
-    before = computations
-  , during = c(flow_rates, state_updates)
+## model specification
+spec = mp_tmb_model_spec(
+    before = c(initialize_state, computations)
+  , during = c(flow_rates, update_state)
   , default = default
 )
