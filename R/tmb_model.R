@@ -248,7 +248,7 @@ TMBModelSpec = function(
     ## are produced and maybe even check if an integer vector
     ## is being used in the wrong numeric vector
     implied_integers = implied_position_vectors(self$default)
-    c(self$implied_integers, self$integers)
+    c(implied_integers, self$integers)
   }
     
   self$empty_matrices = function() {
@@ -380,8 +380,16 @@ mp_simulator.TMBModelSpec = function(model
   model$simulator_fresh(time_steps, outputs, default)
 }
 
+#' 
 #' @export
-mp_calibrate = function(model, data) {}
+mp_calibrator = function(model, data) {
+  
+}
+
+#' @export
+mp_calibrator.TMBModelSpec = function(model, data) {
+  
+}
 
 #' @export
 mp_default = function(model_simulator, ...) {
