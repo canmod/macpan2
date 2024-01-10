@@ -1,8 +1,7 @@
 library(macpan2)
 
 initialize_state = list(
-    I ~ 1
-  , R ~ 0
+    R ~ 0
   , S ~ N - I
 )
 
@@ -22,6 +21,7 @@ default = list(
     beta = 0.2
   , gamma = 0.2
   , N = 100
+  , I = 1
 )
 
 ## model specification

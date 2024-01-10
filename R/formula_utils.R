@@ -65,13 +65,15 @@ to_assign = function(formula, dummy = "dummy") {
 }
 
 ## update formula symbolically with additional formulas
-## in ..., each of which has a lhs matching a symbol in
+## in replacers, each of which has a lhs matching a symbol in
 ## the focal formula and a rhs to replace that symbol with
 update_formula = function(formula, replacers) {
   nms = lapply(replacers, lhs_char)
   l = lapply(replacers, rhs_expr) |> setNames(nms)
   do.call('substitute', list(formula, l))
 }
+
+
 
 ## for character vectors lhs and rhs, return a formula
 one_sided = function(rhs) {

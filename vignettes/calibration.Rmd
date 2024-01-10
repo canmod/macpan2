@@ -15,10 +15,10 @@ editor_options:
 
 ```{r opts, include = FALSE}
 knitr::opts_chunk$set(
-                      collapse = TRUE,
-                      fig.width = 6,
-                      fig.height = 4,
-                      comment = "#>"
+  collapse = TRUE,
+  fig.width = 6,
+  fig.height = 4,
+  comment = "#>"
 )
 ```
 
@@ -47,6 +47,19 @@ We'll do the first thing you should always do when trying out a new fitting proc
 First set up the model from the quickstart guide. For convenience (since we will be using several different versions of this model along the way, and modifying existing models is not quite as simple as it could be), we'll encapsulate this in a function so we can easily re-run it later to generate a new model. (To allow for some flexibility later on, I'm also making the initial state an argument to the function.)
 
 ```{r sir_setup}
+sir_spec = mp_tmb_library("starter_models"
+  , "sir"
+  , package = "macpan2"
+)
+sir_simulator = mp_simulator(sir_spec
+  , time_steps = 100
+  , outputs = c("S", "I", "R")
+  , default = list(N = 100, beta = 0.2, gamma = 0.1)
+)
+sir_results = mp_trajectory(sir_simulator)
+```
+
+```{r sir_setup_old, eval = FALSE}
 mk_sim <- function(init_state = c(S = 99, I = 1, R = 0)) {
     sir = Compartmental(system.file("starter_models", "sir", package = "macpan2"))
     #sir = Compartmental2(system.file("model_library", "sir", package = "macpan2"))
@@ -70,8 +83,8 @@ Add some noise to the prevalence (`I`) value:
 ```{r sir_noise}
 set.seed(101)
 sir_prevalence = (sir_results
-    |> dplyr::select(-c(matrix, col))
-    |> filter(row == "I")
+    |> dplyr::select(-c(row, col))
+    |> filter(matrix == "I")
     |> mutate(obs_val = value + rnorm(n(), sd = 1))
 )
 gg0 <- ggplot(sir_prevalence, aes(time)) +
@@ -84,12 +97,15 @@ print(gg0)
 
 Now we'll use the *experimental* `mk_calibrate()` function from `macpan2helpers` package
 
+
+
+
 ```{r mk_calibrate}
 macpan2helpers::mk_calibrate(sir_simulator,
    data = data.frame(I_obs = sir_prevalence$obs_val),
-   params = list(trans_rates = c(beta = 1), I_sd = 1),
-   transforms = list(trans_rates = c(beta  = "log"), I_sd = "log"),
-   exprs = list(log_lik ~ dnorm(I_obs, I, I_sd))
+   params = list(beta = 1, I_sd = 1),
+   transforms = list(beta = "log", I_sd = "log"),
+   exprs = list(log_lik ~ dnorm(I_obs, rbind_time(I), I_sd))
 )
 ```
 
@@ -98,9 +114,11 @@ Unlike typical R functions, this function modifies the `sim` object *in place* (
 A sanity check: make sure that the starting values give a reasonable-looking trajectory.
 
 ```{r plot1}
-(sir_simulator$report() |>
- filter(matrix == "state", row == "I") |>
- ggplot(aes(time, value)) + geom_line()
+(sir_simulator 
+ |> mp_trajectory()
+ |> filter(matrix == "I")
+ |> ggplot(aes(time, value)) 
+ + geom_line()
 )
 ```
 
@@ -110,7 +128,7 @@ Setting $\log(\beta)=0$ instead gives us a trajectory that is still very unreali
 
 ```{r plot2}
 (sir_simulator$report(c(0,0)) |>
- filter(matrix == "state", row == "I") |>
+ filter(matrix == "I") |>
  ggplot(aes(time, value)) + geom_line()
 )
 ```
@@ -118,7 +136,7 @@ Setting $\log(\beta)=0$ instead gives us a trajectory that is still very unreali
 Let's replace the starting value for `log_beta` with 0:
 
 ```{r repl_param}
-sir_simulator$replace$params(c(0, 1), c("log_trans_rates", "log_I_sd"))
+sir_simulator$replace$params(c(0, 1), c("log_beta", "log_I_sd"))
 ```
 
 (In a proper workflow we might prefer to go back upstream to wherever we defined the default values, rather than resetting the value on the fly ...)
@@ -181,6 +199,24 @@ Here we'll show off a few alternate choices you could have made. We'll (1) use r
 
 ```{r next_example, eval=require("outbreaks")}
 library(outbreaks)
+sir_simulator = mp_simulator(sir_spec
+  , time_steps = 100
+  , outputs = c("S", "I", "R")
+  , default = list(N = 763, I = 3, beta = 1, gamma = 0.5)
+)
+macpan2helpers::mk_calibrate(sir_simulator
+  , data = data.frame(I_obs = influenza_england_1978_school$in_bed)
+  , params = list(beta = 1, gamma = 0.5, I_disp = 1)
+  , transforms = list(beta = "log", gamma = "log", I_disp = "log")
+  , exprs = list(log_lik ~ dnbinom(I_obs, rbind_time(I), I_disp))
+)
+sir_simulator$objective(log(c(1, 0.5, 1)))
+```
+
+
+
+```{r next_example_old, eval=FALSE}
+library(outbreaks)
 sir_simulator <- mk_sim(init_state = c(S = 760, I = 3, R = 0))
 mk_calibrate(sir_simulator,
              data = data.frame(I_obs = influenza_england_1978_school$in_bed),
@@ -198,8 +234,8 @@ How does this look with our default parameters? (To save typing I'm writing a ge
 
 ```{r sim_test, eval=require("outbreaks")}
 sim_plot <- function(pars = log(c(1, 0.5, 1))) {
-    predvals <- (sir_simulator$report(pars, .phases = "during")
-        |> filter(row == "I")
+    predvals <- (sir_simulator$report(pars)
+        |> filter(matrix == "I")
         |> select(time, I_obs = value)
         |> bind_cols(influenza_england_1978_school)
     )
@@ -250,14 +286,14 @@ The fit isn't perfect, but we can think of a number of reasons for that (people 
 
 While this code isn't horribly complex, hopefully it will all be somewhat more streamlined/automated in the future. Computing confidence or prediction intervals is a fairly big subject; see Bolker (2008) chapter 7 for an introduction to some of the issues.
 
-```{r sdreport}
+```{r sdreport_old, eval = FALSE}
 ## sd vector corresponds to the same information as the
 ##  internal 'values' object, which consists of 4 columns
 ##  of indices {matrix index, time, row index, column index}
 ##  and a 5th column that is the actual values ...
-sdr <- TMB::sdreport(sir_simulator$ad_fun()) 
-ss <- sdr$sd |> matrix(ncol = 5)
-timevec <- (sdr$value |> matrix(ncol = 5))[, 2]
+#sdr <- sir_simulator$report_with_sd()
+#ss <- sdr$sd |> matrix(ncol = 5)
+#timevec <- (sdr$value |> matrix(ncol = 5))[, 2]
 
 ## observed values
 obs <- data.frame(time = seq(nrow(influenza_england_1978_school)),
@@ -266,24 +302,41 @@ obs <- data.frame(time = seq(nrow(influenza_england_1978_school)),
 ## a little tricky: we don't yet know how to specify .phases = "during" so that
 ##  we only get values relating to time points, not also to "before sim" and "after sim"
 ##  so we need to drop points 0 and (n+1)
-ss <-  ss[timevec >= 1 & timevec <= nrow(obs),]
-res <- (cbind(sir_simulator$report(.phases = "during"), sd = ss[,5])
-    |> mutate(var = factor(row, levels = c("S", "I", "R")),
-              lwr_delta = value - 1.96*sd,
-              upr_delta = value + 1.96*sd)
-    |> select(-c(matrix, row, col))
-    ## don't necessarily need to keep sd column but ...
-)
+#ss <-  ss[timevec >= 1 & timevec <= nrow(obs),]
+#res <- (cbind(sir_simulator$report(), sd = ss[,5])
+#    |> mutate(var = factor(matrix, levels = c("S", "I", "R")),
+#              lwr_delta = value - 1.96*sd,
+#              upr_delta = value + 1.96*sd)
+#    |> select(-c(matrix, row, col))
+#    ## don't necessarily need to keep sd column but ...
+#)
 ```
 
 Now plot the results:
 
 ```{r sdreport_plot}
-gg_base <- ggplot(res, aes(x = time, y = value)) + geom_line(aes(colour = var)) +
-    geom_point(data = obs)
-gg_ci1 <- gg_base +
-    geom_ribbon(aes(ymin = lwr_delta, ymax = upr_delta, fill = var),
-                alpha = 0.3, colour = NA)
+obs <- data.frame(
+    time = seq(nrow(influenza_england_1978_school))
+  , value = influenza_england_1978_school$in_bed
+)
+res = (sir_simulator$report_with_sd()
+  |> mutate(
+        var = factor(matrix, levels = c("S", "I", "R"))
+      , lwr_delta = value - 1.96 * sd
+      , upr_delta = value + 1.96 * sd
+    )
+)
+gg_base <- (res
+  |> ggplot(aes(x = time, y = value)) 
+  + geom_line(aes(colour = var)) 
+  + geom_point(data = obs)
+)
+gg_ci1 <- (gg_base 
+  + geom_ribbon(
+        aes(ymin = lwr_delta, ymax = upr_delta, fill = var)
+      , alpha = 0.3, colour = NA
+    )
+)
 print(gg_ci1)
 ```
 
@@ -294,6 +347,7 @@ prediction intervals for non-Normal errors are a little bit tricky (maybe someth
 We can also generate intervals based on multivariate normal sampling, which relaxes the second assumption but not the first. Sometimes `sdreport()` is memory-hungry, so below we show how to get the covariance matrix of the parameters directly from the fit (it does take some extra computation). 
 
 ```{r ci_ensemble, eval = require("numDeriv", quietly = TRUE)}
+sdr = sir_simulator$sdreport()
 set.seed(101)
 nsim <- 1000
 par <- fit$par
@@ -348,7 +402,7 @@ sim_ensemble2 <- apply(parvals, 1,
                        function(p) {
                            ## FIXME: misspelling '.phases' gives a 'wrong parameter length arg
                            s <- sir_simulator$report(p, .phases = "during")
-                           v <- s$value[s$row == "I"]
+                           v <- s$value[s$matrix == "I"]
                            ## force mean to be non-negative
                            ## we could also accept the warnings/NA values from negative predictions
                            rnbinom(length(v), mu = pmax(0, v), size = nb_disp)
@@ -429,15 +483,19 @@ For now we're going to revert to the previous fake/simulated data.
 We'll fit to both infection prevalence and number recovered, adding negative binomial observation noise and dropping 50% (approximately) of the observations at random
 
 ```{r irreg1}
-sir_simulator <- mk_sim()
+sir_simulator = mp_simulator(sir_spec
+  , time_steps = 100
+  , outputs = c("S", "I", "R")
+  , default = list(N = 100, beta = 0.2, gamma = 0.1)
+)
 ## `.phases = "during"` is important so that the number of observations matches the number of time steps
 sir_results = sir_simulator$report(.phases = "during")
 set.seed(101)
 subsamp <- function(x, missprob = 0.5) { x[runif(length(x))<missprob] <- NA; x } 
 sir_simdat <- (sir_results
-    |> select(time, row, value)
-    |> filter(row %in% c("I", "R"))
-    |> pivot_wider(names_from = "row", values_from = "value")
+    |> select(time, matrix, value)
+    |> filter(matrix %in% c("I", "R"))
+    |> pivot_wider(names_from = "matrix", values_from = "value")
     |> mutate(I_obs = subsamp(rnbinom(n(), mu = I, size = 4)),
               R_obs = subsamp(rnbinom(n(), mu = R, size = 8)))
     |> select(time, I_obs, R_obs)
@@ -491,7 +549,11 @@ This section explains what is going on under the hood in `macpan2helpers::mk_cal
 Since trying to add the same matrix to a simulator twice causes an error, we'll re-run the `mk_sim()` function to create a new instance of the simulator:
 
 ```{r rebuild1}
-sir_simulator <- mk_sim()
+sir_simulator = mp_simulator(sir_spec
+  , time_steps = 100
+  , outputs = c("S", "I", "R")
+  , default = list(N = 100, beta = 0.2, gamma = 0.1)
+)
 ```
 
 ### Step 1: add observed data and slots for history etc.
@@ -634,75 +696,76 @@ plot(measles$date, measles$cases, type = "l")
 We need to slightly extend the standard SIR model to include waning immunity.
 
 ```{r sir_waning}
-sir = Compartmental(system.file("starter_models", "sir_waning", package = "macpan2"))
-sir$flows()
+computations = list(
+    S ~ N - I
+  , R ~ 0
+)
+flow_rates = list(
+    infection ~ S * I * beta / N
+  , recovery ~ gamma * I
+  , waning_immunity ~ phi * R
+)
+state_updates = list(
+    S ~ S - infection + waning_immunity
+  , I ~ I + infection - recovery
+  , R ~ R + recovery - waning_immunity
+)
+sir = mp_tmb_model_spec(
+    before = computations
+  , during = c(
+      flow_rates
+    , state_updates
+  )
+  # defaults
+  , default = list(
+      N = 100000, I = 1
+    , beta = 0.2, gamma = 0.2, phi = 0.01
+  )
+)
 ```
-
 
 We use [radial basis functions](https://canmod.github.io/macpan2/articles/time_varying_parameters.html#radial-basis-functions-for-flexible-time-variation-in-progress) to model time-variation in the transmission rate.  We also make a variety of questionable assumptions (TODO: fix these), but the point at the moment is just to illustrate usage and provide a proof of concept.
 ```{r rbf}
+#set.seed(1L)
 d = 100
 n = nrow(measles)
-simulator = sir$simulators$tmb(
+simulator = (sir
+  |> mp_simulator(
       time_steps = n
-    , state = c(S = 100000 - 500, I = 500, R = 0)
-    , flow = c(foi = NA_real_, gamma = 0.2, wane = 0.01)
+    , outputs = c("S", "I", "R", "infection")
+    , default = list(
+        N = 100000, I = 500
+      , gamma = 0.2, phi = 0.01
+      , X = rbf(n, d)
+      , b = rnorm(d, sd = 0.01)
+      , eta = empty_matrix
+    )
+  )
+)
     
-    ## this beta does not matter because we will overwrite
-    ## it with the output of the radial basis functions
-    , beta = NA_real_
-    
-    ## FIXME: this is surely not the population of London at
-    ##        all in the series
-    , N = 100000 
-    
-    ## matrices involved in radial basis functions
-    , X = rbf(n, d)
-    , b = rnorm(d, sd = 0.01)
-    , incidence = empty_matrix
-    , eta = empty_matrix
-    
-    , .mats_to_save = c("state", "incidence", "beta")
-    , .mats_to_return = c("state", "incidence", "beta")
-    
-## initial S is a function of initial I, which we
-## fit to data below
-)$insert$expressions(
-    S ~ N - I
-  , .phase = "before"
-  , .at = 1
-  
 ## radial basis function evaluations
-)$insert$expressions(
+simulator$insert$expressions(
     eta ~ gamma * exp(X %*% b)
   , .phase = "before"
   , .at = Inf
-)$insert$expressions(
+)
+simulator$insert$expressions(
     beta ~ eta[time_step(1)] / clamp(S/N, 1/100)
   , .phase = "during"
   , .at = 1
-  
-## save the simulated incidence trajectory to
-## compare with data
-)$insert$expressions(
-    incidence ~ I
-  , .vec_by_states = "total_inflow"
-  , .phase = "during"
-  , .at = Inf
 )
 ```
 
 Here is an example simulation from this model, before fitting to data.
-```{r rbf_ex, fig.width=6}
-set.seed(1L)
-simulated_incidence = filter(simulator$report(.phases = "during"), matrix == "incidence")$value
+```{r rbf_ex, fig.width=6, eval = TRUE}
+simulated_incidence = filter(simulator$report(.phases = "during"), matrix == "infection")$value
 plot(measles$date, simulated_incidence, type = "l", xlab = "time")
 ```
 
 It looks nothing like the observed measles series, but illustrates the ability to generate complex incidence patterns not present in the simple SIR model without radial basis functions and waning immunity.
 
 
-```{r rbf_model, eval=FALSE, echo=TRUE}
+```{r rbf_model, eval=FALSE, echo=FALSE}
 simulator = ("https://github.com"
   |> file.path("canmod/macpan2")
   |> file.path("raw/main")
@@ -714,14 +777,14 @@ simulator = ("https://github.com"
 
 We modify the simulation object to be able to fit to the measles data.
 
-```{r rbf_modify, eval=TRUE}
+```{r rbf_modify, eval=FALSE}
 simulator$add$matrices(
     reports = measles$cases
   , log_lik = empty_matrix
   , sim_reports = empty_matrix
 )
 simulator$insert$expressions(
-    sim_reports ~ rbind_time(incidence)
+    sim_reports ~ rbind_time(infection)
   , .phase = "after"
   , .at = Inf
 )
@@ -732,14 +795,14 @@ simulator$replace$params(
     , 500
   )
   , mat = c(
-      rep("flow", 2L)
-    , rep("b", d)  
-    , "state"
+      c("gamma", "phi")
+    , rep("b", d)
+    , "I"
   )
   , row = c(
-      (1:2)
+      rep(0, 2L)
     , seq_len(d) - 1L
-    , 1
+    , 0L
   )
 )
 simulator$replace$obj_fn(~ - sum(dpois(reports, sim_reports)))
@@ -770,8 +833,16 @@ Not a perfect fit, but not bad for now (TODO: work on this, without papering ove
 Here we consider the problem of fitting an SIR model to a simulated dataset from this model, such that the simulations pose challenges to the fitting machinery.
 
 ```{r logistic_ex}
-sir = Compartmental(system.file("starter_models", "sir", package = "macpan2"))
-sir$flows_expanded()
+#sir = Compartmental(system.file("starter_models", "sir", package = "macpan2"))
+#sir$flows_expanded()
+sir_simulator = mp_simulator(sir_spec
+  , time_steps = 100
+  , outputs = c("S", "I", "R")
+  , default = list(
+      N = 100000, I = 500
+    , beta = 0.2, gamma = 0.2
+  )
+)
 ```
 
 Our simulation model includes a logistically time-varying transmission rate.
@@ -779,32 +850,30 @@ Our simulation model includes a logistically time-varying transmission rate.
 ```{r logistic_sim}
 n = 2500
 set.seed(1L)
-simulator = sir$simulators$tmb(
+simulator = (sir_spec
+  |> mp_simulator(
       time_steps = n
-    , state = c(S = 100000 - 500, I = 500, R = 0)
-    , flow = c(foi = NA, gamma = 0.2)#, wane = 0.01)
-    , beta = 1
-    , N = 100000
-    , X = cbind(1, scale(seq_len(n)))
-    , b = c(0, 1)
-    , incidence = empty_matrix
-    , beta_values = empty_matrix
-    , .mats_to_save = c("state", "incidence", "beta")
-    , .mats_to_return = c("state", "incidence", "beta")
-)$insert$expressions(
+    , outputs = c("S", "I", "R", "beta", "infection")
+    , default = list(
+        N = 100000, I = 500
+      , beta = 0.2, gamma = 0.2
+      , X = cbind(1, scale(seq_len(n)))
+      , b = c(0, 1)
+      , beta_values = empty_matrix
+    )
+  )
+)
+simulator$insert$expressions(
     beta_values ~ 1 / (1 + exp(-X %*% b))
   , .phase = "before"
   , .at = Inf
-)$insert$expressions(
+)
+simulator$insert$expressions(
     beta ~ beta_values[time_step(1)]
   , .phase = "during"
   , .at = 1
-)$insert$expressions(
-    incidence ~ I
-  , .vec_by_states = "total_inflow"
-  , .phase = "during"
-  , .at = Inf
-)$replace$params(
+)
+simulator$replace$params(
     default = c(0, 1)
   , mat = rep("b", 2)
   , row = 0:1
@@ -813,9 +882,9 @@ simulator = sir$simulators$tmb(
 
 ```{r logistic_plot2, fig.height=8, fig.width=6}
 set.seed(5L)
-sims = simulator$report(.phases = "during")
+sims = mp_trajectory(simulator)
 (sims
-  |> mutate(variable = if_else(matrix == "state", row, matrix))
+  |> rename(variable = matrix)
   |> ggplot()
   + facet_wrap(~ variable, ncol = 1, scales = 'free')
   + geom_line(aes(time, value))
@@ -825,10 +894,10 @@ sims = simulator$report(.phases = "during")
 Fitting to the simulation data, manages to converge, but to the wrong value.
 ```{r logistic_bad_converge, fig.width=6}
 set.seed(3L) ## different seeds do result in convergence on the correct value
-reports = filter(sims, matrix == "incidence")$value
+reports = filter(sims, matrix == "infection")$value
 simulator$add$matrices(reports = reports, report_sim = empty_matrix)
 simulator$insert$expressions(
-    report_sim ~ rbind_time(incidence)
+    report_sim ~ rbind_time(infection)
   , .phase = "after"
   , .at = Inf
 )
@@ -842,14 +911,14 @@ simulator$optimize$nlminb()
 simulator$current$params_frame()
 fitted_incidence = (simulator$current$params_vector()
   |> simulator$report()
-  |> filter(matrix == "incidence")
+  |> filter(matrix == "infection")
   |> pull(value)
 )
 plot(reports, type = "l")
 lines(fitted_incidence, col = 2)
 ```
 
-The fit is not good!  Why?  To find out we plot the likelihood surface with arrows representing the magnitude and direction of the down-hill gradient towards the optimum. Notice the very flat gradient in the direction along the valley containing the optimum at $(0, 1)$. The gradient is pointing towards the valley but not along it.  I do not understand why.
+The fit is not good!  Even though we are fitting the extact noiseless data generating model, so why is the fit not good?  To find out we plot the likelihood surface with arrows representing the magnitude and direction of the down-hill gradient towards the optimum. Notice the very flat gradient in the direction along the valley containing the optimum at $(0, 1)$. The gradient is pointing towards the valley but not along it.  I do not understand why.
 
 ```{r logistic_plot_surf, results='hide', message=FALSE}
 make_liksurf <- function(lwr = c(-1, 0), upr = c(1, 2),
@@ -939,7 +1008,7 @@ set.seed(101)
 fit <- DEoptim(simulator$objective, lower = rep(-10, 2), upper = rep(10, 2))
 fitted_incidence = (simulator$ad_fun()$env$last.par.best
     |> simulator$report()
-    |> filter(matrix == "incidence")
+    |> filter(matrix == "infection")
     |> pull(value)
 )
 plot(reports, type = "l")

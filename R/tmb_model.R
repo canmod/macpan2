@@ -492,10 +492,11 @@ labels.LabelsScripts = function(object, ...) {
 TMBSimulationUtils = function() {
   self = Base()
   self$.simulation_formatter = function(r, .phases) {
-    r = setNames(
-      as.data.frame(r$values),
-      c("matrix", "time", "row", "col", "value")
-    )  ## get raw simulation output from TMB and supply column names (which don't exist on the TMB side)
+    ## get raw simulation output from TMB and supply 
+    ## column names (which don't exist on the TMB side)
+    col_names = c("matrix", "time", "row", "col", "value")
+    if (ncol(r$values) == 6L) col_names = append(col_names, "sd")
+    r = setNames(as.data.frame(r$values), col_names)
     r$matrix = self$matrix_names()[r$matrix + 1L]  ## replace matrix indices with matrix names
     dn = self$tmb_model$init_mats$dimnames()  ## get the row and column names of matrices with such names
     for (mat in names(dn)) {
@@ -541,9 +542,14 @@ TMBSimulationUtils = function() {
   }
   self$.runner = function(...
       , .phases = "during"
-      , .method = c("report", "simulate")
+      , .method = c("report", "simulate", "sdreport")
   ) {
     .method = match.arg(.method)
+    compute_sd = FALSE
+    if (.method == "sdreport") {
+      .method = "report"
+      compute_sd = TRUE
+    } 
     fixed_params = as.numeric(unlist(list(...)))
     if (length(fixed_params) == 0L) {
       r = self$ad_fun()[[.method]]()
@@ -558,6 +564,7 @@ TMBSimulationUtils = function() {
         self$.find_problematic_expression(r$expr_row)
       )
     }
+    if (compute_sd) r$values = cbind(r$values, self$sdreport()$sd)
     s = self$.simulation_formatter(r, .phases)
     s = s[order(s$time), , drop = FALSE] ## TODO: move sorting by time to the c++ side
     reset_rownames(s)
@@ -642,6 +649,9 @@ TMBSimulator = function(tmb_model
   self$par.fixed = function() self$sdreport()$par.fixed
   self$report = function(..., .phases = "during") {
     self$.runner(..., .phases = .phases, .method = "report")
+  }
+  self$report_with_sd = function(..., .phases = "during") {
+    self$.runner(..., .phases = .phases, .method = "sdreport")
   }
   self$report_values = function(..., .phases = "during") {
     self$report(..., .phases = .phases)$value

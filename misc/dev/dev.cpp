@@ -2936,10 +2936,10 @@ Type objective_function<Type>::operator() ()
         }
     }
 
-
     REPORT(values)
     if (values_adreport == 1) {
-       ADREPORT(values)
+       matrix<Type> value_column = values.block(0, 4, values.rows(), 1);
+       ADREPORT(value_column)
     }
 
 
