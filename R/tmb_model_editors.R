@@ -118,6 +118,7 @@ TMBSimulatorAdder = function(simulator) {
       , .mats_to_return = .mats_to_return
       , .dimnames = .dimnames
     ) |> self$model$refresh$init_mats()
+    self$simulator$outputs = union(self$simulator$outputs, .mats_to_return)
     self$simulator$cache$invalidate()
     invisible(self$simulator)
   }
@@ -230,6 +231,7 @@ TMBSimulatorUpdater = function(simulator) {
       , .mats_to_return = .mats_to_return
       , .dimnames = .dimnames
     )
+    self$simulator$outputs = union(self$simulator$outputs, .mats_to_return)
     self$simulator$cache$invalidate()
     invisible(self$simulator)
   }

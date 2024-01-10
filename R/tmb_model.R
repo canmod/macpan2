@@ -175,6 +175,8 @@ TMBModel = function(
   )
 }
 
+
+
 #' @export
 TMBModelSpec = function(
       before = list()
@@ -196,6 +198,59 @@ TMBModelSpec = function(
   self$must_not_save = must_not_save
   self$sim_exprs = sim_exprs
   
+  self$expr_insert = function(
+        before_start = list()
+      , before_end = list()
+      , during_start = list()
+      , during_end = list()
+      , after_start = list()
+      , after_end = list()
+      , sim_exprs = character()
+    ) {
+    TMBModelSpec(
+        before = c(before_start, self$before, before_end)
+      , during = c(during_start, self$during, during_end)
+      , after = c(after_start, self$after, after_end)
+      , default = self$default
+      , integers = self$integers
+      , must_save = self$must_save
+      , must_not_save = self$must_not_save
+      , sim_exprs = unique(c(sim_exprs, self$sim_exprs))
+    )
+  }
+  
+  ## check for name ambiguity
+  self$check_names = function() {
+    tmb_model_names = c(names(self$integers), names(self$default))
+    ambiguous = duplicated(tmb_model_names)
+    if (any(ambiguous)) {
+      msg(
+          msg_hline()
+        , msg_colon(
+            msg(
+                "The following names were used more than once"
+              , "(either as names in the default or integers lists,"
+              , "or as names of the elements of vectors in the default list)"
+            )
+          , msg_indent_break(unique(tmb_model_names[ambiguous]))
+        )
+      ) |> stop()
+    }
+    TRUE
+  }
+  ## convert each name of each named vector in the default list into
+  ## an 'implied' integer vector for subsetting vectors in before, during,
+  ## and after expressions by position name
+  self$all_integers = function() {
+    self$check_names()
+    
+    ## TODO: make smarter so that only used integer vectors
+    ## are produced and maybe even check if an integer vector
+    ## is being used in the wrong numeric vector
+    implied_integers = implied_position_vectors(self$default)
+    c(self$implied_integers, self$integers)
+  }
+    
   self$empty_matrices = function() {
     e = ExprList(self$before, self$during, self$after)
     dv = setdiff(e$all_derived_vars(), names(self$default))
@@ -209,6 +264,7 @@ TMBModelSpec = function(
       , default = list()
     ) {
     initial_mats = self$matrices()
+    initial_mats[names(default)] = default
     matrix_outputs = intersect(outputs, names(initial_mats))
     row_outputs = setdiff(outputs, matrix_outputs)
     mats_to_return = (initial_mats
@@ -227,7 +283,7 @@ TMBModelSpec = function(
         init_mats = do.call(
           MatsList
         , c(
-            self$matrices()
+            initial_mats
           , list(
               .mats_to_return = mats_to_return
             , .mats_to_save = mats_to_save
@@ -241,11 +297,10 @@ TMBModelSpec = function(
         , .simulate_exprs = self$sim_exprs
       )
       , engine_methods = EngineMethods(
-        int_vecs = do.call(IntVecs, self$integers)
+        int_vecs = do.call(IntVecs, self$all_integers())
       )
       , time_steps = Time(as.integer(time_steps))
     )$simulator(outputs = outputs, initialize_ad_fun = FALSE)
-    do.call(s$update$matrices, default)
     s$ad_fun()
     s
   }
@@ -271,27 +326,28 @@ mp_tmb_model_spec = function(
     , after = list()
     , default = list()
     , integers = list()
+    , must_save = character()
+    , must_not_save = character()
+    , sim_exprs = character()
   ) {
-  implied_integers = (default
-    |> lapply(names) 
-    |> Filter(f = is.character)
-    |> lapply(to_positions)
-    |> unname()
-    |> unique()
-    |> unlist()
-    |> as.list()
-  )
-  integers = c(
-    implied_integers, 
-    integers
-  )
   
-  ambiguous = integers |> names() |> duplicated() |> any()
-  if (ambiguous) stop("Defaults and integers are ambiguously named.")
-  
-  TMBModelSpec(before, during, after, default, integers)
+  TMBModelSpec(
+      before, during, after
+    , default, integers
+    , must_save, must_not_save
+    , sim_exprs
+  )
 }
 
+mp_tmb_before = function(model, start = list(), end = list()) {
+  TMBModelSpec(
+      before = c(start, model$before, end)
+    , during, after
+    , default, integers
+    , must_save, must_not_save
+    , sim_exprs
+  )
+}
 
 #' Simulator
 #' 
@@ -307,12 +363,20 @@ mp_tmb_model_spec = function(
 #' can be updated or not.
 #' 
 #' @export
-mp_simulator = function(model, time_steps, outputs, default = list()) {
+mp_simulator = function(model
+    , time_steps
+    , outputs
+    , default = list()
+  ) {
   UseMethod("mp_simulator")
 }
 
 #' @export
-mp_simulator.TMBModelSpec = function(model, time_steps, outputs, default = list()) {
+mp_simulator.TMBModelSpec = function(model
+    , time_steps
+    , outputs
+    , default = list()
+  ) {
   model$simulator_fresh(time_steps, outputs, default)
 }
 
@@ -487,7 +551,8 @@ TMBSimulationUtils = function() {
       )
     }
     s = self$.simulation_formatter(r, .phases)
-    s[order(s$time), , drop = FALSE] ## TODO: move sorting by time to the c++ side
+    s = s[order(s$time), , drop = FALSE] ## TODO: move sorting by time to the c++ side
+    reset_rownames(s)
   }
   return_object(self, "TMBSimulationFormatter")
 }

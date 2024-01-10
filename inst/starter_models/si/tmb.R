@@ -10,7 +10,6 @@ flow_rates = list(
     euler = list(
       infection ~ beta * S * I / N
     )
-  
   , hazard = list( ## expected value of the Euler-Binomial
       infection ~ S * (1 - exp(-beta * I / N))
     )
@@ -53,7 +52,7 @@ specs = lapply(flow_rates, \(flow_rates) {
   mp_tmb_model_spec(
       before = initialize_state
     , during = c(flow_rates, update_state)
-    , default = list(N = 100, beta = 0.2, gamma = 0.1)
+    , default = list(N = 100, beta = 0.2)
   )
 })
 

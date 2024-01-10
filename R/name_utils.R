@@ -120,6 +120,21 @@ to_positions.character = function(x) setNames(seq_along(x) - 1L, x)
 #' @export
 to_positions.numeric = as.integer
 
+# take a list of numeric objects and return a list of 
+# length-1 integer vectors giving the position of each 
+# name in each object that has names
+implied_position_vectors = function(numeric_list) {
+  (numeric_list
+    |> lapply(names) 
+    |> Filter(f = is.character)
+    |> lapply(to_positions)
+    |> unname()
+    |> unique()
+    |> unlist()
+    |> as.list()
+  )
+}
+
 list_to_labels = function(...) unlist(lapply(list(...), to_labels), use.names = FALSE)
 list_to_names = function(...) unlist(lapply(list(...), to_names), use.names = FALSE)
 

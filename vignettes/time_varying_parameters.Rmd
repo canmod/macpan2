@@ -112,7 +112,7 @@ plot(I_observed)
 
 Then we add a few matrices to the model for keeping tracking of information used in model fitting.
 ```{r add_matrices}
-simulator$add$matrices(
+simulator$update$matrices(
   
   ## observed data
   I_obs = I_observed,
@@ -183,14 +183,6 @@ data.frame(
 )
 ```
 
-
-## Smooth Time Variation (TODO)
-
-
-## Generalized Linear Models (TODO)
-
-
-
 ## Radial Basis Functions for Flexible Time Variation (In-Progress)
 
 This section uses radial basis functions (RBFs) to generate models with a flexible functional form for smooth changes in the transmission rate.
@@ -198,9 +190,9 @@ This section uses radial basis functions (RBFs) to generate models with a flexib
 Before we can add the fancy radial basis for the transmission rate, we need a base model. We use an SIR model that has been modified to include waning.
 
 ```{r}
-sir = Compartmental(system.file("starter_models", "sir_waning", package = "macpan2"))
-sir$flows()
+sir = mp_tmb_library("starter_models", "sir_waning", package = "macpan2")
 ```
+
 
 The `macpan2::rbf` function can be used to produce a matrix giving the values of each basis function (each column) at each time step (each row). Using this matrix, $X$, and a weights vector, $b$, we can get a flexible output vector, $y$, with a shape that can be modified into a wide variety of shapes by changing the weights vector.
 
@@ -247,49 +239,43 @@ Here is a simulation model with a radial basis for exogenous transmission rate d
 
 ```{r sim_rbf}
 set.seed(1L)
-simulator = sir$simulators$tmb(
-      time_steps = n
-    , state = c(S = 100000 - 500, I = 500, R = 0)
-    , flow = c(foi = NA, gamma = 0.2, wane = 0.01)
-    , beta = 1
-    , N = 100000
+simulator = mp_simulator(sir
+  , time_steps = n
+  , outputs = c("S", "I", "R", "infection", "beta")
+  , default = list(
+      S = 100000 - 500, I = 500, R = 0
+    , beta = 1, gamma = 0.2, phi = 0.01
     , X = rbf(n, d)
     , b = rnorm(d, sd = 0.01)
-    , incidence = empty_matrix
-    , eta = empty_matrix
-    , .mats_to_save = c("state", "incidence", "beta")
-    , .mats_to_return = c("state", "incidence", "beta")
-)$insert$expressions(
+  )
+)
+simulator$insert$expressions(
     eta ~ gamma * exp(X %*% b)
   , .phase = "before"
   , .at = Inf
-)$insert$expressions(
+)
+simulator$insert$expressions(
     beta ~ eta[time_step(1)] / clamp(S/N, 1/100)
   , .phase = "during"
   , .at = 1
-)$insert$expressions(
-    incidence ~ I
-  , .vec_by_states = "total_inflow"
-  , .phase = "during"
-  , .at = Inf
-)$replace$params(
+)
+simulator$add$matrices(
+    eta = empty_matrix
+)
+simulator$replace$params(
     default = rnorm(d, sd = 0.01)
   , mat = rep("b", d)
   , row = seq_len(d) - 1L
 )
+print(simulator)
 ```
 
-**fixme**: explain what the first/unnamed argument of `$report()` is doing? Why are we setting it to a random value here? (As I understand it, it's the parameter vector; `rnorm()` is the same as the default setting for this parameter. Commenting out that term doesn't seem to change anything *because* we have just set the random-number seed? (The default value will be something different because it was evaluated with a different seed ...)
-
 ```{r plot_rbf, fig.height=8, fig.width=6}
-set.seed(5L)
-(simulator$report(## rnorm(d, sd = 0.01),
-                  .phases = "during"  ## report only 'during' time steps
-                  )
-  %>% mutate(variable = if_else(matrix == "state", row, matrix))
-  %>% ggplot()
-  + facet_wrap(~ variable, ncol = 1, scales = 'free')
-  + geom_line(aes(time, value))
+(simulator
+ |> mp_trajectory()
+ |> ggplot()
+ + facet_wrap(~ matrix, ncol = 1, scales = 'free')
+ + geom_line(aes(time, value))
 )
 ```
 
@@ -304,9 +290,9 @@ The next few steps will follow the first example in the [Calibration](./calibrat
 1\. Simulate from the model and add some noise:
 
 ```{r noisy_sim, basefig = TRUE}
-obs_I <- (
-    simulator$report(.phases = "during")
-    |> filter(row == "I", matrix == "state")
+obs_I <- (simulator
+    |> mp_trajectory()
+    |> filter(matrix == "I")
     |> mutate(across(value, ~ rnorm(n(), ., sd = 50)))
     |> pull(value)
 )
@@ -363,13 +349,15 @@ NLL of the data (`-sum(dnorm(I_obs, ...))`) and the likelihood of the RBF parame
 we fit both of the SD parameters on the log scale.
 
 ```{r add_pens}
-simulator$add$matrices(I_sd = 1,
-                       rbf_sd = 1)
+simulator$add$matrices(
+    I_sd = 1
+  , rbf_sd = 1
+)
 simulator$insert$expressions(
-                         log_lik ~ -sum(dnorm(I_obs, rbind_time(I_sim), I_sd)) +
-                             -1*sum(dnorm(b, 0.0, rbf_sd)),
-                         .phase = "after"
-                 )
+     log_lik ~ -sum(dnorm(I_obs, rbind_time(I_sim), I_sd)) +
+         -1*sum(dnorm(b, 0.0, rbf_sd)),
+     .phase = "after"
+)
 ## initially forgot this: maybe we could warn when someone is missing this????
 simulator$replace$obj_fn(~ log_lik)
 simulator$add$transformations(Log("I_sd"))
@@ -436,10 +424,10 @@ fit <- simulator$optimize$nlminb()
 Extract parameters, run the simulator for the best-fit parameters, compare with data ...
 
 ```{r plot_sim, basefig = TRUE}
-pp <- simulator$ad_fun()$env$last.par.best
-est_I <- (
-    simulator$report(pp, .phases = "during")
-    |> filter(row == "I", matrix == "state")
+pp <- simulator$ad_fun()$env$last.par.best  ## FIXME: use this
+est_I <- (simulator
+    |> mp_trajectory()
+    |> filter(matrix == "I")
     |> pull(value)
 )
 par(las = 1, bty = "l")
@@ -455,105 +443,5 @@ lines(est_I, col = 2, lwd = 2)
 **fixme**: compare (1) unpenalized fit; (2) penalized fit without Laplace approximation ...
 
 **fixme**: discuss (somewhere) alternate bases for latent variables (random-walk, Gaussian process, ...)
-
-## Generalized Linear Mixed Models (In-Progress)
-
-```{r, eval=FALSE}
-#set.seed(6L)
-sir = Compartmental(system.file("starter_models", "sir", package = "macpan2"))
-simulator_rand_beta = sir$simulators$tmb(time_steps = 50
-  , state = c(S = 99, I = 1, R = 0)
-  , flow = c(foi = NA, gamma = 0.2)
-  , N = empty_matrix
-  , beta = 0.4
-)
-simulator_rand_beta$add$matrices(
-  beta_eps = norm_beta,
-  beta_mean = log(0.3)
-)
-simulator_rand_beta$insert$expressions(
-    beta ~ 1 / (1 + exp(-beta_mean - beta_eps))
-  , .phase = "during"
-  , .at = 1
-)
-(simulator_rand_beta$report(.phases = "during")
-  %>% filter(row == "I", matrix == "state")
-  %>% ggplot()
-  + facet_wrap(~ matrix, ncol = 1, scales = 'free')
-  + geom_line(aes(time, value))
-)
-observed_I = filter(simulator_rand_beta$report(.phases = "during"), row == "I", matrix == "state")$value
-```
-
-```{r eval = FALSE}
-sir = Compartmental(system.file("starter_models", "sir", package = "macpan2"))
-simulator_step_level_re = sir$simulators$tmb(time_steps = 50
-  , state = c(S = 99, I = 1, R = 0)
-  , flow = c(foi = NA, gamma = 0.2)
-  , N = empty_matrix
-  , beta = 0.8
-)
-simulator_step_level_re$add$matrices(
-    beta_mean = log(0.5)
-  , beta_sd = 1
-  , beta_time_step = rnorm(50, 0, 0.2)
-  , beta_log_density = empty_matrix
-  , I_observed = observed_I
-  , log_lik = empty_matrix
-  , total_log_lik = empty_matrix
-  , .mats_to_save = "log_lik"
-)
-simulator_step_level_re$insert$expressions(
-    beta_log_density ~ sum(dnorm(
-      beta_time_step, 
-      0, 
-      beta_sd
-    ))
-  , .phase = "before"
-)
-simulator_step_level_re$insert$expressions(
-    beta ~ exp(beta_mean + beta_time_step[time_step(1)])
-  , .phase = "during"
-)
-simulator_step_level_re$insert$expressions(
-    log_lik ~ dpois(I_observed[time_step(1)], clamp(I))
-  , .phase = "during"
-  , .at = Inf
-)
-simulator_step_level_re$insert$expressions(
-    total_log_lik ~ sum(rbind_time(log_lik))
-  , .phase = "after"
-)
-simulator_step_level_re$replace$params(
-  default = c(0, 1),
-  mat = c("beta_mean", "beta_sd")
-)
-simulator_step_level_re$replace$random(
-  default = rnorm(50, 0, 1),
-  mat = rep("beta_time_step", 50),
-  row = 0:49
-)
-simulator_step_level_re$replace$obj_fn(
-  ~ -total_log_lik-beta_log_density-dnorm(beta_sd, 0.2, 0.01)
-)
-simulator_step_level_re$optimize$nlminb()
-simulator_step_level_re$optimize$optim()
-#simulator_step_level_re$current$random_frame()
-#simulator_step_level_re$current$params_frame()
-#simulator_step_level_re$ad_fun()$fn(0)
-ggplot(simulator_step_level_re$current$random_frame()) +
-  geom_line(aes(row, current))
-```
-
-
-```{r eval = FALSE}
-#simulator_step_level_re$cache$invalidate()
-#simulator_step_level_re$ad_fun()$gr(-1.23)
-plot(
-  filter(simulator_step_level_re$report(.phases = "during"), row == "I", matrix == "state")$value,
-  observed_I
-)
-abline(0, 1)
-```
 
 ## References

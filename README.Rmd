@@ -134,6 +134,15 @@ TODO
 
 
 
+
+## Interface Specifications
+
+* `mp_model_spec`
+* `mp_tmb_model_spec`
+* `mp_simulator`
+* `mp_trajectory`
+
+
 ## Product Management
 
 The [project board](https://github.com/orgs/canmod/projects/2) tracks the details of bugs, tasks, and feature development. But the following narrative will provide context on product development themes, their current state, and plans for improvement and implementation.
