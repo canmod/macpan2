@@ -5,17 +5,23 @@ initialize_state = list(
   , Y ~ 100 # predator
 )
 
-## exponential prey growth
+
 flow_rates = list(
     ## growth rate of prey
-    growth_x ~ alpha * X
+    growth_x ~ alpha * X * (1 - K_inverse*(X))
     ## mortality rate of predator
   , mortality_y ~ gamma * Y
     ## effects from predation
+    ## compute functional response (f(X) = X, default)
+  , functional_response ~ holling_i(a = a, X = X)
+  
+  # , functional_response ~ holling_iii(a = 5, h = 1, X = X, k = 3)
+  # , functional_response ~ holling_ii(a = 5, h = 1, X = X)
+  
     ## mortality rate of prey (due to predation)
-  , mortality_x ~ beta * X * Y
+  , mortality_x ~ functional_response * Y
     ## growth rate of predator (due to predation)
-  , growth_y ~ delta * X * Y
+  , growth_y ~ delta * functional_response * Y
 )
 
 state_updates = list(
@@ -25,10 +31,14 @@ state_updates = list(
 
 ## set defaults
 default = list(   
-    alpha = 0.1 # prey growth
-  , beta = 0.08 # prey loss from predation
-  , gamma = 0.05 # predator mortality
-  , delta = 0.1 # predator gain from predation
+    alpha = 1e-3       # prey growth
+  #, beta = 1/100      # prey loss from predation
+  , gamma = 0.2        # predator mortality
+  , delta = 1/200      # predator gain from predation
+  , K_inverse = 1/1000 # prey carrying capacity
+  , a = 1e-3           # predator attack rate
+  , h = 1              # handling time
+  
 )
 
 ## model specification
@@ -39,52 +49,36 @@ spec = mp_tmb_model_spec(
 )
 
 
+## functional responses
+
+#' Holling type I
+#'
+#' @param a predator attack rate; prey/predator/time_unit
+#' 
+holling_i <- function(a, X){
+  a * X 
+}
+
+#' Holling type II
+#'
+#' @param a predator attack rate; prey/predator/time_unit
+#' @param h handling time (ex. 1 day)
+#' 
+holling_ii <- function(a, h, X){
+  a * X / (1 + a * h * X)
+}
+
+#' Holling type III
+#' 
+#' @param a predator attack rate; prey/predator/time_unit
+#' @param h handling time (ex. 1 day)
+#' @param k exponent of prey density, k > 1 
+#'
+holling_iii <- function(a, h, X, k){
+  a * (X ^ k) / (1 + a * h * (X ^ k))
+}
 
 
 
-## alternate parameterization of model
-## logistic prey growth, and non-linear functional responses
-# flow_rates = list(
-#   ## growth rate of prey
-#   growth_x ~ alpha * X * (1 - (X/K))
-#   ## mortality rate of predator
-#   , mortality_y ~ gamma * Y
-#   ## effects from predation
-#   ## compute functional response
-#   , functional_response ~ holling_iii(a = 5, h = 1, X = X, k = 3)
-#   #, functional_response ~ holling_ii(a = 5, h = 1, X = X)
-#   ## mortality rate of prey (due to predation)
-#   , mortality_x ~ beta *  functional_response * Y
-#   ## growth rate of predator (due to predation)
-#   , growth_y ~ delta *  functional_response * Y
-# )
 
 
-##########################################
-## old way to specify model and defaults
-
-expr_list =  ExprList(
-    during = c(
-      flow_rates
-    , state_updates
-  )
-  , after = model_evaluation
-)
-
-# set defaults
-init_mats = MatsList(
-    X = 100
-  , Y = 100
-  , alpha = 0.1
-  , beta = 0.08
-  , gamma = 0.05
-  , delta = 0.1
-  , growth_x = empty_matrix
-  , growth_y = empty_matrix
-  , mortality_x = empty_matrix
-  , mortality_y = empty_matrix
-  , I_obs = empty_matrix
-  , I_obs_times = empty_matrix
-  , .mats_to_save = c("X","Y")
-  , .mats_to_return = c("X","Y")
-)

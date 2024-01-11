@@ -28,38 +28,17 @@ state_updates = list(
 
 default = list(
     rx = 0.5
-  , ry = 1.2
-  , axx = 1
-  , ayy = 1.1
-  , axy = 0.4
-  , ayx = 1.3
+  , ry = 0.5
+  , axx = 1/200   # axx = 1/Kx, Kx = carrying capacity of X
+  , ayy = 1/50    # ayy = 1/Ky, Ky = carrying capacity of Y
+  , axy = 0.8/50  # axy = alpha_xy/Ky, alpha_xy=competition coeff of Y on X, Ky = carrying capacity of Y
+  , ayx = 1.5/200 # axy = alpha_yx/Kx, alpha_yx=competition coeff of X on Y, Kx = carrying capacity of X
 )
 
 ## model spec
 spec =  mp_tmb_model_spec(
-    during = c(flow_rates, state_updates)
+    before = initialize_state
+  , during = c(flow_rates, state_updates)
   , default = default
 )
 
-
-
-
-# ## alternate parameterization of model by carrying 
-# ## capacity and relative interspecific effects
-# ## alternate parameterization of model by carrying 
-# ## capacity and relative interspecific effects
-# flow_rates = list(
-#   ## growth rate of species X and Y
-#   growth_x ~ rx * X
-#   , growth_y ~ ry * Y
-#   ## intraspecific effect
-#   ## species X on X
-#   , intraspecific_x ~ growth_x * X / Kx
-#   ## species Y on Y
-#   , intraspecific_y ~ growth_y * Y / Ky
-#   ## interspecific effect
-#   ## species Y on X
-#   , interspecific_xy ~ growth_x * alpha_xy * Y / Kx
-#   ## species X on Y
-#   , interspecific_yx ~ growth_y * alpha_yx * X / Ky
-# )
