@@ -60,12 +60,12 @@ The general predator-prey dynamics incorporating the functional response $f(X)$ 
 
 $$
 \begin{align*}
-\frac{dX}{dt} &= \alpha X - \beta f(X) Y \\
+\frac{dX}{dt} &= \alpha X\left(1-\frac{X}{K}\right) - f(X) Y \\
 \frac{dY}{dt} &= \delta f(X)Y - \gamma Y
 \end{align*}
 $$
 
-
+Note if we parameterize the general dynamics by the inverse of the carrying capacity $K$, we can recover the exponential prey growth model by setting $K^{-1}=0$ and using the Holling type I response with $\beta$ as the attack rate. 
 
 ### Holling type I
 

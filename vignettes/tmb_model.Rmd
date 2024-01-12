@@ -59,8 +59,8 @@ sir = TMBModel(
     during = list(
         dummy ~ assign(rates, foi, 0, params[beta] * state[I] / params[N])
       , flow ~ state[from] * rates
-      , incidence ~ groupSums(flow, to, n_states)
-      , outflow ~ groupSums(flow, from, n_states)
+      , incidence ~ group_sums(flow, to, n_states)
+      , outflow ~ group_sums(flow, from, n_states)
       , state ~ state + incidence - outflow
       , noisy_state ~ rnbinom(state, 10)
     )
