@@ -44,13 +44,16 @@ We'll do the first thing you should always do when trying out a new fitting proc
 
 ### Step 0: set up simulator and generate 'data'
 
-First set up the model from the quickstart guide. For convenience (since we will be using several different versions of this model along the way, and modifying existing models is not quite as simple as it could be), we'll encapsulate this in a function so we can easily re-run it later to generate a new model. (To allow for some flexibility later on, I'm also making the initial state an argument to the function.)
-
-```{r sir_setup}
+We will be using several different versions of the SIR model, all of which can be derived from the specification in the model library.
+```{r sir_spec}
 sir_spec = mp_tmb_library("starter_models"
   , "sir"
   , package = "macpan2"
 )
+```
+
+From this specification we derive our first version of the model, which we use to generate synthetic data to see if optimization can recover the parameters that we use when simulating.
+```{r sir_setup}
 sir_simulator = mp_simulator(sir_spec
   , time_steps = 100
   , outputs = c("S", "I", "R")
@@ -648,9 +651,9 @@ sir_simulator$add$transformations(Log("I_sd"))
 sir_simulator$add$transformations(Log("beta"))
 params <- read.delim(sep = "|", header = TRUE,
                      text = "
-mat       | row | col | default
-log_I_sd  | 0   | 0   | 0
-log_beta  | 0	| 0   | 1
+mat       | default
+log_I_sd  | 0
+log_beta  | 1
 ")
 sir_simulator$replace$params_frame(params)
 ```
@@ -693,43 +696,20 @@ measles$date = as.Date(sprintf(
 plot(measles$date, measles$cases, type = "l")
 ```
 
-We need to slightly extend the standard SIR model to include waning immunity.
+We need to use a slightly extended version of the SIR specification that includes waning immunity.
 
-```{r sir_waning}
-computations = list(
-    S ~ N - I
-  , R ~ 0
-)
-flow_rates = list(
-    infection ~ S * I * beta / N
-  , recovery ~ gamma * I
-  , waning_immunity ~ phi * R
-)
-state_updates = list(
-    S ~ S - infection + waning_immunity
-  , I ~ I + infection - recovery
-  , R ~ R + recovery - waning_immunity
-)
-sir = mp_tmb_model_spec(
-    before = computations
-  , during = c(
-      flow_rates
-    , state_updates
-  )
-  # defaults
-  , default = list(
-      N = 100000, I = 1
-    , beta = 0.2, gamma = 0.2, phi = 0.01
-  )
+```{r sir_waning_spec}
+sir_waning = mp_tmb_library("starter_models"
+  , "sir_waning"
+  , package = "macpan2"
 )
 ```
 
 We use [radial basis functions](https://canmod.github.io/macpan2/articles/time_varying_parameters.html#radial-basis-functions-for-flexible-time-variation-in-progress) to model time-variation in the transmission rate.  We also make a variety of questionable assumptions (TODO: fix these), but the point at the moment is just to illustrate usage and provide a proof of concept.
 ```{r rbf}
-#set.seed(1L)
 d = 100
 n = nrow(measles)
-simulator = (sir
+simulator = (sir_waning
   |> mp_simulator(
       time_steps = n
     , outputs = c("S", "I", "R", "infection")

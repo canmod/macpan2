@@ -277,7 +277,7 @@ simulator = mp_simulator(sir
   , time_steps = n
   , outputs = c("S", "I", "R", "infection", "beta")
   , default = list(
-      S = 100000 - 500, I = 500, R = 0
+      N = 100000, I = 500, R = 0
     , beta = 1, gamma = 0.2, phi = 0.01
     , X = rbf(n, d)
     , b = rnorm(d, sd = 0.01)
