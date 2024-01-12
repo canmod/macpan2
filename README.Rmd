@@ -187,7 +187,7 @@ One option is the same format as the output of `mp_report`. This would have seve
 * Possibly simpler argument list to `mp_calibrate` because we would just relate the observed data to simulated data with the same name, of course we would still need an interface for distributional assumptions.
 * Naturally handles missing values
 
-The main disadvantage of this is that format could differ from the indexed vectors discussed below.
+The main disadvantage of this is that format could differ from the indexed vectors discussed below. But this disadvantage should be fixable by having a way to convert indexed vector lists to the 'long-matrices' format. Actually yes ... this should be totally fine. So the general design is to have a generic S3 method for producing a 'long-matrices' data frame.
 
 
 #### Specifying Distributional Assumptions

@@ -127,8 +127,8 @@ SIR_starter <- function(
       , flow_per_time ~ state[from_states] * rate[flow_rates]
   
       ## state update
-      , total_inflow ~ groupSums(flow_per_time, to_states, state)
-      , total_outflow ~ groupSums(flow_per_time, from_states, state)
+      , total_inflow ~ group_sums(flow_per_time, to_states, state)
+      , total_outflow ~ group_sums(flow_per_time, from_states, state)
       , state ~ state + total_inflow - total_outflow
     )
   )

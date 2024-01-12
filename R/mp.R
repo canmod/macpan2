@@ -125,7 +125,7 @@ mp_triangle = function(x, y_labelling_column_names, exclude_diag = TRUE, lower_t
     f[i, , drop = FALSE],
     g[j, , drop = FALSE]
   )
-  Index(f, names(f))
+  Index(f, labelling_column_names = names(f))
 }
 
 #' Symmetric Self Cartesian Product
@@ -151,7 +151,7 @@ mp_symmetric = function(x, y_labelling_column_names, exclude_diag = TRUE) {
     f[i, , drop = FALSE],
     g[j, , drop = FALSE]
   )
-  Index(f, names(f))
+  Index(f, labelling_column_names = names(f))
 }
 
 #' Linear Chain Product
@@ -174,7 +174,7 @@ mp_linear = function(x, y_labelling_column_names) {
     f[i, , drop = FALSE],
     g[j, , drop = FALSE]
   )
-  Index(f, names(f))
+  Index(f, labelling_column_names = names(f))
 }
 
 #' Subset of Indexes
@@ -193,14 +193,20 @@ mp_linear = function(x, y_labelling_column_names) {
 #' @export
 mp_subset = function(x, ...) {
   partition = mp_choose(x, "pick", ...)$partition
-  Index(partition, x$labelling_column_names, x)
+  Index(partition
+    , labelling_column_names = x$labelling_column_names
+    , reference_index = x
+  )
 }
 
 #' @rdname mp_subset
 #' @export
 mp_setdiff = function(x, ...) {
   partition = mp_choose_out(x, "pick", ...)$partition
-  Index(partition, x$labelling_column_names, x)
+  Index(partition
+    , labelling_column_names = x$labelling_column_names
+    , reference_index = x
+  )
 }
 
 #' Aggregate an Index
@@ -244,7 +250,7 @@ mp_union.Index = function(...) {
     |> unlist(recursive = FALSE, use.names = FALSE)
     |> unique()
   )
-  Index(do.call(union_vars, partitions)$frame(), labelling_column_names)
+  Index(do.call(union_vars, partitions)$frame(), labelling_column_names = labelling_column_names)
 }
 
 ## not used anymore?
@@ -652,7 +658,7 @@ mp_rename = function(x, ...) {
   j = match(old_nms, labs)
   names(f)[i] = new_nms
   labs[j[!is.na(j)]] = new_nms[!is.na(j)]
-  Index(f, labs)
+  Index(f, labelling_column_names = labs)
 }
 
 #' @export

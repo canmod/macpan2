@@ -178,7 +178,13 @@ Index.data.frame = function(partition
     , labelling_column_names = NULL
     , reference_index = NULL
   ) {
-  partition |> Partition() |> Index(labelling_column_names, reference_index)
+  (partition 
+   |> Partition() 
+   |> Index(
+        labelling_column_names = labelling_column_names
+      , reference_index = reference_index
+    )
+  )
 }
 
 #' @export
@@ -187,7 +193,12 @@ Index.Index = function(partition
     , labelling_column_names = NULL
     , reference_index = NULL
   ) {
-  partition$partition |> Index(labelling_column_names, reference_index)
+  (partition$partition 
+   |> Index(
+        labelling_column_names = labelling_column_names
+      , reference_index = reference_index
+    )
+  )
 }
 
 #' @describeIn mp_index Print an index.
@@ -229,14 +240,14 @@ labels.Index = function(x, ...) x$labels()
 mp_index.character = function(..., labelling_column_names) {
   f = data.frame(...)
   if (missing(labelling_column_names)) labelling_column_names = names(f)
-  Index(f, to_names(labelling_column_names))
+  Index(f, labelling_column_names = to_names(labelling_column_names))
 }
 
 #' @export
 mp_index.data.frame = function(..., labelling_column_names) {
   f = list(...) |> bind_rows()
   if (missing(labelling_column_names)) labelling_column_names = names(f)
-  Index(f, to_names(labelling_column_names))
+  Index(f, labelling_column_names = to_names(labelling_column_names))
 }
 
 

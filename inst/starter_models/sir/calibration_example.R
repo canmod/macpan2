@@ -6,7 +6,7 @@ library(macpan2)
 ## get model spec from library
 ## -------------------------
 
-spec = mp_tmb_library("starter_models","sir",package="macpan2")
+spec = mp_tmb_library("starter_models", "sir", package = "macpan2")
 spec
 
 ## -------------------------
@@ -73,6 +73,11 @@ if (interactive()) {
 }
 
 ## -------------------------
+## experimentation
+## -------------------------
+
+
+## -------------------------
 ## update simulator with fake data to fit to
 ## -------------------------
 
@@ -111,4 +116,3 @@ if (interactive()) {
   plot(I_obs, type = "l", las = 1)
   lines(sir$report_values(), col = "red")
 }
-
