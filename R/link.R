@@ -128,8 +128,8 @@ FrameGetter = function(link, dimension_name) {
   self$get_index = function() {
     Index(
       self$get_partition(),
-      self$link$labelling_column_names_list[[self$dimension_name]],
-      self$link$reference_index_list[[self$dimension_name]]
+      labelling_column_names = self$link$labelling_column_names_list[[self$dimension_name]],
+      reference_index = self$link$reference_index_list[[self$dimension_name]]
     )
   }
   self$get_labels = function() {

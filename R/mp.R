@@ -84,11 +84,11 @@ mp_square = function(x, suffixes = c("A", "B")) {
   n2 = sprintf("%s%s", names(x), suffixes[2L])
   x = (x$partition$frame()
     |> setNames(n1)
-    |> Index(l1)
+    |> Index(labelling_column_names = l1)
   )
   y = (x$partition$frame()
     |> setNames(n2)
-    |> Index(l2)
+    |> Index(labelling_column_names = l2)
   )
   mp_cartesian(x, y)
 }
