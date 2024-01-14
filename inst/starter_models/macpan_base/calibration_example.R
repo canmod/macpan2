@@ -29,8 +29,8 @@ macpan_base = mp_simulator(
 ## -------------------------
 
 # interested in estimating asymptomatic relative transmission rate
-macpan_base$replace$params(spec$default$Ca,"Ca")
-
+macpan_base$update$transformations(Log("Ca"))
+macpan_base$replace$params(log(spec$default$Ca),"log_Ca")
 macpan_base
 
 ## -------------------------
@@ -59,7 +59,7 @@ macpan_base$replace$obj_fn(obj_fn)
 true_Ca = 0.8
 
 ## simulate observed data using true parameters
-observed_data = macpan_base$report(true_Ca)
+observed_data = macpan_base$report(log(true_Ca))
 
 ## compute incidence for observed data
 Ia_obs = rpois(time_steps, subset(observed_data, matrix == "Ia", select = c(value)) %>% pull())
@@ -86,23 +86,23 @@ macpan_base$update$matrices(
 # plot surface as contours
 if (interactive()) {
 
-  Ca_seq = seq(from = 0.1, to = 1, length = 100)
+  log_Ca_seq = seq(from = log(0.1), to = log(1), length = 100)
   
   ll = vapply(
-      Ca_seq
+      log_Ca_seq
     , macpan_base$objective
     , numeric(1L)
   )
-  dat_for_plot <- (cbind(Ca_seq, ll)
+  dat_for_plot <- (cbind(log_Ca_seq, ll)
                    %>% data.frame()
 
   )
   
-  ggplot(dat_for_plot, aes(Ca_seq, ll)) +
+  ggplot(dat_for_plot, aes(log_Ca_seq, ll)) +
     geom_line()+
     ## add true parameter values to compare
-    geom_vline(xintercept = true_Ca, col='red')+
-    xlab("Ca")
+    geom_vline(xintercept = log(true_Ca), col='red')+
+    xlab("log(Ca)")
 
 }
 
@@ -118,8 +118,8 @@ if (interactive()) {
   
   ## estimate is close to true
   print(macpan_base$current$params_frame())
-  print(paste0("default Ca ",macpan_base$current$params_frame()$default))
-  print(paste0("current Ca ",macpan_base$current$params_frame()$current))
+  print(paste0("exp(default Ca) ",exp(macpan_base$current$params_frame()$default)))
+  print(paste0("exp(current Ca) ",exp(macpan_base$current$params_frame()$current)))
   
   data_to_plot <- (cbind(as.numeric(Ia_obs),1:time_steps)
                    %>% data.frame()
@@ -131,7 +131,7 @@ if (interactive()) {
               %>% mutate(type="predicted")
   )
   
-  ggplot(data_to_plot, aes(x=time, y=value, col=type))+
+  ggplot(data_to_plot, aes(x=time, y=value, col=type, linetype = type))+
     geom_line()+
     theme_bw()+
     ylab("Ia")
@@ -141,6 +141,33 @@ if (interactive()) {
 ## -------------------------
 ## exploring
 ## -------------------------
+
+## plotting Ia(t) vs. Ia(t+1) - should be linear?
+if (interactive()) {
+  
+  Ia_shifted <- (macpan_base$report()
+                 %>% filter(matrix=="Ia") 
+                 %>% mutate(Ia_lead = lead(value))
+                 %>% rename(Ia=value)
+                )
+  
+  # linear model might not be appropriate
+  # what are the assumptions about error here?
+  lm_fit <- lm(data = Ia_shifted,Ia_lead ~ Ia)
+  summary(lm_fit)
+  
+  ggplot(Ia_shifted, aes(Ia, Ia_lead))+
+    geom_line()+
+    
+    #add lm
+    # geom_abline(intercept = lm_fit$coefficients[1],
+    #             slope = lm_fit$coefficients[2], col="red")+
+  
+    geom_smooth(method = "lm", se = FALSE, col="blue")+
+    theme_bw()
+  
+}
+
 
 ## all infectious compartments
 if (interactive()) {
