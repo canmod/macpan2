@@ -29,3 +29,5 @@ drat/
 ^vignettes/quickstart_products[.]Rmd$
 ^vignettes/sir_radial_basis_transmission[.]Rmd$
 ^vignettes/time_varying_parameters[.]Rmd$
+
+.*/html/.*
