@@ -2248,18 +2248,25 @@ public:
                             SetError(255, "Assignment value matrices must have a single column", row);
                             return m;
                         }
+                        
+                        // apparently we still need this check
+                        v1 = args.get_as_int_vec(1);
+                        v2 = args.get_as_int_vec(2);
+                        printIntVector(v1);
+                        printIntVector(v2);
+                        err_code = args.check_indices(0, v1, v2); // CheckIndices(args[0], args[1], m1);
                         // err_code = CheckIndices(args[0], args[1], args[2]);
-                        // if (err_code) {
-                        //     SetError(MP2_ASSIGN, "Illegal index used in assign", row);
-                        //     return m;
-                        // }
+                        if (err_code) {
+                            SetError(MP2_ASSIGN, "Illegal index used in assign", row);
+                            return m;
+                        }
 
                         rows = args[3].rows();
                         // err_code1 = RecycleInPlace(args[1], rows, cols);
                         // err_code2 = RecycleInPlace(args[2], rows, cols);
-                        v1.push_back(1);
-                        v1.push_back(2);
-                        args = args.recycle_to_shape(v1, rows, cols);
+                        v3.push_back(1);
+                        v3.push_back(2);
+                        args = args.recycle_to_shape(v3, rows, cols);
                         err_code = args.get_error_code();
                         // err_code = err_code1 + err_code2;
                         if (err_code != 0) {
