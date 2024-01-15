@@ -1,14 +1,5 @@
 library(macpan2)
 
-initialize_state = list(
-    S ~ 1.00E+06, E ~ 1
-  , Ia ~ 0, Ip ~0, Im ~ 0, Is ~ 0
-  , R ~ 0
-  , H ~ 0, ICUs ~ 0, ICUd ~ 0, H2 ~ 0
-  , D ~ 0
-  , W ~ 0, A ~ 0
-)
-
 computations = list(
   N ~ sum(S, E, Ia, Ip, Im, Is, R, H, ICUs, ICUd, H2, D)
 )
@@ -84,11 +75,26 @@ default = list(
   , zeta         = 0        # phenomenological heterogeneity parameter
   , nu           = 0.1        # something to do with waste-water
   , xi           = 0.5        # something to do with waste-water
+  # initial states
+  , S = 1.00E+06
+  , E = 1
+  , Ia = 0
+  , Ip = 0
+  , Im = 0
+  , Is = 0
+  , R = 0
+  , H = 0
+  , ICUs = 0
+  , ICUd = 0
+  , H2 = 0
+  , D = 0
+  , W = 0
+  , A = 0
 )
 
 ## model spec
 spec =  mp_tmb_model_spec(
-    before = c(initialize_state, computations)
+    before = computations
   , during = c(flow_rates, state_updates)
   , default = default
 )

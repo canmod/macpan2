@@ -1,10 +1,7 @@
 library(macpan2)
 
 initialize_state = list(
-    I ~ 1
-  , R ~ 0
-  , E ~ 0
-  , S ~ N - I
+  S ~ N - I - R - E
 )
 
 computations = list(
@@ -30,6 +27,9 @@ default = list(
   , alpha = 1/2
   , gamma = 0.1
   , N = 100
+  , I = 1
+  , E = 0
+  , R = 0
   )
 
 ## model specification

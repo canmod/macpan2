@@ -31,11 +31,6 @@ holling_iii <- function(a, h, X, k){
 
 
 ## model 
-initialize_state = list(
-    X ~ 100 # prey
-  , Y ~ 100 # predator
-)
-
 
 flow_rates = list(
     ## growth rate of prey
@@ -70,13 +65,15 @@ default = list(
   , K_inverse = 1/500 # prey carrying capacity
   , a = 1/500         # predator attack rate
   , h = 1             # handling time
+  # initialize state
+  , X = 100 # prey
+  , Y = 100 # predators
   
 )
 
 ## model specification
 spec = mp_tmb_model_spec(
-    before = initialize_state
-  , during = c(flow_rates, state_updates)
+    during = c(flow_rates, state_updates)
   , default = default
 )
 

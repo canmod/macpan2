@@ -2,8 +2,7 @@ library(macpan2)
 integrator = "euler" ## could be euler, hazard, or rk4 (need to add demo_stoch)
 
 initialize_state = list(
-    I ~ 1
-  , S ~ N - 1
+   S ~ N - I
 )
 
 flow_rates = list(
@@ -52,7 +51,7 @@ specs = lapply(flow_rates, \(flow_rates) {
   mp_tmb_model_spec(
       before = initialize_state
     , during = c(flow_rates, update_state)
-    , default = list(N = 100, beta = 0.2)
+    , default = list(N = 100, beta = 0.2, I = 1)
   )
 })
 
