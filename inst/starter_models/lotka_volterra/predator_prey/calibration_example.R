@@ -152,21 +152,25 @@ if (interactive()) {
 }
 
 ## exponential prey growth instead of logistic
-## set K_inverse=0
+## set K_inverse=0, and initial predators to 0
 lv_pred_prey$get$initial("K_inverse")
 
-## define new simulator and update default
+## define new simulator and update defaults
 lv_exp_prey = mp_simulator(
     model = spec
   , time_steps = time_steps
   , outputs = c("X","Y")
-  , default = list("K_inverse" = 0, "alpha"=0.1)
-)
+  , default = list("K_inverse" = 0,"Y"=0)
+) 
 lv_exp_prey$get$initial("K_inverse")
-
+lv_exp_prey$get$initial("Y")
+lv_exp_prey
 ## better way to get initial population size
-#lv_exp_prey$report() %>% filter(matrix=="X" & time==0) %>% select(value)
-## set Y0=0
+#lv_exp_prey$matrix(matrix_name = "X", time_step=0, .phases = "before")
+## set Y[0]=0
+
+#lv_exp_prey$insert$expressions(X ~ 0, .phase="before",.at=1)
+#lv_exp_prey$replace$e
 ggplot(lv_exp_prey$report() %>% filter(matrix=="X"), aes(time,value))+
   geom_line()+
   theme_bw()+
