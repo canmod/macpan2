@@ -1,4 +1,4 @@
-#source("inst/starter_models/lotka_volterra/competition/tmb.R")
+#source("inst/starter_models/lotka_volterra_competition/tmb.R")
 library(macpan2)
 library(ggplot2)
 library(dplyr)
@@ -7,7 +7,7 @@ library(dplyr)
 ## get model spec from library
 ## -------------------------
 
-spec = mp_tmb_library("starter_models","lotka_volterra","competition",package="macpan2")
+spec = mp_tmb_library("starter_models","lotka_volterra_competition",package="macpan2")
 spec
 
 ## -------------------------

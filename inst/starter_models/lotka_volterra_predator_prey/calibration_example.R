@@ -1,4 +1,4 @@
-source("inst/starter_models/lotka_volterra/predator_prey/tmb.R")
+source("inst/starter_models/lotka_volterra_predator_prey/tmb.R")
 library(macpan2)
 library(ggplot2)
 library(dplyr)
@@ -7,7 +7,7 @@ library(dplyr)
 ## get model spec from library
 ## -------------------------
 
-#spec = mp_tmb_library("starter_models","lotka_volterra","predator_prey",package="macpan2")
+#spec = mp_tmb_library("starter_models","lotka_volterra_predator_prey",package="macpan2")
 spec
 
 ## -------------------------
@@ -154,25 +154,65 @@ if (interactive()) {
 ## exponential prey growth instead of logistic
 ## set K_inverse=0
 lv_pred_prey$get$initial("K_inverse")
+lv_pred_prey$get$initial("Y")
 
-## define new simulator and update default
+## define new simulator and update defaults
 lv_exp_prey = mp_simulator(
     model = spec
-  , time_steps = time_steps
+  , time_steps = 10L
   , outputs = c("X","Y")
-  , default = list("K_inverse" = 0, "alpha"=0.1)
-)
+  # by setting initial predator population to 0
+  # prey dynamics should be strictly exponential growth
+  , default = list("K_inverse" = 0,"Y" = 0)
+) 
 lv_exp_prey$get$initial("K_inverse")
+lv_exp_prey$get$initial("Y")
+lv_exp_prey
 
-## better way to get initial population size
-#lv_exp_prey$report() %>% filter(matrix=="X" & time==0) %>% select(value)
-## set Y0=0
+## compute exponential function 
+exp_growth <- (cbind(1:10, as.numeric(lv_exp_prey$get$initial("X"))*(1+as.numeric(lv_exp_prey$get$initial("alpha")))^c(1:10))
+               %>% data.frame()
+               %>% setNames(c("time","value"))
+)
+
+if (interactive()) {
 ggplot(lv_exp_prey$report() %>% filter(matrix=="X"), aes(time,value))+
-  geom_line()+
+  geom_point()+
+  geom_line(data=exp_growth,col="red")+
   theme_bw()+
   ylab("prey")
-
-
+}
 
 ## Holling functions
+
+## check current functional response
+spec$during$fr
+
+## simulating data with different functional responses
+fr_names <- c("holling_1", "holling_2", "holling_3")
+
+fr_sims <- lapply(fr_names,function(x){
+  (mp_simulator(
+      model = specs[[x]]
+    , time_steps = 100L
+    , outputs = c("X","Y"))
+  %>% mp_trajectory()
+  %>% mutate(matrix = case_match(matrix
+                                 , "X" ~ "Prey"
+                                 , "Y" ~ "Predator"),
+             response = x)
+  )
+ }
+) %>% bind_rows()
+
+## visualizing simulated data
+if (interactive()) {
+  ggplot(fr_sims, aes(time,value,linetype=matrix,col=response))+
+    geom_line()+
+    theme_bw()+
+    ylim(c(0,1/spec$default$K_inverse)) #ymax = carrying capacity of prey
+}
+
+
+
 

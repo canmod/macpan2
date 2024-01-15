@@ -1,9 +1,7 @@
 library(macpan2)
 
 initialize_state = list(
-    I ~ 1
-  , R ~ 0
-  , S ~ N - I
+  S ~ N - I - R
 )
 
 computations = list(
@@ -26,9 +24,12 @@ update_state = list(
 default = list(
       beta = 0.2
     , gamma = 0.1
-    , N = 100
     , birth_rate = 0.1
     , death_rate = 0.08
+    , N = 100
+    , I = 1
+    , R = 0
+
 )
 
 ## model specification
