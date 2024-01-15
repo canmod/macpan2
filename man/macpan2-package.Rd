@@ -26,6 +26,7 @@ Authors:
 \itemize{
   \item Weiguang Guan
   \item Ben Bolker
+  \item Jen Freeman
   \item Darren Flynn-Primrose
 }
 
