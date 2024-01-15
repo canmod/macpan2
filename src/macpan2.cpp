@@ -2253,8 +2253,8 @@ public:
                         // apparently we still need this check
                         v1 = args.get_as_int_vec(1);
                         v2 = args.get_as_int_vec(2);
-                        printIntVector(v1);
-                        printIntVector(v2);
+                        //printIntVector(v1);
+                        //printIntVector(v2);
                         err_code = args.check_indices(0, v1, v2); // CheckIndices(args[0], args[1], m1);
                         // err_code = CheckIndices(args[0], args[1], args[2]);
                         if (err_code) {
