@@ -13,7 +13,7 @@
 #' @param int_vec_arg_nms Character vector naming the integer-vector-valued
 #' arguments.
 #'
-#' @nord
+#' @noRd
 MethodPrototype = function(formula, mat_arg_nms, int_vec_arg_nms) {
   self = Base()
   self$formula = formula
@@ -64,7 +64,7 @@ MethodPrototype = function(formula, mat_arg_nms, int_vec_arg_nms) {
 #' @param cls_nm Character string giving the name of the class.
 #' @param meth_type_id Integer giving the associated ID of the method type.
 #'
-#' @nord
+#' @noRd
 mk_meth_cls = function(cls_nm, meth_type_id) {
   pf = parent.frame()
   force(pf)
@@ -83,7 +83,7 @@ mk_meth_cls = function(cls_nm, meth_type_id) {
 #' This class is here so that `MethodTypes`, which is automatically generated
 #' from the C++ code, can inherit from it.
 #'
-#' @nord
+#' @noRd
 MethodTypeUtils = function() {
   self = Base()
 

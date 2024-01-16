@@ -40,7 +40,7 @@ EngineMethods = function(exprs = list(), int_vecs = IntVecs()) {
 #' the two.
 #'
 #' @param engine_methods An object of class EngineMethods
-#' @nord
+#' @noRd
 MethListFromEngineMethods = function(engine_methods) {
   l = list()
   for (nm in names(engine_methods$exprs)) {

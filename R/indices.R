@@ -5,7 +5,10 @@ col_labels = function(x) {
   UseMethod("col_labels")
 }
 
+#' @export
 row_labels.character = function(x) valid$char$assert(x)
+
+#' @export
 col_labels.character = function(x) valid$char$assert(x)
 
 

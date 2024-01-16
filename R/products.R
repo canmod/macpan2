@@ -43,6 +43,7 @@ cartesian = function(x, y) x$products$cartesian(y)
 #' @param .rm Character string giving the dot-concatenated names of columns
 #' to remove from `x`.
 #'
+#' @importFrom utils head
 #' @export
 cartesian_self = function(x, left_filter, right_filter, .wrt, .rm = .wrt) {
   left_prefix = var_case_to_cls_case(left_filter)

@@ -410,6 +410,7 @@ mp_initial = function(model_simulator, ...) {
   UseMethod("mp_initial")
 }
 
+#' @export
 mp_initial.TMBSimulator = function(model_simulator, matrices, params = NULL) {
   (model_simulator
     $replace
@@ -427,6 +428,7 @@ mp_final = function(model_simulator, ...) {
 }
 
 
+#' @export
 mp_final.TMBSimulator = function(model_simulator, time_steps, outputs, ...) {
   (model_simulator
     $replace

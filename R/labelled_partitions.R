@@ -360,12 +360,16 @@ join_partitions = function(x, y, by = "") {
   )
 }
 
+#' @export
 by_ = function(by) UseMethod("by_")
+
+#' @export
 by_.character = function(by) {
   if (identical(nchar(by), 0L) | isTRUE(is.na(by))) return(list())
   by = process_by_char(by)
   list(x = by, y = by)
 }
+#' @export
 by_.formula = function(by) {
   if (is_one_sided(by)) return(by_(rhs_char(by)))
   list(
@@ -373,6 +377,7 @@ by_.formula = function(by) {
     y = process_by_char(rhs_char(by))
   )
 }
+#' @export
 by_.NULL = function(by) list()
 suffixes_ = function(x, y) {
   s = c(names(x)[ncol(x)], names(y)[ncol(y)])
