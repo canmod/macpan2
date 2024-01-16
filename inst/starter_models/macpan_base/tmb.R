@@ -1,13 +1,5 @@
 library(macpan2)
 
-initialize_state = list(
-    S ~ 1.00E+06, E ~ 1
-  , Ia ~ 0, Ip ~0, Im ~ 0, Is ~ 0
-  , R ~ 0
-  , H ~ 0, ICUs ~ 0, ICUd ~ 0, H2 ~ 0
-  , D ~ 0
-)
-
 computations = list(
   N ~ sum(S, E, Ia, Ip, Im, Is, R, H, ICUs, ICUd, H2, D)
 )
@@ -74,11 +66,24 @@ default = list(
   , c_delay_cv   = 0.25     # coefficient of variation of testing delay
   , proc_disp    = 0        # dispersion parameter for process error (0=demog stoch only)
   , zeta         = 0        # phenomenological heterogeneity parameter
+  # initial states
+  , S = 1.00E+06
+  , E = 1
+  , Ia = 0
+  , Ip = 0
+  , Im = 0
+  , Is = 0
+  , R = 0
+  , H = 0
+  , ICUs = 0
+  , ICUd = 0
+  , H2 = 0
+  , D = 0
 )
 
 ## model specification
 spec = mp_tmb_model_spec(
-    before = c(initialize_state, computations)
+    before = computations
   , during = c(flow_rates, update_state)
   , default = default
 )

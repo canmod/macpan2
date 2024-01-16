@@ -48,8 +48,9 @@ seir$replace$obj_fn(obj_fn)
 
 # choose which parameter(s) to estimate
 # 1/alpha = time spent in E compartment
-seir$replace$params(spec$default$alpha,"alpha")
-
+seir$update$transformations(Log("alpha"))
+seir$replace$params(log(spec$default$alpha),"log_alpha")
+seir
 
 ## -------------------------
 ## simulate fake data
@@ -59,7 +60,7 @@ seir$replace$params(spec$default$alpha,"alpha")
 true_alpha = 1/5
 
 ## simulate observed data using true parameters
-observed_data = seir$report(true_alpha)
+observed_data = seir$report(log(true_alpha))
 
 ## compute exposure for each time step
 E_obs = rpois(time_steps, subset(observed_data, matrix == "E", select = c(value)) %>% pull())
@@ -85,14 +86,14 @@ seir$update$matrices(
 ## -------------------------
 
 if (interactive()) {
-  alphas = seq(from = 1/100, to = 1, length = 100)
+  log_alphas = seq(from = log(1/100), to = log(1), length = 100)
   ll = vapply(
-      alphas
+      log_alphas
     , seir$objective
     , numeric(1L)
   )
-  plot(alphas, ll, type = "l", las = 1)
-  abline(v = true_alpha)
+  plot(log_alphas, ll, type = "l", las = 1)
+  abline(v = log(true_alpha))
 }
 
 ## -------------------------
@@ -106,8 +107,8 @@ seir$optimize$nlminb()
 ## plot observed vs predicted
 if (interactive()) {
   print(seir$current$params_frame())
-  print(paste0("default alpha ",seir$current$params_frame()$default))
-  print(paste0("current alpha ",seir$current$params_frame()$current))
+  print(paste0("exp(default alpha) ",exp(seir$current$params_frame()$default)))
+  print(paste0("exp(current alpha) ",exp(seir$current$params_frame()$current)))
   plot(E_obs, type = "l", las = 1)
   lines(seir$report() %>% filter(matrix=="E") %>% select(time,value), col = "red")
 }

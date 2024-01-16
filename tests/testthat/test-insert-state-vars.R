@@ -1,16 +1,30 @@
 test_that("inserted expressions are able to refer to single states/flows", {
-  m = Compartmental(system.file("starter_models", "sir", package = "macpan2"))
-  s = m$simulators$tmb(time_steps = 3
-    , state = c(S = 99, I = 1, R = 0)
-    , flow = c(foi = NA, gamma = 0.2)
-    , beta = 0.4
-    , N = empty_matrix
-    , test_ratio = empty_matrix
-    , .mats_to_return = c("test_ratio", "state")
+  spec = mp_tmb_model_spec(
+      before = list(N ~ sum(state))
+    , during = list(
+        per_capita[foi] ~ beta * state[I] / N
+      , flow_rates ~ per_capita * state[from]
+      , inflow ~ group_sums(flow_rates, to, state)
+      , outflow ~ group_sums(flow_rates, from, state)
+      , state ~ state + inflow - outflow
+    )
+    , default = list(
+        state = c(S = 99, I = 1, R = 0)
+      , per_capita = c(foi = NA, gamma = 0.2)
+      , beta = 0.4
+    )
+    , integers = list(
+        from = c(0, 1)
+      , to = c(1, 2)
+    )
   )
-  s$insert$expressions(test_ratio ~ I / S, .at = Inf, .phase = "during")
-  s$insert$expressions(foi ~ (I/S)^0.5 * beta, .at = 2L, .phase = "during")
-  v = s$report(.phases = "during")
+  s = mp_simulator(spec
+    , time_steps = 50
+    , outputs = c("S", "I")
+  )
+  s$add$matrices(test_ratio = empty_matrix, .mats_to_save = "test_ratio", .mats_to_return = "test_ratio")
+  s$insert$expressions(test_ratio ~ state[I] / state[S], .at = Inf, .phase = "during")
+  v = mp_trajectory(s)
   expect_equal(
     v[v$row == "I", "value"] / v[v$row == "S", "value"],
     v[v$matrix == "test_ratio", "value"]

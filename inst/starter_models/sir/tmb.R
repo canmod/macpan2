@@ -1,8 +1,7 @@
 library(macpan2)
 
 initialize_state = list(
-    R ~ 0
-  , S ~ N - I
+  S ~ N - I - R
 )
 
 flow_rates = list(
@@ -22,6 +21,7 @@ default = list(
   , gamma = 0.2
   , N = 100
   , I = 1
+  , R = 0
 )
 
 ## model specification

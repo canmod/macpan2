@@ -44,38 +44,22 @@ We'll do the first thing you should always do when trying out a new fitting proc
 
 ### Step 0: set up simulator and generate 'data'
 
-First set up the model from the quickstart guide. For convenience (since we will be using several different versions of this model along the way, and modifying existing models is not quite as simple as it could be), we'll encapsulate this in a function so we can easily re-run it later to generate a new model. (To allow for some flexibility later on, I'm also making the initial state an argument to the function.)
-
-```{r sir_setup}
+We will be using several different versions of the SIR model, all of which can be derived from the SIR specification in the model library.
+```{r sir_spec}
 sir_spec = mp_tmb_library("starter_models"
   , "sir"
   , package = "macpan2"
 )
+```
+
+From this specification we derive our first version of the model, which we use to generate synthetic data to see if optimization can recover the parameters that we use when simulating.
+```{r sir_setup}
 sir_simulator = mp_simulator(sir_spec
   , time_steps = 100
   , outputs = c("S", "I", "R")
   , default = list(N = 100, beta = 0.2, gamma = 0.1)
 )
 sir_results = mp_trajectory(sir_simulator)
-```
-
-```{r sir_setup_old, eval = FALSE}
-mk_sim <- function(init_state = c(S = 99, I = 1, R = 0)) {
-    sir = Compartmental(system.file("starter_models", "sir", package = "macpan2"))
-    #sir = Compartmental2(system.file("model_library", "sir", package = "macpan2"))
-    sim <- mp_tmb_simulator(sir,
-                       time_steps = 100,
-                       vectors = list(
-                          state = init_state,
-                          flow_rates = c(foi = NA, gamma = 0.1),
-                          trans_rates = c(beta = 0.2)
-                       )
-    )
-    return(sim)
-}
-sir_simulator <- mk_sim()
-## `.phases = "during"` is important so that the number of observations matches the number of time steps
-sir_results = sir_simulator$report()
 ```
 
 Add some noise to the prevalence (`I`) value:
@@ -122,7 +106,7 @@ A sanity check: make sure that the starting values give a reasonable-looking tra
 )
 ```
 
-The simulated trajectory is **not** sensible in this case - the `log_beta` value is way too large (we set the default to $\exp(1) \approx `r round(exp(1), 2)$), while we know in this case that the true value is 0.2). Hopefully in a real system we would know enough to get reasonable order-of-magnitude starting values. (If we really knew that $\gamma \approx 0.1$, we would know that a starting value of $\log(\beta)=1$ would correspond to an ${\cal R}_0 \approx 28$, clearly unrealistic for most infectious diseases ...
+The simulated trajectory is **not** sensible in this case - the `log_beta` value is way too large (we set the default to ${\exp(1) \approx}$ `r round(exp(1), 2)`), while we know in this case that the true value is 0.2). Hopefully in a real system we would know enough to get reasonable order-of-magnitude starting values. (If we really knew that $\gamma \approx 0.1$, we would know that a starting value of $\log(\beta)=1$ would correspond to an ${\cal R}_0 \approx 28$, clearly unrealistic for most infectious diseases ...
 
 Setting $\log(\beta)=0$ instead gives us a trajectory that is still very unrealistic (the peak of our observed prevalence is only 16.7), but at least it's smooth. As it turns out this will be good enough, but finding appropriate starting values (based on external information and some trial and error) is often a significant part of a modeling workflow.
 
@@ -136,7 +120,10 @@ Setting $\log(\beta)=0$ instead gives us a trajectory that is still very unreali
 Let's replace the starting value for `log_beta` with 0:
 
 ```{r repl_param}
-sir_simulator$replace$params(c(0, 1), c("log_beta", "log_I_sd"))
+sir_simulator$replace$params(
+    c(0         , 1         )
+  , c("log_beta", "log_I_sd")
+)
 ```
 
 (In a proper workflow we might prefer to go back upstream to wherever we defined the default values, rather than resetting the value on the fly ...)
@@ -187,8 +174,9 @@ These correspond to true values of 0.2, 1, so pretty close.
 The best-fit parameters are stored *internally*, so if we re-run the `$report()` method we will get information about the predicted best-fit trajectory:
 
 ```{r plot_results}
-sim_vals <- (sir_simulator$report(.phases = "during")
-    |> filter(matrix == "state", row == "I")
+sim_vals <- (sir_simulator
+  |> mp_trajectory()
+  |> filter(matrix == "I")
 )
 gg0 + geom_line(data = sim_vals, aes(y= value), colour = "red")
 ```
@@ -210,21 +198,6 @@ macpan2helpers::mk_calibrate(sir_simulator
   , transforms = list(beta = "log", gamma = "log", I_disp = "log")
   , exprs = list(log_lik ~ dnbinom(I_obs, rbind_time(I), I_disp))
 )
-sir_simulator$objective(log(c(1, 0.5, 1)))
-```
-
-
-
-```{r next_example_old, eval=FALSE}
-library(outbreaks)
-sir_simulator <- mk_sim(init_state = c(S = 760, I = 3, R = 0))
-mk_calibrate(sir_simulator,
-             data = data.frame(I_obs = influenza_england_1978_school$in_bed),
-             params = list(trans_rates = c(beta = 1), flow_rates = c(gamma = 0.5), I_disp = 1),
-             transforms = list(trans_rates = c(beta = "log"), flow_rates = c(gamma = "log"), I_disp = "log"),
-             exprs = list(log_lik ~ dnbinom(I_obs, I, I_disp))
-             )
-## basic sanity check
 sir_simulator$objective(log(c(1, 0.5, 1)))
 ```
 
@@ -286,34 +259,6 @@ The fit isn't perfect, but we can think of a number of reasons for that (people 
 
 While this code isn't horribly complex, hopefully it will all be somewhat more streamlined/automated in the future. Computing confidence or prediction intervals is a fairly big subject; see Bolker (2008) chapter 7 for an introduction to some of the issues.
 
-```{r sdreport_old, eval = FALSE}
-## sd vector corresponds to the same information as the
-##  internal 'values' object, which consists of 4 columns
-##  of indices {matrix index, time, row index, column index}
-##  and a 5th column that is the actual values ...
-#sdr <- sir_simulator$report_with_sd()
-#ss <- sdr$sd |> matrix(ncol = 5)
-#timevec <- (sdr$value |> matrix(ncol = 5))[, 2]
-
-## observed values
-obs <- data.frame(time = seq(nrow(influenza_england_1978_school)),
-                  value = influenza_england_1978_school$in_bed)
-
-## a little tricky: we don't yet know how to specify .phases = "during" so that
-##  we only get values relating to time points, not also to "before sim" and "after sim"
-##  so we need to drop points 0 and (n+1)
-#ss <-  ss[timevec >= 1 & timevec <= nrow(obs),]
-#res <- (cbind(sir_simulator$report(), sd = ss[,5])
-#    |> mutate(var = factor(matrix, levels = c("S", "I", "R")),
-#              lwr_delta = value - 1.96*sd,
-#              upr_delta = value + 1.96*sd)
-#    |> select(-c(matrix, row, col))
-#    ## don't necessarily need to keep sd column but ...
-#)
-```
-
-Now plot the results:
-
 ```{r sdreport_plot}
 obs <- data.frame(
     time = seq(nrow(influenza_england_1978_school))
@@ -344,7 +289,7 @@ print(gg_ci1)
 - These are confidence intervals, not prediction intervals (so we don't necessarily expect the points to lie within the envelope);
 prediction intervals for non-Normal errors are a little bit tricky (maybe something about this in Bolker 2008?), not worth doing right now.
 
-We can also generate intervals based on multivariate normal sampling, which relaxes the second assumption but not the first. Sometimes `sdreport()` is memory-hungry, so below we show how to get the covariance matrix of the parameters directly from the fit (it does take some extra computation). 
+We can also generate intervals based on multivariate normal sampling, which relaxes the second assumption but not the first. Sometimes calculating the standard deviations of the predictions is memory-hungry, so below we show how to get the covariance matrix of the parameters directly from the fit (it does take some extra computation). 
 
 ```{r ci_ensemble, eval = require("numDeriv", quietly = TRUE)}
 sdr = sir_simulator$sdreport()
@@ -392,7 +337,7 @@ stopCluster(cl)
 stopifnot(all.equal(sim_ensemble, sim2)) ## identical 
 ```
 
-We can also compute prediction intervals via ensemble, by adding the appropriate amount of negative binomial noise to each simulation. However, it only makes sense to add this *observation error* to the I time series (if we had more than one observed time series we would probably want to estimate separate dispersion parameters for each series), so we'll adapt the ensemble code to pick out only the I values before adding noise:
+We can also compute prediction intervals via ensemble, by adding the appropriate amount of negative binomial noise to each simulation. However, it only makes sense to add this *observation error* to the `I` time series (if we had more than one observed time series we would probably want to estimate separate dispersion parameters for each series), so we'll adapt the ensemble code to pick out only the `I` values before adding noise:
 
 ```{r pred_int}
 ## negative binomial dispersion ('size') parameter
@@ -546,7 +491,7 @@ This section explains what is going on under the hood in `macpan2helpers::mk_cal
 
 ### Step 0: recreate the simulator
 
-Since trying to add the same matrix to a simulator twice causes an error, we'll re-run the `mk_sim()` function to create a new instance of the simulator:
+Since trying to add the same matrix to a simulator twice causes an error, we'll create a new instance of the simulator:
 
 ```{r rebuild1}
 sir_simulator = mp_simulator(sir_spec
@@ -558,7 +503,7 @@ sir_simulator = mp_simulator(sir_spec
 
 ### Step 1: add observed data and slots for history etc.
 
-While the files specified in the model definition (`variables.csv`, `derivations.csv`, `settings.json`, `flows.csv`) are sufficient to define a simulator, we now need to add more structure to the model object so we can do the calibration - specifically, both whatever observed data we want to compare against, and whatever new variables ("matrices") and expressions we will evaluate to compute the goodness of fit (aka the loss function or objective function) of a particular set of parameters.
+While the files in the model library are sufficient to define a simulator, we now need to add more structure to the model object so we can do the calibration - specifically, both whatever observed data we want to compare against, and whatever new variables ("matrices") and expressions we will evaluate to compute the goodness of fit (aka the loss function or objective function) of a particular set of parameters.
 
 If we have a `TMBSimulator` object (i.e., `sir_simulator` in this example), the `$add$matrices()` method will add new variables to the space where the object has already stored the state variables, etc. (you use `sir_simulator$matrix_names()` to list the existing matrices, although this produces a long, scary list of internal variables that `macpan2` has constructed)
 
@@ -630,8 +575,7 @@ sir_simulator$insert$expressions(
   )
 ```
 
-Define the objective function (which will almost always be the sum
-of the negative log-likelihoods for each point):
+Define the objective function (which will almost always be the sum of the negative log-likelihoods for each point):
 
 ```{r add_loglik}
 sir_simulator$replace$obj_fn(~ -sum(log_lik))
@@ -648,9 +592,9 @@ sir_simulator$add$transformations(Log("I_sd"))
 sir_simulator$add$transformations(Log("beta"))
 params <- read.delim(sep = "|", header = TRUE,
                      text = "
-mat       | row | col | default
-log_I_sd  | 0   | 0   | 0
-log_beta  | 0	| 0   | 1
+mat       | default
+log_I_sd  | 0
+log_beta  | 1
 ")
 sir_simulator$replace$params_frame(params)
 ```
@@ -693,43 +637,20 @@ measles$date = as.Date(sprintf(
 plot(measles$date, measles$cases, type = "l")
 ```
 
-We need to slightly extend the standard SIR model to include waning immunity.
+We need to use a slightly extended version of the SIR specification that includes waning immunity.
 
-```{r sir_waning}
-computations = list(
-    S ~ N - I
-  , R ~ 0
-)
-flow_rates = list(
-    infection ~ S * I * beta / N
-  , recovery ~ gamma * I
-  , waning_immunity ~ phi * R
-)
-state_updates = list(
-    S ~ S - infection + waning_immunity
-  , I ~ I + infection - recovery
-  , R ~ R + recovery - waning_immunity
-)
-sir = mp_tmb_model_spec(
-    before = computations
-  , during = c(
-      flow_rates
-    , state_updates
-  )
-  # defaults
-  , default = list(
-      N = 100000, I = 1
-    , beta = 0.2, gamma = 0.2, phi = 0.01
-  )
+```{r sir_waning_spec}
+sir_waning = mp_tmb_library("starter_models"
+  , "sir_waning"
+  , package = "macpan2"
 )
 ```
 
 We use [radial basis functions](https://canmod.github.io/macpan2/articles/time_varying_parameters.html#radial-basis-functions-for-flexible-time-variation-in-progress) to model time-variation in the transmission rate.  We also make a variety of questionable assumptions (TODO: fix these), but the point at the moment is just to illustrate usage and provide a proof of concept.
 ```{r rbf}
-#set.seed(1L)
 d = 100
 n = nrow(measles)
-simulator = (sir
+simulator = (sir_waning
   |> mp_simulator(
       time_steps = n
     , outputs = c("S", "I", "R", "infection")
@@ -833,8 +754,6 @@ Not a perfect fit, but not bad for now (TODO: work on this, without papering ove
 Here we consider the problem of fitting an SIR model to a simulated dataset from this model, such that the simulations pose challenges to the fitting machinery.
 
 ```{r logistic_ex}
-#sir = Compartmental(system.file("starter_models", "sir", package = "macpan2"))
-#sir$flows_expanded()
 sir_simulator = mp_simulator(sir_spec
   , time_steps = 100
   , outputs = c("S", "I", "R")

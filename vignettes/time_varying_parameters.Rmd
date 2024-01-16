@@ -31,7 +31,7 @@ knitr::knit_hooks$set(basefig = basefig_setup)
 
 ## Baseline SIR Model
 
-Here we modify an [SIR](https://canmod.github.io/macpan2/articles/quickstart) model so that transmission rate is time-varying.
+Here we modify an [SIR](https://github.com/canmod/macpan2/tree/main/inst/starter_models/sir) model so that transmission rate is time-varying.
 
 ```{r baseline_sir}
 state_labels = c("S", "I", "R")
@@ -45,7 +45,8 @@ simulator = ("starter_models"
 (simulator
   |> mp_trajectory()
   |> mutate(state = factor(matrix, state_labels))
-  |> ggplot() + geom_line(aes(time, value, colour = state))
+  |> ggplot() 
+  + geom_line(aes(time, value, colour = state))
 )
 ```
 
@@ -82,9 +83,10 @@ simulator$insert$expressions(
 )
 ```
 
-And that's it.  Now we plot the updated simulations using these change-points, which we highlight with vertical lines.
+Now we plot the updated simulations using these change-points, which we highlight with vertical lines.
 ```{r time_varying_graph}
 s = mp_trajectory(simulator)
+cp = simulator$get$initial("beta_changepoints")
 (s
   %>% mutate(state = factor(matrix, state_labels))
   %>% ggplot()
@@ -93,19 +95,20 @@ s = mp_trajectory(simulator)
     aes(xintercept = x), 
     linetype = "dashed", 
     alpha = 0.5, 
-    data = data.frame(x = simulator$get$initial("beta_changepoints"))
+    data = data.frame(x = cp)
   )
 )
 ```
+
+The clear kinks at times 10 and 15 are due the drop and then lift of the transmission rate at these times.
 
 ## Calibrating Time Variation Parameters
 
 First we simulate data to fit our model to, to see if we can recover the time-varying parameters.
 ```{r noisy_data, basefig = TRUE}
 set.seed(1L)
-I_observed = rpois(
-  50, 
-  filter(s, matrix == "I")$value
+I_observed = rpois(50
+  , filter(s, matrix == "I")$value
 )
 plot(I_observed)
 ```
@@ -150,14 +153,22 @@ simulator$insert$expressions(
 simulator$replace$obj_fn(~ -sum(log_lik))
 ```
 
-Next we declare the beta values as parameters to be optimized on the log scale.
+Next we declare the beta values as parameters to be optimized on the log scale. The clearest way to do this is to form a data frame with one row for each parameter to be fitted.
+```{r params_frame}
+default_beta = mean(simulator$get$initial("beta_values"))
+params_to_fit = data.frame(
+    mat = "log_beta_values"
+  , row = 0:2
+  , default = log(default_beta)
+)
+print(params_to_fit)
+```
+There are a couple potentially confusing aspects to this data frame. First, we want to fit the `beta` values on the log scale, and we indicate this by prepending `log_` in front of the name of the `beta_values` matrix that is in the model. We will more explicitly add the `log_beta_values` matrix to the model in the next code chunk. Second, the word `row` corresponds to an index for the change points. In particular, `row = 0` corresponds to the initial `beta`, `row = 1` to the first change point and `row = 2` to the second. This is because all quantities passed to `macpan2` engines are matrices, and so in this case different rows of this `log_beta_values` matrix (actually column vector) correspond to different change points. If we were dealing with matrices with more than one column we would need to include a `col` column in this data frame to indicate the matrix columns of the matrix entries that correspond to parameters to be fitted.
+
+Now we log transform the `beta_values` matrix entries and declare them as parameters.
 ```{r params}
 simulator$add$transformations(Log("beta_values"))
-simulator$replace$params(
-  default = log(mean(simulator$get$initial("beta_values"))),
-  mat = rep("log_beta_values", 3L),
-  row = 0:2
-)
+simulator$replace$params_frame(params_to_fit)
 ```
 
 Finally we fit the model back to the simulation data.
@@ -165,14 +176,20 @@ Finally we fit the model back to the simulation data.
 simulator$optimize$nlminb()
 ```
 
-We can see that the optimizer converges (i.e. `$convergence = 0`) in 26 iterations.
+```{r optimization_check, echo = FALSE}
+if (simulator$optimization_history$get()[[1L]]$convergence  != 0) {
+  stop("time-varying optimization example is no longer converging")
+}
+```
+
+We can see that the optimizer converges (i.e. `$convergence = 0`) in `r simulator$optimization_history$get()[[1L]]$iterations` iterations.
 
 On the log scale we see that the optimizer finds different values (`current`) than it started at (`default`).
 ```{r log_parameters}
 simulator$current$params_frame()
 ```
 
-More importantly the beta values on the untransformed scale recover to the values used in the simulations, although the second fitted beta value is much smaller than the true value.
+More importantly the beta values on the untransformed scale recover reasonable values that are qualitatively consistent with the values used in the simulations.
 ```{r recovered_parameters}
 data.frame(
   fitted = formatC(
@@ -182,6 +199,7 @@ data.frame(
   true = simulator$get$initial("beta_values")
 )
 ```
+Note however that the second fitted beta value is much smaller than the true value, which is potentially interesting.
 
 ## Radial Basis Functions for Flexible Time Variation (In-Progress)
 
@@ -190,11 +208,14 @@ This section uses radial basis functions (RBFs) to generate models with a flexib
 Before we can add the fancy radial basis for the transmission rate, we need a base model. We use an SIR model that has been modified to include waning.
 
 ```{r}
-sir = mp_tmb_library("starter_models", "sir_waning", package = "macpan2")
+sir = mp_tmb_library("starter_models"
+  , "sir_waning"
+  , package = "macpan2"
+)
 ```
 
 
-The `macpan2::rbf` function can be used to produce a matrix giving the values of each basis function (each column) at each time step (each row). Using this matrix, $X$, and a weights vector, $b$, we can get a flexible output vector, $y$, with a shape that can be modified into a wide variety of shapes by changing the weights vector.
+The `macpan2::rbf` function can be used to produce a matrix giving the values of each basis function (each column) at each time step (each row). Using this matrix, $X$, and a weights vector, $b$, we can get a flexible output vector, $y$, with a shape that can be modified by changing the weights vector.
 
 $$
 y = Xb
@@ -208,18 +229,31 @@ d = 20
 n = 2500
 X = rbf(n, d)
 b = rnorm(d, sd = 0.01)
-par(mfrow = c(3, 1), mar = c(0.5, 4, 1, 1) + 0.1)
-matplot(X, type = "l", lty = 1, col = 1, ylab = "basis functions", axes = FALSE)
+par(mfrow = c(3, 1)
+  , mar = c(0.5, 4, 1, 1) + 0.1
+)
+matplot(X
+  , type = "l", lty = 1, col = 1
+  , ylab = "basis functions"
+  , axes = FALSE
+)
 axis(side = 2)
 box()
-barplot(b, xlab = "", ylab = "weights")
+barplot(b
+  , xlab = ""
+  , ylab = "weights"
+)
 par(mar = c(5, 4, 1, 1) + 0.1)
-plot(X %*% b, type = "l", xlab = "time", ylab = "output")
+plot(X %*% b
+  , type = "l"
+  , xlab = "time"
+  , ylab = "output"
+)
 ```
 
 Here `d` is the dimension of the basis, or number of functions, and `n` is the number of time steps. By multiplying the uniform basis matrix (top panel) by a set of weights (middle panel), we obtain a non-uniform curve (bottom panel). Note how the peaks (troughs) in the output are associated with large positive (negative) weights.
 
-Now we want transform the output of the (matrix) product of the RBF matrix and the weights vector into a time-series for the transmission rate, $\beta$. Although we could just use the output vector as the $\beta$ time series, it is more convenient to transform it so that the $\beta$ values yield more interesting dynamics in an SIR model. In particular, our model for $\beta_t$ as a function of time, $t$, is
+Now we want to transform the output of the (matrix) product of the RBF matrix and the weights vector into a time-series for the transmission rate, $\beta$. Although we could just use the output vector as the $\beta$ time series, it is more convenient to transform it so that the $\beta$ values yield more interesting dynamics in an SIR model. In particular, our model for $\beta_t$ as a function of time, $t$, is
 
 $$
 \log(\beta_t) = \log(\gamma_t) + \log(N) - \log(S_t) + x_tb
@@ -231,7 +265,7 @@ $$
 \frac{\beta_t S_t}{N} = \gamma_t
 $$
 
-This condition assures that the number of infected individuals remains constant at time, $t$. This means that positive values of $b$ will tend to generate outbreaks and negative values will tend to reduce transmission. Because of the local nature of RBFs, we don't need to set all coefficients of $b$ to zero to achieve the same results in practice -- we only need to work with the coefficients of the basis functions that are appreciably greater than zero at $t$.  **fixme**: clarify last sentence?
+This condition assures that the number of infected individuals remains constant at time, $t$. This means that positive values of $b$ will tend to generate outbreaks and negative values will tend to reduce transmission.
 
 **fixme**: I (BMB) understand why you're setting the model up this way, but it's an odd/non-standard setup - may confuse people who are already familiar with epidemic models (it confused me initially).
 
@@ -243,7 +277,7 @@ simulator = mp_simulator(sir
   , time_steps = n
   , outputs = c("S", "I", "R", "infection", "beta")
   , default = list(
-      S = 100000 - 500, I = 500, R = 0
+      N = 100000, I = 500, R = 0
     , beta = 1, gamma = 0.2, phi = 0.01
     , X = rbf(n, d)
     , b = rnorm(d, sd = 0.01)
@@ -281,11 +315,11 @@ print(simulator)
 
 ### Calibration
 
-Now we're going to try to calibrate this model to data. The main innovation here is that we will use a 
+Now we're going to calibrate this model to data. The main innovation here is that we will use a 
 built-in feature of [TMB](https://cran.r-project.org/package=TMB) (on which `macpan2` is constructed),
 estimation of latent variables by [Laplace approximation](https://en.wikipedia.org/wiki/Laplace%27s_approximation) to fit the time series efficiently without overfitting (see section 5.10 of @madsenIntroduction2011, @kristensenTMB2016, or the [TMB documentation](https://kaskr.github.io/adcomp/_book/Tutorial.html#statistical-modelling) for more detail).
 
-The next few steps will follow the first example in the [Calibration](./calibration.html) vignette:
+The next few steps will roughly follow the first example in the [Calibration](./calibration.html) vignette: TODO: make sure to line this state up with the specific code in the calibration vignette.
 
 1\. Simulate from the model and add some noise:
 
@@ -301,23 +335,22 @@ plot(obs_I, xlab = "time", ylab = "prevalence")
 
 2\. Add calibration information.
 
-
 We start by adding standard boilerplate stuff to include the observed data and store/return the results.
 
 ```{r add_calib_info}
 ## copied from 'calibration/"hello world"' example
 simulator$add$matrices(
-              I_obs = obs_I,
-              I_sim = empty_matrix, 
-              log_lik = empty_matrix,
-              .mats_to_save = c("I_sim"),
-              .mats_to_return = c("I_sim")
-          )
+    I_obs = obs_I
+  , I_sim = empty_matrix
+  , log_lik = empty_matrix
+  , .mats_to_save = c("I_sim")
+  , .mats_to_return = c("I_sim")
+)
 simulator$insert$expressions(
-                     I_sim ~ I,
-                     .phase = "during",
-                     .at = Inf
-                 )
+     I_sim ~ I
+   , .phase = "during"
+   , .at = Inf
+)
 ```
 
 Now we start to deviate from the previous example: in addition to
@@ -340,7 +373,7 @@ The $\phi$ vector is a set of *fixed-effect* (unpenalized) parameters; in this c
 
 Although this looks awful, (1) the high-dimensional integral over $\mathbf b$ can be separated into a product of one-dimensional integrals and (2) the Laplace approximation gives us a quick, reasonable approximation to the one-dimensional integrals.
 
-The `rbf_sd` parameter can be interpreted as  standard deviation on a Gaussian random effect
+The `rbf_sd` parameter can be interpreted as a standard deviation on a Gaussian random effect
 or as approximately $1/\sqrt{\lambda}$ where $\lambda$ is a ridge penalty.
 
 Continuing with the coding, we add the parameters and negative log-likelihood to the model,
@@ -354,8 +387,9 @@ simulator$add$matrices(
   , rbf_sd = 1
 )
 simulator$insert$expressions(
-     log_lik ~ -sum(dnorm(I_obs, rbind_time(I_sim), I_sd)) +
-         -1*sum(dnorm(b, 0.0, rbf_sd)),
+     log_lik ~ 
+       -sum(dnorm(I_obs, rbind_time(I_sim), I_sd)) +
+       -1*sum(dnorm(b, 0.0, rbf_sd)),
      .phase = "after"
 )
 ## initially forgot this: maybe we could warn when someone is missing this????
@@ -366,9 +400,9 @@ simulator$add$transformations(Log("rbf_sd"))
 params <- read.delim(sep = "|", header = TRUE,
                      strip.white = TRUE, ## important!
                       text = "
-mat         | row | col | default
-log_I_sd    | 0   | 0   | 0
-log_rbf_sd  | 0	  | 0   | 1
+mat         | default
+log_I_sd    | 0
+log_rbf_sd  | 1
 ")
 simulator$replace$params_frame(params)
 ```

@@ -106,6 +106,8 @@ OptParamsFrame = function(frame, .dimnames = list()) {
   for (c in names(frame)) {
     if (is.character(frame[[c]])) frame[[c]] = trimws(frame[[c]])
   }
+  if (is.null(frame$col)) frame$col = 0L
+  if (is.null(frame$row)) frame$row = 0L
   row_col_ids = make_row_col_ids(frame$mat, frame$row, frame$col, .dimnames)
   args = c(
     as.list(as.numeric(frame$default)),

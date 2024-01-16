@@ -1,7 +1,7 @@
 library(macpan2)
 
 computations = list(
-  N ~ sum(S, I, R)
+  S ~ N - I - R
 )
 
 flow_rates = list(
@@ -25,7 +25,7 @@ spec = mp_tmb_model_spec(
   )
   # defaults
   , default = list(
-      S = 99, I = 1, R = 0
+      N = 100, I = 1, R = 0
     , beta = 0.2, gamma = 0.2, phi = 0.01
   )
 )

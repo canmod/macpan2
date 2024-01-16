@@ -45,11 +45,12 @@ sir_waning$replace$obj_fn(obj_fn)
 ## parameterize model
 ## -------------------------
 
-sir_waning$update$transformations(Log("beta"))
-
 # choose which parameter(s) to estimate - log(beta) and phi
-sir_waning$replace$params(c(log(spec$default$beta),spec$default$phi),
-                          c("log_beta","phi")
+sir_waning$update$transformations(Log("beta"))
+sir_waning$update$transformations(Log("phi"))
+
+sir_waning$replace$params(c(log(spec$default$beta),log(spec$default$phi)),
+                          c("log_beta","log_phi")
                           )
 
 sir_waning
@@ -66,7 +67,7 @@ true_beta = 0.3
 true_phi = 0.09
 
 ## simulate observed data using true parameters
-observed_data = sir_waning$report(c(log(true_beta),true_phi))
+observed_data = sir_waning$report(c(log(true_beta),log(true_phi)))
 
 ## compute incidence for observed data
 I_obs = rpois(time_steps, subset(observed_data, matrix == "I", select = c(value)) %>% pull())
@@ -93,22 +94,22 @@ sir_waning$update$matrices(
 # plot surface as contours
 if (interactive()) {
   log_betas = seq(from = log(0.1), to = log(1), length = 100)
-  phis = seq(from = 1e-3, to = 0.2, length = 100)
-  x_y = expand.grid(log_betas, phis) %>% setNames(c("log_betas","phis"))
+  log_phis = seq(from = log(1e-3), to = log(0.2), length = 100)
+  x_y = expand.grid(log_betas, log_phis) %>% setNames(c("log_betas","log_phis"))
 
   ll = apply(
       x_y
     , 1
-    , function(z) {sir_waning$objective(z["log_betas"], z["phis"])}
+    , function(z) {sir_waning$objective(z["log_betas"], z["log_phis"])}
   ) 
   
   dat_for_plot <- cbind(x_y, ll)
   
-  ggplot(dat_for_plot, aes(log_betas, phis, z=ll)) +
+  ggplot(dat_for_plot, aes(log_betas, log_phis, z=ll)) +
     geom_contour_filled()+
     ## add true parameter values to compare
     geom_vline(xintercept = log(true_beta), col='red')+
-    geom_hline(yintercept = true_phi, col='red')
+    geom_hline(yintercept = log(true_phi), col='red')
 
 
 }
@@ -128,8 +129,8 @@ if (interactive()) {
   print(sir_waning$current$params_frame())
   print(paste0("exp(default beta) ",exp(sir_waning$current$params_frame()$default[1])))
   print(paste0("exp(current beta) ",exp(sir_waning$current$params_frame()$current[1])))
-  print(paste0("default phi ",sir_waning$current$params_frame()$default[2]))
-  print(paste0("current phi ",sir_waning$current$params_frame()$current[2]))
+  print(paste0("exp(default phi) ",exp(sir_waning$current$params_frame()$default[2])))
+  print(paste0("exp(current phi) ",exp(sir_waning$current$params_frame()$current[2])))
   
   
   data_to_plot <- (cbind(as.numeric(I_obs),1:time_steps)
