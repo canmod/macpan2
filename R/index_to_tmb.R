@@ -122,7 +122,8 @@ mp_tmb_simulator.ModelDefRun = function(dynamic_model
   do.call(mp_tmb_simulator, args)
 }
 
-#' @param parameter_vector Numeric vector equal in length to
+#' reporting function
+#' @param parameter_vector Numeric vector equal in length to (?)
 #' @param simulator Object produced by \code{\link{tmb_simulator}}.
 #' @export
 mp_report = function(simulator, parameter_vector = numeric(), phases = "during") {

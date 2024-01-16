@@ -19,6 +19,7 @@ LICENSE
 ^doc$
 ^Meta$
 drat/
+.*\.vscode
 
 ^vignettes/calibration[.]Rmd$
 ^vignettes/example_models[.]Rmd$
@@ -29,3 +30,4 @@ drat/
 ^vignettes/quickstart_products[.]Rmd$
 ^vignettes/sir_radial_basis_transmission[.]Rmd$
 ^vignettes/time_varying_parameters[.]Rmd$
+## should we ignore tmb_model.Rmd as well ... ??

@@ -70,7 +70,7 @@ sir = TMBModel(
 sir
 ```
 
-```{r}
+```{r badchunk, eval = FALSE}
 (sir$simulator()$report()
  %>% mutate(state = factor(row, levels = names(state_vector)))
  %>% ggplot()
