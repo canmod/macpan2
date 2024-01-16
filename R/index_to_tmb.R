@@ -47,7 +47,7 @@ mp_tmb_simulator.DynamicModel = function(dynamic_model
     }
   } else {
     for (v in names(vectors)) {
-      vectors[[v]] = Vector(
+      vectors[[v]] = StructuredVector(
         vectors[[v]],
         dynamic_model$init_vecs[[v]]$index
       )

@@ -89,7 +89,7 @@ macpan2helpers::mk_calibrate(sir_simulator,
    data = data.frame(I_obs = sir_prevalence$obs_val),
    params = list(beta = 1, I_sd = 1),
    transforms = list(beta = "log", I_sd = "log"),
-   exprs = list(log_lik ~ dnorm(I_obs, rbind_time(I), I_sd))
+   exprs = list(log_lik ~ dnorm(I_obs, I, I_sd))
 )
 ```
 
@@ -196,7 +196,7 @@ macpan2helpers::mk_calibrate(sir_simulator
   , data = data.frame(I_obs = influenza_england_1978_school$in_bed)
   , params = list(beta = 1, gamma = 0.5, I_disp = 1)
   , transforms = list(beta = "log", gamma = "log", I_disp = "log")
-  , exprs = list(log_lik ~ dnbinom(I_obs, rbind_time(I), I_disp))
+  , exprs = list(log_lik ~ dnbinom(I_obs, I, I_disp))
 )
 sir_simulator$objective(log(c(1, 0.5, 1)))
 ```
@@ -570,7 +570,7 @@ iteration.
 ```{r compute_loglik}
 sir_simulator$add$matrices( I_sd = 1 )
 sir_simulator$insert$expressions(
-  log_lik ~ dnorm(I_obs, rbind_time(I_sim), I_sd),
+  log_lik ~ dnorm(I_obs, I_sim, I_sd),
   .phase = "after"
   )
 ```

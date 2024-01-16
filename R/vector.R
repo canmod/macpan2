@@ -1,8 +1,8 @@
 #' @export
-Vector = function(x, ...) UseMethod("Vector")
+StructuredVector = function(x, ...) UseMethod("StructuredVector")
 
 #' @export
-Vector.data.frame = function(x, index = NULL, values_name = "values", ...) {
+StructuredVector.data.frame = function(x, index = NULL, values_name = "values", ...) {
   nms = setdiff(names(x), values_name)
   if (is.null(index)) index = mp_index(x[, nms, drop = FALSE])
   bad_names = !nms %in% names(index)
@@ -47,13 +47,13 @@ Vector.data.frame = function(x, index = NULL, values_name = "values", ...) {
   values[is.na(values)] = 0  ## that's the way we roll
   f = f[sorted_positions, index_names, drop = FALSE]
   index = Index(f, labelling_column_names = index$labelling_column_names)
-  v = Vector(index)
+  v = StructuredVector(index)
   v$set_all_numbers(values)
 }
 
 #' @export
-Vector.numeric = function(x, index, ...) {
-  v = Vector(index)
+StructuredVector.numeric = function(x, index, ...) {
+  v = StructuredVector(index)
   index_name = to_name(index$labelling_column_names)
   names(x) = extrapolate_dots(names(x), index_name)
   args = setNames(list(x), index_name)
@@ -61,12 +61,12 @@ Vector.numeric = function(x, index, ...) {
 }
 
 #' @export
-Vector.Vector = function(x, index, ...) {
-  Vector(x$numbers(), index, ...)
+StructuredVector.StructuredVector = function(x, index, ...) {
+  StructuredVector(x$numbers(), index, ...)
 }
 
 #' @export
-Vector.Index = function(x, ...) {
+StructuredVector.Index = function(x, ...) {
   self = Base()
   self$index = x
   self$.numbers = zero_vector(self$index$labels())
@@ -111,10 +111,10 @@ Vector.Index = function(x, ...) {
   }
   self$length = function() length(self$.numbers)
   self$clone = function() {
-    new = Vector(self$index)
+    new = StructuredVector(self$index)
     new$set_all_numbers(self$numbers())
   }
-  return_object(self, "Vector")
+  return_object(self, "StructuredVector")
 }
 
 
@@ -130,16 +130,16 @@ process_grouping_dots = function(...) {
 }
 
 #' @export
-length.Vector = function(x) x$length()
+length.StructuredVector = function(x) x$length()
 
 #' @export
-print.Vector = function(x, ...) print(x$numbers())
+print.StructuredVector = function(x, ...) print(x$numbers())
 
 #' @export
-names.Vector = function(x) x$numbers() |> names()
+names.StructuredVector = function(x) x$numbers() |> names()
 
 #' @export
-as.matrix.Vector = function(x, ...) {
+as.matrix.StructuredVector = function(x, ...) {
   x$numbers() |> as.matrix()
 }
 
@@ -154,7 +154,7 @@ zero_vector = function(labels) setNames(rep(0, length(labels)), labels)
 #' #' These labels can be used to create 'multidimensional' names for the elements
 #' of vectors. Here is the above example expressed in vector form.
 #' ```{r, echo = FALSE}
-#' v = Vector(prod)
+#' v = StructuredVector(prod)
 #' v$set_numbers(Epi = c(S = 1000))$set_numbers(Epi = c(I = 1), Age = "old")
 #' ```
 #' This example vector could be stored as a 3-by-2 matrix. But other examples
@@ -189,16 +189,16 @@ zero_vector = function(labels) setNames(rep(0, length(labels)), labels)
 mp_vector = function(x, ...) UseMethod("mp_vector")
 
 #' @export
-mp_vector.Vector = function(x, ...) x
+mp_vector.StructuredVector = function(x, ...) x
 
 #' @export
-mp_vector.Index = Vector.Index
+mp_vector.Index = StructuredVector.Index
 
 #' @export
-mp_vector.data.frame = Vector.data.frame
+mp_vector.data.frame = StructuredVector.data.frame
 
 #' @export
-mp_vector.numeric = Vector.numeric
+mp_vector.numeric = StructuredVector.numeric
 
 #' @export
 mp_vector.character = function(x, ...) zero_vector(x)
@@ -232,7 +232,7 @@ VectorList = function() {
     for (nm in names(new_vecs)) {
       if (nm %in% names(self$list)) {
         msg(
-          "Vector", nm, "is already in the list.",
+          "StructuredVector", nm, "is already in the list.",
           "Overwriting the existing one."
         ) |> message()
       }

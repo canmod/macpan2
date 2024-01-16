@@ -14,7 +14,7 @@ See issue #131
 #' These labels can be used to create 'multidimensional' names for the elements
 of vectors. Here is the above example expressed in vector form.
 
-\if{html}{\out{<div class="sourceCode {r, echo = FALSE}">}}\preformatted{v = Vector(prod)
+\if{html}{\out{<div class="sourceCode {r, echo = FALSE}">}}\preformatted{v = StructuredVector(prod)
 v$set_numbers(Epi = c(S = 1000))$set_numbers(Epi = c(I = 1), Age = "old")
 }\if{html}{\out{</div>}}
 
