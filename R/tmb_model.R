@@ -265,8 +265,17 @@ TMBModelSpec = function(
     ) {
     initial_mats = self$matrices()
     initial_mats[names(default)] = default
+    initial_rownames = (initial_mats
+      |> lapply(as.matrix)
+      |> lapply(rownames)
+      |> unlist(use.names = FALSE, recursive = TRUE)
+      |> unique()
+    )
     matrix_outputs = intersect(outputs, names(initial_mats))
-    row_outputs = setdiff(outputs, matrix_outputs)
+    row_outputs = (outputs
+      |> setdiff(matrix_outputs)
+      |> intersect(initial_rownames)
+    )
     mats_to_return = (initial_mats
       |> lapply(names)
       |> Filter(f = is.character)
