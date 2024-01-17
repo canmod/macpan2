@@ -7,7 +7,7 @@ library(dplyr)
 ## get model spec from library
 ## -------------------------
 
-spec = mp_tmb_library("starter_models","sir_waning",package="macpan2")
+spec = mp_tmb_library("starter_models", "sir_waning", package = "macpan2")
 spec
 
 ## -------------------------
@@ -164,3 +164,22 @@ if (interactive()) {
 if (interactive()) {
   plot(sir_waning$report() %>% filter(matrix=="waning_immunity") %>% select(time,value), type = "l", las = 1, ylab='Waning Immunity')
 }
+
+## -------------------------
+## exercise random effects a bit
+## -------------------------
+
+## In real life we would add an informative or partially informative
+## prior for the random effect, but here we just use uniform for log phi.
+
+sir_waning$reset$params()
+sir_waning$replace$params(log(spec$default$beta), "log_beta")
+sir_waning$replace$random(log(spec$default$phi), "log_phi")
+sir_waning$optimize$nlminb()
+
+## They both seem to be reasonably close to the true values
+print(sir_waning$sdreport())
+print(exp(sir_waning$sdreport()$par.fixed))
+print(exp(sir_waning$sdreport()$par.random))
+print(sir_waning$current$params_frame())
+print(sir_waning$current$random_frame())

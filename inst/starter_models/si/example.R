@@ -1,4 +1,4 @@
-source("inst/starter_models/si/tmb.R")
+source(system.file("starter_models/si/tmb.R", package = "macpan2"))
 library(ggplot2)
 library(dplyr)
 

@@ -1,4 +1,3 @@
-source("inst/starter_models/lotka_volterra_predator_prey/tmb.R")
 library(macpan2)
 library(ggplot2)
 library(dplyr)
@@ -7,7 +6,8 @@ library(dplyr)
 ## get model spec from library
 ## -------------------------
 
-#spec = mp_tmb_library("starter_models","lotka_volterra_predator_prey",package="macpan2")
+source(system.file("starter_models/lotka_volterra_predator_prey/tmb.R", package = "macpan2"))
+#spec = mp_tmb_library("starter_models","lotka_volterra_predator_prey", package="macpan2")
 spec
 
 ## -------------------------
