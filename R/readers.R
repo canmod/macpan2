@@ -23,9 +23,9 @@ Reader = function(...) {
   }
   ## wrapper for handling errors in the reading functions
   self$read = function() {
-    x = try(self$read_base())
+    x = try(self$read_base(), silent = TRUE)
     if (inherits(x, "try-error")) {
-      stop("\nCouldn't read this file:\n", self$file)
+      stop(x, "\nCouldn't read this file:\n", self$file)
     }
     x
   }
