@@ -701,6 +701,7 @@ TMBSimulator = function(tmb_model
   self$add = TMBSimulatorAdder(self)
   self$replace = TMBSimulatorReplacer(self)
   self$update = TMBSimulatorUpdater(self)
+  self$reset = TMBSimulatorResetter(self)
   self$current = TMBCurrentParams(self)
   self$get = TMBSimulatorGetters(self)
 

@@ -90,19 +90,3 @@ TMBOptimizationHistory = function(simulator) {
   self$save = function(opt_obj) self$.history = append(self$.history, list(opt_obj))
   return_object(self, "TMBOptimizationHistory")
 }
-
-
-#' Pick out obs/location pairs from terms involving probability distributions
-#' find_obs_pairs(~ dnorm(a, b, c) + dpois(d, e))
-#' find_obs_pairs(stuff ~ other_stuff + more_stuff)
-.known_dist <- c("dnorm", "dpois", "dgamma", "dlnorm", "dnbinom")
-find_obs_pairs <- function(form, specials = .known_dist, top = TRUE) {
-    if (is.symbol(form) || length(form) == 1) return(NULL)
-    if (deparse(form[[1]]) %in% specials) {
-        return(list(deparse(form[[2]]), deparse(form[[3]])))
-    }
-    res <- lapply(form[-1], find_obs_pairs, top = FALSE)
-    ## drop NULL elements
-    res <- res[!vapply(res, is.null, logical(1))]
-    if (!top) res else res[[1]]
-}

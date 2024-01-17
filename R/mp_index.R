@@ -282,3 +282,56 @@ info_curve = function(partition) {
 infer_labelling_columns = function(partition) {
   names(partition)[seq_len(which.max(info_curve(partition)))]
 }
+
+
+#' @export
+mp_reference = function(x, dimension_name) {
+  UseMethod("mp_reference")
+}
+
+#' @export
+mp_reference.Ledger = function(x, dimension_name) {
+  ii = x$reference_index_list[[dimension_name]]
+  ii$reset_reference_index()
+  ii
+}
+
+#' @export
+mp_reference.Index = function(x, dimension_name) {
+  x$reference_index()
+}
+
+#' @export
+mp_extract = function(x, dimension_name) {
+  UseMethod("mp_extract")
+}
+
+#' @export
+mp_extract.Ledger = function(x, dimension_name) {
+  ii = x$index_for[[dimension_name]]()
+  ii$reset_reference_index()
+  ii
+}
+
+#' @export
+mp_extract.DynamicModel = function(x, dimension_name) {
+  y = try(x$init_vecs[[dimension_name]]$index, silent = TRUE)
+  if (!inherits(y, "Index")) {
+    msg(
+      "Failed to find an index for",
+      dimension_name, "in this object"
+    ) |> stop()
+  }
+  y
+}
+
+#' @export
+mp_extract.ModelDefRun = function(x, dimension_name) {
+  mp_extract(x$dynamic_model, dimension_name)
+}
+
+
+#' @export
+mp_indices = function(x, table) {
+  match(x, table) - 1L
+}

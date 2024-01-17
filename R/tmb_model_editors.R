@@ -255,3 +255,18 @@ TMBSimulatorUpdater = function(simulator) {
   }
   return_object(self, "TMBSimulatorUpdater")
 }
+
+
+TMBSimulatorResetter = function(simulator) {
+  self = TMBUpdater(simulator$tmb_model)
+  self$simulator = simulator
+  self$params = function() {
+    self$model$params = OptParamsList(0)
+    self$simulator$cache$invalidate()
+  }
+  self$random = function() {
+    self$model$params = OptParamsList()
+    self$simulator$cache$invalidate()
+  }
+  return_object(self, "TMBSimulatorResetter")
+}
