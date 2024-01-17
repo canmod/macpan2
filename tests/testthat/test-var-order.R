@@ -1,4 +1,5 @@
 test_that("arguments and argument dots produce the same results", {
+  skip("test uses Compartmental")
   dot_args = system.file("testing_models", "dot_args", package = "macpan2")
   rand_order_args = system.file("testing_models", "vars_rand_order", package = "macpan2")
   dot_args = Compartmental(dot_args)

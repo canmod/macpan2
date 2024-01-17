@@ -1,4 +1,5 @@
 test_that("state and flow variables products are correct", {
+  skip("test uses Compartmental")
   sir = Compartmental(system.file("starter_models", "sir", package = "macpan2"))
   vax = Compartmental(system.file("starter_models", "vax", package = "macpan2"))
 
