@@ -11,9 +11,9 @@ test_that("concatenation works with many different shapes of input", {
   good = TMBSimulator(TMBModel(mats, expr_good))
   bad = TMBSimulator(TMBModel(mats, expr_bad))
 
-  answer = good$matrix(matrix_name = "answer", time_step = 1L)
-  z = good$matrix(matrix_name = "z", time_step = 1L)
-  w = good$matrix(matrix_name = "w", time_step = 1L)
+  answer = good$matrix(matrix_name = "answer", time_step = 1L, .phases = c("before", "during", "after"))
+  z = good$matrix(matrix_name = "z", time_step = 1L, .phases = c("before", "during", "after"))
+  w = good$matrix(matrix_name = "w", time_step = 1L, .phases = c("before", "during", "after"))
 
   expect_identical(answer, cbind(z, t(w)))
   expect_identical(bad$error_code(), 27L)

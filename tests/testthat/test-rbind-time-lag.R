@@ -17,7 +17,7 @@ test_that("a selection of the iterations in the simulation history of a matrix t
     ),
     time_steps = Time(steps)
   )$simulator()
-  y_tmb = s$matrix(time_step = 11, matrix_name = "y")
+  y_tmb = s$matrix(time_step = 11, matrix_name = "y", .phases = c("before", "during", "after"))
 
   y_r = matrix(numeric(), nrow = 0, ncol = 3)
   for (i in 1:steps) {
