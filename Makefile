@@ -41,6 +41,12 @@ quick-doc-install: R/*.R misc/dev/dev.cpp
 	make quick-install
 
 
+forced-quick-doc-install: 
+	touch misc/old-r-source/*.R
+	make doc-update
+	make quick-install
+
+
 quick-test-all:
 	make quick-doc-install
 	make run-vignette-code
@@ -135,7 +141,7 @@ R/engine_functions.R: src/macpan2.cpp
 	echo "NULL" >> $@
 
 
-doc-update: R/*.R misc/dev/dev.cpp
+doc-update: R/*.R misc/dev/dev.cpp misc/old-r-source/*.R
 	echo "suppressWarnings(roxygen2::roxygenize(\".\",roclets = c(\"collate\", \"rd\", \"namespace\")))" | R --slave
 	touch doc-update
 

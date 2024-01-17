@@ -20,8 +20,3 @@ mp_zero_vector.Index = function(x, labelling_column_names, ...) {
    |> zero_vector()
   )
 }
-
-#' @export
-mp_labels.Ledger = function(x, labelling_column_names) {
-  x$labels_for[[labelling_column_names]]()
-}
