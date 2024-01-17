@@ -505,7 +505,9 @@ public:
     }
 
 
-    // Method to recycle elements of all arguments so that they match a given shape
+    // Method to recycle elements of all arguments
+    // pointed at by `indices` so that they match a 
+    // given shape given by `rows` and `cols`.
     ArgList<Type> recycle_to_shape(const std::vector<int>& indices, int rows, int cols) const {
         ArgList<Type> result = *this; // Create a new ArgList as a copy of the current instance
 
@@ -515,6 +517,7 @@ public:
             matrix<Type> mat = result.get_as_mat(index);
 
             if (mat.rows() == rows && mat.cols() == cols) {
+                // std::cout << "no action" << std::endl;
                 // No further action needed for this matrix
                 continue;
             }
@@ -522,28 +525,34 @@ public:
             matrix<Type> m(rows, cols);
 
             if (mat.rows() == 1 && mat.cols() == 1) {
+                // std::cout << "scalar in" << std::endl;
                 m = matrix<Type>::Constant(rows, cols, mat.coeff(0, 0));
             } else if (mat.rows() == rows) {
                 if (mat.cols() == 1) {
+                    // std::cout << "good column vector" << std::endl;
                     for (int i = 0; i < cols; i++) {
                         m.col(i) = mat.col(0);
                     }
                 } else {
+                    // std::cout << "bad column vector" << std::endl;
                     error_code = 501;
-                    break; // Exit the loop on error
+                    //break; // Exit the loop on error
                 }
             } else if (mat.cols() == cols) {
                 if (mat.rows() == 1) {
+                    // std::cout << "good row vector" << std::endl;
                     for (int i = 0; i < rows; i++) {
                         m.row(i) = mat.row(0);
                     }
                 } else {
+                    // std::cout << "bad row vector" << std::endl;
                     error_code = 501;
-                    break; // Exit the loop on error
+                    //break; // Exit the loop on error
                 }
             } else {
+                // std::cout << "really bad" << std::endl;
                 error_code = 501;
-                break; // Exit the loop on error
+                //break; // Exit the loop on error
             }
 
             if (error_code != 0) {
@@ -2364,8 +2373,10 @@ public:
                         return m2; // empty matrix
 
                     case MP2_RECYCLE:
-                        rows = CppAD::Integer(args[1].coeff(0,0));
-                        cols = CppAD::Integer(args[2].coeff(0,0));
+                        //rows = CppAD::Integer(args[1].coeff(0,0));
+                        //cols = CppAD::Integer(args[2].coeff(0,0));
+                        rows = args.get_as_int(1);
+                        cols = args.get_as_int(2);
                         v1.push_back(0);
                         args = args.recycle_to_shape(v1, rows, cols);
                         err_code = args.get_error_code();
