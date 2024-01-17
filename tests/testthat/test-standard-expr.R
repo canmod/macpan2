@@ -1,4 +1,5 @@
 test_that("all flow types can be used", {
+  skip("test depends on old 'Compartmental' model approach")
   state = setNames(rep(2, 7), LETTERS[1:7])
   flow = setNames(rep(0.1, 6), letters[1:6])
   m = Compartmental(system.file("testing_models", "all_flow_types", package = "macpan2"))
