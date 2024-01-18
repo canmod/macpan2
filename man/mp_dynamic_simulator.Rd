@@ -24,6 +24,8 @@ mp_dynamic_simulator(
 \arguments{
 \item{dynamic_model}{Object product by \code{\link{mp_dynamic_model}}.}
 
+\item{time_steps}{Number of time steps to simulate.}
+
 \item{vectors}{Named list of named vectors as initial values for the
 simulations that are referenced in the expression list in the dynamic model.}
 

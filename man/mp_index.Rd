@@ -19,7 +19,7 @@ mp_index(..., labelling_column_names)
 
 \method{to_labels}{Index}(x)
 
-\method{labels}{Index}(x, ...)
+\method{labels}{Index}(object, ...)
 }
 \arguments{
 \item{...}{Character vectors to combine to produce an index. Alternatively,

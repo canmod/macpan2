@@ -149,7 +149,7 @@ as.matrix.StructuredVector = function(x, ...) {
 #' This documentation was originally in [mp_index()] and should be cleaned up
 #' See issue #131. Also this is an experimental feature.
 #'
-#' @param x A index.
+#' @param x An index.
 #' @param ... Passed on to S3 methods.
 #'
 #' These labels can be used to create 'multidimensional' names for the elements

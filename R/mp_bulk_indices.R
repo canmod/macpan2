@@ -60,6 +60,11 @@ mp_unpack = function(l, unpack = c('no', 'maybe', 'yes'), env) {
   }
 }
 
+#' Factor an Index
+#' 
+#' @param index An index to be factored.
+#' @param unpack Place factors in the global environment?
+#' 
 #' @export
 mp_factors = function(index, unpack = c('no', 'maybe', 'yes')) {
   unpack = match.arg(unpack)
@@ -118,7 +123,11 @@ mp_custom_slices = function(index, ..., unpack = c('no', 'maybe', 'yes')) {
   slices
 }
 
-## TODO: list of indices where precedence is higher left and top
+#' Slice an index 
+#' 
+#' @param index Index to slice up.
+#'
+#' @inheritParams mp_factors
 #' @export
 mp_slices = function(index, unpack = c('no', 'maybe', 'yes')) {
   unpack = match.arg(unpack)

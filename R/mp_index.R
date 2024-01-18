@@ -108,7 +108,6 @@ mp_index = function(..., labelling_column_names) UseMethod("mp_index")
 #'        computing subset indices.
 #' @param ... For consistency with existing S3 methods.
 #'
-#' @seealso [mp_index()]
 #' @noRd
 Index = function(partition
     , vector_name = NULL
@@ -229,7 +228,7 @@ to_labels.Index = function(x) x$labels()
 #' a character vector giving labels associated with each model component
 #' (i.e. row) being described.
 #' @export
-labels.Index = function(x, ...) x$labels()
+labels.Index = function(object, ...) object$labels()
 
 
 #' @export

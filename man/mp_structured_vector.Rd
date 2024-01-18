@@ -10,7 +10,7 @@ mp_structured_vector(x, ...)
 mp_set_numbers(vector, ...)
 }
 \arguments{
-\item{x}{A index.}
+\item{x}{An index.}
 
 \item{...}{Passed on to S3 methods.
 

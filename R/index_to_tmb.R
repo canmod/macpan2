@@ -5,14 +5,22 @@
 #' but we plan to replace this function with \code{\link{mp_simulator}}.
 #'
 #' @param dynamic_model Object product by \code{\link{mp_dynamic_model}}.
+#' @param time_steps Number of time steps to simulate.
 #' @param vectors Named list of named vectors as initial values for the
 #' simulations that are referenced in the expression list in the dynamic model.
 #' @param unstruc_mats = Named list of objects that can be coerced to
 #' numerical matrices that are used in the expression list of the
 #' dynamic model.
-#' @inheritParams mp_tmb_model_spec
-#' @inheritParams TMBModel
-#' @inheritParams TMBSimulator
+#' @param mats_to_save TODO
+#' @param mats_to_return TODO
+#' @param params TODO
+#' @param random TODO
+#' @param obj_fn TODO
+#' @param log_file TODO
+#' @param do_pred_sdreport TODO
+#' @param tmb_cpp TODO
+#' @param initialize_ad_fun TODO
+#' @param ... TODO
 #'
 #' @importFrom oor method_apply
 #' @export
