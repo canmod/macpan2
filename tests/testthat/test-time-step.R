@@ -8,4 +8,8 @@ test_that("time_step function returns a valid time-step no matter what", {
     c(0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 6),
     m$ad_fun()$report()$values[,5]
   )
+  expect_error(
+    simple_sims(list(x ~ time_step(-4)), 10, mats = list(x = 0)),
+    regexp = "Time lag needs to be non-negative"
+  )
 })

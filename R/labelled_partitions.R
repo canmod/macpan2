@@ -134,60 +134,6 @@ Partition = memoise(Partition)
 #' @export
 names.Partition = function(x) x$names()
 
-CompartmentalPartition = function(frame
-    , special_partitions = c(vec = "Vec", type = "Type")
-  ) {
-  special_partitions = c(vec, type)
-  if (!all(special_partitions %in% names(frame))) {
-    msg_break(
-      msg_colon(
-        msg_csv(
-          "The vec or type arguments",
-          special_partitions,
-          "are not in the names of the frame"),
-        msg_indent(names(frame))
-      )
-    )
-  }
-  self = Base()
-  self$partition = Partition(frame)
-  self$vec = "Vec"
-  self$state = function() vec(self, "state", self$vec)
-  self$flow = function() vec(self, "flow", self$vec)
-  return_object(self, "CompartmentalPartition")
-}
-
-#' Read Partition
-#'
-#' Read a CSV file in as a \code{\link{Partition}}.
-#'
-#' @param ... File path components to pass to \code{\link{CSVReader}}, and
-#' subsequently to \code{\link{file.path}}.
-#'
-#' @export
-read_partition = function(...) read_frame(...) |> Partition()
-
-#' @export
-read_frame = function(...) CSVReader(...)$read()
-
-#' @export
-partition = function(...) data.frame(...) |> Partition()
-
-#' @export
-atomic_partition = function(state_variables, flow_rates, partition_name) {
-  l = list(
-    c(state_variables, flow_rates),
-    c(
-      rep("state", length(state_variables)),
-      rep("flow", length(flow_rates))
-    )
-  )
-  (l
-    |> setNames(c(partition_name, "Vec"))
-    |> as.data.frame()
-    |> CompartmentalPartition()
-  )
-}
 
 vec = function(x, vec_name, vec_partition = "Vec") {
   x$filter(vec_name, .wrt = vec_partition)$select_out(vec_partition)
@@ -280,10 +226,6 @@ union_vars = function(...) {
   y
 }
 
-renew_part = function(x, vec_parts) {
-  if (length(vec_parts) == 1L) x = CompartmentalPartition(x, vec_parts)
-  x
-}
 
 vec_part_names = function(...) {
   (list(...)

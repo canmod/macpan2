@@ -26,6 +26,7 @@ match a certain criterion and \code{mp_setdiff} gives rows that do not match.
 Other functions that return index tables
 \code{\link{mp_cartesian}()},
 \code{\link{mp_index}()},
+\code{\link{mp_rename}()},
 \code{\link{mp_union}()}
 }
 \concept{indexes}

@@ -335,3 +335,36 @@ mp_extract.ModelDefRun = function(x, dimension_name) {
 mp_indices = function(x, table) {
   match(x, table) - 1L
 }
+
+
+#' Rename Index Columns
+#'
+#' @param ... Name-value pairs. The name gives the new name and the value
+#' is a character vector giving the old name.
+#'
+#' @family indexes
+#' @export
+mp_rename = function(x, ...) {
+  l = list(...)
+  new_nms = names(l)
+  old_nms = unlist(l, recursive = FALSE, use.names = FALSE)
+  f = x$partition$frame()
+  labs = x$labelling_column_names
+  i = match(old_nms, names(f))
+  if (any(is.na(i))) {
+    msg_break(
+      msg_colon(
+        "Attempted to replace the following names that do not exist",
+        msg_indent(old_nms[is.na(i)])
+      ),
+      msg_colon(
+        "These are the only names that are available",
+        msg_indent(names(f))
+      )
+    ) |> stop()
+  }
+  j = match(old_nms, labs)
+  names(f)[i] = new_nms
+  labs[j[!is.na(j)]] = new_nms[!is.na(j)]
+  Index(f, labelling_column_names = labs)
+}

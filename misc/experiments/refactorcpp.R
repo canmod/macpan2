@@ -209,7 +209,7 @@ mp_join(
 
 
 ## structured model indices -------------
-
+state_sir = mp_index(Epi = c("S", "I", "R"))
 state = (state_sir
   |> mp_cartesian(cities)
   |> mp_cartesian(age)
@@ -242,12 +242,12 @@ lambda = mp_subset(flow_rates, Epi = "lambda")
 
 ## create vectors for particular indexes -----------
 
-state_vector = Vector(state)
+state_vector = mp_vector(state)
 state_vector$
   set_numbers(Epi = c(I = 1))$
   set_numbers(Epi.Loc.Age = c(S.cal.young = 1000))
-N = Vector(strata)
-flow_rate_vector = Vector(flow_rates)
+N = mp_vector(strata)
+flow_rate_vector = mp_vector(flow_rates)
 flow_rate_vector$set_numbers(Epi = c(lambda = 0.15, gamma = 0.1, mu = 0.01))
 
 ## links between entries in the indexes -----------
@@ -357,12 +357,14 @@ if (FALSE) {
     mp_index(EpiB = paste(letters[1:25], letters[2:26], sep = ""))
   ) |> mp_cartesian(cities)
   flow = mp_join(
-    from = mp_subset(state, EpiA = "S"),
-    to = mp_subset(state, EpiA = "I"),
+    from = mp_subset(state_sir, EpiA = "A"),
+    to = mp_subset(state_sir, EpiA = "B"),
     rate = mp_subset(flow_rates, EpiA = "gh"),
-    from.to = "Loc",
-    from.rate = "Loc",
-    to.rate = "Loc"
+    by = list(
+      from.to = "Loc",
+      from.rate = "Loc",
+      to.rate = "Loc"
+    )
   )
   flow
 }

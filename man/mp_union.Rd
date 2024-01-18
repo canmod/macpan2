@@ -16,6 +16,7 @@ Union of Indexes
 Other functions that return index tables
 \code{\link{mp_cartesian}()},
 \code{\link{mp_index}()},
+\code{\link{mp_rename}()},
 \code{\link{mp_subset}()}
 }
 \concept{indexes}

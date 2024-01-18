@@ -470,16 +470,19 @@ StringUndottedData = function(labels, names) {
 
 #' String Data
 #'
-#' Create objects for representing names and labels in a compartmental
+#' Create objects for representing names and labels in a dynamical
 #' model.
 #'
 #' @examples
-#' path = system.file("starter_models", "seir_symp_vax", package = "macpan2")
-#' model = ModelFiles(path)
-#' vars = StringDataFromFrame(model$variables())
+#' vars = (mp_cartesian(
+#'       mp_index(Epi = c("S", "I", "R"))
+#'     , mp_index(Age = c("young", "old"))
+#'   )
+#'   |> as.data.frame()
+#'   |> StringDataFromFrame()
+#' )
 #' vars
 #' vars$dot()
-#'
 #'
 #' @name StringData
 NULL

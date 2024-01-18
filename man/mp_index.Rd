@@ -155,6 +155,7 @@ mp_cartesian(state, mp_index(City = c("hamilton", "toronto")))
 
 Other functions that return index tables
 \code{\link{mp_cartesian}()},
+\code{\link{mp_rename}()},
 \code{\link{mp_subset}()},
 \code{\link{mp_union}()}
 }
