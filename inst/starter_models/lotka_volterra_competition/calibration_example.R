@@ -1,4 +1,3 @@
-#source("inst/starter_models/lotka_volterra_competition/tmb.R")
 library(macpan2)
 library(ggplot2)
 library(dplyr)

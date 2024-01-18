@@ -6,8 +6,8 @@ library(dplyr)
 ## get model spec from library
 ## -------------------------
 
-source(system.file("starter_models/lotka_volterra_predator_prey/tmb.R", package = "macpan2"))
-#spec = mp_tmb_library("starter_models","lotka_volterra_predator_prey", package="macpan2")
+#source(system.file("starter_models/lotka_volterra_predator_prey/tmb.R", package = "macpan2"))
+spec = mp_tmb_library("starter_models","lotka_volterra_predator_prey", package="macpan2")
 spec
 
 ## -------------------------
@@ -191,6 +191,7 @@ spec$during$fr
 ## simulating data with different functional responses
 fr_names <- c("holling_1", "holling_2", "holling_3")
 
+if (interactive()) {
 fr_sims <- lapply(fr_names,function(x){
   (mp_simulator(
       model = specs[[x]]
@@ -204,7 +205,7 @@ fr_sims <- lapply(fr_names,function(x){
   )
  }
 ) %>% bind_rows()
-
+}
 ## visualizing simulated data
 if (interactive()) {
   ggplot(fr_sims, aes(time,value,linetype=matrix,col=response))+
@@ -212,7 +213,4 @@ if (interactive()) {
     theme_bw()+
     ylim(c(0,1/spec$default$K_inverse)) #ymax = carrying capacity of prey
 }
-
-
-
 
