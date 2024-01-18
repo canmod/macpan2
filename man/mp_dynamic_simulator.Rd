@@ -32,6 +32,26 @@ simulations that are referenced in the expression list in the dynamic model.}
 \item{unstruc_mats}{= Named list of objects that can be coerced to
 numerical matrices that are used in the expression list of the
 dynamic model.}
+
+\item{mats_to_save}{TODO}
+
+\item{mats_to_return}{TODO}
+
+\item{params}{TODO}
+
+\item{random}{TODO}
+
+\item{obj_fn}{TODO}
+
+\item{log_file}{TODO}
+
+\item{do_pred_sdreport}{TODO}
+
+\item{tmb_cpp}{TODO}
+
+\item{initialize_ad_fun}{TODO}
+
+\item{...}{TODO}
 }
 \description{
 This is an 'old' function that was tested out at a workshop.

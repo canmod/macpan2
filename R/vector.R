@@ -152,28 +152,6 @@ as.matrix.StructuredVector = function(x, ...) {
 #' @param x An index.
 #' @param ... Passed on to S3 methods.
 #'
-#' These labels can be used to create 'multidimensional' names for the elements
-#' of vectors. Here is the above example expressed in vector form.
-#' ```{r structured_vectors, echo = FALSE}
-#' v = StructuredVector(prod)
-#' v$set_numbers(Epi = c(S = 1000))$set_numbers(Epi = c(I = 1), Age = "old")
-#' ```
-#' This example vector could be stored as a 3-by-2 matrix. But other examples
-#' cannot, making this indexing approach more general. For example, consider the
-#' following index.
-#' ```{r symptoms, echo = FALSE}
-# symp = mp_index(
-#  Epi = c("S", "I", "I", "R"),
-#  Symptoms = c("", "mild", "severe", "")
-# )
-# symp
-#' ```
-#' This index has an associated indexed vector that cannot be expressed as a
-#' matrix.
-#' ```{r set_numbers, echo = FALSE}
-#' mp_structured_vector(symp)$set_numbers(Epi = c(S = 1000))$set_numbers(Epi = c(I = 1), Symptoms = "severe")
-#' ```
-#'
 #' @examples
 #' state = mp_index(
 #'   Epi = c("S", "I", "S", "I"),
@@ -209,6 +187,7 @@ mp_structured_vector.Link = function(x, dimension_name, ...) {
   mp_structured_vector(x$labels_for[[dimension_name]]())
 }
 
+#' @param vector An index.
 #' @describeIn mp_structured_vector Update numerical values of a structured
 #' vector. TODO: details on syntax.
 #' @export

@@ -1,8 +1,6 @@
 ---
 title: "macpan2"
-output: 
-  github_document:
-    toc: true
+output: github_document
 ---
 
 ```{r opts, echo = FALSE}

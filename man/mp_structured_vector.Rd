@@ -17,7 +17,7 @@ mp_set_numbers(vector, ...)
 These labels can be used to create 'multidimensional' names for the elements
 of vectors. Here is the above example expressed in vector form.
 
-\if{html}{\out{<div class="sourceCode {r structured_vectors, echo = FALSE}">}}\preformatted{v = StructuredVector(prod)
+\if{html}{\out{<div class="sourceCode {r structured_vectors, echo = FALSE}">}}\preformatted{v = mp_structured_vector(prod)
 v$set_numbers(Epi = c(S = 1000))$set_numbers(Epi = c(I = 1), Age = "old")
 }\if{html}{\out{</div>}}
 
@@ -32,6 +32,8 @@ matrix.
 
 \if{html}{\out{<div class="sourceCode {r set_numbers, echo = FALSE}">}}\preformatted{mp_structured_vector(symp)$set_numbers(Epi = c(S = 1000))$set_numbers(Epi = c(I = 1), Symptoms = "severe")
 }\if{html}{\out{</div>}}}
+
+\item{vector}{An index.}
 }
 \description{
 This documentation was originally in \code{\link[=mp_index]{mp_index()}} and should be cleaned up

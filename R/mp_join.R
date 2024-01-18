@@ -184,7 +184,7 @@ mp_join = function(..., by = empty_named_list()) {
 #' mp_join(
 #'   from = mp_subset(state, Epi = "S"),
 #'   to = mp_subset(state, Epi = "I"),
-#'   from.to = "Age"
+#'   by = list(from.to = "Age")
 #' )
 #' ```
 #' @name LedgerDefinition

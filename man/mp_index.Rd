@@ -34,6 +34,10 @@ and must contain at least one name. The index given by the
 \code{labelling_column_names} must uniquely identify each row.
 The default \code{NULL} gives the set of columns, in order starting with
 the first column, that are required to uniquely identify each row.}
+
+\item{x}{An index.}
+
+\item{object}{An index.}
 }
 \description{
 Make an index table to enumerate model quantity labels by category. These

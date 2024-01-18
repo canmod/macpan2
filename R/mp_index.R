@@ -197,6 +197,7 @@ Index.Index = function(partition
   )
 }
 
+#' @param x An index.
 #' @describeIn mp_index Print an index.
 #' @export
 print.Index = function(x, ...) print(x$partition)
@@ -224,6 +225,7 @@ labelling_column_names.Index = function(x) x$labelling_column_names
 #' @export
 to_labels.Index = function(x) x$labels()
 
+#' @param object An index.
 #' @describeIn mp_index Convert an index into
 #' a character vector giving labels associated with each model component
 #' (i.e. row) being described.
