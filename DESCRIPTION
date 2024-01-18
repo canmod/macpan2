@@ -38,7 +38,8 @@ Suggests:
     numDeriv,
     parallel
 Remotes:
-    canmod/oor
+    canmod/oor,
+    canmod/macpan2helpers
 LinkingTo:
     TMB,
     RcppEigen,
