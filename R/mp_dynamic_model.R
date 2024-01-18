@@ -88,28 +88,21 @@ DynamicModel = function(
 
 
 #' Dynamic Model
-#'
-#'
-#'
+#' 
+#' This is an 'old' model specification function that was tested out 
+#' at a workshop. Currently it still drives the engine-agnostic-grammar 
+#' vignette, but we plan to replace this function with 
+#' \code{\link{mp_tmb_model_spec}} and other model specification
+#' functions.
+#' 
+#' @param expr_list Expression list.
+#' @param ledgers Ledgers.
+#' @param init_vecs Initial structured vectors.
+#' @param unstruc_mats Initial unstructured matrices.
+#' 
 #' @export
 mp_dynamic_model = DynamicModel
 
-#' @export
-mp_test_tmb = function(..., ledgers, vectors, unstruc_mats) {
-  m = mp_dynamic_model(
-      expr_list = mp_tmb_expr_list(before = list(...))
-    , ledgers = ledgers
-    , init_vecs = vectors
-    , unstruc_mats = unstruc_mats
-  )
-  mp_tmb_simulator(m
-    , time_steps = 0L
-    , vectors = method_apply(vectors, "numbers")
-    , unstruc_mats = unstruc_mats
-    , mats_to_return = m$derived_matrix_names()
-    , mats_to_save = m$derived_matrix_names()
-  ) |> mp_report(phases = "before")
-}
 
 #' @export
 print.DynamicModel = function(x, ...) {

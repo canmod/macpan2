@@ -180,7 +180,7 @@ A big question with calibration is do we want there to be an engine-agnostic DSL
 
 A data frame (or data frames) containing observed (possibly uneven) time series to compare with model simulations. What form should this data frame take?
 
-One option is the same format as the output of `mp_report`. This would have several benefits.
+One option is the same format as the output of `mp_trajectory`. This would have several benefits.
 
 * Consistency with input and output formats, making it a little easier to learn.
 * Easy to manipulate output into input for testing calibration functionality.
@@ -431,8 +431,8 @@ si = mp_dynamic_model(
   unstruc_mats = list(S = 99, I = 1, beta = 0.25, N = 100)
 )
 (si
-  |> mp_tmb_simulator(time_steps = 10, mats_to_return = "reports")
-  |> mp_report()
+  |> mp_dynamic_simulator(time_steps = 10, mats_to_return = "reports")
+  |> mp_trajectory()
 )
 ```
 

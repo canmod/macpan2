@@ -1,7 +1,7 @@
 library(oor)
 library(macpan2)
 r = CSVReader(system.file("starter_models", "sir_vax", "variables.csv", package = "macpan2"))
-x = Partition(r$read())
+x = macpan2:::Partition(r$read())
 x$name()
 
 process_partition_names = function(...) {
@@ -65,7 +65,7 @@ PartitionAlt = function(frame) {
 }
 print.PartitionAlt = function(x, ...) print(x$frame)
 xx = PartitionAlt(r$read())
-x = Partition(r$read())
+x = macpan2:::Partition(r$read())
 identical(xx$names(), x$names())
 identical(xx$name(), x$name())
 identical(xx$labels(), x$labels())

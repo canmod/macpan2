@@ -75,52 +75,47 @@ assert_named_list = function(l) {
 
 self_named_vector = function(...) c(...) |> setNames(c(...))
 
-#' Extract Expressions by Name
-#'
-#' @param x Object containing named expressions.
-#' @param ... Character vectors containing names of expressions.
-#'
-#' @returns An object the same type as \code{x} but only with
-#' those expressions identified by the names in \code{...}.
-#'
-#' @export
-mp_extract_exprs = function(x, ...) UseMethod("mp_extract_exprs")
+# Extract Expressions by Name -- Experimental
+#
+# @param x Object containing named expressions.
+# @param ... Character vectors containing names of expressions.
+#
+# @returns An object the same type as \code{x} but only with
+# those expressions identified by the names in \code{...}.
+#
 
-#' @export
-mp_extract_exprs.list = function(x, ...) {
-  nms = (list(...)
-    |> lapply(as.character)
-    |> unlist(use.names = FALSE)
-    |> unique()
-  )
-  x[names(x) %in% nms]
-}
+# mp_extract_exprs = function(x, ...) UseMethod("mp_extract_exprs")
+# 
+# mp_extract_exprs.list = function(x, ...) {
+#   nms = (list(...)
+#     |> lapply(as.character)
+#     |> unlist(use.names = FALSE)
+#     |> unique()
+#   )
+#   x[names(x) %in% nms]
+# }
+# 
+# mp_extract_exprs.ExprList = function(x, ...) {
+#   nms = (list(...)
+#     |> lapply(as.character)
+#     |> unlist(use.names = FALSE)
+#     |> unique()
+#   )
+#   ExprList(
+#     before = mp_extract_exprs(x$before, ...),
+#     during = mp_extract_exprs(x$during, ...),
+#     after = mp_extract_exprs(x$after, ...),
+#     .simulate_exprs = intersect(x$.simulate_exprs, nms)
+#   )
+# }
+# 
+# mp_extract_exprs.DynamicModel = function(x, ...) {
+#   mp_extract_exprs(x$expr_list, ...)
+# }
+# 
 
-#' @export
-mp_extract_exprs.ExprList = function(x, ...) {
-  nms = (list(...)
-    |> lapply(as.character)
-    |> unlist(use.names = FALSE)
-    |> unique()
-  )
-  ExprList(
-    before = mp_extract_exprs(x$before, ...),
-    during = mp_extract_exprs(x$during, ...),
-    after = mp_extract_exprs(x$after, ...),
-    .simulate_exprs = intersect(x$.simulate_exprs, nms)
-  )
-}
-
-#' @export
-mp_extract_exprs.DynamicModel = function(x, ...) {
-  mp_extract_exprs(x$expr_list, ...)
-}
-
-
-#' @export
-mp_combine_exprs = function(...) {
-  UseMethod("mp_combine_exprs")
-}
-
-#' @export
-mp_combine_exprs.list = function(...) c(...)
+# mp_combine_exprs = function(...) {
+#   UseMethod("mp_combine_exprs")
+# }
+# 
+# mp_combine_exprs.list = function(...) c(...)

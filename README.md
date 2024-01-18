@@ -752,7 +752,7 @@ si = mp_dynamic_model(
   unstruc_mats = list(S = 99, I = 1, beta = 0.25, N = 100)
 )
 (si
-  |> mp_tmb_simulator(time_steps = 10, mats_to_return = "reports")
+  |> mp_dynamic_simulator(time_steps = 10, mats_to_return = "reports")
   |> mp_report()
 )
 ```

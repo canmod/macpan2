@@ -11,7 +11,7 @@ implemented as an example.
     library(ggplot2)
     sir_dir = system.file("model_library", "sir", package = "macpan2")
     sir_mod = Compartmental2(sir_dir)
-    sir_sim = mp_tmb_simulator(sir_mod
+    sir_sim = mp_dynamic_simulator(sir_mod
       , vectors = list(
           state = c(S = 999, I = 1, R = 0),
           flow_rates = c(lambda = NA, gamma = 0.1),

@@ -1,6 +1,10 @@
-#' TMB Simulator
+#' TMB Simulator from Dynamic Model
+#' 
+#' This is an 'old' function that was tested out at a workshop.
+#' Currently it still drives the engine-agnostic-grammar vignette,
+#' but we plan to replace this function with \code{\link{mp_simulator}}.
 #'
-#' @param dynamic_model Object product by \code{\link{dynamic_model}}.
+#' @param dynamic_model Object product by \code{\link{mp_dynamic_model}}.
 #' @param vectors Named list of named vectors as initial values for the
 #' simulations that are referenced in the expression list in the dynamic model.
 #' @param unstruc_mats = Named list of objects that can be coerced to
@@ -10,13 +14,13 @@
 #'
 #' @importFrom oor method_apply
 #' @export
-mp_tmb_simulator = function(...) {
-  UseMethod("mp_tmb_simulator")
+mp_dynamic_simulator = function(...) {
+  UseMethod("mp_dynamic_simulator")
 }
 
 
 #' @export
-mp_tmb_simulator.DynamicModel = function(dynamic_model
+mp_dynamic_simulator.DynamicModel = function(dynamic_model
       , time_steps = 0L
       , vectors = NULL
       , unstruc_mats = NULL
@@ -102,7 +106,7 @@ mp_tmb_simulator.DynamicModel = function(dynamic_model
 }
 
 #' @export
-mp_tmb_simulator.ModelDefRun = function(dynamic_model
+mp_dynamic_simulator.ModelDefRun = function(dynamic_model
       , time_steps = 0L
       , vectors = NULL
       , unstruc_mats = NULL
@@ -119,22 +123,23 @@ mp_tmb_simulator.ModelDefRun = function(dynamic_model
 ) {
   args = c(as.list(environment()), list(...))
   args$dynamic_model = dynamic_model$dynamic_model
-  do.call(mp_tmb_simulator, args)
+  do.call(mp_dynamic_simulator, args)
 }
 
-#' reporting function
-#' @param parameter_vector Numeric vector equal in length to (?)
-#' @param simulator Object produced by \code{\link{tmb_simulator}}.
-#' @export
-mp_report = function(simulator, parameter_vector = numeric(), phases = "during") {
-  if (length(parameter_vector) == 0L) parameter_vector = 0
-  r = do.call(
-    simulator$report,
-    c(
-      as.list(parameter_vector),
-      list(.phases = phases)
-    )
-  )
-  rownames(r) = NULL
-  r
-}
+# reporting function -- probably will delete soon in favour
+# of mp_trajectory
+# @param parameter_vector Numeric vector equal in length to (?)
+# @param simulator Object produced by \code{\link{tmb_simulator}}.
+
+# mp_report = function(simulator, parameter_vector = numeric(), phases = "during") {
+#   if (length(parameter_vector) == 0L) parameter_vector = 0
+#   r = do.call(
+#     simulator$report,
+#     c(
+#       as.list(parameter_vector),
+#       list(.phases = phases)
+#     )
+#   )
+#   rownames(r) = NULL
+#   r
+# }

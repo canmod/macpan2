@@ -133,7 +133,7 @@ sir <- SIR_starter(
 
 ## ----sir-simulator------------------------------------------------------------
 ## SIR model simulator -------------------------
-sir_simulator <- mp_tmb_simulator(
+sir_simulator <- mp_dynamic_simulator(
   dynamic_model = sir,
   vectors = list(
     state = c(S = 999, I = 1, R = 0),
@@ -145,7 +145,7 @@ sir_simulator <- mp_tmb_simulator(
 
 ## ----sir-results--------------------------------------------------------------
 ## SIR model simulation results -------------------------
-sir_results <- mp_report(sir_simulator)
+sir_results <- mp_trajectory(sir_simulator)
 
 
 ## ----sir-results-head---------------------------------------------------------
@@ -295,7 +295,7 @@ two_strain_model <- SIR_starter(
   force_of_infection = force_of_infection
 )
 
-two_strain_simulator <- mp_tmb_simulator(
+two_strain_simulator <- mp_dynamic_simulator(
   dynamic_model = two_strain_model,
   vectors = list(
     state = c(S = 998, I.A = 1, I.B = 1, R = 0),
@@ -304,7 +304,7 @@ two_strain_simulator <- mp_tmb_simulator(
   time_steps = 100
 )
 
-two_strain_results <- (mp_report(two_strain_simulator)
+two_strain_results <- (mp_trajectory(two_strain_simulator)
   |> filter(matrix == "state")                    
 )
 

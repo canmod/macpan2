@@ -11,6 +11,19 @@ mp_dynamic_model(
   unstruc_mats = list()
 )
 }
+\arguments{
+\item{expr_list}{Expression list.}
+
+\item{ledgers}{Ledgers.}
+
+\item{init_vecs}{Initial structured vectors.}
+
+\item{unstruc_mats}{Initial unstructured matrices.}
+}
 \description{
-Dynamic Model
+This is an 'old' model specification function that was tested out
+at a workshop. Currently it still drives the engine-agnostic-grammar
+vignette, but we plan to replace this function with
+\code{\link{mp_tmb_model_spec}} and other model specification
+functions.
 }

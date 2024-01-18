@@ -39,7 +39,7 @@
 #'
 #' * `products`
 #'
-#' @export
+#' @noRd
 Partition = function(frame) {
   self = Base()
   self$.partition = frame_to_part(frame)
@@ -212,7 +212,7 @@ enforce_schema = function(frame, ...) {
 #'
 #' @param ... \code{\link{Partition}} objects to combine.
 #'
-#' @export
+#' @noRd
 union_vars = function(...) {
   not_null = function(x) !is.null(x)
   l = Filter(not_null, list(...))
@@ -292,7 +292,7 @@ NumericPartition = function(frame, numeric_vector) {
   return_object(self, "NumericPartition")
 }
 
-#' @export
+
 join_partitions = function(x, y, by = "") {
   by = by_(by)
   merge(x, y
@@ -302,7 +302,7 @@ join_partitions = function(x, y, by = "") {
   )
 }
 
-#' @export
+
 by_ = function(by) UseMethod("by_")
 
 #' @export

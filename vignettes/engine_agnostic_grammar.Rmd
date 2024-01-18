@@ -264,11 +264,11 @@ sir <- SIR_starter(
 )
 ```
 
-We can create a model simulator using `mp_tmb_simulator()`^[`tmb` stands for "template model builder", the underlying simulation engine provided by the [TMB package](https://kaskr.github.io/adcomp/Introduction.html)], giving it the model object (`model`), initial values for each index (`vectors`), as well as the number of total time steps in the simulation (`time_steps`):
+We can create a model simulator using `mp_dynamic_simulator()`^[`tmb` stands for "template model builder", the underlying simulation engine provided by the [TMB package](https://kaskr.github.io/adcomp/Introduction.html)], giving it the model object (`model`), initial values for each index (`vectors`), as well as the number of total time steps in the simulation (`time_steps`):
 
 ```{r sir-simulator}
 ## SIR model simulator -------------------------
-sir_simulator <- mp_tmb_simulator(
+sir_simulator <- mp_dynamic_simulator(
   dynamic_model = sir,
   vectors = list(
     state = c(S = 999, I = 1, R = 0),
@@ -280,11 +280,11 @@ sir_simulator <- mp_tmb_simulator(
 
 Note that we've specified `NA` for `lambda` as it will be calculated for us using the force of infection functional form.
 
-Then we can actually simulate the model by passing our model simulator to `mp_report()`:
+Then we can actually simulate the model by passing our model simulator to `mp_trajectory()`:
 
 ```{r sir-results}
 ## SIR model simulation results -------------------------
-sir_results <- mp_report(sir_simulator)
+sir_results <- mp_trajectory(sir_simulator)
 ```
 
 The output of the simulation is a [long data frame](https://r4ds.had.co.nz/tidy-data.html#longer):
@@ -514,7 +514,7 @@ two_strain_model <- SIR_starter(
   force_of_infection = force_of_infection
 )
 
-two_strain_simulator <- mp_tmb_simulator(
+two_strain_simulator <- mp_dynamic_simulator(
   dynamic_model = two_strain_model,
   vectors = list(
     state = c(S = 998, I.A = 1, I.B = 1, R = 0),
@@ -523,7 +523,7 @@ two_strain_simulator <- mp_tmb_simulator(
   time_steps = 100
 )
 
-two_strain_results <- (mp_report(two_strain_simulator)
+two_strain_results <- (mp_trajectory(two_strain_simulator)
   |> filter(matrix == "state")                    
 )
 
