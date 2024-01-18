@@ -1,3 +1,7 @@
+## Internal classes that handle optimization. Objects of 
+## these classes are in the `optimize` and `optimization_history`
+## fields of `TMBSimulator` objects.
+
 TMBOptimizer = function(simulator) {
   self = Base()
   self$simulator = simulator
@@ -58,8 +62,18 @@ TMBCurrentParams = function(simulator) { ## TMBSimulator
   self = Base()
   self$simulator = simulator
 
-  self$params_vector = function() self$simulator$ad_fun()$env$parList()$params
+  self$n_params = function() {
+    self$simulator$tmb_model$params$data_frame() |> nrow()
+  }
+  self$n_random = function() {
+    self$simulator$tmb_model$random$data_frame() |> nrow()
+  }
+  self$params_vector = function() {
+    if (self$n_params() == 0L) return(numeric())
+    self$simulator$ad_fun()$env$parList()$params
+  }
   self$random_vector = function() {
+    if (self$n_random() == 0L) return(numeric())
     self$simulator$objective(self$params_vector())
     self$simulator$ad_fun()$env$parList()$random
   }

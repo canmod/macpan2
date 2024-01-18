@@ -1,0 +1,2 @@
+from ,to   ,flow       ,type ,from_partition ,to_partition ,flow_partition ,from_to_partition ,from_flow_partition ,to_flow_partition
+city ,city ,connection ,flow ,GeogType       ,GeogType     ,GeogType       ,                  ,From                ,To

@@ -63,8 +63,8 @@ symbolizer = function(f) {
           `%*%` = function(x, y) binop(" %*% ", x, y),
           `sum` = function(...) fwrap("sum", csv(...)),
           `rep` = function(x, n) fwrap("rep", csv(x, n)),
-          `rowSums` = function(x) fwrap("rowSums", x),
-          `colSums` = function(x) fwrap("colSums", x),
+          `row_sums` = function(x) fwrap("row_sums", x),
+          `col_sums` = function(x) fwrap("col_sums", x),
           `[` = function(x, ...) bwrap(x, csv(...))
       )
     })

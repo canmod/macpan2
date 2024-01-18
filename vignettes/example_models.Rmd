@@ -42,11 +42,8 @@ Suppose that we want to read the `sir` example we would go here: [https://github
 To use the `sir` example it can be read into R using the following code.
 ```{r}
 sir_dir = system.file("starter_models", "sir", package = "macpan2")
-sir = Compartmental(sir_dir)
-sir$labels$all()
-sir$labels$state()
-sir$labels$flow()
-sir$flows()
+sir = mp_tmb_library(sir_dir)
+print(sir)
 ```
 To see how to actually generate simulations from this model see [this article](https://canmod.github.io/macpan2/articles/quickstart). To use another model, again, replace `sir` with another entry in the `dir` column above.
 
@@ -55,15 +52,12 @@ To see how to actually generate simulations from this model see [this article](h
 To take `sir` as a jumping-off point for producing your own model one may use the following code.
 ```{r}
 my_sir_dir = file.path(tempdir(), "my_sir")
-model_starter("sir", my_sir_dir)
+mp_model_starter("sir", my_sir_dir)
 ```
 
 After running this code you can go to the files in `my_sir_dir` and modify what you see there. Note that you typically want to chose a specific directory for your model instead of using `tempdir`. You still need to read your own model in the usual way.
 ```{r}
-my_sir = Compartmental(my_sir_dir)
-my_sir$labels$all()
-my_sir$labels$state()
-my_sir$labels$flow()
-my_sir$flows()
+my_sir = mp_tmb_library(my_sir_dir)
+print(my_sir)
 ```
 These look identical to what came before, but that's just because it hasn't been modified ... yet ...

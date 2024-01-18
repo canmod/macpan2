@@ -5,6 +5,7 @@
 \alias{CSVReader}
 \alias{JSONReader}
 \alias{TXTReader}
+\alias{RReader}
 \alias{NULLReader}
 \title{Reader}
 \usage{
@@ -15,6 +16,8 @@ CSVReader(...)
 JSONReader(...)
 
 TXTReader(...)
+
+RReader(...)
 
 NULLReader(...)
 }
@@ -31,6 +34,8 @@ Construct objects for reading data.
 \item \code{JSONReader()}: Read JSON files.
 
 \item \code{TXTReader()}: Read TXT files.
+
+\item \code{RReader()}: Read R files.
 
 \item \code{NULLReader()}: Placeholder reader that always returns \code{NULL}.
 

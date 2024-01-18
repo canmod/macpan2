@@ -1,0 +1,45 @@
+---
+output: md_document
+---
+
+This is (nearly) the simplest possible 'vanilla' epidemic model, 
+implemented as an example.
+
+```{r read_model, message = FALSE}
+library(macpan2)
+library(dplyr)
+library(ggplot2)
+sir_dir = system.file("model_library", "sir", package = "macpan2")
+sir_mod = Compartmental2(sir_dir)
+sir_sim = mp_dynamic_simulator(sir_mod
+  , vectors = list(
+      state = c(S = 999, I = 1, R = 0),
+      flow_rates = c(lambda = NA, gamma = 0.1),
+      trans_rates = c(beta = 0.25)
+    )
+  , time_steps = 100L
+)
+```
+
+The state variables and rates in this model are as follows.
+
+```{r print_vars_and_rates} 
+mp_extract(sir_mod, "state")
+```
+
+```{r print_flows_and_influences}
+sir_mod$flows()
+sir_mod$influences()
+```
+
+
+```{r plot_model}
+(sir_sim
+  |> mp_trajectory()
+  |> filter(matrix == "state")
+  |> mutate(state = factor(row, levels = c("S", "I", "R")))
+  |> ggplot()
+  + geom_line(aes(time, value, colour = state))
+)
+```
+

@@ -1,0 +1,32 @@
+---
+title: "Variable Types and Dimensions"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{Variable Types and Dimensions}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+[![status](https://img.shields.io/badge/status-stub-red)](https://canmod.github.io/macpan2/articles/vignette-status#stub)
+
+```{r, include = FALSE}
+library(macpan2)
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## State Variables
+
+## Flow Variables
+
+## Flow Parameters
+
+## Observed Variables
+
+## Fixed Effect Parameters
+
+## Random Effect Parameters

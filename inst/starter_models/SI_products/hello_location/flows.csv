@@ -1,0 +1,3 @@
+from     ,to       ,flow ,type       ,from_partition ,to_partition ,flow_partition ,from_to_partition ,from_flow_partition ,to_flow_partition
+toronto  ,hamilton ,west ,per_capita ,Location       ,Location     ,Location       ,                  ,                    ,Null
+hamilton ,toronto  ,east ,per_capita ,Location       ,Location     ,Location       ,                  ,                    ,Null

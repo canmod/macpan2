@@ -59,7 +59,7 @@ valid_funcs = nlist(
   `(`,
   `c`, `matrix`,
   `%*%`, `sum`, `rep`,
-  `rowSums`, `colSums`,
+  `row_sums`, `col_sums`,
   `[`, `t`
 )
 

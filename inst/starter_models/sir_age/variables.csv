@@ -1,0 +1,15 @@
+Epi            ,Age
+S              ,young
+I              ,young
+R              ,young
+infection      ,young
+recovery       ,young
+S              ,old
+I              ,old
+R              ,old
+infection      ,old
+recovery       ,old
+N              ,
+contact        ,
+sigma          ,
+transmissivity ,

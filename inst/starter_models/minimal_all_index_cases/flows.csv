@@ -1,0 +1,9 @@
+from    ,to      ,flow            ,type               ,from_partition ,to_partition ,flow_partition ,from_to_partition ,from_flow_partition ,to_flow_partition
+S.unvax ,I       ,infection.unvax ,per_capita         ,Epi.Vax        ,Epi          ,Epi.Vax        ,                  ,Symp                ,Null
+S.vax   ,I.mild  ,infection.vax   ,per_capita         ,Epi.Vax        ,Epi.Symp     ,Epi.Vax        ,                  ,                    ,Null
+S.unvax ,S.vax   ,vaccination     ,per_capita         ,Epi.Vax        ,Epi.Vax      ,Epi            ,                  ,                    ,Null
+S.vax   ,S.unvax ,waning          ,per_capita         ,Epi.Vax        ,Epi.Vax      ,Epi            ,                  ,                    ,Null
+I       ,R       ,recovery        ,per_capita         ,Epi            ,Epi          ,Epi            ,                  ,                    ,Null
+alive   ,S       ,birth           ,per_capita_inflow  ,Vital          ,Epi          ,Epi            ,                  ,                    ,Null
+alive   ,        ,death           ,per_capita_outflow ,Vital          ,Null         ,Epi            ,                  ,                    ,Null
+        ,S       ,importation     ,absolute_inflow    ,Null           ,Epi          ,Epi            ,                  ,                    ,Null

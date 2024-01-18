@@ -1,41 +1,44 @@
-library(macpan2)
-f = system.file("starter_models", "sir_vax", package = "macpan2")
-#f = "inst/starter_models/sir_vax"
-m = Compartmental(f)
-m$indices$flow$per_capita$from()
-m$indices$flow$per_capita$to()
-m$indices$flow$per_capita$flow()
-m$indices$transmission$infection_flow()
+test_that("example models are properly parsed", {
+  r = ("starter_models"
+    |> mp_tmb_library("sir", package = "macpan2")
+    |> mp_simulator(time_steps = 80, outputs = "I"
+      , default = list(beta = 0.5, gamma = 0.2, N = 100, I = 1)
+    )
+    |> mp_trajectory()
+  )
 
-s = m$simulators$tmb(
-  time_steps = 100,
-  state = c(
-    S.unvax = 99,
-    I.unvax = 1,
-    R.unvax = 0,
-    S.vax = 0,
-    I.vax = 0,
-    R.vax = 0
-  ),
-  flow = c(
-    infection.unvax = 0,
-    infection.vax = 0,
-    gamma.unvax = 0.1,
-    gamma.vax = 0.3,
-    .vax_rate = 0.1
-  ),
-  beta.unvax = 0.2,
-  beta.vax = 0.01,
-  sigma.unvax = 1,
-  sigma.vax = 0.2,
-  N.unvax = empty_matrix,
-  N.vax = empty_matrix,
-  foi.unvax = empty_matrix,
-  foi.vax = empty_matrix,
-  foi. = empty_matrix
-)
+  expected_head = structure(
+    list(
+        matrix = c("I", "I", "I", "I", "I", "I")
+      , time = 1:6
+      , row = c(0, 0, 0, 0, 0, 0)
+      , col = c(0, 0, 0, 0, 0, 0)
+      , value = c(
+          1.295, 1.673819875, 2.15811605601715
+        , 2.77369837437042, 3.55034660108989
+        , 4.52082543972383
+      )
+    )
+    , row.names = c(NA, 6L)
+    , class = "data.frame"
+  )
 
-m$flows_expanded()
-m$flows()
-m$expr_list()$print_exprs()
-s$report()
+  expected_tail = structure(
+    list(
+        matrix = c("I", "I", "I", "I", "I", "I")
+      , time = 75:80
+      , row = c(0, 0, 0, 0, 0, 0)
+      , col = c(0, 0, 0, 0, 0, 0)
+      , value = c(
+          0.00460845639937598, 0.00389989999247531
+        , 0.00330028093582821, 0.00279285178324815
+        , 0.00236343941648981, 0.00200004942841338
+      )
+    )
+    , row.names = 75:80
+    , class = "data.frame"
+  )
+  
+  expect_equal(head(r, 6L), expected_head)
+  expect_equal(tail(r, 6L), expected_tail)
+})

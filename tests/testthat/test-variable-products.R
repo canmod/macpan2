@@ -1,18 +1,19 @@
 test_that("state and flow variables products are correct", {
+  skip("test uses Compartmental")
   sir = Compartmental(system.file("starter_models", "sir", package = "macpan2"))
   vax = Compartmental(system.file("starter_models", "vax", package = "macpan2"))
 
   expect_identical(
     union_vars(
-      cartesian(
+      macpan2:::cartesian(
         sir$variables$state(),
         vax$variables$state()
       ),
-      cartesian(
+      macpan2:::cartesian(
         sir$variables$flow(),
         vax$variables$state()
       ),
-      cartesian(
+      macpan2:::cartesian(
         sir$variables$state(),
         vax$variables$flow()
       )

@@ -1,0 +1,559 @@
+---
+title: "Compartmental Model Definitions"
+header-includes:
+   - \usepackage{amsmath}
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{Compartmental Model Definitions}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+[![status](https://img.shields.io/badge/status-mature%20draft-yellow)](https://canmod.github.io/macpan2/articles/vignette-status#mature-draft)
+
+```{r, include = FALSE}
+library(macpan2)
+model_dirs = list.files(system.file("starter_models", package = "macpan2"), full.names = TRUE)
+model_dirs = model_dirs[basename(model_dirs) != "SI_products"]  # hack -- better to change the directory structure
+model_dirs = model_dirs[basename(model_dirs) != "product_example"] # hack -- better to change the directory structure
+models = setNames(lapply(model_dirs, ModelFiles), basename(model_dirs))
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r, echo = FALSE}
+if (macpan2:::dev_in_root()) {
+  model_repo = "inst/starter_models"
+} else if (macpan2:::dev_in_vig()) {
+  model_repo = "../inst/starter_models"
+} else {
+  stop("dunno")
+}
+make_model_files = function(path){
+  try(ModelFiles(path), silent = TRUE)
+}
+model_paths = list.files(model_repo, full.names = TRUE)
+models = setNames(
+  lapply(model_paths, make_model_files),
+  tools::file_path_sans_ext(basename(model_paths))
+)
+```
+
+## Prerequisites
+
+This document assumes knowledge of compartmental epidemic models. We will not be defining terms and symbols that we consider to be widely understood by mathematical epidemiologists.
+
+## Document Goals
+
+This document describes a specification for a data structure to represent
+compartmental models. The goal of this document is not to define a spec for a
+user interface for constructing compartmental models. Instead, we define the
+data structure here so that interfaces for creating instances of compartmental
+models can be designed without needing to grapple with issues of how to
+represent and store model definitions.
+
+## User Stories
+
+This spec design has been guided by several high-level user stories, which we
+outline briefly.
+
+> As a modeller, I want to use software that provides an
+> extensive set of modelling capabilities, so that I can
+> address specific and changing public health needs.
+
+> As a modeller, I want to build complex models out of
+> simpler -- easier to understand -- modular sub-models,
+> so that I can more easily modify the structure of my
+> model as public health needs change.
+
+> As a developer, I want to be able to quickly add a new
+> modelling capability, so that I can support public
+> health modellers in as timely a manner as possible.
+
+These and other
+[user-stories](https://canmod.github.io/macpan-book/index.html#vision-and-direction)
+were developed by working with public-health modellers during the COVID-19
+pandemic in Canada.
+
+## Naming and Labelling (in progress)
+
+A goal of `macpan2` is to provide a mechanism for representing structured compartmental models. An example of such a model is to have each compartment in an SEIR model split into a set of spatial locations and into a set of age groups. It is crucial but difficult to assign meaningful and consistent names to the compartments, flow rates, transmission rates, contact rates, sub-population sizes, and other parameters determining these quantities. Such names should convey how the different quantities relate to one another. For example, the names should make clear that the rate of flow between two compartments is specific to, say, the age group and location of those compartments. The naming system should facilitate identifying model quantities and sets of quantities. For example, in a spatially structured model we might want to refer to all states in a particular location (e.g. Toronto) and a specific state within that location (e.g. susceptible individuals in Toronto). 
+
+Labelled partitions can be stored as a data frame. The rows of the data frame
+represent the things being represented. Our primary example of a 'thing' is a
+variable in a compartmental model (e.g. number of susceptible individuals in
+Toronto, or the force of infection). The columns of the data frame represent
+different ways to partition the rows.
+
+```{r echo = FALSE}
+p = Partition(models$seir_vax$variables())$filter("S", "E", "I", "R", .wrt = "Epi")
+p
+```
+
+Non-empty values in each cell must contain only letters, numbers, underscores,
+and must start with a letter. Empty labels are zero-length strings that can be
+used to indicate that some partitions are not applicable to some variables. The
+purpose for these restrictions is to facilitate the construction of strings and
+character vectors that summarize different aspects of the labelled partition.
+When taken together, these summaries can be inverted to restore the full
+labelled partition and so they represent zero information loss. This equivalence
+allows us to go back-and-forth between the two representations without loosing
+information, but perhaps gaining convenience.
+There are three types of summaries: the names, the name, and the labels. The
+names of a labelled partition are the column names of the corresponding data
+frame.
+
+```{r}
+p$names()
+```
+
+The name of a labelled partition is a dot-concatenation of the names,
+
+```{r}
+p$name()
+```
+
+The labels of a labelled partition is a dot-concatenation of the columns.
+
+```{r}
+p$labels()
+```
+
+These labels give a unique single character string for referring to each
+variable. With only the labels and one of either the names or the name, one may
+recover the labelled partition. The labels provide convenient names for the
+variables -- i.e. rownames.
+By convention we use [UpperCamelCase](https://en.wikipedia.org/wiki/Camel_case)
+for partition names and a modified form of
+[snake_case](https://en.wikipedia.org/wiki/Snake_case) for variable labels. Our
+modification of snake case allows for single uppercase letters in order to
+accommodate the convention in epidemiology for using single uppercase letters to
+refer to state variables. For example, `S`, `I`, and `R`, as well as `I_mild`
+and `I_severe`, would be consistent with our modified snake case style.
+
+## Compartmental Models
+
+A [compartmental
+model](https://canmod.github.io/macpan2/articles/model_definitions) can be
+represented as a directory with the following four files.
+
+1. `variables` -- A CSV file describing the variables in the model.
+2. `derivations` -- JSON file with an array of instructions on how to update the `variables` at each iteration of a model simulation.
+3. `flows` -- A CSV file describing what variables are state variables and the magnitudes of flows to and from compartments.
+4. `settings` -- A JSON file with an object of elements that determine how files 1-3 are used by the software.
+
+The following sections describe each of these files in more detail.
+
+
+## Variables and Partitions
+
+The `variables.csv` file has a row for each variable in the model and one column
+for each labelled partition of the variables. A labelled partition is a
+character vector of labels that describes the variables. Each row in this file
+must be unique so that it uniquely identifies each variable.
+
+For example, here is a list of variables for the standard SIR model.
+
+```{r, echo = FALSE}
+sir_vars = Partition(models$sir$variables())
+sir_vars
+```
+
+This example has a single labelled partition, `Epi`. This partition uniquely identifies each variable and so we do not need other partitions to comply with the uniqueness requirement.
+
+To stratify by another factor (e.g. age groups or locations) we can add other labelled partitions. 
+
+We emphasize that the list with the single `Epi` partition did not violate this spec, as it is not required to add a partition to make a distinction between state variables and parameters. The spec distinguishes [Variable Roles] like this in the `settings` file. In this example, the addition of the `Type` and `Infect` partitions are for convenience. The point is that the user is free to add any number of partitions even if they are not required for uniqueness.
+
+We use the term _names_ for strings that identify partitions and the term _labels_ for strings that identify variables with respect to a particular partition. 
+
+Note that we do not provide a column for the numeric quantity of each variable because this is a spec for a compartmental model data structure. By working with pure model structure objects, we can combine different atomic models to more easily produce models with more structure. When it comes time to use a model, the [computational engine](https://canmod.net/misc/cpp_side) can be used to associate model variables with numerical quantities.
+
+## Required Partitions
+
+There is a component, `settings$required_partitions`, which is a character vector of the names of the partitions that are used to uniquely identify each variable. In the previous example with `Type`, `Infect`, and `Epi` partitions we have `settings$required_partitions == "Epi"`. We refer to the labels associated with required partitions as required labels. Every variable must have at least one non-empty required label. The required partitions are used to generate [Variable Names].
+
+
+## Atomic and Non-Atomic Models
+
+We refer to models with exactly one required partition as atomic. One may combine two atomic models to get another model with two required labelled partitions. An example combination of atomic models is the SEIR model stratified by the states of an atomic vaccination model with required partition, `Vax`.
+
+```{r, echo = FALSE}
+Vax = models$vax$variables()
+Vax
+```
+
+In this atomic model `unvax` and `vax` are state variables representing the numbers of individuals who are unvaccinated and vaccinated. The `dose_rate` variable is a parameter giving the proportion of unvaccinated individuals who receive a vaccination each day.
+
+We combine these two atomic models to produce a non-atomic model with required partitions, `Epi` and `Vax`.
+
+```{r, echo = FALSE}
+seir_vax = models$seir_vax$variables()
+seir_vax
+```
+
+Note here that the state variables, `S`, `E`, `I`, and `R`, as well as the transmission rate, `beta`, are stratified by vaccination status, but the latency and recovery parameters, `alpha` and `gamma`, are not stratified indicating that latency and recovery is not influenced by vaccination status. Similarly the `dose_rate` is also not stratified by epidemiological state.
+
+Consider one more example with different symptomatic statuses, where infectious individuals have either mild or severe symptoms and these different statuses recover at different rates.
+
+```{r, echo = FALSE}
+EpiSympVax = data.frame(
+  Epi = c(rep(c("S", "E", "I", "I", "R", "beta"), 2), "alpha", "gamma", "gamma", "infectiousness", "infectiousness", ""),
+  Symp = c(rep(c("", "", "mild", "severe", "", ""), 2), "", "mild", "severe", "mild", "severe", ""),
+  Vax = c(rep(c("unvax", "vax"), each = 6), "", "", "", "", "", "dose_rate")
+)
+EpiSympVax
+```
+
+
+## Variable Names
+
+Although each row of the `variables` list provides a unique identifier for each variable, it is convenient to be able to combine the required labels into a single string. We call this string the variable name.
+
+The name of a variable is the dot-delimited concatenation of the partitions in `settings$required_partitions` associated with the variable. For example, the following table contains the labelled partitions of the `Epi`-by-`Symp`-by-`Vax` variable list with a fourth column giving the variable names.
+```{r, echo = FALSE}
+m = data.frame(
+  Epi = c(rep(c("S", "E", "I", "I", "R", "beta"), 2), "alpha", "gamma", "gamma", ""),
+  Symp = c(rep(c("", "", "mild", "severe", "", ""), 2), "", "mild", "severe", ""),
+  Vax = c(rep(c("unvax", "vax"), each = 6), "", "", "", "dose_rate")
+)
+m$variable_names = Namer()$.names(m)
+m
+```
+This choice of a dot delimiter leads to syntactically valid R names even if the name begins with one or more dot. Because dots are not allowed in the labels themselves, this delimiter also makes parsing the labels into their respective partitions unambiguous. Note that it is impossible to have names with all dots because all variables must have at least one non-blank label. 
+
+The biggest downside to the choice of a dot delimiter is that it conflicts with the [tidyverse style](https://style.tidyverse.org/syntax.html), which requires using dots only to specify S3 method dispatch. The reason for this guideline is to reduce the chances of ambiguity when the S3 machinery searches for methods. This disadvantage is in our opinion outweighed by the advantages that we list above, because model variables will not be involved in S3 dispatch.
+
+Variable names are invertible, in that a vector of variable names can be combined with a vector of partition names to reproduce the associated labelled partitions. This fact allows us to choose either the labelled partitions or names representation depending on convenience or necessity.
+
+
+## Variable Roles
+
+[Variable Names] are used in lists that identify variables with specific roles in the model. There are at least two such lists in the `settings.json` file.
+
+* `settings$state_variables` -- Character vector giving names of variables, each of which tracks the number of individuals in a compartment.
+* `settings$rate_variables` -- Character vector giving names of variables, each of which determines the per-capita rate of flow between one or more pairs of compartments.
+
+Additional  variable lists may be used to accommodate such things as absolute flow rates as well as sources and sinks.
+
+All state variables and flow variables must be scalars.
+
+
+## Partition Sets
+
+The `required_paritions` component is a set of partitions that are used to uniquely identify each variable and to generate invertible variable names. The user is free to define other `partition_sets` so that they can refer to groups of variables by name. These sets can be used to filter the variables for a specific purpose. Such `partition_sets` are useful when combining models.
+
+Variable names can be used with respect to a particular partition set. Variable names with respect to some partition sets do not uniquely identify each variable. For example, `Epi.Symp == "I.mild"` occurs twice in the following example.
+```{r echo = FALSE}
+m = data.frame(
+  Epi = c(rep(c("S", "E", "I", "I", "R", "beta"), 2), "alpha", "gamma", "gamma", ""),
+  Symp = c(rep(c("", "", "mild", "severe", "", ""), 2), "", "mild", "severe", ""),
+  Vax = c(rep(c("unvax", "vax"), each = 6), "", "", "", "dose_rate")
+)
+m$Epi.Symp = paste(m$Epi, m$Symp, sep = ".")
+m$Epi.Vax = paste(m$Epi, m$Vax, sep = ".")
+m
+```
+
+The ability to refer to multiple variables with a single name is useful in many circumstances. Typically such non-unique names are unique within groups of variables. For example, `Epi.Symp == "I.mild"` is unique within `Vax == "vax"` and within `Vax == "unvax"`.
+
+As the examples above have illustrated, the name of a partition set is the dot-delimited concatenation of the names of the partitions in the set. For example, `Epi.Symp` is the name of the partition set containing the `Epi` and `Symp` partitions.
+
+
+## Derived Variables
+
+Now that we have a solid mechanism for representing, referring to, and grouping model variables, we can begin to consider defining [Flow between Compartments]. When the rate of flow from one compartment to another is given by a model parameter (e.g. recovery rate, `gamma`), then it is straightforward to describe the flow between those compartments (e.g. `I` to `R`). However, when the flow rate is a function of parameters and state variables (e.g. force of infection), we first need to define how to compute such a rate.
+
+In this section we describe a data structure for representing mathematical expressions for deriving model variables that must be recomputed at each iteration of a simulation. Flow rates such as the force of infection is an example of such a derived variable. There are many other examples, including sums of groups of (e.g. vaccinated) compartments, model summaries such as $\mathcal{R}_0$, and convolutions of infected compartments for modelling under-reporting and reporting delays.
+
+Each derived variable must be represented by a row in the `variables` list. Derived variables are distinguished from input variables by being associated with an element in a list, `derivations`. This list contains objects that describe how to compute each derived variable. Each object contains the following components.
+
+* `simulation_phase` [required] -- Specifies when in the simulation the variable should be evaluated. Must be one of four values: "before", "during_pre_update", "during_post_update", or "after". 
+    * `before`: Variable is computed before the simulation loop. Intended for variables that must be computed once but will remain constant throughout the simulation.
+    * `during_pre_update`: Variable is re-computed during each loop of the simulation before the state variable has been updated. Intended for variables that depend on the state during the previous timestep.
+    * `during_post_update`: Variable is re-computed during each loop of the simulation after the state variable has been updated. Intended for variables that depend on the state during the current timestep.
+    * `after`: Variable is computed after the simulation loop. Intended for modifying simulation outputs to be comparable with observed data.
+* `group_partition` [optional] -- The name of a partition set to use for filtering and grouping the variables so that (1) only a subset of variables are utilized in order to produce the derived variables and (2) a set of derived variables can be produced at the same time by producing one derived variable per group. When `group_partition` is missing, all variables are potentially utilized by a single derived variable.
+* `group_names` [required if `group_partition` is not missing] -- A vector of variable names with respect to the `group_partition`, each of which will define a single group. The `group_names` also determine the labels of variables that distinguish groups from each other. There are three use cases.
+    * `group_names` and `group_partition` are both missing -- All variables are potentially utilized by a single derived variable
+    * `length(group_names) == 1L` -- A filtered subset of variables get utilized by a single derived variable
+    * `length(group_names) == n` -- The variables in each of `n` groups are used to produce one of `n` derived variables
+* `output_partition` [optional] -- The name of a partition set to use for declaring the labels of the derived variables within each group (see `group_partition` and `group_names` for producing one derived variable per group). If no `output_partition` is given then all required partitions are used.
+* `output_names` [optional] -- A vector of variable names with respect to the `output_partition`, each of which will determine the labels associated with the `output_partition` of each derived variable within its group. If `group_names` are missing then `output_names` must be a single variable name with respect to the `output_partition` for determining the labels for the derived variable. Otherwise, the `i`th element of `output_names` determines the labels for the derived variable produced by the `i`th element of `group_names`.
+* `input_partition` [optional] -- The name of a partition set to use for matching variables to arguments in the `expression`. Every variable name with respect to the `input_partition` must be both unique and exist within each group. If no `input_partition` is given then all required partitions are used.
+* `arguments` [required if `expression` has arguments other then `...`] -- A vector of variable names with respect to the `input_partition`.
+* `argument_dots` [required if `expression` has a `...` argument] -- A vector of variable names with respect to the `input_partition` for finding variables to pass to a `...` argument in `expression`, if it exists.
+* `expression` [required] -- A mathematical function for producing one derived variable per group. The names of the arguments of this function are a subset of variable names with respect to the `input_partition` and optionally a `...` argument.
+
+TODO: Perhaps this should be a 'compressed' data format for `derivations`, and the simple `derived_var_name = function(...) ...` should be used as the base case? The compressed format can be used to form the basis of an interface design?
+
+The spec for this file will be hard to understand on first reading. To understand it better we provide several examples designed to justify and clarify the description in the above bullet list.
+
+We begin with defining the force of infection for an SEIR model with the following variable list.
+```{r echo = FALSE}
+sir_vars
+```
+The force of infection for this model can be represented as follows.
+```{r eval = FALSE}
+list(
+  output_partition = "Epi",
+  output_names = "foi",
+  input_partition = "Epi",
+  math_function = function(S, E, I, R, beta) {
+    I * beta / sum(S, E, I, R)
+  }
+)
+```
+Because this is an [atomic model](#atomic-and-non-atomic-models), by specifying `output_partition = "Epi"` and `output_names "foi"`, we are really just saying that the name of the output variable is `"foi"`. More technically we would say that the derived variable will have the label `"foi"` in the `"Epi"` partition. The `input_partition` and `math_function` go together. The `math_function` describes how to compute the derived variable, `foi`, in terms of other variables. The `input_partition` gives the name of a [partition set](#partition-sets) to use for matching model variables to the arguments of this function. For example, the argument list contains `S`, which is a label in the `Epi` partition set.
+
+This description may seem unnecessarily complex, but it is useful for representing more complex models as we will see. Also remember that this is a spec for a data structure and not a user interface -- it is likely that a user interface for specifying this component would make it much simpler to do so.
+
+Updating derived variable specifications when taking model products is reasonably straightforward with this data structure. For example, consider stratifying `S`, `E`, `I`, `R`, and `beta` by geographic location.
+```{r echo = FALSE}
+seir_location = data.frame(
+  Epi = c(rep(c("S", "E", "I", "R", "beta"), 2), "alpha", "gamma", "", ""),
+  Location = c(rep(c("montreal", "toronto"), each = 5), "", "", "montreal_to_toronto_rate", "toronto_to_montreal_rate")
+)
+seir_location
+```
+In this new model, the functional form of the force of infection remains constant and we simply update and add some of the [partition sets and variable names](#partition-sets).
+```{r eval = FALSE}
+list(
+  group_partition = "Location",
+  group_names = c("montreal", "toronto"),
+  output_partition = "Epi",
+  output_names = c("foi", "foi"),
+  input_partition = "Epi",
+  math_function = function(S, E, I, R, beta) {
+    I * beta / sum(S, E, I, R)
+  }
+)
+```
+This will define expressions to produce derived variables called `foi.montreal` and `foi.toronto`. To get this list we did the following.
+
+1. Added geographical grouping information to specify how to stratify the force of infection.
+2. Repeat the entry in `output_names` once for each location.
+
+This model product assumes that individuals in Toronto cannot be infected by individuals in Montreal. This is a reasonable assumption for this spatial stratification, but in models where the stratification does not isolate compartments from each other we need to add an additional derived variable that sums the force of infection components over the strata. Consider for example the SEIR model stratified by vaccination status.
+```{r echo = FALSE}
+seir_vax
+```
+We can compute the force of infection components just as we did for the spatial model.
+```{r eval = FALSE}
+list(
+  group_partition = "Vax",
+  group_names = c("unvax", "vax"),
+  output_partition = "Epi",
+  output_names = c("foi", "foi"),
+  input_partition = "Epi",
+  math_function = function(S, E, I, R, beta) {
+    I * beta / sum(S, E, I, R)
+  }
+)
+```
+But to complete the model product we must add a derived variable that takes the sum of all of the `Epi == "foi"` variables.
+```{r eval = FALSE}
+list(
+  output_partition = "epi.vax",
+  output_names = "foi.total",
+  input_partition = "epi.vax",
+  input_names_dots = c("foi.unvax", "foi.vax"),
+  math_function = function(...) sum(...)
+)
+```
+This will produce a single derived variable called `foi.total`, which can be used as the force of infection for all vaccination strata.
+
+There are other operations on model space besides model products. Another such operation is to convert a single compartment into several compartments. An example of this operation is to break up the infectious compartment into several symptomatic states.
+```{r echo = FALSE}
+EpiSymp = data.frame(
+  Epi = c("S", "E", "I", "I", "I", "I", "R", "beta", "alpha", "gamma", "gamma", "infectiousness", "infectiousness", "infectiousness", "foi"),
+  EpiEffective = c("S", "E", "", "", "", "I", "R", "beta", "alpha", "gamma", "gamma", "", "", "", "foi"),
+  Symp = c("", "", "mild", "severe", "", "", "", "", "", "mild", "severe", "mild", "severe", "", ""),
+  Type = c("", "", "component", "component", "vector", rep("", 6L), "component", "component", "vector", "")
+)
+EpiSymp
+```
+Notice the `"Type"` partition that indicates the different forms with which the symptomatic-status-structured variables are represented. Here the scalar components of `I` and `infectiousness` can be referred to, or one can refer to vectors that contain all components. The components are `I.mild.component`, `I.severe.component`, `infectiousness.mild.component`, and `infectiousness.severe.component`. The vectors are `I..vector` and `infectiousness..vector`. The variable `I..effective` refers to the the weighted sum given by the inner product of `I..vector` and `infectiousness..vector`.
+
+Here we assume that the `component` types are input variables, and that we derive the other `I` and `infectiousness` variables with the following definitions.
+```{r eval = FALSE}
+list(
+  group_partition = "Epi.Symp",
+  group_names = c("I.mild", "I.severe", "infectiousness.mild", "infectiousness.severe"),
+  output_partition = "Epi.Type",
+  output_names = c("I.vector", "infectiousness.vector"),
+  input_partition = "Symp",
+  input_names_dots = c("mild", "severe"),
+  math_function = function(...) c(...)
+)
+# list(
+#   #group_partition = "Epi",
+#   #group_names = c("I", "I", "infectiousness.mild", "infectiousness.severe"),
+#   output_partition = "Epi.EpiEffective",
+#   output_names = "I.I",
+#   input_partition = "Epi.Symp",
+#   input_names_dots = c("I.mild", "I.severe", "infectiousness.mild", "infectiousness.severe"),
+#   math_function = function(...) {
+#     l = unlist(list(...))
+#     n = length(l)
+#     sum(l[1:(n/2)] * l[((n/2)+1):n])
+#   }
+# )
+list(
+  group_partition = "Type",
+  group_names = "vector",
+  output_partition = "EpiEffective",
+  output_names = "I",
+  input_partition = "Epi",
+  math_function = function(I, infectiousness) {
+    sum(I * infectiousness)
+  }
+)
+list(
+  output_partition = "Epi",
+  output_names = "foi",
+  input_partition = "Epi",
+  math_function = function(S, E, I, R)
+)
+```
+
+The ordering of the `derivations` list must be topologically sorted so that the dependencies of each expression appear earlier in the list. This topological sorting requirement presents a technical challenge when models are combined, as it becomes necessary to be able to merge lists of `derivations` so that they remain topologically sorted.
+
+
+## Flow between Compartments
+
+We have another data frame, `flows`, with rows describing how individuals flow between pairs of compartments. There are four required columns in this data frame, `from`, `to`, `flow`, and `type`. 
+
+* `from` -- The [variable name](#variable-names) of the compartment from which individuals are flowing.
+* `to` -- The [variable name](#variable-names) of the compartment to which individuals are flowing.
+* `flow` -- The name of the variable governing the magnitude of the flow.
+* `type` -- A type describing the way in which the magnitude of flow is quantified. The following options are available.
+    * `"per_capita"` -- The flow from `from` and to `to` equals `from * flow`.
+    * `"absolute"` -- The flow from `from` and to `to` equals `flow`.
+    * `"per_capita_inflow"` -- The flow to `to` equals `from * flow`.
+    * `"per_capita_outflow"` -- The flow from `from` equals `from * flow`.
+    * `"absolute_inflow"` -- The flow to `to` equals `flow`.
+    * `"absolute_outflow"` -- The flow from `from` equals `flow`.
+
+For example, consider this SIR model.
+
+```{r, echo = FALSE}
+data.frame(epi = c("S", "I", "R", "beta", "gamma", "foi"))
+```
+
+We would have the following `flows.csv` file.
+
+```{r, echo = FALSE}
+data.frame(
+  from = c("S", "I"), 
+  to = c("I", "R"),
+  flow = c("foi", "gamma"),
+  type = "per_capita"
+)
+```
+
+Notice that all state variables appear in this table, and that it contains no parameters. This is the mechanism for encoding whether a model variable is a state variables or a parameter.
+
+A more interesting example is the following `Epi`-by-`Vax` model.
+```{r, echo = FALSE}
+sir_vax = data.frame(
+  Epi = c(rep(c("S", "I", "R", "beta"), 2), "alpha", "gamma", "foi", ""),
+  Vax = c(rep(c("unvax", "vax"), each = 4), "", "", "", "dose_rate")
+)
+sir_vax
+```
+The `flows` data frame for these variables could look like the following.
+```{r, echo = FALSE}
+data.frame(
+  from = c("S.unvax", "I.unvax", "S.vax", "I.vax", "S.unvax", "I.unvax", "R.unvax"),
+  to = c("I.unvax", "R.unvax", "I.vax", "R.vax", "S.vax", "I.vax", "R.vax"),
+  flow = c(
+    rep(c("foi.total", "gamma."), 2L),
+    rep(".dose_rate", 3L)
+  ),
+  type = "per_capita"
+)
+```
+
+## Flows in Structured Models
+
+Structured models can have a large number of flows making the above `flows` data structure very long. For example, an SEIR model with three symptomatic status', five vaccination status', in 30 geographic locations would have over 750 flows depending on the details of the vaccination and geographic models. The length of the list is not in-and-of-itself the main problem with this data structure. A bigger problem is that the data structure does not preserve the model structure, making it difficult to visualize the underlying simplicity. For example, if the model structure was preserved in the `flows` data it would be possible to automatically construct box diagrams for communicating the simplicity of a seemingly complex compartmental model.
+
+On the other hand, the benefit of the more explicit data structure in [Flows between Compartments] is that it is easy to read each line. For example, the following line clearly tells me that unvaccinated exposed individuals flow to unvaccinated infectious individuals with mild symptoms at a rate that is independent of both vaccination status and symptomatic status.
+```{r echo = FALSE}
+data.frame(from = "E..unvax", to = "I.mild.unvax", flow = "alpha..", type = "per_capita")
+```
+
+In this section we add more columns to the data structure for encoding model structure. These additional columns make it possible to shorten the list and retain model structure information, at the cost of making the meaning of each line more difficult to decode. However, if required, as we will see, the structured version can always be converted to the simpler but longer unstructured version. But it is not possible to go from unstructured to structured.
+
+The first three additional columns contain partition sets to resolve the names in `from`, `to`, and `flow`.  Consider the following example.
+```{r echo = FALSE}
+data.frame(
+  from = "S", to = "E", flow = "foi", type = "per_capita",
+  from_partition = "Epi",
+  to_partition = "Epi",
+  flow_partition = "Epi"
+)
+```
+Consider this example within the context of an SEIR model stratified by two vaccination status'. In this case this data structure does not allow us to distinguish between models where `S.unvax` flows only to `E.unvax` from one where it is also allowed to flow to `E.vax`. To address this problem, we need three more partition columns for matching up valid `S`-`E` pairs. The following table provides an example of this.
+```{r echo = FALSE}
+data.frame(
+  from = "S", to = "E", flow = "foi", type = "per_capita",
+  from_partition = "Epi",
+  to_partition = "Epi",
+  flow_partition = "Epi",
+  from_to_partition = "Vax",
+  from_flow_partition = "",
+  to_flow_partition = ""
+)
+```
+
+
+## Transmission Matrices (in progress)
+
+
+
+
+## File Formats
+
+Both CSV files have the following format.
+
+* Column delimiter is a comma.
+* There are no quotes anywhere in the file.
+* There are no special missing value tokens.
+* The first row gives the names of the partitions.
+* There are no row names.
+
+Additionally, the only characters that are allowed in this file are uppercase
+and lowercase letters, digits, underscores, and commas. The presence of any
+other character is sufficient to invalidate the file.
+
+The `settings.json` file contains a single object with the following key-value
+pairs.
+
+* `required_partitions` -- array of strings
+* `state_variables` -- array of strings
+* `flow_variables` -- array of strings
+
+The `derivations.json` file contains a single array of objects. Each of these
+objects has the following required key-value pairs.
+
+* `output_names` -- array of strings
+* `expression` -- string
+
+Each of these objects has the following optional key-value pairs, although some
+of these optional pairs become required given the existence of others.
+
+* `filter_names` -- array of strings
+* `group_names` -- array of strings
+* `input_names` -- array of strings
+* `input_dots` -- array of strings
+* `filter_partition` -- string
+* `group_partition` -- string
+* `output_partition` -- string
+* `input_partition` -- string

@@ -1,5 +1,5 @@
 test_that("missing variables in expressions are handled", {
-  expect_error(engine_eval(~x), "the expression given by")
+  expect_error(engine_eval(~x), "The expression given by")
 })
 
 test_that("parse_tables ...", {

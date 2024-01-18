@@ -13,6 +13,6 @@ test_that("assignment indices are checked", {
       , x = x
       , .matrix_to_return = "x"
     ),
-    "Error thrown by the TMB engine"
+    "The following error was thrown by the TMB engine"
   )
 })

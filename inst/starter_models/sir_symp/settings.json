@@ -1,0 +1,6 @@
+{
+    "required_partitions" : ["Epi", "Symp"],
+    "null_partition" : ["Null"],
+    "state_variables" : ["S.", "I.mild", "I.severe", "R."],
+    "flow_variables" : ["infection.mild", "infection.severe", "recovery.mild", "recovery.severe"]
+}

@@ -52,9 +52,19 @@ get_mod_info <- function(f) {
 #' @examples show_models(show_missing = TRUE)
 #' @importFrom stats na.omit
 #' @export
-show_models <- function(dir = system.file("starter_models", package = "macpan2"),
-                        show_missing = FALSE) {
+show_models <- function(
+        dir = system.file("starter_models", package = "macpan2")
+      , show_missing = FALSE
+    ) {
+  
+    ## TODO: handle multi-engine case when it is ready ...
     mods <- list.files(path = dir)
+    ## ... but for now just list the models with a tmb.R file
+    mods = (dir
+      |> list.files("^tmb.R$", recursive = TRUE) 
+      |> dirname()
+    )
+    
     ## cat(mods, sep = "\n")
     res <- do.call("rbind",
                    lapply(file.path(dir, mods), get_mod_info))
@@ -65,6 +75,3 @@ show_models <- function(dir = system.file("starter_models", package = "macpan2")
     rownames(res) <- NULL
     return(res)
 }
-
-
-

@@ -79,3 +79,59 @@ make_expr_id = function(expr_id, expr_names) {
   expr_id$indices[missing_id] = match(expr_id$labels[missing_id], expr_names)
   return(expr_id$indices)
 }
+
+## permutations
+
+apply_permutations = function(x) {
+  matrix(x[permutations(length(x))], ncol = length(x))
+}
+apply_k_int_permutations = function(n, k) {
+  (n
+    |> increasing_int_seq(k)
+    |> lapply(apply_permutations)
+    |> do.call(what = rbind)
+  )
+}
+apply_k_incr_int_permutations = function(n, k) {
+  do.call(rbind, increasing_int_seq(n, k))
+}
+
+# return a list with all strictly increasing length-m
+# sequences of integers between 1 and n
+increasing_int_seq = function(n, m, x = list(1:m)) {
+  l = length(x)
+  for (i in 0:(m - 1L)) {
+    if (x[[l]][m - i] != (n - i)) {
+      x[[l + 1]] = x[[l]]
+      place = x[[l]][m - i] + 1L
+      place_indices = (m - i):m
+      place_length = i + 1L
+      x[[l + 1]][place_indices] = seq(from = place, length = place_length)
+      break
+    }
+  }
+  final_sequence = (n - m + 1L):n
+  last_sequence = x[[l + 1L]]
+  if (identical(last_sequence, final_sequence)) {
+    return(x) ## done
+  } else {
+    increasing_int_seq(n, m, x) ## recursion to find more sequences
+  }
+}
+increasing_int_seq = memoise(increasing_int_seq)
+
+## https://stackoverflow.com/questions/11095992/generating-all-distinct-permutations-of-a-list-in-r
+permutations <- function(n) {
+  if (n == 1) {
+    return(matrix(1))
+  } else {
+    sp <- permutations(n - 1)
+    p <- nrow(sp)
+    A <- matrix(nrow = n * p, ncol = n)
+    for (i in 1:n) {
+        A[(i - 1) * p + 1:p,] <- cbind(i,sp + (sp >= i))
+    }
+    return(A)
+  }
+}
+permutations = memoise(permutations)

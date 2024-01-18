@@ -85,7 +85,7 @@ m = TMBModel(
         Is * beta0 * Cs / N  * (1 - iso_s)
       , dummy ~ assign(rate, 0, 0, foi)
       , flow ~ state[from, 0]*rate
-      , state ~ state - groupSums(flow, from, 12) + groupSums(flow, to, 12)
+      , state ~ state - group_sums(flow, from, 12) + group_sums(flow, to, 12)
       , dummy ~ unpack(state, S, E, Ia, Ip, Im, Is, ICUs, ICUd, H, H2, R, D)
       )
   )

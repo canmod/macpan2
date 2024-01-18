@@ -1,0 +1,2 @@
+state ,flow      ,pop ,type      ,state_partition ,flow_partition ,pop_partition ,state_flow_partition ,state_pop_partition ,flow_pop_partition
+I     ,infection ,N   ,normalize ,Epi             ,Epi            ,Epi           ,                     ,                    ,Null

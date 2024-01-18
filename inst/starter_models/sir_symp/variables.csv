@@ -1,0 +1,10 @@
+Epi       ,Symp
+S         ,
+I         ,mild
+I         ,severe
+R         ,
+infection ,mild
+infection ,severe
+recovery  ,mild
+recovery  ,severe
+N         ,

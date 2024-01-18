@@ -1,4 +1,10 @@
-from    ,to    ,flow      ,type       ,from_partition ,to_partition ,flow_partition ,from_to_partition ,from_flow_partition ,to_flow_partition
-S       ,I     ,infection ,per_capita ,Epi            ,Epi          ,Epi            ,Vax               ,Vax                 ,Null
-I       ,R     ,gamma     ,per_capita ,Epi            ,Epi          ,Epi            ,Vax               ,Vax                 ,Null
-S.unvax ,S.vax ,vax_rate  ,per_capita ,Epi.Vax        ,Epi.Vax      ,Vax            ,                  ,                    ,Null
+from    ,to      ,flow        ,type               ,from_partition ,to_partition ,flow_partition ,from_to_partition ,from_flow_partition ,to_flow_partition
+S       ,I       ,infection   ,per_capita         ,Epi            ,Epi          ,Epi            ,Vax               ,Vax                 ,Null
+I       ,R       ,gamma       ,per_capita         ,Epi            ,Epi          ,Epi            ,Vax               ,Vax                 ,Null
+S.unvax ,S.vax   ,vaccination ,per_capita         ,Epi.Vax        ,Epi.Vax      ,Vax            ,                  ,                    ,Null
+S       ,S.unvax ,birth       ,per_capita_inflow  ,Epi            ,Epi.Vax      ,Epi            ,                  ,                    ,Null
+I       ,S.unvax ,birth       ,per_capita_inflow  ,Epi            ,Epi.Vax      ,Epi            ,                  ,                    ,Null
+R       ,S.unvax ,birth       ,per_capita_inflow  ,Epi            ,Epi.Vax      ,Epi            ,                  ,                    ,Null
+S       ,        ,death       ,per_capita_outflow ,Epi            ,Null         ,Epi            ,Null              ,                    ,Null
+I       ,        ,death       ,per_capita_outflow ,Epi            ,Null         ,Epi            ,Null              ,                    ,Null
+R       ,        ,death       ,per_capita_outflow ,Epi            ,Null         ,Epi            ,Null              ,                    ,Null

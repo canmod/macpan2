@@ -1,299 +1,152 @@
 ---
-title: "Quickstart Guide: specifying and simulating a simple compartmental model"
+title: "Quickstart"
 output: 
-  rmarkdown::html_vignette:
+  html_document:
     toc: true
+    keep_md: yes
 vignette: >
-  %\VignetteIndexEntry{Quickstart Guide: specifying and simulating a simple compartmental model}
+  %\VignetteIndexEntry{Quickstart}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
   chunk_output_type: console
 ---
 
-[![status](https://img.shields.io/badge/status-mature%20draft-yellow)](https://canmod.github.io/macpan2/articles/vignette-status#mature-draft)
+[![status](https://img.shields.io/badge/status-working%20draft-red)](https://canmod.github.io/macpan2/articles/vignette-status#working-draft)
 
-```{r pkgs, include = FALSE}
+```{r setup, echo = FALSE, message = FALSE, warning = FALSE}
 library(macpan2)
-library(macpan2helpers)
-library(dplyr)
 library(ggplot2)
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
+library(dplyr)
+```
+
+## Hello World
+
+The following code specifies an SI model, which is I think is the simplest possible model of epidemiological transmission.
+```{r hello-world}
+si = mp_tmb_model_spec(
+    before = list(
+        I ~ 1
+      , S ~ N - I
+    )
+  , during = list(
+        infection_rate ~ beta * S * I / N
+      , S ~ S - infection_rate
+      , I ~ I + infection_rate
+    )
+  , default = list(N = 100, beta = 0.25)
 )
-cat_file = function(...) cat(readLines(file.path(...)), sep = "\n")
+print(si)
 ```
 
-```{r show_visnet, echo = FALSE}
-# function to get around issues with displaying visNetwork objects in an html vignette 
-show_visnet <- function(vn) {
-  vn = visNetwork::visInteraction(vn
-    , dragNodes = TRUE
-    , dragView = TRUE
-    , zoomView = FALSE
-  )
-  visNetwork::visSave(vn, file = paste0("visnet.html"))
-  hh <- htmltools::includeHTML("visnet.html") |>
-      ## https://stackoverflow.com/questions/47577894/r-markdown-visnetwork-not-displayed-in-html-output-when-using-for-loops-or-fun
-      gsub(pattern = "<!DOCTYPE html>", replacement = "", fixed = TRUE) |>
-      sub(pattern = "\n", replacement = "")
-  cat(hh)
-  invisible(file.remove("visnet.html"))
-}
-```
-
-This quickstart guide is meant to show a new user how to specify and simulate a simple compartmental model in `macpan2` (it does assume you have already installed the package: see [these installation instructions](https://github.com/canmod/macpan2/#installation)).
-
-<!-- FIXME: do we need this note here? Seems like we should save it until later ... -->
-
-`macpan2` is extremely flexible in how models are specified, and so there can be several equivalent ways of specifying the same model. This feature is important to keep in mind when trying to understand or build more complicated models, such as the one demonstrated in Quickstart Guide, part 2 (see `vignette('quickstart2', package = 'macpan2')`).
-
-## Model Definition Files
-
-Models are defined by a set of four [model definition files](https://canmod.github.io/macpan2/articles/model_definitions), all housed in the same directory:
-
-```
-model_name
-├── variables.csv
-├── derivations.json
-├── settings.json
-└── flows.csv
-```
-
-Installations of `macpan2` contain several starter models:
-
-```{r list_starters}
-list.files(system.file("starter_models", package = "macpan2"))
-```
-
-The simplest is [the SIR model](https://en.wikipedia.org/wiki/Compartmental_models_in_epidemiology#The_SIR_model), which can be found in this directory:
-
-```{r sir_model_path}
-print(sir_dir <- system.file("starter_models", "sir", package = "macpan2"))
-```
-
-In this article, we work through the specification and simulation of the SIR sample model. You can discover [more examples here](https://canmod.github.io/macpan2/articles/example_models). To make your own copy of a model (e.g. because you want to modify it), you can use `model_starter(starter_name, dir_name)`, e.g. `model_starter("sir", "~/my_projects/macpan2/sir")` (if the target directory doesn't exist, `model_starter()` will refuse to overwrite it).
-
-### variables.csv {#variables}
-
-`variables.csv` includes a list of the model variables:
-
-```{r vars, echo=FALSE, eval=TRUE}
-cat_file(sir_dir, "variables.csv")
-```
-
-(The first row of this file is a header row, which classifies the variables below. More on this later.)
-
-In `macpan2`, we use "variables" as a general term to refer to
-
-- **State variables**, such as:
-  - `S`: the number of susceptible individuals at each point in time;
-  - `I`: the number of infectious individuals;
-  - `R`: the number of removed individuals.
-- **Flow variables**, such as:
-  - `beta`: the contact rate (transmission per time per susceptible per infective);
-  - `gamma`: the per-capita recovery rate of infectious individuals.
-- **Derived variables**, to be calculated using state and/or flow variables, such as:
-  - `N`: population size, calculated by summing all of the state variables `S + I + R`.
-  - `foi`: the force of infection, `beta * I / N` in this model.
-  
-Formulas for the derived quantities are defined in [derivations.json](#derivations).
-
-In simple models like this one, `variables.csv` is a single-column `.csv` file. The header row contains one column name, `Epi`, which labels the variables below it as epidemiological variables. Such variable category labels, or **variable partitions**, aren't useful for simple models like the basic SIR, which have only a single variable category. However, partitions are essential as part of ["product" models](https://canmod.github.io/macpan2/articles/hello_products.html) that combine multiple model structures into more complex models (for example, an SEIR model where the infectious class is divided by level of symptoms: see `vignette('quickstart2', package = 'macpan2')`.
-
-### derivations.json {#derivations}
-
-`derivations.json` includes expressions for computing derived variables:
-
-```{r, echo=FALSE, eval=TRUE}
-cat_file(sir_dir, "derivations.json")
-```
-
-In this example, the derived variables are the total population size, `N`, and the force of infection, `foi`. Each derived variable is defined in a [JSON](https://en.wikipedia.org/wiki/JSON) object. Each such JSON object contains several key-value pairs. Here the keys are:
-
-- `output_names`: The name(s) of the derived variable(s); in this simple model, each JSON object only defines a single derived variable.
-- `simulation_phase`: The phase during which this derived variable is calculated; Here we have:
-    - `before`, which means the variable is calculated from the initial variable values, before the simulation begins;
-    - `during_pre_update`, which means the variable is calculated at each simulation step, before the state variables are updated for the next time step.
-- `arguments`: An array of the variables (delimited by brackets `[]`) used to calculate the derived variable.
-- `expression`: A string storing a mathematical expression  used to calculate the derived variable using the `arguments`.
-
-The keys described above have more options; supplementary keys are used for defining more complicated models. These are fully catalogued in the [model definitions](https://canmod.github.io/macpan2/articles/model_definitions.html#flow-between-compartments) article. Mathematical operations and functions available to use in the `expression` string are listed in the  [engine functions](https://canmod.github.io/macpan2/reference/engine_functions.html) reference article.
-
-In the example above, we could have defined `foi` as `beta * I / (S + I + R)`. However, this expression is harder to read, and less computationally efficient. As defined above, `N` is computed once, before the simulation begins (`"simulation_phase": "before"`), since the population size is fixed in this model. `foi` is computed from its arguments at each simulation time step (`"simulation_phase": "during_pre_update"`) in order to update the numerator `I` using the latest prevalence. The denominator `(S + I + R)` would then also be re-computed needlessly during each time step. 
-
-### settings.json
-
-`settings.json` gives information about how to interpret the variables defined in [variables.csv](#variables). 
-
-```{r, echo=FALSE, eval=TRUE}
-cat_file(sir_dir, "settings.json")
-```
-
-This file contains a single JSON object, with several key-value pairs. The mandatory keys are:
-
-- `required_partitions`: An array of variable partition names (from the header row of [variables.csv](#variables)) required to uniquely identify each variable.
-- `null_partition`: Leave this entry as `"Null"`; this key may be used to expand `macpan2`'s functionality in the future, but it is currently unused.
-- `state_variables`: An array of state variables.
-- `flow_variables`: An array of flow variables.
-
-### flows.csv
-
-`flows.csv` defines flows between state variable compartments:
-
-```{r, echo=FALSE, eval=TRUE}
-cat_file(sir_dir, "flows.csv")
-```
-
-This file also starts with a header row, including the following columns:
-
-- `from`: The name of the flow origin compartment.
-- `to`: The name of the flow destination compartment.
-- `flow`: The variable name storing the value of the flow rate.
-- `type`: The type of the flow.
-
-Here, the flow type is `per_capita`: i.e., the flow at time step $t+1$ equals `flow` times the number of individuals in the `from` compartment at time $t$. In the example above, the flow from `S` to `I` equals `foi * S` (referring back to the derivations file, this is equal to `beta * S * I/ N`).
-
-All available flow types are given in the [model definitions](https://canmod.github.io/macpan2/articles/model_definitions.html#flow-between-compartments) article.
-
-## Side-Note: `macpan2` is Object-Oriented
-
-Before we demonstrate how to import and use a model into R, note that `macpan2` is [object-oriented](https://en.wikipedia.org/wiki/Object-oriented_programming). All you really need to know about this is that when using `macpan2`, we routinely create ("initialize") special R objects that have specific functions ("methods") attached that perform useful actions. These objects are generally just named lists, where some of the list elements are actually methods (functions). As an example, with made-up general names:
-
-```
-myObject <- functionToInitializeObject(argumentsToSetUpMyObject)
-names(myObject)
-> [1] "objectInfo" "objectMethod"
-myObject$objectMethod(argumentsForUsingObjectMethod)
-```
-
-The next section will make this idea more concrete.
-
-## Getting Model Definitions into R
-
-Now that we have a directory that completely defines a compartmental model, we can use it to create a **model structure** object in R using the `Compartmental()` function. `Compartmental()` is a function that initializes `macpan2` models (which also include `Compartmental` in their class):
-
-```{r Compartmental}
-sir = Compartmental(sir_dir)
-class(sir)
-```
-
-Visualizing a `Compartmental` object with a function from the [macpan2helpers](https://github.com/canmod/macpan2helpers) package:
-
-```{r make_visnet}
-vn = macpan2helpers::visCompartmental(sir, label_flows = TRUE)
-```
-
-```{r show_visnet_sir, results = 'asis', echo = FALSE}
-show_visnet(vn)
-```
-
-We can display the components of `macpan2` models (`Compartmental` objects), including the methods that operate on them, by listing their names:
-
-```{r}
-names(sir)
-```
-
-The documentation for `Compartmental` objects (`?Compartmental()`) gives a full description of these components, but for the next section, we focus on `sir$simulators`.
-
-## Inputting Values to Create Model Simulators
-
-Model structure objects, like `sir`, are very general: they don't contain any specific values for their variables, such as initial conditions for the state variables or values for flow rates. In order to simulate a model, we need to create a **model simulator** object by combining a model structure object with numerical values for its variables. 
-
-The `sir$simulators` list element contains methods for generating model simulators. In this article, we use the `sir$simulators$tmb()` method, which is currently the only simulation engine available. 
-
-We attach specific values for model variables when initializing the model simulator, `sir_simulator`, using the `sir$simulators$tmb()` function:
-
-```{r sim_values}
-sir_simulator = sir$simulators$tmb(
-  time_steps = 100,
-  state = c(S = 99, I = 1, R = 0),
-  flow = c(foi = NA, gamma = 0.1),
-  beta = 0.2,
-  N = empty_matrix # explained below
+Simulating from this model requires choosing the number of time-steps to run and the model outputs to generate. Syntax for simulating `macpan2` models is designed to combine with standard data prep and plotting tools in R, as we demonstrate with the following code.
+```{r plot-tmb-si, fig.format='svg', fig.height=3}
+(si
+ 
+ ## macpan2
+ |> mp_simulator(
+        time_steps = 50
+      , outputs = c("I", "infection_rate")
+    )
+ |> mp_trajectory()
+ 
+ ## dplyr
+ |> mutate(quantity = case_match(matrix
+      , "I" ~ "Prevalence"
+      , "infection_rate" ~ "Incidence"
+    ))
+ 
+ ## ggplot2
+ |> ggplot() 
+ + geom_line(aes(time, value)) 
+ + facet_wrap(~ quantity, scales = "free")
+ + theme_bw()
 )
 ```
 
-(flow variables that are recalculated before every time step, as specified in `derivations.json`, can be set to `NA` - these are placeholder values and don't affect the simulation)
+(Above, we used the [base R pipe operator](https://www.tidyverse.org/blog/2023/04/base-vs-magrittr-pipe/#pipes), `|>`.)
 
-The simulator initializer function, `sir$simulators$tmb()`, uses `sir` as the model structure, and additionally takes the following arguments:
+The remainder of this article looks at each step required to create this plot in more detail, and discusses alternative approaches.
 
+## Creating a Simulator
+
+The first step is to produce a simulator object, which can be used to generate simulation results. This object can be produced using the `mp_simulator` function, which takes the following arguments.
+
+- `model` : A model specification object, such as `si`.
 - `time_steps`: How many time steps should the epidemic simulator run for? 
-- `state`: A named vector containing the initial values of the state variables defined in `settings.json`. In this example, the units of the states are "number of individuals".
-- `flow`: A named vector containing the values of the flow variables defined in `settings.json` - here, just `foi` and `gamma`.
-- `...`: Any other named variables that are required for your model definition, _i.e._, variables used in  `derivations.json` that are not included in `settings.json`. Here,  `beta` and `N` are used in expressions for derived variables but not explicitly as flow variables.
+- `outputs` : The model variables to return in simulation output.
+- `default` (optional) : Allows one to update the default parameter values and initial conditions provided in the model specification (see the argument `default` above in the `mp_tmb_model_spec` function). Any variables that are not specified in `default` will be left at the values in the specification.
 
-Always think explicitly about the units of your flow variables.  For example, perhaps you know that infected individuals recover in ten days on average.  You could then set the per-capita recovery rate, `gamma`, equal to `1/10 = 0.1`, thus implicitly specifying your time step as one day.  If you set `gamma = 1/240` instead, then each time step would represent one hour.  You must define all flow variables using consistent time units!
-
-In our example, we use the `empty_matrix` placeholder value to initialize a value for the population size `N`. `N` will be computed before the simulation starts using the given initial conditions, as specified in `derivations.json` with `"simulation_phase": "before"`. In order to create a model simulator object, we must give a value for every variable in the model definition. `macpan2` does not check ahead of time whether `N` will be pre-computed. Thus, we initialize `N` with the placeholder value `macpan2::empty_matrix`, which is simply an empty matrix. (Although `N` is a scalar value, `macpan2` represents all variables as [matrices](https://canmod.github.io/macpan2/articles/cpp_side#matrices), including scalars, in this case treated as 1 x 1 matrices.)
-
-What if we had specified a hard-coded value for `N` above? For instance: 
-
-```{r sim_values2, eval = FALSE}
-sir_simulator2 = sir$simulators$tmb(
-  time_steps = 100,
-  state = c(S = 99, I = 1, R = 0),
-  flow = c(foi = NA, gamma = 0.1),
-  beta = 0.2,
-  N = 100
+```{r tmb-si-simulator}
+si_simulator = mp_simulator(
+    model = si 
+  , time_steps = 50
+  , outputs = c("I", "infection_rate")
 )
+si_simulator
 ```
 
-There is actually no problem with this specification; `macpan2` will compute `N` using the expression `S + I + R` from `derivations.json` and the initial conditions from the `state` argument above before the simulation and overwrite the user-input value of 100. Thus, if one were to change the initial condition to `state = c(S = 999, I = 1, R = 0)` without updating the population to `N = 1000`, the simulator would still use the correct population size. However, the code is more readable if you explicitly use `N = empty_matrix`, because it reminds you that `N` will be computed by the simulator.
+This `si_simulator` object contains all of the information required to generate model simulations of `I` and `infection_rate` over 50 time steps, without actually generating the simulations. This more interesting step of simulation is covered in [the next section](#generating-simulations). But before moving on we explain why we separate the step of creating a simulator from the step of running simulations.
 
-## Simulation
+The reason for two steps is to optimize performance in more computationally challenging applications of the software than those covered in this article. The step of creating the simulator object is more computationally intensive than the next step of actually generating the simulations. Therefore this separation is useful when a single simulator can be used to repeatedly generate many different simulations. Three common examples requiring repeated simulations from the same simulator are:
 
-Now that we have a simulation engine object,  `sir_simulator`, we use it to generate simulation results using one of its methods: `report()`. The results come out in [long (or "narrow") format](https://en.wikipedia.org/wiki/Wide_and_narrow_data), where there is exactly one value per row:
+* for models with stochasticity so that the output is different for each run,
+* for calibrating model parameters to data using iterative optimization tools,
+* and for running different scenarios by updating certain parameters before simulation.
+
+Because `macpan2` is primarily developed for such computationally challenging iterative simulation problems, we believe that it is better to introduce these two steps as distinct from the very beginning. Although two steps might seem unnecessarily complex within the context of this article, keeping them separate will make life easier when working with more realistic workflows and models. 
+
+## Generating Simulations
+
+Now that we have a simulation engine object,  `si_simulator`, we use it to generate simulation results using the `mp_trajectory` function. The results come out in [long (or "narrow") format](https://en.wikipedia.org/wiki/Wide_and_narrow_data), where there is exactly one value per row:
 
 ```{r run_sims}
-sir_results = sir_simulator$report()
-head(sir_results, 9)
+si_results = mp_trajectory(si_simulator)
+si_results |> head(8)
 ```
 
 The simulation results are output as a data frame with the following columns:
 
-- `matrix`: Which matrix does a value come from? By default, the simulation results will only include values for the state variables (coming from the `state` matrix). This behaviour can be changed with the `.mats_to_return` argument of `$simulators$tmb()` (see `?Simulators()`)
-- `time`: The time index, where the initial conditions are returned for `time` 0.
-- `row`: The name of the variable, corresponding to the row names of the `state` matrix.
-- `col`: A placeholder for variable name components in more complicated models (not covered in this article).
+- `matrix`: Which matrix does a value come from? All variables are represented as matrices, although in this article we only consider 1-by-1 matrices.
+- `time`: The time index from `1` to `time_steps`.
+- `row`, `col`: Placeholders for variable components in more complicated structured models (not covered in this article, but useful for example when S and I in different age groups or geographic locations are tracked separately).
 - `value`: The simulated value for a particular state and time step.
 
 ## Processing Results
 
 `macpan2` does not provide any data manipulation or plotting tools (although there are a few in `macpan2helpers`). The philosophy is to focus on the engine and modelling interface, but to provide outputs in formats that are easy to use with other data processing packages, like `ggplot2`, `dplyr`, and `tidyr`, all of which readily make use of data in long format. 
 
-For example, we can generate a `ggplot` with:
-
-```{r ggplot_ex, fig.width = 6}
-(sir_results
-  |> mutate(state = factor(row, levels = sir$labels$state()))
-  |> ggplot()
-  + geom_line(aes(time, value, colour = state))
-  + theme_bw()
+In the graphs above for example, we required a step that renames the model variables into something that makes more sense for the graphical presentation. Here we reproduce this, but take a little more care to produce a tidier dataset.
+```{r rename-variables}
+si_results = (si_results
+  |> mutate(matrix = case_match(matrix
+      , "I" ~ "Prevalence"
+      , "infection_rate" ~ "Incidence"
+    ))
+  |> rename(quantity = matrix)
+  |> select(time, quantity, value)
 )
+print(head(si_results, 8L))
 ```
 
-The `mutate` step is optional, and is included to enforce the logical ordering of the state variables in the legend of the plot -- otherwise we would have the alphabetically-ordered IRS model instead of the flow-ordered SIR.
+Here we rename the `I` state variable as the disease prevalence (number of currently infected individuals). Because this is a discrete-time model, we can reinterpret the `infection_rate` as the incidence (number of newly infected individuals) over one time step. Note that this approach to calculating incidence only works if the time period over which incidence is measured corresponds to the length of one time step. If this assumption is not met -- for example if the time step is one day but incidence data are reported every week -- then other approaches to computing incidence that are not covered here must be taken.
 
-If you want to use base R plots, you can convert the long format data to wide format:
-
+We can generate a `ggplot` from this dataset as we did above. If you want to use base R plots, you can convert the long format data to wide format:
 ```{r pivot_wider}
-sir_results_wide <- (sir_results
-    ## drop 'matrix' (has only a single value) and 'col' (empty)
-    |> dplyr::select(-c(matrix, col))
-    |> tidyr::pivot_wider(id_cols = time, names_from = row)
+si_results_wide <- (si_results
+  |> tidyr::pivot_wider(
+      , id_cols = time
+      , names_from = quantity
+    )
+  |> rename(Time = time)
 )
-
-head(sir_results_wide, n = 3)
+head(si_results_wide, n = 3)
 ```
-
-(Above, we used the [base R pipe operator](https://www.tidyverse.org/blog/2023/04/base-vs-magrittr-pipe/#pipes), `|>`.)
 
 ```{r base_plot_ex, fig.width = 6}
-with(sir_results_wide,
-     plot(x = time,
-          y = I)
+with(si_results_wide,
+     plot(x = Time,
+          y = Incidence)
 )
 ```
 
@@ -301,50 +154,11 @@ or
 
 ```{r base_matplot_ex, fig.width = 6}
 par(las = 1) ## horizontal y-axis ticks
-matplot(sir_results_wide[, 1],
-        sir_results_wide[,-1],
-        type = "l",
-        log = "y",
-        xlab = "time", ylab = "")
-legend("bottom", col = 1:3, lty = 1:3, legend = sir$labels$state())
-```
-
-
-## Incidence
-
-All of the above simulations give the prevalence of the disease but not incidence, which is the total number of new individuals entering the `I`-box at each time step. Incidence is more commonly reported than prevalence, and so it is important to be able to get incidence numbers.
-
-The total number of new individuals entering all boxes is stored in the `total_inflow` vector that is automatically constructed by the `Compartmental` function. This vector is as long as `state` and each element to the inflow into each corresponding box (there is an analogous `total_outflow` vector as well). To return this vector, one must declare that it is a matrix to return as in the following code (by default `state` is the only matrix to be returned).
-
-```{r incidence}
-sir_simulator3 = sir$simulators$tmb(
-  time_steps = 100,
-  state = c(S = 99, I = 1, R = 0),
-  flow = c(foi = NA, gamma = 0.1),
-  beta = 0.2,
-  N = empty_matrix,
-  
-  ## telling the simulator to return the inflows into each box
-  ## including `I`, which corresponds to incidence
-  ## (note: in the near future the .dimnames part will be automatic)
-  .mats_to_return = c("state", "total_inflow"),
-  .dimnames = list(total_inflow = list(sir$labels$state(), ""))
+matplot(
+    si_results_wide[, 1]
+  , si_results_wide[,-1]
+  , type = "l"
+  , xlab = "Time", ylab = ""
 )
+legend("topleft", col = 1:3, lty = 1:3, legend = c("Prevalence", "Incidence"))
 ```
-
-The plotting code used above can be modified to plot inflow rather than state.
-
-```{r inflow_plot, fig.width = 6}
-(sir_simulator3$report()
-  |> filter(matrix == "total_inflow")
-  |> mutate(state = factor(row, levels = sir$labels$state()))
-  |> ggplot()
-  + geom_line(aes(time, value, colour = state))
-  + ggtitle("Total Inflow into Each State")
-  + theme_bw()
-)
-```
-
-In this figure the incidence is the inflow into the `I` box. The `S` line is flat because in this model there is no flow into `S`.
-
-Note that this approach to calculating incidence only works if the time period over which incidence is measured corresponds to the length of one time step. If this assumption is not met -- for example if the time step is one day but incidence data are reported every week -- then other approaches to computing simulated incidence must be taken. The simplest approach is to use accumulator variables, which are not covered here (TODO: write a vignette on accumulator variables).

@@ -8,6 +8,6 @@ test_that("matrix multiplication works", {
   )
   expect_error(
     engine_eval(~ t(A) %*% x, A = A, x = x),
-    "Error thrown by the TMB engine"
+    "The following error was thrown by the TMB engine"
   )
 })

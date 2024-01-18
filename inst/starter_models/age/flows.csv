@@ -1,18 +1,18 @@
-from,to,flow,type,from_partition,to_partition,flow_partition,from_to_partition,from_flow_partition,to_flow_partition
-,age_0_19,birth_rate_0_19,per_capita_inflow,Age,Age,Age,,,Null
-,age_0_19,birth_rate_20_39,per_capita_inflow,Age,Age,Age,,,Null
-,age_0_19,birth_rate_40_59,per_capita_inflow,Age,Age,Age,,,Null
-,age_0_19,birth_rate_60_79,per_capita_inflow,Age,Age,Age,,,Null
-,age_0_19,birth_rate_80_99,per_capita_inflow,Age,Age,Age,,,Null
-,age_0_19,birth_rate_100_plus,per_capita_inflow,Age,Age,Age,,,Null
-age_0_19,,death_rate_0_19,per_capita_outflow,Age,Age,Age,,,Null
-age_20_39,,death_rate_20_39,per_capita_outflow,Age,Age,Age,,,Null
-age_40_59,,death_rate_40_59,per_capita_outflow,Age,Age,Age,,,Null
-age_60_79,,death_rate_60_79,per_capita_outflow,Age,Age,Age,,,Null
-age_80_99,,death_rate_80_99,per_capita_outflow,Age,Age,Age,,,Null
-age_100_plus,,death_rate_100_plus,per_capita_outflow,Age,Age,Age,,,Null
-age_0_19,age_20_39,age_rate,per_capita,Age,Age,Age,,,Null
-age_20_39,age_40_59,age_rate,per_capita,Age,Age,Age,,,Null
-age_40_59,age_60_79,age_rate,per_capita,Age,Age,Age,,,Null
-age_60_79,age_80_99,age_rate,per_capita,Age,Age,Age,,,Null
-age_80_99,age_100_plus,age_rate,per_capita,Age,Age,Age,,,Null
+from         ,to           ,flow                ,type               ,from_partition ,to_partition ,flow_partition ,from_to_partition ,from_flow_partition ,to_flow_partition
+age_0_19     ,age_0_19     ,birth_rate_0_19     ,per_capita_inflow  ,Age            ,Age          ,Age            ,                  ,                    ,Null
+age_20_39    ,age_0_19     ,birth_rate_20_39    ,per_capita_inflow  ,Age            ,Age          ,Age            ,                  ,                    ,Null
+age_40_59    ,age_0_19     ,birth_rate_40_59    ,per_capita_inflow  ,Age            ,Age          ,Age            ,                  ,                    ,Null
+age_60_79    ,age_0_19     ,birth_rate_60_79    ,per_capita_inflow  ,Age            ,Age          ,Age            ,                  ,                    ,Null
+age_80_99    ,age_0_19     ,birth_rate_80_99    ,per_capita_inflow  ,Age            ,Age          ,Age            ,                  ,                    ,Null
+age_100_plus ,age_0_19     ,birth_rate_100_plus ,per_capita_inflow  ,Age            ,Age          ,Age            ,                  ,                    ,Null
+age_0_19     ,age_0_19     ,death_rate_0_19     ,per_capita_outflow ,Age            ,Null         ,Age            ,                  ,                    ,Null
+age_20_39    ,age_20_39    ,death_rate_20_39    ,per_capita_outflow ,Age            ,Null         ,Age            ,                  ,                    ,Null
+age_40_59    ,age_40_59    ,death_rate_40_59    ,per_capita_outflow ,Age            ,Null         ,Age            ,                  ,                    ,Null
+age_60_79    ,age_60_79    ,death_rate_60_79    ,per_capita_outflow ,Age            ,Null         ,Age            ,                  ,                    ,Null
+age_80_99    ,age_80_99    ,death_rate_80_99    ,per_capita_outflow ,Age            ,Null         ,Age            ,                  ,                    ,Null
+age_100_plus ,age_100_plus ,death_rate_100_plus ,per_capita_outflow ,Age            ,Null         ,Age            ,                  ,                    ,Null
+age_0_19     ,age_20_39    ,age_rate            ,per_capita         ,Age            ,Age          ,Age            ,                  ,                    ,Null
+age_20_39    ,age_40_59    ,age_rate            ,per_capita         ,Age            ,Age          ,Age            ,                  ,                    ,Null
+age_40_59    ,age_60_79    ,age_rate            ,per_capita         ,Age            ,Age          ,Age            ,                  ,                    ,Null
+age_60_79    ,age_80_99    ,age_rate            ,per_capita         ,Age            ,Age          ,Age            ,                  ,                    ,Null
+age_80_99    ,age_100_plus ,age_rate            ,per_capita         ,Age            ,Age          ,Age            ,                  ,                    ,Null

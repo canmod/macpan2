@@ -3,7 +3,12 @@
 #' Create object for manipulating partitions, which are sets of
 #' labels for representing and naming model entities.
 #'
-#' @param frame Data frame representing the partition.
+#' @param frame Data frame representing the partition. The column names must
+#' consist only of letters, numbers, and start with a letter. The columns of
+#' the data frame must be character vectors such that each value is composed
+#' entirely of letters, numbers, underscore, and must start with a letter
+#' unless it is a blank string. Missing values are not allowed, but blank
+#' strings are. Each row must be unique.
 #'
 #' @return Object of class \code{Partition} with the following methods.
 #'
@@ -34,23 +39,37 @@
 #'
 #' * `products`
 #'
-#' @export
+#' @noRd
 Partition = function(frame) {
   self = Base()
   self$.partition = frame_to_part(frame)
-  self$products = Products(self)
+  #self$products = Products(self) ## TODO: remove if no issues come up
   self$frame = function() self$.partition$frame()
   self$dotted = function() self$.partition$dot()$frame()
   self$names = function() names(self$frame())
-  self$name = function() names(self$dotted())
+  self$name = function() names(self$dotted()) ## inefficient without memoisation
   self$labels = function() self$dotted()[[1L]]
+  self$prefix = function(prefix) {
+    f = self$frame()
+    names(f) = sprintf("%s%s", prefix, self$names())
+    Partition(f)
+  }
+  self$constant = function(name, value) {
+    f = self$frame()
+    f[[name]] = value
+    Partition(f)
+  }
   self$partial_labels = function(...) {
     new_names = list_to_names(...)
     self$.partition$change_coordinates(new_names)$dot()$frame()[[1L]]
   }
   self$.filter = function(..., .wrt, .comparison_function, .filter_type) {
     if (missing(.wrt)) .wrt = self$name()
-    .wrt = name_set_op(self$name(), .wrt, intersect)
+
+    ## order in .wrt matters. .wrt has to come first or ordering can get
+    ## mangled by the set intersection operation
+    .wrt = name_set_op(.wrt, self$name(), intersect)
+
     nms = to_names(.wrt)
     labels = list_to_labels(...)
     if (is.null(labels)) {  ## no filtering names are supplied
@@ -63,6 +82,15 @@ Partition = function(frame) {
     }
     return(p)
   }
+  self$blank_on = function(.wrt) {
+    f = self$frame()
+    cols = to_names(.wrt)
+    z = rep(TRUE, nrow(f))
+    for (col in cols) {
+      z = z & (f[[col]] == "")
+    }
+    Partition(f[z, , drop = FALSE])
+  }
   self$filter = function(..., .wrt, .comparison_function = all_equal) {
     self$.filter(...
       , .wrt = .wrt
@@ -70,6 +98,7 @@ Partition = function(frame) {
       , .filter_type = "filter"
     )
   }
+  self$filter = memoise(self$filter)
   self$filter_out = function(..., .wrt, .comparison_function = not_all_equal) {
     self$.filter(...
       , .wrt = .wrt
@@ -100,6 +129,16 @@ Partition = function(frame) {
   }
   return_object(self, "Partition")
 }
+Partition = memoise(Partition)
+
+#' @export
+names.Partition = function(x) x$names()
+
+
+vec = function(x, vec_name, vec_partition = "Vec") {
+  x$filter(vec_name, .wrt = vec_partition)$select_out(vec_partition)
+}
+
 
 NullPartition = function(...) {
   self = Base()
@@ -131,12 +170,16 @@ NullPartition = function(...) {
     new_name = name_set_op(self$name(), other$name(), union)
     other$expand(new_name)
   }
+  self$new = function(frame) {
+    if (nrow(frame) == 0L) return(NullPartition(names(frame)))
+    Partition(frame)
+  }
   self = return_object(self, "Partition")
   return_object(self, "NullPartition")
 }
 
 #' @export
-print.Partition = function(x, ...) print(x$frame())
+print.Partition = function(x, ...) print(x$frame(), row.names = FALSE)
 
 empty_frame = function(...) {
   colnames = unlist(
@@ -148,6 +191,20 @@ empty_frame = function(...) {
   setNames(as.data.frame(matrix(character(), 0L, ncol)), colnames)
 }
 
+enforce_schema = function(frame, ...) {
+  anchor = empty_frame(...)
+  if (is.null(frame)) return(anchor)
+  anchor = as.list(anchor)
+  for (c in names(anchor)) {
+    if (c %in% names(frame)) {
+      anchor[[c]] = frame[[c]]
+    } else {
+      anchor[[c]] = rep("", nrow(frame))
+    }
+  }
+  as.data.frame(anchor)
+}
+
 #' Union of Variables
 #'
 #' Take the union of a set of variable lists, each of which is represented
@@ -155,10 +212,11 @@ empty_frame = function(...) {
 #'
 #' @param ... \code{\link{Partition}} objects to combine.
 #'
-#' @export
+#' @noRd
 union_vars = function(...) {
   not_null = function(x) !is.null(x)
   l = Filter(not_null, list(...))
+  #vec_parts = vec_part_names(l)
   y = l[[1L]]
   if (length(l) > 1L) {
     for (i in 2:length(l)) {
@@ -166,6 +224,15 @@ union_vars = function(...) {
     }
   }
   y
+}
+
+
+vec_part_names = function(...) {
+  (list(...)
+   |> lapply(getElement, "vec")
+   |> unlist(recursive = FALSE, use.names = FALSE)
+   |> unique()
+  )
 }
 
 NumericPartition = function(frame, numeric_vector) {
@@ -226,72 +293,59 @@ NumericPartition = function(frame, numeric_vector) {
 }
 
 
-
-if (FALSE) {
-  model_dirs = list.files(system.file("starter_models", package = "macpan2"), full.names = TRUE)
-  models = setNames(lapply(model_dirs, ModelFiles), basename(model_dirs))
-  pp = Partition(models$seir_symp_vax$variables$all())
-  qq = pp$filter("S", "E", "I", "R", .wrt = "Epi")$filter("unvax", .wrt = "Vax")
-  Partition(pp$select("Epi", "Vax")$dotted())
-  pp$frame()
-  #pp$filter(qq$select("Epi", "Vax"), "foi.unvax" , .wrt = "Epi.Vax")
-  qq = pp$select("Epi")$filter("S", .wrt = "Epi")
-  pp$filter(qq)
-  pp$filter("S", "I", .wrt = "Epi")$filter("unstructured", "component", .wrt = "SympStruc")
-  pp$filter("I.component", .wrt = "Epi.SympStruc")
-  pp$name()
-  pp$names()
-  pp$labels()
-  pp$frame()
-  pp$dotted()
-
-  pp$filter("S", .wrt = "Epi", .comparison_function = not_all_equal)
-  pp$filter_out("S", .wrt = "Epi")
-  seir = Partition(models$seir$variables$all())
-  vax = Partition(models$vax$variables$all())
-
-  models$seir$settings()$required_partitions
-  models$seir$settings()$state_variables
-
-  m = Model(models$seir_symp_vax)
-  m$variables$all()
-  m$variables$flow()
-  m$variables$state()
-  m$flows()
-  m$flows_expanded()
-  m$derivations()
+join_partitions = function(x, y, by = "") {
+  by = by_(by)
+  merge(x, y
+    , by.x = by$x, by.y = by$y
+    , suffixes = suffixes_(x, y)
+    , sort = FALSE
+  )
 }
 
-if (FALSE) {
-  make_expression = function(model, expr_id, grp_id) {
-    v = model$variables$all()
-    e = model$derivations()[[expr_id]]
-    if (!is.null(e$filter_partition)) {
-      v = v$filter(e$filter_names, .wrt = e$filter_partition)
-    }
-    if (!is.null(e$group_partition)) {
-      g = v$filter(e$group_names[grp_id], .wrt = e$group_partition)
-      o = v$filter(e$output_names[grp_id], .wrt = e$output_partition)
-    } else {
-      g = v
-      o = v$filter(e$output_names[1], .wrt = e$output_partition)
-    }
-    a = c(character(0L), e$arguments, e$argument_dots)
-    a
-  }
+
+by_ = function(by) UseMethod("by_")
+
+#' @export
+by_.character = function(by) {
+  if (identical(nchar(by), 0L) | isTRUE(is.na(by))) return(list())
+  by = process_by_char(by)
+  list(x = by, y = by)
+}
+#' @export
+by_.formula = function(by) {
+  if (is_one_sided(by)) return(by_(rhs_char(by)))
+  list(
+    x = process_by_char(lhs_char(by)),
+    y = process_by_char(rhs_char(by))
+  )
+}
+#' @export
+by_.NULL = function(by) list()
+suffixes_ = function(x, y) {
+  s = c(names(x)[ncol(x)], names(y)[ncol(y)])
+  sprintf(":%s", s)
+}
+process_by_char = function(by) {
+  (by
+   |> undot_anything()
+   #|> wrap_colon_terms()
+  )
 }
 
-if (FALSE) {
-
-i = 3
-j = 1
-ee = m$derivations()[[i]]
-vv = m$variables$all()
-gg = vv$filter(ee$group_names[j], .wrt = ee$group_partition)
-oo = vv$filter(ee$output_names[j], .wrt = ee$output_partition)
-##ii = gg$filter(ee$argument_dots, .wrt = ee$input_partition)
-##ff = MathExpressionFromStrings(ee$expression, character(0L), include_dots = TRUE)
-ii = gg$filter(ee$arguments, .wrt = ee$input_partition)
-ff = MathExpressionFromStrings(ee$expression, ee$arguments)
-do.call(ff$symbolic$evaluate, as.list(ii$labels()))
-}
+  # if (length(bad_names) != 0L) {
+  #   macpan2:::msg_break(
+  #     macpan2:::msg_colon(
+  #       macpan2:::msg(
+  #         "These partition names where asked for (via the include argument)",
+  #         "but were not present in the output"
+  #       ),
+  #       macpan2:::msg_indent(bad_names)
+  #     ),
+  #     macpan2:::msg_colon(
+  #       "Only these were available",
+  #       macpan2:::msg_indent(names(z))
+  #     )
+  #   ) |> stop()
+  # }
+  #z[, include, drop = FALSE] |> Partition()
+#}

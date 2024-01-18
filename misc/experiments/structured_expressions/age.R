@@ -23,7 +23,7 @@ correct_answer = function(){
   
   for(i in 1:2){
   flowmat = sweep(ratemat, 1, state, "*")
-  state = state - rowSums(flowmat) + colSums(flowmat)
+  state = state - row_sums(flowmat) + col_sums(flowmat)
   state[1] = state[1]+sum(state)*birth_rate
   state[number_of_groups] = state[number_of_groups] - state[number_of_groups]*death_rate
   
@@ -56,7 +56,7 @@ input_mats = list(
 #   `(`,
 #   `c`, `matrix`,
 #   `%*%`, `sum`, `rep`,
-#   `rowSums`, `colSums`,
+#   `row_sums`, `col_sums`,
 #   `[`, `t`
 # )
 
@@ -92,7 +92,7 @@ vital_dynamics = parse_expr(vital_dynamics_expr)
 valid_vars = c(valid_vars, list(vital_dynamics = rep(0, number_of_groups)))
 literals_list = c(literals_list, list(vital_dynamics$valid_literals))
 
-state_update_expr = ~ state - rowSums(flowmat) + t(colSums(flowmat)) + vital_dynamics
+state_update_expr = ~ state - row_sums(flowmat) + t(col_sums(flowmat)) + vital_dynamics
 state_update = parse_expr(state_update_expr)
 literals_list = c(literals_list, list(state_update$valid_literals))
 

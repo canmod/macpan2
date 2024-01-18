@@ -1,0 +1,80 @@
+---
+title: "TMB Model"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{TMB Model}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+[![status](https://img.shields.io/badge/status-stub-red)](https://img.shields.io/badge/status-stub-red)
+
+
+```{r, include = FALSE}
+library(macpan2)
+library(dplyr)
+library(ggplot2)
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r}
+state_vector = c(S = 9999, I = 1, R = 0)
+flow_vector = c(foi = 0, gamma = 0.1)
+from_states = c("S", "I")
+to_states = c("I", "R")
+flow_params = c(beta = 0.3, N = sum(state_vector))
+
+sir = macpan2:::TMBModel(
+  init_mats = macpan2:::MatsList(
+      state = state_vector
+    , rates = flow_vector
+    , params = flow_params
+    
+    , I = match("I", names(state_vector)) - 1
+    , foi = match("foi", names(flow_vector)) - 1
+    , beta = match("beta", names(flow_params)) - 1
+    , N = match("N", names(flow_params)) - 1
+    
+    , from = match(from_states, names(state_vector)) - 1
+    , to = match(to_states, names(state_vector)) - 1
+    
+    , n_states = length(state_vector)
+    
+    , flow = empty_matrix
+    , incidence = empty_matrix
+    , outflow = empty_matrix
+    , noisy_state = empty_matrix
+    , dummy = empty_matrix
+    
+    , .mats_to_save = "noisy_state"
+    , .mats_to_return = "noisy_state"
+    , .dimnames = list(noisy_state = list(names(state_vector), ""))
+  ),
+  expr_list = mp_tmb_expr_list(
+    during = list(
+        dummy ~ assign(rates, foi, 0, params[beta] * state[I] / params[N])
+      , flow ~ state[from] * rates
+      , incidence ~ group_sums(flow, to, n_states)
+      , outflow ~ group_sums(flow, from, n_states)
+      , state ~ state + incidence - outflow
+      , noisy_state ~ rnbinom(state, 10)
+    )
+  ),
+  time_steps = macpan2:::Time(100)
+)
+sir
+```
+
+```{r badchunk, eval = FALSE}
+(sir$simulator()$report()
+ %>% mutate(state = factor(row, levels = names(state_vector)))
+ %>% ggplot()
+ + facet_wrap(~state, ncol = 1, scales = "free_y")
+ + geom_line(aes(time, value))
+)
+```

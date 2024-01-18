@@ -1,7 +1,7 @@
 test_that("density functions handle not-enough parameter errors", {
-  expect_error(engine_eval(~dpois(0)), "Error thrown by the TMB engine")
-  expect_error(engine_eval(~dnorm(0)), "Error thrown by the TMB engine")
-  expect_error(engine_eval(~dnbinom(0)), "Error thrown by the TMB engine")
+  expect_error(engine_eval(~dpois(0)), "The following error was thrown by the TMB engine")
+  expect_error(engine_eval(~dnorm(0)), "The following error was thrown by the TMB engine")
+  expect_error(engine_eval(~dnbinom(0)), "The following error was thrown by the TMB engine")
 })
 
 test_that("normal densities respect math", {

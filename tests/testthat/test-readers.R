@@ -6,7 +6,7 @@ test_that("attempts to construct abstract readers give appropriate instructions"
   }
   expect_error(
     Reader(tmp_file(".csv"))$read(),
-    "Please try a specific reader like CSVReader"
+    regexp = "Please try a specific reader like CSVReader"
   )
   expect_error(
     Reader(tmp_file(".json"))$read(),

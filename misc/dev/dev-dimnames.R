@@ -45,7 +45,7 @@ exprs = ExprList(
   during = list(
     dummy ~ assign(rate, foi, 0, state[I, 0] * beta / sum(state)),
     flow ~ rate * state[from, 0],
-    state ~ state + groupSums(flow, to, 2) - groupSums(flow, from, 2)
+    state ~ state + group_sums(flow, to, 2) - group_sums(flow, from, 2)
   )
 )
 

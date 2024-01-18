@@ -35,7 +35,7 @@ m = TMBModel(
       foi ~ beta*I/N,
       rate ~ c(foi, alpha, gamma),
       flow ~ state[from, 0]*rate,
-      state ~ state - groupSums(flow, from, 4) + groupSums(flow, to, 4),
+      state ~ state - group_sums(flow, from, 4) + group_sums(flow, to, 4),
       S~state[0,0],
       E~state[1,0],
       I~state[2,0],

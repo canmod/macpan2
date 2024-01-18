@@ -35,7 +35,10 @@ SymbolicMath = function() {
     if (y == "") return(self$wrap(paste("-", x, sep = "")))
 
     ## actual binop -- binary operator -- case
-    self$wrap(paste(x, y, sep = op))
+    z = paste(x, y, sep = op)
+
+    ## wrapping makes stuff ugly
+    self$wrap(z)
   }
 
   ## 1. all functions in self take string (i.e. length-1 character vector)
@@ -84,9 +87,9 @@ SymbolicMath = function() {
   self$`%*%` = function(x, y) self$binop(" %*% ", x, y)
   self$`sum` = function(...) self$fwrap("sum", self$csv(...))
   self$`rep` = function(x, n) self$fwrap("rep", self$csv(x, n))
-  self$`rowSums` = function(x) self$fwrap("rowSums", x)
-  self$`colSums` = function(x) self$fwrap("colSums", x)
-  self$`groupSums` = function(x, f, n) self$fwrap("groupSums", self$csv(x, f, n))
+  self$`row_sums` = function(x) self$fwrap("row_sums", x)
+  self$`col_sums` = function(x) self$fwrap("col_sums", x)
+  self$`group_sums` = function(x, f, n) self$fwrap("group_sums", self$csv(x, f, n))
   self$`[` = function(x, i, ...) self$bwrap(x, self$csv(i, ...)) ## optional: j
   self$`block` = function(x, i, j, n, m) self$fwrap("block", self$csv(x, i, j, n, m))
   self$`t` = function(x) self$fwrap("t", x)

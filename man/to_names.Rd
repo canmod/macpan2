@@ -15,5 +15,5 @@ Character vector that can be used as names.
 \description{
 Convert objects to names, which are character vectors with the following
 restrictions:  (1) they cannot have dots, (2) all values must start with
-a letter, (3) all characters must be letters, numbers, or underscores.
+a letter, (3) all characters must be letters, numbers, or underscore.
 }

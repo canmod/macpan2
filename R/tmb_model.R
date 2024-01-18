@@ -1,669 +1,34 @@
-ExprListUtils = function() {
-  self = Base()
-  self$.mat_names = function(...) {
-    as.character(unlist(list(...)))
-  }
-  self$.init_valid_vars = function(...) {
-    initial_valid_vars(self$.mat_names(...))
-  }
-  self$.parsed_expr_list = function(...
-      , .existing_literals = numeric(0L)
-      , .offset = 0L
-    ) {
-    parse_expr_list(self$.all_rhs(self$expr_list())
-      , valid_vars = self$.init_valid_vars(...)
-      , valid_literals = .existing_literals
-      , offset = .offset
-    )
-  }
-  self$.set_name_prefix = function(x, prefix) {
-    setNames(x, paste(prefix, names(x), sep = ""))
-  }
-  self$.does_assign = function(x) {
-    raw_lhs = self$.lhs(x)
-  }
-  self$.lhs = function(x) {
-    as.character(x[[2L]])
-  }
-  self$.rhs = function(x) {
-    if (length(x) == 3L) e = x[c(1L, 3L)] else e = x
-    e
-  }
-  self$.all_lhs = function(x) vapply(x, self$.lhs, character(1L))
-  self$.all_rhs = function(x) lapply(x, self$.rhs)
-  return_object(self, "ExprListUtils")
-}
-
-#' Expression List
-#'
-#' Create a list of expressions for defining a compartmental model in TMB.
-#'
-#' @param before List of formulas to be evaluated in the order provided before
-#' the simulation loop begins. Each \code{\link{formula}} must have a left hand
-#' side that gives the name of the matrix being updated, and a right hand side
-#' giving an expression containing only the names of matrices in the model,
-#' functions defined in \code{macpan2.cpp}, and numerical literals (e.g.
-#' \code{3.14}). The available functions are described in
-#' \code{\link{engine_functions}}. Names can be provided for the components of
-#' \code{before}, and these names do not have to be unique.  These names are
-#' used by the \code{.simulate_exprs} argument.
-#' @param during List of formulas to be evaluated at every iteration of the
-#' simulation loop, with the same rules as \code{before}.
-#' @param after List of formulas to be evaluated after the simulation loop,
-#' with the same rules as \code{before}.
-#' @param .simulate_exprs Character vector of names of expressions to be
-#' evaluated within TMB simulate blocks. This is useful when an expression
-#' cannot be evaluated during the computation of the objective function and
-#' its gradients (e.g. if the expression contains randomness or other
-#' discontinuities that will break the automatic differentiation machinery
-#' of TMB).
-#'
-#' @return Object of class \code{ExprList} with the following methods.
-#'
-#' ## Methods
-#'
-#' * `$data_arg(...)`: Return the following components of the data structure
-#' to pass to C++.
-#'     * `expr_output_id` -- Indices into the list of matrices identifying the
-#'     matrix being produced.
-#'     * `expr_sim_block` -- Identified whether or not the expression should be
-#'     evaluated inside a simulate macro within TMB.
-#'     * `expr_num_p_table_rows` -- Number of rows associated with each
-#'     expression in the parse table (`p_table_*`)
-#'     * `eval_schedule` -- Vector giving the number of expressions to evaluate
-#'     in each phase (before, during, or after) of the simulation.
-#'     * `p_table_x` -- Parse table column giving an index for looking up either
-#'     function, matrix, or literal.
-#'     * `p_table_n` -- Parse table column giving the number of arguments in
-#'     functions.
-#'     * `p_table_i` -- Parse table column giving indices for looking up the
-#'     rows in the parse table corresponding with the first argument of the
-#'     function.
-#'
-#' ## Method Arguments
-#'
-#' * `...`: Character vector containing the names of the matrices in the model.
-#'
-#'
-#' @importFrom oor method_apply
+#' Simulator
+#' 
+#' Construct a simulator from a model specification object.
+#' 
+#' @param model A model specification object.
+#' @param time_steps How many time steps should be simulated when simulations
+#' are requested?
+#' @param outputs Character vector of names of model quantities that will be
+#' outputted when simulations are requested.
+#' @param default Named list of numerical objects that will update the default
+#' values defined in the model specification object. Any number of objects
+#' can be updated or not.
+#' 
 #' @export
-ExprList = function(
-      before = list()
-    , during = list()
-    , after = list()
-    , .simulate_exprs = character(0L)
+mp_simulator = function(model
+    , time_steps
+    , outputs
+    , default = list()
   ) {
-  self = ExprListUtils()
-  lhs = function(x) x[[2L]]
-  valid_expr_list = ValidityMessager(
-    All(
-      is.list,  ## list of ...
-      MappedAllTest(Is("formula")),  ## ... formulas that are ...
-      TestPipeline(MappedSummarizer(length), MappedAllTest(TestRange(3L, 3L))),  ## ... two-sided formula
-      TestPipeline(MappedSummarizer(lhs, is.symbol), MappedAllTest(TestTrue()))  ## ... only one symbol on the lhs
-    ),
-    "Model expressions must be two-sided assignment formulas,",
-    "without subsetting on the left-hand-side",
-    "(i.e. x ~ 1 is fine, but x[0] ~ 1 is not)."
-  )
-
-  ## Args
-  self$before = valid_expr_list$assert(before)
-  self$during = valid_expr_list$assert(during)
-  self$after = valid_expr_list$assert(after)
-  self$.simulate_exprs = valid$char$assert(.simulate_exprs)
-
-  self$expr_list = function() unname(c(self$before, self$during, self$after))
-  self$expr_nms = function() {
-    nms = names(c(self$before, self$during, self$after))
-    if (is.null(nms)) nms = rep("", length(self$expr_list()))
-    nms
-  }
-
-  self$.eval_schedule = function() {
-    c(length(self$before), length(self$during), length(self$after))
-  }
-
-  self$.expr_sim_block = function() {
-    as.integer(self$expr_nms() %in% self$.simulate_exprs)
-  }
-
-  self$.expr_output_id = function(...) {
-    all_names = self$.mat_names(...)
-    output_names = valid$engine_outputs(all_names)$assert(
-      self$.all_lhs(self$expr_list())
-    )
-    m = match(output_names, all_names)
-    if (any(is.na(m))) {
-      stop(
-        "\nThe following updated variables are not "
-      )
-    }
-    as.integer(m - 1L)
-  }
-  self$.expr_num_p_table_rows = function(...) {
-    self$.parsed_expr_list(...)$num_p_table_rows
-  }
-
-  ## list of three equal length integer vectors
-  ## p_table_x, p_table_n, p_table_i
-  self$.parse_table = function(...) {
-    l = as.list(self$.parsed_expr_list(...)$parse_table[c("x", "n", "i")])
-    self$.set_name_prefix(l, "p_table_")
-  }
-  self$.literals = function(...) {
-    self$.parsed_expr_list(...)$valid_literals
-  }
-
-  self$data_arg = function(...) {
-    expr_output_id = self$.expr_output_id(...)
-    r = c(
-      list(
-        expr_output_id = as.integer(expr_output_id),
-        expr_sim_block = as.integer(self$.expr_sim_block()),
-        expr_num_p_table_rows = as.integer(self$.expr_num_p_table_rows(...)),
-        eval_schedule = as.integer(self$.eval_schedule())
-      ),
-      self$.parse_table(...)
-    )
-    valid$expr_arg$assert(r)
-  }
-  self$insert = function(...
-    , .at = 1L
-    , .phase = c("before", "during", "after")
-    , .simulate_exprs = character(0L)
-  ) {
-    .phase = match.arg(.phase)
-    input = list(before = self$before, during = self$during, after = self$after)
-    input[[.phase]] = append(input[[.phase]], list(...), after = .at - 1L)
-    input$.simulate_exprs = unique(c(self$.simulate_exprs, .simulate_exprs))
-    do.call(ExprList, input)
-  }
-  self$print_exprs = function(file = "") {
-    to = cumsum(self$.eval_schedule())
-    from = c(0L, to[1:2]) + 1L
-    msgs = c(
-      "Before the simulation loop (t = 0):",
-      "At every iteration of the simulation loop (t = 1 to T):",
-      "After the simulation loop (t = T):"
-    )
-    for (i in 1:3) {
-      if (self$.eval_schedule()[i] > 0L) {
-        expr_strings = lapply(self$expr_list()[from[i]:to[i]], deparse)
-        tab_size = nchar(self$.eval_schedule()[i])
-        fmt = sprintf("%%%ii: %%s", tab_size)
-        tab = paste0(rep(" ", tab_size), collapse = "")
-        expr_n_lines = vapply(expr_strings, length, integer(1L))
-        make_expr_numbers = function(s, i) {
-          s[1L] = sprintf(fmt, i, s[1L])
-          if (length(s) > 1L) {
-            s[-1L] = paste(tab, s[-1L], sep = "")
-          }
-          s
-        }
-        expr_char = unlist(mapply(make_expr_numbers
-          , expr_strings
-          , seq_len(self$.eval_schedule()[i])
-          , SIMPLIFY = FALSE
-          , USE.NAMES = FALSE
-        ))
-        lines = c(
-          "---------------------",
-          msgs[i],
-          "---------------------",
-          expr_char,
-          ""
-        )
-        cat(lines, file = file, sep = "\n", append = i != 1L)
-      }
-    }
-  }
-  return_object(self, "ExprList")
-}
-
-#' Matrix List
-#'
-#' Create a list of initial values for matrices used to define a compartmental
-#' model in TMB.
-#'
-#' @param ... Named objects that can be coerced to numerical matrices.
-#' @param .mats_to_save Character vector naming matrices to be saved at each
-#' set in the simulation so that some calculations can make use of past value
-#' (e.g. delayed effects) and/or to be able to retrieved the simulation
-#' history after the simulation is complete.
-#' @param .mats_to_return Character vector naming matrices to be returned
-#' after the simulate is complete.
-#' @param .dimnames Named list of \code{\link{dimnames}} for matrices that change
-#' their dimensions over the simulation steps. These names correspond to the
-#' names of the matrices. The output of the simulations will try their best
-#' to honor these names, but if the shape of the matrix is too inconsistent
-#' with the \code{\link{dimnames}} then numerical indices will be used instead.
-#' For matrices that do not change their dimensions, set \code{\link{dimnames}}
-#' by adding \code{\link{dimnames}} to the matrices passed to \code{...}.
-#' @param .structure_labels An optional object for obtaining labels of
-#' elements of special vectors and matrices. Such an object can be found in
-#' the `$labels` field of a \code{\link{Compartmental}} model. Note that this
-#' is an advanced technique.
-#'
-#' @return Object of class \code{MatsList} with the following methods.
-#'
-#' ## Methods
-#'
-#' * `$data_arg()`: Return the following components of the data structure
-#' to pass to C++.
-#'     * `mats` -- Unnamed list of numeric matrices.
-#'     * `mats_save_hist` -- Boolean vector identifying which matrices should
-#'     have their history saved.
-#'     * `mats_return` -- Boolean vector identifying which matrices should be
-#'     returned after a simulation.
-#' * `$mat_dims()`: Return a data frame giving the numbers of rows and columns
-#' of each matrix in the list.
-#' * `$add_mats(...)`: Add matrices to the list and return a new
-#' regenerated \code{MatsList} object.
-#'
-#' @export
-MatsList = function(...
-    , .mats_to_save = character(0L)
-    , .mats_to_return = character(0L)
-    , .dimnames = list()
-    , .structure_labels = NullLabels()
-    #, .init_saved_dims = list()
-  ) {
-  # self = EditableArgs(MatsList
-  #   , lapply(list(...), as.matrix)
-  #   , list()
-  # )
-  self = Base()
-
-  ## Args -- TODO: these shouldn't be private
-  self$.initial_mats = lapply(list(...), as.matrix)
-  self$.mats_to_save = .mats_to_save
-  self$.mats_to_return = .mats_to_return
-  self$.dimnames = .dimnames
-  self$.structure_labels = .structure_labels
-  #self$.init_saved_dims = .init_saved_dims
-
-  self$mats_save_hist = function() names(self$.initial_mats) %in% self$.mats_to_save
-  self$mats_return = function() names(self$.initial_mats) %in% self$.mats_to_return
-  # self$mats_save_dims = function() {
-  #   msh = self$mats_save_hist()
-  #   msd = setNames(
-  #     lapply(self$.initial_mats[msh], dim),
-  #     self$.names()[msh]
-  #   )
-  #   for (m in names(self$.init_saved_dims)) {
-  #
-  #   }
-  # }
-
-  ## Standard methods
-  self$get = function(variable_name) {
-    i = which(self$.names() == valid$char1$assert(variable_name))
-    if (length(i) == 1L) {
-      return(self$.mats()[[i]])
-    } else {
-      i = which(variable_name == self$.structure_labels$state())
-      if (length(i) == 1L) {
-        return(self$get("state")[i])
-      }
-      i = which(variable_name == self$.structure_labels$flow())
-      if (length(i) == 1L) {
-        return(self$get("flow")[i])
-      }
-    }
-    stop(
-      "\nNo variable called ", variable_name, " in the list:\n",
-      paste0(
-        c(
-          self$.names(),
-          self$.structure_labels$state(),
-          self$.structure_labels$flow()
-        ),
-        collapse = "; "
-      )
-    )
-  }
-  self$.names = function() names(self$.initial_mats)
-  self$.mats = function() unname(self$.initial_mats)
-  dimnames_handle_nulls = function(x) {
-    if (is.null(dimnames(x))) return(NULL)
-    if (is.null(rownames(x))) rownames(x) = ""
-    if (is.null(colnames(x))) colnames(x) = ""
-    dimnames(x)
-  }
-  not_null = function(x) !is.null(x)
-  dn = lapply(self$.initial_mats, dimnames_handle_nulls)
-  for (mat_nm in names(.dimnames)) dn[[mat_nm]] = .dimnames[[mat_nm]]
-  self$.dimnames = Filter(not_null, dn)
-
-  self$.dim = setNames(
-    lapply(self$.mats(), dim),
-    self$.names()
-  )
-  self$.nrow = vapply(self$.mats(), nrow, integer(1L), USE.NAMES = FALSE)
-  self$.ncol = vapply(self$.mats(), ncol, integer(1L), USE.NAMES = FALSE)
-  self$mat_dims = function() {
-    data.frame(mat = self$.names(), nrow = self$.nrow, ncol = self$.ncol)
-  }
-  self$data_arg = function() {
-    r = list(
-      mats = self$.mats(),
-      mats_save_hist = self$mats_save_hist(),
-      mats_return = self$mats_return()
-    )
-    valid$mats_arg$assert(r)
-  }
-
-  ## add _new_ matrices -- error if a matrix with the
-  ## same name already exists
-  self$add_mats = function(...
-    , .mats_to_save = character(0L)
-    , .mats_to_return = character(0L)
-    , .dimnames = list()
-  ) {
-    args = c(self$.initial_mats, list(...))
-    dups = duplicated(names(args))
-    if (any(dups)) {
-      stop(
-        "\nThe following matrices were added, but already existed:\n",
-        paste0(names(args)[dups], collapse = ", ")
-        ## TODO: fill in what to do about it
-      )
-    }
-    args$.mats_to_save = union(self$.mats_to_save, .mats_to_save)
-    args$.mats_to_return = union(self$.mats_to_return, .mats_to_return)
-    args$.dimnames = c(self$.dimnames, .dimnames)
-    args$.structure_labels = self$.structure_labels
-    do.call(MatsList, args)
-  }
-
-  ## add new matrices or update existing matrices as the
-  ## case may be -- no error or warning if you happen to
-  ## overwrite an existing matrix
-  self$update_mats = function(...
-    , .mats_to_save = character(0L)
-    , .mats_to_return = character(0L)
-    , .dimnames = list()
-  ) {
-    args = self$.initial_mats
-    new_args = list(...)
-    args[names(new_args)] = new_args
-    args$.mats_to_save = union(self$.mats_to_save, .mats_to_save)
-    args$.mats_to_return = union(self$.mats_to_return, .mats_to_return)
-    args$.dimnames = self$.dimnames
-    args$.dimnames[names(.dimnames)] = .dimnames
-    args$.structure_labels = self$.structure_labels
-    do.call(MatsList, args)
-  }
-  return_object(self, "MatsList")
+  UseMethod("mp_simulator")
 }
 
 #' @export
-names.MatsList = function(x) x$.names()
-
-
-#' Optimization Parameters List
-#'
-#' Create an object for specifying matrix elements to be optimized or integrated
-#' out of the objective function using a Laplace transform.
-#'
-#' @param ... Objects that can be coerced to numeric vectors, which will be
-#' concatenated to produce the default value of the parameter vector.
-#' @param par_id Integer vector identifying elements of the parameter vector
-#' to be used to replace elements of the model matrices.
-#' @param mat Character vector the same length as `par_id` giving the names of
-#' the matrices containing the elements to replace.
-#' @param row_id Integer vector the same length as `par_id` giving the row
-#' indices of the matrix elements to replace with parameter values.
-#' @param col_id Integer vector the same length as `par_id` giving the column
-#' indices of the matrix elements to replace with parameter values.
-#'
-#' @return Object of class \code{OptParamsList} with the following methods.
-#'
-#' ## Methods
-#'
-#' * `$data_arg(..., .type_string = c("p", "r"))`: Return the following components of the data structure
-#' to pass to C++.
-#'     * `{.type_string}_par_id` -- Integers identifying the replacing parameter.
-#'     * `{.type_string}_mat_id` -- Integers identifying the matrix within which
-#'     an element is to be replaced.
-#'     * `{.type_string}_row_id` -- Integers identifying the rows within matrices
-#'     to replace.
-#'     * `{.type_string}_col_id` -- Integers identifying the columns within
-#'     matrices to replace.
-#' * `$vector()`: Return the initial value of the numerical parameter vector.
-#' * `$data_frame()`: Return a data frame with each row describing a parameter.
-#'
-#' ## Method Arguments
-#'
-#' * `...`: Character vector containing the names of the matrices in the model.
-#' * `.type_string`: Either `"p"` or `"r"` indicating whether the object
-#' is to be used to represent fixed parameters to be optimized or random
-#' parameters to be integrated out using the Laplace transform.
-#'
-#' @export
-OptParamsList = function(...
-    , par_id = integer(0L)
-    , mat = character(0L)
-    , row_id = integer(0L)
-    , col_id = integer(0L)
+mp_simulator.TMBModelSpec = function(model
+    , time_steps
+    , outputs
+    , default = list()
   ) {
-  self = Base()
-  self$.vector = as.numeric(unlist(list(...)))
-  self$vector = function() self$.vector
-
-  # TMB needs at least one parameter (unless this is for a random effect),
-  # so setting to zero without setting anything else so that it doesn't
-  # actually get used
-  #if (length(self$.vector) == 0L) self$.vector = 0
-  self$.mat = mat
-  self$.par_id = par_id
-  self$.row_id = row_id
-  self$.col_id = col_id
-  self$.mat_id = function(...) {
-    match(self$.mat, as.character(unlist(list(...)))) - 1L
-  }
-  self$data_frame = function(...) {
-    d = data.frame(par_id = self$.par_id
-      , mat = self$.mat
-      , row = self$.row_id
-      , col = self$.col_id
-      , default = self$.vector[self$.par_id + 1L]
-    )
-    alternative_vectors = list(...)
-    for (v in names(alternative_vectors)) {
-      d[[v]] = alternative_vectors[[v]][self$.par_id + 1L]
-    }
-    d
-  }
-  self$data_arg = function(..., .type_string = c("p", "r")) {
-    .type_string = match.arg(.type_string)
-    r = setNames(
-      list(self$.par_id
-        , self$.mat_id(...)
-        , self$.row_id
-        , self$.col_id
-      ),
-      paste(.type_string, c("par", "mat", "row", "col"), "id", sep = "_")
-    )
-    valid$opt_params_list_arg$assert(r)
-  }
-  return_object(self, "OptParamsList")
+  model$simulator_fresh(time_steps, outputs, default)
 }
 
-OptParamsFrameStruc = function(..., frame) {
-  OptParamsList(...
-    , par_id = frame$par_id
-    , mat = frame$mat
-    , row_id = frame$row_id
-    , col_id = frame$col_id
-  )
-}
-
-
-## alternative constructor of OptParamsList
-OptParamsFrame = function(frame, .dimnames = list()) {
-  for (c in names(frame)) {
-    if (is.character(frame[[c]])) frame[[c]] = trimws(frame[[c]])
-  }
-  row_col_ids = make_row_col_ids(frame$mat, frame$row, frame$col, .dimnames)
-  args = c(
-    as.list(as.numeric(frame$default)),
-    list(
-      par_id = seq_len(nrow(frame)) - 1L,  ## zero-based c++ indices
-      mat = frame$mat,
-      row_id = row_col_ids$row_id,
-      col_id = row_col_ids$col_id
-    )
-  )
-  do.call(OptParamsList, args)
-}
-
-OptParamsFile = function(file_path
-      , csv_reader = CSVReader
-      , json_reader = JSONReader
-      , txt_reader = TXTReader
-    ) {
-  self = Files(dirname(file_path)
-    , reader_spec(basename(file_path), csv_reader)
-  )
-  self$.col_map = c(
-      Matrix = "mat"
-    , mat = "mat"
-    , Mat = "mat"
-    , Row = "row"
-    , row = "row"
-    , Column = "col"
-    , Col = "col"
-    , col = "col"
-    , type = "type"
-    , Type = "type"
-    , value = "default"
-    , Value = "default"
-    , Val = "default"
-    , val = "default"
-    , Default = "default"
-    , default = "default"
-  )
-  self$.param = c("param", "par", "fixed", "fixef")
-  self$.random = c("random", "ran", "rand", "ranef")
-  self$frame = function() {
-    x = self$get("parameters")
-    names(x) = self$.col_map[names(x)]
-    x
-  }
-  self$params_frame = function(.dimnames = list()) {
-    f = self$frame()
-    f[tolower(f[["type"]]) %in% self$.param, , drop = FALSE]
-    #if (nrow(f) == 0L) return(OptParamsList())
-  }
-  self$random_frame = function(.dimnames = list()) {
-    f = self$frame()
-    f[tolower(f[["type"]]) %in% self$.random, , drop = FALSE]
-    #if (nrow(f) == 0L) return(OptParamsList())
-  }
-  self
-}
-
-#' Objective Function
-#'
-#' Define the objective function of a compartmental model in TMB.
-#'
-#' @param obj_fn_expr One sided \code{\link{formula}} giving the objective
-#' function of a TMB model. The right hand side expression must contain only
-#' the names of matrices in the model, functions defined in \code{macpan2.cpp},
-#' and numerical literals (e.g. \code{3.14}).
-#'
-#' @return Object of class \code{ObjectiveFunction} with the following methods.
-#'
-#' ## Methods
-#'
-#' * `data_arg(..., .existing_literals)` -- Return the following components of the data structure
-#' to pass to C++.
-#'     * `o_table_x` -- Objective function parse table column giving an index for looking up either
-#'     function, matrix, or literal.
-#'     * `o_table_n` -- Objective function parse table column giving the number of arguments in
-#'     functions.
-#'     * `o_table_i` -- Objective function parse table column giving indices for looking up the
-#'     rows in the parse table corresponding with the first argument of the
-#'     function.
-#'     * `literals` -- Numeric vector of literals that can were used in the
-#'     expressions of the model.
-#'
-#' ## Method Arguments
-#'
-#' * `...`: Character vector containing the names of the matrices in the model.
-#' * `.existing_literals`: Numeric vector giving the literals used in the
-#' model expressions produced before the objective function.
-#'
-#' @export
-ObjectiveFunction = function(obj_fn_expr) {
-
-  ## Inherit Private Methods
-  self = ExprListUtils()
-
-  ## Args
-  self$obj_fn_expr = obj_fn_expr
-
-  ## Standard Methods
-  self$expr_list = function() list(self$obj_fn_expr)
-  self$.literals = function(..., .existing_literals) {
-    self$.parsed_expr_list(..., .existing_literals = .existing_literals)$valid_literals
-  }
-  self$.parse_table = function(..., .existing_literals) {
-    l = as.list(self$.parsed_expr_list(..., .existing_literals = .existing_literals)$parse_table)
-    self$.set_name_prefix(l[c("x", "n", "i")], "o_table_")
-  }
-  self$data_arg = function(..., .existing_literals) {
-    p = self$.parse_table(..., .existing_literals = .existing_literals)
-    p$literals = self$.literals(..., .existing_literals = .existing_literals)
-    p
-  }
-  return_object(self, "ObjectiveFunction")
-}
-
-
-#' Time
-#'
-#' Define the number of time steps in a compartmental model in TMB.
-#'
-#' @param time_steps Number of time steps in the simulation loop.
-#'
-#' @return Object of class \code{Time} with the following methods.
-#'
-#' ## Methods
-#'
-#' * `$data_arg()` -- Return the following components of the data structure
-#' to pass to C++.
-#'     * `time_steps` -- Number of time steps in the simulation loop.
-#'
-#' @export
-Time = function(time_steps) {
-  self = Base()
-  self$time_steps = time_steps
-  self$data_arg = function() list(time_steps = self$time_steps)
-  return_object(self, "Time")
-}
-
-DiffTime = function(start_time, end_time) {
-  self = Base()
-  self$start_time = valid$scalar$assert(start_time)
-  self$end_time = valid$scalar$assert(end_time)
-  self$start = function() {}
-}
-
-Daily = function(start_date, end_date) {
-  self = Base()
-  self$start_date = as.Date(start_date)
-  self$end_date = as.Date(end_date)
-  self$time_steps = function() {
-    (self$end_date
-     |> difftime(self$start_date, units = "days")
-     |> as.integer()
-    )
-  }
-  self$data_arg = function() list(list_steps = self$time_steps())
-}
 
 
 #' TMB Model
@@ -677,6 +42,9 @@ Daily = function(start_date, end_date) {
 #' @param random An object of class \code{\link{OptParamsList}}.
 #' @param obj_fn An object of class \code{\link{ObjectiveFunction}}.
 #' @param time_steps An object of class \code{\link{Time}}.
+#' @param do_pred_sdreport A logical flag (\code{FALSE}/\code{TRUE}, or any value evaluating to 1 for \code{TRUE}) indicating whether predicted values should be accessible via \code{TMB::sdreport()}
+#' @param engine_methods An object of class \code{\link{EngineMethods}}.
+#' @param log_file An object of class \code{\link{LogFile}}.
 #'
 #' @return Object of class \code{TMBModel} with the following methods.
 #'
@@ -713,7 +81,7 @@ Daily = function(start_date, end_date) {
 #'         foi, 0,     0,
 #'         0,   gamma, 0), 3, 3),
 #'       flowmat ~ ratemat * state,
-#'       state ~ state - rowSums(flowmat) + t(colSums(flowmat))
+#'       state ~ state - row_sums(flowmat) + t(col_sums(flowmat))
 #'     )
 #'   ),
 #'   params = OptParamsList(0.3
@@ -728,17 +96,21 @@ Daily = function(start_date, end_date) {
 #' )
 #' sir$data_arg()
 #' sir$param_arg()
+#' sir$simulator()$report()
 #'
 #' @useDynLib macpan2
 #' @importFrom TMB MakeADFun
-#' @export
+#' @noRd
 TMBModel = function(
-    init_mats = MatsList(),
-    expr_list = ExprList(),
-    params = OptParamsList(0),
-    random = OptParamsList(),
-    obj_fn = ObjectiveFunction(~0),
-    time_steps = Time(0L)
+      init_mats = MatsList()
+    , expr_list = ExprList()
+    , params = OptParamsList(0)
+    , random = OptParamsList()
+    , obj_fn = ObjectiveFunction(~0)
+    , time_steps = Time(0L)
+    , engine_methods = EngineMethods()
+    , log_file = LogFile()
+    , do_pred_sdreport = TRUE
   ) {
   ## Inheritance
   self = Base()
@@ -750,21 +122,23 @@ TMBModel = function(
   self$random = random
   self$obj_fn = obj_fn
   self$time_steps = time_steps
+  self$do_pred_sdreport = do_pred_sdreport
+  self$engine_methods = engine_methods
+  self$log_file = log_file
 
   ## Standard Methods
   self$data_arg = function() {
-    existing_literals = self$expr_list$.literals(self$init_mats$.names())
-    expr_list = self$expr_list$data_arg(self$init_mats$.names())
     c(
       self$init_mats$data_arg(),
-      expr_list,
-      self$params$data_arg(self$init_mats$.names()),
-      self$random$data_arg(self$init_mats$.names(), .type_string = "r"),
-      self$obj_fn$data_arg(self$init_mats$.names()
-        , .existing_literals = existing_literals
-      ),
-      self$time_steps$data_arg()
-
+      self$expr_list$data_arg(),
+      self$params$data_arg(),
+      self$random$data_arg("r"),
+      self$obj_fn$data_arg(),
+      self$time_steps$data_arg(),
+      self$engine_methods$meth_list$data_arg(),
+      self$engine_methods$int_vecs$data_arg(),
+      self$log_file$data_arg(),
+      list(values_adreport = as.integer(self$do_pred_sdreport))
     )
   }
   self$param_arg = function() {
@@ -779,7 +153,7 @@ TMBModel = function(
     if (length(self$random$vector()) == 0L) return(NULL)
     return("random")
   }
-  self$make_ad_fun_arg = function(tmb_cpp = "macpan2") {
+  self$make_ad_fun_arg = function(tmb_cpp = getOption("macpan2_dll")) {
     list(
         data = self$data_arg(),
         parameters = self$param_arg(),
@@ -787,18 +161,45 @@ TMBModel = function(
         DLL = tmb_cpp
     )
   }
-  self$ad_fun = function(tmb_cpp = "macpan2") {
+  self$ad_fun = function(tmb_cpp = getOption("macpan2_dll")) {
     do.call(TMB::MakeADFun, self$make_ad_fun_arg(tmb_cpp))
   }
 
-  self$simulator = function(tmb_cpp = "macpan2", initialize_ad_fun = TRUE) {
-    TMBSimulator(self, tmb_cpp = tmb_cpp, initialize_ad_fun = initialize_ad_fun)
+  self$simulator = function(
+        tmb_cpp = getOption("macpan2_dll")
+      , initialize_ad_fun = TRUE
+      , outputs = NULL
+    ) {
+    TMBSimulator(self
+      , tmb_cpp = tmb_cpp
+      , initialize_ad_fun = initialize_ad_fun
+      , outputs = outputs
+    )
   }
 
+
+  ## Composition
   self$add = TMBAdder(self)
   self$insert = TMBInserter(self)
   self$print = TMBPrinter(self)
   self$replace = TMBReplacer(self)
+
+
+  ## Dependency management
+  self$dependencies = Dependencies(self
+      , init_mats = "MatsList"
+      , expr_list = "ExprList"
+      , obj_fn = "ObjectiveFunction"
+      , engine_methods = "EngineMethods"
+      , params = "OptParamsList"
+      , random = "OptParamsList"
+      , time_steps = "Time"
+  )
+  self$refresh = Refresher(self$dependencies)
+  self$refresh$init_mats(self$init_mats)
+  self$refresh$expr_list(self$expr_list)
+  self$refresh$engine_methods(self$engine_methods)
+  self$refresh$obj_fn(self$obj_fn)
 
   return_object(
     valid$tmb_model$assert(self),
@@ -806,56 +207,124 @@ TMBModel = function(
   )
 }
 
-TMBCompartmentalSimulator = function(tmb_simulator, compartmental_model) {
-  self = tmb_simulator
-  self$compartmental_model = compartmental_model
-  return_object(self, "TMBCompartmentalSimulator")
+
+
+
+mp_tmb_before = function(model, start = list(), end = list()) {
+  TMBModelSpec(
+      before = c(start, model$before, end)
+    , during, after
+    , default, integers
+    , must_save, must_not_save
+    , sim_exprs
+  )
 }
 
-# SimulatorsList = function() {
-#   self = Base()
-#   self$.simulators = list()
-#   self$simulators = function() self$.simulators
-#   self$add = function(simulator) {
-#     if (!any(vapply(self$.simulators, identical, logical, simulator))) {
-#       self$.simulators = append(self$.simulators, simulator)
-#     }
-#   }
-#   return_object(self, "SimulatorsList")
-# }
 
-## The copied method acts on the source when called by the target.
-## This is useful when the target has the source as a composed object.
-# copy_method = function(
-#       method ## string giving the name of the method to transfer
-#     , source ## source object to donate the method
-#     , target ## target object to receive the method
-#     , return = TRUE ## should the return value in the source be returned in the target?
-#   ) {
-#   force(method); force(source); force(target)
-#   target[[method]] = function() {
-#     named_args = as.list(environment())
-#     dot_args = try(list(...), silent = TRUE)
-#     if (inherits(dot_args, "try-error")) dot_args = list()
-#     args = c(named_args, dot_args)
-#     y = do.call(source[[method]], args)
-#     if (return) return(y)
-#   }
-#   formals(target[[method]]) = formals(source[[method]])
-# }
-# copy_methods = function(methods, source, target, return = TRUE) {
-#   for (method in methods) copy_method(method, source, target, return)
-# }
+
+mp_default = function(model_simulator, ...) {
+  stop("under construction")
+  UseMethod("mp_default")
+}
+
+mp_initial = function(model_simulator, ...) {
+  stop("under construction")
+  UseMethod("mp_initial")
+}
+
+mp_initial.TMBSimulator = function(model_simulator, matrices, params = NULL) {
+  stop("under construction")
+  (model_simulator
+    $replace
+    $time_steps(time_steps)
+    $update
+    $matrices(.mats_to_return = matrices, .mats_to_save = matrices)
+    $report(params, .phases = "before")
+  )
+}
+
+
+mp_final = function(model_simulator, ...) {
+  stop("under construction")
+  UseMethod("mp_final")
+}
+
+
+mp_final.TMBSimulator = function(model_simulator, time_steps, outputs, ...) {
+  stop("under construction")
+  (model_simulator
+    $replace
+    $time_steps(time_steps)
+    $update
+    $matrices(.mats_to_return = outputs, .mats_to_save = outputs)
+    $report(..., .phases = "after")
+  )
+}
+
+#' Trajectory
+#' 
+#' Return simulations of the trajectory of the output
+#' variables of a dynamical model simulator.
+#' 
+#' @param model A dynamical model simulator produced by
+#' \code{\link{mp_simulator}}.
+#' 
+#' @export
+mp_trajectory = function(model) {
+  UseMethod("mp_trajectory")
+}
+
+#' @export
+mp_trajectory.TMBSimulator = function(model) {
+  model$report() |> reset_rownames()
+}
+
+TMBDynamicSimulator = function(tmb_simulator, dynamic_model) {
+  self = tmb_simulator
+  self$dynamic_model = dynamic_model
+  return_object(self, "TMBDynamicSimulator")
+}
+
+#' @export
+labels.VariableLabels = function(object, ...) object$component_list()
+
+
+
+#' @export
+labels.ModelDefRun = function(object, ...) {
+  labels(object$labels)
+}
+
+#' @export
+labels.TMBDynamicSimulator = function(object, ...) {
+  labels(object$dynamic_model)
+}
+
+#' @export
+labels.DynamicModel = function(object, ...) {
+  labels(object$labels)
+}
+
+#' @export
+labels.LabelsDynamic = function(object, ...) {
+  object$component_list()
+}
+
+#' @export
+labels.LabelsScripts = function(object, ...) {
+  object$component_list()
+}
 
 TMBSimulationUtils = function() {
   self = Base()
   self$.simulation_formatter = function(r, .phases) {
-    r = setNames(
-      as.data.frame(r$values),
-      c("matrix", "time", "row", "col", "value")
-    )  ## get raw simulation output from TMB and supply column names (which don't exist on the TMB side)
+    ## get raw simulation output from TMB and supply 
+    ## column names (which don't exist on the TMB side)
+    col_names = c("matrix", "time", "row", "col", "value")
+    if (ncol(r$values) == 6L) col_names = append(col_names, "sd")
+    r = setNames(as.data.frame(r$values), col_names)
     r$matrix = self$matrix_names()[r$matrix + 1L]  ## replace matrix indices with matrix names
-    dn = self$tmb_model$init_mats$.dimnames ## get the row and column names of matrices with such names
+    dn = self$tmb_model$init_mats$dimnames()  ## get the row and column names of matrices with such names
     for (mat in names(dn)) {
       i = r$matrix == mat
 
@@ -882,20 +351,31 @@ TMBSimulationUtils = function() {
       r = r[r$time != 0L,,drop = FALSE]
     }
     if (!"during" %in% .phases) {
-      r = r[(r$time < 1L) | (r$time > num_t),,drop = FALSE]
+      r = r[(r$time == 0L) | (r$time == num_t + 1L),,drop = FALSE]
     }
     if (!"after" %in% .phases) {
-      r = r[r$time < num_t + 1,,drop = FALSE]
+      r = r[r$time != num_t + 1L,,drop = FALSE]
     }
-    r
+    r |> filter(
+        (matrix %in% self$matrix_outputs())
+      | (row %in% self$row_outputs())
+    )
   }
   self$.find_problematic_expression = function(row) {
     expr_num_p_table_rows = self$tmb_model$data_arg()$expr_num_p_table_rows
     expr_num = min(which(row < cumsum(expr_num_p_table_rows)))
-    deparse1(self$tmb_model$expr_list$expr_list()[[expr_num]])
+    deparse1(self$tmb_model$expr_list$formula_list()[[expr_num]])
   }
-  self$.runner = function(..., .phases = c("before", "during", "after"), .method = c("report", "simulate")) {
+  self$.runner = function(...
+      , .phases = "during"
+      , .method = c("report", "simulate", "sdreport")
+  ) {
     .method = match.arg(.method)
+    compute_sd = FALSE
+    if (.method == "sdreport") {
+      .method = "report"
+      compute_sd = TRUE
+    } 
     fixed_params = as.numeric(unlist(list(...)))
     if (length(fixed_params) == 0L) {
       r = self$ad_fun()[[.method]]()
@@ -904,11 +384,16 @@ TMBSimulationUtils = function() {
     }
     if (r$error != 0L) {
       stop(
-        "\nError thrown by the TMB engine at the following expression:\n",
+        "\nThe following error was thrown by the TMB engine:\n  ",
+        self$tmb_model$log_file$err_msg(),
+        "\nThis error occurred at the following expression:\n  ",
         self$.find_problematic_expression(r$expr_row)
       )
     }
-    self$.simulation_formatter(r, .phases)
+    if (compute_sd) r$values = cbind(r$values, self$sdreport()$sd)
+    s = self$.simulation_formatter(r, .phases)
+    s = s[order(s$time), , drop = FALSE] ## TODO: move sorting by time to the c++ side
+    reset_rownames(s)
   }
   return_object(self, "TMBSimulationFormatter")
 }
@@ -926,6 +411,9 @@ TMBSimulationUtils = function() {
 #' `$tmb_model$make_ad_fun_arg()`) before passing it yourself to
 #' `TMB::MakeADFun`. This is particularly useful if you want to modify
 #' `tmb_cpp`.
+#' @param outputs Character vector of matrix and/or row names to be
+#' returned as output from simulation functions such as
+#' \code{\link{mp_trajectory}}.
 #'
 #' @return Object of class \code{TMBSimulator} with the following methods.
 #'
@@ -945,14 +433,29 @@ TMBSimulationUtils = function() {
 #' object.
 #'
 #' @importFrom MASS mvrnorm
-#' @export
-TMBSimulator = function(tmb_model, tmb_cpp = "macpan2", initialize_ad_fun = TRUE) {
+#' @noRd
+TMBSimulator = function(tmb_model
+    , tmb_cpp = getOption("macpan2_dll")
+    , initialize_ad_fun = TRUE
+    , outputs = NULL
+  ) {
   self = TMBSimulationUtils()
 
   ## Args
   self$tmb_model = tmb_model
   self$tmb_cpp = tmb_cpp
-
+  self$outputs = outputs
+  
+  self$matrix_outputs = function() {
+    if (is.null(self$outputs)) return(self$tmb_model$init_mats$.mats_to_return)
+    initial_mats = self$tmb_model$init_mats$.initial_mats
+    intersect(self$outputs, names(initial_mats))
+  }
+  self$row_outputs = function() {
+    if (is.null(self$outputs)) return(character(0L))
+    setdiff(self$outputs, self$matrix_outputs())
+  }
+  
   ## Standard Methods
   self$matrix_names = function() self$tmb_model$init_mats$.names()
   self$ad_fun = function() self$tmb_model$ad_fun(self$tmb_cpp)
@@ -973,14 +476,17 @@ TMBSimulator = function(tmb_model, tmb_cpp = "macpan2", initialize_ad_fun = TRUE
   self$sdreport = function() TMB::sdreport(self$ad_fun())
   self$cov.fixed = function() self$sdreport()$cov.fixed
   self$par.fixed = function() self$sdreport()$par.fixed
-  self$report = function(..., .phases = c("before", "during", "after")) {
+  self$report = function(..., .phases = "during") {
     self$.runner(..., .phases = .phases, .method = "report")
   }
-  self$report_values = function(..., .phases = c("before", "during", "after")) {
+  self$report_with_sd = function(..., .phases = "during") {
+    self$.runner(..., .phases = .phases, .method = "sdreport")
+  }
+  self$report_values = function(..., .phases = "during") {
     self$report(..., .phases = .phases)$value
   }
   self$report_ensemble = function(...
-      , .phases = c("before", "during", "after")
+      , .phases = "during"
       , .n = 100
       , .probs = c(0.025, 0.5, 0.975)
     ) {
@@ -992,11 +498,11 @@ TMBSimulator = function(tmb_model, tmb_cpp = "macpan2", initialize_ad_fun = TRUE
     )
     cbind(r, rr)
   }
-  self$simulate = function(..., .phases = c("before", "during", "after")) {
+  self$simulate = function(..., .phases = "during") {
     self$.runner(..., .phases = .phases, .method = "simulate")
   }
-  self$matrix = function(..., matrix_name, time_step) {
-    r = self$report(...)
+  self$matrix = function(..., matrix_name, time_step, .phases = "during") {
+    r = self$report(..., .phases = .phases)
     i = (r$matrix == as.character(matrix_name)) & (r$time == as.integer(time_step))
     rr = r[i, c("row", "col", "value")]
     if (!any(is.na(as.integer(rr$row)))) {
@@ -1012,6 +518,8 @@ TMBSimulator = function(tmb_model, tmb_cpp = "macpan2", initialize_ad_fun = TRUE
   self$insert = TMBSimulatorInserter(self)
   self$add = TMBSimulatorAdder(self)
   self$replace = TMBSimulatorReplacer(self)
+  self$update = TMBSimulatorUpdater(self)
+  self$reset = TMBSimulatorResetter(self)
   self$current = TMBCurrentParams(self)
   self$get = TMBSimulatorGetters(self)
 
@@ -1028,4 +536,11 @@ TMBSimulator = function(tmb_model, tmb_cpp = "macpan2", initialize_ad_fun = TRUE
   return_object(self, "TMBSimulator")
 }
 
-
+#' @export
+print.TMBSimulator = function(x, ...) {
+  m = x$tmb_model
+  time_steps = m$time_steps$time_steps
+  printer = m$expr_list$print_exprs
+  printer(time_steps = time_steps)
+  invisible(x)
+}

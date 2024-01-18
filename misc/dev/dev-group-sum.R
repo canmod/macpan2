@@ -12,7 +12,7 @@ m = TMBModel(
     , .mats_to_return = c("x", "y", "z")
   ),
   expr_list = ExprList(
-    before = list(y ~ groupSums(x, z, 4))
+    before = list(y ~ group_sums(x, z, 4))
   ),
   params = OptParamsList(0),
   random = OptParamsList(),

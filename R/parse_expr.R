@@ -58,6 +58,7 @@ make_expr_parser = function(
   # convert a formula to the initial state of a list that could be
   # recursively parsed using parse_expr
   formula_to_parsing_list = function(x) {
+    #if (interactive()) browser()
     stopifnot(
       "formulas are the only calls that can be parsed" =
         as.character(x[[1]]) == '~'
@@ -74,6 +75,8 @@ make_expr_parser = function(
       valid_funcs = environment(x)$valid_funcs,
       valid_vars = environment(x)$valid_vars,
       valid_literals = environment(x)$valid_literals,
+      valid_methods = environment(x)$valid_methods,
+      valid_int_vecs = environment(x)$valid_int_vecs,
       offset = offset,
       input_expr_as_string = as.character(x)[2L]
     )
@@ -150,8 +153,10 @@ finalizer_char = function(x) {
 finalizer_index = function(x) {
   valid_funcs = x$valid_funcs
   valid_vars = x$valid_vars
+  valid_methods = x$valid_methods
+  valid_int_vecs = x$valid_int_vecs
   valid_literals = as.numeric(x$valid_literals)
-  x$valid_funcs = x$valid_vars = x$valid_literals = NULL
+  x$valid_funcs = x$valid_vars = x$valid_literals = x$valid_methods = x$valid_int_vecs = NULL
 
   # remove the tilde function, which is in the first position,
   # and adjust the indices in i accordingly
@@ -163,17 +168,57 @@ finalizer_index = function(x) {
     i[i == -1L] = 0L
   })
 
+  x_char = unlist(lapply(x$x, as.character))
+
   # classify the different types of objects
   is_literal = unlist(lapply(x$x, is.numeric))
   is_func = x$n != 0L
-  is_var = (!is_func) & (!is_literal)
+  is_meth = x_char %in% names(valid_methods)
+  is_int_vec = x_char %in% names(valid_int_vecs)
+  is_var = x_char %in% names(valid_vars)
+  is_found = is_literal | is_func | is_meth | is_int_vec | is_var
+  is_not_found = !is_found
+  is_broad_sense_var = is_var | is_meth | is_int_vec
+
+  if (any(is_not_found)) {
+    missing_items = x_char[is_not_found]
+    available_items = x_char[is_broad_sense_var]
+    expr_msg = msg_colon(
+        "The expression given by"
+      , msg_indent(x$input_expr_as_string)
+    )
+    missing_msg = msg_colon(
+        msg(
+            "contained the following symbols"
+          , "representing model variables"
+        )
+        , msg_indent(missing_items)
+    )
+    if (length(available_items) == 0L) {
+      issue_msg = "but no variables were declared in the model."
+    } else {
+      issue_msg = msg_colon(
+        msg(
+            "that were neither functions nor one of"
+          , "the following valid variables"
+        ),
+        msg_indent(available_items)
+      )
+    }
+    msg_break(expr_msg, missing_msg, issue_msg) |> msg_hline() |> stop()
+  }
 
   # identify literals with -1 in the 'number of arguments'
   new_valid_literals = as.numeric(x$x[is_literal])
   x$n[is_literal] = -1L
 
+  # identify methods with -2 in the 'number of arguments'
+  x$n[is_meth] = -2L
+
+  # identify integer vectors with -2 in the 'number of arguments'
+  x$n[is_int_vec] = -3L
+
   # convert character identifiers to integers
-  x_char = unlist(lapply(x$x, as.character))
   x_int = integer(length(x$x))
   if (any(is_func)) {
     x_int[is_func] = get_indices(x_char[is_func]
@@ -192,18 +237,38 @@ finalizer_index = function(x) {
     )
   }
   if (any(is_literal)) {
-    x_int[is_literal] = length(valid_literals) + seq_along(new_valid_literals) - 1L
+    x_int[is_literal] = (length(valid_literals)
+      + seq_along(new_valid_literals)
+      - 1L
+    )
     valid_literals = c(valid_literals, new_valid_literals)
+  }
+  if (any(is_meth)) {
+    x_int[is_meth] = get_indices(x_char[is_meth]
+      , vec = valid_methods
+      , vec_type = "methods"
+      , expr_as_string = x$input_expr_as_string
+      , zero_based = TRUE
+    )
+  }
+  if (any(is_int_vec)) {
+    x_int[is_int_vec] = get_indices(x_char[is_int_vec]
+      , vec = valid_int_vecs
+      , vec_type = "int_vecs"
+      , expr_as_string = x$input_expr_as_string
+      , zero_based = TRUE
+    )
   }
   x$x = as.integer(x_int)
   x$i = as.integer(x$i)
   nlist(
     parse_table = as.data.frame(x),
-    valid_funcs, valid_vars, valid_literals
+    valid_funcs, valid_vars, valid_methods, valid_int_vecs, valid_literals
   )
 }
 
 parse_expr = make_expr_parser(finalizer = finalizer_index)
+method_parser = make_expr_parser("method_parser", finalizer_char)
 
 get_indices = function(x, vec, vec_type, expr_as_string, zero_based = FALSE) {
   if (!is.character(vec)) vec = names(vec)
@@ -213,23 +278,35 @@ get_indices = function(x, vec, vec_type, expr_as_string, zero_based = FALSE) {
     if (vec_type == "functions") {
       pointers = "\nPlease see ?engine_functions for more information on the available functions."
     } else if (vec_type == "variables") {
-      pointers = paste(
-        "\nPlease ensure that all variables are being initialized",
-        "\nEven variables that are derived and not dependencies of",
-        "\nother expressions must at least be initialized as an ?empty_matrix.",
-        "\n",
-        sep = ""
+      pointers = msg(
+        "Please ensure that all variables are being initialized",
+        "Even variables that are derived and not dependencies of",
+        "other expressions must at least be initialized as an",
+        "?empty_matrix.\n"
+      )
+    } else if (vec_type == "methods") {
+      pointers = msg("Help for ?engine_methods is under construction.")
+    } else if (vec_type == "int_vecs") {
+      pointers = msg(
+        "Please ensure that engine methods refer",
+        "to the right integer vectors"
       )
     }
-    stop(
-      "\nthe expression given by:\n",
-      expr_as_string, "\n\n",
-      "contained the following ", vec_type, ":\n",
-      paste0(missing_items, collapse = " "), "\n\n",
-      " that were not found in the list of available ", vec_type, ":\n",
-      paste0(vec, collapse = " "), # TODO: smarter pasting when this list gets big
+    msg_break(
+      msg_colon(
+        "The expression given by",
+        msg_indent(expr_as_string)
+      ),
+      msg_colon(
+        msg("contained the following", vec_type),
+        msg_indent(missing_items)
+      ),
+      msg_colon(
+        msg("that were not found in the list of available", vec_type),
+        msg_indent(vec)
+      ),
       pointers
-    )
+    ) |> stop()
   }
   one_based = apply(outer(as.character(x), vec, "=="), 1, which)
   if (zero_based) return(one_based - 1L)
@@ -253,50 +330,68 @@ initial_valid_vars = function(valid_var_names) {
 #'
 #' Empty matrices are useful when defining matrices that do not need to be
 #' initialized because they will get computed before they are required by
-#' other expressions. They are also a useful placeholder for matrices that
-#' should only have a value after a certain phase in the simulation.
+#' other expressions. They can also provide a useful placeholder for matrices 
+#' that should only have a value after a certain phase in the simulation.
 #'
 #' @name empty_matrix
 #' @format A \code{\link{numeric}} \code{\link[base]{matrix}} with zero rows
 #' and zero columns.
 #' @examples
-#' s = TMBModel(
-#'   init_mats = MatsList(x = empty_matrix
-#'     , .mats_to_save = "x"
-#'     , .mats_to_return = "x"
-#'   ),
-#'   expr_list = ExprList(during = list(x ~ time_step(0))),
-#'   time_steps = Time(2)
-#' )
-#' s$simulator()$report()
+#' spec = mp_tmb_model_spec(during = list(x ~ time_step(0)))
+#' identical(spec$empty_matrices()$x, empty_matrix) ## TRUE
 #' @export
 empty_matrix = matrix(numeric(0L), 0L, 0L)
 
 #' Parse Expression List
 #'
 #' Parse a list of one-sided formulas representing expressions
-#' in a compartmental model.
+#' in a compartmental model. All parsed expressions in the
+#' output list will share an environment.
+#' this environment contains the same set of
+#' functions, variables (aka matrices),
+#' literals, methods, and offset. these components are key
+#' to the definition of the model and therefore should be common for each
+#' expression in the model.
 #'
 #' @param expr_list List of one-sided formulas.
 #' @param valid_vars Named list of numerical matrices that can
 #' be referred to in the formulas.
-#' @param valid_literals An optional existing numeric vector of valid literals
-#' from a related expression list.
-#' @param offset The zero-based row index for the first row of the table.
-#' This is useful when combining tables.
+#' @param valid_literals An optional numeric vector of initial valid literals
+#' from a related expression list. Additional literals in the expressions
+#' themselves will be discovered and added to this list.
+#' @param valid_methods \code{\link{MethList}} object.
+#' @param valid_int_vecs \code{\link{IntVecs}} object.
 #'
-#' @export
+#' @noRd
 parse_expr_list = function(expr_list
     , valid_vars
     , valid_literals = numeric(0L)
-    , offset = 0L
+    , valid_methods = MethList()
+    , valid_int_vecs = IntVecs()
   ) {
-  eval_env = list2env(nlist(valid_funcs, valid_vars, valid_literals, offset))
+  offset = 0L
+  eval_env = nlist(
+    valid_funcs, valid_vars, valid_literals,
+    valid_methods, valid_int_vecs, offset
+  ) |> list2env()
   pe_list = list()
   for (i in seq_along(expr_list)) {
+
+    ## all expressions should share an environment.
+    ## this environment contains the same set of
+    ## functions, variables (aka matrices),
+    ## literals, methods, and offset. these components
+    ## define the model
     environment(expr_list[[i]]) = eval_env
+
+    ## do the parsing
     pe_list[[i]] = parse_expr(expr_list[[i]])
+
+    ## grow valid literals as they are discovered in the expressions
     eval_env$valid_literals = pe_list[[i]]$valid_literals
+
+    ## bump the row-index offset to prepare for the next expression
+    ## to be parsed
     eval_env$offset = eval_env$offset + nrow(pe_list[[i]]$parse_table)
   }
   p_tables = lapply(pe_list, getElement, "parse_table")
@@ -306,3 +401,4 @@ parse_expr_list = function(expr_list
     num_p_table_rows = vapply(p_tables, nrow, integer(1L))
   )
 }
+#parse_expr_list = memoise(parse_expr_list)

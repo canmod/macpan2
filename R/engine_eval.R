@@ -17,7 +17,7 @@
 #' are extending the
 #' [engine](https://canmod.github.io/macpan2/articles/cpp_side.html)
 #' yourself.
-#' @param .structure_labels See \code{\link{MatsList}}.
+#' @param .structure_labels Deprecated.
 #'
 #' @return Matrix being produced on the right-hand-side or matrix given in
 #' \code{.matrix_to_return} if it is provided.
@@ -33,8 +33,8 @@
 #'   , y = pi
 #'   , .matrix_to_return = "x"
 #' )
-#' @importFrom stats as.formula
-engine_eval = function(e, ..., .matrix_to_return, .tmb_cpp = "macpan2", .structure_labels = NullLabels()) {
+#' @importFrom stats as.formula setNames
+engine_eval = function(e, ..., .matrix_to_return, .tmb_cpp = getOption("macpan2_dll"), .structure_labels = NullLabels()) {
   dot_mats = list(...)
 
   ## force two-sided formula for compliance with TMBSimulator
@@ -43,10 +43,10 @@ engine_eval = function(e, ..., .matrix_to_return, .tmb_cpp = "macpan2", .structu
     left_hand_side = paste0(c("output", names(dot_mats)), collapse = "_")
     e = as.formula(paste0(c(left_hand_side, as.character(e)), collapse = " "))
   } else {
-    stop(
-      "\nThe expression must be given as the",
-      "\nright-hand-side of a one-sided formula."
-    )
+    msg(
+      "The expression must be given as the",
+      "right-hand-side of a one-sided formula."
+    ) |> stop()
   }
 
   if (missing(.matrix_to_return)) .matrix_to_return = left_hand_side
@@ -58,10 +58,11 @@ engine_eval = function(e, ..., .matrix_to_return, .tmb_cpp = "macpan2", .structu
   )
 
   if (!inherits(.structure_labels, "NullLabels")) {
-    component_list = list(
-      state = .structure_labels$state(),
-      flow = .structure_labels$flow()
-    )
+    component_list = .structure_labels$component_list()
+    # list(
+    #   state = .structure_labels$state(),
+    #   flow = .structure_labels$flow()
+    # )
     e = to_special_vecs(e, component_list, c(left_hand_side, names(dot_mats)))
   }
 
@@ -74,7 +75,18 @@ engine_eval = function(e, ..., .matrix_to_return, .tmb_cpp = "macpan2", .structu
     obj_fn = ObjectiveFunction(~0)
   )
 
-  TMBSimulator(m, tmb_cpp = .tmb_cpp)$matrix(NA, matrix_name = .matrix_to_return, time_step = 1L)
+  TMBSimulator(m, tmb_cpp = .tmb_cpp)$matrix(NA
+    , matrix_name = .matrix_to_return
+
+    # because the number of time steps, T = 0,
+    # we have T + 1 = 1 here because we pick up the answers
+    # after the simulation loop
+    , time_step = 1L
+
+    # even though we evaluate "before", we pick up the
+    # answers after because we do not save results
+    , .phases = "after"
+  )
 }
 
 

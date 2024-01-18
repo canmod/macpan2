@@ -1,0 +1,12 @@
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(stringr)
+
+(mp_trajectory(sir_sim)
+  |> filter(matrix == "state")
+  |> separate(row, c("epi", "age"))
+  |> mutate(epi = factor(epi, levels = c("S", "I", "R")))
+  |> ggplot()
+  + geom_line(aes(time, value, colour = epi, linetype = age))
+)

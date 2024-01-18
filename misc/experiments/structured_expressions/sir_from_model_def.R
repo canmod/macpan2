@@ -28,7 +28,7 @@ correct_answer = function(beta = 0.3) {
       ), 3, 3, byrow = TRUE
     )
     flowmat = sweep(ratemat, 1, state, "*")
-    state = state - rowSums(flowmat) + colSums(flowmat)
+    state = state - row_sums(flowmat) + col_sums(flowmat)
     state_hist = c(state_hist, list(as.matrix(state)))
     N_hist = c(N_hist, list(as.matrix(N)))
     foi_hist = c(foi_hist, list(as.matrix(foi)))
@@ -64,17 +64,17 @@ sir = TMBModel(
         foi, 0,     0,
         0,   gamma, 0), 3, 3),
       flowmat ~ ratemat * state,
-      state ~ state - rowSums(flowmat) + t(colSums(flowmat))
+      state ~ state - row_sums(flowmat) + t(col_sums(flowmat))
     )
   ),
-  params = OptParamsList(0.3
+  params = macpan2:::OptParamsList(0.3
     , par_id = 0L
     , mat = "beta"
     , row_id = 0L
     , col_id = 0L
   ),
-  random = OptParamsList(),
-  obj_fn = ObjectiveFunction(~ foi + 1),
+  random = macpan2:::OptParamsList(),
+  obj_fn = macpan2:::ObjectiveFunction(~ foi + 1),
   time_steps = Time(time_steps = 2L)
 )
 sir$data_arg()

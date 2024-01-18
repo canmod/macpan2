@@ -13,9 +13,9 @@ valid_func_sigs = c(
       , "binop,null: `%*%`(x, y)"
       , "null,null: sum(...)"
       , "fwrap,null: rep(x, times)"
-      , "fwrap,null: rowSums(x)"
-      , "fwrap,null: colSums(x)"
-      , "fwrap,null: groupSums(x, f, n)"
+      , "fwrap,null: row_sums(x)"
+      , "fwrap,null: col_sums(x)"
+      , "fwrap,null: group_sums(x, f, n)"
       , "null,null: `[`(x, i, j)"
       , "fwrap,fail: block(x, i, j, n, m)"
       , "fwrap,null: t(x)"
@@ -44,6 +44,7 @@ valid_func_sigs = c(
       , "fwrap,fail: from_diag(x)"
       , "fwrap,fail: time_group(i, change_points)"
       , "fwrap,null: cos(x)"
+      , "fwrap,null: print(x)"
 )
 process_enum = function(x) {
   RE = "(null|fail|binop|fwrap|bwrap|pwrap)[ ]*,[ ]*(null|fail|binop|fwrap|bwrap|pwrap)[ ]*:[ ]*\\`?([^`]*)\\`?\\((.*)(\\,.*)*\\)"

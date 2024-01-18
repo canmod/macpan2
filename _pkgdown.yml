@@ -18,24 +18,21 @@ articles:
   navbar: ~
   contents:
   - quickstart
-  - quickstart2
-  - quickstart_products
+  - example_models
   - time_varying_parameters
   - calibration
-  - example_models
-  - flow_types
+  - engine_agnostic_grammar
 - title: Specs
   desc: Specification documents
   contents:
   - cpp_side
-  - model_definitions
   - vignette_status
 - title: Developer
   desc: Vignettes aimed at package developers
   contents:
   - development_patterns
+  - debugging
   - composing_simulation_models
   - elementwise_binary_operators
   - state_dependent_rates
   - standard_expressions
-  - hello_products

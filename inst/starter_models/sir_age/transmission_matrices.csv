@@ -1,0 +1,2 @@
+matrix       ,infection_flow ,infectious_state
+transmission ,infection      ,I

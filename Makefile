@@ -4,22 +4,24 @@ SED_RE = \(\,\)*[ ]*\/\/[ ]*\(.*\)
 ALIAS_RE = [ ]*MP2_\(.*\)\: \(.*\)(\(.*\))
 ROXY_RE = ^.*\(\#'.*\)$
 VERSION := $(shell sed -n '/^Version: /s///p' DESCRIPTION)
+TEST := testthat::test_package(\"macpan2\", reporter = \"progress\")
 
 
 all:
-	make src-update
-	make enum-update
-	make engine-doc-update
-	make doc-update
-	make pkg-build
-	make pkg-install
+	make full-install
 	make pkg-check
+
+
+install-deps:
+	Rscript -e "remotes::install_github('canmod/oor@validity')"
+
 
 # Use this rule if you are doing R development or want to promote
 # dev.cpp to macpan2.cpp before doing R development.
 full-install:
 	make src-update
 	make enum-update
+	make enum-meth-update
 	make engine-doc-update
 	make doc-update
 	make pkg-build
@@ -29,11 +31,9 @@ full-install:
 # Use this rule if (1) you are in a development cycle, (2) you
 # haven't updated macpan.cpp (but have perhaps modified dev.cpp)
 # and (3) do not require a roxygen update.
-quick-install: enum-update
+quick-install: enum-update enum-meth-update
 	R CMD INSTALL --no-multiarch --install-tests .
 
-install-deps:
-	Rscript -e "remotes::install_github('canmod/oor')"
 
 quick-doc-install: R/*.R misc/dev/dev.cpp
 	make engine-doc-update
@@ -41,9 +41,21 @@ quick-doc-install: R/*.R misc/dev/dev.cpp
 	make quick-install
 
 
+forced-quick-doc-install: 
+	touch misc/old-r-source/*.R
+	make doc-update
+	make quick-install
+
+
+quick-test-all:
+	make quick-doc-install
+	make run-vignette-code
+	make run-tests
+	make run-examples
+
+
 quick-test:
 	make quick-doc-install
-	make run-examples
 	make run-tests
 
 
@@ -52,12 +64,50 @@ run-examples:
 
 
 run-tests:
-	Rscript -e "library(macpan2); testthat::test_package(\"macpan2\")"
+	Rscript -e "library(macpan2); $(TEST)"
+
+
+run-vignette-code:
+	cd vignettes
+	Rscript misc/build/run_vignette_code.R
 
 
 coverage-report:: coverage.html
 coverage.html: R/*.R src/macpan2.cpp tests/testthat/*.R
 	Rscript -e "covr::report(file = \"coverage.html\")"
+
+
+misc/dev/%.run: misc/dev/%.R
+	cd misc/dev; Rscript ../../$^
+
+
+misc/**/%.svg: misc/**/%.drawio
+	draw.io --export $^ --format svg
+
+
+misc/**/%.png: misc/**/%.drawio
+	draw.io --export $^ --format png
+
+
+svg-readme:: misc/readme/*.svg
+png-readme:: misc/readme/*.png
+
+
+readme:: README.md
+README.md: README.Rmd misc/readme/*.svg R/*.R NAMESPACE
+	Rscript -e "rmarkdown::render('README.Rmd')"
+	echo '<!-- Auto-generated - do not edit by hand -->' > temp
+	echo '<!-- Edit README.Rmd instead -->' | cat - $@ >> temp && mv temp $@
+
+
+push-readme:
+	make README.md
+	git add misc/readme/*.svg
+	git add misc/readme/*.png
+	git add misc/readme/*.drawio
+	git add README.md README.Rmd
+	git commit -m "update readme" || true
+	git push || true
 
 
 enum-update:: R/enum.R
@@ -68,6 +118,11 @@ R/enum.R: misc/dev/dev.cpp misc/build/enum_tail.R
 	echo ")" >> $@
 	cat misc/build/enum_tail.R >> $@
 	echo "valid_funcs = setNames(as.list(valid_funcs), valid_funcs)" >> $@
+
+
+enum-meth-update:: R/enum_methods.R
+R/enum_methods.R: misc/dev/dev.cpp misc/build/method_head.R misc/build/build_from_enum_methods.R
+	Rscript misc/build/build_from_enum_methods.R
 
 
 src-update:: src/macpan2.cpp
@@ -86,26 +141,32 @@ R/engine_functions.R: src/macpan2.cpp
 	echo "NULL" >> $@
 
 
-doc-update: R/*.R misc/dev/dev.cpp
+doc-update: R/*.R misc/dev/dev.cpp misc/old-r-source/*.R
 	echo "suppressWarnings(roxygen2::roxygenize(\".\",roclets = c(\"collate\", \"rd\", \"namespace\")))" | R --slave
+	touch doc-update
 
 
-pkg-build:: macpan2_$(VERSION).tar.gz
-macpan2_$(VERSION).tar.gz: DESCRIPTION man/*.Rd R/*.R src/*.cpp tests/testthat/test-*.R tests/testthat.R inst/starter_models/**/*.csv inst/starter_models/**/*.json
-	R CMD build .
+pkg-build:: ../macpan2_$(VERSION).tar.gz
+../macpan2_$(VERSION).tar.gz: DESCRIPTION man/*.Rd R/*.R src/*.cpp tests/testthat/test-*.R tests/testthat.R inst/starter_models/**/*.csv inst/starter_models/**/*.json doc-update
+	cd .. && R CMD build --no-build-vignettes macpan2
+	touch pkg-build
 
 
-pkg-check: macpan2_$(VERSION).tar.gz
-	R CMD check macpan2_$(VERSION).tar.gz
+pkg-check: ../macpan2_$(VERSION).tar.gz pkg-build
+	cd .. && R CMD check macpan2_$(VERSION).tar.gz
+	touch pkg-check
 
 
-pkg-install: macpan2_$(VERSION).tar.gz
-	R CMD INSTALL --no-multiarch --install-tests macpan2_$(VERSION).tar.gz
+pkg-install: ../macpan2_$(VERSION).tar.gz pkg-build
+	cd .. && R CMD INSTALL --no-multiarch --install-tests macpan2_$(VERSION).tar.gz
 
 
 compile-dev: misc/dev/dev.cpp
 	cd misc/dev; echo "TMB::compile(\"dev.cpp\")" | R --slave
 
 
-misc/dev/%.run: misc/dev/%.R
-	cd misc/dev; Rscript ../../$^
+inst/model_library/%/README.md: inst/model_library/%/README.Rmd
+	echo "rmarkdown::render(input = \"$^\", intermediates_dir = NULL)" | R --slave
+	cat $(dir $@)/header.yaml $(dir $@)/README.md > $(dir $@)/tmp.md
+	cp $(dir $@)/tmp.md $(dir $@)/README.md
+	rm $(dir $@)/tmp.md

@@ -24,15 +24,17 @@ Useful links:
 
 Authors:
 \itemize{
-  \item Darren Flynn-Primrose
   \item Weiguang Guan
   \item Ben Bolker
+  \item Jen Freeman
+  \item Darren Flynn-Primrose
 }
 
 Other contributors:
 \itemize{
-  \item Michael Li [contributor]
   \item Irena Papst [contributor]
+  \item Michael Li [contributor]
 }
 
 }
+\keyword{internal}

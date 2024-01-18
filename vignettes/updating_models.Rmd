@@ -1,0 +1,29 @@
+---
+title: "Updating Models"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{Updating Models}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+[![status](https://img.shields.io/badge/status-stub-red)](https://canmod.github.io/macpan2/articles/vignette-status#stub)
+
+```{r pkgs, include = FALSE}
+library(macpan2)
+library(macpan2helpers)
+library(dplyr)
+library(ggplot2)
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Inserting, Adding, and Replacing
+
+After using `?Compartmental` to read in a set of `vignette("model_definitions", "macpan2")`.
