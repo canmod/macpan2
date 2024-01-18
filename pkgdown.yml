@@ -5,20 +5,17 @@ articles:
   calibration: calibration.html
   composing_simulation_models: composing_simulation_models.html
   cpp_side: cpp_side.html
+  debugging: debugging.html
   development_patterns: development_patterns.html
   elementwise_binary_operators: elementwise_binary_operators.html
+  engine_agnostic_grammar: engine_agnostic_grammar.html
   example_models: example_models.html
-  flow_types: flow_types.html
-  hello_products: hello_products.html
-  model_definitions: model_definitions.html
   quickstart: quickstart.html
-  quickstart2: quickstart2.html
-  quickstart_products: quickstart_products.html
   standard_expressions: standard_expressions.html
   state_dependent_rates: state_dependent_rates.html
   time_varying_parameters: time_varying_parameters.html
   vignette_status: vignette_status.html
-last_built: 2023-10-25T13:48Z
+last_built: 2024-01-18T18:07Z
 urls:
   reference: https://canmod.github.io/macpan2/reference
   article: https://canmod.github.io/macpan2/articles

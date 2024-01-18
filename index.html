@@ -8,8 +8,8 @@
 <meta name="description" content="Fast and flexible compartmental modelling with Template Model Builder.">
 <title>Fast and Flexible Compartmental Modelling • macpan2</title>
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="deps/bootstrap-5.2.2/bootstrap.min.css" rel="stylesheet">
-<script src="deps/bootstrap-5.2.2/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
+<link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
+<script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Fast and Flexible Compartmental Modelling">
 <meta property="og:description" content="Fast and flexible compartmental modelling with Template Model Builder.">
@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -41,13 +41,11 @@
 <li class="nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="articles/quickstart.html">Quickstart Guide: specifying and simulating a simple compartmental model</a>
-    <a class="dropdown-item" href="articles/quickstart2.html">Quickstart Guide, part 2: specifying and simulating a structured compartmental model</a>
-    <a class="dropdown-item" href="articles/quickstart_products.html">Quickstart Guide: Runge Kutta and model products</a>
+    <a class="dropdown-item" href="articles/quickstart.html">Quickstart</a>
+    <a class="dropdown-item" href="articles/example_models.html">Example Models</a>
     <a class="dropdown-item" href="articles/time_varying_parameters.html">Specifying Time-Varying Parameters</a>
     <a class="dropdown-item" href="articles/calibration.html">Calibrating Compartmental Models to Data</a>
-    <a class="dropdown-item" href="articles/example_models.html">Example Models</a>
-    <a class="dropdown-item" href="articles/flow_types.html">Flow Types</a>
+    <a class="dropdown-item" href="articles/engine_agnostic_grammar.html">Engine-Agnostic Model Specification Grammar</a>
     <div class="dropdown-divider"></div>
     <a class="dropdown-item" href="articles/index.html">More articles...</a>
   </div>
@@ -80,7 +78,8 @@
 <!-- badges: start -->
 
 <p><a href="https://github.com/mac-theobio/McMasterPandemic" class="external-link">McMasterPandemic</a> was developed to provide forecasts and insights to Canadian public health agencies throughout the COVID-19 pandemic. <a href="https://canmod.github.io/macpan-book/index.html#vision-and-direction" class="external-link">Much was learned</a> about developing general purpose compartmental modelling software during this experience, but the pressure to deliver regular forecasts made it difficult to focus on the software itself. The goal of this <code>macpan2</code> project is to re-imagine <code>McMasterPandemic</code>, building it from the ground up with architectural and technological decisions that address the many lessons that we learned from COVID-19 about software.</p>
-<p>Although <code>macpan2</code> is designed as a compartmental modelling tool that is agnostic about the underlying computational engine, it currently makes use of <a href="https://github.com/kaskr/adcomp" class="external-link">template model builder</a>. Template model builder (TMB) is an <code>R</code> modelling package based on a <code>C++</code> framework incorporating mature <a href="https://cppad.readthedocs.io/en/latest/user_guide.html" class="external-link">automatic differentiation</a> and <a href="http://eigen.tuxfamily.org/index.php?title=Main_Page" class="external-link">matrix algebra</a> libraries.</p>
+<p>Impactful applied public health modelling requires many interdisciplinary steps along the path from epidemiological research teams to operational decision makers. Researchers must quickly tailor a model to an emerging public-health concern, validate and calibrate it to data, work with decision makers to define model outputs useful for stakeholders, configure models to generate those outputs, and package up those insights in an appropriate format for stakeholders. Unlike traditional modelling approaches, <code>macpan2</code> tackles this challenge from a software-engineering perspective, which allows us to systematically address bottlenecks along this path to impact in ways that will make future solutions easier to achieve. The goal is to enable researchers to focus on their core strengths and fill knowledge gaps efficiently and effectively.</p>
+<p>Although <code>macpan2</code> is designed as a compartmental modelling tool that is agnostic about the underlying computational engine, it currently uses <a href="https://github.com/kaskr/adcomp" class="external-link">template model builder</a> as the sole engine. Template model builder (TMB) is an <code>R</code> modelling package based on a <code>C++</code> framework incorporating mature <a href="https://cppad.readthedocs.io/en/latest/user_guide.html" class="external-link">automatic differentiation</a> and <a href="http://eigen.tuxfamily.org/index.php?title=Main_Page" class="external-link">matrix algebra</a> libraries.</p>
 <p>The <a href="https://github.com/phac-nml-phrsd" class="external-link">Public Health Risk Sciences Division</a> at the <a href="https://www.canada.ca/en/public-health.html" class="external-link">Public Health Agency of Canada</a> uses <code>macpan2</code> (for example, <a href="https://phac-nml-phrsd.github.io/EPACmodel/" class="external-link">here</a>).</p>
 <div class="section level2">
 <h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
@@ -91,7 +90,7 @@
 <li>
 <a href="https://canmod.github.io/macpan2/articles/model_definitions">Representation of compartmental models</a> [specification document]</li>
 <li>
-<a href="https://canmod.github.io/macpan2/articles/cpp_side"><code>C++</code> engine</a> [specification document]</li>
+<a href="https://canmod.github.io/macpan2/articles/cpp_side"><code>TMB</code> engine</a> [specification document]</li>
 <li>
 <a href="https://canmod.net/misc/macpan2_presentation" class="external-link">Project history and trajectory</a> [slides]</li>
 </ul>
@@ -101,64 +100,67 @@
 </h2>
 <p>If you’re on a Windows system, please install <code>Rtools</code> matching your R version from <a href="https://cran.r-project.org/bin/windows/Rtools/" class="external-link">here</a>. This ensures you have a C++ compiler, which is required to install <code>macpan2</code> from source (as below).</p>
 <p>Then, install the <code>macpan2</code> package with the following R command.</p>
-<pre><code><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"canmod/macpan2"</span><span class="op">)</span></span></code></pre>
+<div class="sourceCode" id="cb1"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"canmod/macpan2"</span>)</span></code></pre></div>
 <p>For projects in production one should install a specific version, as in the following command.</p>
-<pre><code><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"canmod/macpan2@v0.0.3"</span><span class="op">)</span></span></code></pre>
+<div class="sourceCode" id="cb2"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"canmod/macpan2@v1.0.0"</span>)</span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="hello-world">Hello World<a class="anchor" aria-label="anchor" href="#hello-world"></a>
 </h2>
-<p>This <a href="https://canmod.github.io/macpan2/articles/quickstart">quick-start guide</a> describes the following hello-world SIR model.</p>
-<pre><code><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://canmod.github.io/macpan2/">macpan2</a></span><span class="op">)</span></span>
-<span><span class="va">sir</span> <span class="op">=</span> <span class="fu"><a href="reference/Compartmental.html">Compartmental</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"starter_models"</span>, <span class="st">"sir"</span>, package <span class="op">=</span> <span class="st">"macpan2"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">N</span> <span class="op">=</span> <span class="fl">100</span></span>
-<span><span class="va">simulator</span> <span class="op">=</span> <span class="va">sir</span><span class="op">$</span><span class="va">simulators</span><span class="op">$</span><span class="fu">tmb</span><span class="op">(</span>time_steps <span class="op">=</span> <span class="fl">100</span></span>
-<span>  , state <span class="op">=</span> <span class="fu"><a href="reference/engine_functions.html">c</a></span><span class="op">(</span>S <span class="op">=</span> <span class="va">N</span> <span class="op">-</span> <span class="fl">1</span>, I <span class="op">=</span> <span class="fl">1</span>, R <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
-<span>  , flow <span class="op">=</span> <span class="fu"><a href="reference/engine_functions.html">c</a></span><span class="op">(</span>foi <span class="op">=</span> <span class="fl">0</span>, gamma <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span></span>
-<span>  , N <span class="op">=</span> <span class="va">N</span></span>
-<span>  , beta <span class="op">=</span> <span class="fl">0.2</span></span>
+<p>The following code specifies an SI model, which is I think is the simplest possible model of epidemiological transmission.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">si</span> <span class="op">=</span> <span class="fu"><a href="reference/mp_tmb_model_spec.html">mp_tmb_model_spec</a></span><span class="op">(</span></span>
+<span>    before <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>        <span class="va">I</span> <span class="op">~</span> <span class="fl">1</span></span>
+<span>      , <span class="va">S</span> <span class="op">~</span> <span class="va">N</span> <span class="op">-</span> <span class="va">I</span></span>
+<span>    <span class="op">)</span></span>
+<span>  , during <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>        <span class="va">infection</span> <span class="op">~</span> <span class="va">beta</span> <span class="op">*</span> <span class="va">S</span> <span class="op">*</span> <span class="va">I</span> <span class="op">/</span> <span class="va">N</span></span>
+<span>      , <span class="va">S</span> <span class="op">~</span> <span class="va">S</span> <span class="op">-</span> <span class="va">infection</span></span>
+<span>      , <span class="va">I</span> <span class="op">~</span> <span class="va">I</span> <span class="op">+</span> <span class="va">infection</span></span>
+<span>    <span class="op">)</span></span>
+<span>  , default <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>N <span class="op">=</span> <span class="fl">100</span>, beta <span class="op">=</span> <span class="fl">0.25</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">sir_sims</span> <span class="op">=</span> <span class="va">simulator</span><span class="op">$</span><span class="fu">report</span><span class="op">(</span><span class="op">)</span></span></code></pre>
-</div>
-<div class="section level2">
-<h2 id="for-developers">For Developers<a class="anchor" aria-label="anchor" href="#for-developers"></a>
-</h2>
-<p>Developers and contributors should clone this repository and call <code>make</code> at the command-line in the top level directory. The following <code>make</code> rules are available for getting more control over the build process.</p>
-<pre><code>make quick-install     # for changes that only modify R source
-make quick-doc-install # for changes that modify R source and roxygen comments
-make quick-test        # quick-doc-install + run-examples + run-tests
-make run-examples      # help file checks only (without package rebuild)
-make run-tests         # run scripts in tests (without package rebuild)
-make full-install      # for all changes, including changes to C++ source
-make src-update        # push changes to dev.cpp to macpan2.cpp (see below)
-make enum-update       # register new C++ engine functions on the R-side
-make engine-doc-update # generate roxygen comments from comments in dev.cpp
-make doc-update        # roxygenize
-make pkg-build         # build the R package
-make pkg-install       # install the R package from the build
-make pkg-check         # R package checks</code></pre>
-<p>In most R packages with compiled code, developers edit the source files to be compiled in the <code>src</code> directory. In <code>macpan2</code> there is a single file in that directory called <code>macpan2</code>, which is generated automatically from the file <code>misc/dev/dev.cpp</code>. This setup allows for quicker C++ development cycles, because developers can edit <code>misc/dev/dev.cpp</code> and then use this file in tests without needing to re-install the package with the new source. In particular, the above hello-world example could use <code>dev.cpp</code> as follows.</p>
-<pre><code><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://canmod.github.io/macpan2/">macpan2</a></span><span class="op">)</span></span>
-<span><span class="fu">macpan2</span><span class="fu">:::</span><span class="fu">dev_compile</span><span class="op">(</span><span class="op">)</span> <span class="co">## compile dev.cpp</span></span>
-<span><span class="va">sir</span> <span class="op">=</span> <span class="fu"><a href="reference/Compartmental.html">Compartmental</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"starter_models"</span>, <span class="st">"sir"</span>, package <span class="op">=</span> <span class="st">"macpan2"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">N</span> <span class="op">=</span> <span class="fl">100</span></span>
-<span><span class="va">simulator</span> <span class="op">=</span> <span class="va">sir</span><span class="op">$</span><span class="va">simulators</span><span class="op">$</span><span class="fu">tmb</span><span class="op">(</span>time_steps <span class="op">=</span> <span class="fl">100</span></span>
-<span>  , state <span class="op">=</span> <span class="fu"><a href="reference/engine_functions.html">c</a></span><span class="op">(</span>S <span class="op">=</span> <span class="va">N</span> <span class="op">-</span> <span class="fl">1</span>, I <span class="op">=</span> <span class="fl">1</span>, R <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
-<span>  , flow <span class="op">=</span> <span class="fu"><a href="reference/engine_functions.html">c</a></span><span class="op">(</span>foi <span class="op">=</span> <span class="fl">0</span>, gamma <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span></span>
-<span>  , N <span class="op">=</span> <span class="va">N</span></span>
-<span>  , beta <span class="op">=</span> <span class="fl">0.2</span></span>
-<span>  , .tmb_cpp <span class="op">=</span> <span class="st">"dev"</span> <span class="co">## use dev.cpp</span></span>
-<span><span class="op">)</span></span>
-<span><span class="va">sir_sims</span> <span class="op">=</span> <span class="va">simulator</span><span class="op">$</span><span class="fu">report</span><span class="op">(</span><span class="op">)</span></span></code></pre>
-<p>To update <code>src/macpan2</code> to the state of <code>misc/dev/dev.cpp</code> one may run <code>make src-update</code>.</p>
-<p>Running with <code>misc/dev/dev.cpp</code> will print out debugging information in a verbose manner, whereas <code>src/macpan2.cpp</code> will not. The <code>src-update</code> make rule removes the <code>#define MP_VERBOSE</code> flag at the top of the file.</p>
+<span><span class="fu"><a href="reference/engine_functions.html">print</a></span><span class="op">(</span><span class="va">si</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="do">## ---------------------</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="do">## Default values:</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="do">## ---------------------</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="do">##  matrix row col  value</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="do">##       N         100.00</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="do">##    beta           0.25</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="do">## </span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="do">## ---------------------</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="do">## Before the simulation loop (t = 0):</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="do">## ---------------------</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="do">## 1: I ~ 1</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="do">## 2: S ~ N - I</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="do">## </span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="do">## ---------------------</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="do">## At every iteration of the simulation loop (t = 1 to T):</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="do">## ---------------------</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="do">## 1: infection ~ beta * S * I/N</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a><span class="do">## 2: S ~ S - infection</span></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="do">## 3: I ~ I + infection</span></span></code></pre></div>
+<p>Simulating from this model requires choosing the number of time-steps to run and the model outputs to generate. Syntax for simulating <code>macpan2</code> models is <a href="#modularity">designed to combine with standard data prep and plotting tools in R</a>, as we demonstrate with the following code.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="op">(</span><span class="va">si</span></span>
+<span> <span class="op">|&gt;</span> <span class="fu"><a href="reference/mp_simulator.html">mp_simulator</a></span><span class="op">(</span>time_steps <span class="op">=</span> <span class="fl">50</span>, outputs <span class="op">=</span> <span class="fu"><a href="reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"I"</span>, <span class="st">"infection"</span><span class="op">)</span><span class="op">)</span></span>
+<span> <span class="op">|&gt;</span> <span class="fu"><a href="reference/mp_trajectory.html">mp_trajectory</a></span><span class="op">(</span><span class="op">)</span></span>
+<span> <span class="op">|&gt;</span> <span class="fu">mutate</span><span class="op">(</span>quantity <span class="op">=</span> <span class="fu">case_match</span><span class="op">(</span><span class="va">matrix</span></span>
+<span>    , <span class="st">"I"</span> <span class="op">~</span> <span class="st">"Prevalance"</span></span>
+<span>    , <span class="st">"infection"</span> <span class="op">~</span> <span class="st">"Incidence"</span></span>
+<span>  <span class="op">)</span><span class="op">)</span></span>
+<span> <span class="op">|&gt;</span> <span class="fu">ggplot</span><span class="op">(</span><span class="op">)</span> </span>
+<span> <span class="op">+</span> <span class="fu">geom_line</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span><span class="va">time</span>, <span class="va">value</span><span class="op">)</span><span class="op">)</span> </span>
+<span> <span class="op">+</span> <span class="fu">facet_wrap</span><span class="op">(</span><span class="op">~</span> <span class="va">quantity</span>, scales <span class="op">=</span> <span class="st">"free"</span><span class="op">)</span></span>
+<span> <span class="op">+</span> <span class="fu">theme_bw</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p><img src="misc/readme/plot-tmb-si-1.svg"><!-- --></p>
 </div>
 <div class="section level2">
 <h2 id="product-management">Product Management<a class="anchor" aria-label="anchor" href="#product-management"></a>
 </h2>
-<ul>
-<li><a href="https://github.com/orgs/canmod/projects/2" class="external-link">Roadmap</a></li>
-</ul>
+<p>The <a href="https://github.com/orgs/canmod/projects/2" class="external-link">project board</a> tracks the details of bugs, tasks, and feature development.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="table-of-contents">
@@ -196,9 +198,10 @@ make pkg-check         # R package checks</code></pre>
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
 <li>Steve Walker <br><small class="roles"> Maintainer, author </small>  </li>
-<li>Darren Flynn-Primrose <br><small class="roles"> Author </small>  </li>
 <li>Weiguang Guan <br><small class="roles"> Author </small>  </li>
 <li>Ben Bolker <br><small class="roles"> Author </small>  </li>
+<li>Jen Freeman <br><small class="roles"> Author </small>  </li>
+<li>Darren Flynn-Primrose <br><small class="roles"> Author </small>  </li>
 <li><a href="authors.html">More about authors...</a></li>
 </ul>
 </div>
@@ -220,7 +223,7 @@ make pkg-check         # R package checks</code></pre>
 
     <footer><div class="pkgdown-footer-left">
   <p></p>
-<p>Developed by Steve Walker, Darren Flynn-Primrose, Weiguang Guan, Ben Bolker.</p>
+<p>Developed by Steve Walker, Weiguang Guan, Ben Bolker, Jen Freeman, Darren Flynn-Primrose.</p>
 </div>
 
 <div class="pkgdown-footer-right">

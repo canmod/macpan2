@@ -4,6 +4,9 @@
     <loc>https://canmod.github.io/macpan2/404.html</loc>
   </url>
   <url>
+    <loc>https://canmod.github.io/macpan2/CONTRIBUTORS.html</loc>
+  </url>
+  <url>
     <loc>https://canmod.github.io/macpan2/LICENSE-text.html</loc>
   </url>
   <url>
@@ -16,34 +19,25 @@
     <loc>https://canmod.github.io/macpan2/articles/cpp_side.html</loc>
   </url>
   <url>
+    <loc>https://canmod.github.io/macpan2/articles/debugging.html</loc>
+  </url>
+  <url>
     <loc>https://canmod.github.io/macpan2/articles/development_patterns.html</loc>
   </url>
   <url>
     <loc>https://canmod.github.io/macpan2/articles/elementwise_binary_operators.html</loc>
   </url>
   <url>
+    <loc>https://canmod.github.io/macpan2/articles/engine_agnostic_grammar.html</loc>
+  </url>
+  <url>
     <loc>https://canmod.github.io/macpan2/articles/example_models.html</loc>
-  </url>
-  <url>
-    <loc>https://canmod.github.io/macpan2/articles/flow_types.html</loc>
-  </url>
-  <url>
-    <loc>https://canmod.github.io/macpan2/articles/hello_products.html</loc>
   </url>
   <url>
     <loc>https://canmod.github.io/macpan2/articles/index.html</loc>
   </url>
   <url>
-    <loc>https://canmod.github.io/macpan2/articles/model_definitions.html</loc>
-  </url>
-  <url>
     <loc>https://canmod.github.io/macpan2/articles/quickstart.html</loc>
-  </url>
-  <url>
-    <loc>https://canmod.github.io/macpan2/articles/quickstart2.html</loc>
-  </url>
-  <url>
-    <loc>https://canmod.github.io/macpan2/articles/quickstart_products.html</loc>
   </url>
   <url>
     <loc>https://canmod.github.io/macpan2/articles/standard_expressions.html</loc>
@@ -73,94 +67,22 @@
     <loc>https://canmod.github.io/macpan2/reference/Collection.html</loc>
   </url>
   <url>
-    <loc>https://canmod.github.io/macpan2/reference/Compartmental.html</loc>
-  </url>
-  <url>
-    <loc>https://canmod.github.io/macpan2/reference/CompartmentalSimulator.html</loc>
-  </url>
-  <url>
-    <loc>https://canmod.github.io/macpan2/reference/DerivationExtractor.html</loc>
-  </url>
-  <url>
-    <loc>https://canmod.github.io/macpan2/reference/Derivations2ExprList.html</loc>
-  </url>
-  <url>
-    <loc>https://canmod.github.io/macpan2/reference/ExprList.html</loc>
-  </url>
-  <url>
     <loc>https://canmod.github.io/macpan2/reference/Files.html</loc>
   </url>
   <url>
-    <loc>https://canmod.github.io/macpan2/reference/FlowExpander.html</loc>
+    <loc>https://canmod.github.io/macpan2/reference/LedgerDefinition.html</loc>
   </url>
   <url>
     <loc>https://canmod.github.io/macpan2/reference/MathExpression.html</loc>
   </url>
   <url>
-    <loc>https://canmod.github.io/macpan2/reference/MatsList.html</loc>
-  </url>
-  <url>
-    <loc>https://canmod.github.io/macpan2/reference/Model.html</loc>
-  </url>
-  <url>
-    <loc>https://canmod.github.io/macpan2/reference/ModelCollection.html</loc>
-  </url>
-  <url>
-    <loc>https://canmod.github.io/macpan2/reference/ModelFiles.html</loc>
-  </url>
-  <url>
-    <loc>https://canmod.github.io/macpan2/reference/Namer.html</loc>
-  </url>
-  <url>
-    <loc>https://canmod.github.io/macpan2/reference/ObjectiveFunction.html</loc>
-  </url>
-  <url>
-    <loc>https://canmod.github.io/macpan2/reference/OptParamsList.html</loc>
-  </url>
-  <url>
-    <loc>https://canmod.github.io/macpan2/reference/Partition.html</loc>
-  </url>
-  <url>
-    <loc>https://canmod.github.io/macpan2/reference/Products.html</loc>
-  </url>
-  <url>
     <loc>https://canmod.github.io/macpan2/reference/Reader.html</loc>
-  </url>
-  <url>
-    <loc>https://canmod.github.io/macpan2/reference/Scalar2Vector.html</loc>
-  </url>
-  <url>
-    <loc>https://canmod.github.io/macpan2/reference/SimulatorConstructor.html</loc>
-  </url>
-  <url>
-    <loc>https://canmod.github.io/macpan2/reference/Simulators.html</loc>
-  </url>
-  <url>
-    <loc>https://canmod.github.io/macpan2/reference/StandardExpr.html</loc>
-  </url>
-  <url>
-    <loc>https://canmod.github.io/macpan2/reference/StandardExprHazard.html</loc>
   </url>
   <url>
     <loc>https://canmod.github.io/macpan2/reference/StringData.html</loc>
   </url>
   <url>
-    <loc>https://canmod.github.io/macpan2/reference/TMBModel.html</loc>
-  </url>
-  <url>
-    <loc>https://canmod.github.io/macpan2/reference/TMBSimulator.html</loc>
-  </url>
-  <url>
-    <loc>https://canmod.github.io/macpan2/reference/Time.html</loc>
-  </url>
-  <url>
     <loc>https://canmod.github.io/macpan2/reference/Transform.html</loc>
-  </url>
-  <url>
-    <loc>https://canmod.github.io/macpan2/reference/UserExpr.html</loc>
-  </url>
-  <url>
-    <loc>https://canmod.github.io/macpan2/reference/cartesian.html</loc>
   </url>
   <url>
     <loc>https://canmod.github.io/macpan2/reference/comparison.html</loc>
@@ -184,22 +106,103 @@
     <loc>https://canmod.github.io/macpan2/reference/initial_valid_vars.html</loc>
   </url>
   <url>
-    <loc>https://canmod.github.io/macpan2/reference/integration_methods.html</loc>
-  </url>
-  <url>
     <loc>https://canmod.github.io/macpan2/reference/macpan2-package.html</loc>
   </url>
   <url>
     <loc>https://canmod.github.io/macpan2/reference/make_expr_parser.html</loc>
   </url>
   <url>
-    <loc>https://canmod.github.io/macpan2/reference/model_starter.html</loc>
+    <loc>https://canmod.github.io/macpan2/reference/mp_aggregate.html</loc>
+  </url>
+  <url>
+    <loc>https://canmod.github.io/macpan2/reference/mp_cartesian.html</loc>
+  </url>
+  <url>
+    <loc>https://canmod.github.io/macpan2/reference/mp_dynamic_model.html</loc>
+  </url>
+  <url>
+    <loc>https://canmod.github.io/macpan2/reference/mp_dynamic_simulator.html</loc>
+  </url>
+  <url>
+    <loc>https://canmod.github.io/macpan2/reference/mp_extract.html</loc>
+  </url>
+  <url>
+    <loc>https://canmod.github.io/macpan2/reference/mp_factors.html</loc>
+  </url>
+  <url>
+    <loc>https://canmod.github.io/macpan2/reference/mp_group.html</loc>
+  </url>
+  <url>
+    <loc>https://canmod.github.io/macpan2/reference/mp_index.html</loc>
+  </url>
+  <url>
+    <loc>https://canmod.github.io/macpan2/reference/mp_join.html</loc>
+  </url>
+  <url>
+    <loc>https://canmod.github.io/macpan2/reference/mp_labels.html</loc>
+  </url>
+  <url>
+    <loc>https://canmod.github.io/macpan2/reference/mp_ledgers.html</loc>
+  </url>
+  <url>
+    <loc>https://canmod.github.io/macpan2/reference/mp_linear.html</loc>
+  </url>
+  <url>
+    <loc>https://canmod.github.io/macpan2/reference/mp_lookup.html</loc>
+  </url>
+  <url>
+    <loc>https://canmod.github.io/macpan2/reference/mp_model_starter.html</loc>
+  </url>
+  <url>
+    <loc>https://canmod.github.io/macpan2/reference/mp_positions.html</loc>
+  </url>
+  <url>
+    <loc>https://canmod.github.io/macpan2/reference/mp_reference.html</loc>
+  </url>
+  <url>
+    <loc>https://canmod.github.io/macpan2/reference/mp_rename.html</loc>
+  </url>
+  <url>
+    <loc>https://canmod.github.io/macpan2/reference/mp_simulator.html</loc>
+  </url>
+  <url>
+    <loc>https://canmod.github.io/macpan2/reference/mp_slices.html</loc>
+  </url>
+  <url>
+    <loc>https://canmod.github.io/macpan2/reference/mp_square.html</loc>
+  </url>
+  <url>
+    <loc>https://canmod.github.io/macpan2/reference/mp_structured_vector.html</loc>
+  </url>
+  <url>
+    <loc>https://canmod.github.io/macpan2/reference/mp_subset.html</loc>
+  </url>
+  <url>
+    <loc>https://canmod.github.io/macpan2/reference/mp_symmetric.html</loc>
+  </url>
+  <url>
+    <loc>https://canmod.github.io/macpan2/reference/mp_tmb_expr_list.html</loc>
+  </url>
+  <url>
+    <loc>https://canmod.github.io/macpan2/reference/mp_tmb_library.html</loc>
+  </url>
+  <url>
+    <loc>https://canmod.github.io/macpan2/reference/mp_tmb_model_spec.html</loc>
+  </url>
+  <url>
+    <loc>https://canmod.github.io/macpan2/reference/mp_trajectory.html</loc>
+  </url>
+  <url>
+    <loc>https://canmod.github.io/macpan2/reference/mp_triangle.html</loc>
+  </url>
+  <url>
+    <loc>https://canmod.github.io/macpan2/reference/mp_union.html</loc>
+  </url>
+  <url>
+    <loc>https://canmod.github.io/macpan2/reference/mp_zero_vector.html</loc>
   </url>
   <url>
     <loc>https://canmod.github.io/macpan2/reference/nlist.html</loc>
-  </url>
-  <url>
-    <loc>https://canmod.github.io/macpan2/reference/parse_expr_list.html</loc>
   </url>
   <url>
     <loc>https://canmod.github.io/macpan2/reference/rbf.html</loc>
@@ -223,6 +226,6 @@
     <loc>https://canmod.github.io/macpan2/reference/to_names.html</loc>
   </url>
   <url>
-    <loc>https://canmod.github.io/macpan2/reference/union_vars.html</loc>
+    <loc>https://canmod.github.io/macpan2/reference/to_positions.html</loc>
   </url>
 </urlset>
