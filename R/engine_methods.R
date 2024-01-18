@@ -54,7 +54,7 @@ MethListFromEngineMethods = function(engine_methods) {
 #' Method List
 #'
 #' @param ... List of \code{\link{Method}} objects.
-#' @export
+#' @noRd
 MethList = function(...) {
   self = Base()
 
@@ -103,7 +103,7 @@ names.MethList = function(x) {
 #' by the method to produce an output matrix.
 #' @param init_mats Object of class \code{\link{MatsList}}.
 #' @param int_vecs = Object of class \code{\link{IntVecs}}.
-#' @export
+#' @noRd
 Method = function(name, mat_args, int_vec_args, init_mats = MatsList(), int_vecs = IntVecs()) {
   self = Base()
 

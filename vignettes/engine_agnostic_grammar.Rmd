@@ -144,8 +144,8 @@ SIR_starter <- function(
   ## Initialize vectors from index tables (with all zeros for values) --------------
   # used as placeholders for user input
   init_vecs <- list(
-    state = mp_vector(state),
-    rate = mp_vector(rate)
+    state = mp_structured_vector(state),
+    rate = mp_structured_vector(rate)
   )
   
   ## Initialize model object -----------------

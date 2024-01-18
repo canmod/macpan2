@@ -221,29 +221,19 @@ mp_tmb_before = function(model, start = list(), end = list()) {
 }
 
 
-#' 
-#' @export
-mp_calibrator = function(model, data) {
-  
-}
 
-#' @export
-mp_calibrator.TMBModelSpec = function(model, data) {
-  
-}
-
-#' @export
 mp_default = function(model_simulator, ...) {
+  stop("under construction")
   UseMethod("mp_default")
 }
 
-#' @export
 mp_initial = function(model_simulator, ...) {
+  stop("under construction")
   UseMethod("mp_initial")
 }
 
-#' @export
 mp_initial.TMBSimulator = function(model_simulator, matrices, params = NULL) {
+  stop("under construction")
   (model_simulator
     $replace
     $time_steps(time_steps)
@@ -254,14 +244,14 @@ mp_initial.TMBSimulator = function(model_simulator, matrices, params = NULL) {
 }
 
 
-#' @export
 mp_final = function(model_simulator, ...) {
+  stop("under construction")
   UseMethod("mp_final")
 }
 
 
-#' @export
 mp_final.TMBSimulator = function(model_simulator, time_steps, outputs, ...) {
+  stop("under construction")
   (model_simulator
     $replace
     $time_steps(time_steps)
@@ -271,7 +261,14 @@ mp_final.TMBSimulator = function(model_simulator, time_steps, outputs, ...) {
   )
 }
 
-
+#' Trajectory
+#' 
+#' Return simulations of the trajectory of the output
+#' variables of a dynamical model simulator.
+#' 
+#' @param model A dynamical model simulator produced by
+#' \code{\link{mp_simulator}}.
+#' 
 #' @export
 mp_trajectory = function(model) {
   UseMethod("mp_trajectory")
@@ -281,14 +278,6 @@ mp_trajectory = function(model) {
 mp_trajectory.TMBSimulator = function(model) {
   model$report() |> reset_rownames()
 }
-
-
-
-# TMBCompartmentalSimulator = function(tmb_simulator, compartmental_model) {
-#   self = tmb_simulator
-#   self$compartmental_model = compartmental_model
-#   return_object(self, "TMBCompartmentalSimulator")
-# }
 
 TMBDynamicSimulator = function(tmb_simulator, dynamic_model) {
   self = tmb_simulator

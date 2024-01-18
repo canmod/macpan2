@@ -12,7 +12,7 @@ mp_triangle(
 )
 }
 \arguments{
-\item{x}{A \code{\link{Partition}} object.}
+\item{x}{An index.}
 
 \item{y_labelling_column_names}{TODO}
 

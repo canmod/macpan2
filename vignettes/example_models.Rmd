@@ -52,7 +52,7 @@ To see how to actually generate simulations from this model see [this article](h
 To take `sir` as a jumping-off point for producing your own model one may use the following code.
 ```{r}
 my_sir_dir = file.path(tempdir(), "my_sir")
-model_starter("sir", my_sir_dir)
+mp_model_starter("sir", my_sir_dir)
 ```
 
 After running this code you can go to the files in `my_sir_dir` and modify what you see there. Note that you typically want to chose a specific directory for your model instead of using `tempdir`. You still need to read your own model in the usual way.

@@ -24,8 +24,8 @@ test_that("tmb model specs can vectorize state updates with indices", {
       , gamma = 0.1
     )
     , integers = list(
-         from = mp_indices(flow$from, state_labels)
-       , to   = mp_indices(flow$to  , state_labels)
+         from = mp_positions(flow$from, state_labels)
+       , to   = mp_positions(flow$to  , state_labels)
     )
   )
   print(sir)

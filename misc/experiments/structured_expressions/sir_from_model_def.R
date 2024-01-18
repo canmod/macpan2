@@ -67,14 +67,14 @@ sir = TMBModel(
       state ~ state - row_sums(flowmat) + t(col_sums(flowmat))
     )
   ),
-  params = OptParamsList(0.3
+  params = macpan2:::OptParamsList(0.3
     , par_id = 0L
     , mat = "beta"
     , row_id = 0L
     , col_id = 0L
   ),
-  random = OptParamsList(),
-  obj_fn = ObjectiveFunction(~ foi + 1),
+  random = macpan2:::OptParamsList(),
+  obj_fn = macpan2:::ObjectiveFunction(~ foi + 1),
   time_steps = Time(time_steps = 2L)
 )
 sir$data_arg()

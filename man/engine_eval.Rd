@@ -29,7 +29,7 @@ are extending the
 \href{https://canmod.github.io/macpan2/articles/cpp_side.html}{engine}
 yourself.}
 
-\item{.structure_labels}{See \code{\link{MatsList}}.}
+\item{.structure_labels}{Deprecated.}
 }
 \value{
 Matrix being produced on the right-hand-side or matrix given in

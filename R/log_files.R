@@ -13,7 +13,7 @@
 #' * `$err_msg()` -- Return the current error message in the log file, if any.
 #' * Other methods inherited from \code{\link{Files}}
 #'
-#' @export
+#' @noRd
 LogFile = function(directory = tempdir()) {
   self = Files(fix_dir(directory), reader_spec("log.txt", TXTReader))
   self$log = function() self$get("log")

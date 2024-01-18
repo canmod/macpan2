@@ -6,6 +6,9 @@
 \usage{
 mp_ledgers(...)
 }
+\arguments{
+\item{...}{Ledgers to bundle up.}
+}
 \description{
 Bundle up several ledgers (see \code{\link{LedgerDefinition}}) to pass
 to \code{\link{mp_dynamic_model}}.

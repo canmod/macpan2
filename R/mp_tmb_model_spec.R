@@ -164,8 +164,8 @@ TMBModelSpec = function(
 #' simulation loop, with the same rules as \code{before}.
 #' @param after List of formulas to be evaluated after the simulation loop,
 #' with the same rules as \code{before}.
-#' @param default Named list of objects that can be coerced into 
-#' \code{\link{numeric}} \code{\link{matrices}}. The names refer to 
+#' @param default Named list of objects, each of which can be coerced into 
+#' a \code{\link{numeric}} \code{\link{matrix}}. The names refer to 
 #' variables that appear in \code{before}, \code{during}, and \code{after}.
 #' @param integers list
 #' @param must_save character

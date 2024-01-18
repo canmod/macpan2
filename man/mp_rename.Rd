@@ -7,6 +7,8 @@
 mp_rename(x, ...)
 }
 \arguments{
+\item{x}{An index with columns to be renamed.}
+
 \item{...}{Name-value pairs. The name gives the new name and the value
 is a character vector giving the old name.}
 }

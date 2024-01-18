@@ -415,7 +415,7 @@ influence = mp_join(
 #     formula, index
 #   )
 
-# mp_expr_group_sum(state
+# macpan2:::mp_expr_group_sum(state
 #   , stratify_by = "Loc.Age"
 #   , output_name = "N"
 #   , vector_name = "state"
@@ -434,7 +434,7 @@ mp_aggregate(N ~ group_sums(state)
 
 
 
-trans_decomp = mp_decompose(
+trans_decomp = macpan2:::mp_decompose(
     beta ~ contact * infectivity * susceptibility
   , index = mp_subset(trans_rates, Epi = "beta")
   , decomp_name = "trans"
@@ -473,12 +473,12 @@ trans_decomp$int_vecs
 trans_decomp$labels_for$beta()
 trans_decomp$labels_for$infectivity()
 
-mp_indices(
+mp_positions(
   trans_decomp$labels_for$susceptibility(),
   trans_decomp$partition_for$susceptibility()$labels()
 )
 
-N_expr = mp_expr_group_sum(state
+N_expr = macpan2:::mp_expr_group_sum(state
   , "Loc.Age"
   , "N", "state", "alive", "alive_groups", "length_N"
   , Vital = "alive"
@@ -495,11 +495,11 @@ xx$frame
 
 state_strata = mp_group(state, "Loc.Age")
 alive_states = mp_subset(state, Vital = "alive")
-alive_groups = mp_indices(
+alive_groups = mp_positions(
   mp_labels(alive_states, "Loc.Age"),
   mp_labels(state_strata)
 )
-alive = mp_indices(
+alive = mp_positions(
   mp_labels(alive_states),
   mp_labels(state)
 )
@@ -583,8 +583,8 @@ vec$N = Vector(N)
 
 N_groups = mp_join(alive, N, alive.N = "Loc")
 
-mp_indices(N_groups$labels_for$N(), N$labels_for$N())
-mp_indices(alive$labels_for$alive(), state$labels())
+mp_positions(N_groups$labels_for$N(), N$labels_for$N())
+mp_positions(alive$labels_for$alive(), state$labels())
 
 
 
@@ -1082,14 +1082,14 @@ m = TMBModel(
     )
   ),
   engine_methods = macpan2:::EngineMethods(int_vecs = iv),
-  time_steps = Time(100L),
-  params = OptParamsList(0.5, 0.2, 0.1
+  time_steps = macpan2:::Time(100L),
+  params = macpan2:::OptParamsList(0.5, 0.2, 0.1
     , par_id = 0:2
     , mat = c("trans", "flow", "flow")
     , row_id = 0:2
     , col_id = rep(0L, 3L)
   ),
-  obj_fn = ObjectiveFunction(~ sum(state^2))
+  obj_fn = macpan2:::ObjectiveFunction(~ sum(state^2))
 )
 s = m$simulator()
 s$optimize$optim()$value
@@ -1275,7 +1275,7 @@ for (type in model$indices$flow$flow_types) {
 indices = model$indices
 model$expr_list()
 
-m = TMBModel(time_steps = Time(100))
+m = TMBModel(time_steps = macpan2:::Time(100))
 m$insert$expressions()
 f = flow[infection] ~ per_capita_transmission %*% state[infectious]
 xx = macpan2:::MethodTypes()
@@ -1399,7 +1399,7 @@ TMBModel(
 
     )
   ),
-  time_steps = Time(100L)
+  time_steps = macpan2:::Time(100L)
 )
 s = m$simulator()
 r = s$report(.phases = "during")
@@ -1436,7 +1436,7 @@ m = TMBModel(
       , state ~ state - outflow + inflow
     )
   ),
-  time = Time(150),
+  time = macpan2:::Time(150),
   engine_methods = macpan2:::EngineMethods(
     exprs = list(
         from_states = ~ state[from_indices]

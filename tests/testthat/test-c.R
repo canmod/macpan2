@@ -4,7 +4,7 @@ test_that("concatenation works with many different shapes of input", {
   w = matrix(rnorm(12L), 3L, 4L)
   answer = c(pi, z, w)
   m = macpan2:::TMBModel(
-      init_mats = MatsList(
+      init_mats = macpan2:::MatsList(
           answer = empty_matrix
         , x = empty_matrix
         , y = pi

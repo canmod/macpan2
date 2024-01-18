@@ -7,7 +7,7 @@
 mp_square(x, suffixes = c("A", "B"))
 }
 \arguments{
-\item{x}{A \code{\link{Partition}} object.}
+\item{x}{An index.}
 
 \item{suffixes}{Length-2 character vector giving suffixes that
 disambiguate the column names in the output.}

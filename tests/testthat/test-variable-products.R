@@ -5,15 +5,15 @@ test_that("state and flow variables products are correct", {
 
   expect_identical(
     union_vars(
-      cartesian(
+      macpan2:::cartesian(
         sir$variables$state(),
         vax$variables$state()
       ),
-      cartesian(
+      macpan2:::cartesian(
         sir$variables$flow(),
         vax$variables$state()
       ),
-      cartesian(
+      macpan2:::cartesian(
         sir$variables$state(),
         vax$variables$flow()
       )

@@ -10,6 +10,7 @@ flow = mp_union(
 )
 
 N = mp_aggregate(state, by = "Age")
+mp_group(state, by = "Age")  ## probably this is out-dated in favour of mp_aggregate??
 
 infection = mp_join(
     from = mp_subset(state, Epi = "S")

@@ -43,7 +43,7 @@
 Partition = function(frame) {
   self = Base()
   self$.partition = frame_to_part(frame)
-  self$products = Products(self)
+  #self$products = Products(self) ## TODO: remove if no issues come up
   self$frame = function() self$.partition$frame()
   self$dotted = function() self$.partition$dot()$frame()
   self$names = function() names(self$frame())

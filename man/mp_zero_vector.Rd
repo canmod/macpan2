@@ -9,6 +9,8 @@ mp_zero_vector(x, ...)
 \arguments{
 \item{x}{Object representing the names of the output vector. Most
 commonly this will be a \code{\link{character}} vector.}
+
+\item{...}{Passed on to S3 methods.}
 }
 \description{
 Create a \code{\link{numeric}} vector of all zeros with names

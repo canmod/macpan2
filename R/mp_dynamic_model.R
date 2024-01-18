@@ -58,7 +58,6 @@ LabelsDynamic = function(dynamic_model) {
 }
 
 
-#' @export
 DynamicModel = function(
       expr_list = ExprList()
     , ledgers = list()
@@ -68,7 +67,7 @@ DynamicModel = function(
   self = Base()
   self$expr_list = expr_list
   self$ledgers = ledgers
-  self$init_vecs = lapply(init_vecs, mp_vector)
+  self$init_vecs = lapply(init_vecs, mp_structured_vector)
   self$unstruc_mats = unstruc_mats
   self$int_vec_names = function() {
     lapply(self$ledgers, getElement, "table_names") |> unlist(use.names = TRUE) |> unique()

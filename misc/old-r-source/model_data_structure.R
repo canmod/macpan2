@@ -115,7 +115,7 @@ assert_variables = function(model) {
 #' template model definition.
 #'
 #' @export
-model_starter = function(starter_name, dir) {
+mp_model_starter = function(starter_name, dir) {
   starter_dir = system.file("starter_models"
     , starter_name
     , package = "macpan2"

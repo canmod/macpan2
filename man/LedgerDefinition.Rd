@@ -9,7 +9,7 @@ functional form used to define a \code{\link{mp_dynamic_model}}. Ledgers
 are most commonly created using the \code{\link{mp_join}} function as in the
 following example.
 
-\if{html}{\out{<div class="sourceCode {r}">}}\preformatted{age = mp_index(Age = c("young", "old"))
+\if{html}{\out{<div class="sourceCode {r ledger_join}">}}\preformatted{age = mp_index(Age = c("young", "old"))
 state = mp_cartesian(
   mp_index(Epi = c("S", "I", "R")),
   age

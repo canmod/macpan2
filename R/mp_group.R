@@ -1,3 +1,11 @@
+#' Group an Index
+#' 
+#' Create a new index with fewer columns to create names for
+#' an aggregated vector that is labelled by the input index.
+#' 
+#' @param index Index to group rows.
+#' @param by Column set label to group by.
+#'
 #' @export
 mp_group = function(index, by) {
   frame = index$partition$select(to_names(by))$frame()
@@ -10,6 +18,12 @@ mp_group = function(index, by) {
 #'
 #' Create a one-column ledger (see \code{\link{LedgerDefinition}}) with rows
 #' identifying instances of an aggregation.
+#'
+#' @param index An index to aggregate over.
+#' @param by A column set label to group by. By default a dummy
+#' and constant \code{"Group"} column is created.
+#' @param ledger_column Name of the column in the output ledger
+#' that describes the groups.
 #'
 #' @family ledgers
 #' @export
@@ -68,11 +82,11 @@ mp_aggregate_old = function(formula
 
   strata = mp_select(x, stratify_by)
   subset = mp_subset(x, ...)
-  grouping_indices = mp_indices(
+  grouping_indices = mp_positions(
     mp_labels(subset, stratify_by),
     mp_labels(strata)
   )
-  subset_indices = mp_indices(
+  subset_indices = mp_positions(
     mp_labels(subset),
     mp_labels(x)
   )
@@ -80,7 +94,7 @@ mp_aggregate_old = function(formula
 }
 
 
-#' @export
+## experimental
 mp_expr_group_sum = function(x
   , stratify_by
   , output_name
@@ -92,11 +106,11 @@ mp_expr_group_sum = function(x
 ) {
   strata = mp_select(x, stratify_by)
   subset = mp_subset(x, ...)
-  grouping_indices = mp_indices(
+  grouping_indices = mp_positions(
     mp_labels(subset, stratify_by),
     mp_labels(strata)
   )
-  subset_indices = mp_indices(
+  subset_indices = mp_positions(
     mp_labels(subset),
     mp_labels(x)
   )

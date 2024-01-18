@@ -8,7 +8,7 @@ macpan2:::dev_compile()
 # X = rbf(1000, d)
 # plot(X %*% rnorm(d), X %*% rnorm(d), type = "l")
 
-# model_starter("sir", "misc/experiments/bigmatmult/model")
+# mp_model_starter("sir", "misc/experiments/bigmatmult/model")
 
 # obs_incidence = rbf(2661, 20) %*% runif(20, max = 5)
 # plot(obs_incidence, type = "l")

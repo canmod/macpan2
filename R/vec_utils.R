@@ -5,6 +5,8 @@
 #' 
 #' @param x Object representing the names of the output vector. Most
 #' commonly this will be a \code{\link{character}} vector.
+#' @param ... Passed on to S3 methods.
+#' 
 #' @export
 mp_zero_vector = function(x, ...) {
   UseMethod("mp_zero_vector")

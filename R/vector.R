@@ -147,18 +147,21 @@ as.matrix.StructuredVector = function(x, ...) {
 #' Structured Vectors
 #'
 #' This documentation was originally in [mp_index()] and should be cleaned up
-#' See issue #131
+#' See issue #131. Also this is an experimental feature.
+#'
+#' @param x A index.
+#' @param ... Passed on to S3 methods.
 #'
 #' These labels can be used to create 'multidimensional' names for the elements
 #' of vectors. Here is the above example expressed in vector form.
-#' ```{r, echo = FALSE}
+#' ```{r structured_vectors, echo = FALSE}
 #' v = StructuredVector(prod)
 #' v$set_numbers(Epi = c(S = 1000))$set_numbers(Epi = c(I = 1), Age = "old")
 #' ```
 #' This example vector could be stored as a 3-by-2 matrix. But other examples
 #' cannot, making this indexing approach more general. For example, consider the
 #' following index.
-#' ```{r, echo = FALSE}
+#' ```{r symptoms, echo = FALSE}
 # symp = mp_index(
 #  Epi = c("S", "I", "I", "R"),
 #  Symptoms = c("", "mild", "severe", "")
@@ -167,8 +170,8 @@ as.matrix.StructuredVector = function(x, ...) {
 #' ```
 #' This index has an associated indexed vector that cannot be expressed as a
 #' matrix.
-#' ```{r, echo = FALSE}
-#' mp_vector(symp)$set_numbers(Epi = c(S = 1000))$set_numbers(Epi = c(I = 1), Symptoms = "severe")
+#' ```{r set_numbers, echo = FALSE}
+#' mp_structured_vector(symp)$set_numbers(Epi = c(S = 1000))$set_numbers(Epi = c(I = 1), Symptoms = "severe")
 #' ```
 #'
 #' @examples
@@ -177,42 +180,42 @@ as.matrix.StructuredVector = function(x, ...) {
 #'   Age = c("young", "young", "old", "old")
 #' )
 #' state_vector = (state
-#'   |> mp_vector()
+#'   |> mp_structured_vector()
 #'   |> mp_set_numbers(Epi = c(S = 1000))
 #'   |> mp_set_numbers(Epi = c(I = 1), Age = "old")
 #' )
 #' print(state_vector)
 #'
 #' @export
-mp_vector = function(x, ...) UseMethod("mp_vector")
+mp_structured_vector = function(x, ...) UseMethod("mp_structured_vector")
 
 #' @export
-mp_vector.StructuredVector = function(x, ...) x
+mp_structured_vector.StructuredVector = function(x, ...) x
 
 #' @export
-mp_vector.Index = StructuredVector.Index
+mp_structured_vector.Index = StructuredVector.Index
 
 #' @export
-mp_vector.data.frame = StructuredVector.data.frame
+mp_structured_vector.data.frame = StructuredVector.data.frame
 
 #' @export
-mp_vector.numeric = StructuredVector.numeric
+mp_structured_vector.numeric = StructuredVector.numeric
 
 #' @export
-mp_vector.character = function(x, ...) zero_vector(x)
+mp_structured_vector.character = function(x, ...) zero_vector(x)
 
 #' @export
-mp_vector.Link = function(x, dimension_name, ...) {
-  mp_vector(x$labels_for[[dimension_name]]())
+mp_structured_vector.Link = function(x, dimension_name, ...) {
+  mp_structured_vector(x$labels_for[[dimension_name]]())
 }
 
+#' @describeIn mp_structured_vector Update numerical values of a structured
+#' vector. TODO: details on syntax.
 #' @export
 mp_set_numbers = function(vector, ...) vector$clone()$set_numbers(...)
 
 
-
-
-#' @export
+## FIXME: Not used??
 VectorList = function() {
   self = Base()
   self$list = list() |> setNames(as.character())
@@ -235,7 +238,7 @@ VectorList = function() {
         ) |> message()
       }
       if (inherits(new_vecs[[nm]], "Index")) {
-        new_vecs[[nm]] = mp_vector(new_vecs[[nm]])
+        new_vecs[[nm]] = mp_structured_vector(new_vecs[[nm]])
       }
       self$list[[nm]] = new_vecs[[nm]]
     }

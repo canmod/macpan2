@@ -10,14 +10,14 @@ test_that("failing expression is reported in c++ side errors", {
         y ~ rbind_time(z)
       )
     ),
-    init_mats = MatsList(
+    init_mats = macpan2:::MatsList(
       x = 1:10,
       y = empty_matrix,
       z = empty_matrix,
       .mats_to_save = "y",
       .mats_to_return = "y"
     ),
-    time_steps = Time(10)
+    time_steps = macpan2:::Time(10)
   )
   expect_error(
     m$simulator()$report(),

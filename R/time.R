@@ -12,7 +12,7 @@
 #' to pass to C++.
 #'     * `time_steps` -- Number of time steps in the simulation loop.
 #'
-#' @export
+#' @noRd
 Time = function(time_steps) {
   self = Base()
   self$time_steps = time_steps

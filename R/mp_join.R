@@ -17,7 +17,7 @@
 #' character vector of column names on which to join (as in standard R functions
 #' for joining data frames), or the dot-concatenation of these column names.
 #' For example,
-#' ```{r, echo = TRUE, eval = TRUE}
+#' ```{r join, echo = TRUE, eval = TRUE}
 #' state = mp_index(
 #'   Epi = c("S", "I", "S", "I"),
 #'   Age = c("young", "young", "old", "old")
@@ -32,7 +32,7 @@
 #' list of character vectors, each describing how to join the columns of
 #' a pair of tables in `...`. The names of this list are dot-concatenations
 #' of the names of pairs of tables in `...`. For example,
-#' ```{r, echo = TRUE, eval = TRUE}
+#' ```{r rates, echo = TRUE, eval = TRUE}
 #' rates = mp_index(
 #'   Epi = c("lambda", "lambda"),
 #'   Age = c("young", "old")
@@ -52,7 +52,7 @@
 #' is a dot-concatenation of columns in the first table and the
 #' right-hand-side is a dot-concatenation of the columns in the second
 #' table. For example,
-#' ```{r}
+#' ```{r contact_join}
 #' contact = mp_index(
 #'   AgeSusceptible = c("young", "young", "old", "old"),
 #'   AgeInfectious = c("young", "old", "young", "old")
@@ -175,7 +175,7 @@ mp_join = function(..., by = empty_named_list()) {
 #' functional form used to define a \code{\link{mp_dynamic_model}}. Ledgers
 #' are most commonly created using the \code{\link{mp_join}} function as in the 
 #' following example.
-#' ```{r}
+#' ```{r ledger_join}
 #' age = mp_index(Age = c("young", "old"))
 #' state = mp_cartesian(
 #'   mp_index(Epi = c("S", "I", "R")),
@@ -445,7 +445,6 @@ filter_by_list = function(x_orig, y_orig, by_list) {
   l
 }
 
-#' @export
 init_merge = function(frame, dimension_name, reference_index, labelling_column_names) {
   Ledger(frame
     , initial_column_map(names(frame), dimension_name)

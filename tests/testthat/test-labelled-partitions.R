@@ -1,6 +1,6 @@
 test_that("model files can be read in and used", {
   skip("Skipping because we are still reworking this test for new approach")
-  f = model_starter("seir_symp_vax"
+  f = mp_model_starter("seir_symp_vax"
     , file.path(tempdir(TRUE), paste0(sample(LETTERS, 50, TRUE), collapse = ""))
   )
   f$freeze()

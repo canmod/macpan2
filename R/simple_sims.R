@@ -4,12 +4,10 @@
 #' [engine](https://canmod.github.io/macpan2/articles/cpp_side). The expressions
 #' are only allowed to use valid \code{\link{engine_functions}}.
 #' @param time_steps Number of time steps to iterate.
-#' @param ... Named list \code{\link{numeric}} objects that can be coerced to
-#' \code{\link{numeric}} \code{\link{matrix}} objects. These matrices can be
-#' referred to by name in the expressions in `iteration_exprs`.
+#' @param int_vecs Named list of integer vectors.
+#' @param mats Named list of matrices.
 #'
-#' @return A data frame with the simulation results returned by the `$report()`
-#' method in \code{\link{TMBSimulator}}.
+#' @return A data frame with the simulation results.
 #'
 #' @export
 simple_sims = function(iteration_exprs, time_steps, int_vecs = list(), mats = list()) {

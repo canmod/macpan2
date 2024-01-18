@@ -30,7 +30,8 @@ mp_setdiff = function(x, ...) {
   )
 }
 
-#' @export
+
+## TODO: clarify what mp_choose and mp_choose_out do specifically
 mp_choose = function(x, subset_name, ...) {
   l = list(...)
   if (length(l) != 0L) valid$named_list$check(l)
@@ -48,7 +49,6 @@ mp_choose = function(x, subset_name, ...) {
   init_merge(p$frame(), subset_name, x$reference_index(), x$labelling_column_names)
 }
 
-#' @export
 mp_choose_out = function(x, subset_name, ...) {
   l = list(...)
   p = x$partition

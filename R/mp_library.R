@@ -1,8 +1,30 @@
-#' @export
+
 mp_library = function(...) {
   stop("under construction")
 }
 
+#' TMB Library
+#' 
+#' Get a TMB model specification from a model library.
+#' 
+#' @param ... File path components pointing to a directory that
+#' contains an R script that creates an object called `spec`, which
+#' is produced by \code{\link{mp_tmb_model_spec}}.
+#' @param package If \code{NULL}, \code{\link{file.path}} is used
+#' to put together the \code{...} components but if \code{package}
+#' is the name of a package (as a character string) then
+#' \code{\link{system.file}} is used to put together the \code{...}
+#' components.
+#' 
+#' @seealso [show_models()]
+#' 
+#' @examples
+#' mp_tmb_library(
+#'     "starter_models"
+#'   , "si"
+#'   , package = "macpan2"
+#' )
+#' 
 #' @export
 mp_tmb_library = function(..., package = NULL) {
   if (is.null(package)) {
@@ -18,8 +40,6 @@ mp_tmb_library = function(..., package = NULL) {
   def_env$spec
 }
 
-## TODO: change model_starter to mp_model_starter
-
 #' Model Starter
 #'
 #' Create a directory with a template model definition.
@@ -29,7 +49,7 @@ mp_tmb_library = function(..., package = NULL) {
 #' template model definition.
 #'
 #' @export
-model_starter = function(starter_name, dir) {
+mp_model_starter = function(starter_name, dir) {
   starter_dir = system.file("starter_models"
     , starter_name
     , package = "macpan2"

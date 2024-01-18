@@ -4,7 +4,22 @@
 \alias{mp_dynamic_simulator}
 \title{TMB Simulator from Dynamic Model}
 \usage{
-mp_dynamic_simulator(...)
+mp_dynamic_simulator(
+  dynamic_model,
+  time_steps = 0L,
+  vectors = NULL,
+  unstruc_mats = NULL,
+  mats_to_save = NULL,
+  mats_to_return = NULL,
+  params = OptParamsList(0),
+  random = OptParamsList(),
+  obj_fn = ObjectiveFunction(~0),
+  log_file = LogFile(),
+  do_pred_sdreport = TRUE,
+  tmb_cpp = "macpan2",
+  initialize_ad_fun = TRUE,
+  ...
+)
 }
 \arguments{
 \item{dynamic_model}{Object product by \code{\link{mp_dynamic_model}}.}

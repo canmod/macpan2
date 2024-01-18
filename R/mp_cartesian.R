@@ -58,6 +58,7 @@ mp_cartesian_binary = function(x, y) {
 
 #' Self Cartesian Product
 #'
+#' @param x An index.
 #' @param suffixes Length-2 character vector giving suffixes that
 #' disambiguate the column names in the output.
 #' @inheritParams cartesian
@@ -81,7 +82,7 @@ mp_square = function(x, suffixes = c("A", "B")) {
 
 #' Self Cartesian Product Excluding One Off-Diagonal Side
 #'
-#' @inheritParams cartesian
+#' @inheritParams mp_square
 #' @param y_labelling_column_names TODO
 #' @param exclude_diag Should 'diagonal' commponents be excluded from the output.
 #' @param lower_tri Should the lower triangular components be include from the
@@ -144,7 +145,7 @@ mp_symmetric = function(x, y_labelling_column_names, exclude_diag = TRUE) {
 #'
 #' TODO: what does this mean?
 #'
-#' @inheritParams mp_square
+#' @inheritParams mp_triangle
 #' @family products
 #' @export
 mp_linear = function(x, y_labelling_column_names) {

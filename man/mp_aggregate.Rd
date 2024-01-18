@@ -6,6 +6,15 @@
 \usage{
 mp_aggregate(index, by = "Group", ledger_column = "group")
 }
+\arguments{
+\item{index}{An index to aggregate over.}
+
+\item{by}{A column set label to group by. By default a dummy
+and constant \code{"Group"} column is created.}
+
+\item{ledger_column}{Name of the column in the output ledger
+that describes the groups.}
+}
 \description{
 Create a one-column ledger (see \code{\link{LedgerDefinition}}) with rows
 identifying instances of an aggregation.

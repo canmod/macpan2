@@ -3,7 +3,7 @@ test_that("a selection of the iterations in the simulation history of a matrix t
   x = matrix(1:12, 4, 3)
   y = empty_matrix
   s = macpan2:::TMBModel(
-    init_mats = MatsList(
+    init_mats = macpan2:::MatsList(
       x = x,
       y = y,
       t = seq(from = 1, to = 9, by = 2),
@@ -15,7 +15,7 @@ test_that("a selection of the iterations in the simulation history of a matrix t
       during = list(x ~ x * 0.9),
       after = list(y ~ rbind_time(x, t, 1))
     ),
-    time_steps = Time(steps)
+    time_steps = macpan2:::Time(steps)
   )$simulator()
   y_tmb = s$matrix(time_step = 11, matrix_name = "y", .phases = c("before", "during", "after"))
 

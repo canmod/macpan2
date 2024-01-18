@@ -17,7 +17,7 @@
 #' are extending the
 #' [engine](https://canmod.github.io/macpan2/articles/cpp_side.html)
 #' yourself.
-#' @param .structure_labels See \code{\link{MatsList}}.
+#' @param .structure_labels Deprecated.
 #'
 #' @return Matrix being produced on the right-hand-side or matrix given in
 #' \code{.matrix_to_return} if it is provided.

@@ -1,6 +1,6 @@
 test_that("concatenation works with many different shapes of input", {
   set.seed(1L)
-  mats = MatsList(
+  mats = macpan2:::MatsList(
       answer = empty_matrix
     , z = rnorm(4L)
     , w = matrix(rnorm(12L), 3L, 4L)

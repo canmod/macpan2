@@ -362,7 +362,7 @@ empty_matrix = matrix(numeric(0L), 0L, 0L)
 #' @param valid_methods \code{\link{MethList}} object.
 #' @param valid_int_vecs \code{\link{IntVecs}} object.
 #'
-#' @export
+#' @noRd
 parse_expr_list = function(expr_list
     , valid_vars
     , valid_literals = numeric(0L)

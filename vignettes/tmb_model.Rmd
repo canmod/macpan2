@@ -65,7 +65,7 @@ sir = macpan2:::TMBModel(
       , noisy_state ~ rnbinom(state, 10)
     )
   ),
-  time_steps = Time(100)
+  time_steps = macpan2:::Time(100)
 )
 sir
 ```

@@ -13,13 +13,12 @@ are only allowed to use valid \code{\link{engine_functions}}.}
 
 \item{time_steps}{Number of time steps to iterate.}
 
-\item{...}{Named list \code{\link{numeric}} objects that can be coerced to
-\code{\link{numeric}} \code{\link{matrix}} objects. These matrices can be
-referred to by name in the expressions in \code{iteration_exprs}.}
+\item{int_vecs}{Named list of integer vectors.}
+
+\item{mats}{Named list of matrices.}
 }
 \value{
-A data frame with the simulation results returned by the \verb{$report()}
-method in \code{\link{TMBSimulator}}.
+A data frame with the simulation results.
 }
 \description{
 Simple Iterated Simulation

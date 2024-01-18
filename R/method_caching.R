@@ -1,3 +1,5 @@
+## Internal classes for caching the return value of a no-op method.
+
 CachedMethod = function(object, method, method_name) {
   self = Base()
   self$object = object

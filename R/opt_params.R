@@ -37,7 +37,7 @@
 #' is to be used to represent fixed parameters to be optimized or random
 #' parameters to be integrated out using the Laplace transform.
 #'
-#' @export
+#' @noRd
 OptParamsList = function(...
     , par_id = integer(0L)
     , mat = character(0L)

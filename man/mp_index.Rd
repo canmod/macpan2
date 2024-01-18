@@ -149,7 +149,7 @@ mp_cartesian(state, mp_index(City = c("hamilton", "toronto")))
 
 }
 \seealso{
-\code{\link[=mp_vector]{mp_vector()}}
+\code{\link[=mp_structured_vector]{mp_structured_vector()}}
 
 \code{\link[=mp_set_numbers]{mp_set_numbers()}}
 

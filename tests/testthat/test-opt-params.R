@@ -1,11 +1,11 @@
 test_that("parameters are not initially empty", {
-  params = OptParamsList(0
+  params = macpan2:::OptParamsList(0
     , par_id = 0L
     , mat = "x"
     , row_id = 0L
     , col_id = 0L
   )
-  init_mats = MatsList(
+  init_mats = macpan2:::MatsList(
       x = empty_matrix
     , y = empty_matrix
     , .mats_to_save = "y"

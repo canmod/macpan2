@@ -57,6 +57,8 @@ LedgerData = function(...) {
 #' Bundle up several ledgers (see \code{\link{LedgerDefinition}}) to pass
 #' to \code{\link{mp_dynamic_model}}.
 #'
+#' @param ... Ledgers to bundle up.
+#'
 #' @export
 mp_ledgers = function(...) {
   wrap_ledgers_in_one_element_lists = function(x) {
@@ -79,7 +81,7 @@ mp_ledgers = function(...) {
 #' in \code{unstructured_matrix_list}.
 #' @param ledgers An object produced using \code{\link{mp_ledgers}}.
 #' @param vector_list Named list of objected produced using
-#' \code{\link{mp_vector}}.
+#' \code{\link{mp_structured_vector}}.
 #' @param unstructured_matrix_list Named list of objects that can be coerced
 #' to a matrix.
 #'

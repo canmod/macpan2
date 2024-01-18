@@ -1,4 +1,7 @@
-#' @export
+## Experimental -- for use cases like a decomposition of 
+## transmission rates into susceptibility and infectivity
+## in a structured model.
+
 mp_decompose = function(formula, index, decomp_name, ...) {
   input_formula = formula
   table_args = list(...)
@@ -24,7 +27,7 @@ mp_decompose = function(formula, index, decomp_name, ...) {
   )
 
   for (i in seq_along(table_args)) {
-    int_vecs[[iv_nms[i]]] = mp_indices(
+    int_vecs[[iv_nms[i]]] = mp_positions(
       linked_indices$labels_for[[tab_nms[i]]](),
       linked_indices$partition_for[[tab_nms[i]]]()$labels()
     )

@@ -37,7 +37,7 @@
 #' * `$add_mats(...)`: Add matrices to the list and return a new
 #' regenerated \code{MatsList} object.
 #'
-#' @export
+#' @noRd
 MatsList = function(...
     , .mats_to_save = character(0L)
     , .mats_to_return = character(0L)

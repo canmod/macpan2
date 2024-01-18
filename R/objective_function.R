@@ -29,7 +29,7 @@
 #' * `.existing_literals`: Numeric vector giving the literals used in the
 #' model expressions produced before the objective function.
 #'
-#' @export
+#' @noRd
 ObjectiveFunction = function(obj_fn_expr) {
 
   ## Inherit Private Methods

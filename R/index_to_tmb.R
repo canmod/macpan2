@@ -10,11 +10,26 @@
 #' @param unstruc_mats = Named list of objects that can be coerced to
 #' numerical matrices that are used in the expression list of the
 #' dynamic model.
+#' @inheritParams mp_tmb_model_spec
 #' @inheritParams TMBModel
+#' @inheritParams TMBSimulator
 #'
 #' @importFrom oor method_apply
 #' @export
-mp_dynamic_simulator = function(...) {
+mp_dynamic_simulator = function(dynamic_model
+      , time_steps = 0L
+      , vectors = NULL
+      , unstruc_mats = NULL
+      , mats_to_save = NULL
+      , mats_to_return = NULL
+      , params = OptParamsList(0)
+      , random = OptParamsList()
+      , obj_fn = ObjectiveFunction(~0)
+      , log_file = LogFile()
+      , do_pred_sdreport = TRUE
+      , tmb_cpp = "macpan2"
+      , initialize_ad_fun = TRUE
+      , ...) {
   UseMethod("mp_dynamic_simulator")
 }
 

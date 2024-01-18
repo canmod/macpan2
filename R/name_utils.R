@@ -110,7 +110,16 @@ to_name.Scalar = function(x) x$dot()$value()
 #' @export
 to_name.Names = function(x) x$dot()$value()
 
-
+#' To Positions
+#' 
+#' Return position vector of indices corresponding to the
+#' input object.
+#' 
+#' @seealso [mp_positions()]
+#' 
+#' @param x An object of a class that can be converted to a
+#' position vector.
+#' 
 #' @export
 to_positions = function(x) UseMethod("to_positions")
 
@@ -171,7 +180,6 @@ to_matrix_with_rownames = function(x, nms) {
   x[nms, , drop = FALSE]
 }
 
-#' @export
 labelled_zero_vector = function(labels) {
   (rep(0, length(labels))
    |> setNames(labels)

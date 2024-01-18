@@ -69,11 +69,11 @@ spec = mp_tmb_model_spec(
         )
     )
   , integers = list(
-        from      = mp_indices(flow$from        , state_labels)
-      , to        = mp_indices(flow$to          , state_labels)
-      , rate      = mp_indices(flow$rate        , flow_rate_labels)
-      , I         = mp_indices(I_labels         , state_labels)
-      , infection = mp_indices(infection_labels , flow_rate_labels)
+        from      = mp_positions(flow$from        , state_labels)
+      , to        = mp_positions(flow$to          , state_labels)
+      , rate      = mp_positions(flow$rate        , flow_rate_labels)
+      , I         = mp_positions(I_labels         , state_labels)
+      , infection = mp_positions(infection_labels , flow_rate_labels)
   )
 )
 

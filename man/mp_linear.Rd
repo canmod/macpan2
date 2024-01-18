@@ -7,7 +7,9 @@
 mp_linear(x, y_labelling_column_names)
 }
 \arguments{
-\item{x}{A \code{\link{Partition}} object.}
+\item{x}{An index.}
+
+\item{y_labelling_column_names}{TODO}
 }
 \description{
 TODO: what does this mean?
