@@ -1,4 +1,4 @@
-#' TMB Simulator from Dynamic Model
+#' TMB Simulator
 #'
 #' @param dynamic_model Object product by \code{\link{dynamic_model}}.
 #' @param vectors Named list of named vectors as initial values for the

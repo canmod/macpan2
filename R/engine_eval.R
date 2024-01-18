@@ -33,7 +33,7 @@
 #'   , y = pi
 #'   , .matrix_to_return = "x"
 #' )
-#' @importFrom stats as.formula
+#' @importFrom stats as.formula setNames
 engine_eval = function(e, ..., .matrix_to_return, .tmb_cpp = getOption("macpan2_dll"), .structure_labels = NullLabels()) {
   dot_mats = list(...)
 

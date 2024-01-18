@@ -2,7 +2,7 @@
 % Please edit documentation in R/vector.R
 \name{mp_vector}
 \alias{mp_vector}
-\title{Stub}
+\title{Structured Vectors}
 \usage{
 mp_vector(x, ...)
 }
@@ -11,7 +11,7 @@ This documentation was originally in \code{\link[=mp_index]{mp_index()}} and sho
 See issue #131
 }
 \details{
-#' These labels can be used to create 'multidimensional' names for the elements
+These labels can be used to create 'multidimensional' names for the elements
 of vectors. Here is the above example expressed in vector form.
 
 \if{html}{\out{<div class="sourceCode {r, echo = FALSE}">}}\preformatted{v = StructuredVector(prod)

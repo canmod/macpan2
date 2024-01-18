@@ -1,7 +1,7 @@
-#' @export
+
 StructuredVector = function(x, ...) UseMethod("StructuredVector")
 
-#' @export
+
 StructuredVector.data.frame = function(x, index = NULL, values_name = "values", ...) {
   nms = setdiff(names(x), values_name)
   if (is.null(index)) index = mp_index(x[, nms, drop = FALSE])
@@ -51,7 +51,7 @@ StructuredVector.data.frame = function(x, index = NULL, values_name = "values", 
   v$set_all_numbers(values)
 }
 
-#' @export
+
 StructuredVector.numeric = function(x, index, ...) {
   v = StructuredVector(index)
   index_name = to_name(index$labelling_column_names)
@@ -60,12 +60,12 @@ StructuredVector.numeric = function(x, index, ...) {
   do.call(v$set_numbers, args)
 }
 
-#' @export
+
 StructuredVector.StructuredVector = function(x, index, ...) {
   StructuredVector(x$numbers(), index, ...)
 }
 
-#' @export
+
 StructuredVector.Index = function(x, ...) {
   self = Base()
   self$index = x
@@ -143,15 +143,13 @@ as.matrix.StructuredVector = function(x, ...) {
   x$numbers() |> as.matrix()
 }
 
-zero_vector = function(labels) setNames(rep(0, length(labels)), labels)
 
-
-#' Stub
+#' Structured Vectors
 #'
 #' This documentation was originally in [mp_index()] and should be cleaned up
 #' See issue #131
 #'
-#' #' These labels can be used to create 'multidimensional' names for the elements
+#' These labels can be used to create 'multidimensional' names for the elements
 #' of vectors. Here is the above example expressed in vector form.
 #' ```{r, echo = FALSE}
 #' v = StructuredVector(prod)
@@ -221,7 +219,7 @@ VectorList = function() {
   self$add = function(new_vec, ...) {
       new_vecs = list(...)
     if (missing(new_vec)) {
-      macpan2:::valid$named_list$check(new_vecs)
+      valid$named_list$check(new_vecs)
     } else if(length(new_vecs) == 0L) {
       new_nm = deparse1(substitute(new_vec))
       new_vecs = setNames(list(new_vec), new_nm)

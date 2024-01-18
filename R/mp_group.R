@@ -37,7 +37,7 @@ mp_aggregate_old = function(formula
   , ...
 ) {
   prototypes = list(
-    group_sums = macpan2:::MethodPrototype(y ~ group_sums(x), c("x", "y"), character())
+    group_sums = MethodPrototype(y ~ group_sums(x), c("x", "y"), character())
   )
   consistent_agg_meths = (prototypes
     |> method_apply("consistent", formula)

@@ -12,13 +12,13 @@ test_that("tmb model specs can vectorize state updates with indices", {
         , state[R] ~ 0
       )
     , during = list(
-          flow_rate[infection] ~ beta * state[S] * state[I] / N
-        , flow_rate[recovery] ~ gamma * state[I]
-        , state ~ state + group_sums(flow_rate, to, state) - group_sums(flow_rate, from, state)
+          flow_rates[infection] ~ beta * state[S] * state[I] / N
+        , flow_rates[recovery] ~ gamma * state[I]
+        , state ~ state + group_sums(flow_rates, to, state) - group_sums(flow_rates, from, state)
     )
     , default = list(
         state     = mp_zero_vector(state_labels)
-      , flow_rate = mp_zero_vector(flow$rate)
+      , flow_rates = mp_zero_vector(flow$rate)
       , N = 100
       , beta = 0.25
       , gamma = 0.1
@@ -29,6 +29,10 @@ test_that("tmb model specs can vectorize state updates with indices", {
     )
   )
   print(sir)
+  # sir$all_default_vars()
+  # sir$all_derived_vars()
+  # sir$all_formula_vars()
+
   #mp_extract_exprs(sir, "init")
   
   correct_trajectory = structure(list(matrix = c("state", "state", "state", "state", 

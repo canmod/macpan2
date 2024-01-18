@@ -1,6 +1,6 @@
 #' @export
 mp_library = function(...) {
-  system.file("model_library", ..., package = "macpan2") |> Compartmental2()
+  stop("under construction")
 }
 
 #' @export

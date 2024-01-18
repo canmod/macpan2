@@ -330,22 +330,15 @@ initial_valid_vars = function(valid_var_names) {
 #'
 #' Empty matrices are useful when defining matrices that do not need to be
 #' initialized because they will get computed before they are required by
-#' other expressions. They are also a useful placeholder for matrices that
-#' should only have a value after a certain phase in the simulation.
+#' other expressions. They can also provide a useful placeholder for matrices 
+#' that should only have a value after a certain phase in the simulation.
 #'
 #' @name empty_matrix
 #' @format A \code{\link{numeric}} \code{\link[base]{matrix}} with zero rows
 #' and zero columns.
 #' @examples
-#' s = TMBModel(
-#'   init_mats = MatsList(x = empty_matrix
-#'     , .mats_to_save = "x"
-#'     , .mats_to_return = "x"
-#'   ),
-#'   expr_list = ExprList(during = list(x ~ time_step(0))),
-#'   time_steps = Time(2)
-#' )
-#' s$simulator()$report()
+#' spec = mp_tmb_model_spec(during = list(x ~ time_step(0)))
+#' identical(spec$empty_matrices()$x, empty_matrix) ## TRUE
 #' @export
 empty_matrix = matrix(numeric(0L), 0L, 0L)
 

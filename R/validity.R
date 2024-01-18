@@ -151,10 +151,6 @@ CustomTypeChecking = function() {
     Is("EdgeModel"),
     "not an edge model"
   )
-  self$compartmental = ValidityMessager(
-    Is("Compartmental"),
-    "not a compartmental model"
-  )
   self$name_or_num = ValidityMessager(
     Any(is.name, is.numeric),
     "neither name nor number"

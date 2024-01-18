@@ -3,7 +3,7 @@
 # })
 
 test_that("expressions are inserted and printed", {
-  l = ExprList(during = list(a ~ 1, b ~ 2, c ~ 3))
+  l =mp_tmb_expr_list(during = list(a ~ 1, b ~ 2, c ~ 3))
   l = l$insert(X ~ 500, Y ~ 600, .phase = "before")
   l = l$insert(A ~ 0, .phase = "after")
   expect_snapshot(l$print_exprs())
@@ -12,25 +12,25 @@ test_that("expressions are inserted and printed", {
 
 test_that("formula validity is enforced", {
   # expect_error(
-  #   TMBModel(
+  #   macpan2:::TMBModel(
   #     init_mats = MatsList(a = 1),
-  #     expr_list = ExprList(before = list(a[0] ~ 1))
+  #     expr_list =mp_tmb_expr_list(before = list(a[0] ~ 1))
   #   ),
   #   "without subsetting on the left-hand-side"
   # )
   expect_error(
-    TMBModel(
+    macpan2:::TMBModel(
       init_mats = MatsList(a = 1),
-      expr_list = ExprList(before = list( ~ 1))
+      expr_list =mp_tmb_expr_list(before = list( ~ 1))
     ),
     "Model expressions must be two-sided"
   )
 })
 
 test_that("proper error message comes when output matrices are not initialized", {
-  m = TMBModel(
+  m = macpan2:::TMBModel(
     init_mats = MatsList(a = 1),
-    expr_list = ExprList(before = list(b ~ a))
+    expr_list =mp_tmb_expr_list(before = list(b ~ a))
   )
   expect_error(
     m$data_arg(),

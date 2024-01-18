@@ -6,9 +6,8 @@
 \description{
 A ledger is a table with rows that identify specific instances of a
 functional form used to define a \code{\link{mp_dynamic_model}}. Ledgers
-are most commonly
-created using the \code{\link{mp_join}} function as in the following
-example.
+are most commonly created using the \code{\link{mp_join}} function as in the
+following example.
 
 \if{html}{\out{<div class="sourceCode {r}">}}\preformatted{age = mp_index(Age = c("young", "old"))
 state = mp_cartesian(

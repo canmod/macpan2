@@ -1,3 +1,36 @@
+#' Simulator
+#' 
+#' Construct a simulator from a model specification object.
+#' 
+#' @param model A model specification object.
+#' @param time_steps How many time steps should be simulated when simulations
+#' are requested?
+#' @param outputs Character vector of names of model quantities that will be
+#' outputted when simulations are requested.
+#' @param default Named list of numerical objects that will update the default
+#' values defined in the model specification object. Any number of objects
+#' can be updated or not.
+#' 
+#' @export
+mp_simulator = function(model
+    , time_steps
+    , outputs
+    , default = list()
+  ) {
+  UseMethod("mp_simulator")
+}
+
+#' @export
+mp_simulator.TMBModelSpec = function(model
+    , time_steps
+    , outputs
+    , default = list()
+  ) {
+  model$simulator_fresh(time_steps, outputs, default)
+}
+
+
+
 #' TMB Model
 #'
 #' Define a compartmental model in TMB. This model uses the spec
@@ -67,7 +100,7 @@
 #'
 #' @useDynLib macpan2
 #' @importFrom TMB MakeADFun
-#' @export
+#' @noRd
 TMBModel = function(
       init_mats = MatsList()
     , expr_list = ExprList()
@@ -95,7 +128,6 @@ TMBModel = function(
 
   ## Standard Methods
   self$data_arg = function() {
-    # sexisting_literals = self$expr_list$.literals()
     c(
       self$init_mats$data_arg(),
       self$expr_list$data_arg(),
@@ -177,176 +209,6 @@ TMBModel = function(
 
 
 
-#' @export
-TMBModelSpec = function(
-      before = list()
-    , during = list()
-    , after = list()
-    , default = list()
-    , integers = list()
-    , must_save = character()
-    , must_not_save = character()
-    , sim_exprs = character()
-  ) {
-  self = Base()
-  self$before = before
-  self$during = during
-  self$after = after
-  self$default = default
-  self$integers = integers
-  self$must_save = must_save
-  self$must_not_save = must_not_save
-  self$sim_exprs = sim_exprs
-  
-  self$expr_insert = function(
-        before_start = list()
-      , before_end = list()
-      , during_start = list()
-      , during_end = list()
-      , after_start = list()
-      , after_end = list()
-      , sim_exprs = character()
-    ) {
-    TMBModelSpec(
-        before = c(before_start, self$before, before_end)
-      , during = c(during_start, self$during, during_end)
-      , after = c(after_start, self$after, after_end)
-      , default = self$default
-      , integers = self$integers
-      , must_save = self$must_save
-      , must_not_save = self$must_not_save
-      , sim_exprs = unique(c(sim_exprs, self$sim_exprs))
-    )
-  }
-  
-  ## check for name ambiguity
-  self$check_names = function() {
-    tmb_model_names = c(names(self$integers), names(self$default))
-    ambiguous = duplicated(tmb_model_names)
-    if (any(ambiguous)) {
-      msg(
-          msg_hline()
-        , msg_colon(
-            msg(
-                "The following names were used more than once"
-              , "(either as names in the default or integers lists,"
-              , "or as names of the elements of vectors in the default list)"
-            )
-          , msg_indent_break(unique(tmb_model_names[ambiguous]))
-        )
-      ) |> stop()
-    }
-    TRUE
-  }
-  ## convert each name of each named vector in the default list into
-  ## an 'implied' integer vector for subsetting vectors in before, during,
-  ## and after expressions by position name
-  self$all_integers = function() {
-    self$check_names()
-    
-    ## TODO: make smarter so that only used integer vectors
-    ## are produced and maybe even check if an integer vector
-    ## is being used in the wrong numeric vector
-    implied_integers = implied_position_vectors(self$default)
-    c(implied_integers, self$integers)
-  }
-    
-  self$empty_matrices = function() {
-    e = ExprList(self$before, self$during, self$after)
-    dv = setdiff(e$all_derived_vars(), names(self$default))
-    rep(list(empty_matrix), length(dv)) |> setNames(dv)
-  }
-  self$matrices = function() c(self$default, self$empty_matrices())
-  
-  self$simulator_fresh = function(
-        time_steps = 0
-      , outputs = character()
-      , default = list()
-    ) {
-    initial_mats = self$matrices()
-    initial_mats[names(default)] = default
-    initial_rownames = (initial_mats
-      |> lapply(as.matrix)
-      |> lapply(rownames)
-      |> unlist(use.names = FALSE, recursive = TRUE)
-      |> unique()
-    )
-    matrix_outputs = intersect(outputs, names(initial_mats))
-    row_outputs = (outputs
-      |> setdiff(matrix_outputs)
-      |> intersect(initial_rownames)
-    )
-    mats_to_return = (initial_mats
-      |> lapply(names)
-      |> Filter(f = is.character)
-      |> Filter(f = \(x) any(x %in% row_outputs))
-      |> names()
-      |> c(matrix_outputs)
-      |> unique()
-    )
-    mats_to_save = (mats_to_return
-      |> union(self$must_save)
-      |> setdiff(self$must_not_save)
-    )
-    s = TMBModel(
-        init_mats = do.call(
-          MatsList
-        , c(
-            initial_mats
-          , list(
-              .mats_to_return = mats_to_return
-            , .mats_to_save = mats_to_save
-          )
-        )
-      )
-      , expr_list = ExprList(
-          before = self$before
-        , during = self$during 
-        , after = self$after
-        , .simulate_exprs = self$sim_exprs
-      )
-      , engine_methods = EngineMethods(
-        int_vecs = do.call(IntVecs, self$all_integers())
-      )
-      , time_steps = Time(as.integer(time_steps))
-    )$simulator(outputs = outputs, initialize_ad_fun = FALSE)
-    s$ad_fun()
-    s
-  }
-  self$simulator_cached = memoise(self$simulator_fresh)
-  return_object(self, "TMBModelSpec")
-}
-
-#' @export
-print.TMBModelSpec = function(x, ...) {
-  e = ExprList(x$before, x$during, x$after)
-  cat("---------------------\n")
-  msg("Default values:\n") |> cat()
-  cat("---------------------\n")
-  print(melt_default_matrix_list(x$default), row.names = FALSE)
-  cat("\n")
-  print(e)
-}
-
-#' @export
-mp_tmb_model_spec = function(
-      before = list()
-    , during = list()
-    , after = list()
-    , default = list()
-    , integers = list()
-    , must_save = character()
-    , must_not_save = character()
-    , sim_exprs = character()
-  ) {
-  
-  TMBModelSpec(
-      before, during, after
-    , default, integers
-    , must_save, must_not_save
-    , sim_exprs
-  )
-}
 
 mp_tmb_before = function(model, start = list(), end = list()) {
   TMBModelSpec(
@@ -358,36 +220,6 @@ mp_tmb_before = function(model, start = list(), end = list()) {
   )
 }
 
-#' Simulator
-#' 
-#' Construct a simulator from a model specification object.
-#' 
-#' @param model A model specification object.
-#' @param time_steps How many time steps should be simulated when simulations
-#' are requested?
-#' @param outputs Character vector of names of model quantities that will be
-#' outputted when simulations are requested.
-#' @param default Named list of numerical objects that will update the default
-#' values defined in the model specification object. Any number of objects
-#' can be updated or not.
-#' 
-#' @export
-mp_simulator = function(model
-    , time_steps
-    , outputs
-    , default = list()
-  ) {
-  UseMethod("mp_simulator")
-}
-
-#' @export
-mp_simulator.TMBModelSpec = function(model
-    , time_steps
-    , outputs
-    , default = list()
-  ) {
-  model$simulator_fresh(time_steps, outputs, default)
-}
 
 #' 
 #' @export
@@ -452,11 +284,11 @@ mp_trajectory.TMBSimulator = function(model) {
 
 
 
-TMBCompartmentalSimulator = function(tmb_simulator, compartmental_model) {
-  self = tmb_simulator
-  self$compartmental_model = compartmental_model
-  return_object(self, "TMBCompartmentalSimulator")
-}
+# TMBCompartmentalSimulator = function(tmb_simulator, compartmental_model) {
+#   self = tmb_simulator
+#   self$compartmental_model = compartmental_model
+#   return_object(self, "TMBCompartmentalSimulator")
+# }
 
 TMBDynamicSimulator = function(tmb_simulator, dynamic_model) {
   self = tmb_simulator
@@ -467,13 +299,7 @@ TMBDynamicSimulator = function(tmb_simulator, dynamic_model) {
 #' @export
 labels.VariableLabels = function(object, ...) object$component_list()
 
-#' @export
-labels.Compartmental = function(object, ...) labels(object$labels)
 
-#' @export
-labels.TMBCompartmentalSimulator = function(object, ...) {
-  labels(object$compartmental_model)
-}
 
 #' @export
 labels.ModelDefRun = function(object, ...) {
@@ -541,7 +367,7 @@ TMBSimulationUtils = function() {
     if (!"after" %in% .phases) {
       r = r[r$time != num_t + 1L,,drop = FALSE]
     }
-    r |> macpan2:::filter(
+    r |> filter(
         (matrix %in% self$matrix_outputs())
       | (row %in% self$row_outputs())
     )
@@ -596,6 +422,9 @@ TMBSimulationUtils = function() {
 #' `$tmb_model$make_ad_fun_arg()`) before passing it yourself to
 #' `TMB::MakeADFun`. This is particularly useful if you want to modify
 #' `tmb_cpp`.
+#' @param outputs Character vector of matrix and/or row names to be
+#' returned as output from simulation functions such as
+#' \code{\link{mp_trajectory}}.
 #'
 #' @return Object of class \code{TMBSimulator} with the following methods.
 #'
@@ -615,11 +444,11 @@ TMBSimulationUtils = function() {
 #' object.
 #'
 #' @importFrom MASS mvrnorm
-#' @export
+#' @noRd
 TMBSimulator = function(tmb_model
     , tmb_cpp = getOption("macpan2_dll")
     , initialize_ad_fun = TRUE
-    , outputs = NULL  ## character vector of matrix and/or row names
+    , outputs = NULL
   ) {
   self = TMBSimulationUtils()
 

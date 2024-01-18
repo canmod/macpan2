@@ -2,11 +2,7 @@
 % Please edit documentation in R/formula_data.R
 \name{mp_ledgers}
 \alias{mp_ledgers}
-\title{#' @export
-print.LedgerData = function(x, ...) {
-print(x$frame, row.names = FALSE)
-}
-Bundle up Ledgers}
+\title{Bundle up Ledgers}
 \usage{
 mp_ledgers(...)
 }

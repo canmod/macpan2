@@ -18,8 +18,7 @@
 #' For matrices that do not change their dimensions, set \code{\link{dimnames}}
 #' by adding \code{\link{dimnames}} to the matrices passed to \code{...}.
 #' @param .structure_labels An optional object for obtaining labels of
-#' elements of special vectors and matrices. Such an object can be found in
-#' the `$labels` field of a \code{\link{Compartmental}} model. Note that this
+#' elements of special vectors and matrices. Note that this
 #' is an advanced technique.
 #'
 #' @return Object of class \code{MatsList} with the following methods.

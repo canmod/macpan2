@@ -1,3 +1,11 @@
+## Internal classes that handle dependency management. Complex
+## objects (e.g. those of TMBModel class) contain a number of 
+## component objects. When one of these components becomes modified,
+## this should signal that other components also get modified.
+## These Dependencies and Refresher classes automate the process
+## of finding dependencies and ensuring that appropriate refreshing
+## happens.
+
 Dependencies = function(container, ...) {
   self = Base()
   self$container = container

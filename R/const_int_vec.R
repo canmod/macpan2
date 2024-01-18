@@ -3,7 +3,7 @@
 #' Make a list of integer vectors available for engine methods.
 #'
 #' @param ... Named arguments, each of which can be coerced to an integer vector.
-#' @export
+#' @noRd
 IntVecs = function(...) {
   self = Base()
 

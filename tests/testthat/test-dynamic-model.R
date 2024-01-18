@@ -23,7 +23,7 @@ SIR_starter <- function(
   ## Set up expressions list for each functional form --------------
   ## names refer to when the calculation gets performed relative to 
   ## the simulation time-step loop (before, during, ...)
-  expr_list <- mp_expr_list(
+  expr_list <- mp_tmb_expr_list(
     before = list(
       ## aggregations
         N ~ sum(state)
@@ -331,7 +331,7 @@ SIR_starter <- function(
   ## Set up expressions list for each functional form --------------
   ## names refer to when the calculation gets performed relative to 
   ## the simulation time-step loop (before, during, ...)
-  expr_list <- mp_expr_list(
+  expr_list <- mp_tmb_expr_list(
     before = list(
       ## aggregations
         N ~ sum(state)

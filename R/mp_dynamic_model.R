@@ -97,7 +97,7 @@ mp_dynamic_model = DynamicModel
 #' @export
 mp_test_tmb = function(..., ledgers, vectors, unstruc_mats) {
   m = mp_dynamic_model(
-      expr_list = mp_expr_list(before = list(...))
+      expr_list = mp_tmb_expr_list(before = list(...))
     , ledgers = ledgers
     , init_vecs = vectors
     , unstruc_mats = unstruc_mats

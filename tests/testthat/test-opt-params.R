@@ -11,9 +11,9 @@ test_that("parameters are not initially empty", {
     , .mats_to_save = "y"
     , .mats_to_return = "y"
   )
-  expr_list = ExprList(before = list(y ~ x + 1))
+  expr_list =mp_tmb_expr_list(before = list(y ~ x + 1))
   expect_error(
-    TMBModel(
+    macpan2:::TMBModel(
       init_mats = init_mats,
       expr_list = expr_list,
       params = params

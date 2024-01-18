@@ -2,7 +2,7 @@ library(macpan2)
 
 ## dynamics ---------------------------------------------
 
-expr_list = mp_expr_list(
+expr_list = mp_tmb_expr_list(
   before = list(
     ## aggregations
       N ~ sum(state)

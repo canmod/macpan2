@@ -54,7 +54,7 @@ melt_matrix = function(x) {
 melt_default_matrix_list = function(x) {
   f = (x
    |> lapply(melt_matrix)
-   |> macpan2:::bind_rows(.id = "matrix")
+   |> bind_rows(.id = "matrix")
   )
   rownames(f) = NULL
   f

@@ -47,10 +47,10 @@ LedgerData = function(...) {
   return_object(self, "LedgerData")
 }
 
-#' #' @export
-#' print.LedgerData = function(x, ...) {
-#'   print(x$frame, row.names = FALSE)
-#' }
+
+# print.LedgerData = function(x, ...) {
+#   print(x$frame, row.names = FALSE)
+# }
 
 #' Bundle up Ledgers
 #'
@@ -72,7 +72,7 @@ mp_ledgers = function(...) {
 }
 
 
-#' Indexed Expressions
+#' Indexed Expressions (not currently used -- experimental)
 #'
 #' @param ... Formula objects that reference the columns in the
 #' \code{index_data}, the vectors in \code{vector_list} and the matrices
@@ -83,7 +83,7 @@ mp_ledgers = function(...) {
 #' @param unstructured_matrix_list Named list of objects that can be coerced
 #' to a matrix.
 #'
-#' @export
+#' @noRd
 IndexedExpressions = function(...
     , index_data
     , vector_list = list()
@@ -99,7 +99,7 @@ IndexedExpressions = function(...
   }
   self$mats_list = function() {
     all_vars = (self$formulas
-      |> lapply(macpan2:::formula_components)
+      |> lapply(formula_components)
       |> lapply(getElement, "variables")
       |> unlist(use.names = FALSE, recursive = FALSE)
       |> unique()
@@ -130,6 +130,5 @@ IndexedExpressions = function(...
 }
 
 
-#' @export
 mp_indexed_exprs = IndexedExpressions
 

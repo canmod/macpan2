@@ -1,8 +1,8 @@
 test_that("simulator method works", {
   expect_identical(
-    TMBModel(
+    macpan2:::TMBModel(
       init_mats = MatsList(x = empty_matrix),
-      expr_list = ExprList(before = list(x ~ 1)),
+      expr_list =mp_tmb_expr_list(before = list(x ~ 1)),
     )$simulator()$report(),
     structure(
       list(
@@ -16,6 +16,6 @@ test_that("simulator method works", {
     )
   )
 
-  null_model = TMBModel()
+  null_model = macpan2:::TMBModel()
   null_model$init_mats$.names()
 })

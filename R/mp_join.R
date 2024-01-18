@@ -173,9 +173,8 @@ mp_join = function(..., by = empty_named_list()) {
 #'
 #' A ledger is a table with rows that identify specific instances of a
 #' functional form used to define a \code{\link{mp_dynamic_model}}. Ledgers
-#' are most commonly
-#' created using the \code{\link{mp_join}} function as in the following
-#' example.
+#' are most commonly created using the \code{\link{mp_join}} function as in the 
+#' following example.
 #' ```{r}
 #' age = mp_index(Age = c("young", "old"))
 #' state = mp_cartesian(
@@ -625,6 +624,7 @@ print.Ledger = function(x
   print(x, row.names = FALSE, ...)
 }
 
+#' @importFrom utils head
 #' @export
 head.Ledger = function(x
     , n = 6L
@@ -639,6 +639,7 @@ head.Ledger = function(x
   }
 }
 
+#' @importFrom utils tail
 #' @export
 tail.Ledger = function(x
     , n = 6L
@@ -662,15 +663,14 @@ str.Ledger = function(x
   str(x, ...)
 }
 
-
-#' @export
+## not used??
 LedgerList = function() {
   self = Base()
   self$list = list() |> setNames(as.character())
   self$add = function(new_link, ...) {
       new_ledgers = list(...)
     if (missing(new_link)) {
-      macpan2:::valid$named_list$check(new_ledgers)
+      valid$named_list$check(new_ledgers)
     } else if(length(new_ledgers) == 0L) {
       new_nm = deparse1(substitute(new_link))
       new_ledgers = setNames(list(new_link), new_nm)

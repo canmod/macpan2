@@ -2,7 +2,7 @@ test_that("a selection of the iterations in the simulation history of a matrix t
   steps = 10
   x = matrix(1:12, 4, 3)
   y = empty_matrix
-  s = TMBModel(
+  s = macpan2:::TMBModel(
     init_mats = MatsList(
       x = x,
       y = y,
@@ -11,7 +11,7 @@ test_that("a selection of the iterations in the simulation history of a matrix t
       .mats_to_save = "x",
       .mats_to_return = "y"
     ),
-    expr_list = ExprList(
+    expr_list =mp_tmb_expr_list(
       during = list(x ~ x * 0.9),
       after = list(y ~ rbind_time(x, t, 1))
     ),

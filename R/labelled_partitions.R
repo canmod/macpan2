@@ -192,7 +192,7 @@ empty_frame = function(...) {
 }
 
 enforce_schema = function(frame, ...) {
-  anchor = macpan2:::empty_frame(...)
+  anchor = empty_frame(...)
   if (is.null(frame)) return(anchor)
   anchor = as.list(anchor)
   for (c in names(anchor)) {

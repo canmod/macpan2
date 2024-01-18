@@ -294,7 +294,7 @@ flows = mp_ledgers(
   , death_flows
 )
 
-vv = IndexedExpressions(
+vv = macpan2:::IndexedExpressions(
     flows_per_time ~ state[from] * flow_rates[link]
   , inflow ~ group_sums(flows_per_time, to, state)
   , outflow ~ group_sums(flows_per_time, from, state)
@@ -318,7 +318,7 @@ state_aggregation = mp_join(
 ## N ~ group_sums(state[alive], group_by, N)
 state_vector = Vector(state)
 state_vector$set_numbers(Epi = c(I = 1))$set_numbers(Epi.Loc.Age = c(S.cal.young = 1000))
-hh = IndexedExpressions(
+hh = macpan2:::IndexedExpressions(
     N ~ group_sums(state[alive], group_by, N)
   , index_data = state_aggregation
   , vector_list = list(
@@ -1015,7 +1015,7 @@ model$labels$flow()
 
 #undebug(oor::clean_method_environment)
 
-iv = IntVecs(
+iv = macpan2:::IntVecs(
     state_length = as.integer(length(model$labels$state()))
 
   , per_capita_from = indices$flow$per_capita$from()
@@ -1081,7 +1081,7 @@ m = TMBModel(
       , state ~ state + total_inflow - total_outflow
     )
   ),
-  engine_methods = EngineMethods(int_vecs = iv),
+  engine_methods = macpan2:::EngineMethods(int_vecs = iv),
   time_steps = Time(100L),
   params = OptParamsList(0.5, 0.2, 0.1
     , par_id = 0:2
@@ -1352,7 +1352,7 @@ TMBModel(
       , state ~ state + total_inflow - total_outflow
     )
   ),
-  engine_methods = EngineMethods(
+  engine_methods = macpan2:::EngineMethods(
     exprs = list(
         set_infection_flow = flow[infection] ~ per_capita_transmission %*% state[infectious]
       , get_per_capita = ~ state[per_capita_from] * flow[per_capita_flow]
@@ -1370,7 +1370,7 @@ TMBModel(
       , get_per_capita_outflow_state_out = ~ group_sums(per_capita_outflow, per_capita_outflow_from, state_length)
       , get_absolute_outflow_state_out = ~ group_sums(absolute_outflow, absolute_outflow_from, state_length)
     ),
-    int_vecs = IntVecs(
+    int_vecs = macpan2:::IntVecs(
         state_length = length(model$labels$state())
 
       , per_capita_from = indices$flow$per_capita$from()
@@ -1437,7 +1437,7 @@ m = TMBModel(
     )
   ),
   time = Time(150),
-  engine_methods = EngineMethods(
+  engine_methods = macpan2:::EngineMethods(
     exprs = list(
         from_states = ~ state[from_indices]
       , infectious_states = ~ state[infectious_indices]
@@ -1447,7 +1447,7 @@ m = TMBModel(
       , outflow = ~ group_sums(per_capita, from_indices, state_length)
       , beta = ~ time_var(beta_ts, beta_cp, beta_n, beta_group)
     ),
-    int_vecs = IntVecs(
+    int_vecs = macpan2:::IntVecs(
         from_indices = 0:1
       , to_indices = 1:2
       , state_length = 3L

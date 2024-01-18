@@ -2,12 +2,12 @@ library(macpan2)
 library(testthat)
 
 test_that("matrices with dimnames can change size", {
-  m = TMBModel(
+  m = macpan2:::TMBModel(
       init_mats = MatsList(x = c(a = 0), .mats_to_save = "x", .mats_to_return = "x"),
-      expr_list = ExprList(during = list(x ~ c(x, time_step(0)))),
+      expr_list =mp_tmb_expr_list(during = list(x ~ c(x, time_step(0)))),
       time_steps = Time(3)
   )
-  s = TMBSimulator(m)
+  s = macpan2:::TMBSimulator(m)
   r = s$report(.phases = c("before", "during"))
   expect_identical(
     r$value,
@@ -20,16 +20,16 @@ test_that("matrices with dimnames can change size", {
 })
 
 test_that("initially empty matrices can be associated with dimnames for at least some elements", {
-  m = TMBModel(
+  m = macpan2:::TMBModel(
       init_mats = MatsList(x = empty_matrix
         , .mats_to_save = "x"
         , .mats_to_return = "x"
         , .dimnames = list(x = list(letters[1:2], ""))
       ),
-      expr_list = ExprList(during = list(x ~ c(x, 1))),
+      expr_list =mp_tmb_expr_list(during = list(x ~ c(x, 1))),
       time_steps = Time(3)
   )
-  s = TMBSimulator(m)
+  s = macpan2:::TMBSimulator(m)
   r = s$report(.phases = c("before", "during"))
   expect_identical(
     r$value,

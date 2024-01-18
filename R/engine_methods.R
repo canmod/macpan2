@@ -10,7 +10,7 @@
 #' @param int_vecs An \code{\link{IntVecs}} object containing integer vectors
 #' that can be used by the methods.
 #'
-#' @export
+#' @noRd
 EngineMethods = function(exprs = list(), int_vecs = IntVecs()) {
   self = Base()
 
