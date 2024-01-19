@@ -1,3 +1,26 @@
+# macpan2 1.0.0
+
+## Breaking Changes
+
+* No more `flows.csv`, `derivations.json` files in the library, and instead `tmb.R` files
+* No more `Compartmental` function, and instead `mp_tmb_model_spec` and `mp_tmb_library`
+* `{group|row|col}Sums` are now called `{group|row|col}_sums`
+* `TMBModel` and associated classes (`ExprList`) are no longer exported, in favour of `mp_...` functions for doing similar things
+* Sort simulation output by time step
+
+## New Features
+
+* Constant integer vectors can now be passed to `C++`
+* Integer vectors can be used to subset assignment matrices (i.e. integer subsetting on the left-hand-side)
+* `mp_trajectory()` function, which is roughly equivalent to `model$report(..., .phases = "during")`
+* New `print` function in the TMB engine
+* No need to declare empty matrices when creating TMB model objects, and matrices that are derived are automatically detected
+
+## Experimental Features
+
+* Model structure grammar (`mp_index()`, `mp_join()`, etc.)
+* Log files
+
 # macpan2 0.0.3
 
 * Optimize C++ simulation history storage by avoiding unnecessary allocations
