@@ -74,7 +74,7 @@ print(si)
 ```
 
 Simulating from this model requires choosing the number of time-steps to run and the model outputs to generate. Syntax for simulating `macpan2` models is [designed to combine with standard data prep and plotting tools in R](#modularity), as we demonstrate with the following code.
-```{r plot-tmb-si, fig.format='svg'}
+```{r plot-tmb-si}
 (si
  |> mp_simulator(time_steps = 50, outputs = c("I", "infection"))
  |> mp_trajectory()

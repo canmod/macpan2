@@ -144,7 +144,7 @@ tools in R](#modularity), as we demonstrate with the following code.
 )
 ```
 
-![](misc/readme/plot-tmb-si-1.svg)<!-- -->
+![](misc/readme/plot-tmb-si-1.png)<!-- -->
 
 ## Product Management
 
