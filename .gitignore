@@ -34,3 +34,5 @@ macpan2*
 *_files
 \#*
 .#*
+doc-update
+pkg-build
