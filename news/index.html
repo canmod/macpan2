@@ -57,6 +57,37 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="1.0.0" id="macpan2-100">macpan2 1.0.0<a class="anchor" aria-label="anchor" href="#macpan2-100"></a></h2>
+<div class="section level3">
+<h3 id="breaking-changes-1-0-0">Breaking Changes<a class="anchor" aria-label="anchor" href="#breaking-changes-1-0-0"></a></h3>
+<ul><li>No more <code>flows.csv</code>, <code>derivations.json</code> files in the library, and instead <code>tmb.R</code> files</li>
+<li>No more <code>Compartmental</code> function, and instead <code>mp_tmb_model_spec</code> and <code>mp_tmb_library</code>
+</li>
+<li>
+<code>{group|row|col}Sums</code> are now called <code>{group|row|col}_sums</code>
+</li>
+<li>
+<code>TMBModel</code> and associated classes (<code>ExprList</code>) are no longer exported, in favour of <code>mp_...</code> functions for doing similar things</li>
+<li>Sort simulation output by time step</li>
+</ul></div>
+<div class="section level3">
+<h3 id="new-features-1-0-0">New Features<a class="anchor" aria-label="anchor" href="#new-features-1-0-0"></a></h3>
+<ul><li>Constant integer vectors can now be passed to <code>C++</code>
+</li>
+<li>Integer vectors can be used to subset assignment matrices (i.e. integer subsetting on the left-hand-side)</li>
+<li>
+<code><a href="../reference/mp_trajectory.html">mp_trajectory()</a></code> function, which is roughly equivalent to <code>model$report(..., .phases = "during")</code>
+</li>
+<li>New <code>print</code> function in the TMB engine</li>
+<li>No need to declare empty matrices when creating TMB model objects, and matrices that are derived are automatically detected</li>
+</ul></div>
+<div class="section level3">
+<h3 id="experimental-features-1-0-0">Experimental Features<a class="anchor" aria-label="anchor" href="#experimental-features-1-0-0"></a></h3>
+<ul><li>Model structure grammar (<code><a href="../reference/mp_index.html">mp_index()</a></code>, <code><a href="../reference/mp_join.html">mp_join()</a></code>, etc.)</li>
+<li>Log files</li>
+</ul></div>
+</div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.0.3" id="macpan2-003">macpan2 0.0.3<a class="anchor" aria-label="anchor" href="#macpan2-003"></a></h2>
 <ul><li>Optimize C++ simulation history storage by avoiding unnecessary allocations</li>
 <li>Use state and flow names in expression inserters</li>
