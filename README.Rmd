@@ -5,7 +5,7 @@ output: github_document
 
 ```{r opts, echo = FALSE}
 knitr::opts_chunk$set(
-  fig.path = "misc/readme/"
+  fig.path = "man/figures/"
 )
 ```
 

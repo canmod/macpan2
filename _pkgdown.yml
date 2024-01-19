@@ -14,7 +14,7 @@ home:
   - text: Project history and trajectory
     href: https://canmod.net/misc/macpan2_presentation
 articles:
-- title: Quick Start
+- title: User Guides
   navbar: ~
   contents:
   - quickstart

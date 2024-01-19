@@ -102,9 +102,9 @@ README.md: README.Rmd misc/readme/*.svg R/*.R NAMESPACE
 
 push-readme:
 	make README.md
-	git add misc/readme/*.svg
-	git add misc/readme/*.png
-	git add misc/readme/*.drawio
+	git add man/figures/*.svg
+	git add man/figures/*.png
+	git add man/figures/*.drawio
 	git add README.md README.Rmd
 	git commit -m "update readme" || true
 	git push || true

@@ -16,7 +16,7 @@ editor_options:
 
 ```{r opts, echo = FALSE}
 knitr::opts_chunk$set(
-  fig.path = "../misc/readme/"
+  fig.path = "../man/figures/"
 )
 ```
 
@@ -29,7 +29,7 @@ theme_bw = function() ggplot2::theme_bw(base_size = 18)
 
 
 ```{r design-concepts, echo=FALSE}
-knitr::include_graphics("../misc/readme/design-concepts.svg")
+knitr::include_graphics("../man/figures/design-concepts.svg")
 ```
 
 ### Information Processing
