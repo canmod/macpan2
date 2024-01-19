@@ -30,6 +30,7 @@ articles:
 - title: Developer
   desc: Vignettes aimed at package developers
   contents:
+  - design_concepts
   - development_patterns
   - debugging
   - composing_simulation_models
