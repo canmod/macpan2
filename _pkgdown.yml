@@ -23,11 +23,11 @@ articles:
   - calibration
   - engine_agnostic_grammar
 - title: Specs
-  desc: Specification documents
+  desc: Specification Documents
   contents:
   - cpp_side
   - vignette_status
-- title: Developer
+- title: Developer Guides
   desc: Vignettes aimed at package developers
   contents:
   - design_concepts
