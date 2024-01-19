@@ -6,6 +6,7 @@ articles:
   composing_simulation_models: composing_simulation_models.html
   cpp_side: cpp_side.html
   debugging: debugging.html
+  design_concepts: design_concepts.html
   development_patterns: development_patterns.html
   elementwise_binary_operators: elementwise_binary_operators.html
   engine_agnostic_grammar: engine_agnostic_grammar.html
@@ -15,7 +16,7 @@ articles:
   state_dependent_rates: state_dependent_rates.html
   time_varying_parameters: time_varying_parameters.html
   vignette_status: vignette_status.html
-last_built: 2024-01-19T15:06Z
+last_built: 2024-01-19T16:25Z
 urls:
   reference: https://canmod.github.io/macpan2/reference
   article: https://canmod.github.io/macpan2/articles
