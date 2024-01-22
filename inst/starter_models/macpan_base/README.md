@@ -57,6 +57,7 @@ The size of the total population is,  $N = S + E + I_a + I_p + I_m + I_s + H +  
 
 # Dynamics 
 
+<!-- nb. do not remove the spaces in `\delta _ {nh}`. https://github.com/github/markup/issues/1575 -->
 $$
 \begin{align*}
 \frac{dS}{dt} &= -\beta_0\left(C_aI_a +C_pI_p + C_mI_m(1-\text{iso}_m) + C_sI_s(1-\text{iso}_s)\right)S/N \\
