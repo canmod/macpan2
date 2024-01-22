@@ -10,18 +10,18 @@ The McMasterPandemic model (Bolker, 2022); A modified SEIR model that incorporat
 
 | variable | description                                                         |
 | -------- | ------------------------------------------------------------------- |
-| S        | Number of susceptible individuals                                   |
-| E        | Number of exposed individuals                                       |
-| I~a~     | Number of asymptomatic infectious individuals                       |
-| I~p~     | Number of pre-symptomatic infectious individuals                    |
-| I~m~     | Number of mildly infectious individuals                             |
-| I~s~     | Number of severely infectious individuals                           |
-| H        | Number of hospitalized individuals (acute care)                     |
-| ICU~s~   | Number of individuals admitted to the ICU with a survival prognosis |
-| ICU~d~   | Number of individuals admitted to the ICU with a death prognosis    |
-| H~2~     | Number of hospitalized individuals (acute care) after ICU stay      |
-| D        | Number of dead individuals                                          |
-| R        | Number of recovered individuals                                     |
+| $S$      | Number of susceptible individuals                                   |
+| $E$      | Number of exposed individuals                                       |
+| $I_a$    | Number of asymptomatic infectious individuals                       |
+| $I_p$    | Number of pre-symptomatic infectious individuals                    |
+| $I_m$    | Number of mildly infectious individuals                             |
+| $I_s$    | Number of severely infectious individuals                           |
+| $H$      | Number of hospitalized individuals (acute care)                     |
+| $ICU_s$  | Number of individuals admitted to the ICU with a survival prognosis |
+| $ICU_d$  | Number of individuals admitted to the ICU with a death prognosis    |
+| $H_2$    | Number of hospitalized individuals (acute care) after ICU stay      |
+| $D$      | Number of dead individuals                                          |
+| $R$      | Number of recovered individuals                                     |
 
 The size of the total population is,  $N = S + E + I_a + I_p + I_m + I_s + H +  ICU_s + ICU_d + H_2 + D + R$.
 
