@@ -23,7 +23,7 @@ The McMasterPandemic model (Bolker, 2022); A modified SEIR model that incorporat
 | D        | Number of dead individuals                                          |
 | R        | Number of recovered individuals                                     |
 
-The size of the total population is,  $ N = S + E + I_a + I_p + I_m + I_s + H +  ICU_s + ICU_d + H_2 + D + R$.
+The size of the total population is,  $N = S + E + I_a + I_p + I_m + I_s + H +  ICU_s + ICU_d + H_2 + D + R$.
 
 # Parameters
 
@@ -64,10 +64,10 @@ $$
 \frac{dI_a}{dt} &= \alpha\sigma E- \gamma_a I_a \\
 \frac{dI_p}{dt} &= (1-\alpha)\sigma E- \gamma_p I_p \\
 \frac{dI_m}{dt} &= \mu\gamma_pI_p- \gamma_m I_m \\
-\frac{dI_s}{dt} &= (1-\mu)\gamma_pI_p- (1-\delta_{nh})\gamma_s I_s \\
-\frac{dH}{dt} &= (1-\delta_{nh})\phi_1\gamma_s I_s - \rho H  \\
-\frac{dICU_s}{dt} &= (1-\delta_{nh})(1-\phi_1)(1-\phi_2)\gamma_s I_s - \psi_1 ICU_s \\
-\frac{dICU_d}{dt} &= (1-\delta_{nh})(1-\phi_1)\phi_2\gamma_s I_s - \psi_2 ICU_d \\
+\frac{dI_s}{dt} &= (1-\mu)\gamma_pI_p- (1-\delta _ {nh})\gamma_s I_s \\
+\frac{dH}{dt} &= (1-\delta _ {nh})\phi_1\gamma_s I_s - \rho H  \\
+\frac{dICU_s}{dt} &= (1-\delta _ {nh})(1-\phi_1)(1-\phi_2)\gamma_s I_s - \psi_1 ICU_s \\
+\frac{dICU_d}{dt} &= (1-\delta _ {nh})(1-\phi_1)\phi_2\gamma_s I_s - \psi_2 ICU_d \\
 \frac{dH_2}{dt} &= \psi_1 ICU_s - \psi_3 H_2  \\
 \frac{dR}{dt} &= \gamma_a I_a + \gamma_m I_m + \rho H + \psi_3 H_2 \\
 \frac{dD}{dt} &=  \psi_2 ICU_d
