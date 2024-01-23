@@ -1,0 +1,128 @@
+---
+title: "Radial Basis Functions for Time Varying Transmission Rates"
+header-includes:
+   - \usepackage{amsmath}
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{Radial Basis Functions for Time Varying Transmission Rates}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+<https://img.shields.io/badge/status-working%20draft-red>
+
+```{r pkgs, include = FALSE}
+library(macpan2)
+library(macpan2helpers)
+library(dplyr)
+library(ggplot2)
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+cat_file = function(...) cat(readLines(file.path(...)), sep = "\n")
+```
+
+
+## Getting and the Base Model
+
+Before we can add the fancy radial basis for the transmission rate, we need a base model. We use an SIR model that has been modified to include waning.
+
+```{r}
+source(system.file("starter_models", "sir_waning", "model.R", package = "macpan2"))
+tmb_simulator = TMBModel(
+   expr_list = expr_list
+)
+expr_list
+```
+
+
+## Radial Basis Functions
+
+The `macpan2::rbf` function can be used to produce a matrix giving the values of each basis function (each column) at each time step (each row). Using this matrix, $X$, and a weights vector, $b$, we can get a flexible output vector, $y$, with a shape that can be modified into a wide variety of shapes by changing the weights vector.
+
+$$
+y = Xb
+$$
+
+The following code illustrates this approach.
+
+```{r, fig.height=8, fig.width=6}
+set.seed(1L)
+d = 20
+n = 2500
+X = rbf(n, d)
+b = rnorm(d, sd = 0.01)
+par(mfrow = c(3, 1))
+plot(c(1, n), range(X), type = "n",
+     xlab = "time", ylab = "basis functions")
+for (i in 1:d) lines(X[,i])
+barplot(b, xlab = "", ylab = "weights")
+plot(X %*% b, type = "l", xlab = "time", ylab = "output")
+```
+
+Here `d` is the dimension of the basis, or number of functions, and `n` is the number of time steps. By multiplying the uniform basis matrix (top panel) to a set of weights (middle panel), one can obtain a non-uniform curve (bottom panel). Note how the peaks in the output are associated with large positive weights.
+
+## Radial Transmission Rate Basis
+
+To transform the output of the matrix multiplication of the radial basis function matrix and the weights vector into a time-series for the transmission rate, $\beta$. Althought we could just use the output vector as the $\beta$ time series, it is more convenient to transform it a little so that the $\beta$ values yield more interesting dynamics in an SIR model. In particular, our model for $\beta_t$ as a function of time, $t$, is as follows.
+
+$$
+\log(\beta_t) = \log(\gamma_t) + \log(N) - \log(S_t) + x_tb
+$$
+
+Here we have the recovery rate, $\gamma_t$, total population, $N_t$, and number of susceptibles, $S_t$, at time, $t$, and the $t$th row of $X$, $x_t$. To better understand the rationale for this equation note that if every element of $b$ is set to zero, we have the following condition.
+
+$$
+\frac{\beta_t S_t}{N} = \gamma_t
+$$
+
+This condition assures that the number of infected individuals remains constant at time, $t$. This means that positive values of $b$ will tend to generate outbreaks and negative values will tend to reduce transmission.
+
+## Simulations
+
+```{r}
+set.seed(1L)
+simulator = sir$simulators$tmb(
+      time_steps = n
+    , state = c(S = 100000 - 500, I = 500, R = 0)
+    , flow = c(foi = 0, gamma = 0.2, wane = 0.01)
+    , beta = 1
+    , N = 100000
+    , X = rbf(n, d)
+    , b = rnorm(d, sd = 0.01)
+    , incidence = empty_matrix
+    , eta = empty_matrix
+    , .mats_to_save = c("state", "incidence", "beta")
+    , .mats_to_return = c("state", "incidence", "beta")
+)$insert$expressions(
+    eta ~ gamma * exp(X %*% b)
+  , .phase = "before"
+  , .at = Inf
+)$insert$expressions(
+    beta ~ eta[time_step(1)] / clamp(S/N, 1/100)
+  , .phase = "during"
+  , .at = 1
+)$insert$expressions(
+    incidence ~ I
+  , .vec_by_states = "total_inflow"
+  , .phase = "during"
+  , .at = Inf
+)$replace$params(
+    default = rnorm(d, sd = 0.01)
+  , mat = rep("b", d)
+  , row = seq_len(d) - 1L
+)
+```
+
+```{r, fig.height=8, fig.width=6}
+set.seed(5L)
+(simulator$report(rnorm(d, sd = 0.01), .phases = "during")
+  %>% mutate(variable = if_else(matrix == "state", row, matrix))
+  %>% ggplot()
+  + facet_wrap(~ variable, ncol = 1, scales = 'free')
+  + geom_line(aes(time, value))
+)
+```
