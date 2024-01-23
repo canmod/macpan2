@@ -1,4 +1,4 @@
-#source("inst/starter_models/sir_demo/tmb.R")
+#source("inst/starter_models/sir_demog/tmb.R")
 library(macpan2)
 library(dplyr)
 
@@ -6,7 +6,7 @@ library(dplyr)
 ## get model spec from library
 ## -------------------------
 
-spec = mp_tmb_library("starter_models","sir_demo",package="macpan2")
+spec = mp_tmb_library("starter_models","sir_demog",package="macpan2")
 spec
 
 ## -------------------------
@@ -17,7 +17,7 @@ spec
 time_steps = 100L
 
 # simulator object
-sir_demo = mp_simulator(  
+sir_demog = mp_simulator(  
     model = spec
   , time_steps = time_steps
   , outputs = c("I","N")
@@ -32,23 +32,23 @@ obj_fn = ~ -sum(dpois(I_obs, rbind_time(I, I_obs_times)))
 
 # update simulator to create new variables 
 # I_obs and I_obs_times and initialize
-sir_demo$update$matrices(
+sir_demog$update$matrices(
     I_obs = empty_matrix
   , I_obs_times = empty_matrix
 )
 
 # update simulator to include this function
-sir_demo$replace$obj_fn(obj_fn)
+sir_demog$replace$obj_fn(obj_fn)
 
 ## -------------------------
 ## parameterize model
 ## -------------------------
 
-sir_demo$update$transformations(Log("beta"))
+sir_demog$update$transformations(Log("beta"))
 
 # choose which parameter(s) to estimate
-sir_demo$replace$params(log(spec$default$beta), "log_beta")
-sir_demo
+sir_demog$replace$params(log(spec$default$beta), "log_beta")
+sir_demog
 
 ## -------------------------
 ## simulate fake data
@@ -59,7 +59,7 @@ true_beta = 0.3
 
 ## feed log(true_beta) to the simulator because we have
 ## already specified log-transformation of this parameter
-observed_data = sir_demo$report(log(true_beta))
+observed_data = sir_demog$report(log(true_beta))
 
 ## compute incidence for observed data
 I_obs = rpois(time_steps, subset(observed_data, matrix == "I", select = c(value)) %>% pull())
@@ -74,7 +74,7 @@ if (interactive()) {
 ## update simulator with fake data to fit to
 ## -------------------------
 
-sir_demo$update$matrices(
+sir_demog$update$matrices(
     I_obs = I_obs
   , I_obs_times = I_obs_times
 )
@@ -87,7 +87,7 @@ if (interactive()) {
   log_betas = seq(from = log(0.1), to = log(1), length = 100)
   ll = vapply(
       log_betas
-    , sir_demo$objective
+    , sir_demog$objective
     , numeric(1L)
   )
   plot(exp(log_betas), ll, type = "l", las = 1)
@@ -99,15 +99,15 @@ if (interactive()) {
 ## -------------------------
 
 ## optimize and check convergence
-sir_demo$optimize$nlminb()
+sir_demog$optimize$nlminb()
 
 ## plot observed vs predicted
 if (interactive()) {
-  print(sir_demo$current$params_frame())
-  print(paste0("exp(default) ",exp(sir_demo$current$params_frame()$default)))
-  print(paste0("exp(current) ",exp(sir_demo$current$params_frame()$current)))
+  print(sir_demog$current$params_frame())
+  print(paste0("exp(default) ",exp(sir_demog$current$params_frame()$default)))
+  print(paste0("exp(current) ",exp(sir_demog$current$params_frame()$current)))
   plot(I_obs, type = "l", las = 1)
-  lines(sir_demo$report() %>% filter(matrix=="I") %>% select(value), col = "red")
+  lines(sir_demog$report() %>% filter(matrix=="I") %>% select(value), col = "red")
 }
 
 ## -------------------------
@@ -119,7 +119,7 @@ if (interactive()) {
   times_to_plot = 1:time_steps
   pop_change = spec$default$birth_rate-spec$default$death_rate
   plot(spec$default$N*((1+pop_change)^times_to_plot), type = "l", las = 1, ylab='N')
-  lines(sir_demo$report() %>% filter(matrix=="N") %>% select(value), col = "red")
+  lines(sir_demog$report() %>% filter(matrix=="N") %>% select(value), col = "red")
   legend("topleft",legend=c("theoretical","observed"), lty = 1, col=c("black","red"))
 }
 
