@@ -37,3 +37,4 @@ macpan2*
 .#*
 doc-update
 pkg-build
+pkg-check
