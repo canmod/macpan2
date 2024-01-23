@@ -118,9 +118,7 @@ model and expand it with additional structure.</p>
 <strong>functional forms</strong> to repeat the same kinds of
 calculations across model structures. For instance, consider an SIR
 model that has two pathogen strains (without co-infections):</p>
-<center>
-<img src="../misc/diagrams/quickstart/two-strain.svg">
-</center>
+<p><img src="../reference/figures/two-strain.svg"><!-- --></p>
 <p>Here,</p>
 <ul>
 <li>
@@ -450,7 +448,7 @@ useful?</li>
 <span>  <span class="op">|&gt;</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">value</span>, colour <span class="op">=</span> <span class="va">state</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="op">+</span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="engine_agnostic_grammar_files/figure-html/sir-ggplot-example-1.png" width="576"></p>
+<p><img src="reference/figures/sir-ggplot-example-1.png" width="576"></p>
 <p>(Above, we used the <a href="https://www.tidyverse.org/blog/2023/04/base-vs-magrittr-pipe/#pipes" class="external-link">base
 R pipe operator</a>, <code>|&gt;</code>.)</p>
 <p>If you prefer to make plots in base R, you can convert the long
@@ -477,7 +475,7 @@ format data to wide format:</p>
 <span>          y <span class="op">=</span> <span class="va">I</span>,</span>
 <span>          type <span class="op">=</span> <span class="st">"l"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="engine_agnostic_grammar_files/figure-html/sir-base-plot-ex-1.png" width="576"></p>
+<p><img src="reference/figures/sir-base-plot-ex-1.png" width="576"></p>
 <p>or multiple states on the same plot with</p>
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>las <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="co">## horizontal y-axis ticks</span></span>
@@ -486,7 +484,7 @@ format data to wide format:</p>
 <span>        type <span class="op">=</span> <span class="st">"l"</span>,</span>
 <span>        xlab <span class="op">=</span> <span class="st">"time"</span>, ylab <span class="op">=</span> <span class="st">""</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/legend.html" class="external-link">legend</a></span><span class="op">(</span><span class="st">"left"</span>, col <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, lty <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, legend <span class="op">=</span> <span class="va">state</span><span class="op">$</span><span class="fu">labels</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="engine_agnostic_grammar_files/figure-html/sir-base-matplot-ex-1.png" width="576"></p>
+<p><img src="reference/figures/sir-base-matplot-ex-1.png" width="576"></p>
 </div>
 <div class="section level2">
 <h2 id="main-course">Main course: expanding the basic SIR with additional structure<a class="anchor" aria-label="anchor" href="#main-course"></a>
@@ -735,7 +733,7 @@ it:</p>
 <span>  <span class="op">|&gt;</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">value</span>, colour <span class="op">=</span> <span class="va">state</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="op">+</span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="engine_agnostic_grammar_files/figure-html/two-strain-results-1.png" width="576"></p>
+<p><img src="reference/figures/two-strain-results-1.png" width="576"></p>
 </div>
 <div class="section level2">
 <h2 id="dessert">Dessert: understanding model simulation in <code>macpan2</code><a class="anchor" aria-label="anchor" href="#dessert"></a>
