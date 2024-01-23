@@ -15,9 +15,10 @@ editor_options:
 [![status](https://img.shields.io/badge/status-working%20draft-red)](https://canmod.github.io/macpan2/articles/vignette-status#working-draft)
 
 ```{r opts, echo = FALSE}
-knitr::opts_chunk$set(
-  fig.path = "../man/figures/"
-)
+fig.path = "man/figures/"
+fig.path.up = file.path("..", fig.path)
+knitr::opts_chunk$set(fig.path = fig.path.up)
+if (!interactive()) fig.path = fig.path.up
 ```
 
 ```{r setup, echo = FALSE, message = FALSE, warning = FALSE}
@@ -44,7 +45,7 @@ This vignette seeks to explain `macpan2`'s model specification grammar and in pa
 A key to `macpan2`'s flexible model grammar is the use of **functional forms** to repeat the same kinds of calculations across model structures. For instance, consider an SIR model that has two pathogen strains (without co-infections):
 
 ```{r design-concepts, echo=FALSE}
-knitr::include_graphics("../man/figures/two-strain.svg")
+knitr::include_graphics(file.path(fig.path, "two-strain.svg"))
 ```
 
 Here, 
