@@ -47,7 +47,7 @@ binary_matrix_notation <- function(M){
 
 ## Get default parameter values and initial conditions used in (Colijn et al. 2020)
 ## csv files were generated from Matlab script, nfds/data/write_data.m
-source_folder = file.path("inst","starter_models","nfds","data")
+source_folder = system.file("starter_models","nfds","data", package = "macpan2")
 
 ## names of source fields we need
 source_fields <- c(

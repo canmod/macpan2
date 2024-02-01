@@ -1,5 +1,7 @@
-source("inst/starter_models/nfds/tmb.R")
-library(macpan2)
+source(system.file(
+    "starter_models/nfds/tmb.R"
+  , package = "macpan2"
+))
 library(ggplot2)
 library(dplyr)
 

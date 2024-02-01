@@ -12,26 +12,7 @@ mp_set_numbers(vector, ...)
 \arguments{
 \item{x}{An index.}
 
-\item{...}{Passed on to S3 methods.
-
-These labels can be used to create 'multidimensional' names for the elements
-of vectors. Here is the above example expressed in vector form.
-
-\if{html}{\out{<div class="sourceCode {r structured_vectors, echo = FALSE}">}}\preformatted{v = mp_structured_vector(prod)
-v$set_numbers(Epi = c(S = 1000))$set_numbers(Epi = c(I = 1), Age = "old")
-}\if{html}{\out{</div>}}
-
-This example vector could be stored as a 3-by-2 matrix. But other examples
-cannot, making this indexing approach more general. For example, consider the
-following index.
-
-\if{html}{\out{<div class="sourceCode {r symptoms, echo = FALSE}">}}\preformatted{}\if{html}{\out{</div>}}
-
-This index has an associated indexed vector that cannot be expressed as a
-matrix.
-
-\if{html}{\out{<div class="sourceCode {r set_numbers, echo = FALSE}">}}\preformatted{mp_structured_vector(symp)$set_numbers(Epi = c(S = 1000))$set_numbers(Epi = c(I = 1), Symptoms = "severe")
-}\if{html}{\out{</div>}}}
+\item{...}{Passed on to S3 methods.}
 
 \item{vector}{An index.}
 }
