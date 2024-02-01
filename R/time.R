@@ -1,3 +1,23 @@
+y ~ group_sums(x[i], j, y)
+y ~ group_sums(v * x[i], j, y)
+y ~ A %*% x
+
+#' @param start First date or time in the first time step
+#' @param end Last date or time in the last time step
+#' @export
+mp_time_scale = function(start, end
+    , time_step_scale = c("daily", "weekly")
+    , ...
+  ) {
+  time_cls = (time_step_scale
+    |> match.arg() 
+    |> macpan2:::var_case_to_cls_case()
+    |> getFromNamespace("macpan2")
+  )
+  time_cls(start, end, ...)
+}
+# mp_time_scale("2000-01-01", "2000-01-08", "weekly")
+
 #' Time
 #'
 #' Define the number of time steps in a compartmental model in TMB.
@@ -70,8 +90,6 @@ DateTimeSteps = function(start, end, checker) {
   return_object(self, "DateTimeSteps")
 }
 
-
-#' @export
 Daily = function(start, end, checker = RangeError) {
   self = DateTimeSteps(start, end, checker)
   self$unit = "Day"
@@ -80,7 +98,7 @@ Daily = function(start, end, checker = RangeError) {
   self$time_id_engine = function(x) {
     (x
      |> as.Date()
-     |> difftime(self$start, units = "days")
+     |> difftime(as.Date(self$start), units = "days")
      |> round()
      |> as.numeric()
     ) + 1L
@@ -93,7 +111,6 @@ Daily = function(start, end, checker = RangeError) {
   return_object(self, "Daily")
 }
 
-#' @export
 Weekly = function(start, end, checker = AllTimeErrors) {
   self = DateTimeSteps(start, end, checker)
   self$unit = "Week"
@@ -102,7 +119,7 @@ Weekly = function(start, end, checker = AllTimeErrors) {
   self$time_id_engine = function(x) {
     (x
      |> as.Date()
-     |> difftime(self$start, units = "weeks")
+     |> difftime(as.Date(self$start), units = "weeks")
      |> as.numeric()
     ) + 1L
   }

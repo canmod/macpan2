@@ -2528,6 +2528,12 @@ vector<ListOfMatrices<Type> > MakeSimulationHistory(
     const vector<int>& mats_save_hist,
     ListOfMatrices<Type>& hist_shape_template
 ) {
+    
+    // TODO: use this new field for being smarter about the
+    // one-argument form of rbind_time
+    const int time_steps_ = time_steps;
+    
+    
     vector<ListOfMatrices<Type> > simulation_history(time_steps+2);
     matrix<Type> empty_matrix;
     for (int i=0; i<mats_save_hist.size(); i++)

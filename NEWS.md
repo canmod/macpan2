@@ -1,3 +1,9 @@
+# macpan2 v.v.v
+
+## Breaking Changes
+
+* `simple_sims` no longer returns outputs for the zeroth time-step.
+
 # macpan2 1.0.0
 
 ## Breaking Changes

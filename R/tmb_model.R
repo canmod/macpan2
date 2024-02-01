@@ -221,10 +221,26 @@ mp_tmb_before = function(model, start = list(), end = list()) {
 }
 
 
+#' Default Values
+#' 
+#' @param model A model object from which to extract default values.
+#' @returns A long-format data frame with default values for matrices required
+#' as input to model objects. The columns of this output are `matrix`, `row`,
+#' `col`, and `value`. Scalar matrices do not have any entries in the `row` or
+#' `col` columns.
+#' @export
+mp_default = function(model) UseMethod("mp_default")
 
-mp_default = function(model_simulator, ...) {
-  stop("under construction")
-  UseMethod("mp_default")
+#' @export
+mp_default.TMBModelSpec = function(model) {
+  melt_default_matrix_list(model$default)
+}
+
+#' @export
+mp_default.TMBSimulator = function(model) {
+  init_mats = model$tmb_model$init_mats$.initial_mats
+  default_mats = init_mats[!vapply(init_mats, is_empty_matrix, logical(1L))]
+  melt_default_matrix_list(default_mats)
 }
 
 mp_initial = function(model_simulator, ...) {
