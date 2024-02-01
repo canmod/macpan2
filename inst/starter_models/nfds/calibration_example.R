@@ -83,10 +83,20 @@ in_vax = (nfds
 # evaluated after simulation loop once we have solution vector
 # read in invasiveness scores (OR)
 
-kids_invasiveness <- (read.csv(file.path("inst","starter_models","nfds","data","Invasiveness.kids.csv"), header = FALSE)
-                      # why doesn't this work
-                      # %>% as.matrix(dimnames = NULL)
-                      %>% as.matrix()
+kids_invasiveness <- (
+  read.csv(
+    system.file(
+      "starter_models"
+      ,"nfds"
+      ,"data"
+      ,"Invasiveness.kids.csv"
+      , package = "macpan2"
+    )
+    , header = FALSE
+  )
+  # why doesn't this work
+  # %>% as.matrix(dimnames = NULL)
+  %>% as.matrix()
 )
 # dimnames seem to cause issues, so removing
 attr(kids_invasiveness, "dimnames") <- NULL 
