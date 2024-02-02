@@ -2531,7 +2531,7 @@ vector<ListOfMatrices<Type> > MakeSimulationHistory(
     
     // TODO: use this new field for being smarter about the
     // one-argument form of rbind_time
-    const int time_steps_ = time_steps;
+    //const int time_steps_ = time_steps;
     
     
     vector<ListOfMatrices<Type> > simulation_history(time_steps+2);
