@@ -28,7 +28,7 @@ The `macpan2` comes with a set of example [model definitions](https://canmod.git
 show_models()
 ```
 ```{r echo = FALSE}
-kableExtra::kable(show_models())
+kableExtra::kable(show_models(for_markdown = TRUE))
 ```
 
 There are three things that you can do with the items on this list: read them, use them, and modify them.
