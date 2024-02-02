@@ -31,11 +31,7 @@ show_models()
 kableExtra::kable(show_models(for_markdown = TRUE))
 ```
 
-There are three things that you can do with the items on this list: read them, use them, and modify them.
-
-## Reading Examples
-
-Suppose that we want to read the `sir` example we would go here: [https://github.com/canmod/macpan2/tree/main/inst/starter_models/sir](https://github.com/canmod/macpan2/tree/main/inst/starter_models/sir). If you want to see another model then just switch `sir` to another entry in the `dir` column of the table printed above.
+There are three things that you can do with the items on this list: read them, use them, and modify them. To read them, just click on the links above to take you to each model. To use them and modify them, please continue reading.
 
 ## Using Examples
 
