@@ -55,6 +55,7 @@ get_mod_info <- function(f) {
 show_models <- function(
         dir = system.file("starter_models", package = "macpan2")
       , show_missing = FALSE
+      , for_markdown = FALSE
     ) {
   
     ## TODO: handle multi-engine case when it is ready ...
@@ -71,7 +72,15 @@ show_models <- function(
     ord <- order(paste0(as.numeric(is.na(res$title)), res$dir))
     res <- res[ord,]
     if (!show_missing) res <- na.omit(res)
+    if (for_markdown) res$dir = model_link(res$dir)
     ## row numbering including missing models is distracting ...
     rownames(res) <- NULL
     return(res)
+}
+
+model_link = function(model_name) {
+  sprintf(
+      "[%s](https://github.com/canmod/macpan2/tree/main/inst/starter_models/%s)"
+    , model_name, model_name
+  )
 }

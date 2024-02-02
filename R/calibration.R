@@ -1,16 +1,3 @@
-mp_calibrator = function(
-      model
-    , data
-    , params
-    , random
-    , time_scale
-    , default
-) {
-  
-}
-
-
-
 ## Internal classes that handle optimization. Objects of 
 ## these classes are in the `optimize` and `optimization_history`
 ## fields of `TMBSimulator` objects.
