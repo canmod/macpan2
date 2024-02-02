@@ -6,13 +6,17 @@
 \usage{
 show_models(
   dir = system.file("starter_models", package = "macpan2"),
-  show_missing = FALSE
+  show_missing = FALSE,
+  for_markdown = FALSE
 )
 }
 \arguments{
 \item{dir}{directory to list}
 
 \item{show_missing}{(logical) include entries for models with no README information?}
+
+\item{for_markdown}{(logical) format for rendering the table with markdown-formatted
+links to model readme files?}
 }
 \value{
 a data frame containing entries \code{dir} (model directory), \code{title} (model title), \code{index_entry} (short description)

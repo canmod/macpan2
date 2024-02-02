@@ -48,6 +48,8 @@ get_mod_info <- function(f) {
 #'
 #' @param dir directory to list
 #' @param show_missing (logical) include entries for models with no README information?
+#' @param for_markdown (logical) format for rendering the table with markdown-formatted
+#' links to model readme files?
 #' @return a data frame containing entries \code{dir} (model directory), \code{title} (model title), \code{index_entry} (short description)
 #' @examples show_models(show_missing = TRUE)
 #' @importFrom stats na.omit
