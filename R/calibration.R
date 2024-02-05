@@ -2,6 +2,9 @@
 ## these classes are in the `optimize` and `optimization_history`
 ## fields of `TMBSimulator` objects.
 
+## To add new optimizers all that should be required is to add a 
+## call to `wrap` in the TMBOptimizer constructor
+
 TMBOptimizer = function(simulator) {
   self = Base()
   self$simulator = simulator
@@ -14,6 +17,7 @@ TMBOptimizer = function(simulator) {
     force(arg_mappings)
     force(opt_func)
     force(opt_method_nm)
+    ## TODO: add package dependencies to assert using assert_dependencies
 
     self[[opt_method_nm]] = function() {
 
@@ -41,7 +45,13 @@ TMBOptimizer = function(simulator) {
       opt_obj = do.call(opt_func, c(args_from_object, args))
       self$simulator$optimization_history$save(opt_obj)
       self$simulator$cache$sdreport$invalidate() ## now that we have optimized again, we need to invalidate the now out-of-date sdreport
-      ad_fun$fn(opt_obj$par) ## probably this should be last.par.best
+      
+      #ad_fun$fn(opt_obj$par) ## probably this should be last.par.best
+      best_par = ad_fun$env$last.par.best
+      ranef_indices = ad_fun$env$random
+      fixef_indices = setdiff(seq_along(best_par), ranef_indices)
+      ad_fun$fn(best_par[fixef_indices])
+      
       opt_obj
     }
     arg_updater(opt_method_nm, opt_func, unname(arg_mappings))
@@ -94,3 +104,9 @@ TMBOptimizationHistory = function(simulator) {
   self$save = function(opt_obj) self$.history = append(self$.history, list(opt_obj))
   return_object(self, "TMBOptimizationHistory")
 }
+
+
+# TMBCoef = function(simulator) {
+#   self = Base()
+#   self$simulator = simulator
+# }

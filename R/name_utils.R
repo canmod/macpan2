@@ -208,3 +208,14 @@ extrapolate_dots = function(x, string_with_all_dots) {
   required_n_dots = n_dots(string_with_all_dots[[1L]]) - n_dots(x)
   sprintf("%s%s", x, make_n_dots(required_n_dots))
 }
+
+
+match_if_appropriate = function(x, table) {
+  if (is.numeric(x)) {
+    if (!is.finite(x)) return(x)
+    return(as.integer(round(x)))
+  }
+  x = match(x, table)
+  if (any(is.na(x))) stop("cannot find names")
+  x
+}

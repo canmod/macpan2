@@ -15,6 +15,9 @@ mp_library = function(...) {
 #' is the name of a package (as a character string) then
 #' \code{\link{system.file}} is used to put together the \code{...}
 #' components.
+#' @param alternative_specs If \code{TRUE}, return a list of alternative
+#' specification objects. For models without alternatives this will cause
+#' the return value to be a list with one element containing a spec object.
 #' 
 #' @seealso [show_models()]
 #' 
@@ -26,18 +29,35 @@ mp_library = function(...) {
 #' )
 #' 
 #' @export
-mp_tmb_library = function(..., package = NULL) {
+mp_tmb_library = function(..., package = NULL, alternative_specs = FALSE) {
   if (is.null(package)) {
     model_directory = file.path(...)
   } else {
     model_directory = system.file(..., package = package)
+  }
+  if (!dir.exists(model_directory)) {
+    stop("Library model directory does not exist.")
   }
   def_env = new.env(parent = parent.frame())
   sys.source(file.path(model_directory, "tmb.R")
     , envir = def_env
     , chdir = TRUE
   )
-  def_env$spec
+  if (alternative_specs) {
+    if (inherits(def_env$specs, "list")) {
+      if (all(vapply(def_env$specs, inherits, logical(1L), "TMBModelSpec"))) {
+        return(def_env$specs)
+      }
+    }
+  } else {
+    if (inherits(def_env$specs, "list")) {
+      def_env$spec = def_env$specs[[1L]]
+    }
+    if (inherits(def_env$spec, "TMBModelSpec")) {
+      return(def_env$spec)
+    }
+  }
+  stop("Malformed model library entry.")
 }
 
 #' Model Starter

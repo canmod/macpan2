@@ -91,6 +91,7 @@ TMBModelSpec = function(
         time_steps = 0
       , outputs = character()
       , default = list()
+      , initialize_ad_fun = TRUE
     ) {
     self$check_names()
     initial_mats = self$all_matrices()
@@ -139,8 +140,7 @@ TMBModelSpec = function(
         int_vecs = do.call(IntVecs, self$all_integers())
       )
       , time_steps = Time(as.integer(time_steps))
-    )$simulator(outputs = outputs, initialize_ad_fun = FALSE)
-    s$ad_fun()
+    )$simulator(outputs = outputs, initialize_ad_fun = initialize_ad_fun)
     s
   }
   self$simulator_cached = memoise(self$simulator_fresh)

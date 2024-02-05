@@ -1,3 +1,95 @@
+#' @export
+mp_tmb_insert = function(model, phase, at, expressions, default, integers, must_save, must_not_save) {
+  UseMethod("mp_tmb_insert")
+}
+
+#' @export
+mp_tmb_update = function(model, phase, at, expressions, default, integers, must_save, must_not_save) {
+  UseMethod("mp_tmb_update")
+}
+
+
+#' @export
+mp_tmb_insert.TMBModelSpec = function(model
+    , phase
+    , at
+    , expressions = list()
+    , default = list()
+    , integers = list()
+    , must_save = character()
+    , must_not_save = character()
+    , sim_exprs = character()
+  ) {
+  model[[phase]] = append(model[[phase]], expressions, after = at - 1L)
+  model[["default"]][names(default)] = default
+  model[["integers"]][names(integers)] = integers
+  model$must_save  = unique(c(model$must_save, must_save))
+  model$must_not_save  = unique(c(model$must_not_save, must_not_save))
+  model$sim_exprs  = unique(c(model$sim_exprs, sim_exprs))
+  model
+}
+
+#' @export
+mp_tmb_update.TMBModelSpec = function(model
+    , phase
+    , at
+    , expressions = list()
+    , default = list()
+    , integers = list()
+    , must_save = character()
+    , must_not_save = character()
+    , sim_exprs = character()
+  ) {
+  where = at - 1L + seq_along(expressions)
+  model[[phase]][where] = expressions
+  model[["default"]][names(default)] = default
+  model[["integers"]][names(integers)] = integers
+  model$must_save  = unique(c(model$must_save, must_save))
+  model$must_not_save  = unique(c(model$must_not_save, must_not_save))
+  model$sim_exprs  = unique(c(model$sim_exprs, sim_exprs))
+  model
+}
+
+#' @export
+mp_tmb_insert_before = function(model, at, ...) {
+  model$insert$expressions(..., .at = at, .phase = "before")
+  model
+}
+#' @export
+mp_tmb_insert_during = function(model, at, ...) {
+  model$insert$expressions(..., .at = at, .phase = "during")
+  model
+}
+#' @export
+mp_tmb_insert_after = function(model, at, ...) {
+  model$insert$expressions(..., .at = at, .phase = "after")
+  model
+}
+#' @export
+mp_tmb_update_before = function(model, at, ...) {
+  model$update$expressions(..., .at = at, .phase = "before")
+  model
+}
+#' @export
+mp_tmb_update_during = function(model, at, ...) {
+  model$update$expressions(..., .at = at, .phase = "during")
+  model
+}
+#' @export
+mp_tmb_update_after = function(model, at, ...) {
+  model$update$expressions(..., .at = at, .phase = "after")
+  model
+}
+#' @export
+mp_tmb_tag_discontinuous = function(model, at) {
+  model$insert$expressions(..., .simulate_exprs = at)
+  model
+}
+
+
+## Internal classes that handle model editing.
+
+
 TMBEditor = function(model) {
   self = Base()
   self$model = model
@@ -30,6 +122,10 @@ TMBSimulatorPrinter = function(simulator) {
 
 TMBInserter = function(model) {
   self = TMBEditor(model)
+  self$.at = function(at, phase = c("before", "during", "after")) {
+    phase = match.arg(phase)
+    match_if_appropriate(at, names(self$model$expr_list[[phase]]))
+  }
   self$expressions = function(...
     , .at = 1L
     , .phase = c("before", "during", "after")
@@ -56,6 +152,7 @@ TMBSimulatorInserter = function(simulator) {
     , .simulate_exprs = character(0L)
     , .vec_by = getOption("macpan2_vec_by")
   ) {
+    .at = self$.at(.at, .phase)
     for (v in names(.vec_by)) {
       if (.vec_by[v] == "") .vec_by[v] = "...RAW...INDICES..."
     }
@@ -215,6 +312,10 @@ TMBSimulatorReplacer = function(simulator) {
 
 TMBUpdater = function(model) {
   self = TMBEditor(model)
+  self$.at = function(at, phase = c("before", "during", "after")) {
+    phase = match.arg(phase)
+    match_if_appropriate(at, names(self$model$expr_list[[phase]]))
+  }
   return_object(self, "TMBUpdater")
 }
 
@@ -250,6 +351,39 @@ TMBSimulatorUpdater = function(simulator) {
         .at = .at, .phase = .phase
       )
     }
+    self$simulator$cache$invalidate()
+    invisible(self$simulator)
+  }
+  self$expressions = function(...
+    , .at = 1L
+    , .phase = c("before", "during", "after")
+    , .simulate_exprs = character(0L)
+    , .vec_by = getOption("macpan2_vec_by")
+  ) {
+    .at = self$.at(.at, .phase)
+    for (v in names(.vec_by)) {
+      if (.vec_by[v] == "") .vec_by[v] = "...RAW...INDICES..."
+    }
+    # if (.vec_by_states == "") .vec_by_states = "...RAW...INDICES..."
+    # if (.vec_by_flows == "") .vec_by_flows = "...RAW...INDICES..."
+    #component_vec_by = c(state = .vec_by_states, flow = .vec_by_flows)
+    if (inherits(self$model$init_mats$.structure_labels, "NullLabels")) {
+      args = list(...)
+    } else {
+      mat_names = names(self$model$init_mats)
+      component_list = self$model$init_mats$.structure_labels$component_list()
+      args = (list(...)
+        |> lapply(to_special_vecs, component_list, mat_names, .vec_by)
+        |> lapply(to_assign)
+      )
+    }
+    args$.at = .at
+    args$.phase = .phase
+    args$.simulate_exprs = .simulate_exprs
+    (self$model$expr_list$update
+      |> do.call(args)
+      |> self$model$refresh$expr_list()
+    )
     self$simulator$cache$invalidate()
     invisible(self$simulator)
   }

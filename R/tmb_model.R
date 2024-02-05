@@ -29,7 +29,13 @@ mp_simulator.TMBModelSpec = function(model
   model$simulator_fresh(time_steps, outputs, default)
 }
 
-
+#' @export
+mp_simulator.TMBParameterizedModelSpec = function(model
+  , time_steps, outputs, default = list()
+) {
+  simulator = mp_simulator(model$spec, time_steps, outputs, default)
+  
+}
 
 #' TMB Model
 #'

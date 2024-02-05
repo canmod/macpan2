@@ -73,6 +73,18 @@ update_formula = function(formula, replacers) {
   do.call('substitute', list(formula, l))
 }
 
+rhs_sum = function(...) {
+  blank_to_zero = function(x) if (x == "") return("0") else return(x)
+  no_zeros = function(x) x[trimws(x) != "0"]
+  (list(...) 
+   |> vapply(rhs_char, character(1L)) 
+   |> no_zeros()
+   |> paste(collapse = " + ")
+   |> blank_to_zero()
+   |> sprintf(fmt = "~%s") 
+   |> as.formula()
+  )
+}
 
 
 ## for character vectors lhs and rhs, return a formula
