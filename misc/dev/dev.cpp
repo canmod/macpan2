@@ -1435,8 +1435,12 @@ public:
                     // #' * `x` -- A matrix of any dimensions, except for
                     // #' `group_sums` that expects `x` to be a column vector.
                     // #' * `f` -- A column vector the same length as `x`
-                    // #' containing integers between `0` and `n-`.
-                    // #' * `n` -- Length of the output column vector.
+                    // #' containing integers between `0` and `m-1`, given `m`
+                    // #' unique groups. Elements of `f` refer to the indices
+                    // #' of `x` that will be grouped and summed.
+                    // #' * `n` -- A column vector of length `m`. If `f` does
+                    // #' not contain group `k` in `[0, m-1]`, `group_sums` skips
+                    // #' this group and the output at index `k+1` is `n[k+1]`.
                     // #'
                     // #' ### Return
                     // #'
@@ -1509,7 +1513,7 @@ public:
                     // #' engine_eval(~sum(x, y, A), x = x, y = y, z = z)
                     // #' engine_eval(~ col_sums(A), A = A)
                     // #' engine_eval(~ row_sums(A), A = A)
-                    // #' engine_eval(~ group_sums(x, f, n), x = 1:10, f = rep(0:3, 1:4), n = 4)
+                    // #' engine_eval(~ group_sums(x, f, n), x = 1:10, f = rep(0:3, 1:4), n = c(1:4))
                     // #' ```
                     // #'
 
