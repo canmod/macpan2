@@ -1553,15 +1553,21 @@ public:
                         return m;
 
                     case MP2_GROUPSUMS: // group_sums
-
-                        m = args[0];
                         v1 = args.get_as_int_vec(1);
-                        // rows = args.get_as_int(2);
-                        rows = args.rows(2);
+                        err_code = args.check_indices(2, v1, {0});
+                        if (err_code) {
+                            SetError(MP2_GROUPSUMS, "Group indexes are out of range.", row);
+                            return m;
+                        }
+                        m = args[0];
+                        if (m.cols() != 0) {
+                            SetError(MP2_GROUPGUMS, "Group sums are only allowed for column vectors.", row);
+                        }
+                        rows = args.rows(2); // get number of rows in the 3rd argument
                         m1 = matrix<Type>::Zero(rows, 1);
                         if (v1.size() != m.rows()) {
-                          SetError(MP2_GROUPSUMS, "Number of rows in x must equal the number of indices in f in group_sums(x, f, x)", row);
-                              return m;
+                            SetError(MP2_GROUPSUMS, "Number of rows in x must equal the number of indices in f in group_sums(x, f, n).", row);
+                            return m;
                         }
 
                         for (int i = 0; i < m.rows(); i++) {

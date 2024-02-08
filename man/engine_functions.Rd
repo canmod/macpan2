@@ -426,8 +426,12 @@ integers.
 \item \code{x} -- A matrix of any dimensions, except for
 \code{group_sums} that expects \code{x} to be a column vector.
 \item \code{f} -- A column vector the same length as \code{x}
-containing integers between \code{0} and \verb{n-}.
-\item \code{n} -- Length of the output column vector.
+containing integers between \code{0} and \code{m-1}, given \code{m}
+unique groups. Elements of \code{f} refer to the indices
+of \code{x} that will be grouped and summed.
+\item \code{n} -- A column vector of length \code{m}. If \code{f} does
+not contain group \code{k} in \verb{[0, m-1]}, \code{group_sums} skips
+this group and the output at index \code{k+1} is \code{n[k+1]}.
 }
 }
 
@@ -459,7 +463,7 @@ engine_eval(~ sum(y), y = y)
 engine_eval(~sum(x, y, A), x = x, y = y, z = z)
 engine_eval(~ col_sums(A), A = A)
 engine_eval(~ row_sums(A), A = A)
-engine_eval(~ group_sums(x, f, n), x = 1:10, f = rep(0:3, 1:4), n = 4)
+engine_eval(~ group_sums(x, f, n), x = 1:10, f = rep(0:3, 1:4), n = c(1:4))
 }\if{html}{\out{</div>}}
 }
 

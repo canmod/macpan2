@@ -4,6 +4,7 @@
 
 * `simple_sims` no longer returns outputs for the zeroth time-step.
 * Using `last.par.best` to finalize the TMB objective function following optimization.
+* `group_sums` now checks for bad group indexes.
 
 ## New Features
 

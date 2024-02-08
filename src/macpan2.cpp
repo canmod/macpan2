@@ -1502,8 +1502,12 @@ public:
                     // #' * `x` -- A matrix of any dimensions, except for
                     // #' `group_sums` that expects `x` to be a column vector.
                     // #' * `f` -- A column vector the same length as `x`
-                    // #' containing integers between `0` and `n-`.
-                    // #' * `n` -- Length of the output column vector.
+                    // #' containing integers between `0` and `m-1`, given `m`
+                    // #' unique groups. Elements of `f` refer to the indices
+                    // #' of `x` that will be grouped and summed.
+                    // #' * `n` -- A column vector of length `m`. If `f` does
+                    // #' not contain group `k` in `[0, m-1]`, `group_sums` skips
+                    // #' this group and the output at index `k+1` is `n[k+1]`.
                     // #'
                     // #' ### Return
                     // #'
@@ -1550,15 +1554,19 @@ public:
                         return m;
 
                     case MP2_GROUPSUMS: // group_sums
-
-                        m = args[0];
                         v1 = args.get_as_int_vec(1);
+                        err_code = args.check_indices(2, v1, {0});
+                        if (err_code) {
+                            SetError(MP2_GROUPSUMS, "Group indexes are out of range", row);
+                            return m;
+                        }
+                        m = args[0];
                         // rows = args.get_as_int(2);
-                        rows = args.rows(2);
+                        rows = args.rows(2); // get number of rows in the 3rd argument
                         m1 = matrix<Type>::Zero(rows, 1);
                         if (v1.size() != m.rows()) {
-                          SetError(MP2_GROUPSUMS, "Number of rows in x must equal the number of indices in f in group_sums(x, f, x)", row);
-                              return m;
+                            SetError(MP2_GROUPSUMS, "Number of rows in x must equal the number of indices in f in group_sums(x, f, n)", row);
+                            return m;
                         }
 
                         for (int i = 0; i < m.rows(); i++) {
@@ -1576,7 +1584,7 @@ public:
                     // #' engine_eval(~sum(x, y, A), x = x, y = y, z = z)
                     // #' engine_eval(~ col_sums(A), A = A)
                     // #' engine_eval(~ row_sums(A), A = A)
-                    // #' engine_eval(~ group_sums(x, f, n), x = 1:10, f = rep(0:3, 1:4), n = 4)
+                    // #' engine_eval(~ group_sums(x, f, n), x = 1:10, f = rep(0:3, 1:4), n = c(1:4))
                     // #' ```
                     // #'
 
