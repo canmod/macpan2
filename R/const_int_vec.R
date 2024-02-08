@@ -9,8 +9,14 @@ IntVecs = function(...) {
 
   # Args
   self$list = lapply(list(...), as.integer)
+  
+  # Arg validity
   if (length(self$list) == 0L) self$list = list(integer())
-
+  # missing_ints = lapply(self$list, is.na) |> vapply(any, logical(1L))
+  # if (any(missing_ints)) {
+  #   stop("Integer vectors cannot have any missing values.")
+  # }
+  
   # Standard Methods
   self$data_arg = function() {
     list(

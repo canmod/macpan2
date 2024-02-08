@@ -47,6 +47,7 @@
 \alias{time_group}
 \alias{cos}
 \alias{print}
+\alias{time_var}
 \title{Engine Functions}
 \description{
 Functions currently supported by the C++ TMB engine
@@ -582,11 +583,17 @@ greater than the current time step. The time group
 \code{index} is the index associated with this element.
 Please see the examples below, they are easier
 to understand than this explanation.
+\item \code{time_var(x, change_points, index)}: An improvement
+to \code{time_group}.
 }
 }
 
 \subsection{Arguments}{
 \itemize{
+\item \code{x}: Column vector representing a time series.
+\code{time_var} will return the value of \code{x} corresponding
+to element in \code{change_points} that contains the
+current time.
 \item \code{lag}: Number of time-steps to look back for
 the time-step to return.
 \item \code{index}: Index associated with the current time

@@ -30,7 +30,8 @@ theme_bw = function() ggplot2::theme_bw(base_size = 18)
 
 
 ```{r design-concepts, echo=FALSE}
-knitr::include_graphics(file.path(fig.path, "design-concepts.svg"))
+p = file.path(fig.path, "design-concepts.svg")
+if (file.exists(p)) knitr::include_graphics(p)
 ```
 
 ### Information Processing

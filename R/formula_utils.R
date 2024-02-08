@@ -96,7 +96,6 @@ two_sided = function(lhs, rhs) {
 }
 
 
-
 swap_sides = function(x) UseMethod("swap_sides")
 
 #' @export
@@ -202,6 +201,17 @@ formula_components = function(formula, side = c("both", "left", "right")) {
     functions = parse_table$x[is_func] |> unique(),
     literals = parse_table$x[is_var_or_lit & is_lit] |> as.numeric() |> unique()
   )
+}
+
+trans_lhs_var = function(formula) {
+  lhs_vars = formula_components(formula, side = "left")$variables
+  if (length(lhs_vars) != 1L) stop("Transformations must have a single, unsubsetted variable on the left-hand-side")
+  lhs_vars
+}
+trans_rhs_var = function(formula) {
+  rhs_vars = formula_components(formula, side = "right")$variables
+  if (length(rhs_vars) != 1L) stop("Transformations must have a single variable on the right-hand-side")
+  rhs_vars
 }
 
 lhs_pieces = function(formula) {

@@ -465,9 +465,15 @@
 #' `index` is the index associated with this element.
 #' Please see the examples below, they are easier
 #' to understand than this explanation.
+#' * `time_var(x, change_points, index)`: An improvement
+#' to `time_group`. 
 #'
 #' ### Arguments
 #'
+#' * `x`: Column vector representing a time series.
+#' `time_var` will return the value of `x` corresponding
+#' to element in `change_points` that contains the 
+#' current time.
 #' * `lag`: Number of time-steps to look back for
 #' the time-step to return.
 #' * `index`: Index associated with the current time
@@ -776,4 +782,5 @@
 #' @aliases time_group
 #' @aliases cos
 #' @aliases print
+#' @aliases time_var
 NULL

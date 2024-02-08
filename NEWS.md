@@ -3,6 +3,16 @@
 ## Breaking Changes
 
 * `simple_sims` no longer returns outputs for the zeroth time-step.
+* Using `last.par.best` to finalize the TMB objective function following optimization.
+
+## New Features
+
+* `mp_tmb_library` can return a list of model specs with `alternative_specs`, if the model makes alternatives available.
+* `time_var` engine function is better than the old `time_group`, which required two expressions rather than one to do the same thing. `time_group` will remain but is softly deprecated.
+
+## Bug Fixes
+
+* Segfaults for out-of-range assignment
 
 # macpan2 1.0.0
 

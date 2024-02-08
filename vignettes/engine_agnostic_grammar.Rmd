@@ -45,7 +45,8 @@ This vignette seeks to explain `macpan2`'s model specification grammar and in pa
 A key to `macpan2`'s flexible model grammar is the use of **functional forms** to repeat the same kinds of calculations across model structures. For instance, consider an SIR model that has two pathogen strains (without co-infections):
 
 ```{r design-concepts, echo=FALSE}
-knitr::include_graphics(file.path(fig.path, "two-strain.svg"))
+p = file.path(fig.path, "two-strain.svg")
+if (file.exists(p)) knitr::include_graphics(p)
 ```
 
 Here, 
