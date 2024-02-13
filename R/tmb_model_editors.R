@@ -1,18 +1,36 @@
 #' @export
-mp_tmb_insert = function(model, phase, at, expressions, default, integers, must_save, must_not_save) {
+mp_tmb_insert = function(model
+    , phase = "during"
+    , at = 1L
+    , expressions = list()
+    , default = list()
+    , integers = list()
+    , must_save = character()
+    , must_not_save = character()
+    , sim_exprs = character()
+  ) {
   UseMethod("mp_tmb_insert")
 }
 
 #' @export
-mp_tmb_update = function(model, phase, at, expressions, default, integers, must_save, must_not_save) {
+mp_tmb_update = function(model
+    , phase = "during"
+    , at = 1L
+    , expressions = list()
+    , default = list()
+    , integers = list()
+    , must_save = character()
+    , must_not_save = character()
+    , sim_exprs = character()
+  ) {
   UseMethod("mp_tmb_update")
 }
 
 
 #' @export
 mp_tmb_insert.TMBModelSpec = function(model
-    , phase
-    , at
+    , phase = "during"
+    , at = 1L
     , expressions = list()
     , default = list()
     , integers = list()
@@ -31,8 +49,8 @@ mp_tmb_insert.TMBModelSpec = function(model
 
 #' @export
 mp_tmb_update.TMBModelSpec = function(model
-    , phase
-    , at
+    , phase = "during"
+    , at = 1L
     , expressions = list()
     , default = list()
     , integers = list()

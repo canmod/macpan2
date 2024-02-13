@@ -6,14 +6,26 @@
 * Using `last.par.best` to finalize the TMB objective function following optimization.
 * `group_sums` now checks for bad group indexes.
 
+## New Features (in progress)
+
+* Time scales (TODO)
+* `mp_tmb_update|insert` functions for creating new model specs from existing one.
+
 ## New Features
 
 * `mp_tmb_library` can return a list of model specs with `alternative_specs`, if the model makes alternatives available.
 * `time_var` engine function is better than the old `time_group`, which required two expressions rather than one to do the same thing. `time_group` will remain but is softly deprecated.
+* Fixed effects extractor and formatter.
+* `mp_default` function for extracting spec and simulator defaults in long-format.
 
 ## Bug Fixes
 
-* Segfaults for out-of-range assignment
+* Segfaults for out-of-range assignment.
+
+## Doc Fixes
+
+* `mp_tmb_model_spec` documentation is filled out.
+* `group_sums` TMB engine function third argument updated from old pre-1.0.0 behaviour.
 
 # macpan2 1.0.0
 
@@ -22,6 +34,7 @@
 * No more `flows.csv`, `derivations.json` files in the library, and instead `tmb.R` files
 * No more `Compartmental` function, and instead `mp_tmb_model_spec` and `mp_tmb_library`
 * `{group|row|col}Sums` are now called `{group|row|col}_sums`
+* Final argument of `group_sums` used to be the length of the output vector, but now it is a vector of the desired output length
 * `TMBModel` and associated classes (`ExprList`) are no longer exported, in favour of `mp_...` functions for doing similar things
 * Sort simulation output by time step
 

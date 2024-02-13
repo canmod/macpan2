@@ -219,3 +219,8 @@ match_if_appropriate = function(x, table) {
   if (any(is.na(x))) stop("cannot find names")
   x
 }
+
+name_prefix = function(x, prefix) {
+  names(x) = sprintf("%s_%s", prefix, names(x))
+  x
+}
