@@ -5,11 +5,14 @@
 * `simple_sims` no longer returns outputs for the zeroth time-step.
 * Using `last.par.best` to finalize the TMB objective function following optimization.
 * `group_sums` now checks for bad group indexes.
+* `rbind_lag` now throws an error when `lag > 1` because there are conceptual errors with this case. We will get back to this when we can to allow these important cases by adding an argument with initial conditions associated with negative time steps.
 
 ## New Features (in progress)
 
 * Time scales (TODO)
+* `mp_tmb_calibrator` function for creating a simulator object capable of being optimized using a simple and restrictive trajectory matching model.  Future releases will allow more functionality.
 * `mp_tmb_update|insert` functions for creating new model specs from existing one.
+* Parameters specified as a data frame can now place default values in columns with any of the following names: `"default", "Default", "value", "Value", "val", "Val"`
 
 ## New Features
 
@@ -17,6 +20,7 @@
 * `time_var` engine function is better than the old `time_group`, which required two expressions rather than one to do the same thing. `time_group` will remain but is softly deprecated.
 * Fixed effects extractor and formatter.
 * `mp_default` function for extracting spec and simulator defaults in long-format.
+* `rbind_time` allows integer vectors for subsetting times
 
 ## Bug Fixes
 
