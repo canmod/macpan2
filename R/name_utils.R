@@ -224,3 +224,9 @@ name_prefix = function(x, prefix) {
   names(x) = sprintf("%s_%s", prefix, names(x))
   x
 }
+
+make_names_list = function(obj, meth_nms) {
+  l = list()
+  for (nm in meth_nms) l[[nm]] = sprintf("%s_%s", nm, names(obj[[nm]]()))
+  l
+}

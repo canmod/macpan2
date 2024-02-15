@@ -435,14 +435,14 @@
 #' * `x` -- Any matrix with saved history such that the
 #' number of columns (for `rbind_*`) or rows (for
 #' `cbind_*`) does not change throughout the simulation.
-#' * `lag` -- Column vector of integers giving numbers
+#' * `lag` -- Integer vector giving numbers
 #' of time steps before the current step to obtain
 #' past values of `x`.
-#' * `t` -- Column vector of integers giving time steps
+#' * `t` -- Integer vector giving time steps
 #' at which to obtain past values of `x`.
-#' * `t_min` -- Minimum time step that is allowed to be
-#' accessed. All time-steps in `t` or implied by `lag`
-#' that are before `t_min` are ignored.
+#' * `t_min` -- Integer giving the minimum time step 
+#' that is allowed to be accessed. All time-steps in `t` 
+#' or implied by `lag` that are before `t_min` are ignored.
 #'
 #' ### Return
 #'

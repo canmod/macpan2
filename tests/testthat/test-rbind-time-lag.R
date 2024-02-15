@@ -29,3 +29,20 @@ test_that("a selection of the iterations in the simulation history of a matrix t
 
   expect_equal(y_tmb, y_r)
 })
+
+test_that("use of rbind_lag works for lags = 1 but not overwise", {
+  y = simple_sims(
+      list(x ~ x + 1, y ~ rbind_lag(x, 1))
+    , 10
+    , mats = list(x = 0, y = empty_matrix)
+  ) |> macpan2:::filter(matrix == "y")
+  expect_equal(y$value, 0:9)
+  expect_error(
+      simple_sims(
+          list(x ~ x + 1, y ~ rbind_lag(x, 2))
+        , 10
+        , mats = list(x = 0, y = empty_matrix)
+      ),
+      regexp = "Lag functionality is conceptually flawed at the moment for lags greater than 1"
+  )
+})

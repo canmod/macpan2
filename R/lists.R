@@ -17,43 +17,59 @@ nlist = function(...) {
     setNames(L, nm)
 }
 
+melt_matrix_int = function(x) {
+  dm = dim(x)
+  if (is.null(dm)) {
+    row = seq_along(x) - 1L
+    col = 0
+  } else {
+    row = rep(seq_len(dm[1]), each = dm[2]) - 1
+    col = rep(seq_len(dm[2]), times = dm[1]) - 1
+  }
+  data.frame(row = row, col = col, value = as.vector(x))
+}
 
-melt_matrix = function(x) {
+melt_matrix = function(x, zeros_are_blank = TRUE) {
   dn = dimnames(x)
   nms = names(x)
   dm = dim(x)
   if (is.null(dm)) {
-    col = ""
+    if (zeros_are_blank) {
+      col = ""
+    } else {
+      col = "0"
+    }
     if (is.null(nms)) {
-      if (length(x) == 1L) {
+      if ((length(x) == 1L) & zeros_are_blank) {
         row = ""
       } else {
-        row = seq_along(x) |> as.character()
+        row = as.character(seq_along(x) - 1)
       }
     } else {
       row = names(x)
     }
   } else if (is.null(dn)) {
-    if (dm[1] == 1L) {
+    if ((dm[1] == 1L) & zeros_are_blank) {
       row = ""
     } else {
-      row = rep(seq_len(dm[1]), each = dm[2]) |> as.character()
+      row = as.character(rep(seq_len(dm[1]), each = dm[2]) - 1)
     }
-    if (dm[2] == 1L) {
+    if ((dm[2] == 1L) & zeros_are_blank) {
       col = ""
     } else {
-      col = rep(seq_len(dm[2]), times = dm[1]) |> as.character()
+      col = as.character(rep(seq_len(dm[2]), times = dm[1]) - 1)
     }
-  } else {
+  } else { 
+    ## FIXME: need to check NULL rownames and NULL colnames separately
     row = rep(rownames(x), times = dm[2])
     col = rep(colnames(x), each = dm[1])
   }
   data.frame(row = row, col = col, value = as.vector(x))
 }
 
-melt_default_matrix_list = function(x) {
+melt_default_matrix_list = function(x, zeros_are_blank = TRUE) {
   f = (x
-   |> lapply(melt_matrix)
+   |> lapply(melt_matrix, zeros_are_blank)
    |> bind_rows(.id = "matrix")
   )
   rownames(f) = NULL

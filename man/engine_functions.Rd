@@ -548,14 +548,14 @@ simulation iterations corresponding to integers in
 \item \code{x} -- Any matrix with saved history such that the
 number of columns (for \verb{rbind_*}) or rows (for
 \verb{cbind_*}) does not change throughout the simulation.
-\item \code{lag} -- Column vector of integers giving numbers
+\item \code{lag} -- Integer vector giving numbers
 of time steps before the current step to obtain
 past values of \code{x}.
-\item \code{t} -- Column vector of integers giving time steps
+\item \code{t} -- Integer vector giving time steps
 at which to obtain past values of \code{x}.
-\item \code{t_min} -- Minimum time step that is allowed to be
-accessed. All time-steps in \code{t} or implied by \code{lag}
-that are before \code{t_min} are ignored.
+\item \code{t_min} -- Integer giving the minimum time step
+that is allowed to be accessed. All time-steps in \code{t}
+or implied by \code{lag} that are before \code{t_min} are ignored.
 }
 }
 

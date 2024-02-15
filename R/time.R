@@ -1,6 +1,6 @@
-y ~ group_sums(x[i], j, y)
-y ~ group_sums(v * x[i], j, y)
-y ~ A %*% x
+# y ~ group_sums(x[i], j, y)
+# y ~ group_sums(v * x[i], j, y)
+# y ~ A %*% x
 
 #' @param start First date or time in the first time step
 #' @param end Last date or time in the last time step
@@ -90,6 +90,18 @@ DateTimeSteps = function(start, end, checker) {
   return_object(self, "DateTimeSteps")
 }
 
+Steply = function(steps) {
+  self = DateTimeSteps(0L, steps - 1L, checker = NoError)
+  self$unit = 1L
+  self$acceptable_time_classes = "integer"
+  self$character_converter = as.integer
+  self$time_id_engine = function(x) {
+    as.integer(x) - self$start + 1
+  }
+  self$ending_time_engine = function(time_steps) time_steps
+  return_object(self, "Steply")
+}
+
 Daily = function(start, end, checker = RangeError) {
   self = DateTimeSteps(start, end, checker)
   self$unit = "Day"
@@ -130,6 +142,7 @@ Weekly = function(start, end, checker = AllTimeErrors) {
   self$checker$check_bounds()
   return_object(self, "Weekly")
 }
+
 
 
 TimeCheck = function(time) {
@@ -220,6 +233,12 @@ TimeCheck = function(time) {
   return_object(self, "TimeCheck")
 }
 
+NoError = function(time) {
+  self = TimeCheck(time)
+  self$assert_time_steps = function(x, time_steps) as.integer(time_steps)
+  self$check_bounds = function() TRUE
+  return_object(self, "NoError")
+}
 RangeError = function(time) {
   self = TimeCheck(time)
   self$assert_time_steps = function(x, time_steps) {
