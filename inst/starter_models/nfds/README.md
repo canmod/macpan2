@@ -23,7 +23,7 @@ IPD burden was computed using serotype invasiveness estimates, derived from a me
 # States
 
 
-*Note:* Input values provided here are for the Massachusetts population ($M=603$, $L=1090$), to get corresponding Maela input values see [write_data.m](https://github.com/canmod/macpan2/blob/b162156ca3d2787de90f5c080827ee9547b14fab/inst/starter_models/nfds/data/write_data.m).
+*Note:* Input values provided here are for the Massachusetts population ($M=603$, $L=1090$), to get corresponding Maela input values see [write_data.m](https://github.com/canmod/macpan2/blob/7126c2217272367eca8e3ea9b9a1fe8e0c6d3d59/inst/starter_models/nfds/data/write_data.m).
 | variable   | description                            | input value                                                                                                                                      |
 | ---------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | $Y_{i}(t)$ | prevalence of genotype $i$ at time $t$ | [intial conditions (t=0)](https://github.com/canmod/macpan2/blob/b162156ca3d2787de90f5c080827ee9547b14fab/inst/starter_models/nfds/data/ics.csv) |
@@ -32,7 +32,7 @@ IPD burden was computed using serotype invasiveness estimates, derived from a me
 
 # Parameters
 
-*Note:* Input values provided here are for the Massachusetts population ($M=603$, $L=1090$), to get corresponding Maela input values see [write_data.m](https://github.com/canmod/macpan2/blob/b162156ca3d2787de90f5c080827ee9547b14fab/inst/starter_models/nfds/data/write_data.m).
+*Note:* Input values provided here are for the Massachusetts population ($M=603$, $L=1090$), to get corresponding Maela input values see [write_data.m](https://github.com/canmod/macpan2/blob/7126c2217272367eca8e3ea9b9a1fe8e0c6d3d59/inst/starter_models/nfds/data/write_data.m).
 
 ## Fixed
 
@@ -46,20 +46,20 @@ IPD burden was computed using serotype invasiveness estimates, derived from a me
 | $\rho$    | constant representing the "overall strength of NFDS" (Colijn et al., 2020), computed as $\log(1 + \sigma)$ where $\sigma$ is taken from Corander et al. (2017).           | [sigma](https://github.com/canmod/macpan2/blob/b162156ca3d2787de90f5c080827ee9547b14fab/inst/starter_models/nfds/data/sigma.csv)                                                                                                                                                                                                                                                                                                                                                                                                         |
 | $v$       | vaccine efficacy parameter                                                                                                                                                | [v](https://github.com/canmod/macpan2/blob/b162156ca3d2787de90f5c080827ee9547b14fab/inst/starter_models/nfds/data/v.csv)                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | $m$       | uniform migration rate per genotype                                                                                                                                       | [m](https://github.com/canmod/macpan2/blob/b162156ca3d2787de90f5c080827ee9547b14fab/inst/starter_models/nfds/data/m.csv)                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| $r_i$     | vaccine strategy, $r_i=r$ "if genotype $i$ encodes an antigen included in the vaccine" (Colijn et al., 2020), 0 otherwise. Computed as $r_i = -\log(1- (v \text{vax}_i))$ | The user specifies a vector of serotypes to be included, excluded, and *varied* (varied means these serotypes will be optimized i.e. optimizer decides if each serotype in this vector will be included/excluded) in the vaccine. This vaccine vector is then mapped to the level of genotypes, creating a binary vector $\text{vax}$. (See an example of user input for the `macpan2` model implementation [here](https://github.com/canmod/macpan2/blob/7c76cfb2f6a2e329e7cc8af4d46229d37692185f/inst/starter_models/nfds/tmb.R#L78)). |
+| $r_i$     | vaccine strategy, $r_i=r$ "if genotype $i$ encodes an antigen included in the vaccine" (Colijn et al., 2020), 0 otherwise. Computed as $r_i = -\log(1- (v \text{vax}_i))$ | The user specifies a vector of serotypes to be included, excluded, and *varied* (varied means these serotypes will be optimized i.e. optimizer decides if each serotype in this vector will be included/excluded) in the vaccine. This vaccine vector is then mapped to the level of genotypes, creating a binary vector $\text{vax}$. (See an example of user input for the `macpan2` model implementation [here](https://github.com/canmod/macpan2/blob/7126c2217272367eca8e3ea9b9a1fe8e0c6d3d59/inst/starter_models/nfds/tmb.R#L77)). |
 
 
 
 ## Time Varying
 | variable  | description                                              | calculation                                          |
 | --------- | -------------------------------------------------------- | ---------------------------------------------------- |
-| $N(t)$    | carriage population of pneumococci organisms at time $t$ | $N(t) = \sum_{i=1}^{M} Y_i$                          |
-| $f_{l,t}$ | instantaneous frequency for locus $l$ at time $t$        | $f_{l,t} = \frac{1}{N(t)} \sum_{i=1}^{M} Y_i G_{il}$ |
+| $N(t)$    | carriage population of pneumococci organisms at time $t$ | $N(t) = \sum\limits_{i=1}^M Y_i$                          |
+| $f_{l,t}$ | instantaneous frequency for locus $l$ at time $t$        | $f_{l,t} = \frac{1}{N(t)} \sum\limits_{i=1}^{M} Y_i G_{il}$ |
 
 
 # Dynamics 
 
-$$\frac{dY_i}{dt} = \left( \log\left( \frac{\kappa}{N(t)}\right) -r_i + \rho\left( \sum_{l=1}^{L} w_l G_{il} (e_l - f_{l,t})\right) \right) Y_i + m, \quad i \in \{1, M\}$$
+$$\frac{dY_i}{dt} = \left( \log\left( \frac{\kappa}{N(t)}\right) -r_i + \rho\left( \sum_{l=1}^{L} w_l G_{il} (e_l - f_{l,t})\right) \right) Y_i + m, \quad i \in \\{1, M\\}$$
 
 # References
 
