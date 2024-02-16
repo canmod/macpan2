@@ -2,16 +2,16 @@
 
 
 TransPrototype = function(formula, trans, input_var = "x", output_var = "y") {
-  self = macpan2:::MethodPrototype(formula, c(input_var, output_var), character())
+  self = MethodPrototype(formula, c(input_var, output_var), character())
   self$trans = trans
-  oor:::return_object(self, "TransPrototype")
+  oor::return_object(self, "TransPrototype")
 }
 
 ff = function(model, formula) {
   protos = list(
-      macpan2:::MethodPrototype(~x, "x", character())
-    , macpan2:::MethodPrototype(~x[i], "x", "i")
-    , macpan2:::MethodPrototype(~x[i,j], "x", c("i", "j"))
+      MethodPrototype(~x, "x", character())
+    , MethodPrototype(~x[i], "x", "i")
+    , MethodPrototype(~x[i,j], "x", c("i", "j"))
   )
   for (proto in protos) {
     if (proto$consistent(formula)) {
@@ -25,13 +25,13 @@ ff = function(model, formula) {
     }
   }
 }
-# mm = macpan2:::MethodPrototype(~x[i], "x", "i")
+# mm = MethodPrototype(~x[i], "x", "i")
 # mm$consistent(~state[I])
 # mm$mat_args(~state[I])
 # mm$int_vec_args(~state[I])
 
 #xx = TransPrototype(y ~ logit(x), Logit)
-# macpan2:::Logit("testing")$trans_two_sided_formula()
+# Logit("testing")$trans_two_sided_formula()
 
 TransTypes = function() {
   self = MethodTypeUtils()
@@ -72,7 +72,7 @@ param_desc_to_name.character = function(desc, model) {
   }
   assert_string(desc)
 }
-param_desc_to_name.formula = function(desc) macpan2:::trans_lhs_char(desc)
+param_desc_to_name.formula = function(desc) trans_lhs_char(desc)
 param_desc_to_name.list = function(desc) {
   if (!all(vapply(desc, is_two_sided, logical(1L)))) {
     stop(
@@ -92,7 +92,7 @@ param_desc_to_name.Transform = function(desc, model) desc$variable
 param_desc_to_trans_obj = function(desc) UseMethod("param_desc_to_inverse")
 param_desc_to_trans_obj.character = function(desc) {
   assert_string(desc)
-  macpan2:::two_sided(desc, desc) |> list()
+  two_sided(desc, desc) |> list()
 }
 param_desc_to_trans_obj.formula = function(desc) find_trans(desc)
 param_desc_to_trans_obj.list = function(desc) {

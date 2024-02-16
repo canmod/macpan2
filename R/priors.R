@@ -6,9 +6,9 @@
 #   self$density_prototype = ~ 0
 #   self$simulation_prototype = ~ 0
 #   self$density = function(variable) {
-#     macpan2:::update_formula(self$density_prototype
+#     update_formula(self$density_prototype
 #       , c(
-#           macpan2:::two_sided("variable", variable)
+#           two_sided("variable", variable)
 #         , self$parameters  ## whatever this is??
 #       )
 #     )

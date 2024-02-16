@@ -56,12 +56,12 @@ SymbolicMath = function() {
   # This comment block is a start at automatically overriding functions
   # listed in R/enum.R
   #
-  # for (f in names(macpan2:::valid_funcs)) {
+  # for (f in names(valid_funcs)) {
   #   browser()
-  #   if (macpan2:::valid_symb_type[f] == "fwrap") {
-  #     self[[f]] = function() self$fwrap(f, do.call(self$csv, as.list(macpan2:::valid_func_args[[f]])))
-  #     blank_args = rep(list(quote(expr = )), length(macpan2:::valid_func_args[[f]]))
-  #     formals(self[[f]]) = setNames(blank_args, macpan2:::valid_func_args[[f]])
+  #   if (valid_symb_type[f] == "fwrap") {
+  #     self[[f]] = function() self$fwrap(f, do.call(self$csv, as.list(valid_func_args[[f]])))
+  #     blank_args = rep(list(quote(expr = )), length(valid_func_args[[f]]))
+  #     formals(self[[f]]) = setNames(blank_args, valid_func_args[[f]])
   #   }
   # }
 

@@ -653,6 +653,7 @@ tail.Ledger = function(x
   }
 }
 
+#' @importFrom utils str
 #' @export
 str.Ledger = function(x
     , format = c("labels", "link", "combined", "separate")

@@ -1,3 +1,7 @@
+#' Fixed Effects
+#'
+#' @param model Object that contains information about fitted fixed effects
+#' @returns A data frame that describes the fitted fixed effects.
 #' @export
 mp_fixed_effects = function(model) UseMethod("mp_fixed_effects")
 

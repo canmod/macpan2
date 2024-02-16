@@ -66,6 +66,7 @@ StructuredVector.StructuredVector = function(x, index, ...) {
 }
 
 
+#' @importFrom utils write.csv write.table
 StructuredVector.Index = function(x, ...) {
   self = Base()
   self$index = x

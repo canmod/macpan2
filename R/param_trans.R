@@ -81,10 +81,10 @@ Logit = function(variable, default = NULL, trans_variable = sprintf("logit_%s", 
   return_object(self, "Logit")
 }
 
-#' @export
+
 find_trans = function(formula) {
-  trans_variable = macpan2:::trans_lhs_var(formula)
-  variable = macpan2:::trans_rhs_var(formula)
+  trans_variable = trans_lhs_var(formula)
+  variable = trans_rhs_var(formula)
   all_trans_cls = list(Identity, Log, Logit)
   for (trans_cls in all_trans_cls) {
     trans_obj = trans_cls(variable, trans_variable = trans_variable)

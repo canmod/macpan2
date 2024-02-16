@@ -11,7 +11,7 @@
 #' \code{\link{mp_tmb_update}}.
 #' @param data A data frame containing trajectories to fit to and possibly 
 #' time-varying parameters. The data must be of the same format as that 
-#' produced by \code{\link{mp_tmb_trajectory}}.
+#' produced by \code{\link{mp_trajectory}}.
 #' @param traj A character vector giving the names of trajectories to fit
 #' to data.
 #' @param tv A character vector giving the names of parameters to make
@@ -144,14 +144,26 @@ TMBCalDataStruc = function(data, time) {
   if (is.null(time)) {
     if (infer_time_step(data$time)) {
       data$time = as.integer(data$time)
-      time = macpan2:::Steply(max(data$time))
+      time = Steps(max(data$time))
     } else {
       ## TODO: I'm guessing this could fail cryptically
-      time = macpan2:::Daily(min(data$time), max(data$time))
+      time = Daily(min(data$time), max(data$time))
     }
   }
   self$time_steps = time$bound_steps()[2L]
   data$time_ids = time$time_ids(data$time)
+  data = rename_synonyms(data
+    , time = c(
+        "time", "Time", "ID", "time_id", "id", "date", "Date"
+      , "time_step", "timeStep", "TimeStep"
+    )
+    , matrix = c(
+        "matrix", "Matrix", "mat", "Mat", "variable", "var", "Variable", "Var"
+    )
+    , row = c("row", "Row")
+    , col = c("col", "Col", "column", "Column")
+    , value = c("value", "Value", "val", "Val", "default", "Default")
+  )
   self$matrix_list = split(data, data$matrix)
   return_object(self, "TMBCalDataStruc")
 }
@@ -164,22 +176,17 @@ TMBTV = function(tv = character(), struc, existing_global_names = character()) {
   ## of names identifying matrices
   ## that give piece-wise time variation
   self$tv_list = struc$matrix_list[tv]
-  synonyms_for_default = c("default", "Default", "value", "Value", "val", "Val")
   for (p in names(self$tv_list)) {
-    if (isTRUE(!any(self$tv_list$time_ids == 0L))) {
-      df = self$tv_list[[p]]
-      zero_time = list(
-          matrix = p
-        , row = 0
-        , col = 0
+    self$tv_list[[p]] = rename_synonyms(self$tv_list[[p]]
+      , default = "value"
+    )
+    if (isTRUE(!any(self$tv_list[[p]]$time_ids == 0L))) {
+      self$tv_list[[p]] = add_row(self$tv_list[[p]]
+        , matrix = p
+        , row = 0L
+        , col = 0L
         , time_ids = 0L
-      ) |> as.data.frame()
-      #, value = spec$default[[p]]
-      df = macpan2:::bind_rows(zero_time, df)
-      value_col = synonyms_for_default[synonyms_for_default %in% names(df)][1]
-      df[[value_col]][1] = spec$default[[p]]
-      df[[value_col]] = as.numeric(df[[value_col]])
-      self$tv_list[[p]] = df
+      )
     }
   }
   
@@ -195,19 +202,19 @@ TMBTV = function(tv = character(), struc, existing_global_names = character()) {
     tv = self$time_var()
     if (length(tv) == 0L) {
       cols = c("matrix", "row", "col", "value") ## TODO: correct?
-      return(macpan2:::empty_frame(cols))
+      return(empty_frame(cols))
     }
     cp = self$change_points()
     (
          mapply(setNames, tv, cp, SIMPLIFY = FALSE) 
       |> setNames(names(tv))
-      |> macpan2:::melt_default_matrix_list()
+      |> melt_default_matrix_list()
     )
   }
   self$change_pointer = function() {
     nms = names(self$change_points())
     (nms
-      |> macpan2:::zero_vector()
+      |> zero_vector()
       |> as.integer()
       |> as.list()
       |> setNames(nms)
@@ -218,12 +225,12 @@ TMBTV = function(tv = character(), struc, existing_global_names = character()) {
   ## for creating expressions, which require global,
   ## not local names
   self$local_names = function() {
-    macpan2:::make_names_list(self
+    make_names_list(self
       , c("time_var", "change_points", "change_pointer")
     )
   }
   self$global_names = function() {
-    macpan2:::map_names(self$existing_global_names, self$local_names())
+    map_names(self$existing_global_names, self$local_names())
   }
   self$global_names_vector = function() {
     c(
@@ -241,7 +248,7 @@ TMBTV = function(tv = character(), struc, existing_global_names = character()) {
       , nms$change_points
       , nms$change_pointer
     )
-    mapply(macpan2:::two_sided, lhs, rhs, SIMPLIFY = FALSE)
+    mapply(two_sided, lhs, rhs, SIMPLIFY = FALSE)
   }
   
   return_object(self, "TMBTV")
@@ -270,19 +277,19 @@ TMBTraj = function(traj = character(), struc, existing_global_names = character(
   self$distr_params = function() list()
   self$distr_params_melt = function() {
     cols = c("matrix", "row", "col", "value") ## TODO: correct?
-    macpan2:::empty_frame(cols)
+    empty_frame(cols)
   }
   
   ## define local and external names ... to prepare
   ## for creating expressions, which require global,
   ## not local names
   self$local_names = function() {
-    l = macpan2:::make_names_list(self, c("obs", "obs_times", "distr_params"))
+    l = make_names_list(self, c("obs", "obs_times", "distr_params"))
     l$sim = sprintf("%s_%s", "sim", self$traj)
     l
   }
   self$global_names = function() {
-    macpan2:::map_names(self$existing_global_names, self$local_names())
+    map_names(self$existing_global_names, self$local_names())
   }
   self$global_names_vector = function() {
     c(
@@ -299,7 +306,7 @@ TMBTraj = function(traj = character(), struc, existing_global_names = character(
       , self$traj
       , nms$obs_times
     )
-    mapply(macpan2:::two_sided, lhs, rhs, SIMPLIFY = FALSE)
+    mapply(two_sided, lhs, rhs, SIMPLIFY = FALSE)
   }
   self$obj_fn_traj_exprs = function() list()
   self$obj_fn_expr_chars = function() {
@@ -325,14 +332,14 @@ TMBPar = function(par = character(), tv = NULL, traj = NULL, spec = NULL, existi
   self$hyperparams = function() list()
   self$hyperparams_melt = function() {
     cols = c("matrix", "row", "col", "value") ## TODO: correct?
-    macpan2:::empty_frame(cols)
+    empty_frame(cols)
   }
   
   self$local_names = function() {
-    macpan2:::make_names_list(self, c("trans_vars", "hyperparams"))
+    make_names_list(self, c("trans_vars", "hyperparams"))
   }
   self$global_names = function() {
-    macpan2:::map_names(self$existing_global_names, self$local_names())
+    map_names(self$existing_global_names, self$local_names())
   }
   self$global_names_vector = function() {
     c(
@@ -347,8 +354,8 @@ TMBPar = function(par = character(), tv = NULL, traj = NULL, spec = NULL, existi
   ## produce fixed and random effect parameter frames
   ## associated with time-varying parameters
   self$params_frame = function() {
-    pf = macpan2:::melt_default_matrix_list(self$spec$default[self$par], FALSE)
-    macpan2:::bind_rows(pf
+    pf = melt_default_matrix_list(self$spec$default[self$par], FALSE)
+    bind_rows(pf
       , self$tv$time_var_melt()
       , self$hyperparams_melt()
       , self$traj$distr_params_melt()
@@ -356,7 +363,7 @@ TMBPar = function(par = character(), tv = NULL, traj = NULL, spec = NULL, existi
   }
   self$random_frame = function() {
     cols = c("matrix", "row", "col", "value") ## TODO: correct?
-    macpan2:::empty_frame(cols)
+    empty_frame(cols)
   }
   
   return_object(self, "TMBPar")
@@ -365,6 +372,6 @@ TMBPar = function(par = character(), tv = NULL, traj = NULL, spec = NULL, existi
 globalize = function(obj, type) setNames(obj[[type]](), obj$global_names()[[type]])
 sum_obj_terms = function(...) {
   char_terms = c(...) |> paste(collapse = " ")
-  macpan2:::one_sided(char_terms)
+  one_sided(char_terms)
 }
 

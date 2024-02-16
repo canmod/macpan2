@@ -112,3 +112,24 @@ frame_formatter = function(frame) {
   fixed_width_list = mapply(format, l, width = widths, MoreArgs = list(justify = "left"), SIMPLIFY = FALSE, USE.NAMES = FALSE)
   paste0(do.call(paste, c(fixed_width_list, list(sep = "  "))), collapse = "\n")
 }
+
+add_row = function(frame, ...) {
+  l = as.list(frame)
+  updates = list(...)
+  for (col_nm in names(l)) {
+    col = l[[col_nm]]
+    if (col_nm %in% names(updates)) up = updates[[col_nm]] else up = NA
+    if (is.integer(col)) {
+      col = c(as.integer(up), col)
+    } else if (is.numeric(col)) {
+      col = c(as.numeric(up), col)
+    } else if (is.character(col)) {
+      if (is.na(up)) up = ""
+      col = c(up, col)
+    } else { ## try our best
+      col = c(up, col) 
+    }
+    l[[col_nm]] = col
+  }
+  as.data.frame(l)
+}

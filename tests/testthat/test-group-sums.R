@@ -49,8 +49,8 @@ test_that("group identifiers need to be valid integer indices", {
       )
     ), regexp = "Group indexes are out of range.")
   
-  answer = subset(good, matrix=="answer")$value
-  x = subset(good, matrix=="x")$value
+  answer = subset(good, matrix == "answer")$value
+  x = subset(good, matrix == "x")$value
   expect_identical(answer, c(sum(x[1:2]),x[3]))
 
 })

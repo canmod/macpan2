@@ -455,6 +455,7 @@ TMBSimulationUtils = function() {
 #' object.
 #'
 #' @importFrom MASS mvrnorm
+#' @importFrom stats quantile
 #' @noRd
 TMBSimulator = function(tmb_model
     , tmb_cpp = getOption("macpan2_dll")

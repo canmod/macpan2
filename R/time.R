@@ -4,14 +4,15 @@
 
 #' @param start First date or time in the first time step
 #' @param end Last date or time in the last time step
+#' @importFrom utils getFromNamespace
 #' @export
 mp_time_scale = function(start, end
-    , time_step_scale = c("daily", "weekly")
+    , time_step_scale = c("steps", "daily", "weekly")
     , ...
   ) {
   time_cls = (time_step_scale
     |> match.arg() 
-    |> macpan2:::var_case_to_cls_case()
+    |> var_case_to_cls_case()
     |> getFromNamespace("macpan2")
   )
   time_cls(start, end, ...)
@@ -90,7 +91,7 @@ DateTimeSteps = function(start, end, checker) {
   return_object(self, "DateTimeSteps")
 }
 
-Steply = function(steps) {
+Steps = function(steps) {
   self = DateTimeSteps(0L, steps - 1L, checker = NoError)
   self$unit = 1L
   self$acceptable_time_classes = "integer"
@@ -99,7 +100,7 @@ Steply = function(steps) {
     as.integer(x) - self$start + 1
   }
   self$ending_time_engine = function(time_steps) time_steps
-  return_object(self, "Steply")
+  return_object(self, "Steps")
 }
 
 Daily = function(start, end, checker = RangeError) {

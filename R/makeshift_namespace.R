@@ -3,6 +3,7 @@
 #' variables (e.g. transformed variables, dispersion parameters, observed
 #' trajectories). The character vectors themselves identify the global-version
 #' of those internal names (``)
+#' @importFrom utils relist
 #' @noRd
 map_names = function(
         existing_names = character()

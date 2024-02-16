@@ -233,10 +233,11 @@ make_names_list = function(obj, meth_nms) {
 
 
 # @param x vector with names
-# @param synonym_list named list of unnamed character vectors with list names 
-# corresponding to required names in x, and character vectors 
+# @param ... additional arguments giving unnamed character vectors with 
+# argument names corresponding to required names in x, and character vectors 
 # corresponding to valid synonyms for those names.
-rename_synonyms = function(x, synonym_list) {
+rename_synonyms = function(x, ...) {
+  synonym_list = list(...)
   nms = names(x)
   for (true_name in names(synonym_list)) {
     synonyms = synonym_list[[true_name]]

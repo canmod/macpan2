@@ -1,34 +1,21 @@
+#' Modify a TMB Model Spec
+#' 
+#' Insert or update elements of a TMB model spec, produced using
+#' \code{\link{mp_tmb_library}} or \code{\link{mp_tmb_model_spec}}.
+#' 
+#' @param model TMB model spec object produced using
+#' \code{\link{mp_tmb_library}} or \code{\link{mp_tmb_model_spec}}.
+#' @param phase At what phase should `expressions` be inserted or updated.
+#' @param at Expression number, which can be identified by printing out
+#' `model`, at which the `expressions` should be inserted or updated. If
+#' inserted then the existing expressions with number `at` and higher are
+#' shifted after the new `expressions` are added. If updated, then the
+#' existing expressions with number from `at` to `at + length(expressions) - 1`
+#' are replaced with the new `expressions`.
+#' @inheritParams mp_tmb_model_spec
+#' 
 #' @export
 mp_tmb_insert = function(model
-    , phase = "during"
-    , at = 1L
-    , expressions = list()
-    , default = list()
-    , integers = list()
-    , must_save = character()
-    , must_not_save = character()
-    , sim_exprs = character()
-  ) {
-  UseMethod("mp_tmb_insert")
-}
-
-#' @export
-mp_tmb_update = function(model
-    , phase = "during"
-    , at = 1L
-    , expressions = list()
-    , default = list()
-    , integers = list()
-    , must_save = character()
-    , must_not_save = character()
-    , sim_exprs = character()
-  ) {
-  UseMethod("mp_tmb_update")
-}
-
-
-#' @export
-mp_tmb_insert.TMBModelSpec = function(model
     , phase = "during"
     , at = 1L
     , expressions = list()
@@ -47,8 +34,10 @@ mp_tmb_insert.TMBModelSpec = function(model
   model
 }
 
+
+#' @rdname mp_tmb_insert
 #' @export
-mp_tmb_update.TMBModelSpec = function(model
+mp_tmb_update = function(model
     , phase = "during"
     , at = 1L
     , expressions = list()
@@ -67,43 +56,6 @@ mp_tmb_update.TMBModelSpec = function(model
   model$sim_exprs  = unique(c(model$sim_exprs, sim_exprs))
   model
 }
-
-#' @export
-mp_tmb_insert_before = function(model, at, ...) {
-  model$insert$expressions(..., .at = at, .phase = "before")
-  model
-}
-#' @export
-mp_tmb_insert_during = function(model, at, ...) {
-  model$insert$expressions(..., .at = at, .phase = "during")
-  model
-}
-#' @export
-mp_tmb_insert_after = function(model, at, ...) {
-  model$insert$expressions(..., .at = at, .phase = "after")
-  model
-}
-#' @export
-mp_tmb_update_before = function(model, at, ...) {
-  model$update$expressions(..., .at = at, .phase = "before")
-  model
-}
-#' @export
-mp_tmb_update_during = function(model, at, ...) {
-  model$update$expressions(..., .at = at, .phase = "during")
-  model
-}
-#' @export
-mp_tmb_update_after = function(model, at, ...) {
-  model$update$expressions(..., .at = at, .phase = "after")
-  model
-}
-#' @export
-mp_tmb_tag_discontinuous = function(model, at) {
-  model$insert$expressions(..., .simulate_exprs = at)
-  model
-}
-
 
 ## Internal classes that handle model editing.
 
