@@ -1,6 +1,9 @@
 % Short script to write data locally from https://github.com/carolinecolijn/optimvaccine
 % Save .mat elements as individual csv's so they can easily be read in R
-% 
+%
+% Author: Jennifer Freeman
+
+%------------- BEGIN CODE --------------
 
 % note you need to use the url for the 'raw' data
 load(websave('massdata',"https://github.com/carolinecolijn/optimvaccine/raw/master/massdata.mat"));
@@ -19,3 +22,5 @@ for i=1:numel(fn)
 end
 
 % should also do for Maela data set: https://github.com/carolinecolijn/optimvaccine/raw/master/redmaela.mat
+
+%------------- END OF CODE --------------
