@@ -232,12 +232,20 @@ make_names_list = function(obj, meth_nms) {
 }
 
 
-rename_synonyms = function(x, synonyms) {
+# @param x vector with names
+# @param synonym_list named list of unnamed character vectors with list names 
+# corresponding to required names in x, and character vectors 
+# corresponding to valid synonyms for those names.
+rename_synonyms = function(x, synonym_list) {
   nms = names(x)
-  synonyms = synonyms[synonyms %in% nms] ## relevant synonyms
-  if (length(synonyms) == 0L) return(x)
-  for (synonym %in% synonyms) {
-    nms[]
+  for (true_name in names(synonym_list)) {
+    synonyms = synonym_list[[true_name]]
+    candidates = synonyms %in% nms
+    if (any(candidates)) {
+      if (sum(candidates) > 1L) stop("bad names")
+      nms[synonyms[candidates] == nms] = true_name
+    }
   }
-  
+  names(x) = nms
+  return(x)
 }
