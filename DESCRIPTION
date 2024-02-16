@@ -13,7 +13,7 @@ Authors@R: c(
 Description: Fast and flexible compartmental modelling with Template Model Builder.
 License: GPL-3
 Depends:
-    R (>= 4.1.0),
+    R (>= 4.1.0)
 Imports: 
     TMB,
     oor,
