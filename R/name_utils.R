@@ -230,3 +230,14 @@ make_names_list = function(obj, meth_nms) {
   for (nm in meth_nms) l[[nm]] = sprintf("%s_%s", nm, names(obj[[nm]]()))
   l
 }
+
+
+rename_synonyms = function(x, synonyms) {
+  nms = names(x)
+  synonyms = synonyms[synonyms %in% nms] ## relevant synonyms
+  if (length(synonyms) == 0L) return(x)
+  for (synonym %in% synonyms) {
+    nms[]
+  }
+  
+}
