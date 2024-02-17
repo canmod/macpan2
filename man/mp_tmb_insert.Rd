@@ -42,6 +42,9 @@ shifted after the new \code{expressions} are added. If updated, then the
 existing expressions with number from \code{at} to \code{at + length(expressions) - 1}
 are replaced with the new \code{expressions}.}
 
+\item{expressions}{Expressions to insert into the model spec or to
+replace existing expressions.}
+
 \item{default}{Named list of objects, each of which can be coerced into
 a \code{\link{numeric}} \code{\link{matrix}}. The names refer to
 variables that appear in \code{before}, \code{during}, and \code{after}.}

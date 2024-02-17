@@ -13,6 +13,3 @@ mp_fixed_effects.TMBSimulator = function(model) {
   fixed_effects$std_error = sqrt(diag(sd_report$cov.fixed))
   fixed_effects
 }
-
-
-

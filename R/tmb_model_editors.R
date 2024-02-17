@@ -12,6 +12,8 @@
 #' shifted after the new `expressions` are added. If updated, then the
 #' existing expressions with number from `at` to `at + length(expressions) - 1`
 #' are replaced with the new `expressions`.
+#' @param expressions Expressions to insert into the model spec or to
+#' replace existing expressions.
 #' @inheritParams mp_tmb_model_spec
 #' 
 #' @export

@@ -22,7 +22,7 @@ and possibly modified with \code{\link{mp_tmb_insert}} and
 
 \item{data}{A data frame containing trajectories to fit to and possibly
 time-varying parameters. The data must be of the same format as that
-produced by \code{\link{mp_tmb_trajectory}}.}
+produced by \code{\link{mp_trajectory}}.}
 
 \item{traj}{A character vector giving the names of trajectories to fit
 to data.}
