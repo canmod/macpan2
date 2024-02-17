@@ -44,6 +44,23 @@ mp_tmb_calibrator = function(spec, data
     , outputs = character()
     , time = NULL
   ) {
+  if (inherits(spec, "TMBSimulator")) {
+    stop(
+        "This function creates simulators (capable of being calibrated to "
+      , "data) from model specifications. But a simulator was passed instead "
+      , "of a specification. Please pass in the specification that was used "
+      , "to produce the simulator."
+    )
+  }
+  if (!inherits(spec, "TMBModelSpec")) {
+    stop(
+        "This function creates simulators (capable of being calibrated to "
+      , "data) from model specifications. But something other than a model "
+      , "spec was passed instead. Please use mp_tmb_model_spec or "
+      , "mp_tmb_library to produce a model spec that can be calibrated."
+    )
+  }
+  
   struc = TMBCalDataStruc(data, time)
   traj = TMBTraj(traj, struc, spec$all_formula_vars())
   tv = TMBTV(tv, struc, traj$global_names_vector())
