@@ -19,7 +19,8 @@
 #' @param par A character vector giving the names of parameters, either
 #' time-varying or not, to fit using trajectory match.
 #' @param outputs A character vector of outputs to pass to 
-#' \code{\link{mp_simulator}}.
+#' \code{\link{mp_simulator}}. By default the trajectories and time-varying
+#' parameters are in the output.
 #' @param time Specify the start and end time of the simulated trajectories,
 #' and the time period associated with each time step. Currently the only
 #' valid choice is `NULL`, which takes simulation bounds from the `data`.
@@ -41,7 +42,7 @@ mp_tmb_calibrator = function(spec, data
     , traj = character()
     , par = character()
     , tv = character()
-    , outputs = character()
+    , outputs = c(traj, intersect(par, tv))
     , time = NULL
   ) {
   if (inherits(spec, "TMBSimulator")) {

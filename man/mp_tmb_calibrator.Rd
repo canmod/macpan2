@@ -10,7 +10,7 @@ mp_tmb_calibrator(
   traj = character(),
   par = character(),
   tv = character(),
-  outputs = character(),
+  outputs = c(traj, intersect(par, tv)),
   time = NULL
 )
 }
@@ -34,7 +34,8 @@ time-varying or not, to fit using trajectory match.}
 time-varying according to the values in \code{data}.}
 
 \item{outputs}{A character vector of outputs to pass to
-\code{\link{mp_simulator}}.}
+\code{\link{mp_simulator}}. By default the trajectories and time-varying
+parameters are in the output.}
 
 \item{time}{Specify the start and end time of the simulated trajectories,
 and the time period associated with each time step. Currently the only
