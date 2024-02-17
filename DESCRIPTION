@@ -29,6 +29,8 @@ Suggests:
     dplyr,
     tidyr,
     ggplot2,
+    cowplot,
+    lubridate,
     testthat (>= 3.0.0),
     htmltools,
     visNetwork,
@@ -40,7 +42,7 @@ Suggests:
     numDeriv,
     parallel
 Remotes:
-    canmod/oor
+    canmod/oor,
     canmod/macpan2helpers
 LinkingTo:
     TMB,
