@@ -2,8 +2,12 @@
 # y ~ group_sums(v * x[i], j, y)
 # y ~ A %*% x
 
+#' Time Scale
+#' 
 #' @param start First date or time in the first time step
 #' @param end Last date or time in the last time step
+#' @param time_step_scale TODO
+#' @param ... TODO
 #' @importFrom utils getFromNamespace
 #' @export
 mp_time_scale = function(start, end
