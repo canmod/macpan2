@@ -1,4 +1,4 @@
-# macpan2 v.v.v
+# macpan2 1.1.0
 
 ## Breaking Changes
 
