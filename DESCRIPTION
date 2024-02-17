@@ -19,7 +19,9 @@ Imports:
     oor,
     jsonlite,
     MASS,
-    memoise
+    memoise,
+    stats,
+    utils
 Suggests: 
     covr,
     knitr,
@@ -27,7 +29,6 @@ Suggests:
     dplyr,
     tidyr,
     ggplot2,
-    lubridate,
     testthat (>= 3.0.0),
     htmltools,
     visNetwork,
