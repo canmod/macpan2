@@ -28,7 +28,6 @@ Suggests:
     tidyr,
     ggplot2,
     lubridate,
-    cowplot,
     testthat (>= 3.0.0),
     htmltools,
     visNetwork,
