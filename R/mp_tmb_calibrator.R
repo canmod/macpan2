@@ -61,6 +61,9 @@ mp_tmb_calibrator = function(spec, data
       , "mp_tmb_library to produce a model spec that can be calibrated."
     )
   }
+  ## gather defaults before they are updated (FIXME: this will need to be 
+  ## updated when non-character inputs are allowed)
+  force(outputs) 
   
   struc = TMBCalDataStruc(data, time)
   traj = TMBTraj(traj, struc, spec$all_formula_vars())
