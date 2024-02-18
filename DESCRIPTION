@@ -16,7 +16,7 @@ Depends:
     R (>= 4.1.0),
 Imports: 
     TMB (>= 1.9.0),
-    Matrix (>=1.6-5),
+    Matrix (>= 1.6-5),
     oor,
     jsonlite,
     MASS,
