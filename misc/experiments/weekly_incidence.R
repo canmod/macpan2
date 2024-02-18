@@ -9,6 +9,7 @@ library(dplyr)
 library(tidyr)
 library(ggplot2); theme_set(theme_bw())
 
+do_weekly <- TRUE
 
 ## ----sir_spec-----------------------------------------------------------------
 sir_spec = mp_tmb_library("starter_models"
@@ -21,16 +22,19 @@ sir_spec = mp_tmb_library("starter_models"
 ## is there a way to change 'integers' at runtime?
 ## can mp_tmb_update() be used on simulators ?
 
-wk <- as.integer((0:99) %/% 7) + 1L
-nweek <- max(wk)
+index_offset <- 0  ## 0 or 1
+wk <- as.integer((0:99) %/% 7) + index_offset
+nweek <- max(wk) + (1-index_offset)
 
-do_weekly <- FALSE
-
-## add daily inc
+## add daily incidence
 mp_tmb_insert(sir_spec, at = Inf,
               expressions = list(incidence ~ recovery),
               must_save = "incidence"
               )
+
+## ??? how do I tell to report additional variables in the output? used
+##  to be "mats_to_save". Adding "incidence" to "must_save" doesn't get it
+## reported ...
 
 if (do_weekly) {
     mp_tmb_insert(sir_spec, at = Inf,
@@ -43,9 +47,6 @@ if (do_weekly) {
                       list(wk_incidence ~ group_sums(rbind_time(incidence), wk, nweek)))
 }
 
-## ??? how do I tell to report additional variables in the output? used
-##  to be "mats_to_save". Adding "incidence" to "must_save" doesn't get it
-## reported ...
 
 ## ----sir_setup----------------------------------------------------------------
 sir_simulator = mp_simulator(sir_spec
@@ -62,8 +63,6 @@ tail(sir_results)
 ##   Group indexes are out of range.
 ## This error occurred at the following expression:
 ##   wk_incidence ~ group_sums(rbind_time(incidence), wk, nweek)
-
-## the length of wk_
 
 ## ??? could this be specified any more informatively?
 ## which index was out of range?
