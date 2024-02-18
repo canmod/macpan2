@@ -11,6 +11,7 @@ mp_tmb_calibrator(
   par = character(),
   tv = character(),
   outputs = c(traj, intersect(par, tv)),
+  default = list(),
   time = NULL
 )
 }
@@ -36,6 +37,13 @@ time-varying according to the values in \code{data}.}
 \item{outputs}{A character vector of outputs to pass to
 \code{\link{mp_simulator}}. By default the trajectories and time-varying
 parameters are in the output.}
+
+\item{default}{A list of default values to use to update the defaults
+in the \code{spec}. By default nothing is updated. Alternatively one could
+use \code{\link{mp_tmb_update}} to update the spec outside of the
+function. Indeed such an approach is necessary if new expressions,
+in additional to default updates, need to be added to the spec
+(e.g. seasonally varying transmission).}
 
 \item{time}{Specify the start and end time of the simulated trajectories,
 and the time period associated with each time step. Currently the only

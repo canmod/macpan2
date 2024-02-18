@@ -87,6 +87,14 @@ TMBModelSpec = function(
   }
   self$all_matrices = function() c(self$default, self$empty_matrices())
   
+  self$copy = function() {
+    mp_tmb_model_spec(
+        self$before, self$during, self$after
+      , self$default, self$integers
+      , self$must_save, self$must_not_save, self$sim_exprs
+    )
+  }
+  
   self$simulator_fresh = function(
         time_steps = 0
       , outputs = character()

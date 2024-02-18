@@ -11,27 +11,6 @@ editor_options:
   chunk_output_type: console
 ---
 
-```
-TODO:
-* confirm r-universe works
-* create installation instructions and send them out to out group
-* send out installation instructions 24 hours before workshop
-
-
-Story:
-1. macpan background
-1a. modify history to emphasize fancy radial basis functions and flexibility,
-    speed, and developer tooling
-1b. add current state of putting back simple interfaces and this workshop
-    is on the very simple case that i'll describe
-2. hello world including calibration 
-3. clarify the simple calibration approach and re-iterate that we have the
-   guts for extension (e.g. radial basis functions)
-4. fit to scarlet fever
-5. install instructions (hopefully using r-universe)
-6. try it out
-```
-
 [![status](https://img.shields.io/badge/status-working%20draft-red)](https://canmod.github.io/macpan2/articles/vignette-status#working-draft)
 
 ```{r opts, include = FALSE}
@@ -43,15 +22,23 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup, message = FALSE, warning = FALSE}
+Setup:
+
+```{r pkgs, message = FALSE}
 library(macpan2)
-library(ggplot2)
+library(macpan2helpers)
+mp2hver <- "0.0.3"
+if (packageVersion("macpan2helpers") < mp2hver) {
+    stop("please install macpan2helpers version >= ", mp2hver)
+}
 library(dplyr)
+library(tidyr)
+library(ggplot2); theme_set(theme_bw())
 ```
 
 In addition to these packages, the `broom.mixed` package and `outbreaks` package will be used below (if installed).
 
-## Hello World
+## 'Hello, World': an easy (??) calibration exercise
 
 We'll do the first thing you should always do when trying out a new fitting procedure: simulate clean, nice data from the model and see if you can recover something close to the true parameters.
 
@@ -82,33 +69,36 @@ set.seed(101)
 sir_prevalence = (sir_results
     |> dplyr::select(-c(row, col))
     |> filter(matrix == "I")
-    |> rename(true_value = value)
-    |> mutate(value = true_value + rnorm(n(), sd = 1))
+    |> mutate(obs_val = value + rnorm(n(), sd = 1))
 )
 gg0 <- ggplot(sir_prevalence, aes(time)) +
-    geom_point(aes(y = value)) +
-    geom_line(aes(y = true_value))
+    geom_point(aes(y = obs_val)) +
+    geom_line(aes(y = value))
 print(gg0)
 ```
 
 ### Step 1: add calibration information
 
-TODO: Describe how this differs from mp_simulator
+Now we'll use the *experimental* `mk_calibrate()` function from `macpan2helpers` package
 
 
-```{r calibrator}
-sir_calibrator = mp_tmb_calibrator(sir_spec
-  , data = sir_prevalence
-  , traj = "I"
-  , par = "beta"
-  , default = list(N = 100)
+
+
+```{r mk_calibrate}
+macpan2helpers::mk_calibrate(sir_simulator,
+   data = data.frame(I_obs = sir_prevalence$obs_val),
+   params = list(beta = 1, I_sd = 1),
+   transforms = list(beta = "log", I_sd = "log"),
+   exprs = list(log_lik ~ dnorm(I_obs, I, I_sd))
 )
 ```
 
-A sanity check: make sure that the default values give a reasonable-looking trajectory.
+Unlike typical R functions, this function modifies the `sim` object *in place* (!!) `FIXME: do not do this in place -- make a clone, which is easy with oor`
+
+A sanity check: make sure that the starting values give a reasonable-looking trajectory.
 
 ```{r plot1}
-(sir_calibrator 
+(sir_simulator 
  |> mp_trajectory()
  |> filter(matrix == "I")
  |> ggplot(aes(time, value)) 
@@ -116,7 +106,7 @@ A sanity check: make sure that the default values give a reasonable-looking traj
 )
 ```
 
-The simulated trajectory is **not** sensible in this case. 
+The simulated trajectory is **not** sensible in this case - the `log_beta` value is way too large (we set the default to ${\exp(1) \approx}$ `r round(exp(1), 2)`), while we know in this case that the true value is 0.2). Hopefully in a real system we would know enough to get reasonable order-of-magnitude starting values. (If we really knew that $\gamma \approx 0.1$, we would know that a starting value of $\log(\beta)=1$ would correspond to an ${\cal R}_0 \approx 28$, clearly unrealistic for most infectious diseases ...
 
 Setting $\log(\beta)=0$ instead gives us a trajectory that is still very unrealistic (the peak of our observed prevalence is only 16.7), but at least it's smooth. As it turns out this will be good enough, but finding appropriate starting values (based on external information and some trial and error) is often a significant part of a modeling workflow.
 

@@ -21,6 +21,12 @@
 #' @param outputs A character vector of outputs to pass to 
 #' \code{\link{mp_simulator}}. By default the trajectories and time-varying
 #' parameters are in the output.
+#' @param default A list of default values to use to update the defaults
+#' in the `spec`. By default nothing is updated. Alternatively one could
+#' use \code{\link{mp_tmb_update}} to update the spec outside of the 
+#' function. Indeed such an approach is necessary if new expressions, 
+#' in additional to default updates, need to be added to the spec 
+#' (e.g. seasonally varying transmission).
 #' @param time Specify the start and end time of the simulated trajectories,
 #' and the time period associated with each time step. Currently the only
 #' valid choice is `NULL`, which takes simulation bounds from the `data`.
@@ -43,6 +49,7 @@ mp_tmb_calibrator = function(spec, data
     , par = character()
     , tv = character()
     , outputs = c(traj, intersect(par, tv))
+    , default = list()
     , time = NULL
   ) {
   if (inherits(spec, "TMBSimulator")) {
@@ -65,19 +72,17 @@ mp_tmb_calibrator = function(spec, data
   ## updated when non-character inputs are allowed)
   force(outputs) 
   
+  ## copy the spec and update defaults
+  cal_spec = spec$copy()
+  mp_tmb_update(cal_spec, default = default)
+  
   struc = TMBCalDataStruc(data, time)
-  traj = TMBTraj(traj, struc, spec$all_formula_vars())
+  traj = TMBTraj(traj, struc, cal_spec$all_formula_vars())
   tv = TMBTV(tv, struc, traj$global_names_vector())
-  par = TMBPar(par, tv, traj, spec, tv$global_names_vector())
+  par = TMBPar(par, tv, traj, cal_spec, tv$global_names_vector())
   
-  ## copy the spec
-  cal_spec = mp_tmb_model_spec(
-      spec$before, spec$during, spec$after
-    , spec$default, spec$integers
-    , spec$must_save, spec$must_not_save, spec$sim_exprs
-  )
-  
-  ## add observed trajectories
+  ## add observed trajectories 
+  ## (see globalize function for comments on what it does)
   mp_tmb_insert(cal_spec
     , phase = "after"
     , at = 1L
@@ -120,6 +125,10 @@ mp_tmb_calibrator = function(spec, data
   cal_sim$replace$obj_fn(fn)
   cal_sim$replace$params_frame(par$params_frame())
   cal_sim$replace$random_frame(par$random_frame())
+  
+  ## TODO: add inputs to simulator object, and maybe extend so that it
+  ## is actually called a calibratable simulator
+  
   cal_sim
 }
 
@@ -188,7 +197,12 @@ TMBCalDataStruc = function(data, time) {
   self$matrix_list = split(data, data$matrix)
   return_object(self, "TMBCalDataStruc")
 }
-TMBTV = function(tv = character(), struc, existing_global_names = character()) {
+
+TMBTV = function(
+      tv = character()
+    , struc
+    , existing_global_names = character()
+  ) {
   self = Base()
   self$existing_global_names = existing_global_names
   
@@ -274,7 +288,11 @@ TMBTV = function(tv = character(), struc, existing_global_names = character()) {
   
   return_object(self, "TMBTV")
 }
-TMBTraj = function(traj = character(), struc, existing_global_names = character()) {
+TMBTraj = function(
+        traj = character()
+      , struc
+      , existing_global_names = character()
+    ) {
   self = Base()
   self$existing_global_names = existing_global_names
   
@@ -337,7 +355,11 @@ TMBTraj = function(traj = character(), struc, existing_global_names = character(
   
   return_object(self, "TMBTraj")
 }
-TMBPar = function(par = character(), tv = NULL, traj = NULL, spec = NULL, existing_global_names = character()) {
+TMBPar = function(
+        par = character()
+      , tv = NULL, traj = NULL, spec = NULL
+      , existing_global_names = character()
+    ) {
   self = Base()
   self$existing_global_names = existing_global_names
   self$tv = tv
@@ -390,9 +412,20 @@ TMBPar = function(par = character(), tv = NULL, traj = NULL, spec = NULL, existi
   return_object(self, "TMBPar")
 }
 
+## the globalize function below handles possible naming conflicts
+## in the engine when new variables are added by the system that
+## could be the same as a name chosen by the user. the syntax
+## of the globalize function works as follows. take the example
+## of the `obs` method in the `traj` object. the expression
+## traj$obs() would return the untreated automatically generated
+## names for the variables that will contain the observed
+## trajectories. however, globalize(traj, "obs") does the same
+## unless there are name conflicts and in that case returns
+## slightly modified names that do not conflict with and of the
+## names chosen by the user.
 globalize = function(obj, type) setNames(obj[[type]](), obj$global_names()[[type]])
-sum_obj_terms = function(...) {
-  char_terms = c(...) |> paste(collapse = " ")
-  one_sided(char_terms)
-}
 
+## combines character vectors and turns them into a one-sided formula
+sum_obj_terms = function(...) {
+  c(...) |> paste(collapse = " ") |> one_sided()
+}

@@ -26,8 +26,9 @@
 
 * Segfaults for out-of-range assignment.
 
-## Doc Fixes
+## Doc Fixes and Updates
 
+* (in progress) [Calibration vignette](https://github.com/canmod/macpan2/blob/HEAD/vignettes/calibration.Rmd) is updated to be a simpler quick-start, and previous advanced material is moved to an advanced vignette.
 * `mp_tmb_model_spec` documentation is filled out.
 * `group_sums` TMB engine function third argument updated from old pre-1.0.0 behaviour.
 
