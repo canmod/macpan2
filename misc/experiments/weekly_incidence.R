@@ -9,8 +9,6 @@ library(dplyr)
 library(tidyr)
 library(ggplot2); theme_set(theme_bw())
 
-do_weekly <- TRUE
-
 ## ----sir_spec-----------------------------------------------------------------
 sir_spec = mp_tmb_library("starter_models"
   , "sir"
@@ -32,126 +30,60 @@ mp_tmb_insert(sir_spec, at = Inf,
               must_save = "incidence"
               )
 
-## ??? how do I tell to report additional variables in the output? used
-##  to be "mats_to_save". Adding "incidence" to "must_save" doesn't get it
-## reported ...
+mp_tmb_insert(sir_spec, at = Inf,
+              integers = list(wk = wk),
+              phase = "during",
+              default = list(nweek = nweek))
 
-if (do_weekly) {
-    mp_tmb_insert(sir_spec, at = Inf,
-                  integers = list(wk = wk),
-                  phase = "during",
-                  default = list(nweek = nweek))
+mp_tmb_insert(sir_spec, phase = "after",
+              expressions =
+                  list(wk_incidence ~ group_sums(rbind_time(incidence), wk, rep(0, nweek))),
+                  must_save = "wk_incidence")
 
-    mp_tmb_insert(sir_spec, phase = "after",
-                  expressions =
-                      list(wk_incidence ~ group_sums(rbind_time(incidence), wk, nweek)))
-}
 
 
 ## ----sir_setup----------------------------------------------------------------
 sir_simulator = mp_simulator(sir_spec
   , time_steps = 100
-  , outputs = c("S", "I", "R")
+  , outputs = c("S", "I", "R", "incidence", "wk_incidence")
   , default = list(N = 100, beta = 0.2, gamma = 0.1)
 )
-sir_results = mp_trajectory(sir_simulator)
-summary(sir_results)
-head(sir_results)
-tail(sir_results)
 
-## The following error was thrown by the TMB engine:
-##   Group indexes are out of range.
-## This error occurred at the following expression:
-##   wk_incidence ~ group_sums(rbind_time(incidence), wk, nweek)
-
-## ??? could this be specified any more informatively?
-## which index was out of range?
-
-## stopped here, but the rest of the code is retained because
-    ## we'll want it eventually
-
-stop("stopped here")   
-
-## ----sir_noise----------------------------------------------------------------
-set.seed(101)
-sir_prevalence = (sir_results
-    |> dplyr::select(-c(row, col))
-    |> filter(matrix == "I")
-    |> mutate(obs_val = value + rnorm(n(), sd = 1))
+## is there a nice front end for reporting after phase?
+wk_ind_obs <- (sir_simulator$report(.phases = "after")
+    |> filter(matrix == "wk_incidence")
+    |> mutate(obs_val = rnorm(n = n(), mean = value, sd = 0.1))
+    |> pull(obs_val)
 )
-gg0 <- ggplot(sir_prevalence, aes(time)) +
-    geom_point(aes(y = obs_val)) +
-    geom_line(aes(y = value))
-print(gg0)
-
 
 ## ----mk_calibrate-------------------------------------------------------------
-macpan2helpers::mk_calibrate(sir_simulator,
-   data = data.frame(I_obs = sir_prevalence$obs_val),
-   params = list(beta = 1, I_sd = 1),
-   transforms = list(beta = "log", I_sd = "log"),
-   exprs = list(log_lik ~ dnorm(I_obs, I, I_sd))
-)
+## mm <- macpan2helpers::mk_calibrate(sir_simulator,
+##    data = data.frame(inc_obs = wk_ind_obs),
+##    params = list(beta = 1, I_sd = 1),
+##    transforms = list(beta = "log", I_sd = "log"),
+##    exprs = list(log_lik ~ dnorm(inc_obs, wk_incidence, I_sd))
+## )
+
+## mk_calibrate isn't quite flexible enough to handle this case
+## (it assumes that sim vars are 'during' vars, not something created
+##  explicitly in the 'after' phase; also tries to replace time steps
+sir_simulator$add$matrices(log_lik = empty_matrix)
+sir_simulator$add$matrices(inc_obs = wk_ind_obs)
+sir_simulator$add$matrices(I_sd = 1)
+sir_simulator$insert$expressions(
+               log_lik ~ dnorm(inc_obs, wk_incidence, I_sd),
+               .phase = 'after', .at = Inf)
+pframe <- data.frame(mat = c("log_beta", "log_I_sd"), row = 0, col = 0, default = c(1, 1))
+sir_simulator$add$transformations(Log("beta"))
+sir_simulator$add$transformations(Log("I_sd"))
+sir_simulator$replace$params_frame(pframe)
+sir_simulator$replace$obj_fn(~ -sum(log_lik))
+
+sir_simulator
+sir_simulator$ad_fun()$fn()
+sir_simulator$ad_fun()$fn(c(0.9,0.9))
 
 
-## ----plot1--------------------------------------------------------------------
-(sir_simulator 
- |> mp_trajectory()
- |> filter(matrix == "I")
- |> ggplot(aes(time, value)) 
- + geom_line()
-)
-
-
-## ----plot2--------------------------------------------------------------------
-(sir_simulator$report(c(0,0)) |>
- filter(matrix == "I") |>
- ggplot(aes(time, value)) + geom_line()
-)
-
-
-## ----repl_param---------------------------------------------------------------
-sir_simulator$replace$params(
-    c(0         , 1         )
-  , c("log_beta", "log_I_sd")
-)
-
-
-## ----sir_fit, results = "hide"------------------------------------------------
 fit <- sir_simulator$optimize$nlminb()
-
-
-## ----check_fit----------------------------------------------------------------
-print(fit)
-
-
-## ----params-------------------------------------------------------------------
-exp(fit$par)
-
-
-## ----coef_funs----------------------------------------------------------------
-coefnames <- function(x) {
-    x$current$params_frame()$mat
-}
-drop_trans <- function(x) gsub("(log|logit)_", "", x)
-
-
-## ----params_fancy, eval = require("broom.mixed")------------------------------
-ff <- sir_simulator$ad_fun()
-class(ff) <- "TMB"
-(broom.mixed::tidy(ff, conf.int = TRUE)
-    |> select(-c(type, std.error))
-    |> mutate(term = drop_trans(coefnames(sir_simulator)))
-    |> mutate(across(where(is.numeric), exp))
-    |> as_tibble()
-)
-
-
-## ----plot_results-------------------------------------------------------------
-sim_vals <- (sir_simulator
-  |> mp_trajectory()
-  |> filter(matrix == "I")
-)
-gg0 + geom_line(data = sim_vals, aes(y= value), colour = "red")
 
 
