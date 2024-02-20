@@ -88,8 +88,6 @@
 <li><a href="https://canmod.github.io/macpan2/">Package reference</a></li>
 <li><a href="https://canmod.github.io/macpan2/articles/quickstart">Quick-start guide</a></li>
 <li>
-<a href="https://canmod.github.io/macpan2/articles/model_definitions">Representation of compartmental models</a> [specification document]</li>
-<li>
 <a href="https://canmod.github.io/macpan2/articles/cpp_side"><code>TMB</code> engine</a> [specification document]</li>
 <li>
 <a href="https://canmod.net/misc/macpan2_presentation" class="external-link">Project history and trajectory</a> [slides]</li>
@@ -98,17 +96,16 @@
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>If you’re on a Windows system, please install <code>Rtools</code> matching your R version from <a href="https://cran.r-project.org/bin/windows/Rtools/" class="external-link">here</a>. This ensures you have a C++ compiler, which is required to install <code>macpan2</code> from source (as below).</p>
-<p>Then, install the <code>macpan2</code> package with the following R command.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"canmod/macpan2"</span>)</span></code></pre></div>
-<p>For projects in production one should install a specific version, as in the following command.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"canmod/macpan2@v1.0.0"</span>)</span></code></pre></div>
+<p>The standard recommended way to install <code>macpan2</code> is with the following command.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>repos <span class="ot">=</span> <span class="fu">c</span>(<span class="st">'https://canmod.r-universe.dev'</span>, <span class="st">'https://cloud.r-project.org'</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">'macpan2'</span>, <span class="at">repos =</span> repos)</span></code></pre></div>
+<p>This command will install the current version of <code>macpan2</code>. There is no need to use <code>remotes::install_github</code> for the latest development version. For projects in production that need to keep track of specific versions of <code>macpan2</code>, snapshots and other reproducibility information can be obtained <a href="https://canmod.r-universe.dev/api" class="external-link">here</a>. Please see <a href="https://ropensci.org/blog/2022/01/06/runiverse-renv/" class="external-link">this article</a> for an explanation of how to manage reproducibility using <code>r-universe</code>.</p>
 </div>
 <div class="section level2">
 <h2 id="hello-world">Hello World<a class="anchor" aria-label="anchor" href="#hello-world"></a>
 </h2>
 <p>The following code specifies an SI model, which is I think is the simplest possible model of epidemiological transmission.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">si</span> <span class="op">=</span> <span class="fu"><a href="reference/mp_tmb_model_spec.html">mp_tmb_model_spec</a></span><span class="op">(</span></span>
 <span>    before <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>        <span class="va">I</span> <span class="op">~</span> <span class="fl">1</span></span>
@@ -122,27 +119,27 @@
 <span>  , default <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>N <span class="op">=</span> <span class="fl">100</span>, beta <span class="op">=</span> <span class="fl">0.25</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/engine_functions.html">print</a></span><span class="op">(</span><span class="va">si</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb4"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="do">## ---------------------</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="do">## Default values:</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="do">## ---------------------</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="do">##  matrix row col  value</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="do">##       N         100.00</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="do">##    beta           0.25</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="do">## </span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="do">## ---------------------</span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="do">## Before the simulation loop (t = 0):</span></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="do">## ---------------------</span></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="do">## 1: I ~ 1</span></span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="do">## 2: S ~ N - I</span></span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="do">## </span></span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="do">## ---------------------</span></span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="do">## At every iteration of the simulation loop (t = 1 to T):</span></span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="do">## ---------------------</span></span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="do">## 1: infection ~ beta * S * I/N</span></span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a><span class="do">## 2: S ~ S - infection</span></span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="do">## 3: I ~ I + infection</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="do">## ---------------------</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="do">## Default values:</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="do">## ---------------------</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="do">##  matrix row col  value</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="do">##       N         100.00</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="do">##    beta           0.25</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="do">## </span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="do">## ---------------------</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="do">## Before the simulation loop (t = 0):</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="do">## ---------------------</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="do">## 1: I ~ 1</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="do">## 2: S ~ N - I</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="do">## </span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="do">## ---------------------</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="do">## At every iteration of the simulation loop (t = 1 to T):</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="do">## ---------------------</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="do">## 1: infection ~ beta * S * I/N</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="do">## 2: S ~ S - infection</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="do">## 3: I ~ I + infection</span></span></code></pre></div>
 <p>Simulating from this model requires choosing the number of time-steps to run and the model outputs to generate. Syntax for simulating <code>macpan2</code> models is <a href="#modularity">designed to combine with standard data prep and plotting tools in R</a>, as we demonstrate with the following code.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="op">(</span><span class="va">si</span></span>
 <span> <span class="op">|&gt;</span> <span class="fu"><a href="reference/mp_simulator.html">mp_simulator</a></span><span class="op">(</span>time_steps <span class="op">=</span> <span class="fl">50</span>, outputs <span class="op">=</span> <span class="fu"><a href="reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"I"</span>, <span class="st">"infection"</span><span class="op">)</span><span class="op">)</span></span>
 <span> <span class="op">|&gt;</span> <span class="fu"><a href="reference/mp_trajectory.html">mp_trajectory</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -215,11 +212,11 @@
 <div class="dev-status">
 <h2 data-toc-skip>Dev status</h2>
 <ul class="list-unstyled">
+<li><a href="https://canmod.r-universe.dev/macpan2" class="external-link"><img src="https://canmod.r-universe.dev/badges/macpan2" alt="macpan2 status badge"></a></li>
 <li><a href="https://github.com/canmod/macpan2/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/canmod/macpan2/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
 <li><a href="https://github.com/canmod/macpan2/actions/workflows/test-coverage.yaml" class="external-link"><img src="https://byob.yarr.is/canmod/macpan2/coverage" alt="test coverage"></a></li>
 <li><a href="https://github.com/canmod/macpan2/commits" class="external-link"><img src="https://img.shields.io/github/commit-activity/m/canmod/macpan2" alt="commit activity"></a></li>
 <li><a href="https://github.com/canmod/macpan2/graphs/contributors" class="external-link"><img src="https://img.shields.io/github/contributors/canmod/macpan2" alt="contributors"></a></li>
-<li><a href="https://github.com/canmod/macpan2/releases/latest" class="external-link"><img src="https://img.shields.io/github/v/release/canmod/macpan2?include_prereleases" alt="release"></a></li>
 </ul>
 </div>
 
