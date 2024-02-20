@@ -571,15 +571,20 @@ parameters on the log scale.</p>
 parameters: this tells <code>macpan2</code> to apply the Laplace
 approximation to these parameters …</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rparams</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
-<span>    mat  <span class="op">=</span> <span class="st">"b"</span>,</span>
-<span>    row <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">19</span>,</span>
-<span>    col <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>    default <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
-<span><span class="va">simulator</span><span class="op">$</span><span class="va">replace</span><span class="op">$</span><span class="fu">random_frame</span><span class="op">(</span><span class="va">rparams</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">matrix_version</span> <span class="op">=</span> <span class="st">"1.6-5"</span></span>
+<span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/packageDescription.html" class="external-link">packageVersion</a></span><span class="op">(</span><span class="st">"Matrix"</span><span class="op">)</span> <span class="op">&gt;=</span> <span class="va">matrix_version</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">rparams</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>      mat  <span class="op">=</span> <span class="st">"b"</span>,</span>
+<span>      row <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">19</span>,</span>
+<span>      col <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>      default <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
+<span>  <span class="va">simulator</span><span class="op">$</span><span class="va">replace</span><span class="op">$</span><span class="fu">random_frame</span><span class="op">(</span><span class="va">rparams</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
 <p>Test the objective function:</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="va">simulator</span><span class="op">$</span><span class="fu">ad_fun</span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="fu">fn</span><span class="op">(</span><span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/packageDescription.html" class="external-link">packageVersion</a></span><span class="op">(</span><span class="st">"Matrix"</span><span class="op">)</span> <span class="op">&gt;=</span> <span class="va">matrix_version</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">res</span> <span class="op">&lt;-</span> <span class="va">simulator</span><span class="op">$</span><span class="fu">ad_fun</span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="fu">fn</span><span class="op">(</span><span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
 <span><span class="co">#&gt; Optimizing tape... Done</span></span>
 <span><span class="co">#&gt; iter: 1  value: 5994496 mgc: 2058657968 ustep: 1 </span></span>
 <span><span class="co">#&gt; iter: 2  value: 1327494 mgc: 1334286157 ustep: 1 </span></span>
@@ -608,22 +613,25 @@ set of fixed parameters (<code>log_I_sd</code>,
 may need to call the <code>$retape()</code> function to restore internal
 structure when retrieving …</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co">## testing: simulator$ad_fun()$fn()</span></span>
-<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="va">simulator</span><span class="op">$</span><span class="va">optimize</span><span class="op">$</span><span class="fu">nlminb</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/packageDescription.html" class="external-link">packageVersion</a></span><span class="op">(</span><span class="st">"Matrix"</span><span class="op">)</span> <span class="op">&gt;=</span> <span class="va">matrix_version</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="co">## testing: simulator$ad_fun()$fn()</span></span>
+<span>  <span class="va">fit</span> <span class="op">&lt;-</span> <span class="va">simulator</span><span class="op">$</span><span class="va">optimize</span><span class="op">$</span><span class="fu">nlminb</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co">## simulator$print$matrix_dims()</span></span>
-<span><span class="co">## fixed effects only:</span></span>
-<span><span class="co">## look at parameters, but skip the random-effects parameters</span></span>
-<span><span class="co">## 'random' holds the indices of the parameters that are treated</span></span>
-<span><span class="co">## as random effects</span></span>
-<span><span class="op">(</span><span class="va">fixed_params</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="va">simulator</span><span class="op">$</span><span class="fu">ad_fun</span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="va">env</span>,</span>
-<span>                      <span class="va">last.par.best</span><span class="op">[</span><span class="op">-</span><span class="va">random</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt;    params    params </span></span>
-<span><span class="co">#&gt;  3.950293 -4.729843</span></span>
-<span><span class="co">## ???</span></span>
-<span><span class="co">## RE only</span></span>
-<span><span class="op">(</span><span class="va">ran_params</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="va">simulator</span><span class="op">$</span><span class="fu">ad_fun</span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="va">env</span>,</span>
-<span>                    <span class="va">last.par.best</span><span class="op">[</span><span class="va">random</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/packageDescription.html" class="external-link">packageVersion</a></span><span class="op">(</span><span class="st">"Matrix"</span><span class="op">)</span> <span class="op">&gt;=</span> <span class="va">matrix_version</span><span class="op">)</span> <span class="op">{</span></span>
+<span></span>
+<span>  <span class="co">## simulator$print$matrix_dims()</span></span>
+<span>  <span class="co">## fixed effects only:</span></span>
+<span>  <span class="co">## look at parameters, but skip the random-effects parameters</span></span>
+<span>  <span class="co">## 'random' holds the indices of the parameters that are treated</span></span>
+<span>  <span class="co">## as random effects</span></span>
+<span>  <span class="op">(</span><span class="va">fixed_params</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="va">simulator</span><span class="op">$</span><span class="fu">ad_fun</span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="va">env</span>,</span>
+<span>                        <span class="va">last.par.best</span><span class="op">[</span><span class="op">-</span><span class="va">random</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="co">## ???</span></span>
+<span>  <span class="co">## RE only</span></span>
+<span>  <span class="op">(</span><span class="va">ran_params</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="va">simulator</span><span class="op">$</span><span class="fu">ad_fun</span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="va">env</span>,</span>
+<span>                      <span class="va">last.par.best</span><span class="op">[</span><span class="va">random</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
 <span><span class="co">#&gt;        random        random        random        random        random </span></span>
 <span><span class="co">#&gt;  0.0067466350  0.0116662418 -0.0036351524 -0.0151989844  0.0011403780 </span></span>
 <span><span class="co">#&gt;        random        random        random        random        random </span></span>
@@ -639,15 +647,17 @@ mutability/make sure we use <code>last.par.best</code> internally …)</p>
 <p>Extract parameters, run the simulator for the best-fit parameters,
 compare with data …</p>
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">pp</span> <span class="op">&lt;-</span> <span class="va">simulator</span><span class="op">$</span><span class="fu">ad_fun</span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="va">env</span><span class="op">$</span><span class="va">last.par.best</span>  <span class="co">## FIXME: use this</span></span>
-<span><span class="va">est_I</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">simulator</span></span>
-<span>    <span class="op">|&gt;</span> <span class="fu"><a href="../reference/mp_trajectory.html">mp_trajectory</a></span><span class="op">(</span><span class="op">)</span></span>
-<span>    <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">matrix</span> <span class="op">==</span> <span class="st">"I"</span><span class="op">)</span></span>
-<span>    <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/pull.html" class="external-link">pull</a></span><span class="op">(</span><span class="va">value</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>las <span class="op">=</span> <span class="fl">1</span>, bty <span class="op">=</span> <span class="st">"l"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">obs_I</span>, xlab <span class="op">=</span> <span class="st">"time"</span>, ylab <span class="op">=</span> <span class="st">"prevalence"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="va">est_I</span>, col <span class="op">=</span> <span class="fl">2</span>, lwd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/packageDescription.html" class="external-link">packageVersion</a></span><span class="op">(</span><span class="st">"Matrix"</span><span class="op">)</span> <span class="op">&gt;=</span> <span class="va">matrix_version</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">pp</span> <span class="op">&lt;-</span> <span class="va">simulator</span><span class="op">$</span><span class="fu">ad_fun</span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="va">env</span><span class="op">$</span><span class="va">last.par.best</span>  <span class="co">## FIXME: use this</span></span>
+<span>  <span class="va">est_I</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">simulator</span></span>
+<span>      <span class="op">|&gt;</span> <span class="fu"><a href="../reference/mp_trajectory.html">mp_trajectory</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>      <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">matrix</span> <span class="op">==</span> <span class="st">"I"</span><span class="op">)</span></span>
+<span>      <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/pull.html" class="external-link">pull</a></span><span class="op">(</span><span class="va">value</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>las <span class="op">=</span> <span class="fl">1</span>, bty <span class="op">=</span> <span class="st">"l"</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">obs_I</span>, xlab <span class="op">=</span> <span class="st">"time"</span>, ylab <span class="op">=</span> <span class="st">"prevalence"</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="va">est_I</span>, col <span class="op">=</span> <span class="fl">2</span>, lwd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
 <p><img src="time_varying_parameters_files/figure-html/plot_sim-1.png" width="576"></p>
 <p><strong>fixme</strong>: there are a few artificialities about this
 example that could/should be relaxed</p>
