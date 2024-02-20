@@ -15,6 +15,9 @@ bibliography: macpan2.bib
 [![status](https://img.shields.io/badge/status-working%20draft-red)](https://canmod.github.io/macpan2/articles/vignette-status#working-draft)
 
 ```{r pkgs, include = FALSE}
+## matrix package version issues
+do_random_effects = packageVersion("Matrix") >= "1.6-5"
+
 library(macpan2)
 library(macpan2helpers)
 library(dplyr)
@@ -410,21 +413,28 @@ simulator$replace$params_frame(params)
 Finally, we add the `b` vector as a set of *random* parameters: this tells `macpan2` to apply
 the Laplace approximation to these parameters ...
 ```{r random_params}
-rparams <- data.frame(
-    mat  = "b",
-    row = 0:19,
-    col = 0,
-    default = 0)
-simulator$replace$random_frame(rparams)
+matrix_version = "1.6-5"
+if (packageVersion("Matrix") >= matrix_version) {
+  rparams <- data.frame(
+      mat  = "b",
+      row = 0:19,
+      col = 0,
+      default = 0)
+  simulator$replace$random_frame(rparams)
+}
 ```
 
 Test the objective function:
 
 ```{r rbf_test_objfun, resuls = "hide"}
-res <- simulator$ad_fun()$fn(c(1,1))
+if (packageVersion("Matrix") >= matrix_version) {
+  res <- simulator$ad_fun()$fn(c(1,1))
+}
 ```
 ```{r rbf_test_fake, echo = FALSE}
-print(res)
+if (packageVersion("Matrix") >= matrix_version) {
+  print(res)
+}
 ```
 
 **fixme**: can't get objective function to shut up. Should have specified `silent = TRUE` when calling `MakeADFun()` initially, now have tried assigning the value in several different environments, without success ...
@@ -434,23 +444,27 @@ This step normally produces lots of output (more output than a model with random
 **fixme**: note to developers, if we cache results we may need to call the `$retape()` function to restore internal structure when retrieving ...
 
 ```{r rbf_calib, results = "hide"}
-## testing: simulator$ad_fun()$fn()
-fit <- simulator$optimize$nlminb()
+if (packageVersion("Matrix") >= matrix_version) {
+  ## testing: simulator$ad_fun()$fn()
+  fit <- simulator$optimize$nlminb()
+}
 ```
 
 ```{r rbf_after_calib}
-## simulator$print$matrix_dims()
-## fixed effects only:
-## look at parameters, but skip the random-effects parameters
-## 'random' holds the indices of the parameters that are treated
-## as random effects
-(fixed_params <- with(simulator$ad_fun()$env,
-                      last.par.best[-random]))
-## ???
-## RE only
-(ran_params <- with(simulator$ad_fun()$env,
-                    last.par.best[random]))
+if (packageVersion("Matrix") >= matrix_version) {
 
+  ## simulator$print$matrix_dims()
+  ## fixed effects only:
+  ## look at parameters, but skip the random-effects parameters
+  ## 'random' holds the indices of the parameters that are treated
+  ## as random effects
+  (fixed_params <- with(simulator$ad_fun()$env,
+                        last.par.best[-random]))
+  ## ???
+  ## RE only
+  (ran_params <- with(simulator$ad_fun()$env,
+                      last.par.best[random]))
+}
 ```
 
 **fixme**: we need an incantation to extract the full parameters (including RE parameters) in order to make sure `$report` works properly? (In general, should caution about mutability/make sure we use `last.par.best` internally ...)
@@ -458,15 +472,17 @@ fit <- simulator$optimize$nlminb()
 Extract parameters, run the simulator for the best-fit parameters, compare with data ...
 
 ```{r plot_sim, basefig = TRUE}
-pp <- simulator$ad_fun()$env$last.par.best  ## FIXME: use this
-est_I <- (simulator
-    |> mp_trajectory()
-    |> filter(matrix == "I")
-    |> pull(value)
-)
-par(las = 1, bty = "l")
-plot(obs_I, xlab = "time", ylab = "prevalence")
-lines(est_I, col = 2, lwd = 2)
+if (packageVersion("Matrix") >= matrix_version) {
+  pp <- simulator$ad_fun()$env$last.par.best  ## FIXME: use this
+  est_I <- (simulator
+      |> mp_trajectory()
+      |> filter(matrix == "I")
+      |> pull(value)
+  )
+  par(las = 1, bty = "l")
+  plot(obs_I, xlab = "time", ylab = "prevalence")
+  lines(est_I, col = 2, lwd = 2)
+}
 ```
 
 **fixme**: there are a few artificialities about this example that could/should be relaxed
