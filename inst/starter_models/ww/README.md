@@ -4,7 +4,7 @@ index_entry: "Macpan base with an additional wastewater component"
 author: Jennifer Freeman
 ---
 
-The McMasterPandemic model (Bolker, 2022) modified to include a wastewater component.
+The McMasterPandemic model (Bolker et al., 2022) modified to include a wastewater component.
 
 # States
 
@@ -25,7 +25,7 @@ The McMasterPandemic model (Bolker, 2022) modified to include a wastewater compo
 | $W$      | Number of infectious individuals with detectable virus in wastewater * |
 | $A$      | Total concentration of virus in wastewater *                           |
 
-The size of the total population is,  $N = S + E + I_a + I_p + I_m + I_s + H +  ICU_s + ICU_d + H_2 + D + R$.
+The size of the total population is, $N = S + E + I_a + I_p + I_m + I_s + H +  ICU_s + ICU_d + H_2 + D + R$.
 
 \* Need to confirm state descriptions
 
@@ -84,6 +84,10 @@ $$
 $$
 
 When there were discrepancies with how the model is expressed in Papst (TBD) versus model definition files, the latter was chosen.
+
+# Model Specification
+
+This model has been specified in the `ww` directory [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/ww/tmb.R) and is accessible from the `macpan2` model library (see [Example Models](https://canmod.github.io/macpan2/articles/example_models.html) for details). 
 
 # References 
 
