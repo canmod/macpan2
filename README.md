@@ -5,13 +5,14 @@ macpan2
 
 <!-- badges: start -->
 
+[![macpan2 status
+badge](https://canmod.r-universe.dev/badges/macpan2)](https://canmod.r-universe.dev/macpan2)
 [![R-CMD-check](https://github.com/canmod/macpan2/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/canmod/macpan2/actions/workflows/R-CMD-check.yaml)
 [![test
 coverage](https://byob.yarr.is/canmod/macpan2/coverage)](https://github.com/canmod/macpan2/actions/workflows/test-coverage.yaml)
 [![commit
 activity](https://img.shields.io/github/commit-activity/m/canmod/macpan2)](https://github.com/canmod/macpan2/commits)
 [![contributors](https://img.shields.io/github/contributors/canmod/macpan2)](https://github.com/canmod/macpan2/graphs/contributors)
-[![release](https://img.shields.io/github/v/release/canmod/macpan2?include_prereleases)](https://github.com/canmod/macpan2/releases/latest)
 
 [McMasterPandemic](https://github.com/mac-theobio/McMasterPandemic) was
 developed to provide forecasts and insights to Canadian public health
@@ -59,9 +60,6 @@ Agency of Canada](https://www.canada.ca/en/public-health.html) uses
 -   [Package reference](https://canmod.github.io/macpan2/)
 -   [Quick-start
     guide](https://canmod.github.io/macpan2/articles/quickstart)
--   [Representation of compartmental
-    models](https://canmod.github.io/macpan2/articles/model_definitions)
-    \[specification document\]
 -   [`TMB` engine](https://canmod.github.io/macpan2/articles/cpp_side)
     \[specification document\]
 -   [Project history and
@@ -69,19 +67,19 @@ Agency of Canada](https://www.canada.ca/en/public-health.html) uses
 
 ## Installation
 
-If you’re on a Windows system, please install `Rtools` matching your R
-version from [here](https://cran.r-project.org/bin/windows/Rtools/).
-This ensures you have a C++ compiler, which is required to install
-`macpan2` from source (as below).
+The standard recommended way to install `macpan2` is with the following
+command.
 
-Then, install the `macpan2` package with the following R command.
+    repos = c('https://canmod.r-universe.dev', 'https://cloud.r-project.org')
+    install.packages('macpan2', repos = repos)
 
-    remotes::install_github("canmod/macpan2")
-
-For projects in production one should install a specific version, as in
-the following command.
-
-    remotes::install_github("canmod/macpan2@v1.0.0")
+This command will install the current version of `macpan2`. There is no
+need to use `remotes::install_github` for the latest development
+version. For projects in production that need to keep track of specific
+versions of `macpan2`, snapshots and other reproducibility information
+can be obtained [here](https://canmod.r-universe.dev/api). Please see
+[this article](https://ropensci.org/blog/2022/01/06/runiverse-renv/) for
+an explanation of how to manage reproducibility using `r-universe`.
 
 ## Hello World
 
