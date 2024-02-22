@@ -30,13 +30,11 @@ library(ggplot2)
 
 ```{r api_hook}
 api_hook = iidda.api::ops_staging
-options(iidda_api_msgs = FALSE)
+options(iidda_api_msgs = FALSE, macpan2_verbose = FALSE)
 ```
 
 
 ## One Scarlet Fever Outbreak in Ontario
-
-TODO: figure out how to model this without assuming susceptible depletion for turnover.
 
 ```{r scarlet_fever_ontario}
 scarlet_fever_ontario = api_hook$filter(resource_type = "CANMOD CDI"
