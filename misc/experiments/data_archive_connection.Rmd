@@ -167,6 +167,11 @@ sir_cal = mp_tmb_calibrator(
 )
 ```
 
+Here we assert that we will fit `beta`, `gamma`, (the initial value of) `I`, and `report_prob`. Note that we can only set values in the `default` list of the model spec. In particular, `I` is in the default list because the model requires the initial number of infectious individuals, whereas `S` is not because it is derived before the simulation loop as `S ~ N - I - R`.
+
+```{r}
+print(sir)
+```
 
 ## Run the Optimization
 

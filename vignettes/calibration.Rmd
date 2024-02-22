@@ -31,6 +31,8 @@ library(broom.mixed)
 options(macpan2_verbose =  FALSE)
 ```
 
+Before reading this article on calibrating models to data, please first look at the [quickstart guide](https://canmod.github.io/macpan2/articles/quickstart) and the article on the [model library](https://canmod.github.io/macpan2/articles/example_models).
+
 ## Hello World
 
 We'll do the first thing you should always do when trying out a new fitting procedure: simulate clean, nice data from the model and see if you can recover something close to the true parameters.
@@ -60,10 +62,10 @@ sir_results = mp_trajectory(sir_simulator)
 )
 ```
 
-Note that we change the default values so that we can try to recover them
+Note that we changed the default values so that we can try to recover them
 using optimization below.
 
-Add some noise to the prevalence (`I`) value:
+To make things a little more challenging we add some Poisson noise to the prevalence (`I`) value:
 
 ```{r sir_noise}
 set.seed(101)
@@ -81,8 +83,7 @@ print(plot_truth)
 
 ### Step 1: add calibration information
 
-TODO: Describe how this differs from mp_simulator
-
+The next step is to produce an object that can be calibrated through optimization. To make this model we need to specify what trajectory we will fit to (`I` in this case). We also need to specify what parameters we will fit. Any value in the `default` list of a model spec can be selected for fitting. Note that here we only change the default value of `N`, and leave the other parameters where they were in the model spec. It is this difference between the defaults in the simulator versus the calibrator that will will hope to recover using optimization.
 
 ```{r calibrator}
 sir_calibrator = mp_tmb_calibrator(sir_spec
@@ -91,20 +92,14 @@ sir_calibrator = mp_tmb_calibrator(sir_spec
   , par = c("beta", "R")
   , default = list(N = 300)
 )
-```
-
-```{r calibration_spec}
 print(sir_calibrator)
 ```
 
-TODO: Note other expressions
-
-A sanity check: make sure that the default values give a reasonable-looking trajectory.
+Note that the calibrator has a few new expressions that deal with comparisons with data. In particular it is the objective function that we will optimize. But before that we can do a sanity check to make sure that the default values give a reasonable-looking trajectory.
 
 ```{r plot1}
 (sir_calibrator 
  |> mp_trajectory()
- |> filter(matrix == "I")
  |> ggplot(aes(time, value)) 
  + geom_line()
 )
@@ -113,21 +108,24 @@ A sanity check: make sure that the default values give a reasonable-looking traj
 
 ### Step 2: do the fit
 
+Doing the fit is straightforward.
+
 ```{r sir_fit, results = "hide"}
-mp_optimize(sir_calibrator, optimizer = "nlminb")
+mp_optimize(sir_calibrator)
 ```
+
+Note that the `mp_optimize` function has modified the `sir_calibrator` object, which now contains the new fitted parameter values and the results of the optimization.
 
 ### Step 3: check the fit
 
-Print the results of the optimizer (`nlminb` in this case). **Always check the value of the convergence code** (if it's not 0, then something *may* have gone wrong ...).
+We can print the results of the optimizer (`nlminb` in this case) using the `mp_optimizer_outut` function. **Always check the value of the convergence code** (if it's not 0, then something *may* have gone wrong ...).
 
 ```{r check_fit}
 mp_optimizer_output(sir_calibrator)
 ```
 
-
-The best-fit parameters are stored internally, and we can get information about
-them using the following function.
+As mentioned above, the best-fit parameters are stored internally, and we can get information about
+them using the `mp_tmb_coef` function. (Note that if you get a message about the `broom.mixed` package, please install it. `mp_tmb_coef` is a wrapper for this function).
 ```{r params}
 sir_estimates = mp_tmb_coef(sir_calibrator, conf.int = TRUE)
 print(sir_estimates)
