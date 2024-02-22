@@ -1,6 +1,6 @@
 library(oor)
 library(macpan2)
-r = CSVReader(system.file("starter_models", "sir_vax", "variables.csv", package = "macpan2"))
+r = CSVReader(system.file("model_library", "sir_vax", "variables.csv", package = "macpan2"))
 x = macpan2:::Partition(r$read())
 x$name()
 

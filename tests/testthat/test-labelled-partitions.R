@@ -84,7 +84,7 @@ test_that("labels, name, and names conversion is correct", {
 
 test_that("labels are appropriately generated when null partitions are involved", {
   skip("Skipping because we are still reworking this test for new approach")
-  m = Compartmental(system.file("starter_models", "sir_vax", package = "macpan2"))
+  m = Compartmental(system.file("model_library", "sir_vax", package = "macpan2"))
   v = m$variables$all()
   s = m$variables$state()
 
