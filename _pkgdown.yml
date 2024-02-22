@@ -19,7 +19,6 @@ articles:
   contents:
   - quickstart
   - example_models
-  - time_varying_parameters
   - calibration
   - engine_agnostic_grammar
 - title: Specs
@@ -30,6 +29,7 @@ articles:
 - title: Developer Guides
   desc: Vignettes aimed at package developers and advanced users
   contents:
+  - time_varying_parameters
   - calibration_advanced
   - design_concepts
   - development_patterns

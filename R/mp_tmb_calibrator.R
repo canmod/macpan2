@@ -86,7 +86,7 @@ mp_tmb_calibrator = function(spec, data
   par = TMBPar(par, tv, traj, cal_spec, tv$global_names_vector())
   
   ## FIXME: not object oriented. create generic check method
-  pnms = intersect(par$par, par$tv_par)
+  pnms = union(par$par, par$tv_par)
   parameterized_defaults = spec$default[pnms]
   if (length(parameterized_defaults) > 0L) {
     non_scalars = vapply(parameterized_defaults, length, integer(1L)) != 1L

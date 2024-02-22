@@ -1,10 +1,10 @@
 ---
-title: "Calibrating Compartmental Models to Data"
+title: "Advanced Calibration"
 output: 
   rmarkdown::html_vignette:
     toc: true
 vignette: >
-  %\VignetteIndexEntry{Calibrating Compartmental Models to Data}
+  %\VignetteIndexEntry{Advanced Calibration}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
