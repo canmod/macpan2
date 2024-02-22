@@ -125,7 +125,9 @@ print(si)
 Simulating from this model requires choosing the number of time-steps to
 run and the model outputs to generate. Syntax for simulating `macpan2`
 models is [designed to combine with standard data prep and plotting
-tools in R](#modularity), as we demonstrate with the following code.
+tools in
+R](https://canmod.github.io/macpan2/articles/quickstart.html#processing-results),
+as we demonstrate with the following code.
 
 ``` r
 (si
