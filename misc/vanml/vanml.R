@@ -1,29 +1,29 @@
-## ----include = FALSE-------------------------------------------------------------------------------------
+## ----include = FALSE---------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
 
 
-## ----other_packages, message=FALSE-----------------------------------------------------------------------
+## ----other_packages, message=FALSE-------------------------------
 library(macpan2)
 library(dplyr)
 library(ggplot2)
 library(broom.mixed)
 
 
-## ----installation, message=FALSE-------------------------------------------------------------------------
+## ----installation, message=FALSE---------------------------------
 if (!require(iidda.api)) {
   install.packages("iidda.api", repos = c("https://canmod.r-universe.dev", "https://cran.r-project.org"))
 }
 api_hook = iidda.api::ops_staging
 
 
-## ----api_hook--------------------------------------------------------------------------------------------
+## ----api_hook----------------------------------------------------
 options(iidda_api_msgs = FALSE, macpan2_verbose = FALSE)
 
 
-## ----scarlet_fever_ontario-------------------------------------------------------------------------------
+## ----scarlet_fever_ontario---------------------------------------
 scarlet_fever_ontario = api_hook$filter(resource_type = "CANMOD CDI"
   , iso_3166_2 = "CA-ON"  ## get ontario data
   , time_scale = "wk"  ## weekly incidence data only 
@@ -35,7 +35,7 @@ scarlet_fever_ontario = api_hook$filter(resource_type = "CANMOD CDI"
 print(scarlet_fever_ontario)
 
 
-## ----scarlet_fever_ontario_plot, fig.width=7-------------------------------------------------------------
+## ----scarlet_fever_ontario_plot, fig.width=7---------------------
 (scarlet_fever_ontario
   |> ggplot(aes(period_mid_date, cases_this_period))
   + geom_line() + geom_point()
@@ -44,18 +44,18 @@ print(scarlet_fever_ontario)
 )
 
 
-## --------------------------------------------------------------------------------------------------------
+## ----------------------------------------------------------------
 sir = mp_tmb_library("starter_models", "sir", package = "macpan2")
 print(sir)
 
 
-## --------------------------------------------------------------------------------------------------------
+## ----------------------------------------------------------------
 sf_sir = mp_tmb_insert(sir
   , default = list(N = median(scarlet_fever_ontario$population))
 )
 
 
-## --------------------------------------------------------------------------------------------------------
+## ----------------------------------------------------------------
 sf_sir = mp_tmb_insert(sf_sir
     ## insert this expression ...
   , expressions = list(reports ~ infection * report_prob)
@@ -70,11 +70,11 @@ sf_sir = mp_tmb_insert(sf_sir
 )
 
 
-## --------------------------------------------------------------------------------------------------------
+## ----------------------------------------------------------------
 print(sf_sir)
 
 
-## --------------------------------------------------------------------------------------------------------
+## ----------------------------------------------------------------
 sir_simulator = mp_simulator(sf_sir
   , time_steps = 5
   , outputs = "reports"
@@ -82,7 +82,7 @@ sir_simulator = mp_simulator(sf_sir
 head(mp_trajectory(sir_simulator))
 
 
-## --------------------------------------------------------------------------------------------------------
+## ----------------------------------------------------------------
 observed_data = (scarlet_fever_ontario
   ## select the variables to be modelled -- a time-series of case reports.
   |> select(period_end_date, cases_this_period)
@@ -100,7 +100,7 @@ observed_data = (scarlet_fever_ontario
 print(head(observed_data))
 
 
-## --------------------------------------------------------------------------------------------------------
+## ----------------------------------------------------------------
 sir_cal = mp_tmb_calibrator(
     spec = sf_sir
   , data = observed_data
@@ -114,23 +114,23 @@ sir_cal = mp_tmb_calibrator(
 )
 
 
-## --------------------------------------------------------------------------------------------------------
+## ----------------------------------------------------------------
 print(sf_sir)
 
 
-## --------------------------------------------------------------------------------------------------------
+## ----------------------------------------------------------------
 sir_opt = mp_optimize(sir_cal)
 
 
-## --------------------------------------------------------------------------------------------------------
+## ----------------------------------------------------------------
 print(sir_opt)
 
 
-## --------------------------------------------------------------------------------------------------------
+## ----------------------------------------------------------------
 mp_tmb_coef(sir_cal, conf.int = TRUE)
 
 
-## ----fig.width=7, fig.height=7---------------------------------------------------------------------------
+## ----fig.width=7, fig.height=7-----------------------------------
 fitted_data = mp_trajectory_sd(sir_cal, conf.int = TRUE)
 (observed_data
   |> ggplot()
@@ -146,4 +146,19 @@ fitted_data = mp_trajectory_sd(sir_cal, conf.int = TRUE)
   + theme_bw()
   + facet_wrap(~matrix, ncol = 1, scales = "free")
 )
+
+
+## ----eval = FALSE------------------------------------------------
+#> ontario_diphtheria = api_hook$filter(resource_type = "CANMOD CDI"
+#>   , iso_3166_2 = "CA-ON"  ## get ontario data
+#>   , time_scale = "wk"  ## weekly incidence data only
+#>   , disease = "diphtheria"
+#> )
+
+
+## ----eval = FALSE------------------------------------------------
+#> CA_wk_cdi = api_hook$filter(resource_type = "CANMOD CDI"
+#>   , iso_3166 = "CA"  ## get all canadian data
+#>   , time_scale = "wk"  ## weekly incidence data only
+#> )
 

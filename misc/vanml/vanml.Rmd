@@ -220,3 +220,21 @@ fitted_data = mp_trajectory_sd(sir_cal, conf.int = TRUE)
 * What is going on?
 * Can you modify this model and/or fitting procedure to get both reasonable parameter estimates and a reasonable trajectory?
 * What would you want to do if you knew how to use the software well?
+* Do you want to try other data in the repository?
+
+Here is how you get Diphtheria in Ontario for example (not run).
+```{r, eval = FALSE}
+ontario_diphtheria = api_hook$filter(resource_type = "CANMOD CDI"
+  , iso_3166_2 = "CA-ON"  ## get ontario data
+  , time_scale = "wk"  ## weekly incidence data only 
+  , disease = "diphtheria"
+)
+```
+
+Here is all weekly data for all provinces (not run).
+```{r, eval = FALSE}
+CA_wk_cdi = api_hook$filter(resource_type = "CANMOD CDI"
+  , iso_3166 = "CA"  ## get all canadian data
+  , time_scale = "wk"  ## weekly incidence data only 
+)
+```
