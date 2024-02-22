@@ -3,6 +3,7 @@ pkgdown: 2.0.7
 pkgdown_sha: ~
 articles:
   calibration: calibration.html
+  calibration_advanced: calibration_advanced.html
   composing_simulation_models: composing_simulation_models.html
   cpp_side: cpp_side.html
   debugging: debugging.html
@@ -16,7 +17,7 @@ articles:
   state_dependent_rates: state_dependent_rates.html
   time_varying_parameters: time_varying_parameters.html
   vignette_status: vignette_status.html
-last_built: 2024-02-20T20:13Z
+last_built: 2024-02-22T11:14Z
 urls:
   reference: https://canmod.github.io/macpan2/reference
   article: https://canmod.github.io/macpan2/articles

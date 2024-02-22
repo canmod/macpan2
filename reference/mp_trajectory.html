@@ -12,7 +12,7 @@ variables of a dynamical model simulator."><!-- mathjax --><script src="https://
     
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -66,7 +66,11 @@ variables of a dynamical model simulator.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">mp_trajectory</span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">mp_trajectory</span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">mp_trajectory_sd</span><span class="op">(</span><span class="va">model</span>, conf.int <span class="op">=</span> <span class="cn">FALSE</span>, conf.level <span class="op">=</span> <span class="fl">0.95</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">mp_trajectory_ensemble</span><span class="op">(</span><span class="va">model</span>, <span class="va">n</span>, probs <span class="op">=</span> <span class="fu"><a href="engine_functions.html">c</a></span><span class="op">(</span><span class="fl">0.025</span>, <span class="fl">0.975</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -75,7 +79,38 @@ variables of a dynamical model simulator.</p>
 <dd><p>A dynamical model simulator produced by
 <code><a href="mp_simulator.html">mp_simulator</a></code>.</p></dd>
 
+
+<dt>conf.int</dt>
+<dd><p>Should confidence intervals be produced?</p></dd>
+
+
+<dt>conf.level</dt>
+<dd><p>If <code>conf.int</code> is <code>TRUE</code>, what confidence level should be
+used?  For example, the default of <code>0.95</code> corresponds to 95% confidence
+intervals.</p></dd>
+
+
+<dt>n</dt>
+<dd><p>Number of samples used in <code>mp_trajectory_ensemble</code>.</p></dd>
+
+
+<dt>probs</dt>
+<dd><p>What quantiles should be returned by <code>mp_trajectory_ensemble</code>.</p></dd>
+
 </dl></div>
+    <div class="section level2">
+    <h2 id="functions">Functions<a class="anchor" aria-label="anchor" href="#functions"></a></h2>
+    
+<ul><li><p><code>mp_trajectory_sd()</code>: Simulate a trajectory that includes uncertainty
+information provided by the <code>sdreport</code> function in <code>TMB</code> with default
+settings.</p></li>
+<li><p><code>mp_trajectory_ensemble()</code>: Simulate a trajectory that includes uncertainty
+information provided by repeatedly sampling from a normal approximation to the
+distribution of the fitted parameters, and generating one trajectory for
+each of these samples. The quantiles of the empirical distribution of these
+trajectories can be used to produce a confidence interval for the
+fitted trajectory.</p></li>
+</ul></div>
 
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside></div>

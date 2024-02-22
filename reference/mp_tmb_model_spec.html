@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -106,19 +106,35 @@ variables that appear in <code>before</code>, <code>during</code>, and <code>aft
 
 
 <dt>integers</dt>
-<dd><p>list</p></dd>
+<dd><p>Named list of vectors that can be coerced to integer
+vectors. These integer vectors can be used by name in model formulas to
+provide indexing of matrices and as grouping factors in
+<code><a href="engine_functions.html">group_sums</a></code>.</p></dd>
 
 
 <dt>must_save</dt>
-<dd><p>character</p></dd>
+<dd><p>Character vector of the names of matrices that must have
+their values stored at every iteration of the simulation loop. For example,
+a matrix that the user does not want to be returned but that impacts dynamics
+with a time lag must be saved and therefore in this list.</p></dd>
 
 
 <dt>must_not_save</dt>
-<dd><p>character</p></dd>
+<dd><p>Character vector of the names of matrices that must
+not have their values stored at every iteration of the simulation loop. For
+example, the user may ask to return a very large matrix that would create
+performance issues if stored at each iteration. The creator of the model
+can mark such matrices making it impossible for the user of the model to
+save their full simulation history.</p></dd>
 
 
 <dt>sim_exprs</dt>
-<dd><p>character</p></dd>
+<dd><p>Character vector of the names of <code>before</code>,
+<code>during</code>, and <code>after</code> expressions that must only be evaluated
+when simulations are being produced and not when the objective function is
+being evaluated. For example, expressions that generate stochasticity should
+be listed in <code>sim_exprs</code> because TMB objective functions must be
+continuous.</p></dd>
 
 </dl></div>
 

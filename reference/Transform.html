@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -63,11 +63,17 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">Transform</span><span class="op">(</span><span class="va">variable</span>, default <span class="op">=</span> <span class="cn">NULL</span>, prefix <span class="op">=</span> <span class="st">""</span><span class="op">)</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">Transform</span><span class="op">(</span><span class="va">variable</span>, default <span class="op">=</span> <span class="cn">NULL</span>, trans_variable <span class="op">=</span> <span class="va">variable</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">Log</span><span class="op">(</span><span class="va">variable</span>, default <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
+<span><span class="fu">Identity</span><span class="op">(</span><span class="va">variable</span>, default <span class="op">=</span> <span class="cn">NULL</span>, trans_variable <span class="op">=</span> <span class="va">variable</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">Logit</span><span class="op">(</span><span class="va">variable</span>, default <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">Log</span><span class="op">(</span><span class="va">variable</span>, default <span class="op">=</span> <span class="cn">NULL</span>, trans_variable <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"log_%s"</span>, <span class="va">variable</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">Logit</span><span class="op">(</span></span>
+<span>  <span class="va">variable</span>,</span>
+<span>  default <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  trans_variable <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"logit_%s"</span>, <span class="va">variable</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -77,19 +83,22 @@
 
 
 <dt>default</dt>
-<dd><p>(??)</p></dd>
+<dd><p>Default value for the untransformed variable. If <code>NULL</code>
+(the default) this value is taken from the initial value in the model
+containing the transformation.</p></dd>
 
 
-<dt>prefix</dt>
-<dd><p>Character string to use to distinguish the transformed
+<dt>trans_variable</dt>
+<dd><p>Character string to use as the name of the transformed
 version of the <code>variable</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="functions">Functions<a class="anchor" aria-label="anchor" href="#functions"></a></h2>
     
-<ul><li><p><code>Log()</code>: Log transformation</p></li>
-<li><p><code>Logit()</code>: Logit transformation</p></li>
+<ul><li><p><code>Identity()</code>: Identity transformation.</p></li>
+<li><p><code>Log()</code>: Log transformation.</p></li>
+<li><p><code>Logit()</code>: Logit transformation.</p></li>
 </ul></div>
 
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

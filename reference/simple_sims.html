@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -71,7 +71,9 @@
     <dl><dt>iteration_exprs</dt>
 <dd><p>List of expressions to pass to the
 <a href="https://canmod.github.io/macpan2/articles/cpp_side">engine</a>. The expressions
-are only allowed to use valid <code><a href="engine_functions.html">engine_functions</a></code>.</p></dd>
+are only allowed to use valid <code><a href="engine_functions.html">engine_functions</a></code>. Each expression
+is evaluated in order, once for each iteration. The number of iterations is
+controlled by the <code>time_steps</code> argument.</p></dd>
 
 
 <dt>time_steps</dt>

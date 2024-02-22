@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -63,7 +63,7 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">mp_tmb_library</span><span class="op">(</span><span class="va">...</span>, package <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">mp_tmb_library</span><span class="op">(</span><span class="va">...</span>, package <span class="op">=</span> <span class="cn">NULL</span>, alternative_specs <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -80,6 +80,12 @@ to put together the <code>...</code> components but if <code>package</code>
 is the name of a package (as a character string) then
 <code><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></code> is used to put together the <code>...</code>
 components.</p></dd>
+
+
+<dt>alternative_specs</dt>
+<dd><p>If <code>TRUE</code>, return a list of alternative
+specification objects. For models without alternatives this will cause
+the return value to be a list with one element containing a spec object.</p></dd>
 
 </dl></div>
     <div class="section level2">

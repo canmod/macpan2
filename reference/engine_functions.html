@@ -14,7 +14,7 @@ simulations."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/lib
     
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -465,8 +465,12 @@ integers.</p></li>
 <li><p><code>x</code> -- A matrix of any dimensions, except for
 <code>group_sums</code> that expects <code>x</code> to be a column vector.</p></li>
 <li><p><code>f</code> -- A column vector the same length as <code>x</code>
-containing integers between <code>0</code> and <code>n-</code>.</p></li>
-<li><p><code>n</code> -- Length of the output column vector.</p></li>
+containing integers between <code>0</code> and <code>m-1</code>, given <code>m</code>
+unique groups. Elements of <code>f</code> refer to the indices
+of <code>x</code> that will be grouped and summed.</p></li>
+<li><p><code>n</code> -- A column vector of length <code>m</code>. If <code>f</code> does
+not contain group <code>k</code> in <code>[0, m-1]</code>, <code>group_sums</code> skips
+this group and the output at index <code>k+1</code> is <code>n[k+1]</code>.</p></li>
 </ul></div>
 
 <div class="section">
@@ -501,7 +505,7 @@ explicitly used.</p>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span><span class="fu">sum</span>(x, y, A), <span class="at">x =</span> x, <span class="at">y =</span> y, <span class="at">z =</span> z)</span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span> <span class="fu">col_sums</span>(A), <span class="at">A =</span> A)</span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span> <span class="fu">row_sums</span>(A), <span class="at">A =</span> A)</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span> <span class="fu">group_sums</span>(x, f, n), <span class="at">x =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="at">f =</span> <span class="fu">rep</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">3</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>), <span class="at">n =</span> <span class="dv">4</span>)</span></code></pre><p></p></div>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span> <span class="fu">group_sums</span>(x, f, n), <span class="at">x =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="at">f =</span> <span class="fu">rep</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">3</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>), <span class="at">n =</span> <span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>))</span></code></pre><p></p></div>
 </div>
 
 
@@ -594,14 +598,14 @@ simulation iterations corresponding to integers in
 <ul><li><p><code>x</code> -- Any matrix with saved history such that the
 number of columns (for <code>rbind_*</code>) or rows (for
 <code>cbind_*</code>) does not change throughout the simulation.</p></li>
-<li><p><code>lag</code> -- Column vector of integers giving numbers
+<li><p><code>lag</code> -- Integer vector giving numbers
 of time steps before the current step to obtain
 past values of <code>x</code>.</p></li>
-<li><p><code>t</code> -- Column vector of integers giving time steps
+<li><p><code>t</code> -- Integer vector giving time steps
 at which to obtain past values of <code>x</code>.</p></li>
-<li><p><code>t_min</code> -- Minimum time step that is allowed to be
-accessed. All time-steps in <code>t</code> or implied by <code>lag</code>
-that are before <code>t_min</code> are ignored.</p></li>
+<li><p><code>t_min</code> -- Integer giving the minimum time step
+that is allowed to be accessed. All time-steps in <code>t</code>
+or implied by <code>lag</code> that are before <code>t_min</code> are ignored.</p></li>
 </ul></div>
 
 <div class="section">
@@ -635,12 +639,18 @@ greater than the current time step. The time group
 <code>index</code> is the index associated with this element.
 Please see the examples below, they are easier
 to understand than this explanation.</p></li>
+<li><p><code>time_var(x, change_points, index)</code>: An improvement
+to <code>time_group</code>.</p></li>
 </ul></div>
 
 <div class="section">
 <h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
 
-<ul><li><p><code>lag</code>: Number of time-steps to look back for
+<ul><li><p><code>x</code>: Column vector representing a time series.
+<code>time_var</code> will return the value of <code>x</code> corresponding
+to element in <code>change_points</code> that contains the
+current time.</p></li>
+<li><p><code>lag</code>: Number of time-steps to look back for
 the time-step to return.</p></li>
 <li><p><code>index</code>: Index associated with the current time
 group.</p></li>
