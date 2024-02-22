@@ -34,9 +34,10 @@ time-varying or not, to fit using trajectory match.}
 \item{tv}{A character vector giving the names of parameters to make
 time-varying according to the values in \code{data}.}
 
-\item{outputs}{A character vector of outputs to pass to
-\code{\link{mp_simulator}}. By default the trajectories and time-varying
-parameters are in the output.}
+\item{outputs}{A character vector of outputs that will be generated
+when \code{\link{mp_trajectory}}, \code{\link{mp_trajectory_sd}}, or
+\code{\link{mp_trajectory_ensemble}} are called on the optimized
+calibrator. By default it is just the trajectories listed in \code{traj}.}
 
 \item{default}{A list of default values to use to update the defaults
 in the \code{spec}. By default nothing is updated. Alternatively one could

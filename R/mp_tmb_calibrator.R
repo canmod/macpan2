@@ -18,9 +18,10 @@
 #' time-varying according to the values in \code{data}.
 #' @param par A character vector giving the names of parameters, either
 #' time-varying or not, to fit using trajectory match.
-#' @param outputs A character vector of outputs to pass to 
-#' \code{\link{mp_simulator}}. By default the trajectories and time-varying
-#' parameters are in the output.
+#' @param outputs A character vector of outputs that will be generated
+#' when \code{\link{mp_trajectory}}, \code{\link{mp_trajectory_sd}}, or 
+#' \code{\link{mp_trajectory_ensemble}} are called on the optimized 
+#' calibrator. By default it is just the trajectories listed in `traj`.
 #' @param default A list of default values to use to update the defaults
 #' in the `spec`. By default nothing is updated. Alternatively one could
 #' use \code{\link{mp_tmb_update}} to update the spec outside of the 
@@ -72,7 +73,7 @@ mp_tmb_calibrator = function(spec, data
   
   ## gather defaults before they are updated (FIXME: this will need to be 
   ## updated when non-character inputs are allowed)
-  force(outputs) 
+  force(outputs)
   
   ## copy the spec and update defaults
   cal_spec = spec$copy()
@@ -83,6 +84,19 @@ mp_tmb_calibrator = function(spec, data
   traj = TMBTraj(traj, struc, cal_spec$all_formula_vars())
   tv = TMBTV(tv, struc, cal_spec, traj$global_names_vector())
   par = TMBPar(par, tv, traj, cal_spec, tv$global_names_vector())
+  
+  ## FIXME: not object oriented. create generic check method
+  pnms = intersect(par$par, par$tv_par)
+  parameterized_defaults = spec$default[pnms]
+  if (length(parameterized_defaults) > 0L) {
+    non_scalars = vapply(parameterized_defaults, length, integer(1L)) != 1L
+    if (any(non_scalars)) {
+      stop(
+        sprintf("The following parameterized model defaults are not scalars:\n%s\nThe development interface can be used to fit such models and in the future we plan on making user interfaces that can handle vector-valued defaults.", paste0(pnms[non_scalars], collapse = ", ")
+        )
+      )
+    }
+  }
   
   ## add observed trajectories 
   ## (see globalize function for comments on what it does)
