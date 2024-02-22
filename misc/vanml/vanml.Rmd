@@ -86,7 +86,7 @@ Once we take any library model off the shelf we need to modify it a bit to be mo
 We first change the population size to the population of Ontario at the time.
 
 ```{r}
-sir = mp_tmb_insert(sir
+sf_sir = mp_tmb_insert(sir
   , default = list(N = median(scarlet_fever_ontario$population))
 )
 ```
@@ -94,7 +94,7 @@ sir = mp_tmb_insert(sir
 Second, our SIR model assumes that all of the cases are recorded in the data, but this is not realistic.  We therefore modify the model to include under-reporting, by creating a case `reports` variable that is given by the product of incidence (i.e. weekly `infection` rate) and a reporting probability.
 
 ```{r}
-sir = mp_tmb_insert(sir
+sf_sir = mp_tmb_insert(sf_sir
     ## insert this expression ...
   , expressions = list(reports ~ infection * report_prob)
     
@@ -111,7 +111,7 @@ sir = mp_tmb_insert(sir
 Here we can print out the modified model to see if our changes were made successfully.
 
 ```{r}
-print(sir)
+print(sf_sir)
 ```
 
 
@@ -119,7 +119,7 @@ print(sir)
 
 The first step in preparing data for `macpan2` is to simulate from the model that you are considering. Here we simulate the `"infection"` variable because it corresponds to the incidence (the number of new cases per time-step, which in our case is one week).
 ```{r}
-sir_simulator = mp_simulator(sir
+sir_simulator = mp_simulator(sf_sir
   , time_steps = 5
   , outputs = "reports"
 )
@@ -155,7 +155,7 @@ Now we can create an object that can be calibrated.
 
 ```{r}
 sir_cal = mp_tmb_calibrator(
-    spec = sir
+    spec = sf_sir
   , data = observed_data
   
   ## name the trajectory variable, with a name that
@@ -170,7 +170,7 @@ sir_cal = mp_tmb_calibrator(
 Here we assert that we will fit `beta`, `gamma`, (the initial value of) `I`, and `report_prob`. Note that we can only set values in the `default` list of the model spec. In particular, `I` is in the default list because the model requires the initial number of infectious individuals, whereas `S` is not because it is derived before the simulation loop as `S ~ N - I - R`.
 
 ```{r}
-print(sir)
+print(sf_sir)
 ```
 
 ## Run the Optimization
@@ -197,14 +197,13 @@ That doesn't look right!  Those are very high `beta` and `gamma` values, and the
 
 But the model fit doesn't look all that bad.
 
-```{r, fig.width=7}
+```{r, fig.width=7, fig.height=7}
 fitted_data = mp_trajectory_sd(sir_cal, conf.int = TRUE)
 (observed_data
   |> ggplot()
   + geom_point(aes(time, value))
   + geom_line(aes(time, value)
     , data = fitted_data
-    , colour = "red"
   )
   + geom_ribbon(aes(time, ymin = conf.low, ymax = conf.high)
     , data = fitted_data
@@ -212,7 +211,12 @@ fitted_data = mp_trajectory_sd(sir_cal, conf.int = TRUE)
     , colour = "red"
   )
   + theme_bw()
+  + facet_wrap(~matrix, ncol = 1, scales = "free")
 )
 ```
 
-What is going on?  Can you modify this model and/or fitting procedure to get both reasonable parameter estimates and a reasonable trajectory?
+## Questions
+
+* What is going on?
+* Can you modify this model and/or fitting procedure to get both reasonable parameter estimates and a reasonable trajectory?
+* What would you want to do if you knew how to use the software well?
