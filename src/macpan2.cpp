@@ -62,118 +62,66 @@
 // R/enum.R file is regenerated.
 enum macpan2_func
 {
-    MP2_ADD = 1 // binop,null: `+`(x, y)
-    ,
-    MP2_SUBTRACT = 2 // binop,null: `-`(x, y)
-    ,
-    MP2_MULTIPLY = 3 // binop,null: `*`(x, y)
-    ,
-    MP2_DIVIDE = 4 // binop,null: `/`(x, y)
-    ,
-    MP2_POWER = 5 // binop,null: `^`(x, y)
-    ,
-    MP2_EXP = 6 // fwrap,null: exp(x)
-    ,
-    MP2_LOG = 7 // fwrap,null: log(x)
-    ,
-    MP2_ROUND_BRACKET = 8 // null,null: `(`(...)
-    ,
-    MP2_COMBINE = 9 // null,null: c(...)
-    ,
-    MP2_MATRIX = 10 // fwrap,null: matrix(x, i, j)
-    ,
-    MP2_MATRIX_MULTIPLY = 11 // binop,null: `%*%`(x, y)
-    ,
-    MP2_SUM = 12 // null,null: sum(...)
-    ,
-    MP2_REPLICATE = 13 // fwrap,null: rep(x, times)
-    ,
-    MP2_ROWSUMS = 14 // fwrap,null: row_sums(x)
-    ,
-    MP2_COLSUMS = 15 // fwrap,null: col_sums(x)
-    ,
-    MP2_GROUPSUMS = 16 // fwrap,null: group_sums(x, f, n)
-    ,
-    MP2_SQUARE_BRACKET = 17 // null,null: `[`(x, i, j)
-    ,
-    MP2_BLOCK = 18 // fwrap,fail: block(x, i, j, n, m)
-    ,
-    MP2_TRANSPOSE = 19 // fwrap,null: t(x)
-    ,
-    MP2_RBIND_TIME = 20 // fwrap,fail: rbind_time(x, t, t_min)
-    ,
-    MP2_RBIND_LAG = 21 // fwrap,fail: rbind_lag(x, lag, t_min)
-    ,
-    MP2_CBIND_TIME = 22 // fwrap,fail: cbind_time(x, t, t_min)
-    ,
-    MP2_CBIND_LAG = 23 // fwrap,fail: cbind_lag(x, lag, t_min)
-    ,
-    MP2_COLON = 24 // null,null: `:`(from, to)
-    ,
-    MP2_SEQUENCE = 25 // fwrap,fail: seq(from, length, by)
-    ,
-    MP2_CONVOLUTION = 26 // fwrap,fail: convolution(x, k)
-    ,
-    MP2_CBIND = 27 // fwrap,null: cbind(...)
-    ,
-    MP2_RBIND = 28 // fwrap,null: rbind(...)
-    ,
-    MP2_TIME_STEP = 29 // fwrap,fail: time_step(lag)
-    ,
-    MP2_ASSIGN = 30 // fwrap,null: assign(x, i, j, v)
-    ,
-    MP2_UNPACK = 31 // fwrap,fail: unpack(x, ...)
-    ,
-    MP2_RECYCLE = 32 // fwrap,null: recycle(x, rows, cols)
-    ,
-    MP2_CLAMP = 33 // fwrap,null: clamp(x, eps)
-    ,
-    MP2_POISSON_DENSITY = 34 // fwrap,fail: dpois(observed, simulated)
-    ,
-    MP2_NEGBIN_DENSITY = 35 // fwrap,fail: dnbinom(observed, simulated, over_dispersion)
-    ,
-    MP2_NORMAL_DENSITY = 36 // fwrap,fail: dnorm(observed, simulated, standard_deviation)
-    ,
-    MP2_POISSON_SIM = 37 // fwrap,fail: rpois(mean)
-    ,
-    MP2_NEGBIN_SIM = 38 // fwrap,fail: rnbinom(mean, over_dispersion)
-    ,
-    MP2_NORMAL_SIM = 39 // fwrap,fail: rnorm(mean, standard_deviation)
-    ,
-    MP2_KRONECKER = 40 // binop,null: `%x%`(x, y)
-    ,
-    MP2_TO_DIAG = 41 // fwrap,fail: to_diag(x)
-    ,
-    MP2_FROM_DIAG = 42 // fwrap,fail: from_diag(x)
-    ,
-    MP2_TIME_GROUP = 43 // fwrap,fail: time_group(i, change_points)
-    ,
-    MP2_COS = 44 // fwrap,null: cos(x)
-    ,
-    MP2_PRINT = 45 // fwrap,null: print(x)
-    ,
-    MP2_TIME_VAR = 46 // fwrap,fail: time_var(x, change_points, change_pointer)
+      MP2_ADD = 1 // binop,null: `+`(x, y)
+    , MP2_SUBTRACT = 2 // binop,null: `-`(x, y)
+    , MP2_MULTIPLY = 3 // binop,null: `*`(x, y)
+    , MP2_DIVIDE = 4 // binop,null: `/`(x, y)
+    , MP2_POWER = 5 // binop,null: `^`(x, y)
+    , MP2_EXP = 6 // fwrap,null: exp(x)
+    , MP2_LOG = 7 // fwrap,null: log(x)
+    , MP2_ROUND_BRACKET = 8 // null,null: `(`(...)
+    , MP2_COMBINE = 9 // null,null: c(...)
+    , MP2_MATRIX = 10 // fwrap,null: matrix(x, i, j)
+    , MP2_MATRIX_MULTIPLY = 11 // binop,null: `%*%`(x, y)
+    , MP2_SUM = 12 // null,null: sum(...)
+    , MP2_REPLICATE = 13 // fwrap,null: rep(x, times)
+    , MP2_ROWSUMS = 14 // fwrap,null: row_sums(x)
+    , MP2_COLSUMS = 15 // fwrap,null: col_sums(x)
+    , MP2_GROUPSUMS = 16 // fwrap,null: group_sums(x, f, n)
+    , MP2_SQUARE_BRACKET = 17 // null,null: `[`(x, i, j)
+    , MP2_BLOCK = 18 // fwrap,fail: block(x, i, j, n, m)
+    , MP2_TRANSPOSE = 19 // fwrap,null: t(x)
+    , MP2_RBIND_TIME = 20 // fwrap,fail: rbind_time(x, t, t_min)
+    , MP2_RBIND_LAG = 21 // fwrap,fail: rbind_lag(x, lag, t_min)
+    , MP2_CBIND_TIME = 22 // fwrap,fail: cbind_time(x, t, t_min)
+    , MP2_CBIND_LAG = 23 // fwrap,fail: cbind_lag(x, lag, t_min)
+    , MP2_COLON = 24 // null,null: `:`(from, to)
+    , MP2_SEQUENCE = 25 // fwrap,fail: seq(from, length, by)
+    , MP2_CONVOLUTION = 26 // fwrap,fail: convolution(x, k)
+    , MP2_CBIND = 27 // fwrap,null: cbind(...)
+    , MP2_RBIND = 28 // fwrap,null: rbind(...)
+    , MP2_TIME_STEP = 29 // fwrap,fail: time_step(lag)
+    , MP2_ASSIGN = 30 // fwrap,null: assign(x, i, j, v)
+    , MP2_UNPACK = 31 // fwrap,fail: unpack(x, ...)
+    , MP2_RECYCLE = 32 // fwrap,null: recycle(x, rows, cols)
+    , MP2_CLAMP = 33 // fwrap,null: clamp(x, eps)
+    , MP2_POISSON_DENSITY = 34 // fwrap,fail: dpois(observed, simulated)
+    , MP2_NEGBIN_DENSITY = 35 // fwrap,fail: dnbinom(observed, simulated, over_dispersion)
+    , MP2_NORMAL_DENSITY = 36 // fwrap,fail: dnorm(observed, simulated, standard_deviation)
+    , MP2_POISSON_SIM = 37 // fwrap,fail: rpois(mean)
+    , MP2_NEGBIN_SIM = 38 // fwrap,fail: rnbinom(mean, over_dispersion)
+    , MP2_NORMAL_SIM = 39 // fwrap,fail: rnorm(mean, standard_deviation)
+    , MP2_KRONECKER = 40 // binop,null: `%x%`(x, y)
+    , MP2_TO_DIAG = 41 // fwrap,fail: to_diag(x)
+    , MP2_FROM_DIAG = 42 // fwrap,fail: from_diag(x)
+    , MP2_TIME_GROUP = 43 // fwrap,fail: time_group(i, change_points)
+    , MP2_COS = 44 // fwrap,null: cos(x)
+    , MP2_PRINT = 45 // fwrap,null: print(x)
+    , MP2_TIME_VAR = 46 // fwrap,fail: time_var(x, change_points, change_pointer)
     //, MP2_LOGISTIC = 47 // fwrap,null: logistic(x)
     //, MP2_LOGIT = 48 // fwrap,null: logit(x)
 };
 
 enum macpan2_meth
 {
-    METH_FROM_ROWS = 1 // ~ Y[i], "Y", "i"
-    ,
-    METH_TO_ROWS = 2 // Y[i] ~ X, c("Y", "X"), "i"
-    ,
-    METH_ROWS_TO_ROWS = 3 // Y[i] ~ X[j], c("Y", "X"), c("i", "j")
-    ,
-    METH_MAT_MULT_TO_ROWS = 4 // Y[i] ~ A %*% X[j], c("Y", "A", "X"), c("i", "j")
-    ,
-    METH_TV_MAT_MULT_TO_ROWS = 5 // Y[i] ~ time_var(A, change_points, block_size, change_pointer) %*% X[j], c("Y", "A", "X"), c("i", "j", "change_points", "block_size", "change_pointer")
-    ,
-    METH_GROUP_SUMS = 6 // ~ groupSums(Y, i, n), "Y", c("i", "n")
-    ,
-    METH_TV_MAT = 7 // ~ time_var(Y, change_points, block_size, change_pointer), "Y", c("change_points", "block_size", "change_pointer")
-    ,
-    METH_ROWS_TIMES_ROWS = 8 // ~ A[i] * X[j], c("A", "X"), c("i", "j")
+      METH_FROM_ROWS = 1 // ~ Y[i], "Y", "i"
+    , METH_TO_ROWS = 2 // Y[i] ~ X, c("Y", "X"), "i"
+    , METH_ROWS_TO_ROWS = 3 // Y[i] ~ X[j], c("Y", "X"), c("i", "j")
+    , METH_MAT_MULT_TO_ROWS = 4 // Y[i] ~ A %*% X[j], c("Y", "A", "X"), c("i", "j")
+    , METH_TV_MAT_MULT_TO_ROWS = 5 // Y[i] ~ time_var(A, change_points, block_size, change_pointer) %*% X[j], c("Y", "A", "X"), c("i", "j", "change_points", "block_size", "change_pointer")
+    , METH_GROUP_SUMS = 6 // ~ groupSums(Y, i, n), "Y", c("i", "n")
+    , METH_TV_MAT = 7 // ~ time_var(Y, change_points, block_size, change_pointer), "Y", c("change_points", "block_size", "change_pointer")
+    , METH_ROWS_TIMES_ROWS = 8 // ~ A[i] * X[j], c("A", "X"), c("i", "j")
 };
 
 // UTILITY FUNCTIONS ---------------------------

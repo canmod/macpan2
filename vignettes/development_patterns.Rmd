@@ -34,7 +34,7 @@ To understand `macpan2`, users and developers need to understand how to construc
 
 The `macpan2` package comes with a set of `vignette("example_models", package = "macpan2")`. One simple example is an SIR model stored here.
 ```{r sir_path}
-(sir_path = system.file("starter_models", "sir_vax", package = "macpan2"))
+(sir_path = system.file("model_library", "sir_vax", package = "macpan2"))
 ```
 
 This path points to a directory with the following files.

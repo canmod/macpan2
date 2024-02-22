@@ -157,7 +157,12 @@ TMBCalibrator = function(orig_spec, new_spec, cal_spec, simulator) {
 
 #' @export
 print.TMBCalibrator = function(x, ...) {
-  print(x$new_spec)
+  spec_printer(x$cal_spec, include_defaults = FALSE)
+  cat("---------------------\n")
+  msg("Objective function:\n") |> cat()
+  cat("---------------------\n")
+  cat(deparse1(x$simulator$tmb_model$obj_fn$formula_list()[[1L]], width.cutoff = 500L))
+  cat("\n")
   hist = x$simulator$optimization_history
   if (hist$opt_attempted()) {
     cat("---------------------\n")

@@ -28,7 +28,7 @@ library(macpan2)
 library(ggplot2)
 library(dplyr)
 library(broom.mixed)
-options(macpan2_verbose =  FALSE, macpan2_default_loss = "poisson")
+options(macpan2_verbose =  FALSE)
 ```
 
 ## Hello World
@@ -93,6 +93,12 @@ sir_calibrator = mp_tmb_calibrator(sir_spec
 )
 ```
 
+```{r calibration_spec}
+print(sir_calibrator)
+```
+
+TODO: Note other expressions
+
 A sanity check: make sure that the default values give a reasonable-looking trajectory.
 
 ```{r plot1}
@@ -111,6 +117,8 @@ A sanity check: make sure that the default values give a reasonable-looking traj
 mp_optimize(sir_calibrator, optimizer = "nlminb")
 ```
 
+### Step 3: check the fit
+
 Print the results of the optimizer (`nlminb` in this case). **Always check the value of the convergence code** (if it's not 0, then something *may* have gone wrong ...).
 
 ```{r check_fit}
@@ -125,7 +133,7 @@ sir_estimates = mp_tmb_coef(sir_calibrator, conf.int = TRUE)
 print(sir_estimates)
 ```
 
-These correspond to true values pretty well.
+These correspond pretty well to the known true values of the simulation model.
 ```{r default_reminder}
 mp_default(sir_simulator) |> filter(matrix %in% sir_estimates$mat)
 ```

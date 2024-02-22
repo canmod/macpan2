@@ -23,7 +23,7 @@ library(macpan2)
 
 ## Finding Example Models
 
-The `macpan2` comes with a set of example [model definitions](https://canmod.github.io/macpan2/articles/model_definitions), which can be listed with the `show_models` function.
+The `macpan2` comes with a set of example model definitions, which can be listed with the `show_models` function.
 ```{r eval = FALSE}
 show_models()
 ```

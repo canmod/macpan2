@@ -200,11 +200,17 @@ mp_tmb_model_spec = TMBModelSpec
 
 #' @export
 print.TMBModelSpec = function(x, ...) {
+  spec_printer(x, include_defaults = TRUE)
+}
+
+spec_printer = function(x, include_defaults) {
   e = ExprList(x$before, x$during, x$after)
-  cat("---------------------\n")
-  msg("Default values:\n") |> cat()
-  cat("---------------------\n")
-  print(melt_default_matrix_list(x$default), row.names = FALSE)
-  cat("\n")
+  if (include_defaults) {
+    cat("---------------------\n")
+    msg("Default values:\n") |> cat()
+    cat("---------------------\n")
+    print(melt_default_matrix_list(x$default), row.names = FALSE)
+    cat("\n")
+  }
   print(e)
 }
