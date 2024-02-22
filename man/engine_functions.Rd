@@ -460,7 +460,7 @@ explicitly used.
 y = 1:3
 A = matrix(1:12, 4, 3)
 engine_eval(~ sum(y), y = y)
-engine_eval(~sum(x, y, A), x = x, y = y, z = z)
+engine_eval(~ sum(x, y, A), x = x, y = y, A = A)
 engine_eval(~ col_sums(A), A = A)
 engine_eval(~ row_sums(A), A = A)
 engine_eval(~ group_sums(x, f, n), x = 1:10, f = rep(0:3, 1:4), n = c(1:4))
