@@ -5,7 +5,7 @@ computations = list(
 )
 
 flow_rates = list(
-  S.E ~ S * (beta0 / N) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s))
+    S.E ~ S * (beta0 / N) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s))
   , E.Ia ~ E * alpha * sigma
   , E.Ip ~ E * (1 - alpha)* sigma
   , Ia.R ~ Ia * gamma_a
@@ -27,7 +27,7 @@ flow_rates = list(
 )
 
 state_updates = list(
-  S ~ S - S.E
+    S ~ S - S.E
   , E ~ E + S.E - E.Ia - E.Ip
   , Ia ~ Ia + E.Ia - Ia.R
   , Ip ~ Ip + E.Ip - Ip.Im - Ip.Is

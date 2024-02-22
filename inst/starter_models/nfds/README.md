@@ -51,15 +51,19 @@ IPD burden was computed using serotype invasiveness estimates, derived from a me
 
 
 ## Time Varying
-| variable  | description                                              | calculation                                          |
-| --------- | -------------------------------------------------------- | ---------------------------------------------------- |
-| $N(t)$    | carriage population of pneumococci organisms at time $t$ | $N(t) = \sum\limits_{i=1}^M Y_i$                          |
+| variable  | description                                              | calculation                                                 |
+| --------- | -------------------------------------------------------- | ----------------------------------------------------------- |
+| $N(t)$    | carriage population of pneumococci organisms at time $t$ | $N(t) = \sum\limits_{i=1}^M Y_i$                            |
 | $f_{l,t}$ | instantaneous frequency for locus $l$ at time $t$        | $f_{l,t} = \frac{1}{N(t)} \sum\limits_{i=1}^{M} Y_i G_{il}$ |
 
 
 # Dynamics 
 
 $$\frac{dY_i}{dt} = \left( \log\left( \frac{\kappa}{N(t)}\right) -r_i + \rho\left( \sum_{l=1}^{L} w_l G_{il} (e_l - f_{l,t})\right) \right) Y_i + m, \quad i \in \\{1, M\\}$$
+
+# Model Specification
+
+This model has been specified in the `nfds` directory [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/nfds/tmb.R) and is accessible from the `macpan2` model library (see [Example Models](https://canmod.github.io/macpan2/articles/example_models.html) for details). 
 
 # References
 

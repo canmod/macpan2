@@ -4,7 +4,7 @@ index_entry: "re-implementation of the McMaster group's COVID-19 model"
 author: Jennifer Freeman
 ---
 
-The McMasterPandemic model (Bolker, 2022); A modified SEIR model that incorporates additional infectious compartments to reflect the current knowledge of COVID-19 epidemiology. Exposed individuals enter four infectious compartments characterized by the individuals symptom status (asymptomatic, pre-symptomatic, mild, and severe). Severely infected individuals require care through hospital and/or Intensive Care Unit (ICU) compartments and either recover or die.
+The McMasterPandemic model (Bolker et al., 2022); A modified SEIR model that incorporates additional infectious compartments to reflect the current knowledge of COVID-19 epidemiology. Exposed individuals enter four infectious compartments characterized by the individuals symptom status (asymptomatic, pre-symptomatic, mild, and severe). Severely infected individuals require care through hospital and/or Intensive Care Unit (ICU) compartments and either recover or die.
 
 # States
 
@@ -23,7 +23,7 @@ The McMasterPandemic model (Bolker, 2022); A modified SEIR model that incorporat
 | $D$      | Number of dead individuals                                          |
 | $R$      | Number of recovered individuals                                     |
 
-The size of the total population is,  $N = S + E + I_a + I_p + I_m + I_s + H +  ICU_s + ICU_d + H_2 + D + R$.
+The size of the total population is, $N = S + E + I_a + I_p + I_m + I_s + H +  ICU_s + ICU_d + H_2 + D + R$.
 
 # Parameters
 
@@ -76,6 +76,10 @@ $$
 $$
 
 When there were discrepancies with how the model is expressed in Papst (TBD) versus model definition files, the latter was chosen.
+
+# Model Specification
+
+This model has been specified in the `macpan_base` directory [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/macpan_base/tmb.R) and is accessible from the `macpan2` model library (see [Example Models](https://canmod.github.io/macpan2/articles/example_models.html) for details). 
 
 # References 
 

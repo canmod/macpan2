@@ -1,6 +1,7 @@
 ---
 title: "SIR with demography"
 index_entry: "An SIR model with birth and death"
+author: Jennifer Freeman
 ---
 
 We assume new individuals (births) join the susceptible compartment, and individuals can leave the population (die) from any compartment.
@@ -13,7 +14,7 @@ We assume new individuals (births) join the susceptible compartment, and individ
 | I        | Number of infectious individuals  |
 | R        | Number of recovered individuals   |
 
-The size of the total population is,  $ N = S + I + R$.
+The size of the total population is, $N = S + I + R$.
 
 # Parameters
 
@@ -30,11 +31,15 @@ The SIR model with demography often assumes that the time scale of epidemic chan
 
 $$
 \begin{align*}
-\frac{dS}{dt} &= \nu N -\beta SI - \mu S \\
-\frac{dI}{dt} &= \beta SI - \gamma I - \mu I \\
+\frac{dS}{dt} &= \nu N -\beta S\frac{I}{N} - \mu S \\
+\frac{dI}{dt} &= \beta S\frac{I}{N} - \gamma I - \mu I \\
 \frac{dR}{dt} &= \gamma I - \mu R
 \end{align*}
 $$
+
+# Model Specification
+
+This model has been specified in the `sir_demog` directory [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/sir_demog/tmb.R) and is accessible from the `macpan2` model library (see [Example Models](https://canmod.github.io/macpan2/articles/example_models.html) for details). 
 
 # References
 

@@ -29,11 +29,13 @@ The size of the total population is,  $ N = S + E + I + R$.
 
 $$
 \begin{align*}
-\frac{dS}{dt} &= -\beta SI \\
-\frac{dE}{dt} &= \beta SI - \alpha E \\
+\frac{dS}{dt} &= -\beta S\frac{I}{N} \\
+\frac{dE}{dt} &= \beta S\frac{I}{N} - \alpha E \\
 \frac{dI}{dt} &= \alpha E- \gamma I \\
 \frac{dR}{dt} &= \gamma I
 \end{align*}
 $$
 
+# Model Specification
 
+This model has been specified in the `seir` directory [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/seir/tmb.R) and is accessible from the `macpan2` model library (see [Example Models](https://canmod.github.io/macpan2/articles/example_models.html) for details). 
