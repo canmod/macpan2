@@ -92,6 +92,10 @@
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/bbolker/broom.mixed" class="external-link">broom.mixed</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>macpan2_verbose <span class="op">=</span>  <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<p>Before reading this article on calibrating models to data, please
+first look at the <a href="https://canmod.github.io/macpan2/articles/quickstart">quickstart
+guide</a> and the article on the <a href="https://canmod.github.io/macpan2/articles/example_models">model
+library</a>.</p>
 <div class="section level2">
 <h2 id="hello-world">Hello World<a class="anchor" aria-label="anchor" href="#hello-world"></a>
 </h2>
@@ -148,9 +152,10 @@ recover the parameters that we use when simulating.</p>
 <span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="calibration_files/figure-html/sir_setup-1.png" width="576"></p>
-<p>Note that we change the default values so that we can try to recover
+<p>Note that we changed the default values so that we can try to recover
 them using optimization below.</p>
-<p>Add some noise to the prevalence (<code>I</code>) value:</p>
+<p>To make things a little more challenging we add some Poisson noise to
+the prevalence (<code>I</code>) value:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">101</span><span class="op">)</span></span>
 <span><span class="va">sir_prevalence</span> <span class="op">=</span> <span class="op">(</span><span class="va">sir_results</span></span>
@@ -168,16 +173,23 @@ them using optimization below.</p>
 <div class="section level3">
 <h3 id="step-1-add-calibration-information">Step 1: add calibration information<a class="anchor" aria-label="anchor" href="#step-1-add-calibration-information"></a>
 </h3>
-<p>TODO: Describe how this differs from mp_simulator</p>
+<p>The next step is to produce an object that can be calibrated through
+optimization. To make this model we need to specify what trajectory we
+will fit to (<code>I</code> in this case). We also need to specify what
+parameters we will fit. Any value in the <code>default</code> list of a
+model spec can be selected for fitting. Note that here we only change
+the default value of <code>N</code>, and leave the other parameters
+where they were in the model spec. It is this difference between the
+defaults in the simulator versus the calibrator that will will hope to
+recover using optimization.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_calibrator</span> <span class="op">=</span> <span class="fu"><a href="../reference/mp_tmb_calibrator.html">mp_tmb_calibrator</a></span><span class="op">(</span><span class="va">sir_spec</span></span>
 <span>  , data <span class="op">=</span> <span class="va">sir_prevalence</span></span>
 <span>  , traj <span class="op">=</span> <span class="st">"I"</span></span>
 <span>  , par <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"beta"</span>, <span class="st">"R"</span><span class="op">)</span></span>
 <span>  , default <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>N <span class="op">=</span> <span class="fl">300</span><span class="op">)</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/engine_functions.html">print</a></span><span class="op">(</span><span class="va">sir_calibrator</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/engine_functions.html">print</a></span><span class="op">(</span><span class="va">sir_calibrator</span><span class="op">)</span></span>
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; Before the simulation loop (t = 0):</span></span>
 <span><span class="co">#&gt; ---------------------</span></span>
@@ -201,13 +213,13 @@ them using optimization below.</p>
 <span><span class="co">#&gt; Objective function:</span></span>
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; ~-sum(dpois(obs_I, clamp(sim_I)))</span></span></code></pre></div>
-<p>TODO: Note other expressions</p>
-<p>A sanity check: make sure that the default values give a
-reasonable-looking trajectory.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<p>Note that the calibrator has a few new expressions that deal with
+comparisons with data. In particular it is the objective function that
+we will optimize. But before that we can do a sanity check to make sure
+that the default values give a reasonable-looking trajectory.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="op">(</span><span class="va">sir_calibrator</span> </span>
 <span> <span class="op">|&gt;</span> <span class="fu"><a href="../reference/mp_trajectory.html">mp_trajectory</a></span><span class="op">(</span><span class="op">)</span></span>
-<span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">matrix</span> <span class="op">==</span> <span class="st">"I"</span><span class="op">)</span></span>
 <span> <span class="op">|&gt;</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">value</span><span class="op">)</span><span class="op">)</span> </span>
 <span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -216,16 +228,21 @@ reasonable-looking trajectory.</p>
 <div class="section level3">
 <h3 id="step-2-do-the-fit">Step 2: do the fit<a class="anchor" aria-label="anchor" href="#step-2-do-the-fit"></a>
 </h3>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">sir_calibrator</span>, optimizer <span class="op">=</span> <span class="st">"nlminb"</span><span class="op">)</span></span></code></pre></div>
+<p>Doing the fit is straightforward.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">sir_calibrator</span><span class="op">)</span></span></code></pre></div>
+<p>Note that the <code>mp_optimize</code> function has modified the
+<code>sir_calibrator</code> object, which now contains the new fitted
+parameter values and the results of the optimization.</p>
 </div>
 <div class="section level3">
 <h3 id="step-3-check-the-fit">Step 3: check the fit<a class="anchor" aria-label="anchor" href="#step-3-check-the-fit"></a>
 </h3>
-<p>Print the results of the optimizer (<code>nlminb</code> in this
-case). <strong>Always check the value of the convergence code</strong>
-(if it’s not 0, then something <em>may</em> have gone wrong …).</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<p>We can print the results of the optimizer (<code>nlminb</code> in
+this case) using the <code>mp_optimizer_outut</code> function.
+<strong>Always check the value of the convergence code</strong> (if it’s
+not 0, then something <em>may</em> have gone wrong …).</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/mp_optimizer_output.html">mp_optimizer_output</a></span><span class="op">(</span><span class="va">sir_calibrator</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $par</span></span>
 <span><span class="co">#&gt;     params     params </span></span>
@@ -246,9 +263,12 @@ case). <strong>Always check the value of the convergence code</strong>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $message</span></span>
 <span><span class="co">#&gt; [1] "both X-convergence and relative convergence (5)"</span></span></code></pre></div>
-<p>The best-fit parameters are stored internally, and we can get
-information about them using the following function.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<p>As mentioned above, the best-fit parameters are stored internally,
+and we can get information about them using the <code>mp_tmb_coef</code>
+function. (Note that if you get a message about the
+<code>broom.mixed</code> package, please install it.
+<code>mp_tmb_coef</code> is a wrapper for this function).</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_estimates</span> <span class="op">=</span> <span class="fu"><a href="../reference/mp_tmb_coef.html">mp_tmb_coef</a></span><span class="op">(</span><span class="va">sir_calibrator</span>, conf.int <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/engine_functions.html">print</a></span><span class="op">(</span><span class="va">sir_estimates</span><span class="op">)</span></span>
 <span><span class="co">#&gt;       term  mat row col default  type   estimate   std.error   conf.low</span></span>
@@ -259,14 +279,14 @@ information about them using the following function.</p>
 <span><span class="co">#&gt; 2 100.4791916</span></span></code></pre></div>
 <p>These correspond pretty well to the known true values of the
 simulation model.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/mp_default.html">mp_default</a></span><span class="op">(</span><span class="va">sir_simulator</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">matrix</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">sir_estimates</span><span class="op">$</span><span class="va">mat</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   matrix row col  value</span></span>
 <span><span class="co">#&gt; 1   beta           0.25</span></span>
 <span><span class="co">#&gt; 2      R         100.00</span></span></code></pre></div>
 <p>And the known simulated true value of the trajectory (black line)
 does in fact fall within the 95% confidence region (red ribbon).</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sim_vals</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">sir_calibrator</span></span>
 <span>  <span class="op">|&gt;</span> <span class="fu"><a href="../reference/mp_trajectory.html">mp_trajectory_sd</a></span><span class="op">(</span>conf.int <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span>  <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">matrix</span> <span class="op">==</span> <span class="st">"I"</span><span class="op">)</span></span>
