@@ -2,7 +2,7 @@
 # Need help debugging build failures? Start at https://github.com/r-lib/actions#where-to-find-help
 on:
   push:
-    branches: [main, master, bc-tour]
+    branches: [main, master]
   pull_request:
     branches: [main, master]
 
@@ -19,10 +19,10 @@ jobs:
       matrix:
         config:
           - {os: ubuntu-latest,   r: 'release'}
-          - {os: macos-latest,   r: 'release'}
-          - {os: windows-latest, r: 'release'}
-          - {os: ubuntu-latest,   r: 'devel', http-user-agent: 'release'}
-          - {os: ubuntu-latest,   r: 'oldrel-1'}
+          #- {os: windows-latest, r: 'release'}
+          #- {os: macos-latest,   r: 'release'}
+          #- {os: ubuntu-latest,   r: 'devel', http-user-agent: 'release'}
+          #- {os: ubuntu-latest,   r: 'oldrel-1'}
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
