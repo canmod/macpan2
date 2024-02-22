@@ -35,7 +35,7 @@ are_matrix_list_names = function(x) {
 ## ΤΟDO: make this a wrapper for a function that takes a params data frame
 ## and matrix dimensions and checks consistency, so that consistency can be
 ## checked before updating the params in a tmb_model
-p_or_r_consistency_opt_mat = function(parameter_type = c("params", "random")){
+p_or_r_consistency_opt_mat = function(parameter_type = c("params", "random")) {
   parameter_type = match.arg(parameter_type)
   function(tmb_model) {
     par_dim_summary = merge(

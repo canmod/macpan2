@@ -53,16 +53,24 @@ bind_rows <- function(..., .id = NULL) {
       nms <- names(lsts)
       id_df <- data.frame(id = if (is.null(nms)) as.character(i) else nms[i], stringsAsFactors = FALSE)
       colnames(id_df) <- .id
-      cbind(id_df, lsts[[i]])
+      y = try(cbind(id_df, lsts[[i]]), silent = TRUE)
+      if (inherits(y, "try-error")) return(NULL)
+      y
     })
   }
 
+  # some_rows = function(x) isTRUE(nrow(x) != 0L)
+  # lsts <- Filter()
   nms <- unique(unlist(lapply(lsts, names)))
   lsts <- lapply(
     lsts,
     function(x) {
       if (!is.data.frame(x)) x <- data.frame(as.list(x), stringsAsFactors = FALSE)
-      for (i in nms[!nms %in% names(x)]) x[[i]] <- ""
+      if (nrow(x) > 0L) {
+        for (i in nms[!nms %in% names(x)]) x[[i]] <- ""
+      } else {
+        x = empty_frame(nms)
+      }
       x
     }
   )
@@ -111,4 +119,53 @@ frame_formatter = function(frame) {
   widths = lapply(lapply(l, nchar), max)
   fixed_width_list = mapply(format, l, width = widths, MoreArgs = list(justify = "left"), SIMPLIFY = FALSE, USE.NAMES = FALSE)
   paste0(do.call(paste, c(fixed_width_list, list(sep = "  "))), collapse = "\n")
+}
+
+add_row = function(frame, ...) {
+  l = as.list(frame)
+  updates = list(...)
+  for (col_nm in names(l)) {
+    col = l[[col_nm]]
+    if (col_nm %in% names(updates)) up = updates[[col_nm]] else up = NA
+    if (is.integer(col)) {
+      col = c(as.integer(up), col)
+    } else if (is.numeric(col)) {
+      col = c(as.numeric(up), col)
+    } else if (is.character(col)) {
+      if (is.na(up)) up = ""
+      col = c(up, col)
+    } else { ## try our best
+      col = c(up, col) 
+    }
+    l[[col_nm]] = col
+  }
+  as.data.frame(l)
+}
+
+frame_to_mat_list = function(x) {
+  y = list()
+  for (m in unique(x$matrix)) {
+    z = filter(x, matrix == m)
+    rnms = unique(z$row)
+    cnms = unique(z$col)
+    nr = length(rnms)
+    nc = length(cnms)
+    fix_nms = function(nms) {
+      if (any(grepl("^[0-9]", nms))) return(NULL)
+      nms
+    }
+    if (nc == 1L) {
+      if (nr == 1L) { ## scalar
+        y[[m]] = z$value
+      } else { ## vector
+        y[[m]] = setNames(z$value, fix_nms(rnms))
+      }
+    } else { ## matrix
+      y[[m]] = matrix(z$value
+        , nr, nc
+        , dimnames = list(fix_nms(rnms), fix_nms(cnms))
+      )
+    }
+  }
+  y
 }

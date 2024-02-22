@@ -47,6 +47,7 @@
 \alias{time_group}
 \alias{cos}
 \alias{print}
+\alias{time_var}
 \title{Engine Functions}
 \description{
 Functions currently supported by the C++ TMB engine
@@ -425,8 +426,12 @@ integers.
 \item \code{x} -- A matrix of any dimensions, except for
 \code{group_sums} that expects \code{x} to be a column vector.
 \item \code{f} -- A column vector the same length as \code{x}
-containing integers between \code{0} and \verb{n-}.
-\item \code{n} -- Length of the output column vector.
+containing integers between \code{0} and \code{m-1}, given \code{m}
+unique groups. Elements of \code{f} refer to the indices
+of \code{x} that will be grouped and summed.
+\item \code{n} -- A column vector of length \code{m}. If \code{f} does
+not contain group \code{k} in \verb{[0, m-1]}, \code{group_sums} skips
+this group and the output at index \code{k+1} is \code{n[k+1]}.
 }
 }
 
@@ -458,7 +463,7 @@ engine_eval(~ sum(y), y = y)
 engine_eval(~sum(x, y, A), x = x, y = y, z = z)
 engine_eval(~ col_sums(A), A = A)
 engine_eval(~ row_sums(A), A = A)
-engine_eval(~ group_sums(x, f, n), x = 1:10, f = rep(0:3, 1:4), n = 4)
+engine_eval(~ group_sums(x, f, n), x = 1:10, f = rep(0:3, 1:4), n = c(1:4))
 }\if{html}{\out{</div>}}
 }
 
@@ -543,14 +548,14 @@ simulation iterations corresponding to integers in
 \item \code{x} -- Any matrix with saved history such that the
 number of columns (for \verb{rbind_*}) or rows (for
 \verb{cbind_*}) does not change throughout the simulation.
-\item \code{lag} -- Column vector of integers giving numbers
+\item \code{lag} -- Integer vector giving numbers
 of time steps before the current step to obtain
 past values of \code{x}.
-\item \code{t} -- Column vector of integers giving time steps
+\item \code{t} -- Integer vector giving time steps
 at which to obtain past values of \code{x}.
-\item \code{t_min} -- Minimum time step that is allowed to be
-accessed. All time-steps in \code{t} or implied by \code{lag}
-that are before \code{t_min} are ignored.
+\item \code{t_min} -- Integer giving the minimum time step
+that is allowed to be accessed. All time-steps in \code{t}
+or implied by \code{lag} that are before \code{t_min} are ignored.
 }
 }
 
@@ -582,11 +587,17 @@ greater than the current time step. The time group
 \code{index} is the index associated with this element.
 Please see the examples below, they are easier
 to understand than this explanation.
+\item \code{time_var(x, change_points, index)}: An improvement
+to \code{time_group}.
 }
 }
 
 \subsection{Arguments}{
 \itemize{
+\item \code{x}: Column vector representing a time series.
+\code{time_var} will return the value of \code{x} corresponding
+to element in \code{change_points} that contains the
+current time.
 \item \code{lag}: Number of time-steps to look back for
 the time-step to return.
 \item \code{index}: Index associated with the current time

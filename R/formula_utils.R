@@ -74,6 +74,19 @@ update_formula = function(formula, replacers) {
 }
 
 
+rhs_sum = function(...) {
+  blank_to_zero = function(x) if (x == "") return("0") else return(x)
+  no_zeros = function(x) x[trimws(x) != "0"]
+  (list(...) 
+   |> vapply(rhs_char, character(1L)) 
+   |> no_zeros()
+   |> paste(collapse = " + ")
+   |> blank_to_zero()
+   |> sprintf(fmt = "~%s") 
+   |> as.formula()
+  )
+}
+
 
 ## for character vectors lhs and rhs, return a formula
 one_sided = function(rhs) {
@@ -82,7 +95,6 @@ one_sided = function(rhs) {
 two_sided = function(lhs, rhs) {
   as.formula(sprintf("%s ~ %s", as.character(lhs), as.character(rhs)))
 }
-
 
 
 swap_sides = function(x) UseMethod("swap_sides")
@@ -190,6 +202,17 @@ formula_components = function(formula, side = c("both", "left", "right")) {
     functions = parse_table$x[is_func] |> unique(),
     literals = parse_table$x[is_var_or_lit & is_lit] |> as.numeric() |> unique()
   )
+}
+
+trans_lhs_var = function(formula) {
+  lhs_vars = formula_components(formula, side = "left")$variables
+  if (length(lhs_vars) != 1L) stop("Transformations must have a single, unsubsetted variable on the left-hand-side")
+  lhs_vars
+}
+trans_rhs_var = function(formula) {
+  rhs_vars = formula_components(formula, side = "right")$variables
+  if (length(rhs_vars) != 1L) stop("Transformations must have a single variable on the right-hand-side")
+  rhs_vars
 }
 
 lhs_pieces = function(formula) {

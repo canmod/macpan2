@@ -1,20 +1,55 @@
+# macpan2 1.1.0
+
+## Breaking Changes
+
+* `simple_sims` no longer returns outputs for the zeroth time-step.
+* Using `last.par.best` to finalize the TMB objective function following optimization.
+* `group_sums` now checks for bad group indexes.
+* `rbind_lag` now throws an error when `lag > 1` because there are conceptual errors with this case. We will get back to this when we can to allow these important cases by adding an argument with initial conditions associated with negative time steps.
+
+## New Features
+
+* Streamlined installation via `r-universe`.
+* `mp_tmb_calibrator` and `mp_tmb_optimize` functions for calibration using a simple and restrictive trajectory matching model.  Future releases will allow more functionality.
+* `mp_tmb_coef` and `mp_tmbstan_coef` for tables of statistical parameters used in calibration.
+* `mp_trajectory_sd` and `mp_trajectory_ensemble` for getting information about fitted trajectory uncertainty.
+* `mp_tmb_update|insert` functions for creating new model specs from existing ones.
+* Parameters specified as a data frame can now place default values in columns with any of the following names: `"default", "Default", "value", "Value", "val", "Val"`
+* `mp_tmb_library` can return a list of model specs with `alternative_specs`, if the model makes alternatives available.
+* `time_var` engine function is better than the old `time_group`, which required two expressions rather than one to do the same thing. `time_group` will remain but is softly deprecated.
+* Fixed effects extractor and formatter.
+* `mp_default` function for extracting spec and simulator defaults in long-format.
+* `rbind_time` allows integer vectors for subsetting times
+* `options(macpan2_verbose = FALSE)` will turn off the flood of information provided by `TMB`. Note that this only takes effect if set before creating a TMB simulator.
+
+## Bug Fixes
+
+* Segfaults for out-of-range assignment.
+
+## Doc Fixes and Updates
+
+* (in progress) [Calibration vignette](https://github.com/canmod/macpan2/blob/HEAD/vignettes/calibration.Rmd) is updated to be a simpler quick-start, and previous advanced material is moved to an advanced vignette.
+* `mp_tmb_model_spec` documentation is filled out.
+* `group_sums` TMB engine function third argument updated from old pre-1.0.0 behaviour.
+
 # macpan2 1.0.0
 
 ## Breaking Changes
 
-* No more `flows.csv`, `derivations.json` files in the library, and instead `tmb.R` files
-* No more `Compartmental` function, and instead `mp_tmb_model_spec` and `mp_tmb_library`
-* `{group|row|col}Sums` are now called `{group|row|col}_sums`
-* `TMBModel` and associated classes (`ExprList`) are no longer exported, in favour of `mp_...` functions for doing similar things
-* Sort simulation output by time step
+* No more `flows.csv`, `derivations.json` files in the library, and instead `tmb.R` files.
+* No more `Compartmental` function, and instead `mp_tmb_model_spec` and `mp_tmb_library`.
+* `{group|row|col}Sums` are now called `{group|row|col}_sums`.
+* Final argument of `group_sums` used to be the length of the output vector, but now it is a vector of the desired output length.
+* `TMBModel` and associated classes (`ExprList`) are no longer exported, in favour of `mp_...` functions for doing similar things.
+* Sort simulation output by time step.
 
 ## New Features
 
-* Constant integer vectors can now be passed to `C++`
-* Integer vectors can be used to subset assignment matrices (i.e. integer subsetting on the left-hand-side)
-* `mp_trajectory()` function, which is roughly equivalent to `model$report(..., .phases = "during")`
-* New `print` function in the TMB engine
-* No need to declare empty matrices when creating TMB model objects, and matrices that are derived are automatically detected
+* Constant integer vectors can now be passed to `C++`.
+* Integer vectors can be used to subset assignment matrices (i.e. integer subsetting on the left-hand-side).
+* `mp_trajectory()` function, which is roughly equivalent to `model$report(..., .phases = "during")`.
+* New `print` function in the TMB engine.
+* No need to declare empty matrices when creating TMB model objects, and matrices that are derived are automatically detected.
 
 ## Experimental Features
 

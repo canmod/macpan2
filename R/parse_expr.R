@@ -342,6 +342,12 @@ initial_valid_vars = function(valid_var_names) {
 #' @export
 empty_matrix = matrix(numeric(0L), 0L, 0L)
 
+is_empty_matrix = function(x) {
+  if (!is.matrix(x)) return(FALSE)
+  d = dim(x)
+  (length(d) == 2L) & (all(d == 0L))
+}
+
 #' Parse Expression List
 #'
 #' Parse a list of one-sided formulas representing expressions

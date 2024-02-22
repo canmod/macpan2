@@ -172,6 +172,19 @@ ExprList = function(
     input$.simulate_exprs = unique(c(self$.simulate_exprs, .simulate_exprs))
     do.call(ExprList, input)
   }
+  self$update = function(...
+    , .at = 1L
+    , .phase = c("before", "during", "after")
+    , .simulate_exprs = character(0L)
+  ) {
+    .phase = match.arg(.phase)
+    input = list(before = self$before, during = self$during, after = self$after)
+    exprs = list(...)
+    where = .at + seq_along(exprs) - 1L
+    input[[.phase]][where] = exprs
+    input$.simulate_exprs = unique(c(self$.simulate_exprs, .simulate_exprs))
+    do.call(ExprList, input)
+  }
   self$print_exprs = function(file = "", time_steps = "T") {
     to = cumsum(self$.eval_schedule())
     from = c(0L, to[1:2]) + 1L
@@ -182,12 +195,16 @@ ExprList = function(
     }
     msgs = c(
       "Before the simulation loop (t = 0):",
-      sprintf("At every iteration of the simulation loop (t = 1 to %s):", as.character(time_steps)),
+      sprintf("At every iteration of the simulation loop (t = 1 to %s):"
+        , as.character(time_steps)
+      ),
       sprintf("After the simulation loop (t = %s):", time_steps_p1)
     )
 
     ## TODO: give better advice here on how to engage the simulation loop.
-    if (time_steps == 0) msgs[2L] = "At every iteration of the simulation loop (number of iterations = 0):"
+    if (time_steps == 0) {
+      msgs[2L] = "At every iteration of the simulation loop (number of iterations = 0):"
+    }
 
     for (i in 1:3) {
       if (self$.eval_schedule()[i] > 0L) {

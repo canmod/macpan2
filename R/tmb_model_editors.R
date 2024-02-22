@@ -1,3 +1,88 @@
+#' Modify a TMB Model Spec
+#' 
+#' Insert or update elements of a TMB model spec, produced using
+#' \code{\link{mp_tmb_library}} or \code{\link{mp_tmb_model_spec}}. The
+#' only difference between `mp_tmb_insert` and `mp_tmb_update` is that
+#' the former shifts the positions of existing expressions to make room
+#' for the new expressions, whereas the latter overwrites existing expressions
+#' using the new expressions. The treatment of new `default` values and 
+#' `integers` is the same.
+#' 
+#' @param model TMB model spec object produced using
+#' \code{\link{mp_tmb_library}} or \code{\link{mp_tmb_model_spec}}.
+#' @param phase At what phase should `expressions` be inserted or updated.
+#' @param at Expression number, which can be identified by printing out
+#' `model`, at which the `expressions` should be inserted or updated. If
+#' inserted then the existing expressions with number `at` and higher are
+#' shifted after the new `expressions` are added. If updated, then the
+#' existing expressions with number from `at` to `at + length(expressions) - 1`
+#' are replaced with the new `expressions`.
+#' @param expressions Expressions to insert into the model spec or to
+#' replace existing expressions.
+#' @inheritParams mp_tmb_model_spec
+#' 
+#' @returns A new model spec object with updated and/or inserted information.
+#' @export
+mp_tmb_insert = function(model
+    , phase = "during"
+    , at = 1L
+    , expressions = list()
+    , default = list()
+    , integers = list()
+    , must_save = character()
+    , must_not_save = character()
+    , sim_exprs = character()
+  ) {
+  model = model$copy()
+  model[[phase]] = append(model[[phase]], expressions, after = at - 1L)
+  model[["default"]][names(default)] = default
+  model[["integers"]][names(integers)] = integers
+  model$must_save  = unique(c(model$must_save, must_save))
+  model$must_not_save  = unique(c(model$must_not_save, must_not_save))
+  model$sim_exprs  = unique(c(model$sim_exprs, sim_exprs))
+  model
+}
+
+
+#' @rdname mp_tmb_insert
+#' @export
+mp_tmb_update = function(model
+    , phase = "during"
+    , at = 1L
+    , expressions = list()
+    , default = list()
+    , integers = list()
+    , must_save = character()
+    , must_not_save = character()
+    , sim_exprs = character()
+  ) {
+  model = model$copy()
+  where = at - 1L + seq_along(expressions)
+  model[[phase]][where] = expressions
+  model[["default"]][names(default)] = default
+  model[["integers"]][names(integers)] = integers
+  model$must_save  = unique(c(model$must_save, must_save))
+  model$must_not_save  = unique(c(model$must_not_save, must_not_save))
+  model$sim_exprs  = unique(c(model$sim_exprs, sim_exprs))
+  model
+}
+
+check_default_updates = function(model, new_defaults) {
+  old_defaults = model$default
+  common_nms = intersect(names(old_defaults), names(new_defaults))
+  for (nm in common_nms) {
+    old_dim = dim(as.matrix(old_defaults[[nm]]))
+    new_dim = dim(as.matrix(new_defaults[[nm]]))
+    if (!identical(old_dim, new_dim)) {
+      warning("Updated default ", nm, " is not the same shape as the existing default.")
+    }
+  }
+  NULL
+}
+
+## Internal classes that handle model editing.
+
+
 TMBEditor = function(model) {
   self = Base()
   self$model = model
@@ -30,6 +115,10 @@ TMBSimulatorPrinter = function(simulator) {
 
 TMBInserter = function(model) {
   self = TMBEditor(model)
+  self$.at = function(at, phase = c("before", "during", "after")) {
+    phase = match.arg(phase)
+    match_if_appropriate(at, names(self$model$expr_list[[phase]]))
+  }
   self$expressions = function(...
     , .at = 1L
     , .phase = c("before", "during", "after")
@@ -56,6 +145,7 @@ TMBSimulatorInserter = function(simulator) {
     , .simulate_exprs = character(0L)
     , .vec_by = getOption("macpan2_vec_by")
   ) {
+    .at = self$.at(.at, .phase)
     for (v in names(.vec_by)) {
       if (.vec_by[v] == "") .vec_by[v] = "...RAW...INDICES..."
     }
@@ -215,6 +305,10 @@ TMBSimulatorReplacer = function(simulator) {
 
 TMBUpdater = function(model) {
   self = TMBEditor(model)
+  self$.at = function(at, phase = c("before", "during", "after")) {
+    phase = match.arg(phase)
+    match_if_appropriate(at, names(self$model$expr_list[[phase]]))
+  }
   return_object(self, "TMBUpdater")
 }
 
@@ -250,6 +344,39 @@ TMBSimulatorUpdater = function(simulator) {
         .at = .at, .phase = .phase
       )
     }
+    self$simulator$cache$invalidate()
+    invisible(self$simulator)
+  }
+  self$expressions = function(...
+    , .at = 1L
+    , .phase = c("before", "during", "after")
+    , .simulate_exprs = character(0L)
+    , .vec_by = getOption("macpan2_vec_by")
+  ) {
+    .at = self$.at(.at, .phase)
+    for (v in names(.vec_by)) {
+      if (.vec_by[v] == "") .vec_by[v] = "...RAW...INDICES..."
+    }
+    # if (.vec_by_states == "") .vec_by_states = "...RAW...INDICES..."
+    # if (.vec_by_flows == "") .vec_by_flows = "...RAW...INDICES..."
+    #component_vec_by = c(state = .vec_by_states, flow = .vec_by_flows)
+    if (inherits(self$model$init_mats$.structure_labels, "NullLabels")) {
+      args = list(...)
+    } else {
+      mat_names = names(self$model$init_mats)
+      component_list = self$model$init_mats$.structure_labels$component_list()
+      args = (list(...)
+        |> lapply(to_special_vecs, component_list, mat_names, .vec_by)
+        |> lapply(to_assign)
+      )
+    }
+    args$.at = .at
+    args$.phase = .phase
+    args$.simulate_exprs = .simulate_exprs
+    (self$model$expr_list$update
+      |> do.call(args)
+      |> self$model$refresh$expr_list()
+    )
     self$simulator$cache$invalidate()
     invisible(self$simulator)
   }

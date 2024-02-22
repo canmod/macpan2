@@ -1,6 +1,6 @@
 Package: macpan2
 Title: Fast and Flexible Compartmental Modelling
-Version: 1.0.2
+Version: 1.1.0
 Authors@R: c(
   person("Steve Walker", email="swalk@mcmaster.ca", role=c("cre", "aut")),
   person("Irena Papst", role="ctb"),
@@ -13,14 +13,16 @@ Authors@R: c(
 Description: Fast and flexible compartmental modelling with Template Model Builder.
 License: GPL-3
 Depends:
-    R (>= 4.1.0),
+    R (>= 4.1.0)
 Imports: 
     TMB (>= 1.9.0),
     Matrix,
     oor,
     jsonlite,
     MASS,
-    memoise
+    memoise,
+    stats,
+    utils
 Suggests: 
     covr,
     knitr,
@@ -29,6 +31,7 @@ Suggests:
     tidyr,
     ggplot2,
     cowplot,
+    lubridate,
     testthat (>= 3.0.0),
     htmltools,
     visNetwork,

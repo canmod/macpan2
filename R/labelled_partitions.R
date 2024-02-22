@@ -333,17 +333,17 @@ process_by_char = function(by) {
 }
 
   # if (length(bad_names) != 0L) {
-  #   macpan2:::msg_break(
-  #     macpan2:::msg_colon(
-  #       macpan2:::msg(
+  #   msg_break(
+  #     msg_colon(
+  #       msg(
   #         "These partition names where asked for (via the include argument)",
   #         "but were not present in the output"
   #       ),
-  #       macpan2:::msg_indent(bad_names)
+  #       msg_indent(bad_names)
   #     ),
-  #     macpan2:::msg_colon(
+  #     msg_colon(
   #       "Only these were available",
-  #       macpan2:::msg_indent(names(z))
+  #       msg_indent(names(z))
   #     )
   #   ) |> stop()
   # }

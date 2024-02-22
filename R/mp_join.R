@@ -653,12 +653,13 @@ tail.Ledger = function(x
   }
 }
 
+#' @importFrom utils str
 #' @export
-str.Ledger = function(x
+str.Ledger = function(object
     , format = c("labels", "link", "combined", "separate")
     , ...
 ) {
-  x = link_format_picker(x, format)
+  x = link_format_picker(object, format)
   str(x, ...)
 }
 

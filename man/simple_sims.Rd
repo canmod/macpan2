@@ -9,7 +9,9 @@ simple_sims(iteration_exprs, time_steps, int_vecs = list(), mats = list())
 \arguments{
 \item{iteration_exprs}{List of expressions to pass to the
 \href{https://canmod.github.io/macpan2/articles/cpp_side}{engine}. The expressions
-are only allowed to use valid \code{\link{engine_functions}}.}
+are only allowed to use valid \code{\link{engine_functions}}. Each expression
+is evaluated in order, once for each iteration. The number of iterations is
+controlled by the \code{time_steps} argument.}
 
 \item{time_steps}{Number of time steps to iterate.}
 

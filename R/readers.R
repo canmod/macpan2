@@ -9,6 +9,8 @@
 Reader = function(...) {
   self = Base()
   self$file = normalizePath(file.path(...), mustWork = TRUE)
+  
+  ## wrapper for handling errors in the reading functions
   self$read_base = function() {
     suggestion = switch(file_ext(self$file)
       , csv = "CSVReader"
@@ -21,7 +23,6 @@ Reader = function(...) {
       suggestion, "."
     )
   }
-  ## wrapper for handling errors in the reading functions
   self$read = function() {
     x = try(self$read_base(), silent = TRUE)
     if (inherits(x, "try-error")) {

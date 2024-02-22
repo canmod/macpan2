@@ -9,6 +9,6 @@ test_that("change pointers can be incremented", {
   )
   expect_equal(
     sims[sims$matrix == "pointer", "value"],
-    c(0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 2)
+    c(0, 0, 0, 1, 1, 1, 2, 2, 2, 2)
   )
 })

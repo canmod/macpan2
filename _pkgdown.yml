@@ -28,8 +28,9 @@ articles:
   - cpp_side
   - vignette_status
 - title: Developer Guides
-  desc: Vignettes aimed at package developers
+  desc: Vignettes aimed at package developers and advanced users
   contents:
+  - calibration_advanced
   - design_concepts
   - development_patterns
   - debugging

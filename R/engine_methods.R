@@ -13,11 +13,11 @@
 #' @noRd
 EngineMethods = function(exprs = list(), int_vecs = IntVecs()) {
   self = Base()
-
+  
   # Args
   self$exprs = exprs
   self$int_vecs = int_vecs
-
+  
   # Composition
   self$method_types = MethodTypes()
   self$meth_list = MethListFromEngineMethods(self)

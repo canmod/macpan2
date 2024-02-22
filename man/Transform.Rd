@@ -2,22 +2,31 @@
 % Please edit documentation in R/param_trans.R
 \name{Transform}
 \alias{Transform}
+\alias{Identity}
 \alias{Log}
 \alias{Logit}
 \title{Transform}
 \usage{
-Transform(variable, default = NULL, prefix = "")
+Transform(variable, default = NULL, trans_variable = variable)
 
-Log(variable, default = NULL)
+Identity(variable, default = NULL, trans_variable = variable)
 
-Logit(variable, default = NULL)
+Log(variable, default = NULL, trans_variable = sprintf("log_\%s", variable))
+
+Logit(
+  variable,
+  default = NULL,
+  trans_variable = sprintf("logit_\%s", variable)
+)
 }
 \arguments{
 \item{variable}{Character string giving a variable in the model.}
 
-\item{default}{(??)}
+\item{default}{Default value for the untransformed variable. If \code{NULL}
+(the default) this value is taken from the initial value in the model
+containing the transformation.}
 
-\item{prefix}{Character string to use to distinguish the transformed
+\item{trans_variable}{Character string to use as the name of the transformed
 version of the \code{variable}.}
 }
 \description{
@@ -25,8 +34,10 @@ Transform
 }
 \section{Functions}{
 \itemize{
-\item \code{Log()}: Log transformation
+\item \code{Identity()}: Identity transformation.
 
-\item \code{Logit()}: Logit transformation
+\item \code{Log()}: Log transformation.
+
+\item \code{Logit()}: Logit transformation.
 
 }}

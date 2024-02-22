@@ -329,8 +329,12 @@
 #' * `x` -- A matrix of any dimensions, except for
 #' `group_sums` that expects `x` to be a column vector.
 #' * `f` -- A column vector the same length as `x`
-#' containing integers between `0` and `n-`.
-#' * `n` -- Length of the output column vector.
+#' containing integers between `0` and `m-1`, given `m`
+#' unique groups. Elements of `f` refer to the indices
+#' of `x` that will be grouped and summed.
+#' * `n` -- A column vector of length `m`. If `f` does
+#' not contain group `k` in `[0, m-1]`, `group_sums` skips
+#' this group and the output at index `k+1` is `n[k+1]`.
 #'
 #' ### Return
 #'
@@ -358,7 +362,7 @@
 #' engine_eval(~sum(x, y, A), x = x, y = y, z = z)
 #' engine_eval(~ col_sums(A), A = A)
 #' engine_eval(~ row_sums(A), A = A)
-#' engine_eval(~ group_sums(x, f, n), x = 1:10, f = rep(0:3, 1:4), n = 4)
+#' engine_eval(~ group_sums(x, f, n), x = 1:10, f = rep(0:3, 1:4), n = c(1:4))
 #' ```
 #'
 #' ## Extracting Matrix Elements
@@ -431,14 +435,14 @@
 #' * `x` -- Any matrix with saved history such that the
 #' number of columns (for `rbind_*`) or rows (for
 #' `cbind_*`) does not change throughout the simulation.
-#' * `lag` -- Column vector of integers giving numbers
+#' * `lag` -- Integer vector giving numbers
 #' of time steps before the current step to obtain
 #' past values of `x`.
-#' * `t` -- Column vector of integers giving time steps
+#' * `t` -- Integer vector giving time steps
 #' at which to obtain past values of `x`.
-#' * `t_min` -- Minimum time step that is allowed to be
-#' accessed. All time-steps in `t` or implied by `lag`
-#' that are before `t_min` are ignored.
+#' * `t_min` -- Integer giving the minimum time step 
+#' that is allowed to be accessed. All time-steps in `t` 
+#' or implied by `lag` that are before `t_min` are ignored.
 #'
 #' ### Return
 #'
@@ -465,9 +469,15 @@
 #' `index` is the index associated with this element.
 #' Please see the examples below, they are easier
 #' to understand than this explanation.
+#' * `time_var(x, change_points, index)`: An improvement
+#' to `time_group`. 
 #'
 #' ### Arguments
 #'
+#' * `x`: Column vector representing a time series.
+#' `time_var` will return the value of `x` corresponding
+#' to element in `change_points` that contains the 
+#' current time.
 #' * `lag`: Number of time-steps to look back for
 #' the time-step to return.
 #' * `index`: Index associated with the current time
@@ -776,4 +786,5 @@
 #' @aliases time_group
 #' @aliases cos
 #' @aliases print
+#' @aliases time_var
 NULL

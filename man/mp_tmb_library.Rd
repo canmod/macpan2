@@ -4,7 +4,7 @@
 \alias{mp_tmb_library}
 \title{TMB Library}
 \usage{
-mp_tmb_library(..., package = NULL)
+mp_tmb_library(..., package = NULL, alternative_specs = FALSE)
 }
 \arguments{
 \item{...}{File path components pointing to a directory that
@@ -16,6 +16,10 @@ to put together the \code{...} components but if \code{package}
 is the name of a package (as a character string) then
 \code{\link{system.file}} is used to put together the \code{...}
 components.}
+
+\item{alternative_specs}{If \code{TRUE}, return a list of alternative
+specification objects. For models without alternatives this will cause
+the return value to be a list with one element containing a spec object.}
 }
 \description{
 Get a TMB model specification from a model library.

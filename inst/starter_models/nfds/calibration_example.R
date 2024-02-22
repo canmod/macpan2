@@ -1,7 +1,7 @@
 library(ggplot2)
 library(dplyr)
 library(tidyr)
-library(cowplot)
+#library(cowplot)
 library(macpan2)
 
 ## Note: No calibration is done in this script, despite script name.
@@ -189,7 +189,7 @@ low = (ggplot((sim_long) %>% filter(genotype %in% low_ics)
   + guides(linetype="none")
   + scale_y_log10()
 )
-plot_grid(high,low,ncol=1)
+#cowplot::plot_grid(high,low,ncol=1)
 
 
 
@@ -211,4 +211,4 @@ diff_low = (ggplot((sim_diff %>% filter(genotype %in% low_ics))
             + theme_bw()
             + scale_color_brewer(palette = "Dark2")
 )
-plot_grid(diff_high,diff_low,ncol=1)
+#cowplot::plot_grid(diff_high,diff_low,ncol=1)

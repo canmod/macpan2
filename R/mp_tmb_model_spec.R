@@ -87,10 +87,19 @@ TMBModelSpec = function(
   }
   self$all_matrices = function() c(self$default, self$empty_matrices())
   
+  self$copy = function() {
+    mp_tmb_model_spec(
+        self$before, self$during, self$after
+      , self$default, self$integers
+      , self$must_save, self$must_not_save, self$sim_exprs
+    )
+  }
+  
   self$simulator_fresh = function(
         time_steps = 0
       , outputs = character()
       , default = list()
+      , initialize_ad_fun = TRUE
     ) {
     self$check_names()
     initial_mats = self$all_matrices()
@@ -139,8 +148,7 @@ TMBModelSpec = function(
         int_vecs = do.call(IntVecs, self$all_integers())
       )
       , time_steps = Time(as.integer(time_steps))
-    )$simulator(outputs = outputs, initialize_ad_fun = FALSE)
-    s$ad_fun()
+    )$simulator(outputs = outputs, initialize_ad_fun = initialize_ad_fun)
     s
   }
   self$simulator_cached = memoise(self$simulator_fresh)
@@ -167,11 +175,26 @@ TMBModelSpec = function(
 #' @param default Named list of objects, each of which can be coerced into 
 #' a \code{\link{numeric}} \code{\link{matrix}}. The names refer to 
 #' variables that appear in \code{before}, \code{during}, and \code{after}.
-#' @param integers list
-#' @param must_save character
-#' @param must_not_save character
-#' @param sim_exprs character
-#' 
+#' @param integers Named list of vectors that can be coerced to integer
+#' vectors. These integer vectors can be used by name in model formulas to
+#' provide indexing of matrices and as grouping factors in 
+#' \code{\link{group_sums}}.
+#' @param must_save Character vector of the names of matrices that must have 
+#' their values stored at every iteration of the simulation loop. For example,
+#' a matrix that the user does not want to be returned but that impacts dynamics
+#' with a time lag must be saved and therefore in this list.
+#' @param must_not_save Character vector of the names of matrices that must
+#' not have their values stored at every iteration of the simulation loop. For
+#' example, the user may ask to return a very large matrix that would create
+#' performance issues if stored at each iteration. The creator of the model
+#' can mark such matrices making it impossible for the user of the model to
+#' save their full simulation history.
+#' @param sim_exprs Character vector of the names of \code{before}, 
+#' \code{during}, and \code{after} expressions that must only be evaluated 
+#' when simulations are being produced and not when the objective function is
+#' being evaluated. For example, expressions that generate stochasticity should
+#' be listed in \code{sim_exprs} because TMB objective functions must be
+#' continuous.
 #' @export
 mp_tmb_model_spec = TMBModelSpec
 

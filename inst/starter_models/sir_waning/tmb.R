@@ -29,4 +29,3 @@ spec = mp_tmb_model_spec(
     , beta = 0.2, gamma = 0.2, phi = 0.01
   )
 )
-

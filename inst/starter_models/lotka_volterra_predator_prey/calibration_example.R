@@ -7,8 +7,8 @@ library(dplyr)
 ## -------------------------
 
 #source(system.file("starter_models/lotka_volterra_predator_prey/tmb.R", package = "macpan2"))
-spec = mp_tmb_library("starter_models","lotka_volterra_predator_prey", package="macpan2")
-spec
+specs = mp_tmb_library("starter_models","lotka_volterra_predator_prey", package = "macpan2", alternative_specs = TRUE)
+spec = specs[[1L]]
 
 ## -------------------------
 ## define simulator

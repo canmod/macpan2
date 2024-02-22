@@ -36,13 +36,29 @@ with the same rules as \code{before}.}
 a \code{\link{numeric}} \code{\link{matrix}}. The names refer to
 variables that appear in \code{before}, \code{during}, and \code{after}.}
 
-\item{integers}{list}
+\item{integers}{Named list of vectors that can be coerced to integer
+vectors. These integer vectors can be used by name in model formulas to
+provide indexing of matrices and as grouping factors in
+\code{\link{group_sums}}.}
 
-\item{must_save}{character}
+\item{must_save}{Character vector of the names of matrices that must have
+their values stored at every iteration of the simulation loop. For example,
+a matrix that the user does not want to be returned but that impacts dynamics
+with a time lag must be saved and therefore in this list.}
 
-\item{must_not_save}{character}
+\item{must_not_save}{Character vector of the names of matrices that must
+not have their values stored at every iteration of the simulation loop. For
+example, the user may ask to return a very large matrix that would create
+performance issues if stored at each iteration. The creator of the model
+can mark such matrices making it impossible for the user of the model to
+save their full simulation history.}
 
-\item{sim_exprs}{character}
+\item{sim_exprs}{Character vector of the names of \code{before},
+\code{during}, and \code{after} expressions that must only be evaluated
+when simulations are being produced and not when the objective function is
+being evaluated. For example, expressions that generate stochasticity should
+be listed in \code{sim_exprs} because TMB objective functions must be
+continuous.}
 }
 \description{
 Specify a model in the TMB engine.

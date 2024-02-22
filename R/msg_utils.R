@@ -36,13 +36,25 @@ msg <- function(..., .sep = "", .max_char_limit = getOption("width")) {
     |> paste0(collapse = "\n")
   )
 }
-
-msg_hline = function(x = "", .max_char_limit = getOption("width")) {
+msg_header = function(x, .max_char_limit = getOption("width")) {
   line = ("-"
    |> rep(.max_char_limit)
    |> paste0(collapse = "")
   )
-  sprintf("\n%s\n%s", line, x)
+  sprintf("\n%s\n%s\n%s\n", line, x, line)
+}
+msg_list = function(...) {
+  (list(...)
+   |> unlist()
+   |> paste0(collapse = "\n")
+  )
+}
+msg_hline = function(x = "", start_char = "\n", end_char = "\n", .max_char_limit = getOption("width")) {
+  line = ("-"
+   |> rep(.max_char_limit)
+   |> paste0(collapse = "")
+  )
+  sprintf("%s%s%s%s", start_char, line, end_char, x)
 }
 msg_colon = function(x, y) sprintf("%s:\n%s", x, y)
 msg_break = function(...) paste(paste(..., sep = "\n"), collapse = "\n")

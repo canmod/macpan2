@@ -208,3 +208,45 @@ extrapolate_dots = function(x, string_with_all_dots) {
   required_n_dots = n_dots(string_with_all_dots[[1L]]) - n_dots(x)
   sprintf("%s%s", x, make_n_dots(required_n_dots))
 }
+
+
+match_if_appropriate = function(x, table) {
+  if (is.numeric(x)) {
+    if (!is.finite(x)) return(x)
+    return(as.integer(round(x)))
+  }
+  x = match(x, table)
+  if (any(is.na(x))) stop("cannot find names")
+  x
+}
+
+name_prefix = function(x, prefix) {
+  names(x) = sprintf("%s_%s", prefix, names(x))
+  x
+}
+
+make_names_list = function(obj, meth_nms) {
+  l = list()
+  for (nm in meth_nms) l[[nm]] = sprintf("%s_%s", nm, names(obj[[nm]]()))
+  l
+}
+
+
+# @param x vector with names
+# @param ... additional arguments giving unnamed character vectors with 
+# argument names corresponding to required names in x, and character vectors 
+# corresponding to valid synonyms for those names.
+rename_synonyms = function(x, ...) {
+  synonym_list = list(...)
+  nms = names(x)
+  for (true_name in names(synonym_list)) {
+    synonyms = synonym_list[[true_name]]
+    candidates = synonyms %in% nms
+    if (any(candidates)) {
+      if (sum(candidates) > 1L) stop("bad names")
+      nms[synonyms[candidates] == nms] = true_name
+    }
+  }
+  names(x) = nms
+  return(x)
+}
