@@ -359,7 +359,7 @@
 #' y = 1:3
 #' A = matrix(1:12, 4, 3)
 #' engine_eval(~ sum(y), y = y)
-#' engine_eval(~sum(x, y, A), x = x, y = y, z = z)
+#' engine_eval(~ sum(x, y, A), x = x, y = y, A = A)
 #' engine_eval(~ col_sums(A), A = A)
 #' engine_eval(~ row_sums(A), A = A)
 #' engine_eval(~ group_sums(x, f, n), x = 1:10, f = rep(0:3, 1:4), n = c(1:4))
@@ -440,8 +440,8 @@
 #' past values of `x`.
 #' * `t` -- Integer vector giving time steps
 #' at which to obtain past values of `x`.
-#' * `t_min` -- Integer giving the minimum time step 
-#' that is allowed to be accessed. All time-steps in `t` 
+#' * `t_min` -- Integer giving the minimum time step
+#' that is allowed to be accessed. All time-steps in `t`
 #' or implied by `lag` that are before `t_min` are ignored.
 #'
 #' ### Return
@@ -470,13 +470,13 @@
 #' Please see the examples below, they are easier
 #' to understand than this explanation.
 #' * `time_var(x, change_points, index)`: An improvement
-#' to `time_group`. 
+#' to `time_group`.
 #'
 #' ### Arguments
 #'
 #' * `x`: Column vector representing a time series.
 #' `time_var` will return the value of `x` corresponding
-#' to element in `change_points` that contains the 
+#' to element in `change_points` that contains the
 #' current time.
 #' * `lag`: Number of time-steps to look back for
 #' the time-step to return.
