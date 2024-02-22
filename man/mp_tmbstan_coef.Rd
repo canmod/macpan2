@@ -9,6 +9,9 @@ mp_tmbstan_coef(model, tmbstan_args = list(), ...)
 \arguments{
 \item{model}{Object that contains information about model coefficients.}
 
+\item{tmbstan_args}{Arguments to pass on to \code{tmbstan}, which is used to
+generate an \code{rstan} object from the underlying \code{TMB} object.}
+
 \item{...}{Arguments to pass onto the \code{broom.mixed::tidy.stanfit} method.}
 }
 \description{

@@ -80,6 +80,8 @@ mp_tmb_coef.TMBCalibrator = function(model, ...) {
 #' MCMC-based coefficient tables.
 #' 
 #' @inheritParams mp_tmb_coef
+#' @param tmbstan_args Arguments to pass on to `tmbstan`, which is used to 
+#' generate an `rstan` object from the underlying `TMB` object.
 #' @param ... Arguments to pass onto the `broom.mixed::tidy.stanfit` method.
 #' @export
 mp_tmbstan_coef = function(model, tmbstan_args = list(), ...) UseMethod("mp_tmbstan_coef")
