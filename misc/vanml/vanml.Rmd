@@ -1,0 +1,192 @@
+## ----include = FALSE----------------------------------------------------------
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+
+
+## ----installation, message=FALSE----------------------------------------------
+if (!require(iidda.api)) {
+  if (!require(remotes)) install.packages("remotes")
+  remotes::install_github(
+      "canmod/iidda-tools"
+    , subdir = "R/iidda.api"
+  )
+}
+
+
+## ----other_packages, message=FALSE--------------------------------------------
+library(macpan2)
+library(dplyr)
+library(ggplot2)
+
+
+## ----api_hook-----------------------------------------------------------------
+api_hook = iidda.api::ops_staging
+options(iidda_api_msgs = FALSE)
+
+
+## ----scarlet_fever_ontario----------------------------------------------------
+scarlet_fever_ontario = api_hook$filter(resource_type = "CANMOD CDI"
+  , iso_3166 = "CA"
+  , iso_3166_2 = "CA-ON"
+  , time_scale = "wk"
+  , disease = "scarlet-fever"
+  , period_end_date = "1929-08-01/1930-10-01"
+)
+print(scarlet_fever_ontario)
+
+
+## ----scarlet_fever_ontario_plot, fig.width=7----------------------------------
+(scarlet_fever_ontario
+  |> ggplot(aes(period_mid_date, cases_this_period))
+  + geom_line() + geom_point()
+  + ggtitle("Scarlet Fever Incidence in Ontario, Canada")
+  + theme_bw()
+)
+
+
+## -----------------------------------------------------------------------------
+sir = mp_tmb_library("starter_models", "sir", package = "macpan2")
+print(sir)
+
+
+## -----------------------------------------------------------------------------
+N = median(scarlet_fever_ontario$population)
+print(N)
+
+
+## -----------------------------------------------------------------------------
+sir_simulator = mp_simulator(sir
+  , time_steps = nrow(scarlet_fever_ontario)
+  , outputs = "infection"
+  , default = list(N = N, beta = 0.35, I = 10000)
+)
+print(sir_simulator)
+head(mp_trajectory(sir_simulator))
+
+
+## -----------------------------------------------------------------------------
+observed_data = (scarlet_fever_ontario
+  |> select(period_end_date, cases_this_period)
+  |> mutate(matrix = "reports")
+  |> rename(value = cases_this_period)
+  |> mutate(time = seq_along(period_end_date))
+)
+print(head(observed_data))
+
+
+## -----------------------------------------------------------------------------
+sir = mp_tmb_insert(sir
+  , default = list(N = median(scarlet_fever_ontario$population))
+)
+
+
+## -----------------------------------------------------------------------------
+sir = mp_tmb_insert(sir
+  , phase = "during"
+  , at = Inf
+  , expressions = list(reports ~ infection * report_prob)
+  , default = list(report_prob = 1/300)
+)
+
+
+## -----------------------------------------------------------------------------
+print(sir)
+
+
+## -----------------------------------------------------------------------------
+sir_cal = mp_tmb_calibrator(
+    spec = sir
+  , data = observed_data
+  , traj = "reports"
+  , par = c("gamma", "beta", "I", "report_prob")
+  , outputs = "reports"
+)
+
+
+## -----------------------------------------------------------------------------
+sir_opt = mp_optimize(sir_cal, "nlminb")
+
+
+## -----------------------------------------------------------------------------
+print(sir_opt)
+
+
+## -----------------------------------------------------------------------------
+mp_coef(sir_cal)
+
+
+## ----fig.width=7--------------------------------------------------------------
+observed_data$fit = mp_trajectory(sir_cal)$value ## TODO: ugly
+(ggplot(observed_data)
+  + geom_line(aes(period_end_date, fit))
+  + geom_point(aes(period_end_date, value))
+  + theme_bw()
+)
+
+
+## ----eval = FALSE-------------------------------------------------------------
+#> mp_calibrator(sir ## or should the first argument be sir_simulator??
+#>   , data = observed_data
+#>   , model_extensions = list(
+#>       mp_under_reporting("reporting_prob")
+#>   )
+#>   , parameters = list(
+#>         beta = 0.4
+#>       , I = 100
+#>       , reporting_prob = 1/100
+#>     )
+#>   , simulation_time_unit = "weekly"
+#>   , observation_time_unit = "weekly"
+#> )
+
+
+## ----eval = FALSE-------------------------------------------------------------
+#> sir_simulator$optimize$nlminb()
+
+
+## ----eval =FALSE--------------------------------------------------------------
+#> weekly = with(scarlet_fever_ontario, {
+#>   macpan2:::Weekly(
+#>       start = min(period_end_date)
+#>     , end = max(period_end_date)
+#>   )
+#> })
+#> observed_data = (scarlet_fever_ontario
+#>   |> select(period_end_date, cases_this_period)
+#>   |> mutate(variable = "incidence")
+#> )
+#> comparison_data = (sir_simulator
+#>   |> mp_trajectory()
+#>   |> mutate(period_end_date = weekly$ending_times(time))
+#>   |> select(period_end_date, value)
+#>   |> rename(cases_this_period = value)
+#>   |> mutate(cases_this_period = cases_this_period / 300)
+#>   |> mutate(variable = "simulated")
+#>   |> bind_rows(observed_data)
+#> )
+
+
+## ----eval = FALSE, fig.width=7------------------------------------------------
+#> (comparison_data
+#>   |> ggplot(aes(period_end_date, cases_this_period))
+#>   + geom_line(aes(colour = variable))
+#>   + ggtitle("Scarlet Fever Incidence in Ontario, Canada")
+#>   + theme_bw()
+#> )
+
+
+## ----eval = FALSE-------------------------------------------------------------
+#> mp_coef(sir_simulator) |>
+#>   printCoefmat(4, cs.ind = c(5, 6, 7), has.Pvalue = FALSE)
+
+
+## ----eval = FALSE-------------------------------------------------------------
+#> library(macpan2)
+#> sir = ("starter_models"
+#>   |> mp_tmb_library("sir", package = "macpan2")
+#>   |> mp_tmb_insert("before", at = 1, list(x ~ a), default = list(a = 1))
+#> )
+#> sir
+
