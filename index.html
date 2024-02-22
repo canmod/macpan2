@@ -137,7 +137,7 @@
 <span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="do">## 1: infection ~ beta * S * I/N</span></span>
 <span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="do">## 2: S ~ S - infection</span></span>
 <span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="do">## 3: I ~ I + infection</span></span></code></pre></div>
-<p>Simulating from this model requires choosing the number of time-steps to run and the model outputs to generate. Syntax for simulating <code>macpan2</code> models is <a href="#modularity">designed to combine with standard data prep and plotting tools in R</a>, as we demonstrate with the following code.</p>
+<p>Simulating from this model requires choosing the number of time-steps to run and the model outputs to generate. Syntax for simulating <code>macpan2</code> models is <a href="https://canmod.github.io/macpan2/articles/quickstart.html#processing-results">designed to combine with standard data prep and plotting tools in R</a>, as we demonstrate with the following code.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="op">(</span><span class="va">si</span></span>
 <span> <span class="op">|&gt;</span> <span class="fu"><a href="reference/mp_simulator.html">mp_simulator</a></span><span class="op">(</span>time_steps <span class="op">=</span> <span class="fl">50</span>, outputs <span class="op">=</span> <span class="fu"><a href="reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"I"</span>, <span class="st">"infection"</span><span class="op">)</span><span class="op">)</span></span>
