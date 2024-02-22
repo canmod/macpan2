@@ -121,8 +121,8 @@ example.</p>
 <code><a href="../articles/example_models.html">vignette("example_models", package = "macpan2")</a></code>. One simple
 example is an SIR model stored here.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="op">(</span><span class="va">sir_path</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"starter_models"</span>, <span class="st">"sir_vax"</span>, package <span class="op">=</span> <span class="st">"macpan2"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "/home/runner/work/_temp/Library/macpan2/starter_models/sir_vax"</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="op">(</span><span class="va">sir_path</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"model_library"</span>, <span class="st">"sir_vax"</span>, package <span class="op">=</span> <span class="st">"macpan2"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "/home/runner/work/_temp/Library/macpan2/model_library/sir_vax"</span></span></code></pre></div>
 <p>This path points to a directory with the following files.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="va">sir_path</span><span class="op">)</span></span>
@@ -136,7 +136,7 @@ This function returns an object of class <code>CSVReader</code>.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_flows_reader</span> <span class="op">=</span> <span class="fu"><a href="../reference/Reader.html">CSVReader</a></span><span class="op">(</span><span class="va">sir_path</span>, <span class="st">"flows.csv"</span><span class="op">)</span></span>
 <span><span class="va">sir_flows_reader</span></span>
-<span><span class="co">#&gt; Classes 'CSVReader', 'Reader', 'Base' &lt;environment: 0x5618c4144fd8&gt; </span></span>
+<span><span class="co">#&gt; Classes 'CSVReader', 'Reader', 'Base' &lt;environment: 0x565240b74b78&gt; </span></span>
 <span><span class="co">#&gt; read : function ()  </span></span>
 <span><span class="co">#&gt; read_base : function ()</span></span></code></pre></div>
 <p>We get a print out of the <code>S3</code> class of the object, which
@@ -225,7 +225,7 @@ something else called <code>file</code>, which is just the file path
 that the reader is configured to read.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_flows_reader</span><span class="op">$</span><span class="va">file</span></span>
-<span><span class="co">#&gt; [1] "/home/runner/work/_temp/Library/macpan2/starter_models/sir_vax/flows.csv"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "/home/runner/work/_temp/Library/macpan2/model_library/sir_vax/flows.csv"</span></span></code></pre></div>
 <p>Object components like this <code>file</code> component, which are
 not methods, are called fields.</p>
 <p>That’s the basic idea of how to use objects in <code>macpan2</code>.
@@ -255,7 +255,7 @@ class.</p>
 <span><span class="op">}</span></span>
 <span><span class="va">does_nothing</span> <span class="op">=</span> <span class="fu">DoesNothing</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">does_nothing</span></span>
-<span><span class="co">#&gt; Classes 'DoesNothing', 'Base' &lt;environment: 0x5618c1ff4590&gt;</span></span></code></pre></div>
+<span><span class="co">#&gt; Classes 'DoesNothing', 'Base' &lt;environment: 0x56523b74e090&gt;</span></span></code></pre></div>
 <p>The first line in this constructor uses the <code>Base</code>
 function to create an <code>environment</code> called <code>self</code>.
 The second line sets <code>self</code>s S3 <code>class</code> to
@@ -270,7 +270,7 @@ field.</p>
 <span><span class="op">}</span></span>
 <span><span class="va">does_nothing</span> <span class="op">=</span> <span class="fu">DoesNothing</span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span>
 <span><span class="va">does_nothing</span></span>
-<span><span class="co">#&gt; Classes 'DoesNothing', 'Base' &lt;environment: 0x5618c1148dc0&gt;</span></span></code></pre></div>
+<span><span class="co">#&gt; Classes 'DoesNothing', 'Base' &lt;environment: 0x56523bfff3a0&gt;</span></span></code></pre></div>
 <p>This looks identical to the first version, but now we have stored a
 value for <code>n</code>.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
