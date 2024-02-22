@@ -18,11 +18,7 @@ knitr::opts_chunk$set(
 
 ```{r installation, message=FALSE}
 if (!require(iidda.api)) {
-  if (!require(remotes)) install.packages("remotes")
-  remotes::install_github(
-      "canmod/iidda-tools"
-    , subdir = "R/iidda.api"
-  )
+  install.packages("iidda.api", repos = c("https://canmod.r-universe.dev", "https://cran.r-project.org"))
 }
 ```
 
