@@ -16,7 +16,7 @@ knitr::opts_chunk$set(
 
 ## Setup
 
-As usual we need the following packages.
+As usual we need the following packages.  If you don't have them, please get them in the usual way (i.e. using `install.packages`).
 
 ```{r other_packages, message=FALSE}
 library(macpan2)
@@ -174,17 +174,15 @@ sir_cal = mp_tmb_calibrator(
 sir_opt = mp_optimize(sir_cal)
 ```
 
-
+Not off to a good start.  Those warnings are not necessarily bad, but they might get us thinking.
 
 ## Examine the fit
-
-Note convergence ... etc...
 
 ```{r}
 print(sir_opt)
 ```
 
-Not off to a good start.  The `convergence` code is `1`, indicating that the model did _not_ converge (`convergence == 0` is good). Examining the parameter estimates, which are stored internally in the calibrator object, things get worse.
+OK, things are not great.  The `convergence` code is `1`, indicating that the model did _not_ converge (`convergence == 0` is good). Examining the parameter estimates, which are stored internally in the calibrator object, things get worse.
 
 ```{r}
 mp_tmb_coef(sir_cal, conf.int = TRUE)
