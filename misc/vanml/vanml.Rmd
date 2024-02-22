@@ -1,192 +1,218 @@
-## ----include = FALSE----------------------------------------------------------
+---
+title: "Fitting to Data in the International Infectious Disease Data Archive (IIDDA)"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Quickstart}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+```
 
+## Setup
 
-## ----installation, message=FALSE----------------------------------------------
-if (!require(iidda.api)) {
-  if (!require(remotes)) install.packages("remotes")
-  remotes::install_github(
-      "canmod/iidda-tools"
-    , subdir = "R/iidda.api"
-  )
-}
+As usual we need the following packages.  If you don't have them, please get them in the usual way (i.e. using `install.packages`).
 
-
-## ----other_packages, message=FALSE--------------------------------------------
+```{r other_packages, message=FALSE}
 library(macpan2)
 library(dplyr)
 library(ggplot2)
+library(broom.mixed)
+```
 
+In addition, we need the `iidda.api` package for obtaining data from [this CANMOD-funded project](http://canmod.net/digitization).
 
-## ----api_hook-----------------------------------------------------------------
+```{r installation, message=FALSE}
+if (!require(iidda.api)) {
+  install.packages("iidda.api", repos = c("https://canmod.r-universe.dev", "https://cran.r-project.org"))
+}
 api_hook = iidda.api::ops_staging
-options(iidda_api_msgs = FALSE)
+```
+
+And we set a few options for convenience.
+
+```{r api_hook}
+options(iidda_api_msgs = FALSE, macpan2_verbose = FALSE)
+```
 
 
-## ----scarlet_fever_ontario----------------------------------------------------
+## One Scarlet Fever Outbreak in Ontario
+
+The following code will pull data for a single scarlet fever outbreak in Ontario that ended in 1930.
+
+```{r scarlet_fever_ontario}
 scarlet_fever_ontario = api_hook$filter(resource_type = "CANMOD CDI"
-  , iso_3166 = "CA"
-  , iso_3166_2 = "CA-ON"
-  , time_scale = "wk"
+  , iso_3166_2 = "CA-ON"  ## get ontario data
+  , time_scale = "wk"  ## weekly incidence data only 
   , disease = "scarlet-fever"
-  , period_end_date = "1929-08-01/1930-10-01"
+  
+  # get data between 1929-08-01 and 1930-10-01
+  , period_end_date = "1929-08-01/1930-10-01"  
 )
 print(scarlet_fever_ontario)
+```
 
+This is what the data look like.
 
-## ----scarlet_fever_ontario_plot, fig.width=7----------------------------------
+```{r scarlet_fever_ontario_plot, fig.width=7}
 (scarlet_fever_ontario
   |> ggplot(aes(period_mid_date, cases_this_period))
   + geom_line() + geom_point()
   + ggtitle("Scarlet Fever Incidence in Ontario, Canada")
   + theme_bw()
 )
+```
 
 
-## -----------------------------------------------------------------------------
+## SIR Model
+
+We will begin by pulling the simple sir model from the model library.
+
+```{r}
 sir = mp_tmb_library("starter_models", "sir", package = "macpan2")
 print(sir)
+```
 
 
-## -----------------------------------------------------------------------------
-N = median(scarlet_fever_ontario$population)
-print(N)
+## Modify Model for Reality
 
+Once we take any library model off the shelve we need to modify it a bit to be more realistic. We do this with the `mp_tmb_insert` function, which inserts new default values and model expressions.
 
-## -----------------------------------------------------------------------------
-sir_simulator = mp_simulator(sir
-  , time_steps = nrow(scarlet_fever_ontario)
-  , outputs = "infection"
-  , default = list(N = N, beta = 0.35, I = 10000)
-)
-print(sir_simulator)
-head(mp_trajectory(sir_simulator))
+We first change the population size to the population of Ontario at the time.
 
-
-## -----------------------------------------------------------------------------
-observed_data = (scarlet_fever_ontario
-  |> select(period_end_date, cases_this_period)
-  |> mutate(matrix = "reports")
-  |> rename(value = cases_this_period)
-  |> mutate(time = seq_along(period_end_date))
-)
-print(head(observed_data))
-
-
-## -----------------------------------------------------------------------------
+```{r}
 sir = mp_tmb_insert(sir
   , default = list(N = median(scarlet_fever_ontario$population))
 )
+```
 
+Second, our SIR model assumes that all of the cases are recorded in the data, but this is not realistic.  We therefore modify the model to include under-reporting, by creating a case `reports` variable that is given by the product of incidence (i.e. weekly `infection` rate) and a reporting probability.
 
-## -----------------------------------------------------------------------------
+```{r}
 sir = mp_tmb_insert(sir
-  , phase = "during"
-  , at = Inf
+    ## insert this expression ...
   , expressions = list(reports ~ infection * report_prob)
+    
+    ## at the end (i.e. Infinity) of the expressions evaluated
+    ## 'during' each iteration of the simulation loop ...
+  , at = Inf  
+  , phase = "during"
+  
+    ## add a new default value for the reporting probability
   , default = list(report_prob = 1/300)
 )
+```
 
+Here we can print out the modified model to see if our changes were made successfully.
 
-## -----------------------------------------------------------------------------
+```{r}
 print(sir)
+```
 
 
-## -----------------------------------------------------------------------------
+## Preparing the Data
+
+The first step in preparing data for `macpan2` is to simulate from the model that you are considering. Here we simulate the `"infection"` variable because it corresponds to the incidence (the number of new cases per time-step, which in our case is one week).
+```{r}
+sir_simulator = mp_simulator(sir
+  , time_steps = 5
+  , outputs = "reports"
+)
+head(mp_trajectory(sir_simulator))
+```
+
+The next step is to get our data into the above format.
+
+```{r}
+observed_data = (scarlet_fever_ontario
+  ## select the variables to be modelled -- a time-series of case reports.
+  |> select(period_end_date, cases_this_period)
+  
+  ## change the column headings so that the match the columns
+  ## in the simulated trajectories.
+  |> mutate(matrix = "reports")
+  |> rename(value = cases_this_period)
+  
+  ## create a `time` column with the time-step IDs that will correspond
+  ## to the time-steps in the simulation. this column heading also 
+  ## must match the column with the time-steps in the simulated trajectories
+  |> mutate(time = seq_along(period_end_date))
+)
+print(head(observed_data))
+```
+
+
+
+
+## Set up the Optimizer
+
+Now we can create an object that can be calibrated.
+
+```{r}
 sir_cal = mp_tmb_calibrator(
     spec = sir
   , data = observed_data
-  , traj = "reports"
-  , par = c("gamma", "beta", "I", "report_prob")
-  , outputs = "reports"
+  
+  ## name the trajectory variable, with a name that
+  ## is the same in both the spec and the data
+  , traj = "reports"  
+  
+  ## fit the following parameters
+  , par = c("beta", "gamma", "I", "report_prob")
 )
+```
 
+Here we assert that we will fit `beta`, `gamma`, (the initial value of) `I`, and `report_prob`. Note that we can only set values in the `default` list of the model spec. In particular, `I` is in the default list because the model requires the initial number of infectious individuals, whereas `S` is not because it is derived before the simulation loop as `S ~ N - I - R`.
 
-## -----------------------------------------------------------------------------
-sir_opt = mp_optimize(sir_cal, "nlminb")
+```{r}
+print(sir)
+```
 
+## Run the Optimization
 
-## -----------------------------------------------------------------------------
+```{r}
+sir_opt = mp_optimize(sir_cal)
+```
+
+Not off to a good start.  Those warnings are not necessarily bad, but they might get us thinking.
+
+## Examine the fit
+
+```{r}
 print(sir_opt)
+```
 
+OK, things are not great.  The `convergence` code is `1`, indicating that the model did _not_ converge (`convergence == 0` is good). Examining the parameter estimates, which are stored internally in the calibrator object, things get worse.
 
-## -----------------------------------------------------------------------------
-mp_coef(sir_cal)
+```{r}
+mp_tmb_coef(sir_cal, conf.int = TRUE)
+```
 
+That doesn't look right!  Those are very high `beta` and `gamma` values, and the confidence intervals are enormous and overlap zero.
 
-## ----fig.width=7--------------------------------------------------------------
-observed_data$fit = mp_trajectory(sir_cal)$value ## TODO: ugly
-(ggplot(observed_data)
-  + geom_line(aes(period_end_date, fit))
-  + geom_point(aes(period_end_date, value))
+But the model fit doesn't look all that bad.
+
+```{r, fig.width=7}
+fitted_data = mp_trajectory_sd(sir_cal, conf.int = TRUE)
+(observed_data
+  |> ggplot()
+  + geom_point(aes(time, value))
+  + geom_line(aes(time, value)
+    , data = fitted_data
+    , colour = "red"
+  )
+  + geom_ribbon(aes(time, ymin = conf.low, ymax = conf.high)
+    , data = fitted_data
+    , alpha = 0.2
+    , colour = "red"
+  )
   + theme_bw()
 )
+```
 
-
-## ----eval = FALSE-------------------------------------------------------------
-#> mp_calibrator(sir ## or should the first argument be sir_simulator??
-#>   , data = observed_data
-#>   , model_extensions = list(
-#>       mp_under_reporting("reporting_prob")
-#>   )
-#>   , parameters = list(
-#>         beta = 0.4
-#>       , I = 100
-#>       , reporting_prob = 1/100
-#>     )
-#>   , simulation_time_unit = "weekly"
-#>   , observation_time_unit = "weekly"
-#> )
-
-
-## ----eval = FALSE-------------------------------------------------------------
-#> sir_simulator$optimize$nlminb()
-
-
-## ----eval =FALSE--------------------------------------------------------------
-#> weekly = with(scarlet_fever_ontario, {
-#>   macpan2:::Weekly(
-#>       start = min(period_end_date)
-#>     , end = max(period_end_date)
-#>   )
-#> })
-#> observed_data = (scarlet_fever_ontario
-#>   |> select(period_end_date, cases_this_period)
-#>   |> mutate(variable = "incidence")
-#> )
-#> comparison_data = (sir_simulator
-#>   |> mp_trajectory()
-#>   |> mutate(period_end_date = weekly$ending_times(time))
-#>   |> select(period_end_date, value)
-#>   |> rename(cases_this_period = value)
-#>   |> mutate(cases_this_period = cases_this_period / 300)
-#>   |> mutate(variable = "simulated")
-#>   |> bind_rows(observed_data)
-#> )
-
-
-## ----eval = FALSE, fig.width=7------------------------------------------------
-#> (comparison_data
-#>   |> ggplot(aes(period_end_date, cases_this_period))
-#>   + geom_line(aes(colour = variable))
-#>   + ggtitle("Scarlet Fever Incidence in Ontario, Canada")
-#>   + theme_bw()
-#> )
-
-
-## ----eval = FALSE-------------------------------------------------------------
-#> mp_coef(sir_simulator) |>
-#>   printCoefmat(4, cs.ind = c(5, 6, 7), has.Pvalue = FALSE)
-
-
-## ----eval = FALSE-------------------------------------------------------------
-#> library(macpan2)
-#> sir = ("starter_models"
-#>   |> mp_tmb_library("sir", package = "macpan2")
-#>   |> mp_tmb_insert("before", at = 1, list(x ~ a), default = list(a = 1))
-#> )
-#> sir
-
+What is going on?  Can you modify this model and/or fitting procedure to get both reasonable parameter estimates and a reasonable trajectory?
