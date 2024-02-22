@@ -32,7 +32,6 @@ mp_tmb_update."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/l
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="../articles/quickstart.html">Quickstart</a>
     <a class="dropdown-item" href="../articles/example_models.html">Example Models</a>
-    <a class="dropdown-item" href="../articles/time_varying_parameters.html">Specifying Time-Varying Parameters</a>
     <a class="dropdown-item" href="../articles/calibration.html">Calibrating Compartmental Models to Data</a>
     <a class="dropdown-item" href="../articles/engine_agnostic_grammar.html">Engine-Agnostic Model Specification Grammar</a>
     <div class="dropdown-divider"></div>
@@ -115,9 +114,10 @@ time-varying according to the values in <code>data</code>.</p></dd>
 
 
 <dt>outputs</dt>
-<dd><p>A character vector of outputs to pass to
-<code><a href="mp_simulator.html">mp_simulator</a></code>. By default the trajectories and time-varying
-parameters are in the output.</p></dd>
+<dd><p>A character vector of outputs that will be generated
+when <code><a href="mp_trajectory.html">mp_trajectory</a></code>, <code><a href="mp_trajectory.html">mp_trajectory_sd</a></code>, or
+<code><a href="mp_trajectory.html">mp_trajectory_ensemble</a></code> are called on the optimized
+calibrator. By default it is just the trajectories listed in <code>traj</code>.</p></dd>
 
 
 <dt>default</dt>

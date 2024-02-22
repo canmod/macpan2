@@ -43,7 +43,6 @@
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="../articles/quickstart.html">Quickstart</a>
     <a class="dropdown-item" href="../articles/example_models.html">Example Models</a>
-    <a class="dropdown-item" href="../articles/time_varying_parameters.html">Specifying Time-Varying Parameters</a>
     <a class="dropdown-item" href="../articles/calibration.html">Calibrating Compartmental Models to Data</a>
     <a class="dropdown-item" href="../articles/engine_agnostic_grammar.html">Engine-Agnostic Model Specification Grammar</a>
     <div class="dropdown-divider"></div>
@@ -274,17 +273,19 @@ mean given by the simulated trajectory.</p>
 <p><span class="math display">\[
 I_{\textrm{obs}} \sim \textrm{Poisson}(I_\textrm{sim}(\mathbf b))
 \]</span></p>
-<p>Given these assumptions we maximize the resulting likelihood
-function, and use functionality from the <code>TMB</code> package (and
-sometimes the <code>tmbstan</code>/<code>rstan</code> packages) to do
-statistical inference on the fitted parameters and trajectories.</p>
+<p>Given these assumptions we choose <span class="math inline">\(\mathbf
+b\)</span> to maximize the resulting likelihood function, and use
+functionality from the <code>TMB</code> package (and sometimes the
+<code>tmbstan</code>/<code>rstan</code> packages) to do statistical
+inference on the fitted parameters and trajectories.</p>
 <p>We recognize that this statistical model will often be overly
 restrictive. The <code>macpan2</code> package has a developer interface
 that is much more flexible, allowing for more detailed control over
 <code>TMB</code>, <code>tmbstan</code>, and <code>rstan</code>. This
 interface allows for arbitrary likelihood functions, prior
 distributions, parameter transformations, flexible parameter
-time-variation models, random effects and more. See <a href="https://canmod.github.io/macpan2/articles/index.html#developer-guides">here</a>
+time-variation models, random effects and more. See <a href="https://canmod.github.io/macpan2/articles/calibration_advanced.html">here</a>
+and <a href="https://canmod.github.io/macpan2/articles/time_varying_parameters.html">here</a>
 for more information, although because these guides describe a developer
 interface the instructions may be unclear to some or many readers. Our
 plan is to continue adding interface layers, such as the interface
