@@ -73,7 +73,15 @@ being evaluated. For example, expressions that generate stochasticity should
 be listed in \code{sim_exprs} because TMB objective functions must be
 continuous.}
 }
+\value{
+A new model spec object with updated and/or inserted information.
+}
 \description{
 Insert or update elements of a TMB model spec, produced using
-\code{\link{mp_tmb_library}} or \code{\link{mp_tmb_model_spec}}.
+\code{\link{mp_tmb_library}} or \code{\link{mp_tmb_model_spec}}. The
+only difference between \code{mp_tmb_insert} and \code{mp_tmb_update} is that
+the former shifts the positions of existing expressions to make room
+for the new expressions, whereas the latter overwrites existing expressions
+using the new expressions. The treatment of new \code{default} values and
+\code{integers} is the same.
 }

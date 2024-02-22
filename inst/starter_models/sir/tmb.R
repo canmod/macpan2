@@ -18,7 +18,7 @@ update_state = list(
 ## set defaults
 default = list(
     beta = 0.2
-  , gamma = 0.2
+  , gamma = 0.1
   , N = 100
   , I = 1
   , R = 0

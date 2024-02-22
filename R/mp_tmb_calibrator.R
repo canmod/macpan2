@@ -36,19 +36,20 @@
 #' sim = mp_simulator(spec, 50, "infection")
 #' data = mp_trajectory(sim)
 #' cal = mp_tmb_calibrator(
-#'     spec |> mp_tmb_update(default = list(beta = 0.25))
+#'     spec
 #'   , data
 #'   , traj = "infection"
 #'   , par = "beta"
+#'   , default = list(beta = 0.25)
 #' )
-#' mp_optimize(cal, "nlminb")
-#' mp_fixed_effects(cal)
+#' mp_optimize(cal)
+#' mp_tmb_coef(cal)  ## requires broom.mixed package
 #' @export
 mp_tmb_calibrator = function(spec, data
-    , traj = character()
-    , par = character()
+    , traj
+    , par
     , tv = character()
-    , outputs = c(traj, intersect(par, tv))
+    , outputs = traj
     , default = list()
     , time = NULL
   ) {
@@ -68,35 +69,37 @@ mp_tmb_calibrator = function(spec, data
       , "mp_tmb_library to produce a model spec that can be calibrated."
     )
   }
+  
   ## gather defaults before they are updated (FIXME: this will need to be 
   ## updated when non-character inputs are allowed)
   force(outputs) 
   
   ## copy the spec and update defaults
   cal_spec = spec$copy()
-  mp_tmb_update(cal_spec, default = default)
+  check_default_updates(cal_spec, default)
+  cal_spec = mp_tmb_update(cal_spec, default = default)
   
   struc = TMBCalDataStruc(data, time)
   traj = TMBTraj(traj, struc, cal_spec$all_formula_vars())
-  tv = TMBTV(tv, struc, traj$global_names_vector())
+  tv = TMBTV(tv, struc, cal_spec, traj$global_names_vector())
   par = TMBPar(par, tv, traj, cal_spec, tv$global_names_vector())
   
   ## add observed trajectories 
   ## (see globalize function for comments on what it does)
-  mp_tmb_insert(cal_spec
+  cal_spec = mp_tmb_insert(cal_spec
     , phase = "after"
     , at = 1L
     , expressions = traj$sim_collect_exprs()
     , default = globalize(traj, "obs")
     , integers = globalize(traj, "obs_times")
-    , must_not_save = globalize(traj, "obs")
+    , must_not_save = names(globalize(traj, "obs"))
     , must_save = traj$traj
   )
   
   ## TODO: handle likelihood trajectories
   
   ## add time-varying parameters
-  mp_tmb_insert(cal_spec
+  cal_spec = mp_tmb_insert(cal_spec
     , phase = "during"
     , at = 1L
     , expressions = tv$var_update_exprs()
@@ -109,7 +112,7 @@ mp_tmb_calibrator = function(spec, data
   )
   
   ## add parameter transformations
-  mp_tmb_insert(cal_spec
+  cal_spec = mp_tmb_insert(cal_spec
     , phase = "before"
     , at = 1L
     , expressions = par$inv_trans_exprs()
@@ -126,10 +129,28 @@ mp_tmb_calibrator = function(spec, data
   cal_sim$replace$params_frame(par$params_frame())
   cal_sim$replace$random_frame(par$random_frame())
   
-  ## TODO: add inputs to simulator object, and maybe extend so that it
-  ## is actually called a calibratable simulator
-  
-  cal_sim
+  TMBCalibrator(spec, spec$copy(), cal_spec, cal_sim)
+}
+
+TMBCalibrator = function(orig_spec, new_spec, cal_spec, simulator) {
+  self = Base()
+  self$orig_spec = orig_spec  ## original spec for reference
+  self$new_spec = new_spec  ## gets updated as optimization proceeds
+  self$cal_spec = cal_spec  ## contaminated with stuff required for calibration
+  self$simulator = simulator  ## model simulator object keeping track of optimization attempts
+  return_object(self, "TMBCalibrator")
+}
+
+#' @export
+print.TMBCalibrator = function(x, ...) {
+  print(x$new_spec)
+  hist = x$simulator$optimization_history
+  if (hist$opt_attempted()) {
+    cat("---------------------\n")
+    msg("Optimization:\n") |> cat()
+    cat("---------------------\n")
+    print(hist$latest())
+  }
 }
 
 #' Optimize
@@ -141,21 +162,67 @@ mp_tmb_calibrator = function(spec, data
 #' @param ... Arguments to pass to the `optimizer`.
 #' 
 #' @returns The output of the `optimizer`. The `model` object is modified
-#' and saves the history of optimization outputs (TODO: develop a way for 
-#' the user to get a hold of this stuff).
+#' and saves the history of optimization outputs. These outputs can be 
+#' obtained using \code{\link{mp_optimizer_output}}.
 #' 
 #' @export
 mp_optimize = function(model, optimizer, ...) UseMethod("mp_optimize")
 
-#' @describeIn mp_optimize Optimize a TMB simulator. TODO: less technical ...
+
 #' @export
 mp_optimize.TMBSimulator = function(model
     , optimizer = c("nlminb", "optim")
     , ...
   ) {
   optimizer = match.arg(optimizer)
-  model$optimize[[optimizer]]()
+  optimizer_results = model$optimize[[optimizer]]()
+  return(optimizer_results)
 } 
+
+#' @describeIn mp_optimize Optimize a TMB calibrator.
+#' @export
+mp_optimize.TMBCalibrator = function(model, optimizer, ...) {
+  optimizer_results = mp_optimize(model$simulator)
+  
+  old_defaults = mp_default(model$new_spec) |> frame_to_mat_list()
+  new_defaults = (model$simulator
+    |> mp_default()
+    |> filter(matrix %in% names(old_defaults))
+    |> frame_to_mat_list()
+  )
+  model$new_spec = mp_tmb_update(model$new_spec, default = new_defaults)
+  return(optimizer_results)
+}
+
+
+#' Optimizer Output
+#'
+#' Get the output from an optimizer used in model calibration.
+#' 
+#' When objects created by \code{\link{mp_tmb_calibrator}} are successfully 
+#' passed to \code{\link{mp_optimize}}, they build up an 
+#' optimization history. This history is recorded as a list of the output 
+#' produced by the underlying optimizer (e.g. \code{\link{nlminb}}). This
+#' `mp_optimizer_output` function returns the latest output by default
+#' or the entire history list.
+#' 
+#' @param model An object that has been optimized.
+#' @param what A string indicating whether to return the results of the
+#' `"latest"` optimization attempt or a list with `"all"` of them.
+#' 
+#' @export
+mp_optimizer_output = function(model, what = c("latest", "all")) {
+  UseMethod("mp_optimizer_output")
+}
+
+#' @export
+mp_optimizer_output.TMBCalibrator = function(model, what = c("latest", "all")) {
+  hist = model$simulator$optimization_history
+  switch(match.arg(what)
+    , latest = hist$latest()
+    , all = hist$all()
+  )
+}
 
 
 TMBCalDataStruc = function(data, time) {
@@ -201,10 +268,12 @@ TMBCalDataStruc = function(data, time) {
 TMBTV = function(
       tv = character()
     , struc
+    , spec
     , existing_global_names = character()
   ) {
   self = Base()
   self$existing_global_names = existing_global_names
+  self$spec = spec
   
   ## internal data structure:
   ## assumes tv is a character vector
@@ -213,14 +282,18 @@ TMBTV = function(
   self$tv_list = struc$matrix_list[tv]
   for (p in names(self$tv_list)) {
     self$tv_list[[p]] = rename_synonyms(self$tv_list[[p]]
-      , default = "value"
+      , mat = c("matrix", "Matrix", "mat", "Mat", "variable", "var", "Variable", "Var")
+      , row = c("row", "Row")
+      , col = c("col", "Col", "column", "Column")
+      , default = c("value", "Value", "val", "Val", "default", "Default")
     )
-    if (isTRUE(!any(self$tv_list[[p]]$time_ids == 0L))) {
+    if (isTRUE(!any(self$tv_list[[p]]$time_ids == 0))) {
       self$tv_list[[p]] = add_row(self$tv_list[[p]]
-        , matrix = p
+        , mat = p
         , row = 0L
         , col = 0L
         , time_ids = 0L
+        , default = self$spec$default[[p]]
       )
     }
   }
@@ -228,25 +301,52 @@ TMBTV = function(
   ## get lists of things that will become
   ## things like defaults, integers, ...
   self$time_var = function() {
-    lapply(self$tv_list, getElement, "value")
+    ## Depended upon to return a list with the values of each 
+    ## time varying parameter at the change points. The 
+    ## names of the list are the time-varying matrices
+    ## in the spec.
+    lapply(self$tv_list, getElement, "default")
   }
   self$change_points = function() {
+    ## Depended upon to return a list of the integers 
+    ## giving the time-steps of the changepoints with
+    ## the first time-step always being 0 (the initial)
+    ## The names of the list are the time-varying 
+    ## matrices in the spec.
     lapply(self$tv_list, getElement, "time_ids")
   }
-  self$time_var_melt = function() {
+  self$time_var_melt = function(tv_par_mat_nms) {
+    ## Depended upon to return a data frame with the
+    ## following columns:
+    ##   1. mat -- 
+    ##   2. row
+    ##   3. col
+    ##   4. default
     tv = self$time_var()
     if (length(tv) == 0L) {
-      cols = c("matrix", "row", "col", "value") ## TODO: correct?
+      cols = c("mat", "row", "col", "default")
       return(empty_frame(cols))
     }
-    cp = self$change_points()
-    (
-         mapply(setNames, tv, cp, SIMPLIFY = FALSE) 
-      |> setNames(names(tv))
-      |> melt_default_matrix_list()
-    )
+    l = list()
+    time_var_mats = globalize(self, "time_var")
+    tv_mat_nms = names(self$tv_list)
+    for (i in seq_along(self$tv_list)) {
+      if (tv_mat_nms[i] %in% tv_par_mat_nms) { ## only add tv mats that are pars
+        l = append(l, list(data.frame(
+            mat = names(time_var_mats)[[i]]
+          , row = seq_along(self$time_var()[[i]]) - 1L
+          , col = 0L
+          , default = time_var_mats[[i]]
+        )))
+      }
+    }
+    bind_rows(l)
   }
   self$change_pointer = function() {
+    ## Depended upon to return a list if length-one
+    ## integer vectors with a single zero. Names of 
+    ## the list are the time-varying matrices in the
+    ## spec. 
     nms = names(self$change_points())
     (nms
       |> zero_vector()
@@ -276,6 +376,9 @@ TMBTV = function(
   
   ## produce expressions
   self$var_update_exprs = function() {
+    ## Depended upon to return a list of expressions returning
+    ## the value of the time-varying parameter at each time step.
+    ## The names of this list is the time-varying matrix.
     nms = self$global_names()
     lhs = names(self$tv_list) ## original spec parameter names
     rhs = sprintf("time_var(%s, %s, %s)"
@@ -300,22 +403,29 @@ TMBTraj = function(
   ## assumes traj is character vector
   ## identifying matrices
   self$traj_list = struc$matrix_list[traj]
-  self$traj = traj
+  self$traj = traj ## Depended upon to contain a character vector of output variables to fit to
   
   
   ## public methods ----
   ## matrices representing observed times
   self$obs = function() {
+    ## Depended upon to return a list of matrices containing 
+    ## observed trajectories with names given by the 
+    ## output variable being matched.
     lapply(self$traj_list, getElement, "value")
   }
   ## integer vectors giving the times associated 
   ## with each row in the matrices in self$obs
   self$obs_times = function() {
+    ## Depended upon to return a list of integers containing
+    ## time steps at which observed trajectories are not missing.
+    ## The names of this list match the output variable being
+    ## matched.
     lapply(self$traj_list, getElement, "time")
   }
   self$distr_params = function() list()
   self$distr_params_melt = function() {
-    cols = c("matrix", "row", "col", "value") ## TODO: correct?
+    cols = c("mat", "row", "col", "default") ## TODO: correct?
     empty_frame(cols)
   }
   
@@ -338,7 +448,15 @@ TMBTraj = function(
   }
   
   ## expressions
+  
+  
   self$sim_collect_exprs = function() {
+    ## Depended upon to return a list of expressions to be 
+    ## evaluated in the "after" phase to collect the 
+    ## simulated trajectories into one matrix per observed
+    ## trajectory. Each simulated trajectory must have 
+    ## the same number of rows (and maybe columns??) as the
+    ## corresponding observed trajectory.
     nms = self$global_names()
     lhs = nms$sim
     rhs = sprintf("rbind_time(%s, %s)"
@@ -349,8 +467,18 @@ TMBTraj = function(
   }
   self$obj_fn_traj_exprs = function() list()
   self$obj_fn_expr_chars = function() {
+    ## Depended upon to return a character vector of terms in
+    ## the objective function. These will be concatenated
+    ## without any separating operators (plus/minus etc 
+    ## need to be handled in the expression).
     nms = self$global_names()
-    sprintf("-sum(dpois(%s, %s))", nms$obs, nms$sim)
+    switch(
+        getOption("macpan2_default_loss")[1L]
+      , clamped_poisson = sprintf("-sum(dpois(%s, clamp(%s)))", nms$obs, nms$sim)
+      , poisson = sprintf("-sum(dpois(%s, %s))", nms$obs, nms$sim)
+      , sum_of_squares = sprintf("-sum(dnorm(%s, %s, 1))", nms$obs, nms$sim)
+    )
+    
   }
   
   return_object(self, "TMBTraj")
@@ -371,10 +499,11 @@ TMBPar = function(
   self$par = setdiff(par, tv_names)
   self$tv_par = intersect(par, tv_names)
   
+  
   self$trans_vars = function() list()
   self$hyperparams = function() list()
   self$hyperparams_melt = function() {
-    cols = c("matrix", "row", "col", "value") ## TODO: correct?
+    cols = c("mat", "row", "col", "default")
     empty_frame(cols)
   }
   
@@ -397,15 +526,20 @@ TMBPar = function(
   ## produce fixed and random effect parameter frames
   ## associated with time-varying parameters
   self$params_frame = function() {
-    pf = melt_default_matrix_list(self$spec$default[self$par], FALSE)
+    ## Depended upon to produce a data frame with the following columns:
+    ##   1. 
+    pf = (self$spec$default[self$par]
+      |> melt_default_matrix_list(FALSE)
+      |> rename_synonyms(mat = "matrix", default = "value")
+    )
     bind_rows(pf
-      , self$tv$time_var_melt()
+      , self$tv$time_var_melt(self$tv_par)
       , self$hyperparams_melt()
       , self$traj$distr_params_melt()
     )
   }
   self$random_frame = function() {
-    cols = c("matrix", "row", "col", "value") ## TODO: correct?
+    cols = c("mat", "row", "col", "default")
     empty_frame(cols)
   }
   
@@ -429,3 +563,21 @@ globalize = function(obj, type) setNames(obj[[type]](), obj$global_names()[[type
 sum_obj_terms = function(...) {
   c(...) |> paste(collapse = " ") |> one_sided()
 }
+
+
+#' Get Underlying TMB Object
+#' 
+#' Get the result of `TMB::MakeADFun` underlying a TMB-based
+#' model in `macpan2`.
+#' 
+#' @param model An object based on TMB.
+#' @export
+mp_tmb = function(model) UseMethod("mp_tmb")
+
+#' @export
+mp_tmb.TMBSimulator = function(model) {
+  structure(model$ad_fun(), class = "TMB")
+}
+
+#' @export
+mp_tmb.TMBCalibrator = function(model) mp_tmb(model$simulator)

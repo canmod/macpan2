@@ -2,12 +2,12 @@
 % Please edit documentation in R/mp_tmb_calibrator.R
 \name{mp_optimize}
 \alias{mp_optimize}
-\alias{mp_optimize.TMBSimulator}
+\alias{mp_optimize.TMBCalibrator}
 \title{Optimize}
 \usage{
 mp_optimize(model, optimizer, ...)
 
-\method{mp_optimize}{TMBSimulator}(model, optimizer = c("nlminb", "optim"), ...)
+\method{mp_optimize}{TMBCalibrator}(model, optimizer, ...)
 }
 \arguments{
 \item{model}{A model object capable of being optimized. See below
@@ -20,14 +20,14 @@ for each type of \code{model}.}
 }
 \value{
 The output of the \code{optimizer}. The \code{model} object is modified
-and saves the history of optimization outputs (TODO: develop a way for
-the user to get a hold of this stuff).
+and saves the history of optimization outputs. These outputs can be
+obtained using \code{\link{mp_optimizer_output}}.
 }
 \description{
 Optimize
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{mp_optimize(TMBSimulator)}: Optimize a TMB simulator. TODO: less technical ...
+\item \code{mp_optimize(TMBCalibrator)}: Optimize a TMB calibrator.
 
 }}

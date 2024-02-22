@@ -53,16 +53,24 @@ bind_rows <- function(..., .id = NULL) {
       nms <- names(lsts)
       id_df <- data.frame(id = if (is.null(nms)) as.character(i) else nms[i], stringsAsFactors = FALSE)
       colnames(id_df) <- .id
-      cbind(id_df, lsts[[i]])
+      y = try(cbind(id_df, lsts[[i]]), silent = TRUE)
+      if (inherits(y, "try-error")) return(NULL)
+      y
     })
   }
 
+  # some_rows = function(x) isTRUE(nrow(x) != 0L)
+  # lsts <- Filter()
   nms <- unique(unlist(lapply(lsts, names)))
   lsts <- lapply(
     lsts,
     function(x) {
       if (!is.data.frame(x)) x <- data.frame(as.list(x), stringsAsFactors = FALSE)
-      for (i in nms[!nms %in% names(x)]) x[[i]] <- ""
+      if (nrow(x) > 0L) {
+        for (i in nms[!nms %in% names(x)]) x[[i]] <- ""
+      } else {
+        x = empty_frame(nms)
+      }
       x
     }
   )
@@ -132,4 +140,32 @@ add_row = function(frame, ...) {
     l[[col_nm]] = col
   }
   as.data.frame(l)
+}
+
+frame_to_mat_list = function(x) {
+  y = list()
+  for (m in unique(x$matrix)) {
+    z = filter(x, matrix == m)
+    rnms = unique(z$row)
+    cnms = unique(z$col)
+    nr = length(rnms)
+    nc = length(cnms)
+    fix_nms = function(nms) {
+      if (any(grepl("^[0-9]", nms))) return(NULL)
+      nms
+    }
+    if (nc == 1L) {
+      if (nr == 1L) { ## scalar
+        y[[m]] = z$value
+      } else { ## vector
+        y[[m]] = setNames(z$value, fix_nms(rnms))
+      }
+    } else { ## matrix
+      y[[m]] = matrix(z$value
+        , nr, nc
+        , dimnames = list(fix_nms(rnms), fix_nms(cnms))
+      )
+    }
+  }
+  y
 }

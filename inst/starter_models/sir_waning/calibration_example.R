@@ -186,3 +186,4 @@ if (packageVersion("Matrix") >= matrix_version) {
   print(sir_waning$current$params_frame())
   print(sir_waning$current$random_frame())
 }
+mp_tmbstan_coef(sir_waning, conf.int = TRUE, drop.pars = character())

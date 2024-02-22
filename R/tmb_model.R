@@ -159,15 +159,22 @@ TMBModel = function(
     if (length(self$random$vector()) == 0L) return(NULL)
     return("random")
   }
-  self$make_ad_fun_arg = function(tmb_cpp = getOption("macpan2_dll")) {
+  self$make_ad_fun_arg = function(
+        tmb_cpp = getOption("macpan2_dll")
+      , verbose = getOption("macpan2_verbose")
+    ) {
     list(
         data = self$data_arg(),
         parameters = self$param_arg(),
         random = self$random_arg(),
-        DLL = tmb_cpp
+        DLL = tmb_cpp,
+        silent = !verbose
     )
   }
-  self$ad_fun = function(tmb_cpp = getOption("macpan2_dll")) {
+  self$ad_fun = function(
+        tmb_cpp = getOption("macpan2_dll")
+      , verbose = getOption("macpan2_verbose")
+    ) {
     do.call(TMB::MakeADFun, self$make_ad_fun_arg(tmb_cpp))
   }
 
@@ -300,6 +307,63 @@ mp_trajectory = function(model) {
 mp_trajectory.TMBSimulator = function(model) {
   model$report() |> reset_rownames()
 }
+
+#' @export
+mp_trajectory.TMBCalibrator = function(model) mp_trajectory(model$simulator)
+
+
+#' @param conf.int Should confidence intervals be produced?
+#' @param conf.level If `conf.int` is `TRUE`, what confidence level should be
+#' used?  For example, the default of `0.95` corresponds to 95% confidence
+#' intervals.
+#' @describeIn mp_trajectory Simulate a trajectory that includes uncertainty
+#' information provided by the `sdreport` function in `TMB` with default
+#' settings.
+#' @export
+mp_trajectory_sd = function(model, conf.int = FALSE, conf.level = 0.95) {
+  UseMethod("mp_trajectory_sd")
+}
+
+#' @param n Number of samples used in `mp_trajectory_ensemble`.
+#' @param probs What quantiles should be returned by `mp_trajectory_ensemble`.
+#' @describeIn mp_trajectory Simulate a trajectory that includes uncertainty
+#' information provided by repeatedly sampling from a normal approximation to the 
+#' distribution of the fitted parameters, and generating one trajectory for
+#' each of these samples. The quantiles of the empirical distribution of these
+#' trajectories can be used to produce a confidence interval for the 
+#' fitted trajectory.
+#' @export
+mp_trajectory_ensemble = function(model, n, probs = c(0.025, 0.975)) {
+  UseMethod("mp_trajectory_ensemble")
+}
+  
+#' @importFrom stats qnorm
+#' @export
+mp_trajectory_sd.TMBSimulator = function(model, conf.int = FALSE, conf.level = 0.95) {
+  alpha = (1 - conf.level) / 2
+  r = model$report_with_sd()
+  if (conf.int) {
+    r$conf.low = r$value + r$sd * qnorm(alpha)
+    r$conf.high = r$value + r$sd * qnorm(1 - alpha)
+  }
+  r
+} 
+
+#' @export
+mp_trajectory_sd.TMBCalibrator = function(model, conf.int = FALSE, conf.level = 0.95) {
+  mp_trajectory_sd(model$simulator, conf.int, conf.level)
+}
+
+#' @export
+mp_trajectory_ensemble.TMBSimulator = function(model, n, probs = c(0.025, 0.975)) {
+  model$report_ensemble(.n = n, .probs = probs)
+}
+
+#' @export
+mp_trajectory_ensemble.TMBCalibrator = function(model, n, probs = c(0.025, 0.975)) {
+  mp_trajectory_ensemble(model$simulator, n, probs)
+}
+
 
 TMBDynamicSimulator = function(tmb_simulator, dynamic_model) {
   self = tmb_simulator

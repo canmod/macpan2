@@ -102,6 +102,18 @@ TMBOptimizationHistory = function(simulator) {
   self$.history = list()
   self$get = function() self$.history
   self$save = function(opt_obj) self$.history = append(self$.history, list(opt_obj))
+  self$latest = function() {
+    if (!self$opt_attempted()) {
+      stop(
+          "This model has not been optimized and so it is not possible to extract "
+        , "the latest output from an optimizer. To try running please call "
+        , "mp_tmb_optimize."
+      )
+    }
+    return(self$.history[[length(self$.history)]])
+  }
+  self$all = function() self$.history
+  self$opt_attempted = function() length(self$.history) > 0L
   return_object(self, "TMBOptimizationHistory")
 }
 

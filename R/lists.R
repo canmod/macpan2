@@ -68,6 +68,7 @@ melt_matrix = function(x, zeros_are_blank = TRUE) {
 }
 
 melt_default_matrix_list = function(x, zeros_are_blank = TRUE) {
+  if (length(x) == 0L) return(NULL)
   f = (x
    |> lapply(melt_matrix, zeros_are_blank)
    |> bind_rows(.id = "matrix")

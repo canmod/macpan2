@@ -2,15 +2,45 @@
 % Please edit documentation in R/tmb_model.R
 \name{mp_trajectory}
 \alias{mp_trajectory}
+\alias{mp_trajectory_sd}
+\alias{mp_trajectory_ensemble}
 \title{Trajectory}
 \usage{
 mp_trajectory(model)
+
+mp_trajectory_sd(model, conf.int = FALSE, conf.level = 0.95)
+
+mp_trajectory_ensemble(model, n, probs = c(0.025, 0.975))
 }
 \arguments{
 \item{model}{A dynamical model simulator produced by
 \code{\link{mp_simulator}}.}
+
+\item{conf.int}{Should confidence intervals be produced?}
+
+\item{conf.level}{If \code{conf.int} is \code{TRUE}, what confidence level should be
+used?  For example, the default of \code{0.95} corresponds to 95\% confidence
+intervals.}
+
+\item{n}{Number of samples used in \code{mp_trajectory_ensemble}.}
+
+\item{probs}{What quantiles should be returned by \code{mp_trajectory_ensemble}.}
 }
 \description{
 Return simulations of the trajectory of the output
 variables of a dynamical model simulator.
 }
+\section{Functions}{
+\itemize{
+\item \code{mp_trajectory_sd()}: Simulate a trajectory that includes uncertainty
+information provided by the \code{sdreport} function in \code{TMB} with default
+settings.
+
+\item \code{mp_trajectory_ensemble()}: Simulate a trajectory that includes uncertainty
+information provided by repeatedly sampling from a normal approximation to the
+distribution of the fitted parameters, and generating one trajectory for
+each of these samples. The quantiles of the empirical distribution of these
+trajectories can be used to produce a confidence interval for the
+fitted trajectory.
+
+}}

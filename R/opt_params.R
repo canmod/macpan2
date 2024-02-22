@@ -109,23 +109,29 @@ OptParamsFrame = function(frame, .dimnames = list()) {
   if (is.null(frame$col)) frame$col = 0L
   if (is.null(frame$row)) frame$row = 0L
   
-  synonyms_for_default = c("default", "Default", "value", "Value", "val", "Val")
-  synonym_present = synonyms_for_default %in% names(frame)
-  if (isTRUE(any(synonym_present))) {
-    synonym = synonyms_for_default[which(synonym_present)[1L]]
-    names(frame)[names(frame) == synonym] = "default"
-  } else {
-    msg(
-        msg_hline()
-      , msg_colon(
-          msg(
-              "None of the following column names, which are valid for"
-            , "containing default parameter values"
-          )
-        , msg_indent_break(synonyms_for_default)
-      )
-    ) |> stop()
-  }
+  frame = rename_synonyms(frame
+    , mat = c("matrix", "Matrix", "mat", "Mat", "variable", "var", "Variable", "Var")
+    , row = c("row", "Row")
+    , col = c("col", "Col", "column", "Column")
+    , default = c("value", "Value", "val", "Val", "default", "Default")
+  )
+  # synonyms_for_default = c("default", "Default", "value", "Value", "val", "Val")
+  # synonym_present = synonyms_for_default %in% names(frame)
+  # if (isTRUE(any(synonym_present))) {
+  #   synonym = synonyms_for_default[which(synonym_present)[1L]]
+  #   names(frame)[names(frame) == synonym] = "default"
+  # } else {
+  #   msg(
+  #       msg_hline()
+  #     , msg_colon(
+  #         msg(
+  #             "None of the following column names, which are valid for"
+  #           , "containing default parameter values"
+  #         )
+  #       , msg_indent_break(synonyms_for_default)
+  #     )
+  #   ) |> stop()
+  # }
   row_col_ids = make_row_col_ids(frame$mat, frame$row, frame$col, .dimnames)
   args = c(
     as.list(as.numeric(frame$default)),
