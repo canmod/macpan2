@@ -158,13 +158,13 @@ print(sir_opt)
 Parameter estimates ...
 
 ```{r}
-mp_tmb_coef(sir_cal)
+mp_tmb_coef(sir_cal, conf.int = TRUE)
 ```
 
 Fitted trajectory ...
 
 ```{r, fig.width=7}
-observed_data$fit = mp_trajectory(sir_cal)$value ## TODO: ugly
+observed_data$fit = mp_trajectory_se(sir_cal, conf.int = TRUE)$value ## TODO: ugly
 (ggplot(observed_data)
   + geom_line(aes(period_end_date, fit))
   + geom_point(aes(period_end_date, value))
@@ -173,84 +173,3 @@ observed_data$fit = mp_trajectory(sir_cal)$value ## TODO: ugly
 ```
 
 
-## What we Want?? Before the BC Tour (development and design in progress)
-
-* Designing a general single-function interface seems hard
-* But explaining the general-purpose syntax that exists also seems hard
-
-
-
-
-
-```{r, eval = FALSE}
-mp_calibrator(sir ## or should the first argument be sir_simulator??
-  , data = observed_data
-  , model_extensions = list(
-      mp_under_reporting("reporting_prob")
-  )
-  , parameters = list(
-        beta = 0.4
-      , I = 100
-      , reporting_prob = 1/100
-    )
-  , simulation_time_unit = "weekly"
-  , observation_time_unit = "weekly"
-)
-```
-
-
-
-
-```{r, eval = FALSE}
-sir_simulator$optimize$nlminb()
-```
-
-
-TODO: simulate daily but compare to observed weekly data.
-
-```{r, eval =FALSE}
-weekly = with(scarlet_fever_ontario, {
-  macpan2:::Weekly(
-      start = min(period_end_date)
-    , end = max(period_end_date)
-  )
-})
-observed_data = (scarlet_fever_ontario
-  |> select(period_end_date, cases_this_period)
-  |> mutate(variable = "incidence")
-)
-comparison_data = (sir_simulator
-  |> mp_trajectory()
-  |> mutate(period_end_date = weekly$ending_times(time))
-  |> select(period_end_date, value)
-  |> rename(cases_this_period = value)
-  |> mutate(cases_this_period = cases_this_period / 300)
-  |> mutate(variable = "simulated")
-  |> bind_rows(observed_data)
-)
-```
-
-```{r, eval = FALSE, fig.width=7}
-(comparison_data
-  |> ggplot(aes(period_end_date, cases_this_period))
-  + geom_line(aes(colour = variable))
-  + ggtitle("Scarlet Fever Incidence in Ontario, Canada")
-  + theme_bw()
-)
-```
-
-
-```{r, eval = FALSE}
-mp_coef(sir_simulator) |> 
-  printCoefmat(4, cs.ind = c(5, 6, 7), has.Pvalue = FALSE)
-```
-
-
-```{r, eval = FALSE}
-library(macpan2)
-sir = ("starter_models"
-  |> mp_tmb_library("sir", package = "macpan2")
-  |> mp_tmb_insert("before", at = 1, list(x ~ a), default = list(a = 1))
-)
-sir
-```
