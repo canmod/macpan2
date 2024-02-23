@@ -70,13 +70,7 @@
     <loc>https://canmod.github.io/macpan2/reference/BinaryOperator.html</loc>
   </url>
   <url>
-    <loc>https://canmod.github.io/macpan2/reference/Files.html</loc>
-  </url>
-  <url>
     <loc>https://canmod.github.io/macpan2/reference/LedgerDefinition.html</loc>
-  </url>
-  <url>
-    <loc>https://canmod.github.io/macpan2/reference/MathExpression.html</loc>
   </url>
   <url>
     <loc>https://canmod.github.io/macpan2/reference/Reader.html</loc>
@@ -239,9 +233,6 @@
   </url>
   <url>
     <loc>https://canmod.github.io/macpan2/reference/rbf.html</loc>
-  </url>
-  <url>
-    <loc>https://canmod.github.io/macpan2/reference/reader_spec.html</loc>
   </url>
   <url>
     <loc>https://canmod.github.io/macpan2/reference/show_models.html</loc>
