@@ -81,6 +81,10 @@ can be obtained [here](https://canmod.r-universe.dev/api). Please see
 [this article](https://ropensci.org/blog/2022/01/06/runiverse-renv/) for
 an explanation of how to manage reproducibility using `r-universe`.
 
+Many workflows with `macpan2` also make use of the following packages.
+
+    install.packages(c("dplyr", "ggplot2", "tidyr", "broom.mixed"))
+
 ## Hello World
 
 The following code specifies an SI model, which is I think is the
