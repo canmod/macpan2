@@ -85,18 +85,7 @@ mp_tmb_calibrator = function(spec, data
   tv = TMBTV(tv, struc, cal_spec, traj$global_names_vector())
   par = TMBPar(par, tv, traj, cal_spec, tv$global_names_vector())
   
-  ## FIXME: not object oriented. create generic check method
-  pnms = union(par$par, par$tv_par)
-  parameterized_defaults = spec$default[pnms]
-  if (length(parameterized_defaults) > 0L) {
-    non_scalars = vapply(parameterized_defaults, length, integer(1L)) != 1L
-    if (any(non_scalars)) {
-      stop(
-        sprintf("The following parameterized model defaults are not scalars:\n%s\nThe development interface can be used to fit such models and in the future we plan on making user interfaces that can handle vector-valued defaults.", paste0(pnms[non_scalars], collapse = ", ")
-        )
-      )
-    }
-  }
+  par$check_assumptions()
   
   ## add observed trajectories 
   ## (see globalize function for comments on what it does)
@@ -560,6 +549,20 @@ TMBPar = function(
   self$random_frame = function() {
     cols = c("mat", "row", "col", "default")
     empty_frame(cols)
+  }
+  
+  self$check_assumptions = function() {
+    pnms = union(self$par, self$tv_par)
+    parameterized_defaults = spec$default[pnms]
+    if (length(parameterized_defaults) > 0L) {
+      non_scalars = vapply(parameterized_defaults, length, integer(1L)) != 1L
+      if (any(non_scalars)) {
+        stop(
+          sprintf("The following parameterized model defaults are not scalars:\n%s\nThe development interface can be used to fit such models and in the future we plan on making user interfaces that can handle vector-valued defaults.", paste0(pnms[non_scalars], collapse = ", ")
+          )
+        )
+      }
+    }
   }
   
   return_object(self, "TMBPar")
