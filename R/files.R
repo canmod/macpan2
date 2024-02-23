@@ -17,7 +17,7 @@
 #' * `$freeze()`: Return the object itself so that the `$freeze()` method
 #' in \code{\link{Files}} objects feel idempotent.
 #'
-#' @export
+#' @noRd
 Collection = function(...) {
   self = Base()
   self$.components = nlist(...)
