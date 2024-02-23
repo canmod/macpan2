@@ -85,7 +85,9 @@ mp_tmb_calibrator = function(spec, data
   tv = TMBTV(tv, struc, cal_spec, traj$global_names_vector())
   par = TMBPar(par, tv, traj, cal_spec, tv$global_names_vector())
   
-  par$check_assumptions()
+  traj$check_assumptions(spec)
+  tv$check_assumptions(spec)
+  par$check_assumptions(spec)
   
   ## add observed trajectories 
   ## (see globalize function for comments on what it does)
@@ -273,13 +275,117 @@ TMBCalDataStruc = function(data, time) {
   return_object(self, "TMBCalDataStruc")
 }
 
+NameHandlerAbstract = function() {
+  self = Base()
+  self$empty_params_frame = empty_frame(c("mat", "row", "col", "default"))
+  self$local_names = function() {}
+  self$global_names = function() {
+    map_names(self$existing_global_names, self$local_names())
+  }
+  self$global_names_vector = function() {
+    c(
+      self$existing_global_names, 
+      unlist(self$global_names(), recursive = TRUE, use.names = FALSE)
+    )
+  }
+  
+  ## check_assumptions has no return value. while running
+  ## it is allowed to through messages, warnings, errors,
+  ## or none of the above. it takes a spec object for
+  ## comparison, which is useful especially if it has an internal
+  ## spec object that is different.
+  self$check_assumptions = function(orig_spec) NULL
+
+  return_object(self, "NameHandlerAbstract")
+}
+
+TMBTrajAbstract = function() {
+  self = NameHandlerAbstract()
+  
+  ## A list of matrices containing 
+  ## observed trajectories with names of this 
+  ## list given by the 
+  ## output variable being matched.
+  self$obs = function() list()
+  
+  ## A list of integers containing
+  ## time steps at which observed trajectories are not missing.
+  ## The names of this list match the output variable being
+  ## matched.
+  self$obs_times = function() list()
+  
+  ## A list of matrices that parameterize the shape 
+  ## and scale of likelihood functions for the trajectories
+  ## TODO: define what the names of this define
+  self$distr_params = function() list()
+  
+  ## data frames describing the fixed and random effects corresponding
+  ## to distributional parameters
+  self$distr_params_frame = function() self$empty_params_frame
+  self$distr_random_frame = function() self$empty_params_frame
+  
+  return_object(self, "TMBTrajAbstract")
+}
+TMBTVAbstract = function() {
+  self = NameHandlerAbstract()
+  
+  ## List with the values of each 
+  ## time varying parameter at the change points. The 
+  ## names of the list are the time-varying matrices
+  ## in the spec.
+  self$time_var = function() list()
+  
+  ## List of the integers 
+  ## giving the time-steps of the changepoints with
+  ## the first time-step always being 0 (the initial)
+  ## The names of the list are the time-varying 
+  ## matrices in the spec.
+  self$change_points = function() list()
+  
+  ## data frames describing the fixed and random effects corresponding
+  ## to time-varying parameters
+  tv_params_frame = function() self$empty_params_frame
+  tv_random_frame = function() self$empty_params_frame
+  
+  return_object(self, "TMBTVAbstract")
+}
+TMBParAbstract = function() {
+  self = NameHandlerAbstract()
+  
+  ## These functions must be present in every
+  ## child class and return these 'types'
+  
+  ## list of expressions to be placed at the beginning of the
+  ## before phase, each of which computes the inverse transform
+  ## of a parameter matrix to compute the untransformed matrix.
+  self$inv_trans_exprs = function() list()
+  
+  self$trans_vars = function() list()
+  self$hyperparams = function() list()
+  
+  ## character vector of signed expressions that give components
+  ## of the prior distribution on the negative log scale. these
+  ## components will be combined with the components of the 
+  ## likelihood and space-pasted together and converted into 
+  ## the objective function expression. the 'signed' part means
+  ## that - or + must appear before every term because these 
+  ## expressions are going to be space-pasted.
+  self$prior_expr_chars = function() character()
+  
+  ## data frames describing the fixed and random effects
+  self$params_frame = function() self$empty_params_frame
+  self$random_frame = function() self$empty_params_frame
+  
+  return_object(self, "TMBParAbstract")
+}
+
 TMBTV = function(
       tv = character()
     , struc
     , spec
     , existing_global_names = character()
   ) {
-  self = Base()
+  self = TMBTVAbstract()
   self$existing_global_names = existing_global_names
   self$spec = spec
   
@@ -306,30 +412,9 @@ TMBTV = function(
     }
   }
   
-  ## get lists of things that will become
-  ## things like defaults, integers, ...
-  self$time_var = function() {
-    ## Depended upon to return a list with the values of each 
-    ## time varying parameter at the change points. The 
-    ## names of the list are the time-varying matrices
-    ## in the spec.
-    lapply(self$tv_list, getElement, "default")
-  }
-  self$change_points = function() {
-    ## Depended upon to return a list of the integers 
-    ## giving the time-steps of the changepoints with
-    ## the first time-step always being 0 (the initial)
-    ## The names of the list are the time-varying 
-    ## matrices in the spec.
-    lapply(self$tv_list, getElement, "time_ids")
-  }
-  self$time_var_melt = function(tv_par_mat_nms) {
-    ## Depended upon to return a data frame with the
-    ## following columns:
-    ##   1. mat -- 
-    ##   2. row
-    ##   3. col
-    ##   4. default
+  self$time_var = function() lapply(self$tv_list, getElement, "default")
+  self$change_points = function() lapply(self$tv_list, getElement, "time_ids")
+  self$tv_params_frame = function(tv_par_mat_nms) {
     tv = self$time_var()
     if (length(tv) == 0L) {
       cols = c("mat", "row", "col", "default")
@@ -372,16 +457,7 @@ TMBTV = function(
       , c("time_var", "change_points", "change_pointer")
     )
   }
-  self$global_names = function() {
-    map_names(self$existing_global_names, self$local_names())
-  }
-  self$global_names_vector = function() {
-    c(
-      self$existing_global_names, 
-      unlist(self$global_names(), recursive = TRUE, use.names = FALSE)
-    )
-  }
-  
+    
   ## produce expressions
   self$var_update_exprs = function() {
     ## Depended upon to return a list of expressions returning
@@ -399,12 +475,13 @@ TMBTV = function(
   
   return_object(self, "TMBTV")
 }
+
 TMBTraj = function(
         traj = character()
       , struc
       , existing_global_names = character()
     ) {
-  self = Base()
+  self = TMBTrajAbstract()
   self$existing_global_names = existing_global_names
   
   ## internal data structure:
@@ -413,29 +490,10 @@ TMBTraj = function(
   self$traj_list = struc$matrix_list[traj]
   self$traj = traj ## Depended upon to contain a character vector of output variables to fit to
   
+  ## implemented methods
+  self$obs = function() lapply(self$traj_list, getElement, "value")
+  self$obs_times = function() lapply(self$traj_list, getElement, "time")
   
-  ## public methods ----
-  ## matrices representing observed times
-  self$obs = function() {
-    ## Depended upon to return a list of matrices containing 
-    ## observed trajectories with names given by the 
-    ## output variable being matched.
-    lapply(self$traj_list, getElement, "value")
-  }
-  ## integer vectors giving the times associated 
-  ## with each row in the matrices in self$obs
-  self$obs_times = function() {
-    ## Depended upon to return a list of integers containing
-    ## time steps at which observed trajectories are not missing.
-    ## The names of this list match the output variable being
-    ## matched.
-    lapply(self$traj_list, getElement, "time")
-  }
-  self$distr_params = function() list()
-  self$distr_params_melt = function() {
-    cols = c("mat", "row", "col", "default") ## TODO: correct?
-    empty_frame(cols)
-  }
   
   ## define local and external names ... to prepare
   ## for creating expressions, which require global,
@@ -444,15 +502,6 @@ TMBTraj = function(
     l = make_names_list(self, c("obs", "obs_times", "distr_params"))
     l$sim = sprintf("%s_%s", "sim", self$traj)
     l
-  }
-  self$global_names = function() {
-    map_names(self$existing_global_names, self$local_names())
-  }
-  self$global_names_vector = function() {
-    c(
-      self$existing_global_names, 
-      unlist(self$global_names(), recursive = TRUE, use.names = FALSE)
-    )
   }
   
   ## expressions
@@ -491,12 +540,13 @@ TMBTraj = function(
   
   return_object(self, "TMBTraj")
 }
+
 TMBPar = function(
         par = character()
-      , tv = NULL, traj = NULL, spec = NULL
+      , tv, traj, spec
       , existing_global_names = character()
     ) {
-  self = Base()
+  self = TMBParAbstract()
   self$existing_global_names = existing_global_names
   self$tv = tv
   self$traj = traj
@@ -507,59 +557,33 @@ TMBPar = function(
   self$par = setdiff(par, tv_names)
   self$tv_par = intersect(par, tv_names)
   
-  
-  self$trans_vars = function() list()
-  self$hyperparams = function() list()
-  self$hyperparams_melt = function() {
-    cols = c("mat", "row", "col", "default")
-    empty_frame(cols)
-  }
-  
   self$local_names = function() {
     make_names_list(self, c("trans_vars", "hyperparams"))
   }
-  self$global_names = function() {
-    map_names(self$existing_global_names, self$local_names())
-  }
-  self$global_names_vector = function() {
-    c(
-      self$existing_global_names, 
-      unlist(self$global_names(), recursive = TRUE, use.names = FALSE)
-    )
-  }
   
-  self$inv_trans_exprs = function() list()
-  self$prior_expr_chars = function() character(0L)
-  
-  ## produce fixed and random effect parameter frames
-  ## associated with time-varying parameters
   self$params_frame = function() {
-    ## Depended upon to produce a data frame with the following columns:
-    ##   1. 
     pf = (self$spec$default[self$par]
       |> melt_default_matrix_list(FALSE)
       |> rename_synonyms(mat = "matrix", default = "value")
     )
     bind_rows(pf
-      , self$tv$time_var_melt(self$tv_par)
-      , self$hyperparams_melt()
-      , self$traj$distr_params_melt()
+      , self$tv$tv_params_frame(self$tv_par)
+      , self$traj$distr_params_frame()
     )
   }
-  self$random_frame = function() {
-    cols = c("mat", "row", "col", "default")
-    empty_frame(cols)
-  }
   
-  self$check_assumptions = function() {
+  self$check_assumptions = function(orig_spec) {
     pnms = union(self$par, self$tv_par)
-    parameterized_defaults = spec$default[pnms]
+    parameterized_defaults = orig_spec$default[pnms]
     if (length(parameterized_defaults) > 0L) {
       non_scalars = vapply(parameterized_defaults, length, integer(1L)) != 1L
       if (any(non_scalars)) {
         stop(
-          sprintf("The following parameterized model defaults are not scalars:\n%s\nThe development interface can be used to fit such models and in the future we plan on making user interfaces that can handle vector-valued defaults.", paste0(pnms[non_scalars], collapse = ", ")
-          )
+          "The following parameterized model defaults are not scalars",
+          sprintf(":\n%s\n", paste0(pnms[non_scalars], collapse = ", ")),
+          "The development interface can be used to fit such models and in ",
+          "the future we plan on making user interfaces that can handle ",
+          "vector-valued defaults."
         )
       }
     }
