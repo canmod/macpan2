@@ -20,17 +20,20 @@ articles:
   - quickstart
   - example_models
   - calibration
-  - engine_agnostic_grammar
 - title: Specs
   desc: Specification Documents
   contents:
   - cpp_side
   - vignette_status
-- title: Developer Guides
-  desc: Vignettes aimed at package developers and advanced users
+- title: Superuser Guides
+  desc: Vignettes aimed at advanced users
   contents:
-  - time_varying_parameters
   - calibration_advanced
+  - time_varying_parameters
+  - engine_agnostic_grammar
+- title: Developer Guides
+  desc: Vignettes aimed at package developers
+  contents:
   - design_concepts
   - development_patterns
   - debugging
