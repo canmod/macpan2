@@ -6,7 +6,7 @@
 #' the former shifts the positions of existing expressions to make room
 #' for the new expressions, whereas the latter overwrites existing expressions
 #' using the new expressions. The treatment of new `default` values and 
-#' `integers` is the same.
+#' `integers` is the same. The examples below clarify this difference.
 #' 
 #' @param model TMB model spec object produced using
 #' \code{\link{mp_tmb_library}} or \code{\link{mp_tmb_model_spec}}.
@@ -22,6 +22,32 @@
 #' @inheritParams mp_tmb_model_spec
 #' 
 #' @returns A new model spec object with updated and/or inserted information.
+#' 
+#' @examples
+#' si = mp_tmb_library("starter_models", "si", package = "macpan2")
+#' 
+#' ## Update the mixing process to include 
+#' ## optional phenomenological heterogeneity.
+#' ## We need mp_tmb_update here so that 
+#' ## the previous infection expression is
+#' ## overwritten.
+#' mp_tmb_update(si, phase = "during"
+#'   , at = 1
+#'   , expressions = list(infection ~ beta * I * (S/N)^zeta)
+#'   , default = list(zeta = 1)
+#' )
+#' 
+#' ## Parameterize with log_beta in place of beta.
+#' ## We need mp_tmb_insert here so that the
+#' ## existing expression for computing the initial
+#' ## number of susceptible indiviudals is not
+#' ## overwritten.
+#' mp_tmb_insert(si, phase = "before"
+#'   , at = 1
+#'   , expressions = list(beta ~ exp(log_beta))
+#'   , default = list(log_beta = log(0.5))
+#' )
+#' 
 #' @export
 mp_tmb_insert = function(model
     , phase = "during"
