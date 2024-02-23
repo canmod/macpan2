@@ -59,7 +59,7 @@ Collection = function(...) {
 #' the contents of the private `.components` field, but this would violate
 #' the convention.
 #'
-#' @export
+#' @noRd
 Files = function(directory, ..., .cache = CacheList()) {
   ## Inheritance
   self = Base()
@@ -155,7 +155,7 @@ Files = function(directory, ..., .cache = CacheList()) {
 #' extension removed. The path may optionally be broken into path components,
 #' which are assembled using \code{\link{file.path}}.
 #'
-#' @export
+#' @noRd
 reader_spec = function(file, reader, optional = FALSE) {
   component_name = tools::file_path_sans_ext(file)
   function(...) {

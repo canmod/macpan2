@@ -184,8 +184,7 @@ MathOverrider = function(math_function, function_environment) {
 #' The argument signature depends on the expression itself,
 #' and can be found in the \code{arguments} field.
 #'
-#' @name MathExpression
-#' @export
+#' @noRd
 MathExpressionFromFunc = function(math_function) {
   self = Base()
   self$arguments = force(names(formals(args(math_function))))
@@ -198,8 +197,7 @@ MathExpressionFromFunc = function(math_function) {
   return_object(self, "MathExpression")
 }
 
-#' @rdname MathExpression
-#' @export
+#' @noRd
 MathExpressionFromStrings = function(expression_string
     , argument_strings = character(0L)
     , include_dots = FALSE
