@@ -18,27 +18,6 @@ TMBModelSpec = function(
   self$must_not_save = must_not_save
   self$sim_exprs = sim_exprs
   
-  self$expr_insert = function(
-        before_start = list()
-      , before_end = list()
-      , during_start = list()
-      , during_end = list()
-      , after_start = list()
-      , after_end = list()
-      , sim_exprs = character()
-    ) {
-    TMBModelSpec(
-        before = c(before_start, self$before, before_end)
-      , during = c(during_start, self$during, during_end)
-      , after = c(after_start, self$after, after_end)
-      , default = self$default
-      , integers = self$integers
-      , must_save = self$must_save
-      , must_not_save = self$must_not_save
-      , sim_exprs = unique(c(sim_exprs, self$sim_exprs))
-    )
-  }
-  
   self$expr_list = function() ExprList(self$before, self$during, self$after)
   
   self$all_derived_vars = function() {

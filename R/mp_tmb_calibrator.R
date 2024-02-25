@@ -113,7 +113,7 @@ mp_tmb_calibrator = function(spec, data
         globalize(tv, "change_points")
       , globalize(tv, "change_pointer")
     )
-    , must_not_save = globalize(tv, "time_var")
+    , must_not_save = names(globalize(tv, "time_var"))
   )
   
   ## add parameter transformations
@@ -341,6 +341,10 @@ TMBTVAbstract = function() {
   ## The names of the list are the time-varying 
   ## matrices in the spec.
   self$change_points = function() list()
+  
+  ## List of expressions that update parameters that
+  ## are time-varying
+  self$var_update_exprs = function() list()
   
   ## data frames describing the fixed and random effects corresponding
   ## to time-varying parameters

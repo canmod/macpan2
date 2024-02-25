@@ -787,4 +787,5 @@
 #' @aliases cos
 #' @aliases print
 #' @aliases time_var
+#' @aliases rbinom
 NULL

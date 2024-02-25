@@ -48,6 +48,7 @@
 \alias{cos}
 \alias{print}
 \alias{time_var}
+\alias{rbinom}
 \title{Engine Functions}
 \description{
 Functions currently supported by the C++ TMB engine

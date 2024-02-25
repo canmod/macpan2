@@ -364,6 +364,28 @@ mp_trajectory_ensemble.TMBCalibrator = function(model, n, probs = c(0.025, 0.975
   mp_trajectory_ensemble(model$simulator, n, probs)
 }
 
+#' @export
+mp_trajectory_sim = function(model, n, probs = c(0.025, 0.25, 0.5, 0.75, 0.975)) {
+  UseMethod("mp_trajectory_sim")
+}
+
+#' @export
+mp_trajectory_sim.TMBSimulator = function(model, n, probs = c(0.025, 0.25, 0.5, 0.75, 0.975)) {
+  r = model$simulate()
+  r = r[, names(r) != "value", drop = FALSE]
+  rr = (n
+    |> replicate(model$simulate_values()) 
+    |> apply(1, quantile, probs)
+    |> t()
+  )
+  names(rr) = sprintf("value_%s", names(rr))
+  cbind(r, rr)
+}
+
+#' @export
+mp_trajectory_sim.TMBCalibrator = function(model, n, probs = c(0.025, 0.25, 0.5, 0.75, 0.975)) {
+  stop("Under construction")
+}
 
 TMBDynamicSimulator = function(tmb_simulator, dynamic_model) {
   self = tmb_simulator
@@ -571,6 +593,9 @@ TMBSimulator = function(tmb_model
   }
   self$report_values = function(..., .phases = "during") {
     self$report(..., .phases = .phases)$value
+  }
+  self$simulate_values = function(..., .phases = "during") {
+    self$simulate(..., .phases = .phases)$value
   }
   self$report_ensemble = function(...
       , .phases = "during"

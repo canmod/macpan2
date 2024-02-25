@@ -107,8 +107,9 @@ enum macpan2_func
     , MP2_COS = 44 // fwrap,null: cos(x)
     , MP2_PRINT = 45 // fwrap,null: print(x)
     , MP2_TIME_VAR = 46 // fwrap,fail: time_var(x, change_points, change_pointer)
-    //, MP2_LOGISTIC = 47 // fwrap,null: logistic(x)
-    //, MP2_LOGIT = 48 // fwrap,null: logit(x)
+    , MP2_BINOM_SIM = 47 // fwrap,fail: rbinom(size, probability)
+    //, MP2_LOGISTIC = 48 // fwrap,null: logistic(x)
+    //, MP2_LOGIT = 49 // fwrap,null: logit(x)
 };
 
 enum macpan2_meth
@@ -2688,7 +2689,36 @@ public:
                     }
                 }
                 return m;
-
+            
+            case MP2_BINOM_SIM:
+                // rbinom(size, prob)
+                if (n != 2)
+                {
+                    SetError(MP2_BINOM_SIM, "rbinom needs two arguments: matrices with size and probability", row);
+                    return m;
+                }
+                rows = args[0].rows();
+                cols = args[0].cols();
+                v1.push_back(1);
+                args = args.recycle_to_shape(v1, rows, cols);
+                err_code = args.get_error_code();
+                // err_code = RecycleInPlace(args[1], rows, cols);
+                if (err_code != 0)
+                {
+                    SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row);
+                    return m;
+                }
+                m = matrix<Type>::Zero(rows, cols);
+                for (int i = 0; i < rows; i++)
+                {
+                    for (int j = 0; j < cols; j++)
+                    {
+                        m.coeffRef(i, j) = rbinom(args[0].coeff(i, j), args[1].coeff(i, j));
+                    }
+                }
+                return m;
+                
+                
             case MP2_ASSIGN:
                 // #' ## Assign
                 // #'
