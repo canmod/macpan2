@@ -147,7 +147,7 @@ doc-update: R/*.R misc/dev/dev.cpp misc/old-r-source/*.R
 
 
 pkg-build:: ../macpan2_$(VERSION).tar.gz
-../macpan2_$(VERSION).tar.gz: DESCRIPTION man/*.Rd R/*.R src/*.cpp tests/testthat/test-*.R tests/testthat.R inst/starter_models/**/*.csv inst/starter_models/**/*.json doc-update
+../macpan2_$(VERSION).tar.gz: DESCRIPTION man/*.Rd R/*.R src/*.cpp tests/testthat/test-*.R tests/testthat.R inst/starter_models/**/tmb.R doc-update
 	cd .. && R CMD build --no-build-vignettes macpan2
 	touch pkg-build
 
