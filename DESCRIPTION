@@ -41,10 +41,12 @@ Suggests:
     outbreaks,
     tmbstan,
     numDeriv,
-    parallel
+    parallel,
+    iidda.api
 Remotes:
     canmod/oor,
-    canmod/macpan2helpers
+    canmod/macpan2helpers,
+    canmod/iidda.api
 LinkingTo:
     TMB,
     RcppEigen,
