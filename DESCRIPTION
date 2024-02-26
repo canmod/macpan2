@@ -41,8 +41,7 @@ Suggests:
     outbreaks,
     tmbstan,
     numDeriv,
-    parallel,
-    iidda.api
+    parallel
 LinkingTo:
     TMB,
     RcppEigen,
