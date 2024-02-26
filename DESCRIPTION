@@ -46,7 +46,7 @@ Suggests:
 Remotes:
     canmod/oor,
     canmod/macpan2helpers,
-    canmod/iidda.api
+    canmod/iidda-tools/R/iidda.api
 LinkingTo:
     TMB,
     RcppEigen,
