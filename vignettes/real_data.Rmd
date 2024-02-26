@@ -2,7 +2,7 @@
 title: "Fitting to Data in the International Infectious Disease Data Archive (IIDDA)"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Quickstart}
+  %\VignetteIndexEntry{real_data}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

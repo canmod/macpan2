@@ -62,7 +62,7 @@ param_desc_to_inverse.Transform = function(desc, model) list(desc$inverse_two_si
 ## a string giving the name of the parameter
 param_desc_to_name = function(desc, model) UseMethod("param_desc_to_name")
 param_desc_to_name.character = function(desc, model) {
-  existing_names = sir$default |> names()
+  existing_names = model$default |> names()
   if (!desc %in% existing_names) {
     stop(
       "Parameter is not already in the model. ",
@@ -72,7 +72,7 @@ param_desc_to_name.character = function(desc, model) {
   }
   assert_string(desc)
 }
-param_desc_to_name.formula = function(desc) trans_lhs_char(desc)
+param_desc_to_name.formula = function(desc) trans_lhs_var(desc)
 param_desc_to_name.list = function(desc) {
   if (!all(vapply(desc, is_two_sided, logical(1L)))) {
     stop(

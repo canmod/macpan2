@@ -2,6 +2,7 @@
 ^\.Rproj\.user$
 ^\.github$
 Makefile
+README.Rmd
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$

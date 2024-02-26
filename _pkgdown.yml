@@ -20,6 +20,7 @@ articles:
   - quickstart
   - example_models
   - calibration
+  - real_data
 - title: Specs
   desc: Specification Documents
   contents:
