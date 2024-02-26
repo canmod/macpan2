@@ -13,11 +13,12 @@ articles:
   engine_agnostic_grammar: engine_agnostic_grammar.html
   example_models: example_models.html
   quickstart: quickstart.html
+  real_data: real_data.html
   standard_expressions: standard_expressions.html
   state_dependent_rates: state_dependent_rates.html
   time_varying_parameters: time_varying_parameters.html
   vignette_status: vignette_status.html
-last_built: 2024-02-26T19:05Z
+last_built: 2024-02-26T19:35Z
 urls:
   reference: https://canmod.github.io/macpan2/reference
   article: https://canmod.github.io/macpan2/articles
