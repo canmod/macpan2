@@ -39,6 +39,9 @@ $$
 \end{align*}
 $$
 
+# Model Specification
+
+This model has been specified in the `lotka_volterra_competition` directory [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/lotka_volterra_competition/tmb.R) and is accessible from the `macpan2` model library (see [Example Models](https://canmod.github.io/macpan2/articles/example_models.html) for details). 
 
 # References
 Hastings, A. (1997). Competition. In: *Population Biology*. Springer, New York, NY. https://doi.org/10.1007/978-1-4757-2731-9_7
