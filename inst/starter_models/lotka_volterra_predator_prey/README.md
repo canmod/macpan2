@@ -24,10 +24,6 @@ The simplest Lotka-Volterra predator-prey model with two small modifications to 
 | $K$      | prey carrying capacity                                                                                                   |
 | $f(X)$   | per predator predation rate as a function of the number of prey, also called [functional response](#functional-response) |
 
-
-
-
-
 # Dynamics
 
 ## Simple Predator-Prey
@@ -56,17 +52,6 @@ $$
 
 The functional response $f(X)$ describes the predation rate as a function of prey density (Hastings, 1997). In the simplest case, we assume a linear function of prey, $f(X) = aX$ also called a [type I Holling](#holling-type-i) response. The simple predator-prey model includes a type I Holling response. Increasing functions that approach horizontal asymptotes can be used to represent more ecologically realistic predation rates to communicate that predation does not indefinitely increase when prey are abundant. The [type II Holling](#holling-type-ii) response is parameterized by the predator *attack rate* $a$, and the time elapsed by the predator capturing and consuming prey, called the *handling time* $h$ (Bolker, 2008). A [Holling type III](#holling-type-iii) response is defined with higher powers of prey density.
 
-The general predator-prey dynamics incorporating the functional response $f(X)$ is given below.
-
-$$
-\begin{align*}
-\frac{dX}{dt} &= \alpha X\left(1-\frac{X}{K}\right) - f(X) Y \\
-\frac{dY}{dt} &= \delta f(X)Y - \gamma Y
-\end{align*}
-$$
-
-Note if we parameterize the general dynamics by the inverse of the carrying capacity $K$, we can recover the exponential prey growth model by setting $K^{-1}=0$ and using the Holling type I response with $\beta$ as the attack rate. 
-
 ### Holling type I
 
 $$ f(X) = a X \:, a>0$$
@@ -80,8 +65,25 @@ $$ f(X) = \frac{a X}{1+ ahX} \:,  a > 0  \:, h > 0$$
 $$ f(X) = \frac{a X^k}{1 + ah X^k} \:, k > 1$$
 
 
+## General Form
 
+The general predator-prey dynamics incorporating the functional response $f(X)$ is given below.
+
+$$
+\begin{align*}
+\frac{dX}{dt} &= \alpha X\left(1-\frac{X}{K}\right) - f(X) Y\\
+\frac{dY}{dt} &= \delta f(X)Y - \gamma Y 
+\end{align*}
+$$
+
+Note if we parameterize the general dynamics by the inverse of the carrying capacity $K$, we can recover the exponential prey growth model by setting $K^{-1}=0$ and using the Holling type I response with $\beta$ as the attack rate. 
+
+# Model Specification
+
+The [general model](#general-form) has been specified in the `lotka_volterra_predator_prey` directory [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/lotka_volterra_predator_prey/tmb.R) and is accessible from the `macpan2` model library (see [Example Models](https://canmod.github.io/macpan2/articles/example_models.html) for details). 
 
 # References
+
 Bolker, B. (2008). *Ecological Models and Data in R*. Princeton: Princeton University Press. https://doi.org/10.1515/9781400840908
+
 Hastings, A. (1997). Predator-Prey Interactions. In: *Population Biology*. Springer, New York, NY. https://doi.org/10.1007/978-1-4757-2731-9_8
