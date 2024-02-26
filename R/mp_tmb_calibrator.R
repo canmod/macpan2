@@ -122,7 +122,7 @@ mp_tmb_calibrator = function(spec, data
         globalize(tv, "change_points")
       , globalize(tv, "change_pointer")
     )
-    , must_not_save = globalize(tv, "time_var")
+    , must_not_save = names(globalize(tv, "time_var"))
   )
   
   ## add parameter transformations
