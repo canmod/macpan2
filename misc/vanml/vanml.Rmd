@@ -52,7 +52,7 @@ scarlet_fever_ontario = api_hook$filter(resource_type = "CANMOD CDI"
   , disease = "scarlet-fever"
   
   # get data between 1929-08-01 and 1930-10-01
-  , period_end_date = "1929-08-01...1930-10-01"  
+  , period_end_date = "1929-08-01..1930-10-01"
 )
 print(scarlet_fever_ontario)
 ```
