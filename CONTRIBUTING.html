@@ -87,6 +87,15 @@ make pkg-check         # R package checks</code></pre>
 <p>To update <code>src/macpan2</code> to the state of <code>misc/dev/dev.cpp</code> one may run <code>make src-update</code>.</p>
 <p>Running with <code>misc/dev/dev.cpp</code> will print out debugging information in a verbose manner, whereas <code>src/macpan2.cpp</code> will not. The <code>src-update</code> make rule removes the <code>#define MP_VERBOSE</code> flag at the top of the file.</p>
 </div>
+<div class="section level2">
+<h2 id="make-in-windows">Make in Windows<a class="anchor" aria-label="anchor" href="#make-in-windows"></a></h2>
+<p>Developers using <code>make</code> on Windows, could encounter the following compilation error.</p>
+<pre><code>Fatal error: can't write xxx bytes to section .text of macpan2.o: 'file too big' as: macpan2.o: too many sections</code></pre>
+<p>To resolve this, you may need to pass the <code>-Wa,-mbig-obj</code> compiler flag to GCC via the <code>Makeconf</code> file located in your R installation directory (typically here <code>C/Program Files/R/[your version of R]/etc/x64</code>).</p>
+<p>Locate the <code>CXXFLAGS</code> macro in the <code>Makeconf</code> file. It will look something like the following. <code>CXXFLAGS = -O2 -Wall $(DEBUGFLAG) -mfpmath=sse -msse2 -mstackrealign $(LTO)</code></p>
+<p>Append the <code>-Wa,-mbig-obj</code> flag to the end of this line and save the file. You will likely need to make this change using a Windows Administrator role. <code>CXXFLAGS = -O2 -Wall $(DEBUGFLAG) -mfpmath=sse -msse2 -mstackrealign $(LTO) -Wa,-mbig-obj</code></p>
+<p>You should now be able to use <code>make</code> as described. Note this change might increase the compilation time (~2 min) as described <a href="https://github.com/google/googletest/issues/1841#issuecomment-422342176" class="external-link">here</a>. It would be nice to be able to set this flag globally for all Windows developers. An attempt was made to update the <a href="https://github.com/canmod/macpan2/blob/main/Makefile" class="external-link">Makefile</a> with this additional line, <code>CXXFLAGS := $(CXXFLAGS) -Wa,-mbig-obj</code>, as suggested <a href="https://stackoverflow.com/questions/7543978/how-to-pass-g3-flag-to-gcc-via-make-command-line" class="external-link">here</a>, but it was not successful.</p>
+</div>
 </div>
 
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
