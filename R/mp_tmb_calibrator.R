@@ -26,7 +26,7 @@
 #' in the `spec`. By default nothing is updated. Alternatively one could
 #' use \code{\link{mp_tmb_update}} to update the spec outside of the 
 #' function. Indeed such an approach is necessary if new expressions, 
-#' in additional to default updates, need to be added to the spec 
+#' in addition to default updates, need to be added to the spec 
 #' (e.g. seasonally varying transmission).
 #' @param time Specify the start and end time of the simulated trajectories,
 #' and the time period associated with each time step. Currently the only

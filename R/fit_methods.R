@@ -100,3 +100,23 @@ mp_tmbstan_coef.TMBSimulator = function(model, tmbstan_args = list(), ...) {
 mp_tmbstan_coef.TMBCalibrator = function(model, tmbstan_args = list(), ...) {
   mp_tmbstan_coef(model$simulator, ...)
 }
+
+
+#' Covariance of Fixed Effect Estimates
+#' 
+#' @param model Object that contains information about fitted model parameters.
+#' @returns A covariance matrix.
+#' @export
+mp_tmb_fixef_cov = function(model) UseMethod("mp_tmb_fixef_cov")
+
+#' @export
+mp_tmb_fixef_cov.TMBSimulator = function(model) {
+  nms = mp_effects_descr(model)$mat
+  cov_mat = model$cov.fixed()
+  dimnames(cov_mat) = list(nms, nms)
+  cov_mat
+}
+
+#' @export
+mp_tmb_fixef_cov.TMBCalibrator = function(model) mp_tmb_fixef_cov(model$simulator)
+  

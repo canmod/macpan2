@@ -37,7 +37,7 @@ binary_matrix_notation <- function(M){
   
   row_index = as.integer(rep(1:nrow(M), times=rowSums(M))-1)
   
-  return(nlist(col_index,row_index))
+  return(macpan2:::nlist(col_index,row_index))
 }
 
 

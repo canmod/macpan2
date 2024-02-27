@@ -223,16 +223,6 @@ TMBModel = function(
 
 
 
-mp_tmb_before = function(model, start = list(), end = list()) {
-  TMBModelSpec(
-      before = c(start, model$before, end)
-    , during, after
-    , default, integers
-    , must_save, must_not_save
-    , sim_exprs
-  )
-}
-
 
 #' Default Values
 #' 

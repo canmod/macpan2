@@ -39,3 +39,21 @@ mp_simulator(sir, time_steps = 100, outputs = "I")
 To update `src/macpan2` to the state of `misc/dev/dev.cpp` one may run `make src-update`.
 
 Running with `misc/dev/dev.cpp` will print out debugging information in a verbose manner, whereas `src/macpan2.cpp` will not. The `src-update` make rule removes the `#define MP_VERBOSE` flag at the top of the file. 
+
+## Make in Windows
+
+Developers using `make` on Windows, could encounter the following compilation error.
+
+```
+Fatal error: can't write xxx bytes to section .text of macpan2.o: 'file too big' as: macpan2.o: too many sections
+```
+
+To resolve this, you may need to pass the `-Wa,-mbig-obj` compiler flag to GCC via the `Makeconf` file located in your R installation directory (typically here `C/Program Files/R/[your version of R]/etc/x64`). 
+
+Locate the `CXXFLAGS` macro in the `Makeconf` file. It will look something like the following.
+`CXXFLAGS = -O2 -Wall $(DEBUGFLAG) -mfpmath=sse -msse2 -mstackrealign $(LTO)`
+
+Append the `-Wa,-mbig-obj` flag to the end of this line and save the file. You will likely need to make this change using a Windows Administrator role. 
+`CXXFLAGS = -O2 -Wall $(DEBUGFLAG) -mfpmath=sse -msse2 -mstackrealign $(LTO) -Wa,-mbig-obj`
+
+You should now be able to use `make` as described. Note this change might increase the compilation time (~2 min) as described [here](https://github.com/google/googletest/issues/1841#issuecomment-422342176). It would be nice to be able to set this flag globally for all Windows developers. An attempt was made to update the [Makefile](https://github.com/canmod/macpan2/blob/main/Makefile) with this additional line, `CXXFLAGS := $(CXXFLAGS) -Wa,-mbig-obj`, as suggested [here](https://stackoverflow.com/questions/7543978/how-to-pass-g3-flag-to-gcc-via-make-command-line), but it was not successful.
