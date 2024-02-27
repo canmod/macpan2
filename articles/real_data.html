@@ -326,8 +326,8 @@ all of the ‘matrices’ in the model are 1-by-1 scalars.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p>Here we assert that we will fit <code>beta</code>,
 <code>gamma</code>, (the initial value of) <code>I</code>, and
-<code>report_prob</code>. Note that we can only set values in the
-<code>default</code> list of the model spec. In particular,
+<code>report_prob</code>. Note that we can only choose to fit parameters
+in the <code>default</code> list of the model spec. In particular,
 <code>I</code> is in the default list because the model requires the
 initial number of infectious individuals, whereas <code>S</code> is not
 because it is derived before the simulation loop as
