@@ -14,16 +14,11 @@ editor_options:
 
 [![status](https://img.shields.io/badge/status-working%20draft-red)](https://canmod.github.io/macpan2/articles/vignette-status#working-draft)
 
-```{r setup, echo = FALSE, message = FALSE, warning = FALSE}
-library(macpan2)
-library(ggplot2)
-library(dplyr)
-```
-
 ## Hello World
 
 The following code specifies an SI model, which is I think is the simplest possible model of epidemiological transmission.
 ```{r hello-world}
+library(macpan2)
 si = mp_tmb_model_spec(
     before = list(
         I ~ 1
@@ -40,7 +35,14 @@ print(si)
 ```
 
 Simulating from this model requires choosing the number of time-steps to run and the model outputs to generate. Syntax for simulating `macpan2` models is designed to combine with standard data prep and plotting tools in R, as we demonstrate with the following code.
+```{r setup, message = FALSE, warning = FALSE}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+```
 ```{r plot-tmb-si, fig.height=3}
+library(ggplot2)
+library(dplyr)
 (si
  
  ## macpan2
@@ -114,7 +116,7 @@ The simulation results are output as a data frame with the following columns:
 
 ## Processing Results
 
-`macpan2` does not provide any data manipulation or plotting tools (although there are a few in `macpan2helpers`). The philosophy is to focus on the engine and modelling interface, but to provide outputs in formats that are easy to use with other data processing packages, like `ggplot2`, `dplyr`, and `tidyr`, all of which readily make use of data in long format. 
+`macpan2` does not provide any data manipulation or plotting tools (although there are a few in `macpan2helpers`). The philosophy is to focus on the engine and modelling interface, but to provide outputs in formats that are easy to use with other data processing packages, like `ggplot2`, `dplyr`, and `tidyr`, all of which readily make use of data in long format.
 
 In the graphs above for example, we required a step that renames the model variables into something that makes more sense for the graphical presentation. Here we reproduce this, but take a little more care to produce a tidier dataset.
 ```{r rename-variables}
@@ -131,8 +133,9 @@ print(head(si_results, 8L))
 
 Here we rename the `I` state variable as the disease prevalence (number of currently infected individuals). Because this is a discrete-time model, we can reinterpret the `infection_rate` as the incidence (number of newly infected individuals) over one time step. Note that this approach to calculating incidence only works if the time period over which incidence is measured corresponds to the length of one time step. If this assumption is not met -- for example if the time step is one day but incidence data are reported every week -- then other approaches to computing incidence that are not covered here must be taken.
 
-We can generate a `ggplot` from this dataset as we did above. If you want to use base R plots, you can convert the long format data to wide format:
+We can generate a `ggplot` from this dataset as we did above. If you want to use base R plots, you can convert the long format data to wide format using the `tidyr` package.
 ```{r pivot_wider}
+library(tidyr)
 si_results_wide <- (si_results
   |> tidyr::pivot_wider(
       , id_cols = time
@@ -160,5 +163,9 @@ matplot(
   , type = "l"
   , xlab = "Time", ylab = ""
 )
-legend("topleft", col = 1:3, lty = 1:3, legend = c("Prevalence", "Incidence"))
+legend("topleft"
+  , col = 1:3
+  , lty = 1:3
+  , legend = c("Prevalence", "Incidence")
+)
 ```
