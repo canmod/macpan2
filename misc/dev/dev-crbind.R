@@ -25,7 +25,7 @@ correct_answer = function(den = 89){
   }
   flowmat = flowmat_hist
   state = state_hist
-  return(nlist(state, flowmat))
+  return(macpan2:::nlist(state, flowmat))
 }
 
 #    p_table_x p_table_n p_table_i

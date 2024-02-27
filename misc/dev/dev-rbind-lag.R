@@ -24,7 +24,7 @@ correct_answer = function() {
   mat = c(mat, 0, 1)
   time = c(time, 4, 4)
   value = c(value, x, y)
-  dplyr::arrange(as.data.frame(nlist(mat, time, row = 0, col = 0, value)), mat, time)
+  dplyr::arrange(as.data.frame(macpan2:::nlist(mat, time, row = 0, col = 0, value)), mat, time)
 }
 
 m = TMBModel(

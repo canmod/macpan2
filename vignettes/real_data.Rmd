@@ -2,7 +2,7 @@
 title: "Fitting to Real Data"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{real_data}
+  %\VignetteIndexEntry{Fitting to Real Data}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -14,7 +14,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-The `vignette("quickstart")` and `vignette("calibration")` articles work with simulated data, but it is more interesting to be able to fit models to real data. The International Infectious Disease Data Archive (IIDDA) is a useful place to look for incidence, mortality, and population data for illustrating `macpan2`. This archive contains data from [this data digitization project](http://canmod.net/digitization), which we will use here.
+The `vignette("quickstart")` and `vignette("calibration")` articles work with simulated data, but it is more interesting to fit models to real data. The [International Infectious Disease Data Archive (IIDDA)](https://canmod.github.io/iidda-tools/iidda.api) is a useful place to look for incidence, mortality, and population data for illustrating `macpan2`. This archive contains data from [this data digitization project](http://canmod.net/digitization), which we will use here. What we find is that with real data, even with relatively simple models and calibration problems, issues can arise that require careful thought.
 
 ## Setup
 
@@ -221,26 +221,47 @@ fitted_data = mp_trajectory_sd(sir_cal, conf.int = TRUE)
 )
 ```
 
-## Questions
+What is going on? Can we modify this model and/or fitting procedure to get both reasonable parameter estimates and a reasonable trajectory?
 
-* What is going on?
-* Can you modify this model and/or fitting procedure to get both reasonable parameter estimates and a reasonable trajectory?
-* What would you want to do if you knew how to use the software well?
-* Do you want to try other data in the repository?
+## Fixing the Optimization Problem
 
-Here is how you get Diphtheria in Ontario for example (not run).
-```{r, eval = FALSE}
-ontario_diphtheria = api_hook$filter(resource_type = "CANMOD CDI"
-  , iso_3166_2 = "CA-ON"  ## get ontario data
-  , time_scale = "wk"  ## weekly incidence data only 
-  , disease = "diphtheria"
+One way to address the lack of convergence of the optimizer is to assess the degree to which the parameter estimates are biologically reasonable. Take the recovery rate, which is estimated as `gamma ~ 26.5` per time-step. Given that a time-step is one week in this model, this estimate implies that individuals recover from scarlet fever in `1/26.5` weeks -- much less than a day. A quick search suggests to me that this recovery rate is not reasonable for scarlet fever, and that a rough guess that the infectious stage lasts one week is much more plausible than `1/26.5` weeks. Now look at the transmission rate, `beta`.  It is also estimated to be pretty large, but what is more interesting is the large standard errors for both `beta` and `gamma`. These standard errors suggest that the estimates are not precise. However, the estimated correlation between `beta` and `gamma` is very close to `1`, suggesting that many values for these parameters would fit the data well as long as they are both of similar magnitude.
+
+```{r}
+mp_tmb_fixef_cov(sir_cal) |> cov2cor()
+```
+
+This diagnosis, if correct, suggests that the data are not sufficiently informative to identify values for both `beta` and `gamma`. Resolving such identifiability issues is often best done by introducing prior information, such as our rough guess that `gamma` is close to `1`. The simplest way to include such prior information is to move `gamma` out of the `pars` argument to `mp_tmb_calibrator` and into the `default` argument, as below.
+
+```{r}
+sir_cal_assume_gamma = mp_tmb_calibrator(
+    spec = sf_sir
+  , data = observed_data
+  
+  ## name the trajectory variable, with a name that
+  ## is the same in both the spec and the data
+  , traj = "reports"  
+  
+  ## fit the following parameters
+  , par = c("beta", "I", "report_prob")
+  , default = list(gamma = 1)
 )
 ```
 
-Here is all weekly data for all provinces (not run).
-```{r, eval = FALSE}
-CA_wk_cdi = api_hook$filter(resource_type = "CANMOD CDI"
-  , iso_3166 = "CA"  ## get all canadian data
-  , time_scale = "wk"  ## weekly incidence data only 
-)
+This calibration specification does not try to jointly fit both `beta` and `gamma`, but rather fits only `beta` while assuming that `gamma = 1`.
+
+```{r}
+sir_opt_assume_gamma = mp_optimize(sir_cal_assume_gamma)
+print(sir_opt_assume_gamma)
 ```
+
+The model now converges!  And the standard errors in the coefficient table and fixed effect correlations seem more plausible.
+
+```{r}
+mp_tmb_coef(sir_cal_assume_gamma)
+mp_tmb_fixef_cov(sir_cal_assume_gamma) |> cov2cor()
+```
+
+## Conclusions and Cautions
+
+TODO: Ben, what is that paper that you always recommend about being careful when prior information is included without prior uncertainty?
