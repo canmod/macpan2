@@ -132,7 +132,7 @@ sir_simulator = mp_simulator(sf_sir
 head(mp_trajectory(sir_simulator))
 ```
 
-The next step is to get our data into the above format.
+The next step is to get our data into a format that is compatible with the format of these simulations. In particular, we need `matrix`, `time`, and `value` columns. We can omit the `row` and `col` columns, because all of the 'matrices' in the model are 1-by-1 scalars.
 
 ```{r}
 observed_data = (scarlet_fever_ontario
