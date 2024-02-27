@@ -14,6 +14,12 @@ editor_options:
 
 [![status](https://img.shields.io/badge/status-working%20draft-red)](https://canmod.github.io/macpan2/articles/vignette-status#working-draft)
 
+```{r setup, echo = FALSE, message = FALSE, warning = FALSE}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+```
+
 ## Hello World
 
 The following code specifies an SI model, which is I think is the simplest possible model of epidemiological transmission.
@@ -35,11 +41,6 @@ print(si)
 ```
 
 Simulating from this model requires choosing the number of time-steps to run and the model outputs to generate. Syntax for simulating `macpan2` models is designed to combine with standard data prep and plotting tools in R, as we demonstrate with the following code.
-```{r setup, echo = FALSE, message = FALSE, warning = FALSE}
-library(ggplot2)
-library(dplyr)
-library(tidyr)
-```
 ```{r plot-tmb-si, fig.height=3}
 library(ggplot2)
 library(dplyr)
