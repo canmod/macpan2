@@ -92,7 +92,8 @@
 <p>The following code specifies an SI model, which is I think is the
 simplest possible model of epidemiological transmission.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">si</span> <span class="op">=</span> <span class="fu"><a href="../reference/mp_tmb_model_spec.html">mp_tmb_model_spec</a></span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://canmod.github.io/macpan2/">macpan2</a></span><span class="op">)</span></span>
+<span><span class="va">si</span> <span class="op">=</span> <span class="fu"><a href="../reference/mp_tmb_model_spec.html">mp_tmb_model_spec</a></span><span class="op">(</span></span>
 <span>    before <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>        <span class="va">I</span> <span class="op">~</span> <span class="fl">1</span></span>
 <span>      , <span class="va">S</span> <span class="op">~</span> <span class="va">N</span> <span class="op">-</span> <span class="va">I</span></span>
@@ -130,7 +131,13 @@ to run and the model outputs to generate. Syntax for simulating
 prep and plotting tools in R, as we demonstrate with the following
 code.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="op">(</span><span class="va">si</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyr.tidyverse.org" class="external-link">tidyr</a></span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
+<span><span class="op">(</span><span class="va">si</span></span>
 <span> </span>
 <span> <span class="co">## macpan2</span></span>
 <span> <span class="op">|&gt;</span> <span class="fu"><a href="../reference/mp_simulator.html">mp_simulator</a></span><span class="op">(</span></span>
@@ -182,7 +189,7 @@ specification (see the argument <code>default</code> above in the
 specified in <code>default</code> will be left at the values in the
 specification.</li>
 </ul>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">si_simulator</span> <span class="op">=</span> <span class="fu"><a href="../reference/mp_simulator.html">mp_simulator</a></span><span class="op">(</span></span>
 <span>    model <span class="op">=</span> <span class="va">si</span> </span>
 <span>  , time_steps <span class="op">=</span> <span class="fl">50</span></span>
@@ -239,7 +246,7 @@ when working with more realistic workflows and models.</p>
 using the <code>mp_trajectory</code> function. The results come out in
 <a href="https://en.wikipedia.org/wiki/Wide_and_narrow_data" class="external-link">long (or
 “narrow”) format</a>, where there is exactly one value per row:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">si_results</span> <span class="op">=</span> <span class="fu"><a href="../reference/mp_trajectory.html">mp_trajectory</a></span><span class="op">(</span><span class="va">si_simulator</span><span class="op">)</span></span>
 <span><span class="va">si_results</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fl">8</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##           matrix time row col     value</span></span>
@@ -285,7 +292,7 @@ use of data in long format.</p>
 model variables into something that makes more sense for the graphical
 presentation. Here we reproduce this, but take a little more care to
 produce a tidier dataset.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">si_results</span> <span class="op">=</span> <span class="op">(</span><span class="va">si_results</span></span>
 <span>  <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>matrix <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/case_match.html" class="external-link">case_match</a></span><span class="op">(</span><span class="va">matrix</span></span>
 <span>      , <span class="st">"I"</span> <span class="op">~</span> <span class="st">"Prevalence"</span></span>
@@ -316,9 +323,10 @@ other approaches to computing incidence that are not covered here must
 be taken.</p>
 <p>We can generate a <code>ggplot</code> from this dataset as we did
 above. If you want to use base R plots, you can convert the long format
-data to wide format:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">si_results_wide</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">si_results</span></span>
+data to wide format using the <code>tidyr</code> package.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyr.tidyverse.org" class="external-link">tidyr</a></span><span class="op">)</span></span>
+<span><span class="va">si_results_wide</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">si_results</span></span>
 <span>  <span class="op">|&gt;</span> <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span></span>
 <span>      , id_cols <span class="op">=</span> <span class="va">time</span></span>
 <span>      , names_from <span class="op">=</span> <span class="va">quantity</span></span>
@@ -332,14 +340,14 @@ data to wide format:</p>
 <span><span class="co">## <span style="color: #BCBCBC;">1</span>     1       1.25     0.248</span></span>
 <span><span class="co">## <span style="color: #BCBCBC;">2</span>     2       1.56     0.308</span></span>
 <span><span class="co">## <span style="color: #BCBCBC;">3</span>     3       1.94     0.383</span></span></code></pre>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="va">si_results_wide</span>,</span>
 <span>     <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">Time</span>,</span>
 <span>          y <span class="op">=</span> <span class="va">Incidence</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="quickstart_files/figure-html/base_plot_ex-1.png" width="576"></p>
 <p>or</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>las <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="co">## horizontal y-axis ticks</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/matplot.html" class="external-link">matplot</a></span><span class="op">(</span></span>
 <span>    <span class="va">si_results_wide</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span></span>
@@ -347,7 +355,11 @@ data to wide format:</p>
 <span>  , type <span class="op">=</span> <span class="st">"l"</span></span>
 <span>  , xlab <span class="op">=</span> <span class="st">"Time"</span>, ylab <span class="op">=</span> <span class="st">""</span></span>
 <span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/legend.html" class="external-link">legend</a></span><span class="op">(</span><span class="st">"topleft"</span>, col <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, lty <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, legend <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"Prevalence"</span>, <span class="st">"Incidence"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/legend.html" class="external-link">legend</a></span><span class="op">(</span><span class="st">"topleft"</span></span>
+<span>  , col <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span></span>
+<span>  , lty <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span></span>
+<span>  , legend <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"Prevalence"</span>, <span class="st">"Incidence"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p><img src="quickstart_files/figure-html/base_matplot_ex-1.png" width="576"></p>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
