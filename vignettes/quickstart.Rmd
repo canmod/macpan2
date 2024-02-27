@@ -35,7 +35,7 @@ print(si)
 ```
 
 Simulating from this model requires choosing the number of time-steps to run and the model outputs to generate. Syntax for simulating `macpan2` models is designed to combine with standard data prep and plotting tools in R, as we demonstrate with the following code.
-```{r setup, message = FALSE, warning = FALSE}
+```{r setup, echo = FALSE, message = FALSE, warning = FALSE}
 library(ggplot2)
 library(dplyr)
 library(tidyr)
