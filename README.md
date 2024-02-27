@@ -91,6 +91,7 @@ The following code specifies an SI model, which is I think is the
 simplest possible model of epidemiological transmission.
 
 ``` r
+library(macpan2)
 si = mp_tmb_model_spec(
     before = list(
         I ~ 1
@@ -134,6 +135,8 @@ R](https://canmod.github.io/macpan2/articles/quickstart.html#processing-results)
 as we demonstrate with the following code.
 
 ``` r
+library(ggplot2)
+library(dplyr)
 (si
  |> mp_simulator(time_steps = 50, outputs = c("I", "infection"))
  |> mp_trajectory()
