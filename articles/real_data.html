@@ -201,7 +201,7 @@ library.</p>
 </h2>
 <p>Once we take any library model off the shelf we need to modify it a
 bit to be more realistic. We do this with the
-<code>?mp_tmb_insert()</code> function, which inserts new default values
+<code><a href="../reference/mp_tmb_insert.html">mp_tmb_insert()</a></code> function, which inserts new default values
 and model expressions.</p>
 <p>We first change the population size to the population of Ontario at
 the time.</p>
@@ -277,7 +277,11 @@ one week).</p>
 <span><span class="co">#&gt; 3 reports    3   0   0 0.0008066662</span></span>
 <span><span class="co">#&gt; 4 reports    4   0   0 0.0008873327</span></span>
 <span><span class="co">#&gt; 5 reports    5   0   0 0.0009760658</span></span></code></pre></div>
-<p>The next step is to get our data into the above format.</p>
+<p>The next step is to get our data into a format that is compatible
+with the format of these simulations. In particular, we need
+<code>matrix</code>, <code>time</code>, and <code>value</code> columns.
+We can omit the <code>row</code> and <code>col</code> columns, because
+all of the ‘matrices’ in the model are 1-by-1 scalars.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">observed_data</span> <span class="op">=</span> <span class="op">(</span><span class="va">scarlet_fever_ontario</span></span>
 <span>  <span class="co">## select the variables to be modelled -- a time-series of case reports.</span></span>
