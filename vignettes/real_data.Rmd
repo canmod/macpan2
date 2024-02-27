@@ -87,7 +87,7 @@ print(sir)
 
 ## Modify Model for Reality
 
-Once we take any library model off the shelf we need to modify it a bit to be more realistic. We do this with the `?mp_tmb_insert()` function, which inserts new default values and model expressions.
+Once we take any library model off the shelf we need to modify it a bit to be more realistic. We do this with the `mp_tmb_insert()` function, which inserts new default values and model expressions.
 
 We first change the population size to the population of Ontario at the time.
 
