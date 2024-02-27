@@ -139,7 +139,7 @@ observed_data = (scarlet_fever_ontario
   ## select the variables to be modelled -- a time-series of case reports.
   |> select(period_end_date, cases_this_period)
   
-  ## change the column headings so that the match the columns
+  ## change the column headings so that they match the columns
   ## in the simulated trajectories.
   |> mutate(matrix = "reports")
   |> rename(value = cases_this_period)
@@ -255,11 +255,31 @@ sir_opt_assume_gamma = mp_optimize(sir_cal_assume_gamma)
 print(sir_opt_assume_gamma)
 ```
 
-The model now converges!  And the standard errors in the coefficient table and fixed effect correlations seem more plausible.
+More warnings, but now the optimizer converges. And the standard errors in the coefficient table and fixed effect correlations seem more plausible.
 
 ```{r}
 mp_tmb_coef(sir_cal_assume_gamma)
 mp_tmb_fixef_cov(sir_cal_assume_gamma) |> cov2cor()
+```
+
+And the fit looks similar to the four-parameter model, which is consistent with our diagnosis of non-identifiability. 
+
+```{r, fig.width=7, fig.height=7}
+fitted_data = mp_trajectory_sd(sir_cal_assume_gamma, conf.int = TRUE)
+(observed_data
+  |> ggplot()
+  + geom_point(aes(time, value))
+  + geom_line(aes(time, value)
+    , data = fitted_data
+  )
+  + geom_ribbon(aes(time, ymin = conf.low, ymax = conf.high)
+    , data = fitted_data
+    , alpha = 0.2
+    , colour = "red"
+  )
+  + theme_bw()
+  + facet_wrap(~matrix, ncol = 1, scales = "free")
+)
 ```
 
 ## Conclusions and Cautions
