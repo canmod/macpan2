@@ -1,6 +1,6 @@
 #' Transform
 #'
-#' @param variable Character string giving a variable in the model.
+#' @param variable Character string giving the name of a variable in the model.
 #' @param default Default value for the untransformed variable. If `NULL`
 #' (the default) this value is taken from the initial value in the model
 #' containing the transformation.
