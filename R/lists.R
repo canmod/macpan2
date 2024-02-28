@@ -92,6 +92,7 @@ assert_named_list = function(l) {
 
 self_named_vector = function(...) c(...) |> setNames(c(...))
 
+
 # Extract Expressions by Name -- Experimental
 #
 # @param x Object containing named expressions.

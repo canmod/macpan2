@@ -47,6 +47,7 @@ valid_func_sigs = c(
       , "fwrap,null: print(x)"
       , "fwrap,fail: time_var(x, change_points, change_pointer)"
       , "fwrap,fail: rbinom(size, probability)"
+      , "fwrap,fail: reulermultinom(size, rate, delta_t)"
 )
 process_enum = function(x) {
   RE = "(null|fail|binop|fwrap|bwrap|pwrap)[ ]*,[ ]*(null|fail|binop|fwrap|bwrap|pwrap)[ ]*:[ ]*\\`?([^`]*)\\`?\\((.*)(\\,.*)*\\)"
