@@ -1,3 +1,25 @@
+# macpan2 1.2.0
+
+## Breaking Changes
+
+* No longer exporting `nlist`.
+
+## New Features
+
+* Unpacking assignment in the engine. This means that you can do things like `c(x, y) ~ z`, where the values in `z` are assigned to elements in `x`, `y`, etc... in row-major order.
+* New stochasticity engine functions `rbinom` and `reulermultinom`.
+* `mp_tmb_fixef_cov` function for getting the covariance matrix of fixed effects.
+* `mp_trajectory_sim` function for summarizing random variation in trajectories.
+
+## Doc Fixes and Updates
+
+* New installation instructions for installing from `r-universe`.
+* New vignette: `real_data`.
+* Document `print` function in the `?engine_functions`.
+* `simple_sims` example in `?engine_functions` now runs without error.
+* Help file examples for `mp_tmb_insert` and `mp_tmb_update`.
+* Readme/vignette examples better expose calls to `library` for the user.
+
 # macpan2 1.1.0
 
 ## Breaking Changes
