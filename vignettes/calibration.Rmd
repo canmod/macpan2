@@ -118,7 +118,7 @@ Note that the `mp_optimize` function has modified the `sir_calibrator` object, w
 
 ### Step 3: check the fit
 
-We can print the results of the optimizer (`nlminb` in this case) using the `mp_optimizer_outut` function. **Always check the value of the convergence code** (if it's not 0, then something *may* have gone wrong ...).
+We can print the results of the optimizer (`nlminb` in this case) using the `mp_optimizer_output` function. **Always check the value of the convergence code** (if it's not 0, then something *may* have gone wrong ...).
 
 ```{r check_fit}
 mp_optimizer_output(sir_calibrator)
