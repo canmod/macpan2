@@ -136,7 +136,7 @@ This function returns an object of class <code>CSVReader</code>.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_flows_reader</span> <span class="op">=</span> <span class="fu"><a href="../reference/Reader.html">CSVReader</a></span><span class="op">(</span><span class="va">sir_path</span>, <span class="st">"flows.csv"</span><span class="op">)</span></span>
 <span><span class="va">sir_flows_reader</span></span>
-<span><span class="co">#&gt; Classes 'CSVReader', 'Reader', 'Base' &lt;environment: 0x55e73663bdb0&gt; </span></span>
+<span><span class="co">#&gt; Classes 'CSVReader', 'Reader', 'Base' &lt;environment: 0x5560b65c2228&gt; </span></span>
 <span><span class="co">#&gt; read : function ()  </span></span>
 <span><span class="co">#&gt; read_base : function ()</span></span></code></pre></div>
 <p>We get a print out of the <code>S3</code> class of the object, which
@@ -255,7 +255,7 @@ class.</p>
 <span><span class="op">}</span></span>
 <span><span class="va">does_nothing</span> <span class="op">=</span> <span class="fu">DoesNothing</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">does_nothing</span></span>
-<span><span class="co">#&gt; Classes 'DoesNothing', 'Base' &lt;environment: 0x55e731236e28&gt;</span></span></code></pre></div>
+<span><span class="co">#&gt; Classes 'DoesNothing', 'Base' &lt;environment: 0x5560b11b31f8&gt;</span></span></code></pre></div>
 <p>The first line in this constructor uses the <code>Base</code>
 function to create an <code>environment</code> called <code>self</code>.
 The second line sets <code>self</code>s S3 <code>class</code> to
@@ -270,7 +270,7 @@ field.</p>
 <span><span class="op">}</span></span>
 <span><span class="va">does_nothing</span> <span class="op">=</span> <span class="fu">DoesNothing</span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span>
 <span><span class="va">does_nothing</span></span>
-<span><span class="co">#&gt; Classes 'DoesNothing', 'Base' &lt;environment: 0x55e731ae8d58&gt;</span></span></code></pre></div>
+<span><span class="co">#&gt; Classes 'DoesNothing', 'Base' &lt;environment: 0x5560b1a507f8&gt;</span></span></code></pre></div>
 <p>This looks identical to the first version, but now we have stored a
 value for <code>n</code>.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
@@ -561,48 +561,48 @@ retrieve the cached value, improving efficiency. Developers can ensure
 consistency by invalidating the cache whenever objects change, allowing
 them to balance the cost of regeneration with the need for
 consistency.</p>
-<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>A <span class="ot">=</span> <span class="cf">function</span>(..., method_dependency, ...) {</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  ...</span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  self<span class="sc">$</span>method_dependency <span class="ot">=</span> method_dependency</span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  ...</span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  self<span class="sc">$</span>expensive_method_1 <span class="ot">=</span> <span class="cf">function</span>() {</span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>    ...</span>
-<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>  ...</span>
-<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>  self<span class="sc">$</span>expensive_method_2 <span class="ot">=</span> <span class="cf">function</span>() {</span>
-<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>    ...</span>
-<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>  ...</span>
-<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>  self<span class="sc">$</span>cheap_method <span class="ot">=</span> <span class="cf">function</span>() {</span>
-<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>    ...</span>
-<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>  ...</span>
-<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>  self<span class="sc">$</span>modify_dependency <span class="ot">=</span> <span class="cf">function</span>(...) {</span>
-<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>    ...</span>
-<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>cache<span class="sc">$</span>expensive_method_1<span class="sc">$</span><span class="fu">invalidate</span>()</span>
-<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a>    self<span class="sc">$</span>cache<span class="sc">$</span>expensive_method_2<span class="sc">$</span><span class="fu">invalidate</span>()</span>
-<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a>    ...</span>
-<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a>  ...</span>
-<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">initialize_cache</span>(self, <span class="st">"expensive_method_1"</span>, <span class="st">"expensive_method_2"</span>)</span>
-<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a>  ...</span>
-<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a>a <span class="ot">=</span> <span class="fu">A</span>()</span>
-<span id="cb22-29"><a href="#cb22-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-30"><a href="#cb22-30" aria-hidden="true" tabindex="-1"></a><span class="co"># takes time to return</span></span>
-<span id="cb22-31"><a href="#cb22-31" aria-hidden="true" tabindex="-1"></a>a<span class="sc">$</span><span class="fu">expensive_method</span>() </span>
-<span id="cb22-32"><a href="#cb22-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-33"><a href="#cb22-33" aria-hidden="true" tabindex="-1"></a><span class="co"># return immediately by returning the same value computed previously </span></span>
-<span id="cb22-34"><a href="#cb22-34" aria-hidden="true" tabindex="-1"></a><span class="co"># and stored in the cache</span></span>
-<span id="cb22-35"><a href="#cb22-35" aria-hidden="true" tabindex="-1"></a>a<span class="sc">$</span><span class="fu">expensive_method</span>()</span>
-<span id="cb22-36"><a href="#cb22-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-37"><a href="#cb22-37" aria-hidden="true" tabindex="-1"></a><span class="co"># change object and invalidate the cache to enforce consistency</span></span>
-<span id="cb22-38"><a href="#cb22-38" aria-hidden="true" tabindex="-1"></a>a<span class="sc">$</span><span class="fu">modify_dependency</span>(...)</span>
-<span id="cb22-39"><a href="#cb22-39" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-40"><a href="#cb22-40" aria-hidden="true" tabindex="-1"></a><span class="co"># again takes time to return, but the value is different because the</span></span>
-<span id="cb22-41"><a href="#cb22-41" aria-hidden="true" tabindex="-1"></a><span class="co"># object was modified</span></span>
-<span id="cb22-42"><a href="#cb22-42" aria-hidden="true" tabindex="-1"></a>a<span class="sc">$</span><span class="fu">expensive_method</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a>A <span class="ot">=</span> <span class="cf">function</span>(..., method_dependency, ...) {</span>
+<span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a>  ...</span>
+<span id="cb22-3"><a href="#cb22-3" tabindex="-1"></a>  self<span class="sc">$</span>method_dependency <span class="ot">=</span> method_dependency</span>
+<span id="cb22-4"><a href="#cb22-4" tabindex="-1"></a>  ...</span>
+<span id="cb22-5"><a href="#cb22-5" tabindex="-1"></a>  self<span class="sc">$</span>expensive_method_1 <span class="ot">=</span> <span class="cf">function</span>() {</span>
+<span id="cb22-6"><a href="#cb22-6" tabindex="-1"></a>    ...</span>
+<span id="cb22-7"><a href="#cb22-7" tabindex="-1"></a>  }</span>
+<span id="cb22-8"><a href="#cb22-8" tabindex="-1"></a>  ...</span>
+<span id="cb22-9"><a href="#cb22-9" tabindex="-1"></a>  self<span class="sc">$</span>expensive_method_2 <span class="ot">=</span> <span class="cf">function</span>() {</span>
+<span id="cb22-10"><a href="#cb22-10" tabindex="-1"></a>    ...</span>
+<span id="cb22-11"><a href="#cb22-11" tabindex="-1"></a>  }</span>
+<span id="cb22-12"><a href="#cb22-12" tabindex="-1"></a>  ...</span>
+<span id="cb22-13"><a href="#cb22-13" tabindex="-1"></a>  self<span class="sc">$</span>cheap_method <span class="ot">=</span> <span class="cf">function</span>() {</span>
+<span id="cb22-14"><a href="#cb22-14" tabindex="-1"></a>    ...</span>
+<span id="cb22-15"><a href="#cb22-15" tabindex="-1"></a>  }</span>
+<span id="cb22-16"><a href="#cb22-16" tabindex="-1"></a>  ...</span>
+<span id="cb22-17"><a href="#cb22-17" tabindex="-1"></a>  self<span class="sc">$</span>modify_dependency <span class="ot">=</span> <span class="cf">function</span>(...) {</span>
+<span id="cb22-18"><a href="#cb22-18" tabindex="-1"></a>    ...</span>
+<span id="cb22-19"><a href="#cb22-19" tabindex="-1"></a>    self<span class="sc">$</span>cache<span class="sc">$</span>expensive_method_1<span class="sc">$</span><span class="fu">invalidate</span>()</span>
+<span id="cb22-20"><a href="#cb22-20" tabindex="-1"></a>    self<span class="sc">$</span>cache<span class="sc">$</span>expensive_method_2<span class="sc">$</span><span class="fu">invalidate</span>()</span>
+<span id="cb22-21"><a href="#cb22-21" tabindex="-1"></a>    ...</span>
+<span id="cb22-22"><a href="#cb22-22" tabindex="-1"></a>  }</span>
+<span id="cb22-23"><a href="#cb22-23" tabindex="-1"></a>  ...</span>
+<span id="cb22-24"><a href="#cb22-24" tabindex="-1"></a>  <span class="fu">initialize_cache</span>(self, <span class="st">"expensive_method_1"</span>, <span class="st">"expensive_method_2"</span>)</span>
+<span id="cb22-25"><a href="#cb22-25" tabindex="-1"></a>  ...</span>
+<span id="cb22-26"><a href="#cb22-26" tabindex="-1"></a>}</span>
+<span id="cb22-27"><a href="#cb22-27" tabindex="-1"></a></span>
+<span id="cb22-28"><a href="#cb22-28" tabindex="-1"></a>a <span class="ot">=</span> <span class="fu">A</span>()</span>
+<span id="cb22-29"><a href="#cb22-29" tabindex="-1"></a></span>
+<span id="cb22-30"><a href="#cb22-30" tabindex="-1"></a><span class="co"># takes time to return</span></span>
+<span id="cb22-31"><a href="#cb22-31" tabindex="-1"></a>a<span class="sc">$</span><span class="fu">expensive_method</span>() </span>
+<span id="cb22-32"><a href="#cb22-32" tabindex="-1"></a></span>
+<span id="cb22-33"><a href="#cb22-33" tabindex="-1"></a><span class="co"># return immediately by returning the same value computed previously </span></span>
+<span id="cb22-34"><a href="#cb22-34" tabindex="-1"></a><span class="co"># and stored in the cache</span></span>
+<span id="cb22-35"><a href="#cb22-35" tabindex="-1"></a>a<span class="sc">$</span><span class="fu">expensive_method</span>()</span>
+<span id="cb22-36"><a href="#cb22-36" tabindex="-1"></a></span>
+<span id="cb22-37"><a href="#cb22-37" tabindex="-1"></a><span class="co"># change object and invalidate the cache to enforce consistency</span></span>
+<span id="cb22-38"><a href="#cb22-38" tabindex="-1"></a>a<span class="sc">$</span><span class="fu">modify_dependency</span>(...)</span>
+<span id="cb22-39"><a href="#cb22-39" tabindex="-1"></a></span>
+<span id="cb22-40"><a href="#cb22-40" tabindex="-1"></a><span class="co"># again takes time to return, but the value is different because the</span></span>
+<span id="cb22-41"><a href="#cb22-41" tabindex="-1"></a><span class="co"># object was modified</span></span>
+<span id="cb22-42"><a href="#cb22-42" tabindex="-1"></a>a<span class="sc">$</span><span class="fu">expensive_method</span>()</span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

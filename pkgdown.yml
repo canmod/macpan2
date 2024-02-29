@@ -1,4 +1,4 @@
-pandoc: 2.19.2
+pandoc: 3.1.11
 pkgdown: 2.0.7
 pkgdown_sha: ~
 articles:
@@ -14,11 +14,10 @@ articles:
   example_models: example_models.html
   quickstart: quickstart.html
   real_data: real_data.html
-  standard_expressions: standard_expressions.html
   state_dependent_rates: state_dependent_rates.html
   time_varying_parameters: time_varying_parameters.html
   vignette_status: vignette_status.html
-last_built: 2024-02-27T10:54Z
+last_built: 2024-02-29T14:28Z
 urls:
   reference: https://canmod.github.io/macpan2/reference
   article: https://canmod.github.io/macpan2/articles
