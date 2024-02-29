@@ -2722,6 +2722,7 @@ public:
                 return m;
             
             case MP2_EULER_MULTINOM_SIM:
+                //Rf_warning("experimental function reulermultinom");
                 // reulermultinom(size, rate, dt)
                 if (n == 3) {
                     delta_t = args[2].coeff(0, 0);
@@ -2729,34 +2730,47 @@ public:
                     delta_t = 1.0;
                 }
                 if (args[0].rows() != 1 | args[0].cols() != 1) {
+                    //std::cout << "++++++" << std::endl;
+                    //std::cout << args[0] << std::endl;
                     SetError(MP2_EULER_MULTINOM_SIM, "The first 'size' argument must be scalar.", row);
                     return m;
                 }
                 if (args[1].cols() != 1) {
+                    //std::cout << "------" << std::endl;
+                    //std::cout << args[1] << std::endl;
                     SetError(MP2_EULER_MULTINOM_SIM, "The second 'rate' argument must be a column vector", row);
                 }
                 sum = args[1].sum();
+                //std::cout << "sum of rates: " << sum << std::endl;
                 m = matrix<Type>::Zero(args[1].rows(), 1);  // multinomial probabilities
                 for (int i = 0; i < args[1].rows(); i++) {
                     m.coeffRef(i, 0) = args[1].coeff(i, 0) * delta_t;
                 }
                 p0 = exp(-m.sum());
+                //std::cout << "prob(staying): " << p0 << std::endl;
                 p0 = (1 - p0) / sum;
+                //std::cout << "rate multiplier: " << p0 << std::endl;
                 for (int i = 0; i < args[1].rows(); i++) {
                     m.coeffRef(i, 0) = p0 * args[1].coeff(i, 0);
                 }
+                //std::cout << "multinomial probabilities: " << m << std::endl;
                 
                 m1 = matrix<Type>::Zero(args[1].rows(), 1);  // multinomial outcomes
                 
                 left_over = args[0].coeff(0, 0);
                 remaining_prop = 1;
-                for (int i = 0; i < m1.rows() - 1; i++) {
+                for (int i = 0; i < m1.rows(); i++) {
+                    //std::cout << "N = " << left_over << std::endl;
+                    //std::cout << "p = " << m.coeff(i, 0) << std::endl;
+                    //std::cout << "q = " << remaining_prop << std::endl;
                     if (remaining_prop > 1e-8) {
                         m1.coeffRef(i, 0) = rbinom(left_over, m.coeff(i, 0) / remaining_prop);
                     }
+                    
                     left_over = left_over - m1.coeff(i, 0);
                     remaining_prop = remaining_prop - m.coeff(i, 0);
                 }
+                // m1.coeffRef(m1.rows() - 1, 0) = left_over;
                 return m1;
                 
             case MP2_ASSIGN:
@@ -3072,6 +3086,8 @@ public:
         int x1;
         int x2;
         int sz;
+        int nr;
+        int nc;
         int size;
         int start;
         matrix<Type> m;
@@ -3150,17 +3166,27 @@ public:
                 m = assignment_value;
                 size = m.rows() * m.cols();
                 m.resize(size, 1);
-                
-                // loop over all arguments to `c` on the left-hand-side,
-                // 
+                //std::cout << "assignment: " << m << std::endl;
+              
                 start = 0;
                 for (int i = 0; i < n; i++) {
                     x2 = table_x[table_i[row]+i]; // index (in valid_vars) to ith argument of `c`
+                    //std::cout << "recipient: " << valid_vars.m_matrices[x2] << std::endl;
                     sz = valid_vars.m_matrices[x2].rows() * valid_vars.m_matrices[x2].cols();
+                    if (sz == 0) sz = size / (n - i);  // heuristic
+                    //std::cout << "sz: " << sz << std::endl;
+                    //std::cout << "size: " << size << std::endl;
+                    //std::cout << "start: " << start << std::endl;
                     if (size >= sz) {
                         m1 = m.block(start, 0, sz, 1);
-                        m1.resize(valid_vars.m_matrices[x2].rows(), valid_vars.m_matrices[x2].cols());
+                        nr = valid_vars.m_matrices[x2].rows();
+                        nc = valid_vars.m_matrices[x2].cols();
+                        if (nr == 0) nr = sz;
+                        if (nc == 0) nc = 1;
+                        m1.resize(nr, nc);
+                        //std::cout << "this replacement block: " << m1 << std::endl;
                         valid_vars.m_matrices[x2] = m1;
+                        //std::cout << "recipient after: " << valid_vars.m_matrices[x2] << std::endl;
                         size -= sz;
                         start += sz;
                     }

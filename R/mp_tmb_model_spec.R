@@ -73,13 +73,12 @@ TMBModelSpec = function(
       , self$must_save, self$must_not_save, self$sim_exprs
     )
   }
-  
-  self$simulator_fresh = function(
+  self$tmb_model = function(
         time_steps = 0
       , outputs = character()
       , default = list()
       , initialize_ad_fun = TRUE
-    ) {
+  ) {
     self$check_names()
     initial_mats = self$all_matrices()
     initial_mats[names(default)] = default
@@ -106,7 +105,7 @@ TMBModelSpec = function(
       |> union(self$must_save)
       |> setdiff(self$must_not_save)
     )
-    s = TMBModel(
+    TMBModel(
         init_mats = do.call(
           MatsList
         , c(
@@ -127,8 +126,16 @@ TMBModelSpec = function(
         int_vecs = do.call(IntVecs, self$all_integers())
       )
       , time_steps = Time(as.integer(time_steps))
-    )$simulator(outputs = outputs, initialize_ad_fun = initialize_ad_fun)
-    s
+    )
+  }
+  self$simulator_fresh = function(
+        time_steps = 0
+      , outputs = character()
+      , default = list()
+      , initialize_ad_fun = TRUE
+    ) {
+    s = self$tmb_model(time_steps, outputs, default, initialize_ad_fun)
+    s$simulator(outputs = outputs, initialize_ad_fun = initialize_ad_fun)
   }
   self$simulator_cached = memoise(self$simulator_fresh)
   return_object(self, "TMBModelSpec")

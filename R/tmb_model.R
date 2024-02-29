@@ -34,7 +34,6 @@ mp_simulator.TMBParameterizedModelSpec = function(model
   , time_steps, outputs, default = list()
 ) {
   simulator = mp_simulator(model$spec, time_steps, outputs, default)
-  
 }
 
 #' TMB Model
@@ -365,7 +364,7 @@ mp_trajectory_sim.TMBSimulator = function(model, n, probs = c(0.025, 0.25, 0.5, 
   r = r[, names(r) != "value", drop = FALSE]
   rr = (n
     |> replicate(model$simulate_values()) 
-    |> apply(1, quantile, probs)
+    |> apply(1, quantile, probs, na.rm = TRUE)
     |> t()
   )
   names(rr) = sprintf("value_%s", names(rr))

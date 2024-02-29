@@ -127,22 +127,24 @@ ExprList = function(
   self$all_derived_vars = function() {
     all_vars = self$all_formula_vars()
     all_exprs = self$formula_list()
-    lhs_list = (all_exprs
-      |> lapply(formula_components, "left")
-      |> lapply(getElement, "variables")
-    )
-    rhs_list = (all_exprs
-      |> lapply(formula_components, "right")
-      |> lapply(getElement, "variables")
-    )
-    full_matrix_assign = vapply(lhs_list, length, integer(1L)) == 1L
-    lhs_matrix_name = vapply(lhs_list, getElement, character(1L), 1L)
+    lhs_comp_list = lapply(all_exprs, formula_components, "left")
+    rhs_comp_list = lapply(all_exprs, formula_components, "right")
+    lhs_list = lapply(lhs_comp_list, getElement, "variables")
+    rhs_list = lapply(rhs_comp_list, getElement, "variables")
+    lhs_func_list = lapply(lhs_comp_list, getElement, "functions")
+    
+    full_matrix_assign = lhs_func_list %in% list("~", c("~", "c"))
     
     is_var_derived = function(var_nm) {
-      made = (var_nm == lhs_matrix_name) & full_matrix_assign
+      var_in_expr = vapply(lhs_list, \(expr_vars) var_nm %in% expr_vars, logical(1L))
+      
+      ## what expressions is the variable made (i.e. assigned) vs used?
+      made = var_in_expr & full_matrix_assign
       used = vapply(rhs_list, `%in%`, logical(1L), x = var_nm)
-      if (!any(made)) return(FALSE)
-      if (!any(used)) return(TRUE)
+      
+      if (!any(made)) return(FALSE) # variables that are never made, must not be 'derived'
+      if (!any(used)) return(TRUE)  # variables that are never used, must be 'derived'
+      
       which(made)[1L] < which(used)[1L]
     }
     Filter(is_var_derived, all_vars)
