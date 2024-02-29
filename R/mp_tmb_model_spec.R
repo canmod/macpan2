@@ -93,6 +93,12 @@ TMBModelSpec = function(
       |> setdiff(matrix_outputs)
       |> intersect(initial_rownames)
     )
+    realized_outputs = c(matrix_outputs, row_outputs)
+    outputs_not_realized = setdiff(outputs, realized_outputs)
+    if (length(outputs_not_realized) > 0L) {
+      msg = sprintf("The following outputs were requested but not available in the model:\n%s\nThey will be silently ignored.", paste0(outputs_not_realized, ", "))
+      warning(msg)
+    }
     mats_to_return = (initial_mats
       |> lapply(names)
       |> Filter(f = is.character)
@@ -134,8 +140,8 @@ TMBModelSpec = function(
       , default = list()
       , initialize_ad_fun = TRUE
     ) {
-    s = self$tmb_model(time_steps, outputs, default, initialize_ad_fun)
-    s$simulator(outputs = outputs, initialize_ad_fun = initialize_ad_fun)
+    m = self$tmb_model(time_steps, outputs, default, initialize_ad_fun)
+    m$simulator(outputs = outputs, initialize_ad_fun = initialize_ad_fun)
   }
   self$simulator_cached = memoise(self$simulator_fresh)
   return_object(self, "TMBModelSpec")
