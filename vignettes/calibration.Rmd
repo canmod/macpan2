@@ -122,6 +122,8 @@ We can print the results of the optimizer (`nlminb` in this case) using the `mp_
 
 ```{r check_fit}
 mp_optimizer_output(sir_calibrator)
+mp_optimize(sir_calibrator)
+mp_optimizer_output(sir_calibrator, what="all")
 ```
 
 As mentioned above, the best-fit parameters are stored internally, and we can get information about
