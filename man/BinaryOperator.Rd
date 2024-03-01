@@ -7,7 +7,7 @@
 BinaryOperator(operator)
 }
 \arguments{
-\item{operator}{A binary operator. r binop_validity_message}
+\item{operator}{A binary operator. Valid binary operations have the following characteristics. \cr - They are functions. \cr - They have exactly two arguments. \cr - They do not have any ... arguments}
 }
 \value{
 A binary operator consistent with the \code{C++} engine.
@@ -18,7 +18,7 @@ operator into one that is consistent with the \code{C++}
 engine. This function is intended to clarify how \pkg{macpan2}
 treats binary operators, which is a little different from
 base \proglang{R}. The difference is clarified in
-\code{vignette("binary_operator")}, and \code{BinaryOperator} is
+\code{vignette("elementwise_binary_operators")}, and \code{BinaryOperator} is
 primarily used as a resource for that vignette.
 }
 \examples{
@@ -29,6 +29,6 @@ y = t(abs(rnorm(2)))             # 1 by 2 matrix
 times = BinaryOperator(`*`)
 pow = BinaryOperator(`^`)
 identical(times(A, x), times(x, A))  ## TRUE
-identical(pow(A, x), pow(x, A))  ## FALSE
+identical(pow(A, y), pow(y, A))  ## FALSE
 
 }
