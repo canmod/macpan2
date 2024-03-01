@@ -496,7 +496,7 @@ TMBTraj = function(
   
   ## implemented methods
   self$obs = function() lapply(self$traj_list, getElement, "value")
-  self$obs_times = function() lapply(self$traj_list, getElement, "time")
+  self$obs_times = function() lapply(self$traj_list, getElement, "time_ids")
   
   
   ## define local and external names ... to prepare
