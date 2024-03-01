@@ -14,9 +14,25 @@ to_labels.character = function(x) valid_dotted$assert(x)
 #' @export
 to_labels.Partition = function(x) x$labels()
 
+#' @export
+to_labels.numeric = function(x) {
+  nms = names(x)
+  if (!is.null(nms)) return(nms)
+  dn = dimnames(x)
+  if (!is.null(dn)) {
+    if (!any(vapply(dn, is.null, logical(1L)))) {
+      nms = try(to_labels(do.call(expand.grid, dn)))
+      if (!inherits(nms, "try-error")) return(nms)
+    }
+  }
+  nms
+}
 
 #' @export
-to_labels.data.frame = function(x) StringDataFromFrame(x)$dot()$labels()$value()
+to_labels.data.frame = function(x) {
+  i = vapply(x, is.character, logical(1L))
+  StringDataFromFrame(x[, i, drop = FALSE])$dot()$labels()$value()
+}
 
 #' @export
 to_labels.StringData = function(x) x$dot()$labels()$value()
@@ -30,6 +46,12 @@ to_labels.Vector = function(x) x$dot()$value()
 #' @export
 to_labels.Labels = function(x) x$dot()$value()
 
+#' @describeIn mp_index Convert an index into
+#' a character vector giving labels associated with each model component
+#' (i.e. row) being described.
+#' @export
+to_labels.Index = function(x) x$labels()
+
 #' To Names
 #'
 #' Convert objects to names, which are character vectors with the following
@@ -41,6 +63,9 @@ to_labels.Labels = function(x) x$dot()$value()
 #'
 #' @export
 to_names = function(x) UseMethod("to_names")
+
+#' @export
+to_names.data.frame = function(x) to_name(x) |> to_names()
 
 #' @export
 to_names.NULL = function(x) character(0L)
@@ -84,6 +109,12 @@ to_names.Names = function(x) x$undot()$value()
 to_name = function(x) UseMethod("to_name")
 
 #' @export
+to_name.data.frame = function(x) {
+  i = vapply(x, is.character, logical(1L))
+  to_name(names(x)[i])
+}
+
+#' @export
 to_name.character = function(x) {
   if (length(x) == 1L) {
     x = StringDottedScalar(x)
@@ -109,6 +140,25 @@ to_name.Scalar = function(x) x$dot()$value()
 
 #' @export
 to_name.Names = function(x) x$dot()$value()
+
+
+#' @export
+to_name_pairs = function(x) UseMethod("to_name_pairs")
+
+#' @export
+to_name_pairs.character = function(x) {
+  x = to_names(x)
+  pairings = triangle_indices(length(x))
+  data.frame(
+      x = x[pairings$i]
+    , y = x[pairings$j]
+  ) |> to_labels()
+}
+
+#' @export
+to_name_pairs.data.frame = function(x) {
+  to_names(x) |> to_name_pairs()
+}
 
 #' To Positions
 #' 
@@ -143,6 +193,21 @@ implied_position_vectors = function(numeric_list) {
     |> as.list()
   )
 }
+
+#' @export
+to_values = function(x) UseMethod("to_values")
+
+#' @export
+to_values.data.frame = function(x) {
+  value_col = which(vapply(x, is.numeric, logical(1L)))
+  if (length(value_col) != 1L) {
+    stop("Must be exactly one value column to create a vector with values.")
+  }
+  setNames(x[[value_col]], to_labels(x))
+}
+
+#' @export
+to_values.numeric = function(x) setNames(as.vector(x), to_labels(x))
 
 list_to_labels = function(...) unlist(lapply(list(...), to_labels), use.names = FALSE)
 list_to_names = function(...) unlist(lapply(list(...), to_names), use.names = FALSE)

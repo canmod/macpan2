@@ -174,8 +174,9 @@ Index.data.frame = function(partition
     , labelling_column_names = NULL
     , reference_index = NULL
   ) {
-  (partition 
-   |> Partition() 
+  i = vapply(partition, is.character, logical(1L))
+  (partition[, i, drop = FALSE]
+   |> Partition()
    |> Index(
         labelling_column_names = labelling_column_names
       , reference_index = reference_index
@@ -219,11 +220,6 @@ labelling_column_names = function(x) UseMethod("labelling_column_names")
 #' @export
 labelling_column_names.Index = function(x) x$labelling_column_names
 
-#' @describeIn mp_index Convert an index into
-#' a character vector giving labels associated with each model component
-#' (i.e. row) being described.
-#' @export
-to_labels.Index = function(x) x$labels()
 
 #' @param object An index.
 #' @describeIn mp_index Convert an index into
@@ -236,14 +232,14 @@ labels.Index = function(object, ...) object$labels()
 #' @export
 mp_index.character = function(..., labelling_column_names) {
   f = data.frame(...)
-  if (missing(labelling_column_names)) labelling_column_names = names(f)
+  if (missing(labelling_column_names)) labelling_column_names = to_names(f)
   Index(f, labelling_column_names = to_names(labelling_column_names))
 }
 
 #' @export
 mp_index.data.frame = function(..., labelling_column_names) {
   f = list(...) |> bind_rows()
-  if (missing(labelling_column_names)) labelling_column_names = names(f)
+  if (missing(labelling_column_names)) labelling_column_names = to_names(f)
   Index(f, labelling_column_names = to_names(labelling_column_names))
 }
 
