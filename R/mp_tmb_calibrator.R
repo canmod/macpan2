@@ -85,9 +85,9 @@ mp_tmb_calibrator = function(spec, data
   tv = TMBTV(tv, struc, cal_spec, traj$global_names_vector())
   par = TMBPar(par, tv, traj, cal_spec, tv$global_names_vector())
   
-  traj$check_assumptions(spec)
-  tv$check_assumptions(spec)
-  par$check_assumptions(spec)
+  traj$check_assumptions(spec, struc)
+  tv$check_assumptions(spec, struc)
+  par$check_assumptions(spec, struc)
   
   ## add observed trajectories 
   ## (see globalize function for comments on what it does)
@@ -294,7 +294,7 @@ NameHandlerAbstract = function() {
   ## or none of the above. it takes a spec object for
   ## comparison, which is useful especially if it has an internal
   ## spec object that is different.
-  self$check_assumptions = function(orig_spec) NULL
+  self$check_assumptions = function(orig_spec, data_struc) NULL
 
   return_object(self, "NameHandlerAbstract")
 }
@@ -542,6 +542,30 @@ TMBTraj = function(
     
   }
   
+  self$check_assumptions = function(orig_spec, data_struc) {
+    spec_mats = names(orig_spec$all_matrices())
+    bad_traj = !self$traj %in% spec_mats
+    if (any(bad_traj)) {
+      sprintf("%s (including %s) %s:\n     %s"
+        , "Requested trajectories"
+        , paste0(self$traj[bad_traj], collapse = ", ")
+        , "are not available in the model spec, which includes the following"
+        , paste(spec_mats, collapse = ", ")
+      ) |> stop()
+    }
+    
+    bad_traj = !self$traj %in% names(data_struc$matrix_list)
+    if (any(bad_traj)) {
+      sprintf("%s (including %s) %s:\n     %s"
+        , "Requested trajectories"
+        , paste0(self$traj[bad_traj], collapse = ", ")
+        , "are not available in the data, which includes the following"
+        , paste(names(data_struc$matrix_list), collapse = ", ")
+      ) |> stop()
+    }
+    NULL
+  }
+  
   return_object(self, "TMBTraj")
 }
 
@@ -576,7 +600,7 @@ TMBPar = function(
     )
   }
   
-  self$check_assumptions = function(orig_spec) {
+  self$check_assumptions = function(orig_spec, data_struc) {
     pnms = union(self$par, self$tv_par)
     parameterized_defaults = orig_spec$default[pnms]
     if (length(parameterized_defaults) > 0L) {

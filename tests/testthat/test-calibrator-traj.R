@@ -14,4 +14,27 @@ test_that("bad outputs give warnings", {
     ),
     regexp = "The following outputs were requested but not available in the model"
   )
+  
+  sir_sim = mp_simulator(sir, time_steps = 5, outputs = c("infection")) |> mp_trajectory()
+
+  # doesn't match sir_sim trajectory name
+  expect_error(
+    mp_tmb_calibrator(sir
+      , data = sir_sim
+      , traj = "beta"
+      , par = "beta"
+    )
+    , regexp = "are not available in the data"
+  )
+
+  # traj doesn't exist in model spec
+  expect_error(
+    mp_tmb_calibrator(sir
+      , data = sir_sim
+      , traj = "Infection"
+      , par = "beta"
+    )
+    , regexp = "are not available in the model spec"
+  )
+
 })
