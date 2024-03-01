@@ -11,6 +11,10 @@
 * `mp_tmb_fixef_cov` function for getting the covariance matrix of fixed effects.
 * `mp_trajectory_sim` function for summarizing random variation in trajectories.
 
+## Bug Fixes
+
+* Several bugs related to input handling in `mp_tmb_calibrator` (#176)
+
 ## Doc Fixes and Updates
 
 * New installation instructions for installing from `r-universe`.
