@@ -602,6 +602,17 @@ TMBPar = function(
   
   self$check_assumptions = function(orig_spec, data_struc) {
     pnms = union(self$par, self$tv_par)
+    bad_pars = !pnms %in% names(orig_spec$default)
+    if (any(bad_pars)) {
+      spec_mats = names(orig_spec$all_matrices())
+      sprintf("%s (including %s) %s:\n     %s"
+        , "Requested parameters"
+        , paste0(pnms[bad_pars], collapse = ", ")
+        , "are not available in the model spec, which includes the following"
+        , paste(spec_mats, collapse = ", ")
+      ) |> stop()
+    }
+    
     parameterized_defaults = orig_spec$default[pnms]
     if (length(parameterized_defaults) > 0L) {
       non_scalars = vapply(parameterized_defaults, length, integer(1L)) != 1L
