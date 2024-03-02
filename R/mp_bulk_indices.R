@@ -69,7 +69,7 @@ mp_unpack = function(l, unpack = c('no', 'maybe', 'yes'), env) {
 mp_factors = function(index, unpack = c('no', 'maybe', 'yes')) {
   unpack = match.arg(unpack)
   factors = list()
-  for (d in names(index)) factors[[d]] = mp_group(index, d)
+  for (d in names(index)) factors[[d]] = mp_factor(index, d)
   pf = parent.frame()
   force(pf)
   mp_unpack(factors, unpack, pf)

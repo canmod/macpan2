@@ -1,6 +1,6 @@
 test_that("times can be supplied as times, and assume daily time-step", {
   sir_obs = (read.csv(
-    "inst/starter_models/shiver/data/hospitalizations_ontario.csv"
+    system.file("starter_models/shiver/data/hospitalizations_ontario.csv", package = "macpan2")
     , row.names = NULL
     ) 
     |> rename(time = date)

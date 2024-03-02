@@ -832,7 +832,7 @@ of \code{x} at locations given by \code{i} and \code{j}.
 \subsection{Return}{
 
 The \code{assign} function is not called for its return
-value, which is an \code{\link{empty_matrix}}, but
+value, which is an empty_matrix, but
 rather to modify \code{x} but replacing some of its
 components with those in \code{v}.
 }

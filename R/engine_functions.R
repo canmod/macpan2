@@ -678,7 +678,7 @@
 #' ### Return
 #'
 #' The `assign` function is not called for its return
-#' value, which is an \code{\link{empty_matrix}}, but
+#' value, which is an empty_matrix, but
 #' rather to modify `x` but replacing some of its
 #' components with those in `v`.
 #'

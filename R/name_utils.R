@@ -1,10 +1,87 @@
-#' To Labels
+#' Names and Labels
+#' 
+#' A goal of `macpan2` is to provide a mechanism for representing structured 
+#' compartmental models. An example of such a model is to have each compartment
+#' in an SEIR model split into a set of spatial locations and into a set of 
+#' age groups. It is crucial but difficult to assign meaningful and consistent 
+#' names to the compartments, flow rates, transmission rates, contact rates, 
+#' sub-population sizes, and other parameters determining these quantities. 
+#' Such names should convey how the different quantities relate to one another.
+#' For example, the names should make clear that the rate of flow between two 
+#' compartments is specific to, say, the age group and location of those 
+#' compartments. The naming system should facilitate identifying model 
+#' quantities and sets of quantities. For example, in a spatially structured
+#' model we might want to refer to all states in a particular location 
+#' (e.g. Toronto) and a specific state within that location (e.g. susceptible 
+#' individuals in Toronto).
+#' 
+#' Model entities (e.g. states, flow rates, transmission rates), can be 
+#' described using a data frame of string-valued columns. The rows of these data
+#' frames represent the entities being represented.  The columns of the data 
+#' frame represent different ways to describe the rows.
+#' 
+#' ```{r}
+#' EpiSympVax = data.frame(
+#'   Epi = c(rep(c("S", "E", "I", "I", "R", "beta"), 2), "alpha", "gamma", "gamma", "infectiousness", "infectiousness", ""),
+#'   Symp = c(rep(c("", "", "mild", "severe", "", ""), 2), "", "mild", "severe", "mild", "severe", ""),
+#'   Vax = c(rep(c("unvax", "vax"), each = 6), "", "", "", "", "", "dose_rate")
+#' )
+#' EpiSympVax
+#' ```
+#' 
+#' Non-empty values in each cell must contain only letters, numbers, underscores,
+#' and must start with a letter. Empty values are zero-length strings that can be
+#' used to indicate that some partitions are not applicable to some variables. The
+#' purpose for these restrictions is to facilitate the construction of strings and
+#' character vectors that summarize different aspects of the data frame.
+#' When taken together, these summaries can be inverted to restore the full
+#' labelled partition and so they represent zero information loss. This equivalence
+#' allows us to go back-and-forth between the two representations without loosing
+#' information, but perhaps gaining convenience.
+#' 
+#' There are three types of summaries: the names, the name, and the labels. The
+#' names of a data frame are the names of the string-valued columns.
+#' 
+#' ```{r}
+#' to_names(EpiSympVax)
+#' ```
+#' 
+#' The name of a data frame is the dot-concatenation of the names.
+#' 
+#' ```{r}
+#' to_name(EpiSympVax)
+#' ```
+#' 
+#' The labels of a data frame is the row-wise dot-concatenation of the 
+#' string-valued columns.
+#' 
+#' ```{r}
+#' to_labels(EpiSympVax)
+#' ```
+#' 
+#' These labels give a unique single character string for referring to each
+#' variable. With only the labels and one of either the names or the name, one may
+#' recover the labelled partition. The labels provide convenient names for the
+#' variables -- i.e. rownames.
+#' By convention we use [UpperCamelCase](https://en.wikipedia.org/wiki/Camel_case)
+#' for partition names and a modified form of
+#' [snake_case](https://en.wikipedia.org/wiki/Snake_case) for variable labels. Our
+#' modification of snake case allows for single uppercase letters in order to
+#' accommodate the convention in epidemiology for using single uppercase letters to
+#' refer to state variables. For example, `S`, `I`, and `R`, as well as `I_mild`
+#' and `I_severe`, would be consistent with our modified snake case style.
+#' 
+#' @name names_and_labels
+NULL
+
+
+#' @param x Object from which to extract its name, names, labels, name-pairs,
+#' or values. Not all types of objects will work for all functions.
+#' @return Character vector (or numeric vector in the case of `to_values`)
+#' that describes `x`.
 #'
-#' Convert objects to labels, which are vectors that might be dotted.
-#'
-#' @param x Object to convert to labels.
-#' @return Character vector that can be used as labels.
-#'
+#' @describeIn names_and_labels Extract a vector for describing the rows
+#' of a data frame or values of a numeric vector.
 #' @export
 to_labels = function(x) UseMethod("to_labels")
 
@@ -46,21 +123,15 @@ to_labels.Vector = function(x) x$dot()$value()
 #' @export
 to_labels.Labels = function(x) x$dot()$value()
 
-#' @describeIn mp_index Convert an index into
-#' a character vector giving labels associated with each model component
-#' (i.e. row) being described.
 #' @export
 to_labels.Index = function(x) x$labels()
 
-#' To Names
-#'
-#' Convert objects to names, which are character vectors with the following
-#' restrictions:  (1) they cannot have dots, (2) all values must start with
-#' a letter, (3) all characters must be letters, numbers, or underscore.
-#'
-#' @param x Object to convert to names.
-#' @return Character vector that can be used as names.
-#'
+#' @describeIn names_and_labels Extract a character vector for describing the 
+#' character-valued columns in a data frame or the flattened structure of
+#' a numeric vector.
+#' Names obey the following restrictions:  (1) they cannot have dots, (2) all 
+#' values must start with a letter, (3) all characters must be letters, 
+#' numbers, or underscore.
 #' @export
 to_names = function(x) UseMethod("to_names")
 
@@ -98,13 +169,10 @@ to_names.Scalar = function(x) x$undot()$value()
 to_names.Names = function(x) x$undot()$value()
 
 
-#' To Name
-#'
-#' Convert objects to a name, which is a scalar string that can be dotted.
-#'
-#' @param x Object to convert to labels.
-#' @return Character string that can be used as a name.
-#'
+#' @describeIn names_and_labels Extract a string (i.e. length-1 character
+#' vector) for describing the character-valued columns in a data frame or the 
+#' flattened structure of a numeric vector. The name of an object is the 
+#' dot-concatenation of its names.
 #' @export
 to_name = function(x) UseMethod("to_name")
 
@@ -142,6 +210,8 @@ to_name.Scalar = function(x) x$dot()$value()
 to_name.Names = function(x) x$dot()$value()
 
 
+#' @describeIn names_and_labels A character
+#' vector with all possible pairwise dot-concatenations of a set of names.
 #' @export
 to_name_pairs = function(x) UseMethod("to_name_pairs")
 
@@ -194,6 +264,13 @@ implied_position_vectors = function(numeric_list) {
   )
 }
 
+#' @describeIn names_and_labels Extract the \code{\link{numeric}} column from a
+#' data frame with only a single numerical column. This data frame might have
+#' more than one column, but only one of them can be numeric. This function
+#' will also turn numeric \code{\link{matrix}} and \code{\link{array}} objects
+#' with \code{\link{dimnames}} into a flattened numeric vector with labels
+#' produced by appropriately dot-concatenating the \code{\link{dimnames}}.
+#' 
 #' @export
 to_values = function(x) UseMethod("to_values")
 
