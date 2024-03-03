@@ -1,9 +1,9 @@
 binop_validity_message = paste(
   "Valid binary operations have the following characteristics.",
-  "   They are functions.",
-  "   They have exactly two arguments.",
-  "   They do not have any ... arguments",
-  sep = "\n"
+  "They are functions.",
+  "They have exactly two arguments.",
+  "They do not have any ... arguments",
+  sep = " \\cr - "
 )
 
 valid_binop = oor::ValidityMessager(
@@ -28,10 +28,10 @@ valid_binop = oor::ValidityMessager(
 #' engine. This function is intended to clarify how \pkg{macpan2}
 #' treats binary operators, which is a little different from
 #' base \proglang{R}. The difference is clarified in
-#' `vignette("binary_operator")`, and \code{BinaryOperator} is
+#' `vignette("elementwise_binary_operators")`, and \code{BinaryOperator} is
 #' primarily used as a resource for that vignette.
 #'
-#' @param operator A binary operator. r binop_validity_message
+#' @param operator A binary operator. `r binop_validity_message`
 #' @return A binary operator consistent with the \code{C++} engine.
 #' @examples
 #' set.seed(1L)
@@ -41,7 +41,7 @@ valid_binop = oor::ValidityMessager(
 #' times = BinaryOperator(`*`)
 #' pow = BinaryOperator(`^`)
 #' identical(times(A, x), times(x, A))  ## TRUE
-#' identical(pow(A, x), pow(x, A))  ## FALSE
+#' identical(pow(A, y), pow(y, A))  ## FALSE
 #'
 #' @export
 BinaryOperator = function(operator) {

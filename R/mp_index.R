@@ -174,8 +174,9 @@ Index.data.frame = function(partition
     , labelling_column_names = NULL
     , reference_index = NULL
   ) {
-  (partition 
-   |> Partition() 
+  i = vapply(partition, is.character, logical(1L))
+  (partition[, i, drop = FALSE]
+   |> Partition()
    |> Index(
         labelling_column_names = labelling_column_names
       , reference_index = reference_index
@@ -219,11 +220,6 @@ labelling_column_names = function(x) UseMethod("labelling_column_names")
 #' @export
 labelling_column_names.Index = function(x) x$labelling_column_names
 
-#' @describeIn mp_index Convert an index into
-#' a character vector giving labels associated with each model component
-#' (i.e. row) being described.
-#' @export
-to_labels.Index = function(x) x$labels()
 
 #' @param object An index.
 #' @describeIn mp_index Convert an index into
@@ -236,17 +232,29 @@ labels.Index = function(object, ...) object$labels()
 #' @export
 mp_index.character = function(..., labelling_column_names) {
   f = data.frame(...)
-  if (missing(labelling_column_names)) labelling_column_names = names(f)
+  if (missing(labelling_column_names)) labelling_column_names = to_names(f)
   Index(f, labelling_column_names = to_names(labelling_column_names))
 }
 
 #' @export
 mp_index.data.frame = function(..., labelling_column_names) {
   f = list(...) |> bind_rows()
-  if (missing(labelling_column_names)) labelling_column_names = names(f)
+  if (missing(labelling_column_names)) labelling_column_names = to_names(f)
   Index(f, labelling_column_names = to_names(labelling_column_names))
 }
 
+#' @export
+mp_index.numeric = function(..., labelling_column_names) {
+  l = list(...)
+  if (length(l) != 1L) stop("Too many vectors passed to ... we can only take one numerical vector at a time when creating indexes from their names.")
+  v = l[[1L]]
+  nm = names(l)
+  if (is.null(nm)) stop("Must supply a name for the index in the form {index_name} = {named_numeric_vector}")
+  if (anyDuplicated(names(v))) stop("Can only make an index from numeric data if the names of the numeric vectors are unique.")
+  f = StringDataFromDotted(to_labels(v), to_name(nm))$frame()
+  if (missing(labelling_column_names)) labelling_column_names = to_names(f)
+  Index(f, labelling_column_names = to_names(labelling_column_names))
+}
 
 # experimental
 mp_catalogue = function(name, ..., labelling_column_names) {

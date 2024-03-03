@@ -93,7 +93,15 @@ mp_square = function(x, suffixes = c("A", "B")) {
 mp_triangle = function(x, y_labelling_column_names, exclude_diag = TRUE, lower_tri = FALSE) {
   f = x$partition$frame()
   g = setNames(f, y_labelling_column_names)
-  n = nrow(f)
+  pairings = triangle_indices(nrow(f), exclude_diag, lower_tri)
+  f = cbind(
+    f[pairings$i, , drop = FALSE],
+    g[pairings$j, , drop = FALSE]
+  )
+  Index(f, labelling_column_names = names(f))
+}
+
+triangle_indices = function(n, exclude_diag = TRUE, lower_tri = FALSE) {
   if (exclude_diag) {
     k = 2:n
     i = sequence(k - 1)
@@ -108,12 +116,9 @@ mp_triangle = function(x, y_labelling_column_names, exclude_diag = TRUE, lower_t
     i = j
     j = ii
   }
-  f = cbind(
-    f[i, , drop = FALSE],
-    g[j, , drop = FALSE]
-  )
-  Index(f, labelling_column_names = names(f))
+  nlist(i, j)
 }
+
 
 #' Symmetric Self Cartesian Product
 #'

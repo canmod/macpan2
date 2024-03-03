@@ -34,7 +34,6 @@ mp_simulator.TMBParameterizedModelSpec = function(model
   , time_steps, outputs, default = list()
 ) {
   simulator = mp_simulator(model$spec, time_steps, outputs, default)
-  
 }
 
 #' TMB Model
@@ -355,6 +354,29 @@ mp_trajectory_ensemble.TMBCalibrator = function(model, n, probs = c(0.025, 0.975
 }
 
 
+## not ready to export yet because we are not sure how to construct a single
+## ad_fun that works both with process error simulation and deterministic 
+## trajectory matching
+mp_trajectory_sim = function(model, n, probs = c(0.025, 0.25, 0.5, 0.75, 0.975)) {
+  UseMethod("mp_trajectory_sim")
+}
+
+mp_trajectory_sim.TMBSimulator = function(model, n, probs = c(0.025, 0.25, 0.5, 0.75, 0.975)) {
+  r = model$simulate()
+  r = r[, names(r) != "value", drop = FALSE]
+  rr = (n
+    |> replicate(model$simulate_values()) 
+    |> apply(1, quantile, probs, na.rm = TRUE)
+    |> t()
+  )
+  names(rr) = sprintf("value_%s", names(rr))
+  cbind(r, rr)
+}
+
+mp_trajectory_sim.TMBCalibrator = function(model, n, probs = c(0.025, 0.25, 0.5, 0.75, 0.975)) {
+  stop("Under construction")
+}
+
 TMBDynamicSimulator = function(tmb_simulator, dynamic_model) {
   self = tmb_simulator
   self$dynamic_model = dynamic_model
@@ -561,6 +583,9 @@ TMBSimulator = function(tmb_model
   }
   self$report_values = function(..., .phases = "during") {
     self$report(..., .phases = .phases)$value
+  }
+  self$simulate_values = function(..., .phases = "during") {
+    self$simulate(..., .phases = .phases)$value
   }
   self$report_ensemble = function(...
       , .phases = "during"

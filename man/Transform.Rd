@@ -20,7 +20,7 @@ Logit(
 )
 }
 \arguments{
-\item{variable}{Character string giving a variable in the model.}
+\item{variable}{Character string giving the name of a variable in the model.}
 
 \item{default}{Default value for the untransformed variable. If \code{NULL}
 (the default) this value is taken from the initial value in the model

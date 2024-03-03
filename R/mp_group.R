@@ -13,6 +13,11 @@ mp_group = function(index, by) {
   Index(frame, labelling_column_names = nms)
 }
 
+mp_factor = function(index, by) {
+  frame = index$partition$select(to_names(by))$frame()
+  nms = names(frame)[names(frame) %in% index$labelling_column_names]
+  Index(frame, labelling_column_names = nms, reference_index = index)
+}
 
 #' Aggregate an Index
 #'

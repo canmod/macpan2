@@ -5,7 +5,6 @@
 \alias{print.Index}
 \alias{names.Index}
 \alias{labelling_column_names.Index}
-\alias{to_labels.Index}
 \alias{labels.Index}
 \title{Model Quantity Index Table}
 \usage{
@@ -16,8 +15,6 @@ mp_index(..., labelling_column_names)
 \method{names}{Index}(x)
 
 \method{labelling_column_names}{Index}(x)
-
-\method{to_labels}{Index}(x)
 
 \method{labels}{Index}(object, ...)
 }
@@ -132,10 +129,6 @@ names and indices.
 \item \code{labelling_column_names(Index)}: Retrieve the \code{labelling_column_names} of
 an index. These are the names of the columns that are used to label
 the model components.
-
-\item \code{to_labels(Index)}: Convert an index into
-a character vector giving labels associated with each model component
-(i.e. row) being described.
 
 \item \code{labels(Index)}: Convert an index into
 a character vector giving labels associated with each model component

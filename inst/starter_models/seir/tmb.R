@@ -4,10 +4,6 @@ initialize_state = list(
   S ~ N - I - R - E
 )
 
-computations = list(
-  N ~ sum(S, E, I, R)
-)
-
 flow_rates = list(
     exposure ~ S * I * beta / N
   , infection ~ alpha * E
@@ -34,7 +30,7 @@ default = list(
 
 ## model specification
 spec = mp_tmb_model_spec(
-    before = c(initialize_state, computations)
+    before = initialize_state
   , during = c(flow_rates, update_state)
   , default = default
 )

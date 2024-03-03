@@ -251,7 +251,7 @@ RangeError = function(time) {
     self$check_late(x, time_steps)
     self$check_time_class(x)
     self$check_clashing_times(x, time_steps)
-    time_steps
+    as.integer(time_steps)
   }
   self$check_bounds = function() {
     x = self$time$bounds()
@@ -271,7 +271,7 @@ AllTimeErrors = function(time) {
     self$check_fractional(x, time_steps)
     self$check_time_class(x)
     self$check_clashing_times(x, time_steps)
-    time_steps
+    as.integer(time_steps)
   }
   self$check_bounds = function() {
     x = self$time$bounds()

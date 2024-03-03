@@ -90,38 +90,42 @@ variable in a compartmental model (e.g. number of susceptible individuals in
 Toronto, or the force of infection). The columns of the data frame represent
 different ways to partition the rows.
 
-```{r echo = FALSE}
-p = Partition(models$seir_vax$variables())$filter("S", "E", "I", "R", .wrt = "Epi")
-p
+```{r}
+EpiSympVax = data.frame(
+  Epi = c(rep(c("S", "E", "I", "I", "R", "beta"), 2), "alpha", "gamma", "gamma", "infectiousness", "infectiousness", ""),
+  Symp = c(rep(c("", "", "mild", "severe", "", ""), 2), "", "mild", "severe", "mild", "severe", ""),
+  Vax = c(rep(c("unvax", "vax"), each = 6), "", "", "", "", "", "dose_rate")
+)
+EpiSympVax
 ```
 
 Non-empty values in each cell must contain only letters, numbers, underscores,
 and must start with a letter. Empty labels are zero-length strings that can be
 used to indicate that some partitions are not applicable to some variables. The
 purpose for these restrictions is to facilitate the construction of strings and
-character vectors that summarize different aspects of the labelled partition.
+character vectors that summarize different aspects of the data frame.
 When taken together, these summaries can be inverted to restore the full
 labelled partition and so they represent zero information loss. This equivalence
 allows us to go back-and-forth between the two representations without loosing
 information, but perhaps gaining convenience.
+
 There are three types of summaries: the names, the name, and the labels. The
-names of a labelled partition are the column names of the corresponding data
-frame.
+names of a data frame are the names of the string-valued columns.
 
 ```{r}
-p$names()
+to_names(EpiSympVax)
 ```
 
-The name of a labelled partition is a dot-concatenation of the names,
+The name of a data frame is the dot-concatenation of the names.
 
 ```{r}
-p$name()
+to_name(EpiSympVax)
 ```
 
-The labels of a labelled partition is a dot-concatenation of the columns.
+The labels of a data frame is the row-wise dot-concatenation of the columns.
 
 ```{r}
-p$labels()
+to_labels(EpiSympVax)
 ```
 
 These labels give a unique single character string for referring to each

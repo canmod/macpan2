@@ -48,6 +48,8 @@
 \alias{cos}
 \alias{print}
 \alias{time_var}
+\alias{rbinom}
+\alias{reulermultinom}
 \title{Engine Functions}
 \description{
 Functions currently supported by the C++ TMB engine
@@ -66,13 +68,13 @@ following example that calculates a force of infection.
 )
 }\if{html}{\out{</div>}}
 
-To produce a simulation using these functions, one may
+To produce a simulation using these engine functions, one may
 use \code{\link{simple_sims}}.
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{simple_sims(
   iteration_exprs = list(x ~ x - 0.9 * x),
   time_steps = 5,
-  x = 1
+  mats = list(x = 1)
 )
 }\if{html}{\out{</div>}}
 \subsection{Elementwise Binary Operators}{
@@ -896,6 +898,38 @@ used up by \code{x}.
   , x = rep(0, 3)
   , y = rep(1, 5)
   , .matrix_to_return = "y"
+)
+}\if{html}{\out{</div>}}
+}
+
+}
+
+\subsection{Print Matrix}{
+
+Print out the value of a matrix.
+\subsection{Functions}{
+\itemize{
+\item \code{print(x)}
+}
+}
+
+\subsection{Arguments}{
+\itemize{
+\item \code{x} -- Name of a matrix in the model.
+}
+}
+
+\subsection{Return}{
+
+An \code{\link{empty_matrix}}.
+}
+
+\subsection{Examples}{
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{simple_sims(
+     list(dummy ~ print(x), x ~ x / 2)
+   , time_steps = 10
+   , mats = list(x = 2)
 )
 }\if{html}{\out{</div>}}
 }

@@ -18,14 +18,14 @@
 #' )
 #' ```
 #'
-#' To produce a simulation using these functions, one may
+#' To produce a simulation using these engine functions, one may
 #' use \code{\link{simple_sims}}.
 #'
 #' ```
 #' simple_sims(
 #'   iteration_exprs = list(x ~ x - 0.9 * x),
 #'   time_steps = 5,
-#'   x = 1
+#'   mats = list(x = 1)
 #' )
 #' ```
 #'
@@ -740,6 +740,32 @@
 #' )
 #' ```
 #'
+#' ## Print Matrix
+#' 
+#' Print out the value of a matrix.
+#' 
+#' ### Functions
+#'
+#' * `print(x)`
+#'
+#' ### Arguments
+#'
+#' * `x` -- Name of a matrix in the model.
+#'
+#' ### Return
+#'
+#' An \code{\link{empty_matrix}}.
+#'
+#' ### Examples
+#'
+#' ```
+#' simple_sims(
+#'      list(dummy ~ print(x), x ~ x / 2)
+#'    , time_steps = 10
+#'    , mats = list(x = 2)
+#' )
+#' ```
+#' 
 #' @name engine_functions
 #' @aliases `+`
 #' @aliases `-`
@@ -787,4 +813,6 @@
 #' @aliases cos
 #' @aliases print
 #' @aliases time_var
+#' @aliases rbinom
+#' @aliases reulermultinom
 NULL

@@ -83,10 +83,11 @@ mp_join = function(..., by = empty_named_list()) {
 
   if (length(table_nms) < 2L) stop("cannot join fewer than two index objects.")
   if (is.character(by)) {
-    if (length(table_nms) != 2L) {
-      stop("joining more than one index requires a list-valued by argument.")
-    }
-    by = setNames(list(by), to_name(table_nms))
+    # if (length(table_nms) != 2L) {
+    #   stop("joining more than one index requires a list-valued by argument.")
+    # }
+    table_pairs = to_name_pairs(table_nms)
+    by = rep(list(by), length(table_pairs)) |> setNames(table_pairs)
   }
 
   by_list = valid$named_list$assert(by)
@@ -189,6 +190,10 @@ mp_join = function(..., by = empty_named_list()) {
 #' ```
 #' @name LedgerDefinition
 NULL
+
+
+# @export
+#mp_flow_rate = function(from, to, rate, )
 
 
 Ledger = function(frame, column_map, reference_index_list, labelling_column_names_list) {

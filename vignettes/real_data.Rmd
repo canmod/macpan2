@@ -123,7 +123,7 @@ print(sf_sir)
 
 ## Preparing the Data
 
-The first step in preparing data for `macpan2` is to simulate from the model that you are considering. Here we simulate the `"infection"` variable because it corresponds to the incidence (the number of new cases per time-step, which in our case is one week).
+The first step in preparing data for `macpan2` is to simulate from the model that you are considering. Here we simulate the `"reports"` variable because it corresponds to the reported incidence (the number of new cases per time-step, which in our case is one week, multiplied by a reporting probability).
 ```{r}
 sir_simulator = mp_simulator(sf_sir
   , time_steps = 5

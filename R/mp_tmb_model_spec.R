@@ -18,27 +18,6 @@ TMBModelSpec = function(
   self$must_not_save = must_not_save
   self$sim_exprs = sim_exprs
   
-  self$expr_insert = function(
-        before_start = list()
-      , before_end = list()
-      , during_start = list()
-      , during_end = list()
-      , after_start = list()
-      , after_end = list()
-      , sim_exprs = character()
-    ) {
-    TMBModelSpec(
-        before = c(before_start, self$before, before_end)
-      , during = c(during_start, self$during, during_end)
-      , after = c(after_start, self$after, after_end)
-      , default = self$default
-      , integers = self$integers
-      , must_save = self$must_save
-      , must_not_save = self$must_not_save
-      , sim_exprs = unique(c(sim_exprs, self$sim_exprs))
-    )
-  }
-  
   self$expr_list = function() ExprList(self$before, self$during, self$after)
   
   self$all_derived_vars = function() {
@@ -94,13 +73,12 @@ TMBModelSpec = function(
       , self$must_save, self$must_not_save, self$sim_exprs
     )
   }
-  
-  self$simulator_fresh = function(
+  self$tmb_model = function(
         time_steps = 0
       , outputs = character()
       , default = list()
       , initialize_ad_fun = TRUE
-    ) {
+  ) {
     self$check_names()
     initial_mats = self$all_matrices()
     initial_mats[names(default)] = default
@@ -115,6 +93,12 @@ TMBModelSpec = function(
       |> setdiff(matrix_outputs)
       |> intersect(initial_rownames)
     )
+    realized_outputs = c(matrix_outputs, row_outputs)
+    outputs_not_realized = setdiff(outputs, realized_outputs)
+    if (length(outputs_not_realized) > 0L) {
+      msg = sprintf("The following outputs were requested but not available in the model:\n%s\nThey will be silently ignored.", paste0(outputs_not_realized, ", "))
+      warning(msg)
+    }
     mats_to_return = (initial_mats
       |> lapply(names)
       |> Filter(f = is.character)
@@ -127,7 +111,7 @@ TMBModelSpec = function(
       |> union(self$must_save)
       |> setdiff(self$must_not_save)
     )
-    s = TMBModel(
+    TMBModel(
         init_mats = do.call(
           MatsList
         , c(
@@ -148,8 +132,16 @@ TMBModelSpec = function(
         int_vecs = do.call(IntVecs, self$all_integers())
       )
       , time_steps = Time(as.integer(time_steps))
-    )$simulator(outputs = outputs, initialize_ad_fun = initialize_ad_fun)
-    s
+    )
+  }
+  self$simulator_fresh = function(
+        time_steps = 0
+      , outputs = character()
+      , default = list()
+      , initialize_ad_fun = TRUE
+    ) {
+    m = self$tmb_model(time_steps, outputs, default, initialize_ad_fun)
+    m$simulator(outputs = outputs, initialize_ad_fun = initialize_ad_fun)
   }
   self$simulator_cached = memoise(self$simulator_fresh)
   return_object(self, "TMBModelSpec")

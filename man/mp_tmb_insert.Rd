@@ -87,6 +87,7 @@ using the new expressions. The treatment of new \code{default} values and
 }
 \examples{
 si = mp_tmb_library("starter_models", "si", package = "macpan2")
+print(si)
 
 ## Update the mixing process to include 
 ## optional phenomenological heterogeneity.
