@@ -35,6 +35,7 @@ UpdateMethod = function() {
 
 ChangeComponent = function() {
   self = Base()
+  self$
   return_object(self, "ChangeComponent")
 }
 
@@ -159,7 +160,7 @@ TMBFlow = function(from, to, rates) {
   self$per_capita_column = function() {
     if (is.character(self$rates)) return(self$rate_expr_column())
     pc = recycle_to_match(
-        vapply(self$rates, lhs_char, character(1L))
+        vapply(self$rates, macpan2:::lhs_char, character(1L))
       , self$from, self$to
     )
     sprintf("(%s)", pc)

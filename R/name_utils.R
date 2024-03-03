@@ -1,5 +1,10 @@
 #' Names and Labels
 #' 
+#' This page describes functions for giving names and labels to
+#' entities in structured models.
+#' 
+#' ## Context
+#' 
 #' A goal of `macpan2` is to provide a mechanism for representing structured 
 #' compartmental models. An example of such a model is to have each compartment
 #' in an SEIR model split into a set of spatial locations and into a set of 
