@@ -252,7 +252,7 @@ to_positions = function(x) UseMethod("to_positions")
 to_positions.character = function(x) setNames(seq_along(x) - 1L, x)
 
 #' @export
-to_positions.numeric = as.integer
+to_positions.numeric = function(x) as.integer(x)
 
 # take a list of numeric objects and return a list of 
 # length-1 integer vectors giving the position of each 
