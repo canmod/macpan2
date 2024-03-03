@@ -4,7 +4,6 @@
 #' automatic differentiation. This is useful for debugging without having
 #' many messages repeated each pass through the template.
 #' @noRd
-#' @export
 mp_tmb_test = function(model, time_steps = 2) UseMethod("mp_tmb_test")
 
 #' @export

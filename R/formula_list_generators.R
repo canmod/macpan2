@@ -1,5 +1,56 @@
 library(oor)
 
+## two class types:
+##   1. ChangeModel (e.g. set of flows)
+##   2. UpdateMethod (e.g. Euler, RK4, EulerMultinomial, TimeDerivative)
+##
+## one data structure type:
+##   1. ChangeComponent (e.g. Flow, Birth, ...)
+
+ChangeModel = function() {
+  self = Base()
+  self$per_capita_rate_exprs = function() list()
+  
+  ## one element per state matrix
+  ## list names: state matrix names
+  ## list elements: expression giving absolute rate of change of that 
+  ##                state matrix per unit time
+  self$absolute_rate_exprs = function() list()
+  
+  self$state_matrices = function() character()
+  #self$absolute
+  
+  self$default = function() list()
+  self$integers = function() list()
+  return_object(self, "ChangeModel")
+}
+
+UpdateMethod = function() {
+  self = Base()
+  self$before = function() list()
+  self$during = function() list()
+  self$after = function() list()
+  return_object(self, "UpdateMethod")
+}
+
+ChangeComponent = function() {
+  self = Base()
+  return_object(self, "ChangeComponent")
+}
+
+
+
+EulerUpdateMethod = function(change_model) {
+  self = UpdateMethod()
+  self$change_model = change_model
+  self$during = function() {
+    self$change_model
+  }
+  return_object(self, "EulerUpdateMethod")
+}
+
+
+
 FormulaListGenerator = function() {
   self = Base()
   self$formula_list = function() list()

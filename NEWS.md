@@ -10,6 +10,8 @@
 * New stochasticity engine functions `rbinom` and `reulermultinom`.
 * `mp_tmb_fixef_cov` function for getting the covariance matrix of fixed effects.
 * `mp_trajectory_sim` function for summarizing random variation in trajectories.
+* `to_name_pairs` function for returning all pairwise dot-concatenations of the elements of a character vector without dots.
+* `to_values` function for extracting the column from a data frame with only a single numerical column and turning numeric matrices and arrays with dimnames into a flattened numeric vector with labels produced by appropriately dot-concatenating the dimnames.
 
 ## Bug Fixes
 
@@ -19,6 +21,7 @@
 
 * New installation instructions for installing from `r-universe`.
 * New vignette: `real_data`.
+* Document `to_name`, `to_names`, `to_labels`, which handle naming of structured objects.
 * Document `print` function in the `?engine_functions`.
 * `simple_sims` example in `?engine_functions` now runs without error.
 * Help file examples for `mp_tmb_insert` and `mp_tmb_update`.
