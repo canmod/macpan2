@@ -881,7 +881,7 @@ an expression. This use-case would require the
 \subsection{Return}{
 
 The \code{unpack} function is not called for its return
-value, which is an \code{\link{empty_matrix}}, but
+value, which is an empty_matrix, but
 rather to modify the matrices in \code{...} by replacing
 at least some of its components with those in \code{x}.
 }

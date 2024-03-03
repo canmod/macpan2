@@ -2909,7 +2909,7 @@ public:
                 // #' ### Return
                 // #'
                 // #' The `unpack` function is not called for its return
-                // #' value, which is an \code{\link{empty_matrix}}, but
+                // #' value, which is an empty_matrix, but
                 // #' rather to modify the matrices in `...` by replacing
                 // #' at least some of its components with those in `x`.
                 // #'
