@@ -28,6 +28,38 @@ Character vector (or numeric vector in the case of \code{to_values})
 that describes \code{x}.
 }
 \description{
+This page describes functions for giving names and labels to
+entities in structured models.
+}
+\section{Functions}{
+\itemize{
+\item \code{to_labels()}: Extract a vector for describing the rows
+of a data frame or values of a numeric vector.
+
+\item \code{to_names()}: Extract a character vector for describing the
+character-valued columns in a data frame or the flattened structure of
+a numeric vector.
+Names obey the following restrictions:  (1) they cannot have dots, (2) all
+values must start with a letter, (3) all characters must be letters,
+numbers, or underscore.
+
+\item \code{to_name()}: Extract a string (i.e. length-1 character
+vector) for describing the character-valued columns in a data frame or the
+flattened structure of a numeric vector. The name of an object is the
+dot-concatenation of its names.
+
+\item \code{to_name_pairs()}: A character
+vector with all possible pairwise dot-concatenations of a set of names.
+
+\item \code{to_values()}: Extract the \code{\link{numeric}} column from a
+data frame with only a single numerical column. This data frame might have
+more than one column, but only one of them can be numeric. This function
+will also turn numeric \code{\link{matrix}} and \code{\link{array}} objects
+with \code{\link{dimnames}} into a flattened numeric vector with labels
+produced by appropriately dot-concatenating the \code{\link{dimnames}}.
+
+}}
+\section{Context}{
 A goal of \code{macpan2} is to provide a mechanism for representing structured
 compartmental models. An example of such a model is to have each compartment
 in an SEIR model split into a set of spatial locations and into a set of
@@ -42,8 +74,7 @@ quantities and sets of quantities. For example, in a spatially structured
 model we might want to refer to all states in a particular location
 (e.g. Toronto) and a specific state within that location (e.g. susceptible
 individuals in Toronto).
-}
-\details{
+
 Model entities (e.g. states, flow rates, transmission rates), can be
 described using a data frame of string-valued columns. The rows of these data
 frames represent the entities being represented.  The columns of the data
@@ -123,31 +154,4 @@ accommodate the convention in epidemiology for using single uppercase letters to
 refer to state variables. For example, \code{S}, \code{I}, and \code{R}, as well as \code{I_mild}
 and \code{I_severe}, would be consistent with our modified snake case style.
 }
-\section{Functions}{
-\itemize{
-\item \code{to_labels()}: Extract a vector for describing the rows
-of a data frame or values of a numeric vector.
 
-\item \code{to_names()}: Extract a character vector for describing the
-character-valued columns in a data frame or the flattened structure of
-a numeric vector.
-Names obey the following restrictions:  (1) they cannot have dots, (2) all
-values must start with a letter, (3) all characters must be letters,
-numbers, or underscore.
-
-\item \code{to_name()}: Extract a string (i.e. length-1 character
-vector) for describing the character-valued columns in a data frame or the
-flattened structure of a numeric vector. The name of an object is the
-dot-concatenation of its names.
-
-\item \code{to_name_pairs()}: A character
-vector with all possible pairwise dot-concatenations of a set of names.
-
-\item \code{to_values()}: Extract the \code{\link{numeric}} column from a
-data frame with only a single numerical column. This data frame might have
-more than one column, but only one of them can be numeric. This function
-will also turn numeric \code{\link{matrix}} and \code{\link{array}} objects
-with \code{\link{dimnames}} into a flattened numeric vector with labels
-produced by appropriately dot-concatenating the \code{\link{dimnames}}.
-
-}}
