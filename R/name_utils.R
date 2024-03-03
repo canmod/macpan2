@@ -3,7 +3,7 @@
 #' This page describes functions for giving names and labels to
 #' entities in structured models.
 #' 
-#' ## Context
+#' # Context
 #' 
 #' A goal of `macpan2` is to provide a mechanism for representing structured 
 #' compartmental models. An example of such a model is to have each compartment
@@ -252,7 +252,7 @@ to_positions = function(x) UseMethod("to_positions")
 to_positions.character = function(x) setNames(seq_along(x) - 1L, x)
 
 #' @export
-to_positions.numeric = as.integer
+to_positions.numeric = function(x) as.integer(x)
 
 # take a list of numeric objects and return a list of 
 # length-1 integer vectors giving the position of each 

@@ -1,4 +1,3 @@
-#source("inst/starter_models/sir_waning/tmb.R")
 library(macpan2)
 library(ggplot2)
 library(dplyr)
@@ -185,5 +184,7 @@ if (packageVersion("Matrix") >= matrix_version) {
   print(exp(sir_waning$sdreport()$par.random))
   print(sir_waning$current$params_frame())
   print(sir_waning$current$random_frame())
+  if (require(tmbstan) & require(broom.mixed)) {
+    mp_tmbstan_coef(sir_waning, conf.int = TRUE, drop.pars = character())
+  }
 }
-mp_tmbstan_coef(sir_waning, conf.int = TRUE, drop.pars = character())
