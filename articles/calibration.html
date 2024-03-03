@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -239,30 +239,93 @@ parameter values and the results of the optimization.</p>
 <h3 id="step-3-check-the-fit">Step 3: check the fit<a class="anchor" aria-label="anchor" href="#step-3-check-the-fit"></a>
 </h3>
 <p>We can print the results of the optimizer (<code>nlminb</code> in
-this case) using the <code>mp_optimizer_outut</code> function.
+this case) using the <code>mp_optimizer_output</code> function.
 <strong>Always check the value of the convergence code</strong> (if it’s
 not 0, then something <em>may</em> have gone wrong …).</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/mp_optimizer_output.html">mp_optimizer_output</a></span><span class="op">(</span><span class="va">sir_calibrator</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $par</span></span>
 <span><span class="co">#&gt;     params     params </span></span>
-<span><span class="co">#&gt;  0.2345619 86.7030875 </span></span>
+<span><span class="co">#&gt;  0.2287659 82.9613444 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $objective</span></span>
-<span><span class="co">#&gt; [1] 248.5816</span></span>
+<span><span class="co">#&gt; [1] 248.5813</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $convergence</span></span>
 <span><span class="co">#&gt; [1] 0</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $iterations</span></span>
-<span><span class="co">#&gt; [1] 13</span></span>
+<span><span class="co">#&gt; [1] 12</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $evaluations</span></span>
 <span><span class="co">#&gt; function gradient </span></span>
-<span><span class="co">#&gt;       23       13 </span></span>
+<span><span class="co">#&gt;       23       12 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $message</span></span>
-<span><span class="co">#&gt; [1] "both X-convergence and relative convergence (5)"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "relative convergence (4)"</span></span>
+<span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">sir_calibrator</span><span class="op">)</span></span>
+<span><span class="co">#&gt; $par</span></span>
+<span><span class="co">#&gt;     params     params </span></span>
+<span><span class="co">#&gt;  0.2287659 82.9613444 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $objective</span></span>
+<span><span class="co">#&gt; [1] 248.5813</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $convergence</span></span>
+<span><span class="co">#&gt; [1] 0</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $iterations</span></span>
+<span><span class="co">#&gt; [1] 12</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $evaluations</span></span>
+<span><span class="co">#&gt; function gradient </span></span>
+<span><span class="co">#&gt;       23       12 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $message</span></span>
+<span><span class="co">#&gt; [1] "relative convergence (4)"</span></span>
+<span><span class="fu"><a href="../reference/mp_optimizer_output.html">mp_optimizer_output</a></span><span class="op">(</span><span class="va">sir_calibrator</span>, what<span class="op">=</span><span class="st">"all"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [[1]]</span></span>
+<span><span class="co">#&gt; [[1]]$par</span></span>
+<span><span class="co">#&gt;     params     params </span></span>
+<span><span class="co">#&gt;  0.2287659 82.9613444 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [[1]]$objective</span></span>
+<span><span class="co">#&gt; [1] 248.5813</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [[1]]$convergence</span></span>
+<span><span class="co">#&gt; [1] 0</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [[1]]$iterations</span></span>
+<span><span class="co">#&gt; [1] 12</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [[1]]$evaluations</span></span>
+<span><span class="co">#&gt; function gradient </span></span>
+<span><span class="co">#&gt;       23       12 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [[1]]$message</span></span>
+<span><span class="co">#&gt; [1] "relative convergence (4)"</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [[2]]</span></span>
+<span><span class="co">#&gt; [[2]]$par</span></span>
+<span><span class="co">#&gt;     params     params </span></span>
+<span><span class="co">#&gt;  0.2287659 82.9613444 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [[2]]$objective</span></span>
+<span><span class="co">#&gt; [1] 248.5813</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [[2]]$convergence</span></span>
+<span><span class="co">#&gt; [1] 0</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [[2]]$iterations</span></span>
+<span><span class="co">#&gt; [1] 12</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [[2]]$evaluations</span></span>
+<span><span class="co">#&gt; function gradient </span></span>
+<span><span class="co">#&gt;       23       12 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [[2]]$message</span></span>
+<span><span class="co">#&gt; [1] "relative convergence (4)"</span></span></code></pre></div>
 <p>As mentioned above, the best-fit parameters are stored internally,
 and we can get information about them using the <code>mp_tmb_coef</code>
 function. (Note that if you get a message about the
@@ -271,12 +334,12 @@ function. (Note that if you get a message about the
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_estimates</span> <span class="op">=</span> <span class="fu"><a href="../reference/mp_tmb_coef.html">mp_tmb_coef</a></span><span class="op">(</span><span class="va">sir_calibrator</span>, conf.int <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/engine_functions.html">print</a></span><span class="op">(</span><span class="va">sir_estimates</span><span class="op">)</span></span>
-<span><span class="co">#&gt;       term  mat row col default  type   estimate   std.error   conf.low</span></span>
-<span><span class="co">#&gt; 1   params beta   0   0     0.2 fixed  0.2345619 0.008739338  0.2174331</span></span>
-<span><span class="co">#&gt; 2 params.1    R   0   0     0.0 fixed 86.7030875 7.028753745 72.9269833</span></span>
-<span><span class="co">#&gt;     conf.high</span></span>
-<span><span class="co">#&gt; 1   0.2516906</span></span>
-<span><span class="co">#&gt; 2 100.4791916</span></span></code></pre></div>
+<span><span class="co">#&gt;       term  mat row col default  type   estimate   std.error  conf.low</span></span>
+<span><span class="co">#&gt; 1   params beta   0   0     0.2 fixed  0.2287659 0.008597557  0.211915</span></span>
+<span><span class="co">#&gt; 2 params.1    R   0   0     0.0 fixed 82.9613444 7.214429832 68.821322</span></span>
+<span><span class="co">#&gt;    conf.high</span></span>
+<span><span class="co">#&gt; 1  0.2456168</span></span>
+<span><span class="co">#&gt; 2 97.1013670</span></span></code></pre></div>
 <p>These correspond pretty well to the known true values of the
 simulation model.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
