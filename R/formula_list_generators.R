@@ -1,4 +1,4 @@
-library(oor)
+# library(oor)
 
 ## two class types:
 ##   1. ChangeModel (e.g. set of flows)
@@ -195,9 +195,9 @@ TMBFlow = function(from, to, rates) {
 
 #debug(xx$deterministic_change_exprs)
 
-xx = TMBFlow("S", "E", list(lambda ~ beta * I / N))
-xx = TMBFlow("S", "E", lambda ~ beta * I / N)
-xx = TMBFlow("S", "E", "beta * I / N")
-xx$preliminary_exprs()
-xx$deterministic_change_column()
-xx$deterministic_change_exprs()
+# xx = TMBFlow("S", "E", list(lambda ~ beta * I / N))
+# xx = TMBFlow("S", "E", lambda ~ beta * I / N)
+# xx = TMBFlow("S", "E", "beta * I / N")
+# xx$preliminary_exprs()
+# xx$deterministic_change_column()
+# xx$deterministic_change_exprs()
