@@ -39,12 +39,25 @@ ChangeComponent = function() {
 }
 
 
-
+## one element per state matrix
+  ## list names: state matrix names
+  ## list elements: expression (as character string) giving absolute rate of 
+  ##                change of that state matrix per unit time
+  #$absolute_rate_exprs
 EulerUpdateMethod = function(change_model) {
   self = UpdateMethod()
   self$change_model = change_model
   self$during = function() {
-    self$change_model
+    abs_rates = self$change_model$absolute_rate_exprs()
+    expr_list = list()
+    for (state in names(abs_rates)) {
+      expr_list[[state]] = sprintf("%s ~ %s + (%s)"
+        , state
+        , state
+        , abs_rates[[state]]
+      ) |> as.formula()
+    }
+    
   }
   return_object(self, "EulerUpdateMethod")
 }

@@ -1,3 +1,5 @@
+print("here")
+
 library(macpan2)
 library(ggplot2)
 library(dplyr)
@@ -28,6 +30,7 @@ actual_daily_reports = expected_daily_reports - missed_reports
 
 set.seed(expected_daily_reports)
 
+
 ## -------------------------
 ## observed data
 ## -------------------------
@@ -40,7 +43,7 @@ daily_hospitalizations = (read.csv(
       "starter_models"
     , "shiver"
     , "data"
-    , "hostpitalizations_ontario.csv"
+    , "hospitalizations_ontario.csv"
     , package = "macpan2"
   )
   , row.names = NULL
@@ -53,6 +56,7 @@ daily_hospitalizations = (read.csv(
                             hospitalnonicu_full_vac))
   %>% ungroup()
 )
+
 
 reported_hospitalizations = (daily_hospitalizations
   %>% filter(time!=1) # remove first record (Aug 10, this will be the initial condition H0)
@@ -173,12 +177,14 @@ shiver_calibrator
 ) 
 
 # all states
-(shiver_calibrator 
-  |> mp_trajectory()
-  |> ggplot(aes(time, value))
-  + facet_wrap(vars(matrix), scales='free')
-  + geom_line()
-)
+if (interactive()) {
+  (shiver_calibrator 
+    |> mp_trajectory()
+    |> ggplot(aes(time, value))
+    + facet_wrap(vars(matrix), scales='free')
+    + geom_line()
+  )
+}
 
 
 # optimize to estimate transmission parameters
@@ -194,23 +200,27 @@ mp_tmb_coef(shiver_calibrator, conf.int=TRUE)
 
 # how does the fit compare with observed data
 # fit looks pretty good considering
-(shiver_calibrator 
-  |> mp_trajectory_sd(conf.int=TRUE)
-  |> filter(matrix == "H")
-  |> ggplot(aes(time, value))
-  + geom_line(aes(y=value), colour="red")
-  + geom_ribbon(aes(ymin=conf.low,ymax=conf.high), fill="red",alpha=0.3)
-  + geom_point(data=reported_hospitalizations, aes(time,value))
-)
+if (interactive()) {
+  (shiver_calibrator 
+    |> mp_trajectory_sd(conf.int=TRUE)
+    |> filter(matrix == "H")
+    |> ggplot(aes(time, value))
+    + geom_line(aes(y=value), colour="red")
+    + geom_ribbon(aes(ymin=conf.low,ymax=conf.high), fill="red",alpha=0.3)
+    + geom_point(data=reported_hospitalizations, aes(time,value))
+  )
+}
 
 # all states
 # behaviour of I and E seem weird
-(shiver_calibrator 
-  |> mp_trajectory()
-  |> ggplot(aes(time, value))
-  + facet_wrap(vars(matrix), scales='free')
-  + geom_line()
-)
+if (interactive()) {
+  (shiver_calibrator 
+    |> mp_trajectory()
+    |> ggplot(aes(time, value))
+    + facet_wrap(vars(matrix), scales='free')
+    + geom_line()
+  )
+}
 
 
 ## -------------------------
