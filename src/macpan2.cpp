@@ -2804,7 +2804,7 @@ public:
                 // #' ### Return
                 // #'
                 // #' The `assign` function is not called for its return
-                // #' value, which is an empty_matrix, but
+                // #' value, which is an \code{\link{empty_matrix}}, but
                 // #' rather to modify `x` but replacing some of its
                 // #' components with those in `v`.
                 // #'
@@ -2909,7 +2909,7 @@ public:
                 // #' ### Return
                 // #'
                 // #' The `unpack` function is not called for its return
-                // #' value, which is an empty_matrix, but
+                // #' value, which is an \code{\link{empty_matrix}}, but
                 // #' rather to modify the matrices in `...` by replacing
                 // #' at least some of its components with those in `x`.
                 // #'
@@ -2992,7 +2992,7 @@ public:
             // #'
             // #' ### Return
             // #'
-            // #' An \code{\link{empty matrix}}.
+            // #' An \code{\link{empty_matrix}}.
             // #'
             // #' ### Examples
             // #'
