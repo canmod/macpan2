@@ -3,6 +3,7 @@
 ## Breaking Changes
 
 * No longer exporting `nlist`.
+* Removing in-place modifications to model specification objects in `mp_tmb_insert` and `mp_tmb_update`.
 
 ## New Features
 
