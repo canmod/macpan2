@@ -328,16 +328,15 @@ if (interactive()) {
 # Obtained from here:
 # https://data.ontario.ca/dataset/covid-19-vaccine-data-in-ontario/resource/eed63cf2-83dd-4598-b337-b288c0a89a16
 daily_cases = (read.csv(
-  "inst/starter_models/shiver/data/cases_ontario.csv"
-  # system.file(
-  #     "starter_models"
-  #   , "shiver"
-  #   , "data"
-  #   , "cases_ontario.csv"
-  #   , package = "macpan2"
-  # )
+    system.file(
+        "starter_models"
+      , "shiver"
+      , "data"
+      , "cases_ontario.csv"
+      , package = "macpan2"
+    )
   , row.names = NULL
-  ) 
+  )
   |> rename(time = X_id)
   |> rowwise()
   # aggregate all case counts (by vax status) into one
@@ -378,19 +377,30 @@ shiver_calibrator = mp_tmb_calibrator(
 # converges
 mp_optimize(shiver_calibrator)
 
+backtrans <- function(x) {
+    vars1 <- intersect(c("default", "estimate", "conf.low", "conf.high"), names(x))
+    prefix <- stringr::str_extract(x[["mat"]], "^log(it)?_")  |> tidyr::replace_na("none")
+    sx <- split(x, prefix)
+    for (ptype in setdiff(names(sx), "none")) {
+        link <- make.link(stringr::str_remove(ptype, "_"))
+        sx[[ptype]] <- (sx[[ptype]]
+            |> mutate(across(std.error, ~link$mu.eta(estimate)*.))
+            |> mutate(across(any_of(vars1), link$linkinv))
+            |> mutate(across(mat, ~stringr::str_remove(., paste0("^", ptype))))
+        )
+    }
+    bind_rows(sx)
+}
 # beta ~ 0.4 with reasonable CIs
-(mp_tmb_coef(shiver_calibrator, conf.int=TRUE)
-  |> filter(mat=="log_beta")
-  |> mutate(across(c(estimate, conf.low, conf.high), exp))
+cc <- (mp_tmb_coef(shiver_calibrator, conf.int=TRUE)
+    |> backtrans()
 )
+cc |> filter(mat == "beta")
 
 # a ~ 5%, and CIs seem reasonable
 # a is much smaller than previous estimate (35%)
 # but this could be plausible (vaccines really help lower transmission?)
-(mp_tmb_coef(shiver_calibrator, conf.int=TRUE)
-  |> filter(mat=="logit_a")
-  |> mutate(across(c(estimate, conf.low, conf.high), plogis))
-)
+cc |> filter(mat == "a")
 
 # how does data look with these parameters
 # not good!
