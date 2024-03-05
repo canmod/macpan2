@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -56,19 +56,20 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="1.2.0" id="macpan2-120">macpan2 1.2.0<a class="anchor" aria-label="anchor" href="#macpan2-120"></a></h2>
+<h2 class="pkg-version" data-toc-text="1.3.0" id="macpan2-130">macpan2 1.3.0<a class="anchor" aria-label="anchor" href="#macpan2-130"></a></h2>
 <div class="section level3">
-<h3 id="breaking-changes-1-2-0">Breaking Changes<a class="anchor" aria-label="anchor" href="#breaking-changes-1-2-0"></a></h3>
+<h3 id="breaking-changes-1-3-0">Breaking Changes<a class="anchor" aria-label="anchor" href="#breaking-changes-1-3-0"></a></h3>
 <ul><li>No longer exporting <code>nlist</code>.</li>
 <li>Removing in-place modifications to model specification objects in <code>mp_tmb_insert</code> and <code>mp_tmb_update</code>.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="new-features-1-2-0">New Features<a class="anchor" aria-label="anchor" href="#new-features-1-2-0"></a></h3>
-<ul><li>New stochasticity engine functions <code>rbinom</code> and <code>reulermultinom</code>.</li>
+<h3 id="new-features-1-3-0">New Features<a class="anchor" aria-label="anchor" href="#new-features-1-3-0"></a></h3>
+<ul><li>Define explicit state variable updates, with the choice of applying <code>mp_euler</code>, <code>mp_rk4</code>, or <code>mp_euler_multinomial</code> update methods, the latter generating process error.</li>
+<li>New stochasticity engine functions <code>rbinom</code> and <code>reulermultinom</code>.</li>
 <li>
 <code>mp_tmb_fixef_cov</code> function for getting the covariance matrix of fixed effects.</li>
 <li>
-<code>mp_trajectory_ensemble</code> function for summarizing random variation in trajectories.</li>
+<code>mp_trajectory_ensemble</code> and <code>mp_trajectory_sim</code> functions for summarizing random variation in trajectories.</li>
 <li>Unpacking assignment in the engine. This means that you can do things like <code>c(x, y) ~ z</code>, where the values in <code>z</code> are assigned to elements in <code>x</code>, <code>y</code>, etc… in row-major order.</li>
 <li>
 <code>to_name_pairs</code> function for returning all pairwise dot-concatenations of the elements of a character vector without dots.</li>
@@ -76,11 +77,11 @@
 <code>to_values</code> function for extracting the column from a data frame with only a single numerical column and turning numeric matrices and arrays with dimnames into a flattened numeric vector with labels produced by appropriately dot-concatenating the dimnames.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="bug-fixes-1-2-0">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-1-2-0"></a></h3>
+<h3 id="bug-fixes-1-3-0">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-1-3-0"></a></h3>
 <ul><li>Several bugs related to input handling in <code>mp_tmb_calibrator</code> (<a href="https://github.com/canmod/macpan2/issues/176" class="external-link">#176</a>)</li>
 </ul></div>
 <div class="section level3">
-<h3 id="doc-fixes-and-updates-1-2-0">Doc Fixes and Updates<a class="anchor" aria-label="anchor" href="#doc-fixes-and-updates-1-2-0"></a></h3>
+<h3 id="doc-fixes-and-updates-1-3-0">Doc Fixes and Updates<a class="anchor" aria-label="anchor" href="#doc-fixes-and-updates-1-3-0"></a></h3>
 <ul><li>New installation instructions for installing from <code>r-universe</code>.</li>
 <li>New vignette: <code>real_data</code>.</li>
 <li>Document <code>to_name</code>, <code>to_names</code>, <code>to_labels</code>, which handle naming of structured objects.</li>

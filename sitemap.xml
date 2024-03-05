@@ -127,6 +127,9 @@
     <loc>https://canmod.github.io/macpan2/reference/mp_effects_descr.html</loc>
   </url>
   <url>
+    <loc>https://canmod.github.io/macpan2/reference/mp_euler.html</loc>
+  </url>
+  <url>
     <loc>https://canmod.github.io/macpan2/reference/mp_extract.html</loc>
   </url>
   <url>
@@ -163,7 +166,13 @@
     <loc>https://canmod.github.io/macpan2/reference/mp_optimizer_output.html</loc>
   </url>
   <url>
+    <loc>https://canmod.github.io/macpan2/reference/mp_per_capita_flow.html</loc>
+  </url>
+  <url>
     <loc>https://canmod.github.io/macpan2/reference/mp_positions.html</loc>
+  </url>
+  <url>
+    <loc>https://canmod.github.io/macpan2/reference/mp_rbf.html</loc>
   </url>
   <url>
     <loc>https://canmod.github.io/macpan2/reference/mp_reference.html</loc>
@@ -223,9 +232,6 @@
     <loc>https://canmod.github.io/macpan2/reference/mp_trajectory.html</loc>
   </url>
   <url>
-    <loc>https://canmod.github.io/macpan2/reference/mp_trajectory_sim.html</loc>
-  </url>
-  <url>
     <loc>https://canmod.github.io/macpan2/reference/mp_triangle.html</loc>
   </url>
   <url>
@@ -251,5 +257,8 @@
   </url>
   <url>
     <loc>https://canmod.github.io/macpan2/reference/to_positions.html</loc>
+  </url>
+  <url>
+    <loc>https://canmod.github.io/macpan2/reference/to_string.html</loc>
   </url>
 </urlset>
