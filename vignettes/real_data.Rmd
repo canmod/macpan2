@@ -284,4 +284,122 @@ fitted_data = mp_trajectory_sd(sir_cal_assume_gamma, conf.int = TRUE)
 
 ## Conclusions and Cautions
 
-TODO: Ben, what is that paper that you always recommend about being careful when prior information is included without prior uncertainty?
+Caution: Ben, what is that paper that you always recommend about being careful when prior information is included without prior uncertainty?
+
+
+## Learning the Functional form of Time Variation in Transmission (New!)
+
+Let's get a bit more data to see two seasons.
+```{r}
+scarlet_fever_ontario = api_hook$filter(resource_type = "CANMOD CDI"
+  , iso_3166_2 = "CA-ON"  ## get ontario data
+  , time_scale = "wk"  ## weekly incidence data only 
+  , disease = "scarlet-fever"
+  
+  # get data between 1929-08-01 and 1930-10-01
+  , period_end_date = "1929-08-01/1931-10-01"  
+)
+(scarlet_fever_ontario
+  |> ggplot(aes(period_mid_date, cases_this_period))
+  + geom_line() + geom_point()
+  + ggtitle("Scarlet Fever Incidence in Ontario, Canada")
+  + theme_bw()
+)
+observed_data = (scarlet_fever_ontario
+  ## select the variables to be modelled -- a time-series of case reports.
+  |> select(period_end_date, cases_this_period)
+  
+  ## change the column headings so that they match the columns
+  ## in the simulated trajectories.
+  |> mutate(matrix = "reports")
+  |> rename(value = cases_this_period)
+  
+  ## create a `time` column with the time-step IDs that will correspond
+  ## to the time-steps in the simulation. this column heading also 
+  ## must match the column with the time-steps in the simulated trajectories
+  |> mutate(time = seq_along(period_end_date))
+)
+print(head(observed_data))
+```
+
+
+```{r}
+make_rbf_calibrator = function(dimension) {
+  mp_tmb_calibrator(
+      spec = sf_sir
+    , data = observed_data
+    
+    ## name the trajectory variable, with a name that
+    ## is the same in both the spec and the data
+    , traj = "reports"  
+    , tv = mp_rbf("beta", dimension)
+    ## fit the following parameters
+    , par = c("gamma", "I", "report_prob")
+  )
+}
+plot_fit = function(cal_object) {
+  fitted_data = mp_trajectory_sd(cal_object, conf.int = TRUE)
+  (observed_data
+    |> ggplot()
+    + geom_point(aes(time, value))
+    + geom_line(aes(time, value)
+      , data = fitted_data
+      , colour = "red"
+    )
+    + geom_ribbon(aes(time, ymin = conf.low, ymax = conf.high)
+      , data = fitted_data
+      , alpha = 0.2
+      , colour = "red"
+    )
+    + theme_bw()
+  )
+}
+```
+
+```{r}
+sir_cal = make_rbf_calibrator(dimension = 1)
+mp_optimize(sir_cal)
+plot_fit(sir_cal)
+```
+
+
+```{r}
+sir_cal = make_rbf_calibrator(dimension = 2)
+mp_optimize(sir_cal)
+plot_fit(sir_cal)
+```
+
+```{r}
+sir_cal = make_rbf_calibrator(dimension = 3)
+mp_optimize(sir_cal)
+plot_fit(sir_cal)
+```
+
+```{r}
+sir_cal = make_rbf_calibrator(dimension = 4)
+mp_optimize(sir_cal)
+plot_fit(sir_cal)
+```
+
+```{r}
+sir_cal = make_rbf_calibrator(dimension = 5)
+mp_optimize(sir_cal)
+plot_fit(sir_cal)
+```
+
+```{r}
+sir_cal = make_rbf_calibrator(dimension = 6)
+mp_optimize(sir_cal)
+plot_fit(sir_cal)
+```
+
+```{r}
+sir_cal = make_rbf_calibrator(dimension = 7)
+mp_optimize(sir_cal)
+plot_fit(sir_cal)
+```
+
+Interestingly we have now managed to fit `gamma`
+```{r}
+mp_tmb_coef(sir_cal)
+```
