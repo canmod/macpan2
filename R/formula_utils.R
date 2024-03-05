@@ -72,7 +72,22 @@ update_formula = function(formula, replacers) {
   l = lapply(replacers, rhs_expr) |> setNames(nms)
   do.call('substitute', list(formula, l))
 }
-
+update_formulas = function(list, replacers) {
+  nms = lapply(replacers, lhs_char)
+  l = lapply(replacers, rhs_expr) |> setNames(nms)
+  for (i in seq_along(list)) {
+    formula = list[[i]]
+    
+    ## do not fully understand this magic
+    updated_formula = do.call('substitute', list(formula, l))
+    if (!inherits(updated_formula, "formula") & is.call(updated_formula)) {
+      updated_formula = eval(updated_formula)
+    }
+    
+    list[[i]] = updated_formula
+  }
+  list
+}
 
 rhs_sum = function(...) {
   blank_to_zero = function(x) if (x == "") return("0") else return(x)
@@ -124,6 +139,9 @@ is_one_sided = function(formula) {
 is_two_sided = function(formula) {
   (length(formula) == 3L) & inherits(formula, "formula")
 }
+
+is_lhs_symbol = function(formula) is.symbol(lhs_expr(formula))
+is_rhs_symbol = function(formula) is.symbol(rhs_expr(formula))
 
 rhs = function(formula) {
   if (is_two_sided(formula)) formula = formula[-2L]

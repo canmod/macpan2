@@ -642,6 +642,18 @@ TMBPar = function(
 ## unless there are name conflicts and in that case returns
 ## slightly modified names that do not conflict with and of the
 ## names chosen by the user.
+## 
+## @param obj An oor-based object with a global_names method that returns 
+## a list of character vectors, each of which is associated with the 
+## method `type`.
+## @param type the name of an oor-based method in obj. this method must be
+## a no-op and return an object with names that can be set with setNames.
+## 
+## @examples
+## if sir is an object and pars is a no-op method returning a named object,
+## then one may replace sir$pars() for globalize(sir, "pars") and get 
+## the global names out
+## 
 globalize = function(obj, type) setNames(obj[[type]](), obj$global_names()[[type]])
 
 ## combines character vectors and turns them into a one-sided formula

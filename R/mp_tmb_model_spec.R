@@ -7,8 +7,13 @@ TMBModelSpec = function(
     , must_save = character()
     , must_not_save = character()
     , sim_exprs = character()
+    , state_update = c("euler", "rk4", "euler_multinomial")
   ) {
   self = Base()
+  #self$change_model = SimpleChangeModel(before, during, after)
+  #self$state_update = match.arg(state_update)
+  #self$update_cls = get_state_update_class(self$state_update)
+  #self$update_method = self$update_cls(self$change_model)
   self$before = before
   self$during = during
   self$after = after
@@ -68,11 +73,20 @@ TMBModelSpec = function(
   
   self$copy = function() {
     mp_tmb_model_spec(
-        self$before, self$during, self$after
+        self$change_model$before, self$change_model$during, self$change_model$after
       , self$default, self$integers
       , self$must_save, self$must_not_save, self$sim_exprs
+      #, self$state_update
     )
   }
+  # self$change_update_method = function(state_update = c("euler", "rk4", "euler_multinomial")) {
+  #   mp_tmb_model_spec(
+  #       self$change_model$before, self$change_model$during, self$change_model$after
+  #     , self$default, self$integers
+  #     , self$must_save, self$must_not_save, self$sim_exprs
+  #     , state_update
+  #   )
+  # }
   self$tmb_model = function(
         time_steps = 0
       , outputs = character()

@@ -12,7 +12,8 @@ mp_tmb_model_spec(
   integers = list(),
   must_save = character(),
   must_not_save = character(),
-  sim_exprs = character()
+  sim_exprs = character(),
+  state_update = c("euler", "rk4", "euler_multinomial")
 )
 }
 \arguments{

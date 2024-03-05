@@ -151,7 +151,13 @@ TMBModel = function(
       params = self$params$vector(),
       random = self$random$vector()
     )
-    if (length(p$params) == 0L) p$params = 0
+    
+    ## FIXME: need a dummy parameter if the model has not
+    ## yet been parameterized. is there a more TMB-ish
+    ## way to do this?
+    if ((length(p$params) == 0L) & isTRUE(getOption("macpan2_tmb_derivs"))) {
+      p$params = 0
+    } 
     p
   }
   self$random_arg = function() {
@@ -161,18 +167,25 @@ TMBModel = function(
   self$make_ad_fun_arg = function(
         tmb_cpp = getOption("macpan2_dll")
       , verbose = getOption("macpan2_verbose")
+      , tmb_derivs = getOption("macpan2_tmb_derivs")
     ) {
-    list(
+    l = list(
         data = self$data_arg(),
         parameters = self$param_arg(),
         random = self$random_arg(),
         DLL = tmb_cpp,
         silent = !verbose
     )
+    if (!isTRUE(tmb_derivs)) {
+      l$checkParameterOrder = FALSE
+      l$type = "Fun"
+    }
+    l
   }
   self$ad_fun = function(
         tmb_cpp = getOption("macpan2_dll")
       , verbose = getOption("macpan2_verbose")
+      , derivs = getOption("macpan2_tmb_derivs")
     ) {
     do.call(TMB::MakeADFun, self$make_ad_fun_arg(tmb_cpp))
   }
@@ -357,10 +370,12 @@ mp_trajectory_ensemble.TMBCalibrator = function(model, n, probs = c(0.025, 0.975
 ## not ready to export yet because we are not sure how to construct a single
 ## ad_fun that works both with process error simulation and deterministic 
 ## trajectory matching
+##' @export
 mp_trajectory_sim = function(model, n, probs = c(0.025, 0.25, 0.5, 0.75, 0.975)) {
   UseMethod("mp_trajectory_sim")
 }
 
+##' @export
 mp_trajectory_sim.TMBSimulator = function(model, n, probs = c(0.025, 0.25, 0.5, 0.75, 0.975)) {
   r = model$simulate()
   r = r[, names(r) != "value", drop = FALSE]
@@ -373,6 +388,7 @@ mp_trajectory_sim.TMBSimulator = function(model, n, probs = c(0.025, 0.25, 0.5, 
   cbind(r, rr)
 }
 
+##' @export
 mp_trajectory_sim.TMBCalibrator = function(model, n, probs = c(0.025, 0.25, 0.5, 0.75, 0.975)) {
   stop("Under construction")
 }
@@ -467,6 +483,8 @@ TMBSimulationUtils = function() {
   self$.runner = function(...
       , .phases = "during"
       , .method = c("report", "simulate", "sdreport")
+      , .sort = TRUE
+      , .values_only = FALSE
   ) {
     .method = match.arg(.method)
     compute_sd = FALSE
@@ -489,8 +507,11 @@ TMBSimulationUtils = function() {
       )
     }
     if (compute_sd) r$values = cbind(r$values, self$sdreport()$sd)
+    if (.values_only) return(r$values)
     s = self$.simulation_formatter(r, .phases)
-    s = s[order(s$time), , drop = FALSE] ## TODO: move sorting by time to the c++ side
+    if (.sort) {
+      s = s[order(s$time), , drop = FALSE] ## TODO: move sorting by time to the c++ side
+    }
     reset_rownames(s)
   }
   return_object(self, "TMBSimulationFormatter")

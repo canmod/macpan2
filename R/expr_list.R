@@ -86,19 +86,16 @@ ExprList = function(
     , .simulate_exprs = character(0L)
   ) {
   self = ExprListUtils()
-  valid_expr_list = ValidityMessager(
-    All(
-      is.list,  ## list of ...
-      MappedAllTest(Is("formula")),  ## ... formulas that are ...
-      TestPipeline(MappedSummarizer(length), MappedAllTest(TestRange(3L, 3L)))  ## ... two-sided formula
-      #TestPipeline(MappedSummarizer(lhs, is.symbol), MappedAllTest(TestTrue()))  ## ... only one symbol on the lhs
-    ),
+  valid_expr_list = macpan2:::AllValid(
+    ValidityMessager(is.list, "not a list"),  ## list of ...
+    ValidityMessager(MappedAllTest(Is("formula")), "not all formulas in an expression list"),  ## ... formulas that are ...
+    ValidityMessager(TestPipeline(MappedSummarizer(length), MappedAllTest(TestRange(3L, 3L))), "not all formulas are two-sided"),  ## ... two-sided formula
+    #TestPipeline(MappedSummarizer(lhs, is.symbol), MappedAllTest(TestTrue()))  ## ... only one symbol on the lhs
+    
     ## TODO: fix this error message now that expressions can have formulas
     ## on the left-hand-side. should also make a new test that actually
     ## checks the requirements.
-    "Model expressions must be two-sided assignment formulas,",
-    "without subsetting on the left-hand-side",
-    "(i.e. x ~ 1 is fine, but x[0] ~ 1 is not)."
+    .msg = paste("Invalid list of formulas.")
   )
 
   ## Args
