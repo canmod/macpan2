@@ -81,7 +81,7 @@ If we colour code the genotypes by whether they are included in the vaccine (In 
 
 ![Simulated Prevalence By Vaccine](simulated_prevalence_by_vaccine.png)
 
-We expect seroreplacement to take place, so that genotypes not in vaccine will dominate the population after vaccine perturbation (with sufficient time steps), and this graphically seems to be happening. Vaccine type strains decrease in prevalence as they are eliminated from carriage.
+We expect seroreplacement to take place, so that genotypes not in the vaccine will dominate the population after vaccine perturbation (with sufficient time steps), and this graphically seems to be happening. Vaccine type strains decrease in prevalence as they are eliminated from carriage.
 
 ## Comparing Model Implementations
 
@@ -93,24 +93,24 @@ With simulated data from both models, we compare each genotypes simulated preval
 
 ![Validation](validation_at_10years.png)
 
-This confirms the `macpan2` implementation of this model generates very similar results to those simulated from the Colijn et al. (2020) model.
+This plot confirms that the `macpan2` implementation of this model generates very similar results to those simulated from the Colijn et al. (2020) model implementation.
 
-If we look further at prevalence differences by genotype we can see that the simulated data from both models is not identical.
+If we look further at prevalence differences by genotype we can see that the simulated data from both models are not identical.
 
 ![Model differences](model_differences_at_10years.png)
 
-The largest absolute difference shown above is approximately 17 indivudals in a population of $N=10000$. This equates to approximately 0.02% of the population, and I suspect this difference is not biologically significant. 
+The largest absolute difference shown above is approximately 17 individuals in a population of $N=10000$. This equates to approximately 0.02% of the population, and I suspect this difference is not biologically significant. 
 
-Now that we know there are some differences between the two model implementations, it makes sense to visualize how these models compare over the entire 10 year time period. We select a random susbset of genotypes to visualise (10 with high starting prevalence, and 10 with low starting prevalence).
+Now that we know there are some differences between the two model implementations, it makes sense to visualize how these models compare over the entire 10 year time period. We select a random susbset of genotypes to visualise (10 with high starting prevalence, and 10 with low starting prevalence) because it's difficult to distinguish between curves when all genotypes (M=603) are graphed.
 
 
 ![Model comparison over time](model_comparison_over_time.png)
 
-We see some minimal differences when looking at prevalence over time. In the difference comparison, we can see higher differences at earlier time points and these differences seem to get smaller on average over time, with one exception. The mustard coloured curve in the bottom right plot shows that differences are growing over time. When we look at this genotype in the bottom right plot, we can see that this specific genotype is growing in prevalence much faster than any of the others. The highlights that the difference in prevalences could be better represented as a relative measure.
+We see some minimal differences when looking at prevalence over time. In the difference comparison, we can see higher differences at earlier time points and these differences seem to get smaller on average over time, with one exception. The mustard coloured curve in the bottom right plot shows that differences are growing over time. When we look at this genotype in the bottom right plot, we can see that this specific genotype is growing in prevalence much faster than any of the others. This highlights that the difference in prevalences could be better represented as a relative measure.
 
 ## Summary
 
-In general, we conclude that there are some differences between the two model implementations but they are not biologicall significant.We can attribute these numerical differences to the approximations made in each model implementation. In the `macpan2` we are using the first-order Euler method for ODE solving as compared to Colijn et al. (2020) who use the ODE solver `ode15s` in Matlab.
+In general, we conclude that there are some differences between the two model implementations but they are not biologically significant. We can attribute these numerical differences to the approximations made in each model implementation. In the `macpan2` implementation we are using the first-order Euler method with the TMB engine for ODE solving as compared to Colijn et al. (2020) implementation who use the ODE solver `ode15s` in Matlab.
 
 # Optimization
 
