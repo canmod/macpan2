@@ -282,8 +282,6 @@ fitted_data = mp_trajectory_sd(sir_cal_assume_gamma, conf.int = TRUE)
 )
 ```
 
-## Conclusions and Cautions
-
 Caution: Ben, what is that paper that you always recommend about being careful when prior information is included without prior uncertainty?
 
 
@@ -323,20 +321,27 @@ print(head(observed_data))
 ```
 
 
+Prepare to fit to the data. We make a function so that we can easily update the dimension of the radial basis.
+
 ```{r, fig.width=7, fig.height=7}
 make_rbf_calibrator = function(dimension) {
   mp_tmb_calibrator(
       spec = sf_sir
     , data = observed_data
-    
-    ## name the trajectory variable, with a name that
-    ## is the same in both the spec and the data
     , traj = "reports"  
+    
+    ## -----------------------------
+    ## this is the key bit
     , tv = mp_rbf("beta", dimension)
-    ## fit the following parameters
+    ## -----------------------------
+    
     , par = c("gamma", "I", "report_prob")
   )
 }
+```
+
+And it is also convenient to make a function for plotting the results
+```{r}
 plot_fit = function(cal_object) {
   fitted_data = mp_trajectory_sd(cal_object, conf.int = TRUE)
   (observed_data
@@ -355,6 +360,8 @@ plot_fit = function(cal_object) {
   )
 }
 ```
+
+Now we try fitting for a number of different dimensions.
 
 ```{r, fig.width=7, fig.height=7}
 sir_cal = make_rbf_calibrator(dimension = 1)
@@ -403,3 +410,5 @@ Interestingly we have now managed to fit `gamma`
 ```{r}
 mp_tmb_coef(sir_cal)
 ```
+
+This is a much slower recovery rate. Expected time in the R box is about one year! Not believeable, but the point is to make it easier to fit models so you can try more things.
