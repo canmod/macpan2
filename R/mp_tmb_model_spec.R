@@ -227,6 +227,9 @@ TMBModelSpec = function(
 #' being evaluated. For example, expressions that generate stochasticity should
 #' be listed in \code{sim_exprs} because TMB objective functions must be
 #' continuous.
+#' @param state_update (experimental) Optional character vector for how to update the
+#' state variables when it is relevant. Options include `"euler"`, `"rk4"`, 
+#' and `"euler_multinomial"`.
 #' @export
 mp_tmb_model_spec = TMBModelSpec
 

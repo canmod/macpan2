@@ -60,6 +60,10 @@ when simulations are being produced and not when the objective function is
 being evaluated. For example, expressions that generate stochasticity should
 be listed in \code{sim_exprs} because TMB objective functions must be
 continuous.}
+
+\item{state_update}{(experimental) Optional character vector for how to update the
+state variables when it is relevant. Options include \code{"euler"}, \code{"rk4"},
+and \code{"euler_multinomial"}.}
 }
 \description{
 Specify a model in the TMB engine.

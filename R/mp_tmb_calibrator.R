@@ -143,21 +143,6 @@ mp_tmb_calibrator = function(spec, data
       , expressions = tv$var_update_exprs()
     )
   }
-  #  self$time_var = function() {
-  #   setNames(list(self$initial_weights), self$par_name)
-  # }
-  # self$values_var = function() {
-  #   setNames(list(self$rbf_data$values), self$par_name)
-  # }
-  # self$outputs_var = function() {
-  #   setNames(list(self$initial_outputs), self$par_name)
-  # }
-  # self$row_indexes = function() {
-  #   setNames(list(as.integer(self$rbf_data$row_index)), self$par_name)
-  # }
-  # self$col_indexes = function() {
-  #   setNames(list(as.integer(self$rbf_data$col_index)), self$par_name)
-  # }
   
   ## add parameter transformations
   cal_spec = mp_tmb_insert(cal_spec
@@ -531,6 +516,21 @@ TMBTV.character = function(
   return_object(self, "TMBTV")
 }
 
+
+#' Fit a Time-Varying Parameter with Radial Basis Functions
+#' 
+#' Pass the output of this function to the `tv` argument of 
+#' \code{\link{mp_tmb_calibrator}} to model time variation of 
+#' a parameter with flexible radial basis functions.
+#' 
+#' @param tv String giving the name of the parameter.
+#' @param dimension Number of bases.
+#' @param initial_weights Optional vector with `dimensions` elements. These
+#' are the parameters that are fitted and determine how `tv` varies with
+#' time.
+#' @param seed Optional random seed to use to generate the `initial_weights`
+#' if they are not provided.
+#' 
 #' @export
 mp_rbf = function(tv, dimension, initial_weights, seed = 1L) {
   if (missing(initial_weights)) {
