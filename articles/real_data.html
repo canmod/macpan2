@@ -45,6 +45,7 @@
     <a class="dropdown-item" href="../articles/example_models.html">Example Models</a>
     <a class="dropdown-item" href="../articles/calibration.html">Calibrating Compartmental Models to Data</a>
     <a class="dropdown-item" href="../articles/real_data.html">Fitting to Real Data</a>
+    <a class="dropdown-item" href="../articles/state_updaters.html">Alteratives to Euler Steps</a>
     <div class="dropdown-divider"></div>
     <a class="dropdown-item" href="../articles/index.html">More articles...</a>
   </div>
@@ -590,7 +591,7 @@ uncertainty?</p>
 <span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Scarlet Fever Incidence in Ontario, Canada"</span><span class="op">)</span></span>
 <span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="real_data_files/figure-html/unnamed-chunk-19-1.png" width="700"></p>
+<p><img src="real_data_files/figure-html/unnamed-chunk-19-1.png" width="672"></p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">observed_data</span> <span class="op">=</span> <span class="op">(</span><span class="va">scarlet_fever_ontario</span></span>
 <span>  <span class="co">## select the variables to be modelled -- a time-series of case reports.</span></span>
@@ -670,7 +671,7 @@ uncertainty?</p>
 <span><span class="co">#&gt; $message</span></span>
 <span><span class="co">#&gt; [1] "function evaluation limit reached without convergence (9)"</span></span>
 <span><span class="fu">plot_fit</span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span></code></pre></div>
-<p><img src="real_data_files/figure-html/unnamed-chunk-21-1.png" width="700"></p>
+<p><img src="real_data_files/figure-html/unnamed-chunk-21-1.png" width="672"></p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_cal</span> <span class="op">=</span> <span class="fu">make_rbf_calibrator</span><span class="op">(</span>dimension <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span>
@@ -694,7 +695,7 @@ uncertainty?</p>
 <span><span class="co">#&gt; $message</span></span>
 <span><span class="co">#&gt; [1] "function evaluation limit reached without convergence (9)"</span></span>
 <span><span class="fu">plot_fit</span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span></code></pre></div>
-<p><img src="real_data_files/figure-html/unnamed-chunk-22-1.png" width="700"></p>
+<p><img src="real_data_files/figure-html/unnamed-chunk-22-1.png" width="672"></p>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_cal</span> <span class="op">=</span> <span class="fu">make_rbf_calibrator</span><span class="op">(</span>dimension <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span>
@@ -731,7 +732,7 @@ uncertainty?</p>
 <span><span class="co">#&gt; $message</span></span>
 <span><span class="co">#&gt; [1] "relative convergence (4)"</span></span>
 <span><span class="fu">plot_fit</span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span></code></pre></div>
-<p><img src="real_data_files/figure-html/unnamed-chunk-23-1.png" width="700"></p>
+<p><img src="real_data_files/figure-html/unnamed-chunk-23-1.png" width="672"></p>
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_cal</span> <span class="op">=</span> <span class="fu">make_rbf_calibrator</span><span class="op">(</span>dimension <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span>
@@ -765,7 +766,7 @@ uncertainty?</p>
 <span><span class="co">#&gt; $message</span></span>
 <span><span class="co">#&gt; [1] "function evaluation limit reached without convergence (9)"</span></span>
 <span><span class="fu">plot_fit</span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span></code></pre></div>
-<p><img src="real_data_files/figure-html/unnamed-chunk-24-1.png" width="700"></p>
+<p><img src="real_data_files/figure-html/unnamed-chunk-24-1.png" width="672"></p>
 <div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_cal</span> <span class="op">=</span> <span class="fu">make_rbf_calibrator</span><span class="op">(</span>dimension <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span>
@@ -791,7 +792,7 @@ uncertainty?</p>
 <span><span class="co">#&gt; $message</span></span>
 <span><span class="co">#&gt; [1] "function evaluation limit reached without convergence (9)"</span></span>
 <span><span class="fu">plot_fit</span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span></code></pre></div>
-<p><img src="real_data_files/figure-html/unnamed-chunk-25-1.png" width="700"></p>
+<p><img src="real_data_files/figure-html/unnamed-chunk-25-1.png" width="672"></p>
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_cal</span> <span class="op">=</span> <span class="fu">make_rbf_calibrator</span><span class="op">(</span>dimension <span class="op">=</span> <span class="fl">6</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span>
@@ -831,7 +832,7 @@ uncertainty?</p>
 <span><span class="co">#&gt; $message</span></span>
 <span><span class="co">#&gt; [1] "function evaluation limit reached without convergence (9)"</span></span>
 <span><span class="fu">plot_fit</span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span></code></pre></div>
-<p><img src="real_data_files/figure-html/unnamed-chunk-26-1.png" width="700"></p>
+<p><img src="real_data_files/figure-html/unnamed-chunk-26-1.png" width="672"></p>
 <div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_cal</span> <span class="op">=</span> <span class="fu">make_rbf_calibrator</span><span class="op">(</span>dimension <span class="op">=</span> <span class="fl">7</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span>
@@ -901,7 +902,7 @@ uncertainty?</p>
 <span><span class="co">#&gt; $message</span></span>
 <span><span class="co">#&gt; [1] "relative convergence (4)"</span></span>
 <span><span class="fu">plot_fit</span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span></code></pre></div>
-<p><img src="real_data_files/figure-html/unnamed-chunk-27-1.png" width="700"></p>
+<p><img src="real_data_files/figure-html/unnamed-chunk-27-1.png" width="672"></p>
 <p>Interestingly we have now managed to fit <code>gamma</code></p>
 <div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/mp_tmb_coef.html">mp_tmb_coef</a></span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span>
