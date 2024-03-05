@@ -525,7 +525,6 @@ Formula = function(formula) {
 
 
 #' @noRd
-#' @export
 to_change_component = function(x) UseMethod("to_change_component")
 
 #' @export
