@@ -10,10 +10,9 @@ TMBModelSpec = function(
     , state_update = c("euler", "rk4", "euler_multinomial")
   ) {
   self = Base()
-  #self$change_model = SimpleChangeModel(before, during, after)
-  #self$state_update = match.arg(state_update)
-  #self$update_cls = get_state_update_class(self$state_update)
-  #self$update_method = self$update_cls(self$change_model)
+  self$change_model = get_change_model(before, during, after)
+  self$state_update = get_state_update_type(match.arg(state_update), self$change_model)
+  self$update_method = get_state_update_method(self$state_update, self$change_model)
   self$before = before
   self$during = during
   self$after = after
@@ -23,7 +22,20 @@ TMBModelSpec = function(
   self$must_not_save = must_not_save
   self$sim_exprs = sim_exprs
   
-  self$expr_list = function() ExprList(self$before, self$during, self$after)
+  self$expr_list = function() {
+    ExprList(
+        self$update_method$before()
+      , self$update_method$during()
+      , self$update_method$after()
+    )
+  }
+  self$unrendered_expr_list = function() {
+    ExprList(
+        self$before
+      , self$during
+      , self$after
+    )
+  }
   
   self$all_derived_vars = function() {
     self$expr_list()$all_derived_vars()
@@ -73,20 +85,33 @@ TMBModelSpec = function(
   
   self$copy = function() {
     mp_tmb_model_spec(
-        self$change_model$before, self$change_model$during, self$change_model$after
+        self$before, self$during, self$after
       , self$default, self$integers
       , self$must_save, self$must_not_save, self$sim_exprs
-      #, self$state_update
+      , self$state_update
     )
   }
-  # self$change_update_method = function(state_update = c("euler", "rk4", "euler_multinomial")) {
-  #   mp_tmb_model_spec(
-  #       self$change_model$before, self$change_model$during, self$change_model$after
-  #     , self$default, self$integers
-  #     , self$must_save, self$must_not_save, self$sim_exprs
-  #     , state_update
-  #   )
-  # }
+  self$change_update_method = function(state_update = c("euler", "rk4", "euler_multinomial")) {
+    if (self$state_update == "no") {
+      warning("This model has not formalized the notion of a state variable, and so changing how the state variables are updated has no effect.")
+    }
+    mp_tmb_model_spec(
+        self$before, self$during, self$after
+      , self$default, self$integers
+      , self$must_save, self$must_not_save, self$sim_exprs
+      , state_update
+    )
+  }
+  self$expand = function() {
+    mp_tmb_model_spec(
+        self$update_method$before()
+      , self$update_method$during()
+      , self$update_method$after()
+      , self$default, self$integers
+      , self$must_save, self$must_not_save, self$sim_exprs
+      , self$state_update
+    )
+  }
   self$tmb_model = function(
         time_steps = 0
       , outputs = character()
@@ -136,12 +161,13 @@ TMBModelSpec = function(
           )
         )
       )
-      , expr_list = ExprList(
-          before = self$before
-        , during = self$during 
-        , after = self$after
-        , .simulate_exprs = self$sim_exprs
-      )
+      , expr_list = self$expr_list()
+      #   ExprList(
+      #     before = self$before
+      #   , during = self$during 
+      #   , after = self$after
+      #   , .simulate_exprs = self$sim_exprs
+      # )
       , engine_methods = EngineMethods(
         int_vecs = do.call(IntVecs, self$all_integers())
       )
@@ -210,7 +236,8 @@ print.TMBModelSpec = function(x, ...) {
 }
 
 spec_printer = function(x, include_defaults) {
-  e = ExprList(x$before, x$during, x$after)
+  #e = ExprList(x$before, x$during, x$after)
+  #e = x$expr_list()
   if (include_defaults) {
     cat("---------------------\n")
     msg("Default values:\n") |> cat()
@@ -218,5 +245,7 @@ spec_printer = function(x, include_defaults) {
     print(melt_default_matrix_list(x$default), row.names = FALSE)
     cat("\n")
   }
-  print(e)
+  exprs = c(x$before, x$during, x$after)
+  schedule = c(length(x$before), length(x$during), length(x$after))
+  model_steps_printer(exprs, schedule)
 }

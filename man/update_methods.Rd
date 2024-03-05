@@ -2,11 +2,14 @@
 % Please edit documentation in R/formula_list_generators.R
 \name{update_methods}
 \alias{update_methods}
+\alias{NoUpdateMethod}
 \alias{EulerUpdateMethod}
 \alias{RK4UpdateMethod}
 \alias{EulerMultinomialUpdateMethod}
 \title{Update Methods}
 \usage{
+NoUpdateMethod(change_model)
+
 EulerUpdateMethod(change_model, existing_global_names = character())
 
 RK4UpdateMethod(change_model)
@@ -22,6 +25,8 @@ and \code{after} expression lists.
 }
 \section{Functions}{
 \itemize{
+\item \code{EulerUpdateMethod()}: Create expression lists for taking Euler steps.
+
 \item \code{RK4UpdateMethod()}: Create expression lists for solving ODEs using
 Runge Kutta 4.
 

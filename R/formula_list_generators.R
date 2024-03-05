@@ -124,6 +124,9 @@ ChangeComponent = function() {
   self$flow_frame = function() empty_frame("size", "change", "rate")
   
   self$user_formulas = function() list()
+  
+  self$string = function() "Abstract change component"
+  
   return_object(self, "ChangeComponent")
 }
 
@@ -147,6 +150,7 @@ ChangeComponent = function() {
 ##' @export
 SimpleChangeModel = function(before = list(), during = list(), after = list()) {
   self = ChangeModel()
+  
   self$before = before
   self$during = during
   self$after = after
@@ -158,20 +162,25 @@ SimpleChangeModel = function(before = list(), during = list(), after = list()) {
   ## at the beginning or the end of the during list
   head_indices = tail_indices = integer()
   is_formula = self$change_classes() == "Formula"
-  if (length(is_formula) > 0L) {
+  if (all(is_formula)) {
+    head_indices = seq_along(is_formula)
+  }
+  else if (length(is_formula) > 0L) {
     if (isTRUE(head(is_formula, 1L))) {
-      head_indices = seq_len(which.min(is_formula) - 1L)
+      first_non_formula = which.min(is_formula)
+      head_indices = seq_len(first_non_formula - 1L)
     }
     if (isTRUE(tail(is_formula, 1L))) {
       tail_indices = length(is_formula) - ((which.min(rev(is_formula)) - 1L):1) + 1L
     }
-  }
-  if (sum(is_formula) > (length(head_indices) + length(tail_indices))) {
-    warning("Raw formula-valued expressions were inserted between flow-based expressions. These raw formulas will be ignored. Please collect raw formulas at the start or end of the during list")
+    if (sum(is_formula) > (length(head_indices) + length(tail_indices))) {
+      warning("Raw formula-valued expressions were inserted between flow-based expressions. These raw formulas will be ignored. Please collect raw formulas at the start or end of the during list")
+    }
   }
   self$.before_flows = self$user_formulas()[head_indices]
   self$.after_state = self$user_formulas()[tail_indices]
   
+  self$no_change_components = function() all(self$change_classes() == "Formula")
   
   self$before_flows = function() {
     unlist(self$.before_flows, recursive = FALSE, use.names = FALSE)
@@ -199,6 +208,19 @@ SimpleChangeModel = function(before = list(), during = list(), after = list()) {
   self$after_loop = function() self$after
   
   return_object(self, "SimpleChangeModel")
+}
+
+AllFormulaChangeModel = function(before = list(), during = list(), after = list()) {
+  self = ChangeModel()
+  self$before = before
+  self$during = during
+  self$after = after
+  
+  self$before_loop = function() self$before
+  self$before_flows = function() self$during
+  self$after_loop = function() self$after
+  
+  return_object(self, "AllFormulaChangeModel")
 }
 
 ##' @export
@@ -263,10 +285,27 @@ mp_rk4.TMBModelSpec = function(model) model$change_update_method("rk4")
 ##' @export
 mp_euler_multinomial.TMBModelSpec = function(model) model$change_update_method("euler_multinomial")
 
-get_state_update_class = function(state_update) {
+
+get_state_update_type = function(state_update_type, change_model) {
+  if (inherits(change_model, "AllFormulaChangeModel")) return("no")
+  state_update_type
+}
+get_state_update_method = function(state_update, change_model) {
+  if (inherits(change_model, "AllFormulaChangeModel")) {
+    return(NoUpdateMethod(change_model))
+  }
   cls_nm = sprintf("%sUpdateMethod", var_case_to_cls_case(state_update))
   if (state_update == "rk4") cls_nm = "RK4UpdateMethod"
-  get(cls_nm)
+  get(cls_nm)(change_model)
+}
+get_change_model = function(before, during, after) {
+  valid_before = all(vapply(before, is_two_sided, logical(1L)))
+  if (!valid_before) stop("The before argument must be all two-sided formulas.")
+  valid_after = all(vapply(after, is_two_sided, logical(1L)))
+  if (!valid_after) stop("The after argument must be all two-sided formulas.")
+  any_change_components = any(vapply(during, inherits, logical(1L), "ChangeComponent"))
+  if (any_change_components) return(SimpleChangeModel(before, during, after))
+  AllFormulaChangeModel(before, during, after)
 }
 
 ##' Update Methods
@@ -277,6 +316,17 @@ get_state_update_class = function(state_update) {
 ##' @param change_model An object of class `ChangeModel`.
 ##' @name update_methods
 
+
+NoUpdateMethod = function(change_model) {
+  self = UpdateMethod()
+  self$change_model = change_model 
+  self$before = function() self$change_model$before_loop()
+  self$during = function() self$change_model$before_flows()
+  self$after = function() self$change_model$after_loop()
+  return_object(self, "NoUpdateMethod")
+}
+
+
 ##' @describeIn update_methods Create expression lists for taking Euler steps.
 ##' @export
 EulerUpdateMethod = function(change_model, existing_global_names = character()) {
@@ -284,7 +334,7 @@ EulerUpdateMethod = function(change_model, existing_global_names = character()) 
   self$change_model = change_model
   
   ## nb: euler method requires no additional names from the spec
-  self$existing_global_names = existing_global_names
+  #self$existing_global_names = existing_global_names
   
   
   self$before = function() self$change_model$before_loop()
@@ -425,13 +475,17 @@ EulerMultinomialUpdateMethod = function(change_model) {
 #' (Currently only (1) is implemented)
 #' 
 #' @export
-mp_per_capita_flow = function(from, to, rate) PerCapitaFlow(from, to, rate)
+mp_per_capita_flow = function(from, to, rate) {
+  call_string = deparse(match.call())
+  PerCapitaFlow(from, to, rate, call_string)
+}
 
-PerCapitaFlow = function(from, to, rate) {
+PerCapitaFlow = function(from, to, rate, call_string) {
   self = ChangeComponent()
   self$from = from
   self$to = to
   self$rate = rate
+  self$call_string = call_string
   self$change_frame = function() {
     data.frame(
         state = c(self$from, self$to)
@@ -445,6 +499,7 @@ PerCapitaFlow = function(from, to, rate) {
       , rate = rhs_char(self$rate)
     )
   }
+  self$string = function() self$call_string
   return_object(self, "PerCapitaFlow")
 }
 

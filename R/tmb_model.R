@@ -147,18 +147,10 @@ TMBModel = function(
     )
   }
   self$param_arg = function() {
-    p = list(
+    list(
       params = self$params$vector(),
       random = self$random$vector()
     )
-    
-    ## FIXME: need a dummy parameter if the model has not
-    ## yet been parameterized. is there a more TMB-ish
-    ## way to do this?
-    if ((length(p$params) == 0L) & isTRUE(getOption("macpan2_tmb_derivs"))) {
-      p$params = 0
-    } 
-    p
   }
   self$random_arg = function() {
     if (length(self$random$vector()) == 0L) return(NULL)
@@ -167,20 +159,18 @@ TMBModel = function(
   self$make_ad_fun_arg = function(
         tmb_cpp = getOption("macpan2_dll")
       , verbose = getOption("macpan2_verbose")
-      , tmb_derivs = getOption("macpan2_tmb_derivs")
     ) {
-    l = list(
-        data = self$data_arg(),
-        parameters = self$param_arg(),
-        random = self$random_arg(),
-        DLL = tmb_cpp,
-        silent = !verbose
+    params = self$param_arg()
+    if (getOption("macpan2_tmb_type") == "Fun") params$params = numeric()
+    list(
+        data = self$data_arg()
+      , parameters = params
+      , random = self$random_arg()
+      , DLL = tmb_cpp
+      , silent = !verbose
+      , type = getOption("macpan2_tmb_type")
+      , checkParameterOrder = isTRUE(getOption("macpan2_tmb_check"))
     )
-    if (!isTRUE(tmb_derivs)) {
-      l$checkParameterOrder = FALSE
-      l$type = "Fun"
-    }
-    l
   }
   self$ad_fun = function(
         tmb_cpp = getOption("macpan2_dll")
@@ -370,6 +360,17 @@ mp_trajectory_ensemble.TMBCalibrator = function(model, n, probs = c(0.025, 0.975
 ## not ready to export yet because we are not sure how to construct a single
 ## ad_fun that works both with process error simulation and deterministic 
 ## trajectory matching
+
+
+##' Random Trajectory Simulations
+##' 
+##' @param n Number of random trajectories to simulate.
+##' @param probs Numeric vector of probabilities corresponding to quantiles for 
+##' summarizing the results over the random realizations.
+##' 
+##' @describeIn mp_trajectory Generate quantiles over `n` realizations of 
+##' the trajectory. Instead of a `value` column in the output data frame, there
+##' is one column for each of the quantiles defined in `probs`.
 ##' @export
 mp_trajectory_sim = function(model, n, probs = c(0.025, 0.25, 0.5, 0.75, 0.975)) {
   UseMethod("mp_trajectory_sim")

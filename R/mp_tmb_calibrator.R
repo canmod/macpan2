@@ -75,8 +75,9 @@ mp_tmb_calibrator = function(spec, data
   ## updated when non-character inputs are allowed)
   force(outputs)
   
-  ## copy the spec and update defaults
-  cal_spec = spec$copy()
+  ## copy the spec, expanding to apply state update methods
+  ## (e.g. euler, rk4, euler_multinomial), and update defaults
+  cal_spec = spec$expand()
   check_default_updates(cal_spec, default)
   cal_spec = mp_tmb_update(cal_spec, default = default)
   
