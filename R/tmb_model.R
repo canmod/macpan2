@@ -162,12 +162,16 @@ TMBModel = function(
         tmb_cpp = getOption("macpan2_dll")
       , verbose = getOption("macpan2_verbose")
     ) {
+    params = self$param_arg()
+    if (getOption("macpan2_tmb_type") == "Fun") params$params = numeric()
     list(
-        data = self$data_arg(),
-        parameters = self$param_arg(),
-        random = self$random_arg(),
-        DLL = tmb_cpp,
-        silent = !verbose
+        data = self$data_arg()
+      , parameters = params
+      , random = self$random_arg()
+      , DLL = tmb_cpp
+      , silent = !verbose
+      , type = getOption("macpan2_tmb_type")
+      , checkParameterOrder = isTRUE(getOption("macpan2_tmb_check"))
     )
   }
   self$ad_fun = function(
