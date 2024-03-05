@@ -105,17 +105,59 @@ mp_tmb_calibrator = function(spec, data
   ## TODO: handle likelihood trajectories
   
   ## add time-varying parameters
-  cal_spec = mp_tmb_insert(cal_spec
-    , phase = "during"
-    , at = 1L
-    , expressions = tv$var_update_exprs()
-    , default = globalize(tv, "time_var")
-    , integers = c(
-        globalize(tv, "change_points")
-      , globalize(tv, "change_pointer")
+  if (tv$type() == "piecewise") {
+    cal_spec = mp_tmb_insert(cal_spec
+      , phase = "during"
+      , at = 1L
+      , expressions = tv$var_update_exprs()
+      , default = globalize(tv, "time_var")
+      , integers = c(
+          globalize(tv, "change_points")
+        , globalize(tv, "change_pointer")
+      )
+      , must_not_save = names(globalize(tv, "time_var"))
     )
-    , must_not_save = names(globalize(tv, "time_var"))
-  )
+  } else if (tv$type() == "smooth") {
+    cal_spec = mp_tmb_insert(cal_spec
+      , phase = "before"
+      , at = Inf
+      , expressions = tv$before_loop()
+      , default = c(
+          globalize(tv, "time_var")
+        , globalize(tv, "values_var")
+        , globalize(tv, "outputs_var")
+      )
+      , integers = c(
+          globalize(tv, "row_indexes")
+        , globalize(tv, "col_indexes")
+      )
+      , must_not_save = c(
+          names(globalize(tv, "time_var"))
+        , names(globalize(tv, "values_var"))
+        , names(globalize(tv, "outputs_var"))
+      )
+    )
+    cal_spec = mp_tmb_insert(cal_spec
+      , phase = "during"
+      , at = 1L
+      , expressions = tv$var_update_exprs()
+    )
+  }
+  #  self$time_var = function() {
+  #   setNames(list(self$initial_weights), self$par_name)
+  # }
+  # self$values_var = function() {
+  #   setNames(list(self$rbf_data$values), self$par_name)
+  # }
+  # self$outputs_var = function() {
+  #   setNames(list(self$initial_outputs), self$par_name)
+  # }
+  # self$row_indexes = function() {
+  #   setNames(list(as.integer(self$rbf_data$row_index)), self$par_name)
+  # }
+  # self$col_indexes = function() {
+  #   setNames(list(as.integer(self$rbf_data$col_index)), self$par_name)
+  # }
   
   ## add parameter transformations
   cal_spec = mp_tmb_insert(cal_spec
@@ -124,7 +166,7 @@ mp_tmb_calibrator = function(spec, data
     , expressions = par$inv_trans_exprs()
     , default = globalize(par, "trans_vars")
   )
-  
+
   cal_sim = cal_spec$simulator_fresh(
       time_steps = struc$time_steps
     , outputs = outputs
@@ -330,6 +372,9 @@ TMBTrajAbstract = function() {
 TMBTVAbstract = function() {
   self = NameHandlerAbstract()
   
+  self$before_loop = function() list()
+  self$after_loop = function() list()
+  
   ## List with the values of each 
   ## time varying parameter at the change points. The 
   ## names of the list are the time-varying matrices
@@ -349,8 +394,8 @@ TMBTVAbstract = function() {
   
   ## data frames describing the fixed and random effects corresponding
   ## to time-varying parameters
-  tv_params_frame = function() self$empty_params_frame
-  tv_random_frame = function() self$empty_params_frame
+  self$tv_params_frame = function(tv_pars) self$empty_params_frame
+  self$tv_random_frame = function() self$empty_params_frame
   
   return_object(self, "TMBTVAbstract")
 }
@@ -397,6 +442,7 @@ TMBTV.character = function(
   self = TMBTVAbstract()
   self$existing_global_names = existing_global_names
   self$spec = spec
+  self$type = function() "piecewise"
   
   ## internal data structure:
   ## assumes tv is a character vector
@@ -485,8 +531,24 @@ TMBTV.character = function(
   return_object(self, "TMBTV")
 }
 
-TMBTVRadial = function(
-      tv = character()
+#' @export
+mp_rbf = function(tv, dimension, initial_weights, seed = 1L) {
+  if (missing(initial_weights)) {
+    set.seed(seed)
+    initial_weights = rnorm(dimension, sd = 0.01)
+  }
+  if (length(initial_weights) != dimension) {
+    stop("The `initial_weights` vector must be of length `dimension`.")
+  }
+  self = Base()
+  self$tv = tv
+  self$dimension = dimension
+  self$initial_weights = initial_weights
+  return_object(self, "RBF")
+}
+
+TMBTV.RBF = function(
+      tv
     , struc
     , spec
     , existing_global_names = character()
@@ -494,89 +556,81 @@ TMBTVRadial = function(
   self = TMBTVAbstract()
   self$existing_global_names = existing_global_names
   self$spec = spec
+  self$type = function() "smooth"
+   # cal_spec = mp_tmb_insert(cal_spec
+   #    , phase = "before"
+   #    , at = Inf
+   #    , expressions = tv$before_loop()
+   #    , default = globalize(tv, "time_var")
+   #    , integers = globalize(tv, "indexes")
+   #    , must_not_save = names(globalize(tv, "time_var"))
+   #  )
+   #  cal_spec = mp_tmb_insert(cal_spec
+   #    , phase = "during"
+   #    , at = 1L
+   #    , expressions = tv$var_update_exprs()
+   #  )
   
-  ## internal data structure:
-  ## assumes tv is a character vector
-  ## of names identifying matrices
-  ## that give piece-wise time variation
-  self$tv_list = struc$matrix_list[tv]
-  for (p in names(self$tv_list)) {
-    self$tv_list[[p]] = rename_synonyms(self$tv_list[[p]]
-      , mat = c("matrix", "Matrix", "mat", "Mat", "variable", "var", "Variable", "Var")
-      , row = c("row", "Row")
-      , col = c("col", "Col", "column", "Column")
-      , default = c("value", "Value", "val", "Val", "default", "Default")
-    )
-    if (isTRUE(!any(self$tv_list[[p]]$time_ids == 0))) {
-      self$tv_list[[p]] = add_row(self$tv_list[[p]]
-        , mat = p
-        , row = 0L
-        , col = 0L
-        , time_ids = 0L
-        , default = self$spec$default[[p]]
-      )
-    }
-  }
-  
-  self$time_var = function() lapply(self$tv_list, getElement, "default")
-  self$change_points = function() lapply(self$tv_list, getElement, "time_ids")
-  self$tv_params_frame = function(tv_par_mat_nms) {
-    tv = self$time_var()
-    if (length(tv) == 0L) {
-      cols = c("mat", "row", "col", "default")
-      return(empty_frame(cols))
-    }
-    l = list()
-    time_var_mats = globalize(self, "time_var")
-    tv_mat_nms = names(self$tv_list)
-    for (i in seq_along(self$tv_list)) {
-      if (tv_mat_nms[i] %in% tv_par_mat_nms) { ## only add tv mats that are pars
-        l = append(l, list(data.frame(
-            mat = names(time_var_mats)[[i]]
-          , row = seq_along(self$time_var()[[i]]) - 1L
-          , col = 0L
-          , default = time_var_mats[[i]]
-        )))
-      }
-    }
-    bind_rows(l)
-  }
-  self$change_pointer = function() {
-    ## Depended upon to return a list if length-one
-    ## integer vectors with a single zero. Names of 
-    ## the list are the time-varying matrices in the
-    ## spec. 
-    nms = names(self$change_points())
-    (nms
-      |> zero_vector()
-      |> as.integer()
-      |> as.list()
-      |> setNames(nms)
+  self$rbf_data = sparse_rbf_notation(struc$time_steps, tv$dimension, zero_based = TRUE)
+  self$initial_outputs = c(self$rbf_data$M %*% tv$initial_weights)
+  self$initial_weights = tv$initial_weights
+  self$dimension = tv$dimension
+  self$par_name = tv$tv
+  self$local_names = function() {
+    list(
+        outputs = sprintf("rbf_outputs_%s", self$par_name)
+      , values = sprintf("rbf_values_%s", self$par_name)
+      , weights = sprintf("rbf_weights_%s", self$par_name)
+      , rows = sprintf("rbf_rows_%s", self$par_name)
+      , cols = sprintf("rbf_cols_%s", self$par_name)
     )
   }
-  
-  ## define local and external names ... to prepare
-  ## for creating expressions, which require global,
-  ## not local names
+  self$time_var = function() {
+    setNames(list(self$initial_weights), self$par_name)
+  }
+  self$values_var = function() {
+    setNames(list(self$rbf_data$values), self$par_name)
+  }
+  self$outputs_var = function() {
+    setNames(list(self$initial_outputs), self$par_name)
+  }
+  self$row_indexes = function() {
+    setNames(list(as.integer(self$rbf_data$row_index)), self$par_name)
+  }
+  self$col_indexes = function() {
+    setNames(list(as.integer(self$rbf_data$col_index)), self$par_name)
+  }
+  self$before_loop = function() {
+    nms = self$global_names()
+    s = sprintf("%s ~ group_sums(%s * %s[%s], %s, %s)"
+      , nms$outputs_var, nms$values_var, nms$time_var, nms$col_indexes, nms$row_indexes, nms$outputs_var
+    )
+    list(as.formula(s))
+  }
+  self$var_update_exprs = function() {
+    nms = self$global_names()
+    s = sprintf("%s ~ exp(%s[time_step(1)])", self$par_name, nms$outputs_var)
+    list(as.formula(s))
+  }
   self$local_names = function() {
     make_names_list(self
-      , c("time_var", "change_points", "change_pointer")
+      , c("time_var", "values_var", "outputs_var", "row_indexes", "col_indexes")
     )
   }
-    
-  ## produce expressions
-  self$var_update_exprs = function() {
-    ## Depended upon to return a list of expressions returning
-    ## the value of the time-varying parameter at each time step.
-    ## The names of this list is the time-varying matrix.
+  ## data frames describing the fixed and random effects corresponding
+  ## to time-varying parameters
+  # self$tv_params_frame = function(tv_par_mat_nms) {
+  #   self$empty_params_frame
+  # }
+  self$tv_params_frame = function(tv_par_mat_nms) {
+    cols = c("mat", "row", "col", "default")
     nms = self$global_names()
-    lhs = names(self$tv_list) ## original spec parameter names
-    rhs = sprintf("time_var(%s, %s, %s)"
-      , nms$time_var
-      , nms$change_points
-      , nms$change_pointer
+    data.frame(
+        mat = nms$time_var
+      , row = seq_len(self$dimension) - 1L
+      , col = 0
+      , default = self$initial_weights
     )
-    mapply(two_sided, lhs, rhs, SIMPLIFY = FALSE)
   }
   
   return_object(self, "TMBTV")
@@ -702,6 +756,7 @@ TMBPar = function(
       , self$traj$distr_params_frame()
     )
   }
+  self$random_frame = function() self$tv$tv_random_frame()
   
   self$check_assumptions = function(orig_spec, data_struc) {
     pnms = union(self$par, self$tv_par)

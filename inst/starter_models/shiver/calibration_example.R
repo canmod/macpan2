@@ -1,5 +1,3 @@
-print("here")
-
 library(macpan2)
 library(ggplot2)
 library(dplyr)
