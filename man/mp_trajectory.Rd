@@ -4,6 +4,7 @@
 \alias{mp_trajectory}
 \alias{mp_trajectory_sd}
 \alias{mp_trajectory_ensemble}
+\alias{mp_trajectory_sim}
 \title{Trajectory}
 \usage{
 mp_trajectory(model)
@@ -11,6 +12,8 @@ mp_trajectory(model)
 mp_trajectory_sd(model, conf.int = FALSE, conf.level = 0.95)
 
 mp_trajectory_ensemble(model, n, probs = c(0.025, 0.975))
+
+mp_trajectory_sim(model, n, probs = c(0.025, 0.25, 0.5, 0.75, 0.975))
 }
 \arguments{
 \item{model}{A dynamical model simulator produced by
@@ -22,9 +25,10 @@ mp_trajectory_ensemble(model, n, probs = c(0.025, 0.975))
 used?  For example, the default of \code{0.95} corresponds to 95\% confidence
 intervals.}
 
-\item{n}{Number of samples used in \code{mp_trajectory_ensemble}.}
+\item{n}{Number of random trajectories to simulate.}
 
-\item{probs}{What quantiles should be returned by \code{mp_trajectory_ensemble}.}
+\item{probs}{Numeric vector of probabilities corresponding to quantiles for
+summarizing the results over the random realizations.}
 }
 \description{
 Return simulations of the trajectory of the output
@@ -42,5 +46,9 @@ distribution of the fitted parameters, and generating one trajectory for
 each of these samples. The quantiles of the empirical distribution of these
 trajectories can be used to produce a confidence interval for the
 fitted trajectory.
+
+\item \code{mp_trajectory_sim()}: Generate quantiles over \code{n} realizations of
+the trajectory. Instead of a \code{value} column in the output data frame, there
+is one column for each of the quantiles defined in \code{probs}.
 
 }}

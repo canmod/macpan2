@@ -1174,43 +1174,48 @@ public:
             // #' ```
             // #'
             case MP2_ADD: // +
-#ifdef MP_VERBOSE
+                #ifdef MP_VERBOSE
                 std::cout << args[0] << " + " << args[1] << " = " << args[0] + args[1] << std::endl
                           << std::endl;
-#endif
-                return args[0] + args[1];
+                #endif
+                if (table_n[row] == 1) { 
+                    return args[0]; // unary +  (in case someone puts a plus sign at the beginning of an expression)
+                } else {
+                    return args[0] + args[1]; // binary +
+                }
             case MP2_SUBTRACT: // -
-#ifdef MP_VERBOSE
+                #ifdef MP_VERBOSE
                 if (table_n[row] == 1)
                     std::cout << "Unary - " << args[0] << std::endl
                               << std::endl;
                 else
                     std::cout << args[0] << " - " << args[1] << " = " << args[0] - args[1] << std::endl
                               << std::endl;
-#endif
-                if (table_n[row] == 1)
-                    return -args[0];
-                else
-                    return args[0] - args[1];
+                #endif
+                if (table_n[row] == 1) {
+                    return -args[0]; // unary -
+                } else {
+                    return args[0] - args[1]; // binary -
+                }
             case MP2_MULTIPLY: // *
-#ifdef MP_VERBOSE
+                #ifdef MP_VERBOSE
                 std::cout << args[0] << " .* " << args[1] << " = " << args[0].cwiseProduct(args[1]) << std::endl
                           << std::endl;
-#endif
+                #endif
                 // return args[0].array()*args[1].array();   // doesn't work
                 return args[0].cwiseProduct(args[1]);
             case MP2_DIVIDE: // /
-#ifdef MP_VERBOSE
+                #ifdef MP_VERBOSE
                 std::cout << args[0] << " ./ " << args[1] << " = " << args[0].array() / args[1].array() << std::endl
                           << std::endl;
-#endif
+                #endif
                 // return args[0].array()/args[1].array();  // doesn't work
                 return args[0].cwiseQuotient(args[1]);
             case MP2_POWER: // ^
-#ifdef MP_VERBOSE
+                #ifdef MP_VERBOSE
                 std::cout << args[0] << " ^ " << args[1] << " = " << pow(args[0].array(), args[1].coeff(0, 0)).matrix() << std::endl
                           << std::endl;
-#endif
+                #endif
                 return pow(args[0].array(), args[1].array()).matrix();
                 // return args[0].pow(args[1].coeff(0,0));
 

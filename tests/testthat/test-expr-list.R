@@ -21,9 +21,9 @@ test_that("formula validity is enforced", {
   expect_error(
     macpan2:::TMBModel(
       init_mats = macpan2:::MatsList(a = 1),
-      expr_list =mp_tmb_expr_list(before = list( ~ 1))
+      expr_list = mp_tmb_expr_list(before = list( ~ 1))
     ),
-    "Model expressions must be two-sided"
+    regexp = "not all formulas are two-sided"
   )
 })
 

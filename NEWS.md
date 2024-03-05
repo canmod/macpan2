@@ -1,4 +1,4 @@
-# macpan2 1.2.0
+# macpan2 1.3.0
 
 ## Breaking Changes
 
@@ -7,9 +7,12 @@
 
 ## New Features
 
+* Define explicit state variable updates, with the choice of applying `mp_euler`,
+`mp_rk4`, or `mp_euler_multinomial` update methods, the latter generating 
+process error.
 * New stochasticity engine functions `rbinom` and `reulermultinom`.
 * `mp_tmb_fixef_cov` function for getting the covariance matrix of fixed effects.
-* `mp_trajectory_ensemble` function for summarizing random variation in trajectories.
+* `mp_trajectory_ensemble` and `mp_trajectory_sim` functions for summarizing random variation in trajectories.
 * Unpacking assignment in the engine. This means that you can do things like `c(x, y) ~ z`, where the values in `z` are assigned to elements in `x`, `y`, etc... in row-major order.
 * `to_name_pairs` function for returning all pairwise dot-concatenations of the elements of a character vector without dots.
 * `to_values` function for extracting the column from a data frame with only a single numerical column and turning numeric matrices and arrays with dimnames into a flattened numeric vector with labels produced by appropriately dot-concatenating the dimnames.

@@ -75,8 +75,9 @@ mp_tmb_calibrator = function(spec, data
   ## updated when non-character inputs are allowed)
   force(outputs)
   
-  ## copy the spec and update defaults
-  cal_spec = spec$copy()
+  ## copy the spec, expanding to apply state update methods
+  ## (e.g. euler, rk4, euler_multinomial), and update defaults
+  cal_spec = spec$expand()
   check_default_updates(cal_spec, default)
   cal_spec = mp_tmb_update(cal_spec, default = default)
   
@@ -104,17 +105,44 @@ mp_tmb_calibrator = function(spec, data
   ## TODO: handle likelihood trajectories
   
   ## add time-varying parameters
-  cal_spec = mp_tmb_insert(cal_spec
-    , phase = "during"
-    , at = 1L
-    , expressions = tv$var_update_exprs()
-    , default = globalize(tv, "time_var")
-    , integers = c(
-        globalize(tv, "change_points")
-      , globalize(tv, "change_pointer")
+  if (tv$type() == "piecewise") {
+    cal_spec = mp_tmb_insert(cal_spec
+      , phase = "during"
+      , at = 1L
+      , expressions = tv$var_update_exprs()
+      , default = globalize(tv, "time_var")
+      , integers = c(
+          globalize(tv, "change_points")
+        , globalize(tv, "change_pointer")
+      )
+      , must_not_save = names(globalize(tv, "time_var"))
     )
-    , must_not_save = names(globalize(tv, "time_var"))
-  )
+  } else if (tv$type() == "smooth") {
+    cal_spec = mp_tmb_insert(cal_spec
+      , phase = "before"
+      , at = Inf
+      , expressions = tv$before_loop()
+      , default = c(
+          globalize(tv, "time_var")
+        , globalize(tv, "values_var")
+        , globalize(tv, "outputs_var")
+      )
+      , integers = c(
+          globalize(tv, "row_indexes")
+        , globalize(tv, "col_indexes")
+      )
+      , must_not_save = c(
+          names(globalize(tv, "time_var"))
+        , names(globalize(tv, "values_var"))
+        , names(globalize(tv, "outputs_var"))
+      )
+    )
+    cal_spec = mp_tmb_insert(cal_spec
+      , phase = "during"
+      , at = 1L
+      , expressions = tv$var_update_exprs()
+    )
+  }
   
   ## add parameter transformations
   cal_spec = mp_tmb_insert(cal_spec
@@ -123,7 +151,7 @@ mp_tmb_calibrator = function(spec, data
     , expressions = par$inv_trans_exprs()
     , default = globalize(par, "trans_vars")
   )
-  
+
   cal_sim = cal_spec$simulator_fresh(
       time_steps = struc$time_steps
     , outputs = outputs
@@ -329,6 +357,9 @@ TMBTrajAbstract = function() {
 TMBTVAbstract = function() {
   self = NameHandlerAbstract()
   
+  self$before_loop = function() list()
+  self$after_loop = function() list()
+  
   ## List with the values of each 
   ## time varying parameter at the change points. The 
   ## names of the list are the time-varying matrices
@@ -348,8 +379,8 @@ TMBTVAbstract = function() {
   
   ## data frames describing the fixed and random effects corresponding
   ## to time-varying parameters
-  tv_params_frame = function() self$empty_params_frame
-  tv_random_frame = function() self$empty_params_frame
+  self$tv_params_frame = function(tv_pars) self$empty_params_frame
+  self$tv_random_frame = function() self$empty_params_frame
   
   return_object(self, "TMBTVAbstract")
 }
@@ -383,8 +414,12 @@ TMBParAbstract = function() {
   return_object(self, "TMBParAbstract")
 }
 
-TMBTV = function(
-      tv = character()
+TMBTV = function(tv, struc, spec, existing_global_names = character()) {
+  UseMethod("TMBTV")
+}
+
+TMBTV.character = function(
+      tv
     , struc
     , spec
     , existing_global_names = character()
@@ -392,6 +427,7 @@ TMBTV = function(
   self = TMBTVAbstract()
   self$existing_global_names = existing_global_names
   self$spec = spec
+  self$type = function() "piecewise"
   
   ## internal data structure:
   ## assumes tv is a character vector
@@ -479,6 +515,127 @@ TMBTV = function(
   
   return_object(self, "TMBTV")
 }
+
+
+#' Fit a Time-Varying Parameter with Radial Basis Functions
+#' 
+#' Pass the output of this function to the `tv` argument of 
+#' \code{\link{mp_tmb_calibrator}} to model time variation of 
+#' a parameter with flexible radial basis functions.
+#' 
+#' @param tv String giving the name of the parameter.
+#' @param dimension Number of bases.
+#' @param initial_weights Optional vector with `dimensions` elements. These
+#' are the parameters that are fitted and determine how `tv` varies with
+#' time.
+#' @param seed Optional random seed to use to generate the `initial_weights`
+#' if they are not provided.
+#' 
+#' @export
+mp_rbf = function(tv, dimension, initial_weights, seed = 1L) {
+  if (missing(initial_weights)) {
+    set.seed(seed)
+    initial_weights = rnorm(dimension, sd = 0.01)
+  }
+  if (length(initial_weights) != dimension) {
+    stop("The `initial_weights` vector must be of length `dimension`.")
+  }
+  self = Base()
+  self$tv = tv
+  self$dimension = dimension
+  self$initial_weights = initial_weights
+  return_object(self, "RBF")
+}
+
+TMBTV.RBF = function(
+      tv
+    , struc
+    , spec
+    , existing_global_names = character()
+  ) {
+  self = TMBTVAbstract()
+  self$existing_global_names = existing_global_names
+  self$spec = spec
+  self$type = function() "smooth"
+   # cal_spec = mp_tmb_insert(cal_spec
+   #    , phase = "before"
+   #    , at = Inf
+   #    , expressions = tv$before_loop()
+   #    , default = globalize(tv, "time_var")
+   #    , integers = globalize(tv, "indexes")
+   #    , must_not_save = names(globalize(tv, "time_var"))
+   #  )
+   #  cal_spec = mp_tmb_insert(cal_spec
+   #    , phase = "during"
+   #    , at = 1L
+   #    , expressions = tv$var_update_exprs()
+   #  )
+  
+  self$rbf_data = sparse_rbf_notation(struc$time_steps, tv$dimension, zero_based = TRUE)
+  self$initial_outputs = c(self$rbf_data$M %*% tv$initial_weights)
+  self$initial_weights = tv$initial_weights
+  self$dimension = tv$dimension
+  self$par_name = tv$tv
+  self$local_names = function() {
+    list(
+        outputs = sprintf("rbf_outputs_%s", self$par_name)
+      , values = sprintf("rbf_values_%s", self$par_name)
+      , weights = sprintf("rbf_weights_%s", self$par_name)
+      , rows = sprintf("rbf_rows_%s", self$par_name)
+      , cols = sprintf("rbf_cols_%s", self$par_name)
+    )
+  }
+  self$time_var = function() {
+    setNames(list(self$initial_weights), self$par_name)
+  }
+  self$values_var = function() {
+    setNames(list(self$rbf_data$values), self$par_name)
+  }
+  self$outputs_var = function() {
+    setNames(list(self$initial_outputs), self$par_name)
+  }
+  self$row_indexes = function() {
+    setNames(list(as.integer(self$rbf_data$row_index)), self$par_name)
+  }
+  self$col_indexes = function() {
+    setNames(list(as.integer(self$rbf_data$col_index)), self$par_name)
+  }
+  self$before_loop = function() {
+    nms = self$global_names()
+    s = sprintf("%s ~ group_sums(%s * %s[%s], %s, %s)"
+      , nms$outputs_var, nms$values_var, nms$time_var, nms$col_indexes, nms$row_indexes, nms$outputs_var
+    )
+    list(as.formula(s))
+  }
+  self$var_update_exprs = function() {
+    nms = self$global_names()
+    s = sprintf("%s ~ exp(%s[time_step(1)])", self$par_name, nms$outputs_var)
+    list(as.formula(s))
+  }
+  self$local_names = function() {
+    make_names_list(self
+      , c("time_var", "values_var", "outputs_var", "row_indexes", "col_indexes")
+    )
+  }
+  ## data frames describing the fixed and random effects corresponding
+  ## to time-varying parameters
+  # self$tv_params_frame = function(tv_par_mat_nms) {
+  #   self$empty_params_frame
+  # }
+  self$tv_params_frame = function(tv_par_mat_nms) {
+    cols = c("mat", "row", "col", "default")
+    nms = self$global_names()
+    data.frame(
+        mat = nms$time_var
+      , row = seq_len(self$dimension) - 1L
+      , col = 0
+      , default = self$initial_weights
+    )
+  }
+  
+  return_object(self, "TMBTV")
+}
+
 
 TMBTraj = function(
         traj = character()
@@ -599,6 +756,7 @@ TMBPar = function(
       , self$traj$distr_params_frame()
     )
   }
+  self$random_frame = function() self$tv$tv_random_frame()
   
   self$check_assumptions = function(orig_spec, data_struc) {
     pnms = union(self$par, self$tv_par)
@@ -642,6 +800,18 @@ TMBPar = function(
 ## unless there are name conflicts and in that case returns
 ## slightly modified names that do not conflict with and of the
 ## names chosen by the user.
+## 
+## @param obj An oor-based object with a global_names method that returns 
+## a list of character vectors, each of which is associated with the 
+## method `type`.
+## @param type the name of an oor-based method in obj. this method must be
+## a no-op and return an object with names that can be set with setNames.
+## 
+## @examples
+## if sir is an object and pars is a no-op method returning a named object,
+## then one may replace sir$pars() for globalize(sir, "pars") and get 
+## the global names out
+## 
 globalize = function(obj, type) setNames(obj[[type]](), obj$global_names()[[type]])
 
 ## combines character vectors and turns them into a one-sided formula

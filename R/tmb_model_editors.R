@@ -71,7 +71,18 @@ mp_tmb_insert = function(model
   model$must_save  = unique(c(model$must_save, must_save))
   model$must_not_save  = unique(c(model$must_not_save, must_not_save))
   model$sim_exprs  = unique(c(model$sim_exprs, sim_exprs))
-  model
+  
+  mp_tmb_model_spec(
+      before = model$before
+    , during = model$during
+    , after = model$after
+    , default = model$default
+    , integers = model$integers
+    , must_save = model$must_save
+    , must_not_save = model$must_not_save
+    , sim_exprs = model$sim_exprs
+    , state_update = model$state_update
+  )
 }
 
 
@@ -95,7 +106,18 @@ mp_tmb_update = function(model
   model$must_save  = unique(c(model$must_save, must_save))
   model$must_not_save  = unique(c(model$must_not_save, must_not_save))
   model$sim_exprs  = unique(c(model$sim_exprs, sim_exprs))
-  model
+  
+  mp_tmb_model_spec(
+      before = model$before
+    , during = model$during
+    , after = model$after
+    , default = model$default
+    , integers = model$integers
+    , must_save = model$must_save
+    , must_not_save = model$must_not_save
+    , sim_exprs = model$sim_exprs
+    , state_update = model$state_update
+  )
 }
 
 check_default_updates = function(model, new_defaults) {
