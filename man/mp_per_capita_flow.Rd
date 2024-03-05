@@ -2,7 +2,7 @@
 % Please edit documentation in R/formula_list_generators.R
 \name{mp_per_capita_flow}
 \alias{mp_per_capita_flow}
-\title{Per-Capita Flow}
+\title{Per-Capita Flow (Experimental)}
 \usage{
 mp_per_capita_flow(from, to, rate)
 }
@@ -13,12 +13,10 @@ originates.}
 \item{to}{String giving the name of the compartment to which the flow is
 going.}
 
-\item{rate}{Can be one of three formats: (1) a two-sided formula with the
-left-hand-side and right-hand-side giving the name and expression for the
-per-capita rate of flow from \code{from} to \code{to}, (2) a one-sided formula...
-(3) a string giving the name of a variable that contains the per-capita flow.
-(Currently only (1) is implemented)}
+\item{rate}{A two-sided formula with the left-hand-side giving the name of
+the absolute flow rate per unit time-step and the right-hand-side giving
+an expression for the per-capita rate of flow from \code{from} to \code{to}.}
 }
 \description{
-Per-Capita Flow
+Per-Capita Flow (Experimental)
 }

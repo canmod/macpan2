@@ -290,7 +290,7 @@ Caution: Ben, what is that paper that you always recommend about being careful w
 ## Learning the Functional form of Time Variation in Transmission (New!)
 
 Let's get a bit more data to see two seasons.
-```{r}
+```{r, fig.width=7, fig.height=7}
 scarlet_fever_ontario = api_hook$filter(resource_type = "CANMOD CDI"
   , iso_3166_2 = "CA-ON"  ## get ontario data
   , time_scale = "wk"  ## weekly incidence data only 
@@ -323,7 +323,7 @@ print(head(observed_data))
 ```
 
 
-```{r}
+```{r, fig.width=7, fig.height=7}
 make_rbf_calibrator = function(dimension) {
   mp_tmb_calibrator(
       spec = sf_sir
@@ -356,44 +356,44 @@ plot_fit = function(cal_object) {
 }
 ```
 
-```{r}
+```{r, fig.width=7, fig.height=7}
 sir_cal = make_rbf_calibrator(dimension = 1)
 mp_optimize(sir_cal)
 plot_fit(sir_cal)
 ```
 
 
-```{r}
+```{r, fig.width=7, fig.height=7}
 sir_cal = make_rbf_calibrator(dimension = 2)
 mp_optimize(sir_cal)
 plot_fit(sir_cal)
 ```
 
-```{r}
+```{r, fig.width=7, fig.height=7}
 sir_cal = make_rbf_calibrator(dimension = 3)
 mp_optimize(sir_cal)
 plot_fit(sir_cal)
 ```
 
-```{r}
+```{r, fig.width=7, fig.height=7}
 sir_cal = make_rbf_calibrator(dimension = 4)
 mp_optimize(sir_cal)
 plot_fit(sir_cal)
 ```
 
-```{r}
+```{r, fig.width=7, fig.height=7}
 sir_cal = make_rbf_calibrator(dimension = 5)
 mp_optimize(sir_cal)
 plot_fit(sir_cal)
 ```
 
-```{r}
+```{r, fig.width=7, fig.height=7}
 sir_cal = make_rbf_calibrator(dimension = 6)
 mp_optimize(sir_cal)
 plot_fit(sir_cal)
 ```
 
-```{r}
+```{r, fig.width=7, fig.height=7}
 sir_cal = make_rbf_calibrator(dimension = 7)
 mp_optimize(sir_cal)
 plot_fit(sir_cal)

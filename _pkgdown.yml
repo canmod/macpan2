@@ -21,6 +21,7 @@ articles:
   - example_models
   - calibration
   - real_data
+  - state_updaters
 - title: Specs
   desc: Specification Documents
   contents:

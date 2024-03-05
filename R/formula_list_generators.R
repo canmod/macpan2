@@ -467,17 +467,15 @@ EulerMultinomialUpdateMethod = function(change_model) {
 
 # Change Components
 
-#' Per-Capita Flow
+#' Per-Capita Flow (Experimental)
 #' 
 #' @param from String giving the name of the compartment from which the flow
 #' originates.
 #' @param to String giving the name of the compartment to which the flow is
 #' going.
-#' @param rate Can be one of three formats: (1) a two-sided formula with the 
-#' left-hand-side and right-hand-side giving the name and expression for the 
-#' per-capita rate of flow from `from` to `to`, (2) a one-sided formula...
-#' (3) a string giving the name of a variable that contains the per-capita flow.
-#' (Currently only (1) is implemented)
+#' @param rate A two-sided formula with the left-hand-side giving the name of
+#' the absolute flow rate per unit time-step and the right-hand-side giving 
+#' an expression for the per-capita rate of flow from `from` to `to`.
 #' 
 #' @export
 mp_per_capita_flow = function(from, to, rate) {
