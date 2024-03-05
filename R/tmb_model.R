@@ -147,10 +147,18 @@ TMBModel = function(
     )
   }
   self$param_arg = function() {
-    list(
+    p = list(
       params = self$params$vector(),
       random = self$random$vector()
     )
+    
+    ## FIXME: need a dummy parameter if the model has not
+    ## yet been parameterized. is there a more TMB-ish
+    ## way to do this?
+    if (length(p$params) == 0L) {
+      p$params = 0
+    } 
+    p
   }
   self$random_arg = function() {
     if (length(self$random$vector()) == 0L) return(NULL)
@@ -168,8 +176,6 @@ TMBModel = function(
       , random = self$random_arg()
       , DLL = tmb_cpp
       , silent = !verbose
-      #, type = getOption("macpan2_tmb_type")
-      #, checkParameterOrder = isTRUE(getOption("macpan2_tmb_check"))
     )
   }
   self$ad_fun = function(
