@@ -566,9 +566,356 @@ consistent with our diagnosis of non-identifiability.</p>
 <div class="section level2">
 <h2 id="conclusions-and-cautions">Conclusions and Cautions<a class="anchor" aria-label="anchor" href="#conclusions-and-cautions"></a>
 </h2>
-<p>TODO: Ben, what is that paper that you always recommend about being
-careful when prior information is included without prior
+<p>Caution: Ben, what is that paper that you always recommend about
+being careful when prior information is included without prior
 uncertainty?</p>
+</div>
+<div class="section level2">
+<h2 id="learning-the-functional-form-of-time-variation-in-transmission-new">Learning the Functional form of Time Variation in Transmission
+(New!)<a class="anchor" aria-label="anchor" href="#learning-the-functional-form-of-time-variation-in-transmission-new"></a>
+</h2>
+<p>Let’s get a bit more data to see two seasons.</p>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">scarlet_fever_ontario</span> <span class="op">=</span> <span class="va">api_hook</span><span class="op">$</span><span class="fu">filter</span><span class="op">(</span>resource_type <span class="op">=</span> <span class="st">"CANMOD CDI"</span></span>
+<span>  , iso_3166_2 <span class="op">=</span> <span class="st">"CA-ON"</span>  <span class="co">## get ontario data</span></span>
+<span>  , time_scale <span class="op">=</span> <span class="st">"wk"</span>  <span class="co">## weekly incidence data only </span></span>
+<span>  , disease <span class="op">=</span> <span class="st">"scarlet-fever"</span></span>
+<span>  </span>
+<span>  <span class="co"># get data between 1929-08-01 and 1930-10-01</span></span>
+<span>  , period_end_date <span class="op">=</span> <span class="st">"1929-08-01/1931-10-01"</span>  </span>
+<span><span class="op">)</span></span>
+<span><span class="op">(</span><span class="va">scarlet_fever_ontario</span></span>
+<span>  <span class="op">|&gt;</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">period_mid_date</span>, <span class="va">cases_this_period</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Scarlet Fever Incidence in Ontario, Canada"</span><span class="op">)</span></span>
+<span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p><img src="real_data_files/figure-html/unnamed-chunk-19-1.png" width="700"></p>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">observed_data</span> <span class="op">=</span> <span class="op">(</span><span class="va">scarlet_fever_ontario</span></span>
+<span>  <span class="co">## select the variables to be modelled -- a time-series of case reports.</span></span>
+<span>  <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">period_end_date</span>, <span class="va">cases_this_period</span><span class="op">)</span></span>
+<span>  </span>
+<span>  <span class="co">## change the column headings so that they match the columns</span></span>
+<span>  <span class="co">## in the simulated trajectories.</span></span>
+<span>  <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>matrix <span class="op">=</span> <span class="st">"reports"</span><span class="op">)</span></span>
+<span>  <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/rename.html" class="external-link">rename</a></span><span class="op">(</span>value <span class="op">=</span> <span class="va">cases_this_period</span><span class="op">)</span></span>
+<span>  </span>
+<span>  <span class="co">## create a `time` column with the time-step IDs that will correspond</span></span>
+<span>  <span class="co">## to the time-steps in the simulation. this column heading also </span></span>
+<span>  <span class="co">## must match the column with the time-steps in the simulated trajectories</span></span>
+<span>  <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_along</a></span><span class="op">(</span><span class="va">period_end_date</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/engine_functions.html">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">observed_data</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 6 × 4</span></span></span>
+<span><span class="co">#&gt;   period_end_date value matrix   time</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> 1929-08-03         23 reports     1</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> 1929-08-10         27 reports     2</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> 1929-08-17         47 reports     3</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> 1929-08-24         24 reports     4</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> 1929-08-31         24 reports     5</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> 1929-09-07         45 reports     6</span></span></code></pre></div>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">make_rbf_calibrator</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">dimension</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="../reference/mp_tmb_calibrator.html">mp_tmb_calibrator</a></span><span class="op">(</span></span>
+<span>      spec <span class="op">=</span> <span class="va">sf_sir</span></span>
+<span>    , data <span class="op">=</span> <span class="va">observed_data</span></span>
+<span>    </span>
+<span>    <span class="co">## name the trajectory variable, with a name that</span></span>
+<span>    <span class="co">## is the same in both the spec and the data</span></span>
+<span>    , traj <span class="op">=</span> <span class="st">"reports"</span>  </span>
+<span>    , tv <span class="op">=</span> <span class="fu"><a href="../reference/mp_rbf.html">mp_rbf</a></span><span class="op">(</span><span class="st">"beta"</span>, <span class="va">dimension</span><span class="op">)</span></span>
+<span>    <span class="co">## fit the following parameters</span></span>
+<span>    , par <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"gamma"</span>, <span class="st">"I"</span>, <span class="st">"report_prob"</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">plot_fit</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">cal_object</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">fitted_data</span> <span class="op">=</span> <span class="fu"><a href="../reference/mp_trajectory.html">mp_trajectory_sd</a></span><span class="op">(</span><span class="va">cal_object</span>, conf.int <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span>  <span class="op">(</span><span class="va">observed_data</span></span>
+<span>    <span class="op">|&gt;</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>    <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">value</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">value</span><span class="op">)</span></span>
+<span>      , data <span class="op">=</span> <span class="va">fitted_data</span></span>
+<span>      , colour <span class="op">=</span> <span class="st">"red"</span></span>
+<span>    <span class="op">)</span></span>
+<span>    <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html" class="external-link">geom_ribbon</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">time</span>, ymin <span class="op">=</span> <span class="va">conf.low</span>, ymax <span class="op">=</span> <span class="va">conf.high</span><span class="op">)</span></span>
+<span>      , data <span class="op">=</span> <span class="va">fitted_data</span></span>
+<span>      , alpha <span class="op">=</span> <span class="fl">0.2</span></span>
+<span>      , colour <span class="op">=</span> <span class="st">"red"</span></span>
+<span>    <span class="op">)</span></span>
+<span>    <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sir_cal</span> <span class="op">=</span> <span class="fu">make_rbf_calibrator</span><span class="op">(</span>dimension <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span>
+<span><span class="co">#&gt; $par</span></span>
+<span><span class="co">#&gt;     params     params     params     params </span></span>
+<span><span class="co">#&gt;  1.1161463 88.4704036  0.8660326  0.1269302 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $objective</span></span>
+<span><span class="co">#&gt; [1] 2757.747</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $convergence</span></span>
+<span><span class="co">#&gt; [1] 1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $iterations</span></span>
+<span><span class="co">#&gt; [1] 133</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $evaluations</span></span>
+<span><span class="co">#&gt; function gradient </span></span>
+<span><span class="co">#&gt;      200      133 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $message</span></span>
+<span><span class="co">#&gt; [1] "function evaluation limit reached without convergence (9)"</span></span>
+<span><span class="fu">plot_fit</span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span></code></pre></div>
+<p><img src="real_data_files/figure-html/unnamed-chunk-21-1.png" width="700"></p>
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sir_cal</span> <span class="op">=</span> <span class="fu">make_rbf_calibrator</span><span class="op">(</span>dimension <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span>
+<span><span class="co">#&gt; $par</span></span>
+<span><span class="co">#&gt;      params      params      params      params      params </span></span>
+<span><span class="co">#&gt;  0.03614755 37.88296337 13.70413466 -1.73565077 -3.36834735 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $objective</span></span>
+<span><span class="co">#&gt; [1] 2769.557</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $convergence</span></span>
+<span><span class="co">#&gt; [1] 1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $iterations</span></span>
+<span><span class="co">#&gt; [1] 119</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $evaluations</span></span>
+<span><span class="co">#&gt; function gradient </span></span>
+<span><span class="co">#&gt;      200      120 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $message</span></span>
+<span><span class="co">#&gt; [1] "function evaluation limit reached without convergence (9)"</span></span>
+<span><span class="fu">plot_fit</span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span></code></pre></div>
+<p><img src="real_data_files/figure-html/unnamed-chunk-22-1.png" width="700"></p>
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sir_cal</span> <span class="op">=</span> <span class="fu">make_rbf_calibrator</span><span class="op">(</span>dimension <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
+<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
+<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
+<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
+<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
+<span><span class="co">#&gt; $par</span></span>
+<span><span class="co">#&gt;        params        params        params        params        params </span></span>
+<span><span class="co">#&gt;  7.445217e-01  6.323353e+03  5.707895e-03 -1.592204e-01 -4.668529e-02 </span></span>
+<span><span class="co">#&gt;        params </span></span>
+<span><span class="co">#&gt;  9.091554e-01 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $objective</span></span>
+<span><span class="co">#&gt; [1] 1249.741</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $convergence</span></span>
+<span><span class="co">#&gt; [1] 0</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $iterations</span></span>
+<span><span class="co">#&gt; [1] 70</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $evaluations</span></span>
+<span><span class="co">#&gt; function gradient </span></span>
+<span><span class="co">#&gt;       96       71 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $message</span></span>
+<span><span class="co">#&gt; [1] "relative convergence (4)"</span></span>
+<span><span class="fu">plot_fit</span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span></code></pre></div>
+<p><img src="real_data_files/figure-html/unnamed-chunk-23-1.png" width="700"></p>
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sir_cal</span> <span class="op">=</span> <span class="fu">make_rbf_calibrator</span><span class="op">(</span>dimension <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
+<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
+<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
+<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
+<span><span class="co">#&gt; $par</span></span>
+<span><span class="co">#&gt;       params       params       params       params       params       params </span></span>
+<span><span class="co">#&gt;   1.30734342 106.01354219   0.07401727   0.42630267  -0.06942185   0.35248532 </span></span>
+<span><span class="co">#&gt;       params </span></span>
+<span><span class="co">#&gt;   0.01001478 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $objective</span></span>
+<span><span class="co">#&gt; [1] 1228.817</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $convergence</span></span>
+<span><span class="co">#&gt; [1] 1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $iterations</span></span>
+<span><span class="co">#&gt; [1] 116</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $evaluations</span></span>
+<span><span class="co">#&gt; function gradient </span></span>
+<span><span class="co">#&gt;      200      116 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $message</span></span>
+<span><span class="co">#&gt; [1] "function evaluation limit reached without convergence (9)"</span></span>
+<span><span class="fu">plot_fit</span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span></code></pre></div>
+<p><img src="real_data_files/figure-html/unnamed-chunk-24-1.png" width="700"></p>
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sir_cal</span> <span class="op">=</span> <span class="fu">make_rbf_calibrator</span><span class="op">(</span>dimension <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span>
+<span><span class="co">#&gt; $par</span></span>
+<span><span class="co">#&gt;      params      params      params      params      params      params </span></span>
+<span><span class="co">#&gt;  0.02023712 23.88310851 23.63162276 -3.47579664  1.65114417 -5.44649398 </span></span>
+<span><span class="co">#&gt;      params      params </span></span>
+<span><span class="co">#&gt;  1.86159848 -5.85211557 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $objective</span></span>
+<span><span class="co">#&gt; [1] 1039.075</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $convergence</span></span>
+<span><span class="co">#&gt; [1] 1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $iterations</span></span>
+<span><span class="co">#&gt; [1] 120</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $evaluations</span></span>
+<span><span class="co">#&gt; function gradient </span></span>
+<span><span class="co">#&gt;      200      120 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $message</span></span>
+<span><span class="co">#&gt; [1] "function evaluation limit reached without convergence (9)"</span></span>
+<span><span class="fu">plot_fit</span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span></code></pre></div>
+<p><img src="real_data_files/figure-html/unnamed-chunk-25-1.png" width="700"></p>
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sir_cal</span> <span class="op">=</span> <span class="fu">make_rbf_calibrator</span><span class="op">(</span>dimension <span class="op">=</span> <span class="fl">6</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
+<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
+<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
+<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
+<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
+<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
+<span><span class="co">#&gt; $par</span></span>
+<span><span class="co">#&gt;      params      params      params      params      params      params </span></span>
+<span><span class="co">#&gt;   0.1270159 128.1590763 128.3625346  -7.2152311   3.2483740  -3.8894784 </span></span>
+<span><span class="co">#&gt;      params      params      params </span></span>
+<span><span class="co">#&gt;   0.4432874  -1.0387206  -2.2276442 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $objective</span></span>
+<span><span class="co">#&gt; [1] 1029.754</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $convergence</span></span>
+<span><span class="co">#&gt; [1] 1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $iterations</span></span>
+<span><span class="co">#&gt; [1] 103</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $evaluations</span></span>
+<span><span class="co">#&gt; function gradient </span></span>
+<span><span class="co">#&gt;      200      103 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $message</span></span>
+<span><span class="co">#&gt; [1] "function evaluation limit reached without convergence (9)"</span></span>
+<span><span class="fu">plot_fit</span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span></code></pre></div>
+<p><img src="real_data_files/figure-html/unnamed-chunk-26-1.png" width="700"></p>
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sir_cal</span> <span class="op">=</span> <span class="fu">make_rbf_calibrator</span><span class="op">(</span>dimension <span class="op">=</span> <span class="fl">7</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
+<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
+<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
+<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
+<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
+<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
+<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
+<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
+<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
+<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
+<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
+<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
+<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
+<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
+<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
+<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
+<span><span class="co">#&gt; $par</span></span>
+<span><span class="co">#&gt;        params        params        params        params        params </span></span>
+<span><span class="co">#&gt;  1.971535e-02  7.543047e+03  4.314971e-03  3.005822e-01 -2.356461e+00 </span></span>
+<span><span class="co">#&gt;        params        params        params        params        params </span></span>
+<span><span class="co">#&gt;  8.875691e-01 -4.221472e+00  8.522903e-01 -2.034926e+00  6.156743e-01 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $objective</span></span>
+<span><span class="co">#&gt; [1] 951.6669</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $convergence</span></span>
+<span><span class="co">#&gt; [1] 0</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $iterations</span></span>
+<span><span class="co">#&gt; [1] 75</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $evaluations</span></span>
+<span><span class="co">#&gt; function gradient </span></span>
+<span><span class="co">#&gt;      160       76 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $message</span></span>
+<span><span class="co">#&gt; [1] "relative convergence (4)"</span></span>
+<span><span class="fu">plot_fit</span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span></code></pre></div>
+<p><img src="real_data_files/figure-html/unnamed-chunk-27-1.png" width="700"></p>
+<p>Interestingly we have now managed to fit <code>gamma</code></p>
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/mp_tmb_coef.html">mp_tmb_coef</a></span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span>
+<span><span class="co">#&gt;        term           mat row col      default  type      estimate    std.error</span></span>
+<span><span class="co">#&gt; 1    params         gamma   0   0  0.100000000 fixed  1.971535e-02 6.841928e-03</span></span>
+<span><span class="co">#&gt; 2  params.1             I   0   0  1.000000000 fixed  7.543047e+03 1.851632e+03</span></span>
+<span><span class="co">#&gt; 3  params.2   report_prob   0   0  0.003333333 fixed  4.314971e-03 3.499032e-05</span></span>
+<span><span class="co">#&gt; 4  params.3 time_var_beta   0   0 -0.006264538 fixed  3.005822e-01 1.627780e-01</span></span>
+<span><span class="co">#&gt; 5  params.4 time_var_beta   1   0  0.001836433 fixed -2.356461e+00 1.402708e-01</span></span>
+<span><span class="co">#&gt; 6  params.5 time_var_beta   2   0 -0.008356286 fixed  8.875691e-01 1.122606e-01</span></span>
+<span><span class="co">#&gt; 7  params.6 time_var_beta   3   0  0.015952808 fixed -4.221472e+00 1.333442e-01</span></span>
+<span><span class="co">#&gt; 8  params.7 time_var_beta   4   0  0.003295078 fixed  8.522903e-01 1.810992e-01</span></span>
+<span><span class="co">#&gt; 9  params.8 time_var_beta   5   0 -0.008204684 fixed -2.034926e+00 1.118681e-01</span></span>
+<span><span class="co">#&gt; 10 params.9 time_var_beta   6   0  0.004874291 fixed  6.156743e-01 2.701168e-01</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>
