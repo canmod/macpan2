@@ -168,8 +168,8 @@ TMBModel = function(
       , random = self$random_arg()
       , DLL = tmb_cpp
       , silent = !verbose
-      , type = getOption("macpan2_tmb_type")
-      , checkParameterOrder = isTRUE(getOption("macpan2_tmb_check"))
+      #, type = getOption("macpan2_tmb_type")
+      #, checkParameterOrder = isTRUE(getOption("macpan2_tmb_check"))
     )
   }
   self$ad_fun = function(
