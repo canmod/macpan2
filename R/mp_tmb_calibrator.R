@@ -384,7 +384,108 @@ TMBParAbstract = function() {
   return_object(self, "TMBParAbstract")
 }
 
-TMBTV = function(
+TMBTV = function(tv, struc, spec, existing_global_names = character()) {
+  UseMethod("TMBTV")
+}
+
+TMBTV.character = function(
+      tv
+    , struc
+    , spec
+    , existing_global_names = character()
+  ) {
+  self = TMBTVAbstract()
+  self$existing_global_names = existing_global_names
+  self$spec = spec
+  
+  ## internal data structure:
+  ## assumes tv is a character vector
+  ## of names identifying matrices
+  ## that give piece-wise time variation
+  self$tv_list = struc$matrix_list[tv]
+  for (p in names(self$tv_list)) {
+    self$tv_list[[p]] = rename_synonyms(self$tv_list[[p]]
+      , mat = c("matrix", "Matrix", "mat", "Mat", "variable", "var", "Variable", "Var")
+      , row = c("row", "Row")
+      , col = c("col", "Col", "column", "Column")
+      , default = c("value", "Value", "val", "Val", "default", "Default")
+    )
+    if (isTRUE(!any(self$tv_list[[p]]$time_ids == 0))) {
+      self$tv_list[[p]] = add_row(self$tv_list[[p]]
+        , mat = p
+        , row = 0L
+        , col = 0L
+        , time_ids = 0L
+        , default = self$spec$default[[p]]
+      )
+    }
+  }
+  
+  self$time_var = function() lapply(self$tv_list, getElement, "default")
+  self$change_points = function() lapply(self$tv_list, getElement, "time_ids")
+  self$tv_params_frame = function(tv_par_mat_nms) {
+    tv = self$time_var()
+    if (length(tv) == 0L) {
+      cols = c("mat", "row", "col", "default")
+      return(empty_frame(cols))
+    }
+    l = list()
+    time_var_mats = globalize(self, "time_var")
+    tv_mat_nms = names(self$tv_list)
+    for (i in seq_along(self$tv_list)) {
+      if (tv_mat_nms[i] %in% tv_par_mat_nms) { ## only add tv mats that are pars
+        l = append(l, list(data.frame(
+            mat = names(time_var_mats)[[i]]
+          , row = seq_along(self$time_var()[[i]]) - 1L
+          , col = 0L
+          , default = time_var_mats[[i]]
+        )))
+      }
+    }
+    bind_rows(l)
+  }
+  self$change_pointer = function() {
+    ## Depended upon to return a list if length-one
+    ## integer vectors with a single zero. Names of 
+    ## the list are the time-varying matrices in the
+    ## spec. 
+    nms = names(self$change_points())
+    (nms
+      |> zero_vector()
+      |> as.integer()
+      |> as.list()
+      |> setNames(nms)
+    )
+  }
+  
+  ## define local and external names ... to prepare
+  ## for creating expressions, which require global,
+  ## not local names
+  self$local_names = function() {
+    make_names_list(self
+      , c("time_var", "change_points", "change_pointer")
+    )
+  }
+    
+  ## produce expressions
+  self$var_update_exprs = function() {
+    ## Depended upon to return a list of expressions returning
+    ## the value of the time-varying parameter at each time step.
+    ## The names of this list is the time-varying matrix.
+    nms = self$global_names()
+    lhs = names(self$tv_list) ## original spec parameter names
+    rhs = sprintf("time_var(%s, %s, %s)"
+      , nms$time_var
+      , nms$change_points
+      , nms$change_pointer
+    )
+    mapply(two_sided, lhs, rhs, SIMPLIFY = FALSE)
+  }
+  
+  return_object(self, "TMBTV")
+}
+
+TMBTVRadial = function(
       tv = character()
     , struc
     , spec
@@ -480,6 +581,7 @@ TMBTV = function(
   
   return_object(self, "TMBTV")
 }
+
 
 TMBTraj = function(
         traj = character()
