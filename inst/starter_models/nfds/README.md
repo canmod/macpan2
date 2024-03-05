@@ -65,6 +65,57 @@ $$\frac{dY_i}{dt} = \left( \log\left( \frac{\kappa}{N(t)}\right) -r_i + \rho\lef
 
 This model has been specified in the `nfds` directory [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/nfds/tmb.R) and is accessible from the `macpan2` model library (see [Example Models](https://canmod.github.io/macpan2/articles/example_models.html) for details). 
 
+# Model Validation
+
+## Simulating Data
+
+As a first step in validating the model, we can simulate data from the model to visualize the behaviour of genotype prevalence curves.
+
+![Simulated Prevalence](simulated_prevalence.png)
+
+
+We expect that prevalences of all genotypes should reach equilibirium prevalences (level off) with sufficient time steps (although Colijn et al. (2020) mentions curves may not reach mathematical equilibrium, but invasiveness equilibriates faster). These curves look reasonable because there is some asymptotic behaviour at the 10 year time point. 
+
+
+If we colour code the genotypes by whether they are included in the vaccine (In vaccine = 1) or not (In vaccine = 0) we gain more information about the dynamics.
+
+![Simulated Prevalence By Vaccine](simulated_prevalence_by_vaccine.png)
+
+We expect seroreplacement to take place, so that genotypes not in vaccine will dominate the population after vaccine perturbation (with sufficient time steps), and this graphically seems to be happening. Vaccine type strains decrease in prevalence as they are eliminated from carriage.
+
+## Comparing Model Implementations
+
+To further validate the `macpan2` implementation we can compare simulation results with simulated data from Colijn et al. (2020).
+
+We choose a simulation scenario, using the Massachusets data set with the PCV7 vaccine. Note, serotype '4' is not present in this data set. I suspect this serotype had low initial carriage prevalence and was excluded from the population.
+
+With simulated data from both models, we compare each genotypes simulated prevalence at the final time point (10 years).
+
+![Validation](validation_at_10years.png)
+
+This confirms the `macpan2` implementation of this model generates very similar results to those simulated from the Colijn et al. (2020) model.
+
+If we look further at prevalence differences by genotype we can see that the simulated data from both models is not identical.
+
+![Model differences](model_differences_at_10years.png)
+
+The largest absolute difference shown above is approximately 17 indivudals in a population of $N=10000$. This equates to approximately 0.02% of the population, and I suspect this difference is not biologically significant. 
+
+Now that we know there are some differences between the two model implementations, it makes sense to visualize how these models compare over the entire 10 year time period. We select a random susbset of genotypes to visualise (10 with high starting prevalence, and 10 with low starting prevalence).
+
+
+![Model comparison over time](model_comparison_over_time.png)
+
+We see some minimal differences when looking at prevalence over time. In the difference comparison, we can see higher differences at earlier time points and these differences seem to get smaller on average over time, with one exception. The mustard coloured curve in the bottom right plot shows that differences are growing over time. When we look at this genotype in the bottom right plot, we can see that this specific genotype is growing in prevalence much faster than any of the others. The highlights that the difference in prevalences could be better represented as a relative measure.
+
+## Summary
+
+In general, we conclude that there are some differences between the two model implementations but they are not biologicall significant.We can attribute these numerical differences to the approximations made in each model implementation. In the `macpan2` we are using the first-order Euler method for ODE solving as compared to Colijn et al. (2020) who use the ODE solver `ode15s` in Matlab.
+
+# Optimization
+
+No optimization was performed in the `macpan2` implementation, as the discrete variable being optimized is not well suited for the TMB engine. A possible future direction for optimization could be [rBayesianOptimization](https://cran.r-project.org/web/packages/rBayesianOptimization/rBayesianOptimization.pdf).
+
 # References
 
 Colijn, C., Corander, J., & Croucher, N. J. (2020). Designing ecologically optimized pneumococcal vaccines using population genomics. *Nature Microbiology*, 5(3), 473–485. https://doi.org/10.1038/s41564-019-0651-y
