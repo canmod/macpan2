@@ -31,7 +31,7 @@ binary_matrix_notation <- function(M){
   
   row_index = as.integer(rep(1:nrow(M), times = rowSums(M)) - 1)
   
-  return(macpan2:::nlist(col_index, row_index))
+  return(nlist(col_index, row_index))
 }
 
 
@@ -48,7 +48,7 @@ sparse_matrix_notation = function(M, zero_based = TRUE, tol = 1e-4) {
   }
   Msparse = M
   Msparse[!non_zero_loc] = 0
-  return(macpan2:::nlist(row_index, col_index, values, M, Msparse))
+  return(nlist(row_index, col_index, values, M, Msparse))
 }
 
 sparse_rbf_notation = function(time_steps, dimension, zero_based = TRUE, tol = 1e-2) {

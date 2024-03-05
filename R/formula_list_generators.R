@@ -74,7 +74,7 @@ ChangeModel = function() {
       , self$after_loop()
     )
     (exprs
-      |> lapply(macpan2:::formula_components, side = "both")
+      |> lapply(formula_components, side = "both")
       |> lapply(getElement, "variables")
       |> unlist(use.names = FALSE, recursive = FALSE)
       |> unique()
@@ -336,8 +336,8 @@ NoUpdateMethod = function(change_model) {
 }
 
 
-##' @describeIn update_methods Create expression lists for taking Euler steps.
-##' @export
+
+
 EulerUpdateMethod = function(change_model, existing_global_names = character()) {
   self = UpdateMethod()
   self$change_model = change_model
@@ -364,9 +364,7 @@ EulerUpdateMethod = function(change_model, existing_global_names = character()) 
   return_object(self, "EulerUpdateMethod")
 }
 
-##' @describeIn update_methods Create expression lists for solving ODEs using
-##' Runge Kutta 4.
-##' @export
+
 RK4UpdateMethod = function(change_model) {
   self = UpdateMethod()
   self$change_model = change_model
@@ -430,9 +428,7 @@ RK4UpdateMethod = function(change_model) {
   return_object(self, "EulerUpdateMethod")
 }
 
-##' @describeIn update_methods Create expression lists for generating process
-##' error using the Euler Multinomial distribution.
-##' @export
+
 EulerMultinomialUpdateMethod = function(change_model) {
   self = Base()
   self$change_model = change_model
@@ -528,10 +524,12 @@ Formula = function(formula) {
 }
 
 
+#' @noRd
+#' @export
 to_change_component = function(x) UseMethod("to_change_component")
 
-
+#' @export
 to_change_component.ChangeComponent = function(x) x
 
-
+#' @export
 to_change_component.formula = function(x) Formula(x)

@@ -86,7 +86,7 @@ ExprList = function(
     , .simulate_exprs = character(0L)
   ) {
   self = ExprListUtils()
-  valid_expr_list = macpan2:::AllValid(
+  valid_expr_list = AllValid(
     ValidityMessager(is.list, "not a list"),  ## list of ...
     ValidityMessager(MappedAllTest(Is("formula")), "not all formulas in an expression list"),  ## ... formulas that are ...
     ValidityMessager(TestPipeline(MappedSummarizer(length), MappedAllTest(TestRange(3L, 3L))), "not all formulas are two-sided"),  ## ... two-sided formula
