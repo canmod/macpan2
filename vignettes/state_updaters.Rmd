@@ -1,0 +1,106 @@
+---
+title: "Alteratives to Euler Steps"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Alteratives to Euler Steps}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+
+The `McMasterPandemic` project has focused on using discrete time difference equations to solve the dynamical system. Here we describe experimental features that allow one to update the data differently. In particular, it is now possible to use a Runge-Kutta 4 ODE solver (to approximate the solution to the continuous time analogue) as well as the Euler Multinomial distribution to generate process error. These features have in principle been avaiable for most of the life of `macpan2`, but only recently have they been given a more convenient interface.
+
+In order to use this interface, models must be rewritten using explicit declarations of state updates. By explicitly declaring what expressions correspond to state updates, `macpan2` is able to modify the method of updating without further user input. This makes it easier to compare difference equations (i.e. Euler steps), ODEs (i.e. Runge-Kutta), and process error (i.e Euler Multinomial) runs for the same underlying dynamical model.
+
+To declare a state update one replaces formulas in the `during` argument of a model spec to include calls to the `?mp_per_capita_flow()` function.  As an example we will modify the SI model to include explicit state updates.  The original form of the model looks like this.
+```{r}
+library(macpan2)
+si_implicit = mp_tmb_model_spec(
+    before = list(S ~ N - I)
+  , during = list(
+        infection ~ beta * S * I / N
+      , S ~ S - infection
+      , I ~ I + infection
+    )
+  , default = list(I = 1, N = 100, beta = 0.25)
+)
+print(si_implicit)
+```
+
+The modified version looks like this.
+```{r}
+si_explicit = mp_tmb_model_spec(
+    before = list(S ~ N - I)
+  , during = list(mp_per_capita_flow("S", "I", infection ~ beta * I / N))
+  , default = list(I = 1, N = 100, beta = 0.25)
+)
+print(si_explicit)
+```
+
+With this explicit spec we can make three different simulators.
+```{r}
+si_euler = (si_explicit 
+  |> mp_euler()
+  |> mp_simulator(time_steps = 50, outputs = "infection")
+)
+si_rk4 = (si_explicit 
+  |> mp_rk4()
+  |> mp_simulator(time_steps = 50, outputs = "infection")
+)
+si_euler_multinomial = (si_explicit 
+  |> mp_euler_multinomial()
+  |> mp_simulator(time_steps = 50, outputs = "infection")
+)
+```
+
+
+```{r}
+library(dplyr)
+trajectory_comparison = list(
+    euler = mp_trajectory(si_euler)
+  , rk4 = mp_trajectory(si_rk4)
+  , euler_multinomial = mp_trajectory(si_euler_multinomial)
+) |> bind_rows(.id = "update_method")
+print(head(trajectory_comparison))
+```
+
+```{r, fig.width=7}
+library(ggplot2)
+(trajectory_comparison
+  |> ggplot()
+  + geom_line(aes(time, value, colour = update_method))
+)
+```
+
+
+## Branching Flows and Process Error
+
+```{r}
+ siv = mp_tmb_model_spec(
+    before = list(S ~ N - I - V)
+  , during = list(
+        mp_per_capita_flow("S", "I", infection ~ beta * I / N)
+      , mp_per_capita_flow("S", "V", vaccination ~ rho)
+    )
+  , default = list(I = 1, V = 0, N = 100, beta = 0.25, rho = 0.1)
+)
+print(siv)
+```
+
+
+```{r}
+(siv 
+ |> mp_euler_multinomial()
+ |> mp_simulator(50, "infection")
+ |> mp_trajectory()
+ |> ggplot()
+  + geom_line(aes(time, value))
+)
+```
