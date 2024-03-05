@@ -357,10 +357,20 @@ mp_trajectory_ensemble.TMBCalibrator = function(model, n, probs = c(0.025, 0.975
 ## not ready to export yet because we are not sure how to construct a single
 ## ad_fun that works both with process error simulation and deterministic 
 ## trajectory matching
+## 
+##' Random Trajectory Simulations
+##' 
+##' @param model Model object that can generate simulations with random numbers.
+##' @param n Number of random trajectories to simulate.
+##' @param probs Numeric vector of probabilities corresponding to quantiles for 
+##' summarizing the results over the random realizations.
+##' 
+##' @export
 mp_trajectory_sim = function(model, n, probs = c(0.025, 0.25, 0.5, 0.75, 0.975)) {
   UseMethod("mp_trajectory_sim")
 }
 
+##' @export
 mp_trajectory_sim.TMBSimulator = function(model, n, probs = c(0.025, 0.25, 0.5, 0.75, 0.975)) {
   r = model$simulate()
   r = r[, names(r) != "value", drop = FALSE]
