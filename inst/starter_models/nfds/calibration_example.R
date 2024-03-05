@@ -215,12 +215,21 @@ low = (ggplot((sim_long) %>% filter(genotype %in% low_ics)
 #                                    theme(plot.title = element_text(hjust = 0.5)), 
 #                                  "title", 
 #                                  return_all = TRUE)[[2]]
-legend <- get_legend(
-  # create some space to the left of the legend
-  high
-)
-plots_col = cowplot::plot_grid(high+theme(legend.position="none"),low+theme(legend.position="none"),ncol=1, labels=c("High prevalence at time=0","Low prevalence at time=0")
-                               , align = "hv", axis = "tbrl",vjust=2.8,hjust=-0.4)
+
+
+## Commenting out cowplot functions -----------
+## will be converting this to an Rmd, and plan
+## to convert cowplot stuff to plots using functions in
+## package dependencies that we already have
+
+
+# legend <- get_legend(
+#   # create some space to the left of the legend
+#   high
+# )
+
+# plots_col = cowplot::plot_grid(high+theme(legend.position="none"),low+theme(legend.position="none"),ncol=1, labels=c("High prevalence at time=0","Low prevalence at time=0")
+#                                , align = "hv", axis = "tbrl",vjust=2.8,hjust=-0.4)
 
 
 ## random genotypes from above, plotting model implementation differences
@@ -249,15 +258,15 @@ diff_low = (ggplot((sim_diff %>% filter(genotype %in% low_ics))
 
 
 
-plots_col_diff = cowplot::plot_grid(diff_high+theme(legend.position="none"),diff_low+theme(legend.position="none"),ncol=1, labels=c("High prevalence at time=0","Low prevalence at time=0")
-                               , align = "hv", axis = "tbrl",vjust=2.8,hjust=-0.4)
+# plots_col_diff = cowplot::plot_grid(diff_high+theme(legend.position="none"),diff_low+theme(legend.position="none"),ncol=1, labels=c("High prevalence at time=0","Low prevalence at time=0")
+#                                , align = "hv", axis = "tbrl",vjust=2.8,hjust=-0.4)
 
 
-all_plots = plot_grid(plots_col, plots_col_diff, nrow=1)
-if (interactive()) {
-png(filename = file.path("inst","starter_models","nfds","model_comparison_over_time.png"),width = 600, height = 600, units = "px")
-cowplot::plot_grid(all_plots,legend,ncol=1,
-                   rel_heights=c(2,.3))
-
-dev.off()
-}
+# all_plots = plot_grid(plots_col, plots_col_diff, nrow=1)
+# if (interactive()) {
+# png(filename = file.path("inst","starter_models","nfds","model_comparison_over_time.png"),width = 600, height = 600, units = "px")
+# # cowplot::plot_grid(all_plots,legend,ncol=1,
+# #                    rel_heights=c(2,.3))
+# 
+# dev.off()
+# }
