@@ -25,17 +25,17 @@ wk <- as.integer((0:99) %/% 7) + index_offset
 nweek <- max(wk) + (1-index_offset)
 
 ## add daily incidence
-mp_tmb_insert(sir_spec, at = Inf,
+sir_spec = mp_tmb_insert(sir_spec, at = Inf,
               expressions = list(incidence ~ recovery),
               must_save = "incidence"
               )
 
-mp_tmb_insert(sir_spec, at = Inf,
+sir_spec = mp_tmb_insert(sir_spec, at = Inf,
               integers = list(wk = wk),
               phase = "during",
               default = list(nweek = nweek))
 
-mp_tmb_insert(sir_spec, phase = "after",
+sir_spec = mp_tmb_insert(sir_spec, phase = "after",
               expressions =
                   list(wk_incidence ~ group_sums(rbind_time(incidence), wk, rep(0, nweek))),
                   must_save = "wk_incidence")

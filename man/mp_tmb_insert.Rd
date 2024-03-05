@@ -84,6 +84,10 @@ the former shifts the positions of existing expressions to make room
 for the new expressions, whereas the latter overwrites existing expressions
 using the new expressions. The treatment of new \code{default} values and
 \code{integers} is the same. The examples below clarify this difference.
+These modifications do not update the model specification in-place. Instead
+the output of \code{mp_tmb_insert} and \code{mp_tmb_update} define a new model
+specification and should be saved if you want to use the new
+model (ex. \code{new_model = mp_tmb_insert(...)}).
 }
 \examples{
 si = mp_tmb_library("starter_models", "si", package = "macpan2")
