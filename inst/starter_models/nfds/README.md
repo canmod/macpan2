@@ -2,6 +2,21 @@ NFDS and vaccine design
 ================
 Jennifer Freeman
 
+- [States](#states)
+- [Parameters](#parameters)
+  - [Fixed](#fixed)
+  - [Time Varying](#time-varying)
+- [Dynamics](#dynamics)
+- [Model Specification](#model-specification)
+- [Model Validation](#model-validation)
+  - [Simulating Data](#simulating-data)
+    - [A quick note on run-time when constructing
+      simulators](#a-quick-note-on-run-time-when-constructing-simulators)
+  - [Comparing Model Implementations](#comparing-model-implementations)
+  - [Summary](#summary)
+- [Optimization](#optimization)
+- [References](#references)
+
 <!-- population-->
 
 *Streptococcus pneumoniae* (pneumococcus) is a bacteria that can cause
@@ -153,7 +168,7 @@ nfds = mp_simulator(
 )
 ```
 
-![](README_files/figure-gfm/simulated_prevalence-1.png)<!-- -->
+![](./figures/simulated_prevalence-1.png)<!-- -->
 
 We expect that prevalences of all genotypes should reach equilibirium
 prevalences (level off) with sufficient time steps (although Colijn,
@@ -190,7 +205,7 @@ in_vax = (nfds
 ) 
 ```
 
-![](README_files/figure-gfm/simulated_prevalence_by_vax-1.png)<!-- -->
+![](./figures/simulated_prevalence_by_vax-1.png)<!-- -->
 
 We expect serotype replacement to take place, so that genotypes not
 included in the vaccine will dominate the population after vaccine
@@ -327,14 +342,14 @@ start_time <- Sys.time()
 old_sim = mp_simulator(old_spec,time_steps = 1L,outputs = "Y")
 end_time <- Sys.time()
 end_time - start_time
-#> Time difference of 0.3775971 secs
+#> Time difference of 0.381633 secs
 
 # new spec
 start_time <- Sys.time()
 new_sim = mp_simulator(new_spec,time_steps = 1L,outputs = "Y")
 end_time <- Sys.time()
 end_time - start_time
-#> Time difference of 0.1942759 secs
+#> Time difference of 0.1868429 secs
 ```
 
 Creating a simulator with one time step results in the new model
@@ -355,7 +370,7 @@ excluded from the population.
 With simulated data from both models, we compare each genotypes
 simulated prevalence at the final time point (10 years).
 
-![](README_files/figure-gfm/prevalence_10years-1.png)<!-- -->
+![](./figures/prevalence_10years-1.png)<!-- -->
 
 This plot confirms that the `macpan2` implementation of this model
 generates very similar results to those simulated from the Colijn,
@@ -365,7 +380,7 @@ in Matlab.
 If we look further at prevalence differences by genotype we can see that
 the simulated data from both models are not identical.
 
-![](README_files/figure-gfm/difference_10years-1.png)<!-- -->
+![](./figures/difference_10years-1.png)<!-- -->
 
 The largest absolute difference between the two models is approximately
 17 individuals in a population of roughly $N(t)=10000$. This equates to
@@ -383,7 +398,7 @@ starting prevalence, and 8 with low starting prevalence) because it’s
 difficult to distinguish between curves when all genotypes (M=603) are
 graphed.
 
-![](README_files/figure-gfm/plots_over_time-1.png)<!-- -->![](README_files/figure-gfm/plots_over_time-2.png)<!-- -->
+![](./figures/plots_over_time-1.png)<!-- -->![](./figures/plots_over_time-2.png)<!-- -->
 
 We see some minimal differences when looking at the top panel of
 prevalence over time. In the difference comparison, we can see larger

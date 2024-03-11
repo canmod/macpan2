@@ -4,13 +4,16 @@ index_entry: "An ecological model using population genomics to design optimal va
 bibliography: references.bib
 link-citations: TRUE
 author: Jennifer Freeman
-output: github_document
+output: 
+  github_document:
+    toc: true
 ---
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  fig.path = "./figures/"
 )
 ```
 
