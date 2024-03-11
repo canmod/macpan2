@@ -10,7 +10,7 @@
 #' These modifications do not update the model specification in-place. Instead
 #' the output of `mp_tmb_insert` and `mp_tmb_update` define a new model
 #' specification and should be saved if you want to use the new 
-#' model (ex. \code{new_model = mp_tmb_insert(...)}).
+#' model (ex. \code{new_model = mp_tmb_insert(model, ...)}).
 #' 
 #' @param model TMB model spec object produced using
 #' \code{\link{mp_tmb_library}} or \code{\link{mp_tmb_model_spec}}.
