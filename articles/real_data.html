@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -923,6 +923,41 @@ results</p>
 <p>This is a much slower recovery rate. Expected time in the R box is
 about one year! Not believeable, but the point is to make it easier to
 fit models so you can try more things.</p>
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/mp_tmb_calibrator.html">mp_tmb_calibrator</a></span><span class="op">(</span></span>
+<span>    spec <span class="op">=</span> <span class="va">sf_sir</span></span>
+<span>  , data <span class="op">=</span> <span class="va">observed_data</span></span>
+<span>  , traj <span class="op">=</span> <span class="st">"reports"</span>  </span>
+<span>  , tv <span class="op">=</span> <span class="fu"><a href="../reference/mp_rbf.html">mp_rbf</a></span><span class="op">(</span><span class="st">"beta"</span>, dimension <span class="op">=</span> <span class="fl">7</span><span class="op">)</span></span>
+<span>  , par <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"gamma"</span>, <span class="st">"I"</span>, <span class="st">"report_prob"</span><span class="op">)</span></span>
+<span>  , outputs <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"reports"</span>, <span class="st">"beta"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; ---------------------</span></span>
+<span><span class="co">#&gt; Before the simulation loop (t = 0):</span></span>
+<span><span class="co">#&gt; ---------------------</span></span>
+<span><span class="co">#&gt; 1: S ~ N - I - R</span></span>
+<span><span class="co">#&gt; 2: outputs_var_beta ~ group_sums(values_var_beta * time_var_beta[col_indexes_beta], row_indexes_beta, outputs_var_beta)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ---------------------</span></span>
+<span><span class="co">#&gt; At every iteration of the simulation loop (t = 1 to T):</span></span>
+<span><span class="co">#&gt; ---------------------</span></span>
+<span><span class="co">#&gt; 1: beta ~ exp(outputs_var_beta[time_step(1)])</span></span>
+<span><span class="co">#&gt; 2: infection ~ S * I * beta/N</span></span>
+<span><span class="co">#&gt; 3: recovery ~ gamma * I</span></span>
+<span><span class="co">#&gt; 4: S ~ S - infection</span></span>
+<span><span class="co">#&gt; 5: I ~ I + infection - recovery</span></span>
+<span><span class="co">#&gt; 6: R ~ R + recovery</span></span>
+<span><span class="co">#&gt; 7: reports ~ infection * report_prob</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ---------------------</span></span>
+<span><span class="co">#&gt; After the simulation loop (t = T + 1):</span></span>
+<span><span class="co">#&gt; ---------------------</span></span>
+<span><span class="co">#&gt; 1: sim_reports ~ rbind_time(reports, obs_times_reports)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ---------------------</span></span>
+<span><span class="co">#&gt; Objective function:</span></span>
+<span><span class="co">#&gt; ---------------------</span></span>
+<span><span class="co">#&gt; ~-sum(dpois(obs_reports, clamp(sim_reports)))</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>
