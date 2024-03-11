@@ -119,58 +119,19 @@ TMBModelSpec = function(
       , initialize_ad_fun = TRUE
   ) {
     self$check_names()
-    initial_mats = self$all_matrices()
-    initial_mats[names(default)] = default
-    initial_rownames = (initial_mats
-      |> lapply(as.matrix)
-      |> lapply(rownames)
-      |> unlist(use.names = FALSE, recursive = TRUE)
-      |> unique()
-    )
-    matrix_outputs = intersect(outputs, names(initial_mats))
-    row_outputs = (outputs
-      |> setdiff(matrix_outputs)
-      |> intersect(initial_rownames)
-    )
-    realized_outputs = c(matrix_outputs, row_outputs)
-    outputs_not_realized = setdiff(outputs, realized_outputs)
-    if (length(outputs_not_realized) > 0L) {
-      msg = sprintf("The following outputs were requested but not available in the model:\n%s\nThey will be silently ignored.", paste0(outputs_not_realized, ", "))
-      warning(msg)
-    }
-    mats_to_return = (initial_mats
-      |> lapply(names)
-      |> Filter(f = is.character)
-      |> Filter(f = \(x) any(x %in% row_outputs))
-      |> names()
-      |> c(matrix_outputs)
-      |> unique()
-    )
-    mats_to_save = (mats_to_return
-      |> union(self$must_save)
-      |> setdiff(self$must_not_save)
-    )
+    mats = update_default(self$all_matrices(), default)
+    mat_args = c(mats, mat_options$from_spec(
+        mats
+      , outputs
+      , self$must_save
+      , self$must_not_save
+    ))
     TMBModel(
-        init_mats = do.call(
-          MatsList
-        , c(
-            initial_mats
-          , list(
-              .mats_to_return = mats_to_return
-            , .mats_to_save = mats_to_save
-          )
-        )
-      )
+        init_mats = do.call(MatsList, mat_args)
       , expr_list = self$expr_list()
-      #   ExprList(
-      #     before = self$before
-      #   , during = self$during 
-      #   , after = self$after
-      #   , .simulate_exprs = self$sim_exprs
-      # )
       , engine_methods = EngineMethods(
-        int_vecs = do.call(IntVecs, self$all_integers())
-      )
+          int_vecs = do.call(IntVecs, self$all_integers())
+        )
       , time_steps = Time(as.integer(time_steps))
     )
   }
@@ -185,6 +146,55 @@ TMBModelSpec = function(
   }
   self$simulator_cached = memoise(self$simulator_fresh)
   return_object(self, "TMBModelSpec")
+}
+
+mat_options = list(
+  from_spec = function(initial_mats, outputs, must_save, must_not_save) {
+    matrix_outputs = intersect(outputs, names(initial_mats))
+    row_outputs = (outputs
+      |> setdiff(matrix_outputs)
+      |> intersect(initial_rownames(initial_mats))
+    )
+    check_outputs(outputs, matrix_outputs, row_outputs)
+    .mats_to_return = (initial_mats
+      |> lapply(names)
+      |> Filter(f = is.character)
+      |> Filter(f = \(x) any(x %in% row_outputs))
+      |> names()
+      |> c(matrix_outputs)
+      |> unique()
+    )
+    .mats_to_save = (.mats_to_return
+      |> union(must_save)
+      |> setdiff(must_not_save)
+    )
+    nlist(.mats_to_return, .mats_to_save)
+  }, 
+  from_simulator = function(mats_to_return, mats_to_save) {
+    list(.mats_to_return = mats_to_return, .mats_to_save = mats_to_save)
+  }
+)
+
+check_outputs = function(outputs, matrix_outputs, row_outputs) {
+  realized_outputs = c(matrix_outputs, row_outputs)
+  outputs_not_realized = setdiff(outputs, realized_outputs)
+  if (length(outputs_not_realized) > 0L) {
+    msg = sprintf("The following outputs were requested but not available in the model:\n%s\nThey will be silently ignored.", paste0(outputs_not_realized, ", "))
+    warning(msg)
+  }
+}
+
+initial_rownames = function(initial_mats) {
+  (initial_mats
+    |> lapply(as.matrix)
+    |> lapply(rownames)
+    |> unlist(use.names = FALSE, recursive = TRUE)
+    |> unique()
+  )
+}
+update_default = function(mats, default) {
+  mats[names(default)] = default
+  mats
 }
 
 #' Specify a TMB Model

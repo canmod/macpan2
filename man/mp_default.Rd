@@ -2,9 +2,12 @@
 % Please edit documentation in R/tmb_model.R
 \name{mp_default}
 \alias{mp_default}
+\alias{mp_default_list}
 \title{Default Values}
 \usage{
 mp_default(model)
+
+mp_default_list(model)
 }
 \arguments{
 \item{model}{A model object from which to extract default values.}
@@ -18,3 +21,8 @@ as input to model objects. The columns of this output are \code{matrix}, \code{r
 \description{
 Default Values
 }
+\section{Functions}{
+\itemize{
+\item \code{mp_default_list()}: List of the default variables as matrices.
+
+}}

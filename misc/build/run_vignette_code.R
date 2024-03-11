@@ -7,7 +7,7 @@ extract_and_source_r_code <- function(vignette_file) {
   knitr::purl(vignette_file, output = temp_script_file)
 
   # Run the extracted R script using source()
-  message(sprintf("Now running code from %s", vignette_file))
+  message(sprintf("----------------------------\nNow running code from %s\n-----------------------", vignette_file))
   result = try(source(temp_script_file))
 
   # Clean up the temporary script file

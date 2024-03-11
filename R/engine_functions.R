@@ -343,14 +343,13 @@
 #'
 #' ### Details
 #'
-#' The standard \code{\link{rowSums}} and
-#' \code{\link{colSums}} can be used, but they have
-#' slightly different behaviour from their base R
-#' versions. In particular, the `rowSums` function
-#' returns a column vector and the `colSums` function
-#' returns a row vector. If a specific shape is required
-#' then the transpose \code{\link{t}} function must be
-#' explicitly used.
+#' The `row_sums` and `col_sums` are similar to the base R
+#' \code{\link{rowSums}} and \code{\link{colSums}} functions,
+#' but with slightly different behaviour. In particular, the 
+#' `row_sums` function returns a column vector and the 
+#' `col_sums` function returns a row vector. If a specific shape 
+#' is required then the transpose \code{\link{t}} function must 
+#' be explicitly used.
 #'
 #' ### Examples
 #'
@@ -815,4 +814,5 @@
 #' @aliases time_var
 #' @aliases rbinom
 #' @aliases reulermultinom
+#' @aliases round
 NULL

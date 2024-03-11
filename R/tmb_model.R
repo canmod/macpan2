@@ -30,6 +30,27 @@ mp_simulator.TMBModelSpec = function(model
 }
 
 #' @export
+mp_simulator.TMBSimulator = function(model
+    , time_steps
+    , outputs
+    , default = list()
+  ) {
+  if (!missing(time_steps)) {
+    model$simulator$replace$time_steps(time_steps)
+  }
+  
+}
+
+#' @export
+mp_simulator.TMBCalibrator = function(model
+    , time_steps
+    , outputs
+    , default = list()
+  ) {
+  mp_simulator(model$simulator, time_steps, outputs, default)
+}
+
+#' @export
 mp_simulator.TMBParameterizedModelSpec = function(model
   , time_steps, outputs, default = list()
 ) {
@@ -229,9 +250,6 @@ TMBModel = function(
 }
 
 
-
-
-
 #' Default Values
 #' 
 #' @param model A model object from which to extract default values.
@@ -242,32 +260,95 @@ TMBModel = function(
 #' @export
 mp_default = function(model) UseMethod("mp_default")
 
+#' @describeIn mp_default List of the default variables as matrices.
+#' @export
+mp_default_list = function(model) UseMethod("mp_default_list")
+
 #' @export
 mp_default.TMBModelSpec = function(model) {
-  melt_default_matrix_list(model$default)
+  melt_default_matrix_list(mp_default_list(model))
 }
+
+#' @export
+mp_default_list.TMBModelSpec = function(model) model$default
 
 #' @export
 mp_default.TMBSimulator = function(model) {
-  init_mats = model$tmb_model$init_mats$.initial_mats
-  default_mats = init_mats[!vapply(init_mats, is_empty_matrix, logical(1L))]
-  melt_default_matrix_list(default_mats)
+  melt_default_matrix_list(mp_default_list(model))
 }
 
-mp_initial = function(model_simulator, ...) {
-  stop("under construction")
-  UseMethod("mp_initial")
-}
-
-mp_initial.TMBSimulator = function(model_simulator, matrices, params = NULL) {
-  stop("under construction")
-  (model_simulator
-    $replace
-    $time_steps(time_steps)
-    $update
-    $matrices(.mats_to_return = matrices, .mats_to_save = matrices)
-    $report(params, .phases = "before")
+#' @export
+mp_default_list.TMBSimulator = function(model) {
+  mats_list = model$tmb_model$init_mats
+  expr_list = model$tmb_model$expr_list
+  int_vecs = model$tmb_model$engine_methods$int_vecs
+  all_default_mats = setdiff(
+      expr_list$all_default_vars()
+    , int_vecs$const_names()
   )
+  mats_list$all_matrices()[all_default_mats]
+}
+
+#' Initial Values
+#' 
+#' Return a data frame containing the values of variables at the end of the
+#' `before` phase, right before the simulation loop begins (i.e. right before
+#' the `during` phase).
+#' 
+#' @param model A model object from which to extract initial values.
+#' @returns A long-format data frame with initial values for matrices. 
+#' The columns of this output are `matrix`, `row`, `col`, and `value`. 
+#' Scalar matrices do not have any entries in the `row` or `col` columns.
+#' @export
+mp_initial = function(model) UseMethod("mp_initial")
+
+#' @describeIn mp_initial List of the initial variables as matrices.
+#' @export
+mp_initial_list = function(model) UseMethod("mp_initial_list")
+
+
+#' @export
+mp_initial.TMBModelSpec = function(model) {
+  all_derived_mats_in_before_step = setdiff(
+      ExprList(model$update_method$before())$all_derived_vars()
+    , names(model$all_integers())
+  )
+  outputs = c(
+      model$all_default_vars()
+    , all_derived_mats_in_before_step
+  ) |> unique()
+  mp_simulator(model, 0L, outputs)$report(.phases = "before")
+}
+
+#'@export
+mp_initial_list.TMBModelSpec = function(model) {
+  mp_initial(model) |> cast_default_matrix_list()
+}
+
+#' @export
+mp_initial.TMBSimulator = function(model) {
+  
+  mats_list = model$tmb_model$init_mats
+  int_vecs = model$tmb_model$engine_methods$int_vecs
+  expr_list = model$tmb_model$expr_list
+  
+  before_expr_list = ExprList(expr_list$before)
+  
+  defaults = before_expr_list$all_default_vars()
+  
+  outputs = (defaults
+    |> c(before_expr_list$all_derived_vars())
+    |> unique()
+    |> setdiff(names(int_vecs$list))
+  )
+  
+  spec = mp_tmb_model_spec(
+      before = expr_list$before
+    , default = mats_list$all_matrices()[defaults]
+    , integers = int_vecs$list
+  )
+  
+  mp_simulator(spec, 0, outputs)$report(.phases = "before")
 }
 
 

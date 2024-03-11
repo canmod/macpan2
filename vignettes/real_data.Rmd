@@ -412,3 +412,19 @@ mp_tmb_coef(sir_cal)
 ```
 
 This is a much slower recovery rate. Expected time in the R box is about one year! Not believeable, but the point is to make it easier to fit models so you can try more things.
+
+
+```{r}
+mp_tmb_calibrator(
+    spec = sf_sir
+  , data = observed_data
+  , traj = "reports"  
+  , tv = mp_rbf("beta", dimension = 7)
+  , par = c("gamma", "I", "report_prob")
+  , outputs = c("reports", "beta")
+)
+```
+
+```{r}
+
+```
