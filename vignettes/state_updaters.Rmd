@@ -1,8 +1,8 @@
 ---
-title: "Alteratives to Euler Steps"
+title: "ODE Solvers, Process Error, and Difference Equations"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Alteratives to Euler Steps}
+  %\VignetteIndexEntry{ODE Solvers, Process Error, and Difference Equations}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -12,6 +12,7 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+set.seed(12L)
 ```
 
 
