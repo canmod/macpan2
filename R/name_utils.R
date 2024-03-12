@@ -235,6 +235,25 @@ to_name_pairs.data.frame = function(x) {
   to_names(x) |> to_name_pairs()
 }
 
+#' To String
+#'
+#' Convert an object to a string.
+#'
+#' @param x Object to convert to a string.
+#' @returns A length-1 character vector.
+#' @export
+to_string = function(x) UseMethod("to_string")
+
+#' @export
+to_string.default = function(x) toString(x)
+
+#' @export
+to_string.formula = function(x, ...) formula_as_character(x)
+
+#' @export
+to_string.ChangeComponent = function(x, ...) x$string()
+
+
 #' To Positions
 #' 
 #' Return position vector of indices corresponding to the

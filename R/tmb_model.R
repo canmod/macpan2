@@ -30,6 +30,27 @@ mp_simulator.TMBModelSpec = function(model
 }
 
 #' @export
+mp_simulator.TMBSimulator = function(model
+    , time_steps
+    , outputs
+    , default = list()
+  ) {
+  if (!missing(time_steps)) {
+    model$simulator$replace$time_steps(time_steps)
+  }
+  
+}
+
+#' @export
+mp_simulator.TMBCalibrator = function(model
+    , time_steps
+    , outputs
+    , default = list()
+  ) {
+  mp_simulator(model$simulator, time_steps, outputs, default)
+}
+
+#' @export
 mp_simulator.TMBParameterizedModelSpec = function(model
   , time_steps, outputs, default = list()
 ) {
@@ -151,7 +172,13 @@ TMBModel = function(
       params = self$params$vector(),
       random = self$random$vector()
     )
-    if (length(p$params) == 0L) p$params = 0
+    
+    ## FIXME: need a dummy parameter if the model has not
+    ## yet been parameterized. is there a more TMB-ish
+    ## way to do this?
+    if (length(p$params) == 0L) {
+      p$params = 0
+    } 
     p
   }
   self$random_arg = function() {
@@ -162,17 +189,20 @@ TMBModel = function(
         tmb_cpp = getOption("macpan2_dll")
       , verbose = getOption("macpan2_verbose")
     ) {
+    params = self$param_arg()
+    if (getOption("macpan2_tmb_type") == "Fun") params$params = numeric()
     list(
-        data = self$data_arg(),
-        parameters = self$param_arg(),
-        random = self$random_arg(),
-        DLL = tmb_cpp,
-        silent = !verbose
+        data = self$data_arg()
+      , parameters = params
+      , random = self$random_arg()
+      , DLL = tmb_cpp
+      , silent = !verbose
     )
   }
   self$ad_fun = function(
         tmb_cpp = getOption("macpan2_dll")
       , verbose = getOption("macpan2_verbose")
+      , derivs = getOption("macpan2_tmb_derivs")
     ) {
     do.call(TMB::MakeADFun, self$make_ad_fun_arg(tmb_cpp))
   }
@@ -220,9 +250,6 @@ TMBModel = function(
 }
 
 
-
-
-
 #' Default Values
 #' 
 #' @param model A model object from which to extract default values.
@@ -233,32 +260,95 @@ TMBModel = function(
 #' @export
 mp_default = function(model) UseMethod("mp_default")
 
+#' @describeIn mp_default List of the default variables as matrices.
+#' @export
+mp_default_list = function(model) UseMethod("mp_default_list")
+
 #' @export
 mp_default.TMBModelSpec = function(model) {
-  melt_default_matrix_list(model$default)
+  melt_default_matrix_list(mp_default_list(model))
 }
+
+#' @export
+mp_default_list.TMBModelSpec = function(model) model$default
 
 #' @export
 mp_default.TMBSimulator = function(model) {
-  init_mats = model$tmb_model$init_mats$.initial_mats
-  default_mats = init_mats[!vapply(init_mats, is_empty_matrix, logical(1L))]
-  melt_default_matrix_list(default_mats)
+  melt_default_matrix_list(mp_default_list(model))
 }
 
-mp_initial = function(model_simulator, ...) {
-  stop("under construction")
-  UseMethod("mp_initial")
-}
-
-mp_initial.TMBSimulator = function(model_simulator, matrices, params = NULL) {
-  stop("under construction")
-  (model_simulator
-    $replace
-    $time_steps(time_steps)
-    $update
-    $matrices(.mats_to_return = matrices, .mats_to_save = matrices)
-    $report(params, .phases = "before")
+#' @export
+mp_default_list.TMBSimulator = function(model) {
+  mats_list = model$tmb_model$init_mats
+  expr_list = model$tmb_model$expr_list
+  int_vecs = model$tmb_model$engine_methods$int_vecs
+  all_default_mats = setdiff(
+      expr_list$all_default_vars()
+    , int_vecs$const_names()
   )
+  mats_list$all_matrices()[all_default_mats]
+}
+
+#' Initial Values
+#' 
+#' Return a data frame containing the values of variables at the end of the
+#' `before` phase, right before the simulation loop begins (i.e. right before
+#' the `during` phase).
+#' 
+#' @param model A model object from which to extract initial values.
+#' @returns A long-format data frame with initial values for matrices. 
+#' The columns of this output are `matrix`, `row`, `col`, and `value`. 
+#' Scalar matrices do not have any entries in the `row` or `col` columns.
+#' @export
+mp_initial = function(model) UseMethod("mp_initial")
+
+#' @describeIn mp_initial List of the initial variables as matrices.
+#' @export
+mp_initial_list = function(model) UseMethod("mp_initial_list")
+
+
+#' @export
+mp_initial.TMBModelSpec = function(model) {
+  all_derived_mats_in_before_step = setdiff(
+      ExprList(model$update_method$before())$all_derived_vars()
+    , names(model$all_integers())
+  )
+  outputs = c(
+      model$all_default_vars()
+    , all_derived_mats_in_before_step
+  ) |> unique()
+  mp_simulator(model, 0L, outputs)$report(.phases = "before")
+}
+
+#'@export
+mp_initial_list.TMBModelSpec = function(model) {
+  mp_initial(model) |> cast_default_matrix_list()
+}
+
+#' @export
+mp_initial.TMBSimulator = function(model) {
+  
+  mats_list = model$tmb_model$init_mats
+  int_vecs = model$tmb_model$engine_methods$int_vecs
+  expr_list = model$tmb_model$expr_list
+  
+  before_expr_list = ExprList(expr_list$before)
+  
+  defaults = before_expr_list$all_default_vars()
+  
+  outputs = (defaults
+    |> c(before_expr_list$all_derived_vars())
+    |> unique()
+    |> setdiff(names(int_vecs$list))
+  )
+  
+  spec = mp_tmb_model_spec(
+      before = expr_list$before
+    , default = mats_list$all_matrices()[defaults]
+    , integers = int_vecs$list
+  )
+  
+  mp_simulator(spec, 0, outputs)$report(.phases = "before")
 }
 
 
@@ -357,10 +447,23 @@ mp_trajectory_ensemble.TMBCalibrator = function(model, n, probs = c(0.025, 0.975
 ## not ready to export yet because we are not sure how to construct a single
 ## ad_fun that works both with process error simulation and deterministic 
 ## trajectory matching
+
+
+##' Random Trajectory Simulations
+##' 
+##' @param n Number of random trajectories to simulate.
+##' @param probs Numeric vector of probabilities corresponding to quantiles for 
+##' summarizing the results over the random realizations.
+##' 
+##' @describeIn mp_trajectory Generate quantiles over `n` realizations of 
+##' the trajectory. Instead of a `value` column in the output data frame, there
+##' is one column for each of the quantiles defined in `probs`.
+##' @export
 mp_trajectory_sim = function(model, n, probs = c(0.025, 0.25, 0.5, 0.75, 0.975)) {
   UseMethod("mp_trajectory_sim")
 }
 
+##' @export
 mp_trajectory_sim.TMBSimulator = function(model, n, probs = c(0.025, 0.25, 0.5, 0.75, 0.975)) {
   r = model$simulate()
   r = r[, names(r) != "value", drop = FALSE]
@@ -373,6 +476,7 @@ mp_trajectory_sim.TMBSimulator = function(model, n, probs = c(0.025, 0.25, 0.5, 
   cbind(r, rr)
 }
 
+##' @export
 mp_trajectory_sim.TMBCalibrator = function(model, n, probs = c(0.025, 0.25, 0.5, 0.75, 0.975)) {
   stop("Under construction")
 }
@@ -467,6 +571,8 @@ TMBSimulationUtils = function() {
   self$.runner = function(...
       , .phases = "during"
       , .method = c("report", "simulate", "sdreport")
+      , .sort = TRUE
+      , .values_only = FALSE
   ) {
     .method = match.arg(.method)
     compute_sd = FALSE
@@ -489,8 +595,11 @@ TMBSimulationUtils = function() {
       )
     }
     if (compute_sd) r$values = cbind(r$values, self$sdreport()$sd)
+    if (.values_only) return(r$values)
     s = self$.simulation_formatter(r, .phases)
-    s = s[order(s$time), , drop = FALSE] ## TODO: move sorting by time to the c++ side
+    if (.sort) {
+      s = s[order(s$time), , drop = FALSE] ## TODO: move sorting by time to the c++ side
+    }
     reset_rownames(s)
   }
   return_object(self, "TMBSimulationFormatter")

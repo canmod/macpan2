@@ -22,7 +22,7 @@ library(tidyr)
 
 ## Hello World
 
-The following code specifies an SI model, which is I think is the simplest possible model of epidemiological transmission.
+This vignette shows how to simulate from the SI model, which is I think is the simplest possible model of epidemiological transmission. Here is the code for defining an SI model (see [this short article](https://canmod.github.io/macpan2/articles/example_models) on how to find other example models).
 ```{r hello-world}
 library(macpan2)
 si = mp_tmb_model_spec(

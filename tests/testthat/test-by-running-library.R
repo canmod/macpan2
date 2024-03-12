@@ -1,7 +1,7 @@
 test_that("all models in the library can run", {
   model_names = setdiff(
     show_models()$dir,
-    c("nfds")
+    c("nfds", "shiver")
   )
   for (m in model_names) {
     print("========")

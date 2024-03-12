@@ -216,3 +216,25 @@ fitted_data = mp_trajectory_sd(sir_cal, conf.int = TRUE)
 ```
 
 What is going on?  Can you modify this model and/or fitting procedure to get both reasonable parameter estimates and a reasonable trajectory?
+
+## Cheap Prior Distribution
+
+Instead
+```{r}
+sir_cal = mp_tmb_calibrator(
+    spec = sir
+  , data = observed_data
+  
+  ## name the trajectory variable, with a name that
+  ## is the same in both the spec and the data
+  , traj = "reports"  
+  
+  ## fit the following parameters
+  , par = c("beta", "I", "report_prob")
+  , default = list(gamma = 1)
+)
+```
+
+## Learning the Functional form of Time Variation in Transmission
+
+

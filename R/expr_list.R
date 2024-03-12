@@ -86,19 +86,16 @@ ExprList = function(
     , .simulate_exprs = character(0L)
   ) {
   self = ExprListUtils()
-  valid_expr_list = ValidityMessager(
-    All(
-      is.list,  ## list of ...
-      MappedAllTest(Is("formula")),  ## ... formulas that are ...
-      TestPipeline(MappedSummarizer(length), MappedAllTest(TestRange(3L, 3L)))  ## ... two-sided formula
-      #TestPipeline(MappedSummarizer(lhs, is.symbol), MappedAllTest(TestTrue()))  ## ... only one symbol on the lhs
-    ),
+  valid_expr_list = AllValid(
+    ValidityMessager(is.list, "not a list"),  ## list of ...
+    ValidityMessager(MappedAllTest(Is("formula")), "not all formulas in an expression list"),  ## ... formulas that are ...
+    ValidityMessager(TestPipeline(MappedSummarizer(length), MappedAllTest(TestRange(3L, 3L))), "not all formulas are two-sided"),  ## ... two-sided formula
+    #TestPipeline(MappedSummarizer(lhs, is.symbol), MappedAllTest(TestTrue()))  ## ... only one symbol on the lhs
+    
     ## TODO: fix this error message now that expressions can have formulas
     ## on the left-hand-side. should also make a new test that actually
     ## checks the requirements.
-    "Model expressions must be two-sided assignment formulas,",
-    "without subsetting on the left-hand-side",
-    "(i.e. x ~ 1 is fine, but x[0] ~ 1 is not)."
+    .msg = paste("Invalid list of formulas.")
   )
 
   ## Args
@@ -188,56 +185,12 @@ ExprList = function(
     do.call(ExprList, input)
   }
   self$print_exprs = function(file = "", time_steps = "T") {
-    to = cumsum(self$.eval_schedule())
-    from = c(0L, to[1:2]) + 1L
-    if (is.numeric(time_steps)) {
-      time_steps_p1 = as.character(as.integer(time_steps + 1))
-    } else {
-      time_steps_p1 = paste(as.character(time_steps), "1", sep = " + ")
-    }
-    msgs = c(
-      "Before the simulation loop (t = 0):",
-      sprintf("At every iteration of the simulation loop (t = 1 to %s):"
-        , as.character(time_steps)
-      ),
-      sprintf("After the simulation loop (t = %s):", time_steps_p1)
+    model_steps_printer(
+        self$formula_list()
+      , self$.eval_schedule()
+      , file
+      , time_steps
     )
-
-    ## TODO: give better advice here on how to engage the simulation loop.
-    if (time_steps == 0) {
-      msgs[2L] = "At every iteration of the simulation loop (number of iterations = 0):"
-    }
-
-    for (i in 1:3) {
-      if (self$.eval_schedule()[i] > 0L) {
-        expr_strings = lapply(self$formula_list()[from[i]:to[i]], deparse)
-        tab_size = nchar(self$.eval_schedule()[i])
-        fmt = sprintf("%%%ii: %%s", tab_size)
-        tab = paste0(rep(" ", tab_size), collapse = "")
-        expr_n_lines = vapply(expr_strings, length, integer(1L))
-        make_expr_numbers = function(s, i) {
-          s[1L] = sprintf(fmt, i, s[1L])
-          if (length(s) > 1L) {
-            s[-1L] = paste(tab, s[-1L], sep = "")
-          }
-          s
-        }
-        expr_char = unlist(mapply(make_expr_numbers
-          , expr_strings
-          , seq_len(self$.eval_schedule()[i])
-          , SIMPLIFY = FALSE
-          , USE.NAMES = FALSE
-        ))
-        lines = c(
-          "---------------------",
-          msgs[i],
-          "---------------------",
-          expr_char,
-          ""
-        )
-        cat(lines, file = file, sep = "\n", append = i != 1L)
-      }
-    }
   }
 
   # Composition
@@ -245,6 +198,67 @@ ExprList = function(
   self$engine_methods = EngineMethods()
 
   return_object(self, "ExprList")
+}
+
+# @param steps_list list of model steps (e.g. a formula, a ChangeComponent).
+# @param eval_schedule length-3 integer vector summing to the length of the
+# steps_list, giving the number of steps in each of the three phases 
+# (before, during, after).
+# @param file optional file path to write to. default is to display on the
+# screen.
+# @param time_steps string used to represent the number of time steps in
+# the during phase.
+model_steps_printer = function(steps_list, eval_schedule, file = "", time_steps = "T") {
+  to = cumsum(eval_schedule)
+  from = c(0L, to[1:2]) + 1L
+  if (is.numeric(time_steps)) {
+    time_steps_p1 = as.character(as.integer(time_steps + 1))
+  } else {
+    time_steps_p1 = paste(as.character(time_steps), "1", sep = " + ")
+  }
+  msgs = c(
+    "Before the simulation loop (t = 0):",
+    sprintf("At every iteration of the simulation loop (t = 1 to %s):"
+      , as.character(time_steps)
+    ),
+    sprintf("After the simulation loop (t = %s):", time_steps_p1)
+  )
+
+  ## TODO: give better advice here on how to engage the simulation loop.
+  if (time_steps == 0) {
+    msgs[2L] = "At every iteration of the simulation loop (number of iterations = 0):"
+  }
+
+  for (i in 1:3) {
+    if (eval_schedule[i] > 0L) {
+      expr_strings = lapply(steps_list[from[i]:to[i]], to_string)
+      tab_size = nchar(eval_schedule[i])
+      fmt = sprintf("%%%ii: %%s", tab_size)
+      tab = paste0(rep(" ", tab_size), collapse = "")
+      expr_n_lines = vapply(expr_strings, length, integer(1L))
+      make_expr_numbers = function(s, i) {
+        s[1L] = sprintf(fmt, i, s[1L])
+        if (length(s) > 1L) {
+          s[-1L] = paste(tab, s[-1L], sep = "")
+        }
+        s
+      }
+      expr_char = unlist(mapply(make_expr_numbers
+        , expr_strings
+        , seq_len(eval_schedule[i])
+        , SIMPLIFY = FALSE
+        , USE.NAMES = FALSE
+      ))
+      lines = c(
+        "---------------------",
+        msgs[i],
+        "---------------------",
+        expr_char,
+        ""
+      )
+      cat(lines, file = file, sep = "\n", append = i != 1L)
+    }
+  }
 }
 
 #' Expression List

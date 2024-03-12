@@ -77,6 +77,17 @@ melt_default_matrix_list = function(x, zeros_are_blank = TRUE) {
   f
 }
 
+cast_default_matrix_list = function(x) {
+  val_list = tapply(x$value, x$matrix, c, simplify = FALSE)
+  row_list = tapply(x$row, x$matrix, c, simplify = FALSE)
+  col_list = tapply(x$col, x$matrix, c, simplify = FALSE)
+  dimnames = mapply(list, row_list, col_list, SIMPLIFY = FALSE)
+  nrow = vapply(row_list, length, integer(1L))
+  ncol = vapply(col_list, length, integer(1L))
+  mapply(matrix, val_list, nrow, ncol, dimnames = dimnames, SIMPLIFY = FALSE, USE.NAMES = TRUE)
+}
+cast_default_matrix_list = memoise(cast_default_matrix_list)
+
 empty_named_list = function() list() |> setNames(character(0L))
 
 assert_named_list = function(l) {

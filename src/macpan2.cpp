@@ -110,8 +110,7 @@ enum macpan2_func
     , MP2_TIME_VAR = 46 // fwrap,fail: time_var(x, change_points, change_pointer)
     , MP2_BINOM_SIM = 47 // fwrap,fail: rbinom(size, probability)
     , MP2_EULER_MULTINOM_SIM = 48 // fwrap,fail: reulermultinom(size, rate, delta_t)
-    //, MP2_LOGISTIC = 48 // fwrap,null: logistic(x)
-    //, MP2_LOGIT = 49 // fwrap,null: logit(x)
+    , MP2_ROUND = 49 // fwrap,null: round(x)
 };
 
 enum macpan2_meth
@@ -125,6 +124,121 @@ enum macpan2_meth
     , METH_TV_MAT = 7 // ~ time_var(Y, change_points, block_size, change_pointer), "Y", c("change_points", "block_size", "change_pointer")
     , METH_ROWS_TIMES_ROWS = 8 // ~ A[i] * X[j], c("A", "X"), c("i", "j")
 };
+
+
+// MACROS
+
+// convert a function that takes a scalar and returns a scalar
+// into one that takes a matrix and returns a matrix, by performing
+// the scalar operation on every element.
+#define MATRICIZE_1(FUN)                                       \
+template <class Type>                                          \
+matrix<Type> FUN(const matrix<Type> x) {                       \
+    int rows = x.rows();                                       \
+    int cols = x.cols();                                       \
+    matrix<Type> res;                                          \
+    res = matrix<Type>::Zero(rows, cols);                      \
+    for (int i = 0; i < rows; i++) {                           \
+        for (int j = 0; j < cols; j++) {                       \
+            res.coeffRef(i, j) = FUN(x.coeff(i, j));           \
+        }                                                      \
+    }                                                          \
+    return res;                                                \
+}
+
+// convert a function that takes a matrix (and an index) and 
+// returns a matrix into one that takes a scalar (and an index)
+// and returns a matrix, by creating a one-by-one matrix out
+// of the scalar and applying the function that takes matrix
+// input.
+#define SCALARIZE_1_INDEX_1(FUN)                               \
+template <class Type>                                          \
+Type FUN(const Type x, const int &index) {                     \
+    matrix<Type> y;                                            \
+    y = matrix<Type>::Constant(1, 1, x);                       \
+    FUN(y, index);                                             \
+}
+
+
+template <class Type>
+matrix<Type> RecycleToShape(matrix<Type> x, const int &rows, const int &cols) {
+    matrix<Type> y(rows, cols);
+
+    if (x.rows() == 1 && x.cols() == 1) {
+        // std::cout << "scalar in" << std::endl;
+        y = matrix<Type>::Constant(rows, cols, x.coeff(0, 0));
+    }
+    else if (x.rows() == rows) {
+        if (x.cols() == 1) {
+            // std::cout << "good column vector" << std::endl;
+            for (int i = 0; i < cols; i++) {
+                y.col(i) = x.col(0);
+            }
+        }
+        else {
+            // std::cout << "bad column vector" << std::endl;
+            Rf_error("Bad column vector");
+            // break; // Exit the loop on error
+        }
+    }
+    else if (x.cols() == cols) {
+        if (x.rows() == 1) {
+            // std::cout << "good row vector" << std::endl;
+            for (int i = 0; i < rows; i++) {
+                y.row(i) = x.row(0);
+            }
+        }
+        else {
+            // std::cout << "bad row vector" << std::endl;
+            Rf_error("Bad row vector");
+            // break; // Exit the loop on error
+        }
+    }
+    else {
+        // std::cout << "really bad" << std::endl;
+        Rf_error("Bad matrix shape");
+        // break; // Exit the loop on error
+    }
+    return y;
+}
+
+
+// ENGINE FUNCTIONS USED BY OTHER ENGINE FUNCTIONS
+
+template <class Type>
+Type mp2_round(const Type &x) {
+    Type y;
+    y = x < 0 ? x - 0.5f : x + 0.5f;
+    return Type(CppAD::Integer(y));
+}
+MATRICIZE_1(mp2_round)
+
+template <class Type>
+matrix<Type> mp2_rep(const matrix<Type> &x, const int &times) {
+    int size = x.rows() * x.cols();
+    matrix<Type> y;
+    matrix<Type> res;
+    y = x;
+    y.resize(size, 1);
+    res = matrix<Type>::Zero(size * times, 1);
+    int off = 0;
+    for (int i = 0; i < times; i++) {
+        res.block(off, 0, size, 1) = y;
+        off += size;
+    }
+    return res;
+}
+SCALARIZE_1_INDEX_1(mp2_rep)
+  
+
+template <class Type>
+Type mp2_rbinom(const Type size, const Type prob) {
+    Type m, rounded_size;
+    rounded_size = mp2_round(size);
+    m = ((rounded_size > 0) && (prob > 0)) ? rbinom(rounded_size, prob) : Type(0);
+    return m;
+}
+
 
 // UTILITY FUNCTIONS ---------------------------
 
@@ -395,8 +509,6 @@ int getNthMatIndex(
     return result;
 }
 
-// MORE CLASSES --------------------------
-
 template <class Type>
 int CheckIndices(matrix<Type> x, const std::vector<int> &row_indices, const std::vector<int> &col_indices)
 {
@@ -421,58 +533,6 @@ int CheckIndices(matrix<Type> x, const std::vector<int> &row_indices, const std:
     return 0; // Indices are valid
 }
 
-template <class Type>
-matrix<Type> RecycleToShape(matrix<Type> x, const int &rows, const int &cols)
-{
-    matrix<Type> y(rows, cols);
-
-    if (x.rows() == 1 && x.cols() == 1)
-    {
-        // std::cout << "scalar in" << std::endl;
-        y = matrix<Type>::Constant(rows, cols, x.coeff(0, 0));
-    }
-    else if (x.rows() == rows)
-    {
-        if (x.cols() == 1)
-        {
-            // std::cout << "good column vector" << std::endl;
-            for (int i = 0; i < cols; i++)
-            {
-                y.col(i) = x.col(0);
-            }
-        }
-        else
-        {
-            // std::cout << "bad column vector" << std::endl;
-            Rf_error("Bad column vector");
-            // break; // Exit the loop on error
-        }
-    }
-    else if (x.cols() == cols)
-    {
-        if (x.rows() == 1)
-        {
-            // std::cout << "good row vector" << std::endl;
-            for (int i = 0; i < rows; i++)
-            {
-                y.row(i) = x.row(0);
-            }
-        }
-        else
-        {
-            // std::cout << "bad row vector" << std::endl;
-            Rf_error("Bad row vector");
-            // break; // Exit the loop on error
-        }
-    }
-    else
-    {
-        // std::cout << "really bad" << std::endl;
-        Rf_error("Bad matrix shape");
-        // break; // Exit the loop on error
-    }
-    return y;
-}
 
 template <class Type>
 matrix<Type> getNthMat(
@@ -608,86 +668,65 @@ public:
     }
 
     // Method to recycle elements, rows, and columns to make operands compatible for binary operations
-    ArgList<Type> recycle_for_bin_op() const
-    {
+    ArgList<Type> recycle_for_bin_op() const {
         ArgList<Type> result = *this; // Create a new ArgList as a copy of the current instance
 
         matrix<Type> mat0 = result.get_as_mat(0);
         matrix<Type> mat1 = result.get_as_mat(1);
 
-        if (mat0.rows() == mat1.rows())
-        {
-            if (mat0.cols() != mat1.cols())
-            {
-                if (mat0.cols() == 1)
-                { // Vector vs matrix or scalar vs vector
+        if (mat0.rows() == mat1.rows()) {
+            if (mat0.cols() != mat1.cols()) {
+                if (mat0.cols() == 1) { // Vector vs matrix or scalar vs vector
                     matrix<Type> m = mat0;
                     mat0 = mat1; // for the shape
-                    for (int i = 0; i < mat0.cols(); i++)
-                    {
+                    for (int i = 0; i < mat0.cols(); i++) {
                         mat0.col(i) = m.col(0);
                     }
-                }
-                else if (mat1.cols() == 1)
-                { // Vector vs matrix or scalar vs vector
+                } else if (mat1.cols() == 1) { // Vector vs matrix or scalar vs vector
                     matrix<Type> m = mat1;
                     // result.set(1, mat0); // Set for the shape
                     mat1 = mat0;
-                    for (int i = 0; i < mat1.cols(); i++)
-                    {
+                    for (int i = 0; i < mat1.cols(); i++) {
                         mat1.col(i) = m.col(0);
                     }
                 }
-                else
-                {
+                else {
                     result.set_error_code(201); // Set the error code for "The two operands do not have the same number of columns"
                 }
             }
             // else: do nothing
         }
-        else
-        {
-            if (mat0.cols() == mat1.cols())
-            { // Only one compatible dimension
-                if (mat0.rows() == 1)
-                { // Vector vs matrix or scalar vs vector
+        else {
+            if (mat0.cols() == mat1.cols()) { // Only one compatible dimension
+                if (mat0.rows() == 1) { // Vector vs matrix or scalar vs vector
                     matrix<Type> m = mat0;
                     mat0 = mat1;
-                    for (int i = 0; i < mat0.rows(); i++)
-                    {
+                    for (int i = 0; i < mat0.rows(); i++) {
                         mat0.row(i) = m.row(0);
                     }
                 }
-                else if (mat1.rows() == 1)
-                { // Vector vs matrix or scalar vs vector
+                else if (mat1.rows() == 1) { // Vector vs matrix or scalar vs vector
                     matrix<Type> m = mat1;
                     mat1 = mat0;
-                    for (int i = 0; i < mat0.rows(); i++)
-                    {
+                    for (int i = 0; i < mat0.rows(); i++) {
                         mat1.row(i) = m.row(0);
                     }
                 }
-                else
-                {
+                else {
                     result.set_error_code(202); // Set the error code for "The two operands do not have the same number of rows"
                 }
             }
-            else
-            { // No dimensions are equal
-                if (mat0.rows() == 1 && mat0.cols() == 1)
-                { // Scalar vs non-scalar
+            else { // No dimensions are equal
+                if (mat0.rows() == 1 && mat0.cols() == 1) { // Scalar vs non-scalar
                     Type s = mat0.coeff(0, 0);
                     mat0 = mat1;
                     mat0.setConstant(s);
-                }
-                else if (mat1.rows() == 1 && mat1.cols() == 1)
-                { // Scalar vs non-scalar
+                } else if (mat1.rows() == 1 && mat1.cols() == 1) { // Scalar vs non-scalar
                     Type s = mat1.coeff(0, 0);
                     mat1 = mat0;
                     mat1.setConstant(s);
                 }
-                else
-                {
+                else {
                     result.set_error_code(203); // Set the error code for "The two operands do not have the same number of columns or rows"
                 }
             }
@@ -888,8 +927,7 @@ public:
         int t,                                    // current time step
         ListOfMatrices<Type> &valid_vars,         // current list of values of each matrix
         int row = 0                               // current expression parse table row being evaluated
-    )
-    {
+    ) {
 
         // total number of time steps in the simulation loop
         int t_max = hist.size() - 2;
@@ -898,15 +936,19 @@ public:
         // Variables to use locally in 'macpan2 function' and
         // 'macpan2 method' bodies -- these are not real functions and methods 
         // in either the c++ or r sense.
-        matrix<Type> m, m1, m2, m3, m4, m5;     // return values
+        matrix<Type> m, m1, m2, m3, m4, mz5;     // return values
         std::vector<int> v, v1, v2, v3, v4, v5; // integer vectors
         vector<int> u; // FIXME: why not std::vector<int> here??
         matrix<Type> Y, X, A;
+        // Type y, x;
+        // Type a;
+        //int ii, jj, kk;
         std::vector<int> timeIndex; // for rbind_time and rbind_lag
         int doing_lag = 0;
         Type sum, eps, var, by, left_over, remaining_prop, p0; // intermediate scalars
         Type delta_t; // for reulermultinom
-        int rows, cols, lag, rowIndex, colIndex, matIndex, grpIndex, reps, cp, off, size;
+        int rows, cols, lag, rowIndex, colIndex, matIndex, grpIndex, cp, off, size, times;
+        int size_in, size_out;
         int sz, start, err_code, curr_meth_id;
         // size_t numMats;
         // size_t numIntVecs;
@@ -1175,43 +1217,48 @@ public:
             // #' ```
             // #'
             case MP2_ADD: // +
-#ifdef MP_VERBOSE
+                #ifdef MP_VERBOSE
                 std::cout << args[0] << " + " << args[1] << " = " << args[0] + args[1] << std::endl
                           << std::endl;
-#endif
-                return args[0] + args[1];
+                #endif
+                if (table_n[row] == 1) { 
+                    return args[0]; // unary +  (in case someone puts a plus sign at the beginning of an expression)
+                } else {
+                    return args[0] + args[1]; // binary +
+                }
             case MP2_SUBTRACT: // -
-#ifdef MP_VERBOSE
+                #ifdef MP_VERBOSE
                 if (table_n[row] == 1)
                     std::cout << "Unary - " << args[0] << std::endl
                               << std::endl;
                 else
                     std::cout << args[0] << " - " << args[1] << " = " << args[0] - args[1] << std::endl
                               << std::endl;
-#endif
-                if (table_n[row] == 1)
-                    return -args[0];
-                else
-                    return args[0] - args[1];
+                #endif
+                if (table_n[row] == 1) {
+                    return -args[0]; // unary -
+                } else {
+                    return args[0] - args[1]; // binary -
+                }
             case MP2_MULTIPLY: // *
-#ifdef MP_VERBOSE
+                #ifdef MP_VERBOSE
                 std::cout << args[0] << " .* " << args[1] << " = " << args[0].cwiseProduct(args[1]) << std::endl
                           << std::endl;
-#endif
+                #endif
                 // return args[0].array()*args[1].array();   // doesn't work
                 return args[0].cwiseProduct(args[1]);
             case MP2_DIVIDE: // /
-#ifdef MP_VERBOSE
+                #ifdef MP_VERBOSE
                 std::cout << args[0] << " ./ " << args[1] << " = " << args[0].array() / args[1].array() << std::endl
                           << std::endl;
-#endif
+                #endif
                 // return args[0].array()/args[1].array();  // doesn't work
                 return args[0].cwiseQuotient(args[1]);
             case MP2_POWER: // ^
-#ifdef MP_VERBOSE
+                #ifdef MP_VERBOSE
                 std::cout << args[0] << " ^ " << args[1] << " = " << pow(args[0].array(), args[1].coeff(0, 0)).matrix() << std::endl
                           << std::endl;
-#endif
+                #endif
                 return pow(args[0].array(), args[1].array()).matrix();
                 // return args[0].pow(args[1].coeff(0,0));
 
@@ -1301,10 +1348,10 @@ public:
                 m = matrix<Type>::Zero(to - from + 1, 1);
                 for (int i = from; i <= to; i++)
                     m.coeffRef(i - from, 0) = i;
-#ifdef MP_VERBOSE
+                #ifdef MP_VERBOSE
                 std::cout << from << ":" << to << " = " << m << std::endl
                           << std::endl;
-#endif
+                #endif
                 return m;
 
             case MP2_SEQUENCE: // seq
@@ -1328,11 +1375,11 @@ public:
                 m = matrix<Type>::Zero(length, 1);
                 for (int i = 0; i < length; i++)
                     m.coeffRef(i, 0) = from + i * by;
-#ifdef MP_VERBOSE
+                #ifdef MP_VERBOSE
                 std::cout << "seq(" << from << ", " << length << ", " << by << ") = "
                           << m << std::endl
                           << std::endl;
-#endif
+                #endif
                 return m;
 
             // #' ### Examples
@@ -1371,21 +1418,20 @@ public:
             // #' ```
             // #'
             case MP2_REPLICATE: // rep
-                // m = matrix<Type>::Constant(rows, 1, args[0].coeff(0,0));
-                rows = args[0].rows();
-                reps = CppAD::Integer(args[1].coeff(0, 0));
-                m = matrix<Type>::Zero(rows * reps, 1);
-                off = 0;
-                for (int i = 0; i < reps; i++)
-                {
-                    m.block(off, 0, rows, 1) = args[0];
-                    off += rows;
-                }
-#ifdef MP_VERBOSE
-                std::cout << "rep(" << args[0] << ", " << args[1] << ") = " << m << std::endl
-                          << std::endl;
-#endif
-                return m;
+                X = args[0];
+                times = args.get_as_int(1);
+                return mp2_rep(X, times);
+                
+                
+                // rows = args[0].rows();
+                // reps = args.get_as_int(1);
+                // m = matrix<Type>::Zero(rows * reps, 1);
+                // off = 0;
+                // for (int i = 0; i < reps; i++) {
+                //     m.block(off, 0, rows, 1) = args[0];
+                //     off += rows;
+                // }
+                // return m;
 
             case MP2_MATRIX_MULTIPLY: // %*%
 
@@ -1414,10 +1460,10 @@ public:
                 // #' engine_eval(~ (1:10) %x% t(1:10))
                 // #' ```
                 // #'
-#ifdef MP_VERBOSE
+                #ifdef MP_VERBOSE
                 std::cout << args[0] << " %*% " << args[1] << " = " << args[0] * args[1] << std::endl
                           << std::endl;
-#endif
+                #endif
                 return args[0] * args[1];
 
             case MP2_KRONECKER: // %x%
@@ -1507,10 +1553,10 @@ public:
                     }
                 }
 
-#ifdef MP_VERBOSE
+                #ifdef MP_VERBOSE
                 std::cout << "c(" << args[0] << ", ...," << args[n - 1] << ") = " << m << std::endl
                           << std::endl;
-#endif
+                #endif
                 return m;
 
             // #' Column and row vectors of the same length can be
@@ -1596,24 +1642,24 @@ public:
                 // #' from the base R version in that it must be filled
                 // #' by column and there is no `byrow` option.
                 // #'
+                rows = args.get_as_int(1);
+                cols = args.get_as_int(2);
+                size_out = rows * cols;
                 m = args[0];
-
-                rows = CppAD::Integer(args[1].coeff(0, 0));
-                cols = CppAD::Integer(args[2].coeff(0, 0));
-
-                // m.conservativeResize(rows, cols); // don't know why this doesn't work
-                m.resize(rows, cols);
-
-                // m2 = m.transpose(); // m = m.transpose() doesn't work !!!
-                m2 = m;
-
-#ifdef MP_VERBOSE
-                std::cout << "matrix(" << args[0] << ") reshaped into [" << rows << ", " << cols << "] = "
-                          << m2 << std::endl
-                          << std::endl;
-#endif
-
-                return m2;
+                size_in = m.rows() * m.cols();
+                if (size_in == size_out) {
+                    m.resize(rows, cols);
+                } else if (size_in < size_out) {
+                    if (size_out % size_in) {
+                        SetError(MP2_MATRIX, "The size of the input matrix is not compatible with the requested shape of the output matrix.", row);
+                        return m1;
+                    }
+                    m = mp2_rep(m, size_out / size_in);
+                    m.resize(rows, cols);
+                } else {
+                    SetError(MP2_MATRIX, "The size of the input must less than or equal to that of the output.", row);
+                }
+                return m;
 
             // #' Matrices can be transposed with the usual
             // #' function, \code{\link{t}}.
@@ -1679,9 +1725,7 @@ public:
                 rows = args[0].rows();
                 m = matrix<Type>::Zero(rows, rows);
                 for (int i = 0; i < rows; i++)
-                {
                     m.coeffRef(i, i) = args[0].coeff(i, 0);
-                }
                 return m;
 
             case MP2_FROM_DIAG: // from_diag
@@ -1722,71 +1766,51 @@ public:
             // #' * A matrix containing sums of various groups of
             // #' the elements of `x`.
             // #'
-            case MP2_SUM: // sum
-
+            case MP2_SUM: // sum(x)
                 m = matrix<Type>::Zero(1, 1);
                 sum = 0.0;
                 for (int i = 0; i < n; i++)
                     sum += args[i].sum();
                 m.coeffRef(0, 0) = sum;
-
-#ifdef MP_VERBOSE
-                std::cout << "sum(" << args[0] << ", ..., " << args[n - 1] << ") = " << m << std::endl
-                          << std::endl;
-#endif
                 return m;
 
             // #' ### Details
             // #'
-            // #' The standard \code{\link{rowSums}} and
-            // #' \code{\link{colSums}} can be used, but they have
-            // #' slightly different behaviour from their base R
-            // #' versions. In particular, the `rowSums` function
-            // #' returns a column vector and the `colSums` function
-            // #' returns a row vector. If a specific shape is required
-            // #' then the transpose \code{\link{t}} function must be
-            // #' explicitly used.
+            // #' The `row_sums` and `col_sums` are similar to the base R
+            // #' \code{\link{rowSums}} and \code{\link{colSums}} functions,
+            // #' but with slightly different behaviour. In particular, the 
+            // #' `row_sums` function returns a column vector and the 
+            // #' `col_sums` function returns a row vector. If a specific shape 
+            // #' is required then the transpose \code{\link{t}} function must 
+            // #' be explicitly used.
             // #'
-            case MP2_ROWSUMS: // rowSums
-                // m = matrix<Type>::Zero(args[0].rows(), 1);
+            case MP2_ROWSUMS: // row_sums(x)
                 m = args[0].rowwise().sum().matrix();
-#ifdef MP_VERBOSE
-                std::cout << "rowSums(" << args[0] << ") = " << m << std::endl
-                          << std::endl;
-#endif
                 return m;
 
-            case MP2_COLSUMS: // colSums
+            case MP2_COLSUMS: // col_sums(x)
                 m = args[0].colwise().sum().matrix();
-#ifdef MP_VERBOSE
-                std::cout << "colSums(" << args[0] << ") = " << m << std::endl
-                          << std::endl;
-#endif
                 return m;
 
-            case MP2_GROUPSUMS: // group_sums
+            case MP2_GROUPSUMS: // group_sums(x)
                 v1 = args.get_as_int_vec(1);
                 err_code = args.check_indices(2, v1, {0});
-                if (err_code)
-                {
+                if (err_code) {
                     SetError(MP2_GROUPSUMS, "Group indexes are out of range.", row);
                     return m;
                 }
                 m = args[0];
-                if (m.cols() != 1)
-                {
+                if (m.cols() != 1) {
                     SetError(MP2_GROUPSUMS, "Group sums are only allowed for column vectors.", row);
                 }
                 rows = args.rows(2); // get number of rows in the 3rd argument
                 m1 = matrix<Type>::Zero(rows, 1);
-                if (v1.size() != m.rows())
-                {
+                if (v1.size() != m.rows()) {
                     SetError(MP2_GROUPSUMS, "Number of rows in x must equal the number of indices in f in group_sums(x, f, n).", row);
                     return m;
                 }
 
-                for (int i = 0; i < m.rows(); i++)
-                {
+                for (int i = 0; i < m.rows(); i++) {
                     m1.coeffRef(v1[i], 0) += m.coeff(i, 0);
                 }
                 return m1;
@@ -1846,75 +1870,42 @@ public:
             // #' ```
             // #'
             case MP2_SQUARE_BRACKET: // [
-#ifdef MP_VERBOSE
+                #ifdef MP_VERBOSE
                 std::cout << "square bracket" << std::endl
                           << std::endl;
-#endif
+                #endif
 
                 int nrow;
                 int ncol;
 
                 v1 = args.get_as_int_vec(1);
                 nrow = v1.size();
-                if (n == 2)
-                {
+                if (n == 2) {
                     v2.push_back(0);
                     ncol = 1;
-                }
-                else
-                {
+                } else {
                     v2 = args.get_as_int_vec(2);
                     ncol = v2.size();
                 }
-                err_code = args.check_indices(0, v1, v2); // CheckIndices(args[0], args[1], m1);
-                if (err_code)
-                {
+                err_code = args.check_indices(0, v1, v2);
+                if (err_code) {
                     SetError(MP2_SQUARE_BRACKET, "Illegal index to square bracket", row);
                     return m;
                 }
                 m = args[0];
                 m1 = matrix<Type>::Zero(nrow, ncol);
-                for (int i = 0; i < nrow; i++)
-                {
-                    for (int j = 0; j < ncol; j++)
-                    {
+                for (int i = 0; i < nrow; i++) {
+                    for (int j = 0; j < ncol; j++) {
                         m1.coeffRef(i, j) = m.coeff(v1[i], v2[j]);
                     }
                 }
                 return m1;
 
-                // nrow = args[1].size();
-                //
-                // if(n==2){
-                //     m1 = matrix<Type>::Zero(1,1);
-                //     ncol=1;
-                // }
-                // else{
-                //     ncol = args[2].size();
-                //     m1 = args[2];
-                // }
-                // m = matrix<Type>::Zero(nrow,ncol);
-
-                // err_code = CheckIndices(args[0], args[1], m1);
-                // if (err_code) {
-                //     SetError(MP2_SQUARE_BRACKET, "Illegal index to square bracket", row);
-                //     return m;
-                // }
-
-                // for (int i=0; i<nrow; i++) {
-                //     for (int j=0; j<ncol; j++) {
-                //         rowIndex = CppAD::Integer(args[1].coeff(i,0));
-                //         colIndex = CppAD::Integer(m1.coeff(j,0));
-                //         m.coeffRef(i,j) = args[0].coeff(rowIndex, colIndex);
-                //     }
-                // }
-                // return m;
-
             case MP2_BLOCK: // block
-                rowIndex = CppAD::Integer(args[1].coeff(0, 0));
-                colIndex = CppAD::Integer(args[2].coeff(0, 0));
-                rows = CppAD::Integer(args[3].coeff(0, 0));
-                cols = CppAD::Integer(args[4].coeff(0, 0));
+                rowIndex = args.get_as_int(1);
+                colIndex = args.get_as_int(2);
+                rows = args.get_as_int(3);
+                cols = args.get_as_int(4);
                 return args[0].block(rowIndex, colIndex, rows, cols);
 
             // #' ## Accessing Past Values in the Simulation History
@@ -2349,36 +2340,33 @@ public:
                 // #' of `x`
                 // #'
                 matIndex = index2mats[0]; // m
-                if (matIndex == -1)
-                {
+                if (matIndex == -1) {
                     SetError(MP2_CONVOLUTION, "Can only convolve named matrices not expressions of matrices", row);
                     return args[0];
                 }
 
-#ifdef MP_VERBOSE
+                #ifdef MP_VERBOSE
                 std::cout << "matIndex: " << matIndex << std::endl
                           << std::endl;
-#endif
+                #endif
                 length = args[1].rows();
-#ifdef MP_VERBOSE
+                #ifdef MP_VERBOSE
                 std::cout << "length: " << length << std::endl
                           << std::endl;
-#endif
-                if (length > 0 && args[1].cols() == 1)
-                {
-#ifdef MP_VERBOSE
+                #endif
+                if (length > 0 && args[1].cols() == 1) {
+                    #ifdef MP_VERBOSE
                     std::cout << "kernel 1: " << args[1] << std::endl
                               << std::endl;
-#endif
-                    if (t + 1 < length)
-                    {
+                    #endif
+                    if (t + 1 < length) {
                         length = t + 1;
                         args[1] = args[1].block(0, 0, length, 1);
                     }
-#ifdef MP_VERBOSE
+                    #ifdef MP_VERBOSE
                     std::cout << "kernel 2: " << args[1] << std::endl
                               << std::endl;
-#endif
+                    #endif
 
                     rows = args[0].rows();
                     cols = args[0].cols();
@@ -2695,8 +2683,7 @@ public:
             
             case MP2_BINOM_SIM:
                 // rbinom(size, prob)
-                if (n != 2)
-                {
+                if (n != 2) {
                     SetError(MP2_BINOM_SIM, "rbinom needs two arguments: matrices with size and probability", row);
                     return m;
                 }
@@ -2706,17 +2693,14 @@ public:
                 args = args.recycle_to_shape(v1, rows, cols);
                 err_code = args.get_error_code();
                 // err_code = RecycleInPlace(args[1], rows, cols);
-                if (err_code != 0)
-                {
-                    SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row);
+                if (err_code != 0) {
+                    SetError(MP2_BINOM_SIM, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row);
                     return m;
                 }
                 m = matrix<Type>::Zero(rows, cols);
-                for (int i = 0; i < rows; i++)
-                {
-                    for (int j = 0; j < cols; j++)
-                    {
-                        m.coeffRef(i, j) = rbinom(args[0].coeff(i, j), args[1].coeff(i, j));
+                for (int i = 0; i < rows; i++) {
+                    for (int j = 0; j < cols; j++) {
+                        m.coeffRef(i, j) = mp2_rbinom(args[0].coeff(i, j), args[1].coeff(i, j));
                     }
                 }
                 return m;
@@ -2729,6 +2713,26 @@ public:
                 } else {
                     delta_t = 1.0;
                 }
+                // args[0] : size
+                // args[1] : rate
+                // delta_t : delta_t
+                // sum : p
+                
+                //for (int i = 0; i < valid_vars.m_matrices.size(); i++) {
+                //    std::cout << "mat " << i << ":" << std::endl << valid_vars.m_matrices[i] << std::endl;
+                //}
+                // std::cout << "---------------------------" << std::endl;
+                // std::cout << "mat S: " << valid_vars.m_matrices[11] << std::endl;
+                // std::cout << "mat I: " << valid_vars.m_matrices[10] << std::endl;
+                // std::cout << "mat R: " << valid_vars.m_matrices[8] << std::endl;
+                // std::cout << "mat N: " << valid_vars.m_matrices[9] << std::endl;
+                // std::cout << "mat infection: " << valid_vars.m_matrices[12] << std::endl;
+                // std::cout << "mat recovery: " << valid_vars.m_matrices[13] << std::endl;
+                // std::cout << "mat vaxprop: " << valid_vars.m_matrices[4] << std::endl;
+                // std::cout << "size: "  << args[0] << std::endl;
+                // std::cout << "rate: " << args[1] << std::endl;
+                // std::cout << std::endl;
+                
                 if (args[0].rows() != 1 | args[0].cols() != 1) {
                     //std::cout << "++++++" << std::endl;
                     //std::cout << args[0] << std::endl;
@@ -2757,22 +2761,41 @@ public:
                 
                 m1 = matrix<Type>::Zero(args[1].rows(), 1);  // multinomial outcomes
                 
-                left_over = args[0].coeff(0, 0);
-                remaining_prop = 1;
+                // rounded size, called left_over because it will be
+                // updated as we loop through the categories of the
+                // multinomial distribution
+                left_over = mp2_round(args[0].coeff(0, 0));
+                
+                remaining_prop = 1.0;
                 for (int i = 0; i < m1.rows(); i++) {
                     //std::cout << "N = " << left_over << std::endl;
                     //std::cout << "p = " << m.coeff(i, 0) << std::endl;
                     //std::cout << "q = " << remaining_prop << std::endl;
-                    if (remaining_prop > 1e-8) {
-                        m1.coeffRef(i, 0) = rbinom(left_over, m.coeff(i, 0) / remaining_prop);
-                    }
-                    
-                    left_over = left_over - m1.coeff(i, 0);
-                    remaining_prop = remaining_prop - m.coeff(i, 0);
+                    // if (remaining_prop > 1e-8) {
+                    //}
+                    //m1.coeffRef(i, 0) = ((left_over > 0.0) && ((m.coeff(i, 0) / remaining_prop) > 0.0)) ? 1.0 * rbinom(left_over, m.coeff(i, 0) / remaining_prop) : 0.0;
+                    m1.coeffRef(i, 0) = mp2_rbinom(left_over, m.coeff(i, 0) / remaining_prop);
+                    left_over -= m1.coeff(i, 0);
+                    remaining_prop -= m.coeff(i, 0);
                 }
                 // m1.coeffRef(m1.rows() - 1, 0) = left_over;
                 return m1;
                 
+            case MP2_ROUND:
+                m = mp2_round(args[0]);
+                return m;
+                // rows = args[0].rows();
+                // cols = args[0].cols();
+                // m = matrix<Type>::Zero(rows, cols);
+                // for (int i = 0; i < rows; i++) {
+                //     for (int j = 0; j < cols; j++) {
+                //         x = args[0].coeff(i, j);
+                //         y = x < 0 ? x - 0.5f : x + 0.5f;
+                //         m.coeffRef(i, j) = Type(CppAD::Integer(y));
+                //     }
+                // }
+                // return m;
+            
             case MP2_ASSIGN:
                 // #' ## Assign
                 // #'

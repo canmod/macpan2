@@ -75,6 +75,7 @@ MatsList = function(...
   }
 
   self$.initial_mats = lapply(l, as.matrix)
+  self$all_matrices = function() self$.initial_mats
 
   if (length(self$.initial_mats) == 0L) names(self$.initial_mats) = character()
 
