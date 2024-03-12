@@ -20,7 +20,7 @@ The `McMasterPandemic` project has focused on using discrete time difference equ
 
 In order to use this interface, models must be rewritten using explicit declarations of state updates. By explicitly declaring what expressions correspond to state updates, `macpan2` is able to modify the method of updating without further user input. This makes it easier to compare difference equations (i.e. Euler steps), ODEs (i.e. Runge-Kutta), and process error (i.e Euler Multinomial) runs for the same underlying dynamical model.
 
-To declare a state update one replaces formulas in the `during` argument of a model spec to include calls to the `?mp_per_capita_flow()` function.  As an example we will modify the SI model to include explicit state updates.  The original form of the model looks like this.
+To declare a state update one replaces formulas in the `during` argument of a model spec to include calls to the `mp_per_capita_flow()` function.  As an example we will modify the SI model to include explicit state updates.  The original form of the model looks like this.
 ```{r}
 library(macpan2)
 si_implicit = mp_tmb_model_spec(
