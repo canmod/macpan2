@@ -746,12 +746,10 @@ public:
         // std::cout << "step a: " << rows << " and " << cols << std::endl;
         int error_code = 0; // Initialize the error code
         // std::cout << "step b" << std::endl;
-        for (int index : indices)
-        {
+        for (int index : indices) {
             matrix<Type> mat = result.get_as_mat(index);
             // std::cout << "step c" << std::endl;
-            if (mat.rows() == rows && mat.cols() == cols)
-            {
+            if (mat.rows() == rows && mat.cols() == cols) {
                 // std::cout << "no action" << std::endl;
                 // No further action needed for this matrix
                 continue;
@@ -759,36 +757,28 @@ public:
             // std::cout << "step d" << std::endl;
             matrix<Type> m(rows, cols);
             // std::cout << "step e" << std::endl;
-            if (mat.rows() == 1 && mat.cols() == 1)
-            {
+            if (mat.rows() == 1 && mat.cols() == 1) {
                 // std::cout << "scalar in" << std::endl;
                 m = matrix<Type>::Constant(rows, cols, mat.coeff(0, 0));
             }
-            else if (mat.rows() == rows)
-            {
-                if (mat.cols() == 1)
-                {
+            else if (mat.rows() == rows) {
+                if (mat.cols() == 1) {
                     // std::cout << "good column vector" << std::endl;
-                    for (int i = 0; i < cols; i++)
-                    {
+                    for (int i = 0; i < cols; i++) {
                         m.col(i) = mat.col(0);
                     }
                 }
-                else
-                {
+                else {
                     // std::cout << "step f" << std::endl;
                     // std::cout << "bad column vector" << std::endl;
                     error_code = 501;
                     // break; // Exit the loop on error
                 }
             }
-            else if (mat.cols() == cols)
-            {
-                if (mat.rows() == 1)
-                {
+            else if (mat.cols() == cols) {
+                if (mat.rows() == 1) {
                     // std::cout << "good row vector" << std::endl;
-                    for (int i = 0; i < rows; i++)
-                    {
+                    for (int i = 0; i < rows; i++) {
                         m.row(i) = mat.row(0);
                     }
                 }
@@ -3292,7 +3282,7 @@ Type objective_function<Type>::operator()()
     std::ofstream logfile;
     logfile.open(log_file);
     // logfile.open (LOG_FILE_NAME);
-    logfile << "======== log file of MacPan2 ========\n";
+    logfile << "======== macpan2 log file ========\n";
     logfile.close();
 
     std::setprecision(9); // Set the precision of std::cout

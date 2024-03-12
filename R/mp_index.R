@@ -382,6 +382,10 @@ mp_positions = function(x, table, zero_based = TRUE) {
 #' @export
 mp_rename = function(x, ...) {
   l = list(...)
+  mp_rename_from_list(x, l)
+}
+
+mp_rename_from_list = function(x, l) {
   new_nms = names(l)
   old_nms = unlist(l, recursive = FALSE, use.names = FALSE)
   f = x$partition$frame()
@@ -404,3 +408,5 @@ mp_rename = function(x, ...) {
   labs[j[!is.na(j)]] = new_nms[!is.na(j)]
   Index(f, labelling_column_names = labs)
 }
+
+

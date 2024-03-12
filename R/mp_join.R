@@ -78,7 +78,24 @@
 #' @family ledgers
 #' @export
 mp_join = function(..., by = empty_named_list()) {
-  table_list = valid$named_list$assert(list(...))
+  possible_nms = (deparse1(substitute(list(...)))
+    |> sub(pattern = "^list\\(", replacement = "")
+    |> sub(pattern = "\\)", replacement = "")
+    |> strsplit(", ")
+    |> getElement(1L)
+  )
+  dot_args = list(...)
+  nms = names(dot_args)
+  if (is.null(nms)) {
+    names(dot_args) = possible_nms
+  } else if (any(nms == "")) {
+    ii = nms == ""
+    names(dot_args)[ii] = possible_nms[ii]
+  }
+  
+  if (any(names(dot_args) == "by")) stop("Indices cannot have the name `by`.")
+  
+  table_list = valid$named_list$assert(dot_args)
   table_nms = names(table_list)
 
   if (length(table_nms) < 2L) stop("cannot join fewer than two index objects.")

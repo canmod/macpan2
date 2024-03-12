@@ -16,9 +16,12 @@ map_names = function(
     |> c(local_name_vector)
     |> make.unique(sep = "__")
   )
-  (all_names[-seq_along(existing_names)]
-    |> relist(local_names)
-  )
+  if (length(existing_names) > 0L) {
+    local_fixed_names = all_names[-seq_along(existing_names)]
+  } else {
+    local_fixed_names = all_names
+  }
+  relist(local_fixed_names, local_names)
 }
 
 

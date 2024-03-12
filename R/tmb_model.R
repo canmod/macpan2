@@ -352,21 +352,26 @@ mp_initial.TMBSimulator = function(model) {
 }
 
 
-mp_final = function(model_simulator, ...) {
-  stop("under construction")
-  UseMethod("mp_final")
-}
+#' Final Values
+#' 
+#' Return the values of variables after the simulation loop has finished
+#' and the `final` set of expressions have been evaluated.
+#' 
+#' @param model Object that can be used to simulate.
+#' @export
+mp_final = function(model) UseMethod("mp_final")
+
+#' @describeIn mp_final Final values formatted as a list of matrices.
+#' @export
+mp_final_list = function(model) UseMethod("mp_final_list")
 
 
-mp_final.TMBSimulator = function(model_simulator, time_steps, outputs, ...) {
-  stop("under construction")
-  (model_simulator
-    $replace
-    $time_steps(time_steps)
-    $update
-    $matrices(.mats_to_return = outputs, .mats_to_save = outputs)
-    $report(..., .phases = "after")
-  )
+#' @export
+mp_final.TMBSimulator = function(model) model$report(.phases = "after")
+
+#' @export
+mp_final_list.TMBSimulator = function(model) {
+  mp_final(model) |> cast_default_matrix_list()
 }
 
 #' Trajectory
