@@ -592,11 +592,21 @@ TMBSimulationUtils = function() {
       r = self$ad_fun()[[.method]](fixed_params)
     }
     if (r$error != 0L) {
+      arg_report = (data.frame(
+          Rows = r$arg_rows
+        , Cols = r$arg_cols
+        , Types = c("double", "integer")[r$arg_type_ints + 1L]
+      )) |> frame_formatter()
       stop(
         "\nThe following error was thrown by the TMB engine:\n  ",
         self$tmb_model$log_file$err_msg(),
         "\nThis error occurred at the following expression:\n  ",
-        self$.find_problematic_expression(r$expr_row)
+        self$.find_problematic_expression(r$expr_row),
+        "\nThis error occurred in the following function:\n  ",
+        unname(valid_funcs[[r$func_int]]),
+        "\nThis function call got ", length(r$arg_rows), " arguments, ",
+        "each of which is described by the rows of the following table:\n\n",
+        arg_report
       )
     }
     if (compute_sd) r$values = cbind(r$values, self$sdreport()$sd)
