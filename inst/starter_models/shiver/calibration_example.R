@@ -2,6 +2,29 @@ library(macpan2)
 library(ggplot2)
 library(dplyr)
 
+
+## -------------------------
+## local function
+## -------------------------
+
+# to be included in mp_tmb_coef in the future
+# see here, https://github.com/canmod/macpan2/issues/179
+backtrans <- function(x) {
+  vars1 <- intersect(c("default", "estimate", "conf.low", "conf.high"), names(x))
+  prefix <- stringr::str_extract(x[["mat"]], "^log(it)?_")  |> tidyr::replace_na("none")
+  sx <- split(x, prefix)
+  for (ptype in setdiff(names(sx), "none")) {
+    link <- make.link(stringr::str_remove(ptype, "_"))
+    sx[[ptype]] <- (sx[[ptype]]
+                    |> mutate(across(std.error, ~link$mu.eta(estimate)*.))
+                    |> mutate(across(any_of(vars1), link$linkinv))
+                    |> mutate(across(mat, ~stringr::str_remove(., paste0("^", ptype))))
+    )
+  }
+  bind_rows(sx)
+}
+
+
 ## -------------------------
 ## get model spec from library
 ## -------------------------
@@ -281,26 +304,22 @@ shiver_calibrator = mp_tmb_calibrator(
 
 
 # optimize to estimate transmission parameters
-# converges
+# converges, with warning
 mp_optimize(shiver_calibrator)
 
 # looking at coefficients and CIs
 # we need to back transform to interpret
 # beta is approximately 0.3 (as in beta_s estimate previously)
-(mp_tmb_coef(shiver_calibrator, conf.int=TRUE)
-  |> filter(mat=="log_beta")
-  |> mutate(across(c(estimate, conf.low, conf.high), exp))
+cc <- (mp_tmb_coef(shiver_calibrator, conf.int=TRUE)
+       |> backtrans()
 )
+cc |> filter(mat == "beta")
 
 # `a` is approximately 0.35, with a CI of (0.31,0.38)
 # We interpret `a` as a 35% reduction in transmission 
 # for vaccinated suceptibles.
 # 0.35*beta ~ 0.1 = the estimate we obtained for beta_v previously
-(mp_tmb_coef(shiver_calibrator, conf.int=TRUE)
-  |> filter(mat=="logit_a")
-  |> mutate(across(c(estimate, conf.low, conf.high), plogis))
-)
-
+cc |> filter(mat == "a")
 
 # how does fit the look with these parameters
 # identical to previous fit (because all we did was re-parameterize)
@@ -322,19 +341,22 @@ if (interactive()) {
 ## -------------------------
 
 # If we include more observed data, can we get more precise estimates?
-# There is COVID case data available that we can fit to I.
+# There is COVID case data available that we can fit to incidence.
 
 # COVID19 case data for Ontario
 # Obtained from here:
 # https://data.ontario.ca/dataset/covid-19-vaccine-data-in-ontario/resource/eed63cf2-83dd-4598-b337-b288c0a89a16
+# The metadata for this data was not clear to me, but looking at the data I think it makes sense to
+# assume these case counts are incidence (# number of new cases each day) instead of prevalence (# all active cases each day)
 daily_cases = (read.csv(
-    system.file(
-        "starter_models"
-      , "shiver"
-      , "data"
-      , "cases_ontario.csv"
-      , package = "macpan2"
-    )
+    "inst/starter_models/shiver/data/cases_ontario.csv"
+    # system.file(
+    #     "starter_models"
+    #   , "shiver"
+    #   , "data"
+    #   , "cases_ontario.csv"
+    #   , package = "macpan2"
+    # )
   , row.names = NULL
   )
   |> rename(time = X_id)
@@ -345,10 +367,10 @@ daily_cases = (read.csv(
 
 
 reported_cases = (daily_cases
-     |> filter(time!=1 & time!=2) # remove first two records (Aug 9, Aug10 = I0)
-     |> mutate(time=time-2)       # update all times to set Aug 11 to be day 1 of the scenario
+     |> filter(time!=1 & time!=2)  # remove first two records (Aug 9, Aug10 = I0)
+     |> mutate(time=time-2)        # update all times to set Aug 11 to be day 1 of the scenario
      |> head(expected_daily_reports)
-     |> mutate(matrix="I")
+     |> mutate(matrix="infection") # the infection variable is incidence
      |> select(c("time","value","matrix"))
 )
 
@@ -364,8 +386,9 @@ shiver_calibrator = mp_tmb_calibrator(
     # row bind both observed data
   , data = rbind(reported_hospitalizations, reported_cases)
     # fit both trajectories
-  , traj = c("H","I")
+  , traj = c("H","infection")
   , par = c("log_beta","logit_a")
+  , outputs=c(states, "infection")
   , default = list(N=N, V=V0, I=I0_new, H=H0, E=E0
                    , phi=phi
                    , alpha=alpha
@@ -374,42 +397,33 @@ shiver_calibrator = mp_tmb_calibrator(
 )
 
 # optimize to estimate transmission parameters
-# converges
+# converges, with a warning
 mp_optimize(shiver_calibrator)
 
-backtrans <- function(x) {
-    vars1 <- intersect(c("default", "estimate", "conf.low", "conf.high"), names(x))
-    prefix <- stringr::str_extract(x[["mat"]], "^log(it)?_")  |> tidyr::replace_na("none")
-    sx <- split(x, prefix)
-    for (ptype in setdiff(names(sx), "none")) {
-        link <- make.link(stringr::str_remove(ptype, "_"))
-        sx[[ptype]] <- (sx[[ptype]]
-            |> mutate(across(std.error, ~link$mu.eta(estimate)*.))
-            |> mutate(across(any_of(vars1), link$linkinv))
-            |> mutate(across(mat, ~stringr::str_remove(., paste0("^", ptype))))
-        )
-    }
-    bind_rows(sx)
-}
-# beta ~ 0.4 with reasonable CIs
+
+# beta ~ 0.48 with reasonable CIs
 cc <- (mp_tmb_coef(shiver_calibrator, conf.int=TRUE)
     |> backtrans()
 )
 cc |> filter(mat == "beta")
 
-# a ~ 5%, and CIs seem reasonable
-# a is much smaller than previous estimate (35%)
-# but this could be plausible (vaccines really help lower transmission?)
+# The estimate for `a` is very small, effectively 0. This is a large change from 
+# the previous estimate (35%), but could be plausible (vaccines really help lower
+# transmission). However the confidence interval is very wide, essentially all possible 
+# values of `a`, meaning we are not learning much about this parameter.
 cc |> filter(mat == "a")
 
 # how does data look with these parameters
 # not good!
-# in this case, adding more noisy data (observed I) leads to fitting problems
+# in this case, adding more noisy data (incidence) leads to major fitting problems
 # even when transmission rate estimates seem biologically possible
+# Something also to consider, Aug-Oct doesn't capture the time frame in which we see
+# usually see infection spikes for seasonal viruses (over the winter), so perhaps the 
+# incidence data used here is just not informative enough about the virus dynamics
 if (interactive()) {
   (shiver_calibrator 
    |> mp_trajectory_sd(conf.int=TRUE)
-   |> filter(matrix %in% c("H","I"))
+   |> filter(matrix %in% c("H","infection"))
    |> ggplot(aes(time, value))
    + geom_line(aes(y=value), colour="red")
    + geom_ribbon(aes(ymin=conf.low,ymax=conf.high), fill="red",alpha=0.3)
@@ -417,5 +431,57 @@ if (interactive()) {
    + facet_wrap(vars(matrix), scales='free')
   )
 }
+
+
+## -------------------------
+## vaccine function
+## -------------------------
+
+
+## update tmb.R with this spec?
+
+
+## first I want to try if I can just update
+## the current spec, instead of adding a new one
+
+print(spec)
+
+
+# want to update rho which is a default
+
+erf <- function(x) 2 * pnorm(x * sqrt(2)) - 1
+plot(-10:10, -erf(-10:10), type='l')
+# how do we use erf for rho(t)
+
+# use erf(x) where x(S,V,beta_v,beta_s,I,N_mix) [what about phi]
+
+# 1: N_mix ~ N - H
+# 2: vaccination ~ phi * S
+# 3: vaccine_failure ~ rho * V # doesn't make sense to include this term, because we are changin rho
+# 4: unvaccinated_exposure ~ S * I * beta_s/N_mix
+# 5: vaccinated_exposure ~ V * I * beta_v/N_mix # i think not this term, do we want vaccine supply to depend on V ...maybe
+
+#phi * S + S * I * beta_s/N_mix #+ V * I * beta_v/N_mix
+
+#S * (phi + I *beta_s/N_mix)
+
+# from spec
+phi=1e-1
+beta_s=2e-1
+max_vax=5
+N_mix=100
+
+S=seq(100,0,by=-1)
+I=seq(0,100,by=1)
+
+unvax=S * (phi + I *beta_s/N_mix)
+
+
+
+plot(unvax,max_vax*erf(unvax),type='l')
+
+# how does this prevent S and V from going negative
+
+
 
 

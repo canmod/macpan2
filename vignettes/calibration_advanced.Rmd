@@ -459,13 +459,13 @@ with(sir_simdat, table(I_missing=is.na(I_obs), R_missing=is.na(R_obs)))
 
 ```{r eval = FALSE}
 ## won't work yet ... need more sophisticated obs/sim matching ...
-mk_calibrate(sir_simulator,
-             data = sir_simdat,
-             params = list(beta = 1, gamma = 0.5, I_disp = 1, R_disp = 1),
-             transforms = list(beta = "log", gamma = "log", I_disp = "log", R_disp = "log"),
-             exprs = list(log_lik ~ dnbinom(I_obs, I, I_disp) +
-                          dnbinom(R_obs, R, R_disp))
-             )
+# mk_calibrate(sir_simulator,
+#              data = sir_simdat,
+#              params = list(beta = 1, gamma = 0.5, I_disp = 1, R_disp = 1),
+#              transforms = list(beta = "log", gamma = "log", I_disp = "log", R_disp = "log"),
+#              exprs = list(log_lik ~ dnbinom(I_obs, I, I_disp) +
+#                           dnbinom(R_obs, R, R_disp))
+#              )
 ```
 
 
