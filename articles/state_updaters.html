@@ -92,7 +92,7 @@ we describe experimental features that allow one to update the data
 differently. In particular, it is now possible to use a Runge-Kutta 4
 ODE solver (to approximate the solution to the continuous time analogue)
 as well as the Euler Multinomial distribution to generate process error.
-These features have in principle been avaiable for most of the life of
+These features have in principle been available for most of the life of
 <code>macpan2</code>, but only recently have they been given a more
 convenient interface.</p>
 <p>In order to use this interface, models must be rewritten using
@@ -100,7 +100,7 @@ explicit declarations of state updates. By explicitly declaring what
 expressions correspond to state updates, <code>macpan2</code> is able to
 modify the method of updating without further user input. This makes it
 easier to compare difference equations (i.e. Euler steps), ODEs
-(i.e. Runge-Kutta), and process error (i.e Euler Multinomial) runs for
+(i.e. Runge-Kutta), and process error (i.e. Euler Multinomial) runs for
 the same underlying dynamical model.</p>
 <p>To declare a state update one replaces formulas in the
 <code>during</code> argument of a model spec to include calls to the
