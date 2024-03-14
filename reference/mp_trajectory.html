@@ -66,7 +66,7 @@ variables of a dynamical model simulator.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">mp_trajectory</span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">mp_trajectory</span><span class="op">(</span><span class="va">model</span>, include_initial <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">mp_trajectory_sd</span><span class="op">(</span><span class="va">model</span>, conf.int <span class="op">=</span> <span class="cn">FALSE</span>, conf.level <span class="op">=</span> <span class="fl">0.95</span><span class="op">)</span></span>
 <span></span>
@@ -80,6 +80,10 @@ variables of a dynamical model simulator.</p>
     <dl><dt>model</dt>
 <dd><p>A dynamical model simulator produced by
 <code><a href="mp_simulator.html">mp_simulator</a></code>.</p></dd>
+
+
+<dt>include_initial</dt>
+<dd><p>Should the initial values be included in the output?</p></dd>
 
 
 <dt>conf.int</dt>

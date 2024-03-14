@@ -207,14 +207,39 @@ model looks like this.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span><span class="op">(</span><span class="va">trajectory_comparison</span></span>
+<span>  <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/rename.html" class="external-link">rename</a></span><span class="op">(</span>`Time Step` <span class="op">=</span> <span class="va">time</span>, Incidence <span class="op">=</span> <span class="va">value</span><span class="op">)</span></span>
 <span>  <span class="op">|&gt;</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span></span>
-<span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">value</span>, colour <span class="op">=</span> <span class="va">update_method</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">`Time Step`</span>, <span class="va">Incidence</span>, colour <span class="op">=</span> <span class="va">update_method</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="state_updaters_files/figure-html/unnamed-chunk-6-1.png" width="672"></p>
+<p>The incidence trajectory is different for the three update methods,
+even though the initial values of the state variables were identical in
+all three cases.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/mp_initial.html">mp_initial</a></span><span class="op">(</span><span class="va">si_euler</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   matrix time row col value</span></span>
+<span><span class="co">#&gt; 1      N    0   0   0   100</span></span>
+<span><span class="co">#&gt; 2      I    0   0   0     1</span></span>
+<span><span class="co">#&gt; 3      S    0   0   0    99</span></span>
+<span><span class="fu"><a href="../reference/mp_initial.html">mp_initial</a></span><span class="op">(</span><span class="va">si_euler_multinomial</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   matrix time row col value</span></span>
+<span><span class="co">#&gt; 1      N    0   0   0   100</span></span>
+<span><span class="co">#&gt; 2      I    0   0   0     1</span></span>
+<span><span class="co">#&gt; 3      S    0   0   0    99</span></span>
+<span><span class="fu"><a href="../reference/mp_initial.html">mp_initial</a></span><span class="op">(</span><span class="va">si_rk4</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   matrix time row col value</span></span>
+<span><span class="co">#&gt; 1      N    0   0   0   100</span></span>
+<span><span class="co">#&gt; 2      I    0   0   0     1</span></span>
+<span><span class="co">#&gt; 3      S    0   0   0    99</span></span></code></pre></div>
+<p>The incidence is different, even during the first time step, because
+each state update method causes different numbers of susceptible
+individuals to become infectious at each time step. Further, incidence
+here is defined for a single time step and so this number of new
+infectious individuals is exactly the incidence.</p>
 <div class="section level2">
 <h2 id="branching-flows-and-process-error">Branching Flows and Process Error<a class="anchor" aria-label="anchor" href="#branching-flows-and-process-error"></a>
 </h2>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span> <span class="va">siv</span> <span class="op">=</span> <span class="fu"><a href="../reference/mp_tmb_model_spec.html">mp_tmb_model_spec</a></span><span class="op">(</span></span>
 <span>    before <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">S</span> <span class="op">~</span> <span class="va">N</span> <span class="op">-</span> <span class="va">I</span> <span class="op">-</span> <span class="va">V</span><span class="op">)</span></span>
 <span>  , during <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
@@ -246,7 +271,7 @@ model looks like this.</p>
 <span><span class="co">#&gt;      I/N)</span></span>
 <span><span class="co">#&gt; 2: mp_per_capita_flow(from = "S", to = "V", rate = vaccination ~ </span></span>
 <span><span class="co">#&gt;      rho)</span></span></code></pre></div>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="op">(</span><span class="va">siv</span> </span>
 <span> <span class="op">|&gt;</span> <span class="fu"><a href="../reference/mp_euler.html">mp_euler_multinomial</a></span><span class="op">(</span><span class="op">)</span></span>
 <span> <span class="op">|&gt;</span> <span class="fu"><a href="../reference/mp_simulator.html">mp_simulator</a></span><span class="op">(</span><span class="fl">50</span>, <span class="st">"infection"</span><span class="op">)</span></span>
@@ -254,7 +279,7 @@ model looks like this.</p>
 <span> <span class="op">|&gt;</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span></span>
 <span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">value</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="state_updaters_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
+<p><img src="state_updaters_files/figure-html/unnamed-chunk-9-1.png" width="700"></p>
 </div>
   </main>
 </div>
