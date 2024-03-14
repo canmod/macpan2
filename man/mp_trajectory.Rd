@@ -7,7 +7,7 @@
 \alias{mp_trajectory_sim}
 \title{Trajectory}
 \usage{
-mp_trajectory(model)
+mp_trajectory(model, include_initial = FALSE)
 
 mp_trajectory_sd(model, conf.int = FALSE, conf.level = 0.95)
 
@@ -18,6 +18,8 @@ mp_trajectory_sim(model, n, probs = c(0.025, 0.25, 0.5, 0.75, 0.975))
 \arguments{
 \item{model}{A dynamical model simulator produced by
 \code{\link{mp_simulator}}.}
+
+\item{include_initial}{Should the initial values be included in the output?}
 
 \item{conf.int}{Should confidence intervals be produced?}
 

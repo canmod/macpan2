@@ -75,11 +75,20 @@ print(head(trajectory_comparison))
 ```{r, fig.width=7}
 library(ggplot2)
 (trajectory_comparison
+  |> rename(`Time Step` = time, Incidence = value)
   |> ggplot()
-  + geom_line(aes(time, value, colour = update_method))
+  + geom_line(aes(`Time Step`, Incidence, colour = update_method))
 )
 ```
 
+The incidence trajectory is different for the three update methods, even though the initial values of the state variables were identical in all three cases.
+```{r}
+mp_initial(si_euler)
+mp_initial(si_euler_multinomial)
+mp_initial(si_rk4)
+```
+
+The incidence is different, even during the first time step, because each state update method causes different numbers of susceptible individuals to become infectious at each time step. Further, incidence here is defined for a single time step and so this number of new infectious individuals is exactly the incidence.
 
 ## Branching Flows and Process Error
 
