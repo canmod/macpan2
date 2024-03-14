@@ -77,11 +77,18 @@ melt_default_matrix_list = function(x, zeros_are_blank = TRUE) {
   f
 }
 
+clean_dimnames = function(dn) {
+  if (!is.null(dn)) {
+    if (identical(as.character(dn[[2L]]), "0")) dn[[2L]] = NULL
+    if (identical(as.character(dn[[1L]]), "0")) dn[[1L]] = NULL
+  }
+  return(dn)
+}
 cast_default_matrix_list = function(x) {
   val_list = tapply(x$value, x$matrix, c, simplify = FALSE)
-  row_list = tapply(x$row, x$matrix, c, simplify = FALSE)
-  col_list = tapply(x$col, x$matrix, c, simplify = FALSE)
-  dimnames = mapply(list, row_list, col_list, SIMPLIFY = FALSE)
+  row_list = tapply(x$row, x$matrix, c, simplify = FALSE) |> lapply(unique)
+  col_list = tapply(x$col, x$matrix, c, simplify = FALSE) |> lapply(unique)
+  dimnames = mapply(list, row_list, col_list, SIMPLIFY = FALSE) |> lapply(clean_dimnames)
   nrow = vapply(row_list, length, integer(1L))
   ncol = vapply(col_list, length, integer(1L))
   mapply(matrix, val_list, nrow, ncol, dimnames = dimnames, SIMPLIFY = FALSE, USE.NAMES = TRUE)

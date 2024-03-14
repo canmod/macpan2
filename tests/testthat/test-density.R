@@ -26,4 +26,19 @@ test_that("poisson densities respects math", {
   x = sum(matrix(dpois(z, 10, log = TRUE)))
   y = sum(engine_eval(~dpois(z, rep(10, 100)), z = z))
   expect_equal(x, y)
+  
+})
+
+test_that("bad recycling in density functions get errors", {
+  expect_error(
+      engine_eval(~dnorm(x, y, 1), x = rnorm(2), y = rnorm(3)),
+      regexp = "cannot recycle rows"
+  )
+})
+
+test_that("missing standard deviation is flagged in error message", {
+  expect_error(
+      engine_eval(~dnorm(1, 0)),
+      regexp = "dnorm needs three arguments"
+  )
 })
