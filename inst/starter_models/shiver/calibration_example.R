@@ -94,21 +94,59 @@ reported_hospitalizations = (daily_hospitalizations
 ## -------------------------
 
 # We can view model spec default values here to see if we need to make any changes.
-spec$default
+mp_default(spec)
 
-# default phi=1/10, means individuals spend 10 days in vaccination compartment
-# Let's change this to 1/14, meaning on average vaccinated individuals develop
-# an immune response in two weeks.
-phi = 1/14
 
+# N = population size
+# ---------------------
+# We need to update N to the population of Ontario (at the time)
+# From StatsCan here: https://tinyurl.com/2cdfa52n, second quarter of 2021
+N = 14.8e7
+
+# phi = vaccination rate
+# ---------------------
+# Vaccination data at the time from here,
+# https://www.publichealthontario.ca/en/Data-and-Analysis/Infectious-Disease/Respiratory-Virus-Tool
+# for the month of July 2021, number of individuals vaccinated per week in ontario
+july_vax = c(
+    135177
+  , 124468
+  , 111299
+  , 100825
+)
+# average july weekly data to per day (4 weeks = 28 days)
+daily_vaccine_supply = sum(july_vax)/28 # seems plausible
+# 0.01% of population per day
+phi = daily_vaccine_supply/N
+
+# rho = vaccination failure
+# ---------------------
+# current value, rho = 5e-2
+# 5% fail - seems plausible, might be high
+# Other interpretation, it takes 20 days after vaccination
+# to determine if expected immune response was acquired.
+
+# beta_v, beta_s = transmission rate
+# ---------------------
+# We want to estimate the transmission parameters beta_v and beta_s. It's more
+# challenging to interpret these state dependent parameters, but we would 
+# expect transmission involving vaccinated suceptibles would be less effective than 
+# unvaccinated transmission (beta_v < beta_s). These defaults meet this minimal assumption.
+
+# alpha = exposure rate
+# ---------------------
 # On average individuals spend 3.3 days in exposed class 
 # (estimate taken from the default value for sigma in macpan_base)
 alpha = 1/3.3
 
+# sigma = exposure rate
+# ---------------------
 # Hospital stays are on average 10 days
 # (estimate taken from the default value for rho in macpan_base)
 sigma = 1/10 
 
+# gamma_i, gamma_h = recovery rates
+# ---------------------
 # Leaving recovery rates as is, they seem plausible:
 # 1/10 ~ 0.1, takes 10 days to go from I to R
 # 1/14 ~ 0.7, takes two weeks to go from H to R
@@ -120,49 +158,80 @@ sigma = 1/10
 # For now, let's stick with the 2 week recovery rate for H, given we assumed in the
 # observed data above that all hospitalized individuals are in H (regardless of severity).
 
-
-# We want to estimate the transmission parameters beta_v and beta_s. It's more
-# challenging to interpret these state dependent parameters, but we would 
-# expect transmission involving vaccinated suceptibles would be less effective than 
-# unvaccinated transmission (beta_v < beta_s). These defaults meet this minimal assumption.
-
-
 ## Initial Conditions
+# ---------------------
 
-# We need to update N to the population of Ontario (at the time)
-# From StatsCan here: https://tinyurl.com/2cdfa52n, second quarter of 2021
-N = 14.8e7
-
+# V0 = initial V
+# ---------------------
 # We can get weekly Ontario vaccination data here,
 # https://www.publichealthontario.ca/en/Data-and-Analysis/Infectious-Disease/Respiratory-Virus-Tool
 # If we divide the number of individuals vaccinated in the first week of August 2021 by 7, we
 # can make this a daily estimate on the initial numbers in the vaccination class.
 V0 = 71096/7
 
+# I0 = initial I
+# ---------------------
 # We can also look at the number of weekly cases of COVID for this time period from here,
 # https://www.publichealthontario.ca/en/Data-and-Analysis/Infectious-Disease/Respiratory-Virus-Tool
 # and divide by 7 as above to make it a daily estimate.
 I0 = 1903/7
 
-# Use the first observed data point (Aug 10, 2021) as initial H
+# H0 = initial H
+# ---------------------
+# Use the first observed data point (Aug 10, 2021) as initial H.
 H0 = daily_hospitalizations |> filter(row_number()==1) |> select(value) |> pull()
 
+# E0 = initial E
+# ---------------------
 # We don't have data on initial exposure, however we know it is improbable that there
 # are no exposed individuals initially. For now, setting to 1, since we don't have a better
 # estimate to put in its place.
 E0 = 1
 
+# initial S, R
+# ---------------------
 # We are not interested in the dynamics of S or R, so it makes sense to leave the default R = 0,
 # even though we have prior knowledge that by the summer of 2021 R > 0. Individuals in R are removed
 # from the transmission dynamics, so initializing R to a non-zero value will only deplete the initial 
 # susceptible population by this non-zero value.
 
 ## -------------------------
-## calibration step
+## simulating data
 ## -------------------------
 
 # state variables
 states = c("S","H","I","V","E","R")
+
+# We can simulate data, to see if our defaults are reasonable
+shiver_sim = (mp_simulator(model=spec
+     , time_steps = 100
+     , outputs = states
+     , default = list(N=N
+                      , V=V0
+                      , I=I0
+                      , H=H0
+                      , E=E0
+                      , phi=phi
+                      , alpha=alpha
+                      , sigma=sigma
+                      ) 
+     ) 
+)
+# check defaults to make sure changes were made
+mp_default(shiver_sim)
+
+# these dynamics seem a bit strange to me (E and I)
+(shiver_sim
+  |> mp_trajectory()
+  |> ggplot(aes(time,value))
+  + geom_line()
+  + facet_wrap(vars(matrix),scales='free')
+)
+
+
+## -------------------------
+## calibration step
+## -------------------------
 
 # set up calibrator
 shiver_calibrator = mp_tmb_calibrator(
@@ -475,13 +544,9 @@ S=seq(100,0,by=-1)
 I=seq(0,100,by=1)
 
 unvax=S * (phi + I *beta_s/N_mix)
-
-
-
 plot(unvax,max_vax*erf(unvax),type='l')
 
 # how does this prevent S and V from going negative
-
 
 
 
