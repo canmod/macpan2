@@ -96,7 +96,6 @@ reported_hospitalizations = (daily_hospitalizations
 # We can view model spec default values here to see if we need to make any changes.
 mp_default(spec)
 
-
 # N = population size
 # ---------------------
 # We need to update N to the population of Ontario (at the time)
