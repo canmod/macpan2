@@ -113,30 +113,41 @@ july_vax = c(
   , 111299
   , 100825
 )
-# average july weekly data to per day (4 weeks = 28 days)
+## average july weekly data to per day (4 weeks = 28 days)
 daily_vaccine_supply = sum(july_vax)/28 # seems plausible
 # 0.01% of population per day
 phi = daily_vaccine_supply/N
-
+1
 # rho = vaccination failure
 # ---------------------
 # current value, rho = 5e-2
-# 5% fail - seems plausible, might be high
-# Other interpretation, it takes 20 days after vaccination
-# to determine if expected immune response was acquired.
+## 5% fail - seems plausible, might be high
+
+
+## Other interpretation, it takes 20 days after vaccination
+## to determine if expected immune response was acquired.
+
+## BMB: this is 5% vaccine waning *per day*, i.e. on average the protection
+## acquired from vaccine only lasts 20 days.  A more realistic minimum value would
+## be 1/(6 months) = 1/(180 days) ~ 0.006. Or make it 1/(200 days) = 0.005
 
 # beta_v, beta_s = transmission rate
 # ---------------------
 # We want to estimate the transmission parameters beta_v and beta_s. It's more
 # challenging to interpret these state dependent parameters, but we would 
 # expect transmission involving vaccinated suceptibles would be less effective than 
-# unvaccinated transmission (beta_v < beta_s). These defaults meet this minimal assumption.
+## unvaccinated transmission (beta_v < beta_s). These defaults meet this minimal assumption.
+
+## R_{0,s} approx beta_s/gamma_i = 2 which seems reasonable
 
 # alpha = exposure rate
 # ---------------------
 # On average individuals spend 3.3 days in exposed class 
 # (estimate taken from the default value for sigma in macpan_base)
 alpha = 1/3.3
+## BMB: this is large enough/the exposed period is short enough that we
+## might start to worry about Euler steps (e.g. it would be worth considering
+## 'hazard corrections' or Runge-Kutta)
 
 # sigma = exposure rate
 # ---------------------
@@ -167,6 +178,8 @@ sigma = 1/10
 # If we divide the number of individuals vaccinated in the first week of August 2021 by 7, we
 # can make this a daily estimate on the initial numbers in the vaccination class.
 V0 = 71096/7
+## BMB: I'm not sure this calculation makes sense. This is a rate, not a number or
+## proportion vaxxed?
 
 # I0 = initial I
 # ---------------------
