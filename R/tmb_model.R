@@ -381,19 +381,27 @@ mp_final_list.TMBSimulator = function(model) {
 #' 
 #' @param model A dynamical model simulator produced by
 #' \code{\link{mp_simulator}}.
+#' @param include_initial Should the initial values of the simulation be 
+#' included in the output? If `TRUE` this will include outputs for `time == 0`
+#' associated with the initial values. See \code{\link{mp_initial}} for another 
+#' approach to getting the initial values.
 #' 
 #' @export
-mp_trajectory = function(model) {
+mp_trajectory = function(model, include_initial = FALSE) {
   UseMethod("mp_trajectory")
 }
 
 #' @export
-mp_trajectory.TMBSimulator = function(model) {
-  model$report() |> reset_rownames()
+mp_trajectory.TMBSimulator = function(model, include_initial = FALSE) {
+  phases = "during"
+  if (include_initial) phases = c("before", "during")
+  model$report(.phases = phases) |> reset_rownames()
 }
 
 #' @export
-mp_trajectory.TMBCalibrator = function(model) mp_trajectory(model$simulator)
+mp_trajectory.TMBCalibrator = function(model, include_initial = FALSE) {
+  mp_trajectory(model$simulator, include_initial = include_initial)
+} 
 
 
 #' @param conf.int Should confidence intervals be produced?

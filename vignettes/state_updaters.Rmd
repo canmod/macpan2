@@ -16,9 +16,9 @@ set.seed(12L)
 ```
 
 
-The `McMasterPandemic` project has focused on using discrete time difference equations to solve the dynamical system. Here we describe experimental features that allow one to update the data differently. In particular, it is now possible to use a Runge-Kutta 4 ODE solver (to approximate the solution to the continuous time analogue) as well as the Euler Multinomial distribution to generate process error. These features have in principle been avaiable for most of the life of `macpan2`, but only recently have they been given a more convenient interface.
+The `McMasterPandemic` project has focused on using discrete time difference equations to solve the dynamical system. Here we describe experimental features that allow one to update the data differently. In particular, it is now possible to use a Runge-Kutta 4 ODE solver (to approximate the solution to the continuous time analogue) as well as the Euler Multinomial distribution to generate process error. These features have in principle been available for most of the life of `macpan2`, but only recently have they been given a more convenient interface.
 
-In order to use this interface, models must be rewritten using explicit declarations of state updates. By explicitly declaring what expressions correspond to state updates, `macpan2` is able to modify the method of updating without further user input. This makes it easier to compare difference equations (i.e. Euler steps), ODEs (i.e. Runge-Kutta), and process error (i.e Euler Multinomial) runs for the same underlying dynamical model.
+In order to use this interface, models must be rewritten using explicit declarations of state updates. By explicitly declaring what expressions correspond to state updates, `macpan2` is able to modify the method of updating without further user input. This makes it easier to compare difference equations (i.e. Euler steps), ODEs (i.e. Runge-Kutta), and process error (i.e. Euler Multinomial) runs for the same underlying dynamical model.
 
 To declare a state update one replaces formulas in the `during` argument of a model spec to include calls to the `mp_per_capita_flow()` function.  As an example we will modify the SI model to include explicit state updates.  The original form of the model looks like this.
 ```{r}
@@ -75,11 +75,20 @@ print(head(trajectory_comparison))
 ```{r, fig.width=7}
 library(ggplot2)
 (trajectory_comparison
+  |> rename(`Time Step` = time, Incidence = value)
   |> ggplot()
-  + geom_line(aes(time, value, colour = update_method))
+  + geom_line(aes(`Time Step`, Incidence, colour = update_method))
 )
 ```
 
+The incidence trajectory is different for the three update methods, even though the initial values of the state variables were identical in all three cases.
+```{r}
+mp_initial(si_euler)
+mp_initial(si_euler_multinomial)
+mp_initial(si_rk4)
+```
+
+The incidence is different, even during the first time step, because each state update method causes different numbers of susceptible individuals to become infectious at each time step. Further, incidence here is defined for a single time step and so this number of new infectious individuals is exactly the incidence.
 
 ## Branching Flows and Process Error
 
