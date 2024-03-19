@@ -14,7 +14,7 @@ dynamic_computations = list(
 
 flow_rates = list(
     vaccination ~ phi * S
-  , vaccine_failure ~ rho * V
+  , vaccine_waning ~ rho * V
   , unvaccinated_exposure ~ S * I * beta_s / N_mix
   , vaccinated_exposure ~ V * I * beta_v / N_mix
   , infection ~ alpha * E
@@ -24,8 +24,8 @@ flow_rates = list(
 )
 
 update_state = list(
-    S ~ S - vaccination + vaccine_failure - unvaccinated_exposure
-  , V ~ V + vaccination - vaccine_failure - vaccinated_exposure
+    S ~ S - vaccination + vaccine_waning - unvaccinated_exposure
+  , V ~ V + vaccination - vaccine_waning - vaccinated_exposure
   , E ~ E + unvaccinated_exposure + vaccinated_exposure - infection
   , I ~ I + infection - infectious_recovery - hospitalizations
   , H ~ H + hospitalizations - hospital_recovery

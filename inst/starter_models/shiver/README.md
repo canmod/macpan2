@@ -6,9 +6,9 @@ author: Jennifer Freeman
 
 This model builds on the basic SEIR model, with two additional compartments for vaccination and hospitalizations. 
 
-Vaccines are typically subject to resource constraints and distribution strategies might prioritize vaccinations for specific subpopulations, such as immunocompromised people, to reduce bad outcomes. We model this with a flow of susceptibles entering the vaccination class. 
+Vaccines are typically subject to resource constraints and distribution strategies might prioritize vaccinations for specific subpopulations, such as immunocompromised people, to reduce bad outcomes. We model this with a flow of susceptibles entering the vaccination class. Following vaccination, most individuals return to the susceptible class when the acquired immune response wears off, called *vaccine waning*.
 
-In reality, vaccinations are only partly effective in developing a protective host immune response. This *vaccine failure* includes both vaccine-related inadequacies and host-related reasons like health status and genetic factors (Wiedermann et al., 2016). Vaccine failure is modelled as flow from vaccination to the susceptible class.
+In reality, vaccinations are only partly effective in developing a protective host immune response. This *vaccine failure* includes both vaccine-related inadequacies and host-related reasons like health status and genetic factors (Wiedermann et al., 2016). Vaccine failure is modelled as flow from vaccination to the exposed class.
 
 The SHIVER model assumes all individuals can be exposed to the disease, but transmission rates depend on vaccination status. Additionally, individuals with severe infections are hospitalized and assumed to be isolated, before recovering from the disease. Hospital isolation means this portion of infectious individuals no longer contribute to the transmission dynamics. 
 
@@ -30,7 +30,7 @@ The size of the total population is,  $N = S + H + I  + V + E + R$, and the dise
 | variable   | description                                                                                         |
 | ---------- | --------------------------------------------------------------------------------------------------- |
 | $\phi$     | per capita vaccination rate of susceptibles                                                         |
-| $\rho$     | proportion of vaccinations that are not "successful"  (vaccine failure)                             |
+| $\rho$     | per capita vaccine waning rate                                                                      |
 | $\beta_S$  | per capita transmission rate for susceptibles (in $N_{\text{mix}}$ population)                      |
 | $\beta_V$  | per capita transmission rate for vaccinated individuals (in $N_{\text{mix}}$ population)            |
 | $\alpha$   | per capita infection rate (average time spent in compartment $E$ is $1/\alpha$)                     |  |

@@ -117,19 +117,17 @@ july_vax = c(
 daily_vaccine_supply = sum(july_vax)/28 # seems plausible
 # 0.01% of population per day
 phi = daily_vaccine_supply/N
-1
-# rho = vaccination failure
+
+# rho = waning vaccination
 # ---------------------
 # current value, rho = 5e-2
-## 5% fail - seems plausible, might be high
-
-
-## Other interpretation, it takes 20 days after vaccination
-## to determine if expected immune response was acquired.
 
 ## BMB: this is 5% vaccine waning *per day*, i.e. on average the protection
 ## acquired from vaccine only lasts 20 days.  A more realistic minimum value would
 ## be 1/(6 months) = 1/(180 days) ~ 0.006. Or make it 1/(200 days) = 0.005
+
+rho = 1/180 # average protection lasts 180 days 
+# this is longer than the simulation scenario, is this a problem?
 
 # beta_v, beta_s = transmission rate
 # ---------------------
@@ -196,9 +194,8 @@ H0 = daily_hospitalizations |> filter(row_number()==1) |> select(value) |> pull(
 # E0 = initial E
 # ---------------------
 # We don't have data on initial exposure, however we know it is improbable that there
-# are no exposed individuals initially. For now, setting to 1, since we don't have a better
-# estimate to put in its place.
-E0 = 1
+# are no exposed individuals initially. We will estimate this value in addition to 
+# transmission parameters
 
 # initial S, R
 # ---------------------
@@ -207,43 +204,13 @@ E0 = 1
 # from the transmission dynamics, so initializing R to a non-zero value will only deplete the initial 
 # susceptible population by this non-zero value.
 
-## -------------------------
-## simulating data
-## -------------------------
-
-# state variables
-states = c("S","H","I","V","E","R")
-
-# We can simulate data, to see if our defaults are reasonable
-shiver_sim = (mp_simulator(model=spec
-     , time_steps = 100
-     , outputs = states
-     , default = list(N=N
-                      , V=V0
-                      , I=I0
-                      , H=H0
-                      , E=E0
-                      , phi=phi
-                      , alpha=alpha
-                      , sigma=sigma
-                      ) 
-     ) 
-)
-# check defaults to make sure changes were made
-mp_default(shiver_sim)
-
-# these dynamics seem a bit strange to me (E and I)
-(shiver_sim
-  |> mp_trajectory()
-  |> ggplot(aes(time,value))
-  + geom_line()
-  + facet_wrap(vars(matrix),scales='free')
-)
-
 
 ## -------------------------
 ## calibration step
 ## -------------------------
+
+# state variables
+states = c("S","H","I","V","E","R")
 
 # set up calibrator
 shiver_calibrator = mp_tmb_calibrator(
@@ -251,13 +218,20 @@ shiver_calibrator = mp_tmb_calibrator(
   , data = reported_hospitalizations
   , traj = "H"
   # parameters we want to estimate (transmission rates)
-  , par = c("beta_v","beta_s") 
+  # we also want to estimate initial E and I, because 
+  # these are difficult to set in advance
+  # what if we assume we know I
+  , par = c("beta_v","beta_s","E") 
   , outputs = states
-  , default = list(N=N, V=V0, I=I0, H=H0, E=E0
+  , default = list(N=N
+                   , V=V0
+                   , I=I0
+                   , H=H0
                    , phi=phi
                    , alpha=alpha
                    , sigma=sigma
-                   ) 
+                   , rho = rho
+  ) 
 )
 
 shiver_calibrator
@@ -280,7 +254,10 @@ shiver_calibrator
 ) 
 
 # before optimizing, do the dynamics look reasonable? 
-# yes
+# yes, although initial drop in I and jump in E
+# points to the difficulty in getting the initial conditions right (comment from BMB)
+# I0 was from data, E0=1 was a poor guess - which is why we are now
+# estimating these values.
 if (interactive()) {
   (shiver_calibrator 
     |> mp_trajectory()
@@ -295,8 +272,9 @@ if (interactive()) {
 mp_optimize(shiver_calibrator)
 
 # look at estimates with CI
-# this seems plausible beta_v ~ 0.1 < beta_s ~ 0.3
-# CIs aren't too large
+# beta_s ~ 0.19(0.18,0.19) - good
+# beta_v < beta_s but CI contains 0
+# E0 ~ 148 std error 11 - good
 mp_tmb_coef(shiver_calibrator, conf.int=TRUE)
 
 # how does the fit compare with observed data?
@@ -336,26 +314,32 @@ if (interactive()) {
 # We can use the log transformation for beta, because beta > 0.
 # Since `a` in (0,1), it makes sense to use logit.
 
+# We also wish to parameterize {I0, E0} to {I0, E0/I0} (BMB suggestion
+# to de-correlate these parameters) E_I_ratio = E0/I0
+
 # Create a new model specification with these changes:
 #
 # - update the before step to transform "new" parameters,
-# - set defaults to small values because they both have a lower
+# - set defaults for transmission parameters to small values because they both have a lower
 # bound of zero
-updated_spec = mp_tmb_insert(spec
+# - setting E_I_ratio 
+reparameterized_spec = mp_tmb_insert(spec
      , phase = "before"
      , at=1L
      , expressions = list(
-         beta ~ exp(log_beta)
+       E ~ exp(log_E_I_ratio) * I
+      , beta ~ exp(log_beta)
        , a ~ 1/(1+exp(-logit_a))
      )
      , default = list(
         logit_a = qlogis(1e-2)
-     , log_beta = log(1e-2)
+       , log_beta = log(1e-2)
+      , log_E_I_ratio = log(2) 
      )
 )
 
 # - overwrite existing exposure terms with new ones
-updated_spec = mp_tmb_update(updated_spec
+reparameterized_spec = mp_tmb_update(reparameterized_spec
     , phase = "during"
      # exposure expressions start at step 4 in the during phase
     , at=4L
@@ -365,45 +349,49 @@ updated_spec = mp_tmb_update(updated_spec
     )
 )
 
+
 # all changes have been made
-print(updated_spec)
+print(reparameterized_spec)
 
 # let's calibrate
 shiver_calibrator = mp_tmb_calibrator(
-    spec = updated_spec
+    spec = reparameterized_spec
   , data = reported_hospitalizations
   , traj = "H"
   # now we want to estimate the transformed parameters
-  , par = c("log_beta","logit_a")
+  # an intial E
+  , par = c("log_beta","logit_a","log_E_I_ratio")
   , outputs = states
-  , default = list(N=N, V=V0, I=I0, H=H0, E=E0
+  , default = list(N=N
+                   , V=V0
+                   , I=I0
+                   , H=H0
                    , phi=phi
                    , alpha=alpha
                    , sigma=sigma
-  )
+                   , rho = rho
+  ) 
 )
 
 
 # optimize to estimate transmission parameters
-# converges, with warning
+# converges with a warning
 mp_optimize(shiver_calibrator)
 
 # looking at coefficients and CIs
 # we need to back transform to interpret
-# beta is approximately 0.3 (as in beta_s estimate previously)
 cc <- (mp_tmb_coef(shiver_calibrator, conf.int=TRUE)
        |> backtrans()
 )
-cc |> filter(mat == "beta")
-
-# `a` is approximately 0.35, with a CI of (0.31,0.38)
-# We interpret `a` as a 35% reduction in transmission 
-# for vaccinated suceptibles.
-# 0.35*beta ~ 0.1 = the estimate we obtained for beta_v previously
-cc |> filter(mat == "a")
+cc
+# beta ~ 0.189(0.18,0.19) reasonable (same as above estimate)
+# a ~ 0.63 plausible, but CI is all values of a
+# so not learning about a (same as above)
+# E_I_ratio ~ 0.54(0.47,0.63) - reasonable (E0=146(127,171) same as above estimate)
 
 # how does fit the look with these parameters
-# identical to previous fit (because all we did was re-parameterize)
+# fit is approximately the same, which makes sense because all
+# I did was re-parameterize
 if (interactive()) {
   (shiver_calibrator 
    |> mp_trajectory_sd(conf.int=TRUE)
@@ -414,14 +402,128 @@ if (interactive()) {
    + geom_point(data=reported_hospitalizations, aes(time,value))
   )
 }
+# trajectories seem approximately the same as well
+if (interactive()) {
+  (shiver_calibrator 
+   |> mp_trajectory()
+   |> ggplot(aes(time, value))
+   + facet_wrap(vars(matrix), scales='free')
+   + geom_line()
+  )
+}
 
+## -------------------------
+## try runga kutta
+## -------------------------
+# other defaults
+R0=0
+log_E_I_ratio=log(1e-2)
+logit_a=qlogis(1e-2)
+log_beta=log(1e-2)
+gamma_i=mp_default(spec) %>% filter(matrix=="gamma_i") %>% select(value) %>% pull()
+gamma_h=mp_default(spec) %>% filter(matrix=="gamma_h") %>% select(value) %>% pull()
 
+spec_flows = mp_tmb_model_spec(
+  # before is identical to previous reparameterize model
+    before = list(E ~ exp(log_E_I_ratio) * I
+                  ,beta ~ exp(log_beta)
+                  , a ~ 1/(1 + exp(-logit_a))
+                  ,S ~ N - V - E - I - H - R
+                  ,N ~ sum(S, V, E, I, H, R))
+  , during = list(N_mix ~ N - H
+                  , mp_per_capita_flow("S", "V", vaccination ~ phi)
+                  , mp_per_capita_flow("V", "S", vaccine_waning ~ rho)
+                  , mp_per_capita_flow("S", "E", unvaccinated_exposure ~ I * beta/N_mix)
+                  , mp_per_capita_flow("V", "E", vaccinated_exposure ~ beta * I * a/N_mix)
+                  , mp_per_capita_flow("E", "I", infection ~ alpha)
+                  , mp_per_capita_flow("I", "R", infectious_recovery ~ gamma_i)
+                  , mp_per_capita_flow("I", "H", hospitalizations ~ sigma)
+                  , mp_per_capita_flow("H", "R", hospital_recovery ~ gamma_h)
+                  )
+  , default = list(N=N
+              , V=V0
+              , I=I0
+              , H=H0
+              , log_E_I_ratio =log_E_I_ratio # now E is derived, can't estimate E0
+              , phi=phi
+              , alpha=alpha
+              , sigma=sigma
+              , rho = rho
+              , logit_a = logit_a
+              , log_beta = log_beta
+              , gamma_i=gamma_i
+              , gamma_h=gamma_h
+              , R=R0
+  ) 
+)
+
+# what do rk4 dynamics look like
+
+shiver_rk4 = (spec_flows 
+              |> mp_rk4()
+              |> mp_simulator(time_steps = expected_daily_reports, outputs = states)
+              |> mp_trajectory()
+)
+shiver_euler = (spec_flows 
+              |> mp_euler()
+              |> mp_simulator(time_steps = expected_daily_reports, outputs = states)
+              |> mp_trajectory()
+)
+
+trajectory_comparison = list(rk4=shiver_rk4,euler=shiver_euler)|> bind_rows(.id = "update_method")
+
+if (interactive()) {
+  (trajectory_comparison
+   |> ggplot(aes(time, value))
+   + geom_line(aes(colour=update_method))
+   + facet_wrap(vars(matrix), scales='free')
+   
+  )
+}
+
+# let's calibrate
+shiver_calibrator_rk4 = mp_tmb_calibrator(
+  spec = spec_flows |> mp_rk4()
+  , data = reported_hospitalizations
+  , traj = "H"
+  # now we want to estimate the transformed parameters
+  # an intial E
+  , par = c("log_beta","logit_a","log_E_I_ratio")
+  , outputs = states
+)
+shiver_calibrator_euler = mp_tmb_calibrator(
+  spec = spec_flows |> mp_euler()
+  , data = reported_hospitalizations
+  , traj = "H"
+  # now we want to estimate the transformed parameters
+  # an intial E
+  , par = c("log_beta","logit_a","log_E_I_ratio")
+  , outputs = states
+)
+# optimize to estimate transmission parameters
+# converges for both
+mp_optimize(shiver_calibrator_rk4)
+mp_optimize(shiver_calibrator_euler)
+
+# looking at coefficients and CIs
+# we need to back transform to interpret
+rk4_coef <- (mp_tmb_coef(shiver_calibrator_rk4, conf.int=TRUE)
+       |> backtrans()
+)
+euler_coef <- (mp_tmb_coef(shiver_calibrator_euler, conf.int=TRUE)
+             |> backtrans()
+)
+
+rk4_coef
+euler_coef # should be the same as reparameterized part above, it is
+# rk4 doesn't help us learn more about a
+# let's try adding more data
 
 ## -------------------------
 ## fitting to multiple trajectories
 ## -------------------------
 
-# If we include more observed data, can we get more precise estimates?
+# If we include more observed data, can we get an estimate for a?
 # There is COVID case data available that we can fit to incidence.
 
 # COVID19 case data for Ontario
@@ -430,14 +532,13 @@ if (interactive()) {
 # The metadata for this data was not clear to me, but looking at the data I think it makes sense to
 # assume these case counts are incidence (# number of new cases each day) instead of prevalence (# all active cases each day)
 daily_cases = (read.csv(
-    "inst/starter_models/shiver/data/cases_ontario.csv"
-    # system.file(
-    #     "starter_models"
-    #   , "shiver"
-    #   , "data"
-    #   , "cases_ontario.csv"
-    #   , package = "macpan2"
-    # )
+    system.file(
+        "starter_models"
+      , "shiver"
+      , "data"
+      , "cases_ontario.csv"
+      , package = "macpan2"
+    )
   , row.names = NULL
   )
   |> rename(time = X_id)
@@ -461,43 +562,34 @@ reported_cases = (daily_cases
 I0_new = daily_cases |> filter(time==2) |> select(value) |> pull()
 
 
+# check defaults again
+mp_default(spec_flows)
+
 # calibrate
 shiver_calibrator = mp_tmb_calibrator(
-    spec = updated_spec
+    spec = spec_flows |> mp_rk4()
     # row bind both observed data
   , data = rbind(reported_hospitalizations, reported_cases)
     # fit both trajectories
   , traj = c("H","infection")
-  , par = c("log_beta","logit_a")
+  , par = c("log_beta","logit_a","log_E_I_ratio")
   , outputs=c(states, "infection")
-  , default = list(N=N, V=V0, I=I0_new, H=H0, E=E0
-                   , phi=phi
-                   , alpha=alpha
-                   , sigma=sigma
-  )
 )
 
 # optimize to estimate transmission parameters
-# converges, with a warning
+# doesn't converge
 mp_optimize(shiver_calibrator)
 
-
-# beta ~ 0.48 with reasonable CIs
 cc <- (mp_tmb_coef(shiver_calibrator, conf.int=TRUE)
     |> backtrans()
 )
-cc |> filter(mat == "beta")
-
-# The estimate for `a` is very small, effectively 0. This is a large change from 
-# the previous estimate (35%), but could be plausible (vaccines really help lower
-# transmission). However the confidence interval is very wide, essentially all possible 
-# values of `a`, meaning we are not learning much about this parameter.
-cc |> filter(mat == "a")
+cc
+# still not learning about a, and estimate for EI ratio is different
 
 # how does data look with these parameters
 # not good!
 # in this case, adding more noisy data (incidence) leads to major fitting problems
-# even when transmission rate estimates seem biologically possible
+# and does not improve estimation.
 # Something also to consider, Aug-Oct doesn't capture the time frame in which we see
 # usually see infection spikes for seasonal viruses (over the winter), so perhaps the 
 # incidence data used here is just not informative enough about the virus dynamics
@@ -513,6 +605,16 @@ if (interactive()) {
   )
 }
 
+
+# not sure what to do next
+# can we add vaccine data instead of incidence? I don't think so because we have daily counts
+# of vaccines administered and we want counts of people in vaccine class over time (i.e. we 
+# don't know how long each person stays in vaccine class)
+
+# let's see if we can simulate vaccine data to test
+# if we can estimate a
+
+true_a=0.2
 
 ## -------------------------
 ## vaccine function
