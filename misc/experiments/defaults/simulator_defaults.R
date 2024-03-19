@@ -82,6 +82,8 @@ names(state_matrix)
 # has names in dimnames[[2]]
 dimnames(state_matrix)
 # errors
+setNames(state_matrix, names(sir_defaults))
+names(state_matrix)
 sim_data(state_matrix) 
 
 #3b. as.matrix, and manually setting names and dimnames - this errors
