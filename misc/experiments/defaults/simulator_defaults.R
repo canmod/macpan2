@@ -79,10 +79,12 @@ sim_data(state_tibble)
 state_matrix = as.matrix(sir_defaults,ncol=3)
 # no names, doesn't save names attribute?
 names(state_matrix)
+# does have colnames
+colnames(state_matrix)
 # has names in dimnames[[2]]
 dimnames(state_matrix)
 # errors
-setNames(state_matrix, names(sir_defaults))
+# setNames(state_matrix, names(sir_defaults))
 names(state_matrix)
 sim_data(state_matrix) 
 
