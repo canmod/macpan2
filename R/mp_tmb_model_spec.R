@@ -93,7 +93,7 @@ TMBModelSpec = function(
   }
   self$change_update_method = function(state_update = c("euler", "rk4", "euler_multinomial")) {
     if (self$state_update == "no") {
-      warning("This model has not formalized the notion of a state variable, and so changing how the state variables are updated has no effect.")
+      warning("This model has not formalized the notion of a state variable, and so changing how the state variables are updated has no effect. Models with formalized state variables are specified with state flows using functions such as mp_per_capita_flow.")
     }
     mp_tmb_model_spec(
         self$before, self$during, self$after
