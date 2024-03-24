@@ -29,7 +29,8 @@ backtrans <- function(x) {
 ## get model spec from library
 ## -------------------------
 
-spec = mp_tmb_library("starter_models","shiver", package="macpan2")
+source("inst/starter_models/shiver/tmb.R")
+#spec = mp_tmb_library("starter_models","shiver", package="macpan2")
  
 ## -------------------------
 ## calibration scenario
@@ -220,7 +221,8 @@ shiver_calibrator = mp_tmb_calibrator(
   # parameters we want to estimate (transmission rates)
   # we also want to estimate initial E and I, because 
   # these are difficult to set in advance
-  # what if we assume we know I
+  # assume we know I0 since we get an estimate from the data
+  # and only estimate E
   , par = c("beta_v","beta_s","E") 
   , outputs = states
   , default = list(N=N
@@ -327,14 +329,14 @@ reparameterized_spec = mp_tmb_insert(spec
      , phase = "before"
      , at=1L
      , expressions = list(
-       E ~ exp(log_E_I_ratio) * I
-      , beta ~ exp(log_beta)
+         E ~ exp(log_E_I_ratio) * I
+       , beta ~ exp(log_beta)
        , a ~ 1/(1+exp(-logit_a))
      )
      , default = list(
-        logit_a = qlogis(1e-2)
+         logit_a = qlogis(1e-2)
        , log_beta = log(1e-2)
-      , log_E_I_ratio = log(2) 
+       , log_E_I_ratio = log(2) 
      )
 )
 
@@ -359,7 +361,6 @@ shiver_calibrator = mp_tmb_calibrator(
   , data = reported_hospitalizations
   , traj = "H"
   # now we want to estimate the transformed parameters
-  # an intial E
   , par = c("log_beta","logit_a","log_E_I_ratio")
   , outputs = states
   , default = list(N=N
@@ -384,10 +385,10 @@ cc <- (mp_tmb_coef(shiver_calibrator, conf.int=TRUE)
        |> backtrans()
 )
 cc
-# beta ~ 0.189(0.18,0.19) reasonable (same as above estimate)
+# beta ~ 0.189(0.18,0.19) reasonable (similar to above estimate)
 # a ~ 0.63 plausible, but CI is all values of a
 # so not learning about a (same as above)
-# E_I_ratio ~ 0.54(0.47,0.63) - reasonable (E0=146(127,171) same as above estimate)
+# E_I_ratio ~ 0.54(0.47,0.63) - reasonable (E0=146(127,171) similar as above estimate)
 
 # how does fit the look with these parameters
 # fit is approximately the same, which makes sense because all
@@ -413,52 +414,62 @@ if (interactive()) {
 }
 
 ## -------------------------
-## try runga kutta
+## try Runge-Kutta 4
 ## -------------------------
-# other defaults
-R0=0
-log_E_I_ratio=log(1e-2)
-logit_a=qlogis(1e-2)
-log_beta=log(1e-2)
-gamma_i=mp_default(spec) %>% filter(matrix=="gamma_i") %>% select(value) %>% pull()
-gamma_h=mp_default(spec) %>% filter(matrix=="gamma_h") %>% select(value) %>% pull()
 
+# Can we get an estimate for `a` if we try a higher order
+# method for ODE solving - rk4 instead of Euler
+
+# set reamining defaults to create a new model specification
+R0 = 0
+log_E_I_ratio = log(1e-2)
+logit_a = qlogis(1e-2)
+log_beta = log(1e-2)
+gamma_i = mp_default_list(spec)$gamma_i
+gamma_h = mp_default_list(spec)$gamma_h
+
+# create new model specification
+# re-create the re-parameterized model spec
+# using mp_per_capita_flow
 spec_flows = mp_tmb_model_spec(
   # before is identical to previous reparameterize model
-    before = list(E ~ exp(log_E_I_ratio) * I
-                  ,beta ~ exp(log_beta)
-                  , a ~ 1/(1 + exp(-logit_a))
-                  ,S ~ N - V - E - I - H - R
-                  ,N ~ sum(S, V, E, I, H, R))
-  , during = list(N_mix ~ N - H
-                  , mp_per_capita_flow("S", "V", vaccination ~ phi)
-                  , mp_per_capita_flow("V", "S", vaccine_waning ~ rho)
-                  , mp_per_capita_flow("S", "E", unvaccinated_exposure ~ I * beta/N_mix)
-                  , mp_per_capita_flow("V", "E", vaccinated_exposure ~ beta * I * a/N_mix)
-                  , mp_per_capita_flow("E", "I", infection ~ alpha)
-                  , mp_per_capita_flow("I", "R", infectious_recovery ~ gamma_i)
-                  , mp_per_capita_flow("I", "H", hospitalizations ~ sigma)
-                  , mp_per_capita_flow("H", "R", hospital_recovery ~ gamma_h)
-                  )
-  , default = list(N=N
-              , V=V0
-              , I=I0
-              , H=H0
-              , log_E_I_ratio =log_E_I_ratio # now E is derived, can't estimate E0
-              , phi=phi
-              , alpha=alpha
-              , sigma=sigma
-              , rho = rho
-              , logit_a = logit_a
-              , log_beta = log_beta
-              , gamma_i=gamma_i
-              , gamma_h=gamma_h
-              , R=R0
+    before = list(
+        E ~ exp(log_E_I_ratio) * I
+      , beta ~ exp(log_beta)
+      , a ~ 1/(1 + exp(-logit_a))
+      , S ~ N - V - E - I - H - R
+      , N ~ sum(S, V, E, I, H, R)
+      )
+  , during = list(
+      N_mix ~ N - H
+    , mp_per_capita_flow("S", "V", vaccination ~ phi)
+    , mp_per_capita_flow("V", "S", vaccine_waning ~ rho)
+    , mp_per_capita_flow("S", "E", unvaccinated_exposure ~ I * beta/N_mix)
+    , mp_per_capita_flow("V", "E", vaccinated_exposure ~ beta * I * a/N_mix)
+    , mp_per_capita_flow("E", "I", infection ~ alpha)
+    , mp_per_capita_flow("I", "R", infectious_recovery ~ gamma_i)
+    , mp_per_capita_flow("I", "H", hospitalizations ~ sigma)
+    , mp_per_capita_flow("H", "R", hospital_recovery ~ gamma_h)
+    )
+  , default = list(
+      N = N
+    , V = V0
+    , I = I0
+    , H = H0
+    , log_E_I_ratio = log_E_I_ratio # now E is derived, we can't estimate E0
+    , phi = phi
+    , alpha = alpha
+    , sigma = sigma
+    , rho = rho
+    , logit_a = logit_a
+    , log_beta = log_beta
+    , gamma_i = gamma_i
+    , gamma_h = gamma_h
+    , R = R0
   ) 
 )
 
-# what do rk4 dynamics look like
-
+# what do rk4 vs. Euler dynamics look like
 shiver_rk4 = (spec_flows 
               |> mp_rk4()
               |> mp_simulator(time_steps = expected_daily_reports, outputs = states)
@@ -483,24 +494,23 @@ if (interactive()) {
 
 # let's calibrate
 shiver_calibrator_rk4 = mp_tmb_calibrator(
-  spec = spec_flows |> mp_rk4()
+    spec = spec_flows |> mp_rk4()
   , data = reported_hospitalizations
   , traj = "H"
-  # now we want to estimate the transformed parameters
-  # an intial E
   , par = c("log_beta","logit_a","log_E_I_ratio")
   , outputs = states
+  # defaults are specified in model spec (spec_flows)
 )
 shiver_calibrator_euler = mp_tmb_calibrator(
-  spec = spec_flows |> mp_euler()
+    spec = spec_flows |> mp_euler()
   , data = reported_hospitalizations
   , traj = "H"
-  # now we want to estimate the transformed parameters
-  # an intial E
   , par = c("log_beta","logit_a","log_E_I_ratio")
   , outputs = states
+  # defaults are specified in model spec (spec_flows)
 )
-# optimize to estimate transmission parameters
+
+# optimize
 # converges for both
 mp_optimize(shiver_calibrator_rk4)
 mp_optimize(shiver_calibrator_euler)
@@ -577,7 +587,7 @@ shiver_calibrator = mp_tmb_calibrator(
 )
 
 # optimize to estimate transmission parameters
-# doesn't converge
+# converges
 mp_optimize(shiver_calibrator)
 
 cc <- (mp_tmb_coef(shiver_calibrator, conf.int=TRUE)
@@ -585,6 +595,7 @@ cc <- (mp_tmb_coef(shiver_calibrator, conf.int=TRUE)
 )
 cc
 # still not learning about a, and estimate for EI ratio is different
+# beta not too much different from previous estimates
 
 # how does data look with these parameters
 # not good!
@@ -606,15 +617,97 @@ if (interactive()) {
 }
 
 
-# not sure what to do next
-# can we add vaccine data instead of incidence? I don't think so because we have daily counts
-# of vaccines administered and we want counts of people in vaccine class over time (i.e. we 
-# don't know how long each person stays in vaccine class)
+## -------------------------
+## vaccine function
+## -------------------------
 
-# let's see if we can simulate vaccine data to test
-# if we can estimate a
+# As a final step, can we use simulated data generated with a true
+# value of `a` and calibrate to get the true value back?
 
-true_a=0.2
+# set true values
+true_a = 0.2
+true_beta = 0.3 
+true_ratio = 0.4 #E_I_ratio
+
+# simulate fake data
+simulated_data = (spec_flows
+  |> mp_simulator(
+      time_steps = expected_daily_reports
+    , outputs=states
+    , default=list(
+        logit_a=qlogis(true_a)
+      , log_beta=log(true_beta)
+      , log_E_I_ratio=log(true_ratio))
+    )
+  |> mp_trajectory()
+  # add some noise
+  |> mutate(value = rpois(n(),value))
+  |> select(-c(row,col))
+)
+
+# calibrate with data from all states
+sim_calib = mp_tmb_calibrator(
+    spec = spec_flows |> mp_rk4()
+  , data = simulated_data
+  , traj = states
+  , par = c("log_beta", "log_E_I_ratio", "logit_a")
+  #, par = c("log_beta")
+  , outputs=states
+)
+
+# doesn't converge
+mp_optimize(sim_calib)
+
+cc <- (mp_tmb_coef(sim_calib, conf.int=TRUE)
+       |> backtrans()
+)
+cc
+
+# check fit of "observed data" out of interest
+# looks good
+if (interactive()) {
+  (sim_calib 
+   |> mp_trajectory_sd(conf.int=TRUE)
+   |> ggplot(aes(time, value))
+   + geom_line(aes(y=value), colour="red")
+   + geom_ribbon(aes(ymin=conf.low,ymax=conf.high), fill="red",alpha=0.3)
+   + geom_point(data=simulated_data, aes(time,value),alpha=0.3)
+   + facet_wrap(vars(matrix),scales='free')
+  )
+}
+
+## last test, fix beta and estimate `a`
+## then fix `a` and estimate beta
+
+fixed_beta = mp_tmb_calibrator(
+    spec = spec_flows |> mp_rk4()
+  , data = simulated_data
+  , traj = states
+  , par = c("logit_a")
+  , outputs=states
+)
+# converges, but not getting estimate for `a`
+mp_optimize(fixed_beta)
+(mp_tmb_coef(fixed_beta, conf.int=TRUE)
+  |> backtrans()
+)
+
+fixed_a = mp_tmb_calibrator(
+  spec = spec_flows |> mp_rk4()
+  , data = simulated_data
+  , traj = states
+  , par = c("log_beta")
+  , outputs=states
+)
+# converges and recovering true beta
+mp_optimize(fixed_a)
+(mp_tmb_coef(fixed_a, conf.int=TRUE)
+  |> backtrans()
+)
+
+# Final notes:
+# This points to model identifiability issues with
+# estimating `a`
 
 ## -------------------------
 ## vaccine function
