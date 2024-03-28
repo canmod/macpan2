@@ -36,7 +36,6 @@ cal_high = mp_tmb_calibrator(
   , traj = "I"
   , par = "theta"
   , outputs = state_labels 
-  , default = list(new=0)
 )
 ## -------------------------
 
@@ -69,8 +68,8 @@ cal_low$insert$expressions(
 cal_low$replace$obj_fn(~ -sum(log_lik))
 params_to_fit = data.frame(
     mat = "theta"
-    #, row = c(0,1)
-   , row = c("beta","R_initial")
+   , row = c(0,1) # for scenario 1
+   #, row = c("beta","R_initial") # for scenario 2
   , default = mp_default_list(spec)$theta
 )
 cal_low$replace$params_frame(params_to_fit)
@@ -79,7 +78,6 @@ cal_low$replace$params_frame(params_to_fit)
 ## -------------------------
 ## optimize
 ## -------------------------
-
 
 opt_low = mp_optimize(cal_low)
 opt_high = mp_optimize(cal_high)
