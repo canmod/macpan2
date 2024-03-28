@@ -1,6 +1,7 @@
 library(macpan2)
 library(ggplot2)
 library(dplyr)
+library(tidyr) #pivot_wider
 
 
 ## -------------------------
@@ -29,8 +30,8 @@ backtrans <- function(x) {
 ## get model spec from library
 ## -------------------------
 
-source("inst/starter_models/shiver/tmb.R")
-#spec = mp_tmb_library("starter_models","shiver", package="macpan2")
+#source("inst/starter_models/shiver/tmb.R")
+spec = mp_tmb_library("starter_models","shiver", package="macpan2")
  
 ## -------------------------
 ## calibration scenario
@@ -618,7 +619,7 @@ if (interactive()) {
 
 
 ## -------------------------
-## vaccine function
+## identifiability of `a`
 ## -------------------------
 
 # As a final step, can we use simulated data generated with a true
@@ -713,47 +714,143 @@ mp_optimize(fixed_a)
 ## vaccine function
 ## -------------------------
 
+# Idea: Use the logistic function as a function of S shifted so that the
+# inflection point is at the origin (We administer zero vaccines when we have 
+# zero susceptibles). We also want to scale the logistic function to approach an
+# asymptote that represents the maximum number of vaccines we can administer
+# daily.
 
-## update tmb.R with this spec?
+# We want a slope of 1 or close to 1, for small number of susceptibles - meaning
+# when we have small numbers of S, we can vaccinate them all.
+
+# The derivative of the logistic at x=0 is 1/4, so to get a slope of 1 through 
+# the origin, we need to scale growth by 4 and divide by our scaling factor.
+
+# maximum number of vaccines that can be administered in a day due to resource
+# constrainst - estimate from data above
+daily_vaccine_supply
+
+scale = daily_vaccine_supply *2# scaling factor
+growth = 4/scale
+midpoint = 0
+shift = daily_vaccine_supply
+
+daily_vaxrate_expr = vaccination ~(scale/(1+exp(-growth*(S-midpoint)))-shift)/S
+daily_vax_expr = vaccination ~(scale/(1+exp(-growth*(S-midpoint)))-shift)
+
+# verify vaccine supply is behaving as expected
+# specify a sequence of S
+S = seq(0,3*daily_vaccine_supply,length.out=300)
+# save number of vaccines per day
+vax_incidence = list()
 
 
-## first I want to try if I can just update
-## the current spec, instead of adding a new one
+for (i in 1:length(S)){
+  vax_incidence[[i]] = simple_sims(
+      iteration_exprs = list(daily_vax_expr)
+    , time_steps = 1L
+    , mats = list(
+      scale = scale
+      , growth = growth
+      , midpoint = midpoint
+      , shift = shift
+      , S = S[i]
+      , vaccination = 0
+    )
+  ) |> filter(matrix == "vaccination")
+}
+vax_incidence = bind_rows(vax_incidence)
 
-print(spec)
+if (interactive()) {
+  # looks right, initial slope is 1, and approaches daily_vaccine_supply 
+  # when S grows
+  plot(S,vax_incidence$value) # phi(S)
+  abline(a=0,b=1,h=daily_vaccine_supply,col = 2) # y=x and asymptote
+}
 
 
-# want to update rho which is a default
+# update model spec with vaccine supply function phi(S) in place of constant phi
+spec_vaccine_supply = mp_tmb_update(
+    spec_flows
+  , phase = "during"
+  , at = 2L
+  , expression = list(mp_per_capita_flow(
+       from = "S"
+     , to = "V"
+     # we divide by S to get a per capita rate from number of vaccines
+     , rate = vaccination ~(scale/(1+exp(-growth*(S-midpoint)))-shift)/S
+     )
+  )
+  , default = list(
+      scale = scale
+    , growth = growth
+    , midpoint = midpoint
+    , shift = shift
+  )
+)
+# update spec to set S manually so we can see what happens with different
+# starting conditions for S
+spec_vaccine_supply = mp_tmb_update(
+    spec_vaccine_supply
+  , phase = "before"
+  , at = 4L
+  , expression = list(S ~ S
+  )
+)
+print(spec_vaccine_supply)
 
-erf <- function(x) 2 * pnorm(x * sqrt(2)) - 1
-plot(-10:10, -erf(-10:10), type='l')
-# how do we use erf for rho(t)
+# simulate data from model to see if behaviour seems reasonable
 
-# use erf(x) where x(S,V,beta_v,beta_s,I,N_mix) [what about phi]
+# scenarios to consider:
+# 1. S0 < daily_vaccine_supply
+# 2. S0 > daily_vaccine_supply
+# 3. what happens if we let time run until we run out of susceptibles
 
-# 1: N_mix ~ N - H
-# 2: vaccination ~ phi * S
-# 3: vaccine_failure ~ rho * V # doesn't make sense to include this term, because we are changin rho
-# 4: unvaccinated_exposure ~ S * I * beta_s/N_mix
-# 5: vaccinated_exposure ~ V * I * beta_v/N_mix # i think not this term, do we want vaccine supply to depend on V ...maybe
+## simulating with these defaults
+sim_a = 0.3
+sim_beta = 0.2
+sim_EI_ratio = 0.5
+S0 = c(daily_vaccine_supply/2,daily_vaccine_supply*10)
+time_steps = c(100,2e3)
+S_time = (expand.grid(S0,time_steps) 
+          |> split(seq(length(S0)*length(time_steps)))
+)
 
-#phi * S + S * I * beta_s/N_mix #+ V * I * beta_v/N_mix
+simulated_data = list()
 
-#S * (phi + I *beta_s/N_mix)
+simulated_data = lapply(S_time,function(x){
+  (spec_vaccine_supply
+   |> mp_simulator(
+       time_steps = x$Var2
+     , outputs = c(states, "vaccination","N_mix")
+     , default = list(
+         logit_a=qlogis(sim_a)
+       , log_beta=log(sim_beta)
+       , log_E_I_ratio=log(sim_EI_ratio)
+       , S = x$Var1
+     )
+   )
+   |> mp_trajectory()
+   # add some noise
+   ##|> mutate(value = rpois(n(),value))
+   |> select(-c(row,col))
+  ) 
+}) |> bind_rows(.id = "scenario")
 
-# from spec
-phi=1e-1
-beta_s=2e-1
-max_vax=5
-N_mix=100
-
-S=seq(100,0,by=-1)
-I=seq(0,100,by=1)
-
-unvax=S * (phi + I *beta_s/N_mix)
-plot(unvax,max_vax*erf(unvax),type='l')
-
-# how does this prevent S and V from going negative
-
+# Do these dynamics make sense?
+# In all scenarios vaccination rate stabilizes (good)
+# S approaches asymptote - constant supply of vaccine waning individuals (good)
+# Why does V approach two different asymptotes: In 1 and 3 
+# 18282.13 approach, in 2 & 4 approach 43371.90
+# 
+if (interactive()) {
+  (simulated_data 
+   ##|> filter(matrix %in% c("S","V","vaccination"))
+   |> ggplot(aes(time, value))
+   + geom_point(alpha=0.3)
+   + facet_wrap(vars(matrix,scenario),scales='free',ncol=8)
+   + xlim(50,100)
+  )
+}
 
 
