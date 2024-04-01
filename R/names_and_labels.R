@@ -191,6 +191,9 @@ StringUndottedScalar = function(...) {
 StringDottedVector = function(...) {
   self = StringDotted(valid_vector$assert(c(...)))
   self$regenerate = function(value) StringDottedVector(value)
+  self$value_combiner = function(value_list) {
+    StringDottedVector(do.call(c, value_list))
+  }
   self$undot = function() {
     v = self$value()
     if (!identical(v, "")) {
@@ -229,6 +232,9 @@ StringDottedVector = function(...) {
 StringUndottedVector = function(...) {
   self = StringUndotted(valid_vector$assert(c(...)))
   self$regenerate = function(value) StringUndottedVector(value)
+  self$value_combiner = function(value_list) {
+    StringUndottedVector(do.call(c, value_list))
+  }
   self$dot = function() {
     s = paste0(as.character(self$value()), collapse = ".")
     StringDottedScalar(s)
@@ -312,8 +318,7 @@ c.String = function(...) {
   for (i in seq_along(l)) {
     r[[i]] = l[[i]]$value()
   }
-  l[[1L]]$value_combiner()
-  l[[1L]]$regenerate(do.call(l[[1L]]$value_combiner, r))
+  l[[1L]]$value_combiner(r)
 }
 
 StringData = function(labels, names) {
