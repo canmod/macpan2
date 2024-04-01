@@ -1,4 +1,4 @@
-test_that("bad outputs give warnings", {
+test_that("bad parameterizations give errors", {
   sir = mp_tmb_library("starter_models", "sir", package = "macpan2")
   sir_sim = mp_simulator(sir, time_steps = 5, outputs = c("infection")) |> mp_trajectory()
 
@@ -11,4 +11,12 @@ test_that("bad outputs give warnings", {
     , regexp = "Requested parameters \\(including Beta\\) are not available in the model spec"
   )
 
+  expect_error(
+    mp_tmb_calibrator(sir
+      , data = sir_sim
+      , traj = "infection"
+      , par = "recovery"
+    )
+    , regexp = "Requested parameters \\(including recovery\\) are not available in the model spec"
+  )
 })
