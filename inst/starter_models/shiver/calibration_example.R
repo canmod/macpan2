@@ -818,7 +818,7 @@ S_time = (expand.grid(S0,time_steps)
 
 simulated_data = list()
 
-simulated_data = lapply(S_time,function(x){
+simulated_data = (lapply(S_time,function(x){
   (spec_vaccine_supply
    |> mp_simulator(
        time_steps = x$Var2
@@ -836,21 +836,264 @@ simulated_data = lapply(S_time,function(x){
    |> select(-c(row,col))
   ) 
 }) |> bind_rows(.id = "scenario")
+)
 
+# create vax_supply (vaccination * S)
+# get S and vaccination in wide
+vax_supply <- (simulated_data
+               |> filter(matrix %in% c("S","vaccination"))
+               |> pivot_wider(names_from=matrix, values_from=value)
+               |> mutate(value=S*vaccination)
+)
 # Do these dynamics make sense?
 # In all scenarios vaccination rate stabilizes (good)
 # S approaches asymptote - constant supply of vaccine waning individuals (good)
-# Why does V approach two different asymptotes: In 1 and 3 
-# 18282.13 approach, in 2 & 4 approach 43371.90
+# Why does V approach two different asymptotes:  in 1 and 3 
+# versus 2 & 4 - with different intial S, they get different N so makes sense V
+# would be different
 # 
 if (interactive()) {
   (simulated_data 
-   ##|> filter(matrix %in% c("S","V","vaccination"))
+   |> filter(matrix %in% c("S","V","vaccination"))
    |> ggplot(aes(time, value))
    + geom_point(alpha=0.3)
-   + facet_wrap(vars(matrix,scenario),scales='free',ncol=8)
+   + facet_wrap(vars(matrix,scenario),scales='free',ncol=4)
    + xlim(50,100)
   )
 }
 
 
+# let's try to calibrate with simulated data
+# need to update spec
+spec_vaccine_supply = mp_tmb_update(
+    spec_vaccine_supply
+  , phase = "before"
+  , at = 4L
+  , expression = list(S ~ N - V - E - I - H - R)
+)
+
+simulated_data = (
+  spec_vaccine_supply
+  |> mp_simulator(time_steps=100, outputs=states)
+  |> mp_trajectory()
+  |> mutate(value = rpois(n(),value))
+)
+cal_vaccine_supply = mp_tmb_calibrator(
+    spec = spec_vaccine_supply |> mp_rk4()
+  , data = simulated_data
+  , traj = "I"
+  , par = c("log_beta")
+  , outputs=states
+)
+# converges and recovering true beta
+mp_optimize(cal_vaccine_supply)
+(mp_tmb_coef(cal_vaccine_supply, conf.int=TRUE)
+  |> backtrans()
+)
+
+# can we estimate fit to real data and see if we can get similar estimates for
+# beta and E_I ratio
+cal_vaccine_supply = mp_tmb_calibrator(
+    spec = spec_vaccine_supply |> mp_rk4()
+  , data = reported_hospitalizations
+  , traj = "H"
+  , par = c("log_beta","log_E_I_ratio")
+  , outputs=states
+)
+# converges and get similar estimates when phi is constant
+mp_optimize(cal_vaccine_supply)
+(mp_tmb_coef(cal_vaccine_supply, conf.int=TRUE)
+  |> backtrans()
+)
+
+
+
+## -------------------------
+## vaccine function attempt 2
+## -------------------------
+
+## Hill function with modified rate from Gharounui (2022)
+
+# Hill parameters
+# asymptote
+A = daily_vaccine_supply
+# value of S at half maximum
+half_max = A/2
+# hill coefficient, not sure how to set this value, setting to 1 for now. Hoping
+# modification to rate will prevent rate from going > 1, because Hill has
+# places where slope > 1
+n = 2
+
+# Gharouni parameters
+#my $\phi S$ becomes $\frac{\tau \phi(S) N_{mix}}{\tau S + \phi(S)N_{mix}} $ ?? 
+max_rate = 1 #tau in Gharouni
+
+# specify a sequence of S
+S = seq(0,3*daily_vaccine_supply,length.out=300)
+
+# test out hill function
+hill_data = simple_sims(
+  iteration_exprs = list(
+    hill_fn ~ (A * (S^n))/((half_max)^n + (S^n))
+  )
+  , time_steps = 1L
+  , mats = list(
+    hill_fn = 0
+    , A = A
+    , S = S
+    , n = n
+    , half_max = half_max
+    , max_rate = max_rate
+    , N_mix = N
+    , vaccination = 0
+    , flow = 0
+  )
+)
+
+# this is right
+if (interactive()) {
+  (hill_data 
+   |> filter(matrix %in% c("hill_fn"))
+   |> cbind(S)
+   |> ggplot(aes(S, value))
+   + geom_point(alpha=0.3)
+   + facet_wrap(vars(matrix),scales='free',ncol=4)
+   + geom_hline(yintercept = A)
+  )
+}
+
+
+# test out Gharouni (2022) rate
+hill_data = simple_sims(
+    iteration_exprs = list(
+        hill_fn ~ (A * (S^n))/((half_max)^n + (S^n))
+      , vaccination ~ ((max_rate * hill_fn)/((max_rate * S) + (hill_fn)))
+      , flow ~ vaccination * S
+      , S ~ S - flow
+    )
+  , time_steps = 100
+  , mats = list(
+      hill_fn = 0
+    , A = A
+    , S = A*10
+    , n = n
+    , half_max = half_max
+    , max_rate = max_rate
+    , N_mix = N
+    , vaccination = 0
+    , flow = 0
+  )
+)
+
+# rate is always less than 1, good
+# not sure why there is a peak (maybe part of hill coeficient choice)
+
+if (interactive()) {
+  (hill_data 
+   |> filter(matrix %in% c("vaccination"))
+   |> ggplot(aes(time,value))
+   + geom_point(alpha=0.3)
+   + geom_hline(yintercept = 1)
+  )
+}
+# flow looks right, and doesn't go negative
+if (interactive()) {
+  (hill_data 
+   |> filter(matrix %in% c("flow"))
+   |> ggplot(aes(time,value))
+   + geom_point(alpha=0.3)
+  )
+}
+
+# update model spec with vaccine supply function phi(S) in place of constant phi
+spec_vaccine_rate = mp_tmb_update(
+    spec_flows
+  , phase = "during"
+  , at = 2L
+  , expression = list(
+      hill_fn ~ (A * (S^n))/((half_max)^n + (S^n)),
+      mp_per_capita_flow(
+        from = "S"
+      , to = "V"
+      , rate = vaccination ~ ((max_rate * hill_fn)/((max_rate * S) + (hill_fn)))
+  )
+  )
+  , default = list(
+      A = A
+    , half_max = half_max
+    , n = n
+    , max_rate = max_rate
+  )
+)
+
+print(spec_vaccine_rate)
+
+
+# simulate from model and plot hill_fn
+# update R to skip through dynamics to see what happens when we run out of S
+simulated_data = (
+    spec_vaccine_rate
+  |> mp_simulator(time_steps = 500,outputs=c(states,"vaccination"), default = list(R=0.95*N))
+  |> mp_trajectory()
+  ##|> mutate(value = rpois(n(),value))
+)
+
+# things look good
+if (interactive()) {
+  (simulated_data 
+   |> filter(matrix %in% c(states,"vaccination"))
+   |> ggplot(aes(time, value))
+   + geom_point(alpha=0.3)
+   + facet_wrap(vars(matrix),scales='free',ncol=4)
+  )
+}
+
+
+# let's check variable vaccination rate
+sim_data2 = (simulated_data
+             %>% filter(matrix %in% c("S","vaccination"))
+             %>% pivot_wider(names_from = matrix, values_from = value)
+             %>% mutate(value = vaccination/S))
+# wonder if peak causes issues, 
+# looks right thought, always <1, its closest to 1 when S is small
+if (interactive()) {
+  (sim_data2 
+   |> ggplot(aes(time, value))
+   + geom_point(alpha=0.3)
+   + scale_y_log10()
+  )
+}
+
+# try calibratings ....
+# can we estimate fit to real data and see if we can get similar estimates for
+# beta and E_I ratio
+cal_vaccine_supply = mp_tmb_calibrator(
+  spec = spec_vaccine_rate |> mp_rk4()
+  , data = reported_hospitalizations
+  , traj = "H"
+  , par = c("log_beta","log_E_I_ratio")
+  , outputs=states
+)
+# converges and get similar estimates when phi is constant
+# makes sense I think because these parameters don't relate to vaccination rate
+mp_optimize(cal_vaccine_supply)
+(mp_tmb_coef(cal_vaccine_supply, conf.int=TRUE)
+  |> backtrans()
+)
+
+
+# can we estimate vaccine efficacy (1-vaccinefailure)
+# cal_vaccine_supply = mp_tmb_calibrator(
+#   spec = spec_vaccine_rate |> mp_rk4()
+#   , data = reported_hospitalizations
+#   , traj = "H"
+#   , par = c("vaccinated")
+#   , outputs=states
+# )
+# # converges and get similar estimates when phi is constant
+# # makes sense I think because these parameters don't relate to vaccination rate
+# mp_optimize(cal_vaccine_supply)
+# (mp_tmb_coef(cal_vaccine_supply, conf.int=TRUE)
+##   |> backtrans()
+# )
+# 
