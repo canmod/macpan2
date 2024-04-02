@@ -100,7 +100,8 @@ We then use the [`time_var`](https://canmod.github.io/macpan2/reference/engine_f
 ```{r time_var}
 # see ?time_var for arguments
 expr = list(
- beta ~ time_var(beta_values, beta_changepoints, time_step(0))
+ #beta ~ time_var(beta_values, beta_changepoints, time_step(1))
+ beta ~ time_var(beta_values, beta_changepoints)
 )
 
 ```
@@ -177,24 +178,6 @@ The clear kinks at times 10 and 15 are due the drop and then lift of the transmi
 <!-- Not clear yet why trajectories are shifted by one time step, i think my expression is in the right place-->
 
 
-<!-- perhaps there is a new way to do this, should show this way-->
-
-```{r}
-
-# mp_tmb_calibrator(
-#   spec,
-#   data,
-#   traj,
-#   par,
-#   tv = "beta",
-#   outputs = traj,
-#   default = list(),
-#   time = NULL
-# )
-
-```
-
-
 
 ## Calibrating Time Variation Parameters
 
@@ -206,7 +189,7 @@ I_observed = (sim_data
               # add some noise
               |> mutate(value = rpois(n(),value))
 )
-#plot(I_observed)
+plot(I_observed$time, I_observed$value)
 ```
 
 <!-- think I want to log transform -->
@@ -215,14 +198,6 @@ We often want to include parameter constraints in our models, and one way to do 
 
 
 ```{r transform}
-mat_beta_values = (
-  data.frame(value = beta_values)
-  |> mutate(
-    value = log(value),
-    row = seq(1,length(beta_values),by=1),
-    col = 0,
-    matrix = "log_beta_values")
-)
 
 # need to insert transformation
 # not this simple, need to log transform beta_values
@@ -235,37 +210,49 @@ transformed_spec = mp_tmb_insert(
 )
 transformed_spec
 
-# make default appropriately
-# a matrix for beta_values
 
 
+piecewise_calib = mp_tmb_calibrator(
+    spec = transformed_spec
+  , data = I_observed
+  , traj = "I"
+  , par = "log_beta_values" 
+  # can we actully estimate a vector of betas, or only one beta
+  #, tv = "beta"
+  , outputs = state_labels
+  # we don't need to update any defaults in
+  # `spec`
 
-# piecewise_calib = mp_tmb_calibrator(
-#     spec = transformed_spec
-#   , data = I_observed
-#   , traj = "I"
-#   , par = mat_beta_values # or beta_values
-#   # can we actully estimate a vector of betas, or only one beta
-#   , tv = "log_beta_values"
-#   , outputs = state_labels
-#   # we don't need to update any defaults in
-#   # `spec`
-# 
-# )
+)
 
-
-
-
-# mp_optimize(piecewise_calib)
+mp_optimize(piecewise_calib)
 # if (piecewise_calib$optimization_history$get()[[1L]]$convergence  != 0) {
 #   stop("time-varying optimization example is no longer converging")
 # }
 # # looking at coefficients and CIs
 # # we need to back transform to interpret
-# cc <- (mp_tmb_coef(piecewise_calib, conf.int=TRUE)
-##        |> backtrans()
-# )
-# cc
+cc <- (mp_tmb_coef(piecewise_calib, conf.int=TRUE)
+        |> backtrans()
+)
+cc
+beta_values
+```
+
+
+```{r old_way}
+
+# the old way of calibrating
+transformed_sim = transformed_spec |> mp_simulator(time_steps = time_steps, outputs = state_labels)
+
+default_beta = mean(transformed_sim$get$initial("beta_values"))
+params_to_fit = data.frame(
+    mat = "log_beta_values"
+  , row = 0:2
+  , default = log(default_beta)
+)
+
+transformed_sim$replace$params_frame(params_to_fit)
+transformed_sim$optimize$nlminb()
 
 ```
 

@@ -104,8 +104,8 @@ The general goal of this example is to see if we can fit the SHIVER model to COV
 We load the model specification from the model library.
 
 ```{r model_spec}
-source("tmb.R")
-#spec = mp_tmb_library("starter_models","shiver", package="macpan2")
+#source("tmb.R")
+spec = mp_tmb_library("starter_models","shiver", package="macpan2")
 ```
 
 ## Calibration Scenario
@@ -802,6 +802,8 @@ We can now try calibrating
 # try calibratings ....
 # can we estimate fit to real data and see if we can get similar estimates for
 # beta and E_I ratio
+# # converges and get similar estimates when phi is constant
+# # makes sense I think because these parameters don't relate to vaccination rate
 cal_vaccine_supply = mp_tmb_calibrator(
   spec = spec_vaccine_rate |> mp_rk4()
   , data = reported_hospitalizations
@@ -809,6 +811,8 @@ cal_vaccine_supply = mp_tmb_calibrator(
   , par = c("log_beta","log_E_I_ratio")
   , outputs=states
 )
+
+
 cal_vaccine_supply = mp_tmb_calibrator(
   spec = spec_vaccine_rate |> mp_rk4()
   , data = reported_hospitalizations
@@ -816,8 +820,7 @@ cal_vaccine_supply = mp_tmb_calibrator(
   , par = c("vaccination")
   , outputs=states
 )
-# # converges and get similar estimates when phi is constant
-# # makes sense I think because these parameters don't relate to vaccination rate
+
 mp_optimize(cal_vaccine_supply)
 
 (mp_tmb_coef(cal_vaccine_supply, conf.int=TRUE)
