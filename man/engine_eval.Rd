@@ -5,7 +5,7 @@
 \title{Engine Evaluation}
 \usage{
 engine_eval(
-  e,
+  .expr,
   ...,
   .matrix_to_return,
   .tmb_cpp = getOption("macpan2_dll"),
@@ -13,8 +13,8 @@ engine_eval(
 )
 }
 \arguments{
-\item{e}{Expression as a one-sided formula, the right-hand-side of which is
-treated as the expression to be evaluated.}
+\item{.expr}{Expression as a one-sided formula, the right-hand-side of which
+is treated as the expression to be evaluated.}
 
 \item{...}{Named objects that can be coerced into numeric matrices.}
 

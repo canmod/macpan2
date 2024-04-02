@@ -120,6 +120,8 @@ mp_tmb_update = function(model
   )
 }
 
+## model is a spec
+## new_defaults is a list of raw defaults, each type of which has a `names` S3 method
 check_default_updates = function(model, new_defaults) {
   old_defaults = model$default
   common_nms = intersect(names(old_defaults), names(new_defaults))
@@ -198,19 +200,31 @@ TMBSimulatorInserter = function(simulator) {
     , .simulate_exprs = character(0L)
     , .vec_by = getOption("macpan2_vec_by")
   ) {
+    
+    ## ----  #171
+    dot_args = list(...)
+    spec_args = c("at", "phase", "simulate_exprs", "vec_by")
+    possible_arg_typos = spec_args %in% names(dot_args)
+    if (any(possible_arg_typos)) {
+      possible = spec_args[possible_arg_typos]
+      if ("at" %in% possible) .at = dot_args$at
+      if ("phase" %in% possible) .phase = dot_args$phase
+      if ("simulate_exprs" %in% possible) .simulate_exprs = dot_args$simulate_exprs
+      if ("vec_by" %in% possible) .vec_by = dot_args$vec_by
+      not_exprs = which(possible == names(dot_args))
+      dot_args = dot_args[-not_exprs]
+    }
+    
     .at = self$.at(.at, .phase)
     for (v in names(.vec_by)) {
       if (.vec_by[v] == "") .vec_by[v] = "...RAW...INDICES..."
     }
-    # if (.vec_by_states == "") .vec_by_states = "...RAW...INDICES..."
-    # if (.vec_by_flows == "") .vec_by_flows = "...RAW...INDICES..."
-    #component_vec_by = c(state = .vec_by_states, flow = .vec_by_flows)
     if (inherits(self$model$init_mats$.structure_labels, "NullLabels")) {
-      args = list(...)
+      args = dot_args
     } else {
       mat_names = names(self$model$init_mats)
       component_list = self$model$init_mats$.structure_labels$component_list()
-      args = (list(...)
+      args = (dot_args
         |> lapply(to_special_vecs, component_list, mat_names, .vec_by)
         |> lapply(to_assign)
       )

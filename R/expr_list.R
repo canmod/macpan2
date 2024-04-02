@@ -209,54 +209,62 @@ ExprList = function(
 # @param time_steps string used to represent the number of time steps in
 # the during phase.
 model_steps_printer = function(steps_list, eval_schedule, file = "", time_steps = "T") {
-  to = cumsum(eval_schedule)
-  from = c(0L, to[1:2]) + 1L
-  if (is.numeric(time_steps)) {
-    time_steps_p1 = as.character(as.integer(time_steps + 1))
+  if (sum(eval_schedule) == 0L) {
+    lines = c(
+        "---------------------",
+        "Empty simulator",
+        "---------------------"
+      ) |> cat(file = file, sep = "\n", append = FALSE)
   } else {
-    time_steps_p1 = paste(as.character(time_steps), "1", sep = " + ")
-  }
-  msgs = c(
-    "Before the simulation loop (t = 0):",
-    sprintf("At every iteration of the simulation loop (t = 1 to %s):"
-      , as.character(time_steps)
-    ),
-    sprintf("After the simulation loop (t = %s):", time_steps_p1)
-  )
-
-  ## TODO: give better advice here on how to engage the simulation loop.
-  if (time_steps == 0) {
-    msgs[2L] = "At every iteration of the simulation loop (number of iterations = 0):"
-  }
-
-  for (i in 1:3) {
-    if (eval_schedule[i] > 0L) {
-      expr_strings = lapply(steps_list[from[i]:to[i]], to_string)
-      tab_size = nchar(eval_schedule[i])
-      fmt = sprintf("%%%ii: %%s", tab_size)
-      tab = paste0(rep(" ", tab_size), collapse = "")
-      expr_n_lines = vapply(expr_strings, length, integer(1L))
-      make_expr_numbers = function(s, i) {
-        s[1L] = sprintf(fmt, i, s[1L])
-        if (length(s) > 1L) {
-          s[-1L] = paste(tab, s[-1L], sep = "")
+    to = cumsum(eval_schedule)
+    from = c(0L, to[1:2]) + 1L
+    if (is.numeric(time_steps)) {
+      time_steps_p1 = as.character(as.integer(time_steps + 1))
+    } else {
+      time_steps_p1 = paste(as.character(time_steps), "1", sep = " + ")
+    }
+    msgs = c(
+      "Before the simulation loop (t = 0):",
+      sprintf("At every iteration of the simulation loop (t = 1 to %s):"
+        , as.character(time_steps)
+      ),
+      sprintf("After the simulation loop (t = %s):", time_steps_p1)
+    )
+  
+    ## TODO: give better advice here on how to engage the simulation loop.
+    if (time_steps == 0) {
+      msgs[2L] = "At every iteration of the simulation loop (number of iterations = 0):"
+    }
+  
+    for (i in 1:3) {
+      if (eval_schedule[i] > 0L) {
+        expr_strings = lapply(steps_list[from[i]:to[i]], to_string)
+        tab_size = nchar(eval_schedule[i])
+        fmt = sprintf("%%%ii: %%s", tab_size)
+        tab = paste0(rep(" ", tab_size), collapse = "")
+        expr_n_lines = vapply(expr_strings, length, integer(1L))
+        make_expr_numbers = function(s, i) {
+          s[1L] = sprintf(fmt, i, s[1L])
+          if (length(s) > 1L) {
+            s[-1L] = paste(tab, s[-1L], sep = "")
+          }
+          s
         }
-        s
+        expr_char = unlist(mapply(make_expr_numbers
+          , expr_strings
+          , seq_len(eval_schedule[i])
+          , SIMPLIFY = FALSE
+          , USE.NAMES = FALSE
+        ))
+        lines = c(
+          "---------------------",
+          msgs[i],
+          "---------------------",
+          expr_char,
+          ""
+        )
+        cat(lines, file = file, sep = "\n", append = i != 1L)
       }
-      expr_char = unlist(mapply(make_expr_numbers
-        , expr_strings
-        , seq_len(eval_schedule[i])
-        , SIMPLIFY = FALSE
-        , USE.NAMES = FALSE
-      ))
-      lines = c(
-        "---------------------",
-        msgs[i],
-        "---------------------",
-        expr_char,
-        ""
-      )
-      cat(lines, file = file, sep = "\n", append = i != 1L)
     }
   }
 }

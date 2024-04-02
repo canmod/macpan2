@@ -5,8 +5,8 @@
 #' \code{\link{engine_functions}} that can be used to define \pkg{macpan2}
 #' models.
 #'
-#' @param e Expression as a one-sided formula, the right-hand-side of which is
-#' treated as the expression to be evaluated.
+#' @param .expr Expression as a one-sided formula, the right-hand-side of which 
+#' is treated as the expression to be evaluated.
 #' @param ... Named objects that can be coerced into numeric matrices.
 #' @param .matrix_to_return Optional name of one of the matrices given
 #' in \code{...} to be returned. If this argument is missing, the
@@ -34,8 +34,12 @@
 #'   , .matrix_to_return = "x"
 #' )
 #' @importFrom stats as.formula setNames
-engine_eval = function(e, ..., .matrix_to_return, .tmb_cpp = getOption("macpan2_dll"), .structure_labels = NullLabels()) {
+engine_eval = function(.expr, ..., .matrix_to_return, .tmb_cpp = getOption("macpan2_dll"), .structure_labels = NullLabels()) {
   dot_mats = list(...)
+  if (is.numeric(.expr) & any(vapply(dot_mats, inherits, logical(1L), "formula"))) {
+    stop("Looks like you used the name `.expr` for one of the numeric objects, which is not allowed when using `engine_eval`. Please try `simple_sims` for similar functionality with better naming rules.")
+  }
+  e = .expr
 
   ## force two-sided formula for compliance with TMBSimulator
   ## that is used below

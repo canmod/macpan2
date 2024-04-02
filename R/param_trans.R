@@ -36,7 +36,7 @@ Transform <- function(variable, default = NULL, trans_variable = variable) {
       engine_eval,
       setNames(
         list(self$trans_one_sided_formula(), value),
-        c("e", self$variable)
+        c(".expr", self$variable)
       )
     )
   }
@@ -45,7 +45,7 @@ Transform <- function(variable, default = NULL, trans_variable = variable) {
       engine_eval,
       setNames(
         list(self$inverse_one_sided_formula(), trans_value),
-        c("e", self$trans_variable)
+        c(".expr", self$trans_variable)
       )
     )
   }
