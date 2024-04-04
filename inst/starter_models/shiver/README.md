@@ -101,8 +101,8 @@ plausible tranmission rates for vaccinated and unvaccinated individuals.
 We load the model specification from the model library.
 
 ``` r
-source("tmb.R")
-#spec = mp_tmb_library("starter_models","shiver", package="macpan2")
+#source("tmb.R")
+spec = mp_tmb_library("starter_models","shiver", package="macpan2")
 ```
 
 ## Calibration Scenario
@@ -1012,62 +1012,63 @@ of the dependent variable $x$ at the half maximum.
 ``` r
 # Hill parameters
 # asymptote
-A = daily_vaccinations
+A = round(daily_vaccinations)
 # value of S at half maximum, seems like a sensible choice
 half_max = A/2
 # Hill coefficient - chosen randomly, but higher n creates steeper slopes
 n = 3
+
+# scaling factor
+sc  = 3/(4*2^(1/3))
 ```
 
 ![](./figures/hill_plot-1.png)<!-- -->
 
-To restrict the vaccination rate to be at most 1, we use the method in
-Gharouni et al. ([2022](#ref-gharouni_2022)) Appendix 5 to modify the
-output of the hill function.
-
-``` r
-# Gharouni parameters
-max_rate = 1 #tau parameter in Gharouni
-```
-
-We then use this rate as our vaccination rate,
-$\phi(S(t)) = \frac{\textrm{max}_{rate} Hill(S)}{\textrm{max}_{rate} S + Hill(S)}$
-
 ``` r
 
-# test out Gharouni (2022) rate
+# test out hill function
 hill_data = simple_sims(
     iteration_exprs = list(
-        hill_fn ~ (A * (S^n))/((half_max)^n + (S^n))
-      , vaccination ~ ((max_rate * hill_fn)/((max_rate * S) + (hill_fn)))
-      , flow ~ vaccination * S
-      , S ~ S - flow
+      hill_fn ~ (A * (sc * (S^n)))/((half_max)^n + (sc * (S^n)))
     )
-  , time_steps = 100
+  , time_steps = 1L
   , mats = list(
       hill_fn = 0
     , A = A
-    , S = A*10
+    , sc  =  sc
+    , S = S
     , n = n
     , half_max = half_max
-    , max_rate = max_rate
     , N_mix = N
-    , vaccination = 0
-    , flow = 0
   )
 )
 
-# rate is always less than 1 and is larger for smaller S, good
-# not sure why there is a peak (maybe part of hill coeficient choice)
-(hill_data 
-   |> filter(matrix %in% c("vaccination"))
-   |> ggplot(aes(time,value))
+# this is right
+(hill_data
+   |> filter(matrix %in% c("hill_fn"))
+   |> cbind(S)
+   |> ggplot(aes(S, value))
    + geom_point(alpha=0.3)
-   + geom_hline(yintercept = 1)
-   + geom_text(x=5,y=0.95,label="max_rate")
+   + geom_hline(yintercept = A,col="blue")
+   + geom_text(x=50,y=A-300,label="A", col="blue")
+   # + geom_text(x=500,y=2500,label=expression(phi = S),col="red")
+   + geom_abline(a=0,b=1, col="red")
+   + ggtitle("Variable vaccination rate using the Hill function")
    + theme_bw()
-)
+   + ylab("H(S)")
+
+  )
+#> Warning in geom_abline(a = 0, b = 1, col = "red"): Ignoring unknown parameters:
+#> `a` and `b`
 ```
+
+![](./figures/scaling_hill-1.png)<!-- -->
+
+<!--To restrict the vaccination rate to be at most 1, we use the method in @gharouni_2022 Appendix 5 to modify the output of the hill function. -->
+<!-- We then use this rate as our vaccination rate,  $\phi(S(t)) =  \frac{\textrm{max}_{rate} Hill(S)}{\textrm{max}_{rate} S + Hill(S)}$ -->
+
+    #> Warning: Removed 1 row containing missing values or values outside the scale range
+    #> (`geom_point()`).
 
 ![](./figures/gharouni_rate-1.png)<!-- -->
 
@@ -1078,21 +1079,42 @@ spec_vaccine_rate = mp_tmb_update(
   , phase = "during"
   , at = 2L
   , expression = list(
-      hill_fn ~ (A * (S^n))/((half_max)^n + (S^n)),
+      hill_fn ~ (A * (sc * (S^n)))/((half_max)^n + (sc * (S^n))),
       mp_per_capita_flow(
         from = "S"
       , to = "V"
-      , rate = vaccination ~ ((max_rate * hill_fn)/((max_rate * S) + (hill_fn)))
+      , rate = vaccination ~ hill_fn/S
   )
   )
   , default = list(
       A = A
     , half_max = half_max
     , n = n
+    , sc = sc
     , max_rate = max_rate
     , vaccination = 0
   )
 )
+# spec_vaccine_rate = mp_tmb_update(
+#     reparameterized_spec
+#   , phase = "during"
+#   , at = 2L
+#   , expression = list(
+#       hill_fn ~ (A * (S^n))/((half_max)^n + (S^n)),
+#       mp_per_capita_flow(
+#         from = "S"
+#       , to = "V"
+#       , rate = vaccination ~ ((max_rate * hill_fn)/((max_rate * S) + (hill_fn)))
+#   )
+#   )
+#   , default = list(
+#       A = A
+#     , half_max = half_max
+#     , n = n
+#     , max_rate = max_rate
+#     , vaccination = 0
+#   )
+# )
 print(spec_vaccine_rate)
 #> ---------------------
 #> Default values:
@@ -1115,9 +1137,10 @@ print(spec_vaccine_rate)
 #>        logit_a            -4.5951199
 #>       log_beta            -4.6051702
 #>  log_E_I_ratio             0.6931472
-#>              A         16848.8928571
-#>       half_max          8424.4464286
+#>              A         16849.0000000
+#>       half_max          8424.5000000
 #>              n             3.0000000
+#>             sc             0.5952754
 #>       max_rate             1.0000000
 #>    vaccination             0.0000000
 #> 
@@ -1134,9 +1157,9 @@ print(spec_vaccine_rate)
 #> At every iteration of the simulation loop (t = 1 to T):
 #> ---------------------
 #> 1: N_mix ~ N - H
-#> 2: hill_fn ~ (A * (S^n))/((half_max)^n + (S^n))
+#> 2: hill_fn ~ (A * (sc * (S^n)))/((half_max)^n + (sc * (S^n)))
 #> 3: mp_per_capita_flow(from = "S", to = "V", rate = vaccination ~ 
-#>      ((max_rate * hill_fn)/((max_rate * S) + (hill_fn))))
+#>      hill_fn/S)
 #> 4: mp_per_capita_flow(from = "S", to = "E", rate = unvaccinated_exposure ~ 
 #>      I * beta/N_mix)
 #> 5: mp_per_capita_flow(from = "V", to = "E", rate = vaccinated_exposure ~ 
@@ -1190,6 +1213,8 @@ we have smaller numbers of susceptibles. We can now try calibrating
 # try calibratings ....
 # can we estimate fit to real data and see if we can get similar estimates for
 # beta and E_I ratio
+# # converges and get similar estimates when phi is constant
+# # makes sense I think because these parameters don't relate to vaccination rate
 cal_vaccine_supply = mp_tmb_calibrator(
   spec = spec_vaccine_rate |> mp_rk4()
   , data = reported_hospitalizations
@@ -1197,6 +1222,8 @@ cal_vaccine_supply = mp_tmb_calibrator(
   , par = c("log_beta","log_E_I_ratio")
   , outputs=states
 )
+
+
 cal_vaccine_supply = mp_tmb_calibrator(
   spec = spec_vaccine_rate |> mp_rk4()
   , data = reported_hospitalizations
@@ -1204,8 +1231,7 @@ cal_vaccine_supply = mp_tmb_calibrator(
   , par = c("vaccination")
   , outputs=states
 )
-# # converges and get similar estimates when phi is constant
-# # makes sense I think because these parameters don't relate to vaccination rate
+
 mp_optimize(cal_vaccine_supply)
 #> outer mgc:  0
 #> $par
@@ -1213,7 +1239,7 @@ mp_optimize(cal_vaccine_supply)
 #>      0 
 #> 
 #> $objective
-#> [1] 144023.6
+#> [1] 144020.5
 #> 
 #> $convergence
 #> [1] 0
@@ -1259,15 +1285,6 @@ Brauer, Fred, and Carlos Castillo-Chavez. 2012. *Mathematical Models in
 Population Biology and Epidemiology*. Vol. 40. Texts in Applied
 Mathematics. New York, NY: Springer New York.
 <https://doi.org/10.1007/978-1-4614-1686-9>.
-
-</div>
-
-<div id="ref-gharouni_2022" class="csl-entry">
-
-Gharouni, Ali, Fred M. Abdelmalek, David J. D. Earn, Jonathan Dushoff,
-and Benjamin M. Bolker. 2022. “Testing and Isolation Efficacy: Insights
-from a Simple Epidemic Model.” *Bulletin of Mathematical Biology* 84
-(6): 66. <https://doi.org/10.1007/s11538-022-01018-2>.
 
 </div>
 

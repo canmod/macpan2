@@ -7,6 +7,8 @@ author: Jennifer Freeman
 output: 
   github_document:
     toc: true
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r, include = FALSE}
@@ -630,11 +632,15 @@ We choose a sigmoidal function for $\phi(S(t))$ because these curves are increas
 ```{r hill_parameters}
 # Hill parameters
 # asymptote
-A = daily_vaccinations
+A = round(daily_vaccinations)
 # value of S at half maximum, seems like a sensible choice
 half_max = A/2
 # Hill coefficient - chosen randomly, but higher n creates steeper slopes
 n = 3
+n=1
+# scaling factor
+sc  = 3/(4*2^(1/3))
+sc = (half_max^2)/(A^2)/2
 
 ```
 
@@ -678,32 +684,90 @@ hill_data = simple_sims(
 
 ```
 
-To restrict the vaccination rate to be at most 1, we use the method in @gharouni_2022 Appendix 5 to modify the output of the hill function. 
-```{r gharouni_parameters}
+
+```{r scaling_hill}
+
+# test out hill function
+hill_data = s16848imple_sims(
+    iteration_exprs = list(
+      hill_fn ~ (A * (sc * (S^n)))/((half_max)^n + (sc * (S^n)))
+    )
+  , time_steps = 1L
+  , mats = list(
+      hill_fn = 0
+    , A = A
+    , sc  =  sc
+    , S = S
+    , n = n
+    , half_max = half_max
+    , N_mix = N
+  )
+)
+
+# this is right
+(hill_data
+   |> filter(matrix %in% c("hill_fn"))
+   |> cbind(S)
+   |> ggplot(aes(S, value))
+   + geom_point(alpha=0.3)
+   + geom_hline(yintercept = A,col="blue")
+   + geom_text(x=50,y=A-300,label="A", col="blue")
+   # + geom_text(x=500,y=2500,label=expression(phi = S),col="red")
+   + geom_abline(a=0,b=1, col="red")
+   + ggtitle("Variable vaccination rate using the Hill function")
+   + theme_bw()
+   + ylab("H(S)")
+
+  )
+```
+
+<!--To restrict the vaccination rate to be at most 1, we use the method in @gharouni_2022 Appendix 5 to modify the output of the hill function. -->
+```{r gharouni_parameters, include=FALSE}
 # Gharouni parameters
 max_rate = 1 #tau parameter in Gharouni
 
 ```
 
-We then use this rate as our vaccination rate,  $\phi(S(t)) =  \frac{\textrm{max}_{rate} Hill(S)}{\textrm{max}_{rate} S + Hill(S)}$ 
-```{r gharouni_rate}
+<!-- We then use this rate as our vaccination rate,  $\phi(S(t)) =  \frac{\textrm{max}_{rate} Hill(S)}{\textrm{max}_{rate} S + Hill(S)}$ -->
+```{r gharouni_rate, echo=FALSE}
 
 # test out Gharouni (2022) rate
+# hill_data = simple_sims(
+#     iteration_exprs = list(
+#         hill_fn ~ (A * (S^n))/((half_max)^n + (S^n))
+#       , vaccination ~ ((max_rate * hill_fn)/((max_rate * S) + (hill_fn)))
+#       , flow ~ vaccination * S
+#       , S ~ S - flow
+#     )
+#   , time_steps = 100
+#   , mats = list(
+#       hill_fn = 0
+#     , A = A
+#     , S = A*10
+#     , n = n
+#     , half_max = half_max
+#     , max_rate = max_rate
+#     , N_mix = N
+#     , vaccination = 0
+#     , flow = 0
+#   )
+# )
+# testing out modifying hill instead of gharouni hack
 hill_data = simple_sims(
     iteration_exprs = list(
-        hill_fn ~ (A * (S^n))/((half_max)^n + (S^n))
-      , vaccination ~ ((max_rate * hill_fn)/((max_rate * S) + (hill_fn)))
-      , flow ~ vaccination * S
-      , S ~ S - flow
+        hill_fn ~ (A * (sc * (S^n)))/((half_max)^n + (sc * (S^n)))
+      , vaccination ~ hill_fn/S
+      #, flow ~ vaccination * S
+      #, S ~ S - flow
     )
-  , time_steps = 100
+  , time_steps = 1L
   , mats = list(
       hill_fn = 0
     , A = A
-    , S = A*10
+    , S = S
     , n = n
+    , sc = sc
     , half_max = half_max
-    , max_rate = max_rate
     , N_mix = N
     , vaccination = 0
     , flow = 0
@@ -714,7 +778,8 @@ hill_data = simple_sims(
 # not sure why there is a peak (maybe part of hill coeficient choice)
 (hill_data 
    |> filter(matrix %in% c("vaccination"))
-   |> ggplot(aes(time,value))
+   |> cbind(S)
+   |> ggplot(aes(S, value))
    + geom_point(alpha=0.3)
    + geom_hline(yintercept = 1)
    + geom_text(x=5,y=0.95,label="max_rate")
@@ -732,21 +797,42 @@ spec_vaccine_rate = mp_tmb_update(
   , phase = "during"
   , at = 2L
   , expression = list(
-      hill_fn ~ (A * (S^n))/((half_max)^n + (S^n)),
+      hill_fn ~ (A * (sc * (S^n)))/((half_max)^n + (sc * (S^n))),
       mp_per_capita_flow(
         from = "S"
       , to = "V"
-      , rate = vaccination ~ ((max_rate * hill_fn)/((max_rate * S) + (hill_fn)))
+      , rate = vaccination ~ hill_fn/S
   )
   )
   , default = list(
       A = A
     , half_max = half_max
     , n = n
+    , sc = sc
     , max_rate = max_rate
     , vaccination = 0
   )
 )
+# spec_vaccine_rate = mp_tmb_update(
+#     reparameterized_spec
+#   , phase = "during"
+#   , at = 2L
+#   , expression = list(
+#       hill_fn ~ (A * (S^n))/((half_max)^n + (S^n)),
+#       mp_per_capita_flow(
+#         from = "S"
+#       , to = "V"
+#       , rate = vaccination ~ ((max_rate * hill_fn)/((max_rate * S) + (hill_fn)))
+#   )
+#   )
+#   , default = list(
+#       A = A
+#     , half_max = half_max
+#     , n = n
+#     , max_rate = max_rate
+#     , vaccination = 0
+#   )
+# )
 print(spec_vaccine_rate)
 
 
