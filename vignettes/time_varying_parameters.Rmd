@@ -212,30 +212,30 @@ transformed_spec
 
 
 
-piecewise_calib = mp_tmb_calibrator(
-    spec = transformed_spec
-  , data = I_observed
-  , traj = "I"
-  , par = "log_beta_values" 
-  # can we actully estimate a vector of betas, or only one beta
-  #, tv = "beta"
-  , outputs = state_labels
-  # we don't need to update any defaults in
-  # `spec`
-
-)
-
-mp_optimize(piecewise_calib)
-# if (piecewise_calib$optimization_history$get()[[1L]]$convergence  != 0) {
-#   stop("time-varying optimization example is no longer converging")
-# }
-# # looking at coefficients and CIs
-# # we need to back transform to interpret
-cc <- (mp_tmb_coef(piecewise_calib, conf.int=TRUE)
-        |> backtrans()
-)
-cc
-beta_values
+# piecewise_calib = mp_tmb_calibrator(
+#     spec = transformed_spec
+#   , data = I_observed
+#   , traj = "I"
+#   , par = "log_beta_values"
+#   # can we actully estimate a vector of betas, or only one beta
+#   #, tv = "beta"
+#   , outputs = state_labels
+#   # we don't need to update any defaults in
+#   # `spec`
+# 
+# )
+# 
+# mp_optimize(piecewise_calib)
+# # if (piecewise_calib$optimization_history$get()[[1L]]$convergence  != 0) {
+# #   stop("time-varying optimization example is no longer converging")
+# # }
+# # # looking at coefficients and CIs
+# # # we need to back transform to interpret
+# cc <- (mp_tmb_coef(piecewise_calib, conf.int=TRUE)
+#         |> backtrans()
+# )
+# cc
+# beta_values
 ```
 
 
