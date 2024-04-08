@@ -4,20 +4,19 @@ Jennifer Freeman
 
 - [States](#states)
 - [Parameters](#parameters)
+  - [Variable Vaccination Rate](#variable-vaccination-rate)
 - [Dynamics](#dynamics)
 - [Calibration Example](#calibration-example)
   - [Calibration Scenario](#calibration-scenario)
   - [Deciding on Defaults](#deciding-on-defaults)
   - [Simulating Dynamics](#simulating-dynamics)
   - [Estimating Parameters](#estimating-parameters)
-  - [Re-parameterizing and introducing
-    transformations](#re-parameterizing-and-introducing-transformations)
+  - [Re-parameterizing and Introducing
+    Transformations](#re-parameterizing-and-introducing-transformations)
   - [Runge-Kutta 4](#runge-kutta-4)
   - [Fitting to Multiple
     Trajectories](#fitting-to-multiple-trajectories)
-  - [Parameter identifiability](#parameter-identifiability)
-- [Vaccine Constraints and Variable Vaccination
-  Rate](#vaccine-constraints-and-variable-vaccination-rate)
+  - [Parameter Identifiability](#parameter-identifiability)
 - [Model Specification](#model-specification)
 - [References](#references)
 
@@ -27,9 +26,14 @@ compartments for vaccination and hospitalizations.
 Vaccines are typically subject to resource constraints and distribution
 strategies might prioritize vaccinations for specific subpopulations,
 such as immunocompromised people, to reduce bad outcomes. We model this
-with a flow of susceptibles entering the vaccination class. Following
-vaccination, most individuals return to the susceptible class when the
-acquired immune response wears off, called *vaccine waning*.
+with a flow of susceptibles entering the vaccination class. This flow
+could be a fixed rate, i.e. a constant proportion of the population
+receives a vaccine each time step, but instead we wish to capture a more
+realistic vaccination rate by allowing it to vary (see [Variable
+Vaccination Rate](#variable-vaccination-rate)).
+
+Following vaccination, most individuals return to the susceptible class
+when the acquired immune response wears off, called *vaccine waning*.
 
 In reality, vaccinations are only partly effective in developing a
 protective host immune response. This *vaccine failure* includes both
@@ -57,7 +61,7 @@ transmission dynamics.
 | R        | Number of recovered individuals    |
 
 The size of the total population is, $N = S + H + I + V + E + R$, and
-the disease spreads through homogenous mixing of the subpopulation
+the disease spreads through homogeneous mixing of the subpopulation
 $N_{\text{mix}}=N -H$.
 
 # Parameters
@@ -73,12 +77,55 @@ $N_{\text{mix}}=N -H$.
 | $\gamma_H$ | per capita recovery rate for hospitalized individuals                                               |
 | $\sigma$   | per capita rate at which infected individuals develop severe infections and require hospitalization |
 
+## Variable Vaccination Rate
+
+We can implement vaccine constraints by adding more model complexity.
+Resource limitations create an upper bound on the number of vaccines
+that can be administered to susceptibles per time step. There is also
+the constraint that we can only vaccinate, at most, the current number
+of susceptibles i.e. the vaccination rate can be at most 1. These
+constraints naturally lead us to consider a variable vaccination rate
+$\phi(S(t))$, instead of vaccinating a fixed proportion $\phi > 0$ per
+time step.
+
+There are many choices for the function $\phi(S(t))$. We choose a
+sigmoidal function because these curves are increasing and asymptotic.
+The *Michaelis-Menten* function, $f(x) = ax/(b + x)$, is one such curve
+that passes through the origin, which is convenient for our case because
+when we have zero susceptibles our vaccination rate should be zero
+([Bolker 2008](#ref-bolker2008)). The slope through the origin for
+$f(x)$ is $a/b$ and $f(x)$ approaches $a$ as $x \rightarrow \infty$
+([Bolker 2008](#ref-bolker2008)).
+
+We interpret $a$ as the maximum number of vaccinations that can be
+administered per time step, and we set $b=a$ to fix the vaccination rate
+to be at most 1.
+
+``` r
+# asymptote
+a = 1000
+# force slope to be one at the origin
+b = a
+```
+
+Suppose we can vaccinate at most 1000 individuals per time step, then
+the Michaelis-Menten function will approach this asymptote with
+increasing $S(t)$. The choice of $b$ restricts the slope of the curve to
+be below the line $y=x$
+
+![](./figures/Michaelis-Menten_fn-1.png)<!-- -->
+
+To convert the Michaelis-Menten curve above to a rate, we divide by
+$S(t)$.
+
+![](./figures/var_vax-1.png)<!-- -->
+
 # Dynamics
 
 $$
 \begin{align*}
-\frac{dS}{dt} &= -\beta_{S} S\frac{I}{N_{\text{mix}}} - \phi S + \rho V\\
-\frac{dV}{dt} &=  \phi S - \rho V - \beta_{V} V\frac{I}{N_{\text{mix}}} \\
+\frac{dS}{dt} &= -\beta_{S} S\frac{I}{N_{\text{mix}}} - \phi(S) S + \rho V\\
+\frac{dV}{dt} &=  \phi(S) S - \rho V - \beta_{V} V\frac{I}{N_{\text{mix}}} \\
 \frac{dE}{dt} &= (\beta_{S} S + \beta_{V} V) \frac{I}{N_{\text{mix}}} - \alpha E \\
 \frac{dI}{dt} &= \alpha E - \gamma_I I - \sigma I\\
 \frac{dH}{dt} &= \sigma I- \gamma_H H \\
@@ -87,7 +134,7 @@ $$
 $$
 
 This model could be optionally parameterized with $\beta_{S} = \beta$,
-and $\beta_{V} = a \beta$ with $a \in (0, 1)$ to explicitly show that
+and $\beta_{V} = p \beta$ with $p \in (0, 1)$ to explicitly show that
 the rate at which vaccinated individuals acquire infection and transmit
 the disease is reduced when compared to unvaccinated individuals
 ([Brauer and Castillo-Chavez 2012](#ref-brauer_2012)).
@@ -95,20 +142,19 @@ the disease is reduced when compared to unvaccinated individuals
 # Calibration Example
 
 The general goal of this example is to see if we can fit the SHIVER
-model to COVID19 hospitilization data to see if we can estimate
-plausible tranmission rates for vaccinated and unvaccinated individuals.
+model to COVID19 hospitilization data to estimate plausible transmission
+rates for vaccinated and unvaccinated individuals.
 
-We load the model specification from the model library.
+We first load the model specification from the model library.
 
 ``` r
-#source("tmb.R")
 spec = mp_tmb_library("starter_models","shiver", package="macpan2")
 ```
 
 ## Calibration Scenario
 
 Let’s create a scenario for calibration. Suppose we have 3 months of
-daily COVID hospitalization data where some daily reports are missing.
+daily COVID19 hospitalization data where some daily reports are missing.
 
 ``` r
 expected_daily_reports = 90 # days
@@ -177,23 +223,25 @@ We want to check the model specification defaults to see what needs
 updating.
 
 ``` r
-# We can view model spec default values here to see if we need to make any changes.
+# We can view model spec default values here to see if we need to make any
+# changes
 mp_default(spec)
 #>     matrix row col value
-#> 1      phi         1e-01
-#> 2      rho         5e-02
-#> 3   beta_s         2e-01
-#> 4   beta_v         5e-02
-#> 5    alpha         5e-01
-#> 6  gamma_i         1e-01
-#> 7  gamma_h         7e-02
-#> 8    sigma         5e-02
-#> 9        N         1e+02
-#> 10       I         1e+00
-#> 11       V         0e+00
-#> 12       E         0e+00
-#> 13       H         0e+00
-#> 14       R         0e+00
+#> 1        a         1e+01
+#> 2        b         1e+01
+#> 3      rho         5e-02
+#> 4   beta_s         2e-01
+#> 5   beta_v         5e-02
+#> 6    alpha         5e-01
+#> 7  gamma_i         1e-01
+#> 8  gamma_h         7e-02
+#> 9    sigma         5e-02
+#> 10       N         1e+02
+#> 11       I         1e+00
+#> 12       V         0e+00
+#> 13       E         0e+00
+#> 14       H         0e+00
+#> 15       R         0e+00
 ```
 
 We need to update the population size $N$ to the population of Ontario
@@ -209,11 +257,10 @@ N = 14.8e7
 
 Vaccination data from [Public Health
 Ontario](https://www.publichealthontario.ca/en/Data-and-Analysis/Infectious-Disease/Respiratory-Virus-Tool)
-can help us get an estimate for the per capita vaccination rate $\phi$.
-The average number of vaccines that can be administered per day was
-estimated by averaging weekly vaccination counts for the month preceding
-the scenario. We then convert `daily_vaccinations` to a rate by dividing
-by the initial population size.
+can help us get an estimate for the maximum number of vaccines that can
+be administered per day. We average weekly vaccination counts for the
+month preceding the scenario, and use this as our estimate for the
+Michaelis-Menten asymptote parameter $a$.
 
 ``` r
 # phi = vaccination rate
@@ -226,9 +273,8 @@ july_vax = c(
   , 100825
 )
 ## average july weekly data to per day (4 weeks = 28 days)
-daily_vaccinations = sum(july_vax)/28 # seems plausible
-# 0.01% of population per day
-phi = daily_vaccinations/N
+# use this as the maximum number of daily vaccinations
+a = sum(july_vax)/28 # seems plausible
 ```
 
 We assume the average protection acquired from vaccination lasts 6
@@ -254,34 +300,34 @@ sigma = 1/10
 The default recovery rates mean an individual takes 10 days on average
 to move from I to R, and 14 days on average to go from H to R. These
 rates seem plausible for this scenario. Note that the recovery class in
-this model, includes deaths from the hospitalization class. We could
-speculate that the recovery rate from H to R could be shorter than the
-recovery rate from I to R if hospitalized individuals are more likely to
-die for instance than recover (and given death on average happens
-quicker than recovery from infection). For now, let’s stick with the 2
-week recovery rate for H, given we assumed in the observed data above
-that all hospitalized individuals are in H regardless of severity.
+this model, also called the removed compartment, includes deaths from
+the hospitalization class. We could speculate that the recovery rate
+from H to R could be shorter than the recovery rate from I to R if
+hospitalized individuals are more likely to die for instance than
+recover (and given death on average happens quicker than recovery from
+infection). For now, let’s stick with the 2 week recovery rate for H,
+given we assumed in the observed data above that all hospitalized
+individuals are in H regardless of severity.
 
 We want to estimate the transmission parameters `beta_s` and `beta_v`.
 It’s more challenging to interpret these state dependent parameters, but
 we would expect transmission involving vaccinated suceptibles would be
-less effective than unvaccinated transmission (beta_v \< beta_s). These
-defaults meet this minimal assumption. Additionally,
+less effective than unvaccinated transmission (`beta_v` \< `beta_s`).
+These defaults meet this minimal assumption. Additionally,
 $R_{0,S} \approx \beta_s/\gamma_i = 2$ which seems reasonable.
 
-We want to update the initial states with information we can find,
-[Public Health
+We want to update the initial states with data we can find. [Public
+Health
 Ontario](https://www.publichealthontario.ca/en/Data-and-Analysis/Infectious-Disease/Respiratory-Virus-Tool)
-provides us with daily estimates for $V(0)$ and $I(0)$ and $H(0)$ is
-taken from observed data. There is no data on initial exposure, however
-we know it is improbable that there are no exposed individuals
-initially. We will estimate this value in addition to transmission
-parameters when calibrating. Finally, since we are not interested in the
-dynamics of S or R, it makes sense to leave the default $R = 0$, even
-though we have prior knowledge that by the summer of 2021 $R > 0$.
-Individuals in R are removed from the transmission dynamics, so
-initializing R to a non-zero value will only deplete the initial
-susceptible population by this non-zero value.
+provides us with daily estimates for $V(0)$ and $I(0)$ and $H(0)$. There
+is no data on initial exposure, however we know it is improbable that
+there are no exposed individuals initially. We will estimate this value
+in addition to transmission parameters when calibrating. Finally, since
+we are not interested in the dynamics of S or R, it makes sense to leave
+the default $R = 0$, even though we have prior knowledge that by the
+summer of 2021 $R > 0$. Individuals in $R$ are removed from the
+transmission dynamics, so initializing $R$ to a non-zero value will only
+deplete the initial susceptible population by this value.
 
 ``` r
 ## Initial Conditions
@@ -312,8 +358,8 @@ H0 = daily_hospitalizations |> filter(row_number()==1) |> select(value) |> pull(
 
 Before optimizing, we want to make sure the dynamics look reasonable, so
 we simulate from the calibrator object using `mp_trajectory`. The
-trajectories look mostly as expected. The sharp initial increase in E
-and decrease in I can be attributed to setting $E(0)=1$
+trajectories look mostly as expected. The sharp initial increase in $E$
+and decrease in $I$ might be attributed to setting $E(0)=1$
 
 ``` r
 
@@ -335,7 +381,8 @@ shiver_calibrator = mp_tmb_calibrator(
     , V=V0
     , I=I0
     , H=H0
-    , phi=phi
+    , a = a
+    , b = a
     , alpha=alpha
     , sigma=sigma
     , rho = rho
@@ -353,7 +400,7 @@ shiver_calibrator
 #> At every iteration of the simulation loop (t = 1 to T):
 #> ---------------------
 #>  1: N_mix ~ N - H
-#>  2: vaccination ~ S * phi
+#>  2: vaccination ~ S * ((a * S)/(b + S))/S
 #>  3: unvaccinated_exposure ~ S * I * beta_s/N_mix
 #>  4: vaccine_waning ~ V * rho
 #>  5: vaccinated_exposure ~ V * I * beta_v/N_mix
@@ -398,15 +445,15 @@ nrow(shiver_calibrator
 ) 
 #>    matrix time row col    value
 #> 1       H    6   0   0 139.1204
-#> 2       H   26   0   0 211.5701
-#> 3       H   32   0   0 219.1768
-#> 4       H   38   0   0 223.9582
-#> 5       H   41   0   0 225.6083
-#> 6       H   48   0   0 228.1304
-#> 7       H   57   0   0 229.5719
-#> 8       H   61   0   0 229.7970
-#> 9       H   70   0   0 229.7143
-#> 10      H   73   0   0 229.5545
+#> 2       H   26   0   0 211.5700
+#> 3       H   32   0   0 219.1765
+#> 4       H   38   0   0 223.9575
+#> 5       H   41   0   0 225.6073
+#> 6       H   48   0   0 228.1288
+#> 7       H   57   0   0 229.5688
+#> 8       H   61   0   0 229.7930
+#> 9       H   70   0   0 229.7078
+#> 10      H   73   0   0 229.5471
 
 # before optimizing, do the dynamics look reasonable? 
 (shiver_calibrator 
@@ -428,21 +475,21 @@ We are now ready for the optimization step.
 # optimize to estimate parameters
 # this converges!
 mp_optimize(shiver_calibrator)
-#> outer mgc:  42632.45 
+#> outer mgc:  42643.39 
 #> Constructing atomic D_lgamma
-#> outer mgc:  2090.599 
-#> outer mgc:  3118.756 
-#> outer mgc:  19490.83 
-#> outer mgc:  150.7825 
-#> outer mgc:  172.8386 
-#> outer mgc:  0.1305724 
-#> outer mgc:  4.196191e-06
+#> outer mgc:  2089.518 
+#> outer mgc:  3119.486 
+#> outer mgc:  19503.69 
+#> outer mgc:  151.7291 
+#> outer mgc:  173.1312 
+#> outer mgc:  0.1312277 
+#> outer mgc:  4.219828e-06
 #> $par
 #>      params      params      params 
-#>   0.1190577   0.1890366 148.0765729 
+#>   0.1223135   0.1890243 148.1143104 
 #> 
 #> $objective
-#> [1] 388.2649
+#> [1] 388.2653
 #> 
 #> $convergence
 #> [1] 0
@@ -458,61 +505,59 @@ mp_optimize(shiver_calibrator)
 #> [1] "relative convergence (4)"
 
 # look at estimates with CI
-# beta_s ~ 0.19(0.18,0.19) - good
-# beta_v < beta_s but CI contains 0
-# E0 ~ 148 std error 11 - good
-mp_tmb_coef(shiver_calibrator, conf.int=TRUE)
-#> outer mgc:  4.196191e-06 
-#> outer mgc:  35.67678 
-#> outer mgc:  35.67251 
-#> outer mgc:  12260.99 
-#> outer mgc:  11884.56 
-#> outer mgc:  0.9762339 
-#> outer mgc:  0.9762425 
-#> outer mgc:  93732.78
+est_coef = mp_tmb_coef(shiver_calibrator, conf.int=TRUE)
+#> outer mgc:  4.219828e-06 
+#> outer mgc:  35.7526 
+#> outer mgc:  35.74831 
+#> outer mgc:  12261.11 
+#> outer mgc:  11884.68 
+#> outer mgc:  0.9761616 
+#> outer mgc:  0.9761703 
+#> outer mgc:  94055.89
+est_coef
 #>       term    mat row col default  type    estimate    std.error    conf.low
-#> 1   params beta_v   0   0    0.05 fixed   0.1190577  0.719317080  -1.2907779
-#> 2 params.1 beta_s   0   0    0.20 fixed   0.1890366  0.002908341   0.1833363
-#> 3 params.2      E   0   0    0.00 fixed 148.0765729 10.939141313 126.6362499
+#> 1   params beta_v   0   0    0.05 fixed   0.1223135  0.716183274  -1.2813799
+#> 2 params.1 beta_s   0   0    0.20 fixed   0.1890243  0.002902899   0.1833347
+#> 3 params.2      E   0   0    0.00 fixed 148.1143104 10.932211913 126.6875687
 #>     conf.high
-#> 1   1.5288932
-#> 2   0.1947368
-#> 3 169.5168959
+#> 1   1.5260069
+#> 2   0.1947139
+#> 3 169.5410520
 ```
 
-We get a realistic estimate for `beta_s` at 0.18 with a small standard
-error and the estimated intial number of exposed individuals, 148, seems
-plausible with a standard error of 11. The estimate for $\beta_v$
+We get a realistic estimate for `beta_s` at 0.19 with a small standard
+error and the estimated initial number of exposed individuals, 148,
+seems plausible with a standard error of 11. The estimate for $\beta_v$
 however has a large standard error and the confidence interval contains
 zero indicating we are not learning about this parameter.
 
 To check the fit we plot the observed data as well as the trajectories
 of all states.
 
-    #> outer mgc:  4.196191e-06 
-    #> outer mgc:  35.67678 
-    #> outer mgc:  35.67251 
-    #> outer mgc:  12260.99 
-    #> outer mgc:  11884.56 
-    #> outer mgc:  0.9762339 
-    #> outer mgc:  0.9762425 
-    #> outer mgc:  93732.78
+    #> outer mgc:  4.219828e-06 
+    #> outer mgc:  35.7526 
+    #> outer mgc:  35.74831 
+    #> outer mgc:  12261.11 
+    #> outer mgc:  11884.68 
+    #> outer mgc:  0.9761616 
+    #> outer mgc:  0.9761703 
+    #> outer mgc:  94055.89
 
 ![](./figures/fit-1.png)<!-- -->![](./figures/fit-2.png)<!-- -->
 
 The simulated hospitalization trajectory fits the data well, and the
 other trajectories look as expected.
 
-## Re-parameterizing and introducing transformations
+## Re-parameterizing and Introducing Transformations
 
 For better interpretability we can re-parameterize the model with one
-transmission rate, `beta`, and a proportion, `a` in (0,1), representing
+transmission rate, `beta`, and a proportion, `p` in (0,1), representing
 the reduced transmission rate for vaccinated people. We also wish to
 parameterize `{I0, E0}` to `{I0, E0/I0}` to de-correlate `I0` and `E0`.
 
 We use the log transformation for `beta` and `E0/I0` because both
 quantities take on only positive values. We use the logistic
-transformation for the proportion `a` to constrain it to the domain
+transformation for the proportion `p` to constrain it to the domain
 (0,1).
 
 We define a new model specification object with these changes, and set
@@ -529,12 +574,12 @@ reparameterized_spec = mp_tmb_insert(spec
      , expressions = list(
          E ~ exp(log_E_I_ratio) * I
        , beta ~ exp(log_beta)
-       , a ~ 1/(1+exp(-logit_a))
+       , p ~ 1/(1+exp(-logit_p))
      )
      , default = list(
-         logit_a = qlogis(1e-2)
+         logit_p = qlogis(1e-2)
        , log_beta = log(1e-2)
-       , log_E_I_ratio = log(2) 
+       , log_E_I_ratio = log(1e-2) 
      )
 )
 
@@ -545,7 +590,7 @@ reparameterized_spec = mp_tmb_update(reparameterized_spec
     , at=4L
     , expressions = list(
         mp_per_capita_flow("S", "E", unvaccinated_exposure ~ I * beta/N_mix)
-      , mp_per_capita_flow("V", "E", vaccinated_exposure ~  I * beta * a/N_mix)
+      , mp_per_capita_flow("V", "E", vaccinated_exposure ~  I * beta * p/N_mix)
     )
 )
 
@@ -555,31 +600,32 @@ print(reparameterized_spec)
 #> ---------------------
 #> Default values:
 #> ---------------------
-#>         matrix row col       value
-#>            phi           0.1000000
-#>            rho           0.0500000
-#>         beta_s           0.2000000
-#>         beta_v           0.0500000
-#>          alpha           0.5000000
-#>        gamma_i           0.1000000
-#>        gamma_h           0.0700000
-#>          sigma           0.0500000
-#>              N         100.0000000
-#>              I           1.0000000
-#>              V           0.0000000
-#>              E           0.0000000
-#>              H           0.0000000
-#>              R           0.0000000
-#>        logit_a          -4.5951199
-#>       log_beta          -4.6051702
-#>  log_E_I_ratio           0.6931472
+#>         matrix row col     value
+#>              a          10.00000
+#>              b          10.00000
+#>            rho           0.05000
+#>         beta_s           0.20000
+#>         beta_v           0.05000
+#>          alpha           0.50000
+#>        gamma_i           0.10000
+#>        gamma_h           0.07000
+#>          sigma           0.05000
+#>              N         100.00000
+#>              I           1.00000
+#>              V           0.00000
+#>              E           0.00000
+#>              H           0.00000
+#>              R           0.00000
+#>        logit_p          -4.59512
+#>       log_beta          -4.60517
+#>  log_E_I_ratio          -4.60517
 #> 
 #> ---------------------
 #> Before the simulation loop (t = 0):
 #> ---------------------
 #> 1: E ~ exp(log_E_I_ratio) * I
 #> 2: beta ~ exp(log_beta)
-#> 3: a ~ 1/(1 + exp(-logit_a))
+#> 3: p ~ 1/(1 + exp(-logit_p))
 #> 4: S ~ N - V - E - I - H - R
 #> 5: N ~ sum(S, V, E, I, H, R)
 #> 
@@ -588,13 +634,13 @@ print(reparameterized_spec)
 #> ---------------------
 #> 1: N_mix ~ N - H
 #> 2: mp_per_capita_flow(from = "S", to = "V", rate = vaccination ~ 
-#>      phi)
+#>      ((a * S)/(b + S))/S)
 #> 3: mp_per_capita_flow(from = "V", to = "S", rate = vaccine_waning ~ 
 #>      rho)
 #> 4: mp_per_capita_flow(from = "S", to = "E", rate = unvaccinated_exposure ~ 
 #>      I * beta/N_mix)
 #> 5: mp_per_capita_flow(from = "V", to = "E", rate = vaccinated_exposure ~ 
-#>      I * beta * a/N_mix)
+#>      I * beta * p/N_mix)
 #> 6: mp_per_capita_flow(from = "E", to = "I", rate = infection ~ alpha)
 #> 7: mp_per_capita_flow(from = "I", to = "R", rate = infectious_recovery ~ 
 #>      gamma_i)
@@ -613,14 +659,15 @@ shiver_calibrator = mp_tmb_calibrator(
   , data = reported_hospitalizations
   , traj = "H"
   # now we want to estimate the transformed parameters
-  , par = c("log_beta","logit_a","log_E_I_ratio")
+  , par = c("log_beta","logit_p","log_E_I_ratio")
   , outputs = states
   , default = list(
       N=N
     , V=V0
     , I=I0
     , H=H0
-    , phi=phi
+    , a = a
+    , b = a
     , alpha=alpha
     , sigma=sigma
     , rho = rho
@@ -629,92 +676,91 @@ shiver_calibrator = mp_tmb_calibrator(
 
 
 # optimize to estimate transmission parameters
-# converges
+# converges with warnings
 mp_optimize(shiver_calibrator)
-#> outer mgc:  9362.152 
-#> outer mgc:  6770.37
+#> outer mgc:  1363.401 
+#> outer mgc:  3937.472
 #> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
 #> NA/NaN function evaluation
-#> outer mgc:  10718.69 
-#> outer mgc:  9046.833 
-#> outer mgc:  11117.13 
-#> outer mgc:  56978.8 
-#> outer mgc:  13181.97 
-#> outer mgc:  2305.885 
-#> outer mgc:  1272.917 
-#> outer mgc:  334.5027 
-#> outer mgc:  34.84782 
-#> outer mgc:  1.452582 
-#> outer mgc:  27.11961 
-#> outer mgc:  37.68603 
-#> outer mgc:  13.63441 
-#> outer mgc:  11.91385 
-#> outer mgc:  4.401244 
-#> outer mgc:  3.418022 
-#> outer mgc:  0.0002148937 
-#> outer mgc:  1.095472e-05
+#> outer mgc:  49082.3
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
+#> NA/NaN function evaluation
+#> outer mgc:  67016.01 
+#> outer mgc:  15308.21 
+#> outer mgc:  1531.882 
+#> outer mgc:  30.05599 
+#> outer mgc:  4863.127 
+#> outer mgc:  893.994 
+#> outer mgc:  866.9924 
+#> outer mgc:  4723.983 
+#> outer mgc:  239.2728 
+#> outer mgc:  5.803802 
+#> outer mgc:  0.009437616 
+#> outer mgc:  3.288246 
+#> outer mgc:  31.30304 
+#> outer mgc:  24.87539 
+#> outer mgc:  39.42675 
+#> outer mgc:  11.40318 
+#> outer mgc:  16.84259 
+#> outer mgc:  8.625365 
+#> outer mgc:  1.555336 
+#> outer mgc:  0.3827783 
+#> outer mgc:  0.001030864 
+#> outer mgc:  4.004449e-07
 #> $par
 #>     params     params     params 
-#> -1.6658149  0.5314146 -0.6075472 
+#> -1.6658798  0.6062206 -0.6072924 
 #> 
 #> $objective
-#> [1] 388.2649
+#> [1] 388.2653
 #> 
 #> $convergence
 #> [1] 0
 #> 
 #> $iterations
-#> [1] 19
+#> [1] 25
 #> 
 #> $evaluations
 #> function gradient 
-#>       28       20 
+#>       39       25 
 #> 
 #> $message
-#> [1] "relative convergence (4)"
+#> [1] "both X-convergence and relative convergence (5)"
 ```
 
-``` r
-# looking at coefficients and CIs
-# we need to back transform to interpret
-cc <- (mp_tmb_coef(shiver_calibrator, conf.int=TRUE)
-       |> backtrans()
-)
-#> outer mgc:  1.095472e-05 
-#> outer mgc:  434.8916 
-#> outer mgc:  431.034 
-#> outer mgc:  0.2977593 
-#> outer mgc:  0.2978565 
-#> outer mgc:  27.38535 
-#> outer mgc:  27.35885 
-#> outer mgc:  17745.99
-cc 
-#>       term       mat row col default  type  estimate   std.error     conf.low
-#> 1   params      beta   0   0    0.01 fixed 0.1890366 0.002906492 1.834249e-01
-#> 2 params.2 E_I_ratio   0   0    2.00 fixed 0.5446852 0.040219649 4.712949e-01
-#> 3 params.1         a   0   0    0.01 fixed 0.6298130 3.811855277 2.220446e-16
-#>   conf.high
-#> 1 0.1948199
-#> 2 0.6295040
-#> 3 1.0000000
-```
+    #> outer mgc:  4.004449e-07 
+    #> outer mgc:  434.8874 
+    #> outer mgc:  431.0298 
+    #> outer mgc:  0.2922581 
+    #> outer mgc:  0.2923429 
+    #> outer mgc:  27.38987 
+    #> outer mgc:  27.36335 
+    #> outer mgc:  17806.78
+    #>       term       mat row col default  type  estimate   std.error     conf.low
+    #> 1   params      beta   0   0    0.01 fixed 0.1890243 0.002901057 1.834230e-01
+    #> 2 params.2 E_I_ratio   0   0    0.01 fixed 0.5448241 0.040194207 4.714755e-01
+    #> 3 params.1         p   0   0    0.01 fixed 0.6470782 3.795780771 2.220446e-16
+    #>   conf.high
+    #> 1 0.1947966
+    #> 2 0.6295836
+    #> 3 1.0000000
 
 The estimates for our parameters are close to the the previous
 estimates, which makes sense because we only re-parameterized instead of
 making changes to the model specification. The ratio of initial exposed
-to initial infecteds is 0.54, given we specified the initial I as 272,
-the estimated initial number of exposed is approximately 148 A reduction
-in transmission by 0.63 percent could be plausible but again the CI
-contains 0.
+to initial number of infected is 0.54. Given we specified the initial
+$I$ as 272, the estimated initial number of exposed is approximately
+148. A reduction in transmission by 0.65 percent could be plausible but
+the confidence interval is effectively all possible values for `p`.
 
 ## Runge-Kutta 4
 
 By default, `macpan2` uses the first order Euler method for solving
 ODEs. We might be able to improve our estimates if we use a higher order
-method such as Runge-Kutta 4. Provided our model is specified
-appropriately (it is), we can easily perform Runge-Kutta 4 with
-`mp_rk4()`. However, in this scenario we get optimization warnings that
-lead to extreme estimates and no confidence intervals.
+method such as Runge-Kutta 4. Provided our model is specified with the
+appropriate flow rates between compartments (it is, see
+`?mp_per_capita_flow`), we can easily perform Runge-Kutta 4 with
+`mp_rk4()`.
 
 ``` r
 # let's calibrate
@@ -722,7 +768,7 @@ shiver_calibrator_rk4 = mp_tmb_calibrator(
     spec = reparameterized_spec |> mp_rk4()
   , data = reported_hospitalizations
   , traj = "H"
-  , par = c("log_beta","logit_a","log_E_I_ratio")
+  , par = c("log_beta","logit_p","log_E_I_ratio")
   , outputs = states
   # defaults are specified in model spec alreadt
 )
@@ -730,55 +776,60 @@ shiver_calibrator_rk4 = mp_tmb_calibrator(
 # optimize
 # converges with warning
 mp_optimize(shiver_calibrator_rk4)
-#> outer mgc:  13760.13
+#> outer mgc:  1103.724
 #> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
 #> NA/NaN function evaluation
-#> outer mgc:  18418 
-#> outer mgc:  6370.381 
-#> outer mgc:  14570.98 
-#> outer mgc:  33162.54 
-#> outer mgc:  14708.56 
-#> outer mgc:  11111.36 
-#> outer mgc:  2003.806 
-#> outer mgc:  284.4117 
-#> outer mgc:  296.7044 
-#> outer mgc:  331.9302 
-#> outer mgc:  536.5677 
-#> outer mgc:  92156.43 
-#> outer mgc:  390406.8 
-#> outer mgc:  120427.6 
-#> outer mgc:  127747.5 
-#> outer mgc:  559541.5 
-#> outer mgc:  4189229 
-#> outer mgc:  5425732 
-#> outer mgc:  10349417 
-#> outer mgc:  198450408 
-#> outer mgc:  243827445 
-#> outer mgc:  322697215470 
-#> outer mgc:  684071127755 
-#> outer mgc:  9.940995e+13 
-#> outer mgc:  1.415946e+14 
-#> outer mgc:  1.542802e+14 
-#> outer mgc:  2.698862e+13 
-#> outer mgc:  1.258777e+12 
-#> outer mgc:  28541799898 
-#> outer mgc:  10772926801
+#> outer mgc:  37098.44
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
+#> NA/NaN function evaluation
+#> outer mgc:  39502.02 
+#> outer mgc:  3149.248 
+#> outer mgc:  4868.253 
+#> outer mgc:  658.4232 
+#> outer mgc:  605.0627 
+#> outer mgc:  641.1094 
+#> outer mgc:  17.00907 
+#> outer mgc:  466.3379 
+#> outer mgc:  114.0384 
+#> outer mgc:  278.1696 
+#> outer mgc:  429.5699 
+#> outer mgc:  623.1688 
+#> outer mgc:  347.6196 
+#> outer mgc:  197.0257 
+#> outer mgc:  99.52554 
+#> outer mgc:  55.6952 
+#> outer mgc:  31.17969 
+#> outer mgc:  17.40414 
+#> outer mgc:  24.18022 
+#> outer mgc:  8.987731 
+#> outer mgc:  3.49001 
+#> outer mgc:  1.310126 
+#> outer mgc:  0.485819 
+#> outer mgc:  0.1792602 
+#> outer mgc:  0.06601972 
+#> outer mgc:  0.0242973 
+#> outer mgc:  0.008939834 
+#> outer mgc:  0.003288965 
+#> outer mgc:  0.001209967 
+#> outer mgc:  0.0004451255 
+#> outer mgc:  0.000163753 
+#> outer mgc:  6.024142e-05
 #> $par
-#>     params     params     params 
-#> -13.823198  -4.934357   8.446974 
+#>    params    params    params 
+#> -1.051587 19.798125  1.084825 
 #> 
 #> $objective
-#> [1] 6355.54
+#> [1] 65430.73
 #> 
 #> $convergence
 #> [1] 0
 #> 
 #> $iterations
-#> [1] 31
+#> [1] 33
 #> 
 #> $evaluations
 #> function gradient 
-#>       69       31 
+#>       44       34 
 #> 
 #> $message
 #> [1] "relative convergence (4)"
@@ -787,105 +838,118 @@ mp_optimize(shiver_calibrator_rk4)
 rk4_coef <- (mp_tmb_coef(shiver_calibrator_rk4, conf.int=TRUE)
        |> backtrans()
 )
-#> outer mgc:  10772926801 
-#> outer mgc:  79284303 
-#> outer mgc:  175844011 
-#> outer mgc:  2.321527e+13 
-#> outer mgc:  3.297841e+14 
-#> outer mgc:  6243.317 
-#> outer mgc:  10839.94 
-#> outer mgc:  3.25333e+14
-#> Warning in sqrt(diag(cov)): NaNs produced
-#> Warning in sqrt(diag(object$cov.fixed)): NaNs produced
+#> outer mgc:  6.024142e-05 
+#> outer mgc:  30.47302 
+#> outer mgc:  30.60307 
+#> outer mgc:  6.018122e-05 
+#> outer mgc:  6.03017e-05 
+#> outer mgc:  3.146482 
+#> outer mgc:  3.147977 
+#> outer mgc:  91.19851
 
 rk4_coef
-#>       term       mat row col default  type     estimate std.error conf.low
-#> 1   params      beta   0   0    0.01 fixed 9.923423e-07       NaN      NaN
-#> 2 params.2 E_I_ratio   0   0    2.00 fixed 4.660947e+03       NaN      NaN
-#> 3 params.1         a   0   0    0.01 fixed 7.143687e-03       NaN      NaN
+#>       term       mat row col default  type  estimate    std.error     conf.low
+#> 1   params      beta   0   0    0.01 fixed 0.3493828 2.314450e-03 3.448758e-01
+#> 2 params.2 E_I_ratio   0   0    0.01 fixed 2.9589227 9.581253e-02 2.776969e+00
+#> 3 params.1         p   0   0    0.01 fixed 1.0000000 1.886263e-06 2.220446e-16
 #>   conf.high
-#> 1       NaN
-#> 2       NaN
-#> 3       NaN
-# rk4 doesn't help us learn more about a
+#> 1 0.3539486
+#> 2 3.1527990
+#> 3 1.0000000
+# rk4 doesn't help us learn more about p
 # let's try adding more data
 ```
+
+In this scenario, Runge-Kutta 4 did not improve our estimate for `p`.
 
 ## Fitting to Multiple Trajectories
 
 If we include more observed data, can we get an estimate for the
-proportion `a`?
+proportion `p`?
 
 We obtain COVID case count data from the [Ontario Data
 Catalogue](https://data.ontario.ca/dataset/covid-19-vaccine-data-in-ontario/resource/eed63cf2-83dd-4598-b337-b288c0a89a16)
-for an experiment to fit the SHIVER model to both hospitialzation and
+for an experiment to fit the SHIVER model to both hospitalization and
 incidence data.
 
 ``` r
-(mp_tmb_coef(shiver_calibrator, conf.int=TRUE)
-    |> backtrans()
+# calibrate
+shiver_calibrator = mp_tmb_calibrator(
+    spec = reparameterized_spec |> mp_rk4()
+    # row bind both observed data
+  , data = rbind(reported_hospitalizations, reported_cases)
+    # fit both trajectories
+  , traj = c("H","infection")
+  , par = c("log_beta","logit_p","log_E_I_ratio")
+  , outputs=c(states, "infection")
 )
-#> outer mgc:  0.002760345 
-#> outer mgc:  650.4115 
-#> outer mgc:  651.2866 
-#> outer mgc:  0.002754465 
-#> outer mgc:  0.002766232 
-#> outer mgc:  26.6642 
-#> outer mgc:  26.65645 
-#> outer mgc:  114.2185
-#>       term       mat row col default  type  estimate    std.error     conf.low
-#> 1   params      beta   0   0    0.01 fixed 0.2771663 4.530108e-04 2.762798e-01
-#> 2 params.2 E_I_ratio   0   0    2.00 fixed 0.6578376 1.710869e-02 6.251455e-01
-#> 3 params.1         a   0   0    0.01 fixed 1.0000000 3.896606e-06 2.220446e-16
-#>   conf.high
-#> 1 0.2780556
-#> 2 0.6922394
-#> 3 1.0000000
 ```
 
-We were not able to estimate `a` again, note the confidence interval is
-the entire domain of possible values for a.
+Next we optimize, and look at our estimates.
 
-Looking at the fit to the observed data, we can clearly see adding more
-noisy data leads to major fitting problems.
+    #> outer mgc:  0.003348001 
+    #> outer mgc:  650.4109 
+    #> outer mgc:  651.2872 
+    #> outer mgc:  0.003338541 
+    #> outer mgc:  0.003357471 
+    #> outer mgc:  26.66361 
+    #> outer mgc:  26.65704 
+    #> outer mgc:  122.8709
+    #>       term       mat row col default  type  estimate    std.error     conf.low
+    #> 1   params      beta   0   0    0.01 fixed 0.2771663 4.530111e-04 2.762798e-01
+    #> 2 params.2 E_I_ratio   0   0    0.01 fixed 0.6578376 1.710869e-02 6.251455e-01
+    #> 3 params.1         p   0   0    0.01 fixed 1.0000000 3.381665e-06 2.220446e-16
+    #>   conf.high
+    #> 1 0.2780556
+    #> 2 0.6922394
+    #> 3 1.0000000
 
-    #> outer mgc:  0.002760345 
-    #> outer mgc:  650.4115 
-    #> outer mgc:  651.2866 
-    #> outer mgc:  0.002754465 
-    #> outer mgc:  0.002766232 
-    #> outer mgc:  26.6642 
-    #> outer mgc:  26.65645 
-    #> outer mgc:  114.2185
+We were not able to estimate `p` again, note the confidence interval is
+again the entire domain of possible values for `p`.
 
-![](./figures/unnamed-chunk-7-1.png)<!-- -->
+The fitted curves, in red, are far from following the observed data
+points. We can clearly see adding more noisy data leads to major fitting
+problems.
 
-## Parameter identifiability
+    #> outer mgc:  0.003348001 
+    #> outer mgc:  650.4109 
+    #> outer mgc:  651.2872 
+    #> outer mgc:  0.003338541 
+    #> outer mgc:  0.003357471 
+    #> outer mgc:  26.66361 
+    #> outer mgc:  26.65704 
+    #> outer mgc:  122.8709
+
+![](./figures/mult_traj_fit-1.png)<!-- -->
+
+## Parameter Identifiability
 
 As a first step in calibration, we advise specifying a default for the
-parameter of interest, simulate from the model and then calibrate to
-this simulated data to see if we can recover the parameter default. If
-we are unable to recover the default, this could mean there are
-identifiability issues with the model and parameter.
+parameter of interest, simulate data from the model and then calibrate
+to this simulated data to see if the default parameter can be recovered.
+If we are unable to recover the default, this could mean there are
+identifiability issues with the model and parameter. This should have
+been the first step in this example, before calibrating to observed
+data.
 
-Here we specify a ground truth for `a` and `beta`, and simulate data
+Here we specify a ground truth for `p` and `beta`, and simulate data
 from the model using these default values. We perform two calibrations,
-first we estimate `a` with a fixed `beta`, and then we do the reverse.
+first we estimate `p` with a fixed `beta`, and then we do the reverse.
 
 ``` r
-
 # set true values
-true_a = 0.2
+true_p = 0.2
 true_beta = 0.3 
+```
 
-
+``` r
 # simulate fake data
 simulated_data = (reparameterized_spec
   |> mp_simulator(
       time_steps = expected_daily_reports
     , outputs=states
     , default=list(
-        logit_a=qlogis(true_a)
+        logit_p=qlogis(true_p)
       , log_beta=log(true_beta)
     )
     )
@@ -896,25 +960,24 @@ simulated_data = (reparameterized_spec
 )
 
 
-
-## fix beta estimate a
+## fix beta estimate p
 fixed_beta = mp_tmb_calibrator(
     spec = reparameterized_spec |> mp_rk4()
   , data = simulated_data
   , traj = states
-  , par = c("logit_a")
+  , par = c("logit_p")
   , outputs=states
 )
-# converges, but not getting estimate for `a`
+# converges, but not getting estimate for `p`
 mp_optimize(fixed_beta)
-#> outer mgc:  1.052925 
-#> outer mgc:  4.386397e-22
+#> outer mgc:  0.3095517 
+#> outer mgc:  7.932559e-23
 #> $par
 #>  params 
 #> 53.5867 
 #> 
 #> $objective
-#> [1] 3156.959
+#> [1] 1146.772
 #> 
 #> $convergence
 #> [1] 0
@@ -931,13 +994,13 @@ mp_optimize(fixed_beta)
 (mp_tmb_coef(fixed_beta, conf.int=TRUE)
   |> backtrans()
 )
-#> outer mgc:  4.386397e-22 
-#> outer mgc:  4.382013e-22 
-#> outer mgc:  4.390786e-22 
-#> outer mgc:  4.682874e-25
+#> outer mgc:  7.932559e-23 
+#> outer mgc:  7.924631e-23 
+#> outer mgc:  7.940496e-23 
+#> outer mgc:  1.756503e-25
 #>     term mat row col default  type estimate    std.error     conf.low conf.high
-#> 1 params   a   0   0    0.01 fixed        1 1.060196e-05 2.220446e-16         1
-## fix a estimate beta
+#> 1 params   p   0   0    0.01 fixed        1 2.493065e-05 2.220446e-16         1
+## fix p estimate beta
 fixed_a = mp_tmb_calibrator(
   spec = reparameterized_spec |> mp_rk4()
   , data = simulated_data
@@ -947,19 +1010,19 @@ fixed_a = mp_tmb_calibrator(
 )
 # converges and recovering true beta
 mp_optimize(fixed_a)
-#> outer mgc:  101.3123
+#> outer mgc:  18.62197
 #> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
 #> NA/NaN function evaluation
-#> outer mgc:  358.9811 
-#> outer mgc:  22.85635 
-#> outer mgc:  0.1208861 
-#> outer mgc:  3.45011e-06
+#> outer mgc:  6.218476 
+#> outer mgc:  0.08276421 
+#> outer mgc:  1.524823e-05 
+#> outer mgc:  3.494608e-13
 #> $par
-#>    params 
-#> -1.009467 
+#>     params 
+#> -0.9757211 
 #> 
 #> $objective
-#> [1] 1141.061
+#> [1] 855.045
 #> 
 #> $convergence
 #> [1] 0
@@ -976,296 +1039,17 @@ mp_optimize(fixed_a)
 (mp_tmb_coef(fixed_a, conf.int=TRUE)
   |> backtrans()
 )
-#> outer mgc:  3.45011e-06 
-#> outer mgc:  8.198257 
-#> outer mgc:  8.166633 
-#> outer mgc:  47.16622
-#>     term  mat row col default  type  estimate   std.error  conf.low conf.high
-#> 1 params beta   0   0    0.01 fixed 0.3644132 0.004028586 0.3566023 0.3723953
+#> outer mgc:  3.494608e-13 
+#> outer mgc:  0.8888749 
+#> outer mgc:  0.8853693 
+#> outer mgc:  6.93426
+#>     term  mat row col default  type  estimate  std.error  conf.low conf.high
+#> 1 params beta   0   0    0.01 fixed 0.3769204 0.01265488 0.3529158 0.4025578
 ```
 
 We are able to recover the transmission rate `beta` but not the
-proportion `a`, suggesting model indentifiability issues with this
+proportion `p`, suggesting model identifiability issues with this
 parameter.
-
-# Vaccine Constraints and Variable Vaccination Rate
-
-We can implement vaccine constraints by adding more model complexity.
-Resource limitations create an upper bound on the number of vaccines
-that can be administered to susceptibles per time step (in this case per
-day). There is also the constraint that we can only vaccinate, at most,
-the current number of susceptibles i.e. the vaccination rate can be at
-most 1. These constraints naturally lead us to consider a variable
-vaccination rate $\phi(S(t))$, instead of vaccinating a fixed proportion
-$\phi$ per time step.
-
-We choose a sigmoidal function for $\phi(S(t))$ because these curves are
-increasing and asymptotic. The Hill function,
-$H(x) = x^n/(K_{half}^n + x^n)$, is one such curve that goes through the
-origin which is convenient for our case because when we have zero
-susceptibles our vaccination rate should be zero. The Hill function is
-parameterized by the Hill coefficient $n>0$ and $K_{half}$ is the value
-of the dependent variable $x$ at the half maximum.
-
-<!-- example Hill plot -->
-
-``` r
-# Hill parameters
-# asymptote
-A = round(daily_vaccinations)
-# value of S at half maximum, seems like a sensible choice
-half_max = A/2
-# Hill coefficient - chosen randomly, but higher n creates steeper slopes
-n = 3
-
-# scaling factor
-sc  = 3/(4*2^(1/3))
-```
-
-![](./figures/hill_plot-1.png)<!-- -->
-
-``` r
-
-# test out hill function
-hill_data = simple_sims(
-    iteration_exprs = list(
-      hill_fn ~ (A * (sc * (S^n)))/((half_max)^n + (sc * (S^n)))
-    )
-  , time_steps = 1L
-  , mats = list(
-      hill_fn = 0
-    , A = A
-    , sc  =  sc
-    , S = S
-    , n = n
-    , half_max = half_max
-    , N_mix = N
-  )
-)
-
-# this is right
-(hill_data
-   |> filter(matrix %in% c("hill_fn"))
-   |> cbind(S)
-   |> ggplot(aes(S, value))
-   + geom_point(alpha=0.3)
-   + geom_hline(yintercept = A,col="blue")
-   + geom_text(x=50,y=A-300,label="A", col="blue")
-   # + geom_text(x=500,y=2500,label=expression(phi = S),col="red")
-   + geom_abline(a=0,b=1, col="red")
-   + ggtitle("Variable vaccination rate using the Hill function")
-   + theme_bw()
-   + ylab("H(S)")
-
-  )
-#> Warning in geom_abline(a = 0, b = 1, col = "red"): Ignoring unknown parameters:
-#> `a` and `b`
-```
-
-![](./figures/scaling_hill-1.png)<!-- -->
-
-<!--To restrict the vaccination rate to be at most 1, we use the method in @gharouni_2022 Appendix 5 to modify the output of the hill function. -->
-<!-- We then use this rate as our vaccination rate,  $\phi(S(t)) =  \frac{\textrm{max}_{rate} Hill(S)}{\textrm{max}_{rate} S + Hill(S)}$ -->
-
-    #> Warning: Removed 1 row containing missing values or values outside the scale range
-    #> (`geom_point()`).
-
-![](./figures/gharouni_rate-1.png)<!-- -->
-
-``` r
-# update model spec with vaccine supply function phi(S) in place of constant phi
-spec_vaccine_rate = mp_tmb_update(
-    reparameterized_spec
-  , phase = "during"
-  , at = 2L
-  , expression = list(
-      hill_fn ~ (A * (sc * (S^n)))/((half_max)^n + (sc * (S^n))),
-      mp_per_capita_flow(
-        from = "S"
-      , to = "V"
-      , rate = vaccination ~ hill_fn/S
-  )
-  )
-  , default = list(
-      A = A
-    , half_max = half_max
-    , n = n
-    , sc = sc
-    , max_rate = max_rate
-    , vaccination = 0
-  )
-)
-# spec_vaccine_rate = mp_tmb_update(
-#     reparameterized_spec
-#   , phase = "during"
-#   , at = 2L
-#   , expression = list(
-#       hill_fn ~ (A * (S^n))/((half_max)^n + (S^n)),
-#       mp_per_capita_flow(
-#         from = "S"
-#       , to = "V"
-#       , rate = vaccination ~ ((max_rate * hill_fn)/((max_rate * S) + (hill_fn)))
-#   )
-#   )
-#   , default = list(
-#       A = A
-#     , half_max = half_max
-#     , n = n
-#     , max_rate = max_rate
-#     , vaccination = 0
-#   )
-# )
-print(spec_vaccine_rate)
-#> ---------------------
-#> Default values:
-#> ---------------------
-#>         matrix row col         value
-#>            phi             0.1000000
-#>            rho             0.0500000
-#>         beta_s             0.2000000
-#>         beta_v             0.0500000
-#>          alpha             0.5000000
-#>        gamma_i             0.1000000
-#>        gamma_h             0.0700000
-#>          sigma             0.0500000
-#>              N           100.0000000
-#>              I             1.0000000
-#>              V             0.0000000
-#>              E             0.0000000
-#>              H             0.0000000
-#>              R             0.0000000
-#>        logit_a            -4.5951199
-#>       log_beta            -4.6051702
-#>  log_E_I_ratio             0.6931472
-#>              A         16849.0000000
-#>       half_max          8424.5000000
-#>              n             3.0000000
-#>             sc             0.5952754
-#>       max_rate             1.0000000
-#>    vaccination             0.0000000
-#> 
-#> ---------------------
-#> Before the simulation loop (t = 0):
-#> ---------------------
-#> 1: E ~ exp(log_E_I_ratio) * I
-#> 2: beta ~ exp(log_beta)
-#> 3: a ~ 1/(1 + exp(-logit_a))
-#> 4: S ~ N - V - E - I - H - R
-#> 5: N ~ sum(S, V, E, I, H, R)
-#> 
-#> ---------------------
-#> At every iteration of the simulation loop (t = 1 to T):
-#> ---------------------
-#> 1: N_mix ~ N - H
-#> 2: hill_fn ~ (A * (sc * (S^n)))/((half_max)^n + (sc * (S^n)))
-#> 3: mp_per_capita_flow(from = "S", to = "V", rate = vaccination ~ 
-#>      hill_fn/S)
-#> 4: mp_per_capita_flow(from = "S", to = "E", rate = unvaccinated_exposure ~ 
-#>      I * beta/N_mix)
-#> 5: mp_per_capita_flow(from = "V", to = "E", rate = vaccinated_exposure ~ 
-#>      I * beta * a/N_mix)
-#> 6: mp_per_capita_flow(from = "E", to = "I", rate = infection ~ alpha)
-#> 7: mp_per_capita_flow(from = "I", to = "R", rate = infectious_recovery ~ 
-#>      gamma_i)
-#> 8: mp_per_capita_flow(from = "I", to = "H", rate = hospitalizations ~ 
-#>      sigma)
-#> 9: mp_per_capita_flow(from = "H", to = "R", rate = hospital_recovery ~ 
-#>      gamma_h)
-
-
-# simulate from model and plot hill_fn
-# update R to skip through dynamics to see what happens when we run out of S
-simulated_data = (
-    spec_vaccine_rate
-  |> mp_simulator(time_steps = 500,outputs=c(states,"vaccination"), default = list(R=0.95*N))
-  |> mp_trajectory()
-  ##|> mutate(value = rpois(n(),value))
-)
-
-# things look good
-
-(simulated_data 
-   |> filter(matrix %in% c("vaccination"))
-   |> ggplot(aes(time, value))
-   + geom_point(alpha=0.3)
-   + ylab("daily vaccinations")
-   + theme_bw()
-)
-```
-
-![](./figures/var_vax-1.png)<!-- -->
-
-Let’s check the vaccination rate
-
-    #> Warning in transformation$transform(x): NaNs produced
-    #> Warning in scale_y_log10(): log-10 transformation introduced infinite values.
-    #> Warning: Removed 6 rows containing missing values or values outside the scale range
-    #> (`geom_point()`).
-
-![](./figures/vax_rate-1.png)<!-- -->
-
-The vaccination rate is at most 1, and it’s greatest when susceptibles
-we have smaller numbers of susceptibles. We can now try calibrating
-
-``` r
-
-
-# try calibratings ....
-# can we estimate fit to real data and see if we can get similar estimates for
-# beta and E_I ratio
-# # converges and get similar estimates when phi is constant
-# # makes sense I think because these parameters don't relate to vaccination rate
-cal_vaccine_supply = mp_tmb_calibrator(
-  spec = spec_vaccine_rate |> mp_rk4()
-  , data = reported_hospitalizations
-  , traj = "H"
-  , par = c("log_beta","log_E_I_ratio")
-  , outputs=states
-)
-
-
-cal_vaccine_supply = mp_tmb_calibrator(
-  spec = spec_vaccine_rate |> mp_rk4()
-  , data = reported_hospitalizations
-  , traj = "H"
-  , par = c("vaccination")
-  , outputs=states
-)
-
-mp_optimize(cal_vaccine_supply)
-#> outer mgc:  0
-#> $par
-#> params 
-#>      0 
-#> 
-#> $objective
-#> [1] 144020.5
-#> 
-#> $convergence
-#> [1] 0
-#> 
-#> $iterations
-#> [1] 1
-#> 
-#> $evaluations
-#> function gradient 
-#>        1        1 
-#> 
-#> $message
-#> [1] "relative convergence (4)"
-
-(mp_tmb_coef(cal_vaccine_supply, conf.int=TRUE)
-  |> backtrans()
-)
-#> outer mgc:  0 
-#> outer mgc:  0 
-#> outer mgc:  0 
-#> outer mgc:  0
-#>     term         mat row col default  type estimate std.error conf.low
-#> 1 params vaccination   0   0       0 fixed        0       NaN      NaN
-#>   conf.high
-#> 1       NaN
-```
 
 # Model Specification
 
@@ -1278,6 +1062,13 @@ for details).
 # References
 
 <div id="refs" class="references csl-bib-body hanging-indent">
+
+<div id="ref-bolker2008" class="csl-entry">
+
+Bolker, Benjamin M. 2008. *Ecological Models and Data in R*. Princeton:
+Princeton University Press. <https://doi.org/doi:10.1515/9781400840908>.
+
+</div>
 
 <div id="ref-brauer_2012" class="csl-entry">
 
