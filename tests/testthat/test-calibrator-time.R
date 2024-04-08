@@ -3,13 +3,13 @@ test_that("times can be supplied as times, and assume daily time-step", {
     system.file("starter_models/shiver/data/hospitalizations_ontario.csv", package = "macpan2")
     , row.names = NULL
     ) 
-    |> rename(time = date)
-    |> group_by(time)
-    |>  summarize(value = sum(icu_unvac, icu_partial_vac, icu_full_vac,
+    |>  dplyr::rename(time = date)
+    |>  dplyr::group_by(time)
+    |>  dplyr::summarize(value = sum(icu_unvac, icu_partial_vac, icu_full_vac,
                             hospitalnonicu_unvac, hospitalnonicu_partial_vac, 
                             hospitalnonicu_full_vac))
-    |>  ungroup()
-    |>  mutate(matrix="I") # not actually I, just using as an example
+    |>  dplyr::ungroup()
+    |>  dplyr::mutate(matrix="I") # not actually I, just using as an example
   )
   
   sir = mp_tmb_library("starter_models", "sir", package = "macpan2")
