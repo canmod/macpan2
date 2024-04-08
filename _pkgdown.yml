@@ -22,6 +22,7 @@ articles:
   - calibration
   - real_data
   - state_updaters
+  - time_varying_parameters
 - title: Specs
   desc: Specification Documents
   contents:
@@ -31,7 +32,7 @@ articles:
   desc: Vignettes aimed at advanced users
   contents:
   - calibration_advanced
-  - time_varying_parameters
+  - time_varying_parameters_advanced
   - engine_agnostic_grammar
 - title: Developer Guides
   desc: Vignettes aimed at package developers
