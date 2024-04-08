@@ -12,7 +12,7 @@ and returns the results as a data frame"><!-- mathjax --><script src="https://cd
     
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.3</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -31,6 +31,7 @@ and returns the results as a data frame"><!-- mathjax --><script src="https://cd
     <a class="dropdown-item" href="../articles/calibration.html">Calibrating Compartmental Models to Data</a>
     <a class="dropdown-item" href="../articles/real_data.html">Fitting to Real Data</a>
     <a class="dropdown-item" href="../articles/state_updaters.html">ODE Solvers, Process Error, and Difference Equations</a>
+    <a class="dropdown-item" href="../articles/time_varying_parameters.html">Specifying Time-Varying Parameters</a>
     <div class="dropdown-divider"></div>
     <a class="dropdown-item" href="../articles/index.html">More articles...</a>
   </div>
@@ -98,30 +99,66 @@ links to model readme files?</p></dd>
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">show_models</span><span class="op">(</span>show_missing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                             dir                    title</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1    lotka_volterra_competition           Lotka-Volterra</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2  lotka_volterra_predator_prey           Lotka-Volterra</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3                   macpan_base              MacPan base</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4                          nfds  NFDS and vaccine design</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5                          seir               basic SEIR</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6                        shiver    SHIVER = SEIR + H + V</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7                            si                 basic SI</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8                           sir                basic SIR</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 9                     sir_demog      SIR with demography</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10                   sir_waning SIR with waning immunity</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 11                           ww         Wastewater model</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                             dir</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1    lotka_volterra_competition</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2  lotka_volterra_predator_prey</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3                   macpan_base</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4                          nfds</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5                          nfds</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6                          nfds</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7                          nfds</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8                          nfds</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9                          nfds</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10                         nfds</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11                         seir</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12                       shiver</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13                       shiver</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14                       shiver</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15                           si</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16                          sir</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 17                    sir_demog</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 18                   sir_waning</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 19                           ww</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                                                                                   title</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1                                                                                        Lotka-Volterra</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2                                                                                        Lotka-Volterra</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3                                                                                           MacPan base</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4                                                                               NFDS and vaccine design</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5                  + ggtitle("Prevalence of all genotypes (M=603)",subtitle = "macpan2 implementation")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6                  + ggtitle("Prevalence of all genotypes (M=603)",subtitle = "macpan2 implementation")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7                                           + ggtitle("Prevalence by model implementation at 10 years")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8                                           + ggtitle("Prevalence difference per genotype at 10 years")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9               + ggtitle("Genotype prevalence over time",subtitle="random subset of genotypes (n=16)")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10   + ggtitle("Genotype prevalence difference over time",subtitle="random subset of genotypes (n=16)")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11                                                                                           basic SEIR</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12                                                                                SHIVER = SEIR + H + V</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13                                       + ggtitle("Variable vaccination rate using the Hill function")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14                                       + ggtitle("Variable vaccination rate using the Hill function")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15                                                                                             basic SI</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16                                                                                            basic SIR</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 17                                                                                  SIR with demography</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 18                                                                             SIR with waning immunity</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 19                                                                                     Wastewater model</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                                                                                                        index_entry</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1                                                                             simple two-species competition model</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2                                                                                       simple predator-prey model</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 3                                                         re-implementation of the McMaster group's COVID-19 model</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 4  An ecological model using population genomics to design optimal vaccines as implemented in Colijn et al. (2020)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5                                                                     vanilla epidemic model with an exposed class</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6                                                                        SEIR with vaccination and hospitalization</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7                                                                                     a very simple epidemic model</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8                                                                                     a very simple epidemic model</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 9                                                                                An SIR model with birth and death</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10                                                                  a basic SIR model with a flow from R back to S</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 11                                                             Macpan base with an additional wastewater component</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5  An ecological model using population genomics to design optimal vaccines as implemented in Colijn et al. (2020)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6  An ecological model using population genomics to design optimal vaccines as implemented in Colijn et al. (2020)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7  An ecological model using population genomics to design optimal vaccines as implemented in Colijn et al. (2020)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8  An ecological model using population genomics to design optimal vaccines as implemented in Colijn et al. (2020)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9  An ecological model using population genomics to design optimal vaccines as implemented in Colijn et al. (2020)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10 An ecological model using population genomics to design optimal vaccines as implemented in Colijn et al. (2020)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11                                                                    vanilla epidemic model with an exposed class</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12                                                      A modified SEIR model with Hospitalization and Vaccination</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13                                                      A modified SEIR model with Hospitalization and Vaccination</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14                                                      A modified SEIR model with Hospitalization and Vaccination</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15                                                                                    a very simple epidemic model</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16                                                                                    a very simple epidemic model</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 17                                                                               An SIR model with birth and death</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 18                                                                  a basic SIR model with a flow from R back to S</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 19                                                             Macpan base with an additional wastewater component</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.3</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -46,6 +46,7 @@
     <a class="dropdown-item" href="../articles/calibration.html">Calibrating Compartmental Models to Data</a>
     <a class="dropdown-item" href="../articles/real_data.html">Fitting to Real Data</a>
     <a class="dropdown-item" href="../articles/state_updaters.html">ODE Solvers, Process Error, and Difference Equations</a>
+    <a class="dropdown-item" href="../articles/time_varying_parameters.html">Specifying Time-Varying Parameters</a>
     <div class="dropdown-divider"></div>
     <a class="dropdown-item" href="../articles/index.html">More articles...</a>
   </div>
@@ -97,9 +98,9 @@ function.</p>
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/show_models.html">show_models</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <colgroup>
-<col width="17%">
-<col width="15%">
-<col width="67%">
+<col width="12%">
+<col width="41%">
+<col width="46%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">dir</th>
@@ -130,6 +131,48 @@ model</td>
 optimal vaccines as implemented in Colijn et al. (2020)</td>
 </tr>
 <tr class="odd">
+<td align="left"><a href="https://github.com/canmod/macpan2/tree/main/inst/starter_models/nfds" class="external-link">nfds</a></td>
+<td align="left">+ ggtitle(“Prevalence of all genotypes
+(M=603)”,subtitle = “macpan2 implementation”)</td>
+<td align="left">An ecological model using population genomics to design
+optimal vaccines as implemented in Colijn et al. (2020)</td>
+</tr>
+<tr class="even">
+<td align="left"><a href="https://github.com/canmod/macpan2/tree/main/inst/starter_models/nfds" class="external-link">nfds</a></td>
+<td align="left">+ ggtitle(“Prevalence of all genotypes
+(M=603)”,subtitle = “macpan2 implementation”)</td>
+<td align="left">An ecological model using population genomics to design
+optimal vaccines as implemented in Colijn et al. (2020)</td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="https://github.com/canmod/macpan2/tree/main/inst/starter_models/nfds" class="external-link">nfds</a></td>
+<td align="left">+ ggtitle(“Prevalence by model implementation at 10
+years”)</td>
+<td align="left">An ecological model using population genomics to design
+optimal vaccines as implemented in Colijn et al. (2020)</td>
+</tr>
+<tr class="even">
+<td align="left"><a href="https://github.com/canmod/macpan2/tree/main/inst/starter_models/nfds" class="external-link">nfds</a></td>
+<td align="left">+ ggtitle(“Prevalence difference per genotype at 10
+years”)</td>
+<td align="left">An ecological model using population genomics to design
+optimal vaccines as implemented in Colijn et al. (2020)</td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="https://github.com/canmod/macpan2/tree/main/inst/starter_models/nfds" class="external-link">nfds</a></td>
+<td align="left">+ ggtitle(“Genotype prevalence over
+time”,subtitle=“random subset of genotypes (n=16)”)</td>
+<td align="left">An ecological model using population genomics to design
+optimal vaccines as implemented in Colijn et al. (2020)</td>
+</tr>
+<tr class="even">
+<td align="left"><a href="https://github.com/canmod/macpan2/tree/main/inst/starter_models/nfds" class="external-link">nfds</a></td>
+<td align="left">+ ggtitle(“Genotype prevalence difference over
+time”,subtitle=“random subset of genotypes (n=16)”)</td>
+<td align="left">An ecological model using population genomics to design
+optimal vaccines as implemented in Colijn et al. (2020)</td>
+</tr>
+<tr class="odd">
 <td align="left"><a href="https://github.com/canmod/macpan2/tree/main/inst/starter_models/seir" class="external-link">seir</a></td>
 <td align="left">basic SEIR</td>
 <td align="left">vanilla epidemic model with an exposed class</td>
@@ -137,7 +180,22 @@ optimal vaccines as implemented in Colijn et al. (2020)</td>
 <tr class="even">
 <td align="left"><a href="https://github.com/canmod/macpan2/tree/main/inst/starter_models/shiver" class="external-link">shiver</a></td>
 <td align="left">SHIVER = SEIR + H + V</td>
-<td align="left">SEIR with vaccination and hospitalization</td>
+<td align="left">A modified SEIR model with Hospitalization and
+Vaccination</td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="https://github.com/canmod/macpan2/tree/main/inst/starter_models/shiver" class="external-link">shiver</a></td>
+<td align="left">+ ggtitle(“Variable vaccination rate using the Hill
+function”)</td>
+<td align="left">A modified SEIR model with Hospitalization and
+Vaccination</td>
+</tr>
+<tr class="even">
+<td align="left"><a href="https://github.com/canmod/macpan2/tree/main/inst/starter_models/shiver" class="external-link">shiver</a></td>
+<td align="left">+ ggtitle(“Variable vaccination rate using the Hill
+function”)</td>
+<td align="left">A modified SEIR model with Hospitalization and
+Vaccination</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="https://github.com/canmod/macpan2/tree/main/inst/starter_models/si" class="external-link">si</a></td>

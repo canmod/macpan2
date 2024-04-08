@@ -12,7 +12,7 @@ variables of a dynamical model simulator."><!-- mathjax --><script src="https://
     
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.3</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -31,6 +31,7 @@ variables of a dynamical model simulator."><!-- mathjax --><script src="https://
     <a class="dropdown-item" href="../articles/calibration.html">Calibrating Compartmental Models to Data</a>
     <a class="dropdown-item" href="../articles/real_data.html">Fitting to Real Data</a>
     <a class="dropdown-item" href="../articles/state_updaters.html">ODE Solvers, Process Error, and Difference Equations</a>
+    <a class="dropdown-item" href="../articles/time_varying_parameters.html">Specifying Time-Varying Parameters</a>
     <div class="dropdown-divider"></div>
     <a class="dropdown-item" href="../articles/index.html">More articles...</a>
   </div>
@@ -83,7 +84,10 @@ variables of a dynamical model simulator.</p>
 
 
 <dt>include_initial</dt>
-<dd><p>Should the initial values be included in the output?</p></dd>
+<dd><p>Should the initial values of the simulation be
+included in the output? If <code>TRUE</code> this will include outputs for <code>time == 0</code>
+associated with the initial values. See <code><a href="mp_initial.html">mp_initial</a></code> for another
+approach to getting the initial values.</p></dd>
 
 
 <dt>conf.int</dt>

@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.3</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -46,6 +46,7 @@
     <a class="dropdown-item" href="../articles/calibration.html">Calibrating Compartmental Models to Data</a>
     <a class="dropdown-item" href="../articles/real_data.html">Fitting to Real Data</a>
     <a class="dropdown-item" href="../articles/state_updaters.html">ODE Solvers, Process Error, and Difference Equations</a>
+    <a class="dropdown-item" href="../articles/time_varying_parameters.html">Specifying Time-Varying Parameters</a>
     <div class="dropdown-divider"></div>
     <a class="dropdown-item" href="../articles/index.html">More articles...</a>
   </div>
@@ -639,13 +640,13 @@ the observations at random</p>
 <span><span class="co">#&gt;     TRUE     24   22</span></span></code></pre></div>
 <div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">## won't work yet ... need more sophisticated obs/sim matching ...</span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/macpan2helpers/man/mk_calibrate.html" class="external-link">mk_calibrate</a></span><span class="op">(</span><span class="va">sir_simulator</span>,</span>
-<span>             data <span class="op">=</span> <span class="va">sir_simdat</span>,</span>
-<span>             params <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>beta <span class="op">=</span> <span class="fl">1</span>, gamma <span class="op">=</span> <span class="fl">0.5</span>, I_disp <span class="op">=</span> <span class="fl">1</span>, R_disp <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
-<span>             transforms <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>beta <span class="op">=</span> <span class="st">"log"</span>, gamma <span class="op">=</span> <span class="st">"log"</span>, I_disp <span class="op">=</span> <span class="st">"log"</span>, R_disp <span class="op">=</span> <span class="st">"log"</span><span class="op">)</span>,</span>
-<span>             exprs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">log_lik</span> <span class="op">~</span> <span class="fu"><a href="../reference/engine_functions.html">dnbinom</a></span><span class="op">(</span><span class="va">I_obs</span>, <span class="va">I</span>, <span class="va">I_disp</span><span class="op">)</span> <span class="op">+</span></span>
-<span>                          <span class="fu"><a href="../reference/engine_functions.html">dnbinom</a></span><span class="op">(</span><span class="va">R_obs</span>, <span class="va">R</span>, <span class="va">R_disp</span><span class="op">)</span><span class="op">)</span></span>
-<span>             <span class="op">)</span></span></code></pre></div>
+<span><span class="co"># mk_calibrate(sir_simulator,</span></span>
+<span><span class="co">#              data = sir_simdat,</span></span>
+<span><span class="co">#              params = list(beta = 1, gamma = 0.5, I_disp = 1, R_disp = 1),</span></span>
+<span><span class="co">#              transforms = list(beta = "log", gamma = "log", I_disp = "log", R_disp = "log"),</span></span>
+<span><span class="co">#              exprs = list(log_lik ~ dnbinom(I_obs, I, I_disp) +</span></span>
+<span><span class="co">#                           dnbinom(R_obs, R, R_disp))</span></span>
+<span><span class="co">#              )</span></span></code></pre></div>
 <p><strong>fixme</strong>:</p>
 <ul>
 <li>add more information from the <a href="https://www-ncbi-nlm-nih-gov/pmc/articles/PMC1603269/pdf/brmedj00115-0064.pdf" class="external-link">original
