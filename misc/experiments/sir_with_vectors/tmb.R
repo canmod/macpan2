@@ -36,3 +36,5 @@ spec = mp_tmb_model_spec(
   , default = default
   , integers = integers
 )
+
+mp_tmb_calibrator(par = "beta")

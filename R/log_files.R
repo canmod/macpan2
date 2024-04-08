@@ -17,7 +17,8 @@
 LogFile = function(directory = tempdir()) {
   self = Files(fix_dir(directory), reader_spec("log.txt", TXTReader))
   self$log = function() self$get("log")
-  self$data_arg = function() list(log_file = self$.file_path("log"))
+  self$file_path = function() self$.file_path("log")
+  self$data_arg = function() list(log_file = self$file_path())
   self$copy = function(...) file.copy(self$.file_path("log"), file.path(...))
   self$err_msg = function() {
     re = "^Error message = "

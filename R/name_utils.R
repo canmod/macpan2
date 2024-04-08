@@ -157,6 +157,7 @@ to_names.character = function(x) {
   }
   to_names(x)
 }
+#to_names.character = memoise(to_names.character)
 
 #' @export
 to_names.Partition = function(x) x$names()
@@ -182,6 +183,9 @@ to_names.Names = function(x) x$undot()$value()
 to_name = function(x) UseMethod("to_name")
 
 #' @export
+to_name.NULL = function(x) NULL
+
+#' @export
 to_name.data.frame = function(x) {
   i = vapply(x, is.character, logical(1L))
   to_name(names(x)[i])
@@ -198,6 +202,7 @@ to_name.character = function(x) {
   }
   to_name(x)
 }
+#to_name.character = memoise(to_name.character)
 
 #' @export
 to_name.Partition = function(x) x$name()
@@ -391,9 +396,14 @@ name_prefix = function(x, prefix) {
   x
 }
 
-make_names_list = function(obj, meth_nms) {
+make_names_list = function(obj, meth_nms, prefix_with_meth_nms = TRUE) {
   l = list()
-  for (nm in meth_nms) l[[nm]] = sprintf("%s_%s", nm, names(obj[[nm]]()))
+  if (prefix_with_meth_nms) {
+    namer = function(nm) sprintf("%s_%s", nm, names(obj[[nm]]()))
+  } else {
+    namer = function(nm) names(obj[[nm]]())
+  }
+  for (nm in meth_nms) l[[nm]] = namer(nm)
   l
 }
 

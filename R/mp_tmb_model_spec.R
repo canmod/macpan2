@@ -10,14 +10,34 @@ TMBModelSpec = function(
     , state_update = c("euler", "rk4", "euler_multinomial")
   ) {
   self = Base()
-  self$change_model = get_change_model(before, during, after)
+  self$change_model = get_change_model(before, during, after, default, integers)
   self$state_update = get_state_update_type(match.arg(state_update), self$change_model)
+  
+  ## rendering state update expressions
   self$update_method = get_state_update_method(self$state_update, self$change_model)
+  
+  ## expression lists that haven't been rendered.
+  ## for example, explicit flows have not been
+  ## rendered into raw expressions.
+  ## to see the raw and rendered expressions that
+  ## will be executed in the engine, please use 
+  ## self$update_method$before(), 
+  ## self$update_method$during(), and
+  ## self$update_method$after()
   self$before = before
   self$during = during
   self$after = after
+  
+  ## numerical lists that haven't been rendered.
+  ## for example, structured vectors have not been
+  ## rendered into raw matrices or integers.
+  ## to see the raw and rendered numerical objects
+  ## that will be passed to the engine, please use
+  ## self$change_model$default()
+  ## self$change_model$integers()
   self$default = default
   self$integers = integers
+  
   self$must_save = must_save
   self$must_not_save = must_not_save
   self$sim_exprs = sim_exprs
@@ -73,15 +93,15 @@ TMBModelSpec = function(
     ## TODO: make smarter so that only used integer vectors
     ## are produced and maybe even check if an integer vector
     ## is being used in the wrong numeric vector
-    implied_integers = implied_position_vectors(self$default)
-    c(implied_integers, self$integers)
+    implied_integers = implied_position_vectors(self$change_model$default())
+    c(implied_integers, self$change_model$integers())
   }
   
   self$empty_matrices = function() {
-    dv = setdiff(self$all_derived_vars(), names(self$default))
+    dv = setdiff(self$all_derived_vars(), names(self$change_model$default()))
     rep(list(empty_matrix), length(dv)) |> setNames(dv)
   }
-  self$all_matrices = function() c(self$default, self$empty_matrices())
+  self$all_matrices = function() c(self$change_model$default(), self$empty_matrices())
   
   self$copy = function() {
     mp_tmb_model_spec(
@@ -107,7 +127,8 @@ TMBModelSpec = function(
         self$update_method$before()
       , self$update_method$during()
       , self$update_method$after()
-      , self$default, self$integers
+      , self$change_model$default()
+      , self$change_model$integers()
       , self$must_save, self$must_not_save, self$sim_exprs
       , self$state_update
     )

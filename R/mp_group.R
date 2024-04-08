@@ -137,3 +137,32 @@ mp_expr_group_sum = function(x
     subset = subset
   )
 }
+
+#' Combine Indexes
+#'
+#' @param name Name of the column to distinguish between the indexes
+#' being combined.
+#' @return A function that takes any number of indexes, with argument
+#' names provided for each index. The result of this inner function is
+#' another index that combines this list of indexes.
+#' 
+#' 
+#' @examples
+#' Age = mp_index(Age = c("young", "old"))
+#' Symp = mp_index(Symp = c("symp", "asymp"))
+#' state = mp_combine("Epi")(S = Age, I = Age * Symp)
+#' print(state)
+#' 
+#' @export
+mp_combine = function(name) {
+  function(...) {
+    components = list(...)
+    atomics = lapply(names(components), mp_atomic, name = name)
+    components_lab = mapply(mp_cartesian, atomics, components, SIMPLIFY = FALSE)
+    do.call(mp_union, components_lab)
+  }
+}
+
+mp_atomic = function(name, labels) {
+  do.call(mp_index, setNames(list(labels), name))
+}

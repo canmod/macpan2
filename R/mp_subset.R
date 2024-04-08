@@ -46,6 +46,8 @@ mp_choose = function(x, subset_name, ...) {
       p = p$filter(vals, .wrt = cc)
     }
   }
+  
+  ## returns a Ledger
   init_merge(p$frame(), subset_name, x$reference_index(), x$labelling_column_names)
 }
 

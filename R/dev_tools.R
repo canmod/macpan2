@@ -55,3 +55,30 @@ render_model_readme = function(file) {
     }
   }
 }
+
+rd_method_list = function(object) {
+  output = (object
+    |> lsf.str() 
+    |> capture.output() 
+    |> sub(pattern = " : function ", replacement = "") 
+    |> trimws(which = "right") 
+  )
+  i = grep("^\\s+", output, invert = TRUE)
+  output[i] = sprintf(fmt = "* $%s", output[i])
+  paste0(output, collapse = "\n")
+}
+
+rd_method_names = function(object) {
+  eapply(object, is.function) |> unlist() |> which() |> names()
+}
+
+rd_eval_methods = function(object) {
+  mnms = rd_method_names(object)
+  output = list()
+  for (nm in mnms) {
+    output[[nm]] = object[[nm]]()
+  }
+  output
+}
+
+rd_help_str = function(object) {}

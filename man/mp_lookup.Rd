@@ -4,13 +4,25 @@
 \alias{mp_lookup}
 \title{Lookup}
 \usage{
-mp_lookup(index, symbol)
+mp_lookup(
+  index,
+  symbol,
+  fail_with_error = TRUE,
+  index_columns_valid_symbols = TRUE
+)
 }
 \arguments{
 \item{index}{Index table (see \code{\link{mp_index}}).}
 
 \item{symbol}{Character string that could possibly be associated with a
 subset or factor of \code{index}.}
+
+\item{index_columns_valid_symbols}{Are the columns of indexes valid
+symbols to look for?}
+
+\item{fail_result}{Should failure to finding an index result in an error?
+The default is \code{TRUE}, but if not \code{TRUE} then \code{NULL} will be returned
+when no indexes can be found.}
 }
 \description{
 Lookup a subset or factor index associated with a symbol, and return the

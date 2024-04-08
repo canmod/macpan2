@@ -18,8 +18,8 @@ get_mod_info <- function(f) {
     empty <- data.frame(rbind(rep(NA_character_, length(fields))))
     names(empty) <- fields
     fn <- list.files(path = f, pattern = "^README\\.[qr]?md$", ignore.case  = TRUE, full.names = TRUE)
-    if (length(fn)==0) return(data.frame(dir = f_base, empty))
-    if (length(fn)>1) stop("can't handle multiple README files")
+    if (length(fn) == 0) return(data.frame(dir = f_base, empty))
+    if (length(fn) > 1) stop("can't handle multiple README files")
     txt <- readLines(fn)
     res <- (lapply(as.list(fields),
                    function(ff) {
@@ -38,7 +38,7 @@ get_mod_info <- function(f) {
         |> setNames(fields)
         |> as.data.frame()
     )
-    return(data.frame(dir=f_base, res))
+    return(data.frame(dir = f_base, res))
 }
 
 #' Print a table of contents of available models

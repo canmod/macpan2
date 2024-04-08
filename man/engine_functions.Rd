@@ -51,7 +51,13 @@
 \alias{rbinom}
 \alias{reulermultinom}
 \alias{round}
+\alias{group_sums_n}
+\alias{pmin}
+\alias{pmax}
 \title{Engine Functions}
+\usage{
+engine_functions()
+}
 \description{
 Functions currently supported by the C++ TMB engine
 for constructing expressions for defining model
@@ -589,7 +595,7 @@ greater than the current time step. The time group
 \code{index} is the index associated with this element.
 Please see the examples below, they are easier
 to understand than this explanation.
-\item \code{time_var(x, change_points, index)}: An improvement
+\item \code{time_var(x, change_points)}: An improvement
 to \code{time_group}.
 }
 }

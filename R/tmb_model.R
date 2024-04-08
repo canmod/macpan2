@@ -270,7 +270,10 @@ mp_default.TMBModelSpec = function(model) {
 }
 
 #' @export
-mp_default_list.TMBModelSpec = function(model) model$default
+mp_default_list.TMBModelSpec = function(model) {
+  ## TODO: should this be unrendered? e.g. model$default?
+  model$change_model$default()
+}
 
 #' @export
 mp_default.TMBSimulator = function(model) {
@@ -552,8 +555,8 @@ TMBSimulationUtils = function() {
       r[i, "col"] = dn[[mat]][[2L]][col_indices]
 
       ## if some of the row and column names are unavailable,
-      ## replace with indices -- this is important for the use case
-      ## where a named matrix changes shape/size, beacuse row and column
+      ## replace with indices -- this is important for the case
+      ## where a named matrix changes shape/size, because row and column
       ## names can be set for the initial shape/size
       missing_row_nms = is.na(r[i, "row"])
       missing_col_nms = is.na(r[i, "col"])
@@ -563,13 +566,13 @@ TMBSimulationUtils = function() {
     r$time = as.integer(r$time)
     num_t = self$tmb_model$time_steps$time_steps
     if (!"before" %in% .phases) {
-      r = r[r$time != 0L,,drop = FALSE]
+      r = r[r$time != 0L, , drop = FALSE]
     }
     if (!"during" %in% .phases) {
-      r = r[(r$time == 0L) | (r$time == num_t + 1L),,drop = FALSE]
+      r = r[(r$time == 0L) | (r$time == num_t + 1L), , drop = FALSE]
     }
     if (!"after" %in% .phases) {
-      r = r[r$time != num_t + 1L,,drop = FALSE]
+      r = r[r$time != num_t + 1L, , drop = FALSE]
     }
     r |> filter(
         (matrix %in% self$matrix_outputs())
@@ -625,13 +628,25 @@ TMBSimulationUtils = function() {
     }
     reset_rownames(s)
   }
+  self$.evaluator = function(...
+      , .method = c("fn", "gr", "he")
+    ) {
+    .method = match.arg(.method)
+    fixed_params = as.numeric(unlist(list(...)))
+    if (length(fixed_params) == 0L) fixed_params = 0
+    self$ad_fun()[[.method]](fixed_params)
+  }
   return_object(self, "TMBSimulationFormatter")
 }
 
 #' TMB Simulator
 #'
+#' @description
+#' 
 #' Construct an object with methods for simulating from and optimizing a
 #' compartmental model made using \code{\link{TMBModel}}.
+#' 
+#' `TMBSimulator` objects wrap objects produced by `TMB::MakeADFun`. 
 #'
 #' @param tmb_model An object of class \code{\link{TMBModel}}.
 #' @param tmb_cpp Name of a C++ program using TMB as the simulation engine.
@@ -661,11 +676,13 @@ TMBSimulationUtils = function() {
 #' returned.
 #' * `$ad_fun()`: Return the underlying [TMB](https://github.com/kaskr/adcomp)
 #' object.
+#' 
+#' `r TMBSimulator() |> rd_method_list()`
 #'
 #' @importFrom MASS mvrnorm
 #' @importFrom stats quantile
-#' @noRd
-TMBSimulator = function(tmb_model
+#' @keywords internal
+TMBSimulator = function(tmb_model = TMBModel()
     , tmb_cpp = getOption("macpan2_dll")
     , initialize_ad_fun = TRUE
     , outputs = NULL
@@ -677,11 +694,20 @@ TMBSimulator = function(tmb_model
   self$tmb_cpp = tmb_cpp
   self$outputs = outputs
   
+  self$help = list()
+  
+  self$help$matrix_outputs = 
+    "Character vector of names of matrices that will be returned by `$report()`."
   self$matrix_outputs = function() {
     if (is.null(self$outputs)) return(self$tmb_model$init_mats$.mats_to_return)
     initial_mats = self$tmb_model$init_mats$.initial_mats
     intersect(self$outputs, names(initial_mats))
   }
+  
+  self$help$row_outputs = 
+   "Character vector of names of rows that will be returned by `$report()`.
+    If multiple matrices contain rows with the same name, the first matrix
+    in the ... TODO: sort out how these issues will be resolved."
   self$row_outputs = function() {
     if (is.null(self$outputs)) return(character(0L))
     setdiff(self$outputs, self$matrix_outputs())
@@ -691,18 +717,10 @@ TMBSimulator = function(tmb_model
   self$matrix_names = function() self$tmb_model$init_mats$.names()
   self$ad_fun = function() self$tmb_model$ad_fun(self$tmb_cpp)
 
-  self$objective = function(...) {
-    fixed_params = as.numeric(unlist(list(...)))
-    self$ad_fun()$fn(fixed_params)
-  }
-  self$gradient = function(...) {
-    fixed_params = as.numeric(unlist(list(...)))
-    self$ad_fun()$gr(fixed_params)
-  }
-  self$hessian = function(...) {
-    fixed_params = as.numeric(unlist(list(...)))
-    self$ad_fun()$he(fixed_params)
-  }
+  self$objective = function(...) self$.evaluator(..., .method = "fn")
+  self$gradient = function(...) self$.evaluator(..., .method = "gr")
+  self$hessian = function(...) self$.evaluator(..., .method = "he")
+    
   self$error_code = function(...) self$ad_fun()$report(...)$error
   self$sdreport = function() TMB::sdreport(self$ad_fun())
   self$cov.fixed = function() self$sdreport()$cov.fixed
@@ -725,7 +743,19 @@ TMBSimulator = function(tmb_model
       , .probs = c(0.025, 0.5, 0.975)
     ) {
     r = self$report(..., .phases = .phases)
-    rr = (MASS::mvrnorm(.n, self$par.fixed(), self$cov.fixed())
+    if (nrow(r) == 0L) {
+      r = empty_frame(
+          names(r)
+        , names(quantile(0, probs = .probs))
+      )
+      return(r)
+    }
+    mu = self$par.fixed()
+    cm = self$cov.fixed()
+    if (length(cm) == 1L) {
+      if (is.nan(cm)) cm[1L, 1L] = 0
+    }
+    rr = (MASS::mvrnorm(.n, mu, cm)
       |> apply(1, self$report_values, .phases = .phases)
       |> apply(1, quantile, probs = .probs)
       |> t()
@@ -736,8 +766,22 @@ TMBSimulator = function(tmb_model
     self$.runner(..., .phases = .phases, .method = "simulate")
   }
   self$matrix = function(..., matrix_name, time_step, .phases = "during") {
+    if (missing(matrix_name)) return(empty_matrix)
     r = self$report(..., .phases = .phases)
-    i = (r$matrix == as.character(matrix_name)) & (r$time == as.integer(time_step))
+    matrix_name = as.character(matrix_name)
+    if (!matrix_name %in% r$matrix) {
+      if (!matrix_name %in% self$matrix_names()) {
+        stop(
+          sprintf("Matrix, %s, is not in the list of valid names: ", matrix_name),
+          "\n", paste0(self$matrix_names(), collapse = ", ")
+        )
+      }
+      return (empty_matrix)
+    }
+    time_step = as.integer(time_step)
+    if (length(time_step) != 1L) stop("The requested time_step must be a single non-negative integer.")
+    i = (r$matrix == matrix_name) & (r$time == time_step)
+    if (!any(i)) stop("Matrix, ", matrix_name, ", was not generated at time-step ", time_step)
     rr = r[i, c("row", "col", "value")]
     if (!any(is.na(as.integer(rr$row)))) {
       return(matrix(rr$value, max(as.integer(rr$row)) + 1L))

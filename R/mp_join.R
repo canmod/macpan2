@@ -83,6 +83,9 @@ mp_join = function(..., by = empty_named_list()) {
     |> sub(pattern = "\\)", replacement = "")
     |> strsplit(", ")
     |> getElement(1L)
+    |> strsplit(" = ")
+    |> vapply(getElement, character(1L), 1L)
+    |> trimws()
   )
   dot_args = list(...)
   nms = names(dot_args)
@@ -99,18 +102,19 @@ mp_join = function(..., by = empty_named_list()) {
   table_nms = names(table_list)
 
   if (length(table_nms) < 2L) stop("cannot join fewer than two index objects.")
-  if (is.character(by)) {
-    # if (length(table_nms) != 2L) {
-    #   stop("joining more than one index requires a list-valued by argument.")
-    # }
-    table_pairs = to_name_pairs(table_nms)
-    by = rep(list(by), length(table_pairs)) |> setNames(table_pairs)
-  }
+  
+  ## TODO: resolve character and lists to By types
+  by_list = to_by_list(by, table_list)
+  # if (is.character(by)) {
+  #   table_pairs = to_name_pairs(table_nms)
+  #   by = rep(list(by), length(table_pairs)) |> setNames(table_pairs)
+  # }
 
-  by_list = valid$named_list$assert(by)
+  ## TODO: refactor to utilize By types
+  # by_list = valid$named_list$assert(by)
   if (length(by_list) > 1L) {
     table_order = (by_list
-      |> names()
+      |> lapply(names) # names()
       |> lapply(to_names)
       |> unlist()
       |> unique()
@@ -121,7 +125,9 @@ mp_join = function(..., by = empty_named_list()) {
   }
   ordered_table_list = table_list[table_order]
 
-  by_nms = names(by_list) |> strsplit(".", fixed = TRUE)
+  ## TODO: refactor to utilize By types
+  #by_nms = names(by_list) |> strsplit(".", fixed = TRUE)
+  by_nms = lapply(by_list, names)
   good_by_nms = (by_nms
     |> lapply(`%in%`, table_nms)
     |> vapply(all, logical(1L))
@@ -162,30 +168,115 @@ mp_join = function(..., by = empty_named_list()) {
 
   bad_by_args = table_nm_diffs < 1L ## table names in the wrong order
   if (any(bad_by_args)) {
-    fixed_by_nms = (by_nms[bad_by_args]
-      |> lapply(rev)
-      |> lapply(paste0, collapse = ".")
-    )
+    ## FIXME: assuming by_arg names are still useful
+    # fixed_by_nms = (by_nms[bad_by_args]
+    #   |> lapply(rev)
+    #   |> lapply(paste0, collapse = ".")
+    # )
+    ## TODO: implement swap_sides for By types
     fixed_by_args = (by_list[bad_by_args]
       |> lapply(swap_sides)
     )
     by_list[bad_by_args] = fixed_by_args
-    names(by_list)[bad_by_args] = fixed_by_nms
+    #names(by_list)[bad_by_args] = fixed_by_nms
   }
 
   z = ordered_table_list[[1L]]
   for (i in 2:length(ordered_table_list)) {
-    args = c(
-      list(
-        x = z,
-        y = ordered_table_list[[i]]
-      ),
-      by_list
+    z = merge_generic_by_util(
+        x = z
+      , y = ordered_table_list[[i]]
+      , by_list = by_list
     )
-    z = do.call(merge_generic_by_util, args)
   }
   z$reorder(names(table_list))
 }
+
+By = function(name_x, name_y, by_x = NULL, by_y = by_x) {
+  self = Base()
+  self$name_x = to_name(name_x)
+  self$name_y = to_name(name_y)
+  self$by_x = to_name(by_x)
+  self$by_y = to_name(by_y)
+  
+  ## TODO: handle by_x = NULL case downstream.
+  
+  self$names = function() c(self$name_x, self$name_y)
+  self$by = function() c(self$by_x, self$by_y)
+  self$x = function() c(self$name_x, self$by_x)
+  self$y = function() c(self$name_y, self$by_y)
+  
+  return_object(self, "By")
+}
+
+#' @export
+print.By = function(x, ...) {
+  sprintf("Join table, %s, with the following columns\n   %s\nto table, %s, with the following columsn\n    %s"
+    , x$name_x, x$by_x
+    , x$name_y, x$by_y
+  ) |> cat()
+}
+
+#' Join By Condition
+#' 
+#' @param name_x Name of the first index/table involved in the condition.
+#' @param name_y Name of the second index/table involved in the condition.
+#' @param by_x Names of by columns for the first index/table.
+#' @param by_y Names of by columns for the second index/table.
+#' @export
+mp_by = By
+
+#' Internal Constructors for By Objects
+#' @param by A by-condition or set of by-conditions
+#' @param index_list A list of indexes involved in an `mp_join`. This argument
+#' is not always required.
+#' @noRd
+#' @export
+to_by_list = function(by, index_list) UseMethod("to_by_list")
+
+#' @export
+to_by_list.By = function(by, index_list) list(by)
+
+#' @export
+to_by_list.character = function(by, index_list) {
+  table_nms = names(index_list)
+  pairings = macpan2:::triangle_indices(length(table_nms))
+  mapply(
+      By
+    , name_x = table_nms[pairings$i]
+    , name_y = table_nms[pairings$j]
+    , MoreArgs = list(by_x = by, by_y = by)
+    , SIMPLIFY = FALSE
+    , USE.NAMES = FALSE
+  )
+}
+
+#' @export
+to_by_list.list = function(by, index_list) {
+  by_nms = names(by)
+  for (i in seq_along(by)) {
+    if (!inherits(by[[i]], "By")) {
+      table_nms_i = to_names(by_nms[[i]])
+      if (is.character(by[[i]])) {
+        by[[i]] = By(table_nms_i[1L], table_nms_i[2L], by[[i]], by[[i]])
+      } else if (inherits(by[[i]], "formula")) {
+        by[[i]] = By(
+            table_nms_i[1L]
+          , table_nms_i[2L]
+          , by[[i]][[2L]]
+          , by[[i]][[3L]]
+        )
+      } else {
+        stop("Invalid By type")
+      }
+    }
+  }
+  return(by)
+}
+
+
+#' @export
+names.By = function(x) x$names()
 
 #' Ledgers
 #'
@@ -454,14 +545,21 @@ merge_util = function(x, y, by.x, by.y) {
   )
 }
 
+
+## remove any by-conditions that relate to names that are not in 
+## the original data
 filter_by_list = function(x_orig, y_orig, by_list) {
   l = list()
-  nms = names(by_list)
+  #nms = names(by_list)
   for (i in seq_along(by_list)) {
-    nm_i = nms[[i]]
-    nms_i = to_names(nm_i)
+    #nm_i = nms[[i]]
+    #nms_i = to_names(nm_i)
+    nms_i = names(by_list[[i]])
     if ((nms_i[[1L]] %in% x_orig) & (nms_i[[2L]] %in% y_orig)) {
-      l[[nm_i]] = by_list[[nm_i]]
+      #l[[nm_i]] = by_list[[nm_i]]
+      ## NOTE: change here where by_list doesn't have names because 
+      ## these are now structured in the individual by_list elements
+      l = append(l, by_list[[i]])
     }
   }
   l
@@ -475,7 +573,12 @@ init_merge = function(frame, dimension_name, reference_index, labelling_column_n
   )
 }
 
-split_by = function(by, table_origins) UseMethod("split_by")
+split_by = function(
+      by
+    , table_origins  ## names of the by list
+  ) {
+  UseMethod("split_by")
+}
 
 #' @export
 split_by.character = function(by, table_origins) {
@@ -491,6 +594,14 @@ split_by.formula = function(by, table_origins) {
     to_names(lhs(by)[[2L]]),
     to_names(rhs(by)[[2L]])
   ) |> setNames(orig)
+}
+
+#' @export
+split_by.By = function(by, table_origins) {
+  setNames(
+      list(to_names(by$by_x), to_names(by$by_y))
+    , table_origins
+  )
 }
 
 
@@ -544,51 +655,58 @@ explicit_provenance = function(x, col_nm) {
 }
 
 
-merge_generic_by_util = function(x, y, ...) {
-  by = filter_by_list(
+merge_generic_by_util = function(x, y, by_list) {
+  
+  ## TODO: implement filter_by_list for By types
+  filtered_by_list = filter_by_list(
     names(x$column_map),
     names(y$column_map),
-    list(...)
+    by_list
   )
+  
+  ## TODO: implement split_by for By types
   by = mapply(split_by
-    , by
-    , names(by)
+    , filtered_by_list
+    , lapply(filtered_by_list, names)
     , SIMPLIFY = FALSE
     , USE.NAMES = FALSE
-  ) |> setNames(names(by))
+  )  
+  # names(by) = nms_by
   by.x = character()
   by.y = character()
-  for (nm in names(by)) {
-    orig = names(by[[nm]])
+  ## TODO: implement apply_col_map for By types
+  for (i in seq_along(by)) {
+    orig = names(by[[i]])
     by.x = append(
       by.x,
-      apply_col_map(x$column_map, orig[[1L]], by[[nm]][[1L]])
+      apply_col_map(x$column_map, orig[[1L]], by[[i]][[1L]])
     )
     by.y = append(
       by.y,
-      apply_col_map(y$column_map, orig[[2L]], by[[nm]][[2L]])
+      apply_col_map(y$column_map, orig[[2L]], by[[i]][[2L]])
     )
   }
-  by = data.frame(x = by.x, y = by.y) |> unique()
+  
+  by_frame = data.frame(x = by.x, y = by.y) |> unique()
 
-  dup.x = duplicated(by$x)
-  dup.y = duplicated(by$y)
+  dup.x = duplicated(by_frame$x)
+  dup.y = duplicated(by_frame$y)
   if (any(dup.x) | any(dup.y)) {
     if (any(dup.x)) {
-      cols_to_fix = by$x[dup.x]
+      cols_to_fix = by_frame$x[dup.x]
       for (col_nm in cols_to_fix) {
         x = explicit_provenance(x, col_nm)
       }
     }
     if (any(dup.y)) {
-      cols_to_fix = by$y[dup.y]
+      cols_to_fix = by_frame$y[dup.y]
       for (col_nm in cols_to_fix) {
         y = explicit_provenance(y, col_nm)
       }
     }
-    merge_generic_by_util(x, y, ...)
+    Recall(x, y, by_list)  ## recursive
   } else {
-    merge_util(x, y, by$x, by$y)
+    merge_util(x, y, by_frame$x, by_frame$y)
   }
 }
 
@@ -644,6 +762,9 @@ print.Ledger = function(x
   x = link_format_picker(x, format)
   print(x, row.names = FALSE, ...)
 }
+
+#' @export
+summary.Ledger = function(object, ...) print(object$column_map)
 
 #' @importFrom utils head
 #' @export

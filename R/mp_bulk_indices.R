@@ -6,16 +6,28 @@
 #' @param index Index table (see \code{\link{mp_index}}).
 #' @param symbol Character string that could possibly be associated with a
 #' subset or factor of `index`.
+#' @param fail_result Should failure to finding an index result in an error?
+#' The default is `TRUE`, but if not `TRUE` then `NULL` will be returned
+#' when no indexes can be found.
+#' @param index_columns_valid_symbols Are the columns of indexes valid
+#' symbols to look for?
 #'
 #' @export
-mp_lookup = function(index, symbol) {
+mp_lookup = function(index, symbol
+    , fail_with_error = TRUE
+    , index_columns_valid_symbols = TRUE
+  ) {
 
   ## check if we are referring to possibly multiple grouping factors
   dim_names = to_names(symbol)
-  if (all(dim_names %in% names(index))) {
-    return(mp_group(index, symbol))
+  if (index_columns_valid_symbols) {
+    if (all(dim_names %in% names(index))) return(mp_group(index, symbol))
   }
   all_dim_names = names(index)
+  if (length(all_dim_names) < length(dim_names)) {
+    if (fail_with_error) stop("cannot find such a symbol")
+    return(NULL)
+  }
   ii = increasing_int_seq(length(all_dim_names), length(dim_names))
   for (i in ii) {
     named_symbol = (symbol
@@ -38,8 +50,46 @@ mp_lookup = function(index, symbol) {
       if (!inherits(guess, "try-error")) return(guess)
     }
   }
-  stop("failed to find symbol")
+  if (fail_with_error) stop("failed to find symbol")
+  return(NULL)
 }
+#mp_lookup = memoise(mp_lookup)
+
+#' @export
+mp_lookup_in_list = function(
+        index_list
+      , symbol_vector
+      , fail_with_error = TRUE
+      , index_columns_valid_symbols = FALSE
+  ) {
+  indices = list()
+  vectors = list()
+  for (snm in symbol_vector) {
+    for (vnm in names(index_list)) {
+      if (snm == vnm) {
+        subset_index = index_list[[vnm]]
+        indices[[snm]] = subset_index
+        vectors[[snm]] = vnm
+        break
+      }
+      subset_index = mp_lookup(index_list[[vnm]]
+        , snm
+        , fail_with_error = FALSE
+        , index_columns_valid_symbols = index_columns_valid_symbols
+      )
+      if (!is.null(subset_index)) {
+        indices[[snm]] = subset_index
+        vectors[[snm]] = vnm
+        break
+      }
+    }
+    if (is.null(subset_index) & fail_with_error) {
+      stop("failed to find symbol")
+    }
+  }
+  structure(indices, vectors = unlist(vectors, use.names = TRUE))
+}
+
 
 
 # @param l result of mp_slices or mp_factor or just a named list of indices

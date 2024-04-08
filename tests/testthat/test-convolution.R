@@ -13,3 +13,5 @@ simple_sims(
   time_steps = 10,
   mats = list(x = 0, y = empty_matrix, kernel = kernel)
 ) |> macpan2:::filter(time != 0, time != 11, matrix == "y")
+
+

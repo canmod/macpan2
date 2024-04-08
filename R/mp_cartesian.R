@@ -168,3 +168,37 @@ mp_linear = function(x, y_labelling_column_names) {
   )
   Index(f, labelling_column_names = names(f))
 }
+
+
+#' @export
+Ops.Index = function(e1, e2 = NULL) {
+  #unary = nargs() == 1L
+  #FUN = get(.Generic, envir = parent.frame(), mode = "function")
+  if (.Generic == "*") {
+    if (inherits(e2, "character")) {
+      e1 * do.call(mp_index, as.list(e2))
+    } else {
+      return(mp_cartesian(e1, e2))
+    }
+  } else if (.Generic == "^") {
+    if (inherits(e2, "character")) {
+      l = setNames(rep(list(e1), length(e2)), e2)
+      nms = names(e1)
+      updater = as.list(nms)
+      for (i in seq_along(e2)) {
+        suffix = e2[[i]]
+        names(updater) = sprintf("%s%s", nms, suffix)
+        l[[i]] = mp_rename_from_list(e1, updater)
+      }
+      return(Reduce(`*`, l))
+    } else if (inherits(e2, "numeric")) {
+      e2 = seq_len(as.integer(e2)) |> as.character()
+      return(e1 ^ e2)
+    } else {
+      stop("Can only raise indexes to powers of character vectors or integers.")
+    }
+  } else {
+    stop("Operation not implemented for indexes.")
+  }
+}
+

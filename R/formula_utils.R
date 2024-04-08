@@ -70,7 +70,14 @@ to_assign = function(formula, dummy = "dummy") {
 update_formula = function(formula, replacers) {
   nms = lapply(replacers, lhs_char)
   l = lapply(replacers, rhs_expr) |> setNames(nms)
-  do.call('substitute', list(formula, l))
+  
+  ## do not fully understand this magic
+  updated_formula = do.call('substitute', list(formula, l))
+  if (!inherits(updated_formula, "formula") & is.call(updated_formula)) {
+    updated_formula = eval(updated_formula)
+  }
+  
+  updated_formula
 }
 update_formulas = function(list, replacers) {
   nms = lapply(replacers, lhs_char)
@@ -128,6 +135,10 @@ swap_sides.character = function(x) {
   stopifnot(length(x) == 1L)
   x
 }
+
+#' @export
+swap_sides.By = function(x) By(x$name_y, x$name_x, x$by_y, x$by_x)
+
 
 ## how many sides does a formula have?
 is_zero_sided = function(formula) {
@@ -220,6 +231,10 @@ formula_components = function(formula, side = c("both", "left", "right")) {
     functions = parse_table$x[is_func] |> unique(),
     literals = parse_table$x[is_var_or_lit & is_lit] |> as.numeric() |> unique()
   )
+}
+
+formula_vars = function(formula, side = c("both", "left", "right")) {
+  formula_components(formula, side)$variables
 }
 
 trans_lhs_var = function(formula) {

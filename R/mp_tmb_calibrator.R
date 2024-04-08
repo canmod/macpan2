@@ -442,12 +442,13 @@ TMBTV.character = function(
       , default = c("value", "Value", "val", "Val", "default", "Default")
     )
     if (isTRUE(!any(self$tv_list[[p]]$time_ids == 0))) {
+      default_list = self$spec$change_model$default()
       self$tv_list[[p]] = add_row(self$tv_list[[p]]
         , mat = p
         , row = 0L
         , col = 0L
         , time_ids = 0L
-        , default = self$spec$default[[p]]
+        , default = default_list[[p]]
       )
     }
   }
@@ -557,19 +558,6 @@ TMBTV.RBF = function(
   self$existing_global_names = existing_global_names
   self$spec = spec
   self$type = function() "smooth"
-   # cal_spec = mp_tmb_insert(cal_spec
-   #    , phase = "before"
-   #    , at = Inf
-   #    , expressions = tv$before_loop()
-   #    , default = globalize(tv, "time_var")
-   #    , integers = globalize(tv, "indexes")
-   #    , must_not_save = names(globalize(tv, "time_var"))
-   #  )
-   #  cal_spec = mp_tmb_insert(cal_spec
-   #    , phase = "during"
-   #    , at = 1L
-   #    , expressions = tv$var_update_exprs()
-   #  )
   
   self$rbf_data = sparse_rbf_notation(struc$time_steps, tv$dimension, zero_based = TRUE)
   self$initial_outputs = c(self$rbf_data$M %*% tv$initial_weights)
@@ -747,7 +735,8 @@ TMBPar = function(
   }
   
   self$params_frame = function() {
-    pf = (self$spec$default[self$par]
+    default_list = self$spec$change_model$default()
+    pf = (default_list[self$par]
       |> melt_default_matrix_list(FALSE)
       |> rename_synonyms(mat = "matrix", default = "value")
     )
@@ -759,10 +748,11 @@ TMBPar = function(
   self$random_frame = function() self$tv$tv_random_frame()
   
   self$check_assumptions = function(orig_spec, data_struc) {
+    default_list = orig_spec$change_model$default()
     pnms = union(self$par, self$tv_par)
-    bad_pars = !pnms %in% names(orig_spec$default)
+    bad_pars = !pnms %in% names(default_list)
     if (any(bad_pars)) {
-      spec_mats = names(orig_spec$all_matrices())
+      spec_mats = names(orig_spec$change_model$default())
       sprintf("%s (including %s) %s:\n     %s"
         , "Requested parameters"
         , paste0(pnms[bad_pars], collapse = ", ")
@@ -771,7 +761,7 @@ TMBPar = function(
       ) |> stop()
     }
     
-    parameterized_defaults = orig_spec$default[pnms]
+    parameterized_defaults = default_list[pnms]
     if (length(parameterized_defaults) > 0L) {
       non_scalars = vapply(parameterized_defaults, length, integer(1L)) != 1L
       if (any(non_scalars)) {

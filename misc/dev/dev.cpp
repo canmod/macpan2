@@ -110,6 +110,9 @@ enum macpan2_func
     , MP2_BINOM_SIM = 47 // fwrap,fail: rbinom(size, probability)
     , MP2_EULER_MULTINOM_SIM = 48 // fwrap,fail: reulermultinom(size, rate, delta_t)
     , MP2_ROUND = 49 // fwrap,null: round(x)
+    , MP2_GROUPSUMS_N = 50 // fwrap,null: group_sums_n(x, f, n)
+    , MP2_PMIN = 51 // fwrap,null: pmin(...)
+    , MP2_PMAX = 52 // fwrap,null: pmax(...)
 };
 
 enum macpan2_meth
@@ -212,6 +215,7 @@ Type mp2_round(const Type &x) {
 }
 MATRICIZE_1(mp2_round)
 
+
 template <class Type>
 matrix<Type> mp2_rep(const matrix<Type> &x, const int &times) {
     int size = x.rows() * x.cols();
@@ -280,8 +284,7 @@ struct ListOfMatrices
     // below is a vector of matrices that passed from R
     vector<matrix<Type>> m_matrices;
 
-    ListOfMatrices(SEXP ii)
-    { // Constructor
+    ListOfMatrices(SEXP ii) { // Constructor
         // Get elements by their indices
         int n = length(ii);
         vector<matrix<Type>> vs(n);
@@ -296,20 +299,17 @@ struct ListOfMatrices
     ListOfMatrices() {} // Default constructor
 
     // Copy constructor
-    ListOfMatrices(const ListOfMatrices &another)
-    {
+    ListOfMatrices(const ListOfMatrices &another) {
         m_matrices = another.m_matrices;
     }
 
     // Overload assign operator
-    ListOfMatrices &operator=(const ListOfMatrices &another)
-    {
+    ListOfMatrices &operator=(const ListOfMatrices &another) {
         m_matrices = another.m_matrices;
         return *this;
     }
 
-    ListOfMatrices operator[](const std::vector<int> &indices) const
-    {
+    ListOfMatrices operator[](const std::vector<int> &indices) const {
         ListOfMatrices<Type> result;
         // result.m_matrices.clear(); // Ensure the result vector is empty
         // result.m_matrices.reserve(indices.size()); // Reserve memory for expected matrices
@@ -923,9 +923,11 @@ public:
         meth_int_vecs = meth_int_vecs_;
         valid_int_vecs = valid_int_vecs_;
         valid_literals = valid_literals_;
-
+        
         strcpy(error_message, "OK");
     };
+    // std::vector<std::string> warning_log;
+    std::vector<int> warning_expr_rows;
 
     // getters
     unsigned char GetErrorCode() { return error_code; };
@@ -935,6 +937,7 @@ public:
     std::vector<int> GetArgRows() { return arg_rows; };
     std::vector<int> GetArgCols() { return arg_cols; };
     std::vector<int> GetArgTypeInts() { return arg_type_ints; };
+    // std::vector<std::string> GetWarningLog() { return warning_log; };
 
     // setters
     void SetError(unsigned char code, const char *message, int e_row, int f_int, std::vector<int> a_rows, std::vector<int> a_cols, std::vector<int> a_type_ints) {
@@ -946,6 +949,12 @@ public:
         arg_type_ints = a_type_ints;
         strcpy(error_message, message);
     };
+    
+    // updaters
+    // void UpdateWarningLog(const std::string message, int row) {
+    //     warning_log.push_back(message);
+    //     warning_expr_rows.push_back(row);
+    // }
 
     // evaluator
     matrix<Type> EvalExpr(
@@ -1090,16 +1099,12 @@ public:
             ArgList<Type> args(n);
             vector<int> index2mats(n);
             vector<int> index2what(n);
-            for (int i = 0; i < n; i++)
-            {
-                if (table_n[table_i[row] + i] == -3)
-                {
+            for (int i = 0; i < n; i++) {
+                if (table_n[table_i[row] + i] == -3) {
                     // -3 in the 'number of arguments' column of the
                     // parse table means 'integer vector'
                     args.set(i, valid_int_vecs[table_x[table_i[row] + i]]);
-                }
-                else
-                {
+                } else {
                     // otherwise, recursively descend into the parse tree
                     // to pick out the arguments
                     args.set(i, EvalExpr(hist, t, valid_vars, table_i[row] + i));
@@ -1114,22 +1119,16 @@ public:
                 // or something.
                 //
                 // index2what = 0 (for a matrix), 1 (for an int vec), -1 (for something else)
-                if (table_n[table_i[row] + i] == 0)
-                {
+                if (table_n[table_i[row] + i] == 0) {
                     index2mats[i] = table_x[table_i[row] + i];
                     index2what[i] = 0; // pointing at matrix
-                }
-                else if (table_n[table_i[row] + i] == -3)
-                {
+                } else if (table_n[table_i[row] + i] == -3) {
                     index2mats[i] = table_x[table_i[row] + i];
                     index2what[i] = 1; // pointing at integer vector
-                }
-                else
-                {
+                } else {
                     index2mats[i] = -1;
                     index2what[i] = -1;
-                }
-                if (GetErrorCode())
+                } if (GetErrorCode())
                     return m;
             }
 
@@ -1191,8 +1190,7 @@ public:
             // #' ```
             // #'
             // #'
-            switch (table_x[row] + 1)
-            {
+            switch (table_x[row] + 1) {
 
             // #' ## Elementwise Binary Operators
             // #'
@@ -1824,6 +1822,29 @@ public:
                     m1.coeffRef(v1[i], 0) += m.coeff(i, 0);
                 }
                 return m1;
+            
+            case MP2_GROUPSUMS_N:
+                v1 = args.get_as_int_vec(1);
+                err_code = args.check_indices(2, v1, {0});
+                if (err_code) {
+                    SetError(MP2_GROUPSUMS_N, "Group indexes are out of range.", row, MP2_GROUPSUMS_N, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    return m;
+                }
+                m = args[0];
+                if (m.cols() != 1) {
+                    SetError(MP2_GROUPSUMS_N, "Group sums are only allowed for column vectors.", row, MP2_GROUPSUMS_N, args.all_rows(), args.all_cols(), args.all_type_ints());
+                }
+                rows = args.get_as_int(2);
+                m1 = matrix<Type>::Zero(rows, 1);
+                if (v1.size() != m.rows()) {
+                    SetError(MP2_GROUPSUMS_N, "Number of rows in x must equal the number of indices in f in group_sums_n(x, f, n).", row, MP2_GROUPSUMS_N, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    return m;
+                }
+
+                for (int i = 0; i < m.rows(); i++) {
+                    m1.coeffRef(v1[i], 0) += m.coeff(i, 0);
+                }
+                return m1;
 
             // #' ### Examples
             // #'
@@ -2159,7 +2180,7 @@ public:
             // #' `index` is the index associated with this element.
             // #' Please see the examples below, they are easier
             // #' to understand than this explanation.
-            // #' * `time_var(x, change_points, index)`: An improvement
+            // #' * `time_var(x, change_points)`: An improvement
             // #' to `time_group`.
             // #'
             // #' ### Arguments
@@ -2243,16 +2264,20 @@ public:
                     SetError(MP2_TIME_VAR, "Time variation is not allowed after the simulation loop ends.", row, MP2_TIME_VAR, args.all_rows(), args.all_cols(), args.all_type_ints());
                     return m;
                 }
-
+                
+                // v : second argument, which is an integer vector of time-step 
+                //     indices associated with the changepoints
+                // off : the first element of v. this first element should be
+                //       zero initially, and it tracks the current time group.
+                //       this first value will get updated each time this
+                //       function is called at a change point.
                 v = args.get_as_int_vec(1);
                 off = args.get_as_int(1);
-                if (off < 0)
-                {
+                if (off < 0) {
                     SetError(MP2_TIME_VAR, "The first element of the second argument must not be less than zero.", row, MP2_TIME_VAR, args.all_rows(), args.all_cols(), args.all_type_ints());
                     return m;
                 }
-                if (off >= v.size())
-                {
+                if (off >= v.size()) {
                     SetError(MP2_TIME_VAR, "The first element of the second argument must be less than the number of elements in the first.", row, MP2_TIME_VAR, args.all_rows(), args.all_cols(), args.all_type_ints());
                     return m;
                 }
@@ -2263,11 +2288,9 @@ public:
                 // signature is respected. overloading _might_
                 // be a better solution. note curly braces
                 // used in this way require c++11 i believe.)
-                if (off < v.size() - 1)
-                { // might need to increment
+                if (off < v.size() - 1) { // might need to increment
                     cp = v[off + 1];
-                    if (cp == t)
-                    {                  // yes we need to increment
+                    if (cp == t) { // yes we need to increment
                         off = off + 1; // so we increment
                         matIndex = index2mats[1];
                         // FIXME: should really have a function that
@@ -2711,7 +2734,6 @@ public:
                 return m;
             
             case MP2_EULER_MULTINOM_SIM:
-                //Rf_warning("experimental function reulermultinom");
                 // reulermultinom(size, rate, dt)
                 if (n == 3) {
                     delta_t = args[2].coeff(0, 0);
@@ -2769,6 +2791,16 @@ public:
                 // rounded size, called left_over because it will be
                 // updated as we loop through the categories of the
                 // multinomial distribution
+                // UpdateWarningLog("Rounding size parameters in rbinom.", row);
+                // if (t == 1) {
+                //     left_over = mp2_round(args[0].coeff(0, 0));
+                //     if (abs(left_over - args[0].coeff(0, 0)) > 1e-6) {
+                //     } else {
+                //         left_over = args[0].coeff(0, 0);
+                //     }
+                // } else {
+                //     left_over = args[0].coeff(0, 0);
+                // }
                 left_over = mp2_round(args[0].coeff(0, 0));
                 
                 remaining_prop = 1.0;
@@ -2787,19 +2819,23 @@ public:
                 return m1;
                 
             case MP2_ROUND:
+                // UpdateWarningLog("We have rounded.", row);
                 m = mp2_round(args[0]);
                 return m;
-                // rows = args[0].rows();
-                // cols = args[0].cols();
-                // m = matrix<Type>::Zero(rows, cols);
-                // for (int i = 0; i < rows; i++) {
-                //     for (int j = 0; j < cols; j++) {
-                //         x = args[0].coeff(i, j);
-                //         y = x < 0 ? x - 0.5f : x + 0.5f;
-                //         m.coeffRef(i, j) = Type(CppAD::Integer(y));
-                //     }
-                // }
-                // return m;
+            
+            case MP2_PMIN:
+                m = args[0];
+                for (int i = 1; i < n; i++) {
+                    m = m.cwiseMin(args[i]);
+                }
+                return m;
+            
+            case MP2_PMAX:
+                m = args[0];
+                for (int i = 1; i < n; i++) {
+                    m = m.cwiseMax(args[i]);
+                }
+                return m;
             
             case MP2_ASSIGN:
                 // #' ## Assign
@@ -2874,10 +2910,7 @@ public:
                 // apparently we still need this check
                 v1 = args.get_as_int_vec(1);
                 v2 = args.get_as_int_vec(2);
-                // printIntVector(v1);
-                // printIntVector(v2);
-                err_code = args.check_indices(0, v1, v2); // CheckIndices(args[0], args[1], m1);
-                // err_code = CheckIndices(args[0], args[1], args[2]);
+                err_code = args.check_indices(0, v1, v2);
                 if (err_code)
                 {
                     SetError(MP2_ASSIGN, "Illegal index used in assign", row, MP2_ASSIGN, args.all_rows(), args.all_cols(), args.all_type_ints());
@@ -2885,26 +2918,20 @@ public:
                 }
 
                 rows = args[3].rows();
-                // err_code1 = RecycleInPlace(args[1], rows, cols);
-                // err_code2 = RecycleInPlace(args[2], rows, cols);
                 v3.push_back(1);
                 v3.push_back(2);
                 args = args.recycle_to_shape(v3, rows, cols);
                 err_code = args.get_error_code();
-                // err_code = err_code1 + err_code2;
-                if (err_code != 0)
-                {
+                if (err_code != 0) {
                     SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row, MP2_ASSIGN, args.all_rows(), args.all_cols(), args.all_type_ints());
                     return m;
                 }
 
-                for (int k = 0; k < rows; k++)
-                {
+                for (int k = 0; k < rows; k++) {
                     rowIndex = CppAD::Integer(args[1].coeff(k, 0));
                     colIndex = CppAD::Integer(args[2].coeff(k, 0));
                     matIndex = index2mats[0];
-                    if (matIndex == -1)
-                    {
+                    if (matIndex == -1) {
                         SetError(MP2_ASSIGN, "Can only assign to named matrices not expressions of matrices", row, MP2_ASSIGN, args.all_rows(), args.all_cols(), args.all_type_ints());
                         return args[0];
                     }
@@ -2957,9 +2984,6 @@ public:
                 // #' ```
                 // #'
 
-                // matIndex = index2mats[0]; // m
-                // valid_vars.m_matrices[matIndex]
-
                 m = args[0];
                 size = m.rows() * m.cols();
                 m.resize(size, 1);
@@ -2972,10 +2996,8 @@ public:
                     {
                         m1 = m.block(start, 0, sz, 1);
                         m1.resize(args[i].rows(), args[i].cols());
-                        // std::cout << "MATRIX " << valid_vars.m_matrices[index2mats[i]] << std::endl << std::endl;
                         matIndex = index2mats[i];
-                        if (matIndex == -1)
-                        {
+                        if (matIndex == -1) {
                             SetError(MP2_ASSIGN, "Can only unpack into named matrices not expressions of matrices", row, MP2_UNPACK, args.all_rows(), args.all_cols(), args.all_type_ints());
                             return args[0];
                         }
@@ -2990,17 +3012,13 @@ public:
                 return m2; // empty matrix
 
             case MP2_RECYCLE:
-                // rows = CppAD::Integer(args[1].coeff(0,0));
-                // cols = CppAD::Integer(args[2].coeff(0,0));
                 rows = args.get_as_int(1);
                 cols = args.get_as_int(2);
                 v1.push_back(0);
                 args = args.recycle_to_shape(v1, rows, cols);
                 err_code = args.get_error_code();
-                // err_code = RecycleInPlace(m, rows, cols);
                 m = args[0];
-                if (err_code != 0)
-                {
+                if (err_code != 0) {
                     SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row, MP2_RECYCLE, args.all_rows(), args.all_cols(), args.all_type_ints());
                     return m;
                 }
@@ -3198,17 +3216,12 @@ public:
                 m = assignment_value;
                 size = m.rows() * m.cols();
                 m.resize(size, 1);
-                //std::cout << "assignment: " << m << std::endl;
               
                 start = 0;
                 for (int i = 0; i < n; i++) {
-                    x2 = table_x[table_i[row]+i]; // index (in valid_vars) to ith argument of `c`
-                    //std::cout << "recipient: " << valid_vars.m_matrices[x2] << std::endl;
+                    x2 = table_x[table_i[row]+i]; // index (in valid_vars) to ith argument of the `c` function
                     sz = valid_vars.m_matrices[x2].rows() * valid_vars.m_matrices[x2].cols();
                     if (sz == 0) sz = size / (n - i);  // heuristic
-                    //std::cout << "sz: " << sz << std::endl;
-                    //std::cout << "size: " << size << std::endl;
-                    //std::cout << "start: " << start << std::endl;
                     if (size >= sz) {
                         m1 = m.block(start, 0, sz, 1);
                         nr = valid_vars.m_matrices[x2].rows();
@@ -3216,17 +3229,13 @@ public:
                         if (nr == 0) nr = sz;
                         if (nc == 0) nc = 1;
                         m1.resize(nr, nc);
-                        //std::cout << "this replacement block: " << m1 << std::endl;
                         valid_vars.m_matrices[x2] = m1;
-                        //std::cout << "recipient after: " << valid_vars.m_matrices[x2] << std::endl;
                         size -= sz;
                         start += sz;
                     }
                     else
                         break;
                 }
-                // std::cout << "size at end: " << size << std::endl;
-                // std::cout << "size at end: " << size << std::endl;
                 return;
         } // switch (x + 1)
         
@@ -3256,7 +3265,18 @@ public:
         logfile << "Expression row = " << expr_row << std::endl; \
         logfile << "Function code = " << func_int << std::endl;  \
         logfile.close();                                         \
-    }
+    }                                                          \
+
+// #define REPORT_WARNINGS                                        \
+//     {                                                          \
+//         std::vector<std::string> warning_log = exprEvaluator.GetWarningLog(); \
+//         logfile.open(log_file, std::ios_base::app);            \
+//         for (int i = 0; i < warning_log.size(); i++) {         \
+//             logfile << warning_log[i].c_str();                 \
+//         }                                                      \
+//         logfile.close();                                       \
+//     }                                                          
+
 
 template <class Type>
 vector<ListOfMatrices<Type>> MakeSimulationHistory(
@@ -3281,8 +3301,7 @@ void UpdateSimulationHistory(
     int t,
     const ListOfMatrices<Type> &mats,
     const vector<int> &mats_save_hist,
-    ListOfMatrices<Type> &hist_shape_template)
-{
+    ListOfMatrices<Type> &hist_shape_template) {
     // matrix<Type> emptyMat;
     // ListOfMatrices<Type> ms(mats);
     // if the history of the matrix is not to be saved,
@@ -3294,7 +3313,6 @@ void UpdateSimulationHistory(
     hist[t] = hist_shape_template;
 }
 
-// const char LOG_FILE_NAME[] = "macpan2.log";
 
 // "main" function
 template <class Type>
@@ -3309,15 +3327,11 @@ Type objective_function<Type>::operator()()
 
     std::ofstream logfile;
     logfile.open(log_file);
-    // logfile.open (LOG_FILE_NAME);
     logfile << "======== macpan2 log file ========\n";
     logfile.close();
 
-    std::setprecision(9); // Set the precision of std::cout
-
-    // 1 Get all data and parameters from the R side
-    // Parameters themselves
-    int n;
+    std::setprecision(9); // Set the precision of std::cout for printing
+    int n; // Number of matrices
 
     // Fixed effects
     PARAMETER_VECTOR(params);
@@ -3346,7 +3360,6 @@ Type objective_function<Type>::operator()()
     DATA_INTEGER(time_steps)
 
     // Expressions and parse table
-    // DATA_IVECTOR(expr_output_id);
     DATA_IVECTOR(a_table_x);
     DATA_IVECTOR(a_table_n);
     DATA_IVECTOR(a_table_i);
@@ -3380,8 +3393,6 @@ Type objective_function<Type>::operator()()
     // Flags
     DATA_INTEGER(values_adreport);
 
-    // std::cout << "=======================" << std::endl;
-
 #ifdef MP_VERBOSE
     std::cout << "params = " << params << std::endl;
 
@@ -3408,7 +3419,6 @@ Type objective_function<Type>::operator()()
 
     std::cout << "eval_schedule = " << eval_schedule << std::endl;
 
-    // std::cout << "expr_output_id = " << expr_output_id << std::endl;
     std::cout << "expr_sim_block = " << expr_sim_block << std::endl;
     std::cout << "expr_num_p_table_rows = " << expr_num_p_table_rows << std::endl;
 
@@ -3423,7 +3433,7 @@ Type objective_function<Type>::operator()()
     std::cout << "o_table_i = " << o_table_i << std::endl;
 #endif
 
-    // 2 Replace some of elements of some matrices with parameters
+    // Replace some of elements of some matrices with parameters
     n = p_par_id.size();
     for (int i = 0; i < n; i++)
         mats.m_matrices[p_mat_id[i]].coeffRef(p_row_id[i], p_col_id[i]) = params[p_par_id[i]];
@@ -3432,9 +3442,9 @@ Type objective_function<Type>::operator()()
     for (int i = 0; i < n; i++)
         mats.m_matrices[r_mat_id[i]].coeffRef(r_row_id[i], r_col_id[i]) = random[r_par_id[i]];
 
-    // Simulation history
-    /// each element of this history 'vector' is a list of the matrices
-    /// in the model at a particular point in history
+    // Simulation history:
+    //   Each element of this history list is a list of the matrices
+    //   in the model at a particular point in history
     ListOfMatrices<Type> hist_shape_template(mats);
     vector<ListOfMatrices<Type>> simulation_history = MakeSimulationHistory(
         time_steps,
@@ -3472,22 +3482,19 @@ Type objective_function<Type>::operator()()
         const_int_vecs,
         literals);
 
-    // 3 Pre-simulation
+    // Pre-simulation
     int expr_index = 0;
     int p_table_row = 0;
     int a_table_row = 0;
 
-    for (int i = 0; i < eval_schedule[0]; i++)
-    {
+    for (int i = 0; i < eval_schedule[0]; i++) {
 #ifdef MP_VERBOSE
         std::cout << "in pre-simulation --- " << i << std::endl;
         std::cout << "expr_num_p_table_rows[i] " << expr_num_p_table_rows[i] << std::endl;
 #endif
         matrix<Type> result;
-        if (expr_sim_block[i] == 1)
-        {
-            SIMULATE
-            {
+        if (expr_sim_block[i] == 1) {
+            SIMULATE {
                 result = exprEvaluator.EvalExpr(
                     simulation_history, 0, mats, p_table_row);
             }
@@ -3501,14 +3508,12 @@ Type objective_function<Type>::operator()()
             return 0.0;
         }
 
-        // mats.m_matrices[expr_output_id[expr_index+i]] = result;
         matAssigner.matAssign(result, mats, a_table_row);
 
         p_table_row += expr_num_p_table_rows[i];
         a_table_row += assign_num_a_table_rows[i];
-    } // p_table_row is fine here
+    }
 
-    // simulation_history[0] = mats;
     UpdateSimulationHistory(
         simulation_history,
         0,
@@ -3516,11 +3521,11 @@ Type objective_function<Type>::operator()()
         mats_save_hist,
         hist_shape_template);
 
-    // 4 During simulation
+    // During simulation
     expr_index += eval_schedule[0];
 
-    // p_table_row2 lets us restart the parse table row every time the
-    // simulation loop is iterated
+    // p_table_row2 lets us restart the parse table row 
+    // every time the simulation loop is iterated
     int p_table_row2 = p_table_row;
     int a_table_row2 = a_table_row;
     for (int k = 0; k < time_steps; k++) {
@@ -3529,8 +3534,7 @@ Type objective_function<Type>::operator()()
 #ifdef MP_VERBOSE
         std::cout << "simulation step --- " << k << std::endl;
 #endif
-        for (int i = 0; i < eval_schedule[1]; i++)
-        {
+        for (int i = 0; i < eval_schedule[1]; i++) {
 #ifdef MP_VERBOSE
             std::cout << "Eval expression --- " << i << std::endl;
             std::cout << "expr_num_p_table_rows[i] " << expr_num_p_table_rows[expr_index + i] << std::endl;
@@ -3550,7 +3554,7 @@ Type objective_function<Type>::operator()()
                 REPORT_ERROR
                 return 0.0;
             }
-            // mats.m_matrices[expr_output_id[expr_index+i]] = result;
+            
             matAssigner.matAssign(result, mats, a_table_row2);
 
             p_table_row2 += expr_num_p_table_rows[expr_index + i];
@@ -3562,7 +3566,6 @@ Type objective_function<Type>::operator()()
                 std::cout << "mats = " << mats.m_matrices[ii] << std::endl;
 #endif
         }
-        // simulation_history[k+1] = mats;
         UpdateSimulationHistory(
             simulation_history,
             k + 1,
@@ -3573,26 +3576,22 @@ Type objective_function<Type>::operator()()
     p_table_row = p_table_row2;
     a_table_row = a_table_row2;
 
-    // 5 Post-simulation
+    // Post-simulation
     expr_index += eval_schedule[1];
 
-    for (int i = 0; i < eval_schedule[2]; i++)
-    {
+    for (int i = 0; i < eval_schedule[2]; i++) {
 #ifdef MP_VERBOSE
         std::cout << "in post-simulation --- " << i << std::endl;
         std::cout << "expr_num_p_table_rows[i] " << expr_num_p_table_rows[expr_index + i] << std::endl;
 #endif
         matrix<Type> result;
-        if (expr_sim_block[i] == 1)
-        {
-            SIMULATE
-            {
+        if (expr_sim_block[i] == 1) {
+            SIMULATE {
                 result = exprEvaluator.EvalExpr(
                     simulation_history, time_steps + 1, mats, p_table_row);
             }
         }
-        else
-        {
+        else {
             result = exprEvaluator.EvalExpr(
                 simulation_history, time_steps + 1, mats, p_table_row);
         }
@@ -3620,8 +3619,7 @@ Type objective_function<Type>::operator()()
 #ifdef MP_VERBOSE
     std::cout << "Simulation history ..." << std::endl;
     int m = simulation_history.size();
-    for (int t = 0; t < m; t++)
-    {
+    for (int t = 0; t < m; t++) {
         std::cout << "----- t = " << t << std::endl;
         ListOfMatrices<Type> mats = simulation_history[t];
         int n = mats.m_matrices.size();
@@ -3630,23 +3628,17 @@ Type objective_function<Type>::operator()()
     }
 #endif
 
-    // 6 Report a table as history, each row contains
-    //   mat_id, time_step, row_id, col_id, value (This is the the order the current
-    //   implementation uses)
-    //   These indices are all zero-based.
+    // Report a table as history, each row contains:
+    //   mat_id, time_step, row_id, col_id, value 
+    //   (the *_id columns in this table are all zero-based)
 
-    // int r = 0;
     int table_rows = 0;
-    for (int i = 0; i < mats_return.size(); i++)
-    {
-        if (mats_return[i] == 1)
-        {
-            if (mats_save_hist[i] == 0)
-            { // Report the last one
+    for (int i = 0; i < mats_return.size(); i++) {
+        if (mats_return[i] == 1) {
+            if (mats_save_hist[i] == 0) { // Report the last one
                 table_rows += mats.m_matrices[i].rows() * mats.m_matrices[i].cols();
             }
-            else
-            { // Report the whole simulation history
+            else { // Report the whole simulation history
                 int hist_len = time_steps + 2;
                 for (int k = 0; k < hist_len; k++)
                     table_rows += simulation_history[k].m_matrices[i].rows() *
@@ -3658,15 +3650,11 @@ Type objective_function<Type>::operator()()
     matrix<Type> values(table_rows, 5);
 
     int cur = 0;
-    for (int i = 0; i < mats_return.size(); i++)
-    {
-        if (mats_return[i] == 1)
-        {
-            if (mats_save_hist[i] == 0)
-            { // Report the last one
+    for (int i = 0; i < mats_return.size(); i++) {
+        if (mats_return[i] == 1) {
+            if (mats_save_hist[i] == 0) { // Report the last one
                 for (int jj = 0; jj < mats.m_matrices[i].cols(); jj++)
-                    for (int ii = 0; ii < mats.m_matrices[i].rows(); ii++)
-                    {
+                    for (int ii = 0; ii < mats.m_matrices[i].rows(); ii++) {
                         values(cur, 0) = i;
                         values(cur, 1) = time_steps + 1;
                         values(cur, 2) = ii;
@@ -3676,13 +3664,11 @@ Type objective_function<Type>::operator()()
                         cur++;
                     }
             }
-            else
-            { // Report the whole simulation history
+            else { // Report the whole simulation history
                 int hist_len = time_steps + 2;
-                for (int k = 0; k < hist_len; k++)
-                    for (int jj = 0; jj < simulation_history[k].m_matrices[i].cols(); jj++)
-                        for (int ii = 0; ii < simulation_history[k].m_matrices[i].rows(); ii++)
-                        {
+                for (int k = 0; k < hist_len; k++) {
+                    for (int jj = 0; jj < simulation_history[k].m_matrices[i].cols(); jj++) {
+                        for (int ii = 0; ii < simulation_history[k].m_matrices[i].rows(); ii++) {
                             values(cur, 0) = i;
                             values(cur, 1) = k;
                             values(cur, 2) = ii;
@@ -3691,18 +3677,19 @@ Type objective_function<Type>::operator()()
 
                             cur++;
                         }
+                    }
+                }
             }
         }
     }
 
     REPORT(values)
-    if (values_adreport == 1)
-    {
+    if (values_adreport == 1) {
         matrix<Type> value_column = values.block(0, 4, values.rows(), 1);
         ADREPORT(value_column)
     }
 
-    // 7 Calc the return of the objective function
+    // Calc the return of the objective function
     matrix<Type> ret;
     ret = objFunEvaluator.EvalExpr(simulation_history, time_steps + 2, mats, 0);
 
@@ -3710,8 +3697,27 @@ Type objective_function<Type>::operator()()
         REPORT_ERROR;
         return 0.0;
     }
-
+    
+    // std::vector<std::string> warning_log = exprEvaluator.GetWarningLog();
     REPORT_ERROR
+    //REPORT_WARNINGS
+    // FIXME: better warning system:
+    // 1. enum of distinct warning messages.
+    // 2. when a warning is triggered it pushes back one int into each of the
+    //    following vectors:
+    //      - warn_msg_int : value of the enum
+    //      - warn_row : parse table row
+    //      - warn_time : time step
+    // 3. these vectors are placed in the report.
+    // 4. on the r-side we can interpret every element of these vectors:
+    //      - warn_msg_int -> character vector of warning messages
+    //      - warn_row -> vector of expressions as characters (e.g. "x ~ round(0.5)")
+    //      - warn_time -> unaltered vector of time-steps
+    // 5. summarise this 'warning table' so that the time column is
+    //    a string representing time-step ranges (e.g. "1, 5-10"), which would
+    //    keep the table from being too long in models with many time-steps.
+    // 6. when this parsed warning table is not length-zero, throw a warning
+    //    that prints the table.
 
 #ifdef MP_VERBOSE
     std::cout << "======== end of objective function ========" << std::endl;

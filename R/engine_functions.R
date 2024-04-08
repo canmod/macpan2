@@ -468,7 +468,7 @@
 #' `index` is the index associated with this element.
 #' Please see the examples below, they are easier
 #' to understand than this explanation.
-#' * `time_var(x, change_points, index)`: An improvement
+#' * `time_var(x, change_points)`: An improvement
 #' to `time_group`.
 #'
 #' ### Arguments
@@ -815,4 +815,8 @@
 #' @aliases rbinom
 #' @aliases reulermultinom
 #' @aliases round
-NULL
+#' @aliases group_sums_n
+#' @aliases pmin
+#' @aliases pmax
+#' @export
+engine_functions = function() valid_func_args

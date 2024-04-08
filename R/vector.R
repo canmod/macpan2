@@ -1,7 +1,6 @@
 
 StructuredVector = function(x, ...) UseMethod("StructuredVector")
 
-
 StructuredVector.data.frame = function(x, index = NULL, values_name = "values", ...) {
   nms = setdiff(names(x), values_name)
   if (is.null(index)) index = mp_index(x[, nms, drop = FALSE])
@@ -96,6 +95,13 @@ StructuredVector.Index = function(x, ...) {
     self$.numbers[names(replacement_values)] = replacement_values
     self
   }
+  self$subset = function(...) {
+    new_index = mp_subset(self$index, ...)
+    new_index$reset_reference_index()
+    new_labels = new_index$labels()
+    new_values = self$numbers()[new_labels]
+    macpan2:::StructuredVector.numeric(new_values, index = new_index)
+  }
   self$labels_frame = function() {
     data.frame(
       labels = self$index$labels(),
@@ -143,6 +149,10 @@ names.StructuredVector = function(x) x$numbers() |> names()
 as.matrix.StructuredVector = function(x, ...) {
   x$numbers() |> as.matrix()
 }
+
+#' @export
+subset.StructuredVector = function(x, ...) x$subset(...)
+
 
 
 #' Structured Vectors
@@ -224,5 +234,23 @@ VectorList = function() {
     }
   }
   return_object(self, "VectorList")
+}
+
+
+
+#' @export
+mp_read_structured_vector = function(file) {
+  ## Ugly
+  x = macpan2:::CSVReader(file)$read()
+  x$values = as.numeric(x$values)
+  macpan2:::StructuredVector.data.frame(x, index = NULL, values_name = "values")
+}
+
+mp_read_structured_vectors = function(file, vector_names_column) {
+  ## Ugly
+  x = macpan2:::CSVReader(file)$read()
+  x[[vector_names_column]]
+  x$values = as.numeric(x$values)
+  macpan2:::StructuredVector.data.frame(x, index = NULL, values_name = "values")
 }
 

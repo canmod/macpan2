@@ -19,7 +19,10 @@ mp_trajectory_sim(model, n, probs = c(0.025, 0.25, 0.5, 0.75, 0.975))
 \item{model}{A dynamical model simulator produced by
 \code{\link{mp_simulator}}.}
 
-\item{include_initial}{Should the initial values be included in the output?}
+\item{include_initial}{Should the initial values of the simulation be
+included in the output? If \code{TRUE} this will include outputs for \code{time == 0}
+associated with the initial values. See \code{\link{mp_initial}} for another
+approach to getting the initial values.}
 
 \item{conf.int}{Should confidence intervals be produced?}
 

@@ -138,7 +138,8 @@ R/engine_functions.R: src/macpan2.cpp
 	grep "$(ROXY_RE)" $^ | sed "s/$(ROXY_RE)/\1/" >> $@
 	echo "#' @name engine_functions" >> $@
 	grep "$(COMMA_RE)$(ENUM_RE)" $^ | sed "s/$(COMMA_RE)$(ALIAS_RE)/#' @aliases \3/" >> $@
-	echo "NULL" >> $@
+	echo "#' @export" >> $@
+	echo "engine_functions = function() valid_func_args" >> $@
 
 
 doc-update: R/*.R misc/dev/dev.cpp misc/old-r-source/*.R

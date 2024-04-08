@@ -1,16 +1,3 @@
-to_absolute_flows = function(per_capita_flows) {
-  char_list = list()
-  for (size_var in names(per_capita_flows)) {
-    char_list = append(char_list, sprintf("%s ~ %s * %s"
-      , vapply(per_capita_flows[[size_var]], lhs_char, character(1L))
-      , size_var
-      , vapply(per_capita_flows[[size_var]], rhs_char, character(1L))
-    ))
-  }
-  lapply(char_list, as.formula)
-}
-
-
 ## two class types:
 ##   1. ChangeModel (e.g. set of flows)
 ##   2. UpdateMethod (e.g. Euler, RK4, EulerMultinomial, TimeDerivative)
@@ -28,6 +15,7 @@ to_absolute_flows = function(per_capita_flows) {
 ChangeModel = function() {
   self = Base()
   
+  ## abstract methods
   self$before_loop = function() list()
   self$before_flows = function() list()
   self$update_flows = function() list()
@@ -35,6 +23,8 @@ ChangeModel = function() {
   self$update_state = function() list()
   self$after_state = function() list()
   self$after_loop = function() list()
+  self$default = function() list()
+  self$integers = function() list()
   
   ## not quite abstract, but useful for now at least.
   ## these frame functions bind the rows of the 
@@ -140,6 +130,8 @@ ChangeComponent = function() {
 ##' to be used to create a `during` expression list after choosing an
 ##' `UpdateMethod`.
 ##' @param after List of two-sided formulas to be run in the after phase.
+##' @param default List of numerical defaults (TODO: more info)
+##' @param integers List of integer vectors (TODO: more info)
 ##' @examples
 ##' 
 ##' si = SimpleChangeModel(
@@ -148,12 +140,20 @@ ChangeComponent = function() {
 ##' si$during()
 ##' 
 ##' @noRd
-SimpleChangeModel = function(before = list(), during = list(), after = list()) {
+SimpleChangeModel = function(
+      before = list(), during = list(), after = list()
+    , default = list(), integers = list()
+  ) {
   self = ChangeModel()
   
   self$before = before
   self$during = during
   self$after = after
+  self$orig_default = default
+  self$orig_integers = integers
+  
+  self$default = function() self$orig_default
+  self$integers = function() self$orig_integers
   
   self$change_list = lapply(self$during, to_change_component)
   
@@ -210,17 +210,100 @@ SimpleChangeModel = function(before = list(), during = list(), after = list()) {
   return_object(self, "SimpleChangeModel")
 }
 
-AllFormulaChangeModel = function(before = list(), during = list(), after = list()) {
+AllFormulaChangeModel = function(
+      before = list(), during = list(), after = list()
+    , default = list(), integers = list()
+  ) {
   self = ChangeModel()
+  
   self$before = before
   self$during = during
   self$after = after
+  self$orig_default = default
+  self$orig_integers = integers
   
   self$before_loop = function() self$before
   self$before_flows = function() self$during
   self$after_loop = function() self$after
+  self$default = function() self$orig_default
+  self$integers = function() self$orig_integers
   
   return_object(self, "AllFormulaChangeModel")
+}
+
+#' @export
+as_default = function(x) UseMethod("as_default")
+
+#' @export
+as_default.numeric = function(x) {
+  if (!is.matrix(x) & is.array(x)) {
+    warning("Numerical array of more than two dimensions passed as a default. Flattening to a vector.")
+    dim(x) = NULL
+    
+  }
+  return(x)
+}
+
+#' @export
+as_default.Index = function(x) {
+  nms = state$index$labels()
+  setNames(rep(NA_real_, length(nms)), nms)
+}
+
+#' @export
+as_default.StructuredVector = function(x) x$numbers()
+
+#' @export
+as_index = function(x) UseMethod("as_index")
+
+#' @export
+as_index.numeric = function(x) NULL
+
+#' @export
+as_index.Index = function(x) x
+
+#' @export
+as_index.StructuredVector = function(x) x$index
+
+StrucFormulaChangeModel = function(
+      before = list(), during = list(), after = list()
+    , default = list(), integers = list()
+  ) {
+  self = ChangeModel()
+  
+  self$before = before
+  self$during = during
+  self$after = after
+  self$orig_default = default
+  self$orig_integers = integers
+  
+  self$default = function() lapply(self$orig_default, as_default)
+  self$index_list = function() {
+    (self$orig_default
+      |> lapply(as_index)
+      |> Filter(f = Negate(is.null))
+    )
+  }
+  self$before_strucs = function() method_apply(self$before, "render", self$index_list())
+  self$during_strucs = function() method_apply(self$during, "render", self$index_list())
+  self$after_strucs = function() method_apply(self$after, "render", self$index_list())
+  self$rendered_strucs = function() {
+    c(
+        self$before_strucs()
+      , self$during_strucs()
+      , self$after_strucs()
+    )
+  }
+  self$integers = function() {
+    l = do.call("c", method_apply(self$rendered_strucs(), "integers"))
+    l[names(self$orig_integers)] = self$orig_integers
+    l
+  }
+  self$before_loop = function() method_apply(self$before_strucs(), "updated_formula")
+  self$before_flows = function() method_apply(self$during_strucs(), "updated_formula")
+  self$after_loop = function() method_apply(self$after_strucs(), "updated_formula")
+  
+  return_object(self, "StrucFormulaChangeModel")
 }
 
 
@@ -295,26 +378,34 @@ mp_rk4.TMBModelSpec = function(model) model$change_update_method("rk4")
 mp_euler_multinomial.TMBModelSpec = function(model) model$change_update_method("euler_multinomial")
 
 
+## dispatch mechanism
 get_state_update_type = function(state_update_type, change_model) {
   if (inherits(change_model, "AllFormulaChangeModel")) return("no")
+  if (inherits(change_model, "StrucFormulaChangeModel")) return("no")
   state_update_type
 }
 get_state_update_method = function(state_update, change_model) {
   if (inherits(change_model, "AllFormulaChangeModel")) {
     return(NoUpdateMethod(change_model))
   }
+  if (inherits(change_model, "StrucFormulaChangeModel")) {
+    return(NoUpdateMethod(change_model))
+  }
   cls_nm = sprintf("%sUpdateMethod", var_case_to_cls_case(state_update))
   if (state_update == "rk4") cls_nm = "RK4UpdateMethod"
   get(cls_nm)(change_model)
 }
-get_change_model = function(before, during, after) {
+get_change_model = function(before, during, after, default, integers) {
+  struc_components = vapply(c(before, during, after), inherits, logical(1L), "StructuredFormulaSpec")
+  if (all(struc_components)) return(StrucFormulaChangeModel(before, during, after, default, integers))
+  if (any(struc_components)) stop("Cannot mix ordinary formulas as mp_struc-bound formulas ... for now, but we should relax this.")
   valid_before = all(vapply(before, is_two_sided, logical(1L)))
   if (!valid_before) stop("The before argument must be all two-sided formulas.")
   valid_after = all(vapply(after, is_two_sided, logical(1L)))
   if (!valid_after) stop("The after argument must be all two-sided formulas.")
   any_change_components = any(vapply(during, inherits, logical(1L), "ChangeComponent"))
-  if (any_change_components) return(SimpleChangeModel(before, during, after))
-  AllFormulaChangeModel(before, during, after)
+  if (any_change_components) return(SimpleChangeModel(before, during, after, default, integers))
+  AllFormulaChangeModel(before, during, after, default, integers)
 }
 
 ##' Update Methods
@@ -325,7 +416,6 @@ get_change_model = function(before, during, after) {
 ##' @param change_model An object of class `ChangeModel`.
 ##' @name update_methods
 ##' @noRd
-
 NoUpdateMethod = function(change_model) {
   self = UpdateMethod()
   self$change_model = change_model 
@@ -334,9 +424,6 @@ NoUpdateMethod = function(change_model) {
   self$after = function() self$change_model$after_loop()
   return_object(self, "NoUpdateMethod")
 }
-
-
-
 
 EulerUpdateMethod = function(change_model, existing_global_names = character()) {
   self = UpdateMethod()
@@ -363,7 +450,6 @@ EulerUpdateMethod = function(change_model, existing_global_names = character()) 
   self$after = function() self$change_model$after_loop()
   return_object(self, "EulerUpdateMethod")
 }
-
 
 RK4UpdateMethod = function(change_model) {
   self = UpdateMethod()
@@ -530,3 +616,17 @@ to_change_component.ChangeComponent = function(x) x
 
 #' @export
 to_change_component.formula = function(x) Formula(x)
+
+
+
+to_absolute_flows = function(per_capita_flows) {
+  char_list = list()
+  for (size_var in names(per_capita_flows)) {
+    char_list = append(char_list, sprintf("%s ~ %s * %s"
+      , vapply(per_capita_flows[[size_var]], lhs_char, character(1L))
+      , size_var
+      , vapply(per_capita_flows[[size_var]], rhs_char, character(1L))
+    ))
+  }
+  lapply(char_list, as.formula)
+}

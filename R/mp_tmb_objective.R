@@ -7,6 +7,7 @@ TransPrototype = function(formula, trans, input_var = "x", output_var = "y") {
   oor::return_object(self, "TransPrototype")
 }
 
+## FIXME: what does this do?
 ff = function(model, formula) {
   protos = list(
       MethodPrototype(~x, "x", character())
@@ -62,7 +63,7 @@ param_desc_to_inverse.Transform = function(desc, model) list(desc$inverse_two_si
 ## a string giving the name of the parameter
 param_desc_to_name = function(desc, model) UseMethod("param_desc_to_name")
 param_desc_to_name.character = function(desc, model) {
-  existing_names = model$default |> names()
+  existing_names = model$change_model$default() |> names()
   if (!desc %in% existing_names) {
     stop(
       "Parameter is not already in the model. ",

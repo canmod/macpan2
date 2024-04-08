@@ -99,6 +99,11 @@ apply_k_incr_int_permutations = function(n, k) {
 # return a list with all strictly increasing length-m
 # sequences of integers between 1 and n
 increasing_int_seq = function(n, m, x = list(1:m)) {
+  if (n == m) {
+    return(list(1:n))
+  } else if (m > n) {
+    stop("cannot return such a sequence")
+  }
   l = length(x)
   for (i in 0:(m - 1L)) {
     if (x[[l]][m - i] != (n - i)) {
