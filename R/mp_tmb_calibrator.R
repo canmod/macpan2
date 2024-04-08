@@ -766,8 +766,10 @@ TMBPar = function(
       sprintf("%s (including %s) %s:\n     %s"
         , "Requested parameters"
         , paste0(pnms[bad_pars], collapse = ", ")
-        , "are not available in the model spec, which includes the following"
+        , "are either not available in the model spec, which includes the following"
         , paste(spec_mats, collapse = ", ")
+        , "or cannot be fit because they are not default model parameters. See "
+        , "mp_default(spec) for all default model parameters."
       ) |> stop()
     }
     

@@ -106,7 +106,7 @@ param_desc_to_trans_obj.list = function(desc) {
 #' of formulas, the last of which has the parameter name on the 
 #' left-hand-side.
 #' 
-#' @section Types of Parameter Descriptions
+#' @section Types of Parameter Descriptions:
 #' 
 #' * Character String: All elements of a single matrix are used as parameters.
 #' * Transformation Object: All elements of a single matrix are transformed,
@@ -118,9 +118,9 @@ param_desc_to_trans_obj.list = function(desc) {
 #' inverse transformation of any set of matrices or matrix elements. This
 #' inverse will 
 #' 
-#' @section Transformation Object
+#' @section Transformation Object:
 #'
-#' @section List of Formulas 
+#' @section List of Formulas:
 #' 
 TMBObjectiveParam = function(model, param_description) {
   self = Base()

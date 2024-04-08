@@ -1,16 +1,15 @@
 ---
-title: "Specifying Time-Varying Parameters"
+title: "Advanced Specification of Time-Varying Parameters"
 output: 
   rmarkdown::html_vignette:
     toc: true
 vignette: >
-  %\VignetteIndexEntry{Specifying Time-Varying Parameters}
+  %\VignetteIndexEntry{Advanced Specification of Time-Varying Parameters}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
   chunk_output_type: console
 bibliography: macpan2.bib
-link-citations: TRUE
 ---
 
 [![status](https://img.shields.io/badge/status-working%20draft-red)](https://canmod.github.io/macpan2/articles/vignette-status#working-draft)
@@ -33,48 +32,20 @@ basefig_setup <- function() par(las = 1, bty = "l")
 knitr::knit_hooks$set(basefig = basefig_setup)
 ```
 
-```{r local_function, include=FALSE}
-# to be included in mp_tmb_coef in the future
-# see here, https://github.com/canmod/macpan2/issues/179
-backtrans <- function(x) {
-  vars1 <- intersect(c("default", "estimate", "conf.low", "conf.high"), names(x))
-  prefix <- stringr::str_extract(x[["mat"]], "^log(it)?_")  |> tidyr::replace_na("none")
-  sx <- split(x, prefix)
-  for (ptype in setdiff(names(sx), "none")) {
-    link <- make.link(stringr::str_remove(ptype, "_"))
-    sx[[ptype]] <- (sx[[ptype]]
-                    |> mutate(across(std.error, ~link$mu.eta(estimate)*.))
-                    |> mutate(across(any_of(vars1), link$linkinv))
-                    |> mutate(across(mat, ~stringr::str_remove(., paste0("^", ptype))))
-    )
-  }
-  bind_rows(sx)
-}
-
-```
-
-
 ## Baseline SIR Model
 
 Here we modify an [SIR](https://github.com/canmod/macpan2/tree/main/inst/starter_models/sir) model so that transmission rate is time-varying.
 
-We initialize a vector of state labels and parameter default values for convenience and specify a simulation time of 50 time steps. 
-```{r intializations}
+```{r baseline_sir}
 state_labels = c("S", "I", "R")
-time_steps = 50
-beta = 0.8 # per-capita transmission rate
-gamma = 0.2 # per-capita recovery rate
-```
-
-Using a fixed transmission rate of `r beta` we visualize the baseline SIR dynamics.
-```{r baseline_sir, echo = FALSE}
-# baseline SIR dynamics
-("starter_models"
+simulator = ("starter_models"
   |> mp_tmb_library("sir", package = "macpan2")
-  |> mp_simulator(time_steps = time_steps
+  |> mp_simulator(time_steps = 50
     , outputs = state_labels
-    , default = list(beta = beta, gamma = gamma)
+    , default = list(beta = 0.8, gamma = 0.2)
   )
+)
+(simulator
   |> mp_trajectory()
   |> mutate(state = factor(matrix, state_labels))
   |> ggplot() 
@@ -84,178 +55,154 @@ Using a fixed transmission rate of `r beta` we visualize the baseline SIR dynami
 
 ## Piecewise Time Variation
 
-To create a piecewise time-varying transmission rate, we need to specify two variables:
-
-1. `beta_changepoints` - An integer vector containing the starting time steps at which the tranmission rate `beta` changes. This vector starts with a time step of 0 because we want to specify an initial default value of `beta` followed by changing transmission rates at the beginning of time-step 10 and 15
-2. `beta_values` A numeric vector containing the values `beta` takes at each time step specified in `beta_changepoints`.
-
-```{r piecewise_defaults}
-beta_changepoints = c(0, 10, 15)
-beta_values = c(0.8, 0.01, 0.4)
+We now change the value of the transmission rate, `beta`, at the beginning of time-step 10 and 15. In the first step we add to the simulator a vector containing these change-points.
+```{r change_points}
+simulator$add$matrices(beta_changepoints = c(0, 10, 15))
 ```
 
-We then need to specify an expression that updates `beta` to `beta_values` at the time steps in `beta_changepoints`. To do this we use the [`time_step`](https://canmod.github.io/macpan2/reference/engine_functions.html#time-indexing) function to get the current time step for each iteration in the loop. We specify a time lag of 0 from the current time step with `time_step(0)` because we want the value of the current time step. 
-
-We then use the [`time_var`](https://canmod.github.io/macpan2/reference/engine_functions.html#time-indexing) function that will return a value for `beta`, from `beta_values`, by comparing the current time step with the time steps in `beta_changepoints`.
-```{r time_var}
-# see ?time_var for arguments
-expr = list(
- #beta ~ time_var(beta_values, beta_changepoints, time_step(1))
- beta ~ time_var(beta_values, beta_changepoints)
-)
-
+Next we add the values to which `beta` changes at these time-steps.
+```{r change_values}
+simulator$add$matrices(beta_values = c(0.8, 0.01, 0.4))
 ```
 
-Let's test that `time_var` is computing what we want for 20 time steps.
-```{r sim_time_var}
-simple_sims(
-    iteration_exprs = expr
-  , time_steps = 20
-  
-  # for integer vectors (usually indexing vectors) use `int_vecs`
-  , int_vecs = list(beta_changepoints = beta_changepoints)
-  
-  # for numeric vectors (model defaults) use `mats`
-  # we need to initialize beta because it is a variable in our model
-  # so we set to 0.8 - at the beginning of the simulation loop (time_step==1)
-  # beta gets updated so the initial value of beta has no effect in this case
-  , mats = list(
-      beta = beta
-    , beta_values = beta_values)
-
-) |> filter(matrix == "beta")
+We also need a variable to track the current value of `beta`. This `beta_pointer` starts at time-step equal to 0, and it will be incremented throughout the simulation.
+```{r change_pointer}
+simulator$add$matrices(beta_pointer = 0)
 ```
 
-Now that we know our expression is updating `beta` correctly, we can modify the SIR model to include this piece-wise transmission rate.
-```{r piecewise_simulator}
-
-piecewise_spec = ("starter_models"
-  # read in model from library                    
-  |> mp_tmb_library("sir", package = "macpan2")
-  # insert expression for updating beta at the beginning of the simulation loop
-  |> mp_tmb_insert(
-      phase="during"
-    , at=1L
-    , expressions = expr
-    , default = list(
-        beta = beta # note this value doesnt not effect life
-      , gamma = gamma
-      , beta_values = beta_values
-      )
-    , integers = list(beta_changepoints = beta_changepoints))
+We increment `beta_pointer` using the [`time_group` function](https://canmod.github.io/macpan2/reference/engine_functions.html#time-indexing) that returns either `beta_pointer` or `beta_pointer + 1` depending on whether or not the current time-step is at a change-point in `beta_changepoints`.
+```{r update_pointer}
+simulator$insert$expressions(
+    beta_pointer ~ time_group(beta_pointer, beta_changepoints), 
+    .phase = "during"
 )
+```
 
-print(piecewise_spec)
-
-piecewise_simulator = (piecewise_spec
-   |> mp_simulator(time_steps = time_steps, outputs=state_labels)
-
+We update `beta` at every iteration of the simulation loop using this `beta_pointer`.
+```{r update_beta}
+simulator$insert$expressions(
+  beta ~ beta_values[beta_pointer],
+  .phase = "during"
 )
-
-
 ```
 
 Now we plot the updated simulations using these change-points, which we highlight with vertical lines.
 ```{r time_varying_graph}
-# simulated data from model
-sim_data = mp_trajectory(piecewise_simulator)
-
-(sim_data
+s = mp_trajectory(simulator)
+cp = simulator$get$initial("beta_changepoints")
+(s
   %>% mutate(state = factor(matrix, state_labels))
   %>% ggplot()
   + geom_line(aes(time, value, colour = state))
   + geom_vline(
-    aes(xintercept = x),
-    linetype = "dashed",
-    alpha = 0.5,
-    data = data.frame(x = beta_changepoints)
+    aes(xintercept = x), 
+    linetype = "dashed", 
+    alpha = 0.5, 
+    data = data.frame(x = cp)
   )
 )
 ```
 
 The clear kinks at times 10 and 15 are due the drop and then lift of the transmission rate at these times.
 
-<!-- Not clear yet why trajectories are shifted by one time step, i think my expression is in the right place-->
-
-
-
 ## Calibrating Time Variation Parameters
 
 First we simulate data to fit our model to, to see if we can recover the time-varying parameters.
 ```{r noisy_data, basefig = TRUE}
 set.seed(1L)
-I_observed = (sim_data
-              |> filter(matrix=="I")
-              # add some noise
-              |> mutate(value = rpois(n(),value))
+I_observed = rpois(50
+  , filter(s, matrix == "I")$value
 )
-plot(I_observed$time, I_observed$value)
+plot(I_observed)
 ```
 
-<!-- think I want to log transform -->
-
-We often want to include parameter constraints in our models, and one way to do this implicitly is to transform the parameters [@bolker2008]. Further, transformations can sometimes help when estimating parameters by making the "likelihood surface closer to quadratic" and reducing parameter correlation [@bolker2008]. Here we log-transform $\beta$ because our constraint is that $\beta$ must be positive and the domain of the logarithm is $(0, \infty)$.
-
-
-```{r transform}
-
-# need to insert transformation
-# not this simple, need to log transform beta_values
-transformed_spec = mp_tmb_insert(
-    model = piecewise_spec
-  , phase = "before"
-  , at = 1
-  , expressions = list(beta_values ~ exp(log_beta_values))
-  , default = list(log_beta_values = log(beta_values))
+Then we add a few matrices to the model for keeping tracking of information used in model fitting.
+```{r add_matrices}
+simulator$update$matrices(
+  
+  ## observed data
+  I_obs = I_observed,
+  
+  ## simulated trajectory to compare with data
+  I_sim = empty_matrix, 
+  
+  ## location of I in the state vector
+  ## (the `-1L` bit is to get 0-based indices instead of 1-based)
+  I_index = match("I", state_labels) - 1L, 
+  
+  ## matrix to contain the log likelihood values at 
+  ## each time step
+  log_lik = empty_matrix, 
+  
+  ## need to save the simulation history of each of these matrices
+  .mats_to_save = c("I_sim", "log_lik")
 )
-transformed_spec
-
-
-
-# piecewise_calib = mp_tmb_calibrator(
-#     spec = transformed_spec
-#   , data = I_observed
-#   , traj = "I"
-#   , par = "log_beta_values"
-#   # can we actully estimate a vector of betas, or only one beta
-#   #, tv = "beta"
-#   , outputs = state_labels
-#   # we don't need to update any defaults in
-#   # `spec`
-# 
-# )
-# 
-# mp_optimize(piecewise_calib)
-# # if (piecewise_calib$optimization_history$get()[[1L]]$convergence  != 0) {
-# #   stop("time-varying optimization example is no longer converging")
-# # }
-# # # looking at coefficients and CIs
-# # # we need to back transform to interpret
-# cc <- (mp_tmb_coef(piecewise_calib, conf.int=TRUE)
-#         |> backtrans()
-# )
-# cc
-# beta_values
 ```
 
+Now we need some new expressions. The first expression pulls out the I state from the state vector.
+```{r pull_out_trajectory}
+simulator$insert$expressions(
+  I_sim ~ I,
+  .phase = "during"
+)
+```
 
-```{r old_way}
+The second expression computes a vector of Poisson log-likelihood values -- one for each time step.
+```{r log_lik}
+simulator$insert$expressions(
+  log_lik ~ dpois(I_obs, clamp(rbind_time(I_sim))),
+  .phase = "after"
+)
+simulator$replace$obj_fn(~ -sum(log_lik))
+```
 
-# the old way of calibrating
-transformed_sim = transformed_spec |> mp_simulator(time_steps = time_steps, outputs = state_labels)
-
-default_beta = mean(transformed_sim$get$initial("beta_values"))
+Next we declare the beta values as parameters to be optimized on the log scale. The clearest way to do this is to form a data frame with one row for each parameter to be fitted.
+```{r params_frame}
+default_beta = mean(simulator$get$initial("beta_values"))
 params_to_fit = data.frame(
     mat = "log_beta_values"
   , row = 0:2
   , default = log(default_beta)
 )
+print(params_to_fit)
+```
+There are a couple potentially confusing aspects to this data frame. First, we want to fit the `beta` values on the log scale, and we indicate this by prepending `log_` in front of the name of the `beta_values` matrix that is in the model. We will more explicitly add the `log_beta_values` matrix to the model in the next code chunk. Second, the word `row` corresponds to an index for the change points. In particular, `row = 0` corresponds to the initial `beta`, `row = 1` to the first change point and `row = 2` to the second. This is because all quantities passed to `macpan2` engines are matrices, and so in this case different rows of this `log_beta_values` matrix (actually column vector) correspond to different change points. If we were dealing with matrices with more than one column we would need to include a `col` column in this data frame to indicate the matrix columns of the matrix entries that correspond to parameters to be fitted.
 
-transformed_sim$replace$params_frame(params_to_fit)
-transformed_sim$optimize$nlminb()
-
+Now we log transform the `beta_values` matrix entries and declare them as parameters.
+```{r params}
+simulator$add$transformations(Log("beta_values"))
+simulator$replace$params_frame(params_to_fit)
 ```
 
+Finally we fit the model back to the simulation data.
+```{r optimize}
+simulator$optimize$nlminb()
+```
+
+```{r optimization_check, echo = FALSE}
+if (simulator$optimization_history$get()[[1L]]$convergence  != 0) {
+  stop("time-varying optimization example is no longer converging")
+}
+```
+
+We can see that the optimizer converges (i.e. `$convergence = 0`) in `r simulator$optimization_history$get()[[1L]]$iterations` iterations.
+
+On the log scale we see that the optimizer finds different values (`current`) than it started at (`default`).
+```{r log_parameters}
+simulator$current$params_frame()
+```
+
+More importantly the beta values on the untransformed scale recover reasonable values that are qualitatively consistent with the values used in the simulations.
+```{r recovered_parameters}
+data.frame(
+  fitted = formatC(
+    exp(simulator$current$params_frame()$current),
+    format = "e", digits = 2
+  ),
+  true = simulator$get$initial("beta_values")
+)
+```
+Note however that the second fitted beta value is much smaller than the true value, which is potentially interesting.
 
 ## Radial Basis Functions for Flexible Time Variation (In-Progress)
 
@@ -264,7 +211,7 @@ This section uses radial basis functions (RBFs) to generate models with a flexib
 Before we can add the fancy radial basis for the transmission rate, we need a base model. We use an SIR model that has been modified to include waning.
 
 ```{r}
-sir_waning = mp_tmb_library("starter_models"
+sir = mp_tmb_library("starter_models"
   , "sir_waning"
   , package = "macpan2"
 )
@@ -329,7 +276,7 @@ Here is a simulation model with a radial basis for exogenous transmission rate d
 
 ```{r sim_rbf}
 set.seed(1L)
-simulator = mp_simulator(sir_waning
+simulator = mp_simulator(sir
   , time_steps = n
   , outputs = c("S", "I", "R", "infection", "beta")
   , default = list(
