@@ -106,7 +106,7 @@ enum macpan2_func
     , MP2_TIME_GROUP = 43 // fwrap,fail: time_group(i, change_points)
     , MP2_COS = 44 // fwrap,null: cos(x)
     , MP2_PRINT = 45 // fwrap,null: print(x)
-    , MP2_TIME_VAR = 46 // fwrap,fail: time_var(x, change_points, change_pointer)
+    , MP2_TIME_VAR = 46 // fwrap,fail: time_var(x, change_points)
     , MP2_BINOM_SIM = 47 // fwrap,fail: rbinom(size, probability)
     , MP2_EULER_MULTINOM_SIM = 48 // fwrap,fail: reulermultinom(size, rate, delta_t)
     , MP2_ROUND = 49 // fwrap,null: round(x)
@@ -2159,7 +2159,7 @@ public:
             // #' `index` is the index associated with this element.
             // #' Please see the examples below, they are easier
             // #' to understand than this explanation.
-            // #' * `time_var(x, change_points, index)`: An improvement
+            // #' * `time_var(x, change_points)`: An improvement
             // #' to `time_group`.
             // #'
             // #' ### Arguments
@@ -2170,8 +2170,6 @@ public:
             // #' current time.
             // #' * `lag`: Number of time-steps to look back for
             // #' the time-step to return.
-            // #' * `index`: Index associated with the current time
-            // #' group.
             // #' * `change_points`: Increasing column vector of
             // #' time steps giving the lower bound of each time
             // #' group.
@@ -2199,6 +2197,17 @@ public:
             // #'   change_points = c(0, 4, 7),
             // #'   time_variation_schedule = c(42, pi, sqrt(2)),
             // #'   time_varying_parameter = empty_matrix
+            // #' )
+            // #' set.seed(1L)
+            // #' simple_sims()
+            // #' change_points = c(0,2,5)
+            // #' x_val = rnorm(length(change_points))
+            // #'(simple_sims(
+            // #'   iteration_exprs = list(x ~ time_var(x_val,change_points))
+            // #' , int_vecs = list(change_points = change_points)
+            // #' , mats = list(x = empty_matrix, x_val=x_val) 
+            // #' , time_steps = 10L
+            // #'   ) %>% filter(matrix=="x")
             // #' )
             // #' ```
             // #'

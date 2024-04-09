@@ -45,7 +45,7 @@ valid_func_sigs = c(
       , "fwrap,fail: time_group(i, change_points)"
       , "fwrap,null: cos(x)"
       , "fwrap,null: print(x)"
-      , "fwrap,fail: time_var(x, change_points, change_pointer)"
+      , "fwrap,fail: time_var(x, change_points)"
       , "fwrap,fail: rbinom(size, probability)"
       , "fwrap,fail: reulermultinom(size, rate, delta_t)"
       , "fwrap,null: round(x)"

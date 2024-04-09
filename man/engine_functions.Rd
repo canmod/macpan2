@@ -589,7 +589,7 @@ greater than the current time step. The time group
 \code{index} is the index associated with this element.
 Please see the examples below, they are easier
 to understand than this explanation.
-\item \code{time_var(x, change_points, index)}: An improvement
+\item \code{time_var(x, change_points)}: An improvement
 to \code{time_group}.
 }
 }
@@ -602,8 +602,6 @@ to element in \code{change_points} that contains the
 current time.
 \item \code{lag}: Number of time-steps to look back for
 the time-step to return.
-\item \code{index}: Index associated with the current time
-group.
 \item \code{change_points}: Increasing column vector of
 time steps giving the lower bound of each time
 group.
@@ -633,6 +631,17 @@ sims = simple_sims(
   change_points = c(0, 4, 7),
   time_variation_schedule = c(42, pi, sqrt(2)),
   time_varying_parameter = empty_matrix
+)
+set.seed(1L)
+simple_sims()
+change_points = c(0,2,5)
+x_val = rnorm(length(change_points))
+(simple_sims(
+  iteration_exprs = list(x ~ time_var(x_val,change_points))
+, int_vecs = list(change_points = change_points)
+, mats = list(x = empty_matrix, x_val=x_val) 
+, time_steps = 10L
+  ) \%>\% filter(matrix=="x")
 )
 }\if{html}{\out{</div>}}
 }

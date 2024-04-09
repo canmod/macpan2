@@ -468,7 +468,7 @@
 #' `index` is the index associated with this element.
 #' Please see the examples below, they are easier
 #' to understand than this explanation.
-#' * `time_var(x, change_points, index)`: An improvement
+#' * `time_var(x, change_points)`: An improvement
 #' to `time_group`.
 #'
 #' ### Arguments
@@ -479,8 +479,6 @@
 #' current time.
 #' * `lag`: Number of time-steps to look back for
 #' the time-step to return.
-#' * `index`: Index associated with the current time
-#' group.
 #' * `change_points`: Increasing column vector of
 #' time steps giving the lower bound of each time
 #' group.
@@ -508,6 +506,17 @@
 #'   change_points = c(0, 4, 7),
 #'   time_variation_schedule = c(42, pi, sqrt(2)),
 #'   time_varying_parameter = empty_matrix
+#' )
+#' set.seed(1L)
+#' simple_sims()
+#' change_points = c(0,2,5)
+#' x_val = rnorm(length(change_points))
+#'(simple_sims(
+#'   iteration_exprs = list(x ~ time_var(x_val,change_points))
+#' , int_vecs = list(change_points = change_points)
+#' , mats = list(x = empty_matrix, x_val=x_val) 
+#' , time_steps = 10L
+#'   ) %>% filter(matrix=="x")
 #' )
 #' ```
 #'
