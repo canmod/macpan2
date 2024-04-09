@@ -22,20 +22,19 @@ articles:
   - calibration
   - real_data
   - state_updaters
-  - time_varying_parameters
 - title: Specs
   desc: Specification Documents
   contents:
   - cpp_side
   - vignette_status
 - title: Superuser Guides
-  desc: Vignettes aimed at advanced users
+  desc: Articles aimed at advanced users
   contents:
   - calibration_advanced
   - time_varying_parameters_advanced
   - engine_agnostic_grammar
 - title: Developer Guides
-  desc: Vignettes aimed at package developers
+  desc: Articles aimed at package developers
   contents:
   - design_concepts
   - development_patterns
@@ -43,3 +42,7 @@ articles:
   - composing_simulation_models
   - elementwise_binary_operators
   - state_dependent_rates
+- title: Not Ready
+  desc: Articles that are not ready for users or developers
+  contents:
+  - time_varying_parameters
