@@ -40,6 +40,9 @@ get_mod_info <- function(f) {
         stop("Cannot find the ", field, " in README header.")
       }
       value = sub(pattern, "", lines[1L])
+      
+      ## remove quotes at beginning or end of string
+      value = gsub("(^ *['\"]|['\"] *$)", "", value)
       return(value)
     }
     
