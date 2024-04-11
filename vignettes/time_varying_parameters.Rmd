@@ -79,6 +79,7 @@ Using a fixed transmission rate of `r beta` we visualize the baseline SIR dynami
   |> mutate(state = factor(matrix, state_labels))
   |> ggplot() 
   + geom_line(aes(time, value, colour = state))
+  + theme_bw()
 )
 ```
 
@@ -94,13 +95,10 @@ beta_changepoints = c(0, 10, 15)
 beta_values = c(0.8, 0.01, 0.4)
 ```
 
-We then need to specify an expression that updates `beta` to `beta_values` at the time steps in `beta_changepoints`. To do this we use the [`time_step`](https://canmod.github.io/macpan2/reference/engine_functions.html#time-indexing) function to get the current time step for each iteration in the loop. We specify a time lag of 0 from the current time step with `time_step(0)` because we want the value of the current time step. 
-
-We then use the [`time_var`](https://canmod.github.io/macpan2/reference/engine_functions.html#time-indexing) function that will return a value for `beta`, from `beta_values`, by comparing the current time step with the time steps in `beta_changepoints`.
+We then need to specify an expression that updates `beta` to `beta_values` at the time steps in `beta_changepoints`. We use the [`time_var`](https://canmod.github.io/macpan2/reference/engine_functions.html#time-indexing) function that will return a value for `beta`, from `beta_values`, by comparing the current time step with the time steps in `beta_changepoints`.
 ```{r time_var}
 # see ?time_var for arguments
 expr = list(
- #beta ~ time_var(beta_values, beta_changepoints, time_step(1))
  beta ~ time_var(beta_values, beta_changepoints)
 )
 
@@ -128,35 +126,38 @@ simple_sims(
 
 Now that we know our expression is updating `beta` correctly, we can modify the SIR model to include this piece-wise transmission rate.
 ```{r piecewise_simulator}
-
-piecewise_spec = ("starter_models"
+# model specification with piece-wise transmission rates
+piecewise_spec = (
+  "starter_models"
   # read in model from library                    
   |> mp_tmb_library("sir", package = "macpan2")
   # insert expression for updating beta at the beginning of the simulation loop
   |> mp_tmb_insert(
       phase="during"
-    , at=1L
+    , at=1
     , expressions = expr
     , default = list(
-        beta = beta # note this value doesnt not effect life
+        # Note: the default value of beta here has no effect, because at the
+        # first time step beta is updated to beta_values[1]
+        beta = beta
       , gamma = gamma
       , beta_values = beta_values
       )
     , integers = list(beta_changepoints = beta_changepoints))
 )
-
+# check that model spec was updated accordingly
 print(piecewise_spec)
 
+# create simulator object
 piecewise_simulator = (piecewise_spec
-   |> mp_simulator(time_steps = time_steps, outputs=state_labels)
+   |> mp_simulator(time_steps = time_steps, outputs=c(state_labels))
 
 )
-
 
 ```
 
 Now we plot the updated simulations using these change-points, which we highlight with vertical lines.
-```{r time_varying_graph}
+```{r time_varying_graph, echo=FALSE}
 # simulated data from model
 sim_data = mp_trajectory(piecewise_simulator)
 
@@ -164,97 +165,99 @@ sim_data = mp_trajectory(piecewise_simulator)
   %>% mutate(state = factor(matrix, state_labels))
   %>% ggplot()
   + geom_line(aes(time, value, colour = state))
+  + geom_point(aes(time, value, colour = state))
   + geom_vline(
     aes(xintercept = x),
     linetype = "dashed",
     alpha = 0.5,
     data = data.frame(x = beta_changepoints)
   )
+  + theme_bw()
 )
 ```
 
-The clear kinks at times 10 and 15 are due the drop and then lift of the transmission rate at these times.
-
-<!-- Not clear yet why trajectories are shifted by one time step, i think my expression is in the right place-->
-
+The clear changes in dynamics at times 10 and 15 are due to the drop and then lift of the transmission rate at these time steps.
 
 
 ## Calibrating Time Variation Parameters
 
 First we simulate data to fit our model to, to see if we can recover the time-varying parameters.
-```{r noisy_data, basefig = TRUE}
+```{r obs_data, basefig = TRUE}
 set.seed(1L)
 I_observed = (sim_data
               |> filter(matrix=="I")
-              # add some noise
+              # add some poisson noise
               |> mutate(value = rpois(n(),value))
 )
 plot(I_observed$time, I_observed$value)
 ```
 
-<!-- think I want to log transform -->
 
 We often want to include parameter constraints in our models, and one way to do this implicitly is to transform the parameters [@bolker2008]. Further, transformations can sometimes help when estimating parameters by making the "likelihood surface closer to quadratic" and reducing parameter correlation [@bolker2008]. Here we log-transform $\beta$ because our constraint is that $\beta$ must be positive and the domain of the logarithm is $(0, \infty)$.
 
+```{r transformed_spec}
 
-```{r transform}
-
-# need to insert transformation
-# not this simple, need to log transform beta_values
+# transformed model specification
 transformed_spec = mp_tmb_insert(
     model = piecewise_spec
   , phase = "before"
   , at = 1
+  # we need to exponentiate log transformed values so beta is on the appropriate
+  # scale when computing model dynamics
   , expressions = list(beta_values ~ exp(log_beta_values))
-  , default = list(log_beta_values = log(beta_values))
+  # we also need to specify default values for log_beta_values
+  # here we set all default values for beta to the mean of the true values
+  # i.e. mean(log(beta_values))
+  , default = list(
+      log_beta_values = rep(mean(log(beta_values)), length(beta_values))
+    )
 )
+# Note the true values of beta (`beta_values`) are still included in the default
+# list, however they get updated before the simulation loop, so they are not
+# informing our estimates for these values when calibrating.
 transformed_spec
 
-
-
-# piecewise_calib = mp_tmb_calibrator(
-#     spec = transformed_spec
-#   , data = I_observed
-#   , traj = "I"
-#   , par = "log_beta_values"
-#   # can we actully estimate a vector of betas, or only one beta
-#   #, tv = "beta"
-#   , outputs = state_labels
-#   # we don't need to update any defaults in
-#   # `spec`
-# 
-# )
-# 
-# mp_optimize(piecewise_calib)
-# # if (piecewise_calib$optimization_history$get()[[1L]]$convergence  != 0) {
-# #   stop("time-varying optimization example is no longer converging")
-# # }
-# # # looking at coefficients and CIs
-# # # we need to back transform to interpret
-# cc <- (mp_tmb_coef(piecewise_calib, conf.int=TRUE)
-#         |> backtrans()
-# )
-# cc
-# beta_values
 ```
 
+Next we create the calibrator object and specify that we want to estimate the vector of time varying transmission rates, `log_beta_values`, by passing this parameter name to the `par` argument. 
 
-```{r old_way}
-
-# the old way of calibrating
-transformed_sim = transformed_spec |> mp_simulator(time_steps = time_steps, outputs = state_labels)
-
-default_beta = mean(transformed_sim$get$initial("beta_values"))
-params_to_fit = data.frame(
-    mat = "log_beta_values"
-  , row = 0:2
-  , default = log(default_beta)
+```{r piecewise_calib}
+# set up calibrator object
+piecewise_calib = mp_tmb_calibrator(
+    spec = transformed_spec
+  , data = I_observed
+  , traj = "I"
+  # we want to estimate the log-transformed parameters
+  , par = "log_beta_values"
+  , outputs = state_labels
 )
 
-transformed_sim$replace$params_frame(params_to_fit)
-transformed_sim$optimize$nlminb()
+# optimization step
+mp_optimize(piecewise_calib)
+```
+
+After optimizing, we can make a coefficient plot with the estimated values and their confidence intervals, to compare with the true values.
+
+```{r piecewise_est, echo=FALSE, results=FALSE}
+# get parameter estimates, and compare with true values
+cc <- (mp_tmb_coef(piecewise_calib, conf.int=TRUE)
+        # back transform to get beta values on original scale
+        |> backtrans()
+) |> cbind(true_value = beta_values)
+
+(ggplot(cc,aes(estimate,row,col="estimated value"))
+  + geom_point()
+  + geom_errorbarh(aes(xmin=conf.low, xmax=conf.high))
+  + geom_point(aes(true_value, row,col="true value"))
+  + geom_vline(xintercept = 0, lty = 2)
+  + ggtitle("Coefficient plot")
+  + theme_bw()
+  + ylab("beta_values")
+)
 
 ```
+
+In general, the transmission rate estimates follow the expected pattern changing from high, to low, to moderate. The most precise estimate, for the true value of `r beta_values[1]`, results because the observed prevalence data is most informative about the transmission rate when the infection is initially spreading. It makes sense that we get the most accurate estimate for the final transmission rate because most of the observed data is simulated with the final known transmission rate. We lose accuracy and precision for the middle rate because there is only `r beta_changepoints[3]-beta_changepoints[2]` time steps of observed data informing this parameter.
 
 
 ## Radial Basis Functions for Flexible Time Variation (In-Progress)
@@ -263,7 +266,7 @@ This section uses radial basis functions (RBFs) to generate models with a flexib
 
 Before we can add the fancy radial basis for the transmission rate, we need a base model. We use an SIR model that has been modified to include waning.
 
-```{r}
+```{r sir_waning}
 sir_waning = mp_tmb_library("starter_models"
   , "sir_waning"
   , package = "macpan2"
@@ -329,39 +332,39 @@ Here is a simulation model with a radial basis for exogenous transmission rate d
 
 ```{r sim_rbf}
 set.seed(1L)
-simulator = mp_simulator(sir_waning
-  , time_steps = n
+# spec_waning = (sir_waning
+##              |> mp_tmb_insert(
+#                  phase = "before"
+#                , at = Inf
+#                , expressions = list(eta ~ gamma * exp(X %*% b))
+#                , default = list(eta = empty_matrix)
+#              ) |> mp_tmb_insert(
+#                  phase = "during"
+#                , at = 1
+#                , expressions = list(beta  ~ eta[time_step(1)] / clamp(S/N, 1/100))
+#              ) 
+# )
+
+
+simulator_waning = (sir_waning
+                    |> mp_simulator(
+    time_steps = n
   , outputs = c("S", "I", "R", "infection", "beta")
   , default = list(
       N = 100000, I = 500, R = 0
     , beta = 1, gamma = 0.2, phi = 0.01
-    , X = rbf(n, d)
-    , b = rnorm(d, sd = 0.01)
-  )
+    
+  ))
 )
-simulator$insert$expressions(
-    eta ~ gamma * exp(X %*% b)
-  , .phase = "before"
-  , .at = Inf
-)
-simulator$insert$expressions(
-    beta ~ eta[time_step(1)] / clamp(S/N, 1/100)
-  , .phase = "during"
-  , .at = 1
-)
-simulator$add$matrices(
-    eta = empty_matrix
-)
-simulator$replace$params(
-    default = rnorm(d, sd = 0.01)
-  , mat = rep("b", d)
-  , row = seq_len(d) - 1L
-)
-print(simulator)
+
+
+
+
+print(simulator_waning)
 ```
 
 ```{r plot_rbf, fig.height=8, fig.width=6}
-(simulator
+(simulator_waning
  |> mp_trajectory()
  |> ggplot()
  + facet_wrap(~ matrix, ncol = 1, scales = 'free')
@@ -369,182 +372,40 @@ print(simulator)
 )
 ```
 
+
 ### Calibration
 
-Now we're going to calibrate this model to data. The main innovation here is that we will use a 
-built-in feature of [TMB](https://cran.r-project.org/package=TMB) (on which `macpan2` is constructed),
-estimation of latent variables by [Laplace approximation](https://en.wikipedia.org/wiki/Laplace%27s_approximation) to fit the time series efficiently without overfitting (see section 5.10 of @madsenIntroduction2011, @kristensenTMB2016, or the [TMB documentation](https://kaskr.github.io/adcomp/_book/Tutorial.html#statistical-modelling) for more detail).
-
-The next few steps will roughly follow the first example in the [Calibration](./calibration.html) vignette: TODO: make sure to line this state up with the specific code in the calibration vignette.
+<!-- rbf stuff with default likelihood-->
 
 1\. Simulate from the model and add some noise:
 
 ```{r noisy_sim, basefig = TRUE}
-obs_I <- (simulator
+obs_I <- (simulator_waning
     |> mp_trajectory()
     |> filter(matrix == "I")
-    |> mutate(across(value, ~ rnorm(n(), ., sd = 50)))
-    |> pull(value)
+    |> mutate(across(value, ~ rpois(n(), .)))
 )
-plot(obs_I, xlab = "time", ylab = "prevalence")
+ggplot(obs_I,aes(time,value))+
+  geom_point()+
+  theme_bw()+
+  ylab("prevalence")
+
 ```
+
 
 2\. Add calibration information.
 
-We start by adding standard boilerplate stuff to include the observed data and store/return the results.
 
-```{r add_calib_info}
-## copied from 'calibration/"hello world"' example
-simulator$add$matrices(
-    I_obs = obs_I
-  , I_sim = empty_matrix
-  , log_lik = empty_matrix
-  , .mats_to_save = c("I_sim")
-  , .mats_to_return = c("I_sim")
+```{r}
+mp_tmb_calibrator(sir_waning
+  , data = obs_I
+  , traj = "I"
+  , par = c("beta")
+  , tv = mp_rbf("beta",d,  initial_weights = rep(0,d))
 )
-simulator$insert$expressions(
-     I_sim ~ I
-   , .phase = "during"
-   , .at = Inf
-)
+
+
 ```
 
-Now we start to deviate from the previous example: in addition to
-a parameter (`I_sd`) for the standard deviation of the noise in $I$, we
-also add a parameter (`rbf_sd`) for the variance of the RBF coefficients,
-and penalize the likelihood using 
-
-$$
-\begin{split}
-I_{\textrm{obs}} & \sim \textrm{Normal}(I_\textrm{sim}(\phi, {\mathbf b}), \sigma^2_I) \\
-b_i & \sim \textrm{Normal}(0, \sigma^2_{\textrm{rbf}})
-\end{split}
-$$
-and the likelihood is defined as:
-$$
-\int {\cal L}(I_{\textrm{obs}}|\phi, {\mathbf b}', \sigma^2_I) \cdot {\cal L}({\mathbf b}'|\sigma^2_{\textrm{rbf}}) \, d{\mathbf b}.
-$$
-
-The $\phi$ vector is a set of *fixed-effect* (unpenalized) parameters; in this case it is empty, but it could include (for example) time-constant recovery or immune-waning rates, or a baseline transmission rate (see note below). (The fixed-effect parameter is usually denoted as $\beta$ in statistical models, but we've already used that symbol for the transmission coefficient ...)
-
-Although this looks awful, (1) the high-dimensional integral over $\mathbf b$ can be separated into a product of one-dimensional integrals and (2) the Laplace approximation gives us a quick, reasonable approximation to the one-dimensional integrals.
-
-The `rbf_sd` parameter can be interpreted as a standard deviation on a Gaussian random effect
-or as approximately $1/\sqrt{\lambda}$ where $\lambda$ is a ridge penalty.
-
-Continuing with the coding, we add the parameters and negative log-likelihood to the model,
-making the negative log-likelihood a *sum* of the two terms in the integral above: the 
-NLL of the data (`-sum(dnorm(I_obs, ...))`) and the likelihood of the RBF parameters (`-sum(dnorm(b, ...))`):
-we fit both of the SD parameters on the log scale.
-
-```{r add_pens}
-simulator$add$matrices(
-    I_sd = 1
-  , rbf_sd = 1
-)
-simulator$insert$expressions(
-     log_lik ~ 
-       -sum(dnorm(I_obs, rbind_time(I_sim), I_sd)) +
-       -1*sum(dnorm(b, 0.0, rbf_sd)),
-     .phase = "after"
-)
-## initially forgot this: maybe we could warn when someone is missing this????
-simulator$replace$obj_fn(~ log_lik)
-simulator$add$transformations(Log("I_sd"))
-simulator$add$transformations(Log("rbf_sd"))
-## not sure if this is required?
-params <- read.delim(sep = "|", header = TRUE,
-                     strip.white = TRUE, ## important!
-                      text = "
-mat         | default
-log_I_sd    | 0
-log_rbf_sd  | 1
-")
-simulator$replace$params_frame(params)
-```
-
-Finally, we add the `b` vector as a set of *random* parameters: this tells `macpan2` to apply
-the Laplace approximation to these parameters ...
-```{r random_params}
-matrix_version = "1.6-5"
-if (packageVersion("Matrix") >= matrix_version) {
-  rparams <- data.frame(
-      mat  = "b",
-      row = 0:19,
-      col = 0,
-      default = 0)
-  simulator$replace$random_frame(rparams)
-}
-```
-
-Test the objective function:
-
-```{r rbf_test_objfun, resuls = "hide"}
-if (packageVersion("Matrix") >= matrix_version) {
-  res <- simulator$ad_fun()$fn(c(1,1))
-}
-```
-```{r rbf_test_fake, echo = FALSE}
-if (packageVersion("Matrix") >= matrix_version) {
-  print(res)
-}
-```
-
-**fixme**: can't get objective function to shut up. Should have specified `silent = TRUE` when calling `MakeADFun()` initially, now have tried assigning the value in several different environments, without success ...
-
-This step normally produces lots of output (more output than a model with random effects) because the Laplace approximation involves an additional "inner" step where the `b` parameters are optimized, even though we are only evaluating the objective for a single set of fixed parameters (`log_I_sd`, `log_rbf_sd`)
-
-**fixme**: note to developers, if we cache results we may need to call the `$retape()` function to restore internal structure when retrieving ...
-
-```{r rbf_calib, results = "hide"}
-if (packageVersion("Matrix") >= matrix_version) {
-  ## testing: simulator$ad_fun()$fn()
-  fit <- simulator$optimize$nlminb()
-}
-```
-
-```{r rbf_after_calib}
-if (packageVersion("Matrix") >= matrix_version) {
-
-  ## simulator$print$matrix_dims()
-  ## fixed effects only:
-  ## look at parameters, but skip the random-effects parameters
-  ## 'random' holds the indices of the parameters that are treated
-  ## as random effects
-  (fixed_params <- with(simulator$ad_fun()$env,
-                        last.par.best[-random]))
-  ## ???
-  ## RE only
-  (ran_params <- with(simulator$ad_fun()$env,
-                      last.par.best[random]))
-}
-```
-
-**fixme**: we need an incantation to extract the full parameters (including RE parameters) in order to make sure `$report` works properly? (In general, should caution about mutability/make sure we use `last.par.best` internally ...)
-
-Extract parameters, run the simulator for the best-fit parameters, compare with data ...
-
-```{r plot_sim, basefig = TRUE}
-if (packageVersion("Matrix") >= matrix_version) {
-  pp <- simulator$ad_fun()$env$last.par.best  ## FIXME: use this
-  est_I <- (simulator
-      |> mp_trajectory()
-      |> filter(matrix == "I")
-      |> pull(value)
-  )
-  par(las = 1, bty = "l")
-  plot(obs_I, xlab = "time", ylab = "prevalence")
-  lines(est_I, col = 2, lwd = 2)
-}
-```
-
-**fixme**: there are a few artificialities about this example that could/should be relaxed
-
-- the only fixed parameters are the standard deviations. Normally we would also be estimating `gamma` (possibly with a prior? do we have any examples, say in the calibration vignette, of adding priors?)
-- the RBF function is penalized to zero. In general, we should augment the penalized RBF component (which determines the variation around the mean) with an unpenalized intercept/baseline transmission parameter. So, for example, the transmission rate should be computed as `b0 + exp(X %*% b)`, where `b0` represents an unpenalized parameter that's allowed to vary freely ...
-
-**fixme**: compare (1) unpenalized fit; (2) penalized fit without Laplace approximation ...
-
-**fixme**: discuss (somewhere) alternate bases for latent variables (random-walk, Gaussian process, ...)
 
 ## References
