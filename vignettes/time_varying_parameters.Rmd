@@ -332,32 +332,31 @@ Here is a simulation model with a radial basis for exogenous transmission rate d
 
 ```{r sim_rbf}
 set.seed(1L)
-# spec_waning = (sir_waning
-##              |> mp_tmb_insert(
-#                  phase = "before"
-#                , at = Inf
-#                , expressions = list(eta ~ gamma * exp(X %*% b))
-#                , default = list(eta = empty_matrix)
-#              ) |> mp_tmb_insert(
-#                  phase = "during"
-#                , at = 1
-#                , expressions = list(beta  ~ eta[time_step(1)] / clamp(S/N, 1/100))
-#              ) 
-# )
+
+spec_waning = (sir_waning
+             |> mp_tmb_insert(
+                 phase = "before"
+               , at = Inf
+               , expressions = list(eta ~ gamma * exp(X %*% b))
+               , default = list(eta = empty_matrix, X = X, b = b)
+             ) |> mp_tmb_insert(
+                 phase = "during"
+               , at = 1
+               , expressions = list(beta  ~ eta[time_step(1)] / clamp(S/N, 1/100))
+             )
+)
 
 
-simulator_waning = (sir_waning
-                    |> mp_simulator(
+simulator_waning = (spec_waning
+  |> mp_simulator(
     time_steps = n
   , outputs = c("S", "I", "R", "infection", "beta")
   , default = list(
       N = 100000, I = 500, R = 0
     , beta = 1, gamma = 0.2, phi = 0.01
-    
+
   ))
 )
-
-
 
 
 print(simulator_waning)
@@ -375,35 +374,62 @@ print(simulator_waning)
 
 ### Calibration
 
-<!-- rbf stuff with default likelihood-->
+We can perform calibration with a time-varying parameter specified with a radial basis, by using the function `macpan2::mp_rbf()`. We follow the ususal steps in calibration.
 
-1\. Simulate from the model and add some noise:
+1\. Simulate from the model and add some poisson noise:
 
-```{r noisy_sim, basefig = TRUE}
-obs_I <- (simulator_waning
-    |> mp_trajectory()
-    |> filter(matrix == "I")
-    |> mutate(across(value, ~ rpois(n(), .)))
+```{r obs_rbf}
+obs_rbf = (simulator_waning
+ |> mp_trajectory()
+ |> filter(matrix=="I")
+ |> mutate(across(value, ~ rpois(n(), .)))
 )
-ggplot(obs_I,aes(time,value))+
-  geom_point()+
-  theme_bw()+
-  ylab("prevalence")
 
 ```
 
 
 2\. Add calibration information.
 
+```{r calib_rbf}
+calib_rbf = mp_tmb_calibrator(sir_waning
+   , data = obs_rbf
+   , traj = "I"
+   ## estimate 
+   , par = "beta"
+   , tv = mp_rbf("beta", dimension = d, initial_weights = b)
+   ## pass all defaults, including dimension of the rbf `d` and initial weights vector `b`
+   , default = list(N = 100000, I = 500, R = 0, beta = 1, gamma = 0.2, phi = 0.01, d = d, b = b)
 
-```{r}
-mp_tmb_calibrator(sir_waning
-  , data = obs_I
-  , traj = "I"
-  , par = c("beta")
-  , tv = mp_rbf("beta",d,  initial_weights = rep(0,d))
+  
+)   
+mp_optimize(calib_rbf)
+## check estimates
+mp_tmb_coef(calib_rbf,conf.int = TRUE)
+```
+
+3\. Review results.
+
+The fit to the observed data looks reasonable, however there are some obvious wiggly deviations.
+```{r rbf_fit, include = FALSE, message = FALSE}
+fitted_data = mp_trajectory_sd(calib_rbf, conf.int = TRUE)
+```
+
+```{r rbf_fit_plot, echo=FALSE}
+## visualize fit
+(ggplot(obs_rbf, aes(time,value))
+      + geom_point()
+      + geom_line(aes(time, value)
+      , data = fitted_data
+      , colour = "red"
+    )
+    + geom_ribbon(aes(time, ymin = conf.low, ymax = conf.high)
+      , data = fitted_data
+      , alpha = 0.2
+      , colour = "red"
+    )
+    + theme_bw()
+    + ylab("prevalence")
 )
-
 
 ```
 
