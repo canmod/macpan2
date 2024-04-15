@@ -155,5 +155,5 @@ library(dplyr)
 
 ## Product Management
 
-The [project board](https://github.com/orgs/canmod/projects/2) tracks
-the details of bugs, tasks, and feature development.
+The [project board](https://github.com/orgs/canmod/projects/2/views/6)
+tracks the details of bugs, tasks, and feature development.

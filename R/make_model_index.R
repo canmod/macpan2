@@ -17,34 +17,39 @@ get_mod_info <- function(f) {
     fields <- c("title", "index_entry")
     empty <- data.frame(rbind(rep(NA_character_, length(fields))))
     names(empty) <- fields
-    files <- list.files(path = f, pattern = "^README\\.[qr]?md$", ignore.case  = TRUE, full.names = TRUE)
-    rmdfiles <- grep("\\.[qr]md", files,ignore.case  = TRUE)
-    if (length(rmdfiles)==0){
+    files <- list.files(path = f
+      , pattern = "^README\\.[qr]?md$"
+      , ignore.case  = TRUE
+      , full.names = TRUE
+    )
+    rmdfiles <- grep("README\\.[qr]md$", files, ignore.case  = TRUE)
+    if (length(rmdfiles) == 0L){
       fn <- files 
     } else {
       fn <- files[rmdfiles]
     }
-    if (length(fn)==0) return(data.frame(dir = f_base, empty))
-    if (length(fn)>1) {
-      stop("can't handle multiple README files")
+    if (length(fn) == 0) return(data.frame(dir = f_base, empty))
+    if (length(fn) > 1) {
+      stop("There are too many readme files in this model library entry. Please contact the author of the model.")
     }
     txt <- readLines(fn)
-    res <- (lapply(as.list(fields),
-                   function(ff) {
-                       (grep(ff, x = txt, value = TRUE)
-                           |> gsub(
-                                  ## remove tag
-                                  pattern = sprintf("^[^:]+: *"),
-                                  replacement = "")
-                           |> gsub(
-                                  ## remove quotes at beginning or end of string
-                                  pattern = "(^ *['\"]|['\"] *$)",
-                                  replacement = ""
-                              )
-                       )
-                   })
-        |> setNames(fields)
-        |> as.data.frame()
+    get_value = function(field, lines) {
+      pattern = sprintf("^%s:\\s*", field)
+      lines = grep(pattern, lines, value = TRUE)
+      if (length(lines) == 0L) {
+        stop("Cannot find the ", field, " in README header.")
+      }
+      value = sub(pattern, "", lines[1L])
+      
+      ## remove quotes at beginning or end of string
+      value = gsub("(^ *['\"]|['\"] *$)", "", value)
+      return(value)
+    }
+    
+    res = (fields
+      |> lapply(get_value, txt)
+      |> setNames(fields)
+      |> as.data.frame()
     )
     return(data.frame(dir=f_base, res))
 }
