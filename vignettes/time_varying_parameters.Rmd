@@ -87,7 +87,7 @@ Using a fixed transmission rate of `r beta` we visualize the baseline SIR dynami
 
 To create a piecewise time-varying transmission rate, we need to specify two variables:
 
-1. `beta_changepoints` - An integer vector containing the starting time steps at which the tranmission rate `beta` changes. This vector starts with a time step of 0 because we want to specify an initial default value of `beta` followed by changing transmission rates at the beginning of time-step 10 and 15
+1. `beta_changepoints` - An integer vector containing the starting time steps at which the transmission rate `beta` changes. This vector starts with a time step of 0 because we want to specify an initial default value of `beta` followed by changing transmission rates at the beginning of time-step 10 and 15. (**Note: Currently `macpan2::time_var` expects the argument `change_points` to start at 0, so the default value of `beta` in this example is not used. In future development, `time_var` will accept `change_points[1] > 0` and will use the default value of the parameter for time steps before `change_points[1]`. See [Update time_var to incorporate default value](https://github.com/canmod/macpan2/issues/196)**)
 2. `beta_values` A numeric vector containing the values `beta` takes at each time step specified in `beta_changepoints`.
 
 ```{r piecewise_defaults}
