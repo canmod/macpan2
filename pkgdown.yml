@@ -1,9 +1,9 @@
 pandoc: 3.1.11
-pkgdown: 2.0.7
+pkgdown: 2.0.8
 pkgdown_sha: ~
 articles:
-  calibration: calibration.html
   calibration_advanced: calibration_advanced.html
+  calibration: calibration.html
   composing_simulation_models: composing_simulation_models.html
   cpp_side: cpp_side.html
   debugging: debugging.html
@@ -16,10 +16,10 @@ articles:
   real_data: real_data.html
   state_dependent_rates: state_dependent_rates.html
   state_updaters: state_updaters.html
-  time_varying_parameters: time_varying_parameters.html
   time_varying_parameters_advanced: time_varying_parameters_advanced.html
+  time_varying_parameters: time_varying_parameters.html
   vignette_status: vignette_status.html
-last_built: 2024-04-10T16:56Z
+last_built: 2024-04-15T13:33Z
 urls:
   reference: https://canmod.github.io/macpan2/reference
   article: https://canmod.github.io/macpan2/articles
