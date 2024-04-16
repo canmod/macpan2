@@ -409,7 +409,7 @@ rename_synonyms = function(x, ...) {
     synonyms = synonym_list[[true_name]]
     candidates = synonyms %in% nms
     if (any(candidates)) {
-      if (sum(candidates) > 1L) stop("bad names")
+      if (sum(candidates) > 1L) stop(paste0("Multiple synonyms in names: ", synonyms[candidates], "\n"))
       nms[synonyms[candidates] == nms] = true_name
     }
   }
