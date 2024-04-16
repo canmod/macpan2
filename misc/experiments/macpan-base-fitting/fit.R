@@ -1,4 +1,3 @@
-
 library(macpan2)
 source('./misc/experiments/macpan-base-fitting/data.R')
 
@@ -17,8 +16,8 @@ formatted_tsdata = (clean_tsdata
                     |> group_by(date)
                     |> mutate(time = cur_group_id())
                     |> ungroup()
-                    |> filter(matrix == "death" )
-                    |> mutate(matrix = "ICUd.D")
+                    |> filter(matrix %in% c("death","report"))
+                    |> mutate(matrix = if_else(matrix == "death","ICUd.D",matrix))
                     )
 
 # get time steps for specific dates
@@ -27,13 +26,18 @@ formatted_tsdata = (clean_tsdata
 break_times = (formatted_tsdata
  |> filter(date %in% c("2020-02-24", "2020-04-01", "2020-08-07"))
  |> select(time,date)
+ |> unique()
 )
 
-beta_changepoints = break_times$time
+beta_changepoints = break_times$time %>% as.integer()
 beta_values = rep(log(1e-2),length(beta_changepoints))
 
 # remove synonym (can't have both 'date' and 'time')
 formatted_tsdata = formatted_tsdata |> select(-c(date))
+
+# one negative value for daily deaths
+# removing for now
+formatted_tsdata = formatted_tsdata |> filter(value>=0)
 
 ## -------------------------
 ## update model spec (base model)
@@ -47,7 +51,29 @@ formatted_tsdata = formatted_tsdata |> select(-c(date))
 # mobility with two additional breaks
 # phenomenological heterogeneity
 
+
+# kernel
+# should be Gamma distribution with moments 
+# chosen to match empirical estimates of case-reporting delays (where is this info)
+k=c(0.5, 0.25, 0.25)
+
+
 macpan_base = (mp_tmb_library("starter_models","macpan_base",package="macpan2")
+  
+   # add variable transformations:
+  |> mp_tmb_insert(phase = "before", at = 1L,
+                   expressions = list(
+                       beta0 ~ exp(log_beta0)
+                     , zeta ~ exp(log_zeta)
+                     , beta ~ exp(log_beta)
+                   ),
+                   default = list(
+                       log_beta0 = log(1e-2)
+                     , log_zeta = log(1e-2)
+                     , log_beta = log(1e-2)
+                  )
+  )
+               
   # add accumulator variables:
   # H2 - individuals in acute care after discharge (already computed)
   # D - cumulative deaths (already computed)
@@ -57,31 +83,52 @@ macpan_base = (mp_tmb_library("starter_models","macpan_base",package="macpan2")
                   default = list(X = 0))
 
  # add phenomenological heterogeneity:
+ # is beta1 = beta, 
+ # or beta1 = (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s))?
  |> mp_tmb_update(phase = "during", at =1L, 
-                  expressions = list(mp_per_capita_flow("S", "E", S.E ~ (S^(zeta - 1)) * (beta0 / (N^zeta)) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s)))), 
+                  expressions = list(
+                    mp_per_capita_flow("S", "E", S.E ~ (S^(zeta - 1)) * (beta0 / (N^zeta)) * beta * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s)))), 
                   default = list(zeta = 0))
  
-
+ # add condensation variables:
+ # I = sum of all infectious compartments
+ # might not need this
+ ## |> mp_tmb_insert(phase = "during"
+ #                  , at = Inf
+ #                  , expressions = list(I ~ Ia + Ip + Im + Is)
+ #                  , default = list(I=0))
+ 
+ # add convolution to compute case reports:
+ |> mp_tmb_insert(phase = "during"
+                  , at = Inf
+                  , expressions = list(report ~ c_prop * convolution(S.E, k=k))
+                  , default = list(k=k))
+ 
+ # add piecewise time-varying transmission:
+ ## |> mp_tmb_insert(phase = "during", at = 1,
+ #      expressions = list(beta ~ time_var(beta_values, beta_changepoints)),
+ #      default = list(beta_values=beta_values),
+ #      integers = list(beta_changepoints = beta_changepoints))
 )
 
 (macpan_base
-  %>% mp_simulator(time_steps = 10, outputs = "X")
+  %>% mp_simulator(time_steps = 10, outputs = c("Ia","Ip","Im","report"))
   %>% mp_trajectory()
   %>% ggplot(aes(time,value))+
-    geom_point()
+    geom_point()+
+    facet_wrap(vars(matrix),scales = 'free')
 )
 
 ## -------------------------
 ## calibration (base model)
 ## -------------------------
 
-# fitting to deaths and new cases (incidence)  
-# - need to compute case reports with convolution first
+# fitting to deaths and reports
 mb_calib = mp_tmb_calibrator(
     spec = macpan_base |> mp_rk4()
   , data = formatted_tsdata
-  , traj = "ICUd.D" 
-  , par = c("E","beta0") ##more in table 1
+  , traj = c("report","ICUd.D") 
+  , par = c("E","log_beta0","log_zeta", "log_beta") ##more in table 1
 )
 
 mp_optimize(mb_calib)
@@ -93,8 +140,7 @@ fitted_data = mp_trajectory_sd(mb_calib, conf.int = TRUE)
 mp_tmb_coef(mb_calib) %>% mutate(estimate = exp(estimate))
 
 
-if (interactive()) {
-  (ggplot(sim_data, aes(time,value))
+(ggplot(formatted_tsdata, aes(time,value))
    + geom_point()
    + geom_line(aes(time, value)
                , data = fitted_data
@@ -109,31 +155,4 @@ if (interactive()) {
    + theme_bw()
    + ylab("prevalence")
   )
-}
 
-
-
-
-# time variation in beta
-# two piecewise breaks for tranmission rate on April 1 and August 7
-# two piecewise breaks for mobility power on  April 1 and August 7
-#Ca, Cp, Cm, Cs these are the transmission rates that would vary with time, would beta_1 be the sum of these four
-## |> mp_tmb_update(phase = "before", at = -Inf,
-#                  expressions = list(
-#                    Ca ~ exp(log_Ca)
-#                    , Cp ~ exp(log_Cp)
-#                    , Cm ~ exp(log_Cm)
-#                    , Cs ~ exp(log_Cs)
-#                    , beta0 ~ exp(log_beta0)
-#                    , beta ~ beta0 + Ca + Cp + Cm + Cs
-#                  ),
-#                  default = list(
-#                    log_beta0 = log(1e-2)
-#                    , log_Ca = log(1e-2)
-#                    , log_Cp = log(1e-2)
-#                    , log_Cm = log(1e-2)
-#                    , log_Cs = log(1e-2)
-#                  ))
-## |> mp_tmb_insert(phase = "during", at = 1,
-#                  expressions = list(beta ~ time_var(beta_values, beta_changepoints)),
-#                  default = list(beta_changepoints=beta_changepoints,beta_values=beta_values ))
