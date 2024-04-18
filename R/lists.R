@@ -60,9 +60,26 @@ melt_matrix = function(x, zeros_are_blank = TRUE) {
       col = as.character(rep(seq_len(dm[2]), times = dm[1]) - 1)
     }
   } else { 
-    ## FIXME: need to check NULL rownames and NULL colnames separately
-    row = rep(rownames(x), times = dm[2])
-    col = rep(colnames(x), each = dm[1])
+    rn = rownames(x)
+    cn = colnames(x)
+    if (is.null(rn)) {
+      if ((dm[1] == 1L) & zeros_are_blank) {
+        row = ""
+      } else {
+        row = as.character(rep(seq_len(dm[1]), each = dm[2]) - 1)
+      }
+    } else {
+      row = rep(rownames(x), times = dm[2])
+    }
+    if (is.null(cn)) {
+      if ((dm[2] == 1L) & zeros_are_blank) {
+        col = ""
+      } else {
+        col = as.character(rep(seq_len(dm[2]), times = dm[1]) - 1)
+      }
+    } else {
+      col = rep(colnames(x), each = dm[1])
+    }
   }
   data.frame(row = row, col = col, value = as.vector(x))
 }
