@@ -2234,26 +2234,22 @@ public:
 
             case MP2_TIME_VAR: // time_var(x, change_points)
 
-                if (t == 0)
-                {
+                if (t == 0) {
                     SetError(MP2_TIME_VAR, "Time variation is not allowed before the simulation loop begins.", row, MP2_TIME_VAR, args.all_rows(), args.all_cols(), args.all_type_ints());
                     return m;
                 }
-                if (t > t_max)
-                {
+                if (t > t_max) {
                     SetError(MP2_TIME_VAR, "Time variation is not allowed after the simulation loop ends.", row, MP2_TIME_VAR, args.all_rows(), args.all_cols(), args.all_type_ints());
                     return m;
                 }
 
                 v = args.get_as_int_vec(1);
                 off = args.get_as_int(1);
-                if (off < 0)
-                {
+                if (off < 0) {
                     SetError(MP2_TIME_VAR, "The first element of the second argument must not be less than zero.", row, MP2_TIME_VAR, args.all_rows(), args.all_cols(), args.all_type_ints());
                     return m;
                 }
-                if (off >= v.size())
-                {
+                if (off >= v.size()) {
                     SetError(MP2_TIME_VAR, "The first element of the second argument must be less than the number of elements in the first.", row, MP2_TIME_VAR, args.all_rows(), args.all_cols(), args.all_type_ints());
                     return m;
                 }
@@ -2264,33 +2260,27 @@ public:
                 // signature is respected. overloading _might_
                 // be a better solution. note curly braces
                 // used in this way require c++11 i believe.)
-                if (off < v.size() - 1)
-                { // might need to increment
+                if (off < v.size() - 1) { // might need to increment
                     cp = v[off + 1];
-                    if (cp == t)
-                    {                  // yes we need to increment
+                    if (cp == t) {                  // yes we need to increment
                         off = off + 1; // so we increment
                         matIndex = index2mats[1];
                         // FIXME: should really have a function that
                         // sets matrix or int_vec as appropriate
-                        if (index2what[1] == 1)
-                        { // int-vec-valued pointer
+                        if (index2what[1] == 1) { // int-vec-valued pointer
                             // store the new offset in the zeroth position
                             valid_int_vecs.setNthIntVec(matIndex, off, 0);
                         }
-                        else
-                        {
+                        else {
                             SetError(MP2_TIME_VAR, "Time variation pointers need to be length-1 integer vectors.", row, MP2_TIME_VAR, args.all_rows(), args.all_cols(), args.all_type_ints());
                             return m;
                         }
                     }
-                    else if (cp < 0)
-                    {
+                    else if (cp < 0) {
                         SetError(MP2_TIME_VAR, "Negative times are not allowed.", row, MP2_TIME_VAR, args.all_rows(), args.all_cols(), args.all_type_ints());
                         return m;
                     }
-                    else if (cp > t_max)
-                    {
+                    else if (cp > t_max) {
                         SetError(MP2_TIME_VAR, "Times greater than the number of time steps are not allowed.", row, MP2_TIME_VAR, args.all_rows(), args.all_cols(), args.all_type_ints());
                         return m;
                     }
