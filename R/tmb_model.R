@@ -704,7 +704,7 @@ TMBSimulator = function(tmb_model
     self$ad_fun()$he(fixed_params)
   }
   self$error_code = function(...) self$ad_fun()$report(...)$error
-  self$sdreport = function() TMB::sdreport(self$ad_fun())
+  self$sdreport = function() TMB::sdreport(self$ad_fun(), getReportCovariance = FALSE)
   self$cov.fixed = function() self$sdreport()$cov.fixed
   self$par.fixed = function() self$sdreport()$par.fixed
   self$report = function(..., .phases = "during") {

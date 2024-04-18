@@ -18,6 +18,13 @@ TMBOptimizer = function(simulator) {
     force(opt_func)
     force(opt_method_nm)
     ## TODO: add package dependencies to assert using assert_dependencies
+    
+    get_last_best_par = function(ad_fun) {
+      best_par = ad_fun$env$last.par.best
+      ranef_indices = ad_fun$env$random
+      fixef_indices = setdiff(seq_along(best_par), ranef_indices)
+      best_par[fixef_indices]
+    }
 
     self[[opt_method_nm]] = function() {
 
@@ -38,19 +45,26 @@ TMBOptimizer = function(simulator) {
           names(mc)[-1L]
         )
       }
+      reduced_object = list(
+          ## start from the last best parameter (should be an option?)
+          par = get_last_best_par(ad_fun) # ad_fun$par is the alternative
+        , fn = ad_fun$fn
+        , gr = ad_fun$gr
+        , he = ad_fun$he
+      )
       args_from_object = setNames(
-        ad_fun[names(arg_mappings)],
+        reduced_object[names(arg_mappings)],
         unname(arg_mappings)
       )
       opt_obj = do.call(opt_func, c(args_from_object, args))
       self$simulator$optimization_history$save(opt_obj)
-      self$simulator$cache$sdreport$invalidate() ## now that we have optimized again, we need to invalidate the now out-of-date sdreport
+      
+      ## now that we have optimized again, we need to 
+      ## invalidate the now out-of-date sdreport
+      self$simulator$cache$sdreport$invalidate() 
       
       #ad_fun$fn(opt_obj$par) ## probably this should be last.par.best
-      best_par = ad_fun$env$last.par.best
-      ranef_indices = ad_fun$env$random
-      fixef_indices = setdiff(seq_along(best_par), ranef_indices)
-      ad_fun$fn(best_par[fixef_indices])
+      ad_fun$fn(get_last_best_par(ad_fun))
       
       opt_obj
     }

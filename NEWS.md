@@ -1,3 +1,15 @@
+# macpan2 1.4.0 (news for this version is in-progress)
+
+## Breaking Changes
+
+* Repeated calls of an optimizer now start from the previous best parameter
+vector
+* No longer fit full covariance matrix in `sdreport`s
+
+## Bug Fixes
+
+* Row vectors with names no longer break spec print methods
+
 # macpan2 1.3.0
 
 ## Breaking Changes
