@@ -763,7 +763,7 @@ TMBPar = function(
     bad_pars = !pnms %in% names(orig_spec$default)
     if (any(bad_pars)) {
       spec_mats = names(orig_spec$all_matrices())
-      sprintf("%s (including %s) %s:\n     %s"
+      sprintf("%s (including %s) %s:\n     %s%s%s"
         , "Requested parameters"
         , paste0(pnms[bad_pars], collapse = ", ")
         , "are either not available in the model spec, which includes the following"
