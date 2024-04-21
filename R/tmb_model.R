@@ -35,10 +35,13 @@ mp_simulator.TMBSimulator = function(model
     , outputs
     , default = list()
   ) {
+  stop("under construction")
   if (!missing(time_steps)) {
     model$simulator$replace$time_steps(time_steps)
   }
-  
+  ## TODO: 
+  ## set the params vector as the last best params vector
+  ## update the outputs
 }
 
 #' @export
@@ -56,6 +59,7 @@ mp_simulator.TMBParameterizedModelSpec = function(model
 ) {
   simulator = mp_simulator(model$spec, time_steps, outputs, default)
 }
+
 
 #' TMB Model
 #'

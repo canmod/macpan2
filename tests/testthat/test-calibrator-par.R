@@ -19,3 +19,6 @@ test_that("bad parameterizations give errors", {
     #, regexp = "Requested parameters \\(including recovery\\) are not available in the model spec"
   )
 })
+
+
+
