@@ -37,7 +37,8 @@ binary_matrix_notation <- function(M){
 
 
 sparse_matrix_notation = function(M, zero_based = TRUE, tol = 1e-4) {
-  non_zero_loc = M > tol
+  M = as.matrix(M)
+  non_zero_loc = abs(M) > tol
   col_index = c(t(col(M) * non_zero_loc))
   col_index = as.integer(col_index[col_index != 0])
   row_index = as.integer(rep(1:nrow(M), times = rowSums(non_zero_loc)))

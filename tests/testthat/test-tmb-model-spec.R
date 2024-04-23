@@ -11,7 +11,4 @@ si = mp_tmb_model_spec(
     )
   , default = list(N = 100)
 )
-# si$all_default_vars()
-# si$all_derived_vars()
-# si$all_formula_vars()
 mp_simulator(si, 10, "I", default = list(beta = 0.25))

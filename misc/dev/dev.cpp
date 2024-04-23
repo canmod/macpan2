@@ -2353,7 +2353,7 @@ public:
                 std::cout << "matIndex: " << matIndex << std::endl
                           << std::endl;
                 #endif
-                length = args[1].rows();
+                length = args[1].rows(); // size of the kernel
                 #ifdef MP_VERBOSE
                 std::cout << "length: " << length << std::endl
                           << std::endl;
