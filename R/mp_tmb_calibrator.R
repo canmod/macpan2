@@ -102,6 +102,11 @@ mp_tmb_calibrator = function(spec, data
     , must_save = traj$traj
   )
   
+  cal_spec = mp_tmb_insert(cal_spec
+    , default = globalize(traj, "distr_params")
+    #, must_not_save = names(globalize(traj, "distr_params"))
+  )
+  
   ## TODO: handle likelihood trajectories
   
   ## add time-varying parameters
@@ -557,19 +562,6 @@ TMBTV.RBF = function(
   self$existing_global_names = existing_global_names
   self$spec = spec
   self$type = function() "smooth"
-   # cal_spec = mp_tmb_insert(cal_spec
-   #    , phase = "before"
-   #    , at = Inf
-   #    , expressions = tv$before_loop()
-   #    , default = globalize(tv, "time_var")
-   #    , integers = globalize(tv, "indexes")
-   #    , must_not_save = names(globalize(tv, "time_var"))
-   #  )
-   #  cal_spec = mp_tmb_insert(cal_spec
-   #    , phase = "during"
-   #    , at = 1L
-   #    , expressions = tv$var_update_exprs()
-   #  )
   
   self$rbf_data = sparse_rbf_notation(struc$time_steps, tv$dimension, zero_based = TRUE)
   self$initial_outputs = c(self$rbf_data$M %*% tv$initial_weights)
@@ -639,7 +631,7 @@ TMBTV.RBF = function(
 
 TMBTraj = function(
         traj = character()
-      , struc
+      , struc # = TMBCalDataStruc()
       , existing_global_names = character()
     ) {
   self = TMBTrajAbstract()
@@ -654,7 +646,15 @@ TMBTraj = function(
   ## implemented methods
   self$obs = function() lapply(self$traj_list, getElement, "value")
   self$obs_times = function() lapply(self$traj_list, getElement, "time_ids")
-  
+  self$distr_params = function() {
+    switch(
+        getOption("macpan2_default_loss")[1L]
+      , clamped_poisson = list()
+      , neg_bin = setNames(as.list(rep(0, length(self$traj))), self$traj)
+      , poisson = list()
+      , sum_of_squares = list()
+    )
+  }
   
   ## define local and external names ... to prepare
   ## for creating expressions, which require global,
@@ -693,10 +693,27 @@ TMBTraj = function(
     switch(
         getOption("macpan2_default_loss")[1L]
       , clamped_poisson = sprintf("-sum(dpois(%s, clamp(%s)))", nms$obs, nms$sim)
+      , neg_bin = sprintf("-sum(dnbinom(%s, clamp(%s), exp(%s)))", nms$obs, nms$sim, nms$distr_params)
       , poisson = sprintf("-sum(dpois(%s, %s))", nms$obs, nms$sim)
       , sum_of_squares = sprintf("-sum(dnorm(%s, %s, 1))", nms$obs, nms$sim)
     )
     
+  }
+  
+  self$distr_params_frame = function() {
+    nms = self$global_names()
+    switch(
+        getOption("macpan2_default_loss")[1L]
+      , clamped_poisson = empty_frame(c("mat", "row", "col", "default"))
+      , neg_bin = data.frame(
+          mat = nms$distr_params
+        , row = rep(0L, length(self$traj))
+        , col = rep(0L, length(self$traj))
+        , default = unlist(self$distr_params(), use.names = FALSE)
+      )
+      , poisson = empty_frame(c("mat", "row", "col", "default"))
+      , sum_of_squares = empty_frame(c("mat", "row", "col", "default"))
+    )
   }
   
   self$check_assumptions = function(orig_spec, data_struc) {

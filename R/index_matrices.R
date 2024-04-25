@@ -52,6 +52,7 @@ sparse_matrix_notation = function(M, zero_based = TRUE, tol = 1e-4) {
   return(nlist(row_index, col_index, values, M, Msparse))
 }
 
+## TODO: why is this tolerance different from the one for sparse_matrix_notation
 sparse_rbf_notation = function(time_steps, dimension, zero_based = TRUE, tol = 1e-2) {
   rbf(time_steps, dimension) |> sparse_matrix_notation(zero_based, tol)
 }
