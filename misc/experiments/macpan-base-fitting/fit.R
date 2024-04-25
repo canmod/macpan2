@@ -1,5 +1,5 @@
 library(macpan2)
-source('./misc/experiments/macpan-base-fitting/data.R')
+source('./misc/experiments/macpan-base-fitting/data.R') #~ 2GB of data
 
 ## -------------------------
 ## local function
@@ -36,9 +36,16 @@ formatted_tsdata = (clean_tsdata
                     |> mutate(time = cur_group_id())
                     |> ungroup()
                     |> filter(matrix %in% c("death","report"))
-                    |> mutate(matrix = if_else(matrix == "death","ICUd.D",matrix))
                     )
-
+formatted_mobility_dat = (mobility_dat
+                          |> filter(date >= "2020-02-24" & date < "2020-08-31")
+                          |> mutate(log_mobility_ind = log(mobility_ind))
+                          |> arrange(date)
+                          |> group_by(date)
+                          |> mutate(time = cur_group_id())
+                          |> ungroup()
+                          ##|> pull(log_mobility_ind)
+                          )
 # get time steps for specific dates
 # there are two additional breaks (not specified in the paper?)
 # see ML comment Figure 3.
@@ -64,45 +71,54 @@ formatted_tsdata = formatted_tsdata |> filter(value>=0)
 ## update model spec (base model)
 ## -------------------------
 
-## things we need to incorporate
-# calibrates to new confirmation and death time series
-#   "new confirmation" = daily positive tests (said earlier) conflicting terminology I think
-# using "new confirmation" as "new cases = case reports" because base model has no testing structure
-# need to do convolution to compute case reports from incidence
-# mobility with two additional breaks
-# phenomenological heterogeneity
+time_steps = nrow(formatted_tsdata %>% select(time) %>% unique())
 
-time_steps = 200
+# logistic transition curve for breakpoints
+#S_j = function(t, tau_j, s) plogis((t - tau_j) / s)
+S_j = function(t, tau_j, s) 1/(1+exp((t - tau_j) / s))
 
-# matrix indicing trick for group sums to compute
-# relative transmission rate
-X = diag(length(beta_values))
-X[lower.tri(X)]<-1
-obj = macpan2:::sparse_matrix_notation(X, FALSE)
-base_values = obj$values
-row_ind = obj$row_index-1 #subtract to make zero-based
-col_ind = obj$col_index-1
+# model_matrix
+X = cbind(
+    formatted_mobility_dat$log_mobility_ind
+  , S_j(1:time_steps, beta_changepoints[2], 3)
+  , S_j(1:time_steps, beta_changepoints[2], 3) * formatted_mobility_dat$log_mobility_ind
+  , S_j(1:time_steps, beta_changepoints[3], 3)
+  , S_j(1:time_steps, beta_changepoints[3], 3) * formatted_mobility_dat$log_mobility_ind
+) %>% as.matrix()
+
+#X_sparse = macpan2:::sparse_matrix_notation(X, TRUE)
+X_sparse = sparse_matrix_notation(X, TRUE)
+
+
+model_matrix_values = X_sparse$values
+row_ind = X_sparse$row_index
+col_ind = X_sparse$col_index
+
+log_model_coefficients = rep(log(1e-2),ncol(X))
+
 
 # kernel, for convolution
 # should be Gamma distribution with moments 
 # chosen to match empirical estimates of case-reporting delays (where is this info)
 k=c(0.5, 0.25, 0.25)
 
+## To Add
+# observation error for reports and deaths
+
 # --------------- model spec ---------------
-macpan_base = (mp_tmb_library("starter_models","macpan_base",package="macpan2")
-  
+#macpan_base = (mp_tmb_library("starter_models","macpan_base",package="macpan2")
+source("./inst/starter_models/macpan_base/tmb.R")
+macpan_base = (spec 
   # add variable transformations:
   |> mp_tmb_insert(phase = "before"
                    , at = 1L,
                    expressions = list(
                        zeta ~ exp(log_zeta)
-                     , beta ~ exp(log_beta)
-                     , beta_values ~ exp(log_beta_values)
+                     , beta0 ~ exp(log_beta0)
                     ),
                    default = list(
-                       log_zeta = log(1e-2)
-                     , log_beta = log(1e-2)
-                     , log_beta_values = log_beta_values
+                      log_zeta = log(1e-2)
+                    , log_beta0 = log(1e-2)
                     ) 
                    )
                
@@ -110,17 +126,21 @@ macpan_base = (mp_tmb_library("starter_models","macpan_base",package="macpan2")
   # H2 - individuals in acute care after discharge (already computed)
   # D - cumulative deaths (already computed)
   # X - cumulative hospital admissions
+  # death - new deaths each time step
   |> mp_tmb_insert(phase = "during"
                    , at = Inf
-                   , expressions = list(mp_per_capita_flow("H", "X", H.X ~ Is.ICUs + Is.ICUd))
-                   , default = list(X = 0)
+                   , expressions = list(
+                       mp_per_capita_flow("H", "X", H.X ~ Is.ICUs + Is.ICUd)
+                     , death ~ ICUd.D * ICUd + Is.D * Is
+                     )
+                   , default = list(X = 0, theta_death = 1)
                    )
 
   # add phenomenological heterogeneity:
   |> mp_tmb_update(phase = "during"
                    , at =1L
                    , expressions = list(mp_per_capita_flow("S", "E", S.E ~ (S^(zeta - 1)) * (beta / (N^zeta)) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s))))
-                   , default = list(zeta = 0)
+                   , default = list(zeta = 0,beta = 1)
                    )
  
   # add condensation variables:
@@ -128,13 +148,15 @@ macpan_base = (mp_tmb_library("starter_models","macpan_base",package="macpan2")
   |> mp_tmb_insert(phase = "during"
                    , at = Inf
                    , expressions = list(I ~ Ia + Ip + Im + Is)
-                   , default = list(I=0))
+                   , default = list(I = 0)
+                   )
  
   # add convolution to compute case reports:
   |> mp_tmb_insert(phase = "during"
                   , at = Inf
                   , expressions = list(report ~ c_prop * convolution(I, k))
-                  , default = list(k=k))
+                  , default = list(k = k, theta_report = 100)
+                  )
   |> mp_tmb_insert(phase = "after"
                   , at = 1L
                   # remove beginning time steps depending on kernel length
@@ -142,17 +164,19 @@ macpan_base = (mp_tmb_library("starter_models","macpan_base",package="macpan2")
                   , integers = list(i = length(k):time_steps)
                   )
 
-  # add piecewise time-varying transmission:
+  # add time-varying transmission with mobility data:
   |> mp_tmb_insert(phase = "before"
                   , at = Inf
-                  , expressions = list(beta_values ~ group_sums((beta_values[row_ind]) * base_values, col_ind, beta_values))
-                  , default = list(base_values = base_values)
-                  , integers = list(row_ind = row_ind, col_ind=col_ind)
+                  , expressions = list(relative_beta_values ~ exp(group_sums(model_matrix_values * log_model_coefficients[col_ind], row_ind, model_matrix_values))
+                                       )
+                  , default = list(log_model_coefficients = log_model_coefficients, model_matrix_values = model_matrix_values, relative_beta_values=model_matrix_values)
+                  , integers = list(row_ind = row_ind, col_ind = col_ind)
                   )
   |> mp_tmb_insert(phase = "during"
                   , at = 1L
-                  , expressions = list(beta ~ time_var(beta_values, beta_changepoints))
-                  , integers = list(beta_changepoints = beta_changepoints)
+                  , expressions = list(
+                     beta ~ beta0 * relative_beta_values[time_step(1)]
+                    )
                   )
 )
 # ------------------------------------------
@@ -172,10 +196,19 @@ macpan_base = (mp_tmb_library("starter_models","macpan_base",package="macpan2")
 
 # fitting to deaths and reports
 mb_calib = mp_tmb_calibrator(
-    spec = macpan_base |> mp_rk4()
+    spec = macpan_base ##|> mp_euler_multinomial()
   , data = formatted_tsdata
-  , traj = c("report","ICUd.D") 
-  , par = c("E","log_zeta", "log_beta_values") ##more in table 1
+  , traj = c("report","death") 
+  ##more in table 1
+  , par = c(
+      "E"
+    , "log_zeta"
+    , "log_beta0"
+    , "log_model_coefficients"
+    , "nonhosp_mort" #I think this is eta - 'Probability of mortality without hospitalization'
+    #, "theta_report"
+    #, "theta_death"
+    ) 
 )
 
 mp_optimize(mb_calib)
@@ -201,5 +234,4 @@ mp_tmb_coef(mb_calib, conf.int = TRUE) |> backtrans()
    + facet_wrap(vars(matrix),scales = 'free')
    + theme_bw()
    + ylab("prevalence")
-  )
-
+)
