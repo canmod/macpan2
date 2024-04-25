@@ -49,6 +49,7 @@ valid_func_sigs = c(
       , "fwrap,fail: rbinom(size, probability)"
       , "fwrap,fail: reulermultinom(size, rate, delta_t)"
       , "fwrap,null: round(x)"
+      , "fwrap,fail: pgamma(q, shape, scale)"
 )
 process_enum = function(x) {
   RE = "(null|fail|binop|fwrap|bwrap|pwrap)[ ]*,[ ]*(null|fail|binop|fwrap|bwrap|pwrap)[ ]*:[ ]*\\`?([^`]*)\\`?\\((.*)(\\,.*)*\\)"

@@ -815,4 +815,5 @@
 #' @aliases rbinom
 #' @aliases reulermultinom
 #' @aliases round
+#' @aliases pgamma
 NULL

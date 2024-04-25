@@ -111,6 +111,7 @@ enum macpan2_func
     , MP2_BINOM_SIM = 47 // fwrap,fail: rbinom(size, probability)
     , MP2_EULER_MULTINOM_SIM = 48 // fwrap,fail: reulermultinom(size, rate, delta_t)
     , MP2_ROUND = 49 // fwrap,null: round(x)
+    , MP2_PGAMMA = 50 // fwrap,fail: pgamma(q, shape, scale)
 };
 
 enum macpan2_meth
@@ -2345,7 +2346,7 @@ public:
                 std::cout << "matIndex: " << matIndex << std::endl
                           << std::endl;
                 #endif
-                length = args[1].rows();
+                length = args[1].rows(); // size of the kernel
                 #ifdef MP_VERBOSE
                 std::cout << "length: " << length << std::endl
                           << std::endl;
@@ -2990,10 +2991,31 @@ public:
                 err_code = args.get_error_code();
                 // err_code = RecycleInPlace(m, rows, cols);
                 m = args[0];
-                if (err_code != 0)
-                {
+                if (err_code != 0) {
                     SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row, MP2_RECYCLE, args.all_rows(), args.all_cols(), args.all_type_ints());
                     return m;
+                }
+                return m;
+            
+            case MP2_PGAMMA:
+                rows = args[0].rows();
+                cols = args[0].cols();
+                v1.push_back(1);
+                v1.push_back(2);
+                args = args.recycle_to_shape(v1, rows, cols);
+                err_code = args.get_error_code();
+                if (err_code != 0) {
+                    SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row, MP2_PGAMMA, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    return m;
+                }
+                m1 = args.get_as_mat(0); // q
+                m2 = args.get_as_mat(1); // shape
+                m3 = args.get_as_mat(2); // scale
+                m = matrix<Type>::Zero(rows, cols);
+                for (int i = 0; i < rows; i++) {
+                    for (int j = 0; j < cols; j++) {
+                        m.coeffRef(i, j) = pgamma(m1.coeff(i, j), m2.coeff(i, j), m3.coeff(i, j));
+                    }
                 }
                 return m;
 
