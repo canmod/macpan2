@@ -51,6 +51,7 @@
 \alias{rbinom}
 \alias{reulermultinom}
 \alias{round}
+\alias{pgamma}
 \title{Engine Functions}
 \description{
 Functions currently supported by the C++ TMB engine
