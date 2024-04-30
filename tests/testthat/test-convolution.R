@@ -57,3 +57,31 @@ s = mp_tmb_model_spec(
 mp_simulator(s, time_steps = 10L, outputs = "Z") |> mp_final() |> cbind(manual_convolution[3:10])
 mp_simulator(s, time_steps = 10L, outputs = "Y") |> mp_trajectory() |> cbind(manual_convolution)
 
+
+# macpan_base delay kernel and convolution example
+# https://canmod.net/misc/flex_specs#computing-convolutions
+qmax = 4 # length of kernel
+n = 6  # number of time steps
+c_delay_cv = 0.25
+c_delay_mean = 11
+c_prop = 0.1
+gamma_shape = 1 / (c_delay_cv^2)
+gamma_scale = c_delay_mean * c_delay_cv^2
+gamma = pgamma(1:(qmax+1), gamma_shape, gamma_scale)
+delta = gamma[2:(qmax+1)] - gamma[1:(qmax)]
+kappa = c_prop * delta / sum(delta)
+
+sim_data = simple_sims(
+    iteration_exprs = expr
+  , time_steps = n
+  , mats = list(X = X, Y = Y, k = kappa)
+) |> arrange(matrix)
+
+x = sim_data %>% filter(matrix=="X") %>% select(value) %>% pull()
+
+macpan2_convolution = sim_data %>% filter(matrix=="Y" & time %in% c(4,5)) %>% pull(value)
+# z calculation from https://canmod.net/misc/flex_specs#computing-convolutions
+manual_convolution = c(kappa[4]*x[1]+kappa[3]*x[2]+kappa[2]*x[2]+kappa[1]*x[4]
+                       , kappa[4]*x[2]+kappa[3]*x[3]+kappa[2]*x[4]+kappa[1]*x[5])
+
+cbind(manual_convolution, macpan2_convolution)

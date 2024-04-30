@@ -66,3 +66,6 @@ mobility_dat = (
   %>% summarize(mobility_ind = mean(c_across(where(is.numeric)),na.rm = TRUE))
   %>% ungroup()
 )
+
+saveRDS(clean_tsdata, "./misc/experiments/macpan-base-fitting/clean_tsdata.RDS")
+saveRDS(mobility_dat, "./misc/experiments/macpan-base-fitting/mobility_dat.RDS")
