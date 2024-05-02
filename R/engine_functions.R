@@ -816,5 +816,4 @@
 #' @aliases reulermultinom
 #' @aliases round
 #' @aliases pgamma
-#' @aliases safe_power
 NULL
