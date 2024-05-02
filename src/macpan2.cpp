@@ -2703,33 +2703,12 @@ public:
                 return m;
             
             case MP2_EULER_MULTINOM_SIM:
-                //Rf_warning("experimental function reulermultinom");
                 // reulermultinom(size, rate, dt)
                 if (n == 3) {
                     delta_t = args[2].coeff(0, 0);
                 } else {
                     delta_t = 1.0;
                 }
-                // args[0] : size
-                // args[1] : rate
-                // delta_t : delta_t
-                // sum : p
-                
-                //for (int i = 0; i < valid_vars.m_matrices.size(); i++) {
-                //    std::cout << "mat " << i << ":" << std::endl << valid_vars.m_matrices[i] << std::endl;
-                //}
-                // std::cout << "---------------------------" << std::endl;
-                // std::cout << "mat S: " << valid_vars.m_matrices[11] << std::endl;
-                // std::cout << "mat I: " << valid_vars.m_matrices[10] << std::endl;
-                // std::cout << "mat R: " << valid_vars.m_matrices[8] << std::endl;
-                // std::cout << "mat N: " << valid_vars.m_matrices[9] << std::endl;
-                // std::cout << "mat infection: " << valid_vars.m_matrices[12] << std::endl;
-                // std::cout << "mat recovery: " << valid_vars.m_matrices[13] << std::endl;
-                // std::cout << "mat vaxprop: " << valid_vars.m_matrices[4] << std::endl;
-                // std::cout << "size: "  << args[0] << std::endl;
-                // std::cout << "rate: " << args[1] << std::endl;
-                // std::cout << std::endl;
-                
                 if (args[0].rows() != 1 | args[0].cols() != 1) {
                     //std::cout << "++++++" << std::endl;
                     //std::cout << args[0] << std::endl;
@@ -2745,14 +2724,14 @@ public:
                 //std::cout << "sum of rates: " << sum << std::endl;
                 m = matrix<Type>::Zero(args[1].rows(), 1);  // multinomial probabilities
                 for (int i = 0; i < args[1].rows(); i++) {
-                    m.coeffRef(i, 0) = args[1].coeff(i, 0) * delta_t;
+                    m.coeffRef(i, 0) = args[1].coeff(i, 0) * delta_t; // not yet multinomial probabilities in m, but there will be
                 }
-                p0 = exp(-m.sum());
+                p0 = exp(-m.sum()); // probability of staying
                 //std::cout << "prob(staying): " << p0 << std::endl;
-                p0 = (1 - p0) / sum;
+                p0 = (1 - p0) / sum; // transform the prob(staying) into the 'rate multiplier'
                 //std::cout << "rate multiplier: " << p0 << std::endl;
                 for (int i = 0; i < args[1].rows(); i++) {
-                    m.coeffRef(i, 0) = p0 * args[1].coeff(i, 0);
+                    m.coeffRef(i, 0) = p0 * args[1].coeff(i, 0); // now we actually fill m with multinomial probabilities
                 }
                 //std::cout << "multinomial probabilities: " << m << std::endl;
                 
@@ -2765,11 +2744,6 @@ public:
                 
                 remaining_prop = 1.0;
                 for (int i = 0; i < m1.rows(); i++) {
-                    //std::cout << "N = " << left_over << std::endl;
-                    //std::cout << "p = " << m.coeff(i, 0) << std::endl;
-                    //std::cout << "q = " << remaining_prop << std::endl;
-                    // if (remaining_prop > 1e-8) {
-                    //}
                     //m1.coeffRef(i, 0) = ((left_over > 0.0) && ((m.coeff(i, 0) / remaining_prop) > 0.0)) ? 1.0 * rbinom(left_over, m.coeff(i, 0) / remaining_prop) : 0.0;
                     m1.coeffRef(i, 0) = mp2_rbinom(left_over, m.coeff(i, 0) / remaining_prop);
                     left_over -= m1.coeff(i, 0);

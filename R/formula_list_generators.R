@@ -281,9 +281,15 @@ mp_euler = function(model) UseMethod("mp_euler")
 mp_rk4 = function(model) UseMethod("mp_rk4")
 
 ##' @describeIn mp_euler Update state with process error given  by the 
-##' Euler-Multinomial distribution.
+##' Euler-multinomial distribution.
 ##' @export
 mp_euler_multinomial = function(model) UseMethod("mp_euler_multinomial")
+
+##' @describeIn mp_euler Update state with hazard steps, which is equivalent
+##' to taking the step given by the expected value of the Euler-multinomial
+##' distribution.
+##' @export
+mp_hazard = function(model) UseMethod("mp_hazard")
 
 ##' @export
 mp_euler.TMBModelSpec = function(model) model$change_update_method("euler")
@@ -294,6 +300,8 @@ mp_rk4.TMBModelSpec = function(model) model$change_update_method("rk4")
 ##' @export
 mp_euler_multinomial.TMBModelSpec = function(model) model$change_update_method("euler_multinomial")
 
+##' @export
+mp_hazard.TMBModelSpec = function(model) model$change_update_method("hazard")
 
 get_state_update_type = function(state_update_type, change_model) {
   if (inherits(change_model, "AllFormulaChangeModel")) return("no")
@@ -334,9 +342,6 @@ NoUpdateMethod = function(change_model) {
   self$after = function() self$change_model$after_loop()
   return_object(self, "NoUpdateMethod")
 }
-
-
-
 
 EulerUpdateMethod = function(change_model, existing_global_names = character()) {
   self = UpdateMethod()
@@ -462,6 +467,33 @@ EulerMultinomialUpdateMethod = function(change_model) {
   }
   self$after = function() self$change_model$after_loop()
   return_object(self, "EulerMultinomialUpdateMethod")
+}
+
+HazardUpdateMethod = function(change_model) {
+  self = EulerMultinomialUpdateMethod(change_model)
+  self$during = function() {
+    flow_list = self$change_model$update_flows()
+    components = list()
+    for (size_var in names(flow_list)) {
+      components[[size_var]] = sprintf("%s ~ %s * (1 - exp(-sum(%s))) * %s / (sum(%s))"
+        , self$vec(flow_list[[size_var]], lhs_char)
+        , size_var
+        , self$vec(flow_list[[size_var]], rhs_char)
+        , self$vec(flow_list[[size_var]], rhs_char)
+        , self$vec(flow_list[[size_var]], rhs_char)
+      )
+    }
+    new_flow = lapply(components, as.formula)
+    
+    update = self$change_model$update_state()
+    states = vapply(update, lhs_char, character(1L))
+    rates = vapply(update, rhs_char, character(1L))
+    update_char = sprintf("%s ~ %s %s", states, states, rates)
+    new_update = lapply(update_char, as.formula)
+    
+    c(new_flow, new_update)
+  }
+  return_object(self, "HazardUpdateMethodUpdateMethod")
 }
 
 

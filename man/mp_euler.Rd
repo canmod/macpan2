@@ -4,6 +4,7 @@
 \alias{mp_euler}
 \alias{mp_rk4}
 \alias{mp_euler_multinomial}
+\alias{mp_hazard}
 \title{State Updates (experimental)}
 \usage{
 mp_euler(model)
@@ -11,6 +12,8 @@ mp_euler(model)
 mp_rk4(model)
 
 mp_euler_multinomial(model)
+
+mp_hazard(model)
 }
 \arguments{
 \item{model}{Object with quantities that have been explicitly
@@ -25,6 +28,10 @@ are updated according to different numerical methods.
 \item \code{mp_rk4()}: ODE solver using Runge-Kutta 4.
 
 \item \code{mp_euler_multinomial()}: Update state with process error given  by the
-Euler-Multinomial distribution.
+Euler-multinomial distribution.
+
+\item \code{mp_hazard()}: Update state with hazard steps, which is equivalent
+to taking the step given by the expected value of the Euler-multinomial
+distribution.
 
 }}
