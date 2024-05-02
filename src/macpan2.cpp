@@ -112,6 +112,8 @@ enum macpan2_func
     , MP2_EULER_MULTINOM_SIM = 48 // fwrap,fail: reulermultinom(size, rate, delta_t)
     , MP2_ROUND = 49 // fwrap,null: round(x)
     , MP2_PGAMMA = 50 // fwrap,fail: pgamma(q, shape, scale)
+    //  `^`(x, y), but with 0^0 defined as 0
+    , MP2_SAFEPOWER = 51 // fwrap,fail: safe_power(x,y)
 };
 
 enum macpan2_meth
@@ -1287,6 +1289,14 @@ public:
                 #endif
                 return pow(args[0].array(), args[1].array()).matrix();
                 // return args[0].pow(args[1].coeff(0,0));
+
+	    case MP2_SAFEPOWER: // ^
+                #ifdef MP_VERBOSE
+                std::cout << "I'm being lazy" << std::endl;
+                #endif
+		// ?? are the CondExpRel functions vectorized ... ???
+		// CondExpRel(left, right, if_true, if_false)
+		return CppAD::CondExpLe(args[0].array(), Type(0), Type(0), pow(args[0].array(), args[1].array()).matrix());
 
             // #' ## Unary Elementwise Math
             // #'
