@@ -52,6 +52,7 @@
 \alias{reulermultinom}
 \alias{round}
 \alias{pgamma}
+\alias{safe_power}
 \title{Engine Functions}
 \description{
 Functions currently supported by the C++ TMB engine
