@@ -112,7 +112,6 @@ enum macpan2_func
     , MP2_EULER_MULTINOM_SIM = 48 // fwrap,fail: reulermultinom(size, rate, delta_t)
     , MP2_ROUND = 49 // fwrap,null: round(x)
     , MP2_PGAMMA = 50 // fwrap,fail: pgamma(q, shape, scale)
-    //  `^`(x, y), but with 0^0 defined as 0
     , MP2_SAFEPOWER = 51 // fwrap,fail: safe_power(x,y)
 };
 
@@ -1289,9 +1288,12 @@ public:
                 #endif
                 return pow(args[0].array(), args[1].array()).matrix();
                 // return args[0].pow(args[1].coeff(0,0));
-
-	    case MP2_SAFEPOWER: // SAFE_POWER, equivalent to (ifelse(x==0, 0, x^y))
-
+            
+            case MP2_SAFEPOWER: // SAFE_POWER, equivalent to (ifelse(x==0, 0, x^y))
+                if (n != 2) {
+                    SetError(err_code, "safe_power requires exactly two arguments", row, table_x[row] + 1, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    return m;
+                }
                 args = args.recycle_for_bin_op();
                 err_code = args.get_error_code();
                 switch (err_code) {
@@ -1310,11 +1312,11 @@ public:
                 rows = m1.rows();
                 cols = m1.cols();
                 m = matrix<Type>::Zero(rows, cols);
-                for (int i; i < rows; i++) {
-                    for (int j; j < cols; j++) {
+                for (int i = 0; i < rows; i++) {
+                    for (int j = 0; j < cols; j++) {
                         m.coeffRef(i, j) = CppAD::CondExpEq(
                             m1.coeff(i, j), 
-                            m2.coeff(i, j), 
+                            Type(0), 
                             Type(0), 
                             pow(m1.coeff(i, j), m2.coeff(i, j))
                         );

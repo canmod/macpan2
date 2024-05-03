@@ -1,3 +1,5 @@
+library(macpan2); library(testthat); library(dplyr); library(tidyr); library(ggplot2)
+
 test_that("elementwise binary operator executable specs match spec doc", {
   ## https://canmod.net/misc/elementwise_binary_operators
   times = BinaryOperator(`*`)
@@ -82,4 +84,31 @@ test_that("elementwise binary operator executable specs match spec doc", {
 
 test_that("equivalent unary and binary minus operators give the same answers", {
   expect_equal(engine_eval(~-4), engine_eval(~0-4))
+})
+
+test_that("safe_power meets the requirements of #200", {
+  expect_equal(
+    matrix(0.1 ^ -5),
+    engine_eval(~safe_power(0.1, -5))
+  )
+  expect_equal(
+    matrix(0 ^ 5),
+    engine_eval(~safe_power(0, 5))
+  )
+  expect_equal(
+    matrix(c(1, 1, 0, 1, 1)), # != matrix((-2:2)^0),
+    engine_eval(~safe_power(-2:2, 0))
+  )
+  expect_equal(
+    matrix(rep(0, 5)), # != matrix(0^(-2:2))
+    engine_eval(~safe_power(0, -2:2))
+  )
+  expect_error(
+    engine_eval(~safe_power(1)),
+    regexp = "safe_power requires exactly two arguments"
+  )
+  expect_error(
+    engine_eval(~safe_power(1:3, 2:3)),
+    regexp = "The two operands do not have the same number of rows"
+  )
 })
