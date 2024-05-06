@@ -1,7 +1,8 @@
 library(macpan2)
 library(dplyr)
 library(ggplot2)
-
+library(tidyr)
+options(macpan2_default_loss = "neg_bin") 
 
 ## -------------------------
 ## local function
@@ -100,7 +101,7 @@ row_ind = X_sparse$row_index
 col_ind = X_sparse$col_index
 
 log_model_coefficients = rep(log(1e-2),ncol(X))
-
+#log_model_coefficients = rep(0,ncol(X))
 
 # --------------- model spec ---------------
 #macpan_base = (mp_tmb_library("starter_models","macpan_base",package="macpan2")
@@ -146,7 +147,7 @@ macpan_base = (spec
   # I = sum of all infectious compartments (time step incidence)
   |> mp_tmb_insert(phase = "during"
     , at = Inf
-    , expressions = list(I ~ Ia + Ip + Im + Is)
+    , expressions = list(I ~ Ia + Ip + Im + Is) ## this is probably wrong, Ip -> Im & Ip -> Is
     , default = list(I = 0)
   )
   # add incidence:
@@ -209,6 +210,7 @@ macpan_base = (spec
     geom_line(aes(colour=matrix))+
     facet_wrap(vars(matrix),scales = 'free')
 )
+
 (macpan_base
   %>% mp_simulator(time_steps = time_steps, outputs = c("S","E","death","report"))
   %>% mp_trajectory()
@@ -234,28 +236,160 @@ macpan_base = (spec
 
 
 ## -------------------------
+## setting initial state vector
+## -------------------------
+
+# simulate from model with no susceptible depletion for 100 time steps
+# final states should be close to eigenvector
+
+# update model spec to remove outflow from S
+# think the easiest way is reset S to N each time step
+macpan_base_initialgrowth = mp_tmb_update(macpan_base
+  , phase = "during"
+  , at = 2L
+  , expressions = list(S.E ~ (S^(zeta-1)) * (beta / (N^zeta)) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s)))
+  
+)
+macpan_base_initialgrowth = mp_tmb_insert(macpan_base_initialgrowth
+  , phase = "during"
+  , at = 3L
+  , expressions = list(E ~ E + S.E * S)
+                                          
+)
+(macpan_base_initialgrowth
+  %>% mp_simulator(time_steps = 100L, outputs = c("S","E","Ip","Ia","Is","Im","ICUs","ICUd","H","H2","R","D"))
+  %>% mp_trajectory()
+  %>% ggplot(aes(time,value))+
+    geom_line(aes(colour=matrix))+
+    facet_wrap(vars(matrix),scales = 'free')
+)
+
+initial_state_vector = (
+  (mp_final(macpan_base_initialgrowth
+  # I think these are the only relevant compartments? or do we need to set all compartments
+  # including those not involved in transmission, R & D?
+  |> mp_simulator(time_steps = 100L, outputs = c("E","Ip","Ia","Is","Im","ICUs","ICUd","H","H2","R","D")))
+  # scale by 1% of the population                      
+  ) |> mutate(scaled_value = value * mp_default_list(macpan_base)$S * 0.01)
+) |> select(matrix, scaled_value) |> pivot_wider(names_from = matrix, values_from=scaled_value) 
+
+sum(initial_state_vector)
+
+
+## -------------------------
+## initial calibration
+## -------------------------
+states = c("S","E","Ip","Ia","Is","Im","ICUs","ICUd","H","H2","R","D")
+
+# simulate from model with fixed beta0
+sim_data = (mp_simulator(macpan_base |> mp_rk4()
+            , time_steps = 100L
+            , outputs = c("Is","H","R","D")
+            , default = list(
+                logit_nonhosp_mort = qlogis(0.3)
+              , E = 1000
+            )
+) |> mp_trajectory()
+) 
+sim_data %>% filter(time < 5, matrix =='Is')
+
+# look at simulated data
+(sim_data
+  |> ggplot(aes(time,value))+geom_point()+facet_wrap(vars(matrix), scales= "free")
+)
+
+# calibrate to see if we can recover nonhosp_mort
+mb_calib = mp_tmb_calibrator(
+  spec = macpan_base |> mp_rk4()
+  , data = sim_data
+  , traj =  c("Is","H","R","D")
+  , par = c("logit_nonhosp_mort"
+  ) 
+  , default = list(E = 1000)
+)
+
+mp_optimize(mb_calib)
+
+# get fitted data
+fitted_data = mp_trajectory_sd(mb_calib, conf.int = TRUE)
+
+# check estimate
+mp_tmb_coef(mb_calib, conf.int = TRUE) |> backtrans()
+
+
+(ggplot(sim_data, aes(time,value))
+  + geom_point()
+  + geom_line(aes(time, value)
+              , data = fitted_data
+              , colour = "red"
+  )
+  + geom_ribbon(aes(time, ymin = conf.low, ymax = conf.high)
+                , data = fitted_data
+                , alpha = 0.2
+                , colour = "red"
+  )
+  + facet_wrap(vars(matrix), scales = "free")
+  + theme_bw()
+)
+
+
+# simulate a single individual (E = 1, all other states 0) 
+sim_one = (mp_simulator(macpan_base
+  , time_steps = 5L
+  , outputs = c("S.E")
+  , default = list(E = 1, S = 1e-8, log_beta0 = log(1))
+  ) 
+ |> mp_trajectory()
+) ##|> filter(value > 0)
+
+# R_0 (for this parameter set) is sum of all compartments?
+sum(sim_one$value)
+
+
+# solve for growth rate r
+euler_lotka = function(r) sum(sim_one$value * exp(-r * sim_one$time)) - 1
+
+uniroot(euler_lotka, c(0,Inf))
+poly_coefs = c(1, sim_one %>% group_by(time) %>% summarize(value = sum(value)) %>% pull(value))
+polyroot(poly_coefs) # why are they complex
+
+
+
+## -------------------------
 ## calibration (base model)
 ## -------------------------
-options(macpan2_default_loss = "neg_bin") 
 
 # fitting to deaths and reports
 mb_calib = mp_tmb_calibrator(
-    spec = macpan_base ##|> mp_euler_multinomial()
+    spec = macpan_base |> mp_rk4()
   , data = formatted_tsdata
   , traj = c("report","death") 
   ## Table 1 in manuscript
   , par = c(
       "E"
-    , "Ia"
-    , "Ip"
-    , "Im"
-    , "Is"
+    # , "Ia"
+    # , "Ip"
+    # , "Im"
+    # , "Is"
     , "log_zeta"
     , "log_beta0"
     , "log_model_coefficients"
     , "logit_nonhosp_mort" #I think this is eta - 'Probability of mortality without hospitalization'
     ) 
   , outputs = c("S","E","I","death","report")
+  , default = list(
+      E = initial_state_vector$E
+    , Ia = initial_state_vector$Ia
+    , Ip = initial_state_vector$Ip
+    , Im = initial_state_vector$Im
+    , Is = initial_state_vector$Is
+    #, H = initial_state_vector$H
+    #, ICUs = initial_state_vector$ICUs
+    #, ICUd = initial_state_vector$ICUd
+    #, H2 = initial_state_vector$H2
+    #, R = initial_state_vector$R
+    #, D = initial_state_vector$D
+  )
 )
 
 mp_optimize(mb_calib)
@@ -287,3 +421,5 @@ mp_tmb_coef(mb_calib, conf.int = TRUE) |> backtrans()
   + facet_wrap(vars(matrix),scales = 'free')
   + theme_bw()
 )
+
+
