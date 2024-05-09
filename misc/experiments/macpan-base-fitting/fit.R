@@ -36,24 +36,24 @@ mobility_dat = readRDS("./misc/experiments/macpan-base-fitting/mobility_dat.RDS"
 
 # get data in the right format for calibration
 formatted_tsdata = (clean_tsdata
-                    |> rename(matrix=var)
-                    # dates from base model calibration (Figure 4)
-                    |> filter(date >= "2020-02-24" & date < "2020-08-31")
-                    |> arrange(date)
-                    |> group_by(date)
-                    |> mutate(time = cur_group_id())
-                    |> ungroup()
-                    |> filter(matrix %in% c("death","report"))
-                    )
+  |> rename(matrix=var)
+  # dates from base model calibration (Figure 4)
+  |> filter(date >= "2020-02-24" & date < "2020-08-31")
+  |> arrange(date)
+  |> group_by(date)
+  |> mutate(time = cur_group_id())
+  |> ungroup()
+  |> filter(matrix %in% c("death","report"))
+)
 formatted_mobility_dat = (mobility_dat
-                          |> filter(date >= "2020-02-24" & date < "2020-08-31")
-                          |> mutate(log_mobility_ind = log(mobility_ind))
-                          |> arrange(date)
-                          |> group_by(date)
-                          |> mutate(time = cur_group_id())
-                          |> ungroup()
-                          ##|> pull(log_mobility_ind)
-                          )
+  |> filter(date >= "2020-02-24" & date < "2020-08-31")
+  |> mutate(log_mobility_ind = log(mobility_ind))
+  |> arrange(date)
+  |> group_by(date)
+  |> mutate(time = cur_group_id())
+  |> ungroup()
+  ##|> pull(log_mobility_ind)
+)
 # get time steps for specific dates
 # there are two additional breaks (not specified in the paper?)
 # see ML comment Figure 3.
@@ -116,8 +116,8 @@ macpan_base = (spec
      , nonhosp_mort ~ 1/(1+exp((-logit_nonhosp_mort)))
     ),
     default = list(
-      log_zeta = log(1e-2)
-    , log_beta0 = log(1e-2)
+     log_zeta = log(1e-2)
+    ,  log_beta0 = log(1e-2)
     , logit_nonhosp_mort = log((1e-2)/(1-(1e-2)))
     ) 
   )
@@ -130,8 +130,9 @@ macpan_base = (spec
   |> mp_tmb_insert(phase = "during"
     , at = Inf
     , expressions = list(
-        mp_per_capita_flow("H", "X", H.X ~ Is.ICUs + Is.ICUd)
-      , death ~ ICUd.D * ICUd + Is.D * Is
+        mp_per_capita_flow("H", "X", H.X ~ Is.ICUs + Is.ICUd) #check rate because these would be absolute flows?
+      #, death ~ ICUd.D * ICUd + Is.D * Is
+      , death ~ ICUd.D + Is.D 
       )
     , default = list(X = 0)
   )
@@ -139,7 +140,7 @@ macpan_base = (spec
   # add phenomenological heterogeneity:
   |> mp_tmb_update(phase = "during"
     , at =1L
-    , expressions = list(mp_per_capita_flow("S", "E", S.E ~ (S^(zeta-1)) * (beta / (N^zeta)) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s))))
+    , expressions = list(mp_per_capita_flow("S", "E", S.E ~ (S^zeta) * (beta / (N^(zeta+1))) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s))))
     , default = list(beta = 1)
   )
  
@@ -154,7 +155,9 @@ macpan_base = (spec
   |> mp_tmb_insert(phase = "during"
     , at = Inf
     #, expressions = list(incidence ~ S.E * (S^2))
-    , expressions = list(incidence ~ S.E * S)
+    #, expressions = list(incidence ~ S.E * S)
+    , expressions = list(foi ~ S.E / S, incidence ~ S.E)
+    #, expressions = list(foi ~ S.E)
     , default = list(incidence = 0)
   )
   
@@ -200,6 +203,33 @@ macpan_base = (spec
       )
   )
 )
+
+## model only with ph (for initial state vector computation)
+macpan_base_ph = (spec
+  # add variable transformations:
+  |> mp_tmb_insert(phase = "before"
+                   , at = 1L,
+                   expressions = list(
+                     #zeta ~ exp(log_zeta)
+                      beta0 ~ exp(log_beta0)
+                     , nonhosp_mort ~ 1/(1+exp((-logit_nonhosp_mort)))
+                   ),
+                   default = list(
+                     #log_zeta = log(1e-2)
+                      log_beta0 = log(1e-2)
+                     , logit_nonhosp_mort = log((1e-2)/(1-(1e-2)))
+                   ) 
+  )
+  # add PH
+  |> mp_tmb_update(phase = "during"
+                 , at =1L
+                 , expressions = list(mp_per_capita_flow("S", "E", S.E ~ (S^zeta) * (beta / (N^(zeta+1))) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s))))
+                 , default = list(beta = 1)
+                 
+  )
+)
+
+
 # ------------------------------------------
 
 ## simulate data
@@ -212,14 +242,14 @@ macpan_base = (spec
 )
 
 (macpan_base
-  %>% mp_simulator(time_steps = time_steps, outputs = c("S","E","death","report"))
+  %>% mp_simulator(time_steps = time_steps, outputs = c("S","E","S.E","death","report", "Ia","Ip","Im","Is","beta"))
   %>% mp_trajectory()
   %>% ggplot(aes(time,value))+
     geom_line(aes(colour=matrix))+
     facet_wrap(vars(matrix),scales = 'free')
 )
 (macpan_base
-  %>% mp_simulator(time_steps = time_steps, outputs = c("incidence","report"))
+  %>% mp_simulator(time_steps = time_steps, outputs = c("incidence","report" ,"foi"))
   %>% mp_trajectory()
   %>% ggplot(aes(time,value))+
     geom_line(aes(colour=matrix))+
@@ -234,6 +264,13 @@ macpan_base = (spec
   %>% plot(., type='l')
 )
 
+(spec
+  %>% mp_simulator(time_steps = 20L, outputs = c("S.E"), default = list(S=0))
+  %>% mp_trajectory()
+  %>% select(value)
+  %>% pull()
+  %>% plot(., type='l')
+)
 
 ## -------------------------
 ## setting initial state vector
@@ -242,56 +279,67 @@ macpan_base = (spec
 # simulate from model with no susceptible depletion for 100 time steps
 # final states should be close to eigenvector
 
-# update model spec to remove outflow from S
-# think the easiest way is reset S to N each time step
-macpan_base_initialgrowth = mp_tmb_update(macpan_base
-  , phase = "during"
-  , at = 2L
-  , expressions = list(S.E ~ (S^(zeta-1)) * (beta / (N^zeta)) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s)))
-  
-)
-macpan_base_initialgrowth = mp_tmb_insert(macpan_base_initialgrowth
-  , phase = "during"
-  , at = 3L
-  , expressions = list(E ~ E + S.E * S)
-                                          
-)
-(macpan_base_initialgrowth
-  %>% mp_simulator(time_steps = 100L, outputs = c("S","E","Ip","Ia","Is","Im","ICUs","ICUd","H","H2","R","D"))
-  %>% mp_trajectory()
-  %>% ggplot(aes(time,value))+
-    geom_line(aes(colour=matrix))+
-    facet_wrap(vars(matrix),scales = 'free')
-)
+#spec - original model (no accumulators, exogenous effects, reports)
+E0=1e-5
+S0=1-E0
+final_state = mp_final(
+  mp_simulator(macpan_base_ph
+                  , time_steps = 100L
+                 , outputs = c("S","E","Ip","Ia","Is","Im","ICUs","ICUd","H","H2","R","D")
+                 , default = list(S = S0
+                                  , E = E0
+                                  , Ia = 0
+                                  , Ip = 0
+                                  , Im = 0
+                                  , Is = 0
+                                  , R = 0
+                                  , H = 0
+                                  , ICUs = 0
+                                  , ICUd = 0
+                                  , H2 = 0
+                                  , D = 0)
+                 )
+) |> filter(!(matrix %in% c("S","R","D")))
 
-initial_state_vector = (
-  (mp_final(macpan_base_initialgrowth
-  # I think these are the only relevant compartments? or do we need to set all compartments
-  # including those not involved in transmission, R & D?
-  |> mp_simulator(time_steps = 100L, outputs = c("E","Ip","Ia","Is","Im","ICUs","ICUd","H","H2","R","D")))
-  # scale by 1% of the population                      
-  ) |> mutate(scaled_value = value * mp_default_list(macpan_base)$S * 0.01)
-) |> select(matrix, scaled_value) |> pivot_wider(names_from = matrix, values_from=scaled_value) 
+# normalize to sum to one (divide by sum?)
+final_state$scaled_value = final_state$value/sum(final_state$value)
+
+# I0 = 1% of population 
+initial_infecteds = 0.01*mp_default_list(spec)$S
+
+final_state$scaled_value = initial_infecteds*final_state$scaled_value
+initial_state_vector = final_state |> select(matrix, scaled_value) |> pivot_wider(names_from = matrix, values_from=scaled_value) 
+
 
 sum(initial_state_vector)
-
-
 ## -------------------------
 ## initial calibration
 ## -------------------------
 states = c("S","E","Ip","Ia","Is","Im","ICUs","ICUd","H","H2","R","D")
 
-# simulate from model with fixed beta0
-sim_data = (mp_simulator(macpan_base |> mp_rk4()
+# simulate from model with fixed logit_nonhosp_mort
+sim_data = (mp_simulator(macpan_base_ph |> mp_rk4()
             , time_steps = 100L
-            , outputs = c("Is","H","R","D")
+            , outputs = states#c("Is","H","R","D")
             , default = list(
-                logit_nonhosp_mort = qlogis(0.3)
-              , E = 1000
+               # logit_nonhosp_mort = qlogis(0.3)
+                sigma = 0.2
+              , S = mp_default_list(spec)$S - initial_infecteds
+              , E = initial_state_vector$E
+              , Ia = initial_state_vector$Ia
+              , Ip = initial_state_vector$Ip
+              , Im = initial_state_vector$Im
+              , Is = initial_state_vector$Is
+              , H = initial_state_vector$H
+              , ICUs = initial_state_vector$ICUs
+              , ICUd = initial_state_vector$ICUd
+              , H2 = initial_state_vector$H2
+              , R = 0
+              , D = 0
             )
 ) |> mp_trajectory()
 ) 
-sim_data %>% filter(time < 5, matrix =='Is')
+sim_data %>% filter(time < 5)
 
 # look at simulated data
 (sim_data
@@ -299,22 +347,35 @@ sim_data %>% filter(time < 5, matrix =='Is')
 )
 
 # calibrate to see if we can recover nonhosp_mort
-mb_calib = mp_tmb_calibrator(
-  spec = macpan_base |> mp_rk4()
+initial_calib = mp_tmb_calibrator(
+  spec = macpan_base_ph |> mp_rk4()
   , data = sim_data
-  , traj =  c("Is","H","R","D")
-  , par = c("logit_nonhosp_mort"
+  , traj =  states#c("Is","H","R","D")
+  , par = c("sigma"   #"logit_nonhosp_mort"
   ) 
-  , default = list(E = 1000)
+  , default = list(
+      S = mp_default_list(spec)$S - initial_infecteds
+    , E = initial_state_vector$E
+    , Ia = initial_state_vector$Ia
+    , Ip = initial_state_vector$Ip
+    , Im = initial_state_vector$Im
+    , Is = initial_state_vector$Is
+    , H = initial_state_vector$H
+    , ICUs = initial_state_vector$ICUs
+    , ICUd = initial_state_vector$ICUd
+    , H2 = initial_state_vector$H2
+    , R = 0
+    , D = 0
+  )
 )
 
-mp_optimize(mb_calib)
+mp_optimize(initial_calib)
 
 # get fitted data
-fitted_data = mp_trajectory_sd(mb_calib, conf.int = TRUE)
+fitted_data = mp_trajectory_sd(initial_calib, conf.int = TRUE)
 
 # check estimate
-mp_tmb_coef(mb_calib, conf.int = TRUE) |> backtrans()
+mp_tmb_coef(initial_calib, conf.int = TRUE) |> backtrans()
 
 
 (ggplot(sim_data, aes(time,value))
@@ -335,12 +396,21 @@ mp_tmb_coef(mb_calib, conf.int = TRUE) |> backtrans()
 
 # simulate a single individual (E = 1, all other states 0) 
 sim_one = (mp_simulator(macpan_base
-  , time_steps = 5L
-  , outputs = c("S.E")
-  , default = list(E = 1, S = 1e-8, log_beta0 = log(1))
+  , time_steps = 10L
+  , outputs = c(S.E)
+  , default = list(E = 1, S = 0)
   ) 
  |> mp_trajectory()
 ) ##|> filter(value > 0)
+
+(mp_simulator(macpan_base
+  , time_steps = 10L
+  , outputs = c("S.E")
+  , default = list(E = 1, S = 0)
+) |> mp_trajectory()
+) ##|> filter(value > 0)
+
+
 
 # R_0 (for this parameter set) is sum of all compartments?
 sum(sim_one$value)
@@ -361,7 +431,7 @@ polyroot(poly_coefs) # why are they complex
 
 # fitting to deaths and reports
 mb_calib = mp_tmb_calibrator(
-    spec = macpan_base |> mp_rk4()
+    spec = macpan_base |> mp_hazard()
   , data = formatted_tsdata
   , traj = c("report","death") 
   ## Table 1 in manuscript
@@ -378,17 +448,18 @@ mb_calib = mp_tmb_calibrator(
     ) 
   , outputs = c("S","E","I","death","report")
   , default = list(
-      E = initial_state_vector$E
+      S = mp_default_list(spec)$S - initial_infecteds
+    , E = initial_state_vector$E
     , Ia = initial_state_vector$Ia
     , Ip = initial_state_vector$Ip
     , Im = initial_state_vector$Im
     , Is = initial_state_vector$Is
-    #, H = initial_state_vector$H
-    #, ICUs = initial_state_vector$ICUs
-    #, ICUd = initial_state_vector$ICUd
-    #, H2 = initial_state_vector$H2
-    #, R = initial_state_vector$R
-    #, D = initial_state_vector$D
+    , H = initial_state_vector$H
+    , ICUs = initial_state_vector$ICUs
+    , ICUd = initial_state_vector$ICUd
+    , H2 = initial_state_vector$H2
+    , R = 0
+    , D = 0
   )
 )
 
@@ -416,7 +487,7 @@ mp_tmb_coef(mb_calib, conf.int = TRUE) |> backtrans()
    + theme_bw()
 )
 
-(ggplot(fitted_data |> filter(matrix %in% c("S","E","I")), aes(time,value))
+(ggplot(fitted_data |> filter(matrix %in% c(states)), aes(time,value))
   + geom_point()
   + facet_wrap(vars(matrix),scales = 'free')
   + theme_bw()
