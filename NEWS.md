@@ -1,3 +1,9 @@
+# macpan2 1.5.0 (news for this version is in-progress)
+
+## New Features
+
+* Delete elements from model specifications with `mp_tmb_delete`.
+
 # macpan2 1.4.0 (news for this version is in-progress)
 
 ## Breaking Changes
@@ -5,10 +11,6 @@
 * Repeated calls of an optimizer now start from the previous best parameter
 vector
 * No longer fit full covariance matrix in `sdreport`s
-
-## New Features
-
-* Delete elements from model specifications with `mp_tmb_delete`.
 
 ## Bug Fixes
 
