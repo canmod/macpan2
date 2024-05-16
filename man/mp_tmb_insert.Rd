@@ -3,6 +3,7 @@
 \name{mp_tmb_insert}
 \alias{mp_tmb_insert}
 \alias{mp_tmb_update}
+\alias{mp_tmb_delete}
 \title{Modify a TMB Model Spec}
 \usage{
 mp_tmb_insert(
@@ -28,31 +29,49 @@ mp_tmb_update(
   must_not_save = character(),
   sim_exprs = character()
 )
+
+mp_tmb_delete(
+  model,
+  phase,
+  at,
+  default = character(),
+  integers = character(),
+  must_save = character(),
+  must_not_save = character(),
+  sim_exprs = character()
+)
 }
 \arguments{
 \item{model}{TMB model spec object produced using
 \code{\link{mp_tmb_library}} or \code{\link{mp_tmb_model_spec}}.}
 
-\item{phase}{At what phase should \code{expressions} be inserted or updated.}
+\item{phase}{At what phase should \code{expressions} be inserted, updated,
+or deleted.}
 
 \item{at}{Expression number, which can be identified by printing out
 \code{model}, at which the \code{expressions} should be inserted or updated. If
 inserted then the existing expressions with number \code{at} and higher are
 shifted after the new \code{expressions} are added. If updated, then the
 existing expressions with number from \code{at} to \code{at + length(expressions) - 1}
-are replaced with the new \code{expressions}.}
+are replaced with the new \code{expressions}.
+For \code{mp_tmb_delete}, a numeric vector of integers identifying expressions
+to delete from the model.}
 
 \item{expressions}{Expressions to insert into the model spec or to
 replace existing expressions.}
 
 \item{default}{Named list of objects, each of which can be coerced into
 a \code{\link{numeric}} \code{\link{matrix}}. The names refer to
-variables that appear in \code{before}, \code{during}, and \code{after}.}
+variables that appear in \code{before}, \code{during}, and \code{after}.
+For \code{mp_tmb_delete}, a character vector of such objects to delete from
+the model.}
 
 \item{integers}{Named list of vectors that can be coerced to integer
 vectors. These integer vectors can be used by name in model formulas to
 provide indexing of matrices and as grouping factors in
-\code{\link{group_sums}}.}
+\code{\link{group_sums}}.
+For \code{mp_tmb_delete}, a character vector of such objects to delete from
+the model.}
 
 \item{must_save}{Character vector of the names of matrices that must have
 their values stored at every iteration of the simulation loop. For example,
@@ -77,17 +96,23 @@ continuous.}
 A new model spec object with updated and/or inserted information.
 }
 \description{
-Insert or update elements of a TMB model spec, produced using
-\code{\link{mp_tmb_library}} or \code{\link{mp_tmb_model_spec}}. The
+Insert, update, or delete elements of a TMB model spec, produced using
+\code{\link{mp_tmb_library}} or \code{\link{mp_tmb_model_spec}}, or
+\code{\link{mp_tmb_delete}}. The
 only difference between \code{mp_tmb_insert} and \code{mp_tmb_update} is that
 the former shifts the positions of existing expressions to make room
 for the new expressions, whereas the latter overwrites existing expressions
 using the new expressions. The treatment of new \code{default} values and
 \code{integers} is the same. The examples below clarify this difference.
+Note that \code{mp_tmb_delete} does not contain at \code{expressions} argument,
+because it is not necessary to specify new expressions in the case
+of deletion.
+}
+\details{
 These modifications do not update the model specification in-place. Instead
-the output of \code{mp_tmb_insert} and \code{mp_tmb_update} define a new model
-specification and should be saved if you want to use the new
-model (ex. \code{new_model = mp_tmb_insert(model, ...)}).
+the output of \code{mp_tmb_insert}, \code{mp_tmb_update}, and \code{mp_tmb_delete} define
+a new model specification and should be saved if you want to use the new
+model (e.g., \code{new_model = mp_tmb_insert(model, ...)}).
 }
 \examples{
 si = mp_tmb_library("starter_models", "si", package = "macpan2")

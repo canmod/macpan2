@@ -160,6 +160,16 @@ ExprList = function(
     )
     valid$expr_arg$assert(r)
   }
+  self$delete = function(.at
+    , .phase = c("before", "during", "after")
+    , .simulate_exprs = character(0L)
+  ) {
+    .phase = match.arg(.phase)
+    input = list(before = self$before, during = self$during, after = self$after)
+    input[[.phase]][.at] = NULL
+    input$.simulate_exprs = setdiff(self$.simulate_exprs, .simulate_exprs)
+    do.call(ExprList, input)
+  }
   self$insert = function(...
     , .at = 1L
     , .phase = c("before", "during", "after")

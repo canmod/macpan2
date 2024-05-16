@@ -6,6 +6,10 @@
 vector
 * No longer fit full covariance matrix in `sdreport`s
 
+## New Features
+
+* Delete elements from model specifications with `mp_tmb_delete`.
+
 ## Bug Fixes
 
 * Row vectors with names no longer break spec print methods

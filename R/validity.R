@@ -228,6 +228,16 @@ BaseValidity = function() {
     self$scalar,
     .msg = "not a string (i.e. not a length-1 character vector)"
   )
+  self$num1 = AllValid(
+    self$numeric,
+    self$scalar,
+    .msg = "not a number (i.e. not a length-1 numeric vector)"
+  )
+  self$int1 = AllValid(
+    self$int,
+    self$scalar,
+    .msg = "not an integer (i.e. not a length-1 integer vector)"
+  )
   self$char_no_empty = AllValid(
     self$char,
     self$no_missing,
