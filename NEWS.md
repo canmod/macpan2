@@ -1,3 +1,9 @@
+# macpan2 1.5.0 (news for this version is in-progress)
+
+## New Features
+
+* Delete elements from model specifications with `mp_tmb_delete`.
+
 # macpan2 1.4.0 (news for this version is in-progress)
 
 ## Breaking Changes

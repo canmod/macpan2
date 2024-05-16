@@ -1,28 +1,47 @@
 #' Modify a TMB Model Spec
 #' 
-#' Insert or update elements of a TMB model spec, produced using
-#' \code{\link{mp_tmb_library}} or \code{\link{mp_tmb_model_spec}}. The
+#' Insert, update, or delete elements of a TMB model spec, produced using
+#' \code{\link{mp_tmb_library}} or \code{\link{mp_tmb_model_spec}}, or
+#' \code{\link{mp_tmb_delete}}. The
 #' only difference between `mp_tmb_insert` and `mp_tmb_update` is that
 #' the former shifts the positions of existing expressions to make room
 #' for the new expressions, whereas the latter overwrites existing expressions
 #' using the new expressions. The treatment of new `default` values and 
-#' `integers` is the same. The examples below clarify this difference. 
+#' `integers` is the same. The examples below clarify this difference.
+#' Note that `mp_tmb_delete` does not contain at `expressions` argument,
+#' because it is not necessary to specify new expressions in the case
+#' of deletion.
+#' 
 #' These modifications do not update the model specification in-place. Instead
-#' the output of `mp_tmb_insert` and `mp_tmb_update` define a new model
-#' specification and should be saved if you want to use the new 
-#' model (ex. \code{new_model = mp_tmb_insert(model, ...)}).
+#' the output of `mp_tmb_insert`, `mp_tmb_update`, and `mp_tmb_delete` define 
+#' a new model specification and should be saved if you want to use the new 
+#' model (e.g., \code{new_model = mp_tmb_insert(model, ...)}).
 #' 
 #' @param model TMB model spec object produced using
 #' \code{\link{mp_tmb_library}} or \code{\link{mp_tmb_model_spec}}.
-#' @param phase At what phase should `expressions` be inserted or updated.
+#' @param phase At what phase should `expressions` be inserted, updated, 
+#' or deleted.
 #' @param at Expression number, which can be identified by printing out
 #' `model`, at which the `expressions` should be inserted or updated. If
 #' inserted then the existing expressions with number `at` and higher are
 #' shifted after the new `expressions` are added. If updated, then the
 #' existing expressions with number from `at` to `at + length(expressions) - 1`
 #' are replaced with the new `expressions`.
+#' For `mp_tmb_delete`, a numeric vector of integers identifying expressions
+#' to delete from the model.
 #' @param expressions Expressions to insert into the model spec or to
 #' replace existing expressions.
+#' @param default Named list of objects, each of which can be coerced into 
+#' a \code{\link{numeric}} \code{\link{matrix}}. The names refer to 
+#' variables that appear in \code{before}, \code{during}, and \code{after}.
+#' For `mp_tmb_delete`, a character vector of such objects to delete from
+#' the model.
+#' @param integers Named list of vectors that can be coerced to integer
+#' vectors. These integer vectors can be used by name in model formulas to
+#' provide indexing of matrices and as grouping factors in 
+#' \code{\link{group_sums}}.
+#' For `mp_tmb_delete`, a character vector of such objects to delete from
+#' the model.
 #' @inheritParams mp_tmb_model_spec
 #' 
 #' @returns A new model spec object with updated and/or inserted information.
@@ -64,6 +83,9 @@ mp_tmb_insert = function(model
     , must_not_save = character()
     , sim_exprs = character()
   ) {
+  valid$char1$check(phase)
+  at = valid$num1$assert(at)
+  
   model = model$copy()
   model[[phase]] = append(model[[phase]], expressions, after = at - 1L)
   model[["default"]][names(default)] = default
@@ -98,6 +120,9 @@ mp_tmb_update = function(model
     , must_not_save = character()
     , sim_exprs = character()
   ) {
+  valid$char1$check(phase)
+  at = valid$num1$assert(at)
+  
   model = model$copy()
   where = at - 1L + seq_along(expressions)
   model[[phase]][where] = expressions
@@ -106,6 +131,42 @@ mp_tmb_update = function(model
   model$must_save  = unique(c(model$must_save, must_save))
   model$must_not_save  = unique(c(model$must_not_save, must_not_save))
   model$sim_exprs  = unique(c(model$sim_exprs, sim_exprs))
+  
+  mp_tmb_model_spec(
+      before = model$before
+    , during = model$during
+    , after = model$after
+    , default = model$default
+    , integers = model$integers
+    , must_save = model$must_save
+    , must_not_save = model$must_not_save
+    , sim_exprs = model$sim_exprs
+    , state_update = model$state_update
+  )
+}
+
+#' @rdname mp_tmb_insert
+#' @export
+mp_tmb_delete = function(model
+    , phase
+    , at
+    , default = character()
+    , integers = character()
+    , must_save = character()
+    , must_not_save = character()
+    , sim_exprs = character()
+  ) {
+  if (!phase %in% c("before", "during", "after")) {
+    stop("The simulation phase must be one of before, during, or after.")
+  }
+  at = valid$num1$assert(at)
+  model = model$copy()
+  model[[phase]][at] = NULL
+  model[["default"]][default] = NULL
+  model[["integers"]][integers] = NULL
+  model$must_save  = setdiff(model$must_save, must_save)
+  model$must_not_save  = setdiff(model$must_not_save, must_not_save)
+  model$sim_exprs  = setdiff(model$sim_exprs, sim_exprs)
   
   mp_tmb_model_spec(
       before = model$before
@@ -367,6 +428,36 @@ TMBSimulatorReplacer = function(simulator) {
 
 ## Deleters ------------
 
+TMBDeleter = function(model) {
+  self = TMBEditor(model)
+  self$.at = function(at, phase = c("before", "during", "after")) {
+    phase = match.arg(phase)
+    match_if_appropriate(at, names(self$model$expr_list[[phase]]))
+  }
+  return_object(self, "TMBUpdater")
+}
+
+TMBSimulatorDeleter = function(simulator) {
+  self = TMBDeleter(simulator$tmb_model)
+  self$simulator = simulator
+  self$expressions = function(
+        .at
+      , .phase = c("before", "during", "after")
+      , .simulate_exprs = character(0L)
+    ) {
+      args = list()
+      args$.at = self$.at(.at, .phase)
+      args$.phase = .phase
+      args$.simulate_exprs = .simulate_exprs
+      (self$model$expr_list$delete
+        |> do.call(args)
+        |> self$model$refresh$expr_list()
+      )
+      self$simulator$cache$invalidate()
+      invisible(self$simulator)
+  }
+  return_object(self, "TMBSimulatorDeleter")
+}
 
 ## Updaters ------------
 

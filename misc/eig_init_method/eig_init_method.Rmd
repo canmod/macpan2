@@ -1,0 +1,18 @@
+# Initialization of State for Eigenvector
+
+0. Start with an 'original' model.
+1. Remove all accumulators from the state vector.
+2. Remove all 'exogeneous' effects (e.g. time-varying parameters, vaccination).
+3. Choose one exposed state and initialize it to a small number (e.g. $10^-5$).
+4. Define a vector, $\sigma$, that sums to one with one value for each susceptible state (could be a constant vector for a uniform distribution ... but could be the normalized age distribution if the S classes differ only on their age ... ).
+5. Set the values of the susceptible states using $\sigma (1 - 10^-5)$.
+6. Set all other state vectors to zero, resulting in a state vector that sums to `1`.
+6. Run simulations for 100 (or so) time-steps and get the final state vector.
+7. Remove any susceptible, dead, or recovered classes from this final state vector.
+8. Normalize this final state vector so that it sums to 1, to produce the eigenvector, $v$.
+9. Create a new state vector, $s$, which will become the initial state vector for simulations from the original model.
+10. Define the total population size, $N$, as the actual population being modelled by the original model.
+11. Define the initial number of exposed/infected/infectious/other individuals, $I_0$ in the original model.
+12. Set the susceptible states in $s$ as $\sigma (N - I_0)$.
+13. Set the dead and recovered states in $s$ to $0$.
+14. Set the remaining states in $s$ to $v I_0$.

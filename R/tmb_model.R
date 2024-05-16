@@ -755,6 +755,7 @@ TMBSimulator = function(tmb_model
   self$print = TMBSimulatorPrinter(self)
   self$insert = TMBSimulatorInserter(self)
   self$add = TMBSimulatorAdder(self)
+  self$delete = TMBSimulatorDeleter(self)
   self$replace = TMBSimulatorReplacer(self)
   self$update = TMBSimulatorUpdater(self)
   self$reset = TMBSimulatorResetter(self)
