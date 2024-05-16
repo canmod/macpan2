@@ -161,8 +161,7 @@ mp_tmb_delete = function(model
   }
   at = valid$num1$assert(at)
   model = model$copy()
-  where = at - 1L
-  model[[phase]][where] = NULL
+  model[[phase]][at] = NULL
   model[["default"]][default] = NULL
   model[["integers"]][integers] = NULL
   model$must_save  = setdiff(model$must_save, must_save)
