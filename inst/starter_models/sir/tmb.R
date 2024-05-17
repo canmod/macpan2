@@ -1,21 +1,12 @@
 library(macpan2)
 
-initialize_state = list(
-  S ~ N - I - R
+initialize_state = list(S ~ N - I - R)
+
+flows = list(
+    mp_per_capita_flow("S", "I", infection ~ I * beta / N)
+  , mp_per_capita_flow("I", "R", recovery ~ gamma)
 )
 
-flow_rates = list(
-    infection ~ S * I * beta / N
-  , recovery ~ gamma * I
-)
-
-update_state = list(
-    S ~ S - infection
-  , I ~ I + infection - recovery
-  , R ~ R + recovery
-)
-
-## set defaults
 default = list(
     beta = 0.2
   , gamma = 0.1
@@ -27,6 +18,6 @@ default = list(
 ## model specification
 spec = mp_tmb_model_spec(
     before = initialize_state
-  , during = c(flow_rates, update_state)
+  , during = flows
   , default = default
 )
