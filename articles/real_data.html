@@ -191,11 +191,9 @@ library.</p>
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; At every iteration of the simulation loop (t = 1 to T):</span></span>
 <span><span class="co">#&gt; ---------------------</span></span>
-<span><span class="co">#&gt; 1: infection ~ S * I * beta/N</span></span>
-<span><span class="co">#&gt; 2: recovery ~ gamma * I</span></span>
-<span><span class="co">#&gt; 3: S ~ S - infection</span></span>
-<span><span class="co">#&gt; 4: I ~ I + infection - recovery</span></span>
-<span><span class="co">#&gt; 5: R ~ R + recovery</span></span></code></pre></div>
+<span><span class="co">#&gt; 1: mp_per_capita_flow(from = "S", to = "I", rate = infection ~ I * </span></span>
+<span><span class="co">#&gt;      beta/N)</span></span>
+<span><span class="co">#&gt; 2: mp_per_capita_flow(from = "I", to = "R", rate = recovery ~ gamma)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="modify-model-for-reality">Modify Model for Reality<a class="anchor" aria-label="anchor" href="#modify-model-for-reality"></a>
@@ -251,12 +249,10 @@ made successfully.</p>
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; At every iteration of the simulation loop (t = 1 to T):</span></span>
 <span><span class="co">#&gt; ---------------------</span></span>
-<span><span class="co">#&gt; 1: infection ~ S * I * beta/N</span></span>
-<span><span class="co">#&gt; 2: recovery ~ gamma * I</span></span>
-<span><span class="co">#&gt; 3: S ~ S - infection</span></span>
-<span><span class="co">#&gt; 4: I ~ I + infection - recovery</span></span>
-<span><span class="co">#&gt; 5: R ~ R + recovery</span></span>
-<span><span class="co">#&gt; 6: reports ~ infection * report_prob</span></span></code></pre></div>
+<span><span class="co">#&gt; 1: mp_per_capita_flow(from = "S", to = "I", rate = infection ~ I * </span></span>
+<span><span class="co">#&gt;      beta/N)</span></span>
+<span><span class="co">#&gt; 2: mp_per_capita_flow(from = "I", to = "R", rate = recovery ~ gamma)</span></span>
+<span><span class="co">#&gt; 3: reports ~ infection * report_prob</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="preparing-the-data">Preparing the Data<a class="anchor" aria-label="anchor" href="#preparing-the-data"></a>
@@ -354,12 +350,10 @@ because it is derived before the simulation loop as
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; At every iteration of the simulation loop (t = 1 to T):</span></span>
 <span><span class="co">#&gt; ---------------------</span></span>
-<span><span class="co">#&gt; 1: infection ~ S * I * beta/N</span></span>
-<span><span class="co">#&gt; 2: recovery ~ gamma * I</span></span>
-<span><span class="co">#&gt; 3: S ~ S - infection</span></span>
-<span><span class="co">#&gt; 4: I ~ I + infection - recovery</span></span>
-<span><span class="co">#&gt; 5: R ~ R + recovery</span></span>
-<span><span class="co">#&gt; 6: reports ~ infection * report_prob</span></span></code></pre></div>
+<span><span class="co">#&gt; 1: mp_per_capita_flow(from = "S", to = "I", rate = infection ~ I * </span></span>
+<span><span class="co">#&gt;      beta/N)</span></span>
+<span><span class="co">#&gt; 2: mp_per_capita_flow(from = "I", to = "R", rate = recovery ~ gamma)</span></span>
+<span><span class="co">#&gt; 3: reports ~ infection * report_prob</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="run-the-optimization">Run the Optimization<a class="anchor" aria-label="anchor" href="#run-the-optimization"></a>
@@ -924,7 +918,7 @@ fit models so you can try more things.</p>
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; 1: beta ~ exp(outputs_var_beta[time_step(1)])</span></span>
 <span><span class="co">#&gt; 2: infection ~ S * I * beta/N</span></span>
-<span><span class="co">#&gt; 3: recovery ~ gamma * I</span></span>
+<span><span class="co">#&gt; 3: recovery ~ I * gamma</span></span>
 <span><span class="co">#&gt; 4: S ~ S - infection</span></span>
 <span><span class="co">#&gt; 5: I ~ I + infection - recovery</span></span>
 <span><span class="co">#&gt; 6: R ~ R + recovery</span></span>

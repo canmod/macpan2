@@ -200,11 +200,9 @@ following code.</p>
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; At every iteration of the simulation loop (t = 1 to T):</span></span>
 <span><span class="co">#&gt; ---------------------</span></span>
-<span><span class="co">#&gt; 1: infection ~ S * I * beta/N</span></span>
-<span><span class="co">#&gt; 2: recovery ~ gamma * I</span></span>
-<span><span class="co">#&gt; 3: S ~ S - infection</span></span>
-<span><span class="co">#&gt; 4: I ~ I + infection - recovery</span></span>
-<span><span class="co">#&gt; 5: R ~ R + recovery</span></span></code></pre></div>
+<span><span class="co">#&gt; 1: mp_per_capita_flow(from = "S", to = "I", rate = infection ~ I * </span></span>
+<span><span class="co">#&gt;      beta/N)</span></span>
+<span><span class="co">#&gt; 2: mp_per_capita_flow(from = "I", to = "R", rate = recovery ~ gamma)</span></span></code></pre></div>
 <p>To see how to actually generate simulations from this model see <a href="https://canmod.github.io/macpan2/articles/quickstart">this
 article</a>. To use another model, again, replace <code>sir</code> with
 another entry in the <code>dir</code> column above.</p>
@@ -235,11 +233,9 @@ own model one may use the following code.</p>
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; At every iteration of the simulation loop (t = 1 to T):</span></span>
 <span><span class="co">#&gt; ---------------------</span></span>
-<span><span class="co">#&gt; 1: infection ~ S * I * beta/N</span></span>
-<span><span class="co">#&gt; 2: recovery ~ gamma * I</span></span>
-<span><span class="co">#&gt; 3: S ~ S - infection</span></span>
-<span><span class="co">#&gt; 4: I ~ I + infection - recovery</span></span>
-<span><span class="co">#&gt; 5: R ~ R + recovery</span></span></code></pre></div>
+<span><span class="co">#&gt; 1: mp_per_capita_flow(from = "S", to = "I", rate = infection ~ I * </span></span>
+<span><span class="co">#&gt;      beta/N)</span></span>
+<span><span class="co">#&gt; 2: mp_per_capita_flow(from = "I", to = "R", rate = recovery ~ gamma)</span></span></code></pre></div>
 <p>After running this code you can go to the files in
 <code>my_sir_dir</code> and modify what you see there. Note that you
 typically want to chose a specific directory for your model instead of
@@ -266,11 +262,9 @@ usual way.</p>
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; At every iteration of the simulation loop (t = 1 to T):</span></span>
 <span><span class="co">#&gt; ---------------------</span></span>
-<span><span class="co">#&gt; 1: infection ~ S * I * beta/N</span></span>
-<span><span class="co">#&gt; 2: recovery ~ gamma * I</span></span>
-<span><span class="co">#&gt; 3: S ~ S - infection</span></span>
-<span><span class="co">#&gt; 4: I ~ I + infection - recovery</span></span>
-<span><span class="co">#&gt; 5: R ~ R + recovery</span></span></code></pre></div>
+<span><span class="co">#&gt; 1: mp_per_capita_flow(from = "S", to = "I", rate = infection ~ I * </span></span>
+<span><span class="co">#&gt;      beta/N)</span></span>
+<span><span class="co">#&gt; 2: mp_per_capita_flow(from = "I", to = "R", rate = recovery ~ gamma)</span></span></code></pre></div>
 <p>These look identical to what came before, but that’s just because it
 hasn’t been modified … yet …</p>
 </div>
