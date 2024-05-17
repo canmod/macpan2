@@ -789,20 +789,6 @@ TMBPar = function(
         , "mp_default(spec) for all default model parameters."
       ) |> stop()
     }
-    
-    parameterized_defaults = orig_spec$default[pnms]
-    if (length(parameterized_defaults) > 0L) {
-      non_scalars = vapply(parameterized_defaults, length, integer(1L)) != 1L
-      if (any(non_scalars)) {
-        stop(
-          "The following parameterized model defaults are not scalars",
-          sprintf(":\n%s\n", paste0(pnms[non_scalars], collapse = ", ")),
-          "The development interface can be used to fit such models and in ",
-          "the future we plan on making user interfaces that can handle ",
-          "vector-valued defaults."
-        )
-      }
-    }
   }
   
   return_object(self, "TMBPar")

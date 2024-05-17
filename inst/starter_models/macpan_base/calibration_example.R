@@ -1,4 +1,3 @@
-#source("inst/starter_models/macpan_base/tmb.R")
 library(macpan2)
 library(ggplot2)
 library(dplyr)
@@ -11,132 +10,90 @@ spec = mp_tmb_library("starter_models","macpan_base",package="macpan2")
 spec
 
 ## -------------------------
-## define simulator
+## simulate fake data
 ## -------------------------
 
 # set number of time steps in simulation
 time_steps = 100L
 
+# Ca value to simulate data with
+true_Ca = 0.8
+
+# infectious compartment names
+I_labels = c("Ia", "Ip", "Im", "Is")
+
 # simulator object
 macpan_base = mp_simulator(  
     model = spec
   , time_steps = time_steps
-  , outputs = c("Ia", "Ip", "Im", "Is")
+  , outputs = I_labels
+  , default = list(Ca = true_Ca)
 )
+
+# simulated data
+sim_data = (macpan_base 
+            |> mp_trajectory() 
+            |> mutate(across(value, ~ rpois(n(), .)))
+)
+
+# visualize simulated prevalence
+if (interactive()) {
+  ggplot(sim_data)+
+    geom_point(aes(time,value))+
+    theme_bw()+
+    facet_wrap(vars(matrix),scales = 'free')
+  
+}
+
 
 ## -------------------------
 ## parameterize model
 ## -------------------------
 
-# interested in estimating asymptomatic relative transmission rate
-macpan_base$update$transformations(Log("Ca"))
-macpan_base$replace$params(log(spec$default$Ca),"log_Ca")
-macpan_base
-
-## -------------------------
-## specify objective function
-## -------------------------
-
-
-# negative log likelihood
-obj_fn = ~ -sum(dpois(Ia_obs, rbind_time(Ia, Ia_obs_times)))
-
-# update simulator to create new variables 
-macpan_base$update$matrices(
-    Ia_obs = empty_matrix
-  , Ia_obs_times = empty_matrix
-)
-
-# update simulator to include this function
-macpan_base$replace$obj_fn(obj_fn)
-
-
-## -------------------------
-## simulate fake data
-## -------------------------
-
-# Ca value to simulate data with
-true_Ca = 0.8
-
-## simulate observed data using true parameters
-observed_data = macpan_base$report(log(true_Ca))
-
-## compute incidence for observed data
-Ia_obs = rpois(time_steps, subset(observed_data, matrix == "Ia", select = c(value)) %>% pull())
-Ia_obs_times = subset(observed_data, matrix == "Ia", select = c(time)) %>% pull()
-
-if (interactive()) {
-  plot(Ia_obs, type = "l", las = 1)
-}
-
-
-## -------------------------
-## update simulator with fake data to fit to
-## -------------------------
-
-macpan_base$update$matrices(
-    Ia_obs = Ia_obs
-  , Ia_obs_times = Ia_obs_times
+mb_calib = mp_tmb_calibrator(
+  # add log transformation for Ca parameter
+    spec = (spec 
+      |> mp_tmb_insert(phase = "before", at = 1L
+                       , expressions = list(Ca ~ exp(log_Ca))
+                       , default = list(log_Ca = log(1e-2)))
+    )
+  , data = sim_data
+  , traj = I_labels
+  , par = "log_Ca"
 )
 
 ## -------------------------
-## plot likelihood surface (curve)
+## fit model
 ## -------------------------
 
-# plot surface as contours
+# optimize
+mp_optimize(mb_calib)
+
+# get fitted data
+fitted_data = mp_trajectory_sd(mb_calib, conf.int = TRUE)
+
+# check estimate, close to true
+mp_tmb_coef(mb_calib) %>% mutate(estimate = exp(estimate))
+
+# fit looks reasonable
 if (interactive()) {
-
-  log_Ca_seq = seq(from = log(0.1), to = log(1), length = 100)
-  
-  ll = vapply(
-      log_Ca_seq
-    , macpan_base$objective
-    , numeric(1L)
+(ggplot(sim_data, aes(time,value))
+  + geom_point()
+  + geom_line(aes(time, value)
+              , data = fitted_data
+              , colour = "red"
   )
-  dat_for_plot <- (cbind(log_Ca_seq, ll)
-                   %>% data.frame()
-
+  + geom_ribbon(aes(time, ymin = conf.low, ymax = conf.high)
+                , data = fitted_data
+                , alpha = 0.2
+                , colour = "red"
   )
-  
-  ggplot(dat_for_plot, aes(log_Ca_seq, ll)) +
-    geom_line()+
-    ## add true parameter values to compare
-    geom_vline(xintercept = log(true_Ca), col='red')+
-    xlab("log(Ca)")
-
+  + facet_wrap(vars(matrix),scales = 'free')
+  + theme_bw()
+  + ylab("prevalence")
+)
 }
 
-## -------------------------
-## fit parameters
-## -------------------------
-
-## optimize and check convergence
-macpan_base$optimize$nlminb()
-
-## plot observed vs predicted
-if (interactive()) {
-  
-  ## estimate is close to true
-  print(macpan_base$current$params_frame())
-  print(paste0("exp(default Ca) ",exp(macpan_base$current$params_frame()$default)))
-  print(paste0("exp(current Ca) ",exp(macpan_base$current$params_frame()$current)))
-  
-  data_to_plot <- (cbind(as.numeric(Ia_obs),1:time_steps)
-                   %>% data.frame()
-                   %>% setNames(c("value","time"))
-                   %>% mutate(type="observed")
-  ) %>% union(macpan_base$report() 
-              %>% filter(matrix=="Ia") 
-              %>% select(time,value)
-              %>% mutate(type="predicted")
-  )
-  
-  ggplot(data_to_plot, aes(x=time, y=value, col=type, linetype = type))+
-    geom_line()+
-    theme_bw()+
-    ylab("Ia")
-  
-}
 
 ## -------------------------
 ## exploring
@@ -145,7 +102,8 @@ if (interactive()) {
 ## plotting Ia(t) vs. Ia(t+1) - should be linear?
 if (interactive()) {
   
-  Ia_shifted <- (macpan_base$report()
+  Ia_shifted <- (macpan_base
+                 %>% mp_trajectory() 
                  %>% filter(matrix=="Ia") 
                  %>% mutate(Ia_lead = lead(value))
                  %>% rename(Ia=value)
@@ -171,7 +129,7 @@ if (interactive()) {
 
 ## all infectious compartments
 if (interactive()) {
-  ggplot(macpan_base$report() %>% select(time,value,matrix), aes(time,value,col=matrix))+
+  ggplot(macpan_base %>% mp_trajectory() %>% select(time,value,matrix), aes(time,value,col=matrix))+
     geom_line()+
     theme_bw()+
     ylab("individuals")
