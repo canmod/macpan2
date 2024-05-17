@@ -34,7 +34,7 @@ sir = Compartmental(system.file("starter_models", "sir", package = "macpan2"))$s
   , .mats_to_return = c("state", "incidence", "reports")
 )
 sir$insert$expressions(
-    incidence ~ foi * S
+  incidence ~ foi * S
   , reports ~ convolution(incidence, kernel)
   , .at = Inf
   , .phase = "during"
@@ -44,4 +44,30 @@ sir$insert$expressions(
   %>% filter(matrix %in% c("reports", "incidence"))
   %>% ggplot()
   + geom_line(aes(time, value, colour = matrix))
+)
+
+## added by JF - converting to new macpan2 interface
+sir = (mp_tmb_library(system.file("starter_models", "sir", package = "macpan2"))
+        |> mp_tmb_insert(phase = "during"
+             , at = Inf
+             , expressions = list(incidence ~ infection * S, reports ~ convolution(incidence, kernel))
+             , default = list(
+                 N = 10000 # need to set N instead of S, because S is derived
+               , I = 1
+               , R = 0
+               , incidence = empty_matrix
+               , gamma = 0.2
+               , beta = 0.4
+               , kernel = make_delay_kernel(0.1, 11, 0.25)
+               , reports = empty_matrix
+               )
+         )
+         |> mp_simulator(time_steps = 100, outputs = c("incidence","reports"))
+)
+
+(sir
+  %>% mp_trajectory()
+  %>% ggplot()
+  + geom_line(aes(time, value, colour = matrix))
+  + facet_wrap(vars(matrix),scales = 'free')
 )

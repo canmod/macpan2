@@ -5,37 +5,22 @@ computations = list(
 )
 
 flow_rates = list(
-    S.E ~ S * (beta0 / N) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s))
-  , E.Ia ~ E * alpha * sigma
-  , E.Ip ~ E * (1 - alpha)* sigma
-  , Ia.R ~ Ia * gamma_a
-  , Ip.Im ~ Ip * mu * gamma_p
-  , Im.R ~ Im * gamma_m
-  , Ip.Is ~ Ip * (1 - mu) * gamma_p
-  , Is.ICUs ~ Is * (1 - nonhosp_mort) * (1 - phi1) * (1 - phi2) * gamma_s
-  , Is.ICUd ~ Is * (1 - nonhosp_mort) * (1 - phi1) * phi2 * gamma_s
-  , ICUs.H2 ~ ICUs * psi1
-  , H2.R ~ H2 * psi3
-  , Is.H ~ Is * (1 - nonhosp_mort) * phi1 * gamma_s
-  , ICUd.D ~ ICUd * psi2
-  , H.R ~ H * rho
+    mp_per_capita_flow("S", "E", S.E ~ (beta0 / N) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s)))
+  , mp_per_capita_flow("E", "Ia", E.Ia ~ alpha * sigma)
+  , mp_per_capita_flow("E", "Ip", E.Ip ~ (1 - alpha)* sigma)
+  , mp_per_capita_flow("Ia", "R", Ia.R ~ gamma_a)
+  , mp_per_capita_flow("Ip", "Im", Ip.Im ~ mu * gamma_p)
+  , mp_per_capita_flow("Im", "R", Im.R ~ gamma_m) 
+  , mp_per_capita_flow("Ip", "Is", Ip.Is ~ (1 - mu) * gamma_p) 
+  , mp_per_capita_flow("Is", "ICUs", Is.ICUs ~ (1 - nonhosp_mort) * (1 - phi1) * (1 - phi2) * gamma_s)
+  , mp_per_capita_flow("Is", "ICUd", Is.ICUd ~ (1 - nonhosp_mort) * (1 - phi1) * phi2 * gamma_s)
+  , mp_per_capita_flow("ICUs", "H2", ICUs.H2 ~ psi1) 
+  , mp_per_capita_flow("H2", "R", H2.R ~ psi3) 
+  , mp_per_capita_flow("Is", "H", Is.H ~ (1 - nonhosp_mort) * phi1 * gamma_s) 
+  , mp_per_capita_flow("Is", "D", Is.D ~ (nonhosp_mort) * gamma_s) 
+  , mp_per_capita_flow("ICUd", "D", ICUd.D ~ psi2)
+  , mp_per_capita_flow("H", "R", H.R ~ rho)
 )
-
-update_state = list(
-    S ~ S - S.E
-  , E ~ E + S.E - E.Ia - E.Ip
-  , Ia ~ Ia + E.Ia - Ia.R
-  , Ip ~ Ip + E.Ip - Ip.Im - Ip.Is
-  , Im ~ Im + Ip.Im - Im.R
-  , Is ~ Is + Ip.Is - Is.ICUs - Is.H - Is.ICUd
-  , H ~ H + Is.H - H.R
-  , ICUs ~ ICUs + Is.ICUs - ICUs.H2
-  , ICUd ~ ICUd + Is.ICUd - ICUd.D
-  , H2 ~ H2 + ICUs.H2 - H2.R
-  , R ~ R + Ia.R + Im.R + H.R + H2.R
-  , D ~ D + ICUd.D
-)
-
 
 ## set defaults
 default = list(
@@ -84,6 +69,6 @@ default = list(
 ## model specification
 spec = mp_tmb_model_spec(
     before = computations
-  , during = c(flow_rates, update_state)
+  , during = flow_rates
   , default = default
 )

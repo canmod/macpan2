@@ -472,6 +472,9 @@ EulerMultinomialUpdateMethod = function(change_model) {
 HazardUpdateMethod = function(change_model) {
   self = EulerMultinomialUpdateMethod(change_model)
   self$during = function() {
+    before_components = self$change_model$before_flows()
+    before_state = self$change_model$before_state()
+
     flow_list = self$change_model$update_flows()
     components = list()
     for (size_var in names(flow_list)) {
@@ -491,7 +494,9 @@ HazardUpdateMethod = function(change_model) {
     update_char = sprintf("%s ~ %s %s", states, states, rates)
     new_update = lapply(update_char, as.formula)
     
-    c(new_flow, new_update)
+    after_components = self$change_model$after_state()
+    
+    c(before_components, before_state, new_flow, new_update, after_components)
   }
   return_object(self, "HazardUpdateMethodUpdateMethod")
 }
