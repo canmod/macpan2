@@ -116,35 +116,6 @@ initial_state_prop = 0.01
 E0 = 1e-5
 S0 = 1-E0
 
-# parameter vector we want to optimize over (Table 1 in manuscript), is this the
-# complete list of parameters?
-# I think eta = nonhosp_mort = 'Probability of mortality without hospitalization'
-# believe distr_params is already on log scale
-theta_names = c(
-    "log_zeta"
-  , "log_beta0"
-  , "logit_nonhosp_mort"
-  , "log_mobility_coefficients" #c vector in manuscript
-  , "log_E"
-  , "distr_params" # negative binomial dispersion for deaths and reports
-)
-theta = c(
-    log(35)
-  , log(1)
-  , qlogis(1e-2)
-  , c(0.751,-0.786,0.175,-0.469,-1.496)
-  , log(8.5)
-  , rep(log(1000),2)
-)
-
-# theta = c(
-#     log(1e-2)
-#   , log(1e-2)
-#   , log((1e-2)/(1-(1e-2)))
-#   , log_mobility_coefficients
-#   , log(1)
-#   , rep(log(1),2)
-# )
 
 ## -------------------------
 ## model spec (base model)
@@ -163,7 +134,7 @@ focal_model = (spec
        zeta ~ exp(log_zeta)
      , beta0 ~ exp(log_beta0)
      , nonhosp_mort ~ 1/(1+exp((-logit_nonhosp_mort)))
-     , E ~ exp(log_E)
+     #, E ~ exp(log_E)
      # , Ia ~ exp(log_Ia)
      # , Ip ~ exp(log_Ip)
      # , Im ~ exp(log_Im)
@@ -173,7 +144,7 @@ focal_model = (spec
       log_zeta = log(1e-2)
     , log_beta0 = log(1e-2)
     , logit_nonhosp_mort = log((1e-2)/(1-(1e-2)))
-    , log_E = log(1)
+    #, log_E = log(1)
     # , log_Ia = log(1)
     # , log_Ip = log(1)
     # , log_Im = log(1)
@@ -275,7 +246,7 @@ ph_model = (spec
                        zeta ~ exp(log_zeta)
                      , beta0 ~ exp(log_beta0)
                      , nonhosp_mort ~ 1/(1+exp((-logit_nonhosp_mort)))
-                     , E ~ exp(log_E)
+                     #, E ~ exp(log_E)
                      # , Ia ~ exp(log_Ia)
                      # , Ip ~ exp(log_Ip)
                      # , Im ~ exp(log_Im)
@@ -286,7 +257,7 @@ ph_model = (spec
                        log_zeta = log(1e-2)
                      , log_beta0 = log(1e-2)
                      , logit_nonhosp_mort = log((1e-2)/(1-(1e-2)))
-                     , log_E = log(1)
+                     #, log_E = log(1)
                      # , log_Ia = log(1)
                      # , log_Ip = log(1)
                      # , log_Im = log(1)
@@ -325,8 +296,8 @@ ph_model = (spec
 (focal_model
   %>% mp_simulator(time_steps = time_steps, outputs = c("incidence","report" ,"foi")
                    , default = list(S = N_focal
-                                    , log_E = log(1e3)
-                                    , Ia = 1e4)
+                                    , E = log(1e3)
+                                    , Ia = 1e6)
                    )
   %>% mp_trajectory()
   %>% ggplot(aes(time,value))+
@@ -365,7 +336,8 @@ sim_data = (mp_simulator(focal_model |> mp_rk4()
                          , default = list(
                              logit_nonhosp_mort = qlogis(0.3) # true value
                            , S = N_focal*(1-initial_state_prop)
-                           , log_E = log(N_focal*initial_state_prop)
+                           #, log_E = log(N_focal*initial_state_prop)
+                           , E = N_focal*initial_state_prop
                            , Ia = 0
                            , Ip = 0
                            , Im = 0
@@ -398,7 +370,8 @@ initial_calib = mp_tmb_calibrator(
   , default = list(
       # all defaults should match sim_data
       S = N_focal*(1-initial_state_prop)
-    , log_E = log(N_focal*initial_state_prop)
+    #, log_E = log(N_focal*initial_state_prop)
+    , E = N_focal*initial_state_prop
     , Ia = 0
     , Ip = 0
     , Im = 0
@@ -522,7 +495,7 @@ uniroot(euler_lotka, c(0,10))
 
 
 ## -------------------------
-## eigenvector state initialization
+## exp_growth_model - eigenvector state initialization
 ## -------------------------
 
 # Followed steps from: https://github.com/canmod/macpan2/issues/203 in addition 
@@ -547,20 +520,21 @@ exp_growth_model = (
   %>% mp_tmb_insert(phase = "during"
                     , at = Inf
                     # normalize everything at each step (so it doesn't blow up)
-                    , expressions = list(
-                        S ~ S / N
-                      , E ~ E / N
-                      , Ia ~ Ia / N
-                      , Ip ~ Ip / N
-                      , Im ~ Im / N
-                      , Is ~ Is / N
-                      , H ~ H / N
-                      , H2 ~ H2 / N
-                      , ICUs ~ ICUs / N
-                      , ICUd ~ ICUd / N
-                      , D ~ D / N
-                      , R ~ R / N
-                      )
+                    # , expressions = list(
+                    #     S ~ S / N
+                    #   , E ~ E / N
+                    #   , Ia ~ Ia / N
+                    #   , Ip ~ Ip / N
+                    #   , Im ~ Im / N
+                    #   , Is ~ Is / N
+                    #   , H ~ H / N
+                    #   , H2 ~ H2 / N
+                    #   , ICUs ~ ICUs / N
+                    #   , ICUd ~ ICUd / N
+                    #   , D ~ D / N
+                    #   , R ~ R / N
+                    #   )
+                    , must_not_save = states
   )
   %>% mp_tmb_insert(phase="after"
                     , at = 1L
@@ -569,7 +543,7 @@ exp_growth_model = (
                         intermediate_state_sum ~ sum(E, Ia, Ip, Im, Is, ICUs, ICUd, H, H2)
                       # compute the number of individuals to be distributed
                       # across the intermediate states
-                      , intermediate_N ~ initial_state_prop * N_focal
+                      #, intermediate_N ~ initial_state_prop * N_focal
                       
                       # normalize and scale intermediate states
                       # there might be a way to vectorize this?
@@ -589,9 +563,10 @@ exp_growth_model = (
                       , R ~ 0
                       )
                     , default = list(
-                        initial_state_prop = initial_state_prop
+                        #initial_state_prop = initial_state_prop
+                        intermediate_N = 0.01*N_focal
                       , S = S0
-                      , log_E = log(E0)
+                      , E = E0
                       , Ia = 0
                       , Ip = 0
                       , Im = 0
@@ -604,25 +579,140 @@ exp_growth_model = (
                       , D = 0
                       , N_focal = N_focal)
                     )
+  |> mp_tmb_update()
 )
-
 
 ## -------------------------
 ## calibration of focal model (base model)
 ## -------------------------
 
-
-# fitting to deaths and reports
 focal_calib = mp_tmb_calibrator(
     spec = focal_model |> mp_rk4()
   , data = formatted_tsdata
   , traj = c("report","death") 
-  # remove last element of theta (distr_params) because these get created 
-  # internally in calibrator
-  # we don't want to fit default states, but they need to be here so we can pass
+  , par = c("log_zeta","log_beta0","logit_nonhosp_mort","log_mobility_coefficients","E")
+  , outputs = c("death","report")
+  , default = list(
+      S = N_focal * (1 - initial_state_prop)
+    , R = 0
+    , D = 0
+  )
+)
+mp_optimize(focal_calib)
+
+# get fitted data
+fitted_data = mp_trajectory_sd(focal_calib, conf.int = TRUE)
+
+# check estimate
+mp_tmb_coef(focal_calib, conf.int = TRUE) |> backtrans()
+
+(ggplot(formatted_tsdata, aes(time,value))
+  + geom_point()
+  + geom_line(aes(time, value)
+              , data = fitted_data |> filter(matrix %in% c("death","report"))
+              , colour = "red"
+  )
+  + geom_ribbon(aes(time, ymin = conf.low, ymax = conf.high)
+                , data = fitted_data |> filter(matrix %in% c("death","report"))
+                , alpha = 0.2
+                , colour = "red"
+  )
+  + facet_wrap(vars(matrix),scales = 'free')
+  + theme_bw()
+)
+
+
+## -------------------------
+## calibration of composed model 
+## (focal_model(base model) with initial state vector from exp_growth_model)
+## -------------------------
+
+# time steps to simulate initial state vector with (might want to fit)
+eigen_time_steps = 100
+
+theta_eigen = function(param_list) c(param_list$both, param_list$eigen)
+theta_focal = function(param_list) c(param_list$both, param_list$focal)
+get_eigen_vec = function(param_list) {
+  eigen_ad$report(theta_eigen(param_list))$values[, 5]
+}
+expand_param = function(param_list, distr_params = FALSE) {
+  if (distr_params){
+    c(theta_focal(param_list), get_eigen_vec(param_list), param_list$distr_params)
+  } else {
+    c(theta_focal(param_list), get_eigen_vec(param_list))
+  }
+}
+
+# parameter vector we want to optimize over (Table 1 in manuscript), is this the
+# complete list of parameters?
+# I think eta = nonhosp_mort = 'Probability of mortality without hospitalization'
+# believe distr_params (negative binomial dispersion for deaths and reports) is
+# already on log scale, log_mobiility_coefficients ='c' vector in manuscript
+theta_list = list(
+    both = c("log_zeta","log_beta0","logit_nonhosp_mort")
+  , eigen = c("intermediate_N")
+  , focal = c("log_mobility_coefficients")
+  , distr_params = c("report","death")
+)
+
+# parameter vector structure for relisting
+theta_struc = list(
+    both = c(log_zeta = 0,log_beta0 = 0,logit_nonhosp_mort = 0)
+  , eigen = c(intermediate_N=0)
+  , focal = c(log_mobility_coefficients = rep(0,5))
+  , distr_params = c(rep(0,2))
+)
+
+# starting values for optimizer
+theta_start = list(
+    both = c(log_zeta = log(2),log_beta0 = log(1e-2),logit_nonhosp_mort = qlogis(1e-2))
+  , eigen = c(intermediate_N=10)
+  # don't need starting intermediates states because these come from eigen model output
+  , focal = c(log_mobility_coefficients = rep(log(1e-1),5))
+  , distr_params = c(rep(log(1),2)) # dispersion parameters
+)
+
+# estimates from manuscript (directly from Table 1)
+# what intermediate N would result in E(0)=8.500?
+theta_known = list(
+    both = c(log_zeta = log(38.756),log_beta0 = log(1.027),logit_nonhosp_mort = log(0.022))
+  , eigen = c(intermediate_N = 8.5)
+  # assuming tranmission coefficients are already on log scale
+  , focal = c(log_mobility_coefficients = c(0.751, -0.786, 0.175, -0.469, -1.496))
+  , distr_params = c(rep(log(1000),2)) # dispersion parameters
+)
+
+
+
+# parameterize exp_growth_model
+eigen_params_frame = data.frame(
+    default = theta_eigen(theta_start)
+  , mat = names(theta_eigen(theta_start))
+)
+
+eigen_simulator = mp_simulator(exp_growth_model
+   , time_steps = eigen_time_steps
+   , outputs = intermediate_states
+)
+
+eigen_simulator$replace$params(eigen_params_frame$default, eigen_params_frame$mat)
+eigen_ad = mp_tmb(eigen_simulator)
+
+
+# composed calibration
+# fitting to deaths and reports
+# don't think we need focal_simulator because this was only used to simulate
+# trajectories given a parameter set, but believe this can be done with
+# calibrator object (#focal_ad = mp_tmb(focal_simulator))
+composed_calib = mp_tmb_calibrator(
+    spec = focal_model |> mp_rk4()
+  , data = formatted_tsdata
+  , traj = c("report","death") 
+  # we don't want to fit intermediate states, but they need to be here so we can pass
   # initial values to optimizer
-  , par = c(head(theta_names, -1), default_states) 
-  , outputs = c("S","E","I","death","report")
+  , par = c(theta_focal(theta_list), intermediate_states) 
+  , outputs = c("death","report")
+  #, outputs = c(intermediate_states,"death","report")
   , default = list(
       S = N_focal * (1 - initial_state_prop)
     , R = 0
@@ -631,11 +721,84 @@ focal_calib = mp_tmb_calibrator(
 )
 
 # save TMB calibrator object so we can work with objective function
-focal_tmb = mp_tmb(focal_calib)
-length(focal_tmb$par) # notice +2 additional parameters for distr_params
-length(theta)+length(default_states)
+composed_tmb = mp_tmb(composed_calib)
+
+length(composed_tmb$par) # notice +2 additional parameters for distr_params
+
+# objective function for composed model
+obj_fn = function(theta) {
+  p = expand_param(relist(theta, theta_struc), distr_params = TRUE)
+  composed_tmb$fn(p)
+}
+
+# optimize
+opt = optim(unlist(theta_start), obj_fn)
+
+# fit with optimized parameter vector
+# (distr_params need to be dealt with, would this just add noise?)
+fitted_traj = composed_calib$simulator$report(expand_param(relist(opt$par,theta_struc), distr_params = TRUE))
+# we can check what initial state vector is with known set of parameters
+expand_param(theta_known)
+known_fit = composed_calib$simulator$report(expand_param(theta_known, distr_params = TRUE))
+
+ggplot(formatted_tsdata)+
+  geom_point(aes(time,value))+
+  geom_line(data=fitted_traj, aes(time, value))+
+  geom_line(data=known_fit, aes(time, value),colour="red")+
+  facet_wrap(vars(matrix), scales="free")
 
 
+
+# should be able to pass vectors here because we can with the higher level
+# interface (I don't know how to do this)
+# row, col?
+# focal_params_frame = data.frame(
+#     default = c(theta_focal(theta_start)
+#                 , 1 #E
+#                 , rep(0, (length(intermediate_states)-1)))
+#   , mat = c(names(theta_focal(theta_start))[1:3]
+#             ,rep("log_mobility_coefficients",5)
+#             ,intermediate_states)
+# )
+# 
+# focal_simulator = mp_simulator(focal_model |> mp_rk4()
+#   , time_steps = time_steps
+#   # outputs for sim_traj
+#   , outputs = c(intermediate_states, "death", "report")
+# )
+# 
+# 
+# focal_simulator$replace$params(focal_params_frame$default, focal_params_frame$mat)
+
+
+
+# # should this be from focal calib? (not focal_ad)
+# sim_traj = function(param_list) {
+#   (focal_ad$report(expand_param(param_list))$values
+##    |> as.data.frame()
+##    |> setNames(c("matrix","time","row","col","value"))
+#   )
+#   #[2:(unimportant_time_steps+1), 5]
+# }
+# expand_param(theta_start)
+# sim_traj(theta_start)
+# 
+# st = sim_traj(relist(opt$par, theta_struc))
+# 
+# test_sim = mp_simulator(focal_model
+#              , time_steps = unimportant_time_steps
+#              # outputs for sim_traj
+#              , outputs = c("death", "report")
+# )
+# 
+
+#fitted_traj_sim = focal_simulator$.simulation_formatter(focal_ad$report(expand_param(relist(opt$par,theta_struc))), .phases ="during")
+#fitted_traj_calib = focal_calib$simulator$report(expand_param(relist(opt$par,theta_struc), distr_params = TRUE))
+# can I use focal_tmb$report? maybe not because internal objective function is not the one we want
+
+
+
+# ------------------------------------------------------------------------
 # objective function of composed model (focal model with initial state vector
 # from exp_growth_model)
 # exp_growth model depends partially on theta: log_zeta, log_beta0,
@@ -766,39 +929,6 @@ fitted_data = (focal_model |> mp_rk4()
 
 
 (ggplot(fitted_data, aes(time,value))
-  + geom_point()
-  + facet_wrap(vars(matrix),scales = 'free')
-  + theme_bw()
-)
-
-##########################################
-# old stuff
-
-mp_optimize(focal_calib)
-
-# get fitted data
-fitted_data = mp_trajectory_sd(focal_calib, conf.int = TRUE)
-
-# check estimate
-mp_tmb_coef(focal_calib, conf.int = TRUE) |> backtrans()
-
-
-(ggplot(formatted_tsdata, aes(time,value))
-   + geom_point()
-   + geom_line(aes(time, value)
-               , data = fitted_data |> filter(matrix %in% c("death","report"))
-               , colour = "red"
-   )
-   + geom_ribbon(aes(time, ymin = conf.low, ymax = conf.high)
-                 , data = fitted_data |> filter(matrix %in% c("death","report"))
-                 , alpha = 0.2
-                 , colour = "red"
-   )
-   + facet_wrap(vars(matrix),scales = 'free')
-   + theme_bw()
-)
-
-(ggplot(fitted_data |> filter(matrix %in% c(states)), aes(time,value))
   + geom_point()
   + facet_wrap(vars(matrix),scales = 'free')
   + theme_bw()
