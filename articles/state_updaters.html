@@ -284,7 +284,142 @@ infectious individuals is exactly the incidence.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="state_updaters_files/figure-html/unnamed-chunk-9-1.png" width="700"></p>
 </div>
-  </main>
+<div class="section level2">
+<h2 id="relationship-to-ordinary-differential-equation-solvers">Relationship to Ordinary Differential Equation Solvers<a class="anchor" aria-label="anchor" href="#relationship-to-ordinary-differential-equation-solvers"></a>
+</h2>
+<p>It is instructive to view these state update methods as approximate
+solutions to ordinary differential equations (ODEs). We consider ODEs of
+the following form.</p>
+<p><span class="math display">\[
+\frac{dx_i}{dt} = \sum_j x_j r_{ji} - \sum_i x_i r_{ij}
+\]</span> Where the per-capita rate of flowing from compartment <span class="math inline">\(i\)</span> to compartment <span class="math inline">\(j\)</span> is <span class="math inline">\(r_{ij}\)</span>, and <span class="math inline">\(x_i\)</span> is the number of individuals in the
+<span class="math inline">\(i\)</span>th compartment. We allow each
+<span class="math inline">\(r_{ij}\)</span> to depend on any number of
+state variables and time-varying parameters. For example, for an SIR
+model we have <span class="math inline">\(x_S, x_I, x_R\)</span> (for
+readability we use <span class="math inline">\(S, I, R\)</span>). In
+this case <span class="math inline">\(r_{SI} = \beta I / N\)</span>,
+<span class="math inline">\(r_{IR} = \gamma\)</span>, and all other
+values of <span class="math inline">\(r_{ij}\)</span> are zero. Here the
+force of infection, <span class="math inline">\(r_{SI}\)</span>, depends
+on a state variable <span class="math inline">\(I\)</span>.</p>
+<p>Although each state-update method presented below can be thought of
+as an approximate solution to this ODE, they can also be thought of as
+dynamical models in their own right. For example, the Euler-multinomial
+model is a useful model of process error.</p>
+<div class="section level3">
+<h3 id="euler">Euler<a class="anchor" aria-label="anchor" href="#euler"></a>
+</h3>
+<p>The simplest approach is to just pretend that the ODEs are difference
+equations. In this case, at each time-step, each state variable is
+updated as follows. <span class="math display">\[
+x_i = x_i - \sum_j x_i r_{ij} + \sum_j x_j r_{ji}
+\]</span> The SIR example is as follows.</p>
+<p><span class="math display">\[
+S = S - Sr_{SI}
+\]</span> <span class="math display">\[
+I = I - Ir_{IR} + Sr_{SI}
+\]</span> <span class="math display">\[
+R = R + Ir_{IR}
+\]</span></p>
+</div>
+<div class="section level3">
+<h3 id="runge-kutta-4">Runge Kutta 4<a class="anchor" aria-label="anchor" href="#runge-kutta-4"></a>
+</h3>
+<p>TODO</p>
+</div>
+<div class="section level3">
+<h3 id="euler-multinomial">Euler-Multinomial<a class="anchor" aria-label="anchor" href="#euler-multinomial"></a>
+</h3>
+<p>The Euler-multinomial state update method assumes that the number of
+individuals that move from one box to another in a single time-step is a
+random non-negative integer, coming from a particular multinomial
+distribution.</p>
+<p>Under this distribution, the probability of staying in the <span class="math inline">\(i\)</span>th box through an entire time-step is
+assumed to be the following.</p>
+<p><span class="math display">\[
+p_{ii} = \exp\left(-\sum_j r_{ij}\right)
+\]</span></p>
+<p>This probability assumes the following.</p>
+<ul>
+<li>Individuals leave the box according to a Poisson process with rate
+<span class="math inline">\(\exp\left(-\sum_j
+r_{ij}\right)\)</span>.</li>
+<li>The rates, <span class="math inline">\(r_{ij}\)</span>, are held
+constant throughout the entire time-step, although they can change when
+each time-step begins.</li>
+</ul>
+<p>The probability of moving from box <span class="math inline">\(i\)</span> to box <span class="math inline">\(j\)</span> in one time-step is given by the
+following.</p>
+<p><span class="math display">\[
+p_{ij} = (1 - p_{ii}) \frac{r_{ij}}{\sum_j r_{ij}}
+\]</span></p>
+<p>This probability is just the probability of not staying in box <span class="math inline">\(i\)</span>, which is <span class="math inline">\(1
+- p_{ii}\)</span>, and specifically going to box <span class="math inline">\(j\)</span>, which is assumed to be given by this
+expression <span class="math inline">\(\frac{r_{ij}}{\sum_j
+r_{ij}}\)</span>.</p>
+<p>Let <span class="math inline">\(\rho{ij}\)</span> be the random
+number of individuals that move from box <span class="math inline">\(i\)</span> to box <span class="math inline">\(j\)</span> in one time-step. The expected value of
+<span class="math inline">\(\rho{ij}\)</span> is <span class="math inline">\(p_{ij} x_i\)</span>. However, these random
+variables are not independent events, because the total number of
+individuals, <span class="math inline">\(\sum_i x_i\)</span>, has to
+remain constant through a single time-step (at least in the models that
+we are currently considering).</p>
+<p>To account for this non-independence, we collect the <span class="math inline">\(\rho{ij}\)</span> associated with a from
+compartment <span class="math inline">\(i\)</span> into a vector <span class="math inline">\(\rhoi\)</span>. We collect similar vector of
+probabilities, <span class="math inline">\(p_i\)</span>. Each <span class="math inline">\(\rhoi\)</span> is a random draw from a multinomial
+distribution with <span class="math inline">\(x_i\)</span> trials and
+probability vector, <span class="math inline">\(p_i\)</span>.</p>
+<p>Once these random draws have been made, the state variables can be
+updated at each time-step as follows.</p>
+<p><span class="math display">\[
+x_i = x_i - \sum_j \rho{ij} + \sum_j \rho{ji}
+\]</span></p>
+<p>Note that we do not actually need to generate values for the diagonal
+elements, <span class="math inline">\(\rho{ii}\)</span>, because they
+cancel out in this update equation. We also can ignore any <span class="math inline">\(\rho{ij}\)</span> such that <span class="math inline">\(r_{ij} = 0\)</span>.</p>
+<p>Under the SIR example we have a particularly simple Euler-binomial
+distribution because there are no branching flows – when individuals
+leave S they can only go to I and when they leave I they can only go to
+R. These two flows are given by the following distributions.</p>
+<p><span class="math display">\[
+\rho{S,I} \sim \text{Binomial}(S, p_{SI})
+\]</span></p>
+<p><span class="math display">\[
+\rho{I,R} \sim \text{Binomial}(I, p_{IR})
+\]</span></p>
+<p>In models with branching flows we would have multinomial
+distributions. But in this model the state update is given by the
+following equations.</p>
+<p><span class="math display">\[
+S = S - \rho{SI}
+\]</span> <span class="math display">\[
+I = I - \rho{IR} + \rho{SI}
+\]</span> <span class="math display">\[
+R = R + \rho{IR}
+\]</span></p>
+</div>
+<div class="section level3">
+<h3 id="hazard">Hazard<a class="anchor" aria-label="anchor" href="#hazard"></a>
+</h3>
+<p>The Hazard update-method uses the expected values associated with the
+Euler-multinomial described above. In particular, the state variables
+are updated as follows.</p>
+<p><span class="math display">\[
+x_i = x_i - \sum_j x_i p_{ij} + \sum_j x_j p_{ji}
+\]</span></p>
+<p>The SIR model would be as follows.</p>
+<p><span class="math display">\[
+S = S - Sp_{SI}
+\]</span> <span class="math display">\[
+I = I - Ip_{IR} + Sp_{SI}
+\]</span> <span class="math display">\[
+R = R + Ip_{IR}
+\]</span></p>
+</div>
+</div>
+  </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
+    </nav></aside>
 </div>
 
 

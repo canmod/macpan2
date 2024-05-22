@@ -135,7 +135,7 @@ in Ontario that ended in 1930.</p>
 <span>  , period_end_date <span class="op">=</span> <span class="st">"1929-08-01..1930-10-01"</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/engine_functions.html">print</a></span><span class="op">(</span><span class="va">scarlet_fever_ontario</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 61 × 19</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 61 × 20</span></span></span>
 <span><span class="co">#&gt;    iso_3166 iso_3166_2 location location_type period_start_date period_end_date</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>         </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> CA       CA-ON      ONT.     province      1929-07-28        1929-08-03     </span></span>
@@ -149,12 +149,12 @@ in Ontario that ended in 1930.</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> CA       CA-ON      ONT.     province      1929-09-22        1929-09-28     </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> CA       CA-ON      ONT.     province      1929-09-29        1929-10-05     </span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 51 more rows</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 13 more variables: period_mid_date &lt;date&gt;, days_this_period &lt;dbl&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 14 more variables: period_mid_date &lt;date&gt;, days_this_period &lt;dbl&gt;,</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;">#   time_scale &lt;chr&gt;, disease &lt;chr&gt;, nesting_disease &lt;chr&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   historical_disease_family &lt;chr&gt;, historical_disease &lt;chr&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   historical_disease_subclass &lt;chr&gt;, dataset_id &lt;chr&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   original_dataset_id &lt;chr&gt;, cases_this_period &lt;dbl&gt;, population &lt;dbl&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   population_reporting &lt;dbl&gt;</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #949494;">#   basal_disease &lt;chr&gt;, historical_disease_family &lt;chr&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   historical_disease &lt;chr&gt;, historical_disease_subclass &lt;chr&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   dataset_id &lt;chr&gt;, original_dataset_id &lt;chr&gt;, cases_this_period &lt;dbl&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   population &lt;dbl&gt;, population_reporting &lt;dbl&gt;</span></span></span></code></pre></div>
 <p>This is what the data looks like.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="op">(</span><span class="va">scarlet_fever_ontario</span></span>
