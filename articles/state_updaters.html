@@ -331,11 +331,12 @@ R = R + Ir_{IR}
 <div class="section level3">
 <h3 id="euler-multinomial">Euler-Multinomial<a class="anchor" aria-label="anchor" href="#euler-multinomial"></a>
 </h3>
-<p>The Euler-multinomial state update method assumes that the number of
-individuals that move from one box to another in a single time-step is a
-random non-negative integer, coming from a particular multinomial
-distribution.</p>
-<p>Under this distribution, the probability of staying in the <span class="math inline">\(i\)</span>th box through an entire time-step is
+<p>The <a href="https://kingaa.github.io/manuals/pomp/html/eulermultinom.html" class="external-link">Euler-multinomial</a>
+state update method assumes that the number of individuals that move
+from one box to another in a single time-step is a random non-negative
+integer, coming from a particular multinomial distribution that we now
+describe.</p>
+<p>The probability of staying in the <span class="math inline">\(i\)</span>th box through an entire time-step is
 assumed to be the following.</p>
 <p><span class="math display">\[
 p_{ii} = \exp\left(-\sum_j r_{ij}\right)
@@ -343,11 +344,10 @@ p_{ii} = \exp\left(-\sum_j r_{ij}\right)
 <p>This probability assumes the following.</p>
 <ul>
 <li>Individuals leave the box according to a Poisson process with rate
-<span class="math inline">\(\exp\left(-\sum_j
-r_{ij}\right)\)</span>.</li>
-<li>The rates, <span class="math inline">\(r_{ij}\)</span>, are held
-constant throughout the entire time-step, although they can change when
-each time-step begins.</li>
+<span class="math inline">\(\sum_j r_{ij}\)</span>.</li>
+<li>The <span class="math inline">\(r_{ij}\)</span> are held constant
+throughout the entire time-step, although they can change when each
+time-step begins.</li>
 </ul>
 <p>The probability of moving from box <span class="math inline">\(i\)</span> to box <span class="math inline">\(j\)</span> in one time-step is given by the
 following.</p>
