@@ -337,18 +337,14 @@ from one box to another in a single time-step is a random non-negative
 integer, coming from a particular multinomial distribution that we now
 describe.</p>
 <p>The probability of staying in the <span class="math inline">\(i\)</span>th box through an entire time-step is
-assumed to be the following.</p>
+assumed to be the following (TODO: relate this to Poisson
+processes).</p>
 <p><span class="math display">\[
 p_{ii} = \exp\left(-\sum_j r_{ij}\right)
 \]</span></p>
-<p>This probability assumes the following.</p>
-<ul>
-<li>Individuals leave the box according to a Poisson process with rate
-<span class="math inline">\(\sum_j r_{ij}\)</span>.</li>
-<li>The <span class="math inline">\(r_{ij}\)</span> are held constant
-throughout the entire time-step, although they can change when each
-time-step begins.</li>
-</ul>
+<p>This probability assumes that the <span class="math inline">\(r_{ij}\)</span> are held constant throughout the
+entire time-step, although they can change when each time-step
+begins.</p>
 <p>The probability of moving from box <span class="math inline">\(i\)</span> to box <span class="math inline">\(j\)</span> in one time-step is given by the
 following.</p>
 <p><span class="math display">\[
