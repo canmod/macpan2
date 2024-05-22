@@ -358,45 +358,45 @@ p_{ij} = (1 - p_{ii}) \frac{r_{ij}}{\sum_j r_{ij}}
 - p_{ii}\)</span>, and specifically going to box <span class="math inline">\(j\)</span>, which is assumed to be given by this
 expression <span class="math inline">\(\frac{r_{ij}}{\sum_j
 r_{ij}}\)</span>.</p>
-<p>Let <span class="math inline">\(\rho{ij}\)</span> be the random
+<p>Let <span class="math inline">\(\rho_{ij}\)</span> be the random
 number of individuals that move from box <span class="math inline">\(i\)</span> to box <span class="math inline">\(j\)</span> in one time-step. The expected value of
-<span class="math inline">\(\rho{ij}\)</span> is <span class="math inline">\(p_{ij} x_i\)</span>. However, these random
+<span class="math inline">\(\rho_{ij}\)</span> is <span class="math inline">\(p_{ij} x_i\)</span>. However, these random
 variables are not independent events, because the total number of
 individuals, <span class="math inline">\(\sum_i x_i\)</span>, has to
 remain constant through a single time-step (at least in the models that
 we are currently considering).</p>
-<p>To account for this non-independence, we collect the <span class="math inline">\(\rho{ij}\)</span> associated with a from
-compartment <span class="math inline">\(i\)</span> into a vector <span class="math inline">\(\rhoi\)</span>. We collect similar vector of
-probabilities, <span class="math inline">\(p_i\)</span>. Each <span class="math inline">\(\rhoi\)</span> is a random draw from a multinomial
-distribution with <span class="math inline">\(x_i\)</span> trials and
-probability vector, <span class="math inline">\(p_i\)</span>.</p>
+<p>To account for this non-independence, we collect the <span class="math inline">\(\rho_{ij}\)</span> associated with a from
+compartment <span class="math inline">\(i\)</span> into a vector <span class="math inline">\(\rho_i\)</span>. We collect similar vector of
+probabilities, <span class="math inline">\(p_i\)</span>. Each <span class="math inline">\(\rho_i\)</span> is a random draw from a
+multinomial distribution with <span class="math inline">\(x_i\)</span>
+trials and probability vector, <span class="math inline">\(p_i\)</span>.</p>
 <p>Once these random draws have been made, the state variables can be
 updated at each time-step as follows.</p>
 <p><span class="math display">\[
-x_i = x_i - \sum_j \rho{ij} + \sum_j \rho{ji}
+x_i = x_i - \sum_j \rho_{ij} + \sum_j \rho_{ji}
 \]</span></p>
 <p>Note that we do not actually need to generate values for the diagonal
-elements, <span class="math inline">\(\rho{ii}\)</span>, because they
-cancel out in this update equation. We also can ignore any <span class="math inline">\(\rho{ij}\)</span> such that <span class="math inline">\(r_{ij} = 0\)</span>.</p>
+elements, <span class="math inline">\(\rho_{ii}\)</span>, because they
+cancel out in this update equation. We also can ignore any <span class="math inline">\(\rho_{ij}\)</span> such that <span class="math inline">\(r_{ij} = 0\)</span>.</p>
 <p>Under the SIR example we have a particularly simple Euler-binomial
 distribution because there are no branching flows – when individuals
 leave S they can only go to I and when they leave I they can only go to
 R. These two flows are given by the following distributions.</p>
 <p><span class="math display">\[
-\rho{S,I} \sim \text{Binomial}(S, p_{SI})
+\rho_{SI} \sim \text{Binomial}(S, p_{SI})
 \]</span></p>
 <p><span class="math display">\[
-\rho{I,R} \sim \text{Binomial}(I, p_{IR})
+\rho_{IR} \sim \text{Binomial}(I, p_{IR})
 \]</span></p>
 <p>In models with branching flows we would have multinomial
 distributions. But in this model the state update is given by the
 following equations.</p>
 <p><span class="math display">\[
-S = S - \rho{SI}
+S = S - \rho_{SI}
 \]</span> <span class="math display">\[
-I = I - \rho{IR} + \rho{SI}
+I = I - \rho_{IR} + \rho_{SI}
 \]</span> <span class="math display">\[
-R = R + \rho{IR}
+R = R + \rho_{IR}
 \]</span></p>
 </div>
 <div class="section level3">
