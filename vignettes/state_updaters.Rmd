@@ -153,9 +153,9 @@ TODO
 
 ### Euler-Multinomial
 
-The Euler-multinomial state update method assumes that the number of individuals that move from one box to another in a single time-step is a random non-negative integer, coming from a particular multinomial distribution.
+The [Euler-multinomial](https://kingaa.github.io/manuals/pomp/html/eulermultinom.html) state update method assumes that the number of individuals that move from one box to another in a single time-step is a random non-negative integer, coming from a particular multinomial distribution that we now describe.
 
-Under this distribution, the probability of staying in the $i$th box through an entire time-step is assumed to be the following.
+The probability of staying in the $i$th box through an entire time-step is assumed to be the following.
 
 $$
 p_{ii} = \exp\left(-\sum_j r_{ij}\right)
@@ -163,8 +163,8 @@ $$
 
 This probability assumes the following.
 
-* Individuals leave the box according to a Poisson process with rate $\exp\left(-\sum_j r_{ij}\right)$.
-* The rates, $r_{ij}$, are held constant throughout the entire time-step, although they can change when each time-step begins.
+* Individuals leave the box according to a Poisson process with rate $\sum_j r_{ij}$.
+* The $r_{ij}$ are held constant throughout the entire time-step, although they can change when each time-step begins.
 
 The probability of moving from box $i$ to box $j$ in one time-step is given by the following.
 
