@@ -45,6 +45,8 @@ formatted_tsdata = (clean_tsdata
   |> mutate(time = cur_group_id())
   |> ungroup()
   # one negative value for daily deaths (removing for now time==178)
+  # this explains negative values:
+  # https://github.com/ccodwg/Covid19Canada?tab=readme-ov-file#datasets
   |> filter(matrix %in% c("death","report") & value>=0)
 )
 formatted_mobility_dat = (mobility_dat
@@ -94,8 +96,25 @@ row_ind = X_sparse$row_index
 col_ind = X_sparse$col_index
 
 log_mobility_coefficients = rep(log(1e-2),ncol(X))
+relative_beta_values = X %*% log_mobility_coefficients
 
-
+# sanity check
+# reproduce Figure 3 in manuscript to confirm mobility data 
+# has been prepped correctly
+# there are differences:
+#   manuscript - dips below 1 before Apr-2020
+#   manuscript - mobility does not go below 0.4
+#   manuscript - slower increase after Apr-2020
+# experimented with different scaling (using Jan-13 2020 as baseline), and 
+# moving average alignment (ex. center, right) but not able to reproduce figure
+# is it possible google/apple data has been updated since ?
+(ggplot(mobility_dat %>% filter(date < "2020-10-01"))
+  + geom_line(aes(date,mobility_ind))
+  + geom_hline(yintercept = 1, lty=2)
+  + geom_vline(xintercept = as.Date("2020-04-01"),lty=2)
+  + geom_vline(xintercept = as.Date("2020-08-07"),lty=2)
+  + theme_bw()
+)
 ## -------------------------
 ## initializing variables
 ## -------------------------
@@ -134,7 +153,7 @@ focal_model = (spec
        zeta ~ exp(log_zeta)
      , beta0 ~ exp(log_beta0)
      , nonhosp_mort ~ 1/(1+exp((-logit_nonhosp_mort)))
-     #, E ~ exp(log_E)
+     # , E ~ exp(log_E)
      # , Ia ~ exp(log_Ia)
      # , Ip ~ exp(log_Ip)
      # , Im ~ exp(log_Im)
@@ -143,8 +162,8 @@ focal_model = (spec
     default = list(
       log_zeta = log(1e-2)
     , log_beta0 = log(1e-2)
-    , logit_nonhosp_mort = log((1e-2)/(1-(1e-2)))
-    #, log_E = log(1)
+    , logit_nonhosp_mort = log(0.1/(1-0.1))
+    # , log_E = log(1)
     # , log_Ia = log(1)
     # , log_Ip = log(1)
     # , log_Im = log(1)
@@ -187,8 +206,9 @@ focal_model = (spec
     , at = Inf
     #, expressions = list(incidence ~ S.E * (S^2))
     #, expressions = list(incidence ~ S.E * S)
-    , expressions = list(foi ~ S.E / S, incidence ~ S.E)
-    #, expressions = list(foi ~ S.E)
+    #, expressions = list(incidence ~ S.E)
+    , expressions = list(incidence ~ S * ((S/N)^zeta) * (beta / N) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s)))
+    #, expressions = list(foi ~ S.E / S)
     , default = list(incidence = 0)
   )
   
@@ -202,7 +222,7 @@ focal_model = (spec
       , delta ~ gamma[1:(qmax)] - gamma[0:(qmax - 1)]
       , kappa ~ c_prop * delta / sum(delta)
     )
-    , default = list(qmax = 16)
+    , default = list(qmax = 34)
   )
   
   # add convolution to compute case reports:
@@ -294,9 +314,9 @@ ph_model = (spec
     facet_wrap(vars(matrix),scales = 'free')
 )
 (focal_model
-  %>% mp_simulator(time_steps = time_steps, outputs = c("incidence","report" ,"foi")
+  %>% mp_simulator(time_steps = time_steps, outputs = c("incidence","report")
                    , default = list(S = N_focal
-                                    , E = log(1e3)
+                                    , E = 1e3
                                     , Ia = 1e6)
                    )
   %>% mp_trajectory()
@@ -510,7 +530,7 @@ exp_growth_model = (
   ph_model
   %>% mp_tmb_update(phase = "during"
                     , at = 1L
-                    , expressions = list(foi ~ (S^zeta) * (beta / (N^(zeta+1))) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s)))
+                    , expressions = list(foi ~ ((S/N)^zeta) * (beta / N) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s)))
                     , default = list(foi = 0)
                     )
   %>% mp_tmb_insert(phase = "during"
@@ -583,14 +603,81 @@ exp_growth_model = (
 )
 
 ## -------------------------
+## convolution investigation
+## -------------------------
+
+# Using https://canmod.net/misc/flex_specs#computing-convolutions to compute reports
+# from incidence outside of macpan2 to diagnose poor calibration fits to reports.
+
+# gamma density kernel
+gamma_shape = 1 / (mp_default_list(focal_model)$c_delay_cv^2)
+gamma_scale = mp_default_list(focal_model)$c_delay_mean * (mp_default_list(focal_model)$c_delay_cv^2)
+qmax = ceiling(qgamma(0.95, gamma_shape, gamma_scale))
+q = 1:qmax
+delta = pgamma(q+1,gamma_shape, gamma_scale)-pgamma(q,gamma_shape, gamma_scale)
+delay_kernel = mp_default_list(focal_model)$c_prop * delta / sum(delta)
+plot(delay_kernel)
+
+# simulate from model to get incidence (and reports for comparison)
+sim_data = (focal_model |> mp_rk4()
+   |> mp_simulator(time_steps = time_steps
+                , outputs = c("incidence","report")
+                , default = list(
+                    S = N_focal * (1 - initial_state_prop)
+                  , R = 0
+                  , D = 0
+                )
+                )
+   |> mp_trajectory()
+)
+ggplot(sim_data, aes(time,value))+geom_point()+facet_wrap(vars(matrix),scales="free")
+
+
+# manual convolution
+sim_incidence = sim_data |> filter(matrix=="incidence") |> select(value) |> pull()
+n = length(sim_incidence)
+m = length(delay_kernel)
+manual_reports = list()
+
+for (i in 1:(n-m)){
+  x = 0
+  for (j in 1:m){
+   x = x + delay_kernel[m-j+1] * sim_incidence[i+j-1]
+  }
+  manual_reports[i+m-1] = x
+}
+manual_reports = unlist(manual_reports)
+
+# compare manual and macpan2 convolution
+sim_reports = sim_data |> filter(matrix=="report") |> select(value) |> pull()
+# First m-1 values of manual reports are undefined, and last element of 
+# manual reports can't be computed according to source so we remove these elements
+# from the simulated convolution.
+sim_reports = sim_reports[m:(length(sim_reports)-1)]
+length(sim_reports)==length(manual_reports)
+plot(1:length(sim_reports),sim_reports)
+lines(1:length(sim_reports),manual_reports)
+
+# There are obvious differences, but difficult to tell how much these differences
+# matter given one fixed parameter set (This parameter set generates reports on
+# a much smaller scale than observed data). Next plan is to see if I can add the 
+# manual convolution to the focal model without too much effort to test if this 
+# helps calibration.
+
+## -------------------------
 ## calibration of focal model (base model)
 ## -------------------------
 
 focal_calib = mp_tmb_calibrator(
     spec = focal_model |> mp_rk4()
-  , data = formatted_tsdata
+  , data = formatted_tsdata 
   , traj = c("report","death") 
-  , par = c("log_zeta","log_beta0","logit_nonhosp_mort","log_mobility_coefficients","E")
+  , par = c("log_zeta"
+            ,"log_beta0"
+            ,"logit_nonhosp_mort"
+            ,"log_mobility_coefficients"
+            ,"E"
+            )
   , outputs = c("death","report")
   , default = list(
       S = N_focal * (1 - initial_state_prop)
