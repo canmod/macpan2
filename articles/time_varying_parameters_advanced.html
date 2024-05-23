@@ -250,9 +250,7 @@ declare them as parameters.</p>
 <p>Finally we fit the model back to the simulation data.</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">simulator</span><span class="op">$</span><span class="va">optimize</span><span class="op">$</span><span class="fu">nlminb</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Constructing atomic D_lgamma</span></span>
 <span><span class="co">#&gt; outer mgc:  736.1414 </span></span>
-<span><span class="co">#&gt; Constructing atomic D_lgamma</span></span>
 <span><span class="co">#&gt; outer mgc:  112.6655 </span></span>
 <span><span class="co">#&gt; outer mgc:  71.38648 </span></span>
 <span><span class="co">#&gt; outer mgc:  13.6616 </span></span>
@@ -270,15 +268,15 @@ declare them as parameters.</p>
 <span><span class="co">#&gt; outer mgc:  0.001897432 </span></span>
 <span><span class="co">#&gt; outer mgc:  0.0006983805 </span></span>
 <span><span class="co">#&gt; outer mgc:  0.0002569678 </span></span>
-<span><span class="co">#&gt; outer mgc:  9.453969e-05 </span></span>
+<span><span class="co">#&gt; outer mgc:  9.453968e-05 </span></span>
 <span><span class="co">#&gt; outer mgc:  3.478009e-05 </span></span>
 <span><span class="co">#&gt; outer mgc:  1.2795e-05 </span></span>
 <span><span class="co">#&gt; outer mgc:  4.707033e-06 </span></span>
-<span><span class="co">#&gt; outer mgc:  1.731623e-06 </span></span>
-<span><span class="co">#&gt; outer mgc:  6.370287e-07 </span></span>
-<span><span class="co">#&gt; outer mgc:  2.343499e-07 </span></span>
-<span><span class="co">#&gt; outer mgc:  8.62124e-08 </span></span>
-<span><span class="co">#&gt; outer mgc:  3.171591e-08</span></span>
+<span><span class="co">#&gt; outer mgc:  1.731622e-06 </span></span>
+<span><span class="co">#&gt; outer mgc:  6.370288e-07 </span></span>
+<span><span class="co">#&gt; outer mgc:  2.343497e-07 </span></span>
+<span><span class="co">#&gt; outer mgc:  8.62125e-08 </span></span>
+<span><span class="co">#&gt; outer mgc:  3.171604e-08</span></span>
 <span><span class="co">#&gt; $par</span></span>
 <span><span class="co">#&gt;      params      params      params </span></span>
 <span><span class="co">#&gt;  -0.1710158 -22.8268369  -0.8291142 </span></span>
@@ -585,7 +583,6 @@ approximation to these parameters …</p>
 <code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/packageDescription.html" class="external-link">packageVersion</a></span><span class="op">(</span><span class="st">"Matrix"</span><span class="op">)</span> <span class="op">&gt;=</span> <span class="va">matrix_version</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">res</span> <span class="op">&lt;-</span> <span class="va">simulator</span><span class="op">$</span><span class="fu">ad_fun</span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="fu">fn</span><span class="op">(</span><span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
-<span><span class="co">#&gt; Optimizing tape... Done</span></span>
 <span><span class="co">#&gt; iter: 1  value: 5994496 mgc: 2058657968 ustep: 1 </span></span>
 <span><span class="co">#&gt; iter: 2  value: 1327494 mgc: 1334286157 ustep: 1 </span></span>
 <span><span class="co">#&gt; iter: 3  value: 539106 mgc: 359174176 ustep: 1 </span></span>
@@ -593,9 +590,9 @@ approximation to these parameters …</p>
 <span><span class="co">#&gt; iter: 5  value: 458020.4 mgc: 9231141 ustep: 1 </span></span>
 <span><span class="co">#&gt; iter: 6  value: 457980.9 mgc: 605743.9 ustep: 1 </span></span>
 <span><span class="co">#&gt; iter: 7  value: 457980.9 mgc: 7692.96 ustep: 1 </span></span>
-<span><span class="co">#&gt; iter: 8  value: 457980.9 mgc: 2.548907 ustep: 1 </span></span>
-<span><span class="co">#&gt; iter: 9  value: 457980.9 mgc: 9.201847e-06 ustep: 1 </span></span>
-<span><span class="co">#&gt; mgc: 9.53875e-06</span></span></code></pre></div>
+<span><span class="co">#&gt; iter: 8  value: 457980.9 mgc: 2.548912 ustep: 1 </span></span>
+<span><span class="co">#&gt; iter: 9  value: 457980.9 mgc: 5.639411e-06 ustep: 1 </span></span>
+<span><span class="co">#&gt; mgc: 1.724531e-06</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt; [1] 458152.8</span></span>
 <span><span class="co">#&gt; attr(,"logarithm")</span></span>
 <span><span class="co">#&gt; [1] TRUE</span></span></code></pre>

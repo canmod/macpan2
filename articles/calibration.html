@@ -245,7 +245,7 @@ not 0, then something <em>may</em> have gone wrong …).</p>
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/mp_optimizer_output.html">mp_optimizer_output</a></span><span class="op">(</span><span class="va">sir_calibrator</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $par</span></span>
 <span><span class="co">#&gt;     params     params </span></span>
-<span><span class="co">#&gt;  0.2287659 82.9613444 </span></span>
+<span><span class="co">#&gt;  0.2287659 82.9613397 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $objective</span></span>
 <span><span class="co">#&gt; [1] 248.5813</span></span>
@@ -258,7 +258,7 @@ not 0, then something <em>may</em> have gone wrong …).</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $evaluations</span></span>
 <span><span class="co">#&gt; function gradient </span></span>
-<span><span class="co">#&gt;       23       12 </span></span>
+<span><span class="co">#&gt;       23       13 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $message</span></span>
 <span><span class="co">#&gt; [1] "relative convergence (4)"</span></span></code></pre></div>
@@ -266,7 +266,7 @@ not 0, then something <em>may</em> have gone wrong …).</p>
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">sir_calibrator</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $par</span></span>
 <span><span class="co">#&gt;     params     params </span></span>
-<span><span class="co">#&gt;  0.2287659 82.9613444 </span></span>
+<span><span class="co">#&gt;  0.2287659 82.9613397 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $objective</span></span>
 <span><span class="co">#&gt; [1] 248.5813</span></span>
@@ -282,13 +282,13 @@ not 0, then something <em>may</em> have gone wrong …).</p>
 <span><span class="co">#&gt;        2        1 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $message</span></span>
-<span><span class="co">#&gt; [1] "relative convergence (4)"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "both X-convergence and relative convergence (5)"</span></span></code></pre></div>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/mp_optimizer_output.html">mp_optimizer_output</a></span><span class="op">(</span><span class="va">sir_calibrator</span>, what<span class="op">=</span><span class="st">"all"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [[1]]</span></span>
 <span><span class="co">#&gt; [[1]]$par</span></span>
 <span><span class="co">#&gt;     params     params </span></span>
-<span><span class="co">#&gt;  0.2287659 82.9613444 </span></span>
+<span><span class="co">#&gt;  0.2287659 82.9613397 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; [[1]]$objective</span></span>
 <span><span class="co">#&gt; [1] 248.5813</span></span>
@@ -301,7 +301,7 @@ not 0, then something <em>may</em> have gone wrong …).</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; [[1]]$evaluations</span></span>
 <span><span class="co">#&gt; function gradient </span></span>
-<span><span class="co">#&gt;       23       12 </span></span>
+<span><span class="co">#&gt;       23       13 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; [[1]]$message</span></span>
 <span><span class="co">#&gt; [1] "relative convergence (4)"</span></span>
@@ -310,7 +310,7 @@ not 0, then something <em>may</em> have gone wrong …).</p>
 <span><span class="co">#&gt; [[2]]</span></span>
 <span><span class="co">#&gt; [[2]]$par</span></span>
 <span><span class="co">#&gt;     params     params </span></span>
-<span><span class="co">#&gt;  0.2287659 82.9613444 </span></span>
+<span><span class="co">#&gt;  0.2287659 82.9613397 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; [[2]]$objective</span></span>
 <span><span class="co">#&gt; [1] 248.5813</span></span>
@@ -326,7 +326,7 @@ not 0, then something <em>may</em> have gone wrong …).</p>
 <span><span class="co">#&gt;        2        1 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; [[2]]$message</span></span>
-<span><span class="co">#&gt; [1] "relative convergence (4)"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "both X-convergence and relative convergence (5)"</span></span></code></pre></div>
 <p>As mentioned above, the best-fit parameters are stored internally,
 and we can get information about them using the <code>mp_tmb_coef</code>
 function. (Note that if you get a message about the
@@ -336,11 +336,11 @@ function. (Note that if you get a message about the
 <code class="sourceCode R"><span><span class="va">sir_estimates</span> <span class="op">=</span> <span class="fu"><a href="../reference/mp_tmb_coef.html">mp_tmb_coef</a></span><span class="op">(</span><span class="va">sir_calibrator</span>, conf.int <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/engine_functions.html">print</a></span><span class="op">(</span><span class="va">sir_estimates</span><span class="op">)</span></span>
 <span><span class="co">#&gt;       term  mat row col default  type   estimate   std.error  conf.low</span></span>
-<span><span class="co">#&gt; 1   params beta   0   0     0.2 fixed  0.2287659 0.008597557  0.211915</span></span>
-<span><span class="co">#&gt; 2 params.1    R   0   0     0.0 fixed 82.9613444 7.214429832 68.821322</span></span>
+<span><span class="co">#&gt; 1   params beta   0   0     0.2 fixed  0.2287659 0.008597558  0.211915</span></span>
+<span><span class="co">#&gt; 2 params.1    R   0   0     0.0 fixed 82.9613397 7.214430353 68.821316</span></span>
 <span><span class="co">#&gt;    conf.high</span></span>
 <span><span class="co">#&gt; 1  0.2456168</span></span>
-<span><span class="co">#&gt; 2 97.1013670</span></span></code></pre></div>
+<span><span class="co">#&gt; 2 97.1013634</span></span></code></pre></div>
 <p>These correspond pretty well to the known true values of the
 simulation model.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">

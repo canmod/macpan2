@@ -291,7 +291,8 @@ infectious individuals is exactly the incidence.</p>
 solutions to ordinary differential equations (ODEs). We consider ODEs of
 the following form.</p>
 <p><span class="math display">\[
-\frac{dx_i}{dt} = \sum_j x_j r_{ji} - \sum_i x_i r_{ij}
+\frac{dx_i}{dt} = \underbrace{\sum_j x_j r_{ji}}_{\text{inflow}} -
+\underbrace{\sum_j x_i r_{ij}}_{\text{outflow}}
 \]</span> Where the per-capita rate of flowing from compartment <span class="math inline">\(i\)</span> to compartment <span class="math inline">\(j\)</span> is <span class="math inline">\(r_{ij}\)</span>, and <span class="math inline">\(x_i\)</span> is the number of individuals in the
 <span class="math inline">\(i\)</span>th compartment. We allow each
 <span class="math inline">\(r_{ij}\)</span> to depend on any number of
@@ -412,6 +413,43 @@ I = I - Ip_{IR} + Sp_{SI}
 \]</span> <span class="math display">\[
 R = R + Ip_{IR}
 \]</span></p>
+<p>More explicitly for the <span class="math inline">\(I\)</span>
+compartment this would be. <span class="math display">\[
+I(t+1) = I(t) - I(t) (1 - \exp(-\gamma)) + S(t)(1 - \exp(-\beta I(t)))
+\]</span></p>
+</div>
+<div class="section level3">
+<h3 id="linearizing-at-each-time-step">Linearizing at Each Time-Step<a class="anchor" aria-label="anchor" href="#linearizing-at-each-time-step"></a>
+</h3>
+<p>Because the <span class="math inline">\(r_{ij}\)</span> could depend
+on any state variable, the ODE above is generally non-linear. However,
+we could linearize the model at every time-step and explicitly compute
+the matrix exponential to find the approximate state update.</p>
+</div>
+<div class="section level3">
+<h3 id="hazard-in-models-including-more-than-unbalanced-per-capita-flows">Hazard in models including more than unbalanced per-capita
+flows<a class="anchor" aria-label="anchor" href="#hazard-in-models-including-more-than-unbalanced-per-capita-flows"></a>
+</h3>
+<p>The perfectly balanced per-capita flows approach used above does not
+always work. For example, virus shedding to a wastewater compartment
+does not involve infected individuals flowing into a wastewater
+compartment, because people do not become wastewater obviously. In such
+models we need to think more clearly about how to use the Hazard
+approximation.</p>
+<p>For such cases we can modify the differential equation to include an
+arbitrary number of absolute inflows and outflows.</p>
+<p><span class="math display">\[
+\frac{dx_i}{dt} =
+    \underbrace{\sum_j x_j r_{ji}}_{\text{inflow}}
+  - \underbrace{\sum_j x_i r_{ij}}_{\text{outflow}}
+  + \underbrace{\sum_k r^+_{ik}}_{\text{absolute inflow}}
+  - \underbrace{\sum_l r^-_{il}}_{\text{absolute outflow}}
+\]</span></p>
+<p>Where <span class="math inline">\(r^+_{ik}\)</span> is the absolute
+rate at which <span class="math inline">\(x_i\)</span> increases due to
+mechanism <span class="math inline">\(k\)</span> and <span class="math inline">\(r^-_{il}\)</span> is the absolute rate at which
+<span class="math inline">\(x_i\)</span> decreases due to mechanism
+<span class="math inline">\(l\)</span>.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
