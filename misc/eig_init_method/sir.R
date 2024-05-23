@@ -6,6 +6,9 @@ options(macpan2_verbose =  FALSE)
 sir_focal = ("starter_models"
   |> mp_tmb_library("sir", package = "macpan2")
 )
+
+
+
 sir_eigen = (sir_focal
   |> mp_tmb_delete(phase = "during", at = 3) ## do  not drain S
   |> mp_tmb_update(default = list(N = 1, I = 1/100))

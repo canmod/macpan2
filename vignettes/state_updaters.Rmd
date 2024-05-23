@@ -114,3 +114,113 @@ print(siv)
   + geom_line(aes(time, value))
 )
 ```
+
+
+
+## Relationship to Ordinary Differential Equation Solvers
+
+It is instructive to view these state update methods as approximate solutions to ordinary differential equations (ODEs). We consider ODEs of the following form.
+
+$$
+\frac{dx_i}{dt} = \sum_j x_j r_{ji} - \sum_i x_i r_{ij}
+$$
+Where the per-capita rate of flowing from compartment $i$ to compartment $j$ is $r_{ij}$, and $x_i$ is the number of individuals in the $i$th compartment. We allow each $r_{ij}$ to depend on any number of state variables and time-varying parameters. For example, for an SIR model we have  $x_S, x_I, x_R$ (for readability we use $S, I, R$). In this case $r_{SI} = \beta I / N$, $r_{IR} = \gamma$, and all other values of $r_{ij}$ are zero. Here the force of infection, $r_{SI}$, depends on a state variable $I$.
+
+Although each state-update method presented below can be thought of as an approximate solution to this ODE, they can also be thought of as dynamical models in their own right. For example, the Euler-multinomial model is a useful model of process error.
+
+### Euler
+
+The simplest approach is to just pretend that the ODEs are difference equations. In this case, at each time-step, each state variable is updated as follows.
+$$
+x_i = x_i - \sum_j x_i r_{ij} + \sum_j x_j r_{ji}
+$$
+The SIR example is as follows.
+
+$$
+S = S - Sr_{SI}
+$$
+$$
+I = I - Ir_{IR} + Sr_{SI}
+$$
+$$
+R = R + Ir_{IR}
+$$
+
+
+### Runge Kutta 4
+
+TODO
+
+### Euler-Multinomial
+
+The [Euler-multinomial](https://kingaa.github.io/manuals/pomp/html/eulermultinom.html) state update method assumes that the number of individuals that move from one box to another in a single time-step is a random non-negative integer, coming from a particular multinomial distribution that we now describe.
+
+The probability of staying in the $i$th box through an entire time-step is assumed to be the following (TODO: relate this to Poisson processes).
+
+$$
+p_{ii} = \exp\left(-\sum_j r_{ij}\right)
+$$
+
+This probability assumes that the $r_{ij}$ are held constant throughout the entire time-step, although they can change when each time-step begins.
+
+The probability of moving from box $i$ to box $j$ in one time-step is given by the following.
+
+$$
+p_{ij} = (1 - p_{ii}) \frac{r_{ij}}{\sum_j r_{ij}}
+$$
+
+This probability is just the probability of not staying in box $i$, which is $1 - p_{ii}$, and specifically going to box $j$, which is assumed to be given by this expression $\frac{r_{ij}}{\sum_j r_{ij}}$.
+
+Let $\rho_{ij}$ be the random number of individuals that move from box $i$ to box $j$ in one time-step. The expected value of $\rho_{ij}$ is $p_{ij} x_i$. However, these random variables are not independent events, because the total number of individuals, $\sum_i x_i$, has to remain constant through a single time-step (at least in the models that we are currently considering).
+
+To account for this non-independence, we collect the $\rho_{ij}$ associated with a from compartment $i$ into a vector $\rho_i$. We collect similar vector of probabilities, $p_i$. Each $\rho_i$ is a random draw from a multinomial distribution with $x_i$ trials and probability vector, $p_i$.
+
+Once these random draws have been made, the state variables can be updated at each time-step as follows.
+
+$$
+x_i = x_i - \sum_j \rho_{ij} + \sum_j \rho_{ji}
+$$
+
+Note that we do not actually need to generate values for the diagonal elements, $\rho_{ii}$, because they cancel out in this update equation. We also can ignore any $\rho_{ij}$ such that $r_{ij} = 0$.
+
+Under the SIR example we have a particularly simple Euler-binomial distribution because there are no branching flows -- when individuals leave S they can only go to I and when they leave I they can only go to R. These two flows are given by the following distributions.
+
+$$
+\rho_{SI} \sim \text{Binomial}(S, p_{SI})
+$$
+
+$$
+\rho_{IR} \sim \text{Binomial}(I, p_{IR})
+$$
+
+In models with branching flows we would have multinomial distributions. But in this model the state update is given by the following equations.
+
+$$
+S = S - \rho_{SI}
+$$
+$$
+I = I - \rho_{IR} + \rho_{SI}
+$$
+$$
+R = R + \rho_{IR}
+$$
+
+### Hazard
+
+The Hazard update-method uses the expected values associated with the Euler-multinomial described above. In particular, the state variables are updated as follows.
+
+$$
+x_i = x_i - \sum_j x_i p_{ij} + \sum_j x_j p_{ji}
+$$
+
+The SIR model would be as follows.
+
+$$
+S = S - Sp_{SI}
+$$
+$$
+I = I - Ip_{IR} + Sp_{SI}
+$$
+$$
+R = R + Ip_{IR}
+$$

@@ -126,9 +126,9 @@ R/enum_methods.R: misc/dev/dev.cpp misc/build/method_head.R misc/build/build_fro
 
 
 src-update:: src/macpan2.cpp
-src/macpan2.cpp: misc/dev/dev.cpp
+src/macpan2.cpp: misc/dev/dev.cpp src/Makevars
 	echo "// Auto-generated - do not edit by hand" > $@
-	sed "s/#define MP_VERBOSE//" $^ >> $@
+	sed "s/#define MP_VERBOSE//" misc/dev/dev.cpp >> $@
 
 
 engine-doc-update:: R/engine_functions.R

@@ -2,9 +2,12 @@
 % Please edit documentation in R/formula_list_generators.R
 \name{mp_per_capita_flow}
 \alias{mp_per_capita_flow}
+\alias{mp_per_capita_inflow}
 \title{Per-Capita Flow (Experimental)}
 \usage{
 mp_per_capita_flow(from, to, rate)
+
+mp_per_capita_inflow(from, to, rate)
 }
 \arguments{
 \item{from}{String giving the name of the compartment from which the flow
@@ -20,3 +23,9 @@ an expression for the per-capita rate of flow from \code{from} to \code{to}.}
 \description{
 Per-Capita Flow (Experimental)
 }
+\section{Functions}{
+\itemize{
+\item \code{mp_per_capita_inflow()}: Only flow into the \code{to} compartment, and
+do not flow out of the \code{from} compartment.
+
+}}

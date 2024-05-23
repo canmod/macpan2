@@ -520,6 +520,8 @@ mp_per_capita_flow = function(from, to, rate) {
   PerCapitaFlow(from, to, rate, call_string)
 }
 
+#' @describeIn mp_per_capita_flow Only flow into the `to` compartment, and
+#' do not flow out of the `from` compartment.
 #' @export
 mp_per_capita_inflow = function(from, to, rate) {
   call_string = deparse(match.call())
@@ -527,26 +529,14 @@ mp_per_capita_inflow = function(from, to, rate) {
 }
 
 PerCapitaInflow = function(from, to, rate, call_string) {
-  self = ChangeComponent()
-  self$from = from
-  self$to = to
-  self$rate = rate
-  self$call_string = call_string
+  self = PerCapitaFlow(from, to, rate, call_string)
   self$change_frame = function() {
     data.frame(
         state = c(self$from, self$to)
-      , change = sprintf("%s%s", c("-", "+"), lhs_char(self$rate))
+      , change = sprintf("%s%s", "+", lhs_char(self$rate))
     )
   }
-  self$flow_frame = function() {
-    data.frame(
-        size = self$from
-      , change = lhs_char(self$rate)
-      , rate = rhs_char(self$rate)
-    )
-  }
-  self$string = function() self$call_string
-  return_object(self, "PerCapitaFlow")
+  return_object(self, "PerCapitaInflow")
 }
 
 PerCapitaFlow = function(from, to, rate, call_string) {

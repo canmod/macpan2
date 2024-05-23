@@ -3078,8 +3078,7 @@ private:
 };
 
 template <class Type>
-class MatAssigner
-{
+class MatAssigner {
 private:
     vector<int> table_x;
     vector<int> table_n;
@@ -3093,8 +3092,7 @@ public:
         vector<int> &table_n_,
         vector<int> &table_i_,
         ListOfIntVecs &valid_int_vecs_,
-        vector<Type> &valid_literals_)
-    {
+        vector<Type> &valid_literals_) {
         table_x = table_x_;
         table_n = table_n_;
         table_i = table_i_;
@@ -3106,8 +3104,7 @@ public:
         matrix<Type> assignment_value,
         ListOfMatrices<Type> &valid_vars, // current list of values of each matrix
         int row = 0                       // current expression parse table row being evaluated
-    )
-    {
+    ) {
         int n = table_n[row];
         int x = table_x[row];
         int x1;
@@ -3125,8 +3122,7 @@ public:
         // std::cout << "---- assignment ----" << std::endl;
         // std::cout << "n: " << n << std::endl;
         // std::cout << "x: " << n << std::endl;
-        switch (n)
-        {
+        switch (n) {
         case 0:
             valid_vars.m_matrices[x] = assignment_value;
             return;
@@ -3467,22 +3463,19 @@ Type objective_function<Type>::operator()()
         const_int_vecs,
         literals);
 
-    // 3 Pre-simulation
+    // 3 Pre-simulation (the 'before' step)
     int expr_index = 0;
     int p_table_row = 0;
     int a_table_row = 0;
 
-    for (int i = 0; i < eval_schedule[0]; i++)
-    {
+    for (int i = 0; i < eval_schedule[0]; i++) { // loop over expressions in the before step
 #ifdef MP_VERBOSE
         std::cout << "in pre-simulation --- " << i << std::endl;
         std::cout << "expr_num_p_table_rows[i] " << expr_num_p_table_rows[i] << std::endl;
 #endif
         matrix<Type> result;
-        if (expr_sim_block[i] == 1)
-        {
-            SIMULATE
-            {
+        if (expr_sim_block[i] == 1) {
+            SIMULATE {
                 result = exprEvaluator.EvalExpr(
                     simulation_history, 0, mats, p_table_row);
             }
@@ -3501,6 +3494,9 @@ Type objective_function<Type>::operator()()
 
         p_table_row += expr_num_p_table_rows[i];
         a_table_row += assign_num_a_table_rows[i];
+        
+        // if expr is the last one in the next expr loop, then go back
+        // to the start of that loop
     } // p_table_row is fine here
 
     // simulation_history[0] = mats;
@@ -3511,7 +3507,7 @@ Type objective_function<Type>::operator()()
         mats_save_hist,
         hist_shape_template);
 
-    // 4 During simulation
+    // 4 During simulation (the 'during' step)
     expr_index += eval_schedule[0];
 
     // p_table_row2 lets us restart the parse table row every time the
@@ -3524,8 +3520,7 @@ Type objective_function<Type>::operator()()
 #ifdef MP_VERBOSE
         std::cout << "simulation step --- " << k << std::endl;
 #endif
-        for (int i = 0; i < eval_schedule[1]; i++)
-        {
+        for (int i = 0; i < eval_schedule[1]; i++) { // for each expression in the 'during' list
 #ifdef MP_VERBOSE
             std::cout << "Eval expression --- " << i << std::endl;
             std::cout << "expr_num_p_table_rows[i] " << expr_num_p_table_rows[expr_index + i] << std::endl;
@@ -3568,26 +3563,22 @@ Type objective_function<Type>::operator()()
     p_table_row = p_table_row2;
     a_table_row = a_table_row2;
 
-    // 5 Post-simulation
+    // 5 Post-simulation (the 'after' set of expressions)
     expr_index += eval_schedule[1];
 
-    for (int i = 0; i < eval_schedule[2]; i++)
-    {
+    for (int i = 0; i < eval_schedule[2]; i++) { // loop over the 'after' expressions
 #ifdef MP_VERBOSE
         std::cout << "in post-simulation --- " << i << std::endl;
         std::cout << "expr_num_p_table_rows[i] " << expr_num_p_table_rows[expr_index + i] << std::endl;
 #endif
         matrix<Type> result;
-        if (expr_sim_block[i] == 1)
-        {
-            SIMULATE
-            {
+        if (expr_sim_block[i] == 1) {
+            SIMULATE {
                 result = exprEvaluator.EvalExpr(
                     simulation_history, time_steps + 1, mats, p_table_row);
             }
         }
-        else
-        {
+        else {
             result = exprEvaluator.EvalExpr(
                 simulation_history, time_steps + 1, mats, p_table_row);
         }
@@ -3615,8 +3606,7 @@ Type objective_function<Type>::operator()()
 #ifdef MP_VERBOSE
     std::cout << "Simulation history ..." << std::endl;
     int m = simulation_history.size();
-    for (int t = 0; t < m; t++)
-    {
+    for (int t = 0; t < m; t++) {
         std::cout << "----- t = " << t << std::endl;
         ListOfMatrices<Type> mats = simulation_history[t];
         int n = mats.m_matrices.size();
@@ -3632,16 +3622,12 @@ Type objective_function<Type>::operator()()
 
     // int r = 0;
     int table_rows = 0;
-    for (int i = 0; i < mats_return.size(); i++)
-    {
-        if (mats_return[i] == 1)
-        {
-            if (mats_save_hist[i] == 0)
-            { // Report the last one
+    for (int i = 0; i < mats_return.size(); i++) {
+        if (mats_return[i] == 1) {
+            if (mats_save_hist[i] == 0) { // Report the last one
                 table_rows += mats.m_matrices[i].rows() * mats.m_matrices[i].cols();
             }
-            else
-            { // Report the whole simulation history
+            else { // Report the whole simulation history
                 int hist_len = time_steps + 2;
                 for (int k = 0; k < hist_len; k++)
                     table_rows += simulation_history[k].m_matrices[i].rows() *
@@ -3653,37 +3639,29 @@ Type objective_function<Type>::operator()()
     matrix<Type> values(table_rows, 5);
 
     int cur = 0;
-    for (int i = 0; i < mats_return.size(); i++)
-    {
-        if (mats_return[i] == 1)
-        {
-            if (mats_save_hist[i] == 0)
-            { // Report the last one
+    for (int i = 0; i < mats_return.size(); i++) {
+        if (mats_return[i] == 1) {
+            if (mats_save_hist[i] == 0) { // Report the last one
                 for (int jj = 0; jj < mats.m_matrices[i].cols(); jj++)
-                    for (int ii = 0; ii < mats.m_matrices[i].rows(); ii++)
-                    {
+                    for (int ii = 0; ii < mats.m_matrices[i].rows(); ii++) {
                         values(cur, 0) = i;
                         values(cur, 1) = time_steps + 1;
                         values(cur, 2) = ii;
                         values(cur, 3) = jj;
                         values(cur, 4) = mats.m_matrices[i].coeff(ii, jj);
-
                         cur++;
                     }
             }
-            else
-            { // Report the whole simulation history
+            else { // Report the whole simulation history
                 int hist_len = time_steps + 2;
                 for (int k = 0; k < hist_len; k++)
                     for (int jj = 0; jj < simulation_history[k].m_matrices[i].cols(); jj++)
-                        for (int ii = 0; ii < simulation_history[k].m_matrices[i].rows(); ii++)
-                        {
+                        for (int ii = 0; ii < simulation_history[k].m_matrices[i].rows(); ii++) {
                             values(cur, 0) = i;
                             values(cur, 1) = k;
                             values(cur, 2) = ii;
                             values(cur, 3) = jj;
                             values(cur, 4) = simulation_history[k].m_matrices[i].coeff(ii, jj);
-
                             cur++;
                         }
             }
@@ -3691,8 +3669,7 @@ Type objective_function<Type>::operator()()
     }
 
     REPORT(values)
-    if (values_adreport == 1)
-    {
+    if (values_adreport == 1) {
         matrix<Type> value_column = values.block(0, 4, values.rows(), 1);
         ADREPORT(value_column)
     }
