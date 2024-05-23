@@ -280,8 +280,8 @@ mp_euler = function(model) UseMethod("mp_euler")
 ##' @export
 mp_rk4 = function(model) UseMethod("mp_rk4")
 
-##' @describeIn mp_euler Update state with process error given  by the 
-##' Euler-multinomial distribution.
+##' @describeIn mp_euler Update state with process error given by the 
+##' Euler-multinomial distribution. 
 ##' @export
 mp_euler_multinomial = function(model) UseMethod("mp_euler_multinomial")
 
@@ -440,8 +440,17 @@ EulerMultinomialUpdateMethod = function(change_model) {
   
   self$vec = function(expr_list, char_fun) {
     vec = vapply(expr_list, char_fun, character(1L))
-    if (length(vec) == 1L) return(vec)
-    sprintf("c(%s)", paste0(vec, collapse = ", "))
+    simple_expr = all(grepl("^[a-zA-Z0-9]+$", vec))
+    scalar_expr = length(vec) == 1L
+    
+    if (simple_expr & scalar_expr) return(vec)
+    if (!simple_expr | !scalar_expr) {
+      vec = sprintf("(%s)", paste0(vec, collapse = ", "))
+    }
+    if (!scalar_expr) {
+      vec = sprintf("c%s", vec)
+    }
+    return(vec)
   }
   
   self$before = function() self$change_model$before_loop()
@@ -586,3 +595,7 @@ to_change_component.ChangeComponent = function(x) x
 
 #' @export
 to_change_component.formula = function(x) Formula(x)
+
+
+#' @export
+mp_expand = function(model) model$expand()

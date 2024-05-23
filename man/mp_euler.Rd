@@ -27,7 +27,7 @@ are updated according to different numerical methods.
 \itemize{
 \item \code{mp_rk4()}: ODE solver using Runge-Kutta 4.
 
-\item \code{mp_euler_multinomial()}: Update state with process error given  by the
+\item \code{mp_euler_multinomial()}: Update state with process error given by the
 Euler-multinomial distribution.
 
 \item \code{mp_hazard()}: Update state with hazard steps, which is equivalent

@@ -30,7 +30,7 @@ test_that("a selection of the iterations in the simulation history of a matrix t
   expect_equal(y_tmb, y_r)
 })
 
-test_that("use of rbind_lag works for lags = 1 but not overwise", {
+test_that("use of rbind_lag works for lags = 1 but not otherwise", {
   y = simple_sims(
       list(x ~ x + 1, y ~ rbind_lag(x, 1))
     , 10
@@ -45,4 +45,19 @@ test_that("use of rbind_lag works for lags = 1 but not overwise", {
       ),
       regexp = "Lag functionality is conceptually flawed at the moment for lags greater than 1"
   )
+})
+
+test_that("rbind_time without times is the same as with all times", {
+  with_all_times = simple_sims(
+      list(x ~ x + 1, y ~ rbind_time(x, i))
+    , time_steps = 5
+    , mats = list(x = 0, y = empty_matrix)
+    , int_vecs = list(i = 1:5)
+  )
+  without_times = simple_sims(
+      list(x ~ x + 1, y ~ rbind_time(x))
+    , time_steps = 5
+    , mats = list(x = 0, y = empty_matrix)
+  )
+  expect_equal(with_all_times, without_times)
 })

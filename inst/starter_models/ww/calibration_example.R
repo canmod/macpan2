@@ -1,4 +1,3 @@
-#source("inst/starter_models/ww/tmb.R")
 library(macpan2)
 library(ggplot2)
 library(dplyr)
@@ -7,8 +6,26 @@ library(dplyr)
 ## get model spec from library
 ## -------------------------
 
-spec = mp_tmb_library("starter_models","ww",package="macpan2")
-spec
+specs = mp_tmb_library("starter_models", "ww", alternative_specs = TRUE, package = "macpan2")
+
+# component = "during"
+# identical(
+#     specs$explicit$expand()[[component]]
+#   , specs$implicit[[component]]
+# )
+# mp_hazard(specs$explicit)$expand()
+# char_expl = sort(vapply(specs$explicit$expand()[[component]], macpan2:::formula_as_character, character(1L)))
+# char_impl = sort(vapply(specs$implicit[[component]], macpan2:::formula_as_character, character(1L)))
+# setdiff(char_expl, char_impl)
+# setdiff(char_impl, char_expl)
+# intersect(char_expl, char_impl)
+# for (i in 1:33) {
+#   print(i)
+#   print(char_expl[i])
+#   print(char_impl[i])
+# }
+# char_expl[[34]]
+# char_impl[[34]]
 
 ## -------------------------
 ## define simulator
@@ -19,7 +36,7 @@ time_steps = 100L
 
 # simulator object
 ww = mp_simulator(  
-    model = spec
+    model = specs$implicit
   , time_steps = time_steps
   , outputs = c("Ia", "Ip", "Im", "Is", "W", "A")
 )
@@ -30,7 +47,7 @@ ww = mp_simulator(
 
 # interested in estimating asymptomatic relative transmission rate
 ww$update$transformations(Log("Ca"))
-ww$replace$params(log(spec$default$Ca),"log_Ca")
+ww$replace$params(log(specs$implicit$default$Ca),"log_Ca")
 ww
 
 ## -------------------------
@@ -164,4 +181,3 @@ if (interactive()) {
     theme_bw()+
     ylab("A")
 }
-

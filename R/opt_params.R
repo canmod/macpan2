@@ -91,56 +91,50 @@ OptParamsList = function(...
   return_object(self, "OptParamsList")
 }
 
-OptParamsFrameStruc = function(..., frame) {
-  OptParamsList(...
-    , par_id = frame$par_id
-    , mat = frame$mat
-    , row_id = frame$row_id
-    , col_id = frame$col_id
-  )
-}
-
-
-## alternative constructor of OptParamsList
-OptParamsFrame = function(frame, .dimnames = list()) {
+fix_param_frame = function(frame, .dimnames) {
+  
   for (c in names(frame)) {
     if (is.character(frame[[c]])) frame[[c]] = trimws(frame[[c]])
   }
   if (is.null(frame$col)) frame$col = 0L
   if (is.null(frame$row)) frame$row = 0L
+  if (is.null(frame$par)) {
+    frame$par = seq_len(nrow(frame)) - 1L  ## zero-based c++ indices
+  }
   
   frame = rename_synonyms(frame
-    , mat = c("matrix", "Matrix", "mat", "Mat", "variable", "var", "Variable", "Var")
-    , row = c("row", "Row")
-    , col = c("col", "Col", "column", "Column")
+    , mat = c("matrix", "Matrix", "mat", "Mat", "variable", "var", "Variable", "Var", "matrix_id", "MatrixID", "mat_id", "MatID", "VariableID", "VarID", "variable_id", "var_id")
+    , row = c("row", "Row", "row_id", "RowID")
+    , col = c("col", "Col", "column", "Column", "col_id", "ColID", "column_id", "ColumnID")
     , default = c("value", "Value", "val", "Val", "default", "Default")
+    , par = c("par", "Par", "par_id", "ParID", "parameter", "parameter_ID", "ParameterID")
   )
-  # synonyms_for_default = c("default", "Default", "value", "Value", "val", "Val")
-  # synonym_present = synonyms_for_default %in% names(frame)
-  # if (isTRUE(any(synonym_present))) {
-  #   synonym = synonyms_for_default[which(synonym_present)[1L]]
-  #   names(frame)[names(frame) == synonym] = "default"
-  # } else {
-  #   msg(
-  #       msg_hline()
-  #     , msg_colon(
-  #         msg(
-  #             "None of the following column names, which are valid for"
-  #           , "containing default parameter values"
-  #         )
-  #       , msg_indent_break(synonyms_for_default)
-  #     )
-  #   ) |> stop()
-  # }
   row_col_ids = make_row_col_ids(frame$mat, frame$row, frame$col, .dimnames)
+  frame$row = row_col_ids$row_id
+  frame$col = row_col_ids$col_id
+  frame
+}
+OptParamsFrameStruc = function(..., frame, .dimnames) {
+  frame = fix_param_frame(frame, .dimnames)
+  OptParamsList(...
+    , par_id = frame$par
+    , mat = frame$mat
+    , row_id = frame$row
+    , col_id = frame$col
+  )
+}
+
+## alternative constructor of OptParamsList
+OptParamsFrame = function(frame, .dimnames = list()) {
+  frame = fix_param_frame(frame, .dimnames)
   args = c(
-    as.list(as.numeric(frame$default)),
-    list(
-      par_id = seq_len(nrow(frame)) - 1L,  ## zero-based c++ indices
-      mat = frame$mat,
-      row_id = row_col_ids$row_id,
-      col_id = row_col_ids$col_id
-    )
+      as.list(as.numeric(frame$default))
+    , list(
+          par_id = frame$par
+        , mat = frame$mat
+        , row_id = frame$row
+        , col_id = frame$col
+      )
   )
   do.call(OptParamsList, args)
 }

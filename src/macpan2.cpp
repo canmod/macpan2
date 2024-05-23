@@ -126,6 +126,20 @@ enum macpan2_meth
     , METH_ROWS_TIMES_ROWS = 8 // ~ A[i] * X[j], c("A", "X"), c("i", "j")
 };
 
+std::vector<int> mp_math = {
+    MP2_ADD, MP2_SUBTRACT, MP2_MULTIPLY, MP2_DIVIDE, MP2_POWER, MP2_EXP, MP2_LOG
+  , MP2_MATRIX, MP2_MATRIX_MULTIPLY
+  , MP2_SUM, MP2_ROWSUMS, MP2_COLSUMS, MP2_TRANSPOSE
+  , MP2_CONVOLUTION, MP2_CBIND, MP2_RBIND, MP2_RECYCLE, MP2_CLAMP
+  , MP2_POISSON_DENSITY, MP2_NEGBIN_DENSITY, MP2_NORMAL_DENSITY
+  , MP2_POISSON_SIM, MP2_NEGBIN_SIM, MP2_NORMAL_SIM, MP2_KRONECKER
+  , MP2_TO_DIAG, MP2_FROM_DIAG, MP2_COS, MP2_BINOM_SIM, MP2_EULER_MULTINOM_SIM
+  , MP2_ROUND, MP2_PGAMMA
+};
+
+std::vector<int> mp_bin_op = {
+  MP2_ADD, MP2_SUBTRACT, MP2_MULTIPLY, MP2_DIVIDE, MP2_POWER
+};
 
 // MACROS
 
@@ -264,10 +278,8 @@ void printMatrix(const matrix<Type> &mat)
     // You can use a loop to iterate through rows and columns
     // and print each element.
     // Example:
-    for (int i = 0; i < mat.rows(); ++i)
-    {
-        for (int j = 0; j < mat.cols(); ++j)
-        {
+    for (int i = 0; i < mat.rows(); ++i) {
+        for (int j = 0; j < mat.cols(); ++j) {
             std::cout << mat.coeff(i, j) << ' ';
         }
         std::cout << std::endl;
@@ -282,15 +294,13 @@ struct ListOfMatrices
     // below is a vector of matrices that passed from R
     vector<matrix<Type>> m_matrices;
 
-    ListOfMatrices(SEXP ii)
-    { // Constructor
+    ListOfMatrices(SEXP ii) { // Constructor
         // Get elements by their indices
         int n = length(ii);
         vector<matrix<Type>> vs(n);
         m_matrices = vs;
 
-        for (int i = 0; i < n; i++)
-        {
+        for (int i = 0; i < n; i++) {
             m_matrices[i] = asMatrix<Type>(VECTOR_ELT(ii, i));
         }
     }
@@ -324,7 +334,7 @@ struct ListOfMatrices
             else
             {
                 // Handle out-of-range index or negative index as needed
-                throw std::out_of_range("Index out of range");
+                Rf_error("Index out of range");
             }
         }
 
@@ -474,6 +484,15 @@ public:
 
 // MORE UTILITY FUNCTIONS ------------------------
 
+int is_int_in(int i, std::vector<int> vec) {
+    for (int j = 0; j < vec.size(); j++) {
+        //std::cout << "i=" << i << std::endl;
+        //std::cout << "vec[j]=" << vec[j] << std::endl;
+        if (i == vec[j]) return 1;
+    }
+    return 0;
+}
+
 vector<int> getNthIntVec(
     int vec_number,
     int curr_meth_id,
@@ -563,7 +582,7 @@ public:
     {
         if (index < 0 || index >= size_)
         {
-            throw std::out_of_range("Index out of range");
+            Rf_error("Index out of range");
         }
         items_[index].type = ItemType::Matrix;
         items_[index].mat = mat;
@@ -573,7 +592,7 @@ public:
     {
         if (index < 0 || index >= size_)
         {
-            throw std::out_of_range("Index out of range");
+            Rf_error("Index out of range");
         }
         items_[index].type = ItemType::IntVector;
         items_[index].intVec = intVec;
@@ -585,27 +604,25 @@ public:
         } else if (items_[i].type == ItemType::IntVector) {
             return 1;
         } else {
-            throw std::out_of_range("Invalid argument type");
+            Rf_error("Invalid argument type");
         }
     }
 
-    matrix<Type> get_as_mat(int i) const
-    {
+    matrix<Type> get_as_mat(int i) const {
         if (i < 0 || i >= items_.size()) {
-            throw std::out_of_range("Index out of range");
+            Rf_error("Index out of range");
         }
 
         if (items_[i].type == ItemType::Matrix) {
             return items_[i].mat;
         } else {
-            throw std::runtime_error("Item at index is not a matrix");
+            Rf_error("Item at index is not a matrix");
         }
     }
 
-    std::vector<int> get_as_int_vec(int i)
-    {
+    std::vector<int> get_as_int_vec(int i) {
         if (i < 0 || i >= items_.size()) {
-            throw std::out_of_range("Index out of range");
+            Rf_error("Index out of range");
         }
 
         if (items_[i].type == ItemType::IntVector) {
@@ -623,7 +640,7 @@ public:
     int get_as_int(int i)
     {
         if (i < 0 || i >= items_.size()) {
-            throw std::out_of_range("Index out of range");
+            Rf_error("Index out of range");
         }
 
         if (items_[i].type == ItemType::IntVector) {
@@ -644,7 +661,7 @@ public:
     // number of rows in argument i
     int rows(int i) {
         if (i < 0 || i >= items_.size()) {
-            throw std::out_of_range("Index out of range");
+            Rf_error("Index out of range");
         }
         if (items_[i].type == ItemType::IntVector) {
             return items_[i].intVec.size();
@@ -657,7 +674,7 @@ public:
     // number of columns in argument i
     int cols(int i) {
         if (i < 0 || i >= items_.size()) {
-            throw std::out_of_range("Index out of range");
+            Rf_error("Index out of range");
         }
         if (items_[i].type == ItemType::IntVector) {
             return 1;
@@ -685,6 +702,13 @@ public:
         std::vector<int> v(items_.size());
         for (int i = 0; i < v.size(); i++) {
             v[i] = type_int(i);
+        }
+        return v;
+    }
+    int all_matrices() {
+        int v = 1;
+        for (int i = 0; i < items_.size(); i++) {
+            v = v * (1 - type_int(i));
         }
         return v;
     }
@@ -913,6 +937,7 @@ public:
         error_code = 0; // non-zero means error has occurred; otherwise, no error
         expr_row = 0;
         func_int = -99; // assume no function information is available
+        time_int = 0;
         arg_rows = {0};
         arg_cols = {0};
         arg_type_ints = {0};
@@ -934,15 +959,17 @@ public:
     const char *GetErrorMessage() { return error_message; };
     int GetExprRow() { return expr_row; };
     int GetFuncInt() { return func_int; };
+    int GetTimeInt() { return time_int; };
     std::vector<int> GetArgRows() { return arg_rows; };
     std::vector<int> GetArgCols() { return arg_cols; };
     std::vector<int> GetArgTypeInts() { return arg_type_ints; };
 
     // setters
-    void SetError(unsigned char code, const char *message, int e_row, int f_int, std::vector<int> a_rows, std::vector<int> a_cols, std::vector<int> a_type_ints) {
+    void SetError(unsigned char code, const char *message, int e_row, int f_int, std::vector<int> a_rows, std::vector<int> a_cols, std::vector<int> a_type_ints, int t_int) {
         error_code = code;
         expr_row = e_row;
         func_int = f_int;
+        time_int = t_int;
         arg_rows = a_rows;
         arg_cols = a_cols;
         arg_type_ints = a_type_ints;
@@ -1092,8 +1119,7 @@ public:
             ArgList<Type> args(n);
             vector<int> index2mats(n);
             vector<int> index2what(n);
-            for (int i = 0; i < n; i++)
-            {
+            for (int i = 0; i < n; i++) {
                 if (table_n[table_i[row] + i] == -3)
                 {
                     // -3 in the 'number of arguments' column of the
@@ -1135,27 +1161,35 @@ public:
                     return m;
             }
 
-            // Check dimensions compatibility. If needed, expand one operand to make its dimensions compatible with the other
-            if (table_x[row] + 1 < 6 && table_n[row] == 2) { // elementwise binary operations + - * / ^
+            if (is_int_in(table_x[row] + 1, mp_math)) {
+                if (args.all_matrices() == 0) {
+                    SetError(205, "All arguments to math functions must be numeric matrices, but at least one is an integer", row, table_x[row] + 1, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
+                    return m;
+                }
+            }
+            
+            // Elementwise Binary Operations (+ - * / ^)
+            // Check dimensions compatibility. If needed, 
+            // expand one operand to make its dimensions 
+            // compatible with the other
+            if (is_int_in(table_x[row] + 1, mp_bin_op) && table_n[row] == 2) {
                 args = args.recycle_for_bin_op();
                 err_code = args.get_error_code();
                 switch (err_code) {
                 case 201:
-                    SetError(err_code, "The two operands do not have the same number of columns", row, table_x[row] + 1, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    SetError(err_code, "The two operands do not have the same number of columns", row, table_x[row] + 1, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 case 202:
-                    SetError(err_code, "The two operands do not have the same number of rows", row, table_x[row] + 1, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    SetError(err_code, "The two operands do not have the same number of rows", row, table_x[row] + 1, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 case 203:
-                    SetError(err_code, "The two operands do not have the same number of columns or rows", row, table_x[row] + 1, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    SetError(err_code, "The two operands do not have the same number of columns or rows", row, table_x[row] + 1, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
             }
-            else if (table_x[row] + 1 == 11)
-            { // %*% matrix multiplication
-                if (args[0].cols() != args[1].rows())
-                {
-                    SetError(204, "The two operands are not compatible to do matrix multiplication", row, table_x[row] + 1, args.all_rows(), args.all_cols(), args.all_type_ints());
+            else if (table_x[row] + 1 == MP2_MATRIX_MULTIPLY) { // %*% matrix multiplication
+                if (args[0].cols() != args[1].rows()) {
+                    SetError(204, "The two operands are not compatible to do matrix multiplication", row, table_x[row] + 1, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
             }
@@ -1193,8 +1227,7 @@ public:
             // #' ```
             // #'
             // #'
-            switch (table_x[row] + 1)
-            {
+            switch (table_x[row] + 1) {
 
             // #' ## Elementwise Binary Operators
             // #'
@@ -1244,49 +1277,46 @@ public:
             // #'
             case MP2_ADD: // +
                 #ifdef MP_VERBOSE
-                std::cout << args[0] << " + " << args[1] << " = " << args[0] + args[1] << std::endl
+                std::cout << args.get_as_mat(0) << " + " << args.get_as_mat(1) << " = " << args.get_as_mat(0) + args.get_as_mat(1) << std::endl
                           << std::endl;
                 #endif
-                if (table_n[row] == 1) { 
-                    return args[0]; // unary +  (in case someone puts a plus sign at the beginning of an expression)
+                if (table_n[row] == 1) {
+                    return args.get_as_mat(0); // unary +  (in case someone puts a plus sign at the beginning of an expression)
                 } else {
-                    return args[0] + args[1]; // binary +
+                    return args.get_as_mat(0) + args.get_as_mat(1); // binary +
                 }
             case MP2_SUBTRACT: // -
                 #ifdef MP_VERBOSE
                 if (table_n[row] == 1)
-                    std::cout << "Unary - " << args[0] << std::endl
+                    std::cout << "Unary - " << args.get_as_mat(0) << std::endl
                               << std::endl;
                 else
-                    std::cout << args[0] << " - " << args[1] << " = " << args[0] - args[1] << std::endl
+                    std::cout << args.get_as_mat(0) << " - " << args.get_as_mat(1) << " = " << args.get_as_mat(0) - args.get_as_mat(1) << std::endl
                               << std::endl;
                 #endif
                 if (table_n[row] == 1) {
-                    return -args[0]; // unary -
+                    return -args.get_as_mat(0); // unary -
                 } else {
-                    return args[0] - args[1]; // binary -
+                    return args.get_as_mat(0) - args.get_as_mat(1); // binary -
                 }
             case MP2_MULTIPLY: // *
                 #ifdef MP_VERBOSE
-                std::cout << args[0] << " .* " << args[1] << " = " << args[0].cwiseProduct(args[1]) << std::endl
+                std::cout << args.get_as_mat(0) << " .* " << args.get_as_mat(1) << " = " << args.get_as_mat(0).cwiseProduct(args.get_as_mat(1)) << std::endl
                           << std::endl;
                 #endif
-                // return args[0].array()*args[1].array();   // doesn't work
-                return args[0].cwiseProduct(args[1]);
+                return args.get_as_mat(0).cwiseProduct(args.get_as_mat(1));
             case MP2_DIVIDE: // /
                 #ifdef MP_VERBOSE
-                std::cout << args[0] << " ./ " << args[1] << " = " << args[0].array() / args[1].array() << std::endl
+                std::cout << args.get_as_mat(0) << " ./ " << args.get_as_mat(1) << " = " << args.get_as_mat(0).array() / args.get_as_mat(1).array() << std::endl
                           << std::endl;
                 #endif
-                // return args[0].array()/args[1].array();  // doesn't work
-                return args[0].cwiseQuotient(args[1]);
+                return args.get_as_mat(0).cwiseQuotient(args.get_as_mat(1));
             case MP2_POWER: // ^
                 #ifdef MP_VERBOSE
-                std::cout << args[0] << " ^ " << args[1] << " = " << pow(args[0].array(), args[1].coeff(0, 0)).matrix() << std::endl
+                std::cout << args.get_as_mat(0) << " ^ " << args.get_as_mat(1) << " = " << pow(args.get_as_mat(0).array(), args.get_as_mat(1).coeff(0, 0)).matrix() << std::endl
                           << std::endl;
                 #endif
-                return pow(args[0].array(), args[1].array()).matrix();
-                // return args[0].pow(args[1].coeff(0,0));
+                return pow(args.get_as_mat(0).array(), args.get_as_mat(1).array()).matrix();
 
             // #' ## Unary Elementwise Math
             // #'
@@ -1368,7 +1398,7 @@ public:
                 to = args.get_as_int(1);
                 if (from > to)
                 {
-                    SetError(MP2_COLON, "Lower bound greater than upper bound in : operation", row, MP2_COLON, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    SetError(MP2_COLON, "Lower bound greater than upper bound in : operation", row, MP2_COLON, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
                 m = matrix<Type>::Zero(to - from + 1, 1);
@@ -1395,7 +1425,7 @@ public:
                 by = args[2].coeff(0, 0);
                 if (length <= 0)
                 {
-                    SetError(MP2_SEQUENCE, "Sequence length is less than or equal to zero in seq operation", row, MP2_SEQUENCE, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    SetError(MP2_SEQUENCE, "Sequence length is less than or equal to zero in seq operation", row, MP2_SEQUENCE, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
                 m = matrix<Type>::Zero(length, 1);
@@ -1602,7 +1632,7 @@ public:
                     }
                     else
                     {
-                        SetError(MP2_CBIND, "Inconsistent size in cbind function", row, MP2_CBIND, args.all_rows(), args.all_cols(), args.all_type_ints());
+                        SetError(MP2_CBIND, "Inconsistent size in cbind function", row, MP2_CBIND, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                         return m;
                     }
                 }
@@ -1636,7 +1666,7 @@ public:
                     }
                     else
                     {
-                        SetError(MP2_RBIND, "Inconsistent size in rbind function", row, MP2_RBIND, args.all_rows(), args.all_cols(), args.all_type_ints());
+                        SetError(MP2_RBIND, "Inconsistent size in rbind function", row, MP2_RBIND, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                         return m;
                     }
                 }
@@ -1663,13 +1693,13 @@ public:
                     m.resize(rows, cols);
                 } else if (size_in < size_out) {
                     if (size_out % size_in) {
-                        SetError(MP2_MATRIX, "The size of the input matrix is not compatible with the requested shape of the output matrix.", row, MP2_MATRIX, args.all_rows(), args.all_cols(), args.all_type_ints());
+                        SetError(MP2_MATRIX, "The size of the input matrix is not compatible with the requested shape of the output matrix.", row, MP2_MATRIX, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                         return m1;
                     }
                     m = mp2_rep(m, size_out / size_in);
                     m.resize(rows, cols);
                 } else {
-                    SetError(MP2_MATRIX, "The size of the input must less than or equal to that of the output.", row, MP2_MATRIX, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    SetError(MP2_MATRIX, "The size of the input must less than or equal to that of the output.", row, MP2_MATRIX, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                 }
                 return m;
 
@@ -1808,17 +1838,17 @@ public:
                 v1 = args.get_as_int_vec(1);
                 err_code = args.check_indices(2, v1, {0});
                 if (err_code) {
-                    SetError(MP2_GROUPSUMS, "Group indexes are out of range.", row, MP2_GROUPSUMS, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    SetError(MP2_GROUPSUMS, "Group indexes are out of range.", row, MP2_GROUPSUMS, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
                 m = args[0];
                 if (m.cols() != 1) {
-                    SetError(MP2_GROUPSUMS, "Group sums are only allowed for column vectors.", row, MP2_GROUPSUMS, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    SetError(MP2_GROUPSUMS, "Group sums are only allowed for column vectors.", row, MP2_GROUPSUMS, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                 }
                 rows = args.rows(2); // get number of rows in the 3rd argument
                 m1 = matrix<Type>::Zero(rows, 1);
                 if (v1.size() != m.rows()) {
-                    SetError(MP2_GROUPSUMS, "Number of rows in x must equal the number of indices in f in group_sums(x, f, n).", row, MP2_GROUPSUMS, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    SetError(MP2_GROUPSUMS, "Number of rows in x must equal the number of indices in f in group_sums(x, f, n).", row, MP2_GROUPSUMS, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
 
@@ -1901,7 +1931,7 @@ public:
                 }
                 err_code = args.check_indices(0, v1, v2);
                 if (err_code) {
-                    SetError(MP2_SQUARE_BRACKET, "Illegal index to square bracket", row, MP2_SQUARE_BRACKET, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    SetError(MP2_SQUARE_BRACKET, "Illegal index to square bracket", row, MP2_SQUARE_BRACKET, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
                 m = args[0];
@@ -1974,54 +2004,43 @@ public:
                 }
                 if ((t == 1) & (!doing_lag))
                     return m; // have not built up any previous iterations yet, so returning empty matrix
-                if (t == 0)
-                {
-                    SetError(154, "The simulation loop has not yet begun and so rbind_time (or rbind_lag) cannot be used", row, int_func, args.all_rows(), args.all_cols(), args.all_type_ints());
+                if (t == 0) {
+                    SetError(154, "The simulation loop has not yet begun and so rbind_time (or rbind_lag) cannot be used", row, int_func, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     // std::cout << "return 1 " << std::endl;
                     return m;
                 }
                 matIndex = index2mats[0]; // m
-                if (!mats_save_hist[matIndex])
-                { // && !(timeIndex.size()==1 && timeIndex[0]==t)) {
-                    SetError(MP2_RBIND_TIME, "Can only rbind_time (or rbind_lag) initialized matrices with saved history", row, int_func, args.all_rows(), args.all_cols(), args.all_type_ints());
+                if (!mats_save_hist[matIndex]) { // && !(timeIndex.size()==1 && timeIndex[0]==t)) {
+                    SetError(MP2_RBIND_TIME, "Can only rbind_time (or rbind_lag) initialized matrices with saved history", row, int_func, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
 
-                if ((matIndex < 0) | (index2what[0] != 0))
-                {
-                    SetError(MP2_RBIND_TIME, "Can only rbind_time (or rbind_lag) named matrices not expressions of matrices and not integer vectors", row, int_func, args.all_rows(), args.all_cols(), args.all_type_ints());
+                if ((matIndex < 0) | (index2what[0] != 0)) {
+                    SetError(MP2_RBIND_TIME, "Can only rbind_time (or rbind_lag) named matrices not expressions of matrices and not integer vectors", row, int_func, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     // std::cout << "return 2 " << std::endl;
                     return m;
                 }
 
-                if ((n == 1) & (!doing_lag))
-                {
+                if ((n == 1) & (!doing_lag)) {
                     // std::vector<int> timeIndex(t - 1);
-                    for (int i = 0; i < t - 1; i++)
-                    {
-                        timeIndex.push_back(i + 1);
+                    for (int i = 1; i < t_max + 1; i++) {
+                        timeIndex.push_back(i);
                     }
                     // std::cout << "t: " << t << std::endl;
                     // printIntVectorWithLabel(timeIndex, "default time index vector");
                 }
-                else if ((n == 1) & (doing_lag))
-                {
+                else if ((n == 1) & (doing_lag)) {
                     timeIndex.push_back(t - 1);
                 }
-                else
-                {
-                    // std::cout << "ever get here?" << std::endl;
+                else {
                     timeIndex = args.get_as_int_vec(1);
                     // std::cout << "t: " << t << std::endl;
                     // printIntVectorWithLabel(timeIndex, "default time index vector");
-                    if (doing_lag)
-                    {
-                        for (int i = 0; i < timeIndex.size(); i++)
-                        {
+                    if (doing_lag) {
+                        for (int i = 0; i < timeIndex.size(); i++) {
                             timeIndex[i] = t - timeIndex[i];
-                            if (timeIndex[i] < 0)
-                            {
-                                SetError(MP2_RBIND_LAG, "Lag functionality is conceptually flawed at the moment for lags greater than 1. All other lags are currently not allowed.", row, int_func, args.all_rows(), args.all_cols(), args.all_type_ints());
+                            if (timeIndex[i] < 0) {
+                                SetError(MP2_RBIND_LAG, "Lag functionality is conceptually flawed at the moment for lags greater than 1. All other lags are currently not allowed.", row, int_func, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                                 // what we need to do is include an argument for a matrix
                                 // (usually a column vector) of initial values that take
                                 // use back into negative time steps. need to do the same
@@ -2034,24 +2053,20 @@ public:
                     }
                 }
                 // std::cout << "time_index = " << timeIndex.size() << std::endl;
-                if (timeIndex.size() == 0)
-                {
+                if (timeIndex.size() == 0) {
                     // std::cout << "return 3 " << std::endl;
                     return m; // return empty matrix if no time indices are provided
                 }
 
                 int lowerTimeBound;
-                if (table_n[row] == 3)
-                {
+                if (table_n[row] == 3) {
                     lowerTimeBound = args.get_as_int(2);
-                    if (lowerTimeBound < 0)
-                    {
-                        SetError(MP2_RBIND_TIME, "Lower time bound (third argument) is less than zero", row, int_func, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    if (lowerTimeBound < 0) {
+                        SetError(MP2_RBIND_TIME, "Lower time bound (third argument) is less than zero", row, int_func, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                         return m;
                     }
-                    if (lowerTimeBound > t)
-                    {
-                        SetError(MP2_RBIND_TIME, "Lower time bound (third argument) is greater than the number of time steps", row, int_func, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    if (lowerTimeBound > t) {
+                        SetError(MP2_RBIND_TIME, "Lower time bound (third argument) is greater than the number of time steps", row, int_func, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                         return m;
                     }
                 }
@@ -2096,7 +2111,7 @@ public:
                     {
                         if (rows != nRows || cols != nCols)
                         { // Shall we allow inconsistent rows?
-                            SetError(MP2_RBIND_TIME, "Inconsistent rows or columns in rbind_time (or rbind_lag)", row, int_func, args.all_rows(), args.all_cols(), args.all_type_ints());
+                            SetError(MP2_RBIND_TIME, "Inconsistent rows or columns in rbind_time (or rbind_lag)", row, int_func, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                             // std::cout << "return 5 " << std::endl;
                             return args[0];
                         }
@@ -2218,7 +2233,7 @@ public:
                 lag = CppAD::Integer(args[0].coeff(0, 0));
                 if (lag < 0)
                 {
-                    SetError(MP2_TIME_STEP, "Time lag needs to be non-negative", row, MP2_TIME_STEP, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    SetError(MP2_TIME_STEP, "Time lag needs to be non-negative", row, MP2_TIME_STEP, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
                 if (t > lag)
@@ -2230,7 +2245,7 @@ public:
             case MP2_TIME_GROUP: // time_group(i, change_points)
                 if (index2what[0] != 0)
                 {
-                    SetError(MP2_TIME_GROUP, "First argument needs to be a matrix.", row, MP2_TIME_GROUP, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    SetError(MP2_TIME_GROUP, "First argument needs to be a matrix.", row, MP2_TIME_GROUP, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
                 m = args[0];
@@ -2243,24 +2258,27 @@ public:
                 return m;
 
             case MP2_TIME_VAR: // time_var(x, change_points)
-
-                if (t == 0) {
-                    SetError(MP2_TIME_VAR, "Time variation is not allowed before the simulation loop begins.", row, MP2_TIME_VAR, args.all_rows(), args.all_cols(), args.all_type_ints());
+                if (t == 0)
+                {
+                    SetError(MP2_TIME_VAR, "Time variation is not allowed before the simulation loop begins.", row, MP2_TIME_VAR, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
-                if (t > t_max) {
-                    SetError(MP2_TIME_VAR, "Time variation is not allowed after the simulation loop ends.", row, MP2_TIME_VAR, args.all_rows(), args.all_cols(), args.all_type_ints());
+                if (t > t_max)
+                {
+                    SetError(MP2_TIME_VAR, "Time variation is not allowed after the simulation loop ends.", row, MP2_TIME_VAR, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
 
                 v = args.get_as_int_vec(1);
                 off = args.get_as_int(1);
-                if (off < 0) {
-                    SetError(MP2_TIME_VAR, "The first element of the second argument must not be less than zero.", row, MP2_TIME_VAR, args.all_rows(), args.all_cols(), args.all_type_ints());
+                if (off < 0)
+                {
+                    SetError(MP2_TIME_VAR, "The first element of the second argument must not be less than zero.", row, MP2_TIME_VAR, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
-                if (off >= v.size()) {
-                    SetError(MP2_TIME_VAR, "The first element of the second argument must be less than the number of elements in the first.", row, MP2_TIME_VAR, args.all_rows(), args.all_cols(), args.all_type_ints());
+                if (off >= v.size())
+                {
+                    SetError(MP2_TIME_VAR, "The first element of the second argument must be less than the number of elements in the first.", row, MP2_TIME_VAR, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
 
@@ -2282,16 +2300,18 @@ public:
                             valid_int_vecs.setNthIntVec(matIndex, off, 0);
                         }
                         else {
-                            SetError(MP2_TIME_VAR, "Time variation pointers need to be length-1 integer vectors.", row, MP2_TIME_VAR, args.all_rows(), args.all_cols(), args.all_type_ints());
+                            SetError(MP2_TIME_VAR, "Time variation pointers need to be length-1 integer vectors.", row, MP2_TIME_VAR, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                             return m;
                         }
                     }
-                    else if (cp < 0) {
-                        SetError(MP2_TIME_VAR, "Negative times are not allowed.", row, MP2_TIME_VAR, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    else if (cp < 0)
+                    {
+                        SetError(MP2_TIME_VAR, "Negative times are not allowed.", row, MP2_TIME_VAR, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                         return m;
                     }
-                    else if (cp > t_max) {
-                        SetError(MP2_TIME_VAR, "Times greater than the number of time steps are not allowed.", row, MP2_TIME_VAR, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    else if (cp > t_max)
+                    {
+                        SetError(MP2_TIME_VAR, "Times greater than the number of time steps are not allowed.", row, MP2_TIME_VAR, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                         return m;
                     }
                 }
@@ -2347,7 +2367,7 @@ public:
                 // #'
                 matIndex = index2mats[0]; // m
                 if (matIndex == -1) {
-                    SetError(MP2_CONVOLUTION, "Can only convolve named matrices not expressions of matrices", row, MP2_CONVOLUTION, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    SetError(MP2_CONVOLUTION, "Can only convolve named matrices not expressions of matrices", row, MP2_CONVOLUTION, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return args[0];
                 }
 
@@ -2393,7 +2413,7 @@ public:
                 }
                 else
                 {
-                    SetError(MP2_CONVOLUTION, "Either empty or non-column vector used as kernel in convolution", row, MP2_CONVOLUTION, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    SetError(MP2_CONVOLUTION, "Either empty or non-column vector used as kernel in convolution", row, MP2_CONVOLUTION, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
 
@@ -2421,6 +2441,13 @@ public:
                 rows = args[0].rows();
                 cols = args[0].cols();
                 m = matrix<Type>::Zero(rows, cols);
+                // might this be better?
+                // https://github.com/kaskr/adcomp/wiki/Code--snippets
+                // template<class Type>
+                // Type posfun(Type x, Type eps, Type &pen){
+                //   pen += CppAD::CondExpLt(x, eps, Type(0.01) * pow(x-eps,2), Type(0));
+                //   return CppAD::CondExpGe(x, eps, x, eps/(Type(2)-x/eps));
+                // }
                 for (int i = 0; i < rows; i++)
                 {
                     for (int j = 0; j < cols; j++)
@@ -2485,7 +2512,7 @@ public:
                 // std::cout << "step 0" << std::endl;
                 if (n < 2)
                 {
-                    SetError(MP2_POISSON_DENSITY, "dpois needs two arguments: matrices with observed and expected values", row, MP2_POISSON_DENSITY, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    SetError(MP2_POISSON_DENSITY, "dpois needs two arguments: matrices with observed and expected values", row, MP2_POISSON_DENSITY, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
                 // std::cout << "step 1" << std::endl;
@@ -2501,7 +2528,7 @@ public:
                 if (err_code != 0)
                 {
                     // std::cout << "step 5" << std::endl;
-                    SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row, MP2_POISSON_DENSITY, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row, MP2_POISSON_DENSITY, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     // std::cout << "step 6" << std::endl;
                     return m;
                 }
@@ -2519,7 +2546,7 @@ public:
             case MP2_NEGBIN_DENSITY:
                 if (n < 3)
                 {
-                    SetError(MP2_NEGBIN_DENSITY, "dnbinom needs three arguments: matrices with observed values, expected values, and dispersion parameters", row, MP2_NEGBIN_DENSITY, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    SetError(MP2_NEGBIN_DENSITY, "dnbinom needs three arguments: matrices with observed values, expected values, and dispersion parameters", row, MP2_NEGBIN_DENSITY, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
                 rows = args[0].rows();
@@ -2533,7 +2560,7 @@ public:
                 // err_code = err_code1 + err_code2;
                 if (err_code != 0)
                 {
-                    SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row, MP2_NEGBIN_DENSITY, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row, MP2_NEGBIN_DENSITY, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
                 //   var ~ variance
@@ -2557,7 +2584,7 @@ public:
             case MP2_NORMAL_DENSITY:
                 if (n < 3)
                 {
-                    SetError(MP2_NORMAL_DENSITY, "dnorm needs three arguments: matrices with observed values, expected values, and standard deviation parameters", row, MP2_NORMAL_DENSITY, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    SetError(MP2_NORMAL_DENSITY, "dnorm needs three arguments: matrices with observed values, expected values, and standard deviation parameters", row, MP2_NORMAL_DENSITY, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
                 // err_code1 = RecycleInPlace(args[1], rows, cols);
@@ -2571,7 +2598,7 @@ public:
                 err_code = args.get_error_code();
                 if (err_code != 0)
                 {
-                    SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row, MP2_NORMAL_DENSITY, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row, MP2_NORMAL_DENSITY, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
                 m = matrix<Type>::Zero(rows, cols);
@@ -2629,7 +2656,7 @@ public:
             case MP2_NEGBIN_SIM:
                 if (n < 2)
                 {
-                    SetError(MP2_NEGBIN_SIM, "rnbinom needs two arguments: matrices with means and dispersion parameters", row, MP2_NEGBIN_SIM, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    SetError(MP2_NEGBIN_SIM, "rnbinom needs two arguments: matrices with means and dispersion parameters", row, MP2_NEGBIN_SIM, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
                 eps = 1e-8;
@@ -2641,7 +2668,7 @@ public:
                 // err_code = RecycleInPlace(args[1], rows, cols);
                 if (err_code != 0)
                 {
-                    SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row, MP2_NEGBIN_SIM, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row, MP2_NEGBIN_SIM, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
                 m = matrix<Type>::Zero(rows, cols);
@@ -2663,7 +2690,7 @@ public:
             case MP2_NORMAL_SIM:
                 if (n < 2)
                 {
-                    SetError(MP2_NORMAL_SIM, "rnorm needs two arguments: matrices with means and standard deviations", row, MP2_NORMAL_SIM, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    SetError(MP2_NORMAL_SIM, "rnorm needs two arguments: matrices with means and standard deviations", row, MP2_NORMAL_SIM, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
                 rows = args[0].rows();
@@ -2674,7 +2701,7 @@ public:
                 // err_code = RecycleInPlace(args[1], rows, cols);
                 if (err_code != 0)
                 {
-                    SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row, MP2_NORMAL_SIM, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row, MP2_NORMAL_SIM, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
                 m = matrix<Type>::Zero(rows, cols);
@@ -2690,7 +2717,7 @@ public:
             case MP2_BINOM_SIM:
                 // rbinom(size, prob)
                 if (n != 2) {
-                    SetError(MP2_BINOM_SIM, "rbinom needs two arguments: matrices with size and probability", row, MP2_BINOM_SIM, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    SetError(MP2_BINOM_SIM, "rbinom needs two arguments: matrices with size and probability", row, MP2_BINOM_SIM, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
                 rows = args[0].rows();
@@ -2700,7 +2727,7 @@ public:
                 err_code = args.get_error_code();
                 // err_code = RecycleInPlace(args[1], rows, cols);
                 if (err_code != 0) {
-                    SetError(MP2_BINOM_SIM, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row, MP2_BINOM_SIM, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    SetError(MP2_BINOM_SIM, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row, MP2_BINOM_SIM, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
                 m = matrix<Type>::Zero(rows, cols);
@@ -2721,13 +2748,13 @@ public:
                 if (args[0].rows() != 1 | args[0].cols() != 1) {
                     //std::cout << "++++++" << std::endl;
                     //std::cout << args[0] << std::endl;
-                    SetError(MP2_EULER_MULTINOM_SIM, "The first 'size' argument must be scalar.", row, MP2_EULER_MULTINOM_SIM, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    SetError(MP2_EULER_MULTINOM_SIM, "The first 'size' argument must be scalar.", row, MP2_EULER_MULTINOM_SIM, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
                 if (args[1].cols() != 1) {
                     //std::cout << "------" << std::endl;
                     //std::cout << args[1] << std::endl;
-                    SetError(MP2_EULER_MULTINOM_SIM, "The second 'rate' argument must be a column vector.", row, MP2_EULER_MULTINOM_SIM, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    SetError(MP2_EULER_MULTINOM_SIM, "The second 'rate' argument must be a column vector.", row, MP2_EULER_MULTINOM_SIM, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                 }
                 sum = args[1].sum();
                 //std::cout << "sum of rates: " << sum << std::endl;
@@ -2830,19 +2857,19 @@ public:
                 cols = args[1].cols();
                 if (cols != 1)
                 {
-                    SetError(255, "Assignment index matrices must have a single column", row, MP2_ASSIGN, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    SetError(255, "Assignment index matrices must have a single column", row, MP2_ASSIGN, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
                 cols = args[2].cols();
                 if (cols != 1)
                 {
-                    SetError(255, "Assignment index matrices must have a single column", row, MP2_ASSIGN, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    SetError(255, "Assignment index matrices must have a single column", row, MP2_ASSIGN, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
                 cols = args[3].cols();
                 if (cols != 1)
                 {
-                    SetError(255, "Assignment value matrices must have a single column", row, MP2_ASSIGN, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    SetError(255, "Assignment value matrices must have a single column", row, MP2_ASSIGN, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
 
@@ -2855,7 +2882,7 @@ public:
                 // err_code = CheckIndices(args[0], args[1], args[2]);
                 if (err_code)
                 {
-                    SetError(MP2_ASSIGN, "Illegal index used in assign", row, MP2_ASSIGN, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    SetError(MP2_ASSIGN, "Illegal index used in assign", row, MP2_ASSIGN, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
 
@@ -2869,7 +2896,7 @@ public:
                 // err_code = err_code1 + err_code2;
                 if (err_code != 0)
                 {
-                    SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row, MP2_ASSIGN, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row, MP2_ASSIGN, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
 
@@ -2880,7 +2907,7 @@ public:
                     matIndex = index2mats[0];
                     if (matIndex == -1)
                     {
-                        SetError(MP2_ASSIGN, "Can only assign to named matrices not expressions of matrices", row, MP2_ASSIGN, args.all_rows(), args.all_cols(), args.all_type_ints());
+                        SetError(MP2_ASSIGN, "Can only assign to named matrices not expressions of matrices", row, MP2_ASSIGN, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                         return args[0];
                     }
                     valid_vars.m_matrices[matIndex].coeffRef(rowIndex, colIndex) = args[3].coeff(k, 0);
@@ -2951,7 +2978,7 @@ public:
                         matIndex = index2mats[i];
                         if (matIndex == -1)
                         {
-                            SetError(MP2_ASSIGN, "Can only unpack into named matrices not expressions of matrices", row, MP2_UNPACK, args.all_rows(), args.all_cols(), args.all_type_ints());
+                            SetError(MP2_ASSIGN, "Can only unpack into named matrices not expressions of matrices", row, MP2_UNPACK, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                             return args[0];
                         }
                         valid_vars.m_matrices[matIndex] = m1;
@@ -2975,7 +3002,7 @@ public:
                 // err_code = RecycleInPlace(m, rows, cols);
                 m = args[0];
                 if (err_code != 0) {
-                    SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row, MP2_RECYCLE, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row, MP2_RECYCLE, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
                 return m;
@@ -2988,7 +3015,7 @@ public:
                 args = args.recycle_to_shape(v1, rows, cols);
                 err_code = args.get_error_code();
                 if (err_code != 0) {
-                    SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row, MP2_PGAMMA, args.all_rows(), args.all_cols(), args.all_type_ints());
+                    SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row, MP2_PGAMMA, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
                 m1 = args.get_as_mat(0); // q
@@ -3029,12 +3056,12 @@ public:
             // #' ```
             // #' 
             case MP2_PRINT:
-                std::cout << "printing matrix number " << index2mats[0] << " :" << std::endl;
+                std::cout << "printing matrix number " << index2mats[0] << " at time step " << t << " :" << std::endl;
                 std::cout << args[0] << std::endl;
                 return m;
 
             default:
-                SetError(255, "invalid operator in arithmetic expression", row, -99, args.all_rows(), args.all_cols(), args.all_type_ints());
+                SetError(255, "invalid operator in arithmetic expression", row, -99, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                 return m;
             }
         } // switch (table_n[row])
@@ -3072,6 +3099,7 @@ private:
     unsigned char error_code;
     int expr_row;
     int func_int;
+    int time_int;
     std::vector<int> arg_rows;
     std::vector<int> arg_cols;
     std::vector<int> arg_type_ints;
@@ -3079,8 +3107,7 @@ private:
 };
 
 template <class Type>
-class MatAssigner
-{
+class MatAssigner {
 private:
     vector<int> table_x;
     vector<int> table_n;
@@ -3094,8 +3121,7 @@ public:
         vector<int> &table_n_,
         vector<int> &table_i_,
         ListOfIntVecs &valid_int_vecs_,
-        vector<Type> &valid_literals_)
-    {
+        vector<Type> &valid_literals_) {
         table_x = table_x_;
         table_n = table_n_;
         table_i = table_i_;
@@ -3107,8 +3133,7 @@ public:
         matrix<Type> assignment_value,
         ListOfMatrices<Type> &valid_vars, // current list of values of each matrix
         int row = 0                       // current expression parse table row being evaluated
-    )
-    {
+    ) {
         int n = table_n[row];
         int x = table_x[row];
         int x1;
@@ -3126,8 +3151,7 @@ public:
         // std::cout << "---- assignment ----" << std::endl;
         // std::cout << "n: " << n << std::endl;
         // std::cout << "x: " << n << std::endl;
-        switch (n)
-        {
+        switch (n) {
         case 0:
             valid_vars.m_matrices[x] = assignment_value;
             return;
@@ -3238,10 +3262,12 @@ public:
         vector<int> arg_cols = exprEvaluator.GetArgCols();       \
         vector<int> arg_type_ints = exprEvaluator.GetArgTypeInts(); \
         int func_int = exprEvaluator.GetFuncInt();               \
+        int time_int = exprEvaluator.GetTimeInt();               \
         const char *err_msg = exprEvaluator.GetErrorMessage();   \
         REPORT(error);                                           \
         REPORT(expr_row);                                        \
         REPORT(func_int);                                        \
+        REPORT(time_int);                                        \
         REPORT(arg_rows);                                        \
         REPORT(arg_cols);                                        \
         REPORT(arg_type_ints);                                   \
@@ -3251,6 +3277,7 @@ public:
         logfile << "Error message = " << err_msg << std::endl;   \
         logfile << "Expression row = " << expr_row << std::endl; \
         logfile << "Function code = " << func_int << std::endl;  \
+        logfile << "Time step = " << time_int << std::endl;      \
         logfile.close();                                         \
     }
 
@@ -3468,22 +3495,19 @@ Type objective_function<Type>::operator()()
         const_int_vecs,
         literals);
 
-    // 3 Pre-simulation
+    // 3 Pre-simulation (the 'before' step)
     int expr_index = 0;
     int p_table_row = 0;
     int a_table_row = 0;
 
-    for (int i = 0; i < eval_schedule[0]; i++)
-    {
+    for (int i = 0; i < eval_schedule[0]; i++) { // loop over expressions in the before step
 #ifdef MP_VERBOSE
         std::cout << "in pre-simulation --- " << i << std::endl;
         std::cout << "expr_num_p_table_rows[i] " << expr_num_p_table_rows[i] << std::endl;
 #endif
         matrix<Type> result;
-        if (expr_sim_block[i] == 1)
-        {
-            SIMULATE
-            {
+        if (expr_sim_block[i] == 1) {
+            SIMULATE {
                 result = exprEvaluator.EvalExpr(
                     simulation_history, 0, mats, p_table_row);
             }
@@ -3502,6 +3526,9 @@ Type objective_function<Type>::operator()()
 
         p_table_row += expr_num_p_table_rows[i];
         a_table_row += assign_num_a_table_rows[i];
+        
+        // if expr is the last one in the next expr loop, then go back
+        // to the start of that loop
     } // p_table_row is fine here
 
     // simulation_history[0] = mats;
@@ -3512,7 +3539,7 @@ Type objective_function<Type>::operator()()
         mats_save_hist,
         hist_shape_template);
 
-    // 4 During simulation
+    // 4 During simulation (the 'during' step)
     expr_index += eval_schedule[0];
 
     // p_table_row2 lets us restart the parse table row every time the
@@ -3525,8 +3552,7 @@ Type objective_function<Type>::operator()()
 #ifdef MP_VERBOSE
         std::cout << "simulation step --- " << k << std::endl;
 #endif
-        for (int i = 0; i < eval_schedule[1]; i++)
-        {
+        for (int i = 0; i < eval_schedule[1]; i++) { // for each expression in the 'during' list
 #ifdef MP_VERBOSE
             std::cout << "Eval expression --- " << i << std::endl;
             std::cout << "expr_num_p_table_rows[i] " << expr_num_p_table_rows[expr_index + i] << std::endl;
@@ -3569,26 +3595,22 @@ Type objective_function<Type>::operator()()
     p_table_row = p_table_row2;
     a_table_row = a_table_row2;
 
-    // 5 Post-simulation
+    // 5 Post-simulation (the 'after' set of expressions)
     expr_index += eval_schedule[1];
 
-    for (int i = 0; i < eval_schedule[2]; i++)
-    {
+    for (int i = 0; i < eval_schedule[2]; i++) { // loop over the 'after' expressions
 #ifdef MP_VERBOSE
         std::cout << "in post-simulation --- " << i << std::endl;
         std::cout << "expr_num_p_table_rows[i] " << expr_num_p_table_rows[expr_index + i] << std::endl;
 #endif
         matrix<Type> result;
-        if (expr_sim_block[i] == 1)
-        {
-            SIMULATE
-            {
+        if (expr_sim_block[i] == 1) {
+            SIMULATE {
                 result = exprEvaluator.EvalExpr(
                     simulation_history, time_steps + 1, mats, p_table_row);
             }
         }
-        else
-        {
+        else {
             result = exprEvaluator.EvalExpr(
                 simulation_history, time_steps + 1, mats, p_table_row);
         }
@@ -3616,8 +3638,7 @@ Type objective_function<Type>::operator()()
 #ifdef MP_VERBOSE
     std::cout << "Simulation history ..." << std::endl;
     int m = simulation_history.size();
-    for (int t = 0; t < m; t++)
-    {
+    for (int t = 0; t < m; t++) {
         std::cout << "----- t = " << t << std::endl;
         ListOfMatrices<Type> mats = simulation_history[t];
         int n = mats.m_matrices.size();
@@ -3633,16 +3654,12 @@ Type objective_function<Type>::operator()()
 
     // int r = 0;
     int table_rows = 0;
-    for (int i = 0; i < mats_return.size(); i++)
-    {
-        if (mats_return[i] == 1)
-        {
-            if (mats_save_hist[i] == 0)
-            { // Report the last one
+    for (int i = 0; i < mats_return.size(); i++) {
+        if (mats_return[i] == 1) {
+            if (mats_save_hist[i] == 0) { // Report the last one
                 table_rows += mats.m_matrices[i].rows() * mats.m_matrices[i].cols();
             }
-            else
-            { // Report the whole simulation history
+            else { // Report the whole simulation history
                 int hist_len = time_steps + 2;
                 for (int k = 0; k < hist_len; k++)
                     table_rows += simulation_history[k].m_matrices[i].rows() *
@@ -3654,37 +3671,29 @@ Type objective_function<Type>::operator()()
     matrix<Type> values(table_rows, 5);
 
     int cur = 0;
-    for (int i = 0; i < mats_return.size(); i++)
-    {
-        if (mats_return[i] == 1)
-        {
-            if (mats_save_hist[i] == 0)
-            { // Report the last one
+    for (int i = 0; i < mats_return.size(); i++) {
+        if (mats_return[i] == 1) {
+            if (mats_save_hist[i] == 0) { // Report the last one
                 for (int jj = 0; jj < mats.m_matrices[i].cols(); jj++)
-                    for (int ii = 0; ii < mats.m_matrices[i].rows(); ii++)
-                    {
+                    for (int ii = 0; ii < mats.m_matrices[i].rows(); ii++) {
                         values(cur, 0) = i;
                         values(cur, 1) = time_steps + 1;
                         values(cur, 2) = ii;
                         values(cur, 3) = jj;
                         values(cur, 4) = mats.m_matrices[i].coeff(ii, jj);
-
                         cur++;
                     }
             }
-            else
-            { // Report the whole simulation history
+            else { // Report the whole simulation history
                 int hist_len = time_steps + 2;
                 for (int k = 0; k < hist_len; k++)
                     for (int jj = 0; jj < simulation_history[k].m_matrices[i].cols(); jj++)
-                        for (int ii = 0; ii < simulation_history[k].m_matrices[i].rows(); ii++)
-                        {
+                        for (int ii = 0; ii < simulation_history[k].m_matrices[i].rows(); ii++) {
                             values(cur, 0) = i;
                             values(cur, 1) = k;
                             values(cur, 2) = ii;
                             values(cur, 3) = jj;
                             values(cur, 4) = simulation_history[k].m_matrices[i].coeff(ii, jj);
-
                             cur++;
                         }
             }
@@ -3692,8 +3701,7 @@ Type objective_function<Type>::operator()()
     }
 
     REPORT(values)
-    if (values_adreport == 1)
-    {
+    if (values_adreport == 1) {
         matrix<Type> value_column = values.block(0, 4, values.rows(), 1);
         ADREPORT(value_column)
     }
@@ -3701,6 +3709,7 @@ Type objective_function<Type>::operator()()
     // 7 Calc the return of the objective function
     matrix<Type> ret;
     ret = objFunEvaluator.EvalExpr(simulation_history, time_steps + 2, mats, 0);
+    if (ret.size() != 1) Rf_error("Objective function did not return a scalar.");
 
     if (exprEvaluator.GetErrorCode()) {
         REPORT_ERROR;

@@ -1,5 +1,5 @@
 ## not done by any stretch
-
+library(macpan2)
 kernel = c(0.5, 0.25, 0.25)
 1 %*% kernel[1]
 1:2 %*% kernel[1:2]
@@ -42,7 +42,8 @@ manual_convolution = k[1] * X_sim$value + k[2] * X_sim$lag_1 + k[3] * X_sim$lag_
 macpan2_convolution = sim_data %>% filter(matrix=="Y") %>% pull(value)
 ## view differences
 cbind(manual_convolution, macpan2_convolution)
-
+plot(manual_convolution, macpan2_convolution)
+abline(a = 0, b = 1)
 
 s = mp_tmb_model_spec(
     during = list(
@@ -67,22 +68,31 @@ c_delay_mean = 11
 c_prop = 0.1
 gamma_shape = 1 / (c_delay_cv^2)
 gamma_scale = c_delay_mean * c_delay_cv^2
-gamma = pgamma(1:(qmax+1), gamma_shape, gamma_scale)
+gamma = pgamma(1:(qmax+1), gamma_shape, scale = gamma_scale)
 delta = gamma[2:(qmax+1)] - gamma[1:(qmax)]
 kappa = c_prop * delta / sum(delta)
-
+expr2 = list(
+    X ~ X + X/2
+  , gamma ~ pgamma(1:(qmax+1), gamma_shape, gamma_scale)
+  , delta ~ gamma[1:qmax] - gamma[0:(qmax-1)]
+  , kappa ~ c_prop * delta / sum(delta)
+  , Y ~ convolution(X, kappa)
+)
 sim_data = simple_sims(
-    iteration_exprs = expr
+    iteration_exprs = expr2
   , time_steps = n
-  , mats = list(X = X, Y = Y, k = kappa)
+  , mats = list(X = X, qmax = qmax, Y = Y, gamma = empty_matrix, delta = empty_matrix, kappa = empty_matrix, gamma_shape = gamma_shape, gamma_scale = gamma_scale, c_prop = c_prop)
 ) |> arrange(matrix)
 
 x = sim_data %>% filter(matrix=="X") %>% select(value) %>% pull()
 
-macpan2_convolution = sim_data %>% filter(matrix=="Y" & time %in% c(4,5,6)) %>% pull(value)
+macpan2_convolution = sim_data %>% filter(matrix == "Y" & time %in% c(4,5,6)) %>% pull(value)
 # z calculation from https://canmod.net/misc/flex_specs#computing-convolutions
 manual_convolution = c(kappa[4]*x[1]+kappa[3]*x[2]+kappa[2]*x[3]+kappa[1]*x[4]
                        , kappa[4]*x[2]+kappa[3]*x[3]+kappa[2]*x[4]+kappa[1]*x[5]
                        , kappa[4]*x[3]+kappa[3]*x[4]+kappa[2]*x[5]+kappa[1]*x[6])
 
 cbind(manual_convolution, macpan2_convolution)
+
+engine_eval(~pgamma(3, 16, 0.6875))
+pgamma(3, 16, scale = 0.6875)

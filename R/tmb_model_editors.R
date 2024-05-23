@@ -407,6 +407,13 @@ TMBSimulatorReplacer = function(simulator) {
   self$params = function(default, mat, row = 0L, col = 0L) {
     self$params_frame(data.frame(default, mat, row, col))
   }
+  self$params_struc = function(param, frame) {
+    new_params = OptParamsFrameStruc(param, frame = frame, .dimnames = self$model$init_mats$dimnames())
+    self$model$refresh$params(new_params)
+    self$simulator$cache$invalidate()
+    valid$consistency_params_mats$check(self$model)
+    invisible(self$simulator)
+  }
   self$random_frame = function(frame) {
     new_random = OptParamsFrame(frame, self$model$init_mats$dimnames())
     self$model$refresh$random(new_random)
@@ -416,6 +423,13 @@ TMBSimulatorReplacer = function(simulator) {
   }
   self$random = function(default, mat, row = 0L, col = 0L) {
     self$random_frame(data.frame(default, mat, row, col))
+  }
+  self$random_struc = function(random, frame) {
+    new_random = OptParamsFrameStruc(random, frame = frame, .dimnames = self$model$init_mats$dimnames())
+    self$model$refresh$random(new_random)
+    self$simulator$cache$invalidate()
+    valid$consistency_random_mats$check(self$model)
+    invisible(self$simulator)
   }
   self$time_steps = function(time_steps) {
     self$model$time_steps = Time(time_steps)
