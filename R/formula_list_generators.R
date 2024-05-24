@@ -541,7 +541,7 @@ PerCapitaInflow = function(from, to, rate, call_string) {
   self = PerCapitaFlow(from, to, rate, call_string)
   self$change_frame = function() {
     data.frame(
-        state = c(self$from, self$to)
+        state = self$to
       , change = sprintf("%s%s", "+", lhs_char(self$rate))
     )
   }
@@ -597,5 +597,16 @@ to_change_component.ChangeComponent = function(x) x
 to_change_component.formula = function(x) Formula(x)
 
 
+#' Reduce Model
+#' 
+#' Reduce a model by removing any model structure 
+#' (e.g. \code{\link{mp_per_capita_flow}}), so that expression lists
+#' are plain R formulas.
+#' 
+#' @param model A model object.
+#'
 #' @export
-mp_expand = function(model) model$expand()
+mp_reduce = function(model) UseMethod("mp_reduce")
+
+#' @export
+mp_reduce.TMBModelSpec = function(model) model$expand()
