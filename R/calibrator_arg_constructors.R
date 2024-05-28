@@ -1,0 +1,55 @@
+## construct objects to pass to the tv argument of mp_tmb_calibrator
+
+#' Fit a Time-Varying Parameter with Radial Basis Functions
+#' 
+#' Pass the output of this function to the `tv` argument of 
+#' \code{\link{mp_tmb_calibrator}} to model time variation of 
+#' a parameter with flexible radial basis functions.
+#' 
+#' @param tv String giving the name of the parameter.
+#' @param dimension Number of bases.
+#' @param initial_weights Optional vector with `dimensions` elements. These
+#' are the parameters that are fitted and determine how `tv` varies with
+#' time.
+#' @param seed Optional random seed to use to generate the `initial_weights`
+#' if they are not provided.
+#' 
+#' @export
+mp_rbf = function(tv, dimension, initial_weights, seed = 1L) {
+  if (missing(initial_weights)) {
+    set.seed(seed)
+    initial_weights = rnorm(dimension, sd = 0.01)
+  }
+  if (length(initial_weights) != dimension) {
+    stop("The `initial_weights` vector must be of length `dimension`.")
+  }
+  arg = list()
+  arg$tv = tv
+  arg$dimension = dimension
+  arg$initial_weights = initial_weights
+  structure(arg, class = "RBFArg")
+}
+
+
+## construct objects to pass to the traj argument of mp_tmb_calibrator
+
+#' Trajectory Specification
+#' 
+#' Specify a set of trajectories to fit. The output of this function
+#' is intended to be passed to the `traj` argument of
+#' \code{\link{mp_tmb_calibrator}}.
+#' 
+#' @param likelihood List of likelihood components. The names of the list
+#' identify the trajectory associated with each likelihood component.
+#' @param condensation List of condensation methods. The names of the list
+#' identify the trajectories produced by each condensation method.
+#' @export
+mp_traj = function(
+      likelihood = list()
+    , condensation = list()
+  ) {
+  arg = list()
+  arg$likelihood = likelihood
+  arg$condensation = condensation
+  structure(arg, class = "TrajArg")
+}

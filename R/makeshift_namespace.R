@@ -23,5 +23,3 @@ map_names = function(
   }
   relist(local_fixed_names, local_names)
 }
-
-

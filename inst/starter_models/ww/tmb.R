@@ -53,7 +53,7 @@ flows = list(
   , mp_per_capita_flow("Im", "R", Im.R ~ gamma_m)
   , mp_per_capita_flow("Ip", "Is", Ip.Is ~ (1 - mu) * gamma_p)
   , mp_per_capita_flow("Is", "ICUs", Is.ICUs ~ (1 - nonhosp_mort) * (1 - phi1) * (1 - phi2) * gamma_s)
-  , mp_per_capita_flow("Is", "ICDd", Is.ICUd ~ (1 - nonhosp_mort) * (1 - phi1) * phi2 * gamma_s)
+  , mp_per_capita_flow("Is", "ICUd", Is.ICUd ~ (1 - nonhosp_mort) * (1 - phi1) * phi2 * gamma_s)
   , mp_per_capita_flow("ICUs", "H2", ICUs.H2 ~ psi1)
   , mp_per_capita_flow("H2", "R", H2.R ~ psi3)
   , mp_per_capita_flow("Is", "H", Is.H ~ (1 - nonhosp_mort) * phi1 * gamma_s)

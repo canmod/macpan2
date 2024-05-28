@@ -513,39 +513,43 @@ HazardUpdateMethod = function(change_model) {
 
 # Change Components
 
+handle_rate_args = function(rate, abs_rate = NULL) {
+  if (!is_two_sided(rate)) {
+    if (is_one_sided(rate)) rate = rhs_char(rate)
+    rate = two_sided(abs_rate, rate)
+  }
+  return(rate)
+}
+
 #' Per-Capita Flow (Experimental)
 #' 
 #' @param from String giving the name of the compartment from which the flow
 #' originates.
 #' @param to String giving the name of the compartment to which the flow is
 #' going.
-#' @param rate A two-sided formula with the left-hand-side giving the name of
-#' the absolute flow rate per unit time-step and the right-hand-side giving 
-#' an expression for the per-capita rate of flow from `from` to `to`.
+#' @param rate String giving the expression for the per-capita flow rate.
+#' Alternatively, for back compatibility, a two-sided formula with the
+#' left-hand-side giving the name of the absolute flow rate per unit time-step 
+#' and the right-hand-side giving an expression for the per-capita rate of 
+#' flow from `from` to `to`.
+#' @param abs_rate String giving the name for the absolute flow rate,
+#' which will be computed as `from * rate`. If a formula is passed to
+#' `rate` (not recommended), then this `abs_rate_name` argument will be ignored.
 #' 
 #' @export
-mp_per_capita_flow = function(from, to, rate) {
+mp_per_capita_flow = function(from, to, rate, abs_rate = NULL) {
   call_string = deparse(match.call())
+  rate = handle_rate_args(rate, abs_rate)
   PerCapitaFlow(from, to, rate, call_string)
 }
 
 #' @describeIn mp_per_capita_flow Only flow into the `to` compartment, and
 #' do not flow out of the `from` compartment.
 #' @export
-mp_per_capita_inflow = function(from, to, rate) {
+mp_per_capita_inflow = function(from, to, rate, abs_rate = NULL) {
   call_string = deparse(match.call())
+  rate = handle_rate_args(rate, abs_rate)
   PerCapitaInflow(from, to, rate, call_string)
-}
-
-PerCapitaInflow = function(from, to, rate, call_string) {
-  self = PerCapitaFlow(from, to, rate, call_string)
-  self$change_frame = function() {
-    data.frame(
-        state = self$to
-      , change = sprintf("%s%s", "+", lhs_char(self$rate))
-    )
-  }
-  return_object(self, "PerCapitaInflow")
 }
 
 PerCapitaFlow = function(from, to, rate, call_string) {
@@ -571,6 +575,17 @@ PerCapitaFlow = function(from, to, rate, call_string) {
   return_object(self, "PerCapitaFlow")
 }
 
+PerCapitaInflow = function(from, to, rate, call_string) {
+  self = PerCapitaFlow(from, to, rate, call_string)
+  self$change_frame = function() {
+    data.frame(
+        state = self$to
+      , change = sprintf("%s%s", "+", lhs_char(self$rate))
+    )
+  }
+  return_object(self, "PerCapitaInflow")
+}
+
 
 ##' Formula
 ##' 
@@ -586,6 +601,38 @@ Formula = function(formula) {
   return_object(self, "Formula")
 }
 
+GammaConvolution = function(variable, length, height, mean, cv) {
+  self = ChangeComponent()
+  self$variable = variable
+  self$height = height
+  self$length = length
+  self$mean = mean
+  self$cv = cv
+  
+  length = 4 # length of kernel
+  n = 6  # number of time steps
+  c_delay_cv = 0.25
+  c_delay_mean = 11
+  c_prop = 0.1
+  gamma_shape = 1 / (c_delay_cv^2)
+  gamma_scale = c_delay_mean * c_delay_cv^2
+  gamma = pgamma(1:(length + 1), gamma_shape, scale = gamma_scale)
+  delta = gamma[2:(length + 1)] - gamma[1:(length)]
+  kappa = c_prop * delta / sum(delta)
+  expr2 = list(
+      X ~ X + X/2
+    , gamma ~ pgamma(1:(length+1), gamma_shape, gamma_scale)
+    , delta ~ gamma[1:length] - gamma[0:(length-1)]
+    , kappa ~ c_prop * delta / sum(delta)
+    , Y ~ convolution(X, kappa)
+  )
+  
+  self$user_formulas = function() {
+    xxx
+  }
+  return_object(self, "GammaConvolution")
+}
+
 
 #' @noRd
 to_change_component = function(x) UseMethod("to_change_component")
@@ -597,16 +644,25 @@ to_change_component.ChangeComponent = function(x) x
 to_change_component.formula = function(x) Formula(x)
 
 
-#' Reduce Model
+#' Expand Model
 #' 
-#' Reduce a model by removing any model structure 
-#' (e.g. \code{\link{mp_per_capita_flow}}), so that expression lists
-#' are plain R formulas.
+#' Expand a structured model so that it is represented in an unstructured
+#' format requiring a more verbose description. Currently,
+#' this is only applicable for \code{\link{mp_tmb_model_spec}} objects
+#' that have explicit flows  
+#' (e.g. \code{\link{mp_per_capita_flow}}). For such models, `mp_expand`
+#' produces a model with expression lists composed entirely of plain R
+#' formulas.
 #' 
 #' @param model A model object.
 #'
+#' @examples
+#' sir = mp_tmb_library("starter_models", "sir", package = "macpan2")
+#' print(sir)
+#' print(mp_expand(sir))
+#' 
 #' @export
-mp_reduce = function(model) UseMethod("mp_reduce")
+mp_expand = function(model) UseMethod("mp_expand")
 
 #' @export
-mp_reduce.TMBModelSpec = function(model) model$expand()
+mp_expand.TMBModelSpec = function(model) model$expand()
