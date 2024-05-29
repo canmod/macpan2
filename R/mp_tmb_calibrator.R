@@ -227,14 +227,14 @@ mp_optimize.TMBSimulator = function(model
     , ...
   ) {
   optimizer = match.arg(optimizer)
-  optimizer_results = model$optimize[[optimizer]]()
+  optimizer_results = model$optimize[[optimizer]](...)
   return(optimizer_results)
 } 
 
 #' @describeIn mp_optimize Optimize a TMB calibrator.
 #' @export
-mp_optimize.TMBCalibrator = function(model, optimizer, ...) {
-  optimizer_results = mp_optimize(model$simulator)
+mp_optimize.TMBCalibrator = function(model, optimizer = c("nlminb", "optim"), ...) {
+  optimizer_results = mp_optimize(model$simulator, optimizer, ...)
   
   old_defaults = mp_default(model$new_spec) |> frame_to_mat_list()
   new_defaults = (model$simulator
@@ -427,6 +427,7 @@ TMBTV.character = function(
   ## assumes tv is a character vector
   ## of names identifying matrices
   ## that give piece-wise time variation
+  self$tv_par = tv
   self$tv_list = struc$matrix_list[tv]
   for (p in names(self$tv_list)) {
     self$tv_list[[p]] = rename_synonyms(self$tv_list[[p]]
@@ -505,6 +506,21 @@ TMBTV.character = function(
       , nms$change_pointer
     )
     mapply(two_sided, lhs, rhs, SIMPLIFY = FALSE)
+  }
+  
+  self$check_assumptions = function(orig_spec, data_struc) {
+    bad_pars = !self$tv_par %in% unique(names(data_struc$matrix_list))
+    if (any(bad_pars)) {
+      sprintf("%s (including %s) %s:\n     %s\n%s %s"
+        , "Requested piece-wise time-varying parameters"
+        , paste0(self$tv_par[bad_pars], collapse = ", ")
+        , "are not available in the data, which includes the following"
+        , paste(unique(names(data_struc$matrix_list)), collapse = ", ")
+        , "Piece-wise time-varying parameters must appear in the data"
+        , "in order to identify what time-steps are change-points."
+      ) |> stop()
+    }
+    NULL
   }
   
   return_object(self, "TMBTV")
@@ -888,7 +904,7 @@ TMBPar = function(
         , paste0(pnms[bad_pars], collapse = ", ")
         , "are either not available in the model spec, which includes the following"
         , paste(spec_mats, collapse = ", ")
-        , "or cannot be fit because they are not default model parameters. See "
+        , "\nor cannot be fit because they are not default model parameters. See "
         , "mp_default(spec) for all default model parameters."
       ) |> stop()
     }

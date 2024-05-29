@@ -112,6 +112,12 @@ TMBModelSpec = function(
       , self$state_update
     )
   }
+  self$name_map = function(local_names) {
+    macpan2:::map_names(
+        self$all_formula_vars()
+      , setNames(as.list(local_names), local_names)
+    )
+  }
   self$tmb_model = function(
         time_steps = 0
       , outputs = character()

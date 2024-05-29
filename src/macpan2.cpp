@@ -112,6 +112,8 @@ enum macpan2_func
     , MP2_EULER_MULTINOM_SIM = 48 // fwrap,fail: reulermultinom(size, rate, delta_t)
     , MP2_ROUND = 49 // fwrap,null: round(x)
     , MP2_PGAMMA = 50 // fwrap,fail: pgamma(q, shape, scale)
+    , MP2_MEAN = 51 // fwrap,null: mean(x)
+    , MP2_SD = 52 // fwrap,null: sd(x)
 };
 
 enum macpan2_meth
@@ -126,7 +128,7 @@ enum macpan2_meth
     , METH_ROWS_TIMES_ROWS = 8 // ~ A[i] * X[j], c("A", "X"), c("i", "j")
 };
 
-std::vector<int> mp_math = {
+std::vector<int> mp_math = { // functions that can only take numerical matrices -- no integer vectors
     MP2_ADD, MP2_SUBTRACT, MP2_MULTIPLY, MP2_DIVIDE, MP2_POWER, MP2_EXP, MP2_LOG
   , MP2_MATRIX, MP2_MATRIX_MULTIPLY
   , MP2_SUM, MP2_ROWSUMS, MP2_COLSUMS, MP2_TRANSPOSE
@@ -135,6 +137,7 @@ std::vector<int> mp_math = {
   , MP2_POISSON_SIM, MP2_NEGBIN_SIM, MP2_NORMAL_SIM, MP2_KRONECKER
   , MP2_TO_DIAG, MP2_FROM_DIAG, MP2_COS, MP2_BINOM_SIM, MP2_EULER_MULTINOM_SIM
   , MP2_ROUND, MP2_PGAMMA
+  , MP2_MEAN, MP2_SD
 };
 
 std::vector<int> mp_bin_op = {
@@ -227,6 +230,7 @@ Type mp2_round(const Type &x) {
     return Type(CppAD::Integer(y));
 }
 MATRICIZE_1(mp2_round)
+
 
 template <class Type>
 matrix<Type> mp2_rep(const matrix<Type> &x, const int &times) {
@@ -1805,10 +1809,9 @@ public:
             // #'
             // #' ### Return
             // #'
-            // #' * A matrix containing sums of various groups of
-            // #' the elements of `x`.
+            // #' * A matrix containing sums of subsets of the inputs.
             // #'
-            case MP2_SUM: // sum(x)
+            case MP2_SUM: // sum(...)
                 m = matrix<Type>::Zero(1, 1);
                 sum = 0.0;
                 for (int i = 0; i < n; i++)
@@ -1855,6 +1858,27 @@ public:
                 for (int i = 0; i < m.rows(); i++) {
                     m1.coeffRef(v1[i], 0) += m.coeff(i, 0);
                 }
+                return m1;
+            
+            case MP2_MEAN: // mean(x)
+                if (n != 1) {
+                    SetError(MP2_MEAN, "The mean function can only take a single matrix.", row, MP2_MEAN, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
+                    return m;
+                }
+                m = matrix<Type>::Zero(1, 1);
+                sum = args.get_as_mat(0).mean();
+                m.coeffRef(0, 0) = sum;
+                return m;
+            
+            case MP2_SD: // sd(x)
+                if (n != 1) {
+                    SetError(MP2_SD, "The sd function can only take a single matrix.", row, MP2_SD, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
+                    return m;
+                }
+                m = args.get_as_mat(0);
+                m1 = matrix<Type>::Zero(1, 1);
+                sum = sqrt(((m.array() - m.mean()).square().sum() / (m.size() - 1)));
+                m1.coeffRef(0, 0) = sum;
                 return m1;
 
             // #' ### Examples

@@ -7,7 +7,7 @@
 \usage{
 mp_optimize(model, optimizer, ...)
 
-\method{mp_optimize}{TMBCalibrator}(model, optimizer, ...)
+\method{mp_optimize}{TMBCalibrator}(model, optimizer = c("nlminb", "optim"), ...)
 }
 \arguments{
 \item{model}{A model object capable of being optimized. See below
