@@ -65,6 +65,7 @@ mobility_breaks = (formatted_tsdata
                    |> unique()
                    |> pull(time)
 )
+
 # remove synonym (can't have both 'date' and 'time')
 formatted_tsdata = formatted_tsdata |> select(-c(date))
 
@@ -108,6 +109,11 @@ relative_beta_values = X %*% log_mobility_coefficients
 # experimented with different scaling (using Jan-13 2020 as baseline), and 
 # moving average alignment (ex. center, right) but not able to reproduce figure
 # is it possible google/apple data has been updated since ?
+#
+# Determined source of differences: manuscript uses google data at both the 
+# province level and subregion level 
+# (filter(country_region == "Canada", sub_region_1 == "Ontario")), and I used 
+# only the province level data (filter(iso_3166_2_code == "CA-ON")).
 (ggplot(mobility_dat %>% filter(date < "2020-10-01"))
   + geom_line(aes(date,mobility_ind))
   + geom_hline(yintercept = 1, lty=2)
@@ -135,7 +141,6 @@ initial_state_prop = 0.01
 E0 = 1e-5
 S0 = 1-E0
 
-
 ## -------------------------
 ## model spec (base model)
 ## -------------------------
@@ -153,7 +158,7 @@ focal_model = (spec
        zeta ~ exp(log_zeta)
      , beta0 ~ exp(log_beta0)
      , nonhosp_mort ~ 1/(1+exp((-logit_nonhosp_mort)))
-     # , E ~ exp(log_E)
+     , E ~ exp(log_E)
      # , Ia ~ exp(log_Ia)
      # , Ip ~ exp(log_Ip)
      # , Im ~ exp(log_Im)
@@ -163,7 +168,7 @@ focal_model = (spec
       log_zeta = log(1e-2)
     , log_beta0 = log(1e-2)
     , logit_nonhosp_mort = log(0.1/(1-0.1))
-    # , log_E = log(1)
+    , log_E = log(1)
     # , log_Ia = log(1)
     # , log_Ip = log(1)
     # , log_Im = log(1)
@@ -209,7 +214,8 @@ focal_model = (spec
     #, expressions = list(incidence ~ S.E)
     , expressions = list(incidence ~ S * ((S/N)^zeta) * (beta / N) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s)))
     #, expressions = list(foi ~ S.E / S)
-    , default = list(incidence = 0)
+    #, default = list(incidence = 0)
+    #, must_save = "incidence"
   )
   
   # compute gamma-density delay kernel for convolution:
@@ -223,15 +229,17 @@ focal_model = (spec
       , kappa ~ c_prop * delta / sum(delta)
     )
     , default = list(qmax = 34)
+    #, must_save = "kappa"
   )
   
-  # add convolution to compute case reports:
-  |> mp_tmb_insert(phase = "during"
+  # # add convolution to compute case reports:
+   |> mp_tmb_insert(phase = "during"
     , at = Inf
     , expressions = list(report ~ convolution(incidence, kappa))
     , default = list(report = 0)
   )
-   ##|> mp_tmb_insert(phase = "after"
+ 
+  ##|> mp_tmb_insert(phase = "after"
     # , at = 1L
     # remove beginning time steps depending on kernel length
     # , expressions = list(report ~ rbind_time(report, i))
@@ -257,6 +265,7 @@ focal_model = (spec
   )
 )
 
+
 ## simplified focal model with only phenomenological heterogeneity
 ph_model = (spec
   # add variable transformations:
@@ -266,7 +275,7 @@ ph_model = (spec
                        zeta ~ exp(log_zeta)
                      , beta0 ~ exp(log_beta0)
                      , nonhosp_mort ~ 1/(1+exp((-logit_nonhosp_mort)))
-                     #, E ~ exp(log_E)
+                     , E ~ exp(log_E)
                      # , Ia ~ exp(log_Ia)
                      # , Ip ~ exp(log_Ip)
                      # , Im ~ exp(log_Im)
@@ -277,7 +286,7 @@ ph_model = (spec
                        log_zeta = log(1e-2)
                      , log_beta0 = log(1e-2)
                      , logit_nonhosp_mort = log((1e-2)/(1-(1e-2)))
-                     #, log_E = log(1)
+                     , log_E = log(1)
                      # , log_Ia = log(1)
                      # , log_Ip = log(1)
                      # , log_Im = log(1)
@@ -316,7 +325,7 @@ ph_model = (spec
 (focal_model
   %>% mp_simulator(time_steps = time_steps, outputs = c("incidence","report")
                    , default = list(S = N_focal
-                                    , E = 1e3
+                                    , log_E = log(1e5)
                                     , Ia = 1e6)
                    )
   %>% mp_trajectory()
@@ -612,9 +621,9 @@ exp_growth_model = (
 # gamma density kernel
 gamma_shape = 1 / (mp_default_list(focal_model)$c_delay_cv^2)
 gamma_scale = mp_default_list(focal_model)$c_delay_mean * (mp_default_list(focal_model)$c_delay_cv^2)
-qmax = ceiling(qgamma(0.95, gamma_shape, gamma_scale))
+qmax = ceiling(qgamma(0.95, gamma_shape, scale = gamma_scale))
 q = 1:qmax
-delta = pgamma(q+1,gamma_shape, gamma_scale)-pgamma(q,gamma_shape, gamma_scale)
+delta = pgamma(q+1,gamma_shape, scale = gamma_scale)-pgamma(q,gamma_shape, scale = gamma_scale)
 delay_kernel = mp_default_list(focal_model)$c_prop * delta / sum(delta)
 plot(delay_kernel)
 
@@ -664,6 +673,237 @@ lines(1:length(sim_reports),manual_reports)
 # manual convolution to the focal model without too much effort to test if this 
 # helps calibration.
 
+# Update: macpan2::convolution() appears correct, the differences observed 
+# above were from argument order differences in the R qgamma/pgamma function and
+# the TMB qgamma/pgamma function. You must specify `scale = ` when using the R
+# function, otherwise the third argument will be interpreted as the `rate`.
+
+## -------------------------
+## first reports
+## -------------------------
+
+# assume we know reporting delay (does this apply to deaths as well?)
+# start simulation (or calibration?) at start date minus reporting delay
+
+# update observed data to have zeros or NAs before "start date"
+# for now assuming qmax is reporting delay
+# assume only doing for reports
+pre_data_report = data.frame(province = rep("ON",qmax), matrix = rep("report",qmax)
+                      , value = rep(0,qmax), time = 1:qmax)
+pre_data_death = data.frame(province = rep("ON",23+qmax), matrix = rep("death",23+qmax)
+                    , value = ceiling(runif(23+qmax)*4), time = 1:(23+qmax))
+formatted_tsdata_pre = rbind(
+  #  pre_data_report
+  #, pre_data_death
+   formatted_tsdata %>% mutate(time = time + qmax)
+) %>% arrange(time,matrix)
+  
+# deaths and reports start at same start and end_points
+# formatted_tsdata_pre = (
+#  formatted_tsdata[-c(1:23),]
+# )
+
+# first test - align deaths and reports (no padding) 
+# add 1:23 deaths at 0
+# pre_data = data.frame(province = rep("ON",23), matrix = rep("death",23)
+#                       , value = rep(0,23), time = 1:23)
+# formatted_tsdata_pre = rbind(
+#   #pre_data
+#     formatted_tsdata
+#   , data.frame(province = "ON",matrix="death",value=0,time=178)
+# ) %>% arrange(time,matrix)
+
+focal_calib = mp_tmb_calibrator(
+    spec = focal_model |> mp_rk4()
+  , data = formatted_tsdata_pre #|> filter(matrix == "report")
+  , traj = c("report","death")
+  #, traj = "report"
+  , par = c("log_zeta"
+            ,"log_beta0"
+            ,"logit_nonhosp_mort"
+            ,"log_mobility_coefficients"
+            ,"log_E"
+  )
+  , outputs = c("death","report")
+  , default = list(
+    #  S = N_focal * (1 - initial_state_prop)
+    
+    
+    ## ontario_calibrate_comb ---
+    
+    # set intial parameter values for optimizer
+    S = 14.57e6 - 5
+    # , log_E = log(5)
+    # , log_beta0=log(1.320543)
+    # , logit_nonhosp_mort = qlogis(0.3)
+    
+    , log_E = log(1)
+    , log_beta0=log(1e-2)
+    , logit_nonhosp_mort = qlogis(1e-2)
+    , log_mobility_coefficients = rep(log(1),5)
+    , log_zeta = log(1)
+    
+    #, log_mobility_coefficients = c(0.751, -0.786, 0.175, -0.469, -1.496)
+    ## ----
+    
+    , R = 0
+    , D = 0
+    
+    
+  )
+)
+mp_optimize(focal_calib)
+
+# get fitted data
+fitted_data = mp_trajectory_sd(focal_calib, conf.int = TRUE)
+
+# check estimate
+mp_tmb_coef(focal_calib, conf.int = TRUE) |> backtrans()
+
+(ggplot(formatted_tsdata_pre, aes(time,value))
+  + geom_point()
+  + geom_line(aes(time, value)
+              , data = fitted_data |> filter(matrix %in% c("death","report"))
+              , colour = "red"
+  )
+  + geom_ribbon(aes(time, ymin = conf.low, ymax = conf.high)
+                , data = fitted_data |> filter(matrix %in% c("death","report"))
+                , alpha = 0.2
+                , colour = "red"
+  )
+  + facet_wrap(vars(matrix),scales = 'free')
+  + theme_bw()
+)
+
+## -------------------------
+## first exposure
+## -------------------------
+
+# set E=1, guess date of start of epidemic
+
+# lets assume epidemic starts on first date of mobility data - Jan 16
+# need to update observed data so time steps reflect this knowledge
+mobility_pre =  (mobility_dat
+   |> filter(date < "2020-08-31")
+   |> mutate(log_mobility_ind = log(mobility_ind))
+   |> arrange(date)
+   |> group_by(date)
+   |> mutate(time = cur_group_id())
+   |> ungroup()
+)
+
+mobility_breaks = (mobility_pre
+                   |> filter(date %in% c("2020-04-01", "2020-08-07"))
+                   |> select(time,date)
+                   |> unique()
+                   |> pull(time)
+)
+
+X_pre = cbind(
+  mobility_pre$log_mobility_ind
+  , S_j(1:max(mobility_pre$time), mobility_breaks[1], 3)
+  , S_j(1:max(mobility_pre$time), mobility_breaks[1], 3) * mobility_pre$log_mobility_ind
+  , S_j(1:max(mobility_pre$time), mobility_breaks[2], 3)
+  , S_j(1:max(mobility_pre$time), mobility_breaks[2], 3) * mobility_pre$log_mobility_ind
+) %>% as.matrix()
+
+# get starting time step of first observed data pt
+obs_offset = (mobility_pre %>% filter(date=="2020-02-24") %>% select(time) %>% pull())
+
+# update observed data time steps to match
+formatted_tsdata_pre = rbind(
+  formatted_tsdata %>% mutate(time = time + obs_offset - 1)
+) %>% arrange(time,matrix)
+
+
+new_model = mp_tmb_insert(focal_model,phase = "before",at=1L
+                          , expressions = list(c_prop ~ 1/(1+exp((-logit_c_prop)))
+                                               )
+                          ,default = list(logit_c_prop =0)
+)
+
+
+# now try calibration
+focal_calib = mp_tmb_calibrator(
+  spec = new_model |> mp_rk4()
+  , data = formatted_tsdata_pre 
+  , traj = c("report","death") 
+  , par = c(#"log_zeta"
+             "log_beta0"
+            ,"logit_nonhosp_mort"
+            ,"log_mobility_coefficients"
+            , "logit_c_prop"
+            #,"log_E" we don't need to estimate because we know E=1 at time=1
+  )
+  , outputs = c(states,"death","report","incidence","beta")
+  , default = list(
+     
+    # pass updated X matrix
+      X = X_pre
+      
+    # states  
+    , S = 14.57e6 - 1
+    , log_E = log(1)
+    , Ia = 0
+    , Ip = 0
+    , Im = 0
+    , Is = 0
+    , R = 0
+    , H = 0
+    , ICUs = 0
+    , ICUd = 0
+    , H2 = 0
+    , D = 0
+    
+    # set intial parameter values for optimizer
+    , qmax = 21
+    , log_beta0=log(0.1)
+    , logit_nonhosp_mort = qlogis(0.1)
+    , log_mobility_coefficients = rep(log(1.1),5)
+    , log_zeta = 0
+    #, log_mobility_coefficients = c(0.751, -0.786, 0.175, -0.469, -1.496)
+    ## ----
+    
+    #, c_prop = .6
+    , logit_c_prop = 0
+
+    
+    
+  )
+)
+
+mp_optimize(focal_calib)
+
+# get fitted data
+fitted_data = mp_trajectory_sd(focal_calib, conf.int = TRUE)
+
+# check estimate
+mp_tmb_coef(focal_calib, conf.int = TRUE) |> backtrans()
+
+(ggplot(formatted_tsdata_pre, aes(time,value))
+  + geom_point()
+  + geom_line(aes(time, value)
+              , data = fitted_data |> filter(matrix %in% c("death","report"))
+              , colour = "red"
+  )
+  + geom_ribbon(aes(time, ymin = conf.low, ymax = conf.high)
+                , data = fitted_data |> filter(matrix %in% c("death","report"))
+                , alpha = 0.2
+                , colour = "red"
+  )
+  + facet_wrap(vars(matrix),scales = 'free')
+  + theme_bw()
+)
+
+ggplot(fitted_data %>% filter(matrix %in% c("death","report","incidence")), aes(time,value))+
+  geom_point()+
+  facet_wrap(vars(matrix),scales='free')
+
+ggplot(fitted_data %>% filter(matrix %in% c("beta")), aes(time,value))+
+  geom_point()+
+  facet_wrap(vars(matrix),scales='free')
+
+
 ## -------------------------
 ## calibration of focal model (base model)
 ## -------------------------
@@ -676,13 +916,32 @@ focal_calib = mp_tmb_calibrator(
             ,"log_beta0"
             ,"logit_nonhosp_mort"
             ,"log_mobility_coefficients"
-            ,"E"
+            ,"log_E"
             )
   , outputs = c("death","report")
   , default = list(
-      S = N_focal * (1 - initial_state_prop)
+    #  S = N_focal * (1 - initial_state_prop)
+
+    
+    ## ontario_calibrate_comb ---
+    
+    # set intial parameter values for optimizer
+      S = 14.57e6 - 5
+    # , log_E = log(5)
+    # , log_beta0=log(1.320543)
+    # , logit_nonhosp_mort = qlogis(0.3)
+    , log_E = log(1)
+    , log_beta0=log(1e-2)
+    , logit_nonhosp_mort = qlogis(1e-2)
+    , log_mobility_coefficients = rep(0,5)
+    , log_zeta = 1
+    #, log_mobility_coefficients = c(0.751, -0.786, 0.175, -0.469, -1.496)
+    ## ----
+    
     , R = 0
     , D = 0
+    
+
   )
 )
 mp_optimize(focal_calib)
@@ -884,7 +1143,7 @@ ggplot(formatted_tsdata)+
 # can I use focal_tmb$report? maybe not because internal objective function is not the one we want
 
 
-
+# older junk - first attempt at model composition
 # ------------------------------------------------------------------------
 # objective function of composed model (focal model with initial state vector
 # from exp_growth_model)
