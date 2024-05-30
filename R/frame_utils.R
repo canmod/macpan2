@@ -150,9 +150,21 @@ frame_to_mat_list = function(x) {
     cnms = unique(z$col)
     nr = length(rnms)
     nc = length(cnms)
+    nv = length(z$value)
     fix_nms = function(nms) {
       if (any(grepl("^[0-9]", nms))) return(NULL)
       nms
+    }
+    if (nr * nc != nv) {
+      if (nr == 1L) {
+        nr = nv / nc
+        rnms = rep(rnms, nr)
+      }
+      if (nc == 1L) {
+        nc = nv / nr
+        rnms = rep(cnms, nc)
+      }
+      if (nr * nc != nv) stop("cannot find a shape for this matrix")
     }
     if (nc == 1L) {
       if (nr == 1L) { ## scalar

@@ -13,6 +13,7 @@
 #'
 #' @export
 simple_sims = function(iteration_exprs, time_steps, int_vecs = list(), mats = list()) {
+  
   mat_names = names(mats)
 
   TMBModel(

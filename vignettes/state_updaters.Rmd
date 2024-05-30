@@ -122,7 +122,7 @@ print(siv)
 It is instructive to view these state update methods as approximate solutions to ordinary differential equations (ODEs). We consider ODEs of the following form.
 
 $$
-\frac{dx_i}{dt} = \sum_j x_j r_{ji} - \sum_i x_i r_{ij}
+\frac{dx_i}{dt} = \underbrace{\sum_j x_j r_{ji}}_{\text{inflow}} - \underbrace{\sum_j x_i r_{ij}}_{\text{outflow}}
 $$
 Where the per-capita rate of flowing from compartment $i$ to compartment $j$ is $r_{ij}$, and $x_i$ is the number of individuals in the $i$th compartment. We allow each $r_{ij}$ to depend on any number of state variables and time-varying parameters. For example, for an SIR model we have  $x_S, x_I, x_R$ (for readability we use $S, I, R$). In this case $r_{SI} = \beta I / N$, $r_{IR} = \gamma$, and all other values of $r_{ij}$ are zero. Here the force of infection, $r_{SI}$, depends on a state variable $I$.
 
@@ -224,3 +224,32 @@ $$
 $$
 R = R + Ip_{IR}
 $$
+
+More explicitly for the $I$ compartment this would be.
+$$
+I(t+1) = I(t) - I(t) (1 - \exp(-\gamma)) + S(t)(1 - \exp(-\beta I(t)))
+$$
+
+
+
+### Linearizing at Each Time-Step
+
+Because the $r_{ij}$ could depend on any state variable, the ODE above is generally non-linear. However, we could linearize the model at every time-step and explicitly compute the matrix exponential to find the approximate state update.
+
+
+### Hazard in models including more than unbalanced per-capita flows
+
+The perfectly balanced per-capita flows approach used above does not always work. For example, virus shedding to a wastewater compartment does not involve infected individuals flowing into a wastewater compartment, because people do not become wastewater obviously. In such models we need to think more clearly about how to use the Hazard approximation.
+
+For such cases we can modify the differential equation to include an arbitrary number of absolute inflows and outflows.
+
+$$
+\frac{dx_i}{dt} = 
+    \underbrace{\sum_j x_j r_{ji}}_{\text{inflow}} 
+  - \underbrace{\sum_j x_i r_{ij}}_{\text{outflow}}
+  + \underbrace{\sum_k r^+_{ik}}_{\text{absolute inflow}}
+  - \underbrace{\sum_l r^-_{il}}_{\text{absolute outflow}}
+$$
+
+Where $r^+_{ik}$ is the absolute rate at which $x_i$ increases due to mechanism $k$ and $r^-_{il}$ is the absolute rate at which $x_i$ decreases due to mechanism $l$.
+

@@ -614,8 +614,8 @@ TMBSimulationUtils = function() {
         self$tmb_model$log_file$err_msg(),
         "\nThis error occurred at the following expression:\n  ",
         self$.find_problematic_expression(r$expr_row),
-        "\nThis error occurred in the following function:\n  ",
-        unname(valid_funcs[[r$func_int]]),
+        "\nThis error occurred at time-step ", r$time_int, 
+        " in the following function:\n  ", unname(valid_funcs[[r$func_int]]),
         "\nThis function call got ", length(r$arg_rows), " arguments, ",
         "each of which is described by the rows of the following table:\n\n",
         arg_report

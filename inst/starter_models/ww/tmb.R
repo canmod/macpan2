@@ -43,6 +43,46 @@ state_updates = list(
   , A ~ A + W.A
 )
 
+foi = S.E ~ (beta0 / N) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s))
+flows = list(
+    mp_per_capita_flow("S", "E", foi)
+  , mp_per_capita_flow("E", "Ia", E.Ia ~ alpha * sigma)
+  , mp_per_capita_flow("E", "Ip", E.Ip ~ (1 - alpha)* sigma)
+  , mp_per_capita_flow("Ia", "R", Ia.R ~ gamma_a)
+  , mp_per_capita_flow("Ip", "Im", Ip.Im ~ mu * gamma_p)
+  , mp_per_capita_flow("Im", "R", Im.R ~ gamma_m)
+  , mp_per_capita_flow("Ip", "Is", Ip.Is ~ (1 - mu) * gamma_p)
+  , mp_per_capita_flow("Is", "ICUs", Is.ICUs ~ (1 - nonhosp_mort) * (1 - phi1) * (1 - phi2) * gamma_s)
+  , mp_per_capita_flow("Is", "ICDd", Is.ICUd ~ (1 - nonhosp_mort) * (1 - phi1) * phi2 * gamma_s)
+  , mp_per_capita_flow("ICUs", "H2", ICUs.H2 ~ psi1)
+  , mp_per_capita_flow("H2", "R", H2.R ~ psi3)
+  , mp_per_capita_flow("Is", "H", Is.H ~ (1 - nonhosp_mort) * phi1 * gamma_s)
+  , mp_per_capita_flow("ICUd", "D", ICUd.D ~ psi2)
+  , mp_per_capita_flow("H", "R", H.R ~ rho)
+  , mp_per_capita_inflow("Ia", "W", Ia.W ~ nu)
+  , mp_per_capita_inflow("Ip", "W", Ip.W ~ nu)
+  , mp_per_capita_inflow("Im", "W", Im.W ~ nu)
+  , mp_per_capita_inflow("Is", "W", Is.W ~ nu)
+  , mp_per_capita_flow("W", "A", W.A ~ xi)
+)
+
+# state_updates = list(
+#     S ~ S - S.E
+#   , E ~ E + S.E - E.Ia - E.Ip
+#   , Ia ~ Ia + E.Ia - Ia.R
+#   , Ip ~ Ip + E.Ip - Ip.Im - Ip.Is
+#   , Im ~ Im + Ip.Im - Im.R
+#   , Is ~ Is + Ip.Is - Is.ICUs - Is.H - Is.ICUd
+#   , H ~ H + Is.H - H.R
+#   , ICUs ~ ICUs + Is.ICUs - ICUs.H2
+#   , ICUd ~ ICUd + Is.ICUd - ICUd.D
+#   , H2 ~ H2 + ICUs.H2 - H2.R
+#   , R ~ R + Ia.R + Im.R + H.R + H2.R
+#   , D ~ D + ICUd.D
+#   , W ~ W + Ia.W + Ip.W + Im.W + Is.W - W.A
+#   , A ~ A + W.A
+# )
+
 # set defaults
 default = list(
     beta0        = 1        # Baseline (non-intervention) transmission across categories
@@ -93,8 +133,16 @@ default = list(
 )
 
 ## model spec
-spec =  mp_tmb_model_spec(
-    before = computations
-  , during = c(flow_rates, state_updates)
-  , default = default
+specs =  list(
+    explicit = mp_tmb_model_spec(
+        before = computations
+      , during = flows
+      , default = default
+    )
+  , implicit = mp_tmb_model_spec(
+        before = computations
+      , during = c(flow_rates, state_updates)
+      , default = default
+    )
 )
+spec = specs[["implicit"]]

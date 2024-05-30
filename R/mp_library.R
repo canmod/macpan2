@@ -50,10 +50,11 @@ mp_tmb_library = function(..., package = NULL, alternative_specs = FALSE) {
       }
     }
   } else {
-    if (inherits(def_env$specs, "list")) {
-      def_env$spec = def_env$specs[[1L]]
-    }
     if (inherits(def_env$spec, "TMBModelSpec")) {
+      return(def_env$spec)
+    }
+    if (inherits(def_env$specs[[1L]], "TMBModelSpec")) {
+      def_env$spec = def_env$specs[[1L]]
       return(def_env$spec)
     }
   }
