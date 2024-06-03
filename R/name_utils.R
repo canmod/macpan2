@@ -397,6 +397,10 @@ make_names_list = function(obj, meth_nms) {
   l
 }
 
+make_nested_names = function(x) {
+  nms = mapply(sprintf, lapply(x, names), names(x), MoreArgs = list(fmt = "%s_%s"))
+  make.unique(nms, sep = "_")
+}
 
 # @param x vector with names
 # @param ... additional arguments giving unnamed character vectors with 

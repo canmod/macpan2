@@ -11,7 +11,6 @@ test_that("all models in the library can run", {
       , "calibration_example.R"
       , package = "macpan2"
     )
-    if (file.exists(calibration_file)) source(calibration_file, verbose= TRUE)
+    if (file.exists(calibration_file)) source(calibration_file, verbose = TRUE)
   }
 })
-

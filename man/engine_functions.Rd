@@ -52,6 +52,9 @@
 \alias{reulermultinom}
 \alias{round}
 \alias{pgamma}
+\alias{mean}
+\alias{sd}
+\alias{proportions}
 \title{Engine Functions}
 \description{
 Functions currently supported by the C++ TMB engine
@@ -441,8 +444,7 @@ this group and the output at index \code{k+1} is \code{n[k+1]}.
 
 \subsection{Return}{
 \itemize{
-\item A matrix containing sums of various groups of
-the elements of \code{x}.
+\item A matrix containing sums of subsets of the inputs.
 }
 }
 

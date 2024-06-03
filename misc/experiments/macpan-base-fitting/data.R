@@ -58,13 +58,14 @@ mobility_dat = (
      )
   %>% arrange(date)
   # compute 7 day moving average
-  %>% mutate(across(where(is.numeric),~ rollapply(.x, width = list(-(7:1)), mean, fill = NA)))
+  %>% mutate(across(where(is.numeric),~ rollapply(.x, width = 7, mean, fill = NA)))
   # scale to have pre-pandemic value of 1
   %>% mutate(across(where(is.numeric), ~ 1 + (.x/100)))
   # compute average of all mobility values
   %>% group_by(date)
   %>% summarize(mobility_ind = mean(c_across(where(is.numeric)),na.rm = TRUE))
   %>% ungroup()
+  %>% na.omit()
 )
 
 saveRDS(clean_tsdata, "./misc/experiments/macpan-base-fitting/clean_tsdata.RDS")

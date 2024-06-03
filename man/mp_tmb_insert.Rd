@@ -104,7 +104,7 @@ the former shifts the positions of existing expressions to make room
 for the new expressions, whereas the latter overwrites existing expressions
 using the new expressions. The treatment of new \code{default} values and
 \code{integers} is the same. The examples below clarify this difference.
-Note that \code{mp_tmb_delete} does not contain at \code{expressions} argument,
+Note that \code{mp_tmb_delete} does not contain an \code{expressions} argument,
 because it is not necessary to specify new expressions in the case
 of deletion.
 }
