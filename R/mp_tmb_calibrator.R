@@ -783,7 +783,7 @@ TMBTraj.character = function(
         ## this will fail for multiple trajectories? need to move on
         ## to explicit trajectory specifications with likelihood
         ## and condensation specs
-      , neg_bin = mp_neg_bin(disp = self$distr_params[[self$outputs()]])$expr_char(nms$obs, nms$sim, nms$distr_params)
+      , neg_bin = sprintf("-sum(dnbinom(%s, clamp(%s), exp(%s)))", nms$obs, nms$sim, nms$distr_params)
       
       , poisson = mp_poisson()$expr_char(nms$obs, nms$sim)
       , sum_of_squares = sprintf("-sum(dnorm(%s, %s, 1))", nms$obs, nms$sim)
