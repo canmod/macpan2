@@ -826,4 +826,5 @@
 #' @aliases pgamma
 #' @aliases mean
 #' @aliases sd
+#' @aliases proportions
 NULL

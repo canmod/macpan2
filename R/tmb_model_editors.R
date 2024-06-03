@@ -8,7 +8,7 @@
 #' for the new expressions, whereas the latter overwrites existing expressions
 #' using the new expressions. The treatment of new `default` values and 
 #' `integers` is the same. The examples below clarify this difference.
-#' Note that `mp_tmb_delete` does not contain at `expressions` argument,
+#' Note that `mp_tmb_delete` does not contain an `expressions` argument,
 #' because it is not necessary to specify new expressions in the case
 #' of deletion.
 #' 
@@ -83,6 +83,7 @@ mp_tmb_insert = function(model
     , must_not_save = character()
     , sim_exprs = character()
   ) {
+  model = assert_cls(model, "TMBModelSpec", match.call(), "?mp_tmb_model_spec")
   valid$char1$check(phase)
   at = valid$num1$assert(at)
   
@@ -120,6 +121,7 @@ mp_tmb_update = function(model
     , must_not_save = character()
     , sim_exprs = character()
   ) {
+  model = assert_cls(model, "TMBModelSpec", match.call(), "?mp_tmb_model_spec")
   valid$char1$check(phase)
   at = valid$num1$assert(at)
   
@@ -129,7 +131,7 @@ mp_tmb_update = function(model
   model[["default"]][names(default)] = default
   model[["integers"]][names(integers)] = integers
   model$must_save  = unique(c(model$must_save, must_save))
-  model$must_not_save  = unique(c(model$must_not_save, must_not_save))
+  model$must_not_save = unique(c(model$must_not_save, must_not_save))
   model$sim_exprs  = unique(c(model$sim_exprs, sim_exprs))
   
   mp_tmb_model_spec(
@@ -156,6 +158,7 @@ mp_tmb_delete = function(model
     , must_not_save = character()
     , sim_exprs = character()
   ) {
+  model = assert_cls(model, "TMBModelSpec", match.call(), "?mp_tmb_model_spec")
   if (!phase %in% c("before", "during", "after")) {
     stop("The simulation phase must be one of before, during, or after.")
   }
@@ -192,6 +195,7 @@ mp_tmb_insert_reports = function(model
   , mean_delay_name = sprintf("%s_mean_delay", incidence_name)
   , cv_delay_name = sprintf("%s_cv_delay", incidence_name)
 ) {
+  model = assert_cls(model, "TMBModelSpec", match.call(), "?mp_tmb_model_spec")
   local_names = c(dist = "dist", delta = "delta", kernel = "kernel")
   map = model$name_map(local_names)
   default = setNames(

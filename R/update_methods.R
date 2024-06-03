@@ -124,7 +124,7 @@ EulerMultinomialUpdateMethod = function(change_model) {
   
   self$vec = function(expr_list, char_fun) {
     vec = vapply(expr_list, char_fun, character(1L))
-    simple_expr = all(grepl("^[a-zA-Z0-9]+$", vec))
+    simple_expr = all(grepl("^[a-zA-Z0-9.]+$", vec))
     scalar_expr = length(vec) == 1L
     
     if (simple_expr & scalar_expr) return(vec)
@@ -171,10 +171,9 @@ HazardUpdateMethod = function(change_model) {
     flow_list = self$change_model$update_flows()
     components = list()
     for (size_var in names(flow_list)) {
-      components[[size_var]] = sprintf("%s ~ %s * (1 - exp(-sum(%s))) * %s / (sum(%s))"
+      components[[size_var]] = sprintf("%s ~ %s * (1 - exp(-sum(%s))) * proportions(%s, 0, 1e-8)"
         , self$vec(flow_list[[size_var]], lhs_char)
         , size_var
-        , self$vec(flow_list[[size_var]], rhs_char)
         , self$vec(flow_list[[size_var]], rhs_char)
         , self$vec(flow_list[[size_var]], rhs_char)
       )

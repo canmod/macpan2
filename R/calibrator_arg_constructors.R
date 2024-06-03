@@ -1,4 +1,19 @@
+## construct objects to pass to the par argument of mp_tmb_calibrator
+
+mp_par = function(param, random) {
+  arg = list()
+  
+  structure(arg, class = "ParArg")
+}
+
 ## construct objects to pass to the tv argument of mp_tmb_calibrator
+
+#' @param parameters List of time-variation specifications for parameters.
+mp_tv = function(parameters) {
+  arg = list()
+  arg$parameters = parameters
+  structure(arg, class = "TVArg")
+}
 
 #' Fit a Time-Varying Parameter with Radial Basis Functions
 #' 
@@ -29,6 +44,8 @@ mp_rbf = function(tv, dimension, initial_weights, seed = 1L) {
   arg$initial_weights = initial_weights
   structure(arg, class = "RBFArg")
 }
+
+
 
 
 ## construct objects to pass to the traj argument of mp_tmb_calibrator

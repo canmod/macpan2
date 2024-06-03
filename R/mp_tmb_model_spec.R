@@ -9,6 +9,7 @@ TMBModelSpec = function(
     , sim_exprs = character()
     , state_update = c("euler", "rk4", "euler_multinomial", "hazard")
   ) {
+  must_not_save = handle_saving_conflicts(must_save, must_not_save)
   self = Base()
   self$change_model = get_change_model(before, during, after)
   self$state_update = get_state_update_type(match.arg(state_update), self$change_model)
@@ -152,6 +153,19 @@ TMBModelSpec = function(
   }
   self$simulator_cached = memoise(self$simulator_fresh)
   return_object(self, "TMBModelSpec")
+}
+
+handle_saving_conflicts = function(must_save, must_not_save) {
+  ## must_save takes precedence over must_not_save
+  problems = intersect(must_save, must_not_save)
+  if (length(problems) != 0L) {
+    sprintf(
+        "The following matrices were removed from the must_not_save list\nbecause they are also on the must_save list, which takes precedence:\n      %s\n"
+      , paste0(problems, collapse = ", ")
+    ) |> message()
+    must_not_save = setdiff(must_not_save, problems)
+  }
+  return(must_not_save)
 }
 
 mat_options = list(

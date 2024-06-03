@@ -171,7 +171,7 @@ mp_tmb_calibrator = function(spec, data
     , outputs = outputs
     , initialize_ad_fun = FALSE
   )
-  fn = sum_obj_terms(traj$obj_fn_expr_chars(), par$prior_expr_chars())
+  fn = sum_obj_terms(traj$obj_fn_expr_chars(), par$prior_expr_chars(), tv$prior_expr_chars())
   cal_sim$replace$obj_fn(fn)
   cal_sim$replace$params_frame(par$params_frame())
   cal_sim$replace$random_frame(par$random_frame())
@@ -371,6 +371,15 @@ TMBTVAbstract = function() {
   ## are time-varying
   self$var_update_exprs = function() list()
   
+  ## character vector of signed expressions that give components
+  ## of the prior distribution on the negative log scale. these
+  ## components will be combined with the components of the 
+  ## likelihood and space-pasted together and converted into 
+  ## the objective function expression. the 'signed' part means
+  ## that - or + must appear before every term because these 
+  ## expressions are going to be space-pasted.
+  self$prior_expr_chars = function() character()
+  
   ## data frames describing the fixed and random effects corresponding
   ## to time-varying parameters
   self$tv_params_frame = function(tv_pars) self$empty_params_frame
@@ -526,6 +535,44 @@ TMBTV.character = function(
   return_object(self, "TMBTV")
 }
 
+TMBTV.TVArg = function(
+      tv
+    , struc
+    , spec
+    , existing_global_names = character()
+) {
+  self = TMBTVAbstract()
+  self$existing_global_names = existing_global_names
+  self$spec = spec
+  self$type = function() "list"
+  
+  self$before_loop = function() list()
+  self$after_loop = function() list()
+  
+  ## List with the values of each 
+  ## time varying parameter at the change points. The 
+  ## names of the list are the time-varying matrices
+  ## in the spec.
+  self$time_var = function() list()
+  
+  ## List of the integers 
+  ## giving the time-steps of the changepoints with
+  ## the first time-step always being 0 (the initial)
+  ## The names of the list are the time-varying 
+  ## matrices in the spec.
+  self$change_points = function() list()
+  
+  ## List of expressions that update parameters that
+  ## are time-varying
+  self$var_update_exprs = function() list()
+  
+  ## data frames describing the fixed and random effects corresponding
+  ## to time-varying parameters
+  self$tv_params_frame = function(tv_pars) self$empty_params_frame
+  self$tv_random_frame = function() self$empty_params_frame
+  
+  return_object(self, "TMBTV")
+}
 
 TMBTV.RBFArg = function(
       tv
@@ -543,6 +590,8 @@ TMBTV.RBFArg = function(
   self$initial_weights = tv$initial_weights
   self$dimension = tv$dimension
   self$par_name = tv$tv
+  
+  ## FIXME: an alternative version is defined below!
   self$local_names = function() {
     list(
         outputs = sprintf("rbf_outputs_%s", self$par_name)
@@ -552,6 +601,7 @@ TMBTV.RBFArg = function(
       , cols = sprintf("rbf_cols_%s", self$par_name)
     )
   }
+  
   self$time_var = function() {
     setNames(list(self$initial_weights), self$par_name)
   }
@@ -584,6 +634,22 @@ TMBTV.RBFArg = function(
       , c("time_var", "values_var", "outputs_var", "row_indexes", "col_indexes")
     )
   }
+  
+  ## character vector of signed expressions that give components
+  ## of the prior distribution on the negative log scale. these
+  ## components will be combined with the components of the 
+  ## likelihood and space-pasted together and converted into 
+  ## the objective function expression. the 'signed' part means
+  ## that - or + must appear before every term because these 
+  ## expressions are going to be space-pasted.
+  self$prior_expr_chars = function() {
+    nms = self$global_names()
+    sprintf(
+        "-sum(dnorm(%s, 0, 1))"
+      , nms$values_var
+    )
+  }
+  
   ## data frames describing the fixed and random effects corresponding
   ## to time-varying parameters
   # self$tv_params_frame = function(tv_par_mat_nms) {
@@ -777,6 +843,16 @@ TMBTraj.character = function(
   }
   
   return_object(self, "TMBTraj")
+}
+
+TMBTraj.list = function(traj
+    , struc
+    , existing_global_names = character()) {
+  TMBTraj(
+      mp_traj(likelihood = traj)
+    , struc
+    , existing_global_names
+  )
 }
 
 TMBTraj.TrajArg = function(traj

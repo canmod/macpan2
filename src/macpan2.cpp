@@ -114,6 +114,7 @@ enum macpan2_func
     , MP2_PGAMMA = 50 // fwrap,fail: pgamma(q, shape, scale)
     , MP2_MEAN = 51 // fwrap,null: mean(x)
     , MP2_SD = 52 // fwrap,null: sd(x)
+    , MP2_PROPORTIONS = 53 // fwrap,null: proportions(x)
 };
 
 enum macpan2_meth
@@ -1004,7 +1005,7 @@ public:
         //int ii, jj, kk;
         std::vector<int> timeIndex; // for rbind_time and rbind_lag
         int doing_lag = 0;
-        Type sum, eps, var, by, left_over, remaining_prop, p0; // intermediate scalars
+        Type sum, eps, limit, var, by, left_over, remaining_prop, p0; // intermediate scalars
         Type delta_t; // for reulermultinom
         int rows, cols, lag, rowIndex, colIndex, matIndex, grpIndex, cp, off, size, times;
         int size_in, size_out;
@@ -1322,6 +1323,26 @@ public:
                 #endif
                 return pow(args.get_as_mat(0).array(), args.get_as_mat(1).array()).matrix();
 
+                
+            case MP2_PROPORTIONS: // proportions(x, limit, eps)
+                // x -- matrix to turn into x / sum(x)
+                // limit -- value to return for all elements if sum(x) < eps
+                // eps -- numerical tolerance for the sum to be positive
+                m = args.get_as_mat(0);
+                m1 = matrix<Type>::Zero(1, 1);
+                m1.coeffRef(0, 0) = 1;
+                if (m.size() == 1) return m1;
+                limit = args.get_as_mat(1).coeff(0, 0);
+                eps = args.get_as_mat(2).coeff(0, 0);
+                sum = m.sum();
+                m2 = matrix<Type>::Zero(args.rows(0), args.cols(0));
+                for (int i = 0; i < m2.rows(); i++) {
+                    for (int j = 0; j < m2.cols(); j++) {
+                        m2.coeffRef(i, j) = CppAD::CondExpLt(sum, eps, limit, m.coeff(i, j) / sum);
+                    }
+                }
+                return m2;
+              
             // #' ## Unary Elementwise Math
             // #'
             // #' ### Functions
@@ -2805,7 +2826,7 @@ public:
                 remaining_prop = 1.0;
                 for (int i = 0; i < m1.rows(); i++) {
                     //m1.coeffRef(i, 0) = ((left_over > 0.0) && ((m.coeff(i, 0) / remaining_prop) > 0.0)) ? 1.0 * rbinom(left_over, m.coeff(i, 0) / remaining_prop) : 0.0;
-                    m1.coeffRef(i, 0) = mp2_rbinom(left_over, m.coeff(i, 0) / remaining_prop);
+                    m1.coeffRef(i, 0) = mp2_rbinom(left_over, m.coeff(i, 0) / remaining_prop); // 0/0 could be an issue
                     left_over -= m1.coeff(i, 0);
                     remaining_prop -= m.coeff(i, 0);
                 }
@@ -3315,6 +3336,7 @@ vector<ListOfMatrices<Type>> MakeSimulationHistory(
     vector<ListOfMatrices<Type>> simulation_history(time_steps + 2);
     matrix<Type> empty_matrix;
     for (int i = 0; i < mats_save_hist.size(); i++)
+        //std::cout << "matrix: " << size << std::endl;
         if (mats_save_hist[i] == 0)
             hist_shape_template.m_matrices[i] = empty_matrix;
 

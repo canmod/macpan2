@@ -5,11 +5,34 @@
 ## what if these are hyperparameters with their own priors in a
 ## hierarchical model?
 
-# TODO: mp_clamped_poisson, mp_sum_of_squares
+## this experimental class is an attempt to solve the above problem.
+## we have the concept of a spec with defaults, much like the concept
+## of a model spec. the defaults can then be used when required 
+## (e.g., use the default location for a prior) but doesn't have to
+## when the distribution spec is used for a likelihood. the thing i
+## don't like about this is that the user might expect the default
+## to be more than a default, and assume that the default value gets
+## used no matter what. perhaps it will be better to have a class
+## that can take all of the parameters (e.g. location, scale/dispersion
+## parameters) in one of three forms: 
+##   1. numeric
+##   2. character (interpreted as an expression)
+##   3. class with functions that are chosen for use
+##      depending on context (e.g., as a likelihood 
+##      component, as a prior)
+## the default will be #3
+DistrSpec = function() {
+  self = Base()
+  self$default = list()
+  self$distr_params = \() list()
+  self$prior = \(variable) character()
+  self$likelihood = \(variable) character()
+  return_object(self, "DistrSpec")
+}
 
 #' @export
 mp_poisson = function() {
-  self = Base()
+  self = DistrSpec()
   self$distr_params = \() list()
   self$expr_char = \(x, location) sprintf("-sum(dpois(%s, %s))", x, location)
   return_object(self, "Poisson")
@@ -27,8 +50,10 @@ mp_neg_bin = function(disp) {
   return_object(self, "NegBin")
 }
 
+
+
 #' @export
-mp_normal = function(sd) {
+mp_normal = function(location = NULL, sd = 1) {
   self = Base()
   self$sd = sd
   self$log_sd = \() log(self$sd)
@@ -39,6 +64,14 @@ mp_normal = function(sd) {
   return_object(self, "Normal")
 }
 
+mp_normal_test = function(x, location, log_sd) {
+  self = Base()
+  self$expr_char = \(x, location, log_sd) {
+    sprintf("-sum(dnorm(%s, %s, exp(%s)))", x, location, log_sd)
+  }
+  return_object(self, "NormalTest")
+}
+
 #' @export
 mp_log_normal = function(sd) {
   self = mp_normal(sd)
@@ -47,3 +80,5 @@ mp_log_normal = function(sd) {
   }
   return_object(self, "NogNormal")
 }
+
+# TODO: mp_clamped_poisson, mp_sum_of_squares
