@@ -105,8 +105,9 @@ focal_model = (spec
                
                # add incidence:
                |> mp_tmb_insert(phase = "during"
-                                , at = Inf
-                                , expressions = list(incidence ~ S * ((S/N)^zeta) * (beta / N) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s)))
+                  , at = Inf
+                  , expressions = list(incidence ~ S * ((S/N)^zeta) * (beta / N) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s)))
+                  , must_save = "incidence"
                )
                
                # compute gamma-density delay kernel for convolution:
