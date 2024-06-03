@@ -859,7 +859,7 @@ focal_calib = mp_tmb_calibrator(
     , qmax = 21
     , log_beta0=log(0.1)
     , logit_nonhosp_mort = qlogis(0.1)
-    , log_mobility_coefficients = rep(log(1.1),5)
+    , log_mobility_coefficients = rep(0,5)
     , log_zeta = 0
     #, log_mobility_coefficients = c(0.751, -0.786, 0.175, -0.469, -1.496)
     ## ----
@@ -909,38 +909,45 @@ ggplot(fitted_data %>% filter(matrix %in% c("beta")), aes(time,value))+
 ## -------------------------
 
 focal_calib = mp_tmb_calibrator(
-    spec = focal_model |> mp_rk4()
-  , data = formatted_tsdata 
+    spec = new_model |> mp_rk4()
+  , data = formatted_tsdata_pre
   , traj = c("report","death") 
-  , par = c("log_zeta"
-            ,"log_beta0"
+  , par = c(#"log_zeta"
+            "log_beta0"
             ,"logit_nonhosp_mort"
             ,"log_mobility_coefficients"
-            ,"log_E"
+            #,"log_E"
+            , "logit_c_prop"
             )
   , outputs = c("death","report")
   , default = list(
-    #  S = N_focal * (1 - initial_state_prop)
-
-    
-    ## ontario_calibrate_comb ---
+    # states  
+      S = 14.57e6 - 1
+    , log_E = log(1)
+    , Ia = 0
+    , Ip = 0
+    , Im = 0
+    , Is = 0
+    , R = 0
+    , H = 0
+    , ICUs = 0
+    , ICUd = 0
+    , H2 = 0
+    , D = 0
     
     # set intial parameter values for optimizer
-      S = 14.57e6 - 5
-    # , log_E = log(5)
-    # , log_beta0=log(1.320543)
-    # , logit_nonhosp_mort = qlogis(0.3)
-    , log_E = log(1)
-    , log_beta0=log(1e-2)
-    , logit_nonhosp_mort = qlogis(1e-2)
+    , qmax = 21
+    , log_beta0=log(0.1)
+    , logit_nonhosp_mort = qlogis(0.1)
     , log_mobility_coefficients = rep(0,5)
-    , log_zeta = 1
+    , log_zeta = 0
     #, log_mobility_coefficients = c(0.751, -0.786, 0.175, -0.469, -1.496)
     ## ----
     
-    , R = 0
-    , D = 0
+    #, c_prop = .6
+    , logit_c_prop = 0
     
+    , X = X_pre
 
   )
 )
@@ -952,7 +959,8 @@ fitted_data = mp_trajectory_sd(focal_calib, conf.int = TRUE)
 # check estimate
 mp_tmb_coef(focal_calib, conf.int = TRUE) |> backtrans()
 
-(ggplot(formatted_tsdata, aes(time,value))
+
+(ggplot(formatted_tsdata_pre, aes(time,value))
   + geom_point()
   + geom_line(aes(time, value)
               , data = fitted_data |> filter(matrix %in% c("death","report"))
