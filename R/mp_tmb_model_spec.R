@@ -119,11 +119,21 @@ TMBModelSpec = function(
       , initialize_ad_fun = TRUE
   ) {
     self$check_names()
+    
+    # JF start
+    time_dep_funcs = c("convolution","rbind_lag","rbind_time","cbind_lag","cbind_time")
+    time_args = (c(before,during,after)
+      |> lapply(macpan2:::rhs)
+      |> lapply(make_expr_parser(parser_name = "parser", finalizer = macpan2:::finalizer_char))
+      |> lapply(\(x) x$x[x$i[x$x %in% time_dependent_funcs]+1])
+      |> unlist()
+    )
+    # JF end
     mats = update_default(self$all_matrices(), default)
     mat_args = c(mats, mat_options$from_spec(
         mats
       , outputs
-      , self$must_save
+      , c(self$must_save,time_args)
       , self$must_not_save
     ))
     TMBModel(
