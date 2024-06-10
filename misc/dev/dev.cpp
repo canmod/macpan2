@@ -144,6 +144,20 @@ std::vector<int> mp_bin_op = {
   MP2_ADD, MP2_SUBTRACT, MP2_MULTIPLY, MP2_DIVIDE, MP2_POWER
 };
 
+std::vector<int> mp_hist = { // functions that depend on having a first argument being a matrix with saved history
+    MP2_CBIND_TIME, MP2_CBIND_LAG, MP2_RBIND_TIME, MP2_RBIND_LAG
+  , MP2_CONVOLUTION
+};
+
+std::vector<int> mp_by_index_arg_0 = { // functions that access matrices by index
+    MP2_CBIND_TIME, MP2_CBIND_LAG, MP2_RBIND_TIME, MP2_RBIND_LAG
+  , MP2_CONVOLUTION, MP2_ASSIGN, MP2_UNPACK
+};
+
+std::vector<int> mp_by_index_arg_1 = { // functions that access matrices by index
+    MP2_TIME_VAR
+};
+
 // MACROS
 
 // convert a function that takes a scalar and returns a scalar
@@ -1171,6 +1185,12 @@ public:
                     return m;
                 }
             }
+            if (is_int_in(table_x[row] + 1, mp_by_index_arg_0)) {
+                if (!mats_save_hist[index2mats[0]]) {
+                    SetError(205, "All arguments to functions that act on the simulation history must have a first argument that is a non-empty matrix with saved history", row, table_x[row] + 1, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
+                    return m;
+                }
+            }
             
             // Elementwise Binary Operations (+ - * / ^)
             // Check dimensions compatibility. If needed, 
@@ -2054,10 +2074,10 @@ public:
                     return m;
                 }
                 matIndex = index2mats[0]; // m
-                if (!mats_save_hist[matIndex]) { // && !(timeIndex.size()==1 && timeIndex[0]==t)) {
-                    SetError(MP2_RBIND_TIME, "Can only rbind_time (or rbind_lag) initialized matrices with saved history", row, int_func, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
-                    return m;
-                }
+                // if (!mats_save_hist[matIndex]) { // && !(timeIndex.size()==1 && timeIndex[0]==t)) {
+                //     SetError(MP2_RBIND_TIME, "Can only rbind_time (or rbind_lag) initialized matrices with saved history", row, int_func, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
+                //     return m;
+                // }
 
                 if ((matIndex < 0) | (index2what[0] != 0)) {
                     SetError(MP2_RBIND_TIME, "Can only rbind_time (or rbind_lag) named matrices not expressions of matrices and not integer vectors", row, int_func, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
