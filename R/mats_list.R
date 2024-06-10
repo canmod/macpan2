@@ -113,8 +113,8 @@ MatsList = function(...
   self$.mats = function() unname(self$.initial_mats)
   dimnames_handle_nulls = function(x) {
     if (is.null(dimnames(x))) return(NULL)
-    if (is.null(rownames(x))) rownames(x) = ""
-    if (is.null(colnames(x))) colnames(x) = ""
+    if (is.null(rownames(x))) rownames(x) = rep("", nrow(x))
+    if (is.null(colnames(x))) colnames(x) = rep("", ncol(x))
     dimnames(x)
   }
   not_null = function(x) !is.null(x)
