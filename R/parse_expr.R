@@ -6,7 +6,7 @@ is_name_or_number = function(x) {
 #' Generate an Arithmetic Expression Parser
 #'
 #' @param parser_name Name of the parsing function as a character
-#' string.
+#' string. No longer used, but still present for back-compatibility.
 #' @param finalizer Function used to post-process a parsed formula.
 #' The default is the identity finalizer, which returns the parsed
 #' formula itself.  Other good choices are \code{finalizer_char},
@@ -49,11 +49,13 @@ is_name_or_number = function(x) {
 #'
 #' @export
 make_expr_parser = function(
-    parser_name = 'parse_expr',
+    parser_name = NULL,
     finalizer = force  # the identity finalizer is the default
   ) {
 
-  parser_name = force(parser_name)
+  if (!is.null(parser_name)) {
+    warning("This parser_name argument is here for back-compatibility only, and will be removed in future versions of macpan2.")
+  }
 
   # convert a formula to the initial state of a list that could be
   # recursively parsed using parse_expr
@@ -131,7 +133,7 @@ make_expr_parser = function(
     for (expr_id in not_reduced_id) {x = reduce_expr(x, expr_id)}
 
     # recursively call to check if the reduction process is complete
-    do.call(get(parser_name, parent.frame()), list(x))
+    Recall(x)
   }
 }
 

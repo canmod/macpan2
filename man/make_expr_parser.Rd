@@ -4,11 +4,11 @@
 \alias{make_expr_parser}
 \title{Generate an Arithmetic Expression Parser}
 \usage{
-make_expr_parser(parser_name = "parse_expr", finalizer = force)
+make_expr_parser(parser_name = NULL, finalizer = force)
 }
 \arguments{
 \item{parser_name}{Name of the parsing function as a character
-string.}
+string. No longer used, but still present for back-compatibility.}
 
 \item{finalizer}{Function used to post-process a parsed formula.
 The default is the identity finalizer, which returns the parsed
