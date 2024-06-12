@@ -4,7 +4,7 @@ test_that("all models in the library can run", {
     c("nfds", "shiver")
   )
   for (m in model_names) {
-    print("========")
+    print("====MODEL====")
     print(m)
     calibration_file = system.file("starter_models"
       , m
