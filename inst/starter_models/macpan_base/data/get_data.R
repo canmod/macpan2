@@ -51,8 +51,7 @@ mobility_dat = (
    %>% mutate(value = value - 100)
    %>% select(date, value)
    ) 
-   %>% full_join(
-     google
+   %>% full_join(google
      %>% filter(iso_3166_2_code == "CA-ON")
      %>% select(date,starts_with("retail_and_recreation"),starts_with("workplaces"))
      )
@@ -68,5 +67,5 @@ mobility_dat = (
   %>% na.omit()
 )
 
-saveRDS(clean_tsdata, "./misc/experiments/macpan-base-fitting/clean_tsdata.RDS")
-saveRDS(mobility_dat, "./misc/experiments/macpan-base-fitting/mobility_dat.RDS")
+saveRDS(clean_tsdata, system.file("starter_models","macpan_base","data","ts_data.RDS", package="macpan2"))
+saveRDS(mobility_dat, system.file("starter_models","macpan_base","data","mobility_data.RDS", package="macpan2"))
