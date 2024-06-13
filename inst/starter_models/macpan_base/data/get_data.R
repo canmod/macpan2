@@ -1,6 +1,5 @@
 library(dplyr)
 library(tidyr)
-library(McMasterPandemic)
 
 
 ## Section 1: Read Data Sources
@@ -31,14 +30,13 @@ Ontario_dat <- (tsdat
 
 ## translate variable names to internally used values
 ## drop unused variables
-keep_vars <- c("H","ICU","death","report","newTests")
-
+#keep_vars <- c("H","ICU","death","report","newTests")
 
 
 clean_tsdata <- (Ontario_dat
-                 %>% mutate_at("var", trans_state_vars)
-                 %>% filter(var %in% keep_vars)
+                 %>% mutate(var=if_else(var=="newConfirmations","report",if_else(var=="newDeaths","death",var)))
 )
+
 
 #filter(clean_tsdata, var == "report", date < ymd(20201001)) |> ggplot() + geom_point(aes(date, value))
 
