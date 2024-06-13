@@ -5,6 +5,29 @@ library(tidyr)
 options(macpan2_default_loss = "neg_bin") 
 
 ## -------------------------
+## Local function to back-transform estimates and CIs
+## -------------------------
+
+# to be included in mp_tmb_coef in the future
+# see here, https://github.com/canmod/macpan2/issues/179
+backtrans <- function(x) {
+  vars1 <- intersect(c("default", "estimate", "conf.low", "conf.high"), names(x))
+  prefix <- stringr::str_extract(x[["mat"]], "^log(it)?_")  |> tidyr::replace_na("none")
+  sx <- split(x, prefix)
+  for (ptype in setdiff(names(sx), "none")) {
+    link <- make.link(stringr::str_remove(ptype, "_"))
+    sx[[ptype]] <- (sx[[ptype]]
+                    |> mutate(across(std.error, ~link$mu.eta(estimate)*.))
+                    |> mutate(across(any_of(vars1), link$linkinv))
+                    |> mutate(across(mat, ~stringr::str_remove(., paste0("^", ptype))))
+    )
+  }
+  bind_rows(sx)
+}
+
+
+
+## -------------------------
 ## Example Set-up
 ## -------------------------
 
@@ -12,7 +35,10 @@ options(macpan2_default_loss = "neg_bin")
 # https://github.com/mac-theobio/macpan_base, originally performed with the
 # McMasterPandemic package.
 
-# The base model calibration was 
+# The base model calibration was fit to observed death and case reports. 
+
+# The term 'manuscript' used below refers to the macpan_ms.pdf output generated
+# here: https://github.com/mac-theobio/macpan_base/tree/main/outputs
 
 ## -------------------------
 ## Observed Data Prep
@@ -73,7 +99,9 @@ prepped_ts_data = select(prepped_ts_data, -date)
 # logistic transition curve for mobility breakpoints
 S_j = function(t, tau_j, s) 1/(1 + exp((t - tau_j) / s))
 
-# Model matrix (X in manuscript) encapsulating the 
+# Model matrix (called 'X' in manuscript) describing the temporal change in 
+# transmission using mobility data and piecewise breaks smoothed with the
+# logistic curve.
 X = cbind(
       prepped_mobility_data$log_mobility_ind
     , S_j(1:time_steps, mobility_breaks[1], 3)
@@ -82,8 +110,8 @@ X = cbind(
     , S_j(1:time_steps, mobility_breaks[2], 3) * prepped_mobility_data$log_mobility_ind
     ) %>% as.matrix()
 
-# get model matrix meta data for simplified matrix multiplication in
-# macpan2 using group_sums
+# Get model matrix meta data for simplified matrix multiplication inside
+# macpan2 using group_sums.
 X_sparse = macpan2:::sparse_matrix_notation(X, TRUE)
 model_matrix_values = X_sparse$values
 row_ind = X_sparse$row_index
@@ -97,7 +125,7 @@ col_ind = X_sparse$col_index
 # get model spec from library
 macpan_base = mp_tmb_library("starter_models","macpan_base",package="macpan2")
 
-# Update model specificaiton to include additional components described in
+# Update model specification to include additional components described in
 # manuscript and required for calibration.
 focal_model = (macpan_base 
    # add variable transformations:
@@ -129,7 +157,7 @@ focal_model = (macpan_base
    |> mp_tmb_update(phase = "during"
       , at =1L
       , expressions = list(mp_per_capita_flow("S", "E", S.E ~ ((S/N)^zeta) * (beta / N) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s))))
-                    
+
    )
    
    # compute gamma-density delay kernel for convolution:
@@ -167,16 +195,12 @@ focal_model = (macpan_base
 
 )
 
-
-
-mp_simulator(focal_model, 100, "S.E") #%>% mp_trajectory()
-
 ## -------------------------
 ## calibration
 ## -------------------------
 
-
-
+# Note this is not an identical calibration to the calibration performed in the
+# manuscript. We use Runge-Kutta 4 here for instance, instead of hazard correction.
 focal_calib = mp_tmb_calibrator(
     spec = focal_model |> mp_rk4()
   , data = prepped_ts_data
@@ -187,13 +211,17 @@ focal_calib = mp_tmb_calibrator(
     , "logit_nonhosp_mort"
     , "log_mobility_coefficients"
     , "log_E" 
+    # negative binomial dispersion parameters for reports and deaths get added
+    # automatically with options(macpan2_default_loss = "neg_bin") set above
   )
-  , outputs = c("death","report","S.E")
+  , outputs = c("death","report")
   , default = list(
     
-    # states  
-      S = 14.57e6 - 1 
-    , log_E = log(1)
+    # states
+    # Population of Ontario (2019) from:
+    # https://github.com/mac-theobio/macpan_base/blob/main/code/ontario_calibrate_comb.R
+      S = 14.57e6 - 5 
+    , log_E = log(5)
     , Ia = 0
     , Ip = 0
     , Im = 0
@@ -208,24 +236,44 @@ focal_calib = mp_tmb_calibrator(
     , model_matrix_values = model_matrix_values
     
     # set initial parameter values for optimizer
-    , qmax = 21
-    , log_beta0=log(0.1)
-    , logit_nonhosp_mort = qlogis(0.1)
+    
+    # width of convolution kernel computed according to:
+    # https://canmod.net/misc/flex_specs#computing-convolutions
+    # shape = 1/(mp_default_list(focal_model)$c_delay_cv^2)
+    # scale = mp_default_list(focal_model)$c_delay_mean * mp_default_list(focal_model)$c_delay_cv^2
+    # qmax = ceiling(qgamma(0.95, shape, scale))
+    , qmax = 34
+    , log_beta0=log(5)
+    , logit_nonhosp_mort = -0.5
     , log_mobility_coefficients = rep(0,5)
-    , log_zeta = 0
+    , log_zeta = 1
     
   )
 )
-
+# converges
 mp_optimize(focal_calib)
 
-# get fitted data
+# Get fitted data
 fitted_data = mp_trajectory_sd(focal_calib, conf.int = TRUE)
 
-# check estimate
+# View estimates and their confidence intervals:
+# zeta ~ 0(wide CI), do we need phenomenological heterogeneity?
+# beta0 ~ 0.18, order of magnitude smaller than manuscript estimate (Table 1)
+# mobility coefficients:
+#   mobility power                                 ~ 3.6 (huge std err)
+#   relative change in transmission (breakpoint 1) ~ 3.9 (3.4,4.6)
+#   change in mobility power (breakpoint 1)        ~ 1.04 (0.8,1.4)
+#   relative change in transmission (breakpoint 2) ~ 0.64 (0.56,0.74)
+#   change in mobility power (breakpoint 2)        ~ 0.21 (wide CI)
+# E(0) ~ 173(102,295) plausible for early pandemic (but different from manuscript)
+# nohosp_mort ~ 0.14(0.11,0.16) is this too high?
+# theta_report ~ 3(2.8,3.3) very different from manuscript
+# theta_death ~ 0.5(0.2,0.8) very different from manuscript
 mp_tmb_coef(focal_calib, conf.int = TRUE) |> backtrans()
 
-(ggplot(formatted_tsdata_pre, aes(time,value))
+if (interactive()) {
+# Comparable to Figure 4 in manscript, which also had a poorer fit to deaths.
+(ggplot(prepped_ts_data, aes(time,value))
   + geom_point()
   + geom_line(aes(time, value)
               , data = fitted_data |> filter(matrix %in% c("death","report"))
@@ -239,97 +287,125 @@ mp_tmb_coef(focal_calib, conf.int = TRUE) |> backtrans()
   + facet_wrap(vars(matrix),scales = 'free')
   + theme_bw()
 )
-
-
-
-
-
-
-
-## -------------------------
-## simulate fake data
-## -------------------------
-
-# set number of time steps in simulation
-time_steps = 100L
-
-# Ca value to simulate data with
-true_Ca = 0.8
-
-# infectious compartment names
-I_labels = c("Ia", "Ip", "Im", "Is")
-
-# simulator object
-macpan_base = mp_simulator(  
-    model = spec
-  , time_steps = time_steps
-  , outputs = I_labels
-  , default = list(Ca = true_Ca)
-)
-
-# simulated data
-sim_data = (macpan_base 
-            |> mp_trajectory() 
-            |> mutate(across(value, ~ rpois(n(), .)))
-)
-
-# visualize simulated prevalence
-if (interactive()) {
-  ggplot(sim_data)+
-    geom_point(aes(time,value))+
-    theme_bw()+
-    facet_wrap(vars(matrix),scales = 'free')
-  
 }
 
 
+
 ## -------------------------
-## parameterize model
+## computing R0 with a cohort model
 ## -------------------------
 
-mb_calib = mp_tmb_calibrator(
-  # add log transformation for Ca parameter
-    spec = (spec 
-      |> mp_tmb_insert(phase = "before", at = 1L
-                       , expressions = list(Ca ~ exp(log_Ca))
-                       , default = list(log_Ca = log(1e-2)))
-    )
-  , data = sim_data
-  , traj = I_labels
-  , par = "log_Ca"
+# Simulate a single exposed individual through time (N=1, E=1, all other states 
+# 0). The transmission kernel is the force of infection at each time step of the 
+# simulation. We sum the transmission kernel to get an estimate on R0 (for a 
+# given set of parameters?)
+
+# In our case, our focal model includes phenomenological heterogeneity and 
+# setting S to 0, leads to 0^0 issues. SW said: "The way out, I think, is to 
+# realize that the kernel method assumes we are at the beginning of the epidemic 
+# and therefore that S/N ~ 1.  In this case, FOI reduces to beta * I / N, which 
+# presents no issue.  So we do not need safe_power."
+
+# Should we turn off phenomenological heterogeneity, or turn off inflow to E?
+
+# Turn off inflow to E:
+# update focal model model to remove inflow to E (ensuring  no new susceptibles 
+# reach E)
+# this update also automatically turns off outflow from S, which is also what we
+# want because this makes S/N ~ 1
+# In this case we don't initialize S to 0. We have N = N_focal (full population),
+# N_cohort = cohort population (1 in this case)
+cohort_model_ph = (
+  focal_model
+  %>% mp_tmb_update(phase="during"
+                    , at = 2L
+                    , expressions = list(S.E ~ (S^zeta) * (beta / (N^(zeta) * N_cohort)) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s)))
+                    , default = list(S.E = 0))
 )
 
-## -------------------------
-## fit model
-## -------------------------
+# how long to simulate for?
+cohort_sim_ph = (mp_simulator(cohort_model_ph
+                  , time_steps = 100L
+                  , outputs = "S.E"
+                  , default = list(
+                      S = 14.57e6 - 1 
+                    , log_E = log(1)
+                    , Ia = 0
+                    , Ip = 0
+                    , Im = 0
+                    , Is = 0
+                    , R = 0
+                    , H = 0
+                    , ICUs = 0
+                    , ICUd = 0
+                    , H2 = 0
+                    , D = 0
+                    , N_cohort = 1
+                    , model_matrix_values = model_matrix_values
+                    , qmax = 34
+                    , log_beta0=log(1)
+                    , logit_nonhosp_mort = -0.5
+                    , log_mobility_coefficients = rep(0,5)
+                    , log_zeta = 1
+                    )
+  ) |> mp_trajectory()
+) 
 
-# optimize
-mp_optimize(mb_calib)
+R0_ph = sum(cohort_sim_ph$value)
 
-# get fitted data
-fitted_data = mp_trajectory_sd(mb_calib, conf.int = TRUE)
-
-# check estimate, close to true
-mp_tmb_coef(mb_calib) %>% mutate(estimate = exp(estimate))
-
-# fit looks reasonable
-if (interactive()) {
-(ggplot(sim_data, aes(time,value))
-  + geom_point()
-  + geom_line(aes(time, value)
-              , data = fitted_data
-              , colour = "red"
+# Turn off phenomenological heterogeneity:
+# update S.E flow to remove phenomenological heterogeneity
+# add duplicate foi expression because we can't recover the foi = S.E / S, when 
+# S is 0.
+# In this case we do initialize S to 0.
+cohort_model = (
+  focal_model
+  %>% mp_tmb_update(phase="during"
+                    , at = 2L
+                    , expressions = list(mp_per_capita_flow("S", "E", S.E ~ (beta / N) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s))))
   )
-  + geom_ribbon(aes(time, ymin = conf.low, ymax = conf.high)
-                , data = fitted_data
-                , alpha = 0.2
-                , colour = "red"
+  %>% mp_tmb_insert(phase="during"
+                    , at = Inf
+                    , expressions = list(foi ~ (beta / N) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s)))
   )
-  + facet_wrap(vars(matrix),scales = 'free')
-  + theme_bw()
-  + ylab("prevalence")
 )
-}
+
+cohort_sim = (mp_simulator(cohort_model
+                           , time_steps = 100L
+                           , outputs = "foi"
+                           , default = list(
+                               S = 0
+                             , log_E = log(1)
+                             , Ia = 0
+                             , Ip = 0
+                             , Im = 0
+                             , Is = 0
+                             , R = 0
+                             , H = 0
+                             , ICUs = 0
+                             , ICUd = 0
+                             , H2 = 0
+                             , D = 0
+                             , N = 1
+                             , model_matrix_values = model_matrix_values
+                             , qmax = 34
+                             , log_beta0=log(1)
+                             , logit_nonhosp_mort = -0.5
+                             , log_mobility_coefficients = rep(0,5)
+                             , log_zeta = 1) # not actually used
+  ) |> mp_trajectory()
+) 
+
+R0 = sum(cohort_sim$value)
+
+# arrive at approximately the same answer
+all.equal(R0_ph, R0)
+
+# solve for intrinsic growth rate r
+euler_lotka = function(r) sum(cohort_sim$value * exp(-r * cohort_sim$time)) - 1
+
+uniroot(euler_lotka, c(0,10))
+
 
 
 ## -------------------------
@@ -340,6 +416,7 @@ if (interactive()) {
 if (interactive()) {
   
   Ia_shifted <- (macpan_base
+                 %>% mp_simulator(100,"Ia")
                  %>% mp_trajectory() 
                  %>% filter(matrix=="Ia") 
                  %>% mutate(Ia_lead = lead(value))
@@ -363,11 +440,3 @@ if (interactive()) {
   
 }
 
-
-## all infectious compartments
-if (interactive()) {
-  ggplot(macpan_base %>% mp_trajectory() %>% select(time,value,matrix), aes(time,value,col=matrix))+
-    geom_line()+
-    theme_bw()+
-    ylab("individuals")
-}
