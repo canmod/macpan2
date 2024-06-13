@@ -33,7 +33,7 @@ Ontario_dat <- (tsdat
 #keep_vars <- c("H","ICU","death","report","newTests")
 
 
-clean_tsdata <- (Ontario_dat
+ts_data <- (Ontario_dat
                  %>% mutate(var=if_else(var=="newConfirmations","report",if_else(var=="newDeaths","death",var)))
 )
 
@@ -42,7 +42,7 @@ clean_tsdata <- (Ontario_dat
 
 ### Clean mobility data
 
-mobility_dat = (
+mobility_data = (
   (apple
    %>% filter(alternative_name == "ON", transportation_type == "driving")
    %>% pivot_longer(cols=-c("geo_type","region","transportation_type","alternative_name","sub-region","country")
@@ -69,5 +69,5 @@ mobility_dat = (
 )
 
 
-saveRDS(clean_tsdata, system.file("starter_models","macpan_base","data","ts_data.RDS", package="macpan2"))
-saveRDS(mobility_dat, system.file("starter_models","macpan_base","data","mobility_data.RDS", package="macpan2"))
+#saveRDS(clean_tsdata, system.file("starter_models","macpan_base","data","ts_data.RDS", package="macpan2"))
+#saveRDS(mobility_dat, system.file("starter_models","macpan_base","data","mobility_data.RDS", package="macpan2"))

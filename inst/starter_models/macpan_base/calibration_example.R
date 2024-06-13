@@ -48,8 +48,8 @@ backtrans <- function(x) {
 # slow to run. Once sourced, the following RDS files contain the relevant time
 # series and mobility data.
 source(system.file("starter_models","macpan_base","data","get_data.R", package = "macpan2"))
-ts_data = readRDS(system.file("starter_models","macpan_base","data","ts_data.RDS",package = "macpan2"))
-mobility_data = readRDS(system.file("starter_models","macpan_base","data","mobility_data.RDS",package = "macpan2"))
+#ts_data = readRDS(system.file("starter_models","macpan_base","data","ts_data.RDS",package = "macpan2"))
+#mobility_data = readRDS(system.file("starter_models","macpan_base","data","mobility_data.RDS",package = "macpan2"))
 
 # To further prepare the time series data for calibration we filter for the 
 # appropriate time range and time series variables, create a numeric date field
