@@ -82,6 +82,18 @@ PerCapitaFlow = function(from, to, rate, call_string) {
   return_object(self, "PerCapitaFlow")
 }
 
+#' @export
+print.PerCapitaFlow = function(x, ...) {
+  vec = c(
+      From = x$from
+    , To = x$to
+    , `Per-capita rate expression` = rhs_char(x$rate)
+    , `Absolute rate symbol` = lhs_char(x$rate)
+  )
+  components = sprintf("%s: %s", names(vec), unname(vec))
+  paste0(components, collapse = "\n") |> cat()
+}
+
 PerCapitaInflow = function(from, to, rate, call_string) {
   self = PerCapitaFlow(from, to, rate, call_string)
   self$change_frame = function() {
@@ -108,6 +120,10 @@ Formula = function(formula) {
   return_object(self, "Formula")
 }
 
+#' @export
+print.Formula = function(x, ...) print(x$formula, showEnv = FALSE)
+
+
 FormulaList = function(formulas) {
   one_sided = vapply(formulas, is_one_sided, logical(1L))
   if (all(one_sided)) stop("Raw R formulas in an expression list must be two-sided")
@@ -127,6 +143,7 @@ FormulaHelper = function(local_names = character()) {
   self$user_formulas = function() list()
   return_object(self, "FormulaHelper")
 }
+
 FormulaListHelper = function(local_names = character()) {
   self = ChangeComponentGlobalizable()
   self$initialize_name_map(local_names)
@@ -181,7 +198,6 @@ GammaConvolution = function(variable, length, height, mean, cv) {
   return_object(self, "GammaConvolution")
 }
 
-
 #' @noRd
 to_change_component = function(x) UseMethod("to_change_component")
 
@@ -190,4 +206,3 @@ to_change_component.ChangeComponent = function(x) x
 
 #' @export
 to_change_component.formula = function(x) Formula(x)
-

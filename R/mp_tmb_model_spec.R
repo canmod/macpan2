@@ -14,6 +14,7 @@ TMBModelSpec = function(
   self$change_model = get_change_model(before, during, after)
   self$state_update = get_state_update_type(match.arg(state_update), self$change_model)
   self$update_method = get_state_update_method(self$state_update, self$change_model)
+  self$change_components = function() self$change_model$change_list
   self$before = before
   self$during = during
   self$after = after

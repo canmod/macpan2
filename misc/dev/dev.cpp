@@ -1185,7 +1185,7 @@ public:
                     return m;
                 }
             }
-            if (is_int_in(table_x[row] + 1, mp_by_index_arg_0)) {
+            if (is_int_in(table_x[row] + 1, mp_hist)) {
                 if (!mats_save_hist[index2mats[0]]) {
                     SetError(205, "All arguments to functions that act on the simulation history must have a first argument that is a non-empty matrix with saved history", row, table_x[row] + 1, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;

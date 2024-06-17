@@ -24,7 +24,7 @@ flow from \code{from} to \code{to}.}
 
 \item{abs_rate}{String giving the name for the absolute flow rate,
 which will be computed as \code{from * rate}. If a formula is passed to
-\code{rate} (not recommended), then this \code{abs_rate_name} argument will be ignored.}
+\code{rate} (not recommended), then this \code{abs_rate} argument will be ignored.}
 }
 \description{
 Per-Capita Flow (Experimental)

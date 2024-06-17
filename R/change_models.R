@@ -7,11 +7,13 @@ ChangeModel = function() {
   self = Base()
   
   self$before_loop = function() list()
+  self$once_start = function() list()
   self$before_flows = function() list()
   self$update_flows = function() list()
   self$before_state = function() list()
   self$update_state = function() list()
   self$after_state = function() list()
+  self$once_finish = function() list()
   self$after_loop = function() list()
   
   # one row per flow
@@ -116,7 +118,6 @@ SimpleChangeModel = function(before = list(), during = list(), after = list()) {
   self$before = before
   self$during = during
   self$after = after
-  
   
   self$change_list = lapply(self$during, to_change_component)
   #proposed_global_names = self$all_user_aware_names()

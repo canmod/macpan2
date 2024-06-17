@@ -53,7 +53,6 @@ EulerUpdateMethod = function(change_model, existing_global_names = character()) 
   return_object(self, "EulerUpdateMethod")
 }
 
-
 RK4UpdateMethod = function(change_model) {
   self = UpdateMethod()
   self$change_model = change_model
@@ -116,7 +115,6 @@ RK4UpdateMethod = function(change_model) {
   self$after = function() self$change_model$after_loop()
   return_object(self, "EulerUpdateMethod")
 }
-
 
 EulerMultinomialUpdateMethod = function(change_model) {
   self = Base()
