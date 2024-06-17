@@ -119,11 +119,14 @@ TMBModelSpec = function(
       , initialize_ad_fun = TRUE
   ) {
     self$check_names()
+    # JF start
+    time_args = must_save_time_args(c(self$update_method$before(),self$update_method$during(),self$update_method$after()))
+    # JF end
     mats = update_default(self$all_matrices(), default)
     mat_args = c(mats, mat_options$from_spec(
         mats
       , outputs
-      , self$must_save
+      , c(self$must_save,time_args)
       , self$must_not_save
     ))
     TMBModel(
@@ -197,6 +200,16 @@ update_default = function(mats, default) {
   mats
 }
 
+must_save_time_args = function(formulas) {
+  time_dep_funcs = c("convolution","rbind_lag","rbind_time","cbind_lag","cbind_time")
+  parse_expr = make_expr_parser(finalizer = macpan2:::finalizer_char)
+  time_args = (formulas
+               |> lapply(macpan2:::rhs)
+               |> lapply(parse_expr)
+               |> lapply(\(x) x$x[x$i[x$x %in% time_dep_funcs]+1])
+               |> unlist()
+               ) 
+}
 #' Specify a TMB Model
 #' 
 #' Specify a model in the TMB engine.

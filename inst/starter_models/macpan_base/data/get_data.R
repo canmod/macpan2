@@ -1,6 +1,6 @@
-library(tidyverse)
-library(McMasterPandemic)
-library(zoo)
+library(dplyr)
+library(tidyr)
+
 
 ## Section 1: Read Data Sources
 
@@ -10,9 +10,9 @@ tsdat_url <- "https://wzmli.github.io/COVID19-Canada/git_push/clean.Rout.csv"
 google_url <- "https://www.gstatic.com/covid19/mobility/Global_Mobility_Report.csv"
 apple_url <- "https://raw.githubusercontent.com/ActiveConclusion/COVID19_mobility/master/apple_reports/applemobilitytrends.csv"
 
-tsdat <- read_csv(tsdat_url)
-apple <- read_csv(apple_url)
-google <- read_csv(google_url)
+tsdat <- read.csv(tsdat_url)
+apple <- read.csv(apple_url,check.names=FALSE)
+google <- read.csv(google_url)
 
 ## Section 2: Clean data
 ### Clean ts data
@@ -30,35 +30,35 @@ Ontario_dat <- (tsdat
 
 ## translate variable names to internally used values
 ## drop unused variables
-keep_vars <- c("H","ICU","death","report","newTests")
+#keep_vars <- c("H","ICU","death","report","newTests")
 
 
-
-clean_tsdata <- (Ontario_dat
-                 %>% mutate_at("var", trans_state_vars)
-                 %>% filter(var %in% keep_vars)
+ts_data <- (Ontario_dat
+                 %>% mutate(var=if_else(var=="newConfirmations","report",if_else(var=="newDeaths","death",var)))
 )
 
-filter(clean_tsdata, var == "report", date < ymd(20201001)) |> ggplot() + geom_point(aes(date, value))
+
+#filter(clean_tsdata, var == "report", date < ymd(20201001)) |> ggplot() + geom_point(aes(date, value))
 
 ### Clean mobility data
-mobility_dat = (
+
+mobility_data = (
   (apple
    %>% filter(alternative_name == "ON", transportation_type == "driving")
    %>% pivot_longer(cols=-c("geo_type","region","transportation_type","alternative_name","sub-region","country")
-                   , names_to="date",names_transform = as.Date)
+                    , names_to="date",names_transform = as.Date)
    # create relative percent change (to match google data)
    %>% mutate(value = value - 100)
    %>% select(date, value)
-   ) 
-   %>% full_join(
-     google
-     %>% filter(iso_3166_2_code == "CA-ON")
-     %>% select(date,starts_with("retail_and_recreation"),starts_with("workplaces"))
-     )
+  ) 
+  %>% full_join(google
+                %>% filter(iso_3166_2_code == "CA-ON")
+                %>% mutate(date = as.Date(date))
+                %>% select(date,starts_with("retail_and_recreation"),starts_with("workplaces"))
+  )
   %>% arrange(date)
   # compute 7 day moving average
-  %>% mutate(across(where(is.numeric),~ rollapply(.x, width = 7, mean, fill = NA)))
+  %>% mutate(across(where(is.numeric),~ stats::filter(.x, filter = rep(1/7, 7), sides = 2)))
   # scale to have pre-pandemic value of 1
   %>% mutate(across(where(is.numeric), ~ 1 + (.x/100)))
   # compute average of all mobility values
@@ -68,5 +68,6 @@ mobility_dat = (
   %>% na.omit()
 )
 
-saveRDS(clean_tsdata, "./misc/experiments/macpan-base-fitting/clean_tsdata.RDS")
-saveRDS(mobility_dat, "./misc/experiments/macpan-base-fitting/mobility_dat.RDS")
+
+#saveRDS(clean_tsdata, system.file("starter_models","macpan_base","data","ts_data.RDS", package="macpan2"))
+#saveRDS(mobility_dat, system.file("starter_models","macpan_base","data","mobility_data.RDS", package="macpan2"))
