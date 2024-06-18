@@ -1,6 +1,6 @@
 Package: macpan2
 Title: Fast and Flexible Compartmental Modelling
-Version: 1.5.4
+Version: 1.5.5
 Authors@R: c(
   person("Steve Walker", email="swalk@mcmaster.ca", role=c("cre", "aut")),
   person("Irena Papst", role="ctb"),
@@ -45,8 +45,7 @@ Suggests:
     iidda.api
 LinkingTo:
     TMB,
-    RcppEigen,
-    Rcpp
+    RcppEigen
 VignetteBuilder: 
     knitr
 BugReports: https://github.com/canmod/macpan2/issues
