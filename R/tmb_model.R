@@ -299,10 +299,12 @@ mp_default_list.TMBSimulator = function(model) {
 #' `before` phase, right before the simulation loop begins (i.e. right before
 #' the `during` phase).
 #' 
-#' @param model A model object from which to extract initial values.
+#' @param model A model specification object or model simulator object from 
+#' which to extract initial values.
 #' @returns A long-format data frame with initial values for matrices. 
-#' The columns of this output are `matrix`, `row`, `col`, and `value`. 
-#' Scalar matrices do not have any entries in the `row` or `col` columns.
+#' The columns of this output are `matrix`, `time`, `row`, `col`, and `value`. 
+#' Scalar matrices do not have any entries in the `row` or `col` columns. The 
+#' `before` phase corresponds to a `time` value of 0.
 #' @export
 mp_initial = function(model) UseMethod("mp_initial")
 
@@ -338,7 +340,7 @@ mp_initial.TMBSimulator = function(model) {
   
   before_expr_list = ExprList(expr_list$before)
   
-  defaults = before_expr_list$all_default_vars()
+  defaults = expr_list$all_default_vars()
   
   outputs = (defaults
     |> c(before_expr_list$all_derived_vars())
@@ -355,6 +357,10 @@ mp_initial.TMBSimulator = function(model) {
   mp_simulator(spec, 0, outputs)$report(.phases = "before")
 }
 
+#'@export
+mp_initial_list.TMBSimulator = function(model) {
+  mp_initial(model) |> cast_default_matrix_list()
+}
 
 #' Final Values
 #' 
