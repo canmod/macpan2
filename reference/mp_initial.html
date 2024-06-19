@@ -77,7 +77,8 @@ the <code>during</code> phase).</p>
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>model</dt>
-<dd><p>A model object from which to extract initial values.</p></dd>
+<dd><p>A model specification object or model simulator object from
+which to extract initial values.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -85,8 +86,9 @@ the <code>during</code> phase).</p>
     
 
 <p>A long-format data frame with initial values for matrices.
-The columns of this output are <code>matrix</code>, <code>row</code>, <code>col</code>, and <code>value</code>.
-Scalar matrices do not have any entries in the <code>row</code> or <code>col</code> columns.</p>
+The columns of this output are <code>matrix</code>, <code>time</code>, <code>row</code>, <code>col</code>, and <code>value</code>.
+Scalar matrices do not have any entries in the <code>row</code> or <code>col</code> columns. The
+<code>before</code> phase corresponds to a <code>time</code> value of 0.</p>
     </div>
     <div class="section level2">
     <h2 id="functions">Functions<a class="anchor" aria-label="anchor" href="#functions"></a></h2>

@@ -218,22 +218,25 @@ even though the initial values of the state variables were identical in
 all three cases.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/mp_initial.html">mp_initial</a></span><span class="op">(</span><span class="va">si_euler</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   matrix time row col value</span></span>
-<span><span class="co">#&gt; 1      N    0   0   0   100</span></span>
-<span><span class="co">#&gt; 2      I    0   0   0     1</span></span>
-<span><span class="co">#&gt; 3      S    0   0   0    99</span></span></code></pre></div>
+<span><span class="co">#&gt;   matrix time row col  value</span></span>
+<span><span class="co">#&gt; 1      N    0   0   0 100.00</span></span>
+<span><span class="co">#&gt; 2      I    0   0   0   1.00</span></span>
+<span><span class="co">#&gt; 3   beta    0   0   0   0.25</span></span>
+<span><span class="co">#&gt; 4      S    0   0   0  99.00</span></span></code></pre></div>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/mp_initial.html">mp_initial</a></span><span class="op">(</span><span class="va">si_euler_multinomial</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   matrix time row col value</span></span>
-<span><span class="co">#&gt; 1      N    0   0   0   100</span></span>
-<span><span class="co">#&gt; 2      I    0   0   0     1</span></span>
-<span><span class="co">#&gt; 3      S    0   0   0    99</span></span></code></pre></div>
+<span><span class="co">#&gt;   matrix time row col  value</span></span>
+<span><span class="co">#&gt; 1      N    0   0   0 100.00</span></span>
+<span><span class="co">#&gt; 2      I    0   0   0   1.00</span></span>
+<span><span class="co">#&gt; 3   beta    0   0   0   0.25</span></span>
+<span><span class="co">#&gt; 4      S    0   0   0  99.00</span></span></code></pre></div>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/mp_initial.html">mp_initial</a></span><span class="op">(</span><span class="va">si_rk4</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   matrix time row col value</span></span>
-<span><span class="co">#&gt; 1      N    0   0   0   100</span></span>
-<span><span class="co">#&gt; 2      I    0   0   0     1</span></span>
-<span><span class="co">#&gt; 3      S    0   0   0    99</span></span></code></pre></div>
+<span><span class="co">#&gt;   matrix time row col  value</span></span>
+<span><span class="co">#&gt; 1      N    0   0   0 100.00</span></span>
+<span><span class="co">#&gt; 2      I    0   0   0   1.00</span></span>
+<span><span class="co">#&gt; 3   beta    0   0   0   0.25</span></span>
+<span><span class="co">#&gt; 4      S    0   0   0  99.00</span></span></code></pre></div>
 <p>The incidence is different, even during the first time step, because
 each state update method causes different numbers of susceptible
 individuals to become infectious at each time step. Further, incidence
