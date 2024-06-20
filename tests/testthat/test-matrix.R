@@ -25,7 +25,7 @@ test_that("matrices can be made on the fly in the engine", {
     matrix(y, 2, 3)
   )
   expect_error(
-    engine_eval(~ matrix(c(1,2,3,4), 2, 2, byrow = TRUE)),
+    engine_eval(~ matrix(c(1,2,3,4), 2, 2, 1)),
     regexp = "Too many arguments provided to function. Note this function differs from the base R version in the arguments it accepts."
   )
 })
