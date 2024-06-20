@@ -213,7 +213,7 @@ between adjacent values in the sequence.</p></li>
 and returns a column vector with all integers between
 the two inputs.</p>
 <p>The <code>seq</code> function is a little different from the
-base R default, <code>seq</code>, in that it
+base R default, <code><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></code>, in that it
 allows the user precise control over the length of
 the output through the <code>length</code> argument. The
 base R function gives the user this option, but not
@@ -360,7 +360,7 @@ combined using the <code>cbind</code> and
 <p>The <code>matrix</code> function can be used to redefine the
 numbers of rows and columns to use for arranging
 the values of a matrix. It works similarly to
-the base R <code>matrix</code> function in that it
+the base R <code><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></code> function in that it
 takes the same arguments.
 On the other hand, this function differs substantially
 from the base R version in that it must be filled
@@ -530,11 +530,13 @@ contiguous subset of rows and columns of <code>x</code>
 <li><p><code>i</code> -- An integer column vector (for <code>[</code>) or
 integer scalar (for <code>block</code>) containing the indices
 of the rows to extract (for <code>[</code>) or the index of the
-first row to extract (for <code>block</code>).</p></li>
+first row to extract (for <code>block</code>). Indices are zero-based,
+the first row in <code>x</code> is given by <code>i = 0</code>.</p></li>
 <li><p><code>j</code> -- An integer column vector (for <code>[</code>) or
 integer scalar (for <code>block</code>) containing the indices
 of the columns to extract (for <code>[</code>) or the index of
-the first column to extract (for <code>block</code>).</p></li>
+the first column to extract (for <code>block</code>). Indices are zero-based,
+the first column in <code>x</code> is given by <code>j = 0</code>.</p></li>
 <li><p><code>n</code> -- Number of rows in the block to return.</p></li>
 <li><p><code>m</code> -- Number of columns in the block to return.</p></li>
 </ul></div>
