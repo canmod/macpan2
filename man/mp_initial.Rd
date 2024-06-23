@@ -10,12 +10,14 @@ mp_initial(model)
 mp_initial_list(model)
 }
 \arguments{
-\item{model}{A model object from which to extract initial values.}
+\item{model}{A model specification object or model simulator object from
+which to extract initial values.}
 }
 \value{
 A long-format data frame with initial values for matrices.
-The columns of this output are \code{matrix}, \code{row}, \code{col}, and \code{value}.
-Scalar matrices do not have any entries in the \code{row} or \code{col} columns.
+The columns of this output are \code{matrix}, \code{time}, \code{row}, \code{col}, and \code{value}.
+Scalar matrices do not have any entries in the \code{row} or \code{col} columns. The
+\code{before} phase corresponds to a \code{time} value of 0.
 }
 \description{
 Return a data frame containing the values of variables at the end of the
