@@ -25,7 +25,26 @@ are updated according to different numerical methods.
 }
 \section{Functions}{
 \itemize{
-\item \code{mp_rk4()}: ODE solver using Runge-Kutta 4.
+\item \code{mp_rk4()}: ODE solver using Runge-Kutta 4. Any formulas that
+appear before model flows in the \code{during} list will only be updated
+with RK4 if they do contain functions in
+\code{getOption("macpan2_non_iterable_funcs")} and if they do not make any
+state variable assignments (i.e., the left-hand-side does not contain
+state variables). Each formula that does not meet these conditions will
+be evaluated only once at each time-step before the other three RK4
+iterations are taken. By default, the \code{time_var} function and functions
+that generate random numbers (e.g., \code{rbinom}) are not iterable. Functions
+that generate random numbers will only be called once with state update
+methods that do not repeat expressions more than once per time-step
+(e.g., \code{\link{mp_euler}}), and so repeating these functions with RK4
+could make it difficult to compare methods. If you really do want to
+regenerate random numbers at each RK4 iteration, you can do so by setting
+the above option appropriately. The \code{time_var} function assumes that it
+will only be called once per time-step, and so it should never be removed
+from the list of non-iterable functions. Although in principle it could
+make sense to update state variables manually, it currently causes us to
+be confused. We therefore require that all state variables updates are set
+explicitly (e.g., with \code{\link{mp_per_capita_flow}}) if any are explicit.
 
 \item \code{mp_euler_multinomial()}: Update state with process error given by the
 Euler-multinomial distribution.

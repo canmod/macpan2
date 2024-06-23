@@ -1773,6 +1773,7 @@ public:
             case MP2_FROM_DIAG: // from_diag
                 m = args[0].diagonal();
                 return m;
+                
 
             // #' ## Summarizing Matrix Values
             // #'
