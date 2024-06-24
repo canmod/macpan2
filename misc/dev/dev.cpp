@@ -2059,8 +2059,9 @@ public:
                 }
                 else {
                     timeIndex = args.get_as_int_vec(1);
-                    // std::cout << "t: " << t << std::endl;
-                    // printIntVectorWithLabel(timeIndex, "default time index vector");
+                    //std::cout << "t: " << t << std::endl;
+                    //std::cout << "timeIndex.size: " << timeIndex.size() << std::endl;
+                    //printIntVectorWithLabel(timeIndex, "default time index vector");
                     if (doing_lag) {
                         for (int i = 0; i < timeIndex.size(); i++) {
                             timeIndex[i] = t - timeIndex[i];
@@ -2090,7 +2091,7 @@ public:
                         SetError(MP2_RBIND_TIME, "Lower time bound (third argument) is less than zero", row, int_func, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                         return m;
                     }
-                    if (lowerTimeBound > t) {
+                    if (lowerTimeBound > t_max) {
                         SetError(MP2_RBIND_TIME, "Lower time bound (third argument) is greater than the number of time steps", row, int_func, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                         return m;
                     }
@@ -2108,6 +2109,7 @@ public:
                 //    the correct values otherwise.
                 int rbind_length, nRows, nCols;
                 rbind_length = 0; // count of legitimate time steps to select
+                //std::cout << "lowerTimeBound " << lowerTimeBound << std::endl
                 for (int i = 0; i < timeIndex.size(); i++)
                 {
                     rowIndex = timeIndex[i];
