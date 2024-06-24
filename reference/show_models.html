@@ -99,29 +99,31 @@ links to model readme files?</p></dd>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">show_models</span><span class="op">(</span>show_missing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                             dir                    title</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1    lotka_volterra_competition           Lotka-Volterra</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2  lotka_volterra_predator_prey           Lotka-Volterra</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3                   macpan_base              MacPan base</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4                          nfds  NFDS and vaccine design</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5                          seir               basic SEIR</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6                        shiver    SHIVER = SEIR + H + V</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7                            si                 basic SI</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8                           sir                basic SIR</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 9                     sir_demog      SIR with demography</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10                   sir_waning SIR with waning immunity</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 11                           ww         Wastewater model</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1                     awareness         awareness models</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2    lotka_volterra_competition           Lotka-Volterra</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3  lotka_volterra_predator_prey           Lotka-Volterra</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4                   macpan_base              MacPan base</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5                          nfds  NFDS and vaccine design</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6                          seir               basic SEIR</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7                        shiver    SHIVER = SEIR + H + V</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8                            si                 basic SI</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9                           sir                basic SIR</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10                    sir_demog      SIR with demography</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11                   sir_waning SIR with waning immunity</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12                           ww         Wastewater model</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                                                                                                        index_entry</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1                                                                             simple two-species competition model</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2                                                                                       simple predator-prey model</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3                                                         re-implementation of the McMaster group's COVID-19 model</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4  An ecological model using population genomics to design optimal vaccines as implemented in Colijn et al. (2020)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5                                                                     vanilla epidemic model with an exposed class</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6                                                       A modified SEIR model with Hospitalization and Vaccination</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7                                                                                     a very simple epidemic model</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1                                                                     behaviour modifications in response to death</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2                                                                             simple two-species competition model</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3                                                                                       simple predator-prey model</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4                                                         re-implementation of the McMaster group's COVID-19 model</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5  An ecological model using population genomics to design optimal vaccines as implemented in Colijn et al. (2020)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6                                                                     vanilla epidemic model with an exposed class</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7                                                       A modified SEIR model with Hospitalization and Vaccination</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 8                                                                                     a very simple epidemic model</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 9                                                                                An SIR model with birth and death</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10                                                                  a basic SIR model with a flow from R back to S</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 11                                                             Macpan base with an additional wastewater component</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9                                                                                     a very simple epidemic model</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10                                                                               An SIR model with birth and death</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11                                                                  a basic SIR model with a flow from R back to S</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12                                                             Macpan base with an additional wastewater component</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
