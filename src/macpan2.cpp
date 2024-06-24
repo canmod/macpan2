@@ -1413,7 +1413,7 @@ public:
             case MP2_SEQUENCE: // seq
 
                 // #' The `seq` function is a little different from the
-                // #' base R default, \code{\link{seq}}, in that it
+                // #' base R default, \code{\link[base]{seq}}, in that it
                 // #' allows the user precise control over the length of
                 // #' the output through the `length` argument. The
                 // #' base R function gives the user this option, but not
@@ -1678,12 +1678,16 @@ public:
                 // #' The `matrix` function can be used to redefine the
                 // #' numbers of rows and columns to use for arranging
                 // #' the values of a matrix. It works similarly to
-                // #' the base R \code{\link{matrix}} function in that it
+                // #' the base R \code{\link[base]{matrix}} function in that it
                 // #' takes the same arguments.
                 // #' On the other hand, this function differs substantially
                 // #' from the base R version in that it must be filled
                 // #' by column and there is no `byrow` option.
                 // #'
+                //std::cout << "n: " << n << std::endl;
+                if (n > 3){
+                    SetError(MP2_MATRIX, "Too many arguments provided to function. Note this function differs from the base R version in the arguments it accepts.", row, MP2_MATRIX, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
+                }
                 rows = args.get_as_int(1);
                 cols = args.get_as_int(2);
                 size_out = rows * cols;
@@ -1699,7 +1703,7 @@ public:
                     m = mp2_rep(m, size_out / size_in);
                     m.resize(rows, cols);
                 } else {
-                    SetError(MP2_MATRIX, "The size of the input must less than or equal to that of the output.", row, MP2_MATRIX, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
+                    SetError(MP2_MATRIX, "The size of the input must be less than or equal to that of the output.", row, MP2_MATRIX, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                 }
                 return m;
 
@@ -1773,6 +1777,7 @@ public:
             case MP2_FROM_DIAG: // from_diag
                 m = args[0].diagonal();
                 return m;
+                
 
             // #' ## Summarizing Matrix Values
             // #'
@@ -1887,11 +1892,13 @@ public:
             // #' * `i` -- An integer column vector (for `[`) or
             // #' integer scalar (for `block`) containing the indices
             // #' of the rows to extract (for `[`) or the index of the
-            // #' first row to extract (for `block`).
+            // #' first row to extract (for `block`). Indices are zero-based,
+            // #' the first row in `x` is given by `i = 0`.
             // #' * `j` -- An integer column vector (for `[`) or
             // #' integer scalar (for `block`) containing the indices
             // #' of the columns to extract (for `[`) or the index of
-            // #' the first column to extract (for `block`).
+            // #' the first column to extract (for `block`). Indices are zero-based,
+            // #' the first column in `x` is given by `j = 0`.
             // #' * `n` -- Number of rows in the block to return.
             // #' * `m` -- Number of columns in the block to return.
             // #'
@@ -1948,6 +1955,19 @@ public:
                 colIndex = args.get_as_int(2);
                 rows = args.get_as_int(3);
                 cols = args.get_as_int(4);
+                err_code = args.check_indices(0, args.get_as_int_vec(1), args.get_as_int_vec(2));
+                if (err_code){
+                    SetError(MP2_BLOCK, "Illegal starting index to block", row, MP2_BLOCK, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
+                }
+                //v1 = args.get_as_int_vec(1);
+                //v2 = args.get_as_int_vec(2);
+                //v3 = args.get_as_int_vec(3);
+                //v4 = args.get_as_int_vec(4);
+                //v[0] = v1[0] + v3[0] addVectors();
+                //err_code = args.check_indices(0, args.get_as_int_vec(1) + args.get_as_int_vec(3), args.get_as_int_vec(2) + args.get_as_int_vec(4));
+                //if (err_code){
+                //    SetError(MP2_BLOCK, "Illegal index to block, requesting more elements than available in input", row, MP2_BLOCK, args.all_rows(), args.all_cols(), args.all_type_ints(), t); 
+                //}
                 return args[0].block(rowIndex, colIndex, rows, cols);
 
             // #' ## Accessing Past Values in the Simulation History

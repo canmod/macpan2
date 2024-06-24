@@ -63,5 +63,3 @@ mean(weekly$value) / mean(daily$value) ## ~ 7
   |> ggplot()
   + geom_line(aes(time, value, colour = matrix))
 )
-
-

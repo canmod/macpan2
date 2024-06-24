@@ -1,3 +1,4 @@
+library(macpan2); library(testthat); library(dplyr); library(tidyr); library(ggplot2)
 test_that("a selection of the iterations in the simulation history of a matrix that doesn't change shape can be rbinded at the end", {
   steps = 10
   x = matrix(1:12, 4, 3)
@@ -11,7 +12,7 @@ test_that("a selection of the iterations in the simulation history of a matrix t
       .mats_to_save = "x",
       .mats_to_return = "y"
     ),
-    expr_list =mp_tmb_expr_list(
+    expr_list = mp_tmb_expr_list(
       during = list(x ~ x * 0.9),
       after = list(y ~ rbind_time(x, t, 1))
     ),
@@ -61,3 +62,15 @@ test_that("rbind_time without times is the same as with all times", {
   )
   expect_equal(with_all_times, without_times)
 })
+
+s = mp_tmb_model_spec(
+    during = list(x ~ x / 2)
+  , after = list(y ~ rbind_time(x, c(0, 2, 4, 5), 0))
+  , default = list(x = 10)
+) |> mp_simulator(10, c("y"))
+s$report(.phases = c("before", "during", "after"))
+
+# - mp_initial bug
+# - breaking rk4
+# - engine function help file
+# - performance tests of c++

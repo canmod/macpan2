@@ -10,6 +10,38 @@ to_absolute_flows = function(per_capita_flows) {
   lapply(char_list, as.formula)
 }
 
+handle_rate_args = function(rate, abs_rate = NULL) {
+  if (!is_two_sided(rate)) {
+    if (is_one_sided(rate)) rate = rhs_char(rate)
+    rate = two_sided(abs_rate, rate)
+  }
+  return(rate)
+}
+
+only_iterable = function(expr_list, states) {
+  non_iterable_funcs = getOption("macpan2_non_iterable_funcs")
+  parse_expr = make_expr_parser(finalizer = finalizer_char)
+  no_iterable_funcs = (expr_list
+     |> lapply(rhs)
+     |> lapply(parse_expr)
+     |> vapply(
+         \(x) !any(non_iterable_funcs %in% x$x)
+       , logical(1L)
+      )
+  )
+  no_state_var_assignments = (expr_list
+     |> lapply(lhs)
+     |> lapply(parse_expr)
+     |> vapply(
+         \(x) !any(states %in% x$x)
+       , logical(1L)
+      )
+  )
+  is_iterable = no_iterable_funcs & no_state_var_assignments
+  expr_list[is_iterable]
+}
+
+
 
 ## two class types:
 ##   1. ChangeModel (e.g. set of flows)
@@ -201,7 +233,13 @@ SimpleChangeModel = function(before = list(), during = list(), after = list()) {
   }
   self$update_state = function() {
     frame = self$change_frame()
-    exprs = tapply(frame$change, frame$state, paste0, collapse = " ", simplify = TRUE)[unique(frame$state)]
+    all_exprs = tapply(frame$change
+      , frame$state
+      , paste0
+      , collapse = " "
+      , simplify = TRUE
+    )
+    exprs = all_exprs[unique(frame$state)]
     sprintf("%s ~ %s", names(exprs), unname(exprs)) |> lapply(as.formula)
   }
   self$before_loop = function() self$before
@@ -276,7 +314,26 @@ MockChangeModel = function() {
 ##' @export
 mp_euler = function(model) UseMethod("mp_euler")
 
-##' @describeIn mp_euler ODE solver using Runge-Kutta 4.
+##' @describeIn mp_euler ODE solver using Runge-Kutta 4. Any formulas that
+##' appear before model flows in the `during` list will only be updated
+##' with RK4 if they do contain functions in 
+##' `getOption("macpan2_non_iterable_funcs")` and if they do not make any
+##' state variable assignments (i.e., the left-hand-side does not contain
+##' state variables). Each formula that does not meet these conditions will 
+##' be evaluated only once at each time-step before the other three RK4
+##' iterations are taken. By default, the `time_var` function and functions
+##' that generate random numbers (e.g., `rbinom`) are not iterable. Functions
+##' that generate random numbers will only be called once with state update
+##' methods that do not repeat expressions more than once per time-step 
+##' (e.g., \code{\link{mp_euler}}), and so repeating these functions with RK4
+##' could make it difficult to compare methods. If you really do want to 
+##' regenerate random numbers at each RK4 iteration, you can do so by setting
+##' the above option appropriately. The `time_var` function assumes that it
+##' will only be called once per time-step, and so it should never be removed
+##' from the list of non-iterable functions. Although in principle it could
+##' make sense to update state variables manually, it currently causes us to
+##' be confused. We therefore require that all state variables updates are set
+##' explicitly (e.g., with \code{\link{mp_per_capita_flow}}) if any are explicit.
 ##' @export
 mp_rk4 = function(model) UseMethod("mp_rk4")
 
@@ -323,6 +380,16 @@ get_change_model = function(before, during, after) {
   any_change_components = any(vapply(during, inherits, logical(1L), "ChangeComponent"))
   if (any_change_components) return(SimpleChangeModel(before, during, after))
   AllFormulaChangeModel(before, during, after)
+}
+force_expr_list = function(x) {
+  if (is_two_sided(x)) return(list(x))
+  if (inherits(x, "ChangeComponent")) return(list(x))
+  if (!is.list(x)) {
+    ## TODO: should make more sense!
+    stop("Argument must be a formula, change component, or a list of such objects.")
+  }
+  ## TODO: check that we have a list of valid components
+  return(x)
 }
 
 ##' Update Methods
@@ -376,17 +443,18 @@ RK4UpdateMethod = function(change_model) {
   
   self$before = function() self$change_model$before_loop()
   self$during = function() {
+    update = self$change_model$update_state()
+    states = vapply(update, lhs_char, character(1L))
+    rates = vapply(update, rhs_char, character(1L))
+    
     before_components = self$change_model$before_flows()
     components = to_absolute_flows(self$change_model$update_flows())
     before_state = self$change_model$before_state()
-    before = c(before_components, components, before_state)
-    update = self$change_model$update_state()
+    before = c(only_iterable(before_components, states), components, before_state)
+    before_first = c(before_components, components, before_state)
     
     new_update = list()
     new_before = list()
-    
-    states = vapply(update, lhs_char, character(1L))
-    rates = vapply(update, rhs_char, character(1L))
     
     existing_names = self$change_model$all_variable_names()
     local_step_names = list(
@@ -398,7 +466,7 @@ RK4UpdateMethod = function(change_model) {
     step_names = map_names(existing_names, local_step_names)
     
     ## rk4 step 1
-    k1_new_before = before
+    k1_new_before = before_first
     k1_new_update = sprintf("%s ~ %s", step_names$k1, rates) |> lapply(as.formula)
     
     ## rk4 step 2
@@ -521,23 +589,31 @@ HazardUpdateMethod = function(change_model) {
 #' originates.
 #' @param to String giving the name of the compartment to which the flow is
 #' going.
-#' @param rate A two-sided formula with the left-hand-side giving the name of
-#' the absolute flow rate per unit time-step and the right-hand-side giving 
-#' an expression for the per-capita rate of flow from `from` to `to`.
+#' @param rate String giving the expression for the per-capita flow rate.
+#' Alternatively, for back compatibility, a two-sided formula with the
+#' left-hand-side giving the name of the absolute flow rate per unit time-step 
+#' and the right-hand-side giving an expression for the per-capita rate of 
+#' flow from `from` to `to`.
+#' @param abs_rate String giving the name for the absolute flow rate,
+#' which will be computed as `from * rate`. If a formula is passed to
+#' `rate` (not recommended), then this `abs_rate` argument will be ignored.
 #' 
 #' @export
-mp_per_capita_flow = function(from, to, rate) {
+mp_per_capita_flow = function(from, to, rate, abs_rate = NULL) {
   call_string = deparse(match.call())
+  rate = handle_rate_args(rate, abs_rate)
   PerCapitaFlow(from, to, rate, call_string)
 }
 
 #' @describeIn mp_per_capita_flow Only flow into the `to` compartment, and
 #' do not flow out of the `from` compartment.
 #' @export
-mp_per_capita_inflow = function(from, to, rate) {
+mp_per_capita_inflow = function(from, to, rate, abs_rate = NULL) {
   call_string = deparse(match.call())
+  rate = handle_rate_args(rate, abs_rate)
   PerCapitaInflow(from, to, rate, call_string)
 }
+
 
 PerCapitaInflow = function(from, to, rate, call_string) {
   self = PerCapitaFlow(from, to, rate, call_string)

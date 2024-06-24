@@ -13,7 +13,7 @@ test_that("matrices can be made on the fly in the engine", {
   )
   expect_error(
     engine_eval(~matrix(x, 12, 2), x = matrix(1:35, 7, 5)),
-    regexp = "The size of the input must less than or equal to that of the output"
+    regexp = "The size of the input must be less than or equal to that of the output"
   )
   expect_equal(
     engine_eval(~matrix(1/2, 2, 3)),
@@ -23,5 +23,9 @@ test_that("matrices can be made on the fly in the engine", {
   expect_equal(
     engine_eval(~matrix(y, 2, 3), y = y),
     matrix(y, 2, 3)
+  )
+  expect_error(
+    engine_eval(~ matrix(c(1,2,3,4), 2, 2, 1)),
+    regexp = "Too many arguments provided to function. Note this function differs from the base R version in the arguments it accepts."
   )
 })
