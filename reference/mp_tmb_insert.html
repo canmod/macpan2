@@ -30,7 +30,7 @@ of deletion."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/lib
     
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.5.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.5.6</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -228,14 +228,13 @@ model (e.g., <code>new_model = mp_tmb_insert(model, ...)</code>).</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---------------------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Before the simulation loop (t = 0):</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1: S ~ N - I</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1: S ~ N - 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---------------------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> At every iteration of the simulation loop (t = 1 to T):</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1: infection ~ beta * S * I/N</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2: S ~ S - infection</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3: I ~ I + infection</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1: mp_per_capita_flow(from = "S", to = "I", rate = infection ~ beta * </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      I/N)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## Update the mixing process to include </span></span></span>
@@ -260,14 +259,12 @@ model (e.g., <code>new_model = mp_tmb_insert(model, ...)</code>).</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---------------------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Before the simulation loop (t = 0):</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1: S ~ N - I</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1: S ~ N - 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---------------------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> At every iteration of the simulation loop (t = 1 to T):</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---------------------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1: infection ~ beta * I * (S/N)^zeta</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2: S ~ S - infection</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3: I ~ I + infection</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## Parameterize with log_beta in place of beta.</span></span></span>
@@ -293,14 +290,13 @@ model (e.g., <code>new_model = mp_tmb_insert(model, ...)</code>).</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Before the simulation loop (t = 0):</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---------------------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1: beta ~ exp(log_beta)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2: S ~ N - I</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2: S ~ N - 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---------------------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> At every iteration of the simulation loop (t = 1 to T):</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1: infection ~ beta * S * I/N</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2: S ~ S - infection</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3: I ~ I + infection</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1: mp_per_capita_flow(from = "S", to = "I", rate = infection ~ beta * </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      I/N)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.5.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.5.6</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -63,9 +63,9 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">mp_per_capita_flow</span><span class="op">(</span><span class="va">from</span>, <span class="va">to</span>, <span class="va">rate</span><span class="op">)</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">mp_per_capita_flow</span><span class="op">(</span><span class="va">from</span>, <span class="va">to</span>, <span class="va">rate</span>, abs_rate <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">mp_per_capita_inflow</span><span class="op">(</span><span class="va">from</span>, <span class="va">to</span>, <span class="va">rate</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">mp_per_capita_inflow</span><span class="op">(</span><span class="va">from</span>, <span class="va">to</span>, <span class="va">rate</span>, abs_rate <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -81,9 +81,17 @@ going.</p></dd>
 
 
 <dt>rate</dt>
-<dd><p>A two-sided formula with the left-hand-side giving the name of
-the absolute flow rate per unit time-step and the right-hand-side giving
-an expression for the per-capita rate of flow from <code>from</code> to <code>to</code>.</p></dd>
+<dd><p>String giving the expression for the per-capita flow rate.
+Alternatively, for back compatibility, a two-sided formula with the
+left-hand-side giving the name of the absolute flow rate per unit time-step
+and the right-hand-side giving an expression for the per-capita rate of
+flow from <code>from</code> to <code>to</code>.</p></dd>
+
+
+<dt>abs_rate</dt>
+<dd><p>String giving the name for the absolute flow rate,
+which will be computed as <code>from * rate</code>. If a formula is passed to
+<code>rate</code> (not recommended), then this <code>abs_rate</code> argument will be ignored.</p></dd>
 
 </dl></div>
     <div class="section level2">
