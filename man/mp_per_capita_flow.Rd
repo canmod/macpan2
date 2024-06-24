@@ -5,9 +5,9 @@
 \alias{mp_per_capita_inflow}
 \title{Per-Capita Flow (Experimental)}
 \usage{
-mp_per_capita_flow(from, to, rate)
+mp_per_capita_flow(from, to, rate, abs_rate = NULL)
 
-mp_per_capita_inflow(from, to, rate)
+mp_per_capita_inflow(from, to, rate, abs_rate = NULL)
 }
 \arguments{
 \item{from}{String giving the name of the compartment from which the flow
@@ -16,9 +16,15 @@ originates.}
 \item{to}{String giving the name of the compartment to which the flow is
 going.}
 
-\item{rate}{A two-sided formula with the left-hand-side giving the name of
-the absolute flow rate per unit time-step and the right-hand-side giving
-an expression for the per-capita rate of flow from \code{from} to \code{to}.}
+\item{rate}{String giving the expression for the per-capita flow rate.
+Alternatively, for back compatibility, a two-sided formula with the
+left-hand-side giving the name of the absolute flow rate per unit time-step
+and the right-hand-side giving an expression for the per-capita rate of
+flow from \code{from} to \code{to}.}
+
+\item{abs_rate}{String giving the name for the absolute flow rate,
+which will be computed as \code{from * rate}. If a formula is passed to
+\code{rate} (not recommended), then this \code{abs_rate} argument will be ignored.}
 }
 \description{
 Per-Capita Flow (Experimental)

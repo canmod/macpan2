@@ -10,6 +10,14 @@ to_absolute_flows = function(per_capita_flows) {
   lapply(char_list, as.formula)
 }
 
+handle_rate_args = function(rate, abs_rate = NULL) {
+  if (!is_two_sided(rate)) {
+    if (is_one_sided(rate)) rate = rhs_char(rate)
+    rate = two_sided(abs_rate, rate)
+  }
+  return(rate)
+}
+
 only_iterable = function(expr_list, states) {
   non_iterable_funcs = getOption("macpan2_non_iterable_funcs")
   parse_expr = make_expr_parser(finalizer = finalizer_char)
@@ -581,23 +589,31 @@ HazardUpdateMethod = function(change_model) {
 #' originates.
 #' @param to String giving the name of the compartment to which the flow is
 #' going.
-#' @param rate A two-sided formula with the left-hand-side giving the name of
-#' the absolute flow rate per unit time-step and the right-hand-side giving 
-#' an expression for the per-capita rate of flow from `from` to `to`.
+#' @param rate String giving the expression for the per-capita flow rate.
+#' Alternatively, for back compatibility, a two-sided formula with the
+#' left-hand-side giving the name of the absolute flow rate per unit time-step 
+#' and the right-hand-side giving an expression for the per-capita rate of 
+#' flow from `from` to `to`.
+#' @param abs_rate String giving the name for the absolute flow rate,
+#' which will be computed as `from * rate`. If a formula is passed to
+#' `rate` (not recommended), then this `abs_rate` argument will be ignored.
 #' 
 #' @export
-mp_per_capita_flow = function(from, to, rate) {
+mp_per_capita_flow = function(from, to, rate, abs_rate = NULL) {
   call_string = deparse(match.call())
+  rate = handle_rate_args(rate, abs_rate)
   PerCapitaFlow(from, to, rate, call_string)
 }
 
 #' @describeIn mp_per_capita_flow Only flow into the `to` compartment, and
 #' do not flow out of the `from` compartment.
 #' @export
-mp_per_capita_inflow = function(from, to, rate) {
+mp_per_capita_inflow = function(from, to, rate, abs_rate = NULL) {
   call_string = deparse(match.call())
+  rate = handle_rate_args(rate, abs_rate)
   PerCapitaInflow(from, to, rate, call_string)
 }
+
 
 PerCapitaInflow = function(from, to, rate, call_string) {
   self = PerCapitaFlow(from, to, rate, call_string)
