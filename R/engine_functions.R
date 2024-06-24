@@ -404,6 +404,7 @@
 #'
 #' ```
 #' engine_eval(~ A[c(3, 1, 2), 2], A = matrix(1:12, 4, 3))
+#' engine_eval(~ block(x,i,j,n,m), x = matrix(1:12, 4, 3), i=1, j=1, n=2, m=2)
 #' ```
 #'
 #' ## Accessing Past Values in the Simulation History

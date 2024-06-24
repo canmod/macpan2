@@ -517,6 +517,7 @@ so the first row/column gets index, \code{0}, etc.
 \subsection{Examples}{
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{engine_eval(~ A[c(3, 1, 2), 2], A = matrix(1:12, 4, 3))
+engine_eval(~ block(x,i,j,n,m), x = matrix(1:12, 4, 3), i=1, j=1, n=2, m=2)
 }\if{html}{\out{</div>}}
 }
 

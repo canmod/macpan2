@@ -1684,7 +1684,10 @@ public:
                 // #' from the base R version in that it must be filled
                 // #' by column and there is no `byrow` option.
                 // #'
-                //std::cout << "n: " << n << std::endl;
+                // std::cout << "n: " << n << std::endl;
+                // std::cout << "index2what: " << index2what.size() << std::endl;
+                // std::cout << "index2mats: " << index2mats.size() << std::endl;
+                // std::cout << "args: " << args.size() << std::endl;
                 if (n > 3){
                     SetError(MP2_MATRIX, "Too many arguments provided to function. Note this function differs from the base R version in the arguments it accepts.", row, MP2_MATRIX, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                 }
@@ -1916,6 +1919,7 @@ public:
             // #'
             // #' ```
             // #' engine_eval(~ A[c(3, 1, 2), 2], A = matrix(1:12, 4, 3))
+            // #' engine_eval(~ block(x,i,j,n,m), x = matrix(1:12, 4, 3), i=1, j=1, n=2, m=2)
             // #' ```
             // #'
             case MP2_SQUARE_BRACKET: // [
@@ -1955,19 +1959,21 @@ public:
                 colIndex = args.get_as_int(2);
                 rows = args.get_as_int(3);
                 cols = args.get_as_int(4);
-                err_code = args.check_indices(0, args.get_as_int_vec(1), args.get_as_int_vec(2));
+
+                v1 = {rowIndex};
+                v2 = {colIndex};
+                v3 = {rowIndex + rows - 1};
+                v4 = {colIndex + cols - 1};
+                err_code = args.check_indices(0, v1, v2);
                 if (err_code){
                     SetError(MP2_BLOCK, "Illegal starting index to block", row, MP2_BLOCK, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
+                    return m;
                 }
-                //v1 = args.get_as_int_vec(1);
-                //v2 = args.get_as_int_vec(2);
-                //v3 = args.get_as_int_vec(3);
-                //v4 = args.get_as_int_vec(4);
-                //v[0] = v1[0] + v3[0] addVectors();
-                //err_code = args.check_indices(0, args.get_as_int_vec(1) + args.get_as_int_vec(3), args.get_as_int_vec(2) + args.get_as_int_vec(4));
-                //if (err_code){
-                //    SetError(MP2_BLOCK, "Illegal index to block, requesting more elements than available in input", row, MP2_BLOCK, args.all_rows(), args.all_cols(), args.all_type_ints(), t); 
-                //}
+                err_code = args.check_indices(0, v3, v4);
+                if (err_code){
+                    SetError(MP2_BLOCK, "Illegal index to block, requesting more elements than available in input", row, MP2_BLOCK, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
+                    return m;
+                }
                 return args[0].block(rowIndex, colIndex, rows, cols);
 
             // #' ## Accessing Past Values in the Simulation History
