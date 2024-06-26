@@ -180,9 +180,7 @@ TMBModel = function(
     ## FIXME: need a dummy parameter if the model has not
     ## yet been parameterized. is there a more TMB-ish
     ## way to do this?
-    if (length(p$params) == 0L) {
-      p$params = 0
-    } 
+    if (length(p$params) == 0L) p$params = 0
     p
   }
   self$random_arg = function() {
