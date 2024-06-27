@@ -46,3 +46,14 @@ test_that("parse_tables ...", {
     )
   )
 })
+
+test_that("argument names cannot be part of macpan2 expressions",{
+  expect_error(engine_eval(~ matrix(1:6,2,3,byrow = TRUE))
+               ,"Argument names cannot be used in engine expressions.")
+  
+  expect_error(engine_eval(~ group_sums(x = x, f = f, n = n), x = -3:3, f = rep(c(0,1),length=7), n = c(0,1))
+               ,"Argument names cannot be used in engine expressions.")
+  
+  expect_equal(matrix(1:6,2,3,byrow = TRUE), engine_eval(~ x, x = matrix(1:6,2,3,byrow = TRUE)))
+  
+})

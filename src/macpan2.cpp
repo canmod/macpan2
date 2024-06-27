@@ -1895,13 +1895,11 @@ public:
             // #' * `i` -- An integer column vector (for `[`) or
             // #' integer scalar (for `block`) containing the indices
             // #' of the rows to extract (for `[`) or the index of the
-            // #' first row to extract (for `block`). Indices are zero-based,
-            // #' the first row in `x` is given by `i = 0`.
+            // #' first row to extract (for `block`).
             // #' * `j` -- An integer column vector (for `[`) or
             // #' integer scalar (for `block`) containing the indices
             // #' of the columns to extract (for `[`) or the index of
-            // #' the first column to extract (for `block`). Indices are zero-based,
-            // #' the first column in `x` is given by `j = 0`.
+            // #' the first column to extract (for `block`). 
             // #' * `n` -- Number of rows in the block to return.
             // #' * `m` -- Number of columns in the block to return.
             // #'
@@ -2185,10 +2183,10 @@ public:
 
             // #' ## Time Indexing
             // #'
-            // #' Get the index of current or lagged time step or
-            // #' the index of the current time group. A time group
-            // #' is a contiguous set of time steps defined by two
-            // #' change points.
+            // #' Get or update the index of the current or lagged 
+            // #' time step or the index of the current time group. 
+            // #' A time group is a contiguous set of time steps 
+            // #' defined by two change points.
             // #'
             // #' ### Functions
             // #'
@@ -2205,7 +2203,9 @@ public:
             // #' Please see the examples below, they are easier
             // #' to understand than this explanation.
             // #' * `time_var(x, change_points)`: An improvement
-            // #' to `time_group`.
+            // #' to `time_group`. Returns values in `x`
+            // #' at time steps in `change_points`, return value
+            // #' remains constant between `change_points`.
             // #'
             // #' ### Arguments
             // #'
@@ -2230,7 +2230,7 @@ public:
             // #' simple_sims(
             // #'   iteration_exprs = list(x ~ time_step(0)),
             // #'   time_steps = 10,
-            // #'   x = empty_matrix
+            // #'   mats = list(x = empty_matrix)
             // #' )
             // #' sims = simple_sims(
             // #'   iteration_exprs = list(
@@ -2238,13 +2238,14 @@ public:
             // #'     time_varying_parameter ~ time_variation_schedule[j]
             // #'   ),
             // #'   time_steps = 10,
-            // #'   j = 0,
-            // #'   change_points = c(0, 4, 7),
-            // #'   time_variation_schedule = c(42, pi, sqrt(2)),
-            // #'   time_varying_parameter = empty_matrix
+            // #'   mats = list(
+            // #'     j = 0,
+            // #'     change_points = c(0, 4, 7),
+            // #'     time_variation_schedule = c(42, pi, sqrt(2)),
+            // #'     time_varying_parameter = empty_matrix
+            // #'   )
             // #' )
             // #' set.seed(1L)
-            // #' simple_sims()
             // #' change_points = c(0,2,5)
             // #' x_val = rnorm(length(change_points))
             // #'(simple_sims(
@@ -2252,7 +2253,7 @@ public:
             // #' , int_vecs = list(change_points = change_points)
             // #' , mats = list(x = empty_matrix, x_val=x_val) 
             // #' , time_steps = 10L
-            // #'   ) %>% filter(matrix=="x")
+            // #'   ) |> dplyr::filter(matrix=="x")
             // #' )
             // #' ```
             // #'
@@ -2849,13 +2850,15 @@ public:
                 // #' paired with those in `v`. If the length of
                 // #' `i` does not equal that of `v`, then it must have a
                 // #' single index that gets paired with every element of
-                // #' `v`.
+                // #' `v`. Indices are zero-based, `i=0` corresponds to 
+                // #' the first row.
                 // #' * `j` -- Column vector of column indices pointing to
                 // #' the elements of `x` to be updated. These indices are
                 // #' paired with those in `v`. If the length of
                 // #' `j` does not equal that of `v`, then it must have a
                 // #' single index that gets paired with every element of
-                // #' `v`.
+                // #' `v`. Indices are zero-based, `j=0` corresponds to
+                // #' the first column.
                 // #' * `v` -- Column vector of values to replace elements
                 // #' of `x` at locations given by `i` and `j`.
                 // #'
