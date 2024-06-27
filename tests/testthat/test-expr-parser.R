@@ -10,21 +10,8 @@ test_that("parse_tables ...", {
   form = ~ log(x) + exp(y)
   environment(form) = eval_env
 
-  f = make_expr_parser("f", finalizer = finalizer_char)
-  g = make_expr_parser("g", finalizer = finalizer_index)
-
-  ## work around testthat calling stuff from elsewhere.
-  ## the issue is that make_expr_parser assumes that you are going to be
-  ## calling from the same environment (or at least from an environment
-  ## that can reach the environment in which the function was made) -- it
-  ## is a recursive function. the idea of make_expr_parser is that it gets
-  ## used at package loading time to create macpan2:::parse_expr, which gets
-  ## used only by package functions. this ensures that it will be in the macpan2
-  ## namespace, which can be easily accessed by other functions in the
-  ## namespace. here we need to contrive an unrealistic case so that the
-  ## test and coverage infrastructure works.
-  assign("f", f, envir = .GlobalEnv)
-  assign("g", g, envir = .GlobalEnv)
+  f = make_expr_parser(finalizer = finalizer_char)
+  g = make_expr_parser(finalizer = finalizer_index)
 
   g_table = g(form)
   f_table = f(form)

@@ -177,7 +177,7 @@ TMBModel = function(
       random = self$random$vector()
     )
     
-    ## FIXME: need a dummy parameter if the model has not
+    ## need a dummy parameter if the model has not
     ## yet been parameterized. is there a more TMB-ish
     ## way to do this?
     if (length(p$params) == 0L) p$params = 0
@@ -192,21 +192,29 @@ TMBModel = function(
       , verbose = getOption("macpan2_verbose")
     ) {
     params = self$param_arg()
-    if (getOption("macpan2_tmb_type") == "Fun") params$params = numeric()
-    list(
+    mp_args = list(
         data = self$data_arg()
       , parameters = params
       , random = self$random_arg()
-      , DLL = tmb_cpp
-      , silent = !verbose
     )
+    tmb_args = getOption("macpan2_tmb_adfun_args")
+    
+    ## FIXME: deprecate old less flexible argument options.
+    if (!"DLL" %in% names(tmb_args)) tmb_args$DLL = tmb_cpp
+    if (!"silent" %in% names(tmb_args)) tmb_args$silent = !verbose
+    
+    ## catch modifications to mp_args that must be made in response
+    ## to certain choices in tmb_args. surely there will be more
+    ## to add here.
+    if (identical(tmb_args$type, "Fun")) mp_args$parameters$params = numeric()
+    
+    return(c(mp_args, tmb_args))
   }
   self$ad_fun = function(
         tmb_cpp = getOption("macpan2_dll")
       , verbose = getOption("macpan2_verbose")
-      , derivs = getOption("macpan2_tmb_derivs")
     ) {
-    do.call(TMB::MakeADFun, self$make_ad_fun_arg(tmb_cpp))
+    do.call(TMB::MakeADFun, self$make_ad_fun_arg(tmb_cpp, verbose))
   }
 
   self$simulator = function(
@@ -424,6 +432,7 @@ mp_trajectory_sd = function(model, conf.int = FALSE, conf.level = 0.95) {
   UseMethod("mp_trajectory_sd")
 }
 
+
 #' @param n Number of samples used in `mp_trajectory_ensemble`.
 #' @param probs What quantiles should be returned by `mp_trajectory_ensemble`.
 #' @describeIn mp_trajectory Simulate a trajectory that includes uncertainty
@@ -440,14 +449,18 @@ mp_trajectory_ensemble = function(model, n, probs = c(0.025, 0.975)) {
 #' @importFrom stats qnorm
 #' @export
 mp_trajectory_sd.TMBSimulator = function(model, conf.int = FALSE, conf.level = 0.95) {
-  alpha = (1 - conf.level) / 2
   r = model$report_with_sd()
-  if (conf.int) {
-    r$conf.low = r$value + r$sd * qnorm(alpha)
-    r$conf.high = r$value + r$sd * qnorm(1 - alpha)
-  }
+  if (conf.int) r = normal_quantiles(r, conf.level)
   r
-} 
+}
+
+normal_quantiles = function(report_with_sd, conf.level = 0.95) {
+  alpha = (1 - conf.level) / 2
+  r = report_with_sd
+  r$conf.low = r$value + r$sd * qnorm(alpha)
+  r$conf.high = r$value + r$sd * qnorm(1 - alpha)
+  return(r)
+}
 
 #' @export
 mp_trajectory_sd.TMBCalibrator = function(model, conf.int = FALSE, conf.level = 0.95) {
@@ -628,9 +641,10 @@ TMBSimulationUtils = function() {
     if (compute_sd) r$values = cbind(r$values, self$sdreport()$sd)
     if (.values_only) return(r$values)
     s = self$.simulation_formatter(r, .phases)
-    if (.sort) {
-      s = s[order(s$time), , drop = FALSE] ## TODO: move sorting by time to the c++ side
-    }
+    
+    ## TODO: move sorting by time to the c++ side
+    if (.sort) s = s[order(s$time), , drop = FALSE] 
+    
     reset_rownames(s)
   }
   return_object(self, "TMBSimulationFormatter")

@@ -8,6 +8,7 @@ TMBModelSpec = function(
     , must_not_save = character()
     , sim_exprs = character()
     , state_update = c("euler", "rk4", "euler_multinomial", "hazard")
+    , sdreport = TRUE
   ) {
   self = Base()
   before = force_expr_list(before)
@@ -24,6 +25,7 @@ TMBModelSpec = function(
   self$must_save = must_save
   self$must_not_save = must_not_save
   self$sim_exprs = sim_exprs
+  self$sdreport = sdreport
   
   self$expr_list = function() {
     ExprList(
@@ -146,6 +148,7 @@ TMBModelSpec = function(
           int_vecs = do.call(IntVecs, self$all_integers())
         )
       , time_steps = Time(as.integer(time_steps))
+      , do_pred_sdreport = self$sdreport
     )
   }
   self$simulator_fresh = function(
