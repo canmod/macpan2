@@ -1,8 +1,8 @@
 library(macpan2)
 
 spec = mp_tmb_model_spec(
-    before = list(S ~ N - 1)
-  , during = list(mp_per_capita_flow("S", "I", infection ~ beta * I / N))
+    before = S ~ N - 1
+  , during = mp_per_capita_flow("S", "I", "beta * I / N", "infection")
   , default = list(N = 100, beta = 0.2, I = 1)
 )
 specs = list(

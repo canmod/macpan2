@@ -56,21 +56,3 @@ sparse_matrix_notation = function(M, zero_based = TRUE, tol = 1e-4) {
 sparse_rbf_notation = function(time_steps, dimension, zero_based = TRUE, tol = 1e-2) {
   rbf(time_steps, dimension) |> sparse_matrix_notation(zero_based, tol)
 }
-# 
-# bb = 80
-# x = sparse_rbf_notation(100, bb, FALSE)
-# b = rnorm(bb)
-# 
-# times = x$M %*% b
-# times_approx = tapply(
-#     x$values * b[x$col_index]
-#   , x$row_index
-#   , sum
-# )
-# plot(times, times_approx)
-# length(x$values) / prod(dim(x$M))
-# matplot(x$M, type = "l")
-# matplot(x$Msparse, type = "l")
-# plot(x$M %*% b, type = "n")
-# lines(x$M %*% b)
-# lines(x$Msparse %*% b, col = "red")

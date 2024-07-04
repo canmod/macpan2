@@ -13,7 +13,8 @@ mp_tmb_model_spec(
   must_save = character(),
   must_not_save = character(),
   sim_exprs = character(),
-  state_update = c("euler", "rk4", "euler_multinomial", "hazard")
+  state_update = c("euler", "rk4", "euler_multinomial", "hazard"),
+  sdreport = TRUE
 )
 }
 \arguments{
