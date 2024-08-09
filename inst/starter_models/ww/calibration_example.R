@@ -4,6 +4,83 @@ library(dplyr)
 options(macpan2_default_loss = "neg_bin") 
 
 ## -------------------------
+## Local function to back-transform estimates and CIs
+## -------------------------
+
+# to be included in mp_tmb_coef in the future
+# see here, https://github.com/canmod/macpan2/issues/179
+backtrans <- function(x) {
+  vars1 <- intersect(c("default", "estimate", "conf.low", "conf.high"), names(x))
+  prefix <- stringr::str_extract(x[["mat"]], "^log(it)?_")  |> tidyr::replace_na("none")
+  sx <- split(x, prefix)
+  for (ptype in setdiff(names(sx), "none")) {
+    link <- make.link(stringr::str_remove(ptype, "_"))
+    sx[[ptype]] <- (sx[[ptype]]
+                    |> mutate(across(std.error, ~link$mu.eta(estimate)*.))
+                    |> mutate(across(any_of(vars1), link$linkinv))
+                    |> mutate(across(mat, ~stringr::str_remove(., paste0("^", ptype))))
+    )
+  }
+  bind_rows(sx)
+}
+
+## -------------------------
+## Observed Data Prep
+## -------------------------
+
+# mobility data sourced from ./inst/starter_models/macpan_base/data/get_data.R to describe 
+# contact behaviour of individuals
+# data is not currently part of package (maybe there was a reason for this, too large etc.)
+#mobility_data = readRDS(system.file("inst","starter_models","macpan_base","data","mobility_data.RDS",package="macpan2"))
+mobility_data = readRDS(file.path("inst","starter_models","macpan_base","data","mobility_data.RDS"))
+# do we need this time series data, is there other data containing W and A?
+#prepped_ts_data = readRDS(file.path("inst","starter_models","macpan_base","data","ts_data.RDS"))
+
+# To further prepare the mobility data for calibration we filter for the 
+# appropriate time range, create a numeric date field named 'time' and compute 
+# the logarithm of the mobility index.
+prepped_mobility_data = (mobility_data
+                         # dates from base model calibration (Figure 4)
+                         |> filter(date >= "2020-02-24" & date < "2020-08-31")
+                         # create unique time identifier
+                         |> arrange(date)
+                         |> group_by(date)
+                         |> mutate(time = cur_group_id())
+                         |> ungroup()
+                         |> mutate(log_mobility_ind = log(mobility_ind))
+)
+
+# get number of time steps in observed data
+time_steps = nrow(prepped_mobility_data %>% select(date) %>% unique())
+
+# Mobility breakpoints identified in the manuscript for piecewise varying
+# transmission.
+mobility_breaks = (prepped_mobility_data
+                   |> filter(date %in% c("2020-04-01", "2020-08-07"))
+                   |> pull(time)
+)
+# logistic transition curve for mobility breakpoints
+S_j = function(t, tau_j, s) 1/(1 + exp((t - tau_j) / s))
+
+# Model matrix (called 'X' in manuscript) describing the temporal change in 
+# transmission using mobility data and piecewise breaks smoothed with the
+# logistic curve.
+X = cbind(
+  prepped_mobility_data$log_mobility_ind
+  , S_j(1:time_steps, mobility_breaks[1], 3)
+  , S_j(1:time_steps, mobility_breaks[1], 3) * prepped_mobility_data$log_mobility_ind
+  , S_j(1:time_steps, mobility_breaks[2], 3)
+  , S_j(1:time_steps, mobility_breaks[2], 3) * prepped_mobility_data$log_mobility_ind
+) %>% as.matrix()
+
+# Get model matrix meta data for simplified matrix multiplication inside
+# macpan2 using group_sums.
+X_sparse = macpan2:::sparse_matrix_notation(X, TRUE)
+model_matrix_values = X_sparse$values
+row_ind = X_sparse$row_index
+col_ind = X_sparse$col_index
+
+## -------------------------
 ## Model Specification
 ## -------------------------
 
@@ -68,6 +145,20 @@ focal_model = (specs$ww_euler
                                 , at = Inf
                                 , expressions = list(report ~ convolution(S.E, kappa))
                )
+               
+               # add time-varying transmission with mobility data:
+               |> mp_tmb_insert(phase = "before"
+                                , at = Inf
+                                , expressions = list(relative_beta_values ~ group_sums(model_matrix_values * log_mobility_coefficients[col_ind], row_ind, model_matrix_values))
+                                , default = list(log_mobility_coefficients = empty_matrix, model_matrix_values = empty_matrix)
+                                , integers = list(row_ind = row_ind, col_ind = col_ind)
+               )
+               |> mp_tmb_insert(phase = "during"
+                                , at = 1L
+                                , expressions = list(
+                                    beta ~ exp(log_beta0 + relative_beta_values[time_step(1)])
+                                )
+               )
 )
 
 ## -------------------------
@@ -75,9 +166,6 @@ focal_model = (specs$ww_euler
 ## -------------------------
 
 # For now, using simulated data to calibrate.
-
-# set number of time steps in simulation
-time_steps = 100L
 
 # width of report convolution kernel computed according to:
 # https://canmod.net/misc/flex_specs#computing-convolutions
@@ -103,11 +191,13 @@ sim_data = (focal_model
       , ICUd = 0
       , H2 = 0
       , D = 0
+      , model_matrix_values = model_matrix_values
       , log_beta0=log(5)
       , logit_nonhosp_mort = -0.5
       , log_zeta = 1
       , qmax = qmax
       , log_Ca = log(2/3)
+      , log_mobility_coefficients = rep(0,5)
       )
   )
   |> mp_trajectory()
@@ -117,13 +207,15 @@ sim_data = (focal_model
 ## calibration
 ## -------------------------
 
+# The following calibration is only experimental until real time series data
+# is used to fit to.
 focal_calib = mp_tmb_calibrator(
     spec = focal_model
   , data = sim_data
   , traj = c("report","death", "W", "A") 
   , par = c(
       "log_Ca"
-    # negative binomial dispersion parameters for reports and deaths get added
+    # negative binomial dispersion parameters for reports, deaths, W, and A get added
     # automatically with options(macpan2_default_loss = "neg_bin") set above
   )
   , default = list(
@@ -146,12 +238,15 @@ focal_calib = mp_tmb_calibrator(
     , W = 0
     , A = 0
     
+    , model_matrix_values = model_matrix_values
+    
     # set initial parameter values for optimizer
     , log_beta0=log(5)
     , logit_nonhosp_mort = -0.5
     , qmax = qmax
     , log_zeta = 1
     , log_Ca = log(1/3)
+    , log_mobility_coefficients = rep(0,5)
   )
 )
 # converges
@@ -161,11 +256,13 @@ mp_optimize(focal_calib)
 fitted_data = mp_trajectory_sd(focal_calib, conf.int = TRUE)
 
 # parameter estimates
-mp_tmb_coef(focal_calib, conf.int = TRUE)
+mp_tmb_coef(focal_calib, conf.int = TRUE) |> backtrans()
 
 # back transform Ca estimate
 # estimate is fairly off, perhaps trajectories are not informative enough
 # use Ia instead of reports?
+# Also, calibration set-up doesn't really make sense, fitting to simulated data
+# but using real mobility data to inform the model
 (mp_tmb_coef(focal_calib, conf.int = TRUE)[1,]
   |> mutate(mat = "Ca")
   |> mutate_if(is.numeric,exp)
