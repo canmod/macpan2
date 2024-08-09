@@ -89,8 +89,8 @@ source("./inst/starter_models/ww/tmb.R")
 
 # Update model specification to include additional components described here:
 # https://github.com/canmod/macpan2/issues/156
-focal_model = (specs$ww_euler
-               #specs$ww_hazard
+focal_model = (#specs$ww_euler
+               specs$ww_hazard
                
                # add variable transformations:
                |> mp_tmb_insert(phase = "before"
@@ -181,7 +181,9 @@ sim_data = (focal_model
     , default = list(
         S = 14.57e6 - 5 
       , log_E = log(5)
-      , Ia = 0
+      # infectious states cannot be all zero when using hazard, otherwise incidence
+      # at first time step is NaN
+      , Ia = 1 
       , Ip = 0
       , Im = 0
       , Is = 0
@@ -225,7 +227,9 @@ focal_calib = mp_tmb_calibrator(
     # https://github.com/mac-theobio/macpan_base/blob/main/code/ontario_calibrate_comb.R
       S = 14.57e6 - 5 
     , log_E = log(5)
-    , Ia = 0
+    # infectious states cannot be all zero when using hazard, otherwise incidence
+    # at first time step is NaN
+    , Ia = 1
     , Ip = 0
     , Im = 0
     , Is = 0
