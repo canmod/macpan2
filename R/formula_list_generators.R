@@ -518,6 +518,7 @@ EulerMultinomialUpdateMethod = function(change_model) {
     if (!scalar_expr) {
       vec = sprintf("c%s", vec)
     }
+    if(!simple_expr & scalar_expr){vec = sprintf("c%s", vec)}
     return(vec)
   }
   
