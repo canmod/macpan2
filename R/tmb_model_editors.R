@@ -181,6 +181,48 @@ mp_tmb_delete = function(model
   )
 }
 
+#' @export
+mp_tmb_insert_reports = function(model
+  , incidence_name
+  , report_prob
+  , mean_delay
+  , cv_delay
+  , reports_name = sprintf("reported_%s", incidence_name)
+  , report_prob_name = sprintf("%s_report_prob", incidence_name)
+  , mean_delay_name = sprintf("%s_mean_delay", incidence_name)
+  , cv_delay_name = sprintf("%s_cv_delay", incidence_name)
+) {
+  model = assert_cls(model, "TMBModelSpec", match.call(), "?mp_tmb_model_spec")
+  local_names = c(dist = "dist", delta = "delta", kernel = "kernel")
+  map = model$name_map(local_names)
+  default = setNames(
+      list(report_prob, mean_delay, cv_delay)
+    , c(report_prob_name, mean_delay_name, cv_delay_name)
+  )
+  
+  cv2 = cv_delay^2
+  shape = 1 / cv2
+  scale = mean_delay * cv2
+  kernel_length = qgamma(0.95, shape, scale = scale) |> ceiling() |> as.integer()
+
+  expressions = c(
+      sprintf("%s ~ pgamma(1:%s, 1/(%s), %s * (%s^2))", map$dist, kernel_length + 1L, cv_delay_name, mean_delay_name, cv_delay_name)
+    , sprintf("%s ~ %s[1:%s] - %s[0:%s]", map$delta, map$dist, kernel_length, map$dist, kernel_length - 1L)
+    , sprintf("%s ~ %s * %s / sum(%s)", map$kernel, report_prob_name, map$delta, map$delta)
+    , sprintf("%s ~ convolution(%s, %s)", reports_name, incidence_name, map$kernel)
+  ) |> lapply(as.formula)
+  
+  mp_tmb_insert(model
+    , phase = "during"
+    , at = Inf
+    , expressions = expressions
+    , default = default
+    , must_save = reports_name
+    , must_not_save = unlist(map, use.names = FALSE)
+  )
+}
+
+
 ## model is a spec
 ## new_defaults is a list of raw defaults, each type of which has a `names` S3 method
 check_default_updates = function(model, new_defaults) {
