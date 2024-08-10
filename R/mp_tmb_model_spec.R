@@ -11,6 +11,9 @@ TMBModelSpec = function(
   ) {
   must_not_save = handle_saving_conflicts(must_save, must_not_save)
   self = Base()
+  before = force_expr_list(before)
+  during = force_expr_list(during)
+  after = force_expr_list(after)
   self$change_model = get_change_model(before, during, after)
   self$state_update = get_state_update_type(match.arg(state_update), self$change_model)
   self$update_method = get_state_update_method(self$state_update, self$change_model)
@@ -93,7 +96,10 @@ TMBModelSpec = function(
       , self$state_update
     )
   }
-  self$change_update_method = function(state_update = c("euler", "rk4", "euler_multinomial", "hazard")) {
+  self$change_update_method = function(
+      state_update = c("euler", "rk4", "euler_multinomial", "hazard")
+    ) {
+    
     if (self$state_update == "no") {
       warning("This model has not formalized the notion of a state variable, and so changing how the state variables are updated has no effect. Models with formalized state variables are specified with state flows using functions such as mp_per_capita_flow.")
     }
@@ -127,11 +133,18 @@ TMBModelSpec = function(
       , initialize_ad_fun = TRUE
   ) {
     self$check_names()
+    time_args = must_save_time_args(
+      c(
+          self$update_method$before()
+        , self$update_method$during()
+        , self$update_method$after()
+      )
+    )
     mats = update_default(self$all_matrices(), default)
     mat_args = c(mats, mat_options$from_spec(
         mats
       , outputs
-      , self$must_save
+      , c(self$must_save,time_args)
       , self$must_not_save
     ))
     TMBModel(
@@ -218,6 +231,17 @@ update_default = function(mats, default) {
   mats
 }
 
+must_save_time_args = function(formulas) {
+  time_dep_funcs = getOption("macpan2_time_dep_funcs")
+  parse_expr = make_expr_parser(finalizer = macpan2:::finalizer_char)
+  time_args = (formulas
+     |> lapply(macpan2:::rhs)
+     |> lapply(parse_expr)
+     |> lapply(\(x) x$x[x$i[x$x %in% time_dep_funcs] + 1])
+     |> unlist()
+  )
+  return(time_args)
+}
 #' Specify a TMB Model
 #' 
 #' Specify a model in the TMB engine.

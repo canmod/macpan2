@@ -201,7 +201,7 @@ and returns a column vector with all integers between
 the two inputs.
 
 The \code{seq} function is a little different from the
-base R default, \code{\link{seq}}, in that it
+base R default, \code{\link[base]{seq}}, in that it
 allows the user precise control over the length of
 the output through the \code{length} argument. The
 base R function gives the user this option, but not
@@ -338,7 +338,7 @@ combined using the \code{\link{cbind}} and
 The \code{matrix} function can be used to redefine the
 numbers of rows and columns to use for arranging
 the values of a matrix. It works similarly to
-the base R \code{\link{matrix}} function in that it
+the base R \code{\link[base]{matrix}} function in that it
 takes the same arguments.
 On the other hand, this function differs substantially
 from the base R version in that it must be filled
@@ -491,11 +491,13 @@ contiguous subset of rows and columns of \code{x}
 \item \code{i} -- An integer column vector (for \code{[}) or
 integer scalar (for \code{block}) containing the indices
 of the rows to extract (for \code{[}) or the index of the
-first row to extract (for \code{block}).
+first row to extract (for \code{block}). Indices are zero-based,
+the first row in \code{x} is given by \code{i = 0}.
 \item \code{j} -- An integer column vector (for \code{[}) or
 integer scalar (for \code{block}) containing the indices
 of the columns to extract (for \code{[}) or the index of
-the first column to extract (for \code{block}).
+the first column to extract (for \code{block}). Indices are zero-based,
+the first column in \code{x} is given by \code{j = 0}.
 \item \code{n} -- Number of rows in the block to return.
 \item \code{m} -- Number of columns in the block to return.
 }

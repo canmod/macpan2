@@ -93,16 +93,9 @@ simplest possible model of epidemiological transmission.
 ``` r
 library(macpan2)
 si = mp_tmb_model_spec(
-    before = list(
-        I ~ 1
-      , S ~ N - I
-    )
-  , during = list(
-        infection ~ beta * S * I / N
-      , S ~ S - infection
-      , I ~ I + infection
-    )
-  , default = list(N = 100, beta = 0.25)
+    before = S ~ N - I
+  , during = mp_per_capita_flow("S", "I", "beta * I / N", "infection")
+  , default = list(N = 100, I = 1, beta = 0.2)
 )
 print(si)
 ```
@@ -110,22 +103,21 @@ print(si)
     ## ---------------------
     ## Default values:
     ## ---------------------
-    ##  matrix row col  value
-    ##       N         100.00
-    ##    beta           0.25
+    ##  matrix row col value
+    ##       N         100.0
+    ##       I           1.0
+    ##    beta           0.2
     ## 
     ## ---------------------
     ## Before the simulation loop (t = 0):
     ## ---------------------
-    ## 1: I ~ 1
-    ## 2: S ~ N - I
+    ## 1: S ~ N - I
     ## 
     ## ---------------------
     ## At every iteration of the simulation loop (t = 1 to T):
     ## ---------------------
-    ## 1: infection ~ beta * S * I/N
-    ## 2: S ~ S - infection
-    ## 3: I ~ I + infection
+    ## 1: mp_per_capita_flow(from = "S", to = "I", rate = "beta * I / N", 
+    ##      abs_rate = "infection")
 
 Simulating from this model requires choosing the number of time-steps to
 run and the model outputs to generate. Syntax for simulating `macpan2`

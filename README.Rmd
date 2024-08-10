@@ -60,16 +60,9 @@ The following code specifies an SI model, which is I think is the simplest possi
 ```{r hello-world}
 library(macpan2)
 si = mp_tmb_model_spec(
-    before = list(
-        I ~ 1
-      , S ~ N - I
-    )
-  , during = list(
-        infection ~ beta * S * I / N
-      , S ~ S - infection
-      , I ~ I + infection
-    )
-  , default = list(N = 100, beta = 0.25)
+    before = S ~ N - I
+  , during = mp_per_capita_flow("S", "I", "beta * I / N", "infection")
+  , default = list(N = 100, I = 1, beta = 0.2)
 )
 print(si)
 ```

@@ -131,7 +131,7 @@
 #' the two inputs.
 #'
 #' The `seq` function is a little different from the
-#' base R default, \code{\link{seq}}, in that it
+#' base R default, \code{\link[base]{seq}}, in that it
 #' allows the user precise control over the length of
 #' the output through the `length` argument. The
 #' base R function gives the user this option, but not
@@ -246,7 +246,7 @@
 #' The `matrix` function can be used to redefine the
 #' numbers of rows and columns to use for arranging
 #' the values of a matrix. It works similarly to
-#' the base R \code{\link{matrix}} function in that it
+#' the base R \code{\link[base]{matrix}} function in that it
 #' takes the same arguments.
 #' On the other hand, this function differs substantially
 #' from the base R version in that it must be filled
@@ -379,11 +379,13 @@
 #' * `i` -- An integer column vector (for `[`) or
 #' integer scalar (for `block`) containing the indices
 #' of the rows to extract (for `[`) or the index of the
-#' first row to extract (for `block`).
+#' first row to extract (for `block`). Indices are zero-based,
+#' the first row in `x` is given by `i = 0`.
 #' * `j` -- An integer column vector (for `[`) or
 #' integer scalar (for `block`) containing the indices
 #' of the columns to extract (for `[`) or the index of
-#' the first column to extract (for `block`).
+#' the first column to extract (for `block`). Indices are zero-based,
+#' the first column in `x` is given by `j = 0`.
 #' * `n` -- Number of rows in the block to return.
 #' * `m` -- Number of columns in the block to return.
 #'
