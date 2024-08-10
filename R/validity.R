@@ -454,3 +454,14 @@ TMBAdaptorValidity <- function() {
 }
 
 valid = TMBAdaptorValidity()
+
+
+assert_cls = function(x, cls, mc, pls_see) {
+  if (!inherits(x, cls)) {
+    sprintf(
+        "The first argument of function %s must be of class %s. Please see %s."
+      , as.character(mc[[1L]]), cls, pls_see
+    ) |> stop()
+  }
+  x
+}

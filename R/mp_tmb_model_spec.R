@@ -86,6 +86,13 @@ TMBModelSpec = function(
   }
   self$all_matrices = function() c(self$default, self$empty_matrices())
   
+  self$name_map = function(local_names) {
+    macpan2:::map_names(
+      self$all_formula_vars()
+      , setNames(as.list(local_names), local_names)
+    )
+  }
+  
   self$copy = function() {
     mp_tmb_model_spec(
         self$before, self$during, self$after
