@@ -5,70 +5,54 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="description" content="macpan2">
 <title>Advanced Specification of Time-Varying Parameters • macpan2</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.11/clipboard.min.js" integrity="sha512-7O5pXpc0oCRrxk8RUfDYFgn0nO1t+jLuIOQdOMRp4APB7uZ4vSjspzp5y6YDtDs4VzUSTbWzBFZ/LKJhnyFOKw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Advanced Specification of Time-Varying Parameters">
-<meta property="og:description" content="macpan2">
-<!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
-<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-<![endif]-->
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Advanced Specification of Time-Varying Parameters">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
-    
 
-    <nav class="navbar fixed-top navbar-light navbar-expand-lg bg-light" data-bs-theme="light"><div class="container">
-    
+
+    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
     <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.5.6</small>
 
-    
+
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="nav-item">
-  <a class="nav-link" href="../reference/index.html">Reference</a>
-</li>
+<li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="active nav-item dropdown">
-  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
-  <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="../articles/quickstart.html">Quickstart</a>
-    <a class="dropdown-item" href="../articles/example_models.html">Example Models</a>
-    <a class="dropdown-item" href="../articles/calibration.html">Calibrating Compartmental Models to Data</a>
-    <a class="dropdown-item" href="../articles/real_data.html">Fitting to Real Data</a>
-    <a class="dropdown-item" href="../articles/state_updaters.html">ODE Solvers, Process Error, and Difference Equations</a>
-    <div class="dropdown-divider"></div>
-    <a class="dropdown-item" href="../articles/index.html">More articles...</a>
-  </div>
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="../articles/quickstart.html">Quickstart</a></li>
+    <li><a class="dropdown-item" href="../articles/example_models.html">Example Models</a></li>
+    <li><a class="dropdown-item" href="../articles/calibration.html">Calibrating Compartmental Models to Data</a></li>
+    <li><a class="dropdown-item" href="../articles/real_data.html">Fitting to Real Data</a></li>
+    <li><a class="dropdown-item" href="../articles/state_updaters.html">ODE Solvers, Process Error, and Difference Equations</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
+  </ul>
 </li>
-<li class="nav-item">
-  <a class="nav-link" href="../news/index.html">Changelog</a>
-</li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
-<form class="form-inline my-2 my-lg-0" role="search">
-        <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off">
-</form>
-
-      <ul class="navbar-nav">
-<li class="nav-item">
-  <a class="external-link nav-link" href="https://github.com/canmod/macpan2/" aria-label="github">
-    <span class="fab fa fab fa-github fa-lg"></span>
-     
-  </a>
-</li>
+<ul class="navbar-nav">
+<li class="nav-item"><form class="form-inline" role="search">
+ <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
+</form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/canmod/macpan2/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
-    
+
   </div>
 </nav><div class="container template-article">
 
@@ -77,10 +61,11 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="" class="logo" alt=""><h1>Advanced Specification of Time-Varying Parameters</h1>
+
+      <h1>Advanced Specification of Time-Varying Parameters</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/canmod/macpan2/blob/HEAD/vignettes/time_varying_parameters_advanced.Rmd" class="external-link"><code>vignettes/time_varying_parameters_advanced.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/canmod/macpan2/blob/main/vignettes/time_varying_parameters_advanced.Rmd" class="external-link"><code>vignettes/time_varying_parameters_advanced.Rmd</code></a></small>
       <div class="d-none name"><code>time_varying_parameters_advanced.Rmd</code></div>
     </div>
 
@@ -341,12 +326,16 @@ include waning.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p>The <code><a href="../reference/rbf.html">macpan2::rbf</a></code> function can be used to produce a
 matrix giving the values of each basis function (each column) at each
-time step (each row). Using this matrix, <span class="math inline">\(X\)</span>, and a weights vector, <span class="math inline">\(b\)</span>, we can get a flexible output vector,
-<span class="math inline">\(y\)</span>, with a shape that can be
-modified by changing the weights vector.</p>
-<p><span class="math display">\[
+time step (each row). Using this matrix,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>X</mi><annotation encoding="application/x-tex">X</annotation></semantics></math>,
+and a weights vector,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>,
+we can get a flexible output vector,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>,
+with a shape that can be modified by changing the weights vector.</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo>=</mo><mi>X</mi><mi>b</mi></mrow><annotation encoding="application/x-tex">
 y = Xb
-\]</span></p>
+</annotation></semantics></math></p>
 <p>The following code illustrates this approach.</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1L</span><span class="op">)</span></span>
@@ -383,25 +372,46 @@ the peaks (troughs) in the output are associated with large positive
 (negative) weights.</p>
 <p>Now we want to transform the output of the (matrix) product of the
 RBF matrix and the weights vector into a time-series for the
-transmission rate, <span class="math inline">\(\beta\)</span>. Although
-we could just use the output vector as the <span class="math inline">\(\beta\)</span> time series, it is more convenient
-to transform it so that the <span class="math inline">\(\beta\)</span>
+transmission rate,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>.
+Although we could just use the output vector as the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>
+time series, it is more convenient to transform it so that the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>
 values yield more interesting dynamics in an SIR model. In particular,
-our model for <span class="math inline">\(\beta_t\)</span> as a function
-of time, <span class="math inline">\(t\)</span>, is</p>
-<p><span class="math display">\[
+our model for
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>β</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\beta_t</annotation></semantics></math>
+as a function of time,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>,
+is</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>log</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>β</mi><mi>t</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>log</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>γ</mi><mi>t</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mo>log</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>N</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mo>log</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>S</mi><mi>t</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msub><mi>x</mi><mi>t</mi></msub><mi>b</mi></mrow><annotation encoding="application/x-tex">
 \log(\beta_t) = \log(\gamma_t) + \log(N) - \log(S_t) + x_tb
-\]</span></p>
-<p>Here we have the recovery rate, <span class="math inline">\(\gamma_t\)</span>, and number of susceptibles,
-<span class="math inline">\(S_t\)</span>, at time, <span class="math inline">\(t\)</span>, the total population, <span class="math inline">\(N\)</span>, and the <span class="math inline">\(t\)</span>th row of <span class="math inline">\(X\)</span>, <span class="math inline">\(x_t\)</span>. To better understand the rationale
-for this equation note that if every element of <span class="math inline">\(b\)</span> is set to zero, we have the following
-condition.</p>
-<p><span class="math display">\[
+</annotation></semantics></math></p>
+<p>Here we have the recovery rate,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>γ</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\gamma_t</annotation></semantics></math>,
+and number of susceptibles,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>S</mi><mi>t</mi></msub><annotation encoding="application/x-tex">S_t</annotation></semantics></math>,
+at time,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>,
+the total population,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>,
+and the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>th
+row of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>X</mi><annotation encoding="application/x-tex">X</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>t</mi></msub><annotation encoding="application/x-tex">x_t</annotation></semantics></math>.
+To better understand the rationale for this equation note that if every
+element of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>
+is set to zero, we have the following condition.</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mrow><msub><mi>β</mi><mi>t</mi></msub><msub><mi>S</mi><mi>t</mi></msub></mrow><mi>N</mi></mfrac><mo>=</mo><msub><mi>γ</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">
 \frac{\beta_t S_t}{N} = \gamma_t
-\]</span></p>
+</annotation></semantics></math></p>
 <p>This condition assures that the number of infected individuals
-remains constant at time, <span class="math inline">\(t\)</span>. This
-means that positive values of <span class="math inline">\(b\)</span>
+remains constant at time,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>.
+This means that positive values of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>
 will tend to generate outbreaks and negative values will tend to reduce
 transmission.</p>
 <p><strong>fixme</strong>: I (BMB) understand why you’re setting the
@@ -509,32 +519,38 @@ data and store/return the results.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p>Now we start to deviate from the previous example: in addition to a
 parameter (<code>I_sd</code>) for the standard deviation of the noise in
-<span class="math inline">\(I\)</span>, we also add a parameter
-(<code>rbf_sd</code>) for the variance of the RBF coefficients, and
-penalize the likelihood using</p>
-<p><span class="math display">\[
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math>,
+we also add a parameter (<code>rbf_sd</code>) for the variance of the
+RBF coefficients, and penalize the likelihood using</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>I</mi><mtext mathvariant="normal">obs</mtext></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>∼</mo><mtext mathvariant="normal">Normal</mtext><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mtext mathvariant="normal">sim</mtext></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>ϕ</mi><mo>,</mo><mi>𝐛</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><msubsup><mi>σ</mi><mi>I</mi><mn>2</mn></msubsup><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>b</mi><mi>i</mi></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>∼</mo><mtext mathvariant="normal">Normal</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><msubsup><mi>σ</mi><mtext mathvariant="normal">rbf</mtext><mn>2</mn></msubsup><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr></mtable><annotation encoding="application/x-tex">
 \begin{split}
-I_{\textrm{obs}} &amp; \sim \textrm{Normal}(I_\textrm{sim}(\phi,
-{\mathbf b}), \sigma^2_I) \\
+I_{\textrm{obs}} &amp; \sim \textrm{Normal}(I_\textrm{sim}(\phi, {\mathbf b}), \sigma^2_I) \\
 b_i &amp; \sim \textrm{Normal}(0, \sigma^2_{\textrm{rbf}})
 \end{split}
-\]</span> and the likelihood is defined as: <span class="math display">\[
+</annotation></semantics></math> and the likelihood is defined as: <span class="math display">$$
 \int {\cal L}(I_{\textrm{obs}}|\phi, {\mathbf b}', \sigma^2_I) \cdot
 {\cal L}({\mathbf b}'|\sigma^2_{\textrm{rbf}}) \, d{\mathbf b}.
-\]</span></p>
-<p>The <span class="math inline">\(\phi\)</span> vector is a set of
-<em>fixed-effect</em> (unpenalized) parameters; in this case it is
-empty, but it could include (for example) time-constant recovery or
-immune-waning rates, or a baseline transmission rate (see note below).
-(The fixed-effect parameter is usually denoted as <span class="math inline">\(\beta\)</span> in statistical models, but we’ve
-already used that symbol for the transmission coefficient …)</p>
+$$</span></p>
+<p>The
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϕ</mi><annotation encoding="application/x-tex">\phi</annotation></semantics></math>
+vector is a set of <em>fixed-effect</em> (unpenalized) parameters; in
+this case it is empty, but it could include (for example) time-constant
+recovery or immune-waning rates, or a baseline transmission rate (see
+note below). (The fixed-effect parameter is usually denoted as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>
+in statistical models, but we’ve already used that symbol for the
+transmission coefficient …)</p>
 <p>Although this looks awful, (1) the high-dimensional integral over
-<span class="math inline">\(\mathbf b\)</span> can be separated into a
-product of one-dimensional integrals and (2) the Laplace approximation
-gives us a quick, reasonable approximation to the one-dimensional
-integrals.</p>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐛</mi><annotation encoding="application/x-tex">\mathbf b</annotation></semantics></math>
+can be separated into a product of one-dimensional integrals and (2) the
+Laplace approximation gives us a quick, reasonable approximation to the
+one-dimensional integrals.</p>
 <p>The <code>rbf_sd</code> parameter can be interpreted as a standard
-deviation on a Gaussian random effect or as approximately <span class="math inline">\(1/\sqrt{\lambda}\)</span> where <span class="math inline">\(\lambda\)</span> is a ridge penalty.</p>
+deviation on a Gaussian random effect or as approximately
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi>/</mi><msqrt><mi>λ</mi></msqrt></mrow><annotation encoding="application/x-tex">1/\sqrt{\lambda}</annotation></semantics></math>
+where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>λ</mi><annotation encoding="application/x-tex">\lambda</annotation></semantics></math>
+is a ridge penalty.</p>
 <p>Continuing with the coding, we add the parameters and negative
 log-likelihood to the model, making the negative log-likelihood a
 <em>sum</em> of the two terms in the integral above: the NLL of the data
@@ -692,7 +708,7 @@ Generalized Linear Models</em>. CRC Press.
 </div>
 </div>
 </div>
-  </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
 </div>
 
@@ -703,15 +719,15 @@ Generalized Linear Models</em>. CRC Press.
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.9.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
 </div>
 
     </footer>
 </div>
 
-  
 
-  
+
+
 
   </body>
 </html>

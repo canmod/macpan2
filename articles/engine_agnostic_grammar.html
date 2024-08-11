@@ -5,70 +5,54 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="description" content="macpan2">
 <title>Engine-Agnostic Model Specification Grammar • macpan2</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.11/clipboard.min.js" integrity="sha512-7O5pXpc0oCRrxk8RUfDYFgn0nO1t+jLuIOQdOMRp4APB7uZ4vSjspzp5y6YDtDs4VzUSTbWzBFZ/LKJhnyFOKw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Engine-Agnostic Model Specification Grammar">
-<meta property="og:description" content="macpan2">
-<!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
-<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-<![endif]-->
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Engine-Agnostic Model Specification Grammar">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
-    
 
-    <nav class="navbar fixed-top navbar-light navbar-expand-lg bg-light" data-bs-theme="light"><div class="container">
-    
+
+    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
     <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.5.6</small>
 
-    
+
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="nav-item">
-  <a class="nav-link" href="../reference/index.html">Reference</a>
-</li>
+<li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="active nav-item dropdown">
-  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
-  <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="../articles/quickstart.html">Quickstart</a>
-    <a class="dropdown-item" href="../articles/example_models.html">Example Models</a>
-    <a class="dropdown-item" href="../articles/calibration.html">Calibrating Compartmental Models to Data</a>
-    <a class="dropdown-item" href="../articles/real_data.html">Fitting to Real Data</a>
-    <a class="dropdown-item" href="../articles/state_updaters.html">ODE Solvers, Process Error, and Difference Equations</a>
-    <div class="dropdown-divider"></div>
-    <a class="dropdown-item" href="../articles/index.html">More articles...</a>
-  </div>
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="../articles/quickstart.html">Quickstart</a></li>
+    <li><a class="dropdown-item" href="../articles/example_models.html">Example Models</a></li>
+    <li><a class="dropdown-item" href="../articles/calibration.html">Calibrating Compartmental Models to Data</a></li>
+    <li><a class="dropdown-item" href="../articles/real_data.html">Fitting to Real Data</a></li>
+    <li><a class="dropdown-item" href="../articles/state_updaters.html">ODE Solvers, Process Error, and Difference Equations</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
+  </ul>
 </li>
-<li class="nav-item">
-  <a class="nav-link" href="../news/index.html">Changelog</a>
-</li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
-<form class="form-inline my-2 my-lg-0" role="search">
-        <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off">
-</form>
-
-      <ul class="navbar-nav">
-<li class="nav-item">
-  <a class="external-link nav-link" href="https://github.com/canmod/macpan2/" aria-label="github">
-    <span class="fab fa fab fa-github fa-lg"></span>
-     
-  </a>
-</li>
+<ul class="navbar-nav">
+<li class="nav-item"><form class="form-inline" role="search">
+ <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
+</form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/canmod/macpan2/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
-    
+
   </div>
 </nav><div class="container template-article">
 
@@ -77,10 +61,11 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="" class="logo" alt=""><h1>Engine-Agnostic Model Specification Grammar</h1>
+
+      <h1>Engine-Agnostic Model Specification Grammar</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/canmod/macpan2/blob/HEAD/vignettes/engine_agnostic_grammar.Rmd" class="external-link"><code>vignettes/engine_agnostic_grammar.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/canmod/macpan2/blob/main/vignettes/engine_agnostic_grammar.Rmd" class="external-link"><code>vignettes/engine_agnostic_grammar.Rmd</code></a></small>
       <div class="d-none name"><code>engine_agnostic_grammar.Rmd</code></div>
     </div>
 
@@ -122,41 +107,55 @@ model that has two pathogen strains (without co-infections):</p>
 <p>Here,</p>
 <ul>
 <li>
-<span class="math inline">\(S\)</span>, <span class="math inline">\(I_x\)</span>, and <span class="math inline">\(R\)</span> are the numbers of individuals that are
-susceptible, infected with strain <span class="math inline">\(x\)</span>
-(<span class="math inline">\(A\)</span> or <span class="math inline">\(B\)</span>), and recovered, respectively,</li>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>I</mi><mi>x</mi></msub><annotation encoding="application/x-tex">I_x</annotation></semantics></math>,
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>R</mi><annotation encoding="application/x-tex">R</annotation></semantics></math>
+are the numbers of individuals that are susceptible, infected with
+strain
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>A</mi><annotation encoding="application/x-tex">A</annotation></semantics></math>
+or
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>B</mi><annotation encoding="application/x-tex">B</annotation></semantics></math>),
+and recovered, respectively,</li>
 <li>
-<span class="math inline">\(N= S + I_A + I_B + R\)</span> is the
-total population size,</li>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>=</mo><mi>S</mi><mo>+</mo><msub><mi>I</mi><mi>A</mi></msub><mo>+</mo><msub><mi>I</mi><mi>B</mi></msub><mo>+</mo><mi>R</mi></mrow><annotation encoding="application/x-tex">N= S + I_A + I_B + R</annotation></semantics></math>
+is the total population size,</li>
 <li>
-<span class="math inline">\(\beta_x\)</span> is the transmission
-rate for strain <span class="math inline">\(x\)</span>,</li>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>β</mi><mi>x</mi></msub><annotation encoding="application/x-tex">\beta_x</annotation></semantics></math>
+is the transmission rate for strain
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>,</li>
 <li>
-<span class="math inline">\(\gamma\)</span> is the recovery rate for
-infected individuals,<a class="footnote-ref" tabindex="0" data-bs-toggle="popover" data-bs-content='&lt;p&gt;In this model we are choosing to make the recovery rate
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>
+is the recovery rate for infected individuals,<a class="footnote-ref" tabindex="0" data-bs-toggle="popover" data-bs-content='&lt;p&gt;In this model we are choosing to make the recovery rate
 (and hence the infectious period) the same for both strains, but it
 would be easy to relax this assumption in the model specification by
-following the way in which we stratify the state variable &lt;span class="math inline"&gt;\(I\)&lt;/span&gt; by strain below.&lt;/p&gt;'><sup>1</sup></a>
+following the way in which we stratify the state variable
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mi&gt;I&lt;/mi&gt;&lt;annotation encoding="application/x-tex"&gt;I&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+by strain below.&lt;/p&gt;'><sup>1</sup></a>
 </li>
 <li>
-<span class="math inline">\(\lambda_x = \beta_x (I_x)/N\)</span> is
-the force of infection for strain <span class="math inline">\(x\)</span>.</li>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mi>x</mi></msub><mo>=</mo><msub><mi>β</mi><mi>x</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mi>x</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>/</mi><mi>N</mi></mrow><annotation encoding="application/x-tex">\lambda_x = \beta_x (I_x)/N</annotation></semantics></math>
+is the force of infection for strain
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>.</li>
 </ul>
 <p>We can cast this model as a system of difference equations, since
 this is how we will iterate them numerically in our simulation:</p>
-<p><span class="math display">\[\begin{align}
-S_{t+1} &amp; = - [\beta_A (I_A)_t/N + \beta_B (I_B)_t/N] S_t, \\
-(I_A)_{t+1} &amp;= \phantom{-[} \beta_A (I_A)_t/N - \gamma (I_A)_t, \\
-(I_B)_{t+1} &amp;= \phantom{-[} \beta_B (I_B)_t/N - \gamma (I_B)_t, \\
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>S</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mo>−</mo><mrow><mo stretchy="true" form="prefix">[</mo><msub><mi>β</mi><mi>A</mi></msub><msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mi>A</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>t</mi></msub><mi>/</mi><mi>N</mi><mo>+</mo><msub><mi>β</mi><mi>B</mi></msub><msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mi>B</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>t</mi></msub><mi>/</mi><mi>N</mi><mo stretchy="true" form="postfix">]</mo></mrow><msub><mi>S</mi><mi>t</mi></msub><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mi>A</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mphantom><mrow><mo>−</mo><mo stretchy="false" form="prefix">[</mo></mrow></mphantom><msub><mi>β</mi><mi>A</mi></msub><msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mi>A</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>t</mi></msub><mi>/</mi><mi>N</mi><mo>−</mo><mi>γ</mi><msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mi>A</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>t</mi></msub><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mi>B</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mphantom><mrow><mo>−</mo><mo stretchy="false" form="prefix">[</mo></mrow></mphantom><msub><mi>β</mi><mi>B</mi></msub><msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mi>B</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>t</mi></msub><mi>/</mi><mi>N</mi><mo>−</mo><mi>γ</mi><msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mi>B</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>t</mi></msub><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>R</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mphantom><mrow><mo>−</mo><mo stretchy="false" form="prefix">[</mo></mrow></mphantom><mi>γ</mi><msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mi>A</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>t</mi></msub><mo>+</mo><mi>γ</mi><msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mi>B</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>t</mi></msub><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{align}
+S_{t+1} &amp; = - [\beta_A (I_A)_t/N + \beta_B (I_B)_t/N] S_t, \\ 
+(I_A)_{t+1} &amp;= \phantom{-[} \beta_A (I_A)_t/N - \gamma (I_A)_t, \\ 
+(I_B)_{t+1} &amp;= \phantom{-[} \beta_B (I_B)_t/N - \gamma (I_B)_t, \\ 
 R_{t+1} &amp;= \phantom{-[}  \gamma (I_A)_t + \gamma (I_B)_t.
-\end{align}\]</span></p>
-<p>Each force of infection, <span class="math inline">\(\lambda_A =
-\beta_A (I_A)/N\)</span> and <span class="math inline">\(\lambda_B =
-\beta_B (I_B)/N\)</span> has the same <strong>functional form</strong>,
-that is, using an expression like <span class="math inline">\(\lambda =
-\beta I / N\)</span>. When numerically simulating this model, it doesn’t
-take much effort to write out each calculation separately as something
-like:</p>
+\end{align}</annotation></semantics></math></p>
+<p>Each force of infection,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mi>A</mi></msub><mo>=</mo><msub><mi>β</mi><mi>A</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mi>A</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>/</mi><mi>N</mi></mrow><annotation encoding="application/x-tex">\lambda_A = \beta_A (I_A)/N</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mi>B</mi></msub><mo>=</mo><msub><mi>β</mi><mi>B</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mi>B</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>/</mi><mi>N</mi></mrow><annotation encoding="application/x-tex">\lambda_B = \beta_B (I_B)/N</annotation></semantics></math>
+has the same <strong>functional form</strong>, that is, using an
+expression like
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi><mo>=</mo><mi>β</mi><mi>I</mi><mi>/</mi><mi>N</mi></mrow><annotation encoding="application/x-tex">\lambda = \beta I / N</annotation></semantics></math>.
+When numerically simulating this model, it doesn’t take much effort to
+write out each calculation separately as something like:</p>
 <pre><code><span><span class="va">lambda.A</span> <span class="op">=</span> <span class="va">beta.A</span> <span class="op">*</span> <span class="va">I.A</span> <span class="op">/</span> <span class="va">N</span></span>
 <span><span class="va">lambda.B</span> <span class="op">=</span> <span class="va">beta.B</span> <span class="op">*</span> <span class="va">I.B</span> <span class="op">/</span> <span class="va">N</span></span></code></pre>
 <p>However, in <code>macpan2</code>, we can specify a single functional
@@ -197,18 +196,19 @@ readily interface with fast simulation and calibration engines, like <a href="ht
 </h2>
 <p>Let’s start with specifying the basic SIR model, the foundation of
 the two-strain model above, in <code>macpan2</code>:</p>
-<p><span class="math display">\[\begin{align}
-S_{t+1} &amp;= -\beta S_t I_t/N, \\
-I_{t+1} &amp;= \phantom{-} \beta S_t I_t/N - \gamma I_t, \\
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>S</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mo>−</mo><mi>β</mi><msub><mi>S</mi><mi>t</mi></msub><msub><mi>I</mi><mi>t</mi></msub><mi>/</mi><mi>N</mi><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>I</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mphantom><mo>−</mo></mphantom><mi>β</mi><msub><mi>S</mi><mi>t</mi></msub><msub><mi>I</mi><mi>t</mi></msub><mi>/</mi><mi>N</mi><mo>−</mo><mi>γ</mi><msub><mi>I</mi><mi>t</mi></msub><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>R</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mphantom><mo>−</mo></mphantom><mi>γ</mi><msub><mi>I</mi><mi>t</mi></msub><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{align}
+S_{t+1} &amp;= -\beta S_t I_t/N, \\ 
+I_{t+1} &amp;= \phantom{-} \beta S_t I_t/N - \gamma I_t, \\ 
 R_{t+1} &amp;=  \phantom{-} \gamma I_t.
-\end{align}\]</span></p>
-<p>It will be helpful to set <span class="math inline">\(\lambda = \beta
-I/N\)</span> and recast the equations as:</p>
-<p><span class="math display">\[\begin{align}
-S_{t+1} &amp;= -\lambda S_t, \\
-I_{t+1} &amp;=  \phantom{-} \lambda S_t - \gamma I_t, \\
+\end{align}</annotation></semantics></math></p>
+<p>It will be helpful to set
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi><mo>=</mo><mi>β</mi><mi>I</mi><mi>/</mi><mi>N</mi></mrow><annotation encoding="application/x-tex">\lambda = \beta I/N</annotation></semantics></math>
+and recast the equations as:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>S</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mo>−</mo><mi>λ</mi><msub><mi>S</mi><mi>t</mi></msub><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>I</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mphantom><mo>−</mo></mphantom><mi>λ</mi><msub><mi>S</mi><mi>t</mi></msub><mo>−</mo><mi>γ</mi><msub><mi>I</mi><mi>t</mi></msub><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>R</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mphantom><mo>−</mo></mphantom><mi>γ</mi><msub><mi>I</mi><mi>t</mi></msub><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{align}
+S_{t+1} &amp;= -\lambda S_t, \\ 
+I_{t+1} &amp;=  \phantom{-} \lambda S_t - \gamma I_t, \\ 
 R_{t+1} &amp;=  \phantom{-} \gamma I_t.
-\end{align}\]</span></p>
+\end{align}</annotation></semantics></math></p>
 <p>Since the focus of this quickstart guide is <code>macpan2</code>’s
 model specification grammar, we have defined an
 <code>SIR_starter()</code> function to sweep some of the details of
@@ -232,9 +232,18 @@ functional forms).</li>
 <p>The index tables we need to specify fall into two groups:</p>
 <ul>
 <li>
-<code>state</code>: state names, <span class="math inline">\(S\)</span>, <span class="math inline">\(I\)</span>, and <span class="math inline">\(R\)</span> from the model equations</li>
+<code>state</code>: state names,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math>,
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>R</mi><annotation encoding="application/x-tex">R</annotation></semantics></math>
+from the model equations</li>
 <li>
-<code>rate</code>: rate names, <span class="math inline">\(\beta\)</span>, <span class="math inline">\(\gamma\)</span>, and the derived rate <span class="math inline">\(\lambda\)</span>
+<code>rate</code>: rate names,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>,
+and the derived rate
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>λ</mi><annotation encoding="application/x-tex">\lambda</annotation></semantics></math>
 </li>
 </ul>
 <p>We have identified two useful <strong>functional forms</strong> that
@@ -247,16 +256,21 @@ are:</p>
 <ul>
 <li>
 <strong>flow</strong>: Unsigned flows from one class to another of
-the form <span class="math inline">\(rX\)</span>, with <span class="math inline">\(r&gt;0\)</span> being the <em>per capita</em> flow
-rate and <span class="math inline">\(X\)</span> being the occupancy of
-the state from which the flow originates. This calculation is repeated
-for all terms on the right-hand side of the recast system of difference
-equations above.</li>
+the form
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mi>X</mi></mrow><annotation encoding="application/x-tex">rX</annotation></semantics></math>,
+with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">r&gt;0</annotation></semantics></math>
+being the <em>per capita</em> flow rate and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>X</mi><annotation encoding="application/x-tex">X</annotation></semantics></math>
+being the occupancy of the state from which the flow originates. This
+calculation is repeated for all terms on the right-hand side of the
+recast system of difference equations above.</li>
 <li>
 <strong>force of infection</strong>: The prevalence-dependent
 <em>per capita</em> rate of flow from susceptible classes to infectious
-classes of the form <span class="math inline">\(\lambda = \beta I
-/N\)</span>, used in calculating infection flows.</li>
+classes of the form
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi><mo>=</mo><mi>β</mi><mi>I</mi><mi>/</mi><mi>N</mi></mrow><annotation encoding="application/x-tex">\lambda = \beta I /N</annotation></semantics></math>,
+used in calculating infection flows.</li>
 </ul>
 <p>In this case, the flow form is repeated within these model equations,
 while the force of infection form is used only once. We’ve identified
@@ -290,12 +304,18 @@ but it will be key to stratifying model quantities with different
 features (such as epidemiological status, infection type, age group,
 location) in more complicated models.</p>
 <p>For the flow form, we will create two ledgers: <code>infection</code>
-for the flow from <span class="math inline">\(S\)</span> to <span class="math inline">\(I\)</span> and <code>recovery</code> for the flow
-from <span class="math inline">\(I\)</span> to <span class="math inline">\(R\)</span> and then pass these as a list to the
-<code>flow</code> argument of <code>SIR_starter()</code>. We specify
-flows using the name of the state from which it originates
-(<code>from_states</code>), the state to which it goes
-(<code>to_states</code>), and a flow rate name
+for the flow from
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>
+to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math>
+and <code>recovery</code> for the flow from
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math>
+to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>R</mi><annotation encoding="application/x-tex">R</annotation></semantics></math>
+and then pass these as a list to the <code>flow</code> argument of
+<code>SIR_starter()</code>. We specify flows using the name of the state
+from which it originates (<code>from_states</code>), the state to which
+it goes (<code>to_states</code>), and a flow rate name
 (<code>flow_rates</code>).</p>
 <p>We use the <code><a href="../reference/mp_join.html">mp_join()</a></code> function to create the
 <code>infection</code> ledger like so:</p>
@@ -490,14 +510,14 @@ format data to wide format:</p>
 <h2 id="main-course">Main course: expanding the basic SIR with additional structure<a class="anchor" aria-label="anchor" href="#main-course"></a>
 </h2>
 <p>As previously noted, we created a force of infection functional form
-(<span class="math inline">\(\beta I / N\)</span>) despite it only being
-used once to define the SIR model. However, if we consider the
-two-strain model from <a href="#amuse-bouche">before</a>, we see this
-calculation is repeated for each strain:</p>
-<p><span class="math display">\[\begin{align}
-\lambda_A &amp;= \beta_A I_A/N \\
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi><mi>I</mi><mi>/</mi><mi>N</mi></mrow><annotation encoding="application/x-tex">\beta I / N</annotation></semantics></math>)
+despite it only being used once to define the SIR model. However, if we
+consider the two-strain model from <a href="#amuse-bouche">before</a>,
+we see this calculation is repeated for each strain:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>λ</mi><mi>A</mi></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><msub><mi>β</mi><mi>A</mi></msub><msub><mi>I</mi><mi>A</mi></msub><mi>/</mi><mi>N</mi></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>λ</mi><mi>B</mi></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><msub><mi>β</mi><mi>B</mi></msub><msub><mi>I</mi><mi>B</mi></msub><mi>/</mi><mi>N</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{align}
+\lambda_A &amp;= \beta_A I_A/N \\ 
 \lambda_B &amp;= \beta_B I_B/N
-\end{align}\]</span></p>
+\end{align}</annotation></semantics></math></p>
 <p>Since we already have a form for the force of infection, we can
 easily expand our basic SIR with the strain-related structure to get the
 two-strain SIR model.</p>
@@ -525,10 +545,12 @@ model or if we already have a simpler, working model (like the SIR
 above) and want expand it with many strata and/or several different
 types of strata. We present an alternative approach below that is more
 verbose but far more flexible.</p>
-<p>For the state, we want to cross <span class="math inline">\(I\)</span> with the different strains to create
-one <span class="math inline">\(I\)</span> compartment name per strain.
-We can do so using the <code><a href="../reference/mp_cartesian.html">mp_cartesian()</a></code> function, which takes
-the <a href="https://en.wikipedia.org/wiki/Cartesian_product" class="external-link">Cartesian
+<p>For the state, we want to cross
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math>
+with the different strains to create one
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math>
+compartment name per strain. We can do so using the
+<code><a href="../reference/mp_cartesian.html">mp_cartesian()</a></code> function, which takes the <a href="https://en.wikipedia.org/wiki/Cartesian_product" class="external-link">Cartesian
 product</a> of indices (all possible combinations across sets)<a class="footnote-ref" tabindex="0" data-bs-toggle="popover" data-bs-content='&lt;p&gt;&lt;code&gt;&lt;a href="../reference/mp_cartesian.html"&gt;mp_cartesian()&lt;/a&gt;&lt;/code&gt; is analogous to
 &lt;code&gt;&lt;a href="https://rdrr.io/r/base/expand.grid.html" class="external-link"&gt;expand.grid()&lt;/a&gt;&lt;/code&gt; in base R, or &lt;code&gt;&lt;a href="https://tidyr.tidyverse.org/reference/expand.html" class="external-link"&gt;tidyr::expand()&lt;/a&gt;&lt;/code&gt; in
 the tidyverse&lt;/p&gt;'><sup>4</sup></a>:</p>
@@ -542,16 +564,29 @@ the tidyverse&lt;/p&gt;'><sup>4</sup></a>:</p>
 <pre><code><span><span class="co">##  Epi Strain</span></span>
 <span><span class="co">##    I      A</span></span>
 <span><span class="co">##    I      B</span></span></code></pre>
-<p>This table stores all indices associated with the <span class="math inline">\(I\)</span> compartment.<a class="footnote-ref" tabindex="0" data-bs-toggle="popover" data-bs-content='&lt;p&gt;In standard mathematical notation, one would typically
-write &lt;span class="math inline"&gt;\(I_A\)&lt;/span&gt; and &lt;span class="math inline"&gt;\(I_B\)&lt;/span&gt;, with only &lt;span class="math inline"&gt;\(A\)&lt;/span&gt; and &lt;span class="math inline"&gt;\(B\)&lt;/span&gt; referred to as indices, but we’ve taken
-the abstraction one step further and chosen to refer to state variable
-names, like &lt;span class="math inline"&gt;\(I\)&lt;/span&gt;, as indices as well.
-This choice was made deliberately when developing &lt;code&gt;macpan2&lt;/code&gt;
-so that state variable names get treated like any other component used
-to label a particular compartment (like location or age group).&lt;/p&gt;'><sup>5</sup></a></p>
-<p>We then combine the newly-stratified <span class="math inline">\(I\)</span> indices with the other states that
-remain unchanged using the <code><a href="../reference/mp_union.html">mp_union()</a></code> function to make a
-<code>state</code> index table:</p>
+<p>This table stores all indices associated with the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math>
+compartment.<a class="footnote-ref" tabindex="0" data-bs-toggle="popover" data-bs-content='&lt;p&gt;In standard mathematical notation, one would typically
+write
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;msub&gt;&lt;mi&gt;I&lt;/mi&gt;&lt;mi&gt;A&lt;/mi&gt;&lt;/msub&gt;&lt;annotation encoding="application/x-tex"&gt;I_A&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+and
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;msub&gt;&lt;mi&gt;I&lt;/mi&gt;&lt;mi&gt;B&lt;/mi&gt;&lt;/msub&gt;&lt;annotation encoding="application/x-tex"&gt;I_B&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;,
+with only
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mi&gt;A&lt;/mi&gt;&lt;annotation encoding="application/x-tex"&gt;A&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+and
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mi&gt;B&lt;/mi&gt;&lt;annotation encoding="application/x-tex"&gt;B&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;
+referred to as indices, but we’ve taken the abstraction one step further
+and chosen to refer to state variable names, like
+&lt;math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mi&gt;I&lt;/mi&gt;&lt;annotation encoding="application/x-tex"&gt;I&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;,
+as indices as well. This choice was made deliberately when developing
+&lt;code&gt;macpan2&lt;/code&gt; so that state variable names get treated like any
+other component used to label a particular compartment (like location or
+age group).&lt;/p&gt;'><sup>5</sup></a></p>
+<p>We then combine the newly-stratified
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math>
+indices with the other states that remain unchanged using the
+<code><a href="../reference/mp_union.html">mp_union()</a></code> function to make a <code>state</code> index
+table:</p>
 <div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">state</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/mp_union.html">mp_union</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="../reference/mp_subset.html">mp_subset</a></span><span class="op">(</span><span class="va">state</span>, Epi <span class="op">=</span> <span class="st">"S"</span><span class="op">)</span>,</span>
@@ -807,7 +842,7 @@ simulation get attached to the model object correctly.</p>
 <p>These topics will be discussed fully in a future vignette.</p>
 </div>
 
-  </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
 </div>
 
@@ -818,15 +853,15 @@ simulation get attached to the model object correctly.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.9.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
 </div>
 
     </footer>
 </div>
 
-  
 
-  
+
+
 
   </body>
 </html>

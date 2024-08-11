@@ -5,70 +5,54 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="description" content="macpan2">
 <title>ODE Solvers, Process Error, and Difference Equations • macpan2</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.11/clipboard.min.js" integrity="sha512-7O5pXpc0oCRrxk8RUfDYFgn0nO1t+jLuIOQdOMRp4APB7uZ4vSjspzp5y6YDtDs4VzUSTbWzBFZ/LKJhnyFOKw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="ODE Solvers, Process Error, and Difference Equations">
-<meta property="og:description" content="macpan2">
-<!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
-<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-<![endif]-->
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="ODE Solvers, Process Error, and Difference Equations">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
-    
 
-    <nav class="navbar fixed-top navbar-light navbar-expand-lg bg-light" data-bs-theme="light"><div class="container">
-    
+
+    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
     <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.5.6</small>
 
-    
+
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="nav-item">
-  <a class="nav-link" href="../reference/index.html">Reference</a>
-</li>
+<li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="active nav-item dropdown">
-  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
-  <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="../articles/quickstart.html">Quickstart</a>
-    <a class="dropdown-item" href="../articles/example_models.html">Example Models</a>
-    <a class="dropdown-item" href="../articles/calibration.html">Calibrating Compartmental Models to Data</a>
-    <a class="dropdown-item" href="../articles/real_data.html">Fitting to Real Data</a>
-    <a class="dropdown-item" href="../articles/state_updaters.html">ODE Solvers, Process Error, and Difference Equations</a>
-    <div class="dropdown-divider"></div>
-    <a class="dropdown-item" href="../articles/index.html">More articles...</a>
-  </div>
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="../articles/quickstart.html">Quickstart</a></li>
+    <li><a class="dropdown-item" href="../articles/example_models.html">Example Models</a></li>
+    <li><a class="dropdown-item" href="../articles/calibration.html">Calibrating Compartmental Models to Data</a></li>
+    <li><a class="dropdown-item" href="../articles/real_data.html">Fitting to Real Data</a></li>
+    <li><a class="dropdown-item" href="../articles/state_updaters.html">ODE Solvers, Process Error, and Difference Equations</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
+  </ul>
 </li>
-<li class="nav-item">
-  <a class="nav-link" href="../news/index.html">Changelog</a>
-</li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
-<form class="form-inline my-2 my-lg-0" role="search">
-        <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off">
-</form>
-
-      <ul class="navbar-nav">
-<li class="nav-item">
-  <a class="external-link nav-link" href="https://github.com/canmod/macpan2/" aria-label="github">
-    <span class="fab fa fab fa-github fa-lg"></span>
-     
-  </a>
-</li>
+<ul class="navbar-nav">
+<li class="nav-item"><form class="form-inline" role="search">
+ <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
+</form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/canmod/macpan2/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
-    
+
   </div>
 </nav><div class="container template-article">
 
@@ -77,10 +61,11 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="" class="logo" alt=""><h1>ODE Solvers, Process Error, and Difference Equations</h1>
+
+      <h1>ODE Solvers, Process Error, and Difference Equations</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/canmod/macpan2/blob/HEAD/vignettes/state_updaters.Rmd" class="external-link"><code>vignettes/state_updaters.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/canmod/macpan2/blob/main/vignettes/state_updaters.Rmd" class="external-link"><code>vignettes/state_updaters.Rmd</code></a></small>
       <div class="d-none name"><code>state_updaters.Rmd</code></div>
     </div>
 
@@ -190,9 +175,8 @@ model looks like this.</p>
 <span><span class="co">#&gt;     filter, lag</span></span>
 <span><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     intersect, setdiff, setequal, union</span></span></code></pre></div>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">trajectory_comparison</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span><span class="co">#&gt;     intersect, setdiff, setequal, union</span></span>
+<span><span class="va">trajectory_comparison</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>    euler <span class="op">=</span> <span class="fu"><a href="../reference/mp_trajectory.html">mp_trajectory</a></span><span class="op">(</span><span class="va">si_euler</span><span class="op">)</span></span>
 <span>  , rk4 <span class="op">=</span> <span class="fu"><a href="../reference/mp_trajectory.html">mp_trajectory</a></span><span class="op">(</span><span class="va">si_rk4</span><span class="op">)</span></span>
 <span>  , euler_multinomial <span class="op">=</span> <span class="fu"><a href="../reference/mp_trajectory.html">mp_trajectory</a></span><span class="op">(</span><span class="va">si_euler_multinomial</span><span class="op">)</span></span>
@@ -205,7 +189,7 @@ model looks like this.</p>
 <span><span class="co">#&gt; 4         euler infection    4   0   0 0.4751841</span></span>
 <span><span class="co">#&gt; 5         euler infection    5   0   0 0.5888103</span></span>
 <span><span class="co">#&gt; 6         euler infection    6   0   0 0.7280407</span></span></code></pre></div>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span><span class="op">(</span><span class="va">trajectory_comparison</span></span>
 <span>  <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/rename.html" class="external-link">rename</a></span><span class="op">(</span>`Time Step` <span class="op">=</span> <span class="va">time</span>, Incidence <span class="op">=</span> <span class="va">value</span><span class="op">)</span></span>
@@ -216,22 +200,20 @@ model looks like this.</p>
 <p>The incidence trajectory is different for the three update methods,
 even though the initial values of the state variables were identical in
 all three cases.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/mp_initial.html">mp_initial</a></span><span class="op">(</span><span class="va">si_euler</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   matrix time row col  value</span></span>
 <span><span class="co">#&gt; 1      N    0   0   0 100.00</span></span>
 <span><span class="co">#&gt; 2      I    0   0   0   1.00</span></span>
 <span><span class="co">#&gt; 3   beta    0   0   0   0.25</span></span>
-<span><span class="co">#&gt; 4      S    0   0   0  99.00</span></span></code></pre></div>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/mp_initial.html">mp_initial</a></span><span class="op">(</span><span class="va">si_euler_multinomial</span><span class="op">)</span></span>
+<span><span class="co">#&gt; 4      S    0   0   0  99.00</span></span>
+<span><span class="fu"><a href="../reference/mp_initial.html">mp_initial</a></span><span class="op">(</span><span class="va">si_euler_multinomial</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   matrix time row col  value</span></span>
 <span><span class="co">#&gt; 1      N    0   0   0 100.00</span></span>
 <span><span class="co">#&gt; 2      I    0   0   0   1.00</span></span>
 <span><span class="co">#&gt; 3   beta    0   0   0   0.25</span></span>
-<span><span class="co">#&gt; 4      S    0   0   0  99.00</span></span></code></pre></div>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/mp_initial.html">mp_initial</a></span><span class="op">(</span><span class="va">si_rk4</span><span class="op">)</span></span>
+<span><span class="co">#&gt; 4      S    0   0   0  99.00</span></span>
+<span><span class="fu"><a href="../reference/mp_initial.html">mp_initial</a></span><span class="op">(</span><span class="va">si_rk4</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   matrix time row col  value</span></span>
 <span><span class="co">#&gt; 1      N    0   0   0 100.00</span></span>
 <span><span class="co">#&gt; 2      I    0   0   0   1.00</span></span>
@@ -245,7 +227,7 @@ infectious individuals is exactly the incidence.</p>
 <div class="section level2">
 <h2 id="branching-flows-and-process-error">Branching Flows and Process Error<a class="anchor" aria-label="anchor" href="#branching-flows-and-process-error"></a>
 </h2>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span> <span class="va">siv</span> <span class="op">=</span> <span class="fu"><a href="../reference/mp_tmb_model_spec.html">mp_tmb_model_spec</a></span><span class="op">(</span></span>
 <span>    before <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">S</span> <span class="op">~</span> <span class="va">N</span> <span class="op">-</span> <span class="va">I</span> <span class="op">-</span> <span class="va">V</span><span class="op">)</span></span>
 <span>  , during <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
@@ -277,7 +259,7 @@ infectious individuals is exactly the incidence.</p>
 <span><span class="co">#&gt;      I/N)</span></span>
 <span><span class="co">#&gt; 2: mp_per_capita_flow(from = "S", to = "V", rate = vaccination ~ </span></span>
 <span><span class="co">#&gt;      rho)</span></span></code></pre></div>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="op">(</span><span class="va">siv</span> </span>
 <span> <span class="op">|&gt;</span> <span class="fu"><a href="../reference/mp_euler.html">mp_euler_multinomial</a></span><span class="op">(</span><span class="op">)</span></span>
 <span> <span class="op">|&gt;</span> <span class="fu"><a href="../reference/mp_simulator.html">mp_simulator</a></span><span class="op">(</span><span class="fl">50</span>, <span class="st">"infection"</span><span class="op">)</span></span>
@@ -293,20 +275,35 @@ infectious individuals is exactly the incidence.</p>
 <p>It is instructive to view these state update methods as approximate
 solutions to ordinary differential equations (ODEs). We consider ODEs of
 the following form.</p>
-<p><span class="math display">\[
-\frac{dx_i}{dt} = \underbrace{\sum_j x_j r_{ji}}_{\text{inflow}} -
-\underbrace{\sum_j x_i r_{ij}}_{\text{outflow}}
-\]</span> Where the per-capita rate of flowing from compartment <span class="math inline">\(i\)</span> to compartment <span class="math inline">\(j\)</span> is <span class="math inline">\(r_{ij}\)</span>, and <span class="math inline">\(x_i\)</span> is the number of individuals in the
-<span class="math inline">\(i\)</span>th compartment. We allow each
-<span class="math inline">\(r_{ij}\)</span> to depend on any number of
-state variables and time-varying parameters. For example, for an SIR
-model we have <span class="math inline">\(x_S, x_I, x_R\)</span> (for
-readability we use <span class="math inline">\(S, I, R\)</span>). In
-this case <span class="math inline">\(r_{SI} = \beta I / N\)</span>,
-<span class="math inline">\(r_{IR} = \gamma\)</span>, and all other
-values of <span class="math inline">\(r_{ij}\)</span> are zero. Here the
-force of infection, <span class="math inline">\(r_{SI}\)</span>, depends
-on a state variable <span class="math inline">\(I\)</span>.</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mrow><mi>d</mi><msub><mi>x</mi><mi>i</mi></msub></mrow><mrow><mi>d</mi><mi>t</mi></mrow></mfrac><mo>=</mo><munder><munder><mrow><munder><mo>∑</mo><mi>j</mi></munder><msub><mi>x</mi><mi>j</mi></msub><msub><mi>r</mi><mrow><mi>j</mi><mi>i</mi></mrow></msub></mrow><mo accent="true">⏟</mo></munder><mtext mathvariant="normal">inflow</mtext></munder><mo>−</mo><munder><munder><mrow><munder><mo>∑</mo><mi>j</mi></munder><msub><mi>x</mi><mi>i</mi></msub><msub><mi>r</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub></mrow><mo accent="true">⏟</mo></munder><mtext mathvariant="normal">outflow</mtext></munder></mrow><annotation encoding="application/x-tex">
+\frac{dx_i}{dt} = \underbrace{\sum_j x_j r_{ji}}_{\text{inflow}} - \underbrace{\sum_j x_i r_{ij}}_{\text{outflow}}
+</annotation></semantics></math> Where the per-capita rate of flowing
+from compartment
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
+to compartment
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>
+is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">r_{ij}</annotation></semantics></math>,
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>i</mi></msub><annotation encoding="application/x-tex">x_i</annotation></semantics></math>
+is the number of individuals in the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>th
+compartment. We allow each
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">r_{ij}</annotation></semantics></math>
+to depend on any number of state variables and time-varying parameters.
+For example, for an SIR model we have
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>S</mi></msub><mo>,</mo><msub><mi>x</mi><mi>I</mi></msub><mo>,</mo><msub><mi>x</mi><mi>R</mi></msub></mrow><annotation encoding="application/x-tex">x_S, x_I, x_R</annotation></semantics></math>
+(for readability we use
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mo>,</mo><mi>I</mi><mo>,</mo><mi>R</mi></mrow><annotation encoding="application/x-tex">S, I, R</annotation></semantics></math>).
+In this case
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mrow><mi>S</mi><mi>I</mi></mrow></msub><mo>=</mo><mi>β</mi><mi>I</mi><mi>/</mi><mi>N</mi></mrow><annotation encoding="application/x-tex">r_{SI} = \beta I / N</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mrow><mi>I</mi><mi>R</mi></mrow></msub><mo>=</mo><mi>γ</mi></mrow><annotation encoding="application/x-tex">r_{IR} = \gamma</annotation></semantics></math>,
+and all other values of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">r_{ij}</annotation></semantics></math>
+are zero. Here the force of infection,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mrow><mi>S</mi><mi>I</mi></mrow></msub><annotation encoding="application/x-tex">r_{SI}</annotation></semantics></math>,
+depends on a state variable
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math>.</p>
 <p>Although each state-update method presented below can be thought of
 as an approximate solution to this ODE, they can also be thought of as
 dynamical models in their own right. For example, the Euler-multinomial
@@ -316,16 +313,17 @@ model is a useful model of process error.</p>
 </h3>
 <p>The simplest approach is to just pretend that the ODEs are difference
 equations. In this case, at each time-step, each state variable is
-updated as follows. <span class="math display">\[
+updated as follows.
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>i</mi></msub><mo>=</mo><msub><mi>x</mi><mi>i</mi></msub><mo>−</mo><munder><mo>∑</mo><mi>j</mi></munder><msub><mi>x</mi><mi>i</mi></msub><msub><mi>r</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>+</mo><munder><mo>∑</mo><mi>j</mi></munder><msub><mi>x</mi><mi>j</mi></msub><msub><mi>r</mi><mrow><mi>j</mi><mi>i</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
 x_i = x_i - \sum_j x_i r_{ij} + \sum_j x_j r_{ji}
-\]</span> The SIR example is as follows.</p>
-<p><span class="math display">\[
+</annotation></semantics></math> The SIR example is as follows.</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mo>=</mo><mi>S</mi><mo>−</mo><mi>S</mi><msub><mi>r</mi><mrow><mi>S</mi><mi>I</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
 S = S - Sr_{SI}
-\]</span> <span class="math display">\[
+</annotation></semantics></math><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mo>=</mo><mi>I</mi><mo>−</mo><mi>I</mi><msub><mi>r</mi><mrow><mi>I</mi><mi>R</mi></mrow></msub><mo>+</mo><mi>S</mi><msub><mi>r</mi><mrow><mi>S</mi><mi>I</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
 I = I - Ir_{IR} + Sr_{SI}
-\]</span> <span class="math display">\[
+</annotation></semantics></math><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>=</mo><mi>R</mi><mo>+</mo><mi>I</mi><msub><mi>r</mi><mrow><mi>I</mi><mi>R</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
 R = R + Ir_{IR}
-\]</span></p>
+</annotation></semantics></math></p>
 </div>
 <div class="section level3">
 <h3 id="runge-kutta-4">Runge Kutta 4<a class="anchor" aria-label="anchor" href="#runge-kutta-4"></a>
@@ -340,64 +338,94 @@ state update method assumes that the number of individuals that move
 from one box to another in a single time-step is a random non-negative
 integer, coming from a particular multinomial distribution that we now
 describe.</p>
-<p>The probability of staying in the <span class="math inline">\(i\)</span>th box through an entire time-step is
-assumed to be the following (TODO: relate this to Poisson
-processes).</p>
-<p><span class="math display">\[
+<p>The probability of staying in the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>th
+box through an entire time-step is assumed to be the following (TODO:
+relate this to Poisson processes).</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mrow><mi>i</mi><mi>i</mi></mrow></msub><mo>=</mo><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><munder><mo>∑</mo><mi>j</mi></munder><msub><mi>r</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
 p_{ii} = \exp\left(-\sum_j r_{ij}\right)
-\]</span></p>
-<p>This probability assumes that the <span class="math inline">\(r_{ij}\)</span> are held constant throughout the
-entire time-step, although they can change when each time-step
-begins.</p>
-<p>The probability of moving from box <span class="math inline">\(i\)</span> to box <span class="math inline">\(j\)</span> in one time-step is given by the
-following.</p>
-<p><span class="math display">\[
+</annotation></semantics></math></p>
+<p>This probability assumes that the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">r_{ij}</annotation></semantics></math>
+are held constant throughout the entire time-step, although they can
+change when each time-step begins.</p>
+<p>The probability of moving from box
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
+to box
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>
+in one time-step is given by the following.</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><msub><mi>p</mi><mrow><mi>i</mi><mi>i</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mfrac><msub><mi>r</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mrow><munder><mo>∑</mo><mi>j</mi></munder><msub><mi>r</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub></mrow></mfrac></mrow><annotation encoding="application/x-tex">
 p_{ij} = (1 - p_{ii}) \frac{r_{ij}}{\sum_j r_{ij}}
-\]</span></p>
-<p>This probability is just the probability of not staying in box <span class="math inline">\(i\)</span>, which is <span class="math inline">\(1
-- p_{ii}\)</span>, and specifically going to box <span class="math inline">\(j\)</span>, which is assumed to be given by this
-expression <span class="math inline">\(\frac{r_{ij}}{\sum_j
-r_{ij}}\)</span>.</p>
-<p>Let <span class="math inline">\(\rho_{ij}\)</span> be the random
-number of individuals that move from box <span class="math inline">\(i\)</span> to box <span class="math inline">\(j\)</span> in one time-step. The expected value of
-<span class="math inline">\(\rho_{ij}\)</span> is <span class="math inline">\(p_{ij} x_i\)</span>. However, these random
-variables are not independent events, because the total number of
-individuals, <span class="math inline">\(\sum_i x_i\)</span>, has to
-remain constant through a single time-step (at least in the models that
-we are currently considering).</p>
-<p>To account for this non-independence, we collect the <span class="math inline">\(\rho_{ij}\)</span> associated with a from
-compartment <span class="math inline">\(i\)</span> into a vector <span class="math inline">\(\rho_i\)</span>. We collect similar vector of
-probabilities, <span class="math inline">\(p_i\)</span>. Each <span class="math inline">\(\rho_i\)</span> is a random draw from a
-multinomial distribution with <span class="math inline">\(x_i\)</span>
-trials and probability vector, <span class="math inline">\(p_i\)</span>.</p>
+</annotation></semantics></math></p>
+<p>This probability is just the probability of not staying in box
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>,
+which is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><msub><mi>p</mi><mrow><mi>i</mi><mi>i</mi></mrow></msub></mrow><annotation encoding="application/x-tex">1 - p_{ii}</annotation></semantics></math>,
+and specifically going to box
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>,
+which is assumed to be given by this expression
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mfrac><msub><mi>r</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mrow><msub><mo>∑</mo><mi>j</mi></msub><msub><mi>r</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub></mrow></mfrac><annotation encoding="application/x-tex">\frac{r_{ij}}{\sum_j r_{ij}}</annotation></semantics></math>.</p>
+<p>Let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ρ</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">\rho_{ij}</annotation></semantics></math>
+be the random number of individuals that move from box
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
+to box
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>
+in one time-step. The expected value of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ρ</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">\rho_{ij}</annotation></semantics></math>
+is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><msub><mi>x</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">p_{ij} x_i</annotation></semantics></math>.
+However, these random variables are not independent events, because the
+total number of individuals,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∑</mo><mi>i</mi></msub><msub><mi>x</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">\sum_i x_i</annotation></semantics></math>,
+has to remain constant through a single time-step (at least in the
+models that we are currently considering).</p>
+<p>To account for this non-independence, we collect the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ρ</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">\rho_{ij}</annotation></semantics></math>
+associated with a from compartment
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
+into a vector
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ρ</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\rho_i</annotation></semantics></math>.
+We collect similar vector of probabilities,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>p</mi><mi>i</mi></msub><annotation encoding="application/x-tex">p_i</annotation></semantics></math>.
+Each
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ρ</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\rho_i</annotation></semantics></math>
+is a random draw from a multinomial distribution with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>i</mi></msub><annotation encoding="application/x-tex">x_i</annotation></semantics></math>
+trials and probability vector,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>p</mi><mi>i</mi></msub><annotation encoding="application/x-tex">p_i</annotation></semantics></math>.</p>
 <p>Once these random draws have been made, the state variables can be
 updated at each time-step as follows.</p>
-<p><span class="math display">\[
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>i</mi></msub><mo>=</mo><msub><mi>x</mi><mi>i</mi></msub><mo>−</mo><munder><mo>∑</mo><mi>j</mi></munder><msub><mi>ρ</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>+</mo><munder><mo>∑</mo><mi>j</mi></munder><msub><mi>ρ</mi><mrow><mi>j</mi><mi>i</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
 x_i = x_i - \sum_j \rho_{ij} + \sum_j \rho_{ji}
-\]</span></p>
+</annotation></semantics></math></p>
 <p>Note that we do not actually need to generate values for the diagonal
-elements, <span class="math inline">\(\rho_{ii}\)</span>, because they
-cancel out in this update equation. We also can ignore any <span class="math inline">\(\rho_{ij}\)</span> such that <span class="math inline">\(r_{ij} = 0\)</span>.</p>
+elements,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ρ</mi><mrow><mi>i</mi><mi>i</mi></mrow></msub><annotation encoding="application/x-tex">\rho_{ii}</annotation></semantics></math>,
+because they cancel out in this update equation. We also can ignore any
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ρ</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">\rho_{ij}</annotation></semantics></math>
+such that
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">r_{ij} = 0</annotation></semantics></math>.</p>
 <p>Under the SIR example we have a particularly simple Euler-binomial
 distribution because there are no branching flows – when individuals
 leave S they can only go to I and when they leave I they can only go to
 R. These two flows are given by the following distributions.</p>
-<p><span class="math display">\[
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ρ</mi><mrow><mi>S</mi><mi>I</mi></mrow></msub><mo>∼</mo><mtext mathvariant="normal">Binomial</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>S</mi><mo>,</mo><msub><mi>p</mi><mrow><mi>S</mi><mi>I</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
 \rho_{SI} \sim \text{Binomial}(S, p_{SI})
-\]</span></p>
-<p><span class="math display">\[
+</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ρ</mi><mrow><mi>I</mi><mi>R</mi></mrow></msub><mo>∼</mo><mtext mathvariant="normal">Binomial</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>I</mi><mo>,</mo><msub><mi>p</mi><mrow><mi>I</mi><mi>R</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
 \rho_{IR} \sim \text{Binomial}(I, p_{IR})
-\]</span></p>
+</annotation></semantics></math></p>
 <p>In models with branching flows we would have multinomial
 distributions. But in this model the state update is given by the
 following equations.</p>
-<p><span class="math display">\[
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mo>=</mo><mi>S</mi><mo>−</mo><msub><mi>ρ</mi><mrow><mi>S</mi><mi>I</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
 S = S - \rho_{SI}
-\]</span> <span class="math display">\[
+</annotation></semantics></math><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mo>=</mo><mi>I</mi><mo>−</mo><msub><mi>ρ</mi><mrow><mi>I</mi><mi>R</mi></mrow></msub><mo>+</mo><msub><mi>ρ</mi><mrow><mi>S</mi><mi>I</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
 I = I - \rho_{IR} + \rho_{SI}
-\]</span> <span class="math display">\[
+</annotation></semantics></math><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>=</mo><mi>R</mi><mo>+</mo><msub><mi>ρ</mi><mrow><mi>I</mi><mi>R</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
 R = R + \rho_{IR}
-\]</span></p>
+</annotation></semantics></math></p>
 </div>
 <div class="section level3">
 <h3 id="hazard">Hazard<a class="anchor" aria-label="anchor" href="#hazard"></a>
@@ -405,29 +433,33 @@ R = R + \rho_{IR}
 <p>The Hazard update-method uses the expected values associated with the
 Euler-multinomial described above. In particular, the state variables
 are updated as follows.</p>
-<p><span class="math display">\[
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>i</mi></msub><mo>=</mo><msub><mi>x</mi><mi>i</mi></msub><mo>−</mo><munder><mo>∑</mo><mi>j</mi></munder><msub><mi>x</mi><mi>i</mi></msub><msub><mi>p</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>+</mo><munder><mo>∑</mo><mi>j</mi></munder><msub><mi>x</mi><mi>j</mi></msub><msub><mi>p</mi><mrow><mi>j</mi><mi>i</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
 x_i = x_i - \sum_j x_i p_{ij} + \sum_j x_j p_{ji}
-\]</span></p>
+</annotation></semantics></math></p>
 <p>The SIR model would be as follows.</p>
-<p><span class="math display">\[
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mo>=</mo><mi>S</mi><mo>−</mo><mi>S</mi><msub><mi>p</mi><mrow><mi>S</mi><mi>I</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
 S = S - Sp_{SI}
-\]</span> <span class="math display">\[
+</annotation></semantics></math><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mo>=</mo><mi>I</mi><mo>−</mo><mi>I</mi><msub><mi>p</mi><mrow><mi>I</mi><mi>R</mi></mrow></msub><mo>+</mo><mi>S</mi><msub><mi>p</mi><mrow><mi>S</mi><mi>I</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
 I = I - Ip_{IR} + Sp_{SI}
-\]</span> <span class="math display">\[
+</annotation></semantics></math><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>=</mo><mi>R</mi><mo>+</mo><mi>I</mi><msub><mi>p</mi><mrow><mi>I</mi><mi>R</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
 R = R + Ip_{IR}
-\]</span></p>
-<p>More explicitly for the <span class="math inline">\(I\)</span>
-compartment this would be. <span class="math display">\[
+</annotation></semantics></math></p>
+<p>More explicitly for the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math>
+compartment this would be.
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>+</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>I</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>I</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mi>γ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mi>S</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mi>β</mi><mi>I</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
 I(t+1) = I(t) - I(t) (1 - \exp(-\gamma)) + S(t)(1 - \exp(-\beta I(t)))
-\]</span></p>
+</annotation></semantics></math></p>
 </div>
 <div class="section level3">
 <h3 id="linearizing-at-each-time-step">Linearizing at Each Time-Step<a class="anchor" aria-label="anchor" href="#linearizing-at-each-time-step"></a>
 </h3>
-<p>Because the <span class="math inline">\(r_{ij}\)</span> could depend
-on any state variable, the ODE above is generally non-linear. However,
-we could linearize the model at every time-step and explicitly compute
-the matrix exponential to find the approximate state update.</p>
+<p>Because the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">r_{ij}</annotation></semantics></math>
+could depend on any state variable, the ODE above is generally
+non-linear. However, we could linearize the model at every time-step and
+explicitly compute the matrix exponential to find the approximate state
+update.</p>
 </div>
 <div class="section level3">
 <h3 id="hazard-in-models-including-more-than-unbalanced-per-capita-flows">Hazard in models including more than unbalanced per-capita
@@ -441,21 +473,28 @@ models we need to think more clearly about how to use the Hazard
 approximation.</p>
 <p>For such cases we can modify the differential equation to include an
 arbitrary number of absolute inflows and outflows.</p>
-<p><span class="math display">\[
-\frac{dx_i}{dt} =
-    \underbrace{\sum_j x_j r_{ji}}_{\text{inflow}}
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mrow><mi>d</mi><msub><mi>x</mi><mi>i</mi></msub></mrow><mrow><mi>d</mi><mi>t</mi></mrow></mfrac><mo>=</mo><munder><munder><mrow><munder><mo>∑</mo><mi>j</mi></munder><msub><mi>x</mi><mi>j</mi></msub><msub><mi>r</mi><mrow><mi>j</mi><mi>i</mi></mrow></msub></mrow><mo accent="true">⏟</mo></munder><mtext mathvariant="normal">inflow</mtext></munder><mo>−</mo><munder><munder><mrow><munder><mo>∑</mo><mi>j</mi></munder><msub><mi>x</mi><mi>i</mi></msub><msub><mi>r</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub></mrow><mo accent="true">⏟</mo></munder><mtext mathvariant="normal">outflow</mtext></munder><mo>+</mo><munder><munder><mrow><munder><mo>∑</mo><mi>k</mi></munder><msubsup><mi>r</mi><mrow><mi>i</mi><mi>k</mi></mrow><mo>+</mo></msubsup></mrow><mo accent="true">⏟</mo></munder><mtext mathvariant="normal">absolute inflow</mtext></munder><mo>−</mo><munder><munder><mrow><munder><mo>∑</mo><mi>l</mi></munder><msubsup><mi>r</mi><mrow><mi>i</mi><mi>l</mi></mrow><mo>−</mo></msubsup></mrow><mo accent="true">⏟</mo></munder><mtext mathvariant="normal">absolute outflow</mtext></munder></mrow><annotation encoding="application/x-tex">
+\frac{dx_i}{dt} = 
+    \underbrace{\sum_j x_j r_{ji}}_{\text{inflow}} 
   - \underbrace{\sum_j x_i r_{ij}}_{\text{outflow}}
   + \underbrace{\sum_k r^+_{ik}}_{\text{absolute inflow}}
   - \underbrace{\sum_l r^-_{il}}_{\text{absolute outflow}}
-\]</span></p>
-<p>Where <span class="math inline">\(r^+_{ik}\)</span> is the absolute
-rate at which <span class="math inline">\(x_i\)</span> increases due to
-mechanism <span class="math inline">\(k\)</span> and <span class="math inline">\(r^-_{il}\)</span> is the absolute rate at which
-<span class="math inline">\(x_i\)</span> decreases due to mechanism
-<span class="math inline">\(l\)</span>.</p>
+</annotation></semantics></math></p>
+<p>Where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>r</mi><mrow><mi>i</mi><mi>k</mi></mrow><mo>+</mo></msubsup><annotation encoding="application/x-tex">r^+_{ik}</annotation></semantics></math>
+is the absolute rate at which
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>i</mi></msub><annotation encoding="application/x-tex">x_i</annotation></semantics></math>
+increases due to mechanism
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>r</mi><mrow><mi>i</mi><mi>l</mi></mrow><mo>−</mo></msubsup><annotation encoding="application/x-tex">r^-_{il}</annotation></semantics></math>
+is the absolute rate at which
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>i</mi></msub><annotation encoding="application/x-tex">x_i</annotation></semantics></math>
+decreases due to mechanism
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>l</mi><annotation encoding="application/x-tex">l</annotation></semantics></math>.</p>
 </div>
 </div>
-  </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
 </div>
 
@@ -466,15 +505,15 @@ mechanism <span class="math inline">\(k\)</span> and <span class="math inline">\
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.9.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
 </div>
 
     </footer>
 </div>
 
-  
 
-  
+
+
 
   </body>
 </html>

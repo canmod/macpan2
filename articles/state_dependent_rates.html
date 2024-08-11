@@ -5,70 +5,54 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="description" content="macpan2">
 <title>State-Dependent Rates • macpan2</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.11/clipboard.min.js" integrity="sha512-7O5pXpc0oCRrxk8RUfDYFgn0nO1t+jLuIOQdOMRp4APB7uZ4vSjspzp5y6YDtDs4VzUSTbWzBFZ/LKJhnyFOKw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="State-Dependent Rates">
-<meta property="og:description" content="macpan2">
-<!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
-<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-<![endif]-->
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="State-Dependent Rates">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
-    
 
-    <nav class="navbar fixed-top navbar-light navbar-expand-lg bg-light" data-bs-theme="light"><div class="container">
-    
+
+    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
     <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.5.6</small>
 
-    
+
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="nav-item">
-  <a class="nav-link" href="../reference/index.html">Reference</a>
-</li>
+<li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="active nav-item dropdown">
-  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
-  <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="../articles/quickstart.html">Quickstart</a>
-    <a class="dropdown-item" href="../articles/example_models.html">Example Models</a>
-    <a class="dropdown-item" href="../articles/calibration.html">Calibrating Compartmental Models to Data</a>
-    <a class="dropdown-item" href="../articles/real_data.html">Fitting to Real Data</a>
-    <a class="dropdown-item" href="../articles/state_updaters.html">ODE Solvers, Process Error, and Difference Equations</a>
-    <div class="dropdown-divider"></div>
-    <a class="dropdown-item" href="../articles/index.html">More articles...</a>
-  </div>
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="../articles/quickstart.html">Quickstart</a></li>
+    <li><a class="dropdown-item" href="../articles/example_models.html">Example Models</a></li>
+    <li><a class="dropdown-item" href="../articles/calibration.html">Calibrating Compartmental Models to Data</a></li>
+    <li><a class="dropdown-item" href="../articles/real_data.html">Fitting to Real Data</a></li>
+    <li><a class="dropdown-item" href="../articles/state_updaters.html">ODE Solvers, Process Error, and Difference Equations</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
+  </ul>
 </li>
-<li class="nav-item">
-  <a class="nav-link" href="../news/index.html">Changelog</a>
-</li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
-<form class="form-inline my-2 my-lg-0" role="search">
-        <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off">
-</form>
-
-      <ul class="navbar-nav">
-<li class="nav-item">
-  <a class="external-link nav-link" href="https://github.com/canmod/macpan2/" aria-label="github">
-    <span class="fab fa fab fa-github fa-lg"></span>
-     
-  </a>
-</li>
+<ul class="navbar-nav">
+<li class="nav-item"><form class="form-inline" role="search">
+ <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
+</form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/canmod/macpan2/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
-    
+
   </div>
 </nav><div class="container template-article">
 
@@ -77,10 +61,11 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="" class="logo" alt=""><h1>State-Dependent Rates</h1>
+
+      <h1>State-Dependent Rates</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/canmod/macpan2/blob/HEAD/vignettes/state_dependent_rates.Rmd" class="external-link"><code>vignettes/state_dependent_rates.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/canmod/macpan2/blob/main/vignettes/state_dependent_rates.Rmd" class="external-link"><code>vignettes/state_dependent_rates.Rmd</code></a></small>
       <div class="d-none name"><code>state_dependent_rates.Rmd</code></div>
     </div>
 
@@ -97,130 +82,205 @@ compartment B could depend on another compartment, C. The most important
 example of these dependencies is infection, and so we use the
 terminology from infection processes. However, our model will subsume a
 very large number of flows as special cases.</p>
-<p>Let <span class="math inline">\(s\)</span> and <span class="math inline">\(x\)</span> be subsets of the state vector. The
-length-<span class="math inline">\(n\)</span> vector <span class="math inline">\(s\)</span> contains the from-compartments –
-typically the compartments that are susceptible to infection – for a set
-of flows. The length-<span class="math inline">\(m\)</span> vector <span class="math inline">\(x\)</span> contains compartments – typically the
-infectious compartments – that affect these flows. The components of
-<span class="math inline">\(x\)</span> do not need to affect all
-components of <span class="math inline">\(y\)</span> but they do need to
-affect some of them. Note that we do not keep track of the
-to-compartments in these flows because they do not matter (I think).</p>
-<p>We define the <span class="math inline">\(n\)</span>-by-<span class="math inline">\(m\)</span> transmission matrix as the following
-decomposition.</p>
-<p><span class="math display">\[
+<p>Let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+be subsets of the state vector. The
+length-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
+vector
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
+contains the from-compartments – typically the compartments that are
+susceptible to infection – for a set of flows. The
+length-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>
+vector
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+contains compartments – typically the infectious compartments – that
+affect these flows. The components of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+do not need to affect all components of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>
+but they do need to affect some of them. Note that we do not keep track
+of the to-compartments in these flows because they do not matter (I
+think).</p>
+<p>We define the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>-by-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>
+transmission matrix as the following decomposition.</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo>=</mo><mo>diag</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>p</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>B</mi><mo>diag</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>c</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
 \DeclareMathOperator{\diag}{diag}
 T = \diag(p) B \diag(c)
-\]</span></p>
+</annotation></semantics></math></p>
 <p>This decomposition involves the following terms.</p>
 <ul>
 <li>
-<span class="math inline">\(p\)</span> – length-<span class="math inline">\(n\)</span> vector of <em>susceptibilities</em> for
-each <span class="math inline">\(s\)</span> state</li>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>
+–
+length-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
+vector of <em>susceptibilities</em> for each
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
+state</li>
 <li>
-<span class="math inline">\(B\)</span> – <span class="math inline">\(n\)</span>-by-<span class="math inline">\(m\)</span> matrix of <em>contacts</em> between
-each <span class="math inline">\(x\)</span> and <span class="math inline">\(s\)</span> state</li>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>B</mi><annotation encoding="application/x-tex">B</annotation></semantics></math>
+–
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>-by-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>
+matrix of <em>contacts</em> between each
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
+state</li>
 <li>
-<span class="math inline">\(c\)</span> – length-<span class="math inline">\(m\)</span> vector of <em>infectivities</em> for
-each <span class="math inline">\(x\)</span> state</li>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>c</mi><annotation encoding="application/x-tex">c</annotation></semantics></math>
+–
+length-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>
+vector of <em>infectivities</em> for each
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+state</li>
 </ul>
 <p>An alternative way to write the transmission matrix decomposition –
 that I prefer because it is a more accurate representation of the actual
 computations – is using <a href="https://canmod.github.io/macpan2/articles/elementwise_binary_operators.html">element-wise
-operations</a>. If <span class="math inline">\(\circ\)</span> is the
-element-wise product then we have the following.</p>
-<p><span class="math display">\[
+operations</a>. If
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>∘</mo><annotation encoding="application/x-tex">\circ</annotation></semantics></math>
+is the element-wise product then we have the following.</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo>=</mo><mi>p</mi><mo>∘</mo><mi>B</mi><mo>∘</mo><msup><mi>c</mi><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">
 T = p \circ B \circ c^\top
-\]</span></p>
-<p>In this expression the column vector <span class="math inline">\(p\)</span> is element-wise multiplied by each
-column in <span class="math inline">\(B\)</span>, and each row in this
-product is element-wise multiplied by the row vector <span class="math inline">\(c^\top\)</span>, where <span class="math inline">\(\top\)</span> is the matrix transpose
-operator.</p>
+</annotation></semantics></math></p>
+<p>In this expression the column vector
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>
+is element-wise multiplied by each column in
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>B</mi><annotation encoding="application/x-tex">B</annotation></semantics></math>,
+and each row in this product is element-wise multiplied by the row
+vector
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>c</mi><mi>⊤</mi></msup><annotation encoding="application/x-tex">c^\top</annotation></semantics></math>,
+where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>⊤</mi><annotation encoding="application/x-tex">\top</annotation></semantics></math>
+is the matrix transpose operator.</p>
 <p>The vector containing the per-capita flow rates out of each of the
-<span class="math inline">\(s\)</span> states is the following.</p>
-<p><span class="math display">\[
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
+states is the following.</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi><mo>=</mo><mi>T</mi><mi>x</mi></mrow><annotation encoding="application/x-tex">
 \lambda = Tx
-\]</span></p>
-<p>This <span class="math inline">\(\lambda\)</span> vector is often
-called the force of infection.</p>
-<p>And finally the absolute flow rates out of each of the <span class="math inline">\(s\)</span> states is the following.</p>
-<p><span class="math display">\[
+</annotation></semantics></math></p>
+<p>This
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>λ</mi><annotation encoding="application/x-tex">\lambda</annotation></semantics></math>
+vector is often called the force of infection.</p>
+<p>And finally the absolute flow rates out of each of the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
+states is the following.</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>=</mo><mi>λ</mi><mo>∘</mo><mi>s</mi></mrow><annotation encoding="application/x-tex">
 \DeclareMathOperator{\diag}{diag}
 r = \lambda \circ s
-\]</span></p>
+</annotation></semantics></math></p>
 </div>
 <div class="section level2">
 <h2 id="example-sir">Example – SIR<a class="anchor" aria-label="anchor" href="#example-sir"></a>
 </h2>
-<p>The <span class="math inline">\(s\)</span> vector contains a single
-state, <code>S</code>, and <span class="math inline">\(x\)</span>
-contains only <code>I</code>. In this case both <span class="math inline">\(n\)</span> and <span class="math inline">\(m\)</span> are 1, and so all components are 1-by-1
-as follows.</p>
+<p>The
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
+vector contains a single state, <code>S</code>, and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+contains only <code>I</code>. In this case both
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>
+are 1, and so all components are 1-by-1 as follows.</p>
 <ul>
 <li>
-<span class="math inline">\(p = 1\)</span> – susceptibility</li>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">p = 1</annotation></semantics></math>
+– susceptibility</li>
 <li>
-<span class="math inline">\(B = 1\)</span> – contact matrix</li>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">B = 1</annotation></semantics></math>
+– contact matrix</li>
 <li>
-<span class="math inline">\(c = \frac{\sigma}{N}\)</span> –
-infectivity</li>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mo>=</mo><mfrac><mi>σ</mi><mi>N</mi></mfrac></mrow><annotation encoding="application/x-tex">c = \frac{\sigma}{N}</annotation></semantics></math>
+– infectivity</li>
 </ul>
 <p>Therefore we have the following transmission matrix, per-capita flow
 rate vector, and absolute flow rate vector.</p>
 <ul>
-<li><span class="math inline">\(T = \frac{\sigma}{N}\)</span></li>
-<li><span class="math inline">\(\lambda = \frac{\sigma}{N}
-I\)</span></li>
-<li><span class="math inline">\(r = \frac{\sigma}{N} IS\)</span></li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo>=</mo><mfrac><mi>σ</mi><mi>N</mi></mfrac></mrow><annotation encoding="application/x-tex">T = \frac{\sigma}{N}</annotation></semantics></math></li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi><mo>=</mo><mfrac><mi>σ</mi><mi>N</mi></mfrac><mi>I</mi></mrow><annotation encoding="application/x-tex">\lambda = \frac{\sigma}{N} I</annotation></semantics></math></li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>=</mo><mfrac><mi>σ</mi><mi>N</mi></mfrac><mi>I</mi><mi>S</mi></mrow><annotation encoding="application/x-tex">r = \frac{\sigma}{N} IS</annotation></semantics></math></li>
 </ul>
 <p>In this overly simple but hopefully clarifying example we could have
-decided to put <span class="math inline">\(\sigma\)</span> and <span class="math inline">\(\frac{1}{N}\)</span> in any of the components,
-<span class="math inline">\(p\)</span>, <span class="math inline">\(B\)</span>, or <span class="math inline">\(c\)</span>. The point is that we have a somewhat
-mechanistic and somewhat general decomposition of transmission, so that
-when we start working with more complex models by combining model
-modules (e.g. combining SEIR with age and spatial structure) we have a
-way to conveniently combine these modules so that the resulting
-transmission rates make mechanistic sense.</p>
+decided to put
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>σ</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mfrac><mn>1</mn><mi>N</mi></mfrac><annotation encoding="application/x-tex">\frac{1}{N}</annotation></semantics></math>
+in any of the components,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>B</mi><annotation encoding="application/x-tex">B</annotation></semantics></math>,
+or
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>c</mi><annotation encoding="application/x-tex">c</annotation></semantics></math>.
+The point is that we have a somewhat mechanistic and somewhat general
+decomposition of transmission, so that when we start working with more
+complex models by combining model modules (e.g. combining SEIR with age
+and spatial structure) we have a way to conveniently combine these
+modules so that the resulting transmission rates make mechanistic
+sense.</p>
 </div>
 <div class="section level2">
 <h2 id="product-models">Product Models<a class="anchor" aria-label="anchor" href="#product-models"></a>
 </h2>
 <p>Now we consider two models, each with the following triples
 representing the transmission decomposition.</p>
-<p><span class="math display">\[
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>p</mi><mn>1</mn></msub><mo>,</mo><msub><mi>B</mi><mn>1</mn></msub><mo>,</mo><msub><mi>c</mi><mn>1</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
 (p_1, B_1, c_1)
-\]</span></p>
-<p><span class="math display">\[
+</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>p</mi><mn>2</mn></msub><mo>,</mo><msub><mi>B</mi><mn>2</mn></msub><mo>,</mo><msub><mi>c</mi><mn>2</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
 (p_2, B_2, c_2)
-\]</span></p>
+</annotation></semantics></math></p>
 <p>Note that these subscripts represent the model, not the components of
-these vectors and matrices. The dimensions of the two models is <span class="math inline">\(n_1, m_1\)</span> and <span class="math inline">\(n_2, m_2\)</span>.</p>
+these vectors and matrices. The dimensions of the two models is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mn>1</mn></msub><mo>,</mo><msub><mi>m</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">n_1, m_1</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mn>2</mn></msub><mo>,</mo><msub><mi>m</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">n_2, m_2</annotation></semantics></math>.</p>
 <p>Taking the product of these two models results in the following
 triple.</p>
-<p><span class="math display">\[
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>p</mi><mo>,</mo><mi>B</mi><mo>,</mo><mi>c</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>p</mi><mn>1</mn></msub><mo>⊗</mo><msub><mi>p</mi><mn>2</mn></msub><mo>,</mo><msub><mi>B</mi><mn>1</mn></msub><mo>⊗</mo><msub><mi>B</mi><mn>2</mn></msub><mo>,</mo><msub><mi>c</mi><mn>1</mn></msub><mo>⊗</mo><msub><mi>c</mi><mn>2</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
 (p, B, c) = (p_1\otimes p_2, B_1\otimes B_2, c_1\otimes c_2)
-\]</span></p>
-<p>Where <span class="math inline">\(\otimes\)</span> is the Kronecker
-product. This leads to an <span class="math inline">\(n_1n_2\)</span>-by-1 column vector, <span class="math inline">\(p\)</span>, <span class="math inline">\(n_1n_2\)</span>-by-<span class="math inline">\(m_1m_2\)</span> matrix, <span class="math inline">\(B\)</span>, and <span class="math inline">\(m_1m_2\)</span>-by-1 column vector <span class="math inline">\(c\)</span>.</p>
-<p>We also have <span class="math inline">\(x_1, x_2\)</span> and <span class="math inline">\(s_1, s_2\)</span> to combine into <span class="math inline">\(x\)</span> and <span class="math inline">\(s\)</span>. Before doing this we need to make a
-distinction between factor models with transmission and those without.
-For example, the SIR model clearly has transmission, but a factor model
-with just age groups does not. Because a pure age model does not
-distinguish between infectious and susceptible people, the only process
-that it considers is aging. Nevertheless when the age model becomes
-combined with a model that does have transmission, we want it to be
-ready for being combined.</p>
+</annotation></semantics></math></p>
+<p>Where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>⊗</mo><annotation encoding="application/x-tex">\otimes</annotation></semantics></math>
+is the Kronecker product. This leads to an
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mn>1</mn></msub><msub><mi>n</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">n_1n_2</annotation></semantics></math>-by-1
+column vector,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mn>1</mn></msub><msub><mi>n</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">n_1n_2</annotation></semantics></math>-by-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>m</mi><mn>1</mn></msub><msub><mi>m</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">m_1m_2</annotation></semantics></math>
+matrix,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>B</mi><annotation encoding="application/x-tex">B</annotation></semantics></math>,
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>m</mi><mn>1</mn></msub><msub><mi>m</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">m_1m_2</annotation></semantics></math>-by-1
+column vector
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>c</mi><annotation encoding="application/x-tex">c</annotation></semantics></math>.</p>
+<p>We also have
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mn>1</mn></msub><mo>,</mo><msub><mi>x</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">x_1, x_2</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mn>1</mn></msub><mo>,</mo><msub><mi>s</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">s_1, s_2</annotation></semantics></math>
+to combine into
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>.
+Before doing this we need to make a distinction between factor models
+with transmission and those without. For example, the SIR model clearly
+has transmission, but a factor model with just age groups does not.
+Because a pure age model does not distinguish between infectious and
+susceptible people, the only process that it considers is aging.
+Nevertheless when the age model becomes combined with a model that does
+have transmission, we want it to be ready for being combined.</p>
 <p>To make an age model – or any other factor model without transmission
 – ready to be combined with a model that includes transmission we need
 to do two things. First we need to account for the fact that some or all
-states may appear in both <span class="math inline">\(x\)</span> and
-<span class="math inline">\(s\)</span> (e.g. young people can be both
-infectious and susceptible). Second we need to include parameters that
-are not used in the factor model’s processes but that will be used when
-it is combined with a model that includes transmission (e.g. an age
-model needs to have a contact matrix even though contact processes do
-not affect aging, which is the only process in the age model). The next
-example illustrates these ideas.</p>
+states may appear in both
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
+(e.g. young people can be both infectious and susceptible). Second we
+need to include parameters that are not used in the factor model’s
+processes but that will be used when it is combined with a model that
+includes transmission (e.g. an age model needs to have a contact matrix
+even though contact processes do not affect aging, which is the only
+process in the age model). The next example illustrates these ideas.</p>
 </div>
 <div class="section level2">
 <h2 id="example-sir-times-age">Example – SIR times age<a class="anchor" aria-label="anchor" href="#example-sir-times-age"></a>
@@ -229,21 +289,22 @@ example illustrates these ideas.</p>
 factor model. The components of the transmission decomposition for this
 particular age-group factor model is as follows.</p>
 <ul>
-<li>susceptibility: <span class="math inline">\(p = \begin{bmatrix} 1 \\
-1 \end{bmatrix}\)</span>
+<li>susceptibility:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">p = \begin{bmatrix} 1 \\ 1 \end{bmatrix}</annotation></semantics></math>
 </li>
-<li>contact matrix: <span class="math inline">\(B = \begin{bmatrix} q
-&amp; (1 - q) \\ (1 - q) &amp; q \end{bmatrix}\)</span>
+<li>contact matrix:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mi>q</mi></mtd><mtd columnalign="center" style="text-align: center"><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>q</mi><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>q</mi><mo stretchy="true" form="postfix">)</mo></mrow></mtd><mtd columnalign="center" style="text-align: center"><mi>q</mi></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">B = \begin{bmatrix} q &amp; (1 - q) \\ (1 - q) &amp; q \end{bmatrix}</annotation></semantics></math>
 </li>
-<li>infectivity: <span class="math inline">\(c = \begin{bmatrix}
-\sigma_\text{young} \\ \sigma_\text{young} \end{bmatrix}\)</span>
+<li>infectivity:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>σ</mi><mtext mathvariant="normal">young</mtext></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>σ</mi><mtext mathvariant="normal">young</mtext></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">c = \begin{bmatrix} \sigma_\text{young} \\ \sigma_\text{young} \end{bmatrix}</annotation></semantics></math>
 </li>
 </ul>
-<p>Here <span class="math inline">\(q\)</span> is the probability that
-any given contact is between individuals of the same age. This is a
-symmetric contact matrix, but we didn’t need to do that. We have also
-decided to not have susceptibility depend on age, but we absolutely
-could have by parameterizing that vector.</p>
+<p>Here
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>q</mi><annotation encoding="application/x-tex">q</annotation></semantics></math>
+is the probability that any given contact is between individuals of the
+same age. This is a symmetric contact matrix, but we didn’t need to do
+that. We have also decided to not have susceptibility depend on age, but
+we absolutely could have by parameterizing that vector.</p>
 <p>It is a little odd to refer to this as a decomposition of
 transmission, because the age-only model contains only aging processes
 and does not include transmission. However, including the transmission
@@ -252,102 +313,91 @@ model with transmission.</p>
 <p>Taking the product of this age model with the SIR model above we have
 the following transmission decomposition.</p>
 <ul>
-<li>susceptibility: <span class="math inline">\(p = \begin{bmatrix} 1 \\
-1 \end{bmatrix}\)</span>
+<li>susceptibility:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">p = \begin{bmatrix} 1 \\ 1 \end{bmatrix}</annotation></semantics></math>
 </li>
-<li>contact matrix: <span class="math inline">\(B = \begin{bmatrix} q
-&amp; (1 - q) \\ (1 - q) &amp; q \end{bmatrix}\)</span>
+<li>contact matrix:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mi>q</mi></mtd><mtd columnalign="center" style="text-align: center"><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>q</mi><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>q</mi><mo stretchy="true" form="postfix">)</mo></mrow></mtd><mtd columnalign="center" style="text-align: center"><mi>q</mi></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">B = \begin{bmatrix} q &amp; (1 - q) \\ (1 - q) &amp; q \end{bmatrix}</annotation></semantics></math>
 </li>
-<li>infectivity: <span class="math inline">\(c =
-\frac{\sigma}{N}\begin{bmatrix} \sigma_\text{young} \\ \sigma_\text{old}
-\end{bmatrix}\)</span>
+<li>infectivity:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mo>=</mo><mfrac><mi>σ</mi><mi>N</mi></mfrac><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>σ</mi><mtext mathvariant="normal">young</mtext></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>σ</mi><mtext mathvariant="normal">old</mtext></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">c = \frac{\sigma}{N}\begin{bmatrix} \sigma_\text{young} \\ \sigma_\text{old} \end{bmatrix}</annotation></semantics></math>
 </li>
 </ul>
-<p>In this product model <span class="math inline">\(x\)</span> contains
-<code>I.young</code> and <code>I.old</code> and <span class="math inline">\(s\)</span> contains <code>S.young</code> and
-<code>S.old</code>.</p>
+<p>In this product model
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+contains <code>I.young</code> and <code>I.old</code> and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
+contains <code>S.young</code> and <code>S.old</code>.</p>
 <p>The transmission matrix can be obtained by multiplying the three
 components of the decomposition as follows.</p>
-<p><span class="math display">\[
-T = \begin{bmatrix} 1 \\ 1 \end{bmatrix}
-\circ \begin{bmatrix} q &amp; (1 - q) \\ (1 - q) &amp; q \end{bmatrix}
-\circ \frac{\sigma}{N}\begin{bmatrix} \sigma_\text{young} &amp;
-\sigma_\text{old} \end{bmatrix}
-= \frac{\sigma}{N} \begin{bmatrix} q \sigma_\text{young} &amp; (1 - q)
-\sigma_\text{old} \\ (1 - q) \sigma_\text{young} &amp; q
-\sigma_\text{old} \end{bmatrix}
-\]</span></p>
-<p>The force of infection vector is then the product of <span class="math inline">\(T\)</span> and <span class="math inline">\(x =
-\begin{bmatrix}I_{\text{young}} \\
-I_{\text{old}}\end{bmatrix}\)</span></p>
-<p><span class="math display">\[
-\lambda = \frac{\sigma}{N} \begin{bmatrix} q \sigma_\text{young}
-I_{\text{young}} + (1-q) \sigma_\text{old} I_{\text{old}} \\ (1-q)
-\sigma_\text{young} I_{\text{young}} + q \sigma_\text{old}
-I_{\text{old}} \end{bmatrix}
-\]</span></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mo>∘</mo><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mi>q</mi></mtd><mtd columnalign="center" style="text-align: center"><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>q</mi><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>q</mi><mo stretchy="true" form="postfix">)</mo></mrow></mtd><mtd columnalign="center" style="text-align: center"><mi>q</mi></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mo>∘</mo><mfrac><mi>σ</mi><mi>N</mi></mfrac><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>σ</mi><mtext mathvariant="normal">young</mtext></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>σ</mi><mtext mathvariant="normal">old</mtext></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mfrac><mi>σ</mi><mi>N</mi></mfrac><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mi>q</mi><msub><mi>σ</mi><mtext mathvariant="normal">young</mtext></msub></mtd><mtd columnalign="center" style="text-align: center"><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>q</mi><mo stretchy="true" form="postfix">)</mo></mrow><msub><mi>σ</mi><mtext mathvariant="normal">old</mtext></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>q</mi><mo stretchy="true" form="postfix">)</mo></mrow><msub><mi>σ</mi><mtext mathvariant="normal">young</mtext></msub></mtd><mtd columnalign="center" style="text-align: center"><mi>q</mi><msub><mi>σ</mi><mtext mathvariant="normal">old</mtext></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">
+T = \begin{bmatrix} 1 \\ 1 \end{bmatrix} 
+\circ \begin{bmatrix} q &amp; (1 - q) \\ (1 - q) &amp; q \end{bmatrix} 
+\circ \frac{\sigma}{N}\begin{bmatrix} \sigma_\text{young} &amp; \sigma_\text{old} \end{bmatrix}
+= \frac{\sigma}{N} \begin{bmatrix} q \sigma_\text{young} &amp; (1 - q) \sigma_\text{old} \\ (1 - q) \sigma_\text{young} &amp; q \sigma_\text{old} \end{bmatrix}
+</annotation></semantics></math></p>
+<p>The force of infection vector is then the product of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>I</mi><mtext mathvariant="normal">young</mtext></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>I</mi><mtext mathvariant="normal">old</mtext></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">x = \begin{bmatrix}I_{\text{young}} \\ I_{\text{old}}\end{bmatrix}</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi><mo>=</mo><mfrac><mi>σ</mi><mi>N</mi></mfrac><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mi>q</mi><msub><mi>σ</mi><mtext mathvariant="normal">young</mtext></msub><msub><mi>I</mi><mtext mathvariant="normal">young</mtext></msub><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>q</mi><mo stretchy="true" form="postfix">)</mo></mrow><msub><mi>σ</mi><mtext mathvariant="normal">old</mtext></msub><msub><mi>I</mi><mtext mathvariant="normal">old</mtext></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>q</mi><mo stretchy="true" form="postfix">)</mo></mrow><msub><mi>σ</mi><mtext mathvariant="normal">young</mtext></msub><msub><mi>I</mi><mtext mathvariant="normal">young</mtext></msub><mo>+</mo><mi>q</mi><msub><mi>σ</mi><mtext mathvariant="normal">old</mtext></msub><msub><mi>I</mi><mtext mathvariant="normal">old</mtext></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">
+\lambda = \frac{\sigma}{N} \begin{bmatrix} q \sigma_\text{young} I_{\text{young}} + (1-q) \sigma_\text{old} I_{\text{old}} \\ (1-q) \sigma_\text{young} I_{\text{young}} + q \sigma_\text{old} I_{\text{old}} \end{bmatrix}
+</annotation></semantics></math></p>
 </div>
 <div class="section level2">
 <h2 id="example-sir-with-multiple-i-boxes-times-age">Example – SIR with multiple I-boxes times age<a class="anchor" aria-label="anchor" href="#example-sir-with-multiple-i-boxes-times-age"></a>
 </h2>
-<p>This example SIR model has <span class="math inline">\(n = 1\)</span>
-susceptible class and <span class="math inline">\(m = 2\)</span>
+<p>This example SIR model has
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">n = 1</annotation></semantics></math>
+susceptible class and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi><mo>=</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">m = 2</annotation></semantics></math>
 infectious classes – mild and severe – with the following transmission
 decomposition.</p>
 <ul>
-<li>susceptibility: <span class="math inline">\(p = 1\)</span>
+<li>susceptibility:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">p = 1</annotation></semantics></math>
 </li>
-<li>contact matrix: <span class="math inline">\(B = \begin{bmatrix} 1
-&amp; 1 \end{bmatrix}\)</span>
+<li>contact matrix:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">B = \begin{bmatrix} 1 &amp; 1 \end{bmatrix}</annotation></semantics></math>
 </li>
-<li>infectivity: <span class="math inline">\(c =
-\frac{1}{N}\begin{bmatrix} \sigma_\text{mild} \\ \sigma_\text{severe}
-\end{bmatrix}\)</span>
+<li>infectivity:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mo>=</mo><mfrac><mn>1</mn><mi>N</mi></mfrac><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>σ</mi><mtext mathvariant="normal">mild</mtext></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>σ</mi><mtext mathvariant="normal">severe</mtext></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">c = \frac{1}{N}\begin{bmatrix} \sigma_\text{mild} \\ \sigma_\text{severe} \end{bmatrix}</annotation></semantics></math>
 </li>
 </ul>
 <p>Multiplying this decomposition by the age model above (in that order)
-gives the following model with <span class="math inline">\(n =
-2\)</span> susceptible compartments and <span class="math inline">\(m =
-4\)</span> infectious compartments.</p>
+gives the following model with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>=</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">n = 2</annotation></semantics></math>
+susceptible compartments and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi><mo>=</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">m = 4</annotation></semantics></math>
+infectious compartments.</p>
 <ul>
-<li>susceptibility: <span class="math inline">\(p = \begin{bmatrix} 1 \\
-1 \end{bmatrix}\)</span>
+<li>susceptibility:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">p = \begin{bmatrix} 1 \\ 1 \end{bmatrix}</annotation></semantics></math>
 </li>
-<li>contact matrix: <span class="math inline">\(B = \begin{bmatrix} q
-&amp; (1 - q) &amp; q &amp; (1 - q) \\ (1 - q) &amp; q &amp; (1 - q)
-&amp; q \end{bmatrix}\)</span>
+<li>contact matrix:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mi>q</mi></mtd><mtd columnalign="center" style="text-align: center"><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>q</mi><mo stretchy="true" form="postfix">)</mo></mrow></mtd><mtd columnalign="center" style="text-align: center"><mi>q</mi></mtd><mtd columnalign="center" style="text-align: center"><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>q</mi><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>q</mi><mo stretchy="true" form="postfix">)</mo></mrow></mtd><mtd columnalign="center" style="text-align: center"><mi>q</mi></mtd><mtd columnalign="center" style="text-align: center"><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>q</mi><mo stretchy="true" form="postfix">)</mo></mrow></mtd><mtd columnalign="center" style="text-align: center"><mi>q</mi></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">B = \begin{bmatrix} q &amp; (1 - q) &amp; q &amp; (1 - q) \\ (1 - q) &amp; q &amp; (1 - q) &amp; q \end{bmatrix}</annotation></semantics></math>
 </li>
-<li>infectivity: <span class="math inline">\(c =
-\frac{1}{N}\begin{bmatrix} \sigma_\text{mild} \sigma_\text{young} \\
-\sigma_\text{mild} \sigma_\text{old}\\ \sigma_\text{severe}
-\sigma_\text{young}\\ \sigma_\text{severe}\sigma_\text{old}
-\end{bmatrix}\)</span>
+<li>infectivity:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mo>=</mo><mfrac><mn>1</mn><mi>N</mi></mfrac><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>σ</mi><mtext mathvariant="normal">mild</mtext></msub><msub><mi>σ</mi><mtext mathvariant="normal">young</mtext></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>σ</mi><mtext mathvariant="normal">mild</mtext></msub><msub><mi>σ</mi><mtext mathvariant="normal">old</mtext></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>σ</mi><mtext mathvariant="normal">severe</mtext></msub><msub><mi>σ</mi><mtext mathvariant="normal">young</mtext></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>σ</mi><mtext mathvariant="normal">severe</mtext></msub><msub><mi>σ</mi><mtext mathvariant="normal">old</mtext></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">c = \frac{1}{N}\begin{bmatrix} \sigma_\text{mild} \sigma_\text{young} \\ \sigma_\text{mild} \sigma_\text{old}\\ \sigma_\text{severe} \sigma_\text{young}\\ \sigma_\text{severe}\sigma_\text{old} \end{bmatrix}</annotation></semantics></math>
 </li>
 </ul>
 <p>The non-square contact matrix might seem weird, but it is fine
 because it is modelling contacts between the two susceptible classes
 with the four infectious classes.</p>
-<p>One could write out the <span class="math inline">\(2\)</span>-by-<span class="math inline">\(4\)</span> transmission matrix, but I don’t think
-it would be too informative. What would be more informative would be to
-write out a component of the force of infection vector, say for young
-people.</p>
-<p><span class="math display">\[
+<p>One could write out the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>2</mn><annotation encoding="application/x-tex">2</annotation></semantics></math>-by-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>4</mn><annotation encoding="application/x-tex">4</annotation></semantics></math>
+transmission matrix, but I don’t think it would be too informative. What
+would be more informative would be to write out a component of the force
+of infection vector, say for young people.</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>λ</mi><mtext mathvariant="normal">young</mtext></msub><mo>=</mo><mfrac><mn>1</mn><mi>N</mi></mfrac></mtd><mtd columnalign="right" style="text-align: right"><mo stretchy="false" form="prefix">(</mo></mtd><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="right" style="text-align: right"><mi>q</mi><msub><mi>σ</mi><mtext mathvariant="normal">mild</mtext></msub><msub><mi>σ</mi><mtext mathvariant="normal">young</mtext></msub><msub><mi>I</mi><mrow><mtext mathvariant="normal">mild</mtext><mo>,</mo><mtext mathvariant="normal">young</mtext></mrow></msub></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="right" style="text-align: right"><mo>+</mo></mtd><mtd columnalign="right" style="text-align: right"><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>q</mi><mo stretchy="true" form="postfix">)</mo></mrow><msub><mi>σ</mi><mtext mathvariant="normal">mild</mtext></msub><msub><mi>σ</mi><mtext mathvariant="normal">old</mtext></msub><msub><mi>I</mi><mrow><mtext mathvariant="normal">mild</mtext><mo>,</mo><mtext mathvariant="normal">old</mtext></mrow></msub></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="right" style="text-align: right"><mo>+</mo></mtd><mtd columnalign="right" style="text-align: right"><mi>q</mi><msub><mi>σ</mi><mtext mathvariant="normal">severe</mtext></msub><msub><mi>σ</mi><mtext mathvariant="normal">young</mtext></msub><msub><mi>I</mi><mrow><mtext mathvariant="normal">severe</mtext><mo>,</mo><mtext mathvariant="normal">young</mtext></mrow></msub></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="right" style="text-align: right"><mo>+</mo></mtd><mtd columnalign="right" style="text-align: right"><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>q</mi><mo stretchy="true" form="postfix">)</mo></mrow><msub><mi>σ</mi><mtext mathvariant="normal">severe</mtext></msub><msub><mi>σ</mi><mtext mathvariant="normal">old</mtext></msub><msub><mi>I</mi><mrow><mtext mathvariant="normal">severe</mtext><mo>,</mo><mtext mathvariant="normal">old</mtext></mrow></msub></mtd><mtd columnalign="right" style="text-align: right"><mo stretchy="false" form="postfix">)</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd></mtr></mtable><annotation encoding="application/x-tex">
 \begin{array}{rrrrrrr}
-\lambda_{\text{young}} = \frac{1}{N}
-&amp; ( &amp; &amp;
-q      \sigma_\text{mild}    \sigma_\text{young}  I_{\text{mild},\text{young}}
-\\
-&amp; &amp; + &amp;
-(1-q)  \sigma_\text{mild}    \sigma_\text{old}    I_{\text{mild},\text{old}}
-\\
-&amp; &amp; + &amp;
-q      \sigma_\text{severe}  \sigma_\text{young}  I_{\text{severe},\text{young}}
-\\
-&amp; &amp; + &amp;
-(1-q)  \sigma_\text{severe}  \sigma_\text{old}    I_{\text{severe},\text{old}}
-&amp; ) \\
+\lambda_{\text{young}} = \frac{1}{N} 
+&amp; ( &amp; &amp; q      \sigma_\text{mild}    \sigma_\text{young}  I_{\text{mild},\text{young}} \\
+&amp; &amp; + &amp; (1-q)  \sigma_\text{mild}    \sigma_\text{old}    I_{\text{mild},\text{old}} \\
+&amp; &amp; + &amp; q      \sigma_\text{severe}  \sigma_\text{young}  I_{\text{severe},\text{young}} \\
+&amp; &amp; + &amp; (1-q)  \sigma_\text{severe}  \sigma_\text{old}    I_{\text{severe},\text{old}} &amp; ) \\
 \end{array}
-\]</span></p>
+</annotation></semantics></math></p>
 <p>The first term, for example, gives the contribution to the force of
 infection due to contacts between young susceptible individuals and
 mildly infected young individuals.</p>
@@ -359,67 +409,59 @@ age<a class="anchor" aria-label="anchor" href="#example-sir-with-multiple-i-boxe
 <p>We are starting to approach ‘real’ models now. This SIR model has an
 R box that can now flow back into I, because the immunity gained through
 infection and recovery is imperfect. This model feature means that the
-<span class="math inline">\(s\)</span> vector has two states,
-<code>S</code> and <code>R</code>, and so <span class="math inline">\(n
-= 2\)</span>. The <span class="math inline">\(x\)</span> vector contains
-<code>I_mild</code> and <code>I_severe</code>, and so <span class="math inline">\(m = 2\)</span> as well. The transmission
-decomposition looks like this.</p>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
+vector has two states, <code>S</code> and <code>R</code>, and so
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>=</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">n = 2</annotation></semantics></math>.
+The
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+vector contains <code>I_mild</code> and <code>I_severe</code>, and so
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi><mo>=</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">m = 2</annotation></semantics></math>
+as well. The transmission decomposition looks like this.</p>
 <ul>
-<li>susceptibility: <span class="math inline">\(p = \begin{bmatrix} 1 \\
-1 - \pi \end{bmatrix}\)</span>
+<li>susceptibility:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn><mo>−</mo><mi>π</mi></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">p = \begin{bmatrix} 1 \\ 1 - \pi \end{bmatrix}</annotation></semantics></math>
 </li>
-<li>contact matrix: <span class="math inline">\(B = \begin{bmatrix} 1
-&amp; 1 \\ 1 &amp; 1 \end{bmatrix}\)</span>
+<li>contact matrix:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">B = \begin{bmatrix} 1 &amp; 1 \\ 1 &amp; 1 \end{bmatrix}</annotation></semantics></math>
 </li>
-<li>infectivity: <span class="math inline">\(c =
-\frac{1}{N}\begin{bmatrix} \sigma_\text{mild} \\ \sigma_\text{severe}
-\end{bmatrix}\)</span>
+<li>infectivity:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mo>=</mo><mfrac><mn>1</mn><mi>N</mi></mfrac><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>σ</mi><mtext mathvariant="normal">mild</mtext></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>σ</mi><mtext mathvariant="normal">severe</mtext></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">c = \frac{1}{N}\begin{bmatrix} \sigma_\text{mild} \\ \sigma_\text{severe} \end{bmatrix}</annotation></semantics></math>
 </li>
 </ul>
-<p>Here <span class="math inline">\(\pi\)</span> is the efficacy of
-immunity against reinfection.</p>
+<p>Here
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>π</mi><annotation encoding="application/x-tex">\pi</annotation></semantics></math>
+is the efficacy of immunity against reinfection.</p>
 <p>The product of this model with age looks like this.</p>
 <ul>
-<li>susceptibility: <span class="math inline">\(p = \begin{bmatrix} 1 \\
-1 \\ 1- \pi \\ 1-\pi \end{bmatrix}\)</span>
+<li>susceptibility:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn><mo>−</mo><mi>π</mi></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn><mo>−</mo><mi>π</mi></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">p = \begin{bmatrix} 1 \\ 1 \\ 1- \pi \\ 1-\pi \end{bmatrix}</annotation></semantics></math>
 </li>
-<li>contact matrix: <span class="math inline">\(B = \begin{bmatrix} q
-&amp; (1 - q) &amp; q &amp; (1 - q) \\ (1 - q) &amp; q &amp; (1 - q)
-&amp; q  \\ q &amp; (1 - q) &amp; q &amp; (1 - q) \\ (1 - q) &amp; q
-&amp; (1 - q) &amp; q \end{bmatrix}\)</span>
+<li>contact matrix:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mi>q</mi></mtd><mtd columnalign="center" style="text-align: center"><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>q</mi><mo stretchy="true" form="postfix">)</mo></mrow></mtd><mtd columnalign="center" style="text-align: center"><mi>q</mi></mtd><mtd columnalign="center" style="text-align: center"><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>q</mi><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>q</mi><mo stretchy="true" form="postfix">)</mo></mrow></mtd><mtd columnalign="center" style="text-align: center"><mi>q</mi></mtd><mtd columnalign="center" style="text-align: center"><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>q</mi><mo stretchy="true" form="postfix">)</mo></mrow></mtd><mtd columnalign="center" style="text-align: center"><mi>q</mi></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mi>q</mi></mtd><mtd columnalign="center" style="text-align: center"><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>q</mi><mo stretchy="true" form="postfix">)</mo></mrow></mtd><mtd columnalign="center" style="text-align: center"><mi>q</mi></mtd><mtd columnalign="center" style="text-align: center"><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>q</mi><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>q</mi><mo stretchy="true" form="postfix">)</mo></mrow></mtd><mtd columnalign="center" style="text-align: center"><mi>q</mi></mtd><mtd columnalign="center" style="text-align: center"><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>q</mi><mo stretchy="true" form="postfix">)</mo></mrow></mtd><mtd columnalign="center" style="text-align: center"><mi>q</mi></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">B = \begin{bmatrix} q &amp; (1 - q) &amp; q &amp; (1 - q) \\ (1 - q) &amp; q &amp; (1 - q) &amp; q  \\ q &amp; (1 - q) &amp; q &amp; (1 - q) \\ (1 - q) &amp; q &amp; (1 - q) &amp; q \end{bmatrix}</annotation></semantics></math>
 </li>
-<li>infectivity: <span class="math inline">\(c =
-\frac{1}{N}\begin{bmatrix} \sigma_\text{mild} \sigma_\text{young} \\
-\sigma_\text{mild} \sigma_\text{old}\\ \sigma_\text{severe}
-\sigma_\text{young}\\ \sigma_\text{severe}\sigma_\text{old}
-\end{bmatrix}\)</span>
+<li>infectivity:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mo>=</mo><mfrac><mn>1</mn><mi>N</mi></mfrac><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>σ</mi><mtext mathvariant="normal">mild</mtext></msub><msub><mi>σ</mi><mtext mathvariant="normal">young</mtext></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>σ</mi><mtext mathvariant="normal">mild</mtext></msub><msub><mi>σ</mi><mtext mathvariant="normal">old</mtext></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>σ</mi><mtext mathvariant="normal">severe</mtext></msub><msub><mi>σ</mi><mtext mathvariant="normal">young</mtext></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>σ</mi><mtext mathvariant="normal">severe</mtext></msub><msub><mi>σ</mi><mtext mathvariant="normal">old</mtext></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">c = \frac{1}{N}\begin{bmatrix} \sigma_\text{mild} \sigma_\text{young} \\ \sigma_\text{mild} \sigma_\text{old}\\ \sigma_\text{severe} \sigma_\text{young}\\ \sigma_\text{severe}\sigma_\text{old} \end{bmatrix}</annotation></semantics></math>
 </li>
 </ul>
 <p>The force of infection for young individuals in the R box, for
 example, is given by the following expression</p>
-<p><span class="math display">\[
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>λ</mi><mtext mathvariant="normal">R,young</mtext></msub><mo>=</mo><mfrac><mrow><mn>1</mn><mo>−</mo><mi>π</mi></mrow><mi>N</mi></mfrac></mtd><mtd columnalign="right" style="text-align: right"><mo stretchy="false" form="prefix">(</mo></mtd><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="right" style="text-align: right"><mi>q</mi><msub><mi>σ</mi><mtext mathvariant="normal">mild</mtext></msub><msub><mi>σ</mi><mtext mathvariant="normal">young</mtext></msub><msub><mi>I</mi><mrow><mtext mathvariant="normal">mild</mtext><mo>,</mo><mtext mathvariant="normal">young</mtext></mrow></msub></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="right" style="text-align: right"><mo>+</mo></mtd><mtd columnalign="right" style="text-align: right"><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>q</mi><mo stretchy="true" form="postfix">)</mo></mrow><msub><mi>σ</mi><mtext mathvariant="normal">mild</mtext></msub><msub><mi>σ</mi><mtext mathvariant="normal">old</mtext></msub><msub><mi>I</mi><mrow><mtext mathvariant="normal">mild</mtext><mo>,</mo><mtext mathvariant="normal">old</mtext></mrow></msub></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="right" style="text-align: right"><mo>+</mo></mtd><mtd columnalign="right" style="text-align: right"><mi>q</mi><msub><mi>σ</mi><mtext mathvariant="normal">severe</mtext></msub><msub><mi>σ</mi><mtext mathvariant="normal">young</mtext></msub><msub><mi>I</mi><mrow><mtext mathvariant="normal">severe</mtext><mo>,</mo><mtext mathvariant="normal">young</mtext></mrow></msub></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="right" style="text-align: right"><mo>+</mo></mtd><mtd columnalign="right" style="text-align: right"><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>q</mi><mo stretchy="true" form="postfix">)</mo></mrow><msub><mi>σ</mi><mtext mathvariant="normal">severe</mtext></msub><msub><mi>σ</mi><mtext mathvariant="normal">old</mtext></msub><msub><mi>I</mi><mrow><mtext mathvariant="normal">severe</mtext><mo>,</mo><mtext mathvariant="normal">old</mtext></mrow></msub></mtd><mtd columnalign="right" style="text-align: right"><mo stretchy="false" form="postfix">)</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd></mtr></mtable><annotation encoding="application/x-tex">
 \begin{array}{rrrrrr}
 \lambda_{\text{R,young}} = \frac{1-\pi}{N}
-&amp; ( &amp; &amp;
-q      \sigma_\text{mild}    \sigma_\text{young}  I_{\text{mild},\text{young}}
-\\
-&amp; &amp; + &amp;
-(1-q)  \sigma_\text{mild}    \sigma_\text{old}    I_{\text{mild},\text{old}}
-\\
-&amp; &amp; + &amp;
-q      \sigma_\text{severe}  \sigma_\text{young}  I_{\text{severe},\text{young}}
-\\
-&amp; &amp; + &amp;
-(1-q)  \sigma_\text{severe}  \sigma_\text{old}    I_{\text{severe},\text{old}}
-&amp; ) \\
+&amp; ( &amp; &amp; q      \sigma_\text{mild}    \sigma_\text{young}  I_{\text{mild},\text{young}} \\
+&amp; &amp; + &amp; (1-q)  \sigma_\text{mild}    \sigma_\text{old}    I_{\text{mild},\text{old}} \\
+&amp; &amp; + &amp; q      \sigma_\text{severe}  \sigma_\text{young}  I_{\text{severe},\text{young}} \\
+&amp; &amp; + &amp; (1-q)  \sigma_\text{severe}  \sigma_\text{old}    I_{\text{severe},\text{old}} &amp; ) \\
 \end{array}
-\]</span></p>
-<p>Note that this is almost identical to the expression for <span class="math inline">\(\lambda_\text{young}\)</span> above, but with a
-factor, <span class="math inline">\(1-\pi\)</span>, giving the reduction
-in transmission conferred by immunity.</p>
-<p><span class="math display">\[
+</annotation></semantics></math></p>
+<p>Note that this is almost identical to the expression for
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mtext mathvariant="normal">young</mtext></msub><annotation encoding="application/x-tex">\lambda_\text{young}</annotation></semantics></math>
+above, but with a factor,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><mi>π</mi></mrow><annotation encoding="application/x-tex">1-\pi</annotation></semantics></math>,
+giving the reduction in transmission conferred by immunity.</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mtext mathvariant="normal">R,young</mtext></msub><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>π</mi><mo stretchy="true" form="postfix">)</mo></mrow><msub><mi>λ</mi><mtext mathvariant="normal">young</mtext></msub></mrow><annotation encoding="application/x-tex">
 \lambda_{\text{R,young}} = (1-\pi) \lambda_{\text{young}}
-\]</span></p>
+</annotation></semantics></math></p>
 </div>
 <div class="section level2">
 <h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
@@ -437,30 +479,40 @@ contact</code></pre>
 <div class="section level2">
 <h2 id="bookkeeping-in-progress">Bookkeeping (in progress)<a class="anchor" aria-label="anchor" href="#bookkeeping-in-progress"></a>
 </h2>
-<p>Index each element of <span class="math inline">\(s\)</span> with
-<span class="math inline">\(i\)</span> and each element of <span class="math inline">\(x\)</span> with <span class="math inline">\(j\)</span>.</p>
+<p>Index each element of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
+with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
+and each element of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>.</p>
 <p>We can define the per-capita rate at which individuals flow out of
-the <span class="math inline">\(s_i\)</span> compartment with the
-following decomposition.</p>
-<p><span class="math display">\[
+the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>s</mi><mi>i</mi></msub><annotation encoding="application/x-tex">s_i</annotation></semantics></math>
+compartment with the following decomposition.</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>i</mi></msub><mo>=</mo><msub><mi>p</mi><mi>i</mi></msub><msub><mi>λ</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">
 r_i = p_i \lambda_i
-\]</span></p>
+</annotation></semantics></math></p>
 <p>The components of the decomposition are as follows.</p>
 <ul>
 <li>
-<span class="math inline">\(p_i\)</span>: susceptibility
-(e.g. complement of vaccine efficacy)</li>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>p</mi><mi>i</mi></msub><annotation encoding="application/x-tex">p_i</annotation></semantics></math>:
+susceptibility (e.g. complement of vaccine efficacy)</li>
 <li>
-<span class="math inline">\(\lambda_i\)</span>: force of
-infection</li>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\lambda_i</annotation></semantics></math>:
+force of infection</li>
 </ul>
-<p>With this definition, the absolute rate of flow out of <span class="math inline">\(s_i\)</span> is given by <span class="math inline">\(r_i s_i\)</span>.</p>
+<p>With this definition, the absolute rate of flow out of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>s</mi><mi>i</mi></msub><annotation encoding="application/x-tex">s_i</annotation></semantics></math>
+is given by
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>i</mi></msub><msub><mi>s</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">r_i s_i</annotation></semantics></math>.</p>
 <p>The force of infection is.</p>
-<p><span class="math display">\[
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mi>i</mi></msub><mo>=</mo><munder><mo>∑</mo><mi>j</mi></munder><msub><mi>B</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><msub><mi>c</mi><mi>j</mi></msub><msub><mi>x</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">
 \lambda_i = \sum_j B_{ij}c_jx_j
-\]</span></p>
+</annotation></semantics></math></p>
 </div>
-  </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
 </div>
 
@@ -471,15 +523,15 @@ infection</li>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.9.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
 </div>
 
     </footer>
 </div>
 
-  
 
-  
+
+
 
   </body>
 </html>
