@@ -193,7 +193,7 @@ mp_tmb_delete = function(model
 #' a kernel that is proportional to a Gamma distribution of reporting
 #' delay times.
 #' 
-#' @inheritParams mp_tmb_model_spec
+#' @param model A model produced by \code{\link{mp_tmb_model_spec}}.
 #' @param incidence_name Name of the incidence variable to be transformed.
 #' @param report_prob Value to use for the reporting probability; the
 #' proportion of cases that get reported.

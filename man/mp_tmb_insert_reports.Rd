@@ -17,6 +17,8 @@ mp_tmb_insert_reports(
 )
 }
 \arguments{
+\item{model}{A model produced by \code{\link{mp_tmb_model_spec}}.}
+
 \item{incidence_name}{Name of the incidence variable to be transformed.}
 
 \item{report_prob}{Value to use for the reporting probability; the
