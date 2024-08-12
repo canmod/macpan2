@@ -1,5 +1,4 @@
 library(macpan2); library(testthat); library(dplyr); library(tidyr); library(ggplot2)
-
 macpan1.5 = readRDS("misc/experiments/wastewater/macpan1-5_comparison_info.RDS")
 
 sim1.5 = (macpan1.5$sim
@@ -111,6 +110,8 @@ obs = (macpan1.5$obs
   |> filter(!is.na(value))
   |> mutate(matrix = ifelse(matrix == "report_inc", "reported_incidence", matrix))
 )
+
+## controls when the simulations start
 starter = data.frame(
     time = as.Date("2020-01-15")
   , matrix = "reported_incidence"
