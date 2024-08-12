@@ -12,7 +12,6 @@ sim1.5 = (macpan1.5$sim
   |> mutate(matrix = ifelse(matrix == "conv", "reported_incidence", matrix))
 )
 
-
 computations = list(
   N ~ sum(S, E, Ia, Ip, Im, Is, R, H, ICUs, ICUd, H2, D)
 )
@@ -41,22 +40,6 @@ flows = list(
   , mp_per_capita_flow("W", "A", W.A ~ xi)
 )
 
-# state_updates = list(
-#     S ~ S - S.E
-#   , E ~ E + S.E - E.Ia - E.Ip
-#   , Ia ~ Ia + E.Ia - Ia.R
-#   , Ip ~ Ip + E.Ip - Ip.Im - Ip.Is
-#   , Im ~ Im + Ip.Im - Im.R
-#   , Is ~ Is + Ip.Is - Is.ICUs - Is.H - Is.ICUd
-#   , H ~ H + Is.H - H.R
-#   , ICUs ~ ICUs + Is.ICUs - ICUs.H2
-#   , ICUd ~ ICUd + Is.ICUd - ICUd.D
-#   , H2 ~ H2 + ICUs.H2 - H2.R
-#   , R ~ R + Ia.R + Im.R + H.R + H2.R
-#   , D ~ D + ICUd.D
-#   , W ~ W + Ia.W + Ip.W + Im.W + Is.W - W.A
-#   , A ~ A + W.A
-# )
 
 # set defaults
 default = list(
@@ -161,7 +144,7 @@ ww_cal = mp_tmb_calibrator(ww_spec |> mp_hazard()
       , W = mp_normal(sd = 1)
     )
   , par = c("log_beta0", "log_nu")
-  , tv = mp_rbf("beta1", dimension = 12)
+  , tv = mp_rbf("beta1", dimension = 5)
   , outputs = c("reported_incidence", "W", "beta")
 )
 
