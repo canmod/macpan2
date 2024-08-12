@@ -315,7 +315,7 @@ mp_initial_list = function(model) UseMethod("mp_initial_list")
 
 #' @export
 mp_initial.TMBModelSpec = function(model) {
-  warning("under construction")
+  # warning("under construction")
   ## Should this just be whatever the report returns in the before phase?
   ## And in this way be analogous to mp_final?  I think so.
   all_derived_mats_in_before_step = setdiff(
