@@ -1,4 +1,47 @@
 
+
+
+handle_rate_args = function(rate, abs_rate = NULL) {
+  if (!is_two_sided(rate)) {
+    if (is_one_sided(rate)) rate = rhs_char(rate)
+    rate = two_sided(abs_rate, rate)
+  }
+  return(rate)
+}
+
+only_iterable = function(expr_list, states) {
+  non_iterable_funcs = getOption("macpan2_non_iterable_funcs")
+  parse_expr = make_expr_parser(finalizer = finalizer_char)
+  no_iterable_funcs = (expr_list
+     |> lapply(rhs)
+     |> lapply(parse_expr)
+     |> vapply(
+         \(x) !any(non_iterable_funcs %in% x$x)
+       , logical(1L)
+      )
+  )
+  no_state_var_assignments = (expr_list
+     |> lapply(lhs)
+     |> lapply(parse_expr)
+     |> vapply(
+         \(x) !any(states %in% x$x)
+       , logical(1L)
+      )
+  )
+  is_iterable = no_iterable_funcs & no_state_var_assignments
+  expr_list[is_iterable]
+}
+
+
+
+## two class types:
+##   1. ChangeModel (set of flows) (e.g. SimpleChangeModel) (change_models.R)
+##   2. UpdateMethod (Euler, RK4, EulerMultinomial, TimeDerivative) (e.g. RK4UpdateMethod) (update_methods.R)
+##
+## one data structure type:
+##   1. ChangeComponent (Flow, Birth, ...) (e.g. PerCapitaFlow) (change_components.R)
+
+
 ## Abstract ChangeModel -- functions for specifying what kinds of expressions 
 ## should go in what phases of the simulation. more finely grained than just
 ## before-during-after, and makes absolute flow and state updates first
@@ -47,49 +90,6 @@ ChangeModel = function() {
   
   return_object(self, "ChangeModel")
 }
-
-
-handle_rate_args = function(rate, abs_rate = NULL) {
-  if (!is_two_sided(rate)) {
-    if (is_one_sided(rate)) rate = rhs_char(rate)
-    rate = two_sided(abs_rate, rate)
-  }
-  return(rate)
-}
-
-only_iterable = function(expr_list, states) {
-  non_iterable_funcs = getOption("macpan2_non_iterable_funcs")
-  parse_expr = make_expr_parser(finalizer = finalizer_char)
-  no_iterable_funcs = (expr_list
-     |> lapply(rhs)
-     |> lapply(parse_expr)
-     |> vapply(
-         \(x) !any(non_iterable_funcs %in% x$x)
-       , logical(1L)
-      )
-  )
-  no_state_var_assignments = (expr_list
-     |> lapply(lhs)
-     |> lapply(parse_expr)
-     |> vapply(
-         \(x) !any(states %in% x$x)
-       , logical(1L)
-      )
-  )
-  is_iterable = no_iterable_funcs & no_state_var_assignments
-  expr_list[is_iterable]
-}
-
-
-
-## two class types:
-##   1. ChangeModel (set of flows) (e.g. SimpleChangeModel) (change_models.R)
-##   2. UpdateMethod (Euler, RK4, EulerMultinomial, TimeDerivative) (e.g. RK4UpdateMethod) (update_methods.R)
-##
-## one data structure type:
-##   1. ChangeComponent (Flow, Birth, ...) (e.g. PerCapitaFlow) (change_components.R)
-
-
 
 
 
