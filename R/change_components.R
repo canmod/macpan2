@@ -1,40 +1,3 @@
-## ChangeComponent -- functions for producing the change_frame and flow_frame,
-## which describe model dynamics, and also other associated formulas
-ChangeComponent = function() {
-  self = Base()
-  
-  ## column - state: state variable being changed (i.e. updated at each step)
-  ## column - change: signed absolute flow rates (variables or expressions that 
-  ## don't involve any state variables)
-  ## example:
-  ## state, change
-  ## S,     -infection
-  ## I,     +infection
-  ## I,     -recovery
-  ## R,     +recovery
-  self$change_frame = function() empty_frame("state", "change")
-  
-  ## column - size: variable (often a state variable or function of
-  ## state variables) that gives the size of the population being drawn
-  ## from in a flow (e.g. S is the size of an infection flow).
-  ## column - change: unsigned absolute flow rates.
-  ## column - rate: per-capita flow rates (variables or expresions that 
-  ## sometimes involve state variables).
-  ## example:
-  ## size, change,    rate
-  ## S,    infection, beta * I / N
-  ## I,    recovery,  gamma
-  ## N,    birth,     mu
-  self$flow_frame = function() empty_frame("size", "change", "rate")
-  
-  self$other_generated_formulas = function() list()
-  
-  self$user_formulas = function() list()
-  
-  self$string = function() "Abstract change component"
-  
-  return_object(self, "ChangeComponent")
-}
 
 ChangeComponentGlobalizable = function() {
   self = ChangeComponent()
@@ -50,38 +13,6 @@ ChangeComponentGlobalizable = function() {
   return_object(self, "ChangeComponentGlobalization")
 }
 
-handle_rate_args = function(rate, abs_rate = NULL) {
-  if (!is_two_sided(rate)) {
-    if (is_one_sided(rate)) rate = rhs_char(rate)
-    rate = two_sided(abs_rate, rate)
-  }
-  return(rate)
-}
-
-
-PerCapitaFlow = function(from, to, rate, call_string) {
-  self = ChangeComponent()
-  self$from = from
-  self$to = to
-  self$rate = rate
-  self$call_string = call_string
-  self$change_frame = function() {
-    data.frame(
-        state = c(self$from, self$to)
-      , change = sprintf("%s%s", c("-", "+"), lhs_char(self$rate))
-    )
-  }
-  self$flow_frame = function() {
-    data.frame(
-        size = self$from
-      , change = lhs_char(self$rate)
-      , rate = rhs_char(self$rate)
-    )
-  }
-  self$string = function() self$call_string
-  return_object(self, "PerCapitaFlow")
-}
-
 #' @export
 print.PerCapitaFlow = function(x, ...) {
   vec = c(
@@ -92,32 +23,6 @@ print.PerCapitaFlow = function(x, ...) {
   )
   components = sprintf("%s: %s", names(vec), unname(vec))
   paste0(components, collapse = "\n") |> cat()
-}
-
-PerCapitaInflow = function(from, to, rate, call_string) {
-  self = PerCapitaFlow(from, to, rate, call_string)
-  self$change_frame = function() {
-    data.frame(
-        state = self$to
-      , change = sprintf("%s%s", "+", lhs_char(self$rate))
-    )
-  }
-  return_object(self, "PerCapitaInflow")
-}
-
-
-##' Formula
-##' 
-##' Wrap a two-sided formula so that it can be used as a change component.
-##' Developer use only.
-##' 
-##' @noRd
-Formula = function(formula) {
-  if (is_one_sided(formula)) stop("Raw R formulas in an expression list must be two-sided")
-  self = ChangeComponent()
-  self$formula = formula
-  self$user_formulas = function() list(self$formula)
-  return_object(self, "Formula")
 }
 
 #' @export
@@ -197,12 +102,3 @@ GammaConvolution = function(variable, length, height, mean, cv) {
   }
   return_object(self, "GammaConvolution")
 }
-
-#' @noRd
-to_change_component = function(x) UseMethod("to_change_component")
-
-#' @export
-to_change_component.ChangeComponent = function(x) x
-
-#' @export
-to_change_component.formula = function(x) Formula(x)

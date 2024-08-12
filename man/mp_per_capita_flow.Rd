@@ -7,8 +7,6 @@
 \usage{
 mp_per_capita_flow(from, to, rate, abs_rate = NULL)
 
-mp_per_capita_flow(from, to, rate, abs_rate = NULL)
-
 mp_per_capita_inflow(from, to, rate, abs_rate = NULL)
 }
 \arguments{
@@ -29,8 +27,6 @@ which will be computed as \code{from * rate}. If a formula is passed to
 \code{rate} (not recommended), then this \code{abs_rate} argument will be ignored.}
 }
 \description{
-Per-Capita Flow (Experimental)
-
 Per-Capita Flow (Experimental)
 }
 \section{Functions}{

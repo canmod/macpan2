@@ -4,18 +4,6 @@
 ## them explicitly. The underlying class structure is in different
 ## files as follows.
 
-to_absolute_flows = function(per_capita_flows) {
-  char_list = list()
-  for (size_var in names(per_capita_flows)) {
-    char_list = append(char_list, sprintf("%s ~ %s * %s"
-      , vapply(per_capita_flows[[size_var]], lhs_char, character(1L))
-      , size_var
-      , vapply(per_capita_flows[[size_var]], rhs_char, character(1L))
-    ))
-  }
-  lapply(char_list, as.formula)
-}
-
 handle_rate_args = function(rate, abs_rate = NULL) {
   if (!is_two_sided(rate)) {
     if (is_one_sided(rate)) rate = rhs_char(rate)
@@ -58,27 +46,7 @@ only_iterable = function(expr_list, states) {
 
 
 
-#' Per-Capita Flow (Experimental)
-#' 
-#' @param from String giving the name of the compartment from which the flow
-#' originates.
-#' @param to String giving the name of the compartment to which the flow is
-#' going.
-#' @param rate String giving the expression for the per-capita flow rate.
-#' Alternatively, for back compatibility, a two-sided formula with the
-#' left-hand-side giving the name of the absolute flow rate per unit time-step 
-#' and the right-hand-side giving an expression for the per-capita rate of 
-#' flow from `from` to `to`.
-#' @param abs_rate String giving the name for the absolute flow rate,
-#' which will be computed as `from * rate`. If a formula is passed to
-#' `rate` (not recommended), then this `abs_rate` argument will be ignored.
-#' 
-#' @export
-mp_per_capita_flow = function(from, to, rate, abs_rate = NULL) {
-  call_string = deparse(match.call())
-  rate = handle_rate_args(rate, abs_rate)
-  PerCapitaFlow(from, to, rate, call_string)
-}
+
 
 ## UpdateMethod -- functions for rendering the final before-during-after
 ## expression lists to be used in simulations
@@ -92,7 +60,7 @@ UpdateMethod = function(exising_global_names = character()) {
 }
 
 ## ChangeComponent -- functions for producing the change_frame and flow_frame,
-## which describe model dynamics
+## which describe model dynamics, and also other associated formulas
 ChangeComponent = function() {
   self = Base()
   
@@ -120,6 +88,8 @@ ChangeComponent = function() {
   ## N,    birth,     mu
   self$flow_frame = function() empty_frame("size", "change", "rate")
   
+  self$other_generated_formulas = function() list()
+  
   self$user_formulas = function() list()
   
   self$string = function() "Abstract change component"
@@ -146,19 +116,21 @@ ChangeComponent = function() {
 ##' 
 ##' @noRd
 SimpleChangeModel = function(before = list(), during = list(), after = list()) {
-  self = ChangeModel()
+  self = ChangeModelDefaults()
   
   self$before = before
   self$during = during
   self$after = after
   
   self$change_list = lapply(self$during, to_change_component)
+  #proposed_global_names = self$all_user_aware_names()
   
   ## find what formulas were provided by the user as raw formulas
   ## and make sure that they know that they should place them either
   ## at the beginning or the end of the during list
   head_indices = tail_indices = integer()
   is_formula = self$change_classes() == "Formula"
+  
   if (all(is_formula)) {
     head_indices = seq_along(is_formula)
   }
@@ -177,7 +149,9 @@ SimpleChangeModel = function(before = list(), during = list(), after = list()) {
   self$.before_flows = self$user_formulas()[head_indices]
   self$.after_state = self$user_formulas()[tail_indices]
   
-  self$no_change_components = function() all(self$change_classes() == "Formula")
+  self$no_change_components = function() {
+    all(self$change_classes() %in% c("Formula", "FormulaListHelper"))
+  }
   
   self$before_flows = function() {
     unlist(self$.before_flows, recursive = FALSE, use.names = FALSE)
@@ -198,13 +172,7 @@ SimpleChangeModel = function(before = list(), during = list(), after = list()) {
   }
   self$update_state = function() {
     frame = self$change_frame()
-    all_exprs = tapply(frame$change
-      , frame$state
-      , paste0
-      , collapse = " "
-      , simplify = TRUE
-    )
-    exprs = all_exprs[unique(frame$state)]
+    exprs = tapply(frame$change, frame$state, paste0, collapse = " ", simplify = TRUE)[unique(frame$state)]
     sprintf("%s ~ %s", names(exprs), unname(exprs)) |> lapply(as.formula)
   }
   self$before_loop = function() self$before
@@ -214,7 +182,7 @@ SimpleChangeModel = function(before = list(), during = list(), after = list()) {
 }
 
 AllFormulaChangeModel = function(before = list(), during = list(), after = list()) {
-  self = ChangeModel()
+  self = ChangeModelDefaults()
   self$before = before
   self$during = during
   self$after = after
@@ -351,7 +319,6 @@ mp_expand.TMBModelSpec = function(model) model$expand()
 
 
 ## Utilities
-
 to_absolute_flows = function(per_capita_flows) {
   char_list = list()
   for (size_var in names(per_capita_flows)) {
@@ -363,7 +330,6 @@ to_absolute_flows = function(per_capita_flows) {
   }
   lapply(char_list, as.formula)
 }
-
 get_state_update_type = function(state_update_type, change_model) {
   if (inherits(change_model, "AllFormulaChangeModel")) return("no")
   state_update_type
@@ -447,20 +413,19 @@ RK4UpdateMethod = function(change_model) {
   
   self$before = function() self$change_model$before_loop()
   self$during = function() {
-    update = self$change_model$update_state()
-    states = vapply(update, lhs_char, character(1L))
-    rates = vapply(update, rhs_char, character(1L))
-    
     before_components = self$change_model$before_flows()
     components = to_absolute_flows(self$change_model$update_flows())
     before_state = self$change_model$before_state()
-    before = c(only_iterable(before_components, states), components, before_state)
-    before_first = c(before_components, components, before_state)
+    before = c(before_components, components, before_state)
+    update = self$change_model$update_state()
     
     new_update = list()
     new_before = list()
     
-    existing_names = self$change_model$all_variable_names()
+    states = vapply(update, lhs_char, character(1L))
+    rates = vapply(update, rhs_char, character(1L))
+    
+    existing_names = self$change_model$all_user_aware_names()
     local_step_names = list(
         k1 = sprintf("k1_%s", states)
       , k2 = sprintf("k2_%s", states)
@@ -470,7 +435,7 @@ RK4UpdateMethod = function(change_model) {
     step_names = map_names(existing_names, local_step_names)
     
     ## rk4 step 1
-    k1_new_before = before_first
+    k1_new_before = before
     k1_new_update = sprintf("%s ~ %s", step_names$k1, rates) |> lapply(as.formula)
     
     ## rk4 step 2
@@ -512,7 +477,7 @@ EulerMultinomialUpdateMethod = function(change_model) {
   
   self$vec = function(expr_list, char_fun) {
     vec = vapply(expr_list, char_fun, character(1L))
-    simple_expr = all(grepl("^[a-zA-Z0-9]+$", vec))
+    simple_expr = all(grepl("^[a-zA-Z0-9.]+$", vec))
     scalar_expr = length(vec) == 1L
     
     if (simple_expr & scalar_expr) return(vec)
@@ -522,15 +487,12 @@ EulerMultinomialUpdateMethod = function(change_model) {
     if (!scalar_expr) {
       vec = sprintf("c%s", vec)
     }
-    if(!simple_expr & scalar_expr){vec = sprintf("c%s", vec)}
     return(vec)
   }
   
   self$before = function() self$change_model$before_loop()
   self$during = function() {
     flow_list = self$change_model$update_flows()
-    before_components = self$change_model$before_flows()
-    before_state = self$change_model$before_state()
     components = list()
     for (size_var in names(flow_list)) {
       components[[size_var]] = sprintf("%s ~ reulermultinom(%s, %s)"
@@ -547,23 +509,25 @@ EulerMultinomialUpdateMethod = function(change_model) {
     update_char = sprintf("%s ~ %s %s", states, states, rates)
     new_update = lapply(update_char, as.formula)
     
-    c(before_components, new_flow, before_state, new_update)
+    c(new_flow, new_update)
   }
   self$after = function() self$change_model$after_loop()
   return_object(self, "EulerMultinomialUpdateMethod")
 }
 
+
 HazardUpdateMethod = function(change_model) {
   self = EulerMultinomialUpdateMethod(change_model)
   self$during = function() {
+    before_components = self$change_model$before_flows()
+    before_state = self$change_model$before_state()
 
     flow_list = self$change_model$update_flows()
     components = list()
     for (size_var in names(flow_list)) {
-      components[[size_var]] = sprintf("%s ~ %s * (1 - exp(-sum(%s))) * %s / (sum(%s))"
+      components[[size_var]] = sprintf("%s ~ %s * (1 - exp(-sum(%s))) * proportions(%s, 0, 1e-8)"
         , self$vec(flow_list[[size_var]], lhs_char)
         , size_var
-        , self$vec(flow_list[[size_var]], rhs_char)
         , self$vec(flow_list[[size_var]], rhs_char)
         , self$vec(flow_list[[size_var]], rhs_char)
       )
@@ -576,11 +540,9 @@ HazardUpdateMethod = function(change_model) {
     update_char = sprintf("%s ~ %s %s", states, states, rates)
     new_update = lapply(update_char, as.formula)
     
-    before_components = self$change_model$before_flows()
-    before_state = self$change_model$before_state()
     after_components = self$change_model$after_state()
     
-    c(before_components, new_flow, before_state, new_update, after_components)
+    c(before_components, before_state, new_flow, new_update, after_components)
   }
   return_object(self, "HazardUpdateMethodUpdateMethod")
 }
