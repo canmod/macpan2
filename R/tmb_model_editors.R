@@ -184,6 +184,26 @@ mp_tmb_delete = function(model
   )
 }
 
+#' Insert Reports
+#' 
+#' A version of \code{\link{mp_tmb_insert}} making it more convenient to
+#' transform an incidence variable into a reports variable, which accounts 
+#' for reporting delays and under-reporting. This new reports variable is
+#' a convolution of the simulation history of an incidence variable with 
+#' a kernel that is proportional to a Gamma distribution of reporting
+#' delay times.
+#' 
+#' @inheritParams mp_tmb_model_spec
+#' @param incidence_name Name of the incidence variable to be transformed.
+#' @param report_prob Value to use for the reporting probability; the
+#' proportion of cases that get reported.
+#' @param mean_delay Mean of the Gamma distribution of reporting delay times.
+#' @param cv_delay Coefficient of variation of the Gamma distribution of
+#' reporting delay times.
+#' @param reports_name Name of the new reports variable.
+#' @param report_prob_name Name of the variable containing `report_prob`.
+#' @param mean_delay_name Name of the variable containing `mean_delay`.
+#' @param cv_delay_name Name of the variable containing `cv_delay`.
 #' @export
 mp_tmb_insert_reports = function(model
   , incidence_name
