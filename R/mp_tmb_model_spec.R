@@ -89,7 +89,7 @@ TMBModelSpec = function(
   self$all_matrices = function() c(self$default, self$empty_matrices())
   
   self$name_map = function(local_names) {
-    macpan2:::map_names(
+    map_names(
       self$all_formula_vars()
       , setNames(as.list(local_names), local_names)
     )
@@ -128,7 +128,7 @@ TMBModelSpec = function(
     )
   }
   self$name_map = function(local_names) {
-    macpan2:::map_names(
+    map_names(
         self$all_formula_vars()
       , setNames(as.list(local_names), local_names)
     )
@@ -240,9 +240,9 @@ update_default = function(mats, default) {
 
 must_save_time_args = function(formulas) {
   time_dep_funcs = getOption("macpan2_time_dep_funcs")
-  parse_expr = make_expr_parser(finalizer = macpan2:::finalizer_char)
+  parse_expr = make_expr_parser(finalizer = finalizer_char)
   time_args = (formulas
-     |> lapply(macpan2:::rhs)
+     |> lapply(rhs)
      |> lapply(parse_expr)
      |> lapply(\(x) x$x[x$i[x$x %in% time_dep_funcs] + 1])
      |> unlist()

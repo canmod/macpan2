@@ -38,8 +38,8 @@ FormulaList = function(formulas) {
 }
 
 mp_sum = function(summand, sum = sprintf("%s_sum", summand)) {
-  formula = macpan2:::two_sided(sum, sprintf("sum(%s)", summand))
-  macpan2:::Formula(formula)
+  formula = two_sided(sum, sprintf("sum(%s)", summand))
+  Formula(formula)
 }
 
 FormulaHelper = function(local_names = character()) {

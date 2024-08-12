@@ -30,6 +30,7 @@ DistrSpec = function() {
   return_object(self, "DistrSpec")
 }
 
+#' Poisson Distribution
 #' @export
 mp_poisson = function() {
   self = DistrSpec()
@@ -38,8 +39,11 @@ mp_poisson = function() {
   return_object(self, "Poisson")
 }
 
+#' Negative Binomial Distribution
+#' @param disp Dispersion parameter.
 #' @export
 mp_neg_bin = function(disp) {
+  ## location??
   self = Base()
   self$disp = disp
   self$log_disp = \() log(self$disp)
@@ -51,7 +55,9 @@ mp_neg_bin = function(disp) {
 }
 
 
-
+#' Normal Distributon
+#' @param location Location parameter.
+#' @param sd Standard deviation parameter.
 #' @export
 mp_normal = function(location = NULL, sd = 1) {
   self = Base()
@@ -72,6 +78,8 @@ mp_normal_test = function(x, location, log_sd) {
   return_object(self, "NormalTest")
 }
 
+#' Log-Normal Distribution
+#' @param sd Standard deviation parameter.
 #' @export
 mp_log_normal = function(sd) {
   self = mp_normal(sd)
