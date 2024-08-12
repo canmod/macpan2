@@ -11,7 +11,7 @@ test_that("all models in the library can run", {
     ## will run a small test of the
     ## model, rather than running
     ## calibration_example.R
-    c("nfds", "shiver", "macpan_base", "awareness")
+    c("nfds", "shiver", "macpan_base", "awareness", "ww")
   )
   for (m in model_names) {
     print("====MODEL====")

@@ -336,7 +336,7 @@ mp_initial_list.TMBModelSpec = function(model) {
 
 #' @export
 mp_initial.TMBSimulator = function(model) {
-  warning("under construction")
+  # warning("under construction")
   mats_list = model$tmb_model$init_mats
   int_vecs = model$tmb_model$engine_methods$int_vecs
   expr_list = model$tmb_model$expr_list
