@@ -6,7 +6,7 @@ computations = list(
 
 foi = S.E ~ (beta0 / N) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s))
 flow_rates = list(
-    mp_per_capita_flow("S", "E", foi)
+    mp_per_capita_flow("S", "E", foi, "incidence")
   , mp_per_capita_flow("E", "Ia", E.Ia ~ alpha * sigma)
   , mp_per_capita_flow("E", "Ip", E.Ip ~ (1 - alpha)* sigma)
   , mp_per_capita_flow("Ia", "R", Ia.R ~ gamma_a)

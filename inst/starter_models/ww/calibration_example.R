@@ -28,13 +28,31 @@ backtrans <- function(x) {
 ## Observed Data Prep
 ## -------------------------
 
+macpan1.5 = readRDS("misc/experiments/wastewater/macpan1-5_comparison_info.RDS")
+
 # mobility data sourced from ./inst/starter_models/macpan_base/data/get_data.R to describe 
 # contact behaviour of individuals
 # data is not currently part of package (maybe there was a reason for this, too large etc.)
 #mobility_data = readRDS(system.file("inst","starter_models","macpan_base","data","mobility_data.RDS",package="macpan2"))
 mobility_data = readRDS(file.path("inst","starter_models","macpan_base","data","mobility_data.RDS"))
-# do we need this time series data, is there other data containing W and A?
-#prepped_ts_data = readRDS(file.path("inst","starter_models","macpan_base","data","ts_data.RDS"))
+
+# contains identical incidence data to obs_data, with additional variables and longer time frame
+prepped_ts_data = readRDS(file.path("inst","starter_models","macpan_base","data","ts_data.RDS"))
+
+# observed incidence and wastewater data
+obs_data = (macpan1.5$obs
+            |> rename(time = date, matrix = var)
+            |> filter(!is.na(value))
+            |> mutate(matrix = ifelse(matrix == "report_inc", "reported_incidence", matrix))
+)
+
+
+## controls when the simulations start
+starter = data.frame(
+    time = as.Date("2020-01-15")
+  , matrix = "reported_incidence"
+  , value = 0
+)
 
 # To further prepare the mobility data for calibration we filter for the 
 # appropriate time range, create a numeric date field named 'time' and compute 
@@ -96,18 +114,24 @@ focal_model = (#specs$ww_euler
                |> mp_tmb_insert(phase = "before"
                                 , at = 1L
                                 , expressions = list(
-                                    zeta ~ exp(log_zeta)
+                                  #   zeta ~ exp(log_zeta)
+                                  # , beta0 ~ exp(log_beta0)
+                                  # , nonhosp_mort ~ 1/(1+exp((-logit_nonhosp_mort)))
+                                  # , E ~ exp(log_E)
+                                  # , Ca ~ exp(log_Ca)
+                                  
+                                    incidence_report_prob ~ 1 / (1 + exp(-logit_report_prob))
                                   , beta0 ~ exp(log_beta0)
-                                  , nonhosp_mort ~ 1/(1+exp((-logit_nonhosp_mort)))
-                                  , E ~ exp(log_E)
-                                  , Ca ~ exp(log_Ca)
+                                  , nu ~ exp(log_nu)
                                 )
                                 , default = list(
-                                    log_zeta = empty_matrix
-                                  , log_beta0 = empty_matrix
-                                  , logit_nonhosp_mort = empty_matrix
-                                  , log_E = empty_matrix
-                                  , log_Ca = empty_matrix
+                                  #   log_zeta = empty_matrix
+                                  # , log_beta0 = empty_matrix
+                                  # , logit_nonhosp_mort = empty_matrix
+                                  # , log_E = empty_matrix
+                                  # , log_Ca = empty_matrix
+                                  
+                                   logit_report_prob = 0, log_beta0 = 0, log_nu = 0
                                 )
                                 
                )
@@ -127,23 +151,30 @@ focal_model = (#specs$ww_euler
                                 
                )
                
-               # compute gamma-density delay kernel for convolution:
-               |> mp_tmb_insert(phase = "before"
-                                , at = Inf
-                                , expressions = list(
-                                    gamma_shape ~ 1 / (c_delay_cv^2)
-                                  , gamma_scale ~ c_delay_mean * c_delay_cv^2
-                                  , gamma ~ pgamma(1:(qmax+1), gamma_shape, gamma_scale)
-                                  , delta ~ gamma[1:(qmax)] - gamma[0:(qmax - 1)]
-                                  , kappa ~ c_prop * delta / sum(delta)
-                                )
-                                , default = list(qmax = empty_matrix)
-               )
+               # # compute gamma-density delay kernel for convolution:
+               ## |> mp_tmb_insert(phase = "before"
+               #                  , at = Inf
+               #                  , expressions = list(
+               #                      gamma_shape ~ 1 / (c_delay_cv^2)
+               #                    , gamma_scale ~ c_delay_mean * c_delay_cv^2
+               #                    , gamma ~ pgamma(1:(qmax+1), gamma_shape, gamma_scale)
+               #                    , delta ~ gamma[1:(qmax)] - gamma[0:(qmax - 1)]
+               #                    , kappa ~ c_prop * delta / sum(delta)
+               #                  )
+               #                  , default = list(qmax = empty_matrix)
+               # )
+               # 
+               # # add convolution to compute case reports from incidence:
+               ## |> mp_tmb_insert(phase = "during"
+               #                  , at = Inf
+               #                  , expressions = list(reported_incidence ~ convolution(S.E, kappa))
+               # )
                
                # add convolution to compute case reports from incidence:
-               |> mp_tmb_insert(phase = "during"
-                                , at = Inf
-                                , expressions = list(report ~ convolution(S.E, kappa))
+               |> mp_tmb_insert_reports("incidence" 
+                                        , report_prob = 0.5
+                                        , mean_delay = 11
+                                        , cv_delay = 0.25
                )
                
                # add time-varying transmission with mobility data:
@@ -213,10 +244,10 @@ sim_data = (focal_model
 # is used to fit to.
 focal_calib = mp_tmb_calibrator(
     spec = focal_model
-  , data = sim_data
-  , traj = c("report","death", "W", "A") 
+  , data = rbind(starter, obs_data)
+  , traj = c("reported_incidence", "W") 
   , par = c(
-      "log_Ca"
+      "log_beta0", "log_nu"
     # negative binomial dispersion parameters for reports, deaths, W, and A get added
     # automatically with options(macpan2_default_loss = "neg_bin") set above
   )
@@ -226,7 +257,7 @@ focal_calib = mp_tmb_calibrator(
     # Population of Ontario (2019) from:
     # https://github.com/mac-theobio/macpan_base/blob/main/code/ontario_calibrate_comb.R
       S = 14.57e6 - 5 
-    , log_E = log(5)
+    #, log_E = log(5)
     # infectious states cannot be all zero when using hazard, otherwise incidence
     # at first time step is NaN
     , Ia = 1
@@ -246,10 +277,10 @@ focal_calib = mp_tmb_calibrator(
     
     # set initial parameter values for optimizer
     , log_beta0=log(5)
-    , logit_nonhosp_mort = -0.5
-    , qmax = qmax
-    , log_zeta = 1
-    , log_Ca = log(1/3)
+    #, logit_nonhosp_mort = -0.5
+    #, qmax = qmax
+    #, log_zeta = 1
+    #, log_Ca = log(1/3)
     , log_mobility_coefficients = rep(0,5)
   )
 )
