@@ -1,7 +1,7 @@
 library(macpan2)
 library(ggplot2)
 library(dplyr)
-options(macpan2_default_loss = "neg_bin") 
+#options(macpan2_default_loss = "neg_bin") 
 
 ## -------------------------
 ## Local function to back-transform estimates and CIs
@@ -114,28 +114,20 @@ focal_model = (#specs$ww_euler
                |> mp_tmb_insert(phase = "before"
                                 , at = 1L
                                 , expressions = list(
-                                  #   zeta ~ exp(log_zeta)
-                                  # , beta0 ~ exp(log_beta0)
-                                  # , nonhosp_mort ~ 1/(1+exp((-logit_nonhosp_mort)))
-                                  # , E ~ exp(log_E)
-                                  # , Ca ~ exp(log_Ca)
-                                  
                                     incidence_report_prob ~ 1 / (1 + exp(-logit_report_prob))
                                   , beta0 ~ exp(log_beta0)
                                   , nu ~ exp(log_nu)
+                                  , zeta ~ exp(log_zeta)
                                 )
                                 , default = list(
-                                  #   log_zeta = empty_matrix
-                                  # , log_beta0 = empty_matrix
-                                  # , logit_nonhosp_mort = empty_matrix
-                                  # , log_E = empty_matrix
-                                  # , log_Ca = empty_matrix
-                                  
-                                   logit_report_prob = 0, log_beta0 = 0, log_nu = 0
+                                    logit_report_prob = 0
+                                  , log_beta0 = 0
+                                  , log_nu = 0
+                                  , log_zeta = 0
                                 )
                                 
                )
-               
+
                # add accumulator variables:
                # death - new deaths each time step
                |> mp_tmb_insert(phase = "during"
@@ -147,28 +139,9 @@ focal_model = (#specs$ww_euler
                # might need to modify if we add time-varying transmission
                |> mp_tmb_update(phase = "during"
                                 , at =1L
-                                , expressions = list(mp_per_capita_flow("S", "E", S.E ~ ((S/N)^zeta) * (beta0 / N) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s))))
+                                , expressions = list(mp_per_capita_flow("S", "E", incidence ~ ((S/N)^zeta) * (beta0 / N) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s))))
                                 
                )
-               
-               # # compute gamma-density delay kernel for convolution:
-               ## |> mp_tmb_insert(phase = "before"
-               #                  , at = Inf
-               #                  , expressions = list(
-               #                      gamma_shape ~ 1 / (c_delay_cv^2)
-               #                    , gamma_scale ~ c_delay_mean * c_delay_cv^2
-               #                    , gamma ~ pgamma(1:(qmax+1), gamma_shape, gamma_scale)
-               #                    , delta ~ gamma[1:(qmax)] - gamma[0:(qmax - 1)]
-               #                    , kappa ~ c_prop * delta / sum(delta)
-               #                  )
-               #                  , default = list(qmax = empty_matrix)
-               # )
-               # 
-               # # add convolution to compute case reports from incidence:
-               ## |> mp_tmb_insert(phase = "during"
-               #                  , at = Inf
-               #                  , expressions = list(reported_incidence ~ convolution(S.E, kappa))
-               # )
                
                # add convolution to compute case reports from incidence:
                |> mp_tmb_insert_reports("incidence" 
@@ -193,119 +166,69 @@ focal_model = (#specs$ww_euler
 )
 
 ## -------------------------
-## Data Prep
-## -------------------------
-
-# For now, using simulated data to calibrate.
-
-# width of report convolution kernel computed according to:
-# https://canmod.net/misc/flex_specs#computing-convolutions
-shape = 1/(mp_default_list(focal_model)$c_delay_cv^2)
-scale = mp_default_list(focal_model)$c_delay_mean * mp_default_list(focal_model)$c_delay_cv^2
-qmax = ceiling(qgamma(0.95, shape, scale))
-
-# simulated data
-sim_data = (focal_model 
-  |> mp_simulator(
-      time_steps = time_steps
-    , outputs = c("report","death", "W", "A")
-    , default = list(
-        S = 14.57e6 - 5 
-      , log_E = log(5)
-      # infectious states cannot be all zero when using hazard, otherwise incidence
-      # at first time step is NaN
-      , Ia = 1 
-      , Ip = 0
-      , Im = 0
-      , Is = 0
-      , R = 0
-      , H = 0
-      , ICUs = 0
-      , ICUd = 0
-      , H2 = 0
-      , D = 0
-      , model_matrix_values = model_matrix_values
-      , log_beta0=log(5)
-      , logit_nonhosp_mort = -0.5
-      , log_zeta = 1
-      , qmax = qmax
-      , log_Ca = log(2/3)
-      , log_mobility_coefficients = rep(0,5)
-      )
-  )
-  |> mp_trajectory()
-)
-
-## -------------------------
 ## calibration
 ## -------------------------
+
+
+# get default parameter values
+# what about S0, S=S0*N?
+# log_beta0 from macpan1.5 beta0 
+useful_params = names(macpan1.5$params) %in% names(focal_model$default)
+macpan1.5_defaults = c(macpan1.5$params[useful_params]
+                       , list(S = macpan1.5$params$N
+                              , beta1 = 1
+                              , E = macpan1.5$params$E0))
 
 # The following calibration is only experimental until real time series data
 # is used to fit to.
 focal_calib = mp_tmb_calibrator(
     spec = focal_model
   , data = rbind(starter, obs_data)
-  , traj = c("reported_incidence", "W") 
+  , traj = list(
+      reported_incidence = mp_neg_bin(disp = 0.1)
+    , W = mp_normal(sd = 1)
+  )
   , par = c(
-      "log_beta0", "log_nu"
+      "log_beta0", "log_nu", "log_zeta"
     # negative binomial dispersion parameters for reports, deaths, W, and A get added
     # automatically with options(macpan2_default_loss = "neg_bin") set above
   )
-  , default = list(
+  , default = c(
+      # update defaults with macpan1.5 values
+      macpan1.5_defaults
+      , list(
+        model_matrix_values = model_matrix_values
     
-    # states
-    # Population of Ontario (2019) from:
-    # https://github.com/mac-theobio/macpan_base/blob/main/code/ontario_calibrate_comb.R
-      S = 14.57e6 - 5 
-    #, log_E = log(5)
-    # infectious states cannot be all zero when using hazard, otherwise incidence
-    # at first time step is NaN
-    , Ia = 1
-    , Ip = 0
-    , Im = 0
-    , Is = 0
-    , R = 0
-    , H = 0
-    , ICUs = 0
-    , ICUd = 0
-    , H2 = 0
-    , D = 0
-    , W = 0
-    , A = 0
-    
-    , model_matrix_values = model_matrix_values
-    
-    # set initial parameter values for optimizer
-    , log_beta0=log(5)
-    #, logit_nonhosp_mort = -0.5
-    #, qmax = qmax
-    #, log_zeta = 1
-    #, log_Ca = log(1/3)
-    , log_mobility_coefficients = rep(0,5)
-  )
+      # set initial parameter values for optimizer
+      #, log_beta0=log(5)
+      , log_mobility_coefficients = rep(0,5)
+  ))
 )
 # converges
 mp_optimize(focal_calib)
 
 # Get fitted data
-fitted_data = mp_trajectory_sd(focal_calib, conf.int = TRUE)
+fitted_data = (mp_trajectory_sd(focal_calib, conf.int = TRUE) 
+               |> mutate(time = starter$time + lubridate::days(time - 1)
+))
 
 # parameter estimates
 mp_tmb_coef(focal_calib, conf.int = TRUE) |> backtrans()
 
-# back transform Ca estimate
-# estimate is fairly off, perhaps trajectories are not informative enough
-# use Ia instead of reports?
-# Also, calibration set-up doesn't really make sense, fitting to simulated data
-# but using real mobility data to inform the model
-(mp_tmb_coef(focal_calib, conf.int = TRUE)[1,]
-  |> mutate(mat = "Ca")
-  |> mutate_if(is.numeric,exp)
+# is this from calibration or just simulated from model?
+sim1.5 = (macpan1.5$sim
+          |> group_by(Date, state)
+          |> summarise(value = sum(value))
+          |> ungroup()
+          |> rename(time = Date, matrix = state)
+          |> filter(matrix %in% c("conv", "W"))
+          |> filter(!is.na(value))
+          |> mutate(matrix = ifelse(matrix == "conv", "reported_incidence", matrix))
 )
 
 if (interactive()) {
 
-  (ggplot(sim_data, aes(time,value))
+  (ggplot(obs_data, aes(time,value))
    + geom_point()
    + geom_line(aes(time, value)
                , data = fitted_data
@@ -316,6 +239,7 @@ if (interactive()) {
                  , alpha = 0.2
                  , colour = "red"
    )
+   + geom_line(aes(time, value), data = sim1.5, colour = "blue")
    + facet_wrap(vars(matrix),scales = 'free')
    + theme_bw()
   )
