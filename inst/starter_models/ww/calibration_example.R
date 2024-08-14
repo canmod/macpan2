@@ -1,7 +1,6 @@
 library(macpan2)
 library(ggplot2)
 library(dplyr)
-#options(macpan2_default_loss = "neg_bin") 
 
 ## -------------------------
 ## Local function to back-transform estimates and CIs
@@ -28,22 +27,30 @@ backtrans <- function(x) {
 ## Observed Data Prep
 ## -------------------------
 
+# macpan 1.5 calibration information for wastewater model
 macpan1.5 = readRDS("misc/experiments/wastewater/macpan1-5_comparison_info.RDS")
 
 # mobility data sourced from ./inst/starter_models/macpan_base/data/get_data.R to describe 
 # contact behaviour of individuals
 # data is not currently part of package (maybe there was a reason for this, too large etc.)
-#mobility_data = readRDS(system.file("inst","starter_models","macpan_base","data","mobility_data.RDS",package="macpan2"))
+# mobility_data = readRDS(system.file("inst","starter_models","macpan_base","data","mobility_data.RDS",package="macpan2"))
 mobility_data = readRDS(file.path("inst","starter_models","macpan_base","data","mobility_data.RDS"))
 
 # contains identical incidence data to obs_data, with additional variables and longer time frame
-prepped_ts_data = readRDS(file.path("inst","starter_models","macpan_base","data","ts_data.RDS"))
+prepped_ts_data = (readRDS(file.path("inst","starter_models","macpan_base","data","ts_data.RDS"))
+   # not calibrating to H or ICU for reasons specified in manuscript (https://github.com/mac-theobio/macpan_base/tree/main/outputs)  
+   |> filter(var == "death", between(date, macpan1.5$settings_sim$start_date, macpan1.5$settings_sim$end_date))
+   |> rename(time = date, matrix = var)
+   |> select(-c(province))
+)
 
 # observed incidence and wastewater data
 obs_data = (macpan1.5$obs
             |> rename(time = date, matrix = var)
-            |> filter(!is.na(value))
             |> mutate(matrix = ifelse(matrix == "report_inc", "reported_incidence", matrix))
+            # add death data
+            |> union(prepped_ts_data)
+            |> filter(!is.na(value))
 )
 
 
@@ -73,6 +80,7 @@ time_steps = nrow(prepped_mobility_data %>% select(date) %>% unique())
 
 # Mobility breakpoints identified in the manuscript for piecewise varying
 # transmission.
+# Alternative transmission change points in macpan1.5$params_tv
 mobility_breaks = (prepped_mobility_data
                    |> filter(date %in% c("2020-04-01", "2020-08-07"))
                    |> pull(time)
@@ -118,12 +126,14 @@ focal_model = (#specs$ww_euler
                                   , beta0 ~ exp(log_beta0)
                                   , nu ~ exp(log_nu)
                                   , zeta ~ exp(log_zeta)
+                                  , nonhosp_mort ~ 1/(1+exp((-logit_nonhosp_mort)))
                                 )
                                 , default = list(
                                     logit_report_prob = 0
                                   , log_beta0 = 0
                                   , log_nu = 0
                                   , log_zeta = 0
+                                  , logit_nonhosp_mort = empty_matrix
                                 )
                                 
                )
@@ -136,11 +146,10 @@ focal_model = (#specs$ww_euler
                )
                
                # add phenomenological heterogeneity:
-               # might need to modify if we add time-varying transmission
                |> mp_tmb_update(phase = "during"
-                                , at =1L
-                                , expressions = list(mp_per_capita_flow("S", "E", incidence ~ ((S/N)^zeta) * (beta0 / N) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s))))
-                                
+                                , at = 1L
+                                , expressions = list(mp_per_capita_flow("S", "E", incidence ~ ((S/N)^zeta) * (beta / N) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s))))
+
                )
                
                # add convolution to compute case reports from incidence:
@@ -150,17 +159,11 @@ focal_model = (#specs$ww_euler
                                         , cv_delay = 0.25
                )
                
-               # add time-varying transmission with mobility data:
-               |> mp_tmb_insert(phase = "before"
-                                , at = Inf
-                                , expressions = list(relative_beta_values ~ group_sums(model_matrix_values * log_mobility_coefficients[col_ind], row_ind, model_matrix_values))
-                                , default = list(log_mobility_coefficients = empty_matrix, model_matrix_values = empty_matrix)
-                                , integers = list(row_ind = row_ind, col_ind = col_ind)
-               )
+               # add time-varying transmission
                |> mp_tmb_insert(phase = "during"
                                 , at = 1L
                                 , expressions = list(
-                                    beta ~ exp(log_beta0 + relative_beta_values[time_step(1)])
+                                    beta ~ beta0 * beta1
                                 )
                )
 )
@@ -172,12 +175,17 @@ focal_model = (#specs$ww_euler
 
 # get default parameter values
 # what about S0, S=S0*N?
-# log_beta0 from macpan1.5 beta0 
 useful_params = names(macpan1.5$params) %in% names(focal_model$default)
-macpan1.5_defaults = c(macpan1.5$params[useful_params]
-                       , list(S = macpan1.5$params$N
-                              , beta1 = 1
-                              , E = macpan1.5$params$E0))
+macpan1.5_defaults = c(
+  macpan1.5$params[useful_params]
+  , list(S = macpan1.5$params$N
+  , log_beta0 = log(macpan1.5$params$beta0)
+  , log_nu = log(macpan1.5$params$nu)
+  , beta1 = 1
+  , E = macpan1.5$params$E0
+  , logit_nonhosp_mort = 1
+  )
+)
 
 # The following calibration is only experimental until real time series data
 # is used to fit to.
@@ -187,23 +195,17 @@ focal_calib = mp_tmb_calibrator(
   , traj = list(
       reported_incidence = mp_neg_bin(disp = 0.1)
     , W = mp_normal(sd = 1)
+    #, death = mp_neg_bin(disp = 0.1)
   )
   , par = c(
-      "log_beta0", "log_nu", "log_zeta"
-    # negative binomial dispersion parameters for reports, deaths, W, and A get added
-    # automatically with options(macpan2_default_loss = "neg_bin") set above
+      "log_beta0", "log_nu", "log_zeta"#, "logit_nonhosp_mort"
   )
-  , default = c(
-      # update defaults with macpan1.5 values
-      macpan1.5_defaults
-      , list(
-        model_matrix_values = model_matrix_values
-    
-      # set initial parameter values for optimizer
-      #, log_beta0=log(5)
-      , log_mobility_coefficients = rep(0,5)
-  ))
+  , tv = mp_rbf("beta1", dimension = 5)
+  , outputs = c("reported_incidence", "W", "beta", "death")
+  # update defaults with macpan1.5 values
+  , default = macpan1.5_defaults
 )
+
 # converges
 mp_optimize(focal_calib)
 
@@ -227,7 +229,7 @@ sim1.5 = (macpan1.5$sim
 )
 
 if (interactive()) {
-
+cols = c("macpan 1.5" = "blue", "macpan 2" = "red")
   (ggplot(obs_data, aes(time,value))
    + geom_point()
    + geom_line(aes(time, value)
@@ -240,6 +242,7 @@ if (interactive()) {
                  , colour = "red"
    )
    + geom_line(aes(time, value), data = sim1.5, colour = "blue")
+   + scale_colour_manual(values = cols)
    + facet_wrap(vars(matrix),scales = 'free')
    + theme_bw()
   )
