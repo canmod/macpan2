@@ -540,6 +540,7 @@ EulerMultinomialUpdateMethod = function(change_model) {
   
   self$before = function() self$change_model$before_loop()
   self$during = function() {
+    before_components = self$change_model$before_flows()
     flow_list = self$change_model$update_flows()
     components = list()
     for (size_var in names(flow_list)) {
@@ -557,7 +558,7 @@ EulerMultinomialUpdateMethod = function(change_model) {
     update_char = sprintf("%s ~ %s %s", states, states, rates)
     new_update = lapply(update_char, as.formula)
     
-    c(new_flow, new_update)
+    c(before_components, new_flow, new_update)
   }
   self$after = function() self$change_model$after_loop()
   return_object(self, "EulerMultinomialUpdateMethod")
