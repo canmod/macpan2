@@ -44,6 +44,13 @@ prepped_ts_data = (readRDS(file.path("inst","starter_models","macpan_base","data
    |> select(-c(province))
 )
 
+## controls when the simulations start
+starter = data.frame(
+  time = as.Date("2020-01-15")
+  , matrix = "reported_incidence"
+  , value = 0
+)
+
 # observed incidence and wastewater data
 obs_data = (macpan1.5$obs
             |> rename(time = date, matrix = var)
@@ -51,32 +58,35 @@ obs_data = (macpan1.5$obs
             # add death data
             |> union(prepped_ts_data)
             |> filter(!is.na(value))
+            ##|> bind_rows(starter)
 )
 
 
-## controls when the simulations start
-starter = data.frame(
-    time = as.Date("2020-01-15")
-  , matrix = "reported_incidence"
-  , value = 0
-)
+dates = c(bind_rows(obs_data, starter) %>% select(time) %>% unique())
 
 # To further prepare the mobility data for calibration we filter for the 
 # appropriate time range, create a numeric date field named 'time' and compute 
 # the logarithm of the mobility index.
 prepped_mobility_data = (mobility_data
-                         # dates from base model calibration (Figure 4)
-                         |> filter(date >= "2020-02-24" & date < "2020-08-31")
+                         # dates from obs_data
+                         |> filter(date %in% dates$time)
                          # create unique time identifier
                          |> arrange(date)
                          |> group_by(date)
                          |> mutate(time = cur_group_id())
                          |> ungroup()
                          |> mutate(log_mobility_ind = log(mobility_ind))
+                         |> union(data.frame(
+                                 date = as.Date("2020-01-15")
+                               , mobility_ind = 0
+                               , time = 0
+                               , log_mobility_ind = 1
+                         ))
 )
 
 # get number of time steps in observed data
-time_steps = nrow(prepped_mobility_data %>% select(date) %>% unique())
+time_steps = nrow(prepped_mobility_data %>% select(time) %>% unique())
+#time_steps = nrow(bind_rows(obs_data, starter) %>% select(time) %>% unique())
 
 # Mobility breakpoints identified in the manuscript for piecewise varying
 # transmission.
@@ -124,6 +134,7 @@ focal_model = (#specs$ww_euler
                                 , expressions = list(
                                     incidence_report_prob ~ 1 / (1 + exp(-logit_report_prob))
                                   , beta0 ~ exp(log_beta0)
+                                  , beta1 ~ exp(log_beta1)
                                   , nu ~ exp(log_nu)
                                   , zeta ~ exp(log_zeta)
                                   , nonhosp_mort ~ 1/(1+exp((-logit_nonhosp_mort)))
@@ -131,6 +142,7 @@ focal_model = (#specs$ww_euler
                                 , default = list(
                                     logit_report_prob = 0
                                   , log_beta0 = 0
+                                  , log_beta1 = 0
                                   , log_nu = 0
                                   , log_zeta = 0
                                   , logit_nonhosp_mort = empty_matrix
@@ -160,11 +172,19 @@ focal_model = (#specs$ww_euler
                )
                
                # add time-varying transmission
+              # # |> mp_tmb_insert(phase = "during"
+               #                  , at = 1L
+               #                  , expressions = list(
+               #                      beta ~ beta0 * beta1
+               #                  )
+               # )
+
                |> mp_tmb_insert(phase = "during"
                                 , at = 1L
                                 , expressions = list(
-                                    beta ~ beta0 * beta1
+                                    beta ~ exp(log_beta0 + log_mobility_ind[time_step(0)] * log_mobililty_coefficient + log_beta1)
                                 )
+                                , default = list(log_mobility_ind = prepped_mobility_data$log_mobility_ind, log_mobililty_coefficient = 0)
                )
 )
 
@@ -184,11 +204,11 @@ macpan1.5_defaults = c(
   , beta1 = 1
   , E = macpan1.5$params$E0
   , logit_nonhosp_mort = 1
+  , log_beta1 = 1
   )
 )
 
-# The following calibration is only experimental until real time series data
-# is used to fit to.
+# calibrator
 focal_calib = mp_tmb_calibrator(
     spec = focal_model
   , data = rbind(starter, obs_data)
@@ -198,9 +218,9 @@ focal_calib = mp_tmb_calibrator(
     #, death = mp_neg_bin(disp = 0.1)
   )
   , par = c(
-      "log_beta0", "log_nu", "log_zeta"#, "logit_nonhosp_mort"
+      "log_beta0", "log_nu", "log_zeta", "log_mobililty_coefficient"#, "logit_nonhosp_mort"
   )
-  , tv = mp_rbf("beta1", dimension = 5)
+  , tv = mp_rbf("log_beta1", dimension = 5)
   , outputs = c("reported_incidence", "W", "beta", "death")
   # update defaults with macpan1.5 values
   , default = macpan1.5_defaults
@@ -229,20 +249,17 @@ sim1.5 = (macpan1.5$sim
 )
 
 if (interactive()) {
-cols = c("macpan 1.5" = "blue", "macpan 2" = "red")
+all_data = bind_rows(list("macpan 1.5" = sim1.5,"macpan 2" = fitted_data), .id = "source")
+
   (ggplot(obs_data, aes(time,value))
    + geom_point()
-   + geom_line(aes(time, value)
-               , data = fitted_data
-               , colour = "red"
+   + geom_line(aes(time, value, colour = source)
+               , data = all_data
    )
-   + geom_ribbon(aes(time, ymin = conf.low, ymax = conf.high)
-                 , data = fitted_data
+   + geom_ribbon(aes(time, ymin = conf.low, ymax = conf.high, colour = source)
+                 , data = all_data
                  , alpha = 0.2
-                 , colour = "red"
    )
-   + geom_line(aes(time, value), data = sim1.5, colour = "blue")
-   + scale_colour_manual(values = cols)
    + facet_wrap(vars(matrix),scales = 'free')
    + theme_bw()
   )
