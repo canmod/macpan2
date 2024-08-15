@@ -523,6 +523,8 @@ EulerMultinomialUpdateMethod = function(change_model) {
   
   self$vec = function(expr_list, char_fun) {
     vec = vapply(expr_list, char_fun, character(1L))
+    # simple expressions are any non-formula strings (names of variables or state flows)
+    # expressions that are not simple contain math symbols (ex. +,-,*,/, etc.)
     simple_expr = all(grepl("^[a-zA-Z0-9._]+$", vec))
     scalar_expr = length(vec) == 1L
     
