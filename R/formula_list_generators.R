@@ -523,7 +523,7 @@ EulerMultinomialUpdateMethod = function(change_model) {
   
   self$vec = function(expr_list, char_fun) {
     vec = vapply(expr_list, char_fun, character(1L))
-    simple_expr = all(grepl("^[a-zA-Z0-9.]+$", vec))
+    simple_expr = all(grepl("^[a-zA-Z0-9._]+$", vec))
     scalar_expr = length(vec) == 1L
     
     if (simple_expr & scalar_expr) return(vec)
@@ -533,7 +533,6 @@ EulerMultinomialUpdateMethod = function(change_model) {
     if (!scalar_expr) {
       vec = sprintf("c%s", vec)
     }
-    if(!simple_expr & scalar_expr){vec = sprintf("c%s", vec)}
     return(vec)
   }
   
