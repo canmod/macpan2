@@ -30,216 +30,131 @@ backtrans <- function(x) {
 # macpan 1.5 calibration information for wastewater model
 macpan1.5 = readRDS("misc/experiments/wastewater/macpan1-5_comparison_info.RDS")
 
-# mobility data sourced from ./inst/starter_models/macpan_base/data/get_data.R to describe 
-# contact behaviour of individuals
-# data is not currently part of package (maybe there was a reason for this, too large etc.)
-# mobility_data = readRDS(system.file("inst","starter_models","macpan_base","data","mobility_data.RDS",package="macpan2"))
-mobility_data = readRDS(file.path("inst","starter_models","macpan_base","data","mobility_data.RDS"))
-
-# contains identical incidence data to obs_data, with additional variables and longer time frame
-prepped_ts_data = (readRDS(file.path("inst","starter_models","macpan_base","data","ts_data.RDS"))
-   # not calibrating to H or ICU for reasons specified in manuscript (https://github.com/mac-theobio/macpan_base/tree/main/outputs)  
-   |> filter(var == "death", between(date, macpan1.5$settings_sim$start_date, macpan1.5$settings_sim$end_date))
-   |> rename(time = date, matrix = var)
-   |> select(-c(province))
-)
-
-## controls when the simulations start
+# set a starting point for the simulation (earlier than observed data)
 starter = data.frame(
-  time = as.Date("2020-01-15")
+    time = as.Date("2020-01-15")
   , matrix = "reported_incidence"
   , value = 0
 )
 
-# observed incidence and wastewater data
+# observed incidence and wastewater data to calibrate to
 obs_data = (macpan1.5$obs
             |> rename(time = date, matrix = var)
             |> mutate(matrix = ifelse(matrix == "report_inc", "reported_incidence", matrix))
-            # add death data
-            |> union(prepped_ts_data)
             |> filter(!is.na(value))
-            ##|> bind_rows(starter)
+            |> bind_rows(starter)
 )
-
-
-dates = c(bind_rows(obs_data, starter) %>% select(time) %>% unique())
-
-# To further prepare the mobility data for calibration we filter for the 
-# appropriate time range, create a numeric date field named 'time' and compute 
-# the logarithm of the mobility index.
-prepped_mobility_data = (mobility_data
-                         # dates from obs_data
-                         |> filter(date %in% dates$time)
-                         # create unique time identifier
-                         |> arrange(date)
-                         |> group_by(date)
-                         |> mutate(time = cur_group_id())
-                         |> ungroup()
-                         |> mutate(log_mobility_ind = log(mobility_ind))
-                         |> union(data.frame(
-                                 date = as.Date("2020-01-15")
-                               , mobility_ind = 0
-                               , time = 0
-                               , log_mobility_ind = 1
-                         ))
-)
-
-# get number of time steps in observed data
-time_steps = nrow(prepped_mobility_data %>% select(time) %>% unique())
-#time_steps = nrow(bind_rows(obs_data, starter) %>% select(time) %>% unique())
-
-# Mobility breakpoints identified in the manuscript for piecewise varying
-# transmission.
-# Alternative transmission change points in macpan1.5$params_tv
-mobility_breaks = (prepped_mobility_data
-                   |> filter(date %in% c("2020-04-01", "2020-08-07"))
-                   |> pull(time)
-)
-# logistic transition curve for mobility breakpoints
-S_j = function(t, tau_j, s) 1/(1 + exp((t - tau_j) / s))
-
-# Model matrix (called 'X' in manuscript) describing the temporal change in 
-# transmission using mobility data and piecewise breaks smoothed with the
-# logistic curve.
-X = cbind(
-  prepped_mobility_data$log_mobility_ind
-  , S_j(1:time_steps, mobility_breaks[1], 3)
-  , S_j(1:time_steps, mobility_breaks[1], 3) * prepped_mobility_data$log_mobility_ind
-  , S_j(1:time_steps, mobility_breaks[2], 3)
-  , S_j(1:time_steps, mobility_breaks[2], 3) * prepped_mobility_data$log_mobility_ind
-) %>% as.matrix()
-
-# Get model matrix meta data for simplified matrix multiplication inside
-# macpan2 using group_sums.
-X_sparse = macpan2:::sparse_matrix_notation(X, TRUE)
-model_matrix_values = X_sparse$values
-row_ind = X_sparse$row_index
-col_ind = X_sparse$col_index
 
 ## -------------------------
 ## Model Specification
 ## -------------------------
 
-source("./inst/starter_models/ww/tmb.R")
-#specs = mp_tmb_library("starter_models", "ww", alternative_specs = TRUE, package = "macpan2")
+# Get model spec from the library
+specs = mp_tmb_library("starter_models", "ww", alternative_specs = TRUE, package = "macpan2")
 
-# Update model specification to include additional components described here:
-# https://github.com/canmod/macpan2/issues/156
-focal_model = (#specs$ww_euler
-               specs$ww_hazard
-               
-               # add variable transformations:
-               |> mp_tmb_insert(phase = "before"
-                                , at = 1L
-                                , expressions = list(
-                                    incidence_report_prob ~ 1 / (1 + exp(-logit_report_prob))
-                                  , beta0 ~ exp(log_beta0)
-                                  , beta1 ~ exp(log_beta1)
-                                  , nu ~ exp(log_nu)
-                                  , zeta ~ exp(log_zeta)
-                                  , nonhosp_mort ~ 1/(1+exp((-logit_nonhosp_mort)))
-                                )
-                                , default = list(
-                                    logit_report_prob = 0
-                                  , log_beta0 = 0
-                                  , log_beta1 = 0
-                                  , log_nu = 0
-                                  , log_zeta = 0
-                                  , logit_nonhosp_mort = empty_matrix
-                                )
-                                
-               )
+# update model specification to include additional components
+focal_model = (
+  # waste water model with hazard correction
+  specs$ww_hazard
+     
+  # add variable transformations:
+  |> mp_tmb_insert(phase = "before"
+                   , at = 1L
+                   , expressions = list(
+                        incidence_report_prob ~ 1 / (1 + exp(-logit_report_prob))
+                      , beta0 ~ exp(log_beta0)
+                      , nu ~ exp(log_nu)
+                      , zeta ~ exp(log_zeta)
+                   )
+                   , default = list(
+                        logit_report_prob = 0
+                      , log_beta0 = 0
+                      , log_nu = 0
+                      , log_zeta = 0
+                   )
+  )
 
-               # add accumulator variables:
-               # death - new deaths each time step
-               |> mp_tmb_insert(phase = "during"
-                                , at = Inf
-                                , expressions = list(death ~ ICUd.D + Is.D)
-               )
-               
-               # add phenomenological heterogeneity:
-               |> mp_tmb_update(phase = "during"
-                                , at = 1L
-                                , expressions = list(mp_per_capita_flow("S", "E", incidence ~ ((S/N)^zeta) * (beta / N) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s))))
+  # add accumulator variables:
+  # death - new deaths each time step
+  |> mp_tmb_insert(phase = "during"
+                   , at = Inf
+                   , expressions = list(death ~ ICUd.D + Is.D)
+  )
+     
+  # add phenomenological heterogeneity:
+  |> mp_tmb_update(phase = "during"
+                   , at = 1L
+                   , expressions = list(mp_per_capita_flow("S", "E", "((S/N)^zeta) * (beta / N) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s))", "incidence"))
 
-               )
-               
-               # add convolution to compute case reports from incidence:
-               |> mp_tmb_insert_reports("incidence" 
-                                        , report_prob = 0.5
-                                        , mean_delay = 11
-                                        , cv_delay = 0.25
-               )
-               
-               # add time-varying transmission
-              # # |> mp_tmb_insert(phase = "during"
-               #                  , at = 1L
-               #                  , expressions = list(
-               #                      beta ~ beta0 * beta1
-               #                  )
-               # )
+  )
+     
+  # add convolution to compute case reports from incidence:
+  |> mp_tmb_insert_reports("incidence"
+                           , report_prob = 0.5
+                           , mean_delay = 11
+                           , cv_delay = 0.25
+  )
 
-               |> mp_tmb_insert(phase = "during"
-                                , at = 1L
-                                , expressions = list(
-                                    beta ~ exp(log_beta0 + log_mobility_ind[time_step(0)] * log_mobililty_coefficient + log_beta1)
-                                )
-                                , default = list(log_mobility_ind = prepped_mobility_data$log_mobility_ind, log_mobililty_coefficient = 0)
-               )
+  # add time-varying transmission
+  |> mp_tmb_insert(phase = "during"
+                   , at = 1L
+                   , expressions = list(beta ~ beta0 * beta1)
+  )
+
 )
 
 ## -------------------------
 ## calibration
 ## -------------------------
 
-
-# get default parameter values
-# what about S0, S=S0*N?
+# get default parameter values from macpan 1.5
 useful_params = names(macpan1.5$params) %in% names(focal_model$default)
 macpan1.5_defaults = c(
-  macpan1.5$params[useful_params]
-  , list(S = macpan1.5$params$N
-  , log_beta0 = log(macpan1.5$params$beta0)
-  , log_nu = log(macpan1.5$params$nu)
-  , beta1 = 1
-  , E = macpan1.5$params$E0
-  , logit_nonhosp_mort = 1
-  , log_beta1 = 1
+    macpan1.5$params[useful_params]
+  , list(
+      S = macpan1.5$params$N
+    , log_beta0 = log(macpan1.5$params$beta0)
+    , log_nu = log(macpan1.5$params$nu)
+    , beta1 = 1
+    , E = macpan1.5$params$E0
   )
 )
 
 # calibrator
 focal_calib = mp_tmb_calibrator(
     spec = focal_model
-  , data = rbind(starter, obs_data)
+  , data = obs_data
   , traj = list(
+      # set priors for trajectories we are fitting to
       reported_incidence = mp_neg_bin(disp = 0.1)
     , W = mp_normal(sd = 1)
-    #, death = mp_neg_bin(disp = 0.1)
   )
   , par = c(
-      "log_beta0", "log_nu", "log_zeta", "log_mobililty_coefficient"#, "logit_nonhosp_mort"
+      "log_beta0", "log_nu" , "log_zeta"
   )
-  , tv = mp_rbf("log_beta1", dimension = 5)
-  , outputs = c("reported_incidence", "W", "beta", "death")
-  # update defaults with macpan1.5 values
+  # use radial basis functions for beta1
+  , tv = mp_rbf("beta1", dimension = 5)
+  , outputs = c("reported_incidence", "W", "beta")
+  # update defaults with macpan1.5 defaults
   , default = macpan1.5_defaults
 )
 
 # converges
-mp_optimize(focal_calib)
+replicate(15, mp_optimize(focal_calib), simplify = FALSE)
 
-# Get fitted data
-fitted_data = (mp_trajectory_sd(focal_calib, conf.int = TRUE) 
-               |> mutate(time = starter$time + lubridate::days(time - 1)
-))
+# get fitted data
+macpan2_fit = (mp_trajectory_sd(focal_calib, conf.int = TRUE) 
+   |> mutate(time = starter$time + lubridate::days(time - 1))
+)
 
-# parameter estimates
+# parameter estimates, back-transformed to be on original scale
+# phenomenological heterogeneity parameter zeta ~ 0(wide CI), might not be necessary to include in the model
 mp_tmb_coef(focal_calib, conf.int = TRUE) |> backtrans()
 
-# is this from calibration or just simulated from model?
-sim1.5 = (macpan1.5$sim
+# fitted data from macpan 1.5
+macpan1.5_fit = (macpan1.5$sim
           |> group_by(Date, state)
+          # summarize to ignore vaccination status
           |> summarise(value = sum(value))
           |> ungroup()
           |> rename(time = Date, matrix = state)
@@ -249,52 +164,31 @@ sim1.5 = (macpan1.5$sim
 )
 
 if (interactive()) {
-all_data = bind_rows(list("macpan 1.5" = sim1.5,"macpan 2" = fitted_data), .id = "source")
+  
+# calibration comparison between macpan 1.5 and macpan 2
+all_data = bind_rows(lst(macpan1.5_fit, macpan2_fit), .id = "source")
 
   (ggplot(obs_data, aes(time,value))
    + geom_point()
    + geom_line(aes(time, value, colour = source)
                , data = all_data
    )
-   + geom_ribbon(aes(time, ymin = conf.low, ymax = conf.high, colour = source)
+   + geom_ribbon(aes(time, ymin = conf.low, ymax = conf.high, colour = source, fill = source)
                  , data = all_data
                  , alpha = 0.2
    )
    + facet_wrap(vars(matrix),scales = 'free')
    + theme_bw()
   )
+
 }
-
-## -------------------------
-## previous implementation
-## -------------------------
-
-# component = "during"
-# identical(
-#     specs$explicit$expand()[[component]]
-#   , specs$implicit[[component]]
-# )
-# mp_hazard(specs$explicit)$expand()
-# char_expl = sort(vapply(specs$explicit$expand()[[component]], macpan2:::formula_as_character, character(1L)))
-# char_impl = sort(vapply(specs$implicit[[component]], macpan2:::formula_as_character, character(1L)))
-# setdiff(char_expl, char_impl)
-# setdiff(char_impl, char_expl)
-# intersect(char_expl, char_impl)
-# for (i in 1:33) {
-#   print(i)
-#   print(char_expl[i])
-#   print(char_impl[i])
-# }
-# char_expl[[34]]
-# char_impl[[34]]
-
 
 ## -------------------------
 ## exploring
 ## -------------------------
 ww_exploring = mp_simulator(
     model = specs$ww_euler
-  , time_steps = time_steps
+  , time_steps = 100
   , outputs = c("Ia", "Ip", "Im", "Is", "W", "A")
 ) |> mp_trajectory()
 
