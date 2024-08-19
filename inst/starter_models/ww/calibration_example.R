@@ -1,6 +1,7 @@
 library(macpan2)
 library(ggplot2)
 library(dplyr)
+library(piggyback)
 
 ## -------------------------
 ## Local function to back-transform estimates and CIs
@@ -28,7 +29,7 @@ backtrans <- function(x) {
 ## -------------------------
 
 # macpan 1.5 calibration information for wastewater model
-macpan1.5 = readRDS("misc/experiments/wastewater/macpan1-5_comparison_info.RDS")
+macpan1.5 = readRDS(url(pb_download_url("macpan1.5.RDS","canmod/macpan2")))
 
 # set a starting point for the simulation (earlier than observed data)
 starter = data.frame(
