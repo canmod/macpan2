@@ -56,7 +56,9 @@ options(iidda_api_msgs = FALSE, macpan2_verbose = FALSE)
 The following code will pull data for a single scarlet fever outbreak in Ontario that ended in 1930.
 
 ```{r scarlet_fever_ontario}
-scarlet_fever_ontario = api_hook$filter(resource_type = "CANMOD CDI"
+scarlet_fever_ontario = api_hook$filter(
+    resource_type = "Compilation"
+  , dataset_ids = "canmod-cdi-harmonized"
   , iso_3166_2 = "CA-ON"  ## get ontario data
   , time_scale = "wk"  ## weekly incidence data only 
   , disease = "scarlet-fever"
@@ -71,7 +73,7 @@ This is what the data looks like.
 
 ```{r scarlet_fever_ontario_plot}
 (scarlet_fever_ontario
-  |> ggplot(aes(period_mid_date, cases_this_period))
+  |> ggplot(aes(period_end_date, cases_this_period))
   + geom_line() + geom_point()
   + ggtitle("Scarlet Fever Incidence in Ontario, Canada")
   + theme_bw()
@@ -96,8 +98,16 @@ Once we take any library model off the shelf we need to modify it a bit to be mo
 We first change the population size to the population of Ontario at the time.
 
 ```{r}
+ontario_population = api_hook$filter(
+    resource_type = "Compilation"
+  , dataset_ids = "canmod-pop-normalized"
+  , iso_3166_2 = "CA-ON"  ## get ontario data
+  
+  # get data between 1929-08-01 and 1930-10-01
+  , date = "1929-08-01..1930-10-01"
+)
 sf_sir = mp_tmb_insert(sir
-  , default = list(N = median(scarlet_fever_ontario$population))
+  , default = list(N = median(ontario_population$population))
 )
 ```
 
@@ -293,7 +303,9 @@ This one [@elderdUncertainty2006]
 
 Let's get a bit more data to see two seasons.
 ```{r}
-scarlet_fever_ontario = api_hook$filter(resource_type = "CANMOD CDI"
+scarlet_fever_ontario = api_hook$filter(
+    resource_type = "Compilation"
+  , dataset_ids = "canmod-cdi-harmonized"
   , iso_3166_2 = "CA-ON"  ## get ontario data
   , time_scale = "wk"  ## weekly incidence data only 
   , disease = "scarlet-fever"
@@ -302,7 +314,7 @@ scarlet_fever_ontario = api_hook$filter(resource_type = "CANMOD CDI"
   , period_end_date = "1929-08-01..1931-10-01"  
 )
 (scarlet_fever_ontario
-  |> ggplot(aes(period_mid_date, cases_this_period))
+  |> ggplot(aes(period_end_date, cases_this_period))
   + geom_line() + geom_point()
   + ggtitle("Scarlet Fever Incidence in Ontario, Canada")
   + theme_bw()
