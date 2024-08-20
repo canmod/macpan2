@@ -557,8 +557,9 @@ EulerMultinomialUpdateMethod = function(change_model) {
     rates = vapply(update, rhs_char, character(1L))
     update_char = sprintf("%s ~ %s %s", states, states, rates)
     new_update = lapply(update_char, as.formula)
+    after_components = self$change_model$after_state()
     
-    c(before_components, new_flow, new_update)
+    c(before_components, new_flow, new_update, after_components)
   }
   self$after = function() self$change_model$after_loop()
   return_object(self, "EulerMultinomialUpdateMethod")
