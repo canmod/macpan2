@@ -44,6 +44,7 @@
 <url><loc>https://canmod.github.io/macpan2/reference/mp_dynamic_simulator.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_effects_descr.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_euler.html</loc></url>
+<url><loc>https://canmod.github.io/macpan2/reference/mp_expand.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_extract.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_factors.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_final.html</loc></url>
@@ -54,11 +55,15 @@
 <url><loc>https://canmod.github.io/macpan2/reference/mp_labels.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_ledgers.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_linear.html</loc></url>
+<url><loc>https://canmod.github.io/macpan2/reference/mp_log_normal.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_lookup.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_model_starter.html</loc></url>
+<url><loc>https://canmod.github.io/macpan2/reference/mp_neg_bin.html</loc></url>
+<url><loc>https://canmod.github.io/macpan2/reference/mp_normal.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_optimize.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_optimizer_output.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_per_capita_flow.html</loc></url>
+<url><loc>https://canmod.github.io/macpan2/reference/mp_poisson.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_positions.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_rbf.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_reduce.html</loc></url>
@@ -77,9 +82,11 @@
 <url><loc>https://canmod.github.io/macpan2/reference/mp_tmb_expr_list.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_tmb_fixef_cov.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_tmb_insert.html</loc></url>
+<url><loc>https://canmod.github.io/macpan2/reference/mp_tmb_insert_reports.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_tmb_library.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_tmb_model_spec.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_tmbstan_coef.html</loc></url>
+<url><loc>https://canmod.github.io/macpan2/reference/mp_traj.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_trajectory.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_triangle.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_union.html</loc></url>

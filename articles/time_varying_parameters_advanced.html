@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.5.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -65,7 +65,7 @@
       <h1>Advanced Specification of Time-Varying Parameters</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/canmod/macpan2/blob/macpan1.5_data/vignettes/time_varying_parameters_advanced.Rmd" class="external-link"><code>vignettes/time_varying_parameters_advanced.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/canmod/macpan2/blob/main/vignettes/time_varying_parameters_advanced.Rmd" class="external-link"><code>vignettes/time_varying_parameters_advanced.Rmd</code></a></small>
       <div class="d-none name"><code>time_varying_parameters_advanced.Rmd</code></div>
     </div>
 
@@ -200,7 +200,7 @@ values – one for each time step.</p>
 log scale. The clearest way to do this is to form a data frame with one
 row for each parameter to be fitted.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">default_beta</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">simulator</span><span class="op">$</span><span class="va">get</span><span class="op">$</span><span class="fu">initial</span><span class="op">(</span><span class="st">"beta_values"</span><span class="op">)</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">default_beta</span> <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">mean</a></span><span class="op">(</span><span class="va">simulator</span><span class="op">$</span><span class="va">get</span><span class="op">$</span><span class="fu">initial</span><span class="op">(</span><span class="st">"beta_values"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">params_to_fit</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>    mat <span class="op">=</span> <span class="st">"log_beta_values"</span></span>
 <span>  , row <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">2</span></span>

@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.5.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -65,7 +65,7 @@
       <h1>Design Concepts</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/canmod/macpan2/blob/macpan1.5_data/vignettes/design_concepts.Rmd" class="external-link"><code>vignettes/design_concepts.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/canmod/macpan2/blob/main/vignettes/design_concepts.Rmd" class="external-link"><code>vignettes/design_concepts.Rmd</code></a></small>
       <div class="d-none name"><code>design_concepts.Rmd</code></div>
     </div>
 
@@ -655,20 +655,23 @@ use incidence).</p>
 <span>  unstruc_mats <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>S <span class="op">=</span> <span class="fl">99</span>, I <span class="op">=</span> <span class="fl">1</span>, beta <span class="op">=</span> <span class="fl">0.25</span>, N <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="op">(</span><span class="va">si</span></span>
-<span>  <span class="op">|&gt;</span> <span class="fu"><a href="../reference/mp_dynamic_simulator.html">mp_dynamic_simulator</a></span><span class="op">(</span>time_steps <span class="op">=</span> <span class="fl">10</span>, mats_to_return <span class="op">=</span> <span class="st">"reports"</span><span class="op">)</span></span>
+<span>  <span class="op">|&gt;</span> <span class="fu"><a href="../reference/mp_dynamic_simulator.html">mp_dynamic_simulator</a></span><span class="op">(</span>time_steps <span class="op">=</span> <span class="fl">10</span></span>
+<span>    , mats_to_return <span class="op">=</span> <span class="st">"reports"</span></span>
+<span>    , mats_to_save <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"I"</span>, <span class="st">"reports"</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
 <span>  <span class="op">|&gt;</span> <span class="fu"><a href="../reference/mp_trajectory.html">mp_trajectory</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##     matrix time row col     value</span></span>
-<span><span class="co">## 1  reports    1   0   0 0.6237500</span></span>
-<span><span class="co">## 2  reports    2   0   0 0.7777422</span></span>
-<span><span class="co">## 3  reports    3   0   0 0.9691533</span></span>
-<span><span class="co">## 4  reports    4   0   0 1.2067453</span></span>
-<span><span class="co">## 5  reports    5   0   0 1.5011505</span></span>
-<span><span class="co">## 6  reports    6   0   0 1.8651709</span></span>
-<span><span class="co">## 7  reports    7   0   0 2.3140693</span></span>
-<span><span class="co">## 8  reports    8   0   0 2.8658120</span></span>
-<span><span class="co">## 9  reports    9   0   0 3.5412006</span></span>
-<span><span class="co">## 10 reports   10   0   0 4.3638003</span></span></code></pre>
+<pre><code><span><span class="co">##     matrix time row col    value</span></span>
+<span><span class="co">## 1  reports    1   0   0 0.873750</span></span>
+<span><span class="co">## 2  reports    2   0   0 1.339617</span></span>
+<span><span class="co">## 3  reports    3   0   0 1.669899</span></span>
+<span><span class="co">## 4  reports    4   0   0 2.080193</span></span>
+<span><span class="co">## 5  reports    5   0   0 2.589100</span></span>
+<span><span class="co">## 6  reports    6   0   0 3.219119</span></span>
+<span><span class="co">## 7  reports    7   0   0 3.997230</span></span>
+<span><span class="co">## 8  reports    8   0   0 4.955432</span></span>
+<span><span class="co">## 9  reports    9   0   0 6.131141</span></span>
+<span><span class="co">## 10 reports   10   0   0 7.567307</span></span></code></pre>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.5.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -65,7 +65,7 @@
       <h1>ODE Solvers, Process Error, and Difference Equations</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/canmod/macpan2/blob/macpan1.5_data/vignettes/state_updaters.Rmd" class="external-link"><code>vignettes/state_updaters.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/canmod/macpan2/blob/main/vignettes/state_updaters.Rmd" class="external-link"><code>vignettes/state_updaters.Rmd</code></a></small>
       <div class="d-none name"><code>state_updaters.Rmd</code></div>
     </div>
 
@@ -268,6 +268,265 @@ infectious individuals is exactly the incidence.</p>
 <span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">value</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="state_updaters_files/figure-html/unnamed-chunk-9-1.png" width="700"></p>
+</div>
+<div class="section level2">
+<h2 id="internal-design">Internal Design<a class="anchor" aria-label="anchor" href="#internal-design"></a>
+</h2>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sir</span> <span class="op">=</span> <span class="fu"><a href="../reference/mp_tmb_model_spec.html">mp_tmb_model_spec</a></span><span class="op">(</span></span>
+<span>  during <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>      <span class="va">N</span> <span class="op">~</span> <span class="va">S</span> <span class="op">+</span> <span class="va">I</span> <span class="op">+</span> <span class="va">R</span></span>
+<span>    , <span class="fu"><a href="../reference/mp_per_capita_flow.html">mp_per_capita_flow</a></span><span class="op">(</span><span class="st">"S"</span>, <span class="st">"I"</span>, <span class="st">"beta * I / N"</span>, <span class="st">"infection"</span><span class="op">)</span></span>
+<span>    , <span class="fu"><a href="../reference/mp_per_capita_flow.html">mp_per_capita_flow</a></span><span class="op">(</span><span class="st">"I"</span>, <span class="st">"R"</span>, <span class="st">"(1 - p) * gamma"</span>, <span class="st">"recovery"</span><span class="op">)</span></span>
+<span>    , <span class="fu"><a href="../reference/mp_per_capita_flow.html">mp_per_capita_flow</a></span><span class="op">(</span><span class="st">"I"</span>, <span class="st">"D"</span>, <span class="st">"p * gamma"</span>, <span class="st">"death"</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="section level3">
+<h3 id="changecomponent-classes">
+<code>ChangeComponent()</code> classes<a class="anchor" aria-label="anchor" href="#changecomponent-classes"></a>
+</h3>
+<p>Model specs contain a set of three lists: * <code>before</code> :
+instructions to run before the simulation loop begins. *
+<code>during</code> : instructions to run at each iteration of the
+simulation loop. * <code>after</code> : instructions to run after the
+simulation loop ends.</p>
+<p>The simplest way to define these lists is using two-sided R formulas.
+But in the <code>during</code> list one may specify different types of
+list components, which are of class <code>ChangeComponent</code>.
+Internally, standard R formulas are converted into an object of class
+<code>Formula</code>, which is the simplest kind of
+<code>ChangeComponent</code>. Another important
+<code>ChangeComponent</code> is the <code>PerCapitaFlow</code> type,
+which is used for standard flows from one compartment to another.</p>
+<p>The list of change components, which is just the <code>during</code>
+field but ensuring that all elements are valid
+<code>ChangeComponent</code> objects, can be obtained using the
+<code>change_components()</code> method in a model spec object.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cc</span> <span class="op">=</span> <span class="va">sir</span><span class="op">$</span><span class="fu">change_components</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/engine_functions.html">print</a></span><span class="op">(</span><span class="va">cc</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [[1]]</span></span>
+<span><span class="co">#&gt; N ~ S + I + R</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [[2]]</span></span>
+<span><span class="co">#&gt; From: S</span></span>
+<span><span class="co">#&gt; To: I</span></span>
+<span><span class="co">#&gt; Per-capita rate expression: beta * I/N</span></span>
+<span><span class="co">#&gt; Absolute rate symbol: infection</span></span>
+<span><span class="co">#&gt; [[3]]</span></span>
+<span><span class="co">#&gt; From: I</span></span>
+<span><span class="co">#&gt; To: R</span></span>
+<span><span class="co">#&gt; Per-capita rate expression: (1 - p) * gamma</span></span>
+<span><span class="co">#&gt; Absolute rate symbol: recovery</span></span>
+<span><span class="co">#&gt; [[4]]</span></span>
+<span><span class="co">#&gt; From: I</span></span>
+<span><span class="co">#&gt; To: D</span></span>
+<span><span class="co">#&gt; Per-capita rate expression: p * gamma</span></span>
+<span><span class="co">#&gt; Absolute rate symbol: death</span></span></code></pre></div>
+<p>All <code>ChangeComponent</code> objects must have the following
+methods.</p>
+<div class="section level4">
+<h4 id="the-change_frame-method">The <code>change_frame()</code> method<a class="anchor" aria-label="anchor" href="#the-change_frame-method"></a>
+</h4>
+<p>Returns a data frame with two columns: * <code>state</code> : state
+variable being changed (i.e. updated at each step) * <code>change</code>
+: signed absolute flow rates (variables or expressions that don’t
+involve any state variables)</p>
+<p>An example of this data frame for a flow from <code>S</code> to
+<code>I</code> is as follows.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cc</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="fu">change_frame</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   state     change</span></span>
+<span><span class="co">#&gt; 1     S -infection</span></span>
+<span><span class="co">#&gt; 2     I +infection</span></span></code></pre></div>
+<p>For a simple <code>Formula</code> change component this data frame is
+just an empty two-column data frame with zero rows.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cc</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="fu">change_frame</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] state  change</span></span>
+<span><span class="co">#&gt; &lt;0 rows&gt; (or 0-length row.names)</span></span></code></pre></div>
+</div>
+<div class="section level4">
+<h4 id="the-flow_frame-method">The <code>flow_frame()</code> method<a class="anchor" aria-label="anchor" href="#the-flow_frame-method"></a>
+</h4>
+<p>Returns a data frame with three columns. * <code>size</code> :
+variable (often a state variable or function of state variables) that
+gives the size of the population being drawn from in a flow (e.g. S is
+the size of an infection flow). * <code>change</code> : unsigned
+absolute flow rates. * <code>rate</code> : per-capita flow rates
+(variables or expresions that sometimes involve state variables).</p>
+<p>An example of this data frame for a flow from <code>S</code> to
+<code>I</code> is as follows.</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cc</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="fu">flow_frame</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   size    change       rate</span></span>
+<span><span class="co">#&gt; 1    S infection beta * I/N</span></span></code></pre></div>
+<p>For a simple <code>Formula</code> change component this data frame is
+just an empty three-column data frame with zero rows.</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cc</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="fu">flow_frame</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] size   change rate  </span></span>
+<span><span class="co">#&gt; &lt;0 rows&gt; (or 0-length row.names)</span></span></code></pre></div>
+</div>
+</div>
+<div class="section level3">
+<h3 id="changemodel-classes">
+<code>ChangeModel()</code> classes<a class="anchor" aria-label="anchor" href="#changemodel-classes"></a>
+</h3>
+<p>The <code>ChangeModel</code> objects combine the information in lists
+of <code>ChangeComponent</code> objects, so that they specify a full
+model. It expands the concept of <code>before</code>,
+<code>during</code>, and <code>after</code> into a more refined set of
+steps. All of these methods return lists of two-sided formulas.</p>
+<ul>
+<li>
+<code>before_loop()</code> : The <code>before</code> list
+formulas.</li>
+<li>
+<code>once_start()</code> : Formulas to evaluate at the start of the
+<code>during</code> list, and which will not be repeated (or modified
+and repeated) throughout expansions of the <code>during</code> loop. An
+example of such an expansion is a Runge-Kutta differential equation
+solver that reuses expressions in an iterative manner. Formulas returned
+by <code>once_during()</code> are useful for specifying exogeneous
+changes (e.g., time-varying parameters) that occur once per time-step
+but that should not change throughout the within-time-step iterations of
+a differential equation solver.</li>
+<li>
+<code>before_flows()</code> : Formulas to evaluate before the
+absolute flow rates are computed.</li>
+<li>
+<code>update_flows()</code> : Formulas that update the flows, using
+<code>flow_frame()</code> methods of individual
+<code>ChangeComponent</code> objects.</li>
+<li>
+<code>before_state()</code> : Formulas to evaluate before the state
+vector is updated.</li>
+<li>
+<code>update_state()</code> : Formulas that update the state vector,
+using <code>change_frame()</code> method s of individual
+<code>ChangeComponent</code> objects.</li>
+<li>
+<code>after_state()</code> : Formulas to evaluate after the state
+vector is updated.</li>
+<li>
+<code>once_end()</code> : Formulas to evaluate at the end of the
+<code>during</code> list, and which will not be repeated throughout
+(similar to <code>once_start()</code>).</li>
+<li>
+<code>after_loop()</code> : The <code>after</code> list
+formulas.</li>
+</ul>
+<p>The <code>ChangeModel</code> objects also have
+<code>flow_frame()</code> and <code>change_frame()</code> methods for
+combining the outputs of these methods within the individual
+<code>ChangeComponent</code> objects. An example for an SIR model gives
+the <code>flow_frame()</code> and <code>change_frame()</code> output as
+follows.</p>
+<pre><code>state   change
+-----   ------
+S       -infection
+I       +infection
+I       -recovery
+R       +recovery</code></pre>
+<pre><code>size  change     rate
+----  ------     ----
+S     infection  beta * I / N
+I     recovery   gamma</code></pre>
+<p>The <code>update_flows()</code> method The
+<code>update_state()</code> method makes use of this
+<code>flow_frame()</code> to produce the</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">si</span> <span class="op">=</span> <span class="fu"><a href="../reference/mp_tmb_library.html">mp_tmb_library</a></span><span class="op">(</span><span class="st">"starter_models"</span>, <span class="st">"sir"</span>, package <span class="op">=</span> <span class="st">"macpan2"</span><span class="op">)</span></span>
+<span><span class="va">si</span><span class="op">$</span><span class="va">change_model</span></span>
+<span><span class="co">#&gt; Classes 'SimpleChangeModel', 'ChangeModelDefaults', 'ChangeModel', 'Base' &lt;environment: 0x56268bf12c98&gt; </span></span>
+<span><span class="co">#&gt; after_loop : function ()  </span></span>
+<span><span class="co">#&gt; after_state : function ()  </span></span>
+<span><span class="co">#&gt; all_user_aware_names : function ()  </span></span>
+<span><span class="co">#&gt; before_flows : function ()  </span></span>
+<span><span class="co">#&gt; before_loop : function ()  </span></span>
+<span><span class="co">#&gt; before_state : function ()  </span></span>
+<span><span class="co">#&gt; change_classes : function ()  </span></span>
+<span><span class="co">#&gt; change_frame : function ()  </span></span>
+<span><span class="co">#&gt; flow_frame : function ()  </span></span>
+<span><span class="co">#&gt; no_change_components : function ()  </span></span>
+<span><span class="co">#&gt; once_finish : function ()  </span></span>
+<span><span class="co">#&gt; once_start : function ()  </span></span>
+<span><span class="co">#&gt; other_generated_formulas : function ()  </span></span>
+<span><span class="co">#&gt; update_flows : function ()  </span></span>
+<span><span class="co">#&gt; update_state : function ()  </span></span>
+<span><span class="co">#&gt; user_formulas : function ()</span></span>
+<span><span class="va">si</span><span class="op">$</span><span class="va">change_model</span><span class="op">$</span><span class="fu">flow_frame</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   size    change       rate</span></span>
+<span><span class="co">#&gt; 1    S infection I * beta/N</span></span>
+<span><span class="co">#&gt; 2    I  recovery      gamma</span></span>
+<span><span class="va">si</span><span class="op">$</span><span class="va">change_model</span><span class="op">$</span><span class="fu">change_frame</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   state     change</span></span>
+<span><span class="co">#&gt; 1     S -infection</span></span>
+<span><span class="co">#&gt; 2     I +infection</span></span>
+<span><span class="co">#&gt; 3     I  -recovery</span></span>
+<span><span class="co">#&gt; 4     R  +recovery</span></span>
+<span><span class="va">si</span><span class="op">$</span><span class="va">change_model</span><span class="op">$</span><span class="fu">update_state</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [[1]]</span></span>
+<span><span class="co">#&gt; S ~ -infection</span></span>
+<span><span class="co">#&gt; &lt;environment: 0x56268c6c11a0&gt;</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [[2]]</span></span>
+<span><span class="co">#&gt; I ~ +infection - recovery</span></span>
+<span><span class="co">#&gt; &lt;environment: 0x56268c6c11a0&gt;</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [[3]]</span></span>
+<span><span class="co">#&gt; R ~ +recovery</span></span>
+<span><span class="co">#&gt; &lt;environment: 0x56268c6c11a0&gt;</span></span>
+<span><span class="va">si</span><span class="op">$</span><span class="va">change_model</span><span class="op">$</span><span class="fu">update_flows</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; $S</span></span>
+<span><span class="co">#&gt; $S[[1]]</span></span>
+<span><span class="co">#&gt; infection ~ I * beta/N</span></span>
+<span><span class="co">#&gt; &lt;environment: 0x56268c80a038&gt;</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $I</span></span>
+<span><span class="co">#&gt; $I[[1]]</span></span>
+<span><span class="co">#&gt; recovery ~ gamma</span></span>
+<span><span class="co">#&gt; &lt;environment: 0x56268c80a038&gt;</span></span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">spec</span> <span class="op">=</span> <span class="fu"><a href="../reference/mp_tmb_model_spec.html">mp_tmb_model_spec</a></span><span class="op">(</span></span>
+<span>  during <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>      <span class="fu"><a href="../reference/mp_per_capita_flow.html">mp_per_capita_flow</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"a"</span>, <span class="st">"r"</span><span class="op">)</span></span>
+<span>    , <span class="fu"><a href="../reference/mp_per_capita_flow.html">mp_per_capita_flow</a></span><span class="op">(</span><span class="st">"B"</span>, <span class="st">"C"</span>, <span class="st">"b"</span>, <span class="st">"rr"</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">spec</span><span class="op">$</span><span class="va">change_model</span><span class="op">$</span><span class="fu">update_flows</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; $A</span></span>
+<span><span class="co">#&gt; $A[[1]]</span></span>
+<span><span class="co">#&gt; r ~ a</span></span>
+<span><span class="co">#&gt; &lt;environment: 0x56268cee0780&gt;</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $B</span></span>
+<span><span class="co">#&gt; $B[[1]]</span></span>
+<span><span class="co">#&gt; rr ~ b</span></span>
+<span><span class="co">#&gt; &lt;environment: 0x56268cee0780&gt;</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="updatemethod-classes">
+<code>UpdateMethod()</code> classes<a class="anchor" aria-label="anchor" href="#updatemethod-classes"></a>
+</h3>
+<p>In order to define a state updater one must define a new
+<code>UpdateMethod</code> class. These classes are required to update
+three methods that do not take any arguments: <code>before</code>,
+<code>during</code>, and <code>after</code>. Each of these methods are
+required to return a list of two-sided formulas giving the expression
+list for the three phases of the simulation: before the simulation loop,
+at every iteration of the simulation loop, and after the simulation
+loop. Examples of <code>UpdateMethod</code> classes include:
+<code>EulerUpdateMethod</code>, <code>RK4UpdateMethod</code>,
+<code>EulerMultinomialUpdateMethod</code>, and
+<code>HazardUpdateMethod</code>.</p>
+<p>The constructors of these <code>UpdateMethod</code> classes often
+have a field of class <code>ChangeModel</code>, which specifies how to
+sort the components of</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="relationship-to-ordinary-differential-equation-solvers">Relationship to Ordinary Differential Equation Solvers<a class="anchor" aria-label="anchor" href="#relationship-to-ordinary-differential-equation-solvers"></a>
