@@ -29,7 +29,9 @@ backtrans <- function(x) {
 ## -------------------------
 
 # macpan 1.5 calibration information for wastewater model
-macpan1.5 = readRDS(url(pb_download_url("macpan1.5.RDS","canmod/macpan2")))
+macpan1.5 = readRDS(url(pb_download_url("covid_on_macpan1.5_calibration.RDS","canmod/macpan2")))
+# Ontario COVID-19 data
+covid_on = readRDS(url(pb_download_url("covid_on.RDS","canmod/macpan2")))
 
 # set a starting point for the simulation (earlier than observed data)
 starter = data.frame(
@@ -38,11 +40,13 @@ starter = data.frame(
   , value = 0
 )
 
-# observed incidence and wastewater data to calibrate to
-obs_data = (macpan1.5$obs
+# observed incidence and wastewater data to calibrate to, using date range in macpan 1.5 calibration
+obs_data = (covid_on
+            |> filter(var %in% c("report","W") & between(date,macpan1.5$settings_sim$start_date,macpan1.5$settings_sim$end_date))
             |> rename(time = date, matrix = var)
-            |> mutate(matrix = ifelse(matrix == "report_inc", "reported_incidence", matrix))
-            |> filter(!is.na(value))
+            |> mutate(matrix = ifelse(matrix == "report", "reported_incidence", matrix))
+            # leading zeroes seem to cause calibration challenges
+            |> filter(!is.na(value) & time > as.Date("2020-02-23"))
             |> bind_rows(starter)
 )
 

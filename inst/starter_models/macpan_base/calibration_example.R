@@ -44,12 +44,8 @@ backtrans <- function(x) {
 ## Observed Data Prep
 ## -------------------------
 
-# Observed data is sourced from the following data prep script, which can be
-# slow to run. Once sourced, the following RDS files contain the relevant time
-# series and mobility data.
-source(system.file("starter_models","macpan_base","data","get_data.R", package = "macpan2"))
-#ts_data = readRDS(system.file("starter_models","macpan_base","data","ts_data.RDS",package = "macpan2"))
-#mobility_data = readRDS(system.file("starter_models","macpan_base","data","mobility_data.RDS",package = "macpan2"))
+# Observed Ontario COVID-19 data
+ts_data  = readRDS(url(pb_download_url("covid_on.RDS","canmod/macpan2")))
 
 # To further prepare the time series data for calibration we filter for the 
 # appropriate time range and time series variables, create a numeric date field
@@ -72,7 +68,8 @@ prepped_ts_data = (ts_data
 # To further prepare the mobility data for calibration we filter for the 
 # appropriate time range, create a numeric date field named 'time' and compute 
 # the logarithm of the mobility index.
-prepped_mobility_data = (mobility_data
+prepped_mobility_data = (ts_data
+  |> filter(var == "mobility_index")
   # dates from base model calibration (Figure 4)
   |> filter(date >= "2020-02-24" & date < "2020-08-31")
   # create unique time identifier
@@ -80,7 +77,7 @@ prepped_mobility_data = (mobility_data
   |> group_by(date)
   |> mutate(time = cur_group_id())
   |> ungroup()
-  |> mutate(log_mobility_ind = log(mobility_ind))
+  |> mutate(log_mobility_ind = log(value))
 )
 
 # Mobility breakpoints identified in the manuscript for piecewise varying
