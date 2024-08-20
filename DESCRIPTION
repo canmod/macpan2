@@ -1,6 +1,6 @@
 Package: macpan2
 Title: Fast and Flexible Compartmental Modelling
-Version: 1.5.6
+Version: 1.6.0
 Authors@R: c(
   person("Steve Walker", email="swalk@mcmaster.ca", role=c("cre", "aut")),
   person("Irena Papst", role="ctb"),
@@ -42,7 +42,8 @@ Suggests:
     tmbstan,
     numDeriv,
     parallel,
-    iidda.api
+    iidda.api,
+    piggyback
 LinkingTo:
     TMB,
     RcppEigen
