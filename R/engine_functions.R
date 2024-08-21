@@ -338,8 +338,7 @@
 #'
 #' ### Return
 #'
-#' * A matrix containing sums of various groups of
-#' the elements of `x`.
+#' * A matrix containing sums of subsets of the inputs.
 #'
 #' ### Details
 #'
@@ -827,4 +826,7 @@
 #' @aliases reulermultinom
 #' @aliases round
 #' @aliases pgamma
+#' @aliases mean
+#' @aliases sd
+#' @aliases proportions
 NULL

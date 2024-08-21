@@ -11,7 +11,7 @@ test_that("all models in the library can run", {
     ## will run a small test of the
     ## model, rather than running
     ## calibration_example.R
-    c("nfds", "shiver", "macpan_base", "awareness")
+    c("nfds", "shiver", "awareness")
   )
   for (m in model_names) {
     print("====MODEL====")
@@ -21,7 +21,6 @@ test_that("all models in the library can run", {
       , "calibration_example.R"
       , package = "macpan2"
     )
-    if (file.exists(calibration_file)) source(calibration_file, verbose= TRUE)
+    if (file.exists(calibration_file)) source(calibration_file, verbose = TRUE)
   }
 })
-

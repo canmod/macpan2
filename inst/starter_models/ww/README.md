@@ -22,12 +22,10 @@ The McMasterPandemic model (Bolker et al., 2022) modified to include a wastewate
 | $H_2$    | Number of hospitalized individuals (acute care) after ICU stay         |
 | $D$      | Number of dead individuals                                             |
 | $R$      | Number of recovered individuals                                        |
-| $W$      | Number of infectious individuals with detectable virus in wastewater * |
-| $A$      | Total concentration of virus in wastewater *                           |
+| $W$      | Concentration of viral particles in wastewater                         |
+| $A$      | Total accumulated concentration of virus in wastewater over time       |
 
 The size of the total population is, $N = S + E + I_a + I_p + I_m + I_s + H +  ICU_s + ICU_d + H_2 + D + R$.
-
-\* Need to confirm state descriptions
 
 # Parameters
 
@@ -46,7 +44,6 @@ The size of the total population is, $N = S + E + I_a + I_p + I_m + I_s + H +  I
 | $\gamma_m$     | 1/time to recovery for mildly symptomatic infections                                |
 | $\gamma_s$     | 1/time spent in severely symptomatic state before either hospitalization or death   |
 | $\rho$         | 1/time in hospital (initial acute care admission)                                   |
-| $\delta$       | fraction of hospitalized infections that are fatal **                               |
 | $\delta_{nh}$  | probability of mortality without hospitalization                                    |
 | $\text{iso}_m$ | relative self-isolation/distancing of mild cases *                                  |
 | $\text{iso}_s$ | relative self-isolation/distancing of severe cases *                                |
@@ -55,11 +52,10 @@ The size of the total population is, $N = S + E + I_a + I_p + I_m + I_s + H +  I
 | $\psi_1$       | 1/time spent in ICU before returning to acute care                                  |
 | $\psi_2$       | 1/time spent in ICU before dying                                                    |
 | $\psi_3$       | 1/time in post-ICU acute care before hospital discharge                             |
-| $\nu$          | fraction of infectious individuals with detectable virus in wastewater *            |
+| $\nu$          | viral shedding rate to wastewater *            |
 | $\xi$          | rate at which virus is denaturing/removed from wastewater *                         |
 
 \* These parameters were not detailed in [Papst](#references) (TBD), but they were included in model definition files. 
-\** This parameter does not appear in the model dynamics.
 
 # Dynamics 
 

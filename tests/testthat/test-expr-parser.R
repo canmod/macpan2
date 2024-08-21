@@ -10,8 +10,9 @@ test_that("parse_tables ...", {
   form = ~ log(x) + exp(y)
   environment(form) = eval_env
 
-  f = make_expr_parser("f", finalizer = finalizer_char)
-  g = make_expr_parser("g", finalizer = finalizer_index)
+  f = make_expr_parser(finalizer = finalizer_char)
+  g = make_expr_parser(finalizer = finalizer_index)
+  
 
   ## work around testthat calling stuff from elsewhere.
   ## the issue is that make_expr_parser assumes that you are going to be

@@ -111,6 +111,9 @@ enum macpan2_func
     , MP2_EULER_MULTINOM_SIM = 48 // fwrap,fail: reulermultinom(size, rate, delta_t)
     , MP2_ROUND = 49 // fwrap,null: round(x)
     , MP2_PGAMMA = 50 // fwrap,fail: pgamma(q, shape, scale)
+    , MP2_MEAN = 51 // fwrap,null: mean(x)
+    , MP2_SD = 52 // fwrap,null: sd(x)
+    , MP2_PROPORTIONS = 53 // fwrap,null: proportions(x)
 };
 
 enum macpan2_meth
@@ -125,7 +128,7 @@ enum macpan2_meth
     , METH_ROWS_TIMES_ROWS = 8 // ~ A[i] * X[j], c("A", "X"), c("i", "j")
 };
 
-std::vector<int> mp_math = {
+std::vector<int> mp_math = { // functions that can only take numerical matrices -- no integer vectors
     MP2_ADD, MP2_SUBTRACT, MP2_MULTIPLY, MP2_DIVIDE, MP2_POWER, MP2_EXP, MP2_LOG
   , MP2_MATRIX, MP2_MATRIX_MULTIPLY
   , MP2_SUM, MP2_ROWSUMS, MP2_COLSUMS, MP2_TRANSPOSE
@@ -134,10 +137,25 @@ std::vector<int> mp_math = {
   , MP2_POISSON_SIM, MP2_NEGBIN_SIM, MP2_NORMAL_SIM, MP2_KRONECKER
   , MP2_TO_DIAG, MP2_FROM_DIAG, MP2_COS, MP2_BINOM_SIM, MP2_EULER_MULTINOM_SIM
   , MP2_ROUND, MP2_PGAMMA
+  , MP2_MEAN, MP2_SD
 };
 
 std::vector<int> mp_bin_op = {
   MP2_ADD, MP2_SUBTRACT, MP2_MULTIPLY, MP2_DIVIDE, MP2_POWER
+};
+
+std::vector<int> mp_hist = { // functions that depend on having a first argument being a matrix with saved history
+    MP2_CBIND_TIME, MP2_CBIND_LAG, MP2_RBIND_TIME, MP2_RBIND_LAG
+  , MP2_CONVOLUTION
+};
+
+std::vector<int> mp_by_index_arg_0 = { // functions that access matrices by index
+    MP2_CBIND_TIME, MP2_CBIND_LAG, MP2_RBIND_TIME, MP2_RBIND_LAG
+  , MP2_CONVOLUTION, MP2_ASSIGN, MP2_UNPACK
+};
+
+std::vector<int> mp_by_index_arg_1 = { // functions that access matrices by index
+    MP2_TIME_VAR
 };
 
 // MACROS
@@ -226,6 +244,7 @@ Type mp2_round(const Type &x) {
     return Type(CppAD::Integer(y));
 }
 MATRICIZE_1(mp2_round)
+
 
 template <class Type>
 matrix<Type> mp2_rep(const matrix<Type> &x, const int &times) {
@@ -999,7 +1018,7 @@ public:
         //int ii, jj, kk;
         std::vector<int> timeIndex; // for rbind_time and rbind_lag
         int doing_lag = 0;
-        Type sum, eps, var, by, left_over, remaining_prop, p0; // intermediate scalars
+        Type sum, eps, limit, var, by, left_over, remaining_prop, p0; // intermediate scalars
         Type delta_t; // for reulermultinom
         int rows, cols, lag, rowIndex, colIndex, matIndex, grpIndex, cp, off, size, times;
         int size_in, size_out;
@@ -1166,6 +1185,12 @@ public:
                     return m;
                 }
             }
+            if (is_int_in(table_x[row] + 1, mp_hist)) {
+                if (!mats_save_hist[index2mats[0]]) {
+                    SetError(205, "All arguments to functions that act on the simulation history must have a first argument that is a non-empty matrix with saved history", row, table_x[row] + 1, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
+                    return m;
+                }
+            }
             
             // Elementwise Binary Operations (+ - * / ^)
             // Check dimensions compatibility. If needed, 
@@ -1317,6 +1342,26 @@ public:
                 #endif
                 return pow(args.get_as_mat(0).array(), args.get_as_mat(1).array()).matrix();
 
+                
+            case MP2_PROPORTIONS: // proportions(x, limit, eps)
+                // x -- matrix to turn into x / sum(x)
+                // limit -- value to return for all elements if sum(x) < eps
+                // eps -- numerical tolerance for the sum to be positive
+                m = args.get_as_mat(0);
+                m1 = matrix<Type>::Zero(1, 1);
+                m1.coeffRef(0, 0) = 1;
+                if (m.size() == 1) return m1;
+                limit = args.get_as_mat(1).coeff(0, 0);
+                eps = args.get_as_mat(2).coeff(0, 0);
+                sum = m.sum();
+                m2 = matrix<Type>::Zero(args.rows(0), args.cols(0));
+                for (int i = 0; i < m2.rows(); i++) {
+                    for (int j = 0; j < m2.cols(); j++) {
+                        m2.coeffRef(i, j) = CppAD::CondExpLt(sum, eps, limit, m.coeff(i, j) / sum);
+                    }
+                }
+                return m2;
+              
             // #' ## Unary Elementwise Math
             // #'
             // #' ### Functions
@@ -1809,10 +1854,9 @@ public:
             // #'
             // #' ### Return
             // #'
-            // #' * A matrix containing sums of various groups of
-            // #' the elements of `x`.
+            // #' * A matrix containing sums of subsets of the inputs.
             // #'
-            case MP2_SUM: // sum(x)
+            case MP2_SUM: // sum(...)
                 m = matrix<Type>::Zero(1, 1);
                 sum = 0.0;
                 for (int i = 0; i < n; i++)
@@ -1859,6 +1903,27 @@ public:
                 for (int i = 0; i < m.rows(); i++) {
                     m1.coeffRef(v1[i], 0) += m.coeff(i, 0);
                 }
+                return m1;
+            
+            case MP2_MEAN: // mean(x)
+                if (n != 1) {
+                    SetError(MP2_MEAN, "The mean function can only take a single matrix.", row, MP2_MEAN, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
+                    return m;
+                }
+                m = matrix<Type>::Zero(1, 1);
+                sum = args.get_as_mat(0).mean();
+                m.coeffRef(0, 0) = sum;
+                return m;
+            
+            case MP2_SD: // sd(x)
+                if (n != 1) {
+                    SetError(MP2_SD, "The sd function can only take a single matrix.", row, MP2_SD, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
+                    return m;
+                }
+                m = args.get_as_mat(0);
+                m1 = matrix<Type>::Zero(1, 1);
+                sum = sqrt(((m.array() - m.mean()).square().sum() / (m.size() - 1)));
+                m1.coeffRef(0, 0) = sum;
                 return m1;
 
             // #' ### Examples
@@ -2029,10 +2094,10 @@ public:
                     return m;
                 }
                 matIndex = index2mats[0]; // m
-                if (!mats_save_hist[matIndex]) { // && !(timeIndex.size()==1 && timeIndex[0]==t)) {
-                    SetError(MP2_RBIND_TIME, "Can only rbind_time (or rbind_lag) initialized matrices with saved history", row, int_func, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
-                    return m;
-                }
+                // if (!mats_save_hist[matIndex]) { // && !(timeIndex.size()==1 && timeIndex[0]==t)) {
+                //     SetError(MP2_RBIND_TIME, "Can only rbind_time (or rbind_lag) initialized matrices with saved history", row, int_func, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
+                //     return m;
+                // }
 
                 if ((matIndex < 0) | (index2what[0] != 0)) {
                     SetError(MP2_RBIND_TIME, "Can only rbind_time (or rbind_lag) named matrices not expressions of matrices and not integer vectors", row, int_func, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
@@ -2800,7 +2865,7 @@ public:
                 remaining_prop = 1.0;
                 for (int i = 0; i < m1.rows(); i++) {
                     //m1.coeffRef(i, 0) = ((left_over > 0.0) && ((m.coeff(i, 0) / remaining_prop) > 0.0)) ? 1.0 * rbinom(left_over, m.coeff(i, 0) / remaining_prop) : 0.0;
-                    m1.coeffRef(i, 0) = mp2_rbinom(left_over, m.coeff(i, 0) / remaining_prop);
+                    m1.coeffRef(i, 0) = mp2_rbinom(left_over, m.coeff(i, 0) / remaining_prop); // 0/0 could be an issue
                     left_over -= m1.coeff(i, 0);
                     remaining_prop -= m.coeff(i, 0);
                 }
@@ -3310,6 +3375,7 @@ vector<ListOfMatrices<Type>> MakeSimulationHistory(
     vector<ListOfMatrices<Type>> simulation_history(time_steps + 2);
     matrix<Type> empty_matrix;
     for (int i = 0; i < mats_save_hist.size(); i++)
+        //std::cout << "matrix: " << size << std::endl;
         if (mats_save_hist[i] == 0)
             hist_shape_template.m_matrices[i] = empty_matrix;
 

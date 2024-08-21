@@ -116,6 +116,133 @@ print(siv)
 ```
 
 
+## Internal Design
+
+```{r}
+sir = mp_tmb_model_spec(
+  during = list(
+      N ~ S + I + R
+    , mp_per_capita_flow("S", "I", "beta * I / N", "infection")
+    , mp_per_capita_flow("I", "R", "(1 - p) * gamma", "recovery")
+    , mp_per_capita_flow("I", "D", "p * gamma", "death")
+  )
+)
+```
+
+### `ChangeComponent()` classes
+
+Model specs contain a set of three lists: 
+* `before` : instructions to run before the simulation loop begins.
+* `during` : instructions to run at each iteration of the simulation loop.
+* `after` : instructions to run after the simulation loop ends.
+
+The simplest way to define these lists is using two-sided R formulas. But in the `during` list one may specify different types of list components, which are of class `ChangeComponent`. Internally, standard R formulas are converted into an object of class `Formula`, which is the simplest kind of `ChangeComponent`. Another important `ChangeComponent` is the `PerCapitaFlow` type, which is used for standard flows from one compartment to another.
+
+The list of change components, which is just the `during` field but ensuring that all elements are valid `ChangeComponent` objects, can be obtained using the `change_components()` method in a model spec object.
+```{r}
+cc = sir$change_components()
+print(cc)
+```
+
+All `ChangeComponent` objects must have the following methods.
+
+#### The `change_frame()` method
+
+Returns a data frame with two columns:
+* `state` : state variable being changed (i.e. updated at each step)
+* `change` : signed absolute flow rates (variables or expressions that don't involve any state variables)
+
+An example of this data frame for a flow from `S` to `I` is as follows.
+
+```{r}
+cc[[2]]$change_frame()
+```
+
+For a simple `Formula` change component this data frame is just an empty two-column data frame with zero rows.
+
+```{r}
+cc[[1]]$change_frame()
+```
+
+#### The `flow_frame()` method
+
+Returns a data frame with three columns.
+* `size` : variable (often a state variable or function of state variables) that gives the size of the population being drawn from in a flow (e.g. S is the size of an infection flow).
+* `change` : unsigned absolute flow rates.
+* `rate` : per-capita flow rates (variables or expresions that sometimes involve state variables).
+
+An example of this data frame for a flow from `S` to `I` is as follows.
+```{r}
+cc[[2]]$flow_frame()
+```
+
+For a simple `Formula` change component this data frame is just an empty three-column data frame with zero rows.
+
+```{r}
+cc[[1]]$flow_frame()
+```
+
+### `ChangeModel()` classes
+
+The `ChangeModel` objects combine the information in lists of `ChangeComponent` objects, so that they specify a full model. It expands the concept of `before`, `during`, and `after` into a more refined set of steps. All of these methods return lists of two-sided formulas.
+
+* `before_loop()` : The `before` list formulas.
+* `once_start()` : Formulas to evaluate at the start of the `during` list, and which will not be repeated (or modified and repeated) throughout expansions of the `during` loop. An example of such an expansion is a Runge-Kutta differential equation solver that reuses expressions in an iterative manner. Formulas returned by `once_during()` are useful for specifying exogeneous changes (e.g., time-varying parameters) that occur once per time-step but that should not change throughout the within-time-step iterations of a differential equation solver.
+* `before_flows()` : Formulas to evaluate before the absolute flow rates are computed.
+* `update_flows()` : Formulas that update the flows, using `flow_frame()` methods of individual `ChangeComponent` objects.
+* `before_state()` : Formulas to evaluate before the state vector is updated.
+* `update_state()` : Formulas that update the state vector, using `change_frame()` method s of individual `ChangeComponent` objects.
+* `after_state()` : Formulas to evaluate after the state vector is updated.
+* `once_end()` : Formulas to evaluate at the end of the `during` list, and which will not be repeated throughout (similar to `once_start()`).
+* `after_loop()` : The `after` list formulas.
+
+The `ChangeModel` objects also have `flow_frame()` and `change_frame()` methods for combining the outputs of these methods within the individual `ChangeComponent` objects. An example for an SIR model gives the `flow_frame()` and `change_frame()` output as follows.
+
+```
+state   change
+-----   ------
+S       -infection
+I       +infection
+I       -recovery
+R       +recovery
+```
+
+```
+size  change     rate
+----  ------     ----
+S     infection  beta * I / N
+I     recovery   gamma
+```
+
+The `update_flows()` method 
+The `update_state()` method makes use of this `flow_frame()` to produce the 
+
+
+```{r}
+si = mp_tmb_library("starter_models", "sir", package = "macpan2")
+si$change_model
+si$change_model$flow_frame()
+si$change_model$change_frame()
+si$change_model$update_state()
+si$change_model$update_flows()
+```
+```{r}
+spec = mp_tmb_model_spec(
+  during = list(
+      mp_per_capita_flow("A", "B", "a", "r")
+    , mp_per_capita_flow("B", "C", "b", "rr")
+  )
+)
+spec$change_model$update_flows()
+```
+
+### `UpdateMethod()` classes
+
+In order to define a state updater one must define a new `UpdateMethod` class. These classes are required to update three methods that do not take any arguments: `before`, `during`, and `after`. Each of these methods are required to return a list of two-sided formulas giving the expression list for the three phases of the simulation: before the simulation loop, at every iteration of the simulation loop, and after the simulation loop. Examples of `UpdateMethod` classes include: `EulerUpdateMethod`, `RK4UpdateMethod`, `EulerMultinomialUpdateMethod`, and `HazardUpdateMethod`.
+
+The constructors of these `UpdateMethod` classes often have a field of class `ChangeModel`, which specifies how to sort the components of 
+
+
 
 ## Relationship to Ordinary Differential Equation Solvers
 

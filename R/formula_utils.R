@@ -214,7 +214,8 @@ formula_components = function(formula, side = c("both", "left", "right")) {
   parse_table = concat_parse_table(formula, side)
   is_var_or_lit = parse_table$n == 0L
   is_func = parse_table$n > 0L
-  is_lit = grepl("^[0-9]*\\.?[0-9]*$", parse_table$x)
+  is_sci = grepl("^[0-9]*\\.?[0-9]*e[-+]?[0-9]*$", parse_table$x)
+  is_lit = grepl("^[0-9]*\\.?[0-9]*$", parse_table$x) | is_sci
   list(
     variables = parse_table$x[is_var_or_lit & !is_lit] |> unique(),
     functions = parse_table$x[is_func] |> unique(),

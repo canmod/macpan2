@@ -2,7 +2,11 @@ library(macpan2)
 library(dplyr)
 library(ggplot2)
 library(tidyr)
+<<<<<<< HEAD
+options(macpan2_default_loss = "neg_bin")
+=======
 options(macpan2_default_loss = "neg_bin") 
+>>>>>>> ww
 
 ## -------------------------
 ## time series data prep
@@ -105,9 +109,14 @@ focal_model = (spec
                
                # add incidence:
                |> mp_tmb_insert(phase = "during"
+<<<<<<< HEAD
+                                , at = Inf
+                                , expressions = list(incidence ~ S * ((S/N)^zeta) * (beta / N) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s)))
+=======
                   , at = Inf
                   , expressions = list(incidence ~ S * ((S/N)^zeta) * (beta / N) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s)))
                   , must_save = "incidence"
+>>>>>>> ww
                )
                
                # compute gamma-density delay kernel for convolution:
