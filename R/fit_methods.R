@@ -80,21 +80,23 @@ mp_tmb_coef.TMBSimulator = function(model, back_transform = TRUE, ...) {
     vars1 <- intersect(c("default", "estimate", "conf.low", "conf.high"), names(tab))
     # regex matching log or logit transformed model coefficient/parameter names 
     # including time varying parameters and distributional parameters
-    transformed_coef_name = "(?<=(^time_var_|^distr_params_|^))log(it)?_"
     transformed_coef_name = "(^time_var_|^distr_params_|^)(log(it)?_)"
-    prefix <- stringr::str_extract(tab[["mat"]], transformed_coef_name, 2)  |> tidyr::replace_na("none")
-    automatic_prefix <- stringr::str_extract(tab[["mat"]], transformed_coef_name, 1)
+    
+    cap_grp_names = data.frame(automatic_prefix = character() # might not need this group now
+                       , transform = character()
+                       , unnecessary_grp = character() # should remove this group
+                       )
+    cap_grp = strcapture(transformed_coef_name, tab[["mat"]], cap_grp_names, perl = TRUE)
+    cap_grp[is.na(cap_grp)] <- ""
+    prefix = cap_grp[["transform"]]
     tab <- split(tab, prefix)
-    for (ptype in setdiff(names(tab), "none")) {
-      link <- make.link(stringr::str_remove(ptype, "_"))
-      # prefixes that are not related to log/logit transformations that we don't
-      # want to remove from coefficient name after back transformation
-      automatic_prefix = stringr::str_extract(tab[[ptype]]$mat, transformed_coef_name, 1)
-      tab[[ptype]] <- (tab[[ptype]]
-                      |> mutate(across(std.error, ~link$mu.eta(estimate)*.))
-                      |> mutate(across(any_of(vars1), link$linkinv))
-                      |> mutate(across(mat, ~stringr::str_remove(., paste0("(?<=^", automatic_prefix,")", ptype))))
-      )
+    for (ptype in setdiff(names(tab), "")) {
+      link <- make.link(gsub("_","",ptype))
+      tab[[ptype]][["std.error"]] = link$mu.eta(tab[[ptype]][["estimate"]])*tab[[ptype]][["std.error"]]
+      tab[[ptype]][vars1] = lapply(tab[[ptype]][vars1],link$linkinv)
+      # restore original coefficient name
+      orig_coef_name = gsub(ptype,"",tab[[ptype]][["mat"]])
+      tab[[ptype]][["mat"]] = gsub(ptype,"",tab[[ptype]][["mat"]])
     }
     tab = bind_rows(tab)
   }
