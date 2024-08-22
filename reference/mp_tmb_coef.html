@@ -49,7 +49,7 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">mp_tmb_coef</span><span class="op">(</span><span class="va">model</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">mp_tmb_coef</span><span class="op">(</span><span class="va">model</span>, back_transform <span class="op">=</span> <span class="cn">TRUE</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -58,6 +58,18 @@
 
 <dl><dt id="arg-model">model<a class="anchor" aria-label="anchor" href="#arg-model"></a></dt>
 <dd><p>Object that contains information about model coefficients.</p></dd>
+
+
+<dt id="arg-back-transform">back_transform<a class="anchor" aria-label="anchor" href="#arg-back-transform"></a></dt>
+<dd><p>A boolean to indicate if model coefficients should be
+back transformed to display their defaults, estimates, and confidence
+intervals on the original scale. Coefficient names are also stripped of their
+transformation identifier. Currently, this back transformation only
+applies to log transformed coefficients that have been named with "log_"
+prefix or logit transformed coefficients that have been named with "logit_"
+prefix. Back transformation also applies to time varying parameters and
+distributional parameters that get automatic prefixes when used. <code>back_transform</code>
+defaults to <code>TRUE</code>.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
