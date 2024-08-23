@@ -4,10 +4,20 @@
 \alias{mp_tmb_coef}
 \title{TMB Model Coefficient Table}
 \usage{
-mp_tmb_coef(model, ...)
+mp_tmb_coef(model, back_transform = TRUE, ...)
 }
 \arguments{
 \item{model}{Object that contains information about model coefficients.}
+
+\item{back_transform}{A boolean to indicate if model coefficients should be
+back transformed to display their defaults, estimates, and confidence
+intervals on the original scale. Coefficient names are also stripped of their
+transformation identifier. Currently, this back transformation only
+applies to log transformed coefficients that have been named with "log_"
+prefix or logit transformed coefficients that have been named with "logit_"
+prefix. Back transformation also applies to time varying parameters and
+distributional parameters that get automatic prefixes when used. \code{back_transform}
+defaults to \code{TRUE}.}
 
 \item{...}{Arguments to pass onto the \code{broom.mixed::tidy.TMB} method.}
 }

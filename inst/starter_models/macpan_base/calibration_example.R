@@ -6,29 +6,6 @@ library(piggyback)
 options(macpan2_default_loss = "neg_bin") 
 
 ## -------------------------
-## Local function to back-transform estimates and CIs
-## -------------------------
-
-# to be included in mp_tmb_coef in the future
-# see here, https://github.com/canmod/macpan2/issues/179
-backtrans <- function(x) {
-  vars1 <- intersect(c("default", "estimate", "conf.low", "conf.high"), names(x))
-  prefix <- stringr::str_extract(x[["mat"]], "^log(it)?_")  |> tidyr::replace_na("none")
-  sx <- split(x, prefix)
-  for (ptype in setdiff(names(sx), "none")) {
-    link <- make.link(stringr::str_remove(ptype, "_"))
-    sx[[ptype]] <- (sx[[ptype]]
-                    |> mutate(across(std.error, ~link$mu.eta(estimate)*.))
-                    |> mutate(across(any_of(vars1), link$linkinv))
-                    |> mutate(across(mat, ~stringr::str_remove(., paste0("^", ptype))))
-    )
-  }
-  bind_rows(sx)
-}
-
-
-
-## -------------------------
 ## Example Set-up
 ## -------------------------
 
@@ -267,7 +244,7 @@ fitted_data = mp_trajectory_sd(focal_calib, conf.int = TRUE)
 # nohosp_mort ~ 0.14(0.11,0.16) is this too high?
 # theta_report ~ 3(2.8,3.3) very different from manuscript
 # theta_death ~ 0.5(0.2,0.8) very different from manuscript
-mp_tmb_coef(focal_calib, conf.int = TRUE) |> backtrans()
+mp_tmb_coef(focal_calib, conf.int = TRUE)
 
 if (interactive()) {
 # Comparable to Figure 4 in manscript, which also had a poorer fit to deaths.

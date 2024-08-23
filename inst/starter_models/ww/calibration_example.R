@@ -4,27 +4,6 @@ library(dplyr)
 library(piggyback)
 
 ## -------------------------
-## Local function to back-transform estimates and CIs
-## -------------------------
-
-# to be included in mp_tmb_coef in the future
-# see here, https://github.com/canmod/macpan2/issues/179
-backtrans <- function(x) {
-  vars1 <- intersect(c("default", "estimate", "conf.low", "conf.high"), names(x))
-  prefix <- stringr::str_extract(x[["mat"]], "^log(it)?_")  |> tidyr::replace_na("none")
-  sx <- split(x, prefix)
-  for (ptype in setdiff(names(sx), "none")) {
-    link <- make.link(stringr::str_remove(ptype, "_"))
-    sx[[ptype]] <- (sx[[ptype]]
-                    |> mutate(across(std.error, ~link$mu.eta(estimate)*.))
-                    |> mutate(across(any_of(vars1), link$linkinv))
-                    |> mutate(across(mat, ~stringr::str_remove(., paste0("^", ptype))))
-    )
-  }
-  bind_rows(sx)
-}
-
-## -------------------------
 ## Observed Data Prep
 ## -------------------------
 
@@ -154,7 +133,7 @@ macpan2_fit = (mp_trajectory_sd(focal_calib, conf.int = TRUE)
 
 # parameter estimates, back-transformed to be on original scale
 # phenomenological heterogeneity parameter zeta ~ 0(wide CI), might not be necessary to include in the model
-mp_tmb_coef(focal_calib, conf.int = TRUE) |> backtrans()
+mp_tmb_coef(focal_calib, conf.int = TRUE)
 
 # fitted data from macpan 1.5
 macpan1.5_fit = (macpan1.5$sim
