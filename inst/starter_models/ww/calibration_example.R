@@ -49,13 +49,12 @@ focal_model = (
      , expressions = list(
           beta0 ~ exp(log_beta0)
         , nu ~ exp(log_nu)
-        , zeta ~ exp(log_zeta)
+        , report_prob ~ 1 / (1 + exp(-logit_report_prob))
      )
      , default = list(
-          logit_report_prob = 0
-        , log_beta0 = 0
+          log_beta0 = 0
         , log_nu = 0
-        , log_zeta = 0
+        , logit_report_prob = 0
      )
   )
 
@@ -75,9 +74,10 @@ focal_model = (
      
   # add convolution to compute case reports from incidence:
   |> mp_tmb_insert_reports("incidence"
-     , report_prob = 0.5
+     , report_prob = NA_real_  # defined above with a logit transform
      , mean_delay = 11
      , cv_delay = 0.25
+     , report_prob_name = "report_prob"
   )
 
   # add time-varying transmission
@@ -118,6 +118,7 @@ focal_calib = mp_tmb_calibrator(
         # parameters to fit
         "log_beta0" # baseline transmission
       , "log_nu"    # viral shedding rate
+      , "logit_report_prob" # reporting probability (only makes sense to fit if you fit to incidence)
   )
     # flexible non-parametric (radial basis function) fit
     # for the time-varying transmission rate
