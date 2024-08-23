@@ -8,9 +8,11 @@ library(piggyback)
 ## -------------------------
 
 # macpan 1.5 calibration information for wastewater model
-macpan1.5 = readRDS(url(pb_download_url("covid_on_macpan1.5_calibration.RDS","canmod/macpan2")))
+#macpan1.5 = readRDS(url(pb_download_url("covid_on_macpan1.5_calibration.RDS","canmod/macpan2", .token = NULL)))
+macpan1.5 = readRDS(url("https://github.com/canmod/macpan2/releases/download/macpan1.5_data/covid_on_macpan1.5_calibration.RDS"))
 # Ontario COVID-19 data
-covid_on = readRDS(url(pb_download_url("covid_on.RDS","canmod/macpan2")))
+#covid_on = readRDS(url(pb_download_url("covid_on.RDS","canmod/macpan2", .token = NULL)))
+covid_on = readRDS(url("https://github.com/canmod/macpan2/releases/download/macpan1.5_data/covid_on.RDS"))
 
 # set a starting point for the simulation (earlier than observed data)
 starter = data.frame(
@@ -45,8 +47,7 @@ focal_model = (
   |> mp_tmb_insert(phase = "before"
      , at = 1L
      , expressions = list(
-          incidence_report_prob ~ 1 / (1 + exp(-logit_report_prob))
-        , beta0 ~ exp(log_beta0)
+          beta0 ~ exp(log_beta0)
         , nu ~ exp(log_nu)
         , zeta ~ exp(log_zeta)
      )
