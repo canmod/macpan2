@@ -21,12 +21,12 @@ starter = data.frame(
 
 # observed incidence and wastewater data to calibrate to, using date range in macpan 1.5 calibration
 obs_data = (covid_on
-            |> filter(var %in% c("report","W") & between(date,macpan1.5$settings_sim$start_date,macpan1.5$settings_sim$end_date))
-            |> rename(time = date, matrix = var)
-            |> mutate(matrix = ifelse(matrix == "report", "reported_incidence", matrix))
-            # leading zeroes seem to cause calibration challenges
-            |> filter(!is.na(value) & time > as.Date("2020-02-23"))
-            |> bind_rows(starter)
+    |> filter(var %in% c("report","W") & between(date,macpan1.5$settings_sim$start_date,macpan1.5$settings_sim$end_date))
+    |> rename(time = date, matrix = var)
+    |> mutate(matrix = ifelse(matrix == "report", "reported_incidence", matrix))
+    # leading zeroes seem to cause calibration challenges
+    |> filter(!is.na(value) & time > as.Date("2020-02-23"))
+    |> bind_rows(starter)
 )
 
 ## -------------------------
@@ -34,55 +34,55 @@ obs_data = (covid_on
 ## -------------------------
 
 # Get model spec from the library
-specs = mp_tmb_library("starter_models", "ww", alternative_specs = TRUE, package = "macpan2")
+spec = mp_tmb_library("starter_models", "ww", package = "macpan2")
 
 # update model specification to include additional components
 focal_model = (
   # waste water model with hazard correction
-  specs$ww_hazard
+  spec |> mp_hazard()
      
   # add variable transformations:
   |> mp_tmb_insert(phase = "before"
-                   , at = 1L
-                   , expressions = list(
-                        incidence_report_prob ~ 1 / (1 + exp(-logit_report_prob))
-                      , beta0 ~ exp(log_beta0)
-                      , nu ~ exp(log_nu)
-                      , zeta ~ exp(log_zeta)
-                   )
-                   , default = list(
-                        logit_report_prob = 0
-                      , log_beta0 = 0
-                      , log_nu = 0
-                      , log_zeta = 0
-                   )
+     , at = 1L
+     , expressions = list(
+          incidence_report_prob ~ 1 / (1 + exp(-logit_report_prob))
+        , beta0 ~ exp(log_beta0)
+        , nu ~ exp(log_nu)
+        , zeta ~ exp(log_zeta)
+     )
+     , default = list(
+          logit_report_prob = 0
+        , log_beta0 = 0
+        , log_nu = 0
+        , log_zeta = 0
+     )
   )
 
   # add accumulator variables:
   # death - new deaths each time step
   |> mp_tmb_insert(phase = "during"
-                   , at = Inf
-                   , expressions = list(death ~ ICUd.D + Is.D)
+     , at = Inf
+     , expressions = list(death ~ ICUd.D + Is.D)
   )
      
   # add phenomenological heterogeneity:
   |> mp_tmb_update(phase = "during"
-                   , at = 1L
-                   , expressions = list(mp_per_capita_flow("S", "E", "((S/N)^zeta) * (beta / N) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s))", "incidence"))
+     , at = 1L
+     , expressions = list(mp_per_capita_flow("S", "E", "((S/N)^zeta) * (beta / N) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s))", "incidence"))
 
   )
      
   # add convolution to compute case reports from incidence:
   |> mp_tmb_insert_reports("incidence"
-                           , report_prob = 0.5
-                           , mean_delay = 11
-                           , cv_delay = 0.25
+     , report_prob = 0.5
+     , mean_delay = 11
+     , cv_delay = 0.25
   )
 
   # add time-varying transmission
   |> mp_tmb_insert(phase = "during"
-                   , at = 1L
-                   , expressions = list(beta ~ beta0 * beta1)
+     , at = 1L
+     , expressions = list(beta ~ beta0 * beta1)
   )
 
 )
@@ -109,22 +109,29 @@ focal_calib = mp_tmb_calibrator(
     spec = focal_model
   , data = obs_data
   , traj = list(
-      # set priors for trajectories we are fitting to
+      # set likelihoods for trajectories we are fitting to
       reported_incidence = mp_neg_bin(disp = 0.1)
-    , W = mp_normal(sd = 1)
+    , W = mp_log_normal(sd = 1)
   )
   , par = c(
-      "log_beta0", "log_nu" , "log_zeta"
+        # parameters to fit
+        "log_beta0" # baseline transmission
+      , "log_nu"    # viral shedding rate
   )
-  # use radial basis functions for beta1
+    # flexible non-parametric (radial basis function) fit
+    # for the time-varying transmission rate
   , tv = mp_rbf("beta1", dimension = 5)
+    
+    # return these trajectories so that they can be
+    # explored after fitting
   , outputs = c("reported_incidence", "W", "beta")
-  # update defaults with macpan1.5 defaults
+  
+    # update defaults with macpan1.5 wastewater model defaults
   , default = macpan1.5_defaults
 )
 
 # converges
-replicate(15, mp_optimize(focal_calib), simplify = FALSE)
+mp_optimize(focal_calib)
 
 # get fitted data
 macpan2_fit = (mp_trajectory_sd(focal_calib, conf.int = TRUE) 
@@ -137,14 +144,14 @@ mp_tmb_coef(focal_calib, conf.int = TRUE)
 
 # fitted data from macpan 1.5
 macpan1.5_fit = (macpan1.5$sim
-          |> group_by(Date, state)
-          # summarize to ignore vaccination status
-          |> summarise(value = sum(value))
-          |> ungroup()
-          |> rename(time = Date, matrix = state)
-          |> filter(matrix %in% c("conv", "W"))
-          |> filter(!is.na(value))
-          |> mutate(matrix = ifelse(matrix == "conv", "reported_incidence", matrix))
+  |> group_by(Date, state)
+  # summarize to ignore vaccination status
+  |> summarise(value = sum(value))
+  |> ungroup()
+  |> rename(time = Date, matrix = state)
+  |> filter(matrix %in% c("conv", "W"))
+  |> filter(!is.na(value))
+  |> mutate(matrix = ifelse(matrix == "conv", "reported_incidence", matrix))
 )
 
 if (interactive()) {
@@ -168,10 +175,10 @@ all_data = bind_rows(lst(macpan1.5_fit, macpan2_fit), .id = "source")
 }
 
 ## -------------------------
-## exploring
+## exploring un-calibrated simulation model
 ## -------------------------
 ww_exploring = mp_simulator(
-    model = specs$ww_euler
+    model = spec
   , time_steps = 100
   , outputs = c("Ia", "Ip", "Im", "Is", "W", "A")
 ) |> mp_trajectory()
