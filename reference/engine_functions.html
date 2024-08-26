@@ -134,12 +134,15 @@ after any necessary recycling of rows and/or columns.</p></li>
 <ul><li><p><code>log(x)</code> – Natural logarithm</p></li>
 <li><p><code>exp(x)</code> – Exponential function</p></li>
 <li><p><code>cos(x)</code> – Cosine function</p></li>
+<li><p><code>proportions(x, limit, eps)</code> – matrix of <code>x / sum(x)</code> or <code>rep(limit, length(x))</code> if <code>sum(x) &lt; eps</code></p></li>
 </ul></div>
 
 <div class="section">
 <h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
 
 <ul><li><p><code>x</code> – Any matrix</p></li>
+<li><p><code>limit</code> – numeric value to return elementwise from <code>proportions</code> if <code>sum(x) &lt; eps</code></p></li>
+<li><p><code>eps</code> – numeric tolerance for <code>sum(x)</code></p></li>
 </ul></div>
 
 <div class="section">
