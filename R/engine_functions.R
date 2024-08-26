@@ -83,10 +83,13 @@
 #' * `log(x)` -- Natural logarithm
 #' * `exp(x)` -- Exponential function
 #' * `cos(x)` -- Cosine function
+#' * `proportions(x, limit, eps)` -- matrix of `x / sum(x)` or `rep(limit, length(x))` if `sum(x) < eps`
 #'
 #' ### Arguments
 #'
 #' * `x` -- Any matrix
+#' * `limit` -- numeric value to return elementwise from `proportions` if `sum(x) < eps`
+#' * `eps` -- numeric tolerance for `sum(x)`
 #'
 #' ### Return
 #'
@@ -513,7 +516,7 @@
 #' set.seed(1L)
 #' change_points = c(0,2,5)
 #' x_val = rnorm(length(change_points))
-#'(simple_sims(
+#' (simple_sims(
 #'       iteration_exprs = list(x ~ time_var(x_val,change_points))
 #'     , int_vecs = list(change_points = change_points, time_steps = 10L)
 #'     , mats = list(x = empty_matrix, x_val=x_val) 
