@@ -89,7 +89,9 @@ produced by <code><a href="mp_trajectory.html">mp_trajectory</a></code>.</p></dd
 
 <dt id="arg-traj">traj<a class="anchor" aria-label="anchor" href="#arg-traj"></a></dt>
 <dd><p>A character vector giving the names of trajectories to fit
-to data.</p></dd>
+to data, or a named list of likelihood distributions specified with
+<code>mp_normal</code>, <code>mp_log_normal</code>, <code>mp_neg_bin</code>, or
+<code>mp_poisson</code> for each trajectory.</p></dd>
 
 
 <dt id="arg-par">par<a class="anchor" aria-label="anchor" href="#arg-par"></a></dt>
@@ -138,18 +140,18 @@ valid choice is <code>NULL</code>, which takes simulation bounds from the <code>
 <span class="r-in"><span>  , default <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>beta <span class="op">=</span> <span class="fl">0.25</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">cal</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  428.5401 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  322.2205 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  52.53063 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  2.508649 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.00641086 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  4.210267e-08 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  389.7835 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  259.2344 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  40.03711 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  1.594322 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.002775624 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  8.444732e-09 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $par</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    params </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 0.1977842 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> params </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    0.2 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $objective</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 49.77418</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 49.74796</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $convergence</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
@@ -165,12 +167,111 @@ valid choice is <code>NULL</code>, which takes simulation bounds from the <code>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "relative convergence (4)"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span><span class="fu"><a href="mp_tmb_coef.html">mp_tmb_coef</a></span><span class="op">(</span><span class="va">cal</span><span class="op">)</span>  <span class="co">## requires broom.mixed package</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  4.210267e-08 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  12.52265 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  12.85234 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  30.71786 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     term  mat row col default  type  estimate   std.error</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 params beta   0   0    0.25 fixed 0.1977842 0.008877937</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  8.444732e-09 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  11.74622 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  12.05664 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  31.01941 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     term  mat row col default  type estimate   std.error</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 params beta   0   0    0.25 fixed      0.2 0.009166433</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># specifying a likelihood distribution for a trajectory</span></span></span>
+<span class="r-in"><span><span class="va">cal_like</span> <span class="op">=</span> <span class="fu">mp_tmb_calibrator</span><span class="op">(</span></span></span>
+<span class="r-in"><span>    <span class="va">spec</span></span></span>
+<span class="r-in"><span>  , <span class="va">data</span></span></span>
+<span class="r-in"><span>  , traj <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>infection <span class="op">=</span> <span class="fu"><a href="mp_log_normal.html">mp_log_normal</a></span><span class="op">(</span>sd <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  , par <span class="op">=</span> <span class="st">"beta"</span></span></span>
+<span class="r-in"><span>  , default <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>beta <span class="op">=</span> <span class="fl">0.25</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">cal_like</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  306.4292 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  93.0741 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  2347.071 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  2764.957 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  264.1695 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  980.5228 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  22260.99 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  8426.115 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  2366.822 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  5879.451 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  77180.86 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  29998.8 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  60570.04 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  120432.8 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  275868.3 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  636472 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  1458789 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  914951.4 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  571030.2 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  1250339 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  2735192 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  5988435 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  13101228 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  8334724 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  5299511 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  11315011 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  24156197 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  51575373 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  110108458 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  72686697 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  47980446 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  106009039 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  234215899 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  517481079 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  1143321616 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  805713777 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  567793180 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  254303209 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  458657641 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  3622236162 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  2249995370 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  920645177 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  1642677313 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  12867544976 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  13548385132 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  12058102233 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  46027377423 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  175692597634 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  92075566171 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  18928169828 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  55478312053 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  1.024199e+12 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  215778241 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  3.125478e+15 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  50 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  50 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  50 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  50 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  50 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  50 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  50 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  50 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  50 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  50 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  50 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  50 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  50 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  50 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  50 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  50 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  50 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  50 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  50 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  50 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  50 </span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in (function (start, objective, gradient = NULL, hessian = NULL,     ..., scale = 1, control = list(), lower = -Inf, upper = Inf) {    par &lt;- setNames(as.double(start), names(start))    n &lt;- length(par)    iv &lt;- integer(78 + 3 * n)    v &lt;- double(130 + (n * (n + 27))/2)    .Call(C_port_ivset, 2, iv, v)    if (length(control)) {        nms &lt;- names(control)        if (!is.list(control) || is.null(nms))             stop("'control' argument must be a named list")        pos &lt;- pmatch(nms, names(port_cpos))        if (any(nap &lt;- is.na(pos))) {            warning(sprintf(ngettext(length(nap), "unrecognized control element named %s ignored",                 "unrecognized control elements named %s ignored"),                 paste(sQuote(nms[nap]), collapse = ", ")), domain = NA)            pos &lt;- pos[!nap]            control &lt;- control[!nap]        }        ivpars &lt;- pos &lt;= 4        vpars &lt;- !ivpars        if (any(ivpars))             iv[port_cpos[pos[ivpars]]] &lt;- as.integer(unlist(control[ivpars]))        if (any(vpars))             v[port_cpos[pos[vpars]]] &lt;- as.double(unlist(control[vpars]))    }    obj &lt;- quote(objective(.par, ...))    rho &lt;- new.env(parent = environment())    assign(".par", par, envir = rho)    grad &lt;- hess &lt;- low &lt;- upp &lt;- NULL    if (!is.null(gradient)) {        grad &lt;- quote(gradient(.par, ...))        if (!is.null(hessian)) {            if (is.logical(hessian))                 stop("logical 'hessian' argument not allowed.  See documentation.")            hess &lt;- quote(hessian(.par, ...))        }    }    if (any(lower != -Inf) || any(upper != Inf)) {        low &lt;- rep_len(as.double(lower), length(par))        upp &lt;- rep_len(as.double(upper), length(par))    }    else low &lt;- upp &lt;- numeric()    .Call(C_port_nlminb, obj, grad, hess, rho, low, upp, d = rep_len(as.double(scale),         length(par)), iv, v)    iv1 &lt;- iv[1L]    list(par = get(".par", envir = rho), objective = v[10L],         convergence = (if (iv1 %in% 3L:6L) 0L else 1L), iterations = iv[31L],         evaluations = c(`function` = iv[6L], gradient = iv[30L]),         message = if (19 &lt;= iv1 &amp;&amp; iv1 &lt;= 43) {            if (any(B &lt;- iv1 == port_cpos)) sprintf("'control' component '%s' = %g, is out of range",                 names(port_cpos)[B], v[iv1]) else sprintf("V[IV[1]] = V[%d] = %g is out of range (see PORT docu.)",                 iv1, v[iv1])        } else port_msg(iv1))})(start = c(params = 0.25, params = 0), objective = function (x = last.par[lfixed()],     ...) {    if (tracepar) {        cat("par:\n")        print(x)    }    if (!validpar(x))         return(NaN)    if (is.null(random)) {        ans &lt;- f(x, order = 0)        if (!ADreport) {            if (is.finite(ans) &amp;&amp; ans &lt; value.best) {                last.par.best &lt;&lt;- x                value.best &lt;&lt;- ans            }        }    }    else {        ans &lt;- try({            if (MCcontrol$doMC) {                ff(x, order = 0)                MC(last.par, n = MCcontrol$n, seed = MCcontrol$seed,                   order = 0)            }            else ff(x, order = 0)        }, silent = silent)        if (is.character(ans))             ans &lt;- NaN    }    ans}, gradient = function (x = last.par[lfixed()], ...) {    if (is.null(random)) {        ans &lt;- f(x, order = 1)    }    else {        ans &lt;- try({            if (MCcontrol$doMC) {                ff(x, order = 0)                MC(last.par, n = MCcontrol$n, seed = MCcontrol$seed,                   order = 1)            }            else ff(x, order = 1)        }, silent = silent)        if (is.character(ans))             ans &lt;- rep(NaN, length(x))    }    if (tracemgc)         cat("outer mgc: ", max(abs(ans)), "\n")    ans}, hessian = function (x = last.par[lfixed()], atomic = usingAtomics()) {    if (is.null(random)) {        if (!atomic)             return(f(x, order = 2))        if (is.null(ADGrad))             retape_adgrad()        return(f(x, type = "ADGrad", order = 1))    }    else {        stop("Hessian not yet implemented for models with random effects.")    }}):</span> NA/NaN Hessian evaluation</span>
+<span class="r-in"><span><span class="fu"><a href="mp_tmb_coef.html">mp_tmb_coef</a></span><span class="op">(</span><span class="va">cal_like</span><span class="op">)</span>  <span class="co">## requires broom.mixed package</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  50 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  NaN </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  NaN </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  50 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  50 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  31.01941 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       term                       mat row col default  type     estimate</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1   params                      beta   0   0    0.25 fixed 2.000000e-01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 params.1 distr_params_sd_infection   0   0    1.00 fixed 2.220446e-16</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   std.error</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1       NaN</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2       NaN</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
