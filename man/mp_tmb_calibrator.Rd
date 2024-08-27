@@ -72,15 +72,4 @@ cal = mp_tmb_calibrator(
 )
 mp_optimize(cal)
 mp_tmb_coef(cal)  ## requires broom.mixed package
-
-# specifying a likelihood distribution for a trajectory
-cal_like = mp_tmb_calibrator(
-    spec
-  , data
-  , traj = list(infection = mp_log_normal(sd = 1))
-  , par = "beta"
-  , default = list(beta = 0.25)
-)
-mp_optimize(cal_like)
-mp_tmb_coef(cal_like)  ## requires broom.mixed package
 }
