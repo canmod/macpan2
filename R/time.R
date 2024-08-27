@@ -95,8 +95,8 @@ DateTimeSteps = function(start, end, checker) {
   return_object(self, "DateTimeSteps")
 }
 
-Steps = function(steps) {
-  self = DateTimeSteps(0L, steps - 1L, checker = NoError)
+Steps = function(start, end) {
+  self = DateTimeSteps(start, end, checker = NoError)
   self$unit = 1L
   self$acceptable_time_classes = "integer"
   self$character_converter = as.integer

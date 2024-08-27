@@ -13,7 +13,9 @@
 #' time-varying parameters. The data must be of the same format as that 
 #' produced by \code{\link{mp_trajectory}}.
 #' @param traj A character vector giving the names of trajectories to fit
-#' to data.
+#' to data, or a named list of likelihood distributions specified with
+#' \code{mp_normal}, \code{mp_log_normal}, \code{mp_neg_bin}, or 
+#' \code{mp_poisson} for each trajectory.
 #' @param tv A character vector giving the names of parameters to make
 #' time-varying according to the values in \code{data}.
 #' @param par A character vector giving the names of parameters, either
@@ -45,6 +47,17 @@
 #' )
 #' mp_optimize(cal)
 #' mp_tmb_coef(cal)  ## requires broom.mixed package
+#' 
+#' # specifying a likelihood distribution for a trajectory
+#' cal_like = mp_tmb_calibrator(
+#'     spec
+#'   , data
+#'   , traj = list(infection = mp_log_normal(sd = 1))
+#'   , par = "beta"
+#'   , default = list(beta = 0.25)
+#' )
+#' mp_optimize(cal_like)
+#' mp_tmb_coef(cal_like)  ## requires broom.mixed package
 #' @export
 mp_tmb_calibrator = function(spec, data
     , traj
@@ -264,7 +277,7 @@ TMBCalDataStruc = function(data, time) {
   if (is.null(time)) {
     if (infer_time_step(data$time)) {
       data$time = as.integer(data$time)
-      time = Steps(max(data$time))
+      time = Steps(min(data$time), max(data$time))
     } else {
       ## TODO: I'm guessing this could fail cryptically
       time = Daily(min(data$time), max(data$time), checker = NoError)

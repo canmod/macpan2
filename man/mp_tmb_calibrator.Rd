@@ -26,7 +26,9 @@ time-varying parameters. The data must be of the same format as that
 produced by \code{\link{mp_trajectory}}.}
 
 \item{traj}{A character vector giving the names of trajectories to fit
-to data.}
+to data, or a named list of likelihood distributions specified with
+\code{mp_normal}, \code{mp_log_normal}, \code{mp_neg_bin}, or
+\code{mp_poisson} for each trajectory.}
 
 \item{par}{A character vector giving the names of parameters, either
 time-varying or not, to fit using trajectory match.}
@@ -69,4 +71,15 @@ cal = mp_tmb_calibrator(
 )
 mp_optimize(cal)
 mp_tmb_coef(cal)  ## requires broom.mixed package
+
+# specifying a likelihood distribution for a trajectory
+cal_like = mp_tmb_calibrator(
+    spec
+  , data
+  , traj = list(infection = mp_log_normal(sd = 1))
+  , par = "beta"
+  , default = list(beta = 0.25)
+)
+mp_optimize(cal_like)
+mp_tmb_coef(cal_like)  ## requires broom.mixed package
 }
