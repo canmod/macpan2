@@ -1342,26 +1342,6 @@ public:
                 #endif
                 return pow(args.get_as_mat(0).array(), args.get_as_mat(1).array()).matrix();
 
-                
-            case MP2_PROPORTIONS: // proportions(x, limit, eps)
-                // x -- matrix to turn into x / sum(x)
-                // limit -- value to return for all elements if sum(x) < eps
-                // eps -- numerical tolerance for the sum to be positive
-                m = args.get_as_mat(0);
-                m1 = matrix<Type>::Zero(1, 1);
-                m1.coeffRef(0, 0) = 1;
-                if (m.size() == 1) return m1;
-                limit = args.get_as_mat(1).coeff(0, 0);
-                eps = args.get_as_mat(2).coeff(0, 0);
-                sum = m.sum();
-                m2 = matrix<Type>::Zero(args.rows(0), args.cols(0));
-                for (int i = 0; i < m2.rows(); i++) {
-                    for (int j = 0; j < m2.cols(); j++) {
-                        m2.coeffRef(i, j) = CppAD::CondExpLt(sum, eps, limit, m.coeff(i, j) / sum);
-                    }
-                }
-                return m2;
-              
             // #' ## Unary Elementwise Math
             // #'
             // #' ### Functions
@@ -1369,10 +1349,13 @@ public:
             // #' * `log(x)` -- Natural logarithm
             // #' * `exp(x)` -- Exponential function
             // #' * `cos(x)` -- Cosine function
+            // #' * `proportions(x, limit, eps)` -- matrix of `x / sum(x)` or `rep(limit, length(x))` if `sum(x) < eps`
             // #'
             // #' ### Arguments
             // #'
             // #' * `x` -- Any matrix
+            // #' * `limit` -- numeric value to return elementwise from `proportions` if `sum(x) < eps`
+            // #' * `eps` -- numeric tolerance for `sum(x)`
             // #'
             // #' ### Return
             // #'
@@ -1393,6 +1376,23 @@ public:
 
             case MP2_COS:
                 return args[0].array().cos().matrix();
+                  
+            case MP2_PROPORTIONS:
+                m = args.get_as_mat(0);
+                m1 = matrix<Type>::Zero(1, 1);
+                m1.coeffRef(0, 0) = 1;
+                if (m.size() == 1) return m1;
+                limit = args.get_as_mat(1).coeff(0, 0);
+                eps = args.get_as_mat(2).coeff(0, 0);
+                sum = m.sum();
+                m2 = matrix<Type>::Zero(args.rows(0), args.cols(0));
+                for (int i = 0; i < m2.rows(); i++) {
+                    for (int j = 0; j < m2.cols(); j++) {
+                        m2.coeffRef(i, j) = CppAD::CondExpLt(sum, eps, limit, m.coeff(i, j) / sum);
+                    }
+                }
+                return m2;
+              
 
             // case MP2_LOGISTIC:
             //     return (

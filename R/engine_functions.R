@@ -83,10 +83,13 @@
 #' * `log(x)` -- Natural logarithm
 #' * `exp(x)` -- Exponential function
 #' * `cos(x)` -- Cosine function
+#' * `proportions(x, limit, eps)` -- matrix of `x / sum(x)` or `rep(limit, length(x))` if `sum(x) < eps`
 #'
 #' ### Arguments
 #'
 #' * `x` -- Any matrix
+#' * `limit` -- numeric value to return elementwise from `proportions` if `sum(x) < eps`
+#' * `eps` -- numeric tolerance for `sum(x)`
 #'
 #' ### Return
 #'

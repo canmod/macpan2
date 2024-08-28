@@ -140,12 +140,15 @@ engine_eval(~ 1 / (1 - y), y = 1/4)
 \item \code{log(x)} -- Natural logarithm
 \item \code{exp(x)} -- Exponential function
 \item \code{cos(x)} -- Cosine function
+\item \code{proportions(x, limit, eps)} -- matrix of \code{x / sum(x)} or \code{rep(limit, length(x))} if \code{sum(x) < eps}
 }
 }
 
 \subsection{Arguments}{
 \itemize{
 \item \code{x} -- Any matrix
+\item \code{limit} -- numeric value to return elementwise from \code{proportions} if \code{sum(x) < eps}
+\item \code{eps} -- numeric tolerance for \code{sum(x)}
 }
 }
 
