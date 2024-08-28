@@ -52,8 +52,9 @@ mp_tmb_calibrator = function(spec, data
     , tv = character()
     , outputs = traj
     , default = list()
-    , time = NULL ## TODO: implement start-date offset
+    , time = NULL ## TODO: implement start-date offset. TODO: implement forecast extension
   ) {
+  cal_args = nlist(traj, par, tv, outputs, default, time)
   if (inherits(spec, "TMBSimulator")) {
     stop(
         "This function creates simulators (capable of being calibrated to "
@@ -135,6 +136,7 @@ mp_tmb_calibrator = function(spec, data
       , integers = c(
           globalize(tv, "row_indexes")
         , globalize(tv, "col_indexes")
+        , globalize(tv, "data_time_indexes")
       )
       , must_not_save = c(
           names(globalize(tv, "time_var"))
@@ -176,15 +178,16 @@ mp_tmb_calibrator = function(spec, data
   cal_sim$replace$params_frame(par$params_frame())
   cal_sim$replace$random_frame(par$random_frame())
   
-  TMBCalibrator(spec, spec$copy(), cal_spec, cal_sim)
+  TMBCalibrator(spec, spec$copy(), cal_spec, cal_sim, cal_args)
 }
 
-TMBCalibrator = function(orig_spec, new_spec, cal_spec, simulator) {
+TMBCalibrator = function(orig_spec, new_spec, cal_spec, simulator, cal_args = NULL) {
   self = Base()
   self$orig_spec = orig_spec  ## original spec for reference
   self$new_spec = new_spec  ## gets updated as optimization proceeds
   self$cal_spec = cal_spec  ## contaminated with stuff required for calibration
   self$simulator = simulator  ## model simulator object keeping track of optimization attempts
+  self$cal_args = cal_args
   return_object(self, "TMBCalibrator")
 }
 
@@ -251,6 +254,8 @@ mp_optimize.TMBCalibrator = function(model, optimizer = c("nlminb", "optim"), ..
 TMBCalDataStruc = function(data, time) {
   self = Base()
   
+  ## infer if the time field in the data
+  ## is measured in time-steps
   infer_time_step = function(x) {
     y = is.numeric(x)
     if (y) return(TRUE)
@@ -264,14 +269,20 @@ TMBCalDataStruc = function(data, time) {
   if (is.null(time)) {
     if (infer_time_step(data$time)) {
       data$time = as.integer(data$time)
-      time = Steps(max(data$time))
+      time = Steps(min(data$time), max(data$time))
     } else {
       ## TODO: I'm guessing this could fail cryptically
       time = Daily(min(data$time), max(data$time), checker = NoError)
     }
   }
+  else {
+    time = assert_cls(time, "CalTime", match.call(), "?mp_cal_time")
+    time$update_data_bounds(data)
+  }
   self$time_steps = time$bound_steps()[2L]
   data$time_ids = time$time_ids(data$time)
+  self$data_time_ids = data$time_ids
+  self$data_time_steps = length(data$time_ids)
   data = rename_synonyms(data
     , time = c(
         "time", "Time", "ID", "time_id", "id", "date", "Date"
@@ -284,6 +295,9 @@ TMBCalDataStruc = function(data, time) {
     , col = c("col", "Col", "column", "Column")
     , value = c("value", "Value", "val", "Val", "default", "Default")
   )
+  ## TODO: Still splitting on matrices, which doesn't allow flexibility
+  ## in what counts as an 'output'. In general, an output could be
+  ## a matrix, row, or column.
   self$matrix_list = split(data, data$matrix)
   
   self$check_matrices = function(matrices) {
@@ -306,9 +320,6 @@ TMBCalDataStruc = function(data, time) {
   return_object(self, "TMBCalDataStruc")
 }
 
-## TODO: Still splitting on matrices, which doesn't allow flexibility
-## in what counts as an 'output'. In general, an output could be
-## a matrix, row, or column.
 
 
 #' Optimizer Output
@@ -649,22 +660,28 @@ TMBTV.RBFArg = function(
   self$spec = spec
   self$type = function() "smooth"
   
-  self$rbf_data = sparse_rbf_notation(struc$time_steps, tv$dimension, zero_based = TRUE)
+  self$rbf_data = sparse_rbf_notation(
+      struc$data_time_steps
+    , tv$dimension
+    , zero_based = TRUE
+    , tol = tv$sparse_tol
+  )
   self$initial_outputs = c(self$rbf_data$M %*% tv$initial_weights)
   self$initial_weights = tv$initial_weights
   self$dimension = tv$dimension
+  self$data_time_ids = struc$data_time_ids
   self$par_name = tv$tv
   
   ## FIXME: an alternative version is defined below!
-  self$local_names = function() {
-    list(
-        outputs = sprintf("rbf_outputs_%s", self$par_name)
-      , values = sprintf("rbf_values_%s", self$par_name)
-      , weights = sprintf("rbf_weights_%s", self$par_name)
-      , rows = sprintf("rbf_rows_%s", self$par_name)
-      , cols = sprintf("rbf_cols_%s", self$par_name)
-    )
-  }
+  # self$local_names = function() {
+  #   list(
+  #       outputs = sprintf("rbf_outputs_%s", self$par_name)
+  #     , values = sprintf("rbf_values_%s", self$par_name)
+  #     , weights = sprintf("rbf_weights_%s", self$par_name)
+  #     , rows = sprintf("rbf_rows_%s", self$par_name)
+  #     , cols = sprintf("rbf_cols_%s", self$par_name)
+  #   )
+  # }
   
   self$time_var = function() {
     setNames(list(self$initial_weights), self$par_name)
@@ -681,21 +698,30 @@ TMBTV.RBFArg = function(
   self$col_indexes = function() {
     setNames(list(as.integer(self$rbf_data$col_index)), self$par_name)
   }
+  self$data_time_indexes = function() {
+    setNames(list(as.integer(c(0, self$data_time_ids))), self$par_name) 
+  }
   self$before_loop = function() {
     nms = self$global_names()
-    s = sprintf("%s ~ group_sums(%s * %s[%s], %s, %s)"
+    s = sprintf("%s ~ group_sums(%s * %s[%s], %s, %s)" ## TODO: change 1 to an argument in mp_rbf
       , nms$outputs_var, nms$values_var, nms$time_var, nms$col_indexes, nms$row_indexes, nms$outputs_var
     )
-    list(as.formula(s))
+    s2 = sprintf("%s ~ c(%s[0], %s)", nms$outputs_var, nms$outputs_var, nms$outputs_var)
+    list(as.formula(s), as.formula(s2))
   }
   self$var_update_exprs = function() {
     nms = self$global_names()
-    s = sprintf("%s ~ exp(%s[time_step(1)])", self$par_name, nms$outputs_var)
+    # s = sprintf("%s ~ exp(%s[time_step(1)])", self$par_name, nms$outputs_var)
+    s = sprintf("%s ~ exp(time_var(%s, %s))", self$par_name, nms$outputs_var, nms$data_time_indexes)
+
     list(as.formula(s))
   }
   self$local_names = function() {
     make_names_list(self
-      , c("time_var", "values_var", "outputs_var", "row_indexes", "col_indexes")
+      , c(
+          "time_var", "values_var", "outputs_var"
+        , "row_indexes", "col_indexes", "data_time_indexes"
+      )
     )
   }
   

@@ -4,7 +4,7 @@
 \alias{mp_rbf}
 \title{Fit a Time-Varying Parameter with Radial Basis Functions}
 \usage{
-mp_rbf(tv, dimension, initial_weights, seed = 1L)
+mp_rbf(tv, dimension, initial_weights, seed = 1L, sparse_tol = 0.01)
 }
 \arguments{
 \item{tv}{String giving the name of the parameter.}
@@ -17,6 +17,11 @@ time.}
 
 \item{seed}{Optional random seed to use to generate the \code{initial_weights}
 if they are not provided.}
+
+\item{sparse_tol}{Tolerance below which radial basis function outputs
+are set exactly to zero. Small values are more accurate but slower. Lack
+of accuracy can be visually apparent as jumps in graphs of the time-varying
+parameter.}
 }
 \description{
 Pass the output of this function to the \code{tv} argument of

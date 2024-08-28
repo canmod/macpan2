@@ -59,6 +59,7 @@ default = list(
   , zeta         = 0        # phenomenological heterogeneity parameter
   , nu           = 0.1      # something to do with waste-water
   , xi           = 0.5      # something to do with waste-water
+  , fudge        = 1
   # initial states
   , S = 1.00E+06
   , E = 1

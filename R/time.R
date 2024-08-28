@@ -1,7 +1,3 @@
-# y ~ group_sums(x[i], j, y)
-# y ~ group_sums(v * x[i], j, y)
-# y ~ A %*% x
-
 #' Time Scale
 #' 
 #' @param start First date or time in the first time step
@@ -22,6 +18,8 @@ mp_time_scale = function(start, end
   time_cls(start, end, ...)
 }
 # mp_time_scale("2000-01-01", "2000-01-08", "weekly")
+
+
 
 #' Time
 #'
@@ -95,8 +93,8 @@ DateTimeSteps = function(start, end, checker) {
   return_object(self, "DateTimeSteps")
 }
 
-Steps = function(steps) {
-  self = DateTimeSteps(0L, steps - 1L, checker = NoError)
+Steps = function(start, end) {
+  self = DateTimeSteps(start, end, checker = NoError)
   self$unit = 1L
   self$acceptable_time_classes = "integer"
   self$character_converter = as.integer

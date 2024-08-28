@@ -28,9 +28,13 @@ mp_tv = function(parameters) {
 #' time.
 #' @param seed Optional random seed to use to generate the `initial_weights`
 #' if they are not provided.
+#' @param sparse_tol Tolerance below which radial basis function outputs
+#' are set exactly to zero. Small values are more accurate but slower. Lack
+#' of accuracy can be visually apparent as jumps in graphs of the time-varying
+#' parameter.
 #' 
 #' @export
-mp_rbf = function(tv, dimension, initial_weights, seed = 1L) {
+mp_rbf = function(tv, dimension, initial_weights, seed = 1L, sparse_tol = 1e-2) {
   if (missing(initial_weights)) {
     set.seed(seed)
     initial_weights = rnorm(dimension, sd = 0.01)
@@ -42,6 +46,7 @@ mp_rbf = function(tv, dimension, initial_weights, seed = 1L) {
   arg$tv = tv
   arg$dimension = dimension
   arg$initial_weights = initial_weights
+  arg$sparse_tol = sparse_tol
   structure(arg, class = "RBFArg")
 }
 

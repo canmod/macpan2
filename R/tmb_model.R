@@ -454,7 +454,10 @@ mp_trajectory_sd.TMBSimulator = function(model, conf.int = FALSE, conf.level = 0
 
 #' @export
 mp_trajectory_sd.TMBCalibrator = function(model, conf.int = FALSE, conf.level = 0.95) {
-  mp_trajectory_sd(model$simulator, conf.int, conf.level)
+  traj = mp_trajectory_sd(model$simulator, conf.int, conf.level)
+  time = model$cal_args$time
+  if (!is.null(time)) traj$time = time$ending_time_engine(traj$time)
+  traj
 }
 
 #' @export
