@@ -28,9 +28,11 @@ mp_tv = function(parameters) {
 #' time.
 #' @param seed Optional random seed to use to generate the `initial_weights`
 #' if they are not provided.
+#' @param prior_sd Optional prior standard deviation default value for radial
+#' basis function coefficients, defaults to 1.
 #' 
 #' @export
-mp_rbf = function(tv, dimension, initial_weights, seed = 1L) {
+mp_rbf = function(tv, dimension, initial_weights, seed = 1L, prior_sd = 1) {
   if (missing(initial_weights)) {
     set.seed(seed)
     initial_weights = rnorm(dimension, sd = 0.01)
@@ -42,6 +44,7 @@ mp_rbf = function(tv, dimension, initial_weights, seed = 1L) {
   arg$tv = tv
   arg$dimension = dimension
   arg$initial_weights = initial_weights
+  arg$prior_sd = prior_sd
   structure(arg, class = "RBFArg")
 }
 

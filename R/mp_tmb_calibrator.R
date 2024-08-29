@@ -134,6 +134,7 @@ mp_tmb_calibrator = function(spec, data
           globalize(tv, "time_var")
         , globalize(tv, "values_var")
         , globalize(tv, "outputs_var")
+        , globalize(tv, "prior_sd")
       )
       , integers = c(
           globalize(tv, "row_indexes")
@@ -657,6 +658,7 @@ TMBTV.RBFArg = function(
   self$initial_weights = tv$initial_weights
   self$dimension = tv$dimension
   self$par_name = tv$tv
+  self$prior_sd_default = tv$prior_sd
   
   ## FIXME: an alternative version is defined below!
   self$local_names = function() {
@@ -684,6 +686,9 @@ TMBTV.RBFArg = function(
   self$col_indexes = function() {
     setNames(list(as.integer(self$rbf_data$col_index)), self$par_name)
   }
+  self$prior_sd = function() {
+    setNames(list(self$prior_sd_default), self$par_name)
+  }
   self$before_loop = function() {
     nms = self$global_names()
     s = sprintf("%s ~ group_sums(%s * %s[%s], %s, %s)"
@@ -698,7 +703,7 @@ TMBTV.RBFArg = function(
   }
   self$local_names = function() {
     make_names_list(self
-      , c("time_var", "values_var", "outputs_var", "row_indexes", "col_indexes")
+      , c("time_var", "values_var", "outputs_var", "row_indexes", "col_indexes", "prior_sd")
     )
   }
   
@@ -712,8 +717,8 @@ TMBTV.RBFArg = function(
   self$prior_expr_chars = function() {
     nms = self$global_names()
     sprintf(
-        "-sum(dnorm(%s, 0, 1))"
-      , nms$values_var
+        "-sum(dnorm(%s, 0, %s))"
+      , nms$values_var, nms$prior_sd
     )
   }
   
@@ -726,10 +731,10 @@ TMBTV.RBFArg = function(
     cols = c("mat", "row", "col", "default")
     nms = self$global_names()
     data.frame(
-        mat = nms$time_var
-      , row = seq_len(self$dimension) - 1L
+        mat = c(rep(nms$time_var, self$dimension), nms$prior_sd)
+      , row = c(seq_len(self$dimension) - 1L, 0)
       , col = 0
-      , default = self$initial_weights
+      , default = c(self$initial_weights, self$prior_sd_default)
     )
   }
   

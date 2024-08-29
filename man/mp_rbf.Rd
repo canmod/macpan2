@@ -4,7 +4,7 @@
 \alias{mp_rbf}
 \title{Fit a Time-Varying Parameter with Radial Basis Functions}
 \usage{
-mp_rbf(tv, dimension, initial_weights, seed = 1L)
+mp_rbf(tv, dimension, initial_weights, seed = 1L, prior_sd = 1)
 }
 \arguments{
 \item{tv}{String giving the name of the parameter.}
@@ -17,6 +17,9 @@ time.}
 
 \item{seed}{Optional random seed to use to generate the \code{initial_weights}
 if they are not provided.}
+
+\item{prior_sd}{Optional prior standard deviation default value for radial
+basis function coefficients, defaults to 1.}
 }
 \description{
 Pass the output of this function to the \code{tv} argument of
