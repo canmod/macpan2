@@ -86,7 +86,7 @@ mp_log_normal = function(sd) {
   self$expr_char = \(x, location, log_sd) {
     sprintf("-sum(dnorm(log(%s), log(%s), exp(%s)))", x, location, log_sd)
   }
-  return_object(self, "NogNormal")
+  return_object(self, "LogNormal")
 }
 
 # TODO: mp_clamped_poisson, mp_sum_of_squares
