@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.7.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -900,11 +900,12 @@ fit models so you can try more things.</p>
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; 1: S ~ N - I - R</span></span>
 <span><span class="co">#&gt; 2: outputs_var_beta ~ group_sums(values_var_beta * time_var_beta[col_indexes_beta], row_indexes_beta, outputs_var_beta)</span></span>
+<span><span class="co">#&gt; 3: outputs_var_beta ~ c(outputs_var_beta[0], outputs_var_beta)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; At every iteration of the simulation loop (t = 1 to T):</span></span>
 <span><span class="co">#&gt; ---------------------</span></span>
-<span><span class="co">#&gt; 1: beta ~ exp(outputs_var_beta[time_step(1)])</span></span>
+<span><span class="co">#&gt; 1: beta ~ exp(time_var(outputs_var_beta, data_time_indexes_beta))</span></span>
 <span><span class="co">#&gt; 2: infection ~ S * I * beta/N</span></span>
 <span><span class="co">#&gt; 3: recovery ~ I * gamma</span></span>
 <span><span class="co">#&gt; 4: S ~ S - infection</span></span>
