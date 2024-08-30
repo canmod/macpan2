@@ -57,7 +57,10 @@
 
 
 <dl><dt id="arg-location">location<a class="anchor" aria-label="anchor" href="#arg-location"></a></dt>
-<dd><p>Location parameter.</p></dd>
+<dd><p>Location parameter. Only necessary if used as a prior
+distribution. If it is used as a likelihood component the location
+parameter will be taken as the simulated variable being fitted to data,
+and so this <code>location</code> parameter should be left <code>NULL</code>.</p></dd>
 
 
 <dt id="arg-sd">sd<a class="anchor" aria-label="anchor" href="#arg-sd"></a></dt>
