@@ -8,9 +8,18 @@ library(lubridate)
 ## -------------------------
 
 # macpan 1.5 calibration information for wastewater model
-macpan1.5 = readRDS(url("https://github.com/canmod/macpan2/releases/download/macpan1.5_data/covid_on_macpan1.5_calibration.RDS"))
+repo = "https://github.com/canmod/macpan2/releases/download/macpan1.5_data"
+macpan1.5 = (repo
+  |> file.path("covid_on_macpan1.5_calibration.RDS")
+  |> url() 
+  |> readRDS()
+)
 # Ontario COVID-19 data
-covid_on = readRDS(url("https://github.com/canmod/macpan2/releases/download/macpan1.5_data/covid_on.RDS"))
+covid_on = (repo
+  |> file.path("covid_on.RDS")
+  |> url() 
+  |> readRDS()
+)
 
 # observed incidence and wastewater data to calibrate to, using date range in macpan 1.5 calibration
 obs_data = (covid_on
@@ -27,12 +36,13 @@ obs_data = (covid_on
 ## -------------------------
 
 burn_in_period  = 15 ## number of days before the data start to begin the simulations
-forecast_period = 0 ## number of days after the data end to make forecasts
+forecast_period = 30 ## number of days after the data end to make forecasts
 time_bounds = mp_sim_bounds(
     sim_start = min(obs_data$time) - lubridate::days(burn_in_period)
   , sim_end   = max(obs_data$time) + lubridate::days(forecast_period)
   , "daily"
 )
+steps = time_bounds$time_id_engine ## function to convert dates to time-steps
 
 ## -------------------------
 ## Model Specification
@@ -40,7 +50,6 @@ time_bounds = mp_sim_bounds(
 
 # Get model spec from the library
 spec = mp_tmb_library("starter_models", "ww", package = "macpan2")
-source("inst/starter_models/ww/tmb.R")
 # update model specification to include additional components
 focal_model = (
   # waste water model with hazard correction
@@ -56,7 +65,7 @@ focal_model = (
         , report_prob ~ 1 / (1 + exp(-logit_report_prob))
      )
      , default = list(
-          log_beta0 = 0
+          log_beta0 = log(1)
         , log_nu = 0
         , log_xi = 0
         , logit_report_prob = qlogis(0.1)
@@ -91,9 +100,17 @@ focal_model = (
   # add time-varying transmission
   |> mp_tmb_insert(phase = "during"
      , at = 1L
-     , expressions = list(beta ~ beta0 * beta1)
+     , expressions = list(beta ~ beta0 * beta1 * beta2)
   )
-
+  
+  |> mp_tmb_insert(phase = "during"
+     , at = 1L
+     , expressions = list(
+          beta2 ~ time_var(beta_changes, beta_changepoints)
+     )
+     , default  = list(beta_changes      = c(1))#, 3))
+     , integers = list(beta_changepoints = c(0))#, steps("2021-03-05")))
+  )
 )
 
 ## -------------------------
@@ -126,10 +143,8 @@ focal_calib = mp_tmb_calibrator(
         # parameters to fit
         "log_beta0" # baseline transmission
       , "log_nu"    # viral shedding rate
-      #, "logit_report_prob" # reporting probability (only makes sense to fit if you fit to incidence)
-      #, "E"
-      #, "W"
       , "log_xi"
+      #, "logit_report_prob" # reporting probability (only makes sense to fit if you fit to incidence)
   )
     # flexible non-parametric (radial basis function) fit
     # for the time-varying transmission rate
@@ -137,7 +152,10 @@ focal_calib = mp_tmb_calibrator(
     
     # return these trajectories so that they can be
     # explored after fitting
-  , outputs = c("reported_incidence", "W", "beta", "prevalence", "S", "R")
+  , outputs = c(
+        "reported_incidence", "W", "beta"
+      , "prevalence", "incidence", "S"
+    )
   
     # update defaults with macpan1.5 wastewater model defaults
   , default = macpan1.5_defaults
@@ -154,7 +172,7 @@ macpan2_fit = mp_trajectory_sd(focal_calib, conf.int = TRUE)
 # parameter estimates, back-transformed to be on original scale
 # phenomenological heterogeneity parameter zeta ~ 0(wide CI), might not be necessary to include in the model
 fitted_coefs = mp_tmb_coef(focal_calib, conf.int = TRUE)
-View(fitted_coefs)
+if (interactive()) View(fitted_coefs)
 
 # fitted data from macpan 1.5
 macpan1.5_fit = (macpan1.5$sim
@@ -171,51 +189,34 @@ macpan1.5_fit = (macpan1.5$sim
 plot_fit = function(obs_data, sim_data, ncol = 1L) {
   (ggplot(obs_data, aes(time, value))
    + geom_point()
-   + geom_line(aes(time, value, colour = source)
-               , data = sim_data
+   + geom_line(aes(
+          time
+        , value
+        , colour = source
+      )
+      , data = sim_data
    )
    #+ scale_y_log10()
-   + geom_ribbon(aes(time, ymin = conf.low, ymax = conf.high, colour = source, fill = source)
-                 , data = sim_data
-                 , alpha = 0.2
+   + geom_ribbon(aes(
+          time
+        , ymin = conf.low
+        , ymax = conf.high
+        , colour = source
+        , fill = source
+      )
+      , data = sim_data
+      , alpha = 0.2
    )
    + facet_wrap(vars(matrix), scales = 'free', ncol = ncol)
    + theme_bw()
    + theme(legend.position = "top")
+   #+ scale_x_date(limits = c(as.Date("2020-11-01"), NA))
   )
 }
 
 if (interactive()) {
   # fit of macpan2 to data
   plot_fit(obs_data, mutate(macpan2_fit, source = "macpan2_fit"), ncol = 2L)
-}
-
-make_forecaster = function(calibrator, forecast_time_steps, data, outputs, default = list()) {
-  args = calibrator$cal_args
-  args$outputs = outputs
-  args$data = data
-  args$default[names(default)] = default
-  args$spec = calibrator$orig_spec
-  pf = calibrator$simulator$current$params_frame()
-  pf$default = pf$current
-  pf$current = NULL
-  ss = do.call(mp_tmb_calibrator, args)
-  ss$simulator$replace$time_steps(
-    ss$simulator$tmb_model$time_steps$time_steps + forecast_time_steps
-  )
-  ss$simulator$replace$params_frame(pf)
-  ss
-}
-ss = make_forecaster(focal_calib, 30L, obs_data, c("reported_incidence", "W", "beta"))
-
-macpan2_fit = mp_trajectory_sd(focal_calib, conf.int = TRUE)
-
-
-
-
-if (interactive()) {
-  # calibration comparison between macpan 1.5 and macpan 2
-  plot_fit(obs_data, bind_rows(lst(macpan1.5_fit, macpan2_fit), .id = "source"))
 }
 
 ## -------------------------
