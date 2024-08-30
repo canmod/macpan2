@@ -56,16 +56,24 @@ mp_neg_bin = function(disp) {
 
 
 #' Normal Distributon
-#' @param location Location parameter.
+#' @param location Location parameter. Only necessary if used as a prior
+#' distribution. If it is used as a likelihood component the location
+#' parameter will be taken as the simulated variable being fitted to data,
+#' and so this `location` parameter should be left `NULL`.
 #' @param sd Standard deviation parameter.
 #' @export
 mp_normal = function(location = NULL, sd = 1) {
   self = Base()
   self$sd = sd
   self$log_sd = \() log(self$sd)
+  self$location = location
   self$distr_params = \() list(log_sd = self$log_sd())
   self$expr_char = \(x, location, log_sd) {
     sprintf("-sum(dnorm(%s, %s, exp(%s)))", x, location, log_sd)
+  }
+  self$expr_char_prior = function(x) {
+    if (is.null(location)) stop("please specify a ")
+    self$expr_char(x, self$location, self$log_sd())
   }
   return_object(self, "Normal")
 }
