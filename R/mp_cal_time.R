@@ -1,4 +1,4 @@
-#' Simulation Bounds
+#' Simulation Bounds (Experimental)
 #' 
 #' Set the simulation bounds (start time and end time) for a 
 #' calibration. This is used to override the default simulation 
@@ -11,6 +11,12 @@
 #' a forecast period). the last argument gives the 
 #' scale of a single time step (in this case it should
 #' always be daily).
+#' 
+#' @param sim_start Start time of each simulation.
+#' @param sim_end End time of each simulation.
+#' @param time_scale Qualitative description of the size of a time step.
+#' currently only `"steps"`, `"daily"`, and `"weekly"` are allowed,
+#' and `"weekly"` is not well tested.
 #' 
 #' @export
 mp_sim_bounds = function(sim_start, sim_end, time_scale) {

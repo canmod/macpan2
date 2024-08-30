@@ -2,9 +2,18 @@
 % Please edit documentation in R/mp_cal_time.R
 \name{mp_sim_bounds}
 \alias{mp_sim_bounds}
-\title{Simulation Bounds}
+\title{Simulation Bounds (Experimental)}
 \usage{
 mp_sim_bounds(sim_start, sim_end, time_scale)
+}
+\arguments{
+\item{sim_start}{Start time of each simulation.}
+
+\item{sim_end}{End time of each simulation.}
+
+\item{time_scale}{Qualitative description of the size of a time step.
+currently only \code{"steps"}, \code{"daily"}, and \code{"weekly"} are allowed,
+and \code{"weekly"} is not well tested.}
 }
 \description{
 Set the simulation bounds (start time and end time) for a
