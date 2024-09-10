@@ -30,6 +30,18 @@ DistrSpec = function() {
   return_object(self, "DistrSpec")
 }
 
+#' Uniform Distribution (Improper)
+#' @export
+mp_uniform = function() {
+  self = DistrSpec() # not sure if this should be Base()
+  # improper uniform have no distribution parameters
+  self$distr_params = \() list()
+  # sum of negative log-likelihoods 
+  # equal to log(1) = 0 so setting to empty character
+  self$expr_char = \(x) character()
+  return_object(self, "Uniform")
+}
+
 #' Poisson Distribution
 #' @export
 mp_poisson = function() {
