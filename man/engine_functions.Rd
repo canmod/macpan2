@@ -494,13 +494,11 @@ contiguous subset of rows and columns of \code{x}
 \item \code{i} -- An integer column vector (for \code{[}) or
 integer scalar (for \code{block}) containing the indices
 of the rows to extract (for \code{[}) or the index of the
-first row to extract (for \code{block}). Indices are zero-based,
-the first row in \code{x} is given by \code{i = 0}.
+first row to extract (for \code{block}).
 \item \code{j} -- An integer column vector (for \code{[}) or
 integer scalar (for \code{block}) containing the indices
 of the columns to extract (for \code{[}) or the index of
-the first column to extract (for \code{block}). Indices are zero-based,
-the first column in \code{x} is given by \code{j = 0}.
+the first column to extract (for \code{block}).
 \item \code{n} -- Number of rows in the block to return.
 \item \code{m} -- Number of columns in the block to return.
 }
@@ -522,6 +520,7 @@ so the first row/column gets index, \code{0}, etc.
 \subsection{Examples}{
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{engine_eval(~ A[c(3, 1, 2), 2], A = matrix(1:12, 4, 3))
+engine_eval(~ block(x,i,j,n,m), x = matrix(1:12, 4, 3), i=1, j=1, n=2, m=2)
 }\if{html}{\out{</div>}}
 }
 
@@ -579,10 +578,10 @@ or implied by \code{lag} that are before \code{t_min} are ignored.
 
 \subsection{Time Indexing}{
 
-Get the index of current or lagged time step or
-the index of the current time group. A time group
-is a contiguous set of time steps defined by two
-change points.
+Get or update the index of the current or lagged
+time step or the index of the current time group.
+A time group is a contiguous set of time steps
+defined by two change points.
 \subsection{Functions}{
 \itemize{
 \item \code{time_step(lag)}: Get the time-step associated
@@ -598,7 +597,9 @@ greater than the current time step. The time group
 Please see the examples below, they are easier
 to understand than this explanation.
 \item \code{time_var(x, change_points)}: An improvement
-to \code{time_group}.
+to \code{time_group}. Returns values in \code{x}
+at time steps in \code{change_points}, return value
+remains constant between \code{change_points}.
 }
 }
 
@@ -834,13 +835,15 @@ the elements of \code{x} to be updated. These indices are
 paired with those in \code{v}. If the length of
 \code{i} does not equal that of \code{v}, then it must have a
 single index that gets paired with every element of
-\code{v}.
+\code{v}. Indices are zero-based, \code{i=0} corresponds to
+the first row.
 \item \code{j} -- Column vector of column indices pointing to
 the elements of \code{x} to be updated. These indices are
 paired with those in \code{v}. If the length of
 \code{j} does not equal that of \code{v}, then it must have a
 single index that gets paired with every element of
-\code{v}.
+\code{v}. Indices are zero-based, \code{j=0} corresponds to
+the first column.
 \item \code{v} -- Column vector of values to replace elements
 of \code{x} at locations given by \code{i} and \code{j}.
 }

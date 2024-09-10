@@ -1729,7 +1729,10 @@ public:
                 // #' from the base R version in that it must be filled
                 // #' by column and there is no `byrow` option.
                 // #'
-                //std::cout << "n: " << n << std::endl;
+                // std::cout << "n: " << n << std::endl;
+                // std::cout << "index2what: " << index2what.size() << std::endl;
+                // std::cout << "index2mats: " << index2mats.size() << std::endl;
+                // std::cout << "args: " << args.size() << std::endl;
                 if (n > 3){
                     SetError(MP2_MATRIX, "Too many arguments provided to function. Note this function differs from the base R version in the arguments it accepts.", row, MP2_MATRIX, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                 }
@@ -1957,13 +1960,11 @@ public:
             // #' * `i` -- An integer column vector (for `[`) or
             // #' integer scalar (for `block`) containing the indices
             // #' of the rows to extract (for `[`) or the index of the
-            // #' first row to extract (for `block`). Indices are zero-based,
-            // #' the first row in `x` is given by `i = 0`.
+            // #' first row to extract (for `block`).
             // #' * `j` -- An integer column vector (for `[`) or
             // #' integer scalar (for `block`) containing the indices
             // #' of the columns to extract (for `[`) or the index of
-            // #' the first column to extract (for `block`). Indices are zero-based,
-            // #' the first column in `x` is given by `j = 0`.
+            // #' the first column to extract (for `block`). 
             // #' * `n` -- Number of rows in the block to return.
             // #' * `m` -- Number of columns in the block to return.
             // #'
@@ -1981,6 +1982,7 @@ public:
             // #'
             // #' ```
             // #' engine_eval(~ A[c(3, 1, 2), 2], A = matrix(1:12, 4, 3))
+            // #' engine_eval(~ block(x,i,j,n,m), x = matrix(1:12, 4, 3), i=1, j=1, n=2, m=2)
             // #' ```
             // #'
             case MP2_SQUARE_BRACKET: // [
@@ -2020,19 +2022,21 @@ public:
                 colIndex = args.get_as_int(2);
                 rows = args.get_as_int(3);
                 cols = args.get_as_int(4);
-                err_code = args.check_indices(0, args.get_as_int_vec(1), args.get_as_int_vec(2));
+
+                v1 = {rowIndex};
+                v2 = {colIndex};
+                v3 = {rowIndex + rows - 1};
+                v4 = {colIndex + cols - 1};
+                err_code = args.check_indices(0, v1, v2);
                 if (err_code){
                     SetError(MP2_BLOCK, "Illegal starting index to block", row, MP2_BLOCK, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
+                    return m;
                 }
-                //v1 = args.get_as_int_vec(1);
-                //v2 = args.get_as_int_vec(2);
-                //v3 = args.get_as_int_vec(3);
-                //v4 = args.get_as_int_vec(4);
-                //v[0] = v1[0] + v3[0] addVectors();
-                //err_code = args.check_indices(0, args.get_as_int_vec(1) + args.get_as_int_vec(3), args.get_as_int_vec(2) + args.get_as_int_vec(4));
-                //if (err_code){
-                //    SetError(MP2_BLOCK, "Illegal index to block, requesting more elements than available in input", row, MP2_BLOCK, args.all_rows(), args.all_cols(), args.all_type_ints(), t); 
-                //}
+                err_code = args.check_indices(0, v3, v4);
+                if (err_code){
+                    SetError(MP2_BLOCK, "Illegal index to block, requesting more elements than available in input", row, MP2_BLOCK, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
+                    return m;
+                }
                 return args[0].block(rowIndex, colIndex, rows, cols);
 
             // #' ## Accessing Past Values in the Simulation History
@@ -2119,8 +2123,9 @@ public:
                 }
                 else {
                     timeIndex = args.get_as_int_vec(1);
-                    // std::cout << "t: " << t << std::endl;
-                    // printIntVectorWithLabel(timeIndex, "default time index vector");
+                    //std::cout << "t: " << t << std::endl;
+                    //std::cout << "timeIndex.size: " << timeIndex.size() << std::endl;
+                    //printIntVectorWithLabel(timeIndex, "default time index vector");
                     if (doing_lag) {
                         for (int i = 0; i < timeIndex.size(); i++) {
                             timeIndex[i] = t - timeIndex[i];
@@ -2150,7 +2155,7 @@ public:
                         SetError(MP2_RBIND_TIME, "Lower time bound (third argument) is less than zero", row, int_func, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                         return m;
                     }
-                    if (lowerTimeBound > t) {
+                    if (lowerTimeBound > t_max) {
                         SetError(MP2_RBIND_TIME, "Lower time bound (third argument) is greater than the number of time steps", row, int_func, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                         return m;
                     }
@@ -2168,6 +2173,7 @@ public:
                 //    the correct values otherwise.
                 int rbind_length, nRows, nCols;
                 rbind_length = 0; // count of legitimate time steps to select
+                //std::cout << "lowerTimeBound " << lowerTimeBound << std::endl
                 for (int i = 0; i < timeIndex.size(); i++)
                 {
                     rowIndex = timeIndex[i];
@@ -2242,10 +2248,10 @@ public:
 
             // #' ## Time Indexing
             // #'
-            // #' Get the index of current or lagged time step or
-            // #' the index of the current time group. A time group
-            // #' is a contiguous set of time steps defined by two
-            // #' change points.
+            // #' Get or update the index of the current or lagged 
+            // #' time step or the index of the current time group. 
+            // #' A time group is a contiguous set of time steps 
+            // #' defined by two change points.
             // #'
             // #' ### Functions
             // #'
@@ -2262,7 +2268,9 @@ public:
             // #' Please see the examples below, they are easier
             // #' to understand than this explanation.
             // #' * `time_var(x, change_points)`: An improvement
-            // #' to `time_group`.
+            // #' to `time_group`. Returns values in `x`
+            // #' at time steps in `change_points`, return value
+            // #' remains constant between `change_points`.
             // #'
             // #' ### Arguments
             // #'
@@ -2906,13 +2914,15 @@ public:
                 // #' paired with those in `v`. If the length of
                 // #' `i` does not equal that of `v`, then it must have a
                 // #' single index that gets paired with every element of
-                // #' `v`.
+                // #' `v`. Indices are zero-based, `i=0` corresponds to 
+                // #' the first row.
                 // #' * `j` -- Column vector of column indices pointing to
                 // #' the elements of `x` to be updated. These indices are
                 // #' paired with those in `v`. If the length of
                 // #' `j` does not equal that of `v`, then it must have a
                 // #' single index that gets paired with every element of
-                // #' `v`.
+                // #' `v`. Indices are zero-based, `j=0` corresponds to
+                // #' the first column.
                 // #' * `v` -- Column vector of values to replace elements
                 // #' of `x` at locations given by `i` and `j`.
                 // #'

@@ -63,6 +63,21 @@ test_that("rbind_time without times is the same as with all times", {
   expect_equal(with_all_times, without_times)
 })
 
+test_that("a minimum time step can be returned from the simulation history", {
+  min_time = simple_sims(
+      iteration_exprs = list(x ~ time_step(0),y ~ rbind_lag(x,1,5))
+    , time_steps = 6
+    , mats = list(x = empty_matrix,y = empty_matrix)
+  ) |> dplyr::filter(matrix=="y") |> dplyr::select(value) |> dplyr::pull()
+  # specific_time = simple_sims(
+  #     iteration_exprs = list(x ~ time_step(0),y ~ rbind_time(x,5))
+  #   , time_steps = 6
+  #   , mats = list(x = empty_matrix,y = empty_matrix)
+  # )
+  # expect_equal(min_time, specific_time)
+  expect_equal(min_time,5)
+})
+
 s = mp_tmb_model_spec(
     during = list(x ~ x / 2)
   , after = list(y ~ rbind_time(x, c(0, 2, 4, 5), 0))

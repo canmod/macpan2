@@ -125,6 +125,13 @@ make_expr_parser = function(
     # continue the recursion until each expression in the list is
     # either a name or a number
     is_reduced = unlist(lapply(x$x, is_name_or_number), recursive = FALSE)
+    
+    # prevent the use of argument names
+    if (any(nzchar(names(is_reduced)))){
+      stop("Argument names cannot be used in engine expressions. The following argument names were used: "
+           ,paste0(names(is_reduced)[which(nzchar(names(is_reduced)))],collapse = ","))
+    }
+    
     if (all(is_reduced)) return(finalizer(x))
 
     # loop over expressions that haven't been reduced to

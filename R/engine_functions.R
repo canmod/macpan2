@@ -382,13 +382,11 @@
 #' * `i` -- An integer column vector (for `[`) or
 #' integer scalar (for `block`) containing the indices
 #' of the rows to extract (for `[`) or the index of the
-#' first row to extract (for `block`). Indices are zero-based,
-#' the first row in `x` is given by `i = 0`.
+#' first row to extract (for `block`).
 #' * `j` -- An integer column vector (for `[`) or
 #' integer scalar (for `block`) containing the indices
 #' of the columns to extract (for `[`) or the index of
-#' the first column to extract (for `block`). Indices are zero-based,
-#' the first column in `x` is given by `j = 0`.
+#' the first column to extract (for `block`). 
 #' * `n` -- Number of rows in the block to return.
 #' * `m` -- Number of columns in the block to return.
 #'
@@ -406,6 +404,7 @@
 #'
 #' ```
 #' engine_eval(~ A[c(3, 1, 2), 2], A = matrix(1:12, 4, 3))
+#' engine_eval(~ block(x,i,j,n,m), x = matrix(1:12, 4, 3), i=1, j=1, n=2, m=2)
 #' ```
 #'
 #' ## Accessing Past Values in the Simulation History
@@ -453,10 +452,10 @@
 #'
 #' ## Time Indexing
 #'
-#' Get the index of current or lagged time step or
-#' the index of the current time group. A time group
-#' is a contiguous set of time steps defined by two
-#' change points.
+#' Get or update the index of the current or lagged 
+#' time step or the index of the current time group. 
+#' A time group is a contiguous set of time steps 
+#' defined by two change points.
 #'
 #' ### Functions
 #'
@@ -473,7 +472,9 @@
 #' Please see the examples below, they are easier
 #' to understand than this explanation.
 #' * `time_var(x, change_points)`: An improvement
-#' to `time_group`.
+#' to `time_group`. Returns values in `x`
+#' at time steps in `change_points`, return value
+#' remains constant between `change_points`.
 #'
 #' ### Arguments
 #'
@@ -677,13 +678,15 @@
 #' paired with those in `v`. If the length of
 #' `i` does not equal that of `v`, then it must have a
 #' single index that gets paired with every element of
-#' `v`.
+#' `v`. Indices are zero-based, `i=0` corresponds to 
+#' the first row.
 #' * `j` -- Column vector of column indices pointing to
 #' the elements of `x` to be updated. These indices are
 #' paired with those in `v`. If the length of
 #' `j` does not equal that of `v`, then it must have a
 #' single index that gets paired with every element of
-#' `v`.
+#' `v`. Indices are zero-based, `j=0` corresponds to
+#' the first column.
 #' * `v` -- Column vector of values to replace elements
 #' of `x` at locations given by `i` and `j`.
 #'
