@@ -518,13 +518,11 @@ contiguous subset of rows and columns of <code>x</code>
 <li><p><code>i</code> – An integer column vector (for <code>[</code>) or
 integer scalar (for <code>block</code>) containing the indices
 of the rows to extract (for <code>[</code>) or the index of the
-first row to extract (for <code>block</code>). Indices are zero-based,
-the first row in <code>x</code> is given by <code>i = 0</code>.</p></li>
+first row to extract (for <code>block</code>).</p></li>
 <li><p><code>j</code> – An integer column vector (for <code>[</code>) or
 integer scalar (for <code>block</code>) containing the indices
 of the columns to extract (for <code>[</code>) or the index of
-the first column to extract (for <code>block</code>). Indices are zero-based,
-the first column in <code>x</code> is given by <code>j = 0</code>.</p></li>
+the first column to extract (for <code>block</code>).</p></li>
 <li><p><code>n</code> – Number of rows in the block to return.</p></li>
 <li><p><code>m</code> – Number of columns in the block to return.</p></li>
 </ul></div>
@@ -548,7 +546,8 @@ so the first row/column gets index, <code>0</code>, etc.</p>
 <h4 id="examples-8">Examples<a class="anchor" aria-label="anchor" href="#examples-8"></a></h4>
 
 
-<p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span> A[<span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">1</span>, <span class="dv">2</span>), <span class="dv">2</span>], <span class="at">A =</span> <span class="fu">matrix</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">12</span>, <span class="dv">4</span>, <span class="dv">3</span>))</span></code></pre><p></p></div>
+<p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span> A[<span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">1</span>, <span class="dv">2</span>), <span class="dv">2</span>], <span class="at">A =</span> <span class="fu">matrix</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">12</span>, <span class="dv">4</span>, <span class="dv">3</span>))</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span> <span class="fu">block</span>(x,i,j,n,m), <span class="at">x =</span> <span class="fu">matrix</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">12</span>, <span class="dv">4</span>, <span class="dv">3</span>), <span class="at">i=</span><span class="dv">1</span>, <span class="at">j=</span><span class="dv">1</span>, <span class="at">n=</span><span class="dv">2</span>, <span class="at">m=</span><span class="dv">2</span>)</span></code></pre><p></p></div>
 </div>
 
 
@@ -610,10 +609,10 @@ or implied by <code>lag</code> that are before <code>t_min</code> are ignored.</
 <h3 id="time-indexing">Time Indexing<a class="anchor" aria-label="anchor" href="#time-indexing"></a></h3>
 
 
-<p>Get the index of current or lagged time step or
-the index of the current time group. A time group
-is a contiguous set of time steps defined by two
-change points.</p><div class="section">
+<p>Get or update the index of the current or lagged
+time step or the index of the current time group.
+A time group is a contiguous set of time steps
+defined by two change points.</p><div class="section">
 <h4 id="functions-10">Functions<a class="anchor" aria-label="anchor" href="#functions-10"></a></h4>
 
 <ul><li><p><code>time_step(lag)</code>: Get the time-step associated
@@ -629,7 +628,9 @@ greater than the current time step. The time group
 Please see the examples below, they are easier
 to understand than this explanation.</p></li>
 <li><p><code>time_var(x, change_points)</code>: An improvement
-to <code>time_group</code>.</p></li>
+to <code>time_group</code>. Returns values in <code>x</code>
+at time steps in <code>change_points</code>, return value
+remains constant between <code>change_points</code>.</p></li>
 </ul></div>
 
 <div class="section">
@@ -873,13 +874,15 @@ the elements of <code>x</code> to be updated. These indices are
 paired with those in <code>v</code>. If the length of
 <code>i</code> does not equal that of <code>v</code>, then it must have a
 single index that gets paired with every element of
-<code>v</code>.</p></li>
+<code>v</code>. Indices are zero-based, <code>i=0</code> corresponds to
+the first row.</p></li>
 <li><p><code>j</code> – Column vector of column indices pointing to
 the elements of <code>x</code> to be updated. These indices are
 paired with those in <code>v</code>. If the length of
 <code>j</code> does not equal that of <code>v</code>, then it must have a
 single index that gets paired with every element of
-<code>v</code>.</p></li>
+<code>v</code>. Indices are zero-based, <code>j=0</code> corresponds to
+the first column.</p></li>
 <li><p><code>v</code> – Column vector of values to replace elements
 of <code>x</code> at locations given by <code>i</code> and <code>j</code>.</p></li>
 </ul></div>
