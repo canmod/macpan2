@@ -74,7 +74,9 @@ run-vignette-code:
 
 coverage-report:: coverage.html
 coverage.html: R/*.R src/macpan2.cpp tests/testthat/*.R
-	Rscript -e "covr::report(file = \"coverage.html\")"
+	#Rscript -e "covr::report(file = \"coverage.html\")"
+	# Some evidence that this version might be more portable
+	Rscript -e "covr::report(covr::package_coverage(quiet = FALSE), file = \"coverage.html\")"
 
 
 misc/dev/%.run: misc/dev/%.R

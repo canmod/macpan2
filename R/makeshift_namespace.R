@@ -1,8 +1,14 @@
-#' @param internal_names Named list of character vectors giving the names of
-#' internal variables. The names of the list identify types of internal
-#' variables (e.g. transformed variables, dispersion parameters, observed
-#' trajectories). The character vectors themselves identify the global-version
-#' of those internal names (``)
+#' @param existing_names Character vector of names that are already global
+#' in a model.
+#' @param local_names A list with names giving local versions of the names
+#' in the sub-model within a broader model (e.g. convolution within SIR),
+#' and with values giving the 'proposed' global names.
+#' @return A version of `local_names` with the values modified to not conflict
+#' with names in `existing_names`.
+#' @examples
+#' map_names("g", list(g = "g")) # equal to list(g = "g__1")
+#' map_names("g", list(g = "G")) # equal to list(g = "G")
+#' 
 #' @importFrom utils relist
 #' @noRd
 map_names = function(
@@ -23,5 +29,3 @@ map_names = function(
   }
   relist(local_fixed_names, local_names)
 }
-
-

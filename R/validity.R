@@ -38,11 +38,17 @@ are_matrix_list_names = function(x) {
 p_or_r_consistency_opt_mat = function(parameter_type = c("params", "random")) {
   parameter_type = match.arg(parameter_type)
   function(tmb_model) {
-    par_dim_summary = merge(
-      tmb_model[[parameter_type]]$data_frame(),
-      tmb_model$init_mats$mat_dims(),
-      all.x = TRUE
-    )
+    pf = tmb_model[[parameter_type]]$data_frame()
+    pd = tmb_model$init_mats$mat_dims()
+    invalid_pnms = setdiff(pf$mat, pd$mat)
+    if (length(invalid_pnms) > 0) {
+      sprintf(
+          "The following parameters:\n     %s\nAre not in the following list of valid model parameters:\n     %s\n"
+        , paste0(invalid_pnms, collapse = ", ")
+        , paste0(unique(pd$mat), collapse = ", ")
+      ) |> stop()
+    }
+    par_dim_summary = merge(pf, pd, all.x = TRUE)
     valid_pars = with(par_dim_summary, (row < nrow) & (col < ncol))
     if (any(!valid_pars)) {
       stop(
@@ -454,3 +460,14 @@ TMBAdaptorValidity <- function() {
 }
 
 valid = TMBAdaptorValidity()
+
+
+assert_cls = function(x, cls, mc, pls_see) {
+  if (!inherits(x, cls)) {
+    sprintf(
+        "The first argument of function %s must be of class %s. Please see %s."
+      , as.character(mc[[1L]]), cls, pls_see
+    ) |> stop()
+  }
+  x
+}

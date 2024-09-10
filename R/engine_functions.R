@@ -83,10 +83,13 @@
 #' * `log(x)` -- Natural logarithm
 #' * `exp(x)` -- Exponential function
 #' * `cos(x)` -- Cosine function
+#' * `proportions(x, limit, eps)` -- matrix of `x / sum(x)` or `rep(limit, length(x))` if `sum(x) < eps`
 #'
 #' ### Arguments
 #'
 #' * `x` -- Any matrix
+#' * `limit` -- numeric value to return elementwise from `proportions` if `sum(x) < eps`
+#' * `eps` -- numeric tolerance for `sum(x)`
 #'
 #' ### Return
 #'
@@ -338,8 +341,7 @@
 #'
 #' ### Return
 #'
-#' * A matrix containing sums of various groups of
-#' the elements of `x`.
+#' * A matrix containing sums of subsets of the inputs.
 #'
 #' ### Details
 #'
@@ -504,8 +506,8 @@
 #'     j ~ time_group(j, change_points),
 #'     time_varying_parameter ~ time_variation_schedule[j]
 #'   ),
-#'   time_steps = 10,
 #'   mats = list(
+#'     time_steps = 10,
 #'     j = 0,
 #'     change_points = c(0, 4, 7),
 #'     time_variation_schedule = c(42, pi, sqrt(2)),
@@ -515,12 +517,11 @@
 #' set.seed(1L)
 #' change_points = c(0,2,5)
 #' x_val = rnorm(length(change_points))
-#'(simple_sims(
-#'   iteration_exprs = list(x ~ time_var(x_val,change_points))
-#' , int_vecs = list(change_points = change_points)
-#' , mats = list(x = empty_matrix, x_val=x_val) 
-#' , time_steps = 10L
-#'   ) |> dplyr::filter(matrix=="x")
+#' (simple_sims(
+#'       iteration_exprs = list(x ~ time_var(x_val,change_points))
+#'     , int_vecs = list(change_points = change_points, time_steps = 10L)
+#'     , mats = list(x = empty_matrix, x_val=x_val) 
+#'   ) |> filter(matrix=="x")
 #' )
 #' ```
 #'
@@ -831,4 +832,7 @@
 #' @aliases reulermultinom
 #' @aliases round
 #' @aliases pgamma
+#' @aliases mean
+#' @aliases sd
+#' @aliases proportions
 NULL

@@ -9,6 +9,7 @@ TMBModelSpec = function(
     , sim_exprs = character()
     , state_update = c("euler", "rk4", "euler_multinomial", "hazard")
   ) {
+  must_not_save = handle_saving_conflicts(must_save, must_not_save)
   self = Base()
   before = force_expr_list(before)
   during = force_expr_list(during)
@@ -16,6 +17,7 @@ TMBModelSpec = function(
   self$change_model = get_change_model(before, during, after)
   self$state_update = get_state_update_type(match.arg(state_update), self$change_model)
   self$update_method = get_state_update_method(self$state_update, self$change_model)
+  self$change_components = function() self$change_model$change_list
   self$before = before
   self$during = during
   self$after = after
@@ -86,6 +88,13 @@ TMBModelSpec = function(
   }
   self$all_matrices = function() c(self$default, self$empty_matrices())
   
+  self$name_map = function(local_names) {
+    map_names(
+      self$all_formula_vars()
+      , setNames(as.list(local_names), local_names)
+    )
+  }
+  
   self$copy = function() {
     mp_tmb_model_spec(
         self$before, self$during, self$after
@@ -116,6 +125,12 @@ TMBModelSpec = function(
       , self$default, self$integers
       , self$must_save, self$must_not_save, self$sim_exprs
       , self$state_update
+    )
+  }
+  self$name_map = function(local_names) {
+    map_names(
+        self$all_formula_vars()
+      , setNames(as.list(local_names), local_names)
     )
   }
   self$tmb_model = function(
@@ -159,6 +174,19 @@ TMBModelSpec = function(
   }
   self$simulator_cached = memoise(self$simulator_fresh)
   return_object(self, "TMBModelSpec")
+}
+
+handle_saving_conflicts = function(must_save, must_not_save) {
+  ## must_save takes precedence over must_not_save
+  problems = intersect(must_save, must_not_save)
+  if (length(problems) != 0L) {
+    sprintf(
+        "The following matrices were removed from the must_not_save list\nbecause they are also on the must_save list, which takes precedence:\n      %s\n"
+      , paste0(problems, collapse = ", ")
+    ) |> message()
+    must_not_save = setdiff(must_not_save, problems)
+  }
+  return(must_not_save)
 }
 
 mat_options = list(
@@ -212,9 +240,9 @@ update_default = function(mats, default) {
 
 must_save_time_args = function(formulas) {
   time_dep_funcs = getOption("macpan2_time_dep_funcs")
-  parse_expr = make_expr_parser(finalizer = macpan2:::finalizer_char)
+  parse_expr = make_expr_parser(finalizer = finalizer_char)
   time_args = (formulas
-     |> lapply(macpan2:::rhs)
+     |> lapply(rhs)
      |> lapply(parse_expr)
      |> lapply(\(x) x$x[x$i[x$x %in% time_dep_funcs] + 1])
      |> unlist()

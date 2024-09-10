@@ -180,9 +180,7 @@ TMBModel = function(
     ## FIXME: need a dummy parameter if the model has not
     ## yet been parameterized. is there a more TMB-ish
     ## way to do this?
-    if (length(p$params) == 0L) {
-      p$params = 0
-    } 
+    if (length(p$params) == 0L) p$params = 0
     p
   }
   self$random_arg = function() {
@@ -315,6 +313,9 @@ mp_initial_list = function(model) UseMethod("mp_initial_list")
 
 #' @export
 mp_initial.TMBModelSpec = function(model) {
+  # warning("under construction")
+  ## Should this just be whatever the report returns in the before phase?
+  ## And in this way be analogous to mp_final?  I think so.
   all_derived_mats_in_before_step = setdiff(
       ExprList(model$update_method$before())$all_derived_vars()
     , names(model$all_integers())
@@ -333,7 +334,7 @@ mp_initial_list.TMBModelSpec = function(model) {
 
 #' @export
 mp_initial.TMBSimulator = function(model) {
-  
+  # warning("under construction")
   mats_list = model$tmb_model$init_mats
   int_vecs = model$tmb_model$engine_methods$int_vecs
   expr_list = model$tmb_model$expr_list
@@ -453,7 +454,10 @@ mp_trajectory_sd.TMBSimulator = function(model, conf.int = FALSE, conf.level = 0
 
 #' @export
 mp_trajectory_sd.TMBCalibrator = function(model, conf.int = FALSE, conf.level = 0.95) {
-  mp_trajectory_sd(model$simulator, conf.int, conf.level)
+  traj = mp_trajectory_sd(model$simulator, conf.int, conf.level)
+  time = model$cal_args$time
+  if (!is.null(time)) traj$time = time$ending_time_engine(traj$time)
+  traj
 }
 
 #' @export

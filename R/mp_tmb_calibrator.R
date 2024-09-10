@@ -13,9 +13,12 @@
 #' time-varying parameters. The data must be of the same format as that 
 #' produced by \code{\link{mp_trajectory}}.
 #' @param traj A character vector giving the names of trajectories to fit
-#' to data.
+#' to data, or a named list of likelihood distributions specified with
+#' \code{\link{mp_normal}}, \code{\link{mp_log_normal}}, \code{\link{mp_neg_bin}},
+#' or \code{\link{mp_poisson}} for each trajectory.
 #' @param tv A character vector giving the names of parameters to make
-#' time-varying according to the values in \code{data}.
+#' time-varying according to the values in \code{data}, or a radial basis 
+#' function specified with \code{\link{mp_rbf}}.
 #' @param par A character vector giving the names of parameters, either
 #' time-varying or not, to fit using trajectory match.
 #' @param outputs A character vector of outputs that will be generated
@@ -52,8 +55,9 @@ mp_tmb_calibrator = function(spec, data
     , tv = character()
     , outputs = traj
     , default = list()
-    , time = NULL
+    , time = NULL ## TODO: implement start-date offset. TODO: implement forecast extension
   ) {
+  cal_args = nlist(traj, par, tv, outputs, default, time)
   if (inherits(spec, "TMBSimulator")) {
     stop(
         "This function creates simulators (capable of being calibrated to "
@@ -71,13 +75,12 @@ mp_tmb_calibrator = function(spec, data
     )
   }
   
-  ## gather defaults before they are updated (FIXME: this will need to be 
-  ## updated when non-character inputs are allowed)
+  ## gather defaults before they are updated
   force(outputs)
   
-  ## copy the spec, expanding to apply state update methods
+  ## copy the spec, reducing to apply state update methods
   ## (e.g. euler, rk4, euler_multinomial), and update defaults
-  cal_spec = spec$expand()
+  cal_spec = mp_expand(spec)
   check_default_updates(cal_spec, default)
   cal_spec = mp_tmb_update(cal_spec, default = default)
   
@@ -90,6 +93,7 @@ mp_tmb_calibrator = function(spec, data
   tv$check_assumptions(spec, struc)
   par$check_assumptions(spec, struc)
   
+  
   ## add observed trajectories 
   ## (see globalize function for comments on what it does)
   cal_spec = mp_tmb_insert(cal_spec
@@ -99,7 +103,7 @@ mp_tmb_calibrator = function(spec, data
     , default = globalize(traj, "obs")
     , integers = globalize(traj, "obs_times")
     , must_not_save = names(globalize(traj, "obs"))
-    , must_save = traj$traj
+    , must_save = traj$outputs()
   )
   
   cal_spec = mp_tmb_insert(cal_spec
@@ -131,10 +135,12 @@ mp_tmb_calibrator = function(spec, data
           globalize(tv, "time_var")
         , globalize(tv, "values_var")
         , globalize(tv, "outputs_var")
+        , globalize(tv, "prior_sd")
       )
       , integers = c(
           globalize(tv, "row_indexes")
         , globalize(tv, "col_indexes")
+        , globalize(tv, "data_time_indexes")
       )
       , must_not_save = c(
           names(globalize(tv, "time_var"))
@@ -157,27 +163,39 @@ mp_tmb_calibrator = function(spec, data
     , default = globalize(par, "trans_vars")
   )
 
+  ## add condensation of trajectories
+  cal_spec = mp_tmb_insert(cal_spec
+    , phase = "during"
+    , at = Inf
+    , expressions = traj$cond_exprs()
+    , default = globalize(traj, "cond_params")
+  )
+  
+  if (!is.character(outputs)) outputs = traj$outputs()
   cal_sim = cal_spec$simulator_fresh(
       time_steps = struc$time_steps
     , outputs = outputs
     , initialize_ad_fun = FALSE
   )
-  fn = sum_obj_terms(traj$obj_fn_expr_chars(), par$prior_expr_chars())
+  fn = sum_obj_terms(traj$obj_fn_expr_chars(), par$prior_expr_chars(), tv$prior_expr_chars())
   cal_sim$replace$obj_fn(fn)
   cal_sim$replace$params_frame(par$params_frame())
   cal_sim$replace$random_frame(par$random_frame())
   
-  TMBCalibrator(spec, spec$copy(), cal_spec, cal_sim)
+  TMBCalibrator(spec, spec$copy(), cal_spec, cal_sim, cal_args)
 }
 
-TMBCalibrator = function(orig_spec, new_spec, cal_spec, simulator) {
+TMBCalibrator = function(orig_spec, new_spec, cal_spec, simulator, cal_args = NULL) {
   self = Base()
   self$orig_spec = orig_spec  ## original spec for reference
   self$new_spec = new_spec  ## gets updated as optimization proceeds
   self$cal_spec = cal_spec  ## contaminated with stuff required for calibration
   self$simulator = simulator  ## model simulator object keeping track of optimization attempts
+  self$cal_args = cal_args
   return_object(self, "TMBCalibrator")
 }
+
+
 
 #' @export
 print.TMBCalibrator = function(x, ...) {
@@ -189,7 +207,7 @@ print.TMBCalibrator = function(x, ...) {
   cat("\n")
   hist = x$simulator$optimization_history
   if (hist$opt_attempted()) {
-    cat("---------------------\n")
+    cat("\n---------------------\n")
     msg("Optimization:\n") |> cat()
     cat("---------------------\n")
     print(hist$latest())
@@ -218,14 +236,14 @@ mp_optimize.TMBSimulator = function(model
     , ...
   ) {
   optimizer = match.arg(optimizer)
-  optimizer_results = model$optimize[[optimizer]]()
+  optimizer_results = model$optimize[[optimizer]](...)
   return(optimizer_results)
 } 
 
 #' @describeIn mp_optimize Optimize a TMB calibrator.
 #' @export
-mp_optimize.TMBCalibrator = function(model, optimizer, ...) {
-  optimizer_results = mp_optimize(model$simulator)
+mp_optimize.TMBCalibrator = function(model, optimizer = c("nlminb", "optim"), ...) {
+  optimizer_results = mp_optimize(model$simulator, optimizer, ...)
   
   old_defaults = mp_default(model$new_spec) |> frame_to_mat_list()
   new_defaults = (model$simulator
@@ -236,6 +254,76 @@ mp_optimize.TMBCalibrator = function(model, optimizer, ...) {
   model$new_spec = mp_tmb_update(model$new_spec, default = new_defaults)
   return(optimizer_results)
 }
+
+TMBCalDataStruc = function(data, time) {
+  self = Base()
+  
+  ## infer if the time field in the data
+  ## is measured in time-steps
+  infer_time_step = function(x) {
+    y = is.numeric(x)
+    if (y) return(TRUE)
+    if (inherits(x, "character")) {
+      if (all(grepl("^[0-9]+$", x))) {
+        return(TRUE)
+      }
+    }
+    FALSE
+  }
+  if (is.null(time)) {
+    if (infer_time_step(data$time)) {
+      data$time = as.integer(data$time)
+      time = Steps(min(data$time), max(data$time))
+    } else {
+      ## TODO: I'm guessing this could fail cryptically
+      time = Daily(min(data$time), max(data$time), checker = NoError)
+    }
+  }
+  else {
+    time = assert_cls(time, "CalTime", match.call(), "?mp_cal_time")
+    time$update_data_bounds(data)
+  }
+  self$time_steps = time$bound_steps()[2L]
+  data$time_ids = time$time_ids(data$time)
+  self$data_time_ids = data$time_ids
+  self$data_time_steps = length(data$time_ids)
+  data = rename_synonyms(data
+    , time = c(
+        "time", "Time", "ID", "time_id", "id", "date", "Date"
+      , "time_step", "timeStep", "TimeStep"
+    )
+    , matrix = c(
+        "matrix", "Matrix", "mat", "Mat", "variable", "var", "Variable", "Var"
+    )
+    , row = c("row", "Row")
+    , col = c("col", "Col", "column", "Column")
+    , value = c("value", "Value", "val", "Val", "default", "Default")
+  )
+  ## TODO: Still splitting on matrices, which doesn't allow flexibility
+  ## in what counts as an 'output'. In general, an output could be
+  ## a matrix, row, or column.
+  self$matrix_list = split(data, data$matrix)
+  
+  self$check_matrices = function(matrices) {
+    bad_traj = !matrices %in% names(self$matrix_list)
+    if (any(bad_traj)) {
+      sprintf("%s (including %s) %s:\n     %s"
+        , "Requested trajectories"
+        , paste0(matrices[bad_traj], collapse = ", ")
+        , "are not available in the data, which includes the following"
+        , paste(names(self$matrix_list), collapse = ", ")
+      ) |> stop()
+    }
+    NULL
+  }
+  
+  self$init_list = function(matrices) {
+    self$check_matrices(matrices)
+    self$matrix_list[matrices]
+  }
+  return_object(self, "TMBCalDataStruc")
+}
+
 
 
 #' Optimizer Output
@@ -267,46 +355,6 @@ mp_optimizer_output.TMBCalibrator = function(model, what = c("latest", "all")) {
   )
 }
 
-
-TMBCalDataStruc = function(data, time) {
-  self = Base()
-  
-  infer_time_step = function(x) {
-    y = is.numeric(x)
-    if (y) return(TRUE)
-    if (inherits(x, "character")) {
-      if (all(grepl("^[0-9]+$", x))) {
-        return(TRUE)
-      }
-    }
-    FALSE
-  }
-  if (is.null(time)) {
-    if (infer_time_step(data$time)) {
-      data$time = as.integer(data$time)
-      time = Steps(max(data$time))
-    } else {
-      ## TODO: I'm guessing this could fail cryptically
-      time = Daily(min(data$time), max(data$time))
-    }
-  }
-  self$time_steps = time$bound_steps()[2L]
-  data$time_ids = time$time_ids(data$time)
-  data = rename_synonyms(data
-    , time = c(
-        "time", "Time", "ID", "time_id", "id", "date", "Date"
-      , "time_step", "timeStep", "TimeStep"
-    )
-    , matrix = c(
-        "matrix", "Matrix", "mat", "Mat", "variable", "var", "Variable", "Var"
-    )
-    , row = c("row", "Row")
-    , col = c("col", "Col", "column", "Column")
-    , value = c("value", "Value", "val", "Val", "default", "Default")
-  )
-  self$matrix_list = split(data, data$matrix)
-  return_object(self, "TMBCalDataStruc")
-}
 
 NameHandlerAbstract = function() {
   self = Base()
@@ -347,15 +395,35 @@ TMBTrajAbstract = function() {
   ## matched.
   self$obs_times = function() list()
   
-  ## A list of matrices that parameterize the shape 
+  ## A list describing matrices that parameterize (1) the shape 
   ## and scale of likelihood functions for the trajectories
-  ## TODO: define what the names of this define
+  ## and (2) condensation steps (e.g. convolution, sum of boxes)
+  ## The names of the outer list describe an output variable.
+  ## Sometimes this output variable is in the original spec
+  ## and other times it is a condensation of the output variables
+  ## in the spec.
   self$distr_params = function() list()
+  self$cond_params = function() list()
+  self$cond_exprs = function() list()
+  self$cond_temp = function() list()
+  
+  ## return a list character vectors giving
+  ## expressions for computing trajectories
+  ## via condensation steps
+  self$obj_fn_traj_exprs = function() character()
+  
+  ## return a character vector of terms in
+  ## the objective function. These will be concatenated
+  ## without any separating operators (plus/minus etc 
+  ## need to be handled in the expression).
+  self$obj_fn_expr_chars = function() character()
   
   ## data frames describing the fixed and random effects corresponding
   ## to distributional parameters
   self$distr_params_frame = function() self$empty_params_frame
   self$distr_random_frame = function() self$empty_params_frame
+  self$cond_params_frame = function() self$empty_params_frame
+  self$cond_random_frame = function() self$empty_params_frame
   
   return_object(self, "TMBTrajAbstract")
 }
@@ -381,6 +449,15 @@ TMBTVAbstract = function() {
   ## List of expressions that update parameters that
   ## are time-varying
   self$var_update_exprs = function() list()
+  
+  ## character vector of signed expressions that give components
+  ## of the prior distribution on the negative log scale. these
+  ## components will be combined with the components of the 
+  ## likelihood and space-pasted together and converted into 
+  ## the objective function expression. the 'signed' part means
+  ## that - or + must appear before every term because these 
+  ## expressions are going to be space-pasted.
+  self$prior_expr_chars = function() character()
   
   ## data frames describing the fixed and random effects corresponding
   ## to time-varying parameters
@@ -438,6 +515,7 @@ TMBTV.character = function(
   ## assumes tv is a character vector
   ## of names identifying matrices
   ## that give piece-wise time variation
+  self$tv_par = tv
   self$tv_list = struc$matrix_list[tv]
   for (p in names(self$tv_list)) {
     self$tv_list[[p]] = rename_synonyms(self$tv_list[[p]]
@@ -518,41 +596,64 @@ TMBTV.character = function(
     mapply(two_sided, lhs, rhs, SIMPLIFY = FALSE)
   }
   
+  self$check_assumptions = function(orig_spec, data_struc) {
+    bad_pars = !self$tv_par %in% unique(names(data_struc$matrix_list))
+    if (any(bad_pars)) {
+      sprintf("%s (including %s) %s:\n     %s\n%s %s"
+        , "Requested piece-wise time-varying parameters"
+        , paste0(self$tv_par[bad_pars], collapse = ", ")
+        , "are not available in the data, which includes the following"
+        , paste(unique(names(data_struc$matrix_list)), collapse = ", ")
+        , "Piece-wise time-varying parameters must appear in the data"
+        , "in order to identify what time-steps are change-points."
+      ) |> stop()
+    }
+    NULL
+  }
+  
   return_object(self, "TMBTV")
 }
 
-
-#' Fit a Time-Varying Parameter with Radial Basis Functions
-#' 
-#' Pass the output of this function to the `tv` argument of 
-#' \code{\link{mp_tmb_calibrator}} to model time variation of 
-#' a parameter with flexible radial basis functions.
-#' 
-#' @param tv String giving the name of the parameter.
-#' @param dimension Number of bases.
-#' @param initial_weights Optional vector with `dimensions` elements. These
-#' are the parameters that are fitted and determine how `tv` varies with
-#' time.
-#' @param seed Optional random seed to use to generate the `initial_weights`
-#' if they are not provided.
-#' 
-#' @export
-mp_rbf = function(tv, dimension, initial_weights, seed = 1L) {
-  if (missing(initial_weights)) {
-    set.seed(seed)
-    initial_weights = rnorm(dimension, sd = 0.01)
-  }
-  if (length(initial_weights) != dimension) {
-    stop("The `initial_weights` vector must be of length `dimension`.")
-  }
-  self = Base()
-  self$tv = tv
-  self$dimension = dimension
-  self$initial_weights = initial_weights
-  return_object(self, "RBF")
+TMBTV.TVArg = function(
+      tv
+    , struc
+    , spec
+    , existing_global_names = character()
+) {
+  self = TMBTVAbstract()
+  self$existing_global_names = existing_global_names
+  self$spec = spec
+  self$type = function() "list"
+  
+  self$before_loop = function() list()
+  self$after_loop = function() list()
+  
+  ## List with the values of each 
+  ## time varying parameter at the change points. The 
+  ## names of the list are the time-varying matrices
+  ## in the spec.
+  self$time_var = function() list()
+  
+  ## List of the integers 
+  ## giving the time-steps of the changepoints with
+  ## the first time-step always being 0 (the initial)
+  ## The names of the list are the time-varying 
+  ## matrices in the spec.
+  self$change_points = function() list()
+  
+  ## List of expressions that update parameters that
+  ## are time-varying
+  self$var_update_exprs = function() list()
+  
+  ## data frames describing the fixed and random effects corresponding
+  ## to time-varying parameters
+  self$tv_params_frame = function(tv_pars) self$empty_params_frame
+  self$tv_random_frame = function() self$empty_params_frame
+  
+  return_object(self, "TMBTV")
 }
 
-TMBTV.RBF = function(
+TMBTV.RBFArg = function(
       tv
     , struc
     , spec
@@ -563,20 +664,30 @@ TMBTV.RBF = function(
   self$spec = spec
   self$type = function() "smooth"
   
-  self$rbf_data = sparse_rbf_notation(struc$time_steps, tv$dimension, zero_based = TRUE)
+  self$rbf_data = sparse_rbf_notation(
+      struc$data_time_steps
+    , tv$dimension
+    , zero_based = TRUE
+    , tol = tv$sparse_tol
+  )
   self$initial_outputs = c(self$rbf_data$M %*% tv$initial_weights)
   self$initial_weights = tv$initial_weights
   self$dimension = tv$dimension
+  self$data_time_ids = struc$data_time_ids
   self$par_name = tv$tv
-  self$local_names = function() {
-    list(
-        outputs = sprintf("rbf_outputs_%s", self$par_name)
-      , values = sprintf("rbf_values_%s", self$par_name)
-      , weights = sprintf("rbf_weights_%s", self$par_name)
-      , rows = sprintf("rbf_rows_%s", self$par_name)
-      , cols = sprintf("rbf_cols_%s", self$par_name)
-    )
-  }
+  self$prior_sd_default = tv$prior_sd
+  
+  ## FIXME: an alternative version is defined below!
+  # self$local_names = function() {
+  #   list(
+  #       outputs = sprintf("rbf_outputs_%s", self$par_name)
+  #     , values = sprintf("rbf_values_%s", self$par_name)
+  #     , weights = sprintf("rbf_weights_%s", self$par_name)
+  #     , rows = sprintf("rbf_rows_%s", self$par_name)
+  #     , cols = sprintf("rbf_cols_%s", self$par_name)
+  #   )
+  # }
+  
   self$time_var = function() {
     setNames(list(self$initial_weights), self$par_name)
   }
@@ -592,23 +703,52 @@ TMBTV.RBF = function(
   self$col_indexes = function() {
     setNames(list(as.integer(self$rbf_data$col_index)), self$par_name)
   }
+  self$data_time_indexes = function() {
+    setNames(list(as.integer(c(0, self$data_time_ids))), self$par_name)
+  }
+  self$prior_sd = function() {
+    setNames(list(self$prior_sd_default), self$par_name)
+  }
   self$before_loop = function() {
     nms = self$global_names()
-    s = sprintf("%s ~ group_sums(%s * %s[%s], %s, %s)"
+    s = sprintf("%s ~ group_sums(%s * %s[%s], %s, %s)" ## TODO: change 1 to an argument in mp_rbf
       , nms$outputs_var, nms$values_var, nms$time_var, nms$col_indexes, nms$row_indexes, nms$outputs_var
     )
-    list(as.formula(s))
+    s2 = sprintf("%s ~ c(%s[0], %s)", nms$outputs_var, nms$outputs_var, nms$outputs_var)
+    list(as.formula(s), as.formula(s2))
   }
   self$var_update_exprs = function() {
     nms = self$global_names()
-    s = sprintf("%s ~ exp(%s[time_step(1)])", self$par_name, nms$outputs_var)
+    # s = sprintf("%s ~ exp(%s[time_step(1)])", self$par_name, nms$outputs_var)
+    s = sprintf("%s ~ exp(time_var(%s, %s))", self$par_name, nms$outputs_var, nms$data_time_indexes)
+
     list(as.formula(s))
   }
   self$local_names = function() {
     make_names_list(self
-      , c("time_var", "values_var", "outputs_var", "row_indexes", "col_indexes")
+      , c(
+          "time_var", "values_var", "outputs_var"
+        , "row_indexes", "col_indexes", "data_time_indexes"
+        , "prior_sd"
+      )
     )
   }
+  
+  ## character vector of signed expressions that give components
+  ## of the prior distribution on the negative log scale. these
+  ## components will be combined with the components of the 
+  ## likelihood and space-pasted together and converted into 
+  ## the objective function expression. the 'signed' part means
+  ## that - or + must appear before every term because these 
+  ## expressions are going to be space-pasted.
+  self$prior_expr_chars = function() {
+    nms = self$global_names()
+    sprintf(
+        "-sum(dnorm(%s, 0, %s))"
+      , nms$values_var, nms$prior_sd
+    )
+  }
+  
   ## data frames describing the fixed and random effects corresponding
   ## to time-varying parameters
   # self$tv_params_frame = function(tv_par_mat_nms) {
@@ -618,10 +758,10 @@ TMBTV.RBF = function(
     cols = c("mat", "row", "col", "default")
     nms = self$global_names()
     data.frame(
-        mat = nms$time_var
-      , row = seq_len(self$dimension) - 1L
+        mat = c(rep(nms$time_var, self$dimension), nms$prior_sd)
+      , row = c(seq_len(self$dimension) - 1L, 0)
       , col = 0
-      , default = self$initial_weights
+      , default = c(self$initial_weights, self$prior_sd_default)
     )
   }
   
@@ -629,7 +769,58 @@ TMBTV.RBF = function(
 }
 
 
-TMBTraj = function(
+#' @param height Number giving the default height for the convolution kernel.
+#' @param mean Number giving the mean of the kernel.
+#' @param cv Number giving the coefficient of variation of the kernel.
+#' @noRd
+mp_gamma_conv = function(height, mean, cv) {
+  self = Base()
+  self$height = height
+  self$length = length
+  self$mean = mean
+  self$cv = cv
+  
+  self$shape = function() 1 / (self$cv^2)
+  self$scale = function() self$mean * self$cv^2
+  
+  ## TODO: warn if the computed length is 'weird'
+  self$length = function() {
+    qgamma(0.95, self$shape(), scale = self$scale()) |> ceiling()
+  }
+  
+  self$expr_char = function(
+        traj, variable, height, mean, cv # strings to be supplied by calibrator
+      , p = "p", delta = "delta", kernel = "kernel" # temporary names that can be overridden
+    ) {
+    length = self$length()
+    c(
+        sprintf("%s ~ pgamma(1:(%s+1), 1/(%s), %s * (%s^2))", p, length, cv, mean, cv)
+      , sprintf("%s ~ %s[1:%s] - %s[0:(%s-1)]", delta, p, length, p, length)
+      , sprintf("%s ~ %s * %s / sum(%s)", kernel, height, delta, delta)
+      , sprintf("%s ~ convolution(%s, %s)", traj, variable, kernel)
+    )
+  }
+  
+  return_object(self, "GammaConv")
+}
+
+
+TMBTraj = function(traj
+      , struc # = TMBCalDataStruc()
+      , existing_global_names = character()
+) {
+  UseMethod("TMBTraj")
+}
+
+TMBTraj.function = function(        
+      traj # function that takes a struc and existing_global_names and returns a TMBTraj object
+    , struc # = TMBCalDataStruc()
+    , existing_global_names = character()
+  ) {
+  traj(struc, existing_global_names)
+}
+
+TMBTraj.character = function(
         traj = character()
       , struc # = TMBCalDataStruc()
       , existing_global_names = character()
@@ -638,19 +829,19 @@ TMBTraj = function(
   self$existing_global_names = existing_global_names
   
   ## internal data structure:
-  ## assumes traj is character vector
-  ## identifying matrices
-  self$traj_list = struc$matrix_list[traj]
-  self$traj = traj ## Depended upon to contain a character vector of output variables to fit to
+  self$list = struc$init_list(traj)
+  
+  ## Depended upon to create a character vector of output variables to fit to
+  self$outputs = function() names(self$list)
   
   ## implemented methods
-  self$obs = function() lapply(self$traj_list, getElement, "value")
-  self$obs_times = function() lapply(self$traj_list, getElement, "time_ids")
+  self$obs = function() lapply(self$list, getElement, "value")
+  self$obs_times = function() lapply(self$list, getElement, "time_ids")
   self$distr_params = function() {
     switch(
         getOption("macpan2_default_loss")[1L]
       , clamped_poisson = list()
-      , neg_bin = setNames(as.list(rep(0, length(self$traj))), self$traj)
+      , neg_bin = setNames(as.list(rep(0, length(self$outputs()))), self$outputs())
       , poisson = list()
       , sum_of_squares = list()
     )
@@ -661,13 +852,11 @@ TMBTraj = function(
   ## not local names
   self$local_names = function() {
     l = make_names_list(self, c("obs", "obs_times", "distr_params"))
-    l$sim = sprintf("%s_%s", "sim", self$traj)
+    l$sim = sprintf("%s_%s", "sim", self$outputs())
     l
   }
   
   ## expressions
-  
-  
   self$sim_collect_exprs = function() {
     ## Depended upon to return a list of expressions to be 
     ## evaluated in the "after" phase to collect the 
@@ -678,26 +867,26 @@ TMBTraj = function(
     nms = self$global_names()
     lhs = nms$sim
     rhs = sprintf("rbind_time(%s, %s)"
-      , self$traj
+      , self$outputs()
       , nms$obs_times
     )
     mapply(two_sided, lhs, rhs, SIMPLIFY = FALSE)
   }
-  self$obj_fn_traj_exprs = function() list()
+  self$obj_fn_traj_exprs = function() character()
   self$obj_fn_expr_chars = function() {
-    ## Depended upon to return a character vector of terms in
-    ## the objective function. These will be concatenated
-    ## without any separating operators (plus/minus etc 
-    ## need to be handled in the expression).
     nms = self$global_names()
     switch(
         getOption("macpan2_default_loss")[1L]
       , clamped_poisson = sprintf("-sum(dpois(%s, clamp(%s)))", nms$obs, nms$sim)
+      
+        ## this will fail for multiple trajectories? need to move on
+        ## to explicit trajectory specifications with likelihood
+        ## and condensation specs
       , neg_bin = sprintf("-sum(dnbinom(%s, clamp(%s), exp(%s)))", nms$obs, nms$sim, nms$distr_params)
-      , poisson = sprintf("-sum(dpois(%s, %s))", nms$obs, nms$sim)
+      
+      , poisson = mp_poisson()$expr_char(nms$obs, nms$sim)
       , sum_of_squares = sprintf("-sum(dnorm(%s, %s, 1))", nms$obs, nms$sim)
     )
-    
   }
   
   self$distr_params_frame = function() {
@@ -707,8 +896,29 @@ TMBTraj = function(
       , clamped_poisson = empty_frame(c("mat", "row", "col", "default"))
       , neg_bin = data.frame(
           mat = nms$distr_params
-        , row = rep(0L, length(self$traj))
-        , col = rep(0L, length(self$traj))
+        , row = rep(0L, length(self$outputs()))
+        , col = rep(0L, length(self$outputs()))
+        , default = unlist(self$distr_params(), use.names = FALSE)
+      )
+      , poisson = empty_frame(c("mat", "row", "col", "default"))
+      , sum_of_squares = empty_frame(c("mat", "row", "col", "default"))
+    )
+  }
+  
+  self$cond_params_frame = function() {
+    nms = self$global_names()
+    data.frame(
+        mat = nms$cond_params
+      , row = rep(0L, length(self$outputs()))
+      , col = rep(0L, length(self$outputs()))
+    )
+    switch(
+        getOption("macpan2_default_loss")[1L]
+      , clamped_poisson = empty_frame(c("mat", "row", "col", "default"))
+      , neg_bin = data.frame(
+          mat = nms$distr_params
+        , row = rep(0L, length(self$outputs()))
+        , col = rep(0L, length(self$outputs()))
         , default = unlist(self$distr_params(), use.names = FALSE)
       )
       , poisson = empty_frame(c("mat", "row", "col", "default"))
@@ -718,23 +928,14 @@ TMBTraj = function(
   
   self$check_assumptions = function(orig_spec, data_struc) {
     spec_mats = names(orig_spec$all_matrices())
-    bad_traj = !self$traj %in% spec_mats
+    struc_mats = names(data_struc$matrix_list)
+    bad_traj = !struc_mats %in% spec_mats
     if (any(bad_traj)) {
       sprintf("%s (including %s) %s:\n     %s"
         , "Requested trajectories"
-        , paste0(self$traj[bad_traj], collapse = ", ")
+        , paste0(struc_mats[bad_traj], collapse = ", ")
         , "are not available in the model spec, which includes the following"
         , paste(spec_mats, collapse = ", ")
-      ) |> stop()
-    }
-    
-    bad_traj = !self$traj %in% names(data_struc$matrix_list)
-    if (any(bad_traj)) {
-      sprintf("%s (including %s) %s:\n     %s"
-        , "Requested trajectories"
-        , paste0(self$traj[bad_traj], collapse = ", ")
-        , "are not available in the data, which includes the following"
-        , paste(names(data_struc$matrix_list), collapse = ", ")
       ) |> stop()
     }
     NULL
@@ -743,8 +944,123 @@ TMBTraj = function(
   return_object(self, "TMBTraj")
 }
 
-TMBPar = function(
-        par = character()
+TMBTraj.list = function(traj
+    , struc
+    , existing_global_names = character()) {
+  TMBTraj(
+      mp_traj(likelihood = traj)
+    , struc
+    , existing_global_names
+  )
+}
+
+TMBTraj.TrajArg = function(traj
+      , struc
+      , existing_global_names = character()) {
+    
+  self = TMBTraj(names(traj$likelihood), struc, existing_global_names)
+  self$arg = traj
+  
+  ## A list of matrices containing 
+  ## observed trajectories with names of this 
+  ## list given by the 
+  ## output variable being matched.
+  #self$obs = function() list()
+  
+  ## A list of integers containing
+  ## time steps at which observed trajectories are not missing.
+  ## The names of this list match the output variable being
+  ## matched.
+  #self$obs_times = function() list()
+  
+  ## A list describing matrices that parameterize (1) the shape 
+  ## and scale of likelihood functions for the trajectories
+  ## and (2) condensation steps (e.g. convolution, sum of boxes)
+  ## The names of the outer list describe an output variable.
+  ## Sometimes this output variable is in the original spec
+  ## and other times it is a condensation of the output variables
+  ## in the spec.
+  self$distr_params_struc = function() {
+    method_apply(self$arg$likelihood, "distr_params")
+  }
+  self$distr_params = function() {
+    dps = self$distr_params_struc()
+    setNames(
+      unlist(dps, recursive = FALSE), 
+      make_nested_names(dps)
+    )
+  }
+  #self$cond_params = function() list()
+  #self$cond_exprs = function() list()
+  
+  ## return a list character vectors giving
+  ## expressions for computing trajectories
+  ## via condensation steps
+  # self$obj_fn_traj_exprs = function() character()
+  
+  ## return a character vector of terms in
+  ## the objective function. These will be concatenated
+  ## without any separating operators (plus/minus etc 
+  ## need to be handled in the expression).
+  self$obj_fn_expr_chars = function() {
+    nms = self$global_names()
+    nms_struc = globalize_struc_names(self, "distr_params")
+    traj_nms = self$outputs()
+    y = character()
+    for (i in seq_along(traj_nms)) {
+      nm = traj_nms[i]
+      ll = self$arg$likelihood[[nm]]
+      args = as.list(
+        c(
+              nms$obs[i], nms$sim[i]
+            , unlist(nms_struc[[nm]], use.names = FALSE)
+        )
+      )
+      y = c(y, do.call(ll$expr_char, args))
+    }
+    y
+  }
+  
+  ## data frames describing the fixed and random effects corresponding
+  ## to distributional parameters
+  self$distr_params_frame = function() {
+    (self
+      |> globalize("distr_params")
+      |> melt_default_matrix_list(FALSE)
+      |> rename_synonyms(mat = "matrix", default = "value")
+    )
+  }
+  #self$distr_random_frame = function() self$empty_params_frame
+  #self$cond_params_frame = function() self$empty_params_frame
+  #self$cond_random_frame = function() self$empty_params_frame
+  
+  return_object(self, "TMBTraj")
+}
+
+TMBPar = function(par
+      , tv, traj, spec
+      , existing_global_names = character()
+    ) UseMethod("TMBPar")
+
+TMBPar.ParArg = function(par
+      , tv, traj, spec
+      , existing_global_names = character()
+    ) {
+  stop("under construction")
+}
+
+TMBPar.list = function(par
+      , tv, traj, spec
+      , existing_global_names = character()
+    ) {
+  TMBPar(
+      mp_par(param = par)
+    , tv, traj, spec
+    , existing_global_names
+  )
+}
+
+TMBPar.character = function(par
       , tv, traj, spec
       , existing_global_names = character()
     ) {
@@ -785,7 +1101,7 @@ TMBPar = function(
         , paste0(pnms[bad_pars], collapse = ", ")
         , "are either not available in the model spec, which includes the following"
         , paste(spec_mats, collapse = ", ")
-        , "or cannot be fit because they are not default model parameters. See "
+        , "\nor cannot be fit because they are not default model parameters. See "
         , "mp_default(spec) for all default model parameters."
       ) |> stop()
     }
@@ -815,13 +1131,32 @@ TMBPar = function(
 ## @examples
 ## if sir is an object and pars is a no-op method returning a named object,
 ## then one may replace sir$pars() for globalize(sir, "pars") and get 
-## the global names out
+## an object with the same values as sir$pars() but with global names.
 ## 
 globalize = function(obj, type) setNames(obj[[type]](), obj$global_names()[[type]])
 
+## some object components with globalized names have a structured version
+## called {type}_struc. This version distributes the elements of obj[[type]]()
+## amongst the elements of a list returned by obj[[{type}_struc]](). we can 
+## put these global names into the structured list so that we can get the 
+## globalized names from the structure using local names, as easily as we
+## can get the values from the structure using local names.
+globalize_struc_names = function(obj, type) {
+  relist(
+      obj$global_names()[[type]]
+    , obj[[sprintf("%s_struc", type)]]()
+  )
+}
+
 ## combines character vectors and turns them into a one-sided formula
 sum_obj_terms = function(...) {
-  c(...) |> paste(collapse = " ") |> one_sided()
+  terms = c(...)
+  if (length(terms) == 0L) { ## if there are no terms, the objective function is just 0
+    str = "0"
+  } else {
+    str = paste(terms, collapse = " ")
+  }
+  one_sided(str)
 }
 
 

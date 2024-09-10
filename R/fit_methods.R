@@ -57,15 +57,49 @@ mp_add_effects_descr = function(coef_table, model) {
 #' TMB Model Coefficient Table
 #'
 #' @param model Object that contains information about model coefficients.
+#' @param back_transform A boolean to indicate if model coefficients should be 
+#' back transformed to display their defaults, estimates, and confidence 
+#' intervals on the original scale. Coefficient names are also stripped of their
+#' transformation identifier. Currently, this back transformation only 
+#' applies to log transformed coefficients that have been named with "log_" 
+#' prefix or logit transformed coefficients that have been named with "logit_" 
+#' prefix. Back transformation also applies to time varying parameters and 
+#' distributional parameters that get automatic prefixes when used. `back_transform`
+#' defaults to `TRUE`.
 #' @param ... Arguments to pass onto the `broom.mixed::tidy.TMB` method.
 #' @returns A data frame that describes the fitted coefficients.
 #' @export
-mp_tmb_coef = function(model, ...) UseMethod("mp_tmb_coef")
+mp_tmb_coef = function(model, back_transform = TRUE, ...) UseMethod("mp_tmb_coef")
 
 #' @export
-mp_tmb_coef.TMBSimulator = function(model, ...) {
+mp_tmb_coef.TMBSimulator = function(model, back_transform = TRUE, ...) {
   assert_dependency("broom.mixed")
   tab = mp_add_effects_descr(broom.mixed::tidy(mp_tmb(model), ...), model)
+  
+  if (back_transform){
+    vars1 <- intersect(c("default", "estimate", "conf.low", "conf.high"), names(tab))
+    # regex matching log or logit transformed model coefficient/parameter names 
+    # including time varying parameters and distributional parameters
+    transformed_coef_name = "(^time_var_|^distr_params_|^)(log(it)?_)"
+    
+    cap_grp_names = data.frame(automatic_prefix = character() # might not need this group now
+                       , transform = character()
+                       , unnecessary_grp = character() # should remove this group
+                       )
+    cap_grp = strcapture(transformed_coef_name, tab[["mat"]], cap_grp_names, perl = TRUE)
+    cap_grp[is.na(cap_grp)] <- ""
+    prefix = cap_grp[["transform"]]
+    tab <- split(tab, prefix)
+    for (ptype in setdiff(names(tab), "")) {
+      link <- make.link(gsub("_","",ptype))
+      tab[[ptype]][["std.error"]] = link$mu.eta(tab[[ptype]][["estimate"]])*tab[[ptype]][["std.error"]]
+      tab[[ptype]][vars1] = lapply(tab[[ptype]][vars1],link$linkinv)
+      # restore original coefficient name
+      orig_coef_name = gsub(ptype,"",tab[[ptype]][["mat"]])
+      tab[[ptype]][["mat"]] = gsub(ptype,"",tab[[ptype]][["mat"]])
+    }
+    tab = bind_rows(tab)
+  }
   tab
 }
 

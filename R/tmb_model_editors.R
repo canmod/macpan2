@@ -8,7 +8,7 @@
 #' for the new expressions, whereas the latter overwrites existing expressions
 #' using the new expressions. The treatment of new `default` values and 
 #' `integers` is the same. The examples below clarify this difference.
-#' Note that `mp_tmb_delete` does not contain at `expressions` argument,
+#' Note that `mp_tmb_delete` does not contain an `expressions` argument,
 #' because it is not necessary to specify new expressions in the case
 #' of deletion.
 #' 
@@ -83,6 +83,7 @@ mp_tmb_insert = function(model
     , must_not_save = character()
     , sim_exprs = character()
   ) {
+  model = assert_cls(model, "TMBModelSpec", match.call(), "?mp_tmb_model_spec")
   valid$char1$check(phase)
   at = valid$num1$assert(at)
   
@@ -120,6 +121,7 @@ mp_tmb_update = function(model
     , must_not_save = character()
     , sim_exprs = character()
   ) {
+  model = assert_cls(model, "TMBModelSpec", match.call(), "?mp_tmb_model_spec")
   valid$char1$check(phase)
   at = valid$num1$assert(at)
   
@@ -129,7 +131,7 @@ mp_tmb_update = function(model
   model[["default"]][names(default)] = default
   model[["integers"]][names(integers)] = integers
   model$must_save  = unique(c(model$must_save, must_save))
-  model$must_not_save  = unique(c(model$must_not_save, must_not_save))
+  model$must_not_save = unique(c(model$must_not_save, must_not_save))
   model$sim_exprs  = unique(c(model$sim_exprs, sim_exprs))
   
   mp_tmb_model_spec(
@@ -156,6 +158,7 @@ mp_tmb_delete = function(model
     , must_not_save = character()
     , sim_exprs = character()
   ) {
+  model = assert_cls(model, "TMBModelSpec", match.call(), "?mp_tmb_model_spec")
   if (!phase %in% c("before", "during", "after")) {
     stop("The simulation phase must be one of before, during, or after.")
   }
@@ -180,6 +183,68 @@ mp_tmb_delete = function(model
     , state_update = model$state_update
   )
 }
+
+#' Insert Reports
+#' 
+#' A version of \code{\link{mp_tmb_insert}} making it more convenient to
+#' transform an incidence variable into a reports variable, which accounts 
+#' for reporting delays and under-reporting. This new reports variable is
+#' a convolution of the simulation history of an incidence variable with 
+#' a kernel that is proportional to a Gamma distribution of reporting
+#' delay times.
+#' 
+#' @param model A model produced by \code{\link{mp_tmb_model_spec}}.
+#' @param incidence_name Name of the incidence variable to be transformed.
+#' @param report_prob Value to use for the reporting probability; the
+#' proportion of cases that get reported.
+#' @param mean_delay Mean of the Gamma distribution of reporting delay times.
+#' @param cv_delay Coefficient of variation of the Gamma distribution of
+#' reporting delay times.
+#' @param reports_name Name of the new reports variable.
+#' @param report_prob_name Name of the variable containing `report_prob`.
+#' @param mean_delay_name Name of the variable containing `mean_delay`.
+#' @param cv_delay_name Name of the variable containing `cv_delay`.
+#' @export
+mp_tmb_insert_reports = function(model
+  , incidence_name
+  , report_prob
+  , mean_delay
+  , cv_delay
+  , reports_name = sprintf("reported_%s", incidence_name)
+  , report_prob_name = sprintf("%s_report_prob", incidence_name)
+  , mean_delay_name = sprintf("%s_mean_delay", incidence_name)
+  , cv_delay_name = sprintf("%s_cv_delay", incidence_name)
+) {
+  model = assert_cls(model, "TMBModelSpec", match.call(), "?mp_tmb_model_spec")
+  local_names = c(dist = "dist", delta = "delta", kernel = "kernel")
+  map = model$name_map(local_names)
+  default = setNames(
+      list(report_prob, mean_delay, cv_delay)
+    , c(report_prob_name, mean_delay_name, cv_delay_name)
+  )
+  
+  cv2 = cv_delay^2
+  shape = 1 / cv2
+  scale = mean_delay * cv2
+  kernel_length = qgamma(0.95, shape, scale = scale) |> ceiling() |> as.integer()
+
+  expressions = c(
+      sprintf("%s ~ pgamma(1:%s, 1/(%s), %s * (%s^2))", map$dist, kernel_length + 1L, cv_delay_name, mean_delay_name, cv_delay_name)
+    , sprintf("%s ~ %s[1:%s] - %s[0:%s]", map$delta, map$dist, kernel_length, map$dist, kernel_length - 1L)
+    , sprintf("%s ~ %s * %s / sum(%s)", map$kernel, report_prob_name, map$delta, map$delta)
+    , sprintf("%s ~ convolution(%s, %s)", reports_name, incidence_name, map$kernel)
+  ) |> lapply(as.formula)
+  
+  mp_tmb_insert(model
+    , phase = "during"
+    , at = Inf
+    , expressions = expressions
+    , default = default
+    , must_save = reports_name
+    , must_not_save = unlist(map, use.names = FALSE)
+  )
+}
+
 
 ## model is a spec
 ## new_defaults is a list of raw defaults, each type of which has a `names` S3 method

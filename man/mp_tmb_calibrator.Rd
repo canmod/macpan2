@@ -26,13 +26,16 @@ time-varying parameters. The data must be of the same format as that
 produced by \code{\link{mp_trajectory}}.}
 
 \item{traj}{A character vector giving the names of trajectories to fit
-to data.}
+to data, or a named list of likelihood distributions specified with
+\code{\link{mp_normal}}, \code{\link{mp_log_normal}}, \code{\link{mp_neg_bin}},
+or \code{\link{mp_poisson}} for each trajectory.}
 
 \item{par}{A character vector giving the names of parameters, either
 time-varying or not, to fit using trajectory match.}
 
 \item{tv}{A character vector giving the names of parameters to make
-time-varying according to the values in \code{data}.}
+time-varying according to the values in \code{data}, or a radial basis
+function specified with \code{\link{mp_rbf}}.}
 
 \item{outputs}{A character vector of outputs that will be generated
 when \code{\link{mp_trajectory}}, \code{\link{mp_trajectory_sd}}, or

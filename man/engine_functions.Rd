@@ -52,6 +52,9 @@
 \alias{reulermultinom}
 \alias{round}
 \alias{pgamma}
+\alias{mean}
+\alias{sd}
+\alias{proportions}
 \title{Engine Functions}
 \description{
 Functions currently supported by the C++ TMB engine
@@ -137,12 +140,15 @@ engine_eval(~ 1 / (1 - y), y = 1/4)
 \item \code{log(x)} -- Natural logarithm
 \item \code{exp(x)} -- Exponential function
 \item \code{cos(x)} -- Cosine function
+\item \code{proportions(x, limit, eps)} -- matrix of \code{x / sum(x)} or \code{rep(limit, length(x))} if \code{sum(x) < eps}
 }
 }
 
 \subsection{Arguments}{
 \itemize{
 \item \code{x} -- Any matrix
+\item \code{limit} -- numeric value to return elementwise from \code{proportions} if \code{sum(x) < eps}
+\item \code{eps} -- numeric tolerance for \code{sum(x)}
 }
 }
 
@@ -441,8 +447,7 @@ this group and the output at index \code{k+1} is \code{n[k+1]}.
 
 \subsection{Return}{
 \itemize{
-\item A matrix containing sums of various groups of
-the elements of \code{x}.
+\item A matrix containing sums of subsets of the inputs.
 }
 }
 
@@ -630,8 +635,8 @@ sims = simple_sims(
     j ~ time_group(j, change_points),
     time_varying_parameter ~ time_variation_schedule[j]
   ),
-  time_steps = 10,
   mats = list(
+    time_steps = 10,
     j = 0,
     change_points = c(0, 4, 7),
     time_variation_schedule = c(42, pi, sqrt(2)),
@@ -642,11 +647,10 @@ set.seed(1L)
 change_points = c(0,2,5)
 x_val = rnorm(length(change_points))
 (simple_sims(
-  iteration_exprs = list(x ~ time_var(x_val,change_points))
-, int_vecs = list(change_points = change_points)
-, mats = list(x = empty_matrix, x_val=x_val) 
-, time_steps = 10L
-  ) |> dplyr::filter(matrix=="x")
+      iteration_exprs = list(x ~ time_var(x_val,change_points))
+    , int_vecs = list(change_points = change_points, time_steps = 10L)
+    , mats = list(x = empty_matrix, x_val=x_val) 
+  ) |> filter(matrix=="x")
 )
 }\if{html}{\out{</div>}}
 }
