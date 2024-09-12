@@ -406,6 +406,9 @@ make_nested_names = function(x) {
     nms_x = nms_x[-null_loc]
   }
   nms = mapply(sprintf, nested_nms, nms_x, MoreArgs = list(fmt = "%s_%s"))
+  if (length(nms) == 0){
+    nms = character()
+  }
   make.unique(nms, sep = "_")
 }
 
