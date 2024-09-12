@@ -493,6 +493,11 @@ TMBParAbstract = function() {
   self$params_frame = function() self$empty_params_frame
   self$random_frame = function() self$empty_params_frame
   
+  ## list of distributional parameters corresponding to parameters
+  ## specified with priors
+  self$distr_params = function() list()
+  self$distr_params_frame = function() self$empty_params_frame
+  
   return_object(self, "TMBParAbstract")
 }
 
@@ -1058,8 +1063,8 @@ TMBPar.ParArg = function(par
       , tv, traj, spec
       , existing_global_names = character()
     ) {
-  self = TMBPar(names(par))
-  
+  self = TMBPar(names(par$param), tv, traj, spec, existing_global_names)
+  self$arg = par
   
   ## from TMBParAbstract
   ## --------------------------------------
@@ -1069,10 +1074,22 @@ TMBPar.ParArg = function(par
   ## list of expressions to be placed at the beginning of the
   ## before phase, each of which computes the inverse transform
   ## of a parameter matrix to compute the untransformed matrix.
-  self$inv_trans_exprs = function() list()
+  self$inv_trans_exprs = function() list() #empty
   
-  self$trans_vars = function() list()
-  self$hyperparams = function() list()
+  #self$trans_vars = function() list() #inherited from character (but think they are empty)
+  #self$hyperparams = function() list() #inherited from character (but think they are empty)
+  
+  
+  self$distr_params_struc = function() {
+    method_apply(self$arg$param, "distr_params")
+  }
+  self$distr_params = function() {
+    dps = self$distr_params_struc()
+    setNames(
+      unlist(dps, recursive = FALSE), 
+      make_nested_names(dps)
+    )
+  }
   
   ## character vector of signed expressions that give components
   ## of the prior distribution on the negative log scale. these
@@ -1081,11 +1098,43 @@ TMBPar.ParArg = function(par
   ## the objective function expression. the 'signed' part means
   ## that - or + must appear before every term because these 
   ## expressions are going to be space-pasted.
-  self$prior_expr_chars = function() character()
+  self$prior_expr_chars = function() {
+    nms = self$arg$param # what about tv_par
+    nms_struc = globalize_struc_names(self, "distr_params")
+    par_nms = names(nms)
+    y = character()
+    # which distributions in traj have no distribution parameters
+    # (only uniform distribution at the moment)
+    empty_distr_par = which(sapply(nms_struc,length) == 0)
+    if (length(empty_distr_par) > 0){
+      # remove these traj from objective function expression
+      # does this make sense in general
+      # (should these likelihoods still accept sim_ and obs_ vars)
+      par_nms = par_nms[-empty_distr_par]
+      nms_struc = nms_struc[-empty_distr_par]
+      nms$obs = nms$obs[-empty_distr_par] 
+      nms$sim = nms$sim[-empty_distr_par]
+    }
+    for (i in seq_along(par_nms)) {
+      nm = par_nms[i]
+      # where is ll, self$arg$param[[nm]]$expr_char() or 
+      # should maybe use  self$arg$param[[nm]]$expr_char_prior()
+      ll = self$arg$likelihood[[nm]]
+      args = as.list(
+        c(
+          nms$obs[i], nms$sim[i]
+          , unlist(nms_struc[[nm]], use.names = FALSE)
+        )
+      )
+      y = c(y, do.call(ll$expr_char, args))
+    }
+    y
+    
+  }
   
   ## data frames describing the fixed and random effects
-  self$params_frame = function() self$empty_params_frame
-  self$random_frame = function() self$empty_params_frame
+  #self$params_frame = function() self$empty_params_frame #inherited from character 
+  #self$random_frame = function() self$empty_params_frame #inherited from character
   ## --------------------------------------
 }
 
@@ -1117,7 +1166,7 @@ TMBPar.character = function(par
   self$tv_par = intersect(par, tv_names)
   
   self$local_names = function() {
-    make_names_list(self, c("trans_vars", "hyperparams"))
+    make_names_list(self, c("trans_vars", "hyperparams", "distr_params"))
   }
   
   self$params_frame = function() {
