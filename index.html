@@ -97,7 +97,12 @@
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://canmod.github.io/macpan2/">macpan2</a></span><span class="op">)</span></span>
 <span><span class="va">si</span> <span class="op">=</span> <span class="fu"><a href="reference/mp_tmb_model_spec.html">mp_tmb_model_spec</a></span><span class="op">(</span></span>
 <span>    before <span class="op">=</span> <span class="va">S</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">-</span> <span class="va">I</span></span>
-<span>  , during <span class="op">=</span> <span class="fu"><a href="reference/mp_per_capita_flow.html">mp_per_capita_flow</a></span><span class="op">(</span><span class="st">"S"</span>, <span class="st">"I"</span>, <span class="st">"beta * I"</span>, <span class="st">"infection"</span><span class="op">)</span></span>
+<span>  , during <span class="op">=</span> <span class="fu"><a href="reference/mp_per_capita_flow.html">mp_per_capita_flow</a></span><span class="op">(</span></span>
+<span>        from     <span class="op">=</span> <span class="st">"S"</span>         <span class="co">## compartment from which individuals flow</span></span>
+<span>      , to       <span class="op">=</span> <span class="st">"I"</span>         <span class="co">## compartment to which individuals flow</span></span>
+<span>      , rate     <span class="op">=</span> <span class="st">"beta * I"</span>  <span class="co">## expression giving _per-capita_ flow rate</span></span>
+<span>      , abs_rate <span class="op">=</span> <span class="st">"infection"</span> <span class="co">## name for _absolute_ flow rate = beta * I * S</span></span>
+<span>    <span class="op">)</span></span>
 <span>  , default <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>I <span class="op">=</span> <span class="fl">0.01</span>, beta <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/engine_functions.html">print</a></span><span class="op">(</span><span class="va">si</span><span class="op">)</span></span></code></pre></div>
