@@ -53,7 +53,7 @@ make_expr_parser = function(
     finalizer = force  # the identity finalizer is the default
   ) {
 
-  if (!is.null(parser_name)) {
+  if (!is.null(parser_name) & interactive()) {
     warning("This parser_name argument is here for back-compatibility only, and will be removed in future versions of macpan2.")
   }
 
