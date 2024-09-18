@@ -2,7 +2,7 @@
 % Please edit documentation in R/distributions.R
 \name{mp_normal}
 \alias{mp_normal}
-\title{Normal Distributon}
+\title{Normal Distribution}
 \usage{
 mp_normal(location = NULL, sd = 1)
 }
@@ -15,5 +15,5 @@ and so this \code{location} parameter should be left \code{NULL}.}
 \item{sd}{Standard deviation parameter.}
 }
 \description{
-Normal Distributon
+Normal Distribution
 }

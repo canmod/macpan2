@@ -4,7 +4,7 @@
 \alias{mp_poisson}
 \title{Poisson Distribution}
 \usage{
-mp_poisson()
+mp_poisson(location = NULL)
 }
 \description{
 Poisson Distribution
