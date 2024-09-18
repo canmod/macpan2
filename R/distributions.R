@@ -22,21 +22,52 @@
 ##      component, as a prior)
 ## the default will be #3
 DistrSpec = function(...) {
-  args = capture_args(...)
   self = Base()
-  self$default = args
-  self$distr_params = \() list()
+  self$set_name = function(name) {
+    self$name = name
+    self
+  }
+  self$name = self$set_name("variable")
+  self$default = list(...)
+  self$hyper_param_nms = function() {
+    i = vapply(self$default, inherits, logical(1L), "DistrSpec")
+    names(self$default)[i]
+  }
+  self$distr_params = \() {
+    x = self$default
+    hnms = self$hyper_param_nms()
+    x[hnms] = sprintf("%s_%s", self$name, hnms)
+    x
+  }
+  self$hyper_params = \() {
+    x = self$default[self$hyper_param_nms()]
+    if (any(vapply(x, inherits, logical(1L), "DistrSpec"))) {
+      stop("Hyperparameters cannot themselves have hyperparameters")
+    }
+    x
+  }
   self$prior = \(variable) character()
   self$likelihood = \(variable) character()
   return_object(self, "DistrSpec")
 }
-capture_args = function(f) {
-  print(ls())
-  force(as.list(environment()))
+init_distr_spec = function() {
+  eval(
+    expr(
+      do.call(
+          DistrSpec
+        , as.list(environment())
+      )
+    )
+    , parent.frame()
+  )
 }
-capture_args(f = 1)
-xx = DistrSpec(f = 1)
-xx$default
+test = function(location, sd) {
+  self = init_distr_spec()
+  return_object(self, "TestTest")
+}
+jj = test(location = "mean_beta", sd = test(1, 2))$set_name("beta")
+jj$distr_params()
+jj$hyper_param_nms()
 mp_normal(location = 0, sd = mp_log_normal())
 
 #' Uniform Distribution (Improper)
