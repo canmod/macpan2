@@ -1076,10 +1076,6 @@ TMBPar.ParArg = function(par
   ## of a parameter matrix to compute the untransformed matrix.
   self$inv_trans_exprs = function() list() #empty
   
-  #self$trans_vars = function() list() #inherited from character (but think they are empty)
-  #self$hyperparams = function() list() #inherited from character (but think they are empty)
-  
-  
   self$distr_params_struc = function() {
     method_apply(self$arg$param, "distr_params")
   }
@@ -1103,30 +1099,31 @@ TMBPar.ParArg = function(par
     nms_struc = globalize_struc_names(self, "distr_params")
     par_nms = names(nms)
     y = character()
-    # which distributions in traj have no distribution parameters
+    # which distributions in par have no distribution parameters
     # (only uniform distribution at the moment)
     empty_distr_par = which(sapply(nms_struc,length) == 0)
+    # should this if statement be here - will "0" expr_char for 
+    # uniform remove the need for this
     if (length(empty_distr_par) > 0){
       # remove these traj from objective function expression
       # does this make sense in general
-      # (should these likelihoods still accept sim_ and obs_ vars)
       par_nms = par_nms[-empty_distr_par]
       nms_struc = nms_struc[-empty_distr_par]
-      nms$obs = nms$obs[-empty_distr_par] 
-      nms$sim = nms$sim[-empty_distr_par]
+
     }
     for (i in seq_along(par_nms)) {
       nm = par_nms[i]
-      # where is ll, self$arg$param[[nm]]$expr_char() or 
+
       # should maybe use  self$arg$param[[nm]]$expr_char_prior()
-      ll = self$arg$likelihood[[nm]]
-      args = as.list(
-        c(
-          nms$obs[i], nms$sim[i]
-          , unlist(nms_struc[[nm]], use.names = FALSE)
+      y = c(y, do.call(
+        self$arg$param[[nm]]$expr_char
+          , c(
+            nm
+            , list(location = self$arg$param[[nm]]$location)
+            , self$arg$param[[nm]]$distr_params()
+          )
         )
       )
-      y = c(y, do.call(ll$expr_char, args))
     }
     y
     
@@ -1136,6 +1133,7 @@ TMBPar.ParArg = function(par
   #self$params_frame = function() self$empty_params_frame #inherited from character 
   #self$random_frame = function() self$empty_params_frame #inherited from character
   ## --------------------------------------
+  return_object(self, "TMBPar")
 }
 
 TMBPar.list = function(par

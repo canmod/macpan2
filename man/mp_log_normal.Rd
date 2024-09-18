@@ -4,10 +4,13 @@
 \alias{mp_log_normal}
 \title{Log-Normal Distribution}
 \usage{
-mp_log_normal(sd)
+mp_log_normal(location = NULL, sd = 1)
 }
 \arguments{
-\item{sd}{Standard deviation parameter.}
+\item{location}{Location parameter for the log-normal distribution.}
+
+\item{sd}{Standard deviation parameter for the normal distribution. The
+standard deviation of the log-normal distribution is \code{log_sd = log(sd)}.}
 }
 \description{
 Log-Normal Distribution
