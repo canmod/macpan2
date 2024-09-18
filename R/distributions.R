@@ -21,14 +21,23 @@
 ##      depending on context (e.g., as a likelihood 
 ##      component, as a prior)
 ## the default will be #3
-DistrSpec = function() {
+DistrSpec = function(...) {
+  args = capture_args(...)
   self = Base()
-  self$default = list()
+  self$default = args
   self$distr_params = \() list()
   self$prior = \(variable) character()
   self$likelihood = \(variable) character()
   return_object(self, "DistrSpec")
 }
+capture_args = function(f) {
+  print(ls())
+  force(as.list(environment()))
+}
+capture_args(f = 1)
+xx = DistrSpec(f = 1)
+xx$default
+mp_normal(location = 0, sd = mp_log_normal())
 
 #' Uniform Distribution (Improper)
 #' @export

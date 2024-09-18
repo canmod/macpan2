@@ -371,7 +371,7 @@ NameHandlerAbstract = function() {
   }
   
   ## check_assumptions has no return value. while running
-  ## it is allowed to through messages, warnings, errors,
+  ## it is allowed to throw messages, warnings, errors,
   ## or none of the above. it takes a spec object for
   ## comparison, which is useful especially if it has an internal
   ## spec object that is different.
@@ -681,17 +681,6 @@ TMBTV.RBFArg = function(
   self$data_time_ids = struc$data_time_ids
   self$par_name = tv$tv
   self$prior_sd_default = tv$prior_sd
-  
-  ## FIXME: an alternative version is defined below!
-  # self$local_names = function() {
-  #   list(
-  #       outputs = sprintf("rbf_outputs_%s", self$par_name)
-  #     , values = sprintf("rbf_values_%s", self$par_name)
-  #     , weights = sprintf("rbf_weights_%s", self$par_name)
-  #     , rows = sprintf("rbf_rows_%s", self$par_name)
-  #     , cols = sprintf("rbf_cols_%s", self$par_name)
-  #   )
-  # }
   
   self$time_var = function() {
     setNames(list(self$initial_weights), self$par_name)
@@ -1033,6 +1022,7 @@ TMBTraj.TrajArg = function(traj
             , unlist(nms_struc[[nm]], use.names = FALSE)
         )
       )
+      browser()
       y = c(y, do.call(ll$expr_char, args))
     }
     y
@@ -1119,18 +1109,22 @@ TMBPar.ParArg = function(par
       nm = par_nms[i]
       # where is ll, self$arg$param[[nm]]$expr_char() or 
       # should maybe use  self$arg$param[[nm]]$expr_char_prior()
-      ll = self$arg$likelihood[[nm]]
+      ll = self$arg$param[[nm]]
+      ll = ll$distr_params()
       args = as.list(
         c(
-          nms$obs[i], nms$sim[i]
+            nms$obs[i]
+          , ll$location
           , unlist(nms_struc[[nm]], use.names = FALSE)
         )
       )
+      browser()
       y = c(y, do.call(ll$expr_char, args))
     }
     y
     
   }
+  return_object(self, "TMBPar")
   
   ## data frames describing the fixed and random effects
   #self$params_frame = function() self$empty_params_frame #inherited from character 
