@@ -85,7 +85,7 @@ mp_tmb_calibrator = function(spec, data
   cal_spec = mp_tmb_update(cal_spec, default = default)
   
   struc = TMBCalDataStruc(data, time)
-  traj = TMBTraj(traj, struc, cal_spec$all_formula_vars())
+  traj = TMBTraj(traj, struc, cal_spec, cal_spec$all_formula_vars())
   tv = TMBTV(tv, struc, cal_spec, traj$global_names_vector())
   par = TMBPar(par, tv, traj, cal_spec, tv$global_names_vector())
   
@@ -801,25 +801,29 @@ mp_gamma_conv = function(height, mean, cv) {
 
 TMBTraj = function(traj
       , struc # = TMBCalDataStruc()
+      , spec
       , existing_global_names = character()
 ) {
   UseMethod("TMBTraj")
 }
 
 TMBTraj.function = function(        
-      traj # function that takes a struc and existing_global_names and returns a TMBTraj object
+      traj # function that takes a struc, spec, and existing_global_names and returns a TMBTraj object
     , struc # = TMBCalDataStruc()
+    , spec
     , existing_global_names = character()
   ) {
-  traj(struc, existing_global_names)
+  traj(struc, spec, existing_global_names)
 }
 
 TMBTraj.character = function(
         traj = character()
       , struc # = TMBCalDataStruc()
+      , spec
       , existing_global_names = character()
     ) {
   self = TMBTrajAbstract()
+  self$spec = spec
   self$existing_global_names = existing_global_names
   
   ## internal data structure:
@@ -940,20 +944,32 @@ TMBTraj.character = function(
 
 TMBTraj.list = function(traj
     , struc
+    , spec
     , existing_global_names = character()) {
   TMBTraj(
       mp_traj(likelihood = traj)
     , struc
+    , spec
     , existing_global_names
   )
 }
 
 TMBTraj.TrajArg = function(traj
       , struc
+      , spec
       , existing_global_names = character()) {
     
-  self = TMBTraj(names(traj$likelihood), struc, existing_global_names)
+  self = TMBTraj(names(traj$likelihood), struc, spec, existing_global_names)
   self$arg = traj
+  
+  self$update_traj_nms = function() {
+    ll = self$arg$likelihood
+    for (nm in names(ll)) ll[[nm]]$remove_location_parameter()
+    for (nm in names(ll)) ll[[nm]]$update_variable_name(nm)
+    for (nm in names(ll)) ll[[nm]]$update_model_spec(self$spec)
+  }
+  self$update_traj_nms()
+  self$update_traj_nms = NULL  ## burn the bridge behind you
   
   ## A list of matrices containing 
   ## observed trajectories with names of this 
@@ -974,16 +990,40 @@ TMBTraj.TrajArg = function(traj
   ## Sometimes this output variable is in the original spec
   ## and other times it is a condensation of the output variables
   ## in the spec.
+  # self$distr_params_struc = function() {
+  #   method_apply(self$arg$likelihood, "distr_params")
+  # }
   self$distr_params_struc = function() {
-    method_apply(self$arg$likelihood, "distr_params")
+    ll = self$arg$likelihood
+    method_apply(ll, "instance_names") |> setNames(names(ll))
   }
   self$distr_params = function() {
-    dps = self$distr_params_struc()
+    dps = method_apply(self$arg$likelihood, "distr_params")
+    nms = method_apply(self$arg$likelihood, "instance_names")
     setNames(
-      unlist(dps, recursive = FALSE), 
-      make_nested_names(dps)
+        unlist(dps, recursive = FALSE)
+      , unlist(nms, recursive = FALSE)
     )
   }
+  
+  ## instantiate names of the distribution parameters
+  ## associated with the trajectories with names that
+  ## do not conflict
+  self$update_global_distr_param_names = function() {
+    nms_struc = globalize_struc_names(self, "distr_params")
+    ll = self$arg$likelihood
+    for (nm in names(nms_struc)) {
+      dpo = ll[[nm]]$distr_param_objs
+      for (pnm in names(nms_struc[[nm]])) {
+        dpo[[pnm]]$update_global_name(nms_struc[[nm]][[pnm]])
+      }
+    }
+  }
+  self$update_global_distr_param_names()
+  self$update_global_distr_param_names = NULL  ## burn the bridge behind you
+  #nms_struc = globalize_struc_names(self, "distr_params")
+  
+  
   #self$cond_params = function() list()
   #self$cond_exprs = function() list()
   
@@ -998,32 +1038,12 @@ TMBTraj.TrajArg = function(traj
   ## need to be handled in the expression).
   self$obj_fn_expr_chars = function() {
     nms = self$global_names()
-    nms_struc = globalize_struc_names(self, "distr_params")
     traj_nms = self$outputs()
     y = character()
-    # which distributions in traj have no distribution parameters
-    # (only uniform distribution at the moment)
-    empty_distr_par = which(sapply(nms_struc,length) == 0)
-    if (length(empty_distr_par) > 0){
-      # remove these traj from objective function expression
-      # does this make sense in general
-      # (should these likelihoods still accept sim_ and obs_ vars)
-      traj_nms = traj_nms[-empty_distr_par]
-      nms_struc = nms_struc[-empty_distr_par]
-      nms$obs = nms$obs[-empty_distr_par] 
-      nms$sim = nms$sim[-empty_distr_par]
-    }
     for (i in seq_along(traj_nms)) {
       nm = traj_nms[i]
       ll = self$arg$likelihood[[nm]]
-      args = as.list(
-        c(
-              nms$obs[i], nms$sim[i]
-            , unlist(nms_struc[[nm]], use.names = FALSE)
-        )
-      )
-      browser()
-      y = c(y, do.call(ll$expr_char, args))
+      y = c(y, ll$likelihood(nms$obs[i], nms$sim[i]))
     }
     y
   }
@@ -1031,9 +1051,14 @@ TMBTraj.TrajArg = function(traj
   ## data frames describing the fixed and random effects corresponding
   ## to distributional parameters
   self$distr_params_frame = function() {
-    (self
-      |> globalize("distr_params")
-      |> melt_default_matrix_list(FALSE)
+    #(self
+      # globalize("distr_params")
+      # melt_default_matrix_list(FALSE)
+      # rename_synonyms(mat = "matrix", default = "value")
+    #)
+    (self$arg$likelihood
+      |> method_apply("distr_params_frame")
+      |> bind_rows()
       |> rename_synonyms(mat = "matrix", default = "value")
     )
   }
@@ -1056,6 +1081,14 @@ TMBPar.ParArg = function(par
   self = TMBPar(names(par$param), tv, traj, spec, existing_global_names)
   self$arg = par
   
+  self$update_par_nms = function() {
+    pp = self$arg$param
+    for (nm in names(pp)) pp[[nm]]$update_variable_name(nm)
+    for (nm in names(pp)) pp[[nm]]$update_model_spec(self$spec)
+  }
+  self$update_par_nms()
+  self$update_par_nms = NULL  ## burn the bridge behind you
+  
   ## from TMBParAbstract
   ## --------------------------------------
   ## These functions must be present in every
@@ -1067,14 +1100,43 @@ TMBPar.ParArg = function(par
   self$inv_trans_exprs = function() list() #empty
   
   self$distr_params_struc = function() {
-    method_apply(self$arg$param, "distr_params")
+    pp = self$arg$param
+    method_apply(pp, "instance_names") |> setNames(names(pp))
   }
   self$distr_params = function() {
-    dps = self$distr_params_struc()
+    dps = method_apply(self$arg$param, "distr_params")
+    nms = method_apply(self$arg$param, "instance_names")
     setNames(
-      unlist(dps, recursive = FALSE), 
-      make_nested_names(dps)
+        unlist(dps, recursive = FALSE)
+      , unlist(nms, recursive = FALSE)
     )
+  }
+  
+  ## instantiate names of the distribution parameters
+  ## associated with the model parameters with names that
+  ## do not conflict
+  self$update_global_distr_param_names = function() {
+    nms_struc = globalize_struc_names(self, "distr_params")
+    pp = self$arg$param
+    for (nm in names(nms_struc)) {
+      dpo = pp[[nm]]$distr_param_objs
+      for (pnm in names(nms_struc[[nm]])) {
+        dpo[[pnm]]$update_global_name(nms_struc[[nm]][[pnm]])
+      }
+    }
+  }
+  self$update_global_distr_param_names()
+  self$update_global_distr_param_names = NULL  ## burn the bridge behind you
+  
+  self$prior_expr_chars = function() {
+    par_nms = self$par
+    y = character()
+    for (i in seq_along(par_nms)) {
+      nm = par_nms[i]
+      pp = self$arg$param[[nm]]
+      y = c(y, pp$prior(nm))
+    }
+    y
   }
   
   ## character vector of signed expressions that give components
@@ -1084,40 +1146,40 @@ TMBPar.ParArg = function(par
   ## the objective function expression. the 'signed' part means
   ## that - or + must appear before every term because these 
   ## expressions are going to be space-pasted.
-  self$prior_expr_chars = function() {
-    nms = self$arg$param # what about tv_par
-    nms_struc = globalize_struc_names(self, "distr_params")
-    par_nms = names(nms)
-    y = character()
-    # which distributions in par have no distribution parameters
-    # (only uniform distribution at the moment)
-    empty_distr_par = which(sapply(nms_struc,length) == 0)
-    # should this if statement be here - will "0" expr_char for 
-    # uniform remove the need for this
-    if (length(empty_distr_par) > 0){
-      # remove these traj from objective function expression
-      # does this make sense in general
-      par_nms = par_nms[-empty_distr_par]
-      nms_struc = nms_struc[-empty_distr_par]
-
-    }
-    for (i in seq_along(par_nms)) {
-      nm = par_nms[i]
-
-      # should maybe use  self$arg$param[[nm]]$expr_char_prior()
-      y = c(y, do.call(
-        self$arg$param[[nm]]$expr_char
-          , c(
-            nm
-            , list(location = self$arg$param[[nm]]$location)
-            , self$arg$param[[nm]]$distr_params()
-          )
-        )
-      )
-    }
-    y
-    
-  }
+  # self$prior_expr_chars = function() {
+  #   nms = self$arg$param # what about tv_par
+  #   nms_struc = globalize_struc_names(self, "distr_params")
+  #   par_nms = names(nms)
+  #   y = character()
+  #   # which distributions in par have no distribution parameters
+  #   # (only uniform distribution at the moment)
+  #   empty_distr_par = which(sapply(nms_struc,length) == 0)
+  #   # should this if statement be here - will "0" expr_char for 
+  #   # uniform remove the need for this
+  #   if (length(empty_distr_par) > 0){
+  #     # remove these traj from objective function expression
+  #     # does this make sense in general
+  #     par_nms = par_nms[-empty_distr_par]
+  #     nms_struc = nms_struc[-empty_distr_par]
+  # 
+  #   }
+  #   for (i in seq_along(par_nms)) {
+  #     nm = par_nms[i]
+  # 
+  #     # should maybe use  self$arg$param[[nm]]$expr_char_prior()
+  #     y = c(y, do.call(
+  #       self$arg$param[[nm]]$expr_char
+  #         , c(
+  #           nm
+  #           , list(location = self$arg$param[[nm]]$location)
+  #           , self$arg$param[[nm]]$distr_params()
+  #         )
+  #       )
+  #     )
+  #   }
+  #   y
+  #   
+  # }
   
   ## data frames describing the fixed and random effects
   #self$params_frame = function() self$empty_params_frame #inherited from character 
