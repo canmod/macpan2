@@ -54,8 +54,16 @@ $$
 \frac{dE}{dt} &= S\frac{\beta I}{N(1 + (I \gamma f_D / \delta_c)^k)} - \mu E \\
 \frac{dI}{dt} &= \mu E- \gamma (1 - f_D) I \\
 \frac{dR}{dt} &= \gamma (1 - f_D) I \\
-\frac{dH}{dt} &= I \gamma f_D \\
+\frac{dH}{dt} &= I \gamma f_D - H \gamma_h\\
 \frac{dD}{dt} &= H \gamma_h \\
 \end{align*}
 $$
 
+
+# Longer Memory Awareness Model
+
+This model is identical to the [delayed death awareness model](#delayed-death-awareness-model), except that the factor $I \gamma f_D$ in the force of infection is replaced with a temporal convolution that takes a weighted average of past values with more recent values being weighted more heavily. See [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/awareness/tmb.R) for details.
+
+# Importation Awareness Model
+
+This model is identical to the [longer memory awareness model](#longer-memory-awareness-model) except that it includes random importations. These importations are simulated by drawing a Bernoulli random variable at each time step, adding it to the `I` box, and removing from the `R` box.
