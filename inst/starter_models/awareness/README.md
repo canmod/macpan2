@@ -41,8 +41,8 @@ $$
 \frac{dS}{dt} &= -S\frac{\beta I}{N(1 + (I \gamma f_D / \delta_c)^k)} \\
 \frac{dE}{dt} &= S\frac{\beta I}{N(1 + (I \gamma f_D / \delta_c)^k)} - \mu E \\
 \frac{dI}{dt} &= \mu E- \gamma (1 - f_D) I \\
-\frac{dR}{dt} &= \gamma (1 - f_D) I
-\frac{dD}{dt} &= I \gamma f_D
+\frac{dR}{dt} &= \gamma (1 - f_D) I \\
+\frac{dD}{dt} &= I \gamma f_D \\
 \end{align*}
 $$
 
