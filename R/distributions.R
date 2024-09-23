@@ -34,8 +34,9 @@
 #' knowledge is provided through the arguments in this method.
 #' 
 #' @noRd
-DistrParam = function(generic_name) {
+DistrParam = function(generic_name, trans = DistrParamTrans()) {
   self = Base()
+  self$trans = trans
   
   # Part A: Required Fields
   
@@ -69,7 +70,7 @@ DistrParam = function(generic_name) {
     self
   }
   self$update_names = function(name) {
-    self$variable_name = name ## e.g., "beta"
+    self$variable_name = self$trans$nm(name) ## e.g., "beta", or maybe "log_beta"
     self$instance_name = sprintf("%s_%s", self$generic_name, self$variable_name)
     self$global_name = self$instance_name
     self
@@ -110,8 +111,8 @@ DistrParam = function(generic_name) {
   ## section 4: what distributional parameters should be fitted by the
   ## calibration machinery?
   
-  self$distr_params_frame = function() macpan2:::empty_frame(c("mat", "row", "col", "default"))
-  self$distr_random_frame = function() macpan2:::empty_frame(c("mat", "row", "col", "default"))
+  self$distr_params_frame = function() empty_frame(c("mat", "row", "col", "default"))
+  self$distr_random_frame = function() empty_frame(c("mat", "row", "col", "default"))
   
   return_object(self, "DistrParam")
 }
@@ -179,7 +180,7 @@ DistrSpec = function() {
   self$distr_params_frame = function() {
     (self$distr_param_objs
       |> oor::method_apply("distr_params_frame")
-      |> macpan2:::bind_rows()
+      |> macpan2::bind_rows()
     )
   }
   
@@ -188,7 +189,7 @@ DistrSpec = function() {
   self$distr_random_frame = function() {
     (self$distr_param_objs
       |> oor::method_apply("distr_random_frame")
-      |> macpan2:::bind_rows()
+      |> macpan2::bind_rows()
     )
   }
   
@@ -246,6 +247,10 @@ DistrSpec = function() {
 #' @noRd
 DistrList = function(distr_list = list(), model_spec = mp_tmb_model_spec()) {
   
+  ## This class is all boilerplate and none of the methods should be thought
+  ## of as abstract, meaning that it is not meant to be extended by adding a
+  ## child class that adds new functionality.
+  
   # get context from the interface
   
   for (nm in names(distr_list)) distr_list[[nm]]$update_variable_name(nm)
@@ -299,7 +304,7 @@ DistrList = function(distr_list = list(), model_spec = mp_tmb_model_spec()) {
 
 DistrParamNum = function(generic_name, value) {
   self = DistrParam(generic_name)
-  self$.value = as.numeric(value)
+  self$.value = self$trans$val(as.numeric(value))
   if (any(is.na(self$.value))) {
     stop("This distributional parameter must be specified as a number")
   }
@@ -307,9 +312,9 @@ DistrParamNum = function(generic_name, value) {
 }
 DistrParamNumNoFit = function(name, value) {
   self = DistrParamNum(name, value)
-  self$expr_ref = function() as.character(self$.value)
+  self$expr_ref = function() self$trans$expr_ref(as.character(self$.value))
   self$update_names = function(name) {
-    self$variable_name = name
+    self$variable_name = self$trans$nm(name)
     self
   }
   self$update_instance_name = function(name) self$instance_name = character()
@@ -322,10 +327,10 @@ DistrParamNumFit = function(name, value) {
     list(self$.value) |> setNames(self$instance_name)
   }
   self$default_objs = function() list(self) |> setNames(self$instance_name)
-  self$expr_ref = function() self$global_name
+  self$expr_ref = function() self$trans$expr_ref(self$global_name)
   self$distr_params_frame = function() {
     if (length(self$global_name) != 1L | length(self$default()) != 1L) {
-      return(macpan2:::empty_frame(c("mat", "row", "col", "default")))
+      return(empty_frame(c("mat", "row", "col", "default")))
     }
     global_mat_name = self$global_name
     local_mat_name = self$instance_name
@@ -348,7 +353,7 @@ DistrParamChar = function(name, instance_name) {
     self$variable_name = name
     self
   }
-  self$expr_ref = function() self$global_name
+  self$expr_ref = function() self$trans$expr_ref(self$global_name)
   self$check_in_spec = function() {
     if (!self$global_name %in% names(self$model_spec$default)) {
       stop(self$global_name, " is not in the model spec")
@@ -379,7 +384,15 @@ DistrParamCharNoFit = function(name, instance_name) {
 }
 
 
-# 
+DistrParamTrans = function() {
+  self = Base()
+  self$expr_ref = function(x) x
+  self$nm = function(x) x
+  self$value = function(x) x
+  return_object(self, "DistrParamTrans")
+}
+
+
 # mp_tmb_calibrator(spec, traj = list(reports = mp_neg_bin(disp = DistrParamNoFitNum("disp", 1))))
 # ## obj_fn term : dnbinom(reports, sim_reports, 1)
 # 
@@ -412,7 +425,7 @@ DistrParamCharNoFit = function(name, instance_name) {
 
 TESTDISTR = function(location, sd) {
   self = DistrSpec()
-  self$distr_param_objs = macpan2:::nlist(location, sd)
+  self$distr_param_objs = nlist(location, sd)
 
   self$prior = \(par) {
     sprintf("-sum(dnorm(%s, %s, %s))"
