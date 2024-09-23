@@ -180,7 +180,7 @@ DistrSpec = function() {
   self$distr_params_frame = function() {
     (self$distr_param_objs
       |> oor::method_apply("distr_params_frame")
-      |> macpan2::bind_rows()
+      |> macpan2:::bind_rows()
     )
   }
   
@@ -189,7 +189,7 @@ DistrSpec = function() {
   self$distr_random_frame = function() {
     (self$distr_param_objs
       |> oor::method_apply("distr_random_frame")
-      |> macpan2::bind_rows()
+      |> macpan2:::bind_rows()
     )
   }
   
@@ -302,17 +302,17 @@ DistrList = function(distr_list = list(), model_spec = mp_tmb_model_spec()) {
   return_object(self, "DistrList")
 }
 
-DistrParamNum = function(generic_name, value) {
-  self = DistrParam(generic_name)
+DistrParamNum = function(generic_name, value, trans = DistrParamTrans()) {
+  self = DistrParam(generic_name, trans)
   self$.value = self$trans$val(as.numeric(value))
   if (any(is.na(self$.value))) {
     stop("This distributional parameter must be specified as a number")
   }
   return_object(self, "DistrParamNum")
 }
-DistrParamNumNoFit = function(name, value) {
-  self = DistrParamNum(name, value)
-  self$expr_ref = function() self$trans$expr_ref(as.character(self$.value))
+DistrParamNumNoFit = function(name, value, trans = DistrParamTrans()) {
+  self = DistrParamNum(name, value, trans)
+  self$expr_ref = function() as.character(self$trans$val(self$.value))
   self$update_names = function(name) {
     self$variable_name = self$trans$nm(name)
     self
@@ -321,13 +321,13 @@ DistrParamNumNoFit = function(name, value) {
   self$update_global_name = function(name) self$global_name = character()
   return_object(self, "DistrParamNumNoFit")
 }
-DistrParamNumFit = function(name, value) {
-  self = DistrParamNum(name, value)
+DistrParamNumFit = function(name, value, trans = DistrParamTrans()) {
+  self = DistrParamNum(name, value, trans)
   self$default = function() {
     list(self$.value) |> setNames(self$instance_name)
   }
   self$default_objs = function() list(self) |> setNames(self$instance_name)
-  self$expr_ref = function() self$trans$expr_ref(self$global_name)
+  self$expr_ref = function() self$trans$ref(self$global_name)
   self$distr_params_frame = function() {
     if (length(self$global_name) != 1L | length(self$default()) != 1L) {
       return(empty_frame(c("mat", "row", "col", "default")))
@@ -343,8 +343,8 @@ DistrParamNumFit = function(name, value) {
   return_object(self, "DistrParamNumFit")
 }
 
-DistrParamChar = function(name, instance_name) {
-  self = DistrParam(name)
+DistrParamChar = function(name, instance_name, trans = DistrParamTrans()) {
+  self = DistrParam(name, trans)
   self$instance_name = as.character(instance_name)
   self$global_name = instance_name
   self$update_instance_name = function(name) self  ## these should probably be the abstract version
@@ -353,7 +353,7 @@ DistrParamChar = function(name, instance_name) {
     self$variable_name = name
     self
   }
-  self$expr_ref = function() self$trans$expr_ref(self$global_name)
+  self$expr_ref = function() self$trans$ref(self$global_name)
   self$check_in_spec = function() {
     if (!self$global_name %in% names(self$model_spec$default)) {
       stop(self$global_name, " is not in the model spec")
@@ -361,8 +361,8 @@ DistrParamChar = function(name, instance_name) {
   }
   return_object(self, "DistrParamChar")
 }
-DistrParamCharFit = function(name, instance_name) {
-  self = DistrParamChar(name, instance_name)
+DistrParamCharFit = function(name, instance_name, trans = DistrParamTrans()) {
+  self = DistrParamChar(name, instance_name, trans)
   self$distr_params_frame = function() {
     self$check_in_spec()
     mat = self$global_name
@@ -374,8 +374,8 @@ DistrParamCharFit = function(name, instance_name) {
   }
   return_object(self, "DistrParamCharNoFit")
 }
-DistrParamCharNoFit = function(name, instance_name) {
-  self = DistrParamChar(name, instance_name)
+DistrParamCharNoFit = function(name, instance_name, trans = DistrParamTrans()) {
+  self = DistrParamChar(name, instance_name, trans)
   self$default = function() {
     self$check_in_spec()
     list()
@@ -386,10 +386,20 @@ DistrParamCharNoFit = function(name, instance_name) {
 
 DistrParamTrans = function() {
   self = Base()
-  self$expr_ref = function(x) x
-  self$nm = function(x) x
-  self$value = function(x) x
+  self$ref = function(x) x
+  self$nm  = function(x) x
+  self$val = function(x) x
+  self$inv = function(x) x
   return_object(self, "DistrParamTrans")
+}
+
+DistrParamLog = function() {
+  self = DistrParamTrans()
+  self$ref = function(x) sprintf("exp(%s)", x)
+  self$nm  = function(x) sprintf("log_%s", x)
+  self$val = function(x) log(x)
+  self$inv = function(x) exp(x)
+  return_object(self, "DistrParamLog")
 }
 
 
