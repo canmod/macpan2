@@ -477,6 +477,98 @@ mp_normal2 = function(location = DistrParam("location"), sd) {
   return_object(self, "DistrSpecNormal")
 }
 
+
+#' @return DistrSpec
+#' @export
+mp_log_normal2 = function(location = DistrParam("location"), sd) {
+  self = DistrSpec(
+      distr_param_objs = nlist(location, sd)
+      # identity transformations because distributional parameters are already
+      # specified on the log scale?
+    , default_trans = list(location = mp_identity, sd = mp_identity)
+  )
+
+  self$prior = \(par) {
+    sprintf("-sum(dnorm(log(%s), %s, %s))"
+            , par
+            , self$distr_param_objs$location$expr_ref()
+            , self$distr_param_objs$sd$expr_ref()
+    )
+  }
+  self$likelihood = \(obs, sim) {
+    sprintf("-sum(dnorm(log(%s), log(%s), %s))"
+            , obs
+            , sim
+            , self$distr_param_objs$sd$expr_ref()
+    )
+  }
+  
+  return_object(self, "DistrSpecLogNormal")
+}
+
+#' @return DistrSpec
+#' @export
+mp_uniform2 = function() { 
+  self = DistrSpec(
+      distr_param_objs = nlist()
+    , default_trans = list()
+  )
+  self$prior = \(par) {
+    "0"
+  }
+  self$likelihood = \(obs, sim) { 
+    "0"
+
+  }
+  return_object(self, "DistrSpecUniform")
+}
+
+#' @return DistrSpec
+#' @export
+mp_poisson2 = function(location = DistrParam("location")) { 
+  self = DistrSpec(
+      distr_param_objs = nlist(location)# should this be named lambda
+    , default_trans = list(location = mp_identity)
+  )
+  self$prior = \(par) {
+    sprintf("-sum(dpois(%s, %s))"
+            , par
+            , self$distr_param_objs$location$expr_ref()
+    )
+  }
+  self$likelihood = \(obs, sim) { # par doesn't get used here
+    sprintf("-sum(dpois(%s, %s))"
+            , obs
+            , sim
+    )
+  }
+  return_object(self, "DistrSpecPoisson")
+}
+#' @return DistrSpec
+#' @export
+mp_neg_bin2 = function(location = DistrParam("location"), disp) {
+  self = DistrSpec(
+      distr_param_objs = nlist(location, disp)
+    , default_trans = list(location = mp_identity, disp = mp_log)
+  )
+  self$prior = \(par) {
+    sprintf("-sum(dnbinom(%s, clamp(%s), %s))"
+            , par
+            , self$distr_param_objs$location$expr_ref()
+            , self$distr_param_objs$disp$expr_ref()
+    )
+  }
+  self$likelihood = \(obs, sim) {
+    sprintf("-sum(dnbinom(%s, clamp(%s), %s))"
+            , obs
+            , sim
+            , self$distr_param_objs$disp$expr_ref()
+    )
+  }
+  return_object(self, "DistrSpecNegBin")
+}
+
+
 #' @export
 mp_fit = function(x, trans = DistrParamTransDefault()) UseMethod("mp_fit")
 
