@@ -501,6 +501,7 @@ TMBParAbstract = function() {
   ## specified with priors
   self$distr_params = function() list()
   self$distr_params_frame = function() self$empty_params_frame
+  self$distr_random_frame = function() self$empty_params_frame
   
   return_object(self, "TMBParAbstract")
 }
@@ -1060,7 +1061,6 @@ TMBPar.character = function(par
   self$local_names = function() {
     make_names_list(self, c("trans_vars", "hyperparams", "distr_params"))
   }
-  
   self$params_frame = function() {
     pf = (self$spec$default[self$par]
       |> melt_default_matrix_list(FALSE)
@@ -1069,6 +1069,7 @@ TMBPar.character = function(par
     bind_rows(pf
       , self$tv$tv_params_frame(self$tv_par)
       , self$traj$distr_params_frame()
+      , self$distr_params_frame()
     )
   }
   self$random_frame = function() self$tv$tv_random_frame()

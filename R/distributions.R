@@ -37,7 +37,7 @@
 DistrParam = function(generic_name) {
   self = Base()
   
-  # Required Fields
+  # Part A: Required Fields
   
   # Generic name of the distributional parameter (e.g., sd)
   self$generic_name = generic_name
@@ -60,6 +60,8 @@ DistrParam = function(generic_name) {
   self$model_spec = mp_tmb_model_spec()
   
   
+  # Part B: Boilerplate -- no need to override these in extensions of this class
+  
   # section 1: update fields when more context is available
   
   self$update_global_name = function(name) {
@@ -72,14 +74,14 @@ DistrParam = function(generic_name) {
     self$global_name = self$instance_name
     self
   }
-  self$update_instance_name = function(name) {
-    self$instance_name = name
-    self
-  }
   self$update_model_spec = function(spec) {
     self$model_spec = spec
     self
   }
+  
+  
+  # Part C: Abstract -- implement these methods in extensions of this class
+  # to produce new types of distributional parameters
   
   ## section 2: distributional parameters that need to be added as 
   ## _new_ defaults to model spec to be updated by calibration machinery
@@ -119,18 +121,18 @@ DistrParam = function(generic_name) {
 #' Class representing the specification of a distribution, either a prior or
 #' likelihood component.
 #' 
-#' Extend this class to develop a new distribution.
+#' Extend this class to develop new distributions.
 DistrSpec = function() {
+  
+  # Part A: Boilerplate -- no need to override these in extensions of this class
+  
   self = Base()
   
   ## section 1: get context from the distribution list, which includes
   ## the model spec
   
-  # list of names of the distributional parameters
-  self$instance_names = function() {
-    dpo = self$distr_param_objs
-    lapply(dpo, getElement, "instance_name") |> setNames(names(dpo))
-  }
+  # accept the variable name from the DistrList and propagate it up to
+  # the DistrParam objects
   self$update_variable_name = function(name = "variable") {
     self$variable_name = name
     for (o in self$distr_param_objs) o$update_names(name)
@@ -140,10 +142,10 @@ DistrSpec = function() {
     for (o in self$distr_param_objs) o$update_model_spec(spec)
     self
   }
-  #' method to remove the location parameter, and therefore make it impossible
-  #' to use this distribution as the component of a prior distribution.
-  #' this method is useful when the distribution is to be used as a likelihood
-  #' component that will take a simulated trajectory as the location parameter.
+  # remove the location parameter, and therefore make it impossible
+  # to use this distribution as the component of a prior distribution.
+  # this method is useful when the distribution is to be used as a likelihood
+  # component that will take a simulated trajectory as the location parameter.
   self$remove_location_parameter = function() {
     self$distr_param_objs$location = NULL
     ## TODO: better more informative error message
@@ -169,7 +171,33 @@ DistrSpec = function() {
   }
   
   
-  ## section 3: generate strings for expressions that will be used by
+  ## section 5: what distributional parameters should be fitted by the
+  ## calibration machinery?
+  
+  #' data frame characterizing what distributional parameters associated
+  #' with this distribution should be optimized as fixed effects.
+  self$distr_params_frame = function() {
+    (self$distr_param_objs
+      |> oor::method_apply("distr_params_frame")
+      |> macpan2:::bind_rows()
+    )
+  }
+  
+  #' data frame characterizing what distributional parameters associated
+  #' with this distribution should be optimized as random effects.
+  self$distr_random_frame = function() {
+    (self$distr_param_objs
+      |> oor::method_apply("distr_random_frame")
+      |> macpan2:::bind_rows()
+    )
+  }
+  
+  
+  
+  # Part B: Abstract -- implement these methods when extending this class
+  # to produce new distributions.
+  
+  ## section 4: generate strings for expressions that will be used by
   ## the engine as expressions. this, along with the distr_param_objs,
   ## is what needs to be defined to make a new distribution.
   
@@ -197,29 +225,6 @@ DistrSpec = function() {
   #' not require a `location` parameter (e.g., it is a likelihood component
   #' that takes the simulated tracjectory as the location).
   self$distr_param_objs = list()
-  
-  
-  ## section 4: what distributional parameters should be fitted by the
-  ## calibration machinery?
-  
-  #' data frame characterizing what distributional parameters associated
-  #' with this distribution should be optimized as fixed effects.
-  self$distr_params_frame = function() {
-    (self$distr_param_objs
-      |> oor::method_apply("distr_params_frame")
-      |> macpan2:::bind_rows()
-    )
-  }
-  
-  #' data frame characterizing what distributional parameters associated
-  #' with this distribution should be optimized as random effects.
-  self$distr_random_frame = function() {
-    (self$distr_param_objs
-      |> oor::method_apply("distr_random_frame")
-      |> macpan2:::bind_rows()
-    )
-  }
-
   
   return_object(self, "DistrSpec")
 }
