@@ -961,15 +961,9 @@ TMBTraj.TrajArg = function(traj
     
   self = TMBTraj(names(traj$likelihood), struc, spec, existing_global_names)
   self$arg = traj
+  self$arg$likelihood = DistrList(self$arg$likelihood, spec)
+  self$arg$likelihood$remove_location_parameters()
   
-  self$update_traj_nms = function() {
-    ll = self$arg$likelihood
-    for (nm in names(ll)) ll[[nm]]$remove_location_parameter()
-    for (nm in names(ll)) ll[[nm]]$update_variable_name(nm)
-    for (nm in names(ll)) ll[[nm]]$update_model_spec(self$spec)
-  }
-  self$update_traj_nms()
-  self$update_traj_nms = NULL  ## burn the bridge behind you
   
   ## A list of matrices containing 
   ## observed trajectories with names of this 
@@ -993,44 +987,30 @@ TMBTraj.TrajArg = function(traj
   # self$distr_params_struc = function() {
   #   method_apply(self$arg$likelihood, "distr_params")
   # }
-  self$distr_params_struc = function() {
-    ll = self$arg$likelihood
-    method_apply(ll, "instance_names") |> setNames(names(ll))
-  }
-  self$distr_params = function() {
-    dps = method_apply(self$arg$likelihood, "distr_params")
-    nms = method_apply(self$arg$likelihood, "instance_names")
-    setNames(
-        unlist(dps, recursive = FALSE)
-      , unlist(nms, recursive = FALSE)
-    )
-  }
+  # self$distr_params_struc = function() {
+  #   method_apply(self$arg$likelihood, "instance_names")
+  # }
+  self$distr_params = function() self$arg$likelihood$default()
+  self$arg$likelihood$update_global_names(self)
   
   ## instantiate names of the distribution parameters
   ## associated with the trajectories with names that
   ## do not conflict
-  self$update_global_distr_param_names = function() {
-    nms_struc = globalize_struc_names(self, "distr_params")
-    ll = self$arg$likelihood
-    for (nm in names(nms_struc)) {
-      dpo = ll[[nm]]$distr_param_objs
-      for (pnm in names(nms_struc[[nm]])) {
-        dpo[[pnm]]$update_global_name(nms_struc[[nm]][[pnm]])
-      }
-    }
-  }
-  self$update_global_distr_param_names()
-  self$update_global_distr_param_names = NULL  ## burn the bridge behind you
+  # self$update_global_distr_param_names = function() {
+  #   names(globalize(self, "distr_params"))
+  #   # nms_struc = globalize_struc_names(self, "distr_params")
+    # ll = self$arg$likelihood
+    # for (nm in names(nms_struc)) {
+    #   dpo = ll[[nm]]$distr_param_objs
+    #   for (pnm in names(nms_struc[[nm]])) {
+    #     dpo[[pnm]]$update_global_name(nms_struc[[nm]][[pnm]])
+    #   }
+    # }
+  #}
+  #self$update_global_distr_param_names()
+  #self$update_global_distr_param_names = NULL  ## burn the bridge behind you
   #nms_struc = globalize_struc_names(self, "distr_params")
-  
-  
-  #self$cond_params = function() list()
-  #self$cond_exprs = function() list()
-  
-  ## return a list character vectors giving
-  ## expressions for computing trajectories
-  ## via condensation steps
-  # self$obj_fn_traj_exprs = function() character()
+
   
   ## return a character vector of terms in
   ## the objective function. These will be concatenated
@@ -1042,7 +1022,7 @@ TMBTraj.TrajArg = function(traj
     y = character()
     for (i in seq_along(traj_nms)) {
       nm = traj_nms[i]
-      ll = self$arg$likelihood[[nm]]
+      ll = self$arg$likelihood$distr_list[[nm]]
       y = c(y, ll$likelihood(nms$obs[i], nms$sim[i]))
     }
     y
@@ -1050,22 +1030,8 @@ TMBTraj.TrajArg = function(traj
   
   ## data frames describing the fixed and random effects corresponding
   ## to distributional parameters
-  self$distr_params_frame = function() {
-    #(self
-      # globalize("distr_params")
-      # melt_default_matrix_list(FALSE)
-      # rename_synonyms(mat = "matrix", default = "value")
-    #)
-    (self$arg$likelihood
-      |> method_apply("distr_params_frame")
-      |> bind_rows()
-      |> rename_synonyms(mat = "matrix", default = "value")
-    )
-  }
-  #self$distr_random_frame = function() self$empty_params_frame
-  #self$cond_params_frame = function() self$empty_params_frame
-  #self$cond_random_frame = function() self$empty_params_frame
-  
+  self$distr_params_frame = function() self$arg$likelihood$distr_params_frame()
+  browser()
   return_object(self, "TMBTraj")
 }
 

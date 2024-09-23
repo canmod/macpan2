@@ -1,4 +1,46 @@
 
+  
+  #' Optimization Context
+  #' 
+  #' Some decisions cannot be made without knowing more about the optimization 
+  #' problem in which this distributional parameter is being used. This
+  #' knowledge is provided through the arguments in this method.
+  #' 
+  #' @param suggested_instance_name A suggestion for the name of this
+  #' instance of the distributional parameter with name self$generic_name. An
+  #' example of an instance name is `distr_params_sd_I`, which is more
+  #' informative than just the name `sd`. In particular, this instance
+  #' name says that the variable is a distributional parameter, that it
+  #' is a standard deviation parameter, and that it relates to the 
+  #' trajectory, `I`. The reason that this is just a suggestion, is that
+  #' it may not be necessary at all to provide a name for an instance
+  #' of a distributional parameter. For example, if the user provides a 
+  #' literal value for the standard deviation such as `1` and asks that this
+  #' value not be refined through a fitting process, then it is not necessary
+  #' to store this value anywhere and just pass the literal `1` on to the
+  #' engine. So in this case, the suggestion for the instance name will be
+  #' silently ignored, but this is fine because this is purely an internal
+  #' concept and the user should not see any evidence of this complexity.
+  #' @param spec A `mp_tmb_model_spec` object to be possibly used to look
+  #' for default values of a distributional parameter that already exists.
+  #' If the user supplies the parameter through the definition of this
+  #' distributional parameter object
+  #' @param existing_global_names A character vector of names that already
+  #' exist in the `spec` object being used for optimization. These are used
+  #' to avoid namespace conflicts (e.g., if the `suggested_instance_name`
+  #' happens to be identical to another variable that is already in the
+  #' `spec`, this suggestion is modified to avoid conflicts).
+  # self$optimization_context = function(
+  #       suggested_instance_name = character()
+  #     , spec = macpan2::mp_tmb_model_spec()
+  #     , existing_global_names = character()
+  #   ) {
+  #   self$spec = spec
+  #   self$update_instance_name(suggested_instance_name)
+  #   self
+  # }
+  # self$optimization_context()
+
 ## TODO: currently this is only used in likelihood functions.
 ## how to re-purpose this for priors? the only thing that makes it a 
 ## no-brainer is just that priors need a location parameter, and then
@@ -41,18 +83,30 @@
 #' location, disp)
 #' 
 #' @noRd
-DistrParam = function(name) {
+DistrParam = function(generic_name) {
   self = Base()
-  self$name = name 
   
-  self$variable_name = character(1L)     ## set this when it becomes known
-  self$instance_name = character(1L)     ## set this when it becomes known
-  self$global_name = character(1L)       ## set this when it becomes known
-  self$model_spec = mp_tmb_model_spec()  ## set this when it becomes known
+  # Generic name of the distributional parameter (e.g., sd)
+  self$generic_name = generic_name
+  
+  # Name of the variable being modelled by the distribution containing this
+  # distributional parmaeter (e.g., beta has this prior)
+  self$variable_name = character(1L)
+  
+  # Name of the instance of this distributional parameter (e.g., sd_beta)
+  self$instance_name = character(1L)
+  
+  # Instance name that has potentially been modified so that it can be
+  # added to a model spec without clashing with exiseting names
+  # (e.g., sd_beta_1)
+  self$global_name = character(1L)
+  
+  # Model specification for which this distribution parameter is beig applied
+  self$model_spec = mp_tmb_model_spec()
   
   self$update_names = function(name) {
     self$variable_name = name ## e.g., "beta"
-    self$instance_name = sprintf("%s_%s", self$name, name) ## e.g., "sd_beta"
+    self$instance_name = sprintf("%s_%s", self$generic_name, self$variable_name)
     self$global_name = self$instance_name
     self
   }
@@ -69,50 +123,10 @@ DistrParam = function(name) {
     self
   }
   
-  #' Optimization Context
-  #' 
-  #' Some decisions cannot be made without knowing more about the optimization 
-  #' problem in which this distributional parameter is being used. This
-  #' knowledge is provided through the arguments in this method.
-  #' 
-  #' @param suggested_instance_name A suggestion for the name of this
-  #' instance of the distributional parameter with name self$name. An
-  #' example of an instance name is `distr_params_sd_I`, which is more
-  #' informative than just the name `sd`. In particular, this instance
-  #' name says that the variable is a distributional parameter, that it
-  #' is a standard deviation parameter, and that it relates to the 
-  #' trajectory, `I`. The reason that this is just a suggestion, is that
-  #' it may not be necessary at all to provide a name for an instance
-  #' of a distributional parameter. For example, if the user provides a 
-  #' literal value for the standard deviation such as `1` and asks that this
-  #' value not be refined through a fitting process, then it is not necessary
-  #' to store this value anywhere and just pass the literal `1` on to the
-  #' engine. So in this case, the suggestion for the instance name will be
-  #' silently ignored, but this is fine because this is purely an internal
-  #' concept and the user should not see any evidence of this complexity.
-  #' @param spec A `mp_tmb_model_spec` object to be possibly used to look
-  #' for default values of a distributional parameter that already exists.
-  #' If the user supplies the parameter through the definition of this
-  #' distributional parameter object
-  #' @param existing_global_names A character vector of names that already
-  #' exist in the `spec` object being used for optimization. These are used
-  #' to avoid namespace conflicts (e.g., if the `suggested_instance_name`
-  #' happens to be identical to another variable that is already in the
-  #' `spec`, this suggestion is modified to avoid conflicts).
-  # self$optimization_context = function(
-  #       suggested_instance_name = character()
-  #     , spec = macpan2::mp_tmb_model_spec()
-  #     , existing_global_names = character()
-  #   ) {
-  #   self$spec = spec
-  #   self$update_instance_name(suggested_instance_name)
-  #   self
-  # }
-  # self$optimization_context()
-  
   ## list of values to be added as default matrices to a 
   ## mp_tmb_model_spec through a `default` argument
-  self$default = function() list(numeric()) |> setNames(self$global_name)
+  self$default = function() list()
+  self$default_objs = function() list()
   
   ## character vector giving the how to represent the parameter in
   ## an expression (e.g., literal value, matrix name)
@@ -123,8 +137,128 @@ DistrParam = function(name) {
   
   return_object(self, "DistrParam")
 }
-DistrParamNum = function(name, value) {
-  self = DistrParam(name)
+
+#' Distribution Specification
+#' 
+#' Class representing the specification of a distribution, either a prior or
+#' likelihood component.
+DistrSpec = function() {
+  self = Base()
+  
+  self$update_variable_name = function(name = "variable") {
+    self$variable_name = name
+    for (o in self$distr_param_objs) o$update_names(name)
+    self
+  }
+  self$update_model_spec = function(spec) {
+    for (o in self$distr_param_objs) o$update_model_spec(spec)
+    self
+  }
+  
+  self$instance_names = function() {
+    dpo = self$distr_param_objs
+    lapply(dpo, getElement, "instance_name") |> setNames(names(dpo))
+  }
+  
+  #' List of DistrParam objects defining the distribution. All distribution
+  #' must have a `location` parameter as the first parameter when the
+  #' distribution is instantiated. However, this `location` parameter 
+  #' might be removed by the `remove_location_parameter` method, which
+  #' should be called later if it is determined that the distribution does
+  #' not require a `location` parameter.
+  self$distr_param_objs = list()
+  
+  self$default = function() {
+    dpo = self$distr_param_objs
+    dp = list()
+    for (o in dpo) dp = append(dp, o$default())
+    dp
+  }
+  
+  self$default_objs = function() {
+    dpo = self$distr_param_objs
+    dp = list()
+    for (o in dpo) dp = append(dp, o$default_objs())
+    dp
+  }
+  
+  #' character string giving an expression for the component of a log prior
+  #' density associated with this distribution. this may not be used if
+  #' it is intended to be used as a likelihood component.
+  self$prior = \(par) character()
+  
+  #' character string giving an expression for the component of a log likelihood
+  #' function associated with this distribution. this may not be used if
+  #' it is intended to be used as a prior distribution component.
+  self$likelihood = \(obs, sim) character()
+  
+  #' data frame characterizing what distributional parameters associated
+  #' with this distribution should be optimized as fixed effects.
+  self$distr_params_frame = function() {
+    (self$distr_param_objs
+      |> oor::method_apply("distr_params_frame")
+      |> macpan2:::bind_rows()
+    )
+  }
+  
+  #' data frame characterizing what distributional parameters associated
+  #' with this distribution should be optimized as random effects.
+  self$distr_random_frame = function() {
+    (self$distr_param_objs
+      |> oor::method_apply("distr_random_frame")
+      |> macpan2:::bind_rows()
+    )
+  }
+  
+  #' method to remove the location parameter, and therefore make it impossible
+  #' to use this distribution as the component of a prior distribution.
+  #' this method is useful when the distribution is to be used as a likelihood
+  #' component that will take a simulated trajectory as the location parameter.
+  self$remove_location_parameter = function() {
+    self$distr_param_objs$location = NULL
+    ## TODO: better more informative error message
+    self$prior = function() stop("this distribution has had its location parameter removed and therefore cannot be used to compute a prior -- only a likelihood")
+  }
+  
+  return_object(self, "DistrSpec")
+}
+
+DistrList = function(distr_list = list(), model_spec = mp_tmb_model_spec()) {
+  for (nm in names(distr_list)) distr_list[[nm]]$update_variable_name(nm)
+  for (nm in names(distr_list)) distr_list[[nm]]$update_model_spec(model_spec)
+  
+  self = Base()
+  self$distr_list = distr_list
+  self$model_spec = model_spec
+  
+  self$remove_location_parameters = function() {
+    for (o in self$distr_list) o$remove_location_parameter()
+  }
+  self$default = function() {
+    method_apply(self$distr_list, "default") |> Reduce(f = "c")
+  }
+  
+  #' @param obj An object with an `obj$distr_params()` method returning a flat list
+  #' of named numerical matrices, and an `obj$global_names()` method returning
+  #' the list of names that need to be avoided in namespace clashes
+  self$update_global_names = function(obj) {
+    nms = names(globalize(obj, "distr_params"))
+    default_objs = method_apply(self$distr_list, "default_objs") |> Reduce(f = "c")
+    ## assume length(nms) == length(default_objs)
+    for (i in seq_along(nms)) default_objs[[i]]$update_global_name(nms[i])
+  }
+  self$distr_params_frame = function() {
+    (self$distr_list
+      |> method_apply("distr_params_frame")
+      |> bind_rows()
+      |> rename_synonyms(mat = "matrix", default = "value")
+    )
+  }
+  return_object(self, "DistrList")
+}
+
+DistrParamNum = function(generic_name, value) {
+  self = DistrParam(generic_name)
   self$.value = as.numeric(value)
   if (any(is.na(self$.value))) {
     stop("This distributional parameter must be specified as a number")
@@ -145,18 +279,20 @@ DistrParamNumNoFit = function(name, value) {
 DistrParamNumFit = function(name, value) {
   self = DistrParamNum(name, value)
   self$default = function() {
-    list(self$.value) |> setNames(self$global_name)
+    list(self$.value) |> setNames(self$instance_name)
   }
+  self$default_objs = function() list(self) |> setNames(self$instance_name)
   self$expr_ref = function() self$global_name
   self$distr_params_frame = function() {
     if (length(self$global_name) != 1L | length(self$default()) != 1L) {
       return(macpan2:::empty_frame(c("mat", "row", "col", "default")))
     }
-    mat = self$global_name
+    global_mat_name = self$global_name
+    local_mat_name = self$instance_name
     data.frame(
-        mat = mat
+        mat = global_mat_name
       , row = 0L, col = 0L
-      , default = self$default()[[mat]]
+      , default = self$default()[[local_mat_name]]
     )
   }
   return_object(self, "DistrParamNumFit")
@@ -165,7 +301,7 @@ DistrParamChar = function(name, instance_name) {
   self = DistrParam(name)
   self$instance_name = as.character(instance_name)
   self$global_name = instance_name
-  self$update_instance_name = function(name) self
+  self$update_instance_name = function(name) self  ## these should probably be the abstract version
   self$update_global_name = function(name) self
   self$update_names = function(name) {
     self$variable_name = name
@@ -176,14 +312,6 @@ DistrParamChar = function(name, instance_name) {
 }
 DistrParamCharFit = function(name, instance_name) {
   self = DistrParamChar(name, instance_name)
-  self$default = function() {
-    spec_def = self$model_spec$default
-    nm = self$global_name
-    if (!nm %in% names(spec_def)) {
-      stop("spec does not contain the required variable containing this distribution parameter")
-    }
-    list(spec_def[[nm]]) |> setNames(nm)
-  }
   self$distr_params_frame = function() {
     mat = self$global_name
     data.frame(
@@ -196,10 +324,6 @@ DistrParamCharFit = function(name, instance_name) {
 }
 DistrParamCharNoFit = function(name, instance_name) {
   self = DistrParamChar(name, instance_name)
-  self$default = function() {
-    nm = self$instance_name
-    list(self$model_spec$default[[nm]]) |> setNames(nm)
-  }
   return_object(self, "DistrParamCharNoFit")
 }
 
@@ -233,83 +357,7 @@ DistrParamCharNoFit = function(name, instance_name) {
 # oor::method_apply(ll, "distr_params")
 # 
 
-#' Distribution Specification
-#' 
-#' Class representing the specification of a distribution, either a prior or
-#' likelihood component.
-DistrSpec = function() {
-  self = Base()
-  
-  self$update_variable_name = function(name = "variable") {
-    self$variable_name = name
-    for (o in self$distr_param_objs) o$update_names(name)
-    self
-  }
-  self$update_model_spec = function(spec) {
-    for (o in self$distr_param_objs) o$update_model_spec(spec)
-    self
-  }
-  
-  self$instance_names = function() {
-    dpo = self$distr_param_objs
-    lapply(dpo, getElement, "instance_name") |> setNames(names(dpo))
-  }
-  
-  #' List of DistrParam objects defining the distribution. All distribution
-  #' must have a `location` parameter as the first parameter when the
-  #' distribution is instantiated. However, this `location` parameter 
-  #' might be removed by the `remove_location_parameter` method, which
-  #' should be called later if it is determined that the distribution does
-  #' not require a `location` parameter.
-  self$distr_param_objs = list()
-  
-  self$distr_params = function() {
-    dpo = self$distr_param_objs
-    dp = list()
-    for (o in dpo) dp = append(dp, o$default())
-    dp
-  }
-  
-  #' character string giving an expression for the component of a log prior
-  #' density associated with this distribution. this may not be used if
-  #' it is intended to be used as a likelihood component.
-  self$prior = \() character()
-  
-  #' character string giving an expression for the component of a log likelihood
-  #' function associated with this distribution. this may not be used if
-  #' it is intended to be used as a prior distribution component.
-  self$likelihood = \() character()
-  
-  #' data frame characterizing what distributional parameters associated
-  #' with this distribution should be optimized as fixed effects.
-  self$distr_params_frame = function() {
-    (self$distr_param_objs
-      |> oor::method_apply("distr_params_frame")
-      |> macpan2:::bind_rows()
-    )
-  }
-  
-  #' data frame characterizing what distributional parameters associated
-  #' with this distribution should be optimized as random effects.
-  self$distr_random_frame = function() {
-    (self$distr_param_objs
-      |> oor::method_apply("distr_random_frame")
-      |> macpan2:::bind_rows()
-    )
-  }
-  
-  #' method to remove the location parameter, and therefore make it impossible
-  #' to use this distribution as the component of a prior distribution.
-  #' this method is useful when the distribution is to be used as a likelihood
-  #' component that will take a simulated trajectory as the location parameter.
-  self$remove_location_parameter = function() {
-    self$distr_param_objs$location = NULL
-    ## TODO: better more informative error message
-    self$prior = function() stop("this distribution has had its location parameter removed and therefore cannot be used to compute a prior -- only a likelihood")
-  }
-  
-  return_object(self, "DistrSpec")
-}
+
 
 TESTDISTR = function(location, sd) {
   self = DistrSpec()

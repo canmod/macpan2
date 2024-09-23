@@ -108,7 +108,7 @@ push-readme:
 	git add man/figures/*.png
 	git add man/figures/*.drawio
 	git add README.md README.Rmd
-	git commit -m "update readme" || true
+	git commit -m "[skip ci] update readme" || true
 	git push || true
 
 
