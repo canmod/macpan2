@@ -977,7 +977,7 @@ TMBTraj.TrajArg = function(traj
     y = character()
     for (i in seq_along(traj_nms)) {
       nm = traj_nms[i]
-      ll = self$arg$likelihood$distr_list[[nm]]
+      ll = self$arg$likelihood$distr_list[[nm]]  ## DistrSpec for trajectory i
       y = c(y, ll$likelihood(nms$obs[i], nms$sim[i]))
     }
     y
@@ -988,7 +988,7 @@ TMBTraj.TrajArg = function(traj
   self$distr_params_frame = function() self$arg$likelihood$distr_params_frame()
   
   ## adapt distributional parameters to this trajectory object
-  self$arg = traj
+  self$arg = traj ## what the user passed
   self$arg$likelihood = DistrList(self$arg$likelihood, spec)
   self$arg$likelihood$update_global_names(self)
   self$arg$likelihood$remove_location_parameters()

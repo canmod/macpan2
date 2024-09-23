@@ -104,6 +104,10 @@ DistrParam = function(generic_name) {
   # Model specification for which this distribution parameter is beig applied
   self$model_spec = mp_tmb_model_spec()
   
+  self$update_global_name = function(name) {
+    self$global_name = name
+    self
+  }
   self$update_names = function(name) {
     self$variable_name = name ## e.g., "beta"
     self$instance_name = sprintf("%s_%s", self$generic_name, self$variable_name)
@@ -114,23 +118,37 @@ DistrParam = function(generic_name) {
     self$instance_name = name
     self
   }
-  self$update_global_name = function(name) {
-    self$global_name = name
-    self
-  }
   self$update_model_spec = function(spec) {
     self$model_spec = spec
     self
   }
   
-  ## list of values to be added as default matrices to a 
-  ## mp_tmb_model_spec through a `default` argument
+  ## section 1: distributional parameters that need to be added as 
+  ## _new_ defaults to model spec to be updated by calibration machinery
+  
+  ## section 1a: list of values to be added as default matrices to a 
+  ## mp_tmb_model_spec through a `default` argument. this list is either
+  ## length 0 (if this distribuytional parameter does not have to be added
+  ## to the model spec) or length 1 (if it does). any other length is
+  ## invalid
   self$default = function() list()
+  
+  ## section 1b: list parallel to self$default() containing the objects
+  ## that represent each distributional parameter
   self$default_objs = function() list()
+  
+  
+  ## section 2: how should each distributional parameter be represented in
+  ## the expression for the distribution density function (and maybe soon
+  ## random number generators)
   
   ## character vector giving the how to represent the parameter in
   ## an expression (e.g., literal value, matrix name)
   self$expr_ref = function() character()
+  
+  
+  ## section 3: what distributional parameters should be fitted by the
+  ## calibration machinery?
   
   self$distr_params_frame = function() macpan2:::empty_frame(c("mat", "row", "col", "default"))
   self$distr_random_frame = function() macpan2:::empty_frame(c("mat", "row", "col", "default"))
@@ -145,6 +163,27 @@ DistrParam = function(generic_name) {
 DistrSpec = function() {
   self = Base()
   
+  #' Field that must be in every distribution that inherits from DistrSpec
+  #' 
+  #' List of DistrParam objects defining the distribution. All distributions
+  #' must have a `location` parameter as the first parameter when the
+  #' distribution is instantiated. However, this `location` parameter 
+  #' might be removed by the `remove_location_parameter` method, which
+  #' should be called later if it is determined that the distribution does
+  #' not require a `location` parameter (e.g., it is a likelihood component
+  #' that takes the simulated tracjectory as the location).
+  self$distr_param_objs = list()
+  
+  
+  
+  ## section 1: get context from the distribution list, which includes
+  ## the model spec
+  
+  # list of names of the distributional parameters
+  self$instance_names = function() {
+    dpo = self$distr_param_objs
+    lapply(dpo, getElement, "instance_name") |> setNames(names(dpo))
+  }
   self$update_variable_name = function(name = "variable") {
     self$variable_name = name
     for (o in self$distr_param_objs) o$update_names(name)
@@ -154,19 +193,19 @@ DistrSpec = function() {
     for (o in self$distr_param_objs) o$update_model_spec(spec)
     self
   }
-  
-  self$instance_names = function() {
-    dpo = self$distr_param_objs
-    lapply(dpo, getElement, "instance_name") |> setNames(names(dpo))
+  #' method to remove the location parameter, and therefore make it impossible
+  #' to use this distribution as the component of a prior distribution.
+  #' this method is useful when the distribution is to be used as a likelihood
+  #' component that will take a simulated trajectory as the location parameter.
+  self$remove_location_parameter = function() {
+    self$distr_param_objs$location = NULL
+    ## TODO: better more informative error message
+    self$prior = function(par) stop("this distribution has had its location parameter removed and therefore cannot be used to compute a prior -- only a likelihood")
   }
   
-  #' List of DistrParam objects defining the distribution. All distribution
-  #' must have a `location` parameter as the first parameter when the
-  #' distribution is instantiated. However, this `location` parameter 
-  #' might be removed by the `remove_location_parameter` method, which
-  #' should be called later if it is determined that the distribution does
-  #' not require a `location` parameter.
-  self$distr_param_objs = list()
+  
+  ## section 2: distributional parameters that need to be added as 
+  ## _new_ defaults to model spec to be updated by calibration machinery
   
   self$default = function() {
     dpo = self$distr_param_objs
@@ -182,6 +221,11 @@ DistrSpec = function() {
     dp
   }
   
+  
+  ## section 3: generate strings for expressions that will be used by
+  ## the engine as expressions. this, along with the distr_param_objs,
+  ## is what needs to be defined to make a new distribution.
+  
   #' character string giving an expression for the component of a log prior
   #' density associated with this distribution. this may not be used if
   #' it is intended to be used as a likelihood component.
@@ -191,6 +235,15 @@ DistrSpec = function() {
   #' function associated with this distribution. this may not be used if
   #' it is intended to be used as a prior distribution component.
   self$likelihood = \(obs, sim) character()
+  
+  #' for the future (e.g. beta ~ rnorm(0, 1))
+  self$noisy_parameter = \() character()
+  self$noisy_trajectory = \(sim) character()
+  
+  
+  
+  ## section 4: what distributional parameters should be fitted by the
+  ## calibration machinery?
   
   #' data frame characterizing what distributional parameters associated
   #' with this distribution should be optimized as fixed effects.
@@ -209,33 +262,33 @@ DistrSpec = function() {
       |> macpan2:::bind_rows()
     )
   }
-  
-  #' method to remove the location parameter, and therefore make it impossible
-  #' to use this distribution as the component of a prior distribution.
-  #' this method is useful when the distribution is to be used as a likelihood
-  #' component that will take a simulated trajectory as the location parameter.
-  self$remove_location_parameter = function() {
-    self$distr_param_objs$location = NULL
-    ## TODO: better more informative error message
-    self$prior = function() stop("this distribution has had its location parameter removed and therefore cannot be used to compute a prior -- only a likelihood")
-  }
+
   
   return_object(self, "DistrSpec")
 }
 
+#' @param distr_list Named list of DistrSpec objects that the user (or 
+#' interface) passes to mp_tmb_calibrator.
+#' @param model_spec Model spec object to be calibrated to data that the 
+#' user passed to mp_tmb_calibrator.
 DistrList = function(distr_list = list(), model_spec = mp_tmb_model_spec()) {
+  
+  # get context from the interface
+  
   for (nm in names(distr_list)) distr_list[[nm]]$update_variable_name(nm)
   for (nm in names(distr_list)) distr_list[[nm]]$update_model_spec(model_spec)
+  
+  # initialize the object
   
   self = Base()
   self$distr_list = distr_list
   self$model_spec = model_spec
   
+  
+  # section 1: get more context from the calibration problem
+  
   self$remove_location_parameters = function() {
     for (o in self$distr_list) o$remove_location_parameter()
-  }
-  self$default = function() {
-    method_apply(self$distr_list, "default") |> Reduce(f = "c")
   }
   
   #' @param obj An object with an `obj$distr_params()` method returning a flat list
@@ -247,6 +300,19 @@ DistrList = function(distr_list = list(), model_spec = mp_tmb_model_spec()) {
     ## assume length(nms) == length(default_objs)
     for (i in seq_along(nms)) default_objs[[i]]$update_global_name(nms[i])
   }
+  
+  
+  # section 2: distributional parameters that need to be added as 
+  ## _new_ defaults to model spec to be updated by calibration machinery
+  
+  self$default = function() {
+    method_apply(self$distr_list, "default") |> Reduce(f = "c")
+  }
+  
+  
+  # section 3: what distributional parameters should be fitted by the
+  ## calibration machinery?
+
   self$distr_params_frame = function() {
     (self$distr_list
       |> method_apply("distr_params_frame")
@@ -254,6 +320,7 @@ DistrList = function(distr_list = list(), model_spec = mp_tmb_model_spec()) {
       |> rename_synonyms(mat = "matrix", default = "value")
     )
   }
+  
   return_object(self, "DistrList")
 }
 
@@ -267,7 +334,7 @@ DistrParamNum = function(generic_name, value) {
 }
 DistrParamNumNoFit = function(name, value) {
   self = DistrParamNum(name, value)
-  self$expr_ref = function() self$.value
+  self$expr_ref = function() as.character(self$.value)
   self$update_names = function(name) {
     self$variable_name = name
     self
@@ -297,6 +364,7 @@ DistrParamNumFit = function(name, value) {
   }
   return_object(self, "DistrParamNumFit")
 }
+
 DistrParamChar = function(name, instance_name) {
   self = DistrParam(name)
   self$instance_name = as.character(instance_name)
@@ -308,22 +376,32 @@ DistrParamChar = function(name, instance_name) {
     self
   }
   self$expr_ref = function() self$global_name
+  self$check_in_spec = function() {
+    if (!self$global_name %in% names(self$model_spec$default)) {
+      stop(self$global_name, " is not in the model spec")
+    }
+  }
   return_object(self, "DistrParamChar")
 }
 DistrParamCharFit = function(name, instance_name) {
   self = DistrParamChar(name, instance_name)
   self$distr_params_frame = function() {
+    self$check_in_spec()
     mat = self$global_name
     data.frame(
         mat = mat
       , row = 0L, col = 0L
-      , default = self$default()[[mat]]
+      , default = self$model_spec$default[[mat]]
     )
   }
   return_object(self, "DistrParamCharNoFit")
 }
 DistrParamCharNoFit = function(name, instance_name) {
   self = DistrParamChar(name, instance_name)
+  self$default = function() {
+    self$check_in_spec()
+    list()
+  }
   return_object(self, "DistrParamCharNoFit")
 }
 
