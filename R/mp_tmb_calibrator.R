@@ -111,6 +111,10 @@ mp_tmb_calibrator = function(spec, data
     #, must_not_save = names(globalize(traj, "distr_params"))
   )
   
+  cal_spec = mp_tmb_insert(cal_spec
+    , default = globalize(par, "distr_params")
+  )
+  
   ## TODO: handle likelihood trajectories
   
   ## add time-varying parameters
