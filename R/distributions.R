@@ -1,52 +1,6 @@
 
-  
-  #' Optimization Context
-  #' 
-  #' Some decisions cannot be made without knowing more about the optimization 
-  #' problem in which this distributional parameter is being used. This
-  #' knowledge is provided through the arguments in this method.
-  #' 
-  #' @param suggested_instance_name A suggestion for the name of this
-  #' instance of the distributional parameter with name self$generic_name. An
-  #' example of an instance name is `distr_params_sd_I`, which is more
-  #' informative than just the name `sd`. In particular, this instance
-  #' name says that the variable is a distributional parameter, that it
-  #' is a standard deviation parameter, and that it relates to the 
-  #' trajectory, `I`. The reason that this is just a suggestion, is that
-  #' it may not be necessary at all to provide a name for an instance
-  #' of a distributional parameter. For example, if the user provides a 
-  #' literal value for the standard deviation such as `1` and asks that this
-  #' value not be refined through a fitting process, then it is not necessary
-  #' to store this value anywhere and just pass the literal `1` on to the
-  #' engine. So in this case, the suggestion for the instance name will be
-  #' silently ignored, but this is fine because this is purely an internal
-  #' concept and the user should not see any evidence of this complexity.
-  #' @param spec A `mp_tmb_model_spec` object to be possibly used to look
-  #' for default values of a distributional parameter that already exists.
-  #' If the user supplies the parameter through the definition of this
-  #' distributional parameter object
-  #' @param existing_global_names A character vector of names that already
-  #' exist in the `spec` object being used for optimization. These are used
-  #' to avoid namespace conflicts (e.g., if the `suggested_instance_name`
-  #' happens to be identical to another variable that is already in the
-  #' `spec`, this suggestion is modified to avoid conflicts).
-  # self$optimization_context = function(
-  #       suggested_instance_name = character()
-  #     , spec = macpan2::mp_tmb_model_spec()
-  #     , existing_global_names = character()
-  #   ) {
-  #   self$spec = spec
-  #   self$update_instance_name(suggested_instance_name)
-  #   self
-  # }
-  # self$optimization_context()
-
-## TODO: currently this is only used in likelihood functions.
-## how to re-purpose this for priors? the only thing that makes it a 
-## no-brainer is just that priors need a location parameter, and then
-## what if these are hyperparameters with their own priors in a
-## hierarchical model?
-
+## design brainstorming notes
+## 
 ## this experimental class is an attempt to solve the above problem.
 ## we have the concept of a spec with defaults, much like the concept
 ## of a model spec. the defaults can then be used when required 
@@ -54,15 +8,7 @@
 ## when the distribution spec is used for a likelihood. the thing i
 ## don't like about this is that the user might expect the default
 ## to be more than a default, and assume that the default value gets
-## used no matter what. perhaps it will be better to have a class
-## that can take all of the parameters (e.g. location, scale/dispersion
-## parameters) in one of three forms: 
-##   1. numeric
-##   2. character (interpreted as an expression)
-##   3. class with functions that are chosen for use
-##      depending on context (e.g., as a likelihood 
-##      component, as a prior)
-## the default will be #3
+## used no matter what.
 ## 
 ## distribution objects need to be used for (maybe too many?) things. 
 ## here are the use cases and the associated information that 
@@ -70,10 +16,9 @@
 ##  - trajectory matching 
 ##    - distr_params used as initial values in an optimization of a distribution parameter
 ##    - definition of this distribution parameter in the spec used for calibration
-##  - 
 ##  - used to declare that an existing variable will be used as the parameter
 ##  - used to set the numerical value of the parameter, without optimization
-##  
+
 
 #' Distributional Parameter
 #' 
@@ -82,9 +27,17 @@
 #' @param name Generic name of the distributional parameter (e.g., sd, 
 #' location, disp)
 #' 
+#' @section Optimization Context
+#' 
+#' Some decisions cannot be made without knowing more about the optimization 
+#' problem in which this distributional parameter is being used. This
+#' knowledge is provided through the arguments in this method.
+#' 
 #' @noRd
 DistrParam = function(generic_name) {
   self = Base()
+  
+  # Required Fields
   
   # Generic name of the distributional parameter (e.g., sd)
   self$generic_name = generic_name
@@ -94,15 +47,20 @@ DistrParam = function(generic_name) {
   self$variable_name = character(1L)
   
   # Name of the instance of this distributional parameter (e.g., sd_beta)
+  # This name is is more informative than either the generic name (e.g., `sd`)
+  # or the variable name (e.g., `beta`)
   self$instance_name = character(1L)
   
   # Instance name that has potentially been modified so that it can be
   # added to a model spec without clashing with exiseting names
-  # (e.g., sd_beta_1)
+  # (e.g., distr_params_sd_beta_1)
   self$global_name = character(1L)
   
   # Model specification for which this distribution parameter is beig applied
   self$model_spec = mp_tmb_model_spec()
+  
+  
+  # section 1: update fields when more context is available
   
   self$update_global_name = function(name) {
     self$global_name = name
@@ -123,10 +81,10 @@ DistrParam = function(generic_name) {
     self
   }
   
-  ## section 1: distributional parameters that need to be added as 
+  ## section 2: distributional parameters that need to be added as 
   ## _new_ defaults to model spec to be updated by calibration machinery
   
-  ## section 1a: list of values to be added as default matrices to a 
+  ## section 2a: list of values to be added as default matrices to a 
   ## mp_tmb_model_spec through a `default` argument. this list is either
   ## length 0 (if this distribuytional parameter does not have to be added
   ## to the model spec) or length 1 (if it does). any other length is
@@ -138,7 +96,7 @@ DistrParam = function(generic_name) {
   self$default_objs = function() list()
   
   
-  ## section 2: how should each distributional parameter be represented in
+  ## section 3: how should each distributional parameter be represented in
   ## the expression for the distribution density function (and maybe soon
   ## random number generators)
   
@@ -147,7 +105,7 @@ DistrParam = function(generic_name) {
   self$expr_ref = function() character()
   
   
-  ## section 3: what distributional parameters should be fitted by the
+  ## section 4: what distributional parameters should be fitted by the
   ## calibration machinery?
   
   self$distr_params_frame = function() macpan2:::empty_frame(c("mat", "row", "col", "default"))
@@ -160,21 +118,10 @@ DistrParam = function(generic_name) {
 #' 
 #' Class representing the specification of a distribution, either a prior or
 #' likelihood component.
+#' 
+#' Extend this class to develop a new distribution.
 DistrSpec = function() {
   self = Base()
-  
-  #' Field that must be in every distribution that inherits from DistrSpec
-  #' 
-  #' List of DistrParam objects defining the distribution. All distributions
-  #' must have a `location` parameter as the first parameter when the
-  #' distribution is instantiated. However, this `location` parameter 
-  #' might be removed by the `remove_location_parameter` method, which
-  #' should be called later if it is determined that the distribution does
-  #' not require a `location` parameter (e.g., it is a likelihood component
-  #' that takes the simulated tracjectory as the location).
-  self$distr_param_objs = list()
-  
-  
   
   ## section 1: get context from the distribution list, which includes
   ## the model spec
@@ -240,6 +187,16 @@ DistrSpec = function() {
   self$noisy_parameter = \() character()
   self$noisy_trajectory = \(sim) character()
   
+  #' These functions require one field that must be in every distribution 
+  #' that inherits from DistrSpec. This field is called `distr_param_objs`,
+  #' which is a list of DistrParam objects defining the distribution. All 
+  #' distributions must have a `location` parameter as the first parameter when 
+  #' the distribution is instantiated. However, this `location` parameter 
+  #' might be removed by the `remove_location_parameter` method, which
+  #' should be called later if it is determined that the distribution does
+  #' not require a `location` parameter (e.g., it is a likelihood component
+  #' that takes the simulated tracjectory as the location).
+  self$distr_param_objs = list()
   
   
   ## section 4: what distributional parameters should be fitted by the
@@ -267,10 +224,21 @@ DistrSpec = function() {
   return_object(self, "DistrSpec")
 }
 
+#' Distribution List
+#' 
+#' List of distribution specifications, combined with a model specification.
+#' These objects contain all of the information required by calibrators.
+#' It is probably not necessary to extend this class, as it is mostly
+#' (1) an aggregator of DistrSpec objects and (2) propagates information
+#' from the model spec and calibration machinery back to the DistrSpec and
+#' DistrParam objects.
+#' 
 #' @param distr_list Named list of DistrSpec objects that the user (or 
 #' interface) passes to mp_tmb_calibrator.
 #' @param model_spec Model spec object to be calibrated to data that the 
 #' user passed to mp_tmb_calibrator.
+#' 
+#' @noRd
 DistrList = function(distr_list = list(), model_spec = mp_tmb_model_spec()) {
   
   # get context from the interface
