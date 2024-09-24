@@ -507,20 +507,21 @@
 #'     time_varying_parameter ~ time_variation_schedule[j]
 #'   ),
 #'   mats = list(
-#'     time_steps = 10,
 #'     j = 0,
 #'     change_points = c(0, 4, 7),
 #'     time_variation_schedule = c(42, pi, sqrt(2)),
 #'     time_varying_parameter = empty_matrix
-#'   )
+#'   ),
+#'   time_steps = 10,
 #' )
 #' set.seed(1L)
 #' change_points = c(0,2,5)
 #' x_val = rnorm(length(change_points))
-#'(simple_sims(
-#'   iteration_exprs = list(x ~ time_var(x_val,change_points))
-#' , int_vecs = list(change_points = change_points)
-#' , mats = list(x = empty_matrix, x_val=x_val)
+#' simple_sims(
+#'     iteration_exprs = list(x ~ time_var(x_val,change_points))
+#'   , int_vecs = list(change_points = change_points)
+#'   , mats = list(x = empty_matrix, x_val=x_val)
+#'   , time_steps = 10
 #' )
 #' ```
 #'
