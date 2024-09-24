@@ -929,7 +929,7 @@ TMBTraj.character = function(
     )
   }
   
-  self$check_assumptions = function(orig_spec, data_struc) {
+  self$check_assumptions_basic = function(orig_spec, data_struc) {
     spec_mats = names(orig_spec$all_matrices())
     struc_mats = names(data_struc$matrix_list)
     bad_traj = !struc_mats %in% spec_mats
@@ -943,6 +943,7 @@ TMBTraj.character = function(
     }
     NULL
   }
+  self$check_assumptions = self$check_assumptions_basic
   
   return_object(self, "TMBTraj")
 }
@@ -993,6 +994,12 @@ TMBTraj.TrajArg = function(traj
   self$arg$likelihood = DistrList(self$arg$likelihood, spec)
   self$arg$likelihood$update_global_names(self)
   self$arg$likelihood$remove_location_parameters()
+  
+  self$check_assumptions = function(orig_spec, data_struc) {
+    self$check_assumptions_basic(orig_spec, data_struc)
+    self$arg$likelihood$check_variables(data_struc$matrix_list)
+    NULL
+  }
   
   return_object(self, "TMBTraj")
 }

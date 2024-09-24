@@ -517,11 +517,10 @@
 #' set.seed(1L)
 #' change_points = c(0,2,5)
 #' x_val = rnorm(length(change_points))
-#' (simple_sims(
-#'       iteration_exprs = list(x ~ time_var(x_val,change_points))
-#'     , int_vecs = list(change_points = change_points, time_steps = 10L)
-#'     , mats = list(x = empty_matrix, x_val=x_val) 
-#'   ) |> filter(matrix=="x")
+#'(simple_sims(
+#'   iteration_exprs = list(x ~ time_var(x_val,change_points))
+#' , int_vecs = list(change_points = change_points)
+#' , mats = list(x = empty_matrix, x_val=x_val)
 #' )
 #' ```
 #'

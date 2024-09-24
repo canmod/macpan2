@@ -2312,12 +2312,10 @@ public:
             // #' set.seed(1L)
             // #' change_points = c(0,2,5)
             // #' x_val = rnorm(length(change_points))
-<<<<<<< HEAD
-            // #'(simple_sims(
-            // #'   iteration_exprs = list(x ~ time_var(x_val,change_points))
-            // #' , int_vecs = list(change_points = change_points)
-            // #' , mats = list(x = empty_matrix, x_val=x_val) 
->>>>>>> main
+            // #' simple_sims(
+            // #'     iteration_exprs = list(x ~ time_var(x_val,change_points))
+            // #'   , int_vecs = list(change_points = change_points)
+            // #'   , mats = list(x = empty_matrix, x_val=x_val)
             // #' )
             // #' ```
             // #'

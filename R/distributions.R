@@ -229,6 +229,19 @@ DistrSpec = function(distr_param_objs = list(), default_trans = list()) {
   self$noisy_parameter = \() character()
   self$noisy_trajectory = \(sim) character()
   
+  
+  # Part C: Assumption Checking
+  
+  # section 5: check if the variable meets the assumptions of the distribution,
+  # at least at the start of the simulation (i.e., in the defaults or data).
+  # here the variable argument is the numeric value that the variable will
+  # take at the start of the simulation. note that if the spec modifies this
+  # variable before the objective function is evaluated, this check might not
+  # be correct. so these checks should always just throw warnings and not
+  # errors. the user experience enhancement will be to provide context for
+  # why the objective function or gradient returns NaNs sometimes.
+  self$check_variable = function(variable) NULL
+  
   return_object(self, "DistrSpec")
 }
 
@@ -299,6 +312,16 @@ DistrList = function(distr_list = list(), model_spec = mp_tmb_model_spec()) {
       |> bind_rows()
       |> rename_synonyms(mat = "matrix", default = "value")
     )
+  }
+  
+  # section 4: check variable assumptions
+  
+  self$check_variables = function(data_list) {
+    vnms = names(self$distr_list) ## all variable names
+    for (nm in vnms) {
+      self$distr_list[[nm]]$check_variable(data_list[[nm]]$value)
+    }
+    NULL
   }
   
   return_object(self, "DistrList")
@@ -502,7 +525,12 @@ mp_log_normal2 = function(location = DistrParam("location"), sd) {
             , self$distr_param_objs$sd$expr_ref()
     )
   }
-  
+  self$check_variable = function(variable) {
+    any_bad = lapply(variable, all.equal, 0) |> vapply(isTRUE, logical(1L)) |> any()
+    if (any_bad) {
+      warning(sprintf("Log-normal distribution chosen for %s that contains zeros at the beginning of the simulation", self$variable_name))
+    }
+  }
   return_object(self, "DistrSpecLogNormal")
 }
 
