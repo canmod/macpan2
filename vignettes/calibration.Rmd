@@ -88,11 +88,13 @@ The next step is to produce an object that can be calibrated through optimizatio
 sir_calibrator = mp_tmb_calibrator(sir_spec
   , data = sir_prevalence
   , traj = list(
-    I = mp_normal(sd = 1)
+    #I = mp_normal2(sd = 1)
+    I = mp_uniform2()
   )
   , par = list(
-      beta = mp_normal(location = 0.25, sd = 1)
-    , R = mp_normal(location = 100, sd = 1)
+      #beta = mp_normal2(location = 0.25, sd = 1)
+      beta = mp_uniform2()
+    , R = mp_normal2(location = 100, sd = 1)
   )
   , default = list(N = 300)
 )
