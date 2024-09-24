@@ -542,10 +542,10 @@ mp_uniform2 = function() {
     , default_trans = list()
   )
   self$prior = \(par) {
-    "0"
+    "-0"
   }
   self$likelihood = \(obs, sim) { 
-    "0"
+    stop("You cannot specify uniform likelihoods")
 
   }
   return_object(self, "DistrSpecUniform")
