@@ -75,7 +75,7 @@ $$
 \frac{dR}{dt} &= \gamma_a I_a + \gamma_m I_m + \rho H + \psi_3 H_2 \\
 \frac{dD}{dt} &=  \psi_2 ICU_d \\
 \frac{dW}{dt} &= \nu I_a + \nu I_p + \nu I_m + \nu I_s - \xi W \\
-\frac{dA}{dt} &= \xi W A
+\frac{dA}{dt} &= \xi W
 \end{split}
 $$
 
