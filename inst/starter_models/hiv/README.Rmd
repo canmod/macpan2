@@ -30,6 +30,32 @@ library(tidygraph)
 
 HIV model by [@granich2009universal].
 
+# States
+
+| Variable | Description                                                                                                        |
+| -------- | ------------------------------------------------------------------------------------------------------------------ |
+| S        | Number of susceptible individuals.                                                                                 |
+| I1 - I4  | Numbers of infectious individuals who are not treated. The number gives the state of disease progression from 1-4. |
+| A1 - A4  | Numbers of infectious individuals who are treated. The number gives the state of disease progression from 1-4.     |
+| D        | Number of individuals who have died from the disease.                                                              |
+| D_bg     | Number of individuals who have died from other causes.                                                             |
+
+# Parameters
+
+| Variable    | Description                                                                                                               |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------- |
+| $\alpha$    | Constant in non-linear transmission rate.                                                                                 |
+| $\lambda_0$ | Constant in non-linear transmission rate.                                                                                 |
+| $n$         | Constant in non-linear transmission rate.                                                                                 |
+| $\epsilon$  | Constant, in non-linear transmission rate, measuring the relative decrease in transmission caused by treatment. |
+| $\beta$     | Per-capita birth rate.                                                                                                    |
+| $\mu$       | Per-capita (background) death rate.                                                                                       |
+| $\rho$      | Per-capita rate of disease progression for non-treated individuals.                                                       |
+| $\sigma$    | Per-capita rate of disease progression for treated individuals.                                                           |
+| $\tau$      | Per-capita rate at which individuals become protected.                                                                    |
+| $\phi$      | Per-capita rate at which individuals become unprotected.                                                                  |
+
+
 # Dynamics
 
 ![](dynamics.png)
@@ -38,16 +64,15 @@ HIV model by [@granich2009universal].
 
 ```{r}
 spec = mp_tmb_library(
-    "starter_models", "HIV"
+    "starter_models", "hiv"
   , package = "macpan2"
 )
 outputs = c(
-    "D_bg", "D"
-  , "Itotal", "Atotal", "J"
-  , "lambda", "N", "P", "S"
+    "D_bg", "D", "S"
+  , "Itotal", "Atotal", "lambda"
 )
 sim = (spec
-  |> mp_hazard()
+  |> mp_rk4()
   |> mp_simulator(time_steps = 30L, outputs)
 )
 (sim
@@ -76,5 +101,9 @@ x_map = list(
   + theme_bw()
 )
 ```
+
+# Model Specification
+
+This model has been specified in the `hiv` directory [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/hiv/tmb.R) and is accessible from the `macpan2` model library (see [Example Models](https://canmod.github.io/macpan2/articles/example_models.html) for details).
 
 # References
