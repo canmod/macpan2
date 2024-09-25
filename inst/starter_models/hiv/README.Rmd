@@ -1,0 +1,80 @@
+---
+title: "HIV"
+index_entry: "A simple HIV model"
+bibliography: references.bib
+link-citations: TRUE
+author: Steve Walker
+output: 
+  github_document:
+    toc: true
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "./figures/"
+)
+```
+
+```{r packages, include=FALSE}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(macpan2)
+library(ggraph)
+library(tidygraph)
+```
+
+HIV model by [@granich2009universal].
+
+# Dynamics
+
+![](dynamics.png)
+
+# Example
+
+```{r}
+spec = mp_tmb_library(
+    "starter_models", "HIV"
+  , package = "macpan2"
+)
+outputs = c(
+    "D_bg", "D"
+  , "Itotal", "Atotal", "J"
+  , "lambda", "N", "P", "S"
+)
+sim = (spec
+  |> mp_hazard()
+  |> mp_simulator(time_steps = 30L, outputs)
+)
+(sim
+  |> mp_trajectory()
+  |> ggplot()
+  + geom_line(aes(time, value))
+  + facet_wrap(~ matrix, ncol = 3, scales = 'free')
+)
+```
+
+```{r, echo = FALSE, eval = FALSE}
+x_map = list(
+    S = 1
+  , I1 = 2, I2 = 3, I3 = 4, I4 = 5
+  , A1 = 2, A2 = 3, A3 = 4, A4 = 5
+  , D = 6
+)
+(spec
+  |> mp_flow_frame(topologically_sort = FALSE)
+  |> filter(!abs_rate %in% c("mu", "sigma"))
+  |> distinct()
+  |> as_tbl_graph()
+  |> ggraph('sparse', x = x_map[[name]])
+  + geom_edge_link(arrow = arrow(length = unit(4, 'mm')), end_cap = circle(3, 'mm'))
+  + geom_node_label(aes(label = name))
+  + theme_bw()
+)
+```
+
+# References
