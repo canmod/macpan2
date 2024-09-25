@@ -4,6 +4,7 @@ Steve Walker
 
 - [States](#states)
 - [Parameters](#parameters)
+- [Force-of-Infection](#force-of-infection)
 - [Packages Used](#packages-used)
 - [Dynamics](#dynamics)
 - [Solving the ODEs](#solving-the-odes)
@@ -38,9 +39,22 @@ This is a description of the HIV model proposed by ([Granich et al.
 | $\tau$      | Per-capita rate at which individuals become protected.                                                          |
 | $\phi$      | Per-capita rate at which individuals become unprotected.                                                        |
 
+# Force-of-Infection
+
+This model has the following, somewhat non-standard, functional form for
+the force-of-infection (per-capita transition rate from `S` to `I1`). $$
+\frac{\lambda J}{N}
+$$
+
+Where $\lambda = \lambda_0 e^{-\alpha P^n}$, $P = I/N$,
+$I = \sum_i(I_i + A_i)$, $J = \sum_i(I_i + \epsilon A_i)$, and $N$ is
+the total number of alive boxes.
+
+The rest of the transition rates are constant per-capita rates.
+
 # Packages Used
 
-The code in this artical uses the following packages.
+The code in this article uses the following packages.
 
 ``` r
 library(ggplot2)
@@ -65,39 +79,6 @@ spec = mp_tmb_library(
 
 The specification can be used to draw the flow diagram using the
 following code.
-
-``` r
-x_pos = c(
-    S = 1
-  , I1 = 2, I2 = 3, I3 = 4, I4 = 5
-  , A1 = 2, A2 = 3, A3 = 4, A4 = 5
-  , D = 6
-) / 7
-y_pos = c(
-    S = 6
-  , I1 = 6, I2 = 6, I3 = 6, I4 = 6
-  , A1 = 1, A2 = 1, A3 = 1, A4 = 1
-  , D = 6
-) / 7
-node_size = 10
-(spec
-  |> mp_flow_frame(topological_sort = FALSE)
-  |> filter(!abs_rate %in% c("mu", "sigma"))
-  |> distinct()
-  |> as_tbl_graph()
-  |> ggraph('manual', x = x_pos[name], y = y_pos[name])
-  + geom_edge_link(
-      arrow = arrow(length = unit(node_size * 0.3, 'mm'))
-    , end_cap = circle(node_size / 2, 'mm')
-    , start_cap = circle(node_size / 2, 'mm')
-  )
-  + geom_node_point(size = node_size, colour = "lightgrey")
-  + geom_node_text(aes(label = name), family = "mono")
-  + theme_graph(background = NA, plot_margin = margin(0, 0, 0, 0))
-  + scale_x_continuous(limits = c(0, 1))
-  + scale_y_continuous(limits = c(0, 1))
-)
-```
 
 ![](./figures/flow_diagram-1.png)<!-- -->
 

@@ -8,7 +8,7 @@ fn = list(
   , lambda ~ lambda0 * exp(-alpha * P^n)
 )
 flows = list(
-    mp_per_capita_flow("S", "I1", "lambda * S * J / N", "infection")
+    mp_per_capita_flow("S", "I1", "lambda * J / N", "infection")
   , mp_per_capita_flow("I1", "I2", "rho", "progression1")
   , mp_per_capita_flow("I2", "I3", "rho", "progression2")
   , mp_per_capita_flow("I3", "I4", "rho", "progression3")
