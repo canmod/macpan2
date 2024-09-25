@@ -45,21 +45,38 @@ flows = list(
   , mp_per_capita_inflow("A4", "S", "beta", "birth9")
 )
 
+
+## parameters inspired by the appendix of this paper:
+## https://www.pnas.org/doi/full/10.1073/pnas.1301801110
+## 
+## all rates are per year.
 default = list(
-    alpha = 0.1
-  , lambda0 = 0.002
-  , n = 1
-  , beta = 0.02
-  , mu = 0.01
-  , epsilon = 0.2
-  , rho = 0.15
-  , tau = 0.8
-  , phi = 0.015
-  , sigma = 0.1
-  , S = 999
-  , I1 = 1, I2 = 0, I3 = 0, I4 = 0, A1 = 0, A2 = 0, A3 = 0, A4 = 0
-  , D = 0
-  , D_bg = 0
+  
+  # per-capita demographics
+    mu = 0.018   ## death rate
+  , beta = 0.02  ## birth rate
+  
+  # per-capita progression rates
+  , rho = mean(c(1/0.271, 1/8.31, 1/1.184, 1/1.316)) ## untreated
+  , sigma = mean(c(1/8.21, 1/54, 1/2.463, 1/2.737))  ## treated
+  
+  # per-capita status transition rates
+  , tau = 0.015  ## untreated to treated
+  , phi = 0.015  ## treated to untreated
+  
+  , epsilon = 0.01  ## effect of treatment on transmission (smaller is better)
+  
+  , lambda0 = 0.35  ## baseline transmission rate
+  , n = 0  ## non-linearity exponent
+  , alpha = 0.1 ## non-linearity parameter
+  
+  
+  # initial conditions
+  , S = 1 ## susceptible
+  , I1 = 1/400, I2 = 1/400, I3 = 1/400, I4 = 1/400 ## untreated infectious per stage
+  , A1 = 0, A2 = 0, A3 = 0, A4 = 0                 ## treated infectious per stage
+  , D = 0     ## death due to disease
+  , D_bg = 0  ## background death
 )
 
 spec = mp_tmb_model_spec(

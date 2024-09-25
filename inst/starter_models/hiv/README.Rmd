@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
 ```
 
 
-This is a description of the HIV model proposed by [@granich2009universal].
+This is a description of a `macpan2` implementation of the HIV model proposed by [@granich2009universal]. Default parameter estimates [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/hiv/tmb.R) are inspired by [@kretzschmar2013prospects].
 
 # States
 
@@ -36,9 +36,9 @@ This is a description of the HIV model proposed by [@granich2009universal].
 
 | Variable    | Description                                                                                                               |
 | ----------- | ------------------------------------------------------------------------------------------------------------------------- |
-| $\alpha$    | Constant in non-linear transmission rate.                                                                                 |
-| $\lambda_0$ | Constant in non-linear transmission rate.                                                                                 |
-| $n$         | Constant in non-linear transmission rate.                                                                                 |
+| $\lambda_0$ | Baseline transmission rate.                                                                                 |
+| $\alpha$    | Constant in non-linear transmission rate, accounting for heterogeneity in sexual behaviour.                                                                                 |
+| $n$         | Constant in non-linear transmission rate, accounting for heterogeneity in sexual behaviour.                                                                                 |
 | $\epsilon$  | Constant, in non-linear transmission rate, measuring the relative decrease in transmission caused by treatment. |
 | $\beta$     | Per-capita birth rate.                                                                                                    |
 | $\mu$       | Per-capita (background) death rate.                                                                                       |
@@ -50,12 +50,7 @@ This is a description of the HIV model proposed by [@granich2009universal].
 
 # Force-of-Infection
 
-This model has the following, somewhat non-standard, functional form for the force-of-infection (per-capita transition rate from `S` to `I1`).
-$$
-\frac{\lambda J}{N}
-$$
-
-Where $\lambda = \lambda_0 e^{-\alpha P^n}$, $P = I/N$, $I = \sum_i(I_i + A_i)$, $J = \sum_i(I_i + \epsilon A_i)$, and $N$ is the total number of alive boxes.
+This model has the somewhat non-standard functional form for the force-of-infection (per-capita transition rate from `S` to `I1`), $\frac{\lambda J}{N}$ where $\lambda = \lambda_0 e^{-\alpha P^n}$, $P = I/N$, $I = \sum_i(I_i + A_i)$, $J = \sum_i(I_i + \epsilon A_i)$, and $N$ is the total number of alive boxes.
 
 The rest of the transition rates are constant per-capita rates.
 
@@ -82,7 +77,7 @@ spec = mp_tmb_library(
 )
 ```
 
-The specification can be used to draw the flow diagram using the following code.
+The specification can be used to draw the following flow diagram using code found in the source of this [article](.
 
 ```{r flow_diagram, echo = FALSE, fig.height=4, fig.width=6}
 y_pos = function(min, max, rng = 10) {
@@ -155,20 +150,27 @@ node_data = (data.frame(name = unique(c(edge_data$from, edge_data$to)))
 
 Here is an example trajectory from this model with defaults using the Runge-Kutta ODE solver.
 
-```{r}
-outputs = c(
-    "D_bg", "D", "S"
-  , "Itotal", "Atotal", "lambda"
-)
+```{r simulations}
+outputs = c(sprintf("I%s", 1:4), sprintf("A%s", 1:4))
+I0 = 1/400
+A0 = 0
 sim = (spec
+  |> mp_tmb_update(default = list(
+      lambda0 = 0.36, n = 0.2
+    , I1 = I0, I2 = I0, I3 = I0, I4 = I0
+    , A1 = A0, A2 = A0, A3 = A0, A4 = A0
+  ))
   |> mp_rk4()
-  |> mp_simulator(time_steps = 30L, outputs)
+  |> mp_simulator(time_steps = 50L, outputs)
 )
 (sim
   |> mp_trajectory()
+  |> mutate(matrix = sub("^A([1-4])$", "Infectious and treated, stage \\1", matrix))
+  |> mutate(matrix = sub("^I([1-4])$", "Infectious and untreated, stage \\1", matrix))
   |> ggplot()
   + geom_line(aes(time, value))
-  + facet_wrap(~ matrix, ncol = 3, scales = 'free')
+  + facet_wrap(~ matrix, ncol = 2, scales = 'free', dir = "v")
+  + scale_y_continuous(limits = c(0, NA), expand = c(0, 0))
 )
 ```
 

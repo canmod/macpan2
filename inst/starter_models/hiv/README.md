@@ -11,8 +11,12 @@ Steve Walker
 - [Model Specification](#model-specification)
 - [References](#references)
 
-This is a description of the HIV model proposed by ([Granich et al.
-2009](#ref-granich2009universal)).
+This is a description of a `macpan2` implementation of the HIV model
+proposed by ([Granich et al. 2009](#ref-granich2009universal)). Default
+parameter estimates
+[here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/hiv/tmb.R)
+are inspired by ([Kretzschmar et al.
+2013](#ref-kretzschmar2013prospects)).
 
 # States
 
@@ -28,9 +32,9 @@ This is a description of the HIV model proposed by ([Granich et al.
 
 | Variable    | Description                                                                                                     |
 |-------------|-----------------------------------------------------------------------------------------------------------------|
-| $\alpha$    | Constant in non-linear transmission rate.                                                                       |
-| $\lambda_0$ | Constant in non-linear transmission rate.                                                                       |
-| $n$         | Constant in non-linear transmission rate.                                                                       |
+| $\lambda_0$ | Baseline transmission rate.                                                                                     |
+| $\alpha$    | Constant in non-linear transmission rate, accounting for heterogeneity in sexual behaviour.                     |
+| $n$         | Constant in non-linear transmission rate, accounting for heterogeneity in sexual behaviour.                     |
 | $\epsilon$  | Constant, in non-linear transmission rate, measuring the relative decrease in transmission caused by treatment. |
 | $\beta$     | Per-capita birth rate.                                                                                          |
 | $\mu$       | Per-capita (background) death rate.                                                                             |
@@ -41,14 +45,11 @@ This is a description of the HIV model proposed by ([Granich et al.
 
 # Force-of-Infection
 
-This model has the following, somewhat non-standard, functional form for
-the force-of-infection (per-capita transition rate from `S` to `I1`). $$
-\frac{\lambda J}{N}
-$$
-
-Where $\lambda = \lambda_0 e^{-\alpha P^n}$, $P = I/N$,
-$I = \sum_i(I_i + A_i)$, $J = \sum_i(I_i + \epsilon A_i)$, and $N$ is
-the total number of alive boxes.
+This model has the somewhat non-standard functional form for the
+force-of-infection (per-capita transition rate from `S` to `I1`),
+$\frac{\lambda J}{N}$ where $\lambda = \lambda_0 e^{-\alpha P^n}$,
+$P = I/N$, $I = \sum_i(I_i + A_i)$, $J = \sum_i(I_i + \epsilon A_i)$,
+and $N$ is the total number of alive boxes.
 
 The rest of the transition rates are constant per-capita rates.
 
@@ -77,8 +78,8 @@ spec = mp_tmb_library(
 )
 ```
 
-The specification can be used to draw the flow diagram using the
-following code.
+The specification can be used to draw the following flow diagram using
+code found in the source of this \[article\](.
 
 ![](./figures/flow_diagram-1.png)<!-- -->
 
@@ -88,23 +89,30 @@ Here is an example trajectory from this model with defaults using the
 Runge-Kutta ODE solver.
 
 ``` r
-outputs = c(
-    "D_bg", "D", "S"
-  , "Itotal", "Atotal", "lambda"
-)
+outputs = c(sprintf("I%s", 1:4), sprintf("A%s", 1:4))
+I0 = 1/400
+A0 = 0
 sim = (spec
+  |> mp_tmb_update(default = list(
+      lambda0 = 0.36, n = 0.2
+    , I1 = I0, I2 = I0, I3 = I0, I4 = I0
+    , A1 = A0, A2 = A0, A3 = A0, A4 = A0
+  ))
   |> mp_rk4()
-  |> mp_simulator(time_steps = 30L, outputs)
+  |> mp_simulator(time_steps = 50L, outputs)
 )
 (sim
   |> mp_trajectory()
+  |> mutate(matrix = sub("^A([1-4])$", "Infectious and treated, stage \\1", matrix))
+  |> mutate(matrix = sub("^I([1-4])$", "Infectious and untreated, stage \\1", matrix))
   |> ggplot()
   + geom_line(aes(time, value))
-  + facet_wrap(~ matrix, ncol = 3, scales = 'free')
+  + facet_wrap(~ matrix, ncol = 2, scales = 'free', dir = "v")
+  + scale_y_continuous(limits = c(0, NA), expand = c(0, 0))
 )
 ```
 
-![](./figures/unnamed-chunk-2-1.png)<!-- -->
+![](./figures/simulations-1.png)<!-- -->
 
 # Model Specification
 
@@ -125,6 +133,15 @@ and Brian G Williams. 2009. “Universal Voluntary HIV Testing with
 Immediate Antiretroviral Therapy as a Strategy for Elimination of HIV
 Transmission: A Mathematical Model.” *The Lancet* 373 (9657): 48–57.
 <https://www.thelancet.com/journals/lancet/article/PIIS0140-6736(08)61697-9/abstract>.
+
+</div>
+
+<div id="ref-kretzschmar2013prospects" class="csl-entry">
+
+Kretzschmar, Mirjam E, Maarten F Schim van der Loeff, Paul J Birrell,
+Daniela De Angelis, and Roel A Coutinho. 2013. “Prospects of Elimination
+of HIV with Test-and-Treat Strategy.” *Proceedings of the National
+Academy of Sciences* 110 (39): 15538–43.
 
 </div>
 
