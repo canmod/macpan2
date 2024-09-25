@@ -76,8 +76,8 @@ mp_flow_frame = function(spec, topological_sort = TRUE, warn_not_dag = TRUE) {
   inflows = merge(to_only, ff, by = "change")[, c("size", "state", "change", "rate"), drop = FALSE]
   names(flows) = c("from", "to", "name", "rate")
   names(inflows) = c("from", "to", "name", "rate")
-  flows$type = "flow"
-  inflows$type = "inflow"
+  if (nrow(flows) > 0L) flows$type = "flow"
+  if (nrow(inflows) > 0L) inflows$type = "inflow"
   flows = rbind(flows, inflows)
   if (topological_sort) {
     topo = topological_sort_engine(flows, sv, warn_not_dag)
