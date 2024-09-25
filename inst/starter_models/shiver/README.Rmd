@@ -19,14 +19,6 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r packages, message=FALSE, warning=FALSE}
-library(ggplot2)
-library(dplyr)
-library(tidyr)
-library(macpan2)
-library(ggraph)
-library(tidygraph)
-```
 
 ```{r local_function, include=FALSE}
 ## -------------------------
@@ -61,6 +53,16 @@ In reality, vaccinations are only partly effective in developing a protective ho
 
 The SHIVER model assumes all individuals can be exposed to the disease, but transmission rates depend on vaccination status. Additionally, individuals with severe infections are hospitalized and assumed to be isolated, before recovering from the disease. Hospital isolation means this portion of infectious individuals no longer contribute to the transmission dynamics. 
 
+The code in this article uses the following packages.
+
+```{r packages, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(macpan2)
+library(ggraph)
+library(tidygraph)
+```
 
 
 # States
@@ -170,27 +172,34 @@ To convert the Michaelis-Menten curve above to a rate, we divide by $S(t)$.
 
 # Dynamics
 
-```{r, echo = FALSE, fig.height=2, fig.width=4}
+We first load the model specification from the model library.
+
+```{r model_spec}
+spec = mp_tmb_library("starter_models","shiver", package="macpan2")
+```
+
+We can draw the flow diagram for this model using the `mp_flow_frame` and the `ggraph` and `tidygraph` packages.
+
+```{r flow_diagram, fig.height=2, fig.width=4}
 spec = mp_tmb_library("starter_models", "shiver", package = "macpan2")
 x_pos = c(S = 1, V = 1, E = 2, I = 3, R = 4, H = 4) / 5
 y_pos = c(S = 4, V = 1, E = 4, I = 4, R = 4, H = 1) / 5
-suppressWarnings({
+node_size = 10
 (spec
-  |> mp_flow_frame()
+  |> mp_flow_frame(warn_not_dag = FALSE)
   |> as_tbl_graph()
   |> ggraph('manual', x = x_pos[name], y = y_pos[name])
   + geom_edge_link(
-      arrow = arrow(length = unit(4, 'mm'))
-    , end_cap = circle(5, 'mm')
-    , start_cap = circle(5, 'mm')
+      arrow = arrow(length = unit(node_size * 0.3, 'mm'))
+    , end_cap = circle(node_size / 2, 'mm')
+    , start_cap = circle(node_size / 2, 'mm')
   )
-  + geom_node_point(size = 10, colour = "lightgrey")
-  + geom_node_text(aes(label = name), fill = "lightgrey", family = "mono")
+  + geom_node_point(size = node_size, colour = "lightgrey")
+  + geom_node_text(aes(label = name), family = "mono")
   + theme_graph(background = NA, plot_margin = margin(0, 0, 0, 0))
   + scale_x_continuous(limits = c(0, 1))
   + scale_y_continuous(limits = c(0, 1))
 )
-})
 ```
 
 $$
@@ -209,12 +218,6 @@ This model could be optionally parameterized with $\beta_{S} = \beta$, and $\bet
 # Calibration Example
 
 The general goal of this example is to see if we can fit the SHIVER model to COVID19 hospitilization data to estimate plausible transmission rates for vaccinated and unvaccinated individuals.
-
-We first load the model specification from the model library.
-
-```{r model_spec}
-spec = mp_tmb_library("starter_models","shiver", package="macpan2")
-```
 
 ## Calibration Scenario
 

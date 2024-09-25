@@ -20,15 +20,6 @@ Jennifer Freeman
 - [Model Specification](#model-specification)
 - [References](#references)
 
-``` r
-library(ggplot2)
-library(dplyr)
-library(tidyr)
-library(macpan2)
-library(ggraph)
-library(tidygraph)
-```
-
 This model builds on the basic SEIR model, with two additional
 compartments for vaccination and hospitalizations.
 
@@ -57,6 +48,17 @@ individuals with severe infections are hospitalized and assumed to be
 isolated, before recovering from the disease. Hospital isolation means
 this portion of infectious individuals no longer contribute to the
 transmission dynamics.
+
+The code in this article uses the following packages.
+
+``` r
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(macpan2)
+library(ggraph)
+library(tidygraph)
+```
 
 # States
 
@@ -131,7 +133,38 @@ $S(t)$.
 
 # Dynamics
 
-![](./figures/unnamed-chunk-2-1.png)<!-- -->
+We first load the model specification from the model library.
+
+``` r
+spec = mp_tmb_library("starter_models","shiver", package="macpan2")
+```
+
+We can draw the flow diagram for this model using the `mp_flow_frame`
+and the `ggraph` and `tidygraph` packages.
+
+``` r
+spec = mp_tmb_library("starter_models", "shiver", package = "macpan2")
+x_pos = c(S = 1, V = 1, E = 2, I = 3, R = 4, H = 4) / 5
+y_pos = c(S = 4, V = 1, E = 4, I = 4, R = 4, H = 1) / 5
+node_size = 10
+(spec
+  |> mp_flow_frame(warn_not_dag = FALSE)
+  |> as_tbl_graph()
+  |> ggraph('manual', x = x_pos[name], y = y_pos[name])
+  + geom_edge_link(
+      arrow = arrow(length = unit(node_size * 0.3, 'mm'))
+    , end_cap = circle(node_size / 2, 'mm')
+    , start_cap = circle(node_size / 2, 'mm')
+  )
+  + geom_node_point(size = node_size, colour = "lightgrey")
+  + geom_node_text(aes(label = name), family = "mono")
+  + theme_graph(background = NA, plot_margin = margin(0, 0, 0, 0))
+  + scale_x_continuous(limits = c(0, 1))
+  + scale_y_continuous(limits = c(0, 1))
+)
+```
+
+![](./figures/flow_diagram-1.png)<!-- -->
 
 $$
 \begin{align*}
@@ -155,12 +188,6 @@ the disease is reduced when compared to unvaccinated individuals
 The general goal of this example is to see if we can fit the SHIVER
 model to COVID19 hospitilization data to estimate plausible transmission
 rates for vaccinated and unvaccinated individuals.
-
-We first load the model specification from the model library.
-
-``` r
-spec = mp_tmb_library("starter_models","shiver", package="macpan2")
-```
 
 ## Calibration Scenario
 
@@ -524,14 +551,10 @@ est_coef = mp_tmb_coef(shiver_calibrator, conf.int=TRUE)
 #> outer mgc:  0.9042209 
 #> outer mgc:  92177.98
 est_coef
-#>       term    mat row col default  type    estimate    std.error     conf.low
-#> 1   params beta_v   0   0    0.05 fixed   1.3693922  0.726790175  -0.05509041
-#> 2 params.1 beta_s   0   0    0.20 fixed   0.1831558  0.002905155   0.17746179
-#> 3 params.2      E   0   0    0.00 fixed 174.1333543 11.353579577 151.88074724
-#>     conf.high
-#> 1   2.7938747
-#> 2   0.1888498
-#> 3 196.3859614
+#>       term    mat row col default  type    estimate    std.error     conf.low   conf.high
+#> 1   params beta_v   0   0    0.05 fixed   1.3693922  0.726790175  -0.05509041   2.7938747
+#> 2 params.1 beta_s   0   0    0.20 fixed   0.1831558  0.002905155   0.17746179   0.1888498
+#> 3 params.2      E   0   0    0.00 fixed 174.1333543 11.353579577 151.88074724 196.3859614
 ```
 
 We get a realistic estimate for `beta_s` at 0.18 with a small standard
@@ -688,11 +711,9 @@ shiver_calibrator = mp_tmb_calibrator(
 mp_optimize(shiver_calibrator)
 #> outer mgc:  1343.964 
 #> outer mgc:  3876.818
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
-#> NA/NaN function evaluation
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function evaluation
 #> outer mgc:  47619.47
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
-#> NA/NaN function evaluation
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function evaluation
 #> outer mgc:  64345.73 
 #> outer mgc:  14630.69 
 #> outer mgc:  1448.906 
@@ -747,14 +768,10 @@ mp_optimize(shiver_calibrator)
     #> outer mgc:  27.83219 
     #> outer mgc:  27.80536 
     #> outer mgc:  17519.22
-    #>       term       mat row col default  type  estimate    std.error     conf.low
-    #> 1   params      beta   0   0    0.01 fixed 0.1877862 0.0005929213 1.866277e-01
-    #> 2 params.2 E_I_ratio   0   0    0.01 fixed 0.5859117 0.0237689881 5.411293e-01
-    #> 3 params.1         p   0   0    0.01 fixed 1.0000000 0.0003158306 2.220446e-16
-    #>   conf.high
-    #> 1 0.1889519
-    #> 2 0.6344002
-    #> 3 1.0000000
+    #>       term       mat row col default  type  estimate    std.error     conf.low conf.high
+    #> 1   params      beta   0   0    0.01 fixed 0.1877862 0.0005929213 1.866277e-01 0.1889519
+    #> 2 params.2 E_I_ratio   0   0    0.01 fixed 0.5859117 0.0237689881 5.411293e-01 0.6344002
+    #> 3 params.1         p   0   0    0.01 fixed 1.0000000 0.0003158306 2.220446e-16 1.0000000
 
 The estimates for our parameters are close to the the previous
 estimates, which makes sense because we only re-parameterized instead of
@@ -788,11 +805,9 @@ shiver_calibrator_rk4 = mp_tmb_calibrator(
 # converges with warning
 mp_optimize(shiver_calibrator_rk4)
 #> outer mgc:  1091.376
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
-#> NA/NaN function evaluation
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function evaluation
 #> outer mgc:  36662.79
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
-#> NA/NaN function evaluation
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function evaluation
 #> outer mgc:  39129.07 
 #> outer mgc:  3289.01 
 #> outer mgc:  4450.876 
@@ -800,8 +815,7 @@ mp_optimize(shiver_calibrator_rk4)
 #> outer mgc:  139.7125 
 #> outer mgc:  128.9961 
 #> outer mgc:  74.47594
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
-#> NA/NaN function evaluation
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function evaluation
 #> outer mgc:  1617.209 
 #> outer mgc:  715.2498 
 #> outer mgc:  712.5973 
@@ -864,14 +878,10 @@ rk4_coef <- (mp_tmb_coef(shiver_calibrator_rk4, conf.int=TRUE)
 #> outer mgc:  87.32768
 
 rk4_coef
-#>       term       mat row col default  type  estimate    std.error     conf.low
-#> 1   params      beta   0   0    0.01 fixed 0.3494114 2.356884e-03 3.448223e-01
-#> 2 params.2 E_I_ratio   0   0    0.01 fixed 3.5373697 1.078429e-01 3.332193e+00
-#> 3 params.1         p   0   0    0.01 fixed 1.0000000 2.367506e-06 2.220446e-16
-#>   conf.high
-#> 1 0.3540614
-#> 2 3.7551804
-#> 3 1.0000000
+#>       term       mat row col default  type  estimate    std.error     conf.low conf.high
+#> 1   params      beta   0   0    0.01 fixed 0.3494114 2.356884e-03 3.448223e-01 0.3540614
+#> 2 params.2 E_I_ratio   0   0    0.01 fixed 3.5373697 1.078429e-01 3.332193e+00 3.7551804
+#> 3 params.1         p   0   0    0.01 fixed 1.0000000 2.367506e-06 2.220446e-16 1.0000000
 # rk4 doesn't help us learn more about p
 # let's try adding more data
 ```
@@ -911,14 +921,10 @@ Next we optimize, and look at our estimates.
     #> outer mgc:  30.71035 
     #> outer mgc:  30.70355 
     #> outer mgc:  119.1836
-    #>       term       mat row col default  type  estimate    std.error     conf.low
-    #> 1   params      beta   0   0    0.01 fixed 0.2757352 4.514763e-04 2.748518e-01
-    #> 2 params.2 E_I_ratio   0   0    0.01 fixed 0.8783831 1.844027e-02 8.429744e-01
-    #> 3 params.1         p   0   0    0.01 fixed 1.0000000 2.557872e-06 2.220446e-16
-    #>   conf.high
-    #> 1 0.2766215
-    #> 2 0.9152793
-    #> 3 1.0000000
+    #>       term       mat row col default  type  estimate    std.error     conf.low conf.high
+    #> 1   params      beta   0   0    0.01 fixed 0.2757352 4.514763e-04 2.748518e-01 0.2766215
+    #> 2 params.2 E_I_ratio   0   0    0.01 fixed 0.8783831 1.844027e-02 8.429744e-01 0.9152793
+    #> 3 params.1         p   0   0    0.01 fixed 1.0000000 2.557872e-06 2.220446e-16 1.0000000
 
 We were not able to estimate `p` again, note the confidence interval is
 again the entire domain of possible values for `p`.
@@ -1026,8 +1032,7 @@ fixed_a = mp_tmb_calibrator(
 # converges and recovering true beta
 mp_optimize(fixed_a)
 #> outer mgc:  18.34179
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
-#> NA/NaN function evaluation
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function evaluation
 #> outer mgc:  1.090191 
 #> outer mgc:  0.002655774 
 #> outer mgc:  1.564832e-08
