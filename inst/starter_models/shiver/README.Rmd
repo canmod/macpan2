@@ -19,11 +19,15 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r packages, include=FALSE}
+```{r packages}
+suppressPackageStartupMessages({
 library(ggplot2)
 library(dplyr)
 library(tidyr)
 library(macpan2)
+library(ggraph)
+library(tidygraph)
+})
 ```
 
 ```{r local_function, include=FALSE}
@@ -167,6 +171,20 @@ To convert the Michaelis-Menten curve above to a rate, we divide by $S(t)$.
 ```
 
 # Dynamics 
+
+```{r, echo = FALSE, fig.height=2}
+spec = mp_tmb_library("starter_models","shiver", package="macpan2")
+suppressWarnings({
+(spec
+  |> mp_flow_frame()
+  |> as_tbl_graph()
+  |> ggraph('focus', focus = node_is_center())
+  + geom_edge_link(arrow = arrow(length = unit(4, 'mm')), end_cap = circle(3, 'mm'))
+  + geom_node_label(aes(label = name))
+  + scale_x_reverse()
+)
+})
+```
 
 $$
 \begin{align*}
