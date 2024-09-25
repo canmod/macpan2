@@ -688,11 +688,11 @@ shiver_calibrator = mp_tmb_calibrator(
 mp_optimize(shiver_calibrator)
 #> outer mgc:  1343.964 
 #> outer mgc:  3876.818
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN
-#> function evaluation
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
+#> NA/NaN function evaluation
 #> outer mgc:  47619.47
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN
-#> function evaluation
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
+#> NA/NaN function evaluation
 #> outer mgc:  64345.73 
 #> outer mgc:  14630.69 
 #> outer mgc:  1448.906 
@@ -788,11 +788,11 @@ shiver_calibrator_rk4 = mp_tmb_calibrator(
 # converges with warning
 mp_optimize(shiver_calibrator_rk4)
 #> outer mgc:  1091.376
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN
-#> function evaluation
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
+#> NA/NaN function evaluation
 #> outer mgc:  36662.79
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN
-#> function evaluation
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
+#> NA/NaN function evaluation
 #> outer mgc:  39129.07 
 #> outer mgc:  3289.01 
 #> outer mgc:  4450.876 
@@ -800,8 +800,8 @@ mp_optimize(shiver_calibrator_rk4)
 #> outer mgc:  139.7125 
 #> outer mgc:  128.9961 
 #> outer mgc:  74.47594
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN
-#> function evaluation
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
+#> NA/NaN function evaluation
 #> outer mgc:  1617.209 
 #> outer mgc:  715.2498 
 #> outer mgc:  712.5973 
@@ -1026,8 +1026,8 @@ fixed_a = mp_tmb_calibrator(
 # converges and recovering true beta
 mp_optimize(fixed_a)
 #> outer mgc:  18.34179
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN
-#> function evaluation
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
+#> NA/NaN function evaluation
 #> outer mgc:  1.090191 
 #> outer mgc:  0.002655774 
 #> outer mgc:  1.564832e-08

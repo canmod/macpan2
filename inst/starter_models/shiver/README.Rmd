@@ -168,18 +168,27 @@ To convert the Michaelis-Menten curve above to a rate, we divide by $S(t)$.
 
 ```
 
-# Dynamics 
+# Dynamics
 
-```{r, echo = FALSE, fig.height=2}
-spec = mp_tmb_library("starter_models","shiver", package="macpan2")
+```{r, echo = FALSE, fig.height=2, fig.width=4}
+spec = mp_tmb_library("starter_models", "shiver", package = "macpan2")
+x_pos = c(S = 1, V = 1, E = 2, I = 3, R = 4, H = 4) / 5
+y_pos = c(S = 4, V = 1, E = 4, I = 4, R = 4, H = 1) / 5
 suppressWarnings({
 (spec
   |> mp_flow_frame()
   |> as_tbl_graph()
-  |> ggraph('focus', focus = node_is_center())
-  + geom_edge_link(arrow = arrow(length = unit(4, 'mm')), end_cap = circle(3, 'mm'))
-  + geom_node_label(aes(label = name))
-  + scale_x_reverse()
+  |> ggraph('manual', x = x_pos[name], y = y_pos[name])
+  + geom_edge_link(
+      arrow = arrow(length = unit(4, 'mm'))
+    , end_cap = circle(5, 'mm')
+    , start_cap = circle(5, 'mm')
+  )
+  + geom_node_point(size = 10, colour = "lightgrey")
+  + geom_node_text(aes(label = name), fill = "lightgrey", family = "mono")
+  + theme_graph(background = NA, plot_margin = margin(0, 0, 0, 0))
+  + scale_x_continuous(limits = c(0, 1))
+  + scale_y_continuous(limits = c(0, 1))
 )
 })
 ```
