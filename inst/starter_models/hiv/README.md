@@ -79,7 +79,8 @@ spec = mp_tmb_library(
 ```
 
 The specification can be used to draw the following flow diagram using
-code found in the source of this \[article\](.
+code found in the [source for this
+article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/hiv/README.Rmd).
 
 ![](./figures/flow_diagram-1.png)<!-- -->
 
