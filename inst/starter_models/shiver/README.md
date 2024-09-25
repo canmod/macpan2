@@ -2,6 +2,7 @@ SHIVER = SEIR + H + V
 ================
 Jennifer Freeman
 
+- [SHIVER = SEIR + H + V](#shiver--seir--h--v)
 - [States](#states)
 - [Parameters](#parameters)
   - [Variable Vaccination Rate](#variable-vaccination-rate)
@@ -11,11 +12,9 @@ Jennifer Freeman
   - [Deciding on Defaults](#deciding-on-defaults)
   - [Simulating Dynamics](#simulating-dynamics)
   - [Estimating Parameters](#estimating-parameters)
-  - [Re-parameterizing and Introducing
-    Transformations](#re-parameterizing-and-introducing-transformations)
+  - [Re-parameterizing and Introducing Transformations](#re-parameterizing-and-introducing-transformations)
   - [Runge-Kutta 4](#runge-kutta-4)
-  - [Fitting to Multiple
-    Trajectories](#fitting-to-multiple-trajectories)
+  - [Fitting to Multiple Trajectories](#fitting-to-multiple-trajectories)
   - [Parameter Identifiability](#parameter-identifiability)
 - [Model Specification](#model-specification)
 - [References](#references)
@@ -143,7 +142,6 @@ We can draw the flow diagram for this model using the `mp_flow_frame`
 and the `ggraph` and `tidygraph` packages.
 
 ``` r
-spec = mp_tmb_library("starter_models", "shiver", package = "macpan2")
 x_pos = c(S = 1, V = 1, E = 2, I = 3, R = 4, H = 4) / 5
 y_pos = c(S = 4, V = 1, E = 4, I = 4, R = 4, H = 1) / 5
 node_size = 10
