@@ -21,14 +21,12 @@ Jennifer Freeman
 - [References](#references)
 
 ``` r
-suppressPackageStartupMessages({
 library(ggplot2)
 library(dplyr)
 library(tidyr)
 library(macpan2)
 library(ggraph)
 library(tidygraph)
-})
 ```
 
 This model builds on the basic SEIR model, with two additional

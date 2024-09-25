@@ -19,15 +19,13 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r packages}
-suppressPackageStartupMessages({
+```{r packages, message=FALSE, warning=FALSE}
 library(ggplot2)
 library(dplyr)
 library(tidyr)
 library(macpan2)
 library(ggraph)
 library(tidygraph)
-})
 ```
 
 ```{r local_function, include=FALSE}
