@@ -78,7 +78,7 @@ ggplot(simulated_results, aes(x = time, y = value, color = matrix)) +
   labs(title = "STI Partnership Model Dynamics", x = "Time", y = "Population")
 ```
 
-![](README_files/figure-gfm/plot_results-1.png)<!-- -->
+![](./figures/plot_results-1.png)<!-- -->
 
 ## Conclusion
 
