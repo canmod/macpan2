@@ -1,8 +1,12 @@
 ---
 title: "STI Partnership Model"
-output:
-  html_document:
-    df_print: paged
+index_entry: "A modified SEIR model with Hospitalization and Vaccination"
+author: ChatGPT and Steve Walker
+output: 
+  github_document:
+    toc: true
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup}

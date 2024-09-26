@@ -1,0 +1,89 @@
+STI Partnership Model
+================
+ChatGPT and Steve Walker
+
+- [Introduction](#introduction)
+- [Model Description](#model-description)
+  - [Dynamics:](#dynamics)
+- [Model Simulation](#model-simulation)
+- [Running the Simulation](#running-the-simulation)
+- [Results](#results)
+- [Conclusion](#conclusion)
+
+``` r
+library(macpan2)
+library(ggplot2)
+```
+
+## Introduction
+
+This document describes a **Sexually Transmitted Infection (STI)
+Partnership Model** implemented in `macpan2`. The model simulates how
+STIs spread within a population where individuals form and dissolve
+partnerships, incorporating both **within-partner transmission** and
+**external transmission**.
+
+## Model Description
+
+The compartments in the model are:
+
+- **S**: Susceptible individuals
+- **I**: Infected individuals
+- **SS**: Susceptible-Susceptible partnerships
+- **SI**: Susceptible-Infected partnerships
+- **II**: Infected-Infected partnerships
+
+### Dynamics:
+
+1.  **Partnership Formation**: Susceptible individuals form
+    partnerships, transitioning into the **SS** or **SI** compartments.
+2.  **Partnership Dissolution**: Partnerships dissolve, moving
+    individuals back to the **S** or **I** compartments.
+3.  **Within-Partner Transmission**: Infected partners in **SI**
+    compartments transmit infection to their susceptible partners,
+    transitioning them to **II**.
+4.  **External Transmission**: Susceptible individuals can be infected
+    through external sources, moving from **S** to **I**.
+
+## Model Simulation
+
+We use the pre-defined model from the library.
+
+``` r
+# Load the pre-specified STI model
+model <- mp_tmb_library("starter_models", "si_partnerships_sti", package = "macpan2")
+```
+
+## Running the Simulation
+
+The simulation is run for 100 time steps, and results are captured for
+analysis.
+
+``` r
+simulated_results <- model |> 
+  mp_simulator(time_steps = 100, outputs = c("S", "I", "SS", "SI", "II")) |> 
+  mp_trajectory()
+```
+
+## Results
+
+The plot below shows the changes in population across the compartments
+over time.
+
+``` r
+ggplot(simulated_results, aes(x = time, y = value, color = matrix)) +
+  geom_line() +
+  facet_wrap(~ matrix, scales = "free_y") +
+  theme_bw() +
+  labs(title = "STI Partnership Model Dynamics", x = "Time", y = "Population")
+```
+
+![](README_files/figure-gfm/plot_results-1.png)<!-- -->
+
+## Conclusion
+
+This model simulates STI spread through partnerships and external
+sources, offering insights into the role of relationship dynamics in
+disease transmission. The model can be expanded to explore additional
+features such as heterogeneity in the population or multiple infection
+strains.
