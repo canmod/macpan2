@@ -131,7 +131,12 @@ focal_model = (macpan_base
    # add phenomenological heterogeneity:
    |> mp_tmb_update(phase = "during"
       , at =1L
-      , expressions = list(mp_per_capita_flow("S", "E", S.E ~ ((S/N)^zeta) * (beta / N) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s))))
+      , expressions = list(
+        mp_per_capita_flow(
+            "S", "E"
+          , "((S/N)^zeta) * (beta / N) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s))"
+          , "S.E"
+        ))
 
    )
    
@@ -333,12 +338,15 @@ R0_ph = sum(cohort_sim_ph$value)
 # add duplicate foi expression because we can't recover the foi = S.E / S, when 
 # S is 0.
 # In this case we do initialize S to 0.
-cohort_model = (
-  focal_model
+cohort_model = (focal_model
   %>% mp_tmb_update(phase="during"
                     , at = 2L
-                    , expressions = list(mp_per_capita_flow("S", "E", S.E ~ (beta / N) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s))))
-  )
+                    , expressions = list(mp_per_capita_flow(
+        "S", "E"
+      , "(beta / N) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs * (1 - iso_s))"
+      , "S.E" 
+    )
+  ))
   %>% mp_tmb_insert(phase="during"
                     , at = Inf
                     , expressions = list(foi ~ (beta / N) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s)))

@@ -111,8 +111,8 @@ edge_data = (spec
       , sprintf("phantom(0) * phantom(0) * %s", rate)
       , sprintf("atop(%s, phantom(0))", rate)
   ))
-  |> mutate(to = ifelse(to == "D_bg"
-      , sprintf("%s_%s", to, from)
+  |> mutate(to = ifelse(to == ""
+      , sprintf("D_bg_%s", from)
       , to
   ))
   |> mutate(from = ifelse(to == "S", "N", from))
@@ -137,7 +137,6 @@ node_data = (data.frame(name = unique(c(edge_data$from, edge_data$to)))
   + geom_node_point(aes(size = sizes, colour = is_N))
   + geom_node_text(aes(label = labels), family = "mono")
   + theme_graph(background = NA, plot_margin = margin(0, 0, 0, 0))
-  #+ theme_bw()
   + scale_x_continuous(limits = c(0, 1), breaks = seq(from = 0, to = 1, by = 0.05))
   + scale_y_continuous(limits = c(0, 1))
   + scale_size_continuous(guide = "none", range = c(-1, node_size))

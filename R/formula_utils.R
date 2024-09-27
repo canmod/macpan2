@@ -142,6 +142,7 @@ is_two_sided = function(formula) {
 
 is_lhs_symbol = function(formula) is.symbol(lhs_expr(formula))
 is_rhs_symbol = function(formula) is.symbol(rhs_expr(formula))
+is_char_symbol = function(x) is.symbol(str2lang(as.character(x)))
 
 rhs = function(formula) {
   if (is_two_sided(formula)) formula = formula[-2L]

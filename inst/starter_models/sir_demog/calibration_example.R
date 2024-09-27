@@ -1,12 +1,12 @@
-#source("inst/starter_models/sir_demog/tmb.R")
 library(macpan2)
 library(dplyr)
+library(ggplot2)
 
 ## -------------------------
 ## get model spec from library
 ## -------------------------
 
-spec = mp_tmb_library("starter_models","sir_demog",package="macpan2")
+spec = mp_tmb_library("starter_models", "sir_demog", package = "macpan2")
 spec
 
 ## -------------------------
@@ -16,111 +16,80 @@ spec
 # set number of time steps in simulation
 time_steps = 100L
 
-# simulator object
-sir_demog = mp_simulator(  
-    model = spec
-  , time_steps = time_steps
-  , outputs = c("I","N")
-)
-
-## -------------------------
-## specify objective function
-## -------------------------
-
-# negative log likelihood
-obj_fn = ~ -sum(dpois(I_obs, rbind_time(I, I_obs_times)))
-
-# update simulator to create new variables 
-# I_obs and I_obs_times and initialize
-sir_demog$update$matrices(
-    I_obs = empty_matrix
-  , I_obs_times = empty_matrix
-)
-
-# update simulator to include this function
-sir_demog$replace$obj_fn(obj_fn)
-
-## -------------------------
-## parameterize model
-## -------------------------
-
-sir_demog$update$transformations(Log("beta"))
-
-# choose which parameter(s) to estimate
-sir_demog$replace$params(log(spec$default$beta), "log_beta")
-sir_demog
 
 ## -------------------------
 ## simulate fake data
 ## -------------------------
 
-# beta value to simulate data with
-true_beta = 0.3
-
-## feed log(true_beta) to the simulator because we have
-## already specified log-transformation of this parameter
-observed_data = sir_demog$report(log(true_beta))
-
-## compute incidence for observed data
-I_obs = rpois(time_steps, subset(observed_data, matrix == "I", select = c(value)) %>% pull())
-I_obs_times = subset(observed_data, matrix == "I", select = c(time)) %>% pull()
-
-if (interactive()) {
-  plot(I_obs, type = "l", las = 1)
-}
-
-
-## -------------------------
-## update simulator with fake data to fit to
-## -------------------------
-
-sir_demog$update$matrices(
-    I_obs = I_obs
-  , I_obs_times = I_obs_times
+# modify the spec so that it is different from the default library
+# model that we will calibrate. we will use an rk4 ode solver
+spec_for_making_fake_data = mp_tmb_insert(
+    spec |> mp_rk4()
+  , default = list(mu = 0.1, beta = 0.4)
 )
 
-## -------------------------
-## plot likelihood surface (curve)
-## -------------------------
+# simulator object
+sim = mp_simulator(  
+    model = spec_for_making_fake_data
+  , time_steps = time_steps
+  , outputs = "infection"
+)
 
-if (interactive()) {
-  log_betas = seq(from = log(0.1), to = log(1), length = 100)
-  ll = vapply(
-      log_betas
-    , sir_demog$objective
-    , numeric(1L)
-  )
-  plot(exp(log_betas), ll, type = "l", las = 1)
-  abline(v = true_beta)
-}
+# simulate data (known 'true' trajectory)
+true_traj = obs_traj = mp_trajectory(sim)
 
-## -------------------------
-## fit parameters
-## -------------------------
-
-## optimize and check convergence
-sir_demog$optimize$nlminb()
-
-## plot observed vs predicted
-if (interactive()) {
-  print(sir_demog$current$params_frame())
-  print(paste0("exp(default) ",exp(sir_demog$current$params_frame()$default)))
-  print(paste0("exp(current) ",exp(sir_demog$current$params_frame()$current)))
-  plot(I_obs, type = "l", las = 1)
-  lines(sir_demog$report() %>% filter(matrix=="I") %>% select(value), col = "red")
-}
+# add noise (simulated observed and noisy trajectory)
+set.seed(1L)
+obs_traj$value = rpois(time_steps, true_traj$value)
 
 ## -------------------------
-## exploring
+## calibrate to fake data
 ## -------------------------
 
-## plot population size (should be exponential)
-if (interactive()) {
-  times_to_plot = 1:time_steps
-  pop_change = spec$default$birth_rate-spec$default$death_rate
-  plot(spec$default$N*((1+pop_change)^times_to_plot), type = "l", las = 1, ylab='N')
-  lines(sir_demog$report() %>% filter(matrix=="N") %>% select(value), col = "red")
-  legend("topleft",legend=c("theoretical","observed"), lty = 1, col=c("black","red"))
-}
+# calibrator object -- fit beta and mu to the 
+# simulated infection flow (i.e., incidence).
+# to be consistent we use an rk4 ode solver
+cal = mp_tmb_calibrator(mp_rk4(spec), obs_traj, "infection", c("beta", "mu"))
 
-                   
+# capture the 'default' trajectory that we would
+# simulate before our model is calibrated
+# (represents ignorance). this is useful to 
+# show that calibration 'did something'
+default_traj = mp_trajectory(cal)
+
+# calibrate the model and check for convergence (convergence = 0 is good)
+mp_optimize(cal)
+
+# check the fitted parameter values
+mp_tmb_coef(cal, conf.int = TRUE)
+
+# they are similar to the true values
+spec_for_making_fake_data$default[c("beta", "mu")]
+
+# calibrated trajectory with confidence intervals
+cal_traj = mp_trajectory_sd(cal, conf.int = TRUE) 
+
+data = (nlist(true_traj, obs_traj, default_traj, cal_traj)
+  |> bind_rows(.id = "data_type")
+)
+
+
+## -------------------------
+## explore the calibration
+## -------------------------
+
+# the calibrated trajectory and confidence interval are consistent
+# with the true trajectory and go through the observed trajectory.
+# the default trajectory is much different, indicating that 
+# calibration really did do what it should do.
+(data
+  |> ggplot()
+  + geom_line(aes(time, value, colour = data_type))
+  + geom_ribbon(aes(x = time, ymin = conf.low, ymax = conf.high)
+      , alpha = 0.5
+      , colour = "lightgrey"
+      , fill = "lightgrey"
+      , data = cal_traj
+    ) 
+  + theme_bw()
+)

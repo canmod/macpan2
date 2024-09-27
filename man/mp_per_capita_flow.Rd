@@ -3,11 +3,17 @@
 \name{mp_per_capita_flow}
 \alias{mp_per_capita_flow}
 \alias{mp_per_capita_inflow}
-\title{Per-Capita Flow (Experimental)}
+\alias{mp_per_capita_outflow}
+\alias{mp_absolute_flow}
+\title{Flow}
 \usage{
 mp_per_capita_flow(from, to, rate, abs_rate = NULL)
 
 mp_per_capita_inflow(from, to, rate, abs_rate = NULL)
+
+mp_per_capita_outflow(from, rate, abs_rate = NULL)
+
+mp_absolute_flow(from, to, rate, rate_name = NULL)
 }
 \arguments{
 \item{from}{String giving the name of the compartment from which the flow
@@ -16,22 +22,36 @@ originates.}
 \item{to}{String giving the name of the compartment to which the flow is
 going.}
 
-\item{rate}{String giving the expression for the per-capita flow rate.
-Alternatively, for back compatibility, a two-sided formula with the
-left-hand-side giving the name of the absolute flow rate per unit time-step
-and the right-hand-side giving an expression for the per-capita rate of
-flow from \code{from} to \code{to}.}
+\item{rate}{String giving the expression for the per-capita or absolute
+flow rate. Alternatively for per-capita flows, and for back compatibility,
+a two-sided formula with the left-hand-side giving the name of the absolute
+flow rate per unit time-stepand the right-hand-side giving an expression for
+the per-capita rate of flow from \code{from} to \code{to}.}
 
 \item{abs_rate}{String giving the name for the absolute flow rate,
 which will be computed as \code{from * rate}. If a formula is passed to
 \code{rate} (not recommended), then this \code{abs_rate} argument will be ignored.}
+
+\item{rate_name}{String giving the name for the absolute flow rate.}
 }
 \description{
-Per-Capita Flow (Experimental)
+Flow
 }
 \section{Functions}{
 \itemize{
 \item \code{mp_per_capita_inflow()}: Only flow into the \code{to} compartment, and
-do not flow out of the \code{from} compartment.
+do not flow out of the \code{from} compartment. The \code{from} compartment can even
+be a function of a set of compartments, because it will not be updated. A
+common construction is \code{mp_per_capita_inflow("N", "S", "birth_rate", "birth")}
+for adding a birth process, which involves the total population size, \code{N},
+rather than a single compartment.
+
+\item \code{mp_per_capita_outflow()}: Only flow out of the \code{from} compartment,
+without going anywhere. This is useful for removing individuals from the
+system (e.g., death). To keep track of the total number of dead individuals
+one can use \code{mp_per_capita_flow} and set \code{to} to be a compartment for
+these individuals (e.g., \code{to = "D"}).
+
+\item \code{mp_absolute_flow()}: Experimental
 
 }}

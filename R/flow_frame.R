@@ -69,16 +69,23 @@ mp_flow_frame = function(spec, topological_sort = TRUE, warn_not_dag = TRUE) {
   to$change = sub("^\\+", "", to$change) |> macpan2:::reset_rownames()
   from$change = sub("^\\-", "", from$change) |> macpan2:::reset_rownames()
   to_only = to[to$change %in% setdiff(to$change, from$change), , drop = FALSE]
+  from_only = from[from$change %in% setdiff(from$change, to$change), , drop = FALSE]
   flows = merge(
       merge(from, to, by = "change", suffixes = c(".from", ".to"))
     , ff, by = "change"
   )[, c("state.from", "state.to", "change", "rate"), drop = FALSE]
   inflows = merge(to_only, ff, by = "change")[, c("size", "state", "change", "rate"), drop = FALSE]
+  outflows = merge(from_only, ff, by = "change")[, c("size", "state", "change", "rate"), drop = FALSE]
   names(flows) = c("from", "to", "name", "rate")
   names(inflows) = c("from", "to", "name", "rate")
+  names(outflows) = c("from", "to", "name", "rate")
   if (nrow(flows) > 0L) flows$type = "flow"
   if (nrow(inflows) > 0L) inflows$type = "inflow"
-  flows = rbind(flows, inflows)
+  if (nrow(outflows) > 0L) {
+    outflows$type = "outflow"
+    outflows$to = ""
+  }
+  flows = rbind(flows, inflows, outflows)
   if (topological_sort) {
     topo = topological_sort_engine(flows, sv, warn_not_dag)
     flows = flows[order(factor(flows$from, levels = topo)), , drop = FALSE]

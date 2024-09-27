@@ -1,7 +1,7 @@
 ---
 title: "SIR with demography"
 index_entry: "An SIR model with birth and death"
-author: Jennifer Freeman
+author: Jennifer Freeman and Steve Walker
 ---
 
 We assume new individuals (births) join the susceptible compartment, and individuals can leave the population (die) from any compartment.
