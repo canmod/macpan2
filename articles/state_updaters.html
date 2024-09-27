@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.8.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.8.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -359,13 +359,13 @@ absolute flow rates. * <code>rate</code> : per-capita flow rates
 <code>I</code> is as follows.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cc</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="fu">flow_frame</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   size    change       rate</span></span>
-<span><span class="co">#&gt; 1    S infection beta * I/N</span></span></code></pre></div>
+<span><span class="co">#&gt;   size    change       rate         abs_rate</span></span>
+<span><span class="co">#&gt; 1    S infection beta * I/N S * (beta * I/N)</span></span></code></pre></div>
 <p>For a simple <code>Formula</code> change component this data frame is
 just an empty three-column data frame with zero rows.</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cc</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="fu">flow_frame</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] size   change rate  </span></span>
+<span><span class="co">#&gt; [1] size     change   rate     abs_rate</span></span>
 <span><span class="co">#&gt; &lt;0 rows&gt; (or 0-length row.names)</span></span></code></pre></div>
 </div>
 </div>
@@ -439,7 +439,7 @@ I     recovery   gamma</code></pre>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">si</span> <span class="op">=</span> <span class="fu"><a href="../reference/mp_tmb_library.html">mp_tmb_library</a></span><span class="op">(</span><span class="st">"starter_models"</span>, <span class="st">"sir"</span>, package <span class="op">=</span> <span class="st">"macpan2"</span><span class="op">)</span></span>
 <span><span class="va">si</span><span class="op">$</span><span class="va">change_model</span></span>
-<span><span class="co">#&gt; Classes 'SimpleChangeModel', 'ChangeModelDefaults', 'ChangeModel', 'Base' &lt;environment: 0x5641855fcb30&gt; </span></span>
+<span><span class="co">#&gt; Classes 'SimpleChangeModel', 'ChangeModelDefaults', 'ChangeModel', 'Base' &lt;environment: 0x55e62682f318&gt; </span></span>
 <span><span class="co">#&gt; after_loop : function ()  </span></span>
 <span><span class="co">#&gt; after_state : function ()  </span></span>
 <span><span class="co">#&gt; all_user_aware_names : function ()  </span></span>
@@ -457,9 +457,9 @@ I     recovery   gamma</code></pre>
 <span><span class="co">#&gt; update_state : function ()  </span></span>
 <span><span class="co">#&gt; user_formulas : function ()</span></span>
 <span><span class="va">si</span><span class="op">$</span><span class="va">change_model</span><span class="op">$</span><span class="fu">flow_frame</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   size    change       rate</span></span>
-<span><span class="co">#&gt; 1    S infection I * beta/N</span></span>
-<span><span class="co">#&gt; 2    I  recovery      gamma</span></span>
+<span><span class="co">#&gt;   size    change       rate         abs_rate</span></span>
+<span><span class="co">#&gt; 1    S infection I * beta/N S * (I * beta/N)</span></span>
+<span><span class="co">#&gt; 2    I  recovery      gamma      I * (gamma)</span></span>
 <span><span class="va">si</span><span class="op">$</span><span class="va">change_model</span><span class="op">$</span><span class="fu">change_frame</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   state     change</span></span>
 <span><span class="co">#&gt; 1     S -infection</span></span>
@@ -469,26 +469,26 @@ I     recovery   gamma</code></pre>
 <span><span class="va">si</span><span class="op">$</span><span class="va">change_model</span><span class="op">$</span><span class="fu">update_state</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [[1]]</span></span>
 <span><span class="co">#&gt; S ~ -infection</span></span>
-<span><span class="co">#&gt; &lt;environment: 0x564185cbb070&gt;</span></span>
+<span><span class="co">#&gt; &lt;environment: 0x55e626f54198&gt;</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; [[2]]</span></span>
 <span><span class="co">#&gt; I ~ +infection - recovery</span></span>
-<span><span class="co">#&gt; &lt;environment: 0x564185cbb070&gt;</span></span>
+<span><span class="co">#&gt; &lt;environment: 0x55e626f54198&gt;</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; [[3]]</span></span>
 <span><span class="co">#&gt; R ~ +recovery</span></span>
-<span><span class="co">#&gt; &lt;environment: 0x564185cbb070&gt;</span></span>
+<span><span class="co">#&gt; &lt;environment: 0x55e626f54198&gt;</span></span>
 <span><span class="va">si</span><span class="op">$</span><span class="va">change_model</span><span class="op">$</span><span class="fu">update_flows</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $S</span></span>
 <span><span class="co">#&gt; $S[[1]]</span></span>
 <span><span class="co">#&gt; infection ~ I * beta/N</span></span>
-<span><span class="co">#&gt; &lt;environment: 0x564185d76500&gt;</span></span>
+<span><span class="co">#&gt; &lt;environment: 0x55e6270125c0&gt;</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $I</span></span>
 <span><span class="co">#&gt; $I[[1]]</span></span>
 <span><span class="co">#&gt; recovery ~ gamma</span></span>
-<span><span class="co">#&gt; &lt;environment: 0x564185d76500&gt;</span></span></code></pre></div>
+<span><span class="co">#&gt; &lt;environment: 0x55e6270125c0&gt;</span></span></code></pre></div>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">=</span> <span class="fu"><a href="../reference/mp_tmb_model_spec.html">mp_tmb_model_spec</a></span><span class="op">(</span></span>
 <span>  during <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
@@ -500,13 +500,13 @@ I     recovery   gamma</code></pre>
 <span><span class="co">#&gt; $A</span></span>
 <span><span class="co">#&gt; $A[[1]]</span></span>
 <span><span class="co">#&gt; r ~ a</span></span>
-<span><span class="co">#&gt; &lt;environment: 0x564186c8cc00&gt;</span></span>
+<span><span class="co">#&gt; &lt;environment: 0x55e6278dfea0&gt;</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $B</span></span>
 <span><span class="co">#&gt; $B[[1]]</span></span>
 <span><span class="co">#&gt; rr ~ b</span></span>
-<span><span class="co">#&gt; &lt;environment: 0x564186c8cc00&gt;</span></span></code></pre></div>
+<span><span class="co">#&gt; &lt;environment: 0x55e6278dfea0&gt;</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="updatemethod-classes">
