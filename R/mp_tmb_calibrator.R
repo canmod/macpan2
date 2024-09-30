@@ -1018,7 +1018,9 @@ TMBPar.ParArg = function(par
   self$distr_params = function() self$arg$param$default()
   
   self$prior_expr_chars = function() {
-    par_nms = self$par
+    # union to get both parameters and
+    # time-varying pars we are estimating
+    par_nms = union(self$par, self$tv_par)
     y = character()
     for (i in seq_along(par_nms)) {
       nm = par_nms[i]
@@ -1035,6 +1037,11 @@ TMBPar.ParArg = function(par
   self$arg$param = DistrList(self$arg$param, spec)
   self$arg$param$update_global_names(self)
   
+  self$check_assumptions = function(orig_spec, data_struc) {
+    self$check_assumptions_basic(orig_spec, data_struc)
+    self$arg$param$distr_list[[self$par]]$check_args(self$arg$param$distr_list[[self$par]]$distr_param_objs)
+    NULL
+  }
   return_object(self, "TMBPar")
 }
 
@@ -1081,7 +1088,7 @@ TMBPar.character = function(par
   }
   self$random_frame = function() self$tv$tv_random_frame()
   
-  self$check_assumptions = function(orig_spec, data_struc) {
+  self$check_assumptions_basic = function(orig_spec, data_struc) {
     pnms = union(self$par, self$tv_par)
     bad_pars = !pnms %in% names(orig_spec$default)
     if (any(bad_pars)) {

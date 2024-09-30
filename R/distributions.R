@@ -144,6 +144,26 @@ DistrSpec = function(distr_param_objs = list(), default_trans = list()) {
   self$distr_param_objs = distr_param_objs
   self$default_trans = default_trans
   
+  ## section 0: check distributional parameter objects
+  
+  # This may not be needed in the future, but currently distributions
+  # can only accept single distributional parameters. We hope to be able
+  # to incorporate vector distributional parameters to allow for a vector 
+  # variable to have the same distribution and different distributional
+  # parameters for different vector components.
+  self$check_args = function(distr_param_objs){
+    #ln = length(self$distr_params_obs) # these are list of DistrParam objects
+    # this might not be possible?
+    #for (i in )
+    # does this cycle through
+    nms = names(distr_param_objs)
+    for (nm in nms){
+      if (length(distr_param_objs[[nm]]$expr_ref()) > 1){
+        stop("Expression given for the distributional parameter ", nm, " for the variable ", distr_param_objs[[nm]]$variable_name, " has more than one element.")
+      }
+    }
+  }
+  
   ## section 1: get context from the distribution list, which includes
   ## the model spec
   

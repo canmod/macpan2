@@ -47,7 +47,7 @@ test_that("trajectories specified with likelihood distributions end up in calibr
     , data = sir_sims
     # trajectories specified with likelihood distributions
     , traj = list(
-        S = mp_uniform(),
+        S = mp_neg_bin(disp = 0.5),
         I = mp_neg_bin(disp = 0.5),
         R = mp_log_normal(sd = 1)
     )
