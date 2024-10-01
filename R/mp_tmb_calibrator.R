@@ -1039,7 +1039,9 @@ TMBPar.ParArg = function(par
   
   self$check_assumptions = function(orig_spec, data_struc) {
     self$check_assumptions_basic(orig_spec, data_struc)
-    self$arg$param$distr_list[[self$par]]$check_args(self$arg$param$distr_list[[self$par]]$distr_param_objs)
+    for (p in self$par){
+      self$arg$param$distr_list[[p]]$check_args(self$arg$param$distr_list[[p]]$distr_param_objs)
+    }
     NULL
   }
   return_object(self, "TMBPar")
@@ -1103,6 +1105,7 @@ TMBPar.character = function(par
       ) |> stop()
     }
   }
+  self$check_assumptions = self$check_assumptions_basic
   
   return_object(self, "TMBPar")
 }

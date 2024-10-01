@@ -19,7 +19,7 @@ test_that("distributions give appropriate variable assumption warnings", {
   expect_no_warning(mp_tmb_calibrator(sir_spec
     , data = sir_prevalence
     , traj = list(
-        I = mp_log_normal2(location = mp_fit(80), sd = mp_fit(1))
+        I = mp_log_normal(location = mp_fit(80), sd = mp_fit(1))
       )
     , par = c("beta")
     , default = list(N = 300)
@@ -33,7 +33,7 @@ test_that("distributions give appropriate variable assumption warnings", {
   expect_warning(mp_tmb_calibrator(sir_spec
       , data = sir_prevalence
       , traj = list(
-          I = mp_log_normal2(location = mp_fit(80), sd = mp_fit(1)) 
+          I = mp_log_normal(location = mp_fit(80), sd = mp_fit(1)) 
         )
       , par = c("beta")
       , default = list(N = 300)
@@ -54,7 +54,7 @@ test_that("you can specify uniform priors but not uniform likelihoods", {
   # uniform likelihood
   expect_error(mp_tmb_calibrator(sir_spec
     , data = sir_sim
-    , traj = list(I = mp_uniform2())
+    , traj = list(I = mp_uniform())
     , par = c("beta")
     )
     , regexp = "You cannot specify uniform likelihoods"
@@ -63,12 +63,12 @@ test_that("you can specify uniform priors but not uniform likelihoods", {
   # uniform prior
   specified_prior = mp_tmb_calibrator(sir_spec
     , data = sir_sim
-    , traj = list(I = mp_neg_bin2(disp = mp_fit(2)))
-    , par = list(beta = mp_uniform2())
+    , traj = list(I = mp_neg_bin(disp = mp_fit(2)))
+    , par = list(beta = mp_uniform())
   )  
   default_prior = mp_tmb_calibrator(sir_spec
     , data = sir_sim
-    , traj = list(I = mp_neg_bin2(disp = mp_fit(2)))
+    , traj = list(I = mp_neg_bin(disp = mp_fit(2)))
     , par = c("beta")
    )
   expect_equal(specified_prior$cal_spec$all_matrices(), default_prior$cal_spec$all_matrices())

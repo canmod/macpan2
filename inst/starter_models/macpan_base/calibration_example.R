@@ -23,7 +23,12 @@ options(macpan2_default_loss = "neg_bin")
 ## -------------------------
 
 # Observed Ontario COVID-19 data
-ts_data  = readRDS(url(piggyback::pb_download_url("covid_on.RDS","canmod/macpan2")))
+repo = "https://github.com/canmod/macpan2/releases/download/macpan1.5_data"
+ts_data  = (repo
+  |> file.path("covid_on.RDS")
+  |> url() 
+  |> readRDS()
+)
 
 # To further prepare the time series data for calibration we filter for the 
 # appropriate time range and time series variables, create a numeric date field
