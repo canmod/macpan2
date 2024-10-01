@@ -52,7 +52,7 @@ The size of the total population is, $N = S + E + I_a + I_p + I_m + I_s + H +  I
 | $\psi_1$       | 1/time spent in ICU before returning to acute care                                  |
 | $\psi_2$       | 1/time spent in ICU before dying                                                    |
 | $\psi_3$       | 1/time in post-ICU acute care before hospital discharge                             |
-| $\nu$          | viral shedding rate to wastewater *            |
+| $\nu$          | viral shedding rate to wastewater *                                                 |
 | $\xi$          | rate at which virus is denaturing/removed from wastewater *                         |
 
 \* These parameters were not detailed in [Papst](#references) (TBD), but they were included in model definition files. 
@@ -75,7 +75,7 @@ $$
 \frac{dR}{dt} &= \gamma_a I_a + \gamma_m I_m + \rho H + \psi_3 H_2 \\
 \frac{dD}{dt} &=  \psi_2 ICU_d \\
 \frac{dW}{dt} &= \nu I_a + \nu I_p + \nu I_m + \nu I_s - \xi W \\
-\frac{dA}{dt} &= \xi W A
+\frac{dA}{dt} &= \xi W
 \end{split}
 $$
 

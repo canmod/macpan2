@@ -9,6 +9,10 @@
     , macpan2_vec_by = c("state", "flow_rates", "trans_rates") |> self_named_vector()
     #, macpan2_memoise = TRUE
     
+    
+    # tolerances
+    , macpan2_tol_hazard_div = 1e-8
+    
     # functions that cannot be called unless their 
     # first argument has a saved simulation history
     , macpan2_time_dep_funcs = c(

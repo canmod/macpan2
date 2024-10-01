@@ -5,7 +5,7 @@
 \alias{mp_rk4}
 \alias{mp_euler_multinomial}
 \alias{mp_hazard}
-\title{State Updates (experimental)}
+\title{State Updates}
 \usage{
 mp_euler(model)
 

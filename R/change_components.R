@@ -13,16 +13,28 @@ ChangeComponentGlobalizable = function() {
   return_object(self, "ChangeComponentGlobalization")
 }
 
+print_flow_vec = function(vec) {
+  components = sprintf("%s: %s", names(vec), unname(vec))
+  paste0(components, collapse = "\n") |> cat()
+}
+
 #' @export
 print.PerCapitaFlow = function(x, ...) {
-  vec = c(
+  c(
       From = x$from
     , To = x$to
     , `Per-capita rate expression` = rhs_char(x$rate)
     , `Absolute rate symbol` = lhs_char(x$rate)
-  )
-  components = sprintf("%s: %s", names(vec), unname(vec))
-  paste0(components, collapse = "\n") |> cat()
+  ) |> print_flow_vec()
+}
+
+#' @export
+print.AbsoluteFlow = function(x, ...) {
+  c(
+      From = x$from
+    , To = x$to
+    , `Absolute flow expression` = x$abs_rate
+  ) |> print_flow_vec()
 }
 
 #' @export
