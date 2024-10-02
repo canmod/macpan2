@@ -194,11 +194,11 @@ specification.</li>
 <span><span class="co">## 3: I ~ I + infection</span></span></code></pre>
 <p>This <code>si_simulator</code> object contains all of the information
 required to generate model simulations of <code>I</code> and
-<code>infection_rate</code> over 50 time steps, without actually
-generating the simulations. This more interesting step of simulation is
-covered in <a href="#generating-simulations">the next section</a>. But
-before moving on we explain why we separate the step of creating a
-simulator from the step of running simulations.</p>
+<code>infection</code> over 50 time steps, without actually generating
+the simulations. This more interesting step of simulation is covered in
+<a href="#generating-simulations">the next section</a>. But before
+moving on we explain why we separate the step of creating a simulator
+from the step of running simulations.</p>
 <p>The reason for two steps is to optimize performance in more
 computationally challenging applications of the software than those
 covered in this article. The step of creating the simulator object is
@@ -297,14 +297,14 @@ produce a tidier dataset.</p>
 <span><span class="co">## 8    4  Incidence 0.4751841</span></span></code></pre>
 <p>Here we rename the <code>I</code> state variable as the disease
 prevalence (number of currently infected individuals). Because this is a
-discrete-time model, we can reinterpret the <code>infection_rate</code>
-as the incidence (number of newly infected individuals) over one time
-step. Note that this approach to calculating incidence only works if the
-time period over which incidence is measured corresponds to the length
-of one time step. If this assumption is not met – for example if the
-time step is one day but incidence data are reported every week – then
-other approaches to computing incidence that are not covered here must
-be taken.</p>
+discrete-time model, we can reinterpret the <code>infection</code> as
+the incidence (number of newly infected individuals) over one time step.
+Note that this approach to calculating incidence only works if the time
+period over which incidence is measured corresponds to the length of one
+time step. If this assumption is not met – for example if the time step
+is one day but incidence data are reported every week – then other
+approaches to computing incidence that are not covered here must be
+taken.</p>
 <p>We can generate a <code>ggplot</code> from this dataset as we did
 above. If you want to use base R plots, you can convert the long format
 data to wide format using the <code>tidyr</code> package.</p>
