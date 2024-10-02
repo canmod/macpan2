@@ -149,8 +149,8 @@ DistrSpec = function(distr_param_objs = list(), default_trans = list()) {
   # This may not be needed in the future, but currently distributions
   # can only accept single distributional parameters. We hope to be able
   # to incorporate vector distributional parameters to allow a vector 
-  # variable to have common distribution and different distributional
-  # parameters amongst vector components.
+  # variable to have common a distribution and different distributional
+  # parameters for each vector component.
   self$check_args = function(distr_param_objs){
     nms = names(distr_param_objs)
     for (nm in nms){
@@ -492,6 +492,12 @@ mp_normal_error = function(sd) {
   mp_normal(location = DistrParam("location"))
 }
 
+#' Normal Distribution
+#' @param location Location parameter. Only necessary if used as a prior
+#' distribution. If it is used as a likelihood component the location
+#' parameter will be taken as the simulated variable being fitted to data,
+#' and so this `location` parameter should be left to the default.
+#' @param sd Standard deviation parameter.
 #' @return DistrSpec
 #' @export
 mp_normal = function(location = DistrParam("location"), sd) {
@@ -516,7 +522,12 @@ mp_normal = function(location = DistrParam("location"), sd) {
   return_object(self, "DistrSpecNormal")
 }
 
-
+#' Log-Normal Distribution
+#' @param location Location parameter. Only necessary if used as a prior
+#' distribution. If it is used as a likelihood component the location
+#' parameter will be taken as the simulated variable being fitted to data,
+#' and so this `location` parameter should be left to the default.
+#' @param sd Standard deviation parameter.
 #' @return DistrSpec
 #' @export
 mp_log_normal = function(location = DistrParam("location"), sd) {
@@ -550,6 +561,10 @@ mp_log_normal = function(location = DistrParam("location"), sd) {
   return_object(self, "DistrSpecLogNormal")
 }
 
+#' Uniform Distribution (Improper)
+#' 
+#' Uniform distributions can only be used as prior distributions and not
+#' likelihood distributions.
 #' @return DistrSpec
 #' @export
 mp_uniform = function() { 
@@ -567,6 +582,11 @@ mp_uniform = function() {
   return_object(self, "DistrSpecUniform")
 }
 
+#' Poisson Distribution
+#' @param location Location parameter. Only necessary if used as a prior
+#' distribution. If it is used as a likelihood component the location
+#' parameter will be taken as the simulated variable being fitted to data,
+#' and so this `location` parameter should be left to the default.
 #' @return DistrSpec
 #' @export
 mp_poisson = function(location = DistrParam("location")) { 
@@ -588,6 +608,12 @@ mp_poisson = function(location = DistrParam("location")) {
   }
   return_object(self, "DistrSpecPoisson")
 }
+#' Negative Binomial Distribution
+#' @param location Location parameter. Only necessary if used as a prior
+#' distribution. If it is used as a likelihood component the location
+#' parameter will be taken as the simulated variable being fitted to data,
+#' and so this `location` parameter should be left to the default.
+#' @param disp Dispersion parameter.
 #' @return DistrSpec
 #' @export
 mp_neg_bin = function(location = DistrParam("location"), disp) {
@@ -652,72 +678,72 @@ mp_log = DistrParamLog()
 mp_identity = DistrParamIdentity()
 
 
-#' 
-#' #' Poisson Distribution
-#' #' @export
-#' mp_poisson = function(location) {
-#'   self = DistrSpec()
-#'   self$distr_params = \() list()
-#'   self$expr_char = \(x, location) sprintf("-sum(dpois(%s, %s))", x, location)
-#'   return_object(self, "Poisson")
-#' }
-#' 
-#' #' Negative Binomial Distribution
-#' #' @param disp Dispersion parameter.
-#' #' @export
-#' mp_neg_bin = function(disp) {
-#'   ## location??
-#'   self = Base()
-#'   self$disp = disp
-#'   self$log_disp = \() log(self$disp)
-#'   self$distr_params = \() list(log_disp = self$log_disp())
-#'   self$expr_char = \(x, location, log_disp) {
-#'     sprintf("-sum(dnbinom(%s, clamp(%s), exp(%s)))", x, location, log_disp)
-#'   }
-#'   return_object(self, "NegBin")
-#' }
-#' 
-#' 
-#' #' Normal Distributon
-#' #' @param location Location parameter. Only necessary if used as a prior
-#' #' distribution. If it is used as a likelihood component the location
-#' #' parameter will be taken as the simulated variable being fitted to data,
-#' #' and so this `location` parameter should be left `NULL`.
-#' #' @param sd Standard deviation parameter.
-#' #' @export
-#' mp_normal = function(location = NULL, sd = 1) {
-#'   self = Base()
-#'   self$sd = sd
-#'   self$log_sd = \() log(self$sd)
-#'   self$location = location
-#'   self$distr_params = \() list(log_sd = self$log_sd())
-#'   self$expr_char = \(x, location, log_sd) {
-#'     sprintf("-sum(dnorm(%s, %s, exp(%s)))", x, location, log_sd)
-#'   }
-#'   self$expr_char_prior = function(x) {
-#'     if (is.null(location)) stop("please specify a ")
-#'     self$expr_char(x, self$location, self$log_sd())
-#'   }
-#'   return_object(self, "Normal")
-#' }
-#' 
-#' mp_normal_test = function(x, location, log_sd) {
-#'   self = Base()
-#'   self$expr_char = \(x, location, log_sd) {
-#'     sprintf("-sum(dnorm(%s, %s, exp(%s)))", x, location, log_sd)
-#'   }
-#'   return_object(self, "NormalTest")
-#' }
-#' 
-#' #' Log-Normal Distribution
-#' #' @param sd Standard deviation parameter.
-#' #' @export
-#' mp_log_normal = function(sd) {
-#'   self = mp_normal(sd)
-#'   self$expr_char = \(x, location, log_sd) {
-#'     sprintf("-sum(dnorm(log(%s), log(%s), exp(%s)))", x, location, log_sd)
-#'   }
-#'   return_object(self, "LogNormal")
-#' }
+
+#' Poisson Distribution
+#' @noRd
+mp_poisson2 = function(location) {
+  self = DistrSpec()
+  self$distr_params = \() list()
+  self$expr_char = \(x, location) sprintf("-sum(dpois(%s, %s))", x, location)
+  return_object(self, "Poisson")
+}
+
+#' Negative Binomial Distribution
+#' @param disp Dispersion parameter.
+#' @noRd
+mp_neg_bin2 = function(disp) {
+  ## location??
+  self = Base()
+  self$disp = disp
+  self$log_disp = \() log(self$disp)
+  self$distr_params = \() list(log_disp = self$log_disp())
+  self$expr_char = \(x, location, log_disp) {
+    sprintf("-sum(dnbinom(%s, clamp(%s), exp(%s)))", x, location, log_disp)
+  }
+  return_object(self, "NegBin")
+}
+
+
+#' Normal Distributon
+#' @param location Location parameter. Only necessary if used as a prior
+#' distribution. If it is used as a likelihood component the location
+#' parameter will be taken as the simulated variable being fitted to data,
+#' and so this `location` parameter should be left `NULL`.
+#' @param sd Standard deviation parameter.
+#' @noRd
+mp_normal2 = function(location = NULL, sd = 1) {
+  self = Base()
+  self$sd = sd
+  self$log_sd = \() log(self$sd)
+  self$location = location
+  self$distr_params = \() list(log_sd = self$log_sd())
+  self$expr_char = \(x, location, log_sd) {
+    sprintf("-sum(dnorm(%s, %s, exp(%s)))", x, location, log_sd)
+  }
+  self$expr_char_prior = function(x) {
+    if (is.null(location)) stop("please specify a ")
+    self$expr_char(x, self$location, self$log_sd())
+  }
+  return_object(self, "Normal")
+}
+
+mp_normal_test = function(x, location, log_sd) {
+  self = Base()
+  self$expr_char = \(x, location, log_sd) {
+    sprintf("-sum(dnorm(%s, %s, exp(%s)))", x, location, log_sd)
+  }
+  return_object(self, "NormalTest")
+}
+
+#' Log-Normal Distribution
+#' @param sd Standard deviation parameter.
+#' @noRd
+mp_log_normal2 = function(sd) {
+  self = mp_normal(sd)
+  self$expr_char = \(x, location, log_sd) {
+    sprintf("-sum(dnorm(log(%s), log(%s), exp(%s)))", x, location, log_sd)
+  }
+  return_object(self, "LogNormal")
+}
 
 # TODO: mp_clamped_poisson, mp_sum_of_squares

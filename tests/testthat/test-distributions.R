@@ -41,6 +41,24 @@ test_that("distributions give appropriate variable assumption warnings", {
     , regexp = "contains zeros at the beginning of the simulation"
   )
   
+  # Create time-varying beta values
+  sir_beta = data.frame(
+      matrix = "beta"
+    , time = c(1,5)
+    , value = c(0.25, 0)
+  )
+  # The variable assumption is violated here. For the log-normal distribution,
+  # the variable cannot be zero.
+  expect_warning(mp_tmb_calibrator(sir_spec
+   , data = bind_rows(sir_prevalence, sir_beta)
+   , traj = "I"
+   , par = list(beta = mp_log_normal(location = 1, sd = 1))
+   , tv = "beta"
+   , default = list(N = 300)
+  )
+  , regexp = "contains zeros at the beginning of the simulation"
+  )
+  
 })
 
 test_that("you can specify uniform priors but not uniform likelihoods", {
@@ -73,4 +91,30 @@ test_that("you can specify uniform priors but not uniform likelihoods", {
    )
   expect_equal(specified_prior$cal_spec$all_matrices(), default_prior$cal_spec$all_matrices())
   
+})
+
+test_that("distributional parameters cannot be vectors (for now)", {
+  spec = (mp_tmb_library("starter_models", "sir", package = "macpan2")
+          |> mp_tmb_insert(default = list(beta_values = c(0.3, 0.1, 0.4)))
+  )
+  sir_data = (
+    mp_simulator(spec, time_steps = 5, outputs = c( "I", "beta"))
+    |> mp_trajectory()
+  )
+  
+  expect_error(mp_tmb_calibrator(spec
+    , data = sir_data
+    , traj = "I"
+    , par = list(beta_values = mp_normal(location = c(0.3,0.2), sd = 1))
+    , default = list(N = 300)
+    ), regexp = "has more than one element"
+  )
+  
+  expect_error(mp_tmb_calibrator(spec
+    , data = sir_data
+    , traj = list(I = mp_neg_bin(disp = c(1,5)))
+    , par = "beta"
+    , default = list(N = 300)
+    ), regexp = "has more than one element"
+  )
 })
