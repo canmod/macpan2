@@ -12,7 +12,7 @@ editor_options:
   chunk_output_type: console
 ---
 
-[![status](https://img.shields.io/badge/status-stable-green)](https://canmod.github.io/macpan2/articles/status-stable-green)
+[![status](https://img.shields.io/badge/status-stable-green)](https://canmod.github.io/macpan2/articles/vignette-status#stable)
 
 ## Hello World
 
