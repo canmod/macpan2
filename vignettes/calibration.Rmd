@@ -12,7 +12,7 @@ editor_options:
 ---
 
 
-[![status](https://img.shields.io/badge/status-working%20draft-red)](https://canmod.github.io/macpan2/articles/vignette-status#working-draft)
+[![status](https://img.shields.io/badge/status-mature%20draft-yellow)](https://canmod.github.io/macpan2/articles/vignette-status#mature-draft)
 
 ```{r opts, include = FALSE}
 knitr::opts_chunk$set(
