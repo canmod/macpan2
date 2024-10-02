@@ -88,10 +88,10 @@ short article</a> on how to find other example models).</p>
 <span><span class="va">si</span> <span class="op">=</span> <span class="fu"><a href="../reference/mp_tmb_model_spec.html">mp_tmb_model_spec</a></span><span class="op">(</span></span>
 <span>    before <span class="op">=</span> <span class="va">S</span> <span class="op">~</span> <span class="va">N</span> <span class="op">-</span> <span class="va">I</span></span>
 <span>  , during <span class="op">=</span> <span class="fu"><a href="../reference/mp_per_capita_flow.html">mp_per_capita_flow</a></span><span class="op">(</span></span>
-<span>        from     <span class="op">=</span> <span class="st">"S"</span>         <span class="co">## compartment from which individuals flow</span></span>
-<span>      , to       <span class="op">=</span> <span class="st">"I"</span>         <span class="co">## compartment to which individuals flow</span></span>
-<span>      , rate     <span class="op">=</span> <span class="st">"beta * I"</span>  <span class="co">## expression giving _per-capita_ flow rate</span></span>
-<span>      , abs_rate <span class="op">=</span> <span class="st">"infection"</span> <span class="co">## name for _absolute_ flow rate = beta * I * S</span></span>
+<span>        from     <span class="op">=</span> <span class="st">"S"</span>            <span class="co"># compartment from which individuals flow</span></span>
+<span>      , to       <span class="op">=</span> <span class="st">"I"</span>            <span class="co"># compartment to which individuals flow</span></span>
+<span>      , rate     <span class="op">=</span> <span class="st">"beta * I / N"</span> <span class="co"># expression giving per-capita flow rate</span></span>
+<span>      , abs_rate <span class="op">=</span> <span class="st">"infection"</span>    <span class="co"># name of absolute flow rate = beta * I * S/N</span></span>
 <span>    <span class="op">)</span></span>
 <span>  , default <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>N <span class="op">=</span> <span class="fl">100</span>, I <span class="op">=</span> <span class="fl">1</span>, beta <span class="op">=</span> <span class="fl">0.25</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
@@ -112,7 +112,8 @@ short article</a> on how to find other example models).</p>
 <span><span class="co">## ---------------------</span></span>
 <span><span class="co">## At every iteration of the simulation loop (t = 1 to T):</span></span>
 <span><span class="co">## ---------------------</span></span>
-<span><span class="co">## 1: mp_per_capita_flow(from = "S", to = "I", rate = "beta * I", abs_rate = "infection")</span></span></code></pre>
+<span><span class="co">## 1: mp_per_capita_flow(from = "S", to = "I", rate = "beta * I / N", </span></span>
+<span><span class="co">##      abs_rate = "infection")</span></span></code></pre>
 <p>Simulating from this model requires choosing the number of time-steps
 to run and the model outputs to generate. Syntax for simulating
 <code>macpan2</code> models is designed to combine with standard data
@@ -188,7 +189,7 @@ specification.</li>
 <span><span class="co">## ---------------------</span></span>
 <span><span class="co">## At every iteration of the simulation loop (t = 1 to 50):</span></span>
 <span><span class="co">## ---------------------</span></span>
-<span><span class="co">## 1: infection ~ S * (beta * I)</span></span>
+<span><span class="co">## 1: infection ~ S * (beta * I/N)</span></span>
 <span><span class="co">## 2: S ~ S - infection</span></span>
 <span><span class="co">## 3: I ~ I + infection</span></span></code></pre>
 <p>This <code>si_simulator</code> object contains all of the information
@@ -232,15 +233,15 @@ using the <code>mp_trajectory</code> function. The results come out in
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">si_results</span> <span class="op">=</span> <span class="fu"><a href="../reference/mp_trajectory.html">mp_trajectory</a></span><span class="op">(</span><span class="va">si_simulator</span><span class="op">)</span></span>
 <span><span class="va">si_results</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fl">8</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##      matrix time row col         value</span></span>
-<span><span class="co">## 1         I    1   0   0  2.575000e+01</span></span>
-<span><span class="co">## 2 infection    1   0   0  2.475000e+01</span></span>
-<span><span class="co">## 3         I    2   0   0  5.037344e+02</span></span>
-<span><span class="co">## 4 infection    2   0   0  4.779844e+02</span></span>
-<span><span class="co">## 5         I    3   0   0 -5.033999e+04</span></span>
-<span><span class="co">## 6 infection    3   0   0 -5.084372e+04</span></span>
-<span><span class="co">## 7         I    4   0   0 -6.348374e+08</span></span>
-<span><span class="co">## 8 infection    4   0   0 -6.347871e+08</span></span></code></pre>
+<pre><code><span><span class="co">##      matrix time row col     value</span></span>
+<span><span class="co">## 1         I    1   0   0 1.2475000</span></span>
+<span><span class="co">## 2 infection    1   0   0 0.2475000</span></span>
+<span><span class="co">## 3         I    2   0   0 1.5554844</span></span>
+<span><span class="co">## 4 infection    2   0   0 0.3079844</span></span>
+<span><span class="co">## 5         I    3   0   0 1.9383066</span></span>
+<span><span class="co">## 6 infection    3   0   0 0.3828223</span></span>
+<span><span class="co">## 7         I    4   0   0 2.4134907</span></span>
+<span><span class="co">## 8 infection    4   0   0 0.4751841</span></span></code></pre>
 <p>The simulation results are output as a data frame with the following
 columns:</p>
 <ul>
@@ -285,15 +286,15 @@ produce a tidier dataset.</p>
 <span>  <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">quantity</span>, <span class="va">value</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/engine_functions.html">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">si_results</span>, <span class="fl">8L</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##   time   quantity         value</span></span>
-<span><span class="co">## 1    1 Prevalence  2.575000e+01</span></span>
-<span><span class="co">## 2    1  Incidence  2.475000e+01</span></span>
-<span><span class="co">## 3    2 Prevalence  5.037344e+02</span></span>
-<span><span class="co">## 4    2  Incidence  4.779844e+02</span></span>
-<span><span class="co">## 5    3 Prevalence -5.033999e+04</span></span>
-<span><span class="co">## 6    3  Incidence -5.084372e+04</span></span>
-<span><span class="co">## 7    4 Prevalence -6.348374e+08</span></span>
-<span><span class="co">## 8    4  Incidence -6.347871e+08</span></span></code></pre>
+<pre><code><span><span class="co">##   time   quantity     value</span></span>
+<span><span class="co">## 1    1 Prevalence 1.2475000</span></span>
+<span><span class="co">## 2    1  Incidence 0.2475000</span></span>
+<span><span class="co">## 3    2 Prevalence 1.5554844</span></span>
+<span><span class="co">## 4    2  Incidence 0.3079844</span></span>
+<span><span class="co">## 5    3 Prevalence 1.9383066</span></span>
+<span><span class="co">## 6    3  Incidence 0.3828223</span></span>
+<span><span class="co">## 7    4 Prevalence 2.4134907</span></span>
+<span><span class="co">## 8    4  Incidence 0.4751841</span></span></code></pre>
 <p>Here we rename the <code>I</code> state variable as the disease
 prevalence (number of currently infected individuals). Because this is a
 discrete-time model, we can reinterpret the <code>infection_rate</code>
@@ -320,9 +321,9 @@ data to wide format using the <code>tidyr</code> package.</p>
 <pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 3 × 3</span></span></span>
 <span><span class="co">##    Time Prevalence Incidence</span></span>
 <span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">1</span>     1       25.8      24.8</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">2</span>     2      504.      478. </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">3</span>     3   -<span style="color: #BB0000; text-decoration: underline;">50</span><span style="color: #BB0000;">340.</span>   -<span style="color: #BB0000; text-decoration: underline;">50</span><span style="color: #BB0000;">844.</span></span></span></code></pre>
+<span><span class="co">## <span style="color: #BCBCBC;">1</span>     1       1.25     0.248</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">2</span>     2       1.56     0.308</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">3</span>     3       1.94     0.383</span></span></code></pre>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="va">si_results_wide</span>,</span>
 <span>     <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">Time</span>,</span>
