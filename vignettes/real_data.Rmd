@@ -18,6 +18,8 @@ knitr::opts_chunk$set(
 )
 ```
 
+[![status](https://img.shields.io/badge/status-mature%20draft-yellow)](https://canmod.github.io/macpan2/articles/vignette-status#mature-draft)
+
 The `vignette("quickstart")` and `vignette("calibration")` articles work with simulated data, but it is more interesting to fit models to real data. The [International Infectious Disease Data Archive (IIDDA)](https://canmod.github.io/iidda-tools/iidda.api) is a useful place to look for incidence, mortality, and population data for illustrating `macpan2`. This archive contains data from [this data digitization project](http://canmod.net/digitization), which we will use here. What we find is that with real data, even with relatively simple models and calibration problems, issues can arise that require careful thought.
 
 ## Setup

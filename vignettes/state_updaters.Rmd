@@ -15,6 +15,7 @@ knitr::opts_chunk$set(
 set.seed(12L)
 ```
 
+[![status](https://img.shields.io/badge/status-working%20draft-red)](https://canmod.github.io/macpan2/articles/status-working%20draft-red)
 
 The `McMasterPandemic` project has focused on using discrete time difference equations to solve the dynamical system. Here we describe experimental features that allow one to update the data differently. In particular, it is now possible to use a Runge-Kutta 4 ODE solver (to approximate the solution to the continuous time analogue) as well as the Euler Multinomial distribution to generate process error. These features have in principle been available for most of the life of `macpan2`, but only recently have they been given a more convenient interface.
 
