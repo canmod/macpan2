@@ -22,17 +22,16 @@ library(ggplot2)
 library(dplyr)
 library(tidyr)
 library(macpan2)
+library(macpan2)
 si = mp_tmb_model_spec(
-    before = list(
-        I ~ 1
-      , S ~ N - I
+    before = S ~ N - I
+  , during = mp_per_capita_flow(
+        from     = "S"         ## compartment from which individuals flow
+      , to       = "I"         ## compartment to which individuals flow
+      , rate     = "beta * I"  ## expression giving _per-capita_ flow rate
+      , abs_rate = "infection" ## name for _absolute_ flow rate = beta * I * S
     )
-  , during = list(
-        infection_rate ~ beta * S * I / N
-      , S ~ S - infection_rate
-      , I ~ I + infection_rate
-    )
-  , default = list(N = 100, beta = 0.25)
+  , default = list(N = 100, I = 1, beta = 0.25)
 )
 print(si)
 ```
@@ -46,14 +45,14 @@ library(dplyr)
  ## macpan2
  |> mp_simulator(
         time_steps = 50
-      , outputs = c("I", "infection_rate")
+      , outputs = c("I", "infection")
     )
  |> mp_trajectory()
  
  ## dplyr
  |> mutate(quantity = case_match(matrix
       , "I" ~ "Prevalence"
-      , "infection_rate" ~ "Incidence"
+      , "infection" ~ "Incidence"
     ))
  
  ## ggplot2
@@ -81,7 +80,7 @@ The first step is to produce a simulator object, which can be used to generate s
 si_simulator = mp_simulator(
     model = si 
   , time_steps = 50
-  , outputs = c("I", "infection_rate")
+  , outputs = c("I", "infection")
 )
 si_simulator
 ```
@@ -121,7 +120,7 @@ In the graphs above for example, we required a step that renames the model varia
 si_results = (si_results
   |> mutate(matrix = case_match(matrix
       , "I" ~ "Prevalence"
-      , "infection_rate" ~ "Incidence"
+      , "infection" ~ "Incidence"
     ))
   |> rename(quantity = matrix)
   |> select(time, quantity, value)
