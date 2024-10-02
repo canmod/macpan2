@@ -85,7 +85,7 @@ si_simulator = mp_simulator(
 si_simulator
 ```
 
-This `si_simulator` object contains all of the information required to generate model simulations of `I` and `infection_rate` over 50 time steps, without actually generating the simulations. This more interesting step of simulation is covered in [the next section](#generating-simulations). But before moving on we explain why we separate the step of creating a simulator from the step of running simulations.
+This `si_simulator` object contains all of the information required to generate model simulations of `I` and `infection` over 50 time steps, without actually generating the simulations. This more interesting step of simulation is covered in [the next section](#generating-simulations). But before moving on we explain why we separate the step of creating a simulator from the step of running simulations.
 
 The reason for two steps is to optimize performance in more computationally challenging applications of the software than those covered in this article. The step of creating the simulator object is more computationally intensive than the next step of actually generating the simulations. Therefore this separation is useful when a single simulator can be used to repeatedly generate many different simulations. Three common examples requiring repeated simulations from the same simulator are:
 
@@ -128,7 +128,7 @@ si_results = (si_results
 print(head(si_results, 8L))
 ```
 
-Here we rename the `I` state variable as the disease prevalence (number of currently infected individuals). Because this is a discrete-time model, we can reinterpret the `infection_rate` as the incidence (number of newly infected individuals) over one time step. Note that this approach to calculating incidence only works if the time period over which incidence is measured corresponds to the length of one time step. If this assumption is not met -- for example if the time step is one day but incidence data are reported every week -- then other approaches to computing incidence that are not covered here must be taken.
+Here we rename the `I` state variable as the disease prevalence (number of currently infected individuals). Because this is a discrete-time model, we can reinterpret the `infection` as the incidence (number of newly infected individuals) over one time step. Note that this approach to calculating incidence only works if the time period over which incidence is measured corresponds to the length of one time step. If this assumption is not met -- for example if the time step is one day but incidence data are reported every week -- then other approaches to computing incidence that are not covered here must be taken.
 
 We can generate a `ggplot` from this dataset as we did above. If you want to use base R plots, you can convert the long format data to wide format using the `tidyr` package.
 ```{r pivot_wider}
