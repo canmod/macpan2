@@ -30,11 +30,24 @@ DistrSpec = function() {
   return_object(self, "DistrSpec")
 }
 
+#' Uniform Distribution (Improper)
+#' @export
+mp_uniform = function() {
+  self = DistrSpec() # not sure if this should be Base()
+  # improper uniform have no distribution parameters
+  self$distr_params = \() list()
+  # sum of negative log-likelihoods 
+  # equal to log(1) = 0 so setting to empty character
+  self$expr_char = \() "0"
+  return_object(self, "Uniform")
+}
+
 #' Poisson Distribution
 #' @export
-mp_poisson = function() {
+mp_poisson = function(location = NULL) {
   self = DistrSpec()
   self$distr_params = \() list()
+  self$location = location
   self$expr_char = \(x, location) sprintf("-sum(dpois(%s, %s))", x, location)
   return_object(self, "Poisson")
 }
@@ -42,11 +55,12 @@ mp_poisson = function() {
 #' Negative Binomial Distribution
 #' @param disp Dispersion parameter.
 #' @export
-mp_neg_bin = function(disp) {
+mp_neg_bin = function(location = NULL, disp) {
   ## location??
   self = Base()
   self$disp = disp
   self$log_disp = \() log(self$disp)
+  self$location = location
   self$distr_params = \() list(log_disp = self$log_disp())
   self$expr_char = \(x, location, log_disp) {
     sprintf("-sum(dnbinom(%s, clamp(%s), exp(%s)))", x, location, log_disp)
@@ -55,7 +69,7 @@ mp_neg_bin = function(disp) {
 }
 
 
-#' Normal Distributon
+#' Normal Distribution
 #' @param location Location parameter. Only necessary if used as a prior
 #' distribution. If it is used as a likelihood component the location
 #' parameter will be taken as the simulated variable being fitted to data,
@@ -87,10 +101,12 @@ mp_normal_test = function(x, location, log_sd) {
 }
 
 #' Log-Normal Distribution
-#' @param sd Standard deviation parameter.
+#' @param location Location parameter for the log-normal distribution.
+#' @param sd Standard deviation parameter for the normal distribution. The
+#' standard deviation of the log-normal distribution is `log_sd = log(sd)`.
 #' @export
-mp_log_normal = function(sd) {
-  self = mp_normal(sd)
+mp_log_normal = function(location = NULL, sd = 1) {
+  self = mp_normal(location, sd)
   self$expr_char = \(x, location, log_sd) {
     sprintf("-sum(dnorm(log(%s), log(%s), exp(%s)))", x, location, log_sd)
   }
