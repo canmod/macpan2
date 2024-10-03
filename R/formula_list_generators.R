@@ -320,8 +320,27 @@ MockChangeModel = function() {
 ##' Use these functions to update a model spec so that the state variables
 ##' are updated according to different numerical methods.
 ##' 
+##' The default update method for model specifications produced using
+##' \code{\link{mp_tmb_model_spec}} is `mp_euler`. This update method
+##' yields a difference-equation model where the state is updated once
+##' per time-step using the absolute flow rate as the difference between
+##' steps.
+##' 
+##' These state update functions are used to modify a model specification to
+##' use a particular kind of state update. To see these modified models for
+##' a particular example one may use the \code{\link{mp_expand}} function
+##' (see examples).
+##' 
 ##' @param model Object with quantities that have been explicitly 
 ##' marked as state variables.
+##' 
+##' @examples
+##' sir = mp_tmb_library("starter_models", "sir", package = "macpan2")
+##' sir
+##' sir |> mp_euler()             |> mp_expand()
+##' #sir |> mp_rk4()               |> mp_expand()
+##' sir |> mp_euler_multinomial() |> mp_expand()
+##' 
 ##' @export
 mp_euler = function(model) UseMethod("mp_euler")
 
@@ -680,30 +699,30 @@ HazardUpdateMethod = function(change_model) {
 #' @examples
 #' 
 #' # infection by mass action
-#' (https://github.com/canmod/macpan2/blob/main/inst/starter_models/si)
+#' # https://github.com/canmod/macpan2/blob/main/inst/starter_models/si
 #' mp_per_capita_flow("S", "I", "beta * I / N", "infection")
 #' 
 #' # recovery
-#' (https://github.com/canmod/macpan2/blob/main/inst/starter_models/sir)
+#' # https://github.com/canmod/macpan2/blob/main/inst/starter_models/sir
 #' mp_per_capita_flow("I", "R", "gamma", "recovery")
 #' 
 #' # disease progression with different severity
-#' (https://github.com/canmod/macpan2/blob/main/inst/starter_models/macpan_base)
+#' # https://github.com/canmod/macpan2/blob/main/inst/starter_models/macpan_base
 #' mp_per_capita_flow("E", "I_mild", "alpha * phi"      , "progression_mild")
 #' mp_per_capita_flow("E", "I_sev" , "alpha * (1 - phi)", "progression_sev")
 #' 
 #' # birth
-#' (https://github.com/canmod/macpan2/blob/main/inst/starter_models/sir_demog)
+#' # https://github.com/canmod/macpan2/blob/main/inst/starter_models/sir_demog
 #' mp_per_capita_inflow("N", "S", "nu", "birth")
 #' 
 #' # death
-#' (https://github.com/canmod/macpan2/blob/main/inst/starter_models/sir_demog)
+#' # https://github.com/canmod/macpan2/blob/main/inst/starter_models/sir_demog
 #' mp_per_capita_outflow("S", "mu", "death_S")
 #' mp_per_capita_outflow("I", "mu", "death_I")
 #' mp_per_capita_outflow("R", "mu", "death_R")
 #' 
 #' # vaccination 
-#' (https://github.com/canmod/macpan2/blob/main/inst/starter_models/shiver)
+#' # https://github.com/canmod/macpan2/blob/main/inst/starter_models/shiver
 #' mp_per_capita_flow("S", "V", "((a * S)/(b + S))/S",  "vaccination")
 #' 
 #' # importation (experimental)

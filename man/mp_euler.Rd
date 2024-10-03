@@ -23,6 +23,18 @@ marked as state variables.}
 Use these functions to update a model spec so that the state variables
 are updated according to different numerical methods.
 }
+\details{
+The default update method for model specifications produced using
+\code{\link{mp_tmb_model_spec}} is \code{mp_euler}. This update method
+yields a difference-equation model where the state is updated once
+per time-step using the absolute flow rate as the difference between
+steps.
+
+These state update functions are used to modify a model specification to
+use a particular kind of state update. To see these modified models for
+a particular example one may use the \code{\link{mp_expand}} function
+(see examples).
+}
 \section{Functions}{
 \itemize{
 \item \code{mp_rk4()}: ODE solver using Runge-Kutta 4. Any formulas that
@@ -54,3 +66,11 @@ to taking the step given by the expected value of the Euler-multinomial
 distribution.
 
 }}
+\examples{
+sir = mp_tmb_library("starter_models", "sir", package = "macpan2")
+sir
+sir |> mp_euler()             |> mp_expand()
+#sir |> mp_rk4()               |> mp_expand()
+sir |> mp_euler_multinomial() |> mp_expand()
+
+}

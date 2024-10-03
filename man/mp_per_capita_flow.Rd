@@ -66,30 +66,30 @@ these individuals (e.g., \code{to = "D"}).
 \examples{
 
 # infection by mass action
-(https://github.com/canmod/macpan2/blob/main/inst/starter_models/si)
+# https://github.com/canmod/macpan2/blob/main/inst/starter_models/si
 mp_per_capita_flow("S", "I", "beta * I / N", "infection")
 
 # recovery
-(https://github.com/canmod/macpan2/blob/main/inst/starter_models/sir)
+# https://github.com/canmod/macpan2/blob/main/inst/starter_models/sir
 mp_per_capita_flow("I", "R", "gamma", "recovery")
 
 # disease progression with different severity
-(https://github.com/canmod/macpan2/blob/main/inst/starter_models/macpan_base)
+# https://github.com/canmod/macpan2/blob/main/inst/starter_models/macpan_base
 mp_per_capita_flow("E", "I_mild", "alpha * phi"      , "progression_mild")
 mp_per_capita_flow("E", "I_sev" , "alpha * (1 - phi)", "progression_sev")
 
 # birth
-(https://github.com/canmod/macpan2/blob/main/inst/starter_models/sir_demog)
+# https://github.com/canmod/macpan2/blob/main/inst/starter_models/sir_demog
 mp_per_capita_inflow("N", "S", "nu", "birth")
 
 # death
-(https://github.com/canmod/macpan2/blob/main/inst/starter_models/sir_demog)
+# https://github.com/canmod/macpan2/blob/main/inst/starter_models/sir_demog
 mp_per_capita_outflow("S", "mu", "death_S")
 mp_per_capita_outflow("I", "mu", "death_I")
 mp_per_capita_outflow("R", "mu", "death_R")
 
 # vaccination 
-(https://github.com/canmod/macpan2/blob/main/inst/starter_models/shiver)
+# https://github.com/canmod/macpan2/blob/main/inst/starter_models/shiver
 mp_per_capita_flow("S", "V", "((a * S)/(b + S))/S",  "vaccination")
 
 # importation (experimental)
