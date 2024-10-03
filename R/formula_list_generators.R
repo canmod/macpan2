@@ -654,6 +654,8 @@ HazardUpdateMethod = function(change_model) {
 
 #' Flow
 #' 
+#' Specify different kinds of flows between compartments.
+#' 
 #' @param from String giving the name of the compartment from which the flow
 #' originates.
 #' @param to String giving the name of the compartment to which the flow is
@@ -667,6 +669,44 @@ HazardUpdateMethod = function(change_model) {
 #' which will be computed as `from * rate`. If a formula is passed to
 #' `rate` (not recommended), then this `abs_rate` argument will be ignored.
 #' @param rate_name String giving the name for the absolute flow rate.
+#' 
+#' @examples
+#' The following examples can be mixed and matched in `mp_tmb_model_spec()`
+#' to produce compartmental models. Note that the symbols used below must
+#' be used in an appropriate context (e.g., if `N` is used for total population
+#' size, then there must be an expression like `N ~ S + I + R` somewhere in
+#' the model or for models with constant population size there must be a 
+#' default variable, `N`, with a numerical value).
+#' 
+#' # infection by mass action
+#' (https://github.com/canmod/macpan2/blob/main/inst/starter_models/si)
+#' mp_per_capita_flow("S", "I", "beta * I / N", "infection")
+#' 
+#' # recovery
+#' (https://github.com/canmod/macpan2/blob/main/inst/starter_models/sir)
+#' mp_per_capita_flow("I", "R", "gamma", "recovery")
+#' 
+#' # disease progression with different severity
+#' (https://github.com/canmod/macpan2/blob/main/inst/starter_models/macpan_base)
+#' mp_per_capita_flow("E", "I_mild", "alpha * phi"      , "progression_mild")
+#' mp_per_capita_flow("E", "I_sev" , "alpha * (1 - phi)", "progression_sev")
+#' 
+#' # birth
+#' (https://github.com/canmod/macpan2/blob/main/inst/starter_models/sir_demog)
+#' mp_per_capita_inflow("N", "S", "nu", "birth")
+#' 
+#' # death
+#' (https://github.com/canmod/macpan2/blob/main/inst/starter_models/sir_demog)
+#' mp_per_capita_outflow("S", "mu", "death_S")
+#' mp_per_capita_outflow("I", "mu", "death_I")
+#' mp_per_capita_outflow("R", "mu", "death_R")
+#' 
+#' # vaccination 
+#' (https://github.com/canmod/macpan2/blob/main/inst/starter_models/shiver)
+#' mp_per_capita_flow("S", "V", "((a * S)/(b + S))/S",  "vaccination")
+#' 
+#' # importation (experimental)
+#' # mp_absolute_inflow("I", "delta", "importation")
 #' 
 #' @export
 mp_per_capita_flow = function(from, to, rate, abs_rate = NULL) {
