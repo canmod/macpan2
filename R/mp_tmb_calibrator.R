@@ -676,6 +676,7 @@ TMBTV.RBFArg = function(
   self$data_time_ids = struc$data_time_ids
   self$par_name = tv$tv
   self$prior_sd_default = tv$prior_sd
+  self$fit_prior_sd = tv$fit_prior_sd
   
   ## FIXME: an alternative version is defined below!
   # self$local_names = function() {
@@ -757,12 +758,22 @@ TMBTV.RBFArg = function(
   self$tv_params_frame = function(tv_par_mat_nms) {
     cols = c("mat", "row", "col", "default")
     nms = self$global_names()
-    data.frame(
-        mat = c(rep(nms$time_var, self$dimension), nms$prior_sd)
-      , row = c(seq_len(self$dimension) - 1L, 0)
-      , col = 0
-      , default = c(self$initial_weights, self$prior_sd_default)
+    d = data.frame(
+        mat = rep(nms$time_var, self$dimension)
+      , row = seq_len(self$dimension) - 1L
+      , col = 0L
+      , default = self$initial_weights
     )
+    if (self$fit_prior_sd) {
+      d_prior = data.frame(
+          mat = nms$prior
+        , row = 0L
+        , col = 0L
+        , default = self$prior_sd_default
+      )
+      d = rbind(d, d_prior)
+    }
+    return(d)
   }
   
   return_object(self, "TMBTV")

@@ -1,7 +1,7 @@
 ---
 title: "SHIVER = SEIR + H + V"
 index_entry: "A modified SEIR model with Hospitalization and Vaccination"
-bibliography: references.bib
+bibliography: ../../references.bib
 link-citations: TRUE
 author: Jennifer Freeman
 output: 
@@ -20,29 +20,6 @@ knitr::opts_chunk$set(
 ```
 
 
-```{r local_function, include=FALSE}
-## -------------------------
-## local function
-## -------------------------
-
-# to be included in mp_tmb_coef in the future
-# see here, https://github.com/canmod/macpan2/issues/179
-backtrans <- function(x) {
-  vars1 <- intersect(c("default", "estimate", "conf.low", "conf.high"), names(x))
-  prefix <- stringr::str_extract(x[["mat"]], "^log(it)?_")  |> tidyr::replace_na("none")
-  sx <- split(x, prefix)
-  for (ptype in setdiff(names(sx), "none")) {
-    link <- make.link(stringr::str_remove(ptype, "_"))
-    sx[[ptype]] <- (sx[[ptype]]
-                    |> mutate(across(std.error, ~link$mu.eta(estimate)*.))
-                    |> mutate(across(any_of(vars1), link$linkinv))
-                    |> mutate(across(mat, ~stringr::str_remove(., paste0("^", ptype))))
-    )
-  }
-  bind_rows(sx)
-}
-
-```
 This model builds on the basic SEIR model, with two additional compartments for vaccination and hospitalizations. 
 
 Vaccines are typically subject to resource constraints and distribution strategies might prioritize vaccinations for specific subpopulations, such as immunocompromised people, to reduce bad outcomes. We model this with a flow of susceptibles entering the vaccination class. This flow could be a fixed rate, i.e. a constant proportion of the population receives a vaccine each time step, but instead we wish to capture a more realistic vaccination rate by allowing it to vary (see [Variable Vaccination Rate](#variable-vaccination-rate)). 
@@ -262,6 +239,7 @@ reported_hospitalizations = (daily_hospitalizations
   |> head(expected_daily_reports)
   |> mutate(matrix="H")
   |> sample_n(actual_daily_reports)
+  |> arrange(time)
 )
 
 ```
@@ -341,8 +319,9 @@ V0 = 71096/7
 # ---------------------
 # We can also look at the number of weekly cases of COVID for this time period from here,
 # https://www.publichealthontario.ca/en/Data-and-Analysis/Infectious-Disease/Respiratory-Virus-Tool
-# and divide by 7 as above to make it a daily estimate.
-I0 = 1903/7
+# and divide by 7 as above to make it a daily estimate. We should also multiply by something
+# to account for under-reporting ... say 10.
+I0 = 10 * 1903/7
 
 # H0 = initial H
 # ---------------------
@@ -367,18 +346,18 @@ shiver_calibrator = mp_tmb_calibrator(
   , traj = "H"
   # parameters we want to estimate (transmission rates)
   # we also want to estimate initial E
-  , par = c("beta_v","beta_s","E") 
+  , par = c("beta_v","beta_s","E", "sigma", "gamma_h") 
   , outputs = states
   # update defaults
   , default = list(
-      N=N
-    , V=V0
-    , I=I0
-    , H=H0
+      N = N
+    , V = V0
+    , I = I0
+    , H = H0
     , a = a
     , b = a
-    , alpha=alpha
-    , sigma=sigma
+    , alpha = alpha
+    , sigma = sigma
     , rho = rho
   ) 
 )
@@ -388,7 +367,7 @@ shiver_calibrator
 # trajectory has 90 time steps (which is what we expect)
 nrow(shiver_calibrator 
   |> mp_trajectory()
-  |> filter(matrix=="H")
+  |> filter(matrix == "H")
   |> select(time) 
   |> unique()
 )
@@ -397,8 +376,8 @@ nrow(shiver_calibrator
 # which time steps are missing in observed data
 (shiver_calibrator 
   |> mp_trajectory()
-  |> filter(matrix=="H")
-  |> anti_join(reported_hospitalizations, by="time")
+  |> filter(matrix == "H")
+  |> anti_join(reported_hospitalizations, by = "time")
 
 ) 
 
@@ -406,7 +385,7 @@ nrow(shiver_calibrator
 (shiver_calibrator 
     |> mp_trajectory()
     |> ggplot(aes(time, value))
-    + facet_wrap(vars(matrix), scales='free')
+    + facet_wrap(vars(matrix), scales = 'free')
     + geom_line()
     + theme_bw()
 )
@@ -434,24 +413,13 @@ To check the fit we plot the observed data as well as the trajectories of all st
 ```{r fit, echo=FALSE}
 # how does the fit compare with observed data?
 (shiver_calibrator 
-    |> mp_trajectory_sd(conf.int=TRUE)
-    |> filter(matrix == "H")
-    |> ggplot(aes(time, value))
-    + geom_line(aes(y=value), colour="red")
-    + geom_ribbon(aes(ymin=conf.low,ymax=conf.high), fill="red",alpha=0.3)
-    + geom_point(data=reported_hospitalizations, aes(time,value))
-  )
-
-
-# does the fit create unrealistic dynamics?
-(shiver_calibrator 
-    |> mp_trajectory()
-    |> ggplot(aes(time, value))
-    + facet_wrap(vars(matrix), scales='free')
-    + geom_line()
+  |> mp_trajectory_sd(conf.int = TRUE)
+  |> ggplot(aes(time, value))
+  + facet_wrap(~matrix, scales = "free")
+  + geom_line(aes(y=value), colour = "red")
+  + geom_ribbon(aes(ymin = conf.low, ymax = conf.high), fill = "red", alpha = 0.3)
+  + geom_point(data = reported_hospitalizations, aes(time, value))
 )
-
-
 ```
 
 The simulated hospitalization trajectory fits the data well, and the other trajectories look as expected.
@@ -462,7 +430,7 @@ For better interpretability we can re-parameterize the model with one transmissi
 
 We use the log transformation for `beta` and `E0/I0` because both quantities take on only positive values. We use the logistic transformation for the proportion `p` to constrain it to the domain (0,1).
 
-We define a new model specification object with these changes, and set the default values for all three parameters to be small values (0.01) because they all have a lower bound of 0. 
+We define a new model specification object with these changes, and set the default values for all three parameters to be small values (0.01) because they all have a lower bound of 0.
 
 ```{r reparameterization}
 # Create a new model specification with these changes:
@@ -489,8 +457,8 @@ reparameterized_spec = mp_tmb_update(reparameterized_spec
      # exposure expressions start at step 4 in the during phase
     , at=4L
     , expressions = list(
-        mp_per_capita_flow("S", "E", unvaccinated_exposure ~ I * beta/N_mix)
-      , mp_per_capita_flow("V", "E", vaccinated_exposure ~  I * beta * p/N_mix)
+        mp_per_capita_flow("S", "E", unvaccinated_infection ~ I * beta/N_mix)
+      , mp_per_capita_flow("V", "E", vaccinated_infection ~  I * beta * p/N_mix)
     )
 )
 
@@ -509,7 +477,7 @@ shiver_calibrator = mp_tmb_calibrator(
   , traj = "H"
   # now we want to estimate the transformed parameters
   , par = c("log_beta","logit_p","log_E_I_ratio")
-  , outputs = states
+  , outputs = c(states, "infection")
   , default = list(
       N=N
     , V=V0
@@ -532,11 +500,8 @@ mp_optimize(shiver_calibrator)
 ```{r reparam_estimates, echo=FALSE}
 # looking at coefficients and CIs
 # we need to back transform to interpret
-cc <- (mp_tmb_coef(shiver_calibrator, conf.int=TRUE)
-       |> backtrans()
-)
-cc 
-
+cc <- mp_tmb_coef(shiver_calibrator, conf.int = TRUE)
+print(cc)
 ```
 The estimates for our parameters are close to the the previous estimates, which makes sense because we only re-parameterized instead of making changes to the model specification. The ratio of initial exposed to initial number of infected is `r cc |> filter(mat=="E_I_ratio") |> select(estimate) |> pull() |> round(2)`. Given we specified the initial $I$ as `r round(I0,0)`, the estimated initial number of exposed is approximately `r cc |> filter(mat=="E_I_ratio") |> select(estimate) |> pull() %>% "*"(I0) |>  round(0)`.  A reduction in transmission by `r cc |> filter(mat=="p") |> select(estimate) |> pull() |> round(2)` percent could be plausible but the confidence interval is effectively all possible values for `p`. 
 
@@ -551,7 +516,7 @@ shiver_calibrator_rk4 = mp_tmb_calibrator(
   , data = reported_hospitalizations
   , traj = "H"
   , par = c("log_beta","logit_p","log_E_I_ratio")
-  , outputs = states
+  , outputs = c(states, "infection")
   # defaults are specified in model spec alreadt
 )
 
@@ -560,11 +525,9 @@ shiver_calibrator_rk4 = mp_tmb_calibrator(
 mp_optimize(shiver_calibrator_rk4)
 
 # looking at coefficients and CIs
-rk4_coef <- (mp_tmb_coef(shiver_calibrator_rk4, conf.int=TRUE)
-       |> backtrans()
-)
+rk4_coef <- mp_tmb_coef(shiver_calibrator_rk4, conf.int = TRUE)
 
-rk4_coef
+print(rk4_coef)
 # rk4 doesn't help us learn more about p
 # let's try adding more data
 
@@ -600,10 +563,10 @@ daily_cases = (read.csv(
 
 
 reported_cases = (daily_cases
-     |> filter(time!=1 & time!=2)  # remove first two records (Aug 9, Aug10 = I0)
-     |> mutate(time=time-2)        # update all times to set Aug 11 to be day 1 of the scenario
+     |> filter(time != 1 & time != 2)  # remove first two records (Aug 9, Aug10 = I0)
+     |> mutate(time = time - 2)        # update all times to set Aug 11 to be day 1 of the scenario
      |> head(expected_daily_reports)
-     |> mutate(matrix="infection") # the infection variable is incidence
+     |> mutate(matrix = "reported_incidence") # the infection variable is incidence
      |> select(c("time","value","matrix"))
 )
 
@@ -614,21 +577,63 @@ I0_new = daily_cases |> filter(time==2) |> select(value) |> pull()
 
 # check defaults again
 mp_default(reparameterized_spec)
+```
 
+```{r incidence_in_model}
+multi_traj_spec = (spec
+  |> mp_tmb_insert(
+      phase = "during"
+    , at = Inf
+    , expressions = list(incidence ~ unvaccinated_infection + vaccinated_infection)
+    , default = list(
+        N = N
+      , V = V0
+      , I = I0
+      , H = H0
+      , a = a
+      , b = a
+      , alpha = alpha
+      , sigma = sigma
+      , rho = rho
+    ) 
+  ) 
+  |> mp_tmb_insert_reports("incidence", report_prob = 0.1, mean_delay = 11, cv_delay = 0.25)
+  |> mp_tmb_insert(phase = "before", at = 1L
+    , expressions = list(
+          incidence_report_prob ~ 1/(1 + exp(-logit_report_prob))
+        , beta_s ~ exp(log_beta_s)
+        , E ~ exp(log_E)
+        , sigma ~ exp(log_sigma)
+        , gamma_h ~ exp(log_gamma_h)
+      )
+    , default = list(
+          logit_report_prob = 0
+        , log_beta_s = -3
+        , rbf_beta = 0
+        , log_E = log(3000)
+        , log_sigma = -3
+        , log_gamma_h = -3
+      )
+  )
+  |> mp_tmb_insert(phase = "during", at = 1L, expressions = list(beta_s ~ beta_s * rbf_beta))
+)
 ```
 
 ```{r multiple_traj_calib}
+#off = 15
+dd = rbind(reported_hospitalizations, reported_cases)#, data.frame(time = -off - 1, value = 0, matrix = "H")) |> mutate(time = time + off)
 # calibrate
 shiver_calibrator = mp_tmb_calibrator(
-    spec = reparameterized_spec |> mp_rk4()
+    spec = multi_traj_spec
     # row bind both observed data
-  , data = rbind(reported_hospitalizations, reported_cases)
+  , data = dd
     # fit both trajectories
-  , traj = c("H","infection")
-  , par = c("log_beta","logit_p","log_E_I_ratio")
-  , outputs=c(states, "infection")
+  , traj = list(H = mp_neg_bin(1), reported_incidence = mp_neg_bin(1))
+  , par = c("log_beta_s","log_E", "log_sigma", "log_gamma_h", "logit_report_prob") 
+  , tv = mp_rbf("rbf_beta", 2, sparse_tol = 1e-8, fit_prior_sd = FALSE, prior_sd = 0.01)
+  #, par = c("log_beta", "logit_p", "log_E_I_ratio", "sigma", "incidence_report_prob")
+  , outputs = c(states, "reported_incidence", "beta_s")
 )
-
 ```
 
 Next we optimize, and look at our estimates.
@@ -637,14 +642,11 @@ Next we optimize, and look at our estimates.
 # optimize to estimate transmission parameters
 # converges with warnings
 mp_optimize(shiver_calibrator)
-
 ```
 
 ```{r mult_traj_estimates, echo=FALSE}
 #check estimates
-(mp_tmb_coef(shiver_calibrator, conf.int=TRUE)
-    |> backtrans()
-)
+mp_tmb_coef(shiver_calibrator, conf.int = TRUE)
 ```
 
 We were not able to estimate `p` again, note the confidence interval is again the entire domain of possible values for `p`. 
@@ -654,20 +656,70 @@ The fitted curves, in red, are far from following the observed data points. We c
 ```{r mult_traj_fit, echo=FALSE}
 # how does data look with these parameters
 # not good!
-(shiver_calibrator 
-   |> mp_trajectory_sd(conf.int=TRUE)
-   |> filter(matrix %in% c("H","infection"))
+(shiver_calibrator
+   |> mp_trajectory_sd(conf.int = TRUE)
    |> ggplot(aes(time, value))
-   + geom_line(aes(y=value), colour="red")
-   + geom_ribbon(aes(ymin=conf.low,ymax=conf.high), fill="red",alpha=0.3)
-   + geom_point(data=rbind(reported_hospitalizations, reported_cases), aes(time,value))
-   + facet_wrap(vars(matrix), scales='free')
-  )
-
-
+   + geom_line(aes(y = value), colour = "red")
+   + geom_ribbon(
+        aes(ymin = conf.low, ymax = conf.high)
+      , fill = "red"
+      , alpha = 0.3
+    )
+   + geom_point(data = dd, aes(time, value))
+   + facet_wrap(vars(matrix), scales = 'free')
+   + ylim(c(0, NA))
+)
 ```
 
+```{r}
+tv_beta_spec = (multi_traj_spec
+  |> mp_tmb_insert(
+      phase = "during"
+    , at = 1L
+    , expressions = list(beta ~ sigma * sigma_rbf)
+    , default = list(beta_rbf = 0)
+  )
+)
+```
 
+```{r}
+tv_beta_calibrator = mp_tmb_calibrator(
+    spec = tv_beta_spec
+    # row bind both observed data
+  , data = dd
+    # fit both trajectories
+  , traj = c("H","reported_incidence")
+  , par = c("log_beta", "sigma", "log_E_I_ratio", "incidence_report_prob")
+  , tv = mp_rbf("sigma_rbf", 4, initial_weights = rep(0, 4),  sparse_tol = 1e-8, fit_prior_sd = FALSE, prior_sd = 1e-2)
+  , outputs = c(states, "reported_incidence", "beta")
+)
+```
+
+```{r}
+mp_optimize(tv_beta_calibrator)
+```
+
+```{r}
+mp_tmb_coef(tv_beta_calibrator)
+```
+
+```{r}
+# how does data look with these parameters
+# not good!
+(tv_beta_calibrator
+   |> mp_trajectory_sd(conf.int = TRUE)
+   |> filter(matrix %in% c("H", "reported_incidence", "beta"))
+   |> ggplot(aes(time, value))
+   + geom_line(aes(y = value), colour = "red")
+   + geom_ribbon(
+        aes(ymin = conf.low, ymax = conf.high)
+      , fill = "red"
+      , alpha = 0.3
+    )
+   + geom_point(data = dd, aes(time, value))
+   + facet_wrap(vars(matrix), scales = 'free')
+)
+```
 
 ## Parameter Identifiability
 
@@ -709,9 +761,7 @@ fixed_beta = mp_tmb_calibrator(
 )
 # converges, but not getting estimate for `p`
 mp_optimize(fixed_beta)
-(mp_tmb_coef(fixed_beta, conf.int=TRUE)
-  |> backtrans()
-)
+mp_tmb_coef(fixed_beta, conf.int = TRUE)
 ## fix p estimate beta
 fixed_a = mp_tmb_calibrator(
   spec = reparameterized_spec |> mp_rk4()
@@ -722,10 +772,7 @@ fixed_a = mp_tmb_calibrator(
 )
 # converges and recovering true beta
 mp_optimize(fixed_a)
-(mp_tmb_coef(fixed_a, conf.int=TRUE)
-  |> backtrans()
-)
-
+mp_tmb_coef(fixed_a, conf.int = TRUE)
 ```
 
 We are able to recover the transmission rate `beta` but not the proportion `p`, suggesting model identifiability issues with this parameter.

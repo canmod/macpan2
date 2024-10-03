@@ -10,6 +10,7 @@ mp_rbf(
   initial_weights,
   seed = 1L,
   prior_sd = 1,
+  fit_prior_sd = TRUE,
   sparse_tol = 0.01
 )
 }
@@ -25,8 +26,10 @@ time.}
 \item{seed}{Optional random seed to use to generate the \code{initial_weights}
 if they are not provided.}
 
-\item{prior_sd}{Optional prior standard deviation default value for radial
+\item{prior_sd}{Prior standard deviation default value for radial
 basis function coefficients, defaults to 1.}
+
+\item{fit_prior_sd}{Should the prior sd be be fitted.}
 
 \item{sparse_tol}{Tolerance below which radial basis function outputs
 are set exactly to zero. Small values are more accurate but slower. Lack
