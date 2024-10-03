@@ -73,13 +73,21 @@ command.
     repos = c('https://canmod.r-universe.dev', 'https://cloud.r-project.org')
     install.packages('macpan2', repos = repos)
 
-This command will install the current version of `macpan2`. There is no
-need to use `remotes::install_github` for the latest development
-version. For projects in production that need to keep track of specific
-versions of `macpan2`, snapshots and other reproducibility information
-can be obtained [here](https://canmod.r-universe.dev/api). Please see
-[this article](https://ropensci.org/blog/2022/01/06/runiverse-renv/) for
-an explanation of how to manage reproducibility using `r-universe`.
+This command will install the current version of `macpan2`. For projects
+in production that need to keep track of specific versions of `macpan2`,
+snapshots and other reproducibility information can be obtained
+[here](https://canmod.r-universe.dev/api). Please see [this
+article](https://ropensci.org/blog/2022/01/06/runiverse-renv/) for an
+explanation of how to manage reproducibility using `r-universe`.
+
+To get the latest development version of `macpan2`, or if the above
+command fails for some reason, an alternative command to install is the
+following.
+
+    remotes::install_github("canmod/macpan2")
+
+This command requires the `remotes` package and assumes that your `R`
+environment is set up to compile `C++` code contained in packages.
 
 Many workflows with `macpan2` also make use of the following packages.
 
@@ -87,8 +95,9 @@ Many workflows with `macpan2` also make use of the following packages.
 
 ## Hello World
 
-The following code specifies an SI model, which is the simplest model of
-epidemiological transmission.
+The following code specifies an [SI
+model](https://github.com/canmod/macpan2/blob/main/inst/starter_models/si/README.md),
+which is the simplest model of epidemiological transmission.
 
 ``` r
 library(macpan2)
@@ -121,6 +130,10 @@ print(si)
     ## At every iteration of the simulation loop (t = 1 to T):
     ## ---------------------
     ## 1: mp_per_capita_flow(from = "S", to = "I", rate = "beta * I", abs_rate = "infection")
+
+See [this
+article](https://canmod.github.io/macpan2/articles/example_models.html)
+for more example models with documentation.
 
 Simulating from this model requires choosing the number of time-steps to
 run and the model outputs to generate. Syntax for simulating `macpan2`
