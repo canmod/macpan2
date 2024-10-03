@@ -91,6 +91,15 @@ which will be computed as <code>from * rate</code>. If a formula is passed to
 
 </dl></div>
     <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>The examples below can be mixed and matched in <code><a href="mp_tmb_model_spec.html">mp_tmb_model_spec()</a></code>
+to produce compartmental models. Note that the symbols used below must
+be used in an appropriate context (e.g., if <code>N</code> is used for total population
+size, then there must be an expression like <code>N ~ S + I + R</code> somewhere in
+the model or for models with constant population size there must be a
+default variable, <code>N</code>, with a numerical value).</p>
+    </div>
+    <div class="section level2">
     <h2 id="functions">Functions<a class="anchor" aria-label="anchor" href="#functions"></a></h2>
 
 <ul><li><p><code>mp_per_capita_inflow()</code>: Only flow into the <code>to</code> compartment, and
