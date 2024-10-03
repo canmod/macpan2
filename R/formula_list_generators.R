@@ -656,6 +656,13 @@ HazardUpdateMethod = function(change_model) {
 #' 
 #' Specify different kinds of flows between compartments.
 #' 
+#' The examples below can be mixed and matched in `mp_tmb_model_spec()`
+#' to produce compartmental models. Note that the symbols used below must
+#' be used in an appropriate context (e.g., if `N` is used for total population
+#' size, then there must be an expression like `N ~ S + I + R` somewhere in
+#' the model or for models with constant population size there must be a 
+#' default variable, `N`, with a numerical value).
+#' 
 #' @param from String giving the name of the compartment from which the flow
 #' originates.
 #' @param to String giving the name of the compartment to which the flow is
@@ -671,12 +678,6 @@ HazardUpdateMethod = function(change_model) {
 #' @param rate_name String giving the name for the absolute flow rate.
 #' 
 #' @examples
-#' The following examples can be mixed and matched in `mp_tmb_model_spec()`
-#' to produce compartmental models. Note that the symbols used below must
-#' be used in an appropriate context (e.g., if `N` is used for total population
-#' size, then there must be an expression like `N ~ S + I + R` somewhere in
-#' the model or for models with constant population size there must be a 
-#' default variable, `N`, with a numerical value).
 #' 
 #' # infection by mass action
 #' (https://github.com/canmod/macpan2/blob/main/inst/starter_models/si)

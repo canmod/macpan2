@@ -37,6 +37,14 @@ which will be computed as \code{from * rate}. If a formula is passed to
 \description{
 Specify different kinds of flows between compartments.
 }
+\details{
+The examples below can be mixed and matched in \code{mp_tmb_model_spec()}
+to produce compartmental models. Note that the symbols used below must
+be used in an appropriate context (e.g., if \code{N} is used for total population
+size, then there must be an expression like \code{N ~ S + I + R} somewhere in
+the model or for models with constant population size there must be a
+default variable, \code{N}, with a numerical value).
+}
 \section{Functions}{
 \itemize{
 \item \code{mp_per_capita_inflow()}: Only flow into the \code{to} compartment, and
@@ -56,12 +64,6 @@ these individuals (e.g., \code{to = "D"}).
 
 }}
 \examples{
-The following examples can be mixed and matched in `mp_tmb_model_spec()`
-to produce compartmental models. Note that the symbols used below must
-be used in an appropriate context (e.g., if `N` is used for total population
-size, then there must be an expression like `N ~ S + I + R` somewhere in
-the model or for models with constant population size there must be a 
-default variable, `N`, with a numerical value).
 
 # infection by mass action
 (https://github.com/canmod/macpan2/blob/main/inst/starter_models/si)
