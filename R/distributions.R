@@ -131,6 +131,8 @@ DistrParam = function(generic_name, trans = DistrParamTransDefault()) {
 #' should be called later if it is determined that the distribution does
 #' not require a `location` parameter (e.g., it is a likelihood component
 #' that takes the simulated trajectory as the location).
+#' @param default_trans list of default parameter transformation objects
+#' of class DistrParamTrans for each `distr_param_objs`.
 DistrSpec = function(distr_param_objs = list(), default_trans = list()) {
   for (nm in names(distr_param_objs)) distr_param_objs[[nm]] = to_distr_param(distr_param_objs[[nm]])
   for (nm in names(distr_param_objs)) distr_param_objs[[nm]]$generic_name = nm
@@ -353,7 +355,7 @@ DistrParamNum = function(generic_name, value, trans = DistrParamTrans()) {
 }
 DistrParamNumNoFit = function(name, value, trans = DistrParamTrans()) {
   self = DistrParamNum(name, value, trans)
-  self$expr_ref = function() as.character(self$.value)
+  self$expr_ref = function() self$trans$ref(as.character(self$.value))
   self$update_names = function(name) {
     self$variable_name = name
     self
@@ -638,7 +640,21 @@ mp_neg_bin = function(location = DistrParam("location"), disp) {
   return_object(self, "DistrSpecNegBin")
 }
 
-
+#' Fitting Distributional Parameters
+#' 
+#' Distributional parameters can be added to the list of parameters that are fit
+#' during calibration. By default, distributional parameters in priors and
+#' likelihoods are not fit. 
+#' 
+#' @param x numeric starting value of the distributional parameter to fit, or 
+#' character name of an existing variable in the model with a default starting
+#' value to use.
+#' @param trans transformation to apply to the distributional parameter. 
+#' By default, distributional parameters inherit a default transformation from
+#' the associated distribution. For example, the standard deviation parameter
+#' `sd` in the \code{\link{mp_normal}} distributions has a default log
+#' transformation specified using \code{\link{mp_log}}.
+#' 
 #' @export
 mp_fit = function(x, trans = DistrParamTransDefault()) UseMethod("mp_fit")
 
@@ -648,6 +664,19 @@ mp_fit.numeric = function(x, trans = DistrParamTransDefault()) DistrParamNumFit(
 #' @export
 mp_fit.character = function(x, trans = DistrParamTransDefault()) DistrParamCharFit("generic_name", x, trans)
 
+#' Not-Fitting Distributional Parameters
+#' 
+#' By default, distributional parameters in priors and likelihoods are not fit. 
+#' 
+#' @param x fixed numeric value for the distributional parameter, or character 
+#' name of an existing variable in the model with a default starting
+#' value to use.
+#' @param trans transformation to apply to the distributional parameter. 
+#' By default, distributional parameters inherit a default transformation from
+#' the associated distribution. For example, the standard deviation parameter
+#' `sd` in the \code{\link{mp_normal}} distributions has a default 
+#' transformation.
+#' 
 #' @export
 mp_nofit = function(x, trans = DistrParamTransDefault()) UseMethod("mp_nofit")
 
@@ -670,11 +699,20 @@ to_distr_param.numeric = function(x) mp_nofit(x)
 #' @export 
 to_distr_param.character = function(x) mp_nofit(x)
 
-
+#' Log Transformation
+#' 
+#' Log transformation for distributional parameters of class `DistrParam`.
+#' 
 #' @export
+#' @return DistrParamTrans
 mp_log = DistrParamLog()
 
+#' Identity Transformation
+#' 
+#' Identity transformation for distributional parameters of class `DistrParam`.
+#' 
 #' @export
+#' @return DistrParamTrans
 mp_identity = DistrParamIdentity()
 
 

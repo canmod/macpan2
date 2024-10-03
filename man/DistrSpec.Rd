@@ -13,7 +13,10 @@ the distribution is instantiated. However, this \code{location} parameter
 might be removed by the \code{remove_location_parameter} method, which
 should be called later if it is determined that the distribution does
 not require a \code{location} parameter (e.g., it is a likelihood component
-that takes the simulated trajectory as the location).
+that takes the simulated trajectory as the location).}
+
+\item{default_trans}{list of default parameter transformation objects
+of class DistrParamTrans for each \code{distr_param_objs}.
 data frame characterizing what distributional parameters associated
 with this distribution should be optimized as fixed effects.
 data frame characterizing what distributional parameters associated
