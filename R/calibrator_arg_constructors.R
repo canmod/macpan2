@@ -38,10 +38,14 @@ mp_tv = function(parameters) {
 #' parameter.
 #' 
 #' @export
-mp_rbf = function(tv, dimension, initial_weights, seed = 1L, prior_sd = 1, fit_prior_sd = TRUE, sparse_tol = 1e-2) {
+mp_rbf = function(tv, dimension, initial_weights, seed, prior_sd = 1, fit_prior_sd = TRUE, sparse_tol = 1e-2) {
   if (missing(initial_weights)) {
-    set.seed(seed)
-    initial_weights = rnorm(dimension, sd = 0.01)
+    if (missing(seed)) {
+      initial_weights = rep(0, dimension)
+    } else {
+      set.seed(seed)
+      initial_weights = rnorm(dimension, sd = 0.01)
+    }
   }
   if (length(initial_weights) != dimension) {
     stop("The `initial_weights` vector must be of length `dimension`.")

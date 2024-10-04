@@ -1,0 +1,76 @@
+library(macpan2); library(testthat); library(dplyr); library(tidyr); library(ggplot2)
+test_that("distributions give appropriate variable assumption warnings", {
+  
+  # At this time the only distribution with variable assumptions is the 
+  # log-normal.
+  sir_spec = mp_tmb_library("starter_models"
+    , "sir"
+    , package = "macpan2"
+  )
+  # Create observed prevalence data.
+  sir_prevalence = data.frame(
+      matrix = "I"
+    , time = seq(1:10)
+    , row = 0
+    , col = 0
+    , value = rpois(10, 20) + 1 # add 1 to ensure I > 0
+  )
+  # Variable assumption is not violated here.
+  expect_no_warning(mp_tmb_calibrator(sir_spec
+    , data = sir_prevalence
+    , traj = list(
+        I = mp_log_normal2(location = mp_fit(80), sd = mp_fit(1))
+      )
+    , par = c("beta")
+    , default = list(N = 300)
+    )
+  )
+  
+  # Set one observed prevalence value to zero
+  sir_prevalence$value[5] = 0
+  # The variable assumption is violated here. For the log-normal distribution,
+  # the variable cannot be zero.
+  expect_warning(mp_tmb_calibrator(sir_spec
+      , data = sir_prevalence
+      , traj = list(
+          I = mp_log_normal2(location = mp_fit(80), sd = mp_fit(1)) 
+        )
+      , par = c("beta")
+      , default = list(N = 300)
+    )
+    , regexp = "contains zeros at the beginning of the simulation"
+  )
+  
+})
+
+test_that("you can specify uniform priors but not uniform likelihoods", {
+  
+  sir_spec = mp_tmb_library("starter_models"
+    , "sir"
+    , package = "macpan2"
+  )
+  sir_sim = mp_simulator(sir_spec, 10, "I") |> mp_trajectory()
+  
+  # uniform likelihood
+  expect_error(mp_tmb_calibrator(sir_spec
+    , data = sir_sim
+    , traj = list(I = mp_uniform2())
+    , par = c("beta")
+    )
+    , regexp = "You cannot specify uniform likelihoods"
+  )
+  
+  # uniform prior
+  specified_prior = mp_tmb_calibrator(sir_spec
+    , data = sir_sim
+    , traj = list(I = mp_neg_bin2(disp = mp_fit(2)))
+    , par = list(beta = mp_uniform2())
+  )  
+  default_prior = mp_tmb_calibrator(sir_spec
+    , data = sir_sim
+    , traj = list(I = mp_neg_bin2(disp = mp_fit(2)))
+    , par = c("beta")
+   )
+  expect_equal(specified_prior$cal_spec$all_matrices(), default_prior$cal_spec$all_matrices())
+  
+})

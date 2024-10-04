@@ -4,7 +4,6 @@
 #'
 #' @export
 nlist = function(...) {
-    #browser()
     L = list(...)
     if (valid$char_no_empty$is_true(names(L))) return(L)
     snm = vapply(substitute(list(...)), deparse, character(1))[-1]

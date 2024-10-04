@@ -8,7 +8,7 @@ mp_rbf(
   tv,
   dimension,
   initial_weights,
-  seed = 1L,
+  seed,
   prior_sd = 1,
   fit_prior_sd = TRUE,
   sparse_tol = 0.01

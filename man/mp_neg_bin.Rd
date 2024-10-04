@@ -4,7 +4,7 @@
 \alias{mp_neg_bin}
 \title{Negative Binomial Distribution}
 \usage{
-mp_neg_bin(location = NULL, disp)
+mp_neg_bin(disp)
 }
 \arguments{
 \item{disp}{Dispersion parameter.}

@@ -59,7 +59,6 @@ $$
 \end{align*}
 $$
 
-
 # Longer Memory Awareness Model
 
 This model is identical to the [delayed death awareness model](#delayed-death-awareness-model), except that the factor $I \gamma f_D$ in the force of infection is replaced with a temporal convolution that takes a weighted average of past values with more recent values being weighted more heavily. See [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/awareness/tmb.R) for details.

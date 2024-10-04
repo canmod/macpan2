@@ -251,6 +251,7 @@ reported_hospitalizations = (daily_hospitalizations
   |> head(expected_daily_reports)
   |> mutate(matrix="H")
   |> sample_n(actual_daily_reports)
+  |> arrange(time)
 )
 ```
 
@@ -382,13 +383,32 @@ V0 = 71096/7
 # ---------------------
 # We can also look at the number of weekly cases of COVID for this time period from here,
 # https://www.publichealthontario.ca/en/Data-and-Analysis/Infectious-Disease/Respiratory-Virus-Tool
-# and divide by 7 as above to make it a daily estimate.
-I0 = 1903/7
+# and divide by 7 as above to make it a daily estimate. We should also multiply by something
+# to account for under-reporting ... say 10.
+I0 = 10 * 1903/7
 
 # H0 = initial H
 # ---------------------
 # Use the first observed data point (Aug 10, 2021) as initial H.
-H0 = daily_hospitalizations |> filter(row_number()==1) |> select(value) |> pull()
+H0 = daily_hospitalizations |> filter(row_number() == 1) |> select(value) |> pull()
+```
+
+Now we update the specification to include these defaults.
+
+``` r
+spec = mp_tmb_update(spec
+  , default = list(
+      N = N
+    , V = V0
+    , I = I0
+    , H = H0
+    , a = a
+    , b = a
+    , alpha = alpha
+    , sigma = sigma
+    , rho = rho
+  ) 
+)
 ```
 
 ## Simulating Dynamics
@@ -410,20 +430,8 @@ shiver_calibrator = mp_tmb_calibrator(
   , traj = "H"
   # parameters we want to estimate (transmission rates)
   # we also want to estimate initial E
-  , par = c("beta_v","beta_s","E") 
+  , par = c("beta_v","beta_s","E", "sigma", "gamma_h") 
   , outputs = states
-  # update defaults
-  , default = list(
-      N=N
-    , V=V0
-    , I=I0
-    , H=H0
-    , a = a
-    , b = a
-    , alpha=alpha
-    , sigma=sigma
-    , rho = rho
-  ) 
 )
 # print to check
 shiver_calibrator
@@ -439,16 +447,16 @@ shiver_calibrator
 #>  1: N_mix ~ N - H
 #>  2: vaccination ~ S * (((a * S)/(b + S))/S)
 #>  3: vaccine_waning ~ V * (rho)
-#>  4: unvaccinated_exposure ~ S * (I * beta_s/N_mix)
-#>  5: vaccinated_exposure ~ V * (I * beta_v/N_mix)
-#>  6: infection ~ E * (alpha)
+#>  4: unvaccinated_infection ~ S * (I * beta_s/N_mix)
+#>  5: vaccinated_infection ~ V * (I * beta_v/N_mix)
+#>  6: progression ~ E * (alpha)
 #>  7: infectious_recovery ~ I * (gamma_i)
 #>  8: hospitalizations ~ I * (sigma)
 #>  9: hospital_recovery ~ H * (gamma_h)
-#> 10: S ~ S - vaccination + vaccine_waning - unvaccinated_exposure
-#> 11: V ~ V + vaccination - vaccine_waning - vaccinated_exposure
-#> 12: E ~ E + unvaccinated_exposure + vaccinated_exposure - infection
-#> 13: I ~ I + infection - infectious_recovery - hospitalizations
+#> 10: S ~ S - vaccination + vaccine_waning - unvaccinated_infection
+#> 11: V ~ V + vaccination - vaccine_waning - vaccinated_infection
+#> 12: E ~ E + unvaccinated_infection + vaccinated_infection - progression
+#> 13: I ~ I + progression - infectious_recovery - hospitalizations
 #> 14: R ~ R + infectious_recovery + hospital_recovery
 #> 15: H ~ H + hospitalizations - hospital_recovery
 #> 
@@ -465,7 +473,7 @@ shiver_calibrator
 # trajectory has 90 time steps (which is what we expect)
 nrow(shiver_calibrator 
   |> mp_trajectory()
-  |> filter(matrix=="H")
+  |> filter(matrix == "H")
   |> select(time) 
   |> unique()
 )
@@ -475,27 +483,27 @@ nrow(shiver_calibrator
 # which time steps are missing in observed data
 (shiver_calibrator 
   |> mp_trajectory()
-  |> filter(matrix=="H")
-  |> anti_join(reported_hospitalizations, by="time")
+  |> filter(matrix == "H")
+  |> anti_join(reported_hospitalizations, by = "time")
 
 ) 
 #>    matrix time row col    value
-#> 1       H    6   0   0 139.1204
-#> 2       H   26   0   0 211.5700
-#> 3       H   32   0   0 219.1765
-#> 4       H   38   0   0 223.9575
-#> 5       H   41   0   0 225.6073
-#> 6       H   48   0   0 228.1288
-#> 7       H   57   0   0 229.5688
-#> 8       H   61   0   0 229.7930
-#> 9       H   70   0   0 229.7078
-#> 10      H   73   0   0 229.5471
+#> 1       H    6   0   0 1024.357
+#> 2       H   26   0   0 2029.666
+#> 3       H   32   0   0 2136.003
+#> 4       H   38   0   0 2203.361
+#> 5       H   41   0   0 2226.851
+#> 6       H   48   0   0 2263.465
+#> 7       H   57   0   0 2286.020
+#> 8       H   61   0   0 2290.445
+#> 9       H   70   0   0 2292.591
+#> 10      H   73   0   0 2291.580
 
 # before optimizing, do the dynamics look reasonable? 
 (shiver_calibrator 
     |> mp_trajectory()
     |> ggplot(aes(time, value))
-    + facet_wrap(vars(matrix), scales='free')
+    + facet_wrap(vars(matrix), scales = 'free')
     + geom_line()
     + theme_bw()
 )
@@ -511,80 +519,149 @@ We are now ready for the optimization step.
 # optimize to estimate parameters
 # this converges!
 mp_optimize(shiver_calibrator)
-#> outer mgc:  41400.69 
-#> outer mgc:  2015.871 
-#> outer mgc:  3088.718 
-#> outer mgc:  19470.84 
-#> outer mgc:  965.1915 
-#> outer mgc:  473.0047 
-#> outer mgc:  1.976211 
-#> outer mgc:  0.0004704379
+#> outer mgc:  3231485
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
+#> evaluation
+#> outer mgc:  751683.6
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
+#> evaluation
+#> outer mgc:  413126.1
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
+#> evaluation
+#> outer mgc:  43376.38 
+#> outer mgc:  62539.29 
+#> outer mgc:  10085.55 
+#> outer mgc:  467.3935 
+#> outer mgc:  103.3559 
+#> outer mgc:  1453.788 
+#> outer mgc:  4956.808 
+#> outer mgc:  3449.942 
+#> outer mgc:  4348.542 
+#> outer mgc:  980.3097 
+#> outer mgc:  1856.75 
+#> outer mgc:  112.3017 
+#> outer mgc:  6680.401
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
+#> evaluation
+#> outer mgc:  1065.623 
+#> outer mgc:  374.3974 
+#> outer mgc:  67.55746 
+#> outer mgc:  5579.374
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
+#> evaluation
+#> outer mgc:  96.09529 
+#> outer mgc:  41.98623 
+#> outer mgc:  5398.606
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
+#> evaluation
+#> outer mgc:  68.05508 
+#> outer mgc:  29.49349 
+#> outer mgc:  4915.817
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
+#> evaluation
+#> outer mgc:  40.16507 
+#> outer mgc:  17.0006 
+#> outer mgc:  4139.887
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
+#> evaluation
+#> outer mgc:  29.54383 
+#> outer mgc:  13.35056 
+#> outer mgc:  4001.771
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
+#> evaluation
+#> outer mgc:  27.58896 
+#> outer mgc:  13.30094 
+#> outer mgc:  3884.687
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
+#> evaluation
+#> outer mgc:  26.87093 
+#> outer mgc:  14.10349 
+#> outer mgc:  4540.1
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
+#> evaluation
+#> outer mgc:  20.61152 
+#> outer mgc:  10.91129 
+#> outer mgc:  2788.444 
+#> outer mgc:  841.4365 
+#> outer mgc:  2768.468 
+#> outer mgc:  544.7568 
+#> outer mgc:  552.2335 
+#> outer mgc:  26.50156 
+#> outer mgc:  1.653927 
+#> outer mgc:  0.0002795783
 #> $par
-#>      params      params      params 
-#>   1.3693922   0.1831558 174.1333543 
+#>       params       params       params       params       params 
+#> 6.585933e+00 6.407071e-02 2.381306e+03 6.358734e-03 4.038911e-02 
 #> 
 #> $objective
-#> [1] 376.6246
+#> [1] 367.9839
 #> 
 #> $convergence
 #> [1] 0
 #> 
 #> $iterations
-#> [1] 8
+#> [1] 47
 #> 
 #> $evaluations
 #> function gradient 
-#>       13        8 
+#>      126       48 
 #> 
 #> $message
-#> [1] "both X-convergence and relative convergence (5)"
+#> [1] "relative convergence (4)"
 
 # look at estimates with CI
-est_coef = mp_tmb_coef(shiver_calibrator, conf.int=TRUE)
-#> outer mgc:  0.0004704379 
-#> outer mgc:  34.29989 
-#> outer mgc:  34.29677 
-#> outer mgc:  11876.43 
-#> outer mgc:  11514.18 
-#> outer mgc:  0.9032799 
-#> outer mgc:  0.9042209 
-#> outer mgc:  92177.98
+est_coef = mp_tmb_coef(shiver_calibrator, conf.int=TRUE) |> round_coef_tab()
+#> outer mgc:  0.0002795783 
+#> outer mgc:  117.0251 
+#> outer mgc:  117.0133 
+#> outer mgc:  51112.7 
+#> outer mgc:  49564.78 
+#> outer mgc:  0.4649966 
+#> outer mgc:  0.4655557 
+#> outer mgc:  263813.8 
+#> outer mgc:  392142.1 
+#> outer mgc:  44879.48 
+#> outer mgc:  46432.16 
+#> outer mgc:  483549.2
 est_coef
-#>       term    mat row col default  type    estimate    std.error     conf.low
-#> 1   params beta_v   0   0    0.05 fixed   1.3693922  0.726790175  -0.05509041
-#> 2 params.1 beta_s   0   0    0.20 fixed   0.1831558  0.002905155   0.17746179
-#> 3 params.2      E   0   0    0.00 fixed 174.1333543 11.353579576 151.88074724
-#>     conf.high
-#> 1   2.7938747
-#> 2   0.1888498
-#> 3 196.3859614
+#>       mat row default  estimate std.error  conf.low conf.high
+#> 1  beta_v   0    0.05    6.5859    1.9745    2.7159   10.4559
+#> 2  beta_s   0    0.20    0.0641    0.0102    0.0442    0.0840
+#> 3       E   0    0.00 2381.3062  357.0389 1681.5228 3081.0895
+#> 4   sigma   0    0.10    0.0064    0.0003    0.0058    0.0069
+#> 5 gamma_h   0    0.07    0.0404    0.0083    0.0241    0.0567
 ```
 
-We get a realistic estimate for `beta_s` at 0.18 with a small standard
-error and the estimated initial number of exposed individuals, 174,
-seems plausible with a standard error of 11. The estimate for $\beta_v$
-however has a large standard error and the confidence interval contains
-zero indicating we are not learning about this parameter.
+We get an unrealistically low estimate for `beta_s` at 0.06 with a small
+standard error and the estimated initial number of exposed individuals,
+2381, seems plausible with a standard error of 357. The estimate for
+$\beta_v$ however has a large standard error and the point estimate is
+too high, indicating that vaccination leads to higher transmission.
 
-To check the fit we plot the observed data as well as the trajectories
-of all states.
+What’s worse is the fit is good, even though the parameter estimates do
+not make sense. To check the fit we plot the observed data as well as
+the trajectories of all states.
 
-    #> outer mgc:  0.0004704379 
-    #> outer mgc:  34.29989 
-    #> outer mgc:  34.29677 
-    #> outer mgc:  11876.43 
-    #> outer mgc:  11514.18 
-    #> outer mgc:  0.9032799 
-    #> outer mgc:  0.9042209
+    #> outer mgc:  0.0002795783 
+    #> outer mgc:  117.0251 
+    #> outer mgc:  117.0133 
+    #> outer mgc:  51112.7 
+    #> outer mgc:  49564.78 
+    #> outer mgc:  0.4649966 
+    #> outer mgc:  0.4655557 
+    #> outer mgc:  263813.8 
+    #> outer mgc:  392142.1 
+    #> outer mgc:  44879.48 
+    #> outer mgc:  46432.16
 
-![](./figures/fit-1.png)<!-- -->![](./figures/fit-2.png)<!-- -->
+![](./figures/fit-1.png)<!-- -->
 
-The simulated hospitalization trajectory fits the data well, and the
-other trajectories look as expected.
+The simulated hospitalization trajectory fits the data well.
 
 ## Re-parameterizing and Introducing Transformations
 
-For better interpretability we can re-parameterize the model with one
+Before addressing this issue with unrealistic parameter estimates, we
+re-parameterize ror better interpretability. We model with one
 transmission rate, `beta`, and a proportion, `p` in (0,1), representing
 the reduced transmission rate for vaccinated people. We also wish to
 parameterize `{I0, E0}` to `{I0, E0/I0}` to de-correlate `I0` and `E0`.
@@ -634,25 +711,25 @@ print(reparameterized_spec)
 #> ---------------------
 #> Default values:
 #> ---------------------
-#>         matrix row col     value
-#>              a          10.00000
-#>              b          10.00000
-#>            rho           0.05000
-#>         beta_s           0.20000
-#>         beta_v           0.05000
-#>          alpha           0.50000
-#>        gamma_i           0.10000
-#>        gamma_h           0.07000
-#>          sigma           0.05000
-#>              N         100.00000
-#>              I           1.00000
-#>              V           0.00000
-#>              E           0.00000
-#>              H           0.00000
-#>              R           0.00000
-#>        logit_p          -4.59512
-#>       log_beta          -4.60517
-#>  log_E_I_ratio          -4.60517
+#>         matrix row col         value
+#>              a          1.684889e+04
+#>              b          1.684889e+04
+#>            rho          5.555556e-03
+#>         beta_s          2.000000e-01
+#>         beta_v          5.000000e-02
+#>          alpha          3.030303e-01
+#>        gamma_i          1.000000e-01
+#>        gamma_h          7.000000e-02
+#>          sigma          1.000000e-01
+#>              N          1.480000e+08
+#>              I          2.718571e+03
+#>              V          1.015657e+04
+#>              E          0.000000e+00
+#>              H          6.300000e+01
+#>              R          0.000000e+00
+#>        logit_p         -4.595120e+00
+#>       log_beta         -4.605170e+00
+#>  log_E_I_ratio         -4.605170e+00
 #> 
 #> ---------------------
 #> Before the simulation loop (t = 0):
@@ -667,128 +744,172 @@ print(reparameterized_spec)
 #> At every iteration of the simulation loop (t = 1 to T):
 #> ---------------------
 #> 1: N_mix ~ N - H
-#> 2: mp_per_capita_flow(from = "S", to = "V", rate = vaccination ~ 
-#>      ((a * S)/(b + S))/S)
-#> 3: mp_per_capita_flow(from = "V", to = "S", rate = vaccine_waning ~ 
-#>      rho)
+#> 2: mp_per_capita_flow(from = "S", to = "V", rate = "((a * S)/(b + S))/S", 
+#>      abs_rate = "vaccination")
+#> 3: mp_per_capita_flow(from = "V", to = "S", rate = "rho", abs_rate = "vaccine_waning")
 #> 4: mp_per_capita_flow(from = "S", to = "E", rate = unvaccinated_infection ~ 
 #>      I * beta/N_mix)
 #> 5: mp_per_capita_flow(from = "V", to = "E", rate = vaccinated_infection ~ 
 #>      I * beta * p/N_mix)
-#> 6: mp_per_capita_flow(from = "E", to = "I", rate = infection ~ alpha)
-#> 7: mp_per_capita_flow(from = "I", to = "R", rate = infectious_recovery ~ 
-#>      gamma_i)
-#> 8: mp_per_capita_flow(from = "I", to = "H", rate = hospitalizations ~ 
-#>      sigma)
-#> 9: mp_per_capita_flow(from = "H", to = "R", rate = hospital_recovery ~ 
-#>      gamma_h)
+#> 6: mp_per_capita_flow(from = "E", to = "I", rate = "alpha", abs_rate = "progression")
+#> 7: mp_per_capita_flow(from = "I", to = "R", rate = "gamma_i", abs_rate = "infectious_recovery")
+#> 8: mp_per_capita_flow(from = "I", to = "H", rate = "sigma", abs_rate = "hospitalizations")
+#> 9: mp_per_capita_flow(from = "H", to = "R", rate = "gamma_h", abs_rate = "hospital_recovery")
 ```
 
-Next we calibrate and specify the transformed parameters to estimate.
+Next we calibrate and specify the parameters to estimate.
 
 ``` r
-# let's calibrate
+prior_distributions = list(
+      log_beta = mp_uniform2()
+    , log_E_I_ratio = mp_uniform2()
+    , logit_p = mp_normal2(qlogis(1/4), 8)
+    , sigma = mp_uniform2()
+    , gamma_h = mp_uniform2()
+)
 shiver_calibrator = mp_tmb_calibrator(
     spec = reparameterized_spec
   , data = reported_hospitalizations
   , traj = "H"
-  # now we want to estimate the transformed parameters
-  , par = c("log_beta","logit_p","log_E_I_ratio")
+  , par = prior_distributions
   , outputs = c(states, "infection")
-  , default = list(
-      N=N
-    , V=V0
-    , I=I0
-    , H=H0
-    , a = a
-    , b = a
-    , alpha=alpha
-    , sigma=sigma
-    , rho = rho
-  ) 
 )
-
+#> Warning in check_outputs(outputs, matrix_outputs, row_outputs): The following outputs were requested but not available in the model:
+#> infection, 
+#> They will be silently ignored.
 
 # optimize to estimate transmission parameters
 # converges with warnings
 mp_optimize(shiver_calibrator)
-#> outer mgc:  1343.964 
-#> outer mgc:  3876.818
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
-#> NA/NaN function evaluation
-#> outer mgc:  47619.47
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
-#> NA/NaN function evaluation
-#> outer mgc:  64345.73 
-#> outer mgc:  14630.69 
-#> outer mgc:  1448.906 
-#> outer mgc:  30.01499 
-#> outer mgc:  6142.322 
-#> outer mgc:  1265.152 
-#> outer mgc:  1177.45 
-#> outer mgc:  6238.092 
-#> outer mgc:  388.0508 
-#> outer mgc:  41.83261 
-#> outer mgc:  0.6695994 
-#> outer mgc:  120.3222 
-#> outer mgc:  218.1964 
-#> outer mgc:  108.4832 
-#> outer mgc:  0.00956027 
-#> outer mgc:  0.09174035 
-#> outer mgc:  0.1473956 
-#> outer mgc:  0.05418804 
-#> outer mgc:  0.0199749 
-#> outer mgc:  0.007353803 
-#> outer mgc:  0.002706053 
-#> outer mgc:  0.0009956012 
-#> outer mgc:  0.0003662747 
-#> outer mgc:  0.0001347468 
-#> outer mgc:  4.957084e-05
+#> outer mgc:  567412.6
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
+#> evaluation
+#> outer mgc:  348773.8
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
+#> evaluation
+#> outer mgc:  128630.8
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
+#> evaluation
+#> outer mgc:  129558
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
+#> evaluation
+#> outer mgc:  127939.4 
+#> outer mgc:  316671.3 
+#> outer mgc:  17465.63 
+#> outer mgc:  3395.246 
+#> outer mgc:  3324.453 
+#> outer mgc:  19773.4 
+#> outer mgc:  6809.642 
+#> outer mgc:  13002.72 
+#> outer mgc:  872.6204 
+#> outer mgc:  5247.786 
+#> outer mgc:  7863.812 
+#> outer mgc:  4479.82 
+#> outer mgc:  3792.569 
+#> outer mgc:  4647.364 
+#> outer mgc:  5516.897 
+#> outer mgc:  6835.712 
+#> outer mgc:  7821.702 
+#> outer mgc:  5230.118 
+#> outer mgc:  8562.648 
+#> outer mgc:  2232.252 
+#> outer mgc:  10308.26 
+#> outer mgc:  289.4329 
+#> outer mgc:  4918.811 
+#> outer mgc:  41.07652 
+#> outer mgc:  110.25 
+#> outer mgc:  0.1623856 
+#> outer mgc:  0.0002694991
 #> $par
-#>     params     params     params 
-#> -1.6724511 17.0018394 -0.5345862 
+#>       params       params       params       params       params 
+#> -4.158406556 -0.207281547 -1.164568461  0.005611421  0.006871717 
 #> 
 #> $objective
-#> [1] 377.9381
+#> [1] 377.1877
 #> 
 #> $convergence
 #> [1] 0
 #> 
 #> $iterations
-#> [1] 27
+#> [1] 30
 #> 
 #> $evaluations
 #> function gradient 
-#>       41       28 
+#>       42       31 
 #> 
 #> $message
 #> [1] "relative convergence (4)"
 ```
 
-    #> outer mgc:  4.957084e-05 
-    #> outer mgc:  412.8916 
-    #> outer mgc:  409.2689 
-    #> outer mgc:  4.952135e-05 
-    #> outer mgc:  4.962053e-05 
-    #> outer mgc:  27.83219 
-    #> outer mgc:  27.80536 
-    #> outer mgc:  17519.22
-    #>       term       mat row col default  type  estimate    std.error     conf.low
-    #> 1   params      beta   0   0    0.01 fixed 0.1877862 0.0005929213 1.866277e-01
-    #> 3 params.2 E_I_ratio   0   0    0.01 fixed 0.5859117 0.0237689881 5.411293e-01
-    #> 2 params.1         p   0   0    0.01 fixed 1.0000000 0.0003158306 2.220446e-16
-    #>   conf.high
-    #> 1 0.1889519
-    #> 3 0.6344002
-    #> 2 1.0000000
+Note here that we have to put a normal prior on the logit-transformed
+vaccine-efficacy, `p`, parameter, albeit with a very large standard
+deviation. If we do not put this prior the optimization fails. The
+posterior for this parameter will be effectively identical however to
+the prior, suggesting that there is very little information in the data
+about vaccine efficacy in this model, as we see in the following
+coefficient table.
 
-The estimates for our parameters are close to the the previous
-estimates, which makes sense because we only re-parameterized instead of
-making changes to the model specification. The ratio of initial exposed
-to initial number of infected is 0.59. Given we specified the initial
-$I$ as 272, the estimated initial number of exposed is approximately
-159. A reduction in transmission by 1 percent could be plausible but the
-confidence interval is effectively all possible values for `p`.
+    #> outer mgc:  0.0002694991 
+    #> outer mgc:  330.4424 
+    #> outer mgc:  330.0082 
+    #> outer mgc:  995.7425 
+    #> outer mgc:  994.5937 
+    #> outer mgc:  0.07148205 
+    #> outer mgc:  0.07090571 
+    #> outer mgc:  323906.8 
+    #> outer mgc:  454185 
+    #> outer mgc:  100767.9 
+    #> outer mgc:  105873.3 
+    #> outer mgc:  44674.24
+    #>         mat row default estimate std.error conf.low conf.high
+    #> 1     sigma   0    0.10   0.0056    0.0003   0.0051    0.0062
+    #> 2   gamma_h   0    0.07   0.0069    0.0007   0.0056    0.0082
+    #> 3      beta   0    0.01   0.0156    0.0059   0.0075    0.0327
+    #> 4 E_I_ratio   0    0.01   0.8128    0.1243   0.6023    1.0968
+    #> 5         p   0    0.01   0.2378    1.4258   0.0000    1.0000
+
+This re-parameterization is beginning to help make a more reasonable
+model. Our prior vaccine transmission reduction parameter, `p`, is
+restricted to `0-1` and this ensures that vaccination with reduce
+transmission. On the other hand, although a reduction in transmission by
+0.24 percent could be plausible but the confidence interval is
+effectively all possible values for `p`. The ratio of initial exposed to
+initial number of infected is 0.81. Given we specified the initial $I$
+as 2719, the estimated initial number of exposed is approximately 2210.
+The biggest issue with these estimates though is that the transmission
+rate, `beta`, for unvaccinated people is much too low (we expect
+something more like `0.2`).
+
+The fit is very similar to the model without a reparameterization, but
+with different inferences for the variables that are not fitted. In
+particular, the reparameterized model has a saturating function for the
+number of recovered individuals and the number of infectious individuals
+goes to zero, which is not at all realistic.
+
+``` r
+(shiver_calibrator 
+  |> mp_trajectory_sd(conf.int = TRUE)
+  |> ggplot(aes(time, value))
+  + facet_wrap(~matrix, scales = "free")
+  + geom_line(aes(y=value), colour = "red")
+  + geom_ribbon(aes(ymin = conf.low, ymax = conf.high), fill = "red", alpha = 0.3)
+  + geom_point(data = reported_hospitalizations, aes(time, value))
+  + ylim(c(0, NA))
+)
+#> outer mgc:  0.0002694991 
+#> outer mgc:  330.4424 
+#> outer mgc:  330.0082 
+#> outer mgc:  995.7425 
+#> outer mgc:  994.5937 
+#> outer mgc:  0.07148205 
+#> outer mgc:  0.07090571 
+#> outer mgc:  323906.8 
+#> outer mgc:  454185 
+#> outer mgc:  100767.9 
+#> outer mgc:  105873.3
+```
+
+![](./figures/unnamed-chunk-2-1.png)<!-- -->
 
 ## Runge-Kutta 4
 
@@ -805,160 +926,323 @@ shiver_calibrator_rk4 = mp_tmb_calibrator(
     spec = reparameterized_spec |> mp_rk4()
   , data = reported_hospitalizations
   , traj = "H"
-  , par = c("log_beta","logit_p","log_E_I_ratio")
+  , par = prior_distributions
   , outputs = c(states, "infection")
-  # defaults are specified in model spec alreadt
 )
+#> Warning in check_outputs(outputs, matrix_outputs, row_outputs): The following outputs were requested but not available in the model:
+#> infection, 
+#> They will be silently ignored.
 
 # optimize
 # converges with warning
 mp_optimize(shiver_calibrator_rk4)
-#> outer mgc:  1091.376
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
-#> NA/NaN function evaluation
-#> outer mgc:  36662.79
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
-#> NA/NaN function evaluation
-#> outer mgc:  39129.07 
-#> outer mgc:  3289.01 
-#> outer mgc:  4450.876 
-#> outer mgc:  3781.115 
-#> outer mgc:  139.7125 
-#> outer mgc:  128.9961 
-#> outer mgc:  74.47594
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
-#> NA/NaN function evaluation
-#> outer mgc:  1617.209 
-#> outer mgc:  715.2498 
-#> outer mgc:  712.5973 
-#> outer mgc:  583.998 
-#> outer mgc:  421.3147 
-#> outer mgc:  260.7395 
-#> outer mgc:  132.3782 
-#> outer mgc:  63.92431 
-#> outer mgc:  31.26111 
-#> outer mgc:  15.2968 
-#> outer mgc:  7.485552 
-#> outer mgc:  3.663211 
-#> outer mgc:  1.792702 
-#> outer mgc:  0.8773212 
-#> outer mgc:  0.4293498 
-#> outer mgc:  0.2101188 
-#> outer mgc:  0.1028298 
-#> outer mgc:  0.0503238 
-#> outer mgc:  0.02462793 
-#> outer mgc:  0.01205265 
-#> outer mgc:  0.005898439 
-#> outer mgc:  0.002886634 
-#> outer mgc:  0.001412688 
-#> outer mgc:  0.0006913548 
-#> outer mgc:  0.0003383418 
-#> outer mgc:  0.0001655809 
-#> outer mgc:  8.103358e-05 
-#> outer mgc:  3.965697e-05
+#> outer mgc:  504484.8
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
+#> evaluation
+#> outer mgc:  315284.6
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
+#> evaluation
+#> outer mgc:  120799.7
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
+#> evaluation
+#> outer mgc:  122160
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
+#> evaluation
+#> outer mgc:  116872.4 
+#> outer mgc:  252782 
+#> outer mgc:  19682.19 
+#> outer mgc:  284.1706 
+#> outer mgc:  5908.887 
+#> outer mgc:  3702.674 
+#> outer mgc:  23234.08 
+#> outer mgc:  673.3606 
+#> outer mgc:  8511.423 
+#> outer mgc:  603.82 
+#> outer mgc:  1711.032 
+#> outer mgc:  10329.03 
+#> outer mgc:  1519.883 
+#> outer mgc:  894.6683 
+#> outer mgc:  3818.337 
+#> outer mgc:  4546.677 
+#> outer mgc:  5708.852 
+#> outer mgc:  7351.648 
+#> outer mgc:  7869.59 
+#> outer mgc:  6847.536 
+#> outer mgc:  8414.413 
+#> outer mgc:  4814.334 
+#> outer mgc:  10378.51 
+#> outer mgc:  1779.479 
+#> outer mgc:  14635.57 
+#> outer mgc:  173.2177 
+#> outer mgc:  4652.449 
+#> outer mgc:  616.163 
+#> outer mgc:  1996.676 
+#> outer mgc:  146.1596 
+#> outer mgc:  167.2185 
+#> outer mgc:  2.898868 
+#> outer mgc:  0.03053967 
+#> outer mgc:  1.777443e-07
 #> $par
-#>    params    params    params 
-#> -1.051505 19.275501  1.263383 
+#>       params       params       params       params       params 
+#> -4.886623549  0.189869644 -1.124687224  0.004940568  0.006715281 
 #> 
 #> $objective
-#> [1] 65661.03
+#> [1] 375.9605
 #> 
 #> $convergence
 #> [1] 0
 #> 
 #> $iterations
-#> [1] 36
+#> [1] 37
 #> 
 #> $evaluations
 #> function gradient 
-#>       48       37 
+#>       52       38 
 #> 
 #> $message
 #> [1] "relative convergence (4)"
 
 # looking at coefficients and CIs
-rk4_coef <- mp_tmb_coef(shiver_calibrator_rk4, conf.int = TRUE)
-#> outer mgc:  3.965697e-05 
-#> outer mgc:  28.28442 
-#> outer mgc:  28.40429 
-#> outer mgc:  3.956188e-05 
-#> outer mgc:  3.975217e-05 
-#> outer mgc:  2.971135 
-#> outer mgc:  2.972909 
-#> outer mgc:  87.32768
+rk4_coef <- mp_tmb_coef(shiver_calibrator_rk4, conf.int = TRUE) |> round_coef_tab()
+#> outer mgc:  1.777443e-07 
+#> outer mgc:  171.2163 
+#> outer mgc:  171.0204 
+#> outer mgc:  1393.343 
+#> outer mgc:  1391.687 
+#> outer mgc:  0.03893342 
+#> outer mgc:  0.03891323 
+#> outer mgc:  418263.9 
+#> outer mgc:  609036.1 
+#> outer mgc:  116529.1 
+#> outer mgc:  122542.6 
+#> outer mgc:  47980.5
 
 print(rk4_coef)
-#>       term       mat row col default  type  estimate    std.error     conf.low
-#> 1   params      beta   0   0    0.01 fixed 0.3494114 2.356884e-03 3.448223e-01
-#> 3 params.2 E_I_ratio   0   0    0.01 fixed 3.5373697 1.078429e-01 3.332193e+00
-#> 2 params.1         p   0   0    0.01 fixed 1.0000000 2.367506e-06 2.220446e-16
-#>   conf.high
-#> 1 0.3540614
-#> 3 3.7551804
-#> 2 1.0000000
+#>         mat row default estimate std.error conf.low conf.high
+#> 1     sigma   0    0.10   0.0049    0.0002   0.0045    0.0054
+#> 2   gamma_h   0    0.07   0.0067    0.0006   0.0055    0.0080
+#> 3      beta   0    0.01   0.0075    0.0064   0.0014    0.0394
+#> 4 E_I_ratio   0    0.01   1.2091    0.1419   0.9606    1.5218
+#> 5         p   0    0.01   0.2451    1.4707   0.0000    1.0000
 # rk4 doesn't help us learn more about p
 # let's try adding more data
 ```
 
-In this scenario, Runge-Kutta 4 did not improve our estimate for `p`.
+In this scenario, Runge-Kutta 4 did not improve our parameter estimates.
 
 ## Fitting to Multiple Trajectories
 
-If we include more observed data, can we get an estimate for the
-proportion `p`?
+If we include more observed data, can we get a more believable fit and
+parameter estimates?
 
 We obtain COVID case count data from the [Ontario Data
 Catalogue](https://data.ontario.ca/dataset/covid-19-vaccine-data-in-ontario/resource/eed63cf2-83dd-4598-b337-b288c0a89a16)
 for an experiment to fit the SHIVER model to both hospitalization and
 incidence data.
 
+We need to expand our model to accommodate more data.
+
 ``` r
-oo = 30
+multi_traj_spec = (reparameterized_spec
+  |> mp_tmb_insert(
+      phase = "during"
+    , at = Inf
+    , expressions = list(incidence ~ unvaccinated_infection + vaccinated_infection)
+  ) 
+  
+  ## with case report data, we need to account for reporting delays and 
+  ## under-reporting.
+  |> mp_tmb_insert_reports("incidence", report_prob = 0.1, mean_delay = 11, cv_delay = 0.25)
+  
+  ## we again want to fit many parameters on log or logit scales.
+  |> mp_tmb_insert(phase = "before", at = 1L
+    , expressions = list(
+          incidence_report_prob ~ 1/(1 + exp(-logit_report_prob))
+        , I ~ exp(log_I)
+        , H ~ exp(log_H)
+        , R ~ exp(log_R)
+        , sigma ~ exp(log_sigma)
+        , gamma_h ~ exp(log_gamma_h)
+      )
+    , default = list(
+          logit_report_prob = 0
+        , rbf_beta = 1
+        , V = V0
+        , log_I = log(I0)
+        , log_H = log(H0)
+        , log_R = 0
+        , log_sigma = -3
+        , log_gamma_h = -3
+        , N = N
+      )
+  )
+  
+  ## we also need to prepare for a more flexible fit to the transmission
+  ## rate that varies over time, as the report data provide sufficiently more
+  ## information for this purposes.
+  |> mp_tmb_insert(phase = "during"
+    , at = 1L
+    , expressions = list(beta ~ beta * rbf_beta)
+  )
+)
+```
+
+``` r
+## we need a more elaborate prior distribution
+sd_par = 1 ## for convenience we give all parameters the same prior sd, for now
+sd_state = 8 ## extremely vague priors on state variables
+prior_distributions = list(
+    log_beta = mp_normal2(log(0.2), sd_par)
+  , log_sigma = mp_normal2(log(sigma), sd_par)
+  , log_gamma_h = mp_normal2(log(0.07), sd_par)
+  , logit_report_prob = mp_normal2(qlogis(0.1), sd_par)
+  , logit_p = mp_normal2(qlogis(1/4), 4)
+  , log_E_I_ratio = mp_normal2(0, sd_par)
+  , log_I = mp_normal2(log(I0), sd_state)
+  , log_H = mp_normal2(log(H0), sd_state)
+  , log_R = mp_normal2(log(1), sd_state)
+)
+
+## put the data together
 dd = rbind(reported_hospitalizations, reported_cases)
+
 # calibrate
 shiver_calibrator = mp_tmb_calibrator(
-    spec = reparameterized_spec
+    spec = multi_traj_spec |> mp_hazard()
     # row bind both observed data
   , data = dd
-    # fit both trajectories
-  , traj = c("H","infection")
-  , par = c("log_beta","log_E_I_ratio", "sigma", "alpha")
-  , outputs = c(states, "infection")
-  , time = mp_sim_bounds(-oo, max(dd$time) + 1, "steps")
+    # fit both trajectories with negative binomial distributions
+  , traj = list(H = mp_neg_bin2(
+      disp = mp_fit(1))
+    , reported_incidence = mp_neg_bin2(disp = mp_fit(1))
+  )
+  , par = prior_distributions
+    # fit the transmission rate using four radial basis functions for
+    # a flexible model of time variation.
+  , tv = mp_rbf("rbf_beta", 4, sparse_tol = 1e-8)
+  , outputs = c(states, "reported_incidence", "beta")
 )
 ```
 
 Next we optimize, and look at our estimates.
 
-    #> outer mgc:  0.002278467 
-    #> outer mgc:  1287.98 
-    #> outer mgc:  1289.648 
-    #> outer mgc:  0.002280747 
-    #> outer mgc:  0.002276192 
-    #> outer mgc:  1101.786 
-    #> outer mgc:  1101.552 
-    #> outer mgc:  246113 
-    #> outer mgc:  277237.9 
-    #> outer mgc:  2133.444
-    #>       term       mat row col default  type     estimate    std.error
-    #> 3 params.2     sigma   0   0    0.05 fixed 4.732919e-01 9.535619e-03
-    #> 4 params.3     alpha   0   0    0.50 fixed 1.801839e-02 8.206206e-05
-    #> 1   params      beta   0   0    0.01 fixed 3.560844e+01 6.076349e-01
-    #> 2 params.1 E_I_ratio   0   0    0.01 fixed 1.443930e-07 3.695214e-05
-    #>       conf.low     conf.high
-    #> 3 4.546024e-01  4.919813e-01
-    #> 4 1.785755e-02  1.817923e-02
-    #> 1 3.443719e+01  3.681952e+01
-    #> 2 2.220446e-16 9.854649e+210
+    #> outer mgc:  2.503936e-07 
+    #> outer mgc:  7062.799 
+    #> outer mgc:  7048.04 
+    #> outer mgc:  130.0815 
+    #> outer mgc:  131.0732 
+    #> outer mgc:  597.7916 
+    #> outer mgc:  598.2666 
+    #> outer mgc:  108.5106 
+    #> outer mgc:  108.6145 
+    #> outer mgc:  4.214293 
+    #> outer mgc:  4.212186 
+    #> outer mgc:  186.464 
+    #> outer mgc:  186.3014 
+    #> outer mgc:  1300.509 
+    #> outer mgc:  1300.347 
+    #> outer mgc:  0.006359546 
+    #> outer mgc:  0.006353818 
+    #> outer mgc:  4.779412e-05 
+    #> outer mgc:  4.787497e-05 
+    #> outer mgc:  197852.9 
+    #> outer mgc:  184493.5 
+    #> outer mgc:  160296.2 
+    #> outer mgc:  150823.6 
+    #> outer mgc:  28382.56 
+    #> outer mgc:  28046.6 
+    #> outer mgc:  1170.203 
+    #> outer mgc:  1169.613 
+    #> outer mgc:  4.13715 
+    #> outer mgc:  4.173466 
+    #> outer mgc:  2.06047 
+    #> outer mgc:  2.061425 
+    #> outer mgc:  7.018533 
+    #> outer mgc:  7.012248 
+    #> outer mgc:  11233526
+    #>                                     mat row   default  estimate std.error  conf.low
+    #> 1                     time_var_rbf_beta   1    0.0000    0.2059    0.0236    0.1597
+    #> 2                     time_var_rbf_beta   2    0.0000   -0.5694    0.0608   -0.6886
+    #> 3                     time_var_rbf_beta   3    0.0000    2.8739    0.2490    2.3858
+    #> 4                     prior_sd_rbf_beta   0    1.0000    0.5721    0.0155    0.5417
+    #> 5                     time_var_rbf_beta   0    0.0000   -0.1340    0.0140   -0.1614
+    #> 6                                  beta   0    0.0100    0.3253    0.0272    0.2761
+    #> 7                                 sigma   0    0.0498    0.0183    0.0093    0.0068
+    #> 8                   distr_params_disp_H   0    1.0000  489.6908   57.3348  389.2782
+    #> 9  distr_params_disp_reported_incidence   0    1.0000   21.8190    3.4975   15.9365
+    #> 10                              gamma_h   0    0.0498    1.1165    0.4283    0.5265
+    #> 11                            E_I_ratio   0    0.0100    0.2301    0.1215    0.0818
+    #> 12                                    I   0 2718.5714 5148.6682 2233.6159 2200.0028
+    #> 13                                    H   0   63.0000   16.5921   55.4933    0.0236
+    #> 14                                    R   0    1.0000    1.0000    8.0000    0.0000
+    #> 15                          report_prob   0    0.5000    0.4833    0.1819    0.1832
+    #> 16                                    p   0    0.0100    0.2502    0.7504    0.0001
+    #>       conf.high
+    #> 1        0.2522
+    #> 2       -0.4502
+    #> 3        3.3619
+    #> 4        0.6025
+    #> 5       -0.1065
+    #> 6        0.3833
+    #> 7        0.0493
+    #> 8      616.0044
+    #> 9       29.8729
+    #> 10       2.3680
+    #> 11       0.6474
+    #> 12   12049.4318
+    #> 13   11662.6928
+    #> 14 6450769.7056
+    #> 15       0.7959
+    #> 16       0.9988
 
-We were not able to estimate `p` again, note the confidence interval is
-again the entire domain of possible values for `p`.
+Our prior for `sigma` is similar to the posterior, but `gamma_h` seems
+to have been pushed up by the data from about `0.05` to about `1.11`. We
+still do not have confidence in our estimate of `p`. We now have five
+other parameters controlling transmission, and so to interpret them we
+really need a plot of how transmission varies over time in the model. We
+add this variable to our model fit plot.
 
-The fitted curves, in red, are far from following the observed data
-points. We can clearly see adding more noisy data leads to major fitting
-problems.
+    #> outer mgc:  2.503936e-07 
+    #> outer mgc:  7062.799 
+    #> outer mgc:  7048.04 
+    #> outer mgc:  130.0815 
+    #> outer mgc:  131.0732 
+    #> outer mgc:  597.7916 
+    #> outer mgc:  598.2666 
+    #> outer mgc:  108.5106 
+    #> outer mgc:  108.6145 
+    #> outer mgc:  4.214293 
+    #> outer mgc:  4.212186 
+    #> outer mgc:  186.464 
+    #> outer mgc:  186.3014 
+    #> outer mgc:  1300.509 
+    #> outer mgc:  1300.347 
+    #> outer mgc:  0.006359546 
+    #> outer mgc:  0.006353818 
+    #> outer mgc:  4.779412e-05 
+    #> outer mgc:  4.787497e-05 
+    #> outer mgc:  197852.9 
+    #> outer mgc:  184493.5 
+    #> outer mgc:  160296.2 
+    #> outer mgc:  150823.6 
+    #> outer mgc:  28382.56 
+    #> outer mgc:  28046.6 
+    #> outer mgc:  1170.203 
+    #> outer mgc:  1169.613 
+    #> outer mgc:  4.13715 
+    #> outer mgc:  4.173466 
+    #> outer mgc:  2.06047 
+    #> outer mgc:  2.061425 
+    #> outer mgc:  7.018533 
+    #> outer mgc:  7.012248
 
 ![](./figures/mult_traj_fit-1.png)<!-- -->
+
+This fit makes more sense. The transmission rate for unvaccinated people
+varies from about `0.1` to `0.3`. We have a lot of uncertainty about
+state variables that we don’t fit, but this makes sense. Importantly `I`
+does not drop off to zero, which was an unrealistic aspect of previous
+fits.
 
 ## Parameter Identifiability
 
@@ -1008,14 +1292,14 @@ fixed_beta = mp_tmb_calibrator(
 )
 # converges, but not getting estimate for `p`
 mp_optimize(fixed_beta)
-#> outer mgc:  0.2979119 
-#> outer mgc:  7.62533e-23
+#> outer mgc:  458.0031 
+#> outer mgc:  2.463496e-19
 #> $par
 #>  params 
 #> 53.5867 
 #> 
 #> $objective
-#> [1] 1141.898
+#> [1] 156031309
 #> 
 #> $convergence
 #> [1] 0
@@ -1029,13 +1313,13 @@ mp_optimize(fixed_beta)
 #> 
 #> $message
 #> [1] "relative convergence (4)"
-mp_tmb_coef(fixed_beta, conf.int = TRUE)
-#> outer mgc:  7.62533e-23 
-#> outer mgc:  7.617709e-23 
-#> outer mgc:  7.632959e-23 
-#> outer mgc:  1.756503e-25
-#>     term mat row col default  type estimate    std.error     conf.low conf.high
-#> 1 params   p   0   0    0.01 fixed        1 2.542792e-05 2.220446e-16         1
+mp_tmb_coef(fixed_beta, conf.int = TRUE) |> round_coef_tab()
+#> outer mgc:  2.463496e-19 
+#> outer mgc:  2.461034e-19 
+#> outer mgc:  2.465961e-19 
+#> outer mgc:  5.420721e-25
+#>   mat row default estimate std.error conf.low conf.high
+#> 1   p   0    0.01        1         0        0         1
 ## fix p estimate beta
 fixed_a = mp_tmb_calibrator(
   spec = reparameterized_spec |> mp_rk4()
@@ -1046,38 +1330,44 @@ fixed_a = mp_tmb_calibrator(
 )
 # converges and recovering true beta
 mp_optimize(fixed_a)
-#> outer mgc:  18.34179
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
-#> NA/NaN function evaluation
-#> outer mgc:  1.090191 
-#> outer mgc:  0.002655774 
-#> outer mgc:  1.564843e-08
+#> outer mgc:  11758337 
+#> outer mgc:  20675658
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
+#> evaluation
+#> outer mgc:  83523065 
+#> outer mgc:  115766932 
+#> outer mgc:  117517001 
+#> outer mgc:  84962961 
+#> outer mgc:  19152655 
+#> outer mgc:  1719980 
+#> outer mgc:  10976.48 
+#> outer mgc:  0.4548191
 #> $par
-#>     params 
-#> -0.9675796 
+#>    params 
+#> -1.214201 
 #> 
 #> $objective
-#> [1] 848.9509
+#> [1] 7464.532
 #> 
 #> $convergence
 #> [1] 0
 #> 
 #> $iterations
-#> [1] 3
+#> [1] 10
 #> 
 #> $evaluations
 #> function gradient 
-#>        6        4 
+#>       17       10 
 #> 
 #> $message
-#> [1] "relative convergence (4)"
-mp_tmb_coef(fixed_a, conf.int = TRUE)
-#> outer mgc:  1.564843e-08 
-#> outer mgc:  0.8924368 
-#> outer mgc:  0.8889167 
-#> outer mgc:  7.065776
-#>     term  mat row col default  type  estimate  std.error  conf.low conf.high
-#> 1 params beta   0   0    0.01 fixed 0.3800017 0.01273285 0.3558476 0.4057953
+#> [1] "both X-convergence and relative convergence (5)"
+mp_tmb_coef(fixed_a, conf.int = TRUE) |> round_coef_tab()
+#> outer mgc:  0.4548191 
+#> outer mgc:  1687929 
+#> outer mgc:  1666686 
+#> outer mgc:  11195301
+#>    mat row default estimate std.error conf.low conf.high
+#> 1 beta   0    0.01   0.2969         0   0.2969     0.297
 ```
 
 We are able to recover the transmission rate `beta` but not the
