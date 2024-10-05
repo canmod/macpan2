@@ -212,7 +212,7 @@ DistrSpec = function(distr_param_objs = list(), default_trans = list()) {
   self$distr_params_frame = function() {
     (self$distr_param_objs
       |> oor::method_apply("distr_params_frame")
-      |> macpan2:::bind_rows()
+      |> bind_rows()
     )
   }
   
@@ -221,7 +221,7 @@ DistrSpec = function(distr_param_objs = list(), default_trans = list()) {
   self$distr_random_frame = function() {
     (self$distr_param_objs
       |> oor::method_apply("distr_random_frame")
-      |> macpan2:::bind_rows()
+      |> bind_rows()
     )
   }
   

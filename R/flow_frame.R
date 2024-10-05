@@ -66,8 +66,8 @@ mp_flow_frame = function(spec, topological_sort = TRUE, warn_not_dag = TRUE) {
   sv = unique(cf$state)
   to = cf[startsWith(cf$change, "+"), , drop = FALSE]
   from = cf[startsWith(cf$change, "-"), , drop = FALSE]
-  to$change = sub("^\\+", "", to$change) |> macpan2:::reset_rownames()
-  from$change = sub("^\\-", "", from$change) |> macpan2:::reset_rownames()
+  to$change = sub("^\\+", "", to$change) |> reset_rownames()
+  from$change = sub("^\\-", "", from$change) |> reset_rownames()
   to_only = to[to$change %in% setdiff(to$change, from$change), , drop = FALSE]
   from_only = from[from$change %in% setdiff(from$change, to$change), , drop = FALSE]
   flows = merge(
