@@ -60,6 +60,13 @@ library(ggraph)
 library(tidygraph)
 ```
 
+To keep the optimizer from printing too much in this article, we set the
+`macpan2_verbose` option to `FALSE`.
+
+``` r
+options(macpan2_verbose = FALSE)
+```
+
 # States
 
 | variable | description                        |
@@ -519,76 +526,38 @@ We are now ready for the optimization step.
 # optimize to estimate parameters
 # this converges!
 mp_optimize(shiver_calibrator)
-#> outer mgc:  3231485
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
-#> evaluation
-#> outer mgc:  751683.6
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
-#> evaluation
-#> outer mgc:  413126.1
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
-#> evaluation
-#> outer mgc:  43376.38 
-#> outer mgc:  62539.29 
-#> outer mgc:  10085.55 
-#> outer mgc:  467.3935 
-#> outer mgc:  103.3559 
-#> outer mgc:  1453.788 
-#> outer mgc:  4956.808 
-#> outer mgc:  3449.942 
-#> outer mgc:  4348.542 
-#> outer mgc:  980.3097 
-#> outer mgc:  1856.75 
-#> outer mgc:  112.3017 
-#> outer mgc:  6680.401
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
-#> evaluation
-#> outer mgc:  1065.623 
-#> outer mgc:  374.3974 
-#> outer mgc:  67.55746 
-#> outer mgc:  5579.374
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
-#> evaluation
-#> outer mgc:  96.09529 
-#> outer mgc:  41.98623 
-#> outer mgc:  5398.606
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
-#> evaluation
-#> outer mgc:  68.05508 
-#> outer mgc:  29.49349 
-#> outer mgc:  4915.817
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
-#> evaluation
-#> outer mgc:  40.16507 
-#> outer mgc:  17.0006 
-#> outer mgc:  4139.887
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
-#> evaluation
-#> outer mgc:  29.54383 
-#> outer mgc:  13.35056 
-#> outer mgc:  4001.771
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
-#> evaluation
-#> outer mgc:  27.58896 
-#> outer mgc:  13.30094 
-#> outer mgc:  3884.687
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
-#> evaluation
-#> outer mgc:  26.87093 
-#> outer mgc:  14.10349 
-#> outer mgc:  4540.1
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
-#> evaluation
-#> outer mgc:  20.61152 
-#> outer mgc:  10.91129 
-#> outer mgc:  2788.444 
-#> outer mgc:  841.4365 
-#> outer mgc:  2768.468 
-#> outer mgc:  544.7568 
-#> outer mgc:  552.2335 
-#> outer mgc:  26.50156 
-#> outer mgc:  1.653927 
-#> outer mgc:  0.0002795783
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
+#> NA/NaN function evaluation
+
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
+#> NA/NaN function evaluation
+
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
+#> NA/NaN function evaluation
+
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
+#> NA/NaN function evaluation
+
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
+#> NA/NaN function evaluation
+
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
+#> NA/NaN function evaluation
+
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
+#> NA/NaN function evaluation
+
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
+#> NA/NaN function evaluation
+
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
+#> NA/NaN function evaluation
+
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
+#> NA/NaN function evaluation
+
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
+#> NA/NaN function evaluation
 #> $par
 #>       params       params       params       params       params 
 #> 6.585933e+00 6.407071e-02 2.381306e+03 6.358734e-03 4.038911e-02 
@@ -611,18 +580,6 @@ mp_optimize(shiver_calibrator)
 
 # look at estimates with CI
 est_coef = mp_tmb_coef(shiver_calibrator, conf.int=TRUE) |> round_coef_tab()
-#> outer mgc:  0.0002795783 
-#> outer mgc:  117.0251 
-#> outer mgc:  117.0133 
-#> outer mgc:  51112.7 
-#> outer mgc:  49564.78 
-#> outer mgc:  0.4649966 
-#> outer mgc:  0.4655557 
-#> outer mgc:  263813.8 
-#> outer mgc:  392142.1 
-#> outer mgc:  44879.48 
-#> outer mgc:  46432.16 
-#> outer mgc:  483549.2
 est_coef
 #>       mat row default  estimate std.error  conf.low conf.high
 #> 1  beta_v   0    0.05    6.5859    1.9745    2.7159   10.4559
@@ -641,18 +598,6 @@ too high, indicating that vaccination leads to higher transmission.
 What’s worse is the fit is good, even though the parameter estimates do
 not make sense. To check the fit we plot the observed data as well as
 the trajectories of all states.
-
-    #> outer mgc:  0.0002795783 
-    #> outer mgc:  117.0251 
-    #> outer mgc:  117.0133 
-    #> outer mgc:  51112.7 
-    #> outer mgc:  49564.78 
-    #> outer mgc:  0.4649966 
-    #> outer mgc:  0.4655557 
-    #> outer mgc:  263813.8 
-    #> outer mgc:  392142.1 
-    #> outer mgc:  44879.48 
-    #> outer mgc:  46432.16
 
 ![](./figures/fit-1.png)<!-- -->
 
@@ -761,11 +706,11 @@ Next we calibrate and specify the parameters to estimate.
 
 ``` r
 prior_distributions = list(
-      log_beta = mp_uniform2()
-    , log_E_I_ratio = mp_uniform2()
-    , logit_p = mp_normal2(qlogis(1/4), 8)
-    , sigma = mp_uniform2()
-    , gamma_h = mp_uniform2()
+      log_beta = mp_uniform()
+    , log_E_I_ratio = mp_uniform()
+    , logit_p = mp_normal(qlogis(1/4), 8)
+    , sigma = mp_uniform()
+    , gamma_h = mp_uniform()
 )
 shiver_calibrator = mp_tmb_calibrator(
     spec = reparameterized_spec
@@ -781,61 +726,32 @@ shiver_calibrator = mp_tmb_calibrator(
 # optimize to estimate transmission parameters
 # converges with warnings
 mp_optimize(shiver_calibrator)
-#> outer mgc:  567412.6
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
-#> evaluation
-#> outer mgc:  348773.8
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
-#> evaluation
-#> outer mgc:  128630.8
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
-#> evaluation
-#> outer mgc:  129558
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
-#> evaluation
-#> outer mgc:  127939.4 
-#> outer mgc:  316671.3 
-#> outer mgc:  17465.63 
-#> outer mgc:  3395.246 
-#> outer mgc:  3324.453 
-#> outer mgc:  19773.4 
-#> outer mgc:  6809.642 
-#> outer mgc:  13002.72 
-#> outer mgc:  872.6204 
-#> outer mgc:  5247.786 
-#> outer mgc:  7863.812 
-#> outer mgc:  4479.82 
-#> outer mgc:  3792.569 
-#> outer mgc:  4647.364 
-#> outer mgc:  5516.897 
-#> outer mgc:  6835.712 
-#> outer mgc:  7821.702 
-#> outer mgc:  5230.118 
-#> outer mgc:  8562.648 
-#> outer mgc:  2232.252 
-#> outer mgc:  10308.26 
-#> outer mgc:  289.4329 
-#> outer mgc:  4918.811 
-#> outer mgc:  41.07652 
-#> outer mgc:  110.25 
-#> outer mgc:  0.1623856 
-#> outer mgc:  0.0002694991
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
+#> NA/NaN function evaluation
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
+#> NA/NaN function evaluation
+
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
+#> NA/NaN function evaluation
+
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
+#> NA/NaN function evaluation
 #> $par
 #>       params       params       params       params       params 
-#> -4.158406556 -0.207281547 -1.164568461  0.005611421  0.006871717 
+#> -4.157752739 -0.207593565 -8.769173074  0.005611944  0.006871819 
 #> 
 #> $objective
-#> [1] 377.1877
+#> [1] 383.1069
 #> 
 #> $convergence
 #> [1] 0
 #> 
 #> $iterations
-#> [1] 30
+#> [1] 34
 #> 
 #> $evaluations
 #> function gradient 
-#>       42       31 
+#>       50       35 
 #> 
 #> $message
 #> [1] "relative convergence (4)"
@@ -849,36 +765,24 @@ the prior, suggesting that there is very little information in the data
 about vaccine efficacy in this model, as we see in the following
 coefficient table.
 
-    #> outer mgc:  0.0002694991 
-    #> outer mgc:  330.4424 
-    #> outer mgc:  330.0082 
-    #> outer mgc:  995.7425 
-    #> outer mgc:  994.5937 
-    #> outer mgc:  0.07148205 
-    #> outer mgc:  0.07090571 
-    #> outer mgc:  323906.8 
-    #> outer mgc:  454185 
-    #> outer mgc:  100767.9 
-    #> outer mgc:  105873.3 
-    #> outer mgc:  44674.24
     #>         mat row default estimate std.error conf.low conf.high
     #> 1     sigma   0    0.10   0.0056    0.0003   0.0051    0.0062
     #> 2   gamma_h   0    0.07   0.0069    0.0007   0.0056    0.0082
-    #> 3      beta   0    0.01   0.0156    0.0059   0.0075    0.0327
-    #> 4 E_I_ratio   0    0.01   0.8128    0.1243   0.6023    1.0968
-    #> 5         p   0    0.01   0.2378    1.4258   0.0000    1.0000
+    #> 3      beta   0    0.01   0.0156    0.0059   0.0075    0.0328
+    #> 4 E_I_ratio   0    0.01   0.8125    0.1243   0.6021    1.0965
+    #> 5         p   0    0.01   0.0002    0.1557   0.0000    1.0000
 
 This re-parameterization is beginning to help make a more reasonable
 model. Our prior vaccine transmission reduction parameter, `p`, is
 restricted to `0-1` and this ensures that vaccination with reduce
 transmission. On the other hand, although a reduction in transmission by
-0.24 percent could be plausible but the confidence interval is
-effectively all possible values for `p`. The ratio of initial exposed to
-initial number of infected is 0.81. Given we specified the initial $I$
-as 2719, the estimated initial number of exposed is approximately 2210.
-The biggest issue with these estimates though is that the transmission
-rate, `beta`, for unvaccinated people is much too low (we expect
-something more like `0.2`).
+0 percent could be plausible but the confidence interval is effectively
+all possible values for `p`. The ratio of initial exposed to initial
+number of infected is 0.81. Given we specified the initial $I$ as 2719,
+the estimated initial number of exposed is approximately 2209. The
+biggest issue with these estimates though is that the transmission rate,
+`beta`, for unvaccinated people is much too low (we expect something
+more like `0.2`).
 
 The fit is very similar to the model without a reparameterization, but
 with different inferences for the variables that are not fitted. In
@@ -896,20 +800,9 @@ goes to zero, which is not at all realistic.
   + geom_point(data = reported_hospitalizations, aes(time, value))
   + ylim(c(0, NA))
 )
-#> outer mgc:  0.0002694991 
-#> outer mgc:  330.4424 
-#> outer mgc:  330.0082 
-#> outer mgc:  995.7425 
-#> outer mgc:  994.5937 
-#> outer mgc:  0.07148205 
-#> outer mgc:  0.07090571 
-#> outer mgc:  323906.8 
-#> outer mgc:  454185 
-#> outer mgc:  100767.9 
-#> outer mgc:  105873.3
 ```
 
-![](./figures/unnamed-chunk-2-1.png)<!-- -->
+![](./figures/repar_fit-1.png)<!-- -->
 
 ## Runge-Kutta 4
 
@@ -936,94 +829,46 @@ shiver_calibrator_rk4 = mp_tmb_calibrator(
 # optimize
 # converges with warning
 mp_optimize(shiver_calibrator_rk4)
-#> outer mgc:  504484.8
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
-#> evaluation
-#> outer mgc:  315284.6
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
-#> evaluation
-#> outer mgc:  120799.7
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
-#> evaluation
-#> outer mgc:  122160
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
-#> evaluation
-#> outer mgc:  116872.4 
-#> outer mgc:  252782 
-#> outer mgc:  19682.19 
-#> outer mgc:  284.1706 
-#> outer mgc:  5908.887 
-#> outer mgc:  3702.674 
-#> outer mgc:  23234.08 
-#> outer mgc:  673.3606 
-#> outer mgc:  8511.423 
-#> outer mgc:  603.82 
-#> outer mgc:  1711.032 
-#> outer mgc:  10329.03 
-#> outer mgc:  1519.883 
-#> outer mgc:  894.6683 
-#> outer mgc:  3818.337 
-#> outer mgc:  4546.677 
-#> outer mgc:  5708.852 
-#> outer mgc:  7351.648 
-#> outer mgc:  7869.59 
-#> outer mgc:  6847.536 
-#> outer mgc:  8414.413 
-#> outer mgc:  4814.334 
-#> outer mgc:  10378.51 
-#> outer mgc:  1779.479 
-#> outer mgc:  14635.57 
-#> outer mgc:  173.2177 
-#> outer mgc:  4652.449 
-#> outer mgc:  616.163 
-#> outer mgc:  1996.676 
-#> outer mgc:  146.1596 
-#> outer mgc:  167.2185 
-#> outer mgc:  2.898868 
-#> outer mgc:  0.03053967 
-#> outer mgc:  1.777443e-07
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
+#> NA/NaN function evaluation
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
+#> NA/NaN function evaluation
+
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
+#> NA/NaN function evaluation
+
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
+#> NA/NaN function evaluation
 #> $par
 #>       params       params       params       params       params 
-#> -4.886623549  0.189869644 -1.124687224  0.004940568  0.006715281 
+#> -4.885527806  0.189588029 -7.950950968  0.004941136  0.006715506 
 #> 
 #> $objective
-#> [1] 375.9605
+#> [1] 381.8805
 #> 
 #> $convergence
 #> [1] 0
 #> 
 #> $iterations
-#> [1] 37
+#> [1] 39
 #> 
 #> $evaluations
 #> function gradient 
-#>       52       38 
+#>       55       40 
 #> 
 #> $message
 #> [1] "relative convergence (4)"
 
 # looking at coefficients and CIs
 rk4_coef <- mp_tmb_coef(shiver_calibrator_rk4, conf.int = TRUE) |> round_coef_tab()
-#> outer mgc:  1.777443e-07 
-#> outer mgc:  171.2163 
-#> outer mgc:  171.0204 
-#> outer mgc:  1393.343 
-#> outer mgc:  1391.687 
-#> outer mgc:  0.03893342 
-#> outer mgc:  0.03891323 
-#> outer mgc:  418263.9 
-#> outer mgc:  609036.1 
-#> outer mgc:  116529.1 
-#> outer mgc:  122542.6 
-#> outer mgc:  47980.5
 
 print(rk4_coef)
 #>         mat row default estimate std.error conf.low conf.high
 #> 1     sigma   0    0.10   0.0049    0.0002   0.0045    0.0054
 #> 2   gamma_h   0    0.07   0.0067    0.0006   0.0055    0.0080
-#> 3      beta   0    0.01   0.0075    0.0064   0.0014    0.0394
-#> 4 E_I_ratio   0    0.01   1.2091    0.1419   0.9606    1.5218
-#> 5         p   0    0.01   0.2451    1.4707   0.0000    1.0000
+#> 3      beta   0    0.01   0.0076    0.0064   0.0014    0.0394
+#> 4 E_I_ratio   0    0.01   1.2088    0.1419   0.9603    1.5215
+#> 5         p   0    0.01   0.0004    0.3736   0.0000    1.0000
 # rk4 doesn't help us learn more about p
 # let's try adding more data
 ```
@@ -1092,15 +937,15 @@ multi_traj_spec = (reparameterized_spec
 sd_par = 1 ## for convenience we give all parameters the same prior sd, for now
 sd_state = 8 ## extremely vague priors on state variables
 prior_distributions = list(
-    log_beta = mp_normal2(log(0.2), sd_par)
-  , log_sigma = mp_normal2(log(sigma), sd_par)
-  , log_gamma_h = mp_normal2(log(0.07), sd_par)
-  , logit_report_prob = mp_normal2(qlogis(0.1), sd_par)
-  , logit_p = mp_normal2(qlogis(1/4), 4)
-  , log_E_I_ratio = mp_normal2(0, sd_par)
-  , log_I = mp_normal2(log(I0), sd_state)
-  , log_H = mp_normal2(log(H0), sd_state)
-  , log_R = mp_normal2(log(1), sd_state)
+    log_beta = mp_normal(log(0.2), sd_par)
+  , log_sigma = mp_normal(log(sigma), sd_par)
+  , log_gamma_h = mp_normal(log(0.07), sd_par)
+  , logit_report_prob = mp_normal(qlogis(0.1), sd_par)
+  , logit_p = mp_normal(qlogis(1/4), 4)
+  , log_E_I_ratio = mp_normal(0, sd_par)
+  , log_I = mp_normal(log(I0), sd_state)
+  , log_H = mp_normal(log(H0), sd_state)
+  , log_R = mp_normal(log(1), sd_state)
 )
 
 ## put the data together
@@ -1112,9 +957,9 @@ shiver_calibrator = mp_tmb_calibrator(
     # row bind both observed data
   , data = dd
     # fit both trajectories with negative binomial distributions
-  , traj = list(H = mp_neg_bin2(
+  , traj = list(H = mp_neg_bin(
       disp = mp_fit(1))
-    , reported_incidence = mp_neg_bin2(disp = mp_fit(1))
+    , reported_incidence = mp_neg_bin(disp = mp_fit(1))
   )
   , par = prior_distributions
     # fit the transmission rate using four radial basis functions for
@@ -1126,74 +971,40 @@ shiver_calibrator = mp_tmb_calibrator(
 
 Next we optimize, and look at our estimates.
 
-    #> outer mgc:  2.503936e-07 
-    #> outer mgc:  7062.799 
-    #> outer mgc:  7048.04 
-    #> outer mgc:  130.0815 
-    #> outer mgc:  131.0732 
-    #> outer mgc:  597.7916 
-    #> outer mgc:  598.2666 
-    #> outer mgc:  108.5106 
-    #> outer mgc:  108.6145 
-    #> outer mgc:  4.214293 
-    #> outer mgc:  4.212186 
-    #> outer mgc:  186.464 
-    #> outer mgc:  186.3014 
-    #> outer mgc:  1300.509 
-    #> outer mgc:  1300.347 
-    #> outer mgc:  0.006359546 
-    #> outer mgc:  0.006353818 
-    #> outer mgc:  4.779412e-05 
-    #> outer mgc:  4.787497e-05 
-    #> outer mgc:  197852.9 
-    #> outer mgc:  184493.5 
-    #> outer mgc:  160296.2 
-    #> outer mgc:  150823.6 
-    #> outer mgc:  28382.56 
-    #> outer mgc:  28046.6 
-    #> outer mgc:  1170.203 
-    #> outer mgc:  1169.613 
-    #> outer mgc:  4.13715 
-    #> outer mgc:  4.173466 
-    #> outer mgc:  2.06047 
-    #> outer mgc:  2.061425 
-    #> outer mgc:  7.018533 
-    #> outer mgc:  7.012248 
-    #> outer mgc:  11233526
-    #>                                     mat row   default  estimate std.error  conf.low
-    #> 1                     time_var_rbf_beta   1    0.0000    0.2059    0.0236    0.1597
-    #> 2                     time_var_rbf_beta   2    0.0000   -0.5694    0.0608   -0.6886
-    #> 3                     time_var_rbf_beta   3    0.0000    2.8739    0.2490    2.3858
-    #> 4                     prior_sd_rbf_beta   0    1.0000    0.5721    0.0155    0.5417
-    #> 5                     time_var_rbf_beta   0    0.0000   -0.1340    0.0140   -0.1614
-    #> 6                                  beta   0    0.0100    0.3253    0.0272    0.2761
-    #> 7                                 sigma   0    0.0498    0.0183    0.0093    0.0068
-    #> 8                   distr_params_disp_H   0    1.0000  489.6908   57.3348  389.2782
-    #> 9  distr_params_disp_reported_incidence   0    1.0000   21.8190    3.4975   15.9365
-    #> 10                              gamma_h   0    0.0498    1.1165    0.4283    0.5265
-    #> 11                            E_I_ratio   0    0.0100    0.2301    0.1215    0.0818
-    #> 12                                    I   0 2718.5714 5148.6682 2233.6159 2200.0028
-    #> 13                                    H   0   63.0000   16.5921   55.4933    0.0236
-    #> 14                                    R   0    1.0000    1.0000    8.0000    0.0000
-    #> 15                          report_prob   0    0.5000    0.4833    0.1819    0.1832
-    #> 16                                    p   0    0.0100    0.2502    0.7504    0.0001
-    #>       conf.high
-    #> 1        0.2522
-    #> 2       -0.4502
-    #> 3        3.3619
-    #> 4        0.6025
-    #> 5       -0.1065
-    #> 6        0.3833
-    #> 7        0.0493
-    #> 8      616.0044
-    #> 9       29.8729
-    #> 10       2.3680
-    #> 11       0.6474
-    #> 12   12049.4318
-    #> 13   11662.6928
-    #> 14 6450769.7056
-    #> 15       0.7959
-    #> 16       0.9988
+    #>                                     mat row   default  estimate std.error
+    #> 1                     time_var_rbf_beta   1    0.0000    0.2041    0.0220
+    #> 2                     time_var_rbf_beta   2    0.0000   -0.5628    0.0616
+    #> 3                     time_var_rbf_beta   3    0.0000    2.8213    0.2924
+    #> 4                     prior_sd_rbf_beta   0    1.0000    0.5721    0.0155
+    #> 5                     time_var_rbf_beta   0    0.0000   -0.1323    0.0130
+    #> 6                                  beta   0    0.0100    0.3680    0.0302
+    #> 7                                 sigma   0    0.0498    0.0388    0.0116
+    #> 8                   distr_params_disp_H   0    1.0000  528.7879   59.1467
+    #> 9  distr_params_disp_reported_incidence   0    1.0000   22.5734    3.6071
+    #> 10                              gamma_h   0    0.0498    1.1633    0.2734
+    #> 11                            E_I_ratio   0    0.0100    0.0910    0.1082
+    #> 12                                    I   0 2718.5714 2697.4890  703.2089
+    #> 13                                    H   0   63.0000    0.0001    0.0909
+    #> 14                                    R   0    1.0000    0.9951 2959.8807
+    #> 15                          report_prob   0    0.5000    0.8547    0.1647
+    #> 16                                    p   0    0.0100    0.2816   11.2698
+    #>     conf.low conf.high
+    #> 1     0.1609    0.2472
+    #> 2    -0.6836   -0.4420
+    #> 3     2.2482    3.3945
+    #> 4     0.5417    0.6025
+    #> 5    -0.1578   -0.1067
+    #> 6     0.3133    0.4321
+    #> 7     0.0216    0.0698
+    #> 8   424.6897  658.4022
+    #> 9    16.5037   30.8754
+    #> 10    0.7339    1.8441
+    #> 11    0.0089    0.9354
+    #> 12 1618.3028 4496.3445
+    #> 13    0.0000       Inf
+    #> 14    0.0000       Inf
+    #> 15    0.3040    0.9875
+    #> 16    0.0000    1.0000
 
 Our prior for `sigma` is similar to the posterior, but `gamma_h` seems
 to have been pushed up by the data from about `0.05` to about `1.11`. We
@@ -1201,40 +1012,6 @@ still do not have confidence in our estimate of `p`. We now have five
 other parameters controlling transmission, and so to interpret them we
 really need a plot of how transmission varies over time in the model. We
 add this variable to our model fit plot.
-
-    #> outer mgc:  2.503936e-07 
-    #> outer mgc:  7062.799 
-    #> outer mgc:  7048.04 
-    #> outer mgc:  130.0815 
-    #> outer mgc:  131.0732 
-    #> outer mgc:  597.7916 
-    #> outer mgc:  598.2666 
-    #> outer mgc:  108.5106 
-    #> outer mgc:  108.6145 
-    #> outer mgc:  4.214293 
-    #> outer mgc:  4.212186 
-    #> outer mgc:  186.464 
-    #> outer mgc:  186.3014 
-    #> outer mgc:  1300.509 
-    #> outer mgc:  1300.347 
-    #> outer mgc:  0.006359546 
-    #> outer mgc:  0.006353818 
-    #> outer mgc:  4.779412e-05 
-    #> outer mgc:  4.787497e-05 
-    #> outer mgc:  197852.9 
-    #> outer mgc:  184493.5 
-    #> outer mgc:  160296.2 
-    #> outer mgc:  150823.6 
-    #> outer mgc:  28382.56 
-    #> outer mgc:  28046.6 
-    #> outer mgc:  1170.203 
-    #> outer mgc:  1169.613 
-    #> outer mgc:  4.13715 
-    #> outer mgc:  4.173466 
-    #> outer mgc:  2.06047 
-    #> outer mgc:  2.061425 
-    #> outer mgc:  7.018533 
-    #> outer mgc:  7.012248
 
 ![](./figures/mult_traj_fit-1.png)<!-- -->
 
@@ -1292,8 +1069,6 @@ fixed_beta = mp_tmb_calibrator(
 )
 # converges, but not getting estimate for `p`
 mp_optimize(fixed_beta)
-#> outer mgc:  458.0031 
-#> outer mgc:  2.463496e-19
 #> $par
 #>  params 
 #> 53.5867 
@@ -1314,10 +1089,6 @@ mp_optimize(fixed_beta)
 #> $message
 #> [1] "relative convergence (4)"
 mp_tmb_coef(fixed_beta, conf.int = TRUE) |> round_coef_tab()
-#> outer mgc:  2.463496e-19 
-#> outer mgc:  2.461034e-19 
-#> outer mgc:  2.465961e-19 
-#> outer mgc:  5.420721e-25
 #>   mat row default estimate std.error conf.low conf.high
 #> 1   p   0    0.01        1         0        0         1
 ## fix p estimate beta
@@ -1330,18 +1101,8 @@ fixed_a = mp_tmb_calibrator(
 )
 # converges and recovering true beta
 mp_optimize(fixed_a)
-#> outer mgc:  11758337 
-#> outer mgc:  20675658
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, : NA/NaN function
-#> evaluation
-#> outer mgc:  83523065 
-#> outer mgc:  115766932 
-#> outer mgc:  117517001 
-#> outer mgc:  84962961 
-#> outer mgc:  19152655 
-#> outer mgc:  1719980 
-#> outer mgc:  10976.48 
-#> outer mgc:  0.4548191
+#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
+#> NA/NaN function evaluation
 #> $par
 #>    params 
 #> -1.214201 
@@ -1362,10 +1123,6 @@ mp_optimize(fixed_a)
 #> $message
 #> [1] "both X-convergence and relative convergence (5)"
 mp_tmb_coef(fixed_a, conf.int = TRUE) |> round_coef_tab()
-#> outer mgc:  0.4548191 
-#> outer mgc:  1687929 
-#> outer mgc:  1666686 
-#> outer mgc:  11195301
 #>    mat row default estimate std.error conf.low conf.high
 #> 1 beta   0    0.01   0.2969         0   0.2969     0.297
 ```

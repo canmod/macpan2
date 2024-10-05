@@ -24,7 +24,7 @@ This is the simplest possible epidemic model [@earn2008light].
 ```{r flow_diagram, echo = FALSE, fig.height=1, fig.width=4, message=FALSE, warning=FALSE}
 library(macpan2)
 library(ggplot2)
-system.file("R", "layout-plot-utils.R", package = "macpan2") |> source()
+system.file("utils", "layout-plot-utils.R", package = "macpan2") |> source()
 si = mp_tmb_library("starter_models", "si", package = "macpan2")
 plot_data = (si 
   |> mp_flow_frame() 
