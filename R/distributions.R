@@ -131,6 +131,8 @@ DistrParam = function(generic_name, trans = DistrParamTransDefault()) {
 #' should be called later if it is determined that the distribution does
 #' not require a `location` parameter (e.g., it is a likelihood component
 #' that takes the simulated trajectory as the location).
+#' @param default_trans list of default parameter transformation objects
+#' of class DistrParamTrans for each `distr_param_objs`.
 DistrSpec = function(distr_param_objs = list(), default_trans = list()) {
   for (nm in names(distr_param_objs)) distr_param_objs[[nm]] = to_distr_param(distr_param_objs[[nm]])
   for (nm in names(distr_param_objs)) distr_param_objs[[nm]]$generic_name = nm
@@ -143,6 +145,22 @@ DistrSpec = function(distr_param_objs = list(), default_trans = list()) {
   self = Base()
   self$distr_param_objs = distr_param_objs
   self$default_trans = default_trans
+  
+  ## section 0: check distributional parameter objects
+  
+  # This may not be needed in the future, but currently distributions
+  # can only accept single distributional parameters. We hope to be able
+  # to incorporate vector distributional parameters to allow a vector 
+  # variable to have common a distribution and different distributional
+  # parameters for each vector component.
+  self$check_args = function(distr_param_objs){
+    nms = names(distr_param_objs)
+    for (nm in nms){
+      if (length(distr_param_objs[[nm]]$expr_ref()) > 1){
+        stop("Expression given for the distributional parameter, ", nm, ", for the variable, " , distr_param_objs[[nm]]$variable_name, ", has more than one element.")
+      }
+    }
+  }
   
   ## section 1: get context from the distribution list, which includes
   ## the model spec
@@ -337,7 +355,7 @@ DistrParamNum = function(generic_name, value, trans = DistrParamTrans()) {
 }
 DistrParamNumNoFit = function(name, value, trans = DistrParamTrans()) {
   self = DistrParamNum(name, value, trans)
-  self$expr_ref = function() as.character(self$.value)
+  self$expr_ref = function() self$trans$ref(as.character(self$.value))
   self$update_names = function(name) {
     self$variable_name = name
     self
@@ -473,12 +491,18 @@ TESTDISTR = function(location, sd) {
 
 #' @return DistrSpec
 mp_normal_error = function(sd) {
-  mp_normal2(location = DistrParam("location"))
+  mp_normal(location = DistrParam("location"))
 }
 
+#' Normal Distribution
+#' @param location Location parameter. Only necessary if used as a prior
+#' distribution. If it is used as a likelihood component the location
+#' parameter will be taken as the simulated variable being fitted to data,
+#' and so this `location` parameter should be left to the default.
+#' @param sd Standard deviation parameter.
 #' @return DistrSpec
 #' @export
-mp_normal2 = function(location = DistrParam("location"), sd) {
+mp_normal = function(location = DistrParam("location"), sd) {
   self = DistrSpec(
       distr_param_objs = nlist(location, sd)
     , default_trans = list(location = mp_identity, sd = mp_log)
@@ -500,10 +524,15 @@ mp_normal2 = function(location = DistrParam("location"), sd) {
   return_object(self, "DistrSpecNormal")
 }
 
-
+#' Log-Normal Distribution
+#' @param location Location parameter. Only necessary if used as a prior
+#' distribution. If it is used as a likelihood component the location
+#' parameter will be taken as the simulated variable being fitted to data,
+#' and so this `location` parameter should be left to the default.
+#' @param sd Standard deviation parameter.
 #' @return DistrSpec
 #' @export
-mp_log_normal2 = function(location = DistrParam("location"), sd) {
+mp_log_normal = function(location = DistrParam("location"), sd) {
   self = DistrSpec(
       distr_param_objs = nlist(location, sd)
       # identity transformations because distributional parameters are already
@@ -534,9 +563,13 @@ mp_log_normal2 = function(location = DistrParam("location"), sd) {
   return_object(self, "DistrSpecLogNormal")
 }
 
+#' Uniform Distribution (Improper)
+#' 
+#' Uniform distributions can only be used as prior distributions and not
+#' likelihood distributions.
 #' @return DistrSpec
 #' @export
-mp_uniform2 = function() { 
+mp_uniform = function() { 
   self = DistrSpec(
       distr_param_objs = nlist()
     , default_trans = list()
@@ -551,9 +584,14 @@ mp_uniform2 = function() {
   return_object(self, "DistrSpecUniform")
 }
 
+#' Poisson Distribution
+#' @param location Location parameter. Only necessary if used as a prior
+#' distribution. If it is used as a likelihood component the location
+#' parameter will be taken as the simulated variable being fitted to data,
+#' and so this `location` parameter should be left to the default.
 #' @return DistrSpec
 #' @export
-mp_poisson2 = function(location = DistrParam("location")) { 
+mp_poisson = function(location = DistrParam("location")) { 
   self = DistrSpec(
       distr_param_objs = nlist(location)# should this be named lambda
     , default_trans = list(location = mp_identity)
@@ -572,9 +610,15 @@ mp_poisson2 = function(location = DistrParam("location")) {
   }
   return_object(self, "DistrSpecPoisson")
 }
+#' Negative Binomial Distribution
+#' @param location Location parameter. Only necessary if used as a prior
+#' distribution. If it is used as a likelihood component the location
+#' parameter will be taken as the simulated variable being fitted to data,
+#' and so this `location` parameter should be left to the default.
+#' @param disp Dispersion parameter.
 #' @return DistrSpec
 #' @export
-mp_neg_bin2 = function(location = DistrParam("location"), disp) {
+mp_neg_bin = function(location = DistrParam("location"), disp) {
   self = DistrSpec(
       distr_param_objs = nlist(location, disp)
     , default_trans = list(location = mp_identity, disp = mp_log)
@@ -596,7 +640,21 @@ mp_neg_bin2 = function(location = DistrParam("location"), disp) {
   return_object(self, "DistrSpecNegBin")
 }
 
-
+#' Fitting Distributional Parameters
+#' 
+#' Distributional parameters can be added to the list of parameters that are fit
+#' during calibration. By default, distributional parameters in priors and
+#' likelihoods are not fit. 
+#' 
+#' @param x numeric starting value of the distributional parameter to fit, or 
+#' character name of an existing variable in the model with a default starting
+#' value to use.
+#' @param trans transformation to apply to the distributional parameter. 
+#' By default, distributional parameters inherit a default transformation from
+#' the associated distribution. For example, the standard deviation parameter
+#' `sd` in the \code{\link{mp_normal}} distributions has a default log
+#' transformation specified using \code{\link{mp_log}}.
+#' 
 #' @export
 mp_fit = function(x, trans = DistrParamTransDefault()) UseMethod("mp_fit")
 
@@ -606,6 +664,19 @@ mp_fit.numeric = function(x, trans = DistrParamTransDefault()) DistrParamNumFit(
 #' @export
 mp_fit.character = function(x, trans = DistrParamTransDefault()) DistrParamCharFit("generic_name", x, trans)
 
+#' Not-Fitting Distributional Parameters
+#' 
+#' By default, distributional parameters in priors and likelihoods are not fit. 
+#' 
+#' @param x fixed numeric value for the distributional parameter, or character 
+#' name of an existing variable in the model with a default starting
+#' value to use.
+#' @param trans transformation to apply to the distributional parameter. 
+#' By default, distributional parameters inherit a default transformation from
+#' the associated distribution. For example, the standard deviation parameter
+#' `sd` in the \code{\link{mp_normal}} distributions has a default 
+#' transformation.
+#' 
 #' @export
 mp_nofit = function(x, trans = DistrParamTransDefault()) UseMethod("mp_nofit")
 
@@ -628,18 +699,27 @@ to_distr_param.numeric = function(x) mp_nofit(x)
 #' @export 
 to_distr_param.character = function(x) mp_nofit(x)
 
-
+#' Log Transformation
+#' 
+#' Log transformation for distributional parameters of class `DistrParam`.
+#' 
 #' @export
+#' @return DistrParamTrans
 mp_log = DistrParamLog()
 
+#' Identity Transformation
+#' 
+#' Identity transformation for distributional parameters of class `DistrParam`.
+#' 
 #' @export
+#' @return DistrParamTrans
 mp_identity = DistrParamIdentity()
 
 
 
 #' Poisson Distribution
-#' @export
-mp_poisson = function(location) {
+#' @noRd
+mp_poisson2 = function(location) {
   self = DistrSpec()
   self$distr_params = \() list()
   self$expr_char = \(x, location) sprintf("-sum(dpois(%s, %s))", x, location)
@@ -648,8 +728,8 @@ mp_poisson = function(location) {
 
 #' Negative Binomial Distribution
 #' @param disp Dispersion parameter.
-#' @export
-mp_neg_bin = function(disp) {
+#' @noRd
+mp_neg_bin2 = function(disp) {
   ## location??
   self = Base()
   self$disp = disp
@@ -668,8 +748,8 @@ mp_neg_bin = function(disp) {
 #' parameter will be taken as the simulated variable being fitted to data,
 #' and so this `location` parameter should be left `NULL`.
 #' @param sd Standard deviation parameter.
-#' @export
-mp_normal = function(location = NULL, sd = 1) {
+#' @noRd
+mp_normal2 = function(location = NULL, sd = 1) {
   self = Base()
   self$sd = sd
   self$log_sd = \() log(self$sd)
@@ -695,8 +775,8 @@ mp_normal_test = function(x, location, log_sd) {
 
 #' Log-Normal Distribution
 #' @param sd Standard deviation parameter.
-#' @export
-mp_log_normal = function(sd) {
+#' @noRd
+mp_log_normal2 = function(sd) {
   self = mp_normal(sd)
   self$expr_char = \(x, location, log_sd) {
     sprintf("-sum(dnorm(log(%s), log(%s), exp(%s)))", x, location, log_sd)

@@ -4,10 +4,18 @@
 \alias{mp_neg_bin}
 \title{Negative Binomial Distribution}
 \usage{
-mp_neg_bin(disp)
+mp_neg_bin(location = DistrParam("location"), disp)
 }
 \arguments{
+\item{location}{Location parameter. Only necessary if used as a prior
+distribution. If it is used as a likelihood component the location
+parameter will be taken as the simulated variable being fitted to data,
+and so this \code{location} parameter should be left to the default.}
+
 \item{disp}{Dispersion parameter.}
+}
+\value{
+DistrSpec
 }
 \description{
 Negative Binomial Distribution

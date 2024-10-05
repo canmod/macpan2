@@ -4,7 +4,16 @@
 \alias{mp_poisson}
 \title{Poisson Distribution}
 \usage{
-mp_poisson(location)
+mp_poisson(location = DistrParam("location"))
+}
+\arguments{
+\item{location}{Location parameter. Only necessary if used as a prior
+distribution. If it is used as a likelihood component the location
+parameter will be taken as the simulated variable being fitted to data,
+and so this \code{location} parameter should be left to the default.}
+}
+\value{
+DistrSpec
 }
 \description{
 Poisson Distribution
