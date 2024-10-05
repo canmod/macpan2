@@ -1,3 +1,47 @@
+#' @param i Index representing one state.
+#' @param layout List with two vectors, `x` and `y`, giving coordinates of
+#' each state.
+#' @param links List with `N`, `S`, `E`, `W` components, each element of which
+#' gives states to the north, south, east, and west of a focal state.
+#' @param visited Vector containing indices of states that have been visited,
+#' with this vector growing as the recursion traverses the graph
+product_layout = function(i, layout, links, visited = integer()) {
+  err = "This is not a model that can be laid out on a grid"
+  if (i %in% visited) return(layout)
+  visited = append(visited, i)
+  
+  j = links$N[i]
+  if (length(j) == 1L) {
+    layout$x[j] = layout$x[i]
+    layout$y[j] = layout$x[i] + 1L
+    layout = Recall(j, layout, links, visited)
+  } else if (length(j) != 0L) stop(err)
+  
+  j = links$S[i]
+  if (length(j) == 1L) {
+    layout$x[j] = layout$x[i]
+    layout$y[j] = layout$x[i] - 1L
+    layout = Recall(j, layout, links, visited)
+  } else if (length(j) != 0L) stop(err)
+  
+  j = links$E[i]
+  if (length(j) == 1L) {
+    layout$x[j] = layout$x[i] + 1L
+    layout$y[j] = layout$x[i]
+    layout = Recall(j, layout, links, visited)
+  } else if (length(j) != 0L) stop(err)
+  
+  j = links$W[i]
+  if (length(j) == 1L) {
+    layout$x[j] = layout$x[i] - 1L
+    layout$y[j] = layout$x[i]
+    layout = Recall(j, layout, links, visited)
+  } else if (length(j) != 0L) stop(err)
+  
+  return(layout)
+}
+
+
 mp_layout_path <- function(
       edges_df
     , sort_paths = TRUE
