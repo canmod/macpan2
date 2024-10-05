@@ -11,7 +11,7 @@ simulations."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.8.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.9.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -670,21 +670,21 @@ ago, or with zero if <code>t+1 &lt; lag</code></p>
 <span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a>    time_varying_parameter <span class="sc">~</span> time_variation_schedule[j]</span>
 <span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a>  ),</span>
 <span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a>  <span class="at">mats =</span> <span class="fu">list</span>(</span>
-<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a>    <span class="at">time_steps =</span> <span class="dv">10</span>,</span>
-<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a>    <span class="at">j =</span> <span class="dv">0</span>,</span>
-<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a>    <span class="at">change_points =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">4</span>, <span class="dv">7</span>),</span>
-<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a>    <span class="at">time_variation_schedule =</span> <span class="fu">c</span>(<span class="dv">42</span>, pi, <span class="fu">sqrt</span>(<span class="dv">2</span>)),</span>
-<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a>    <span class="at">time_varying_parameter =</span> empty_matrix</span>
-<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a>  )</span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a>    <span class="at">j =</span> <span class="dv">0</span>,</span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a>    <span class="at">change_points =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">4</span>, <span class="dv">7</span>),</span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a>    <span class="at">time_variation_schedule =</span> <span class="fu">c</span>(<span class="dv">42</span>, pi, <span class="fu">sqrt</span>(<span class="dv">2</span>)),</span>
+<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a>    <span class="at">time_varying_parameter =</span> empty_matrix</span>
+<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a>  ),</span>
+<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a>  <span class="at">time_steps =</span> <span class="dv">10</span>,</span>
 <span id="cb1-18"><a href="#cb1-18" tabindex="-1"></a>)</span>
 <span id="cb1-19"><a href="#cb1-19" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span><span class="dt">L</span>)</span>
 <span id="cb1-20"><a href="#cb1-20" tabindex="-1"></a>change_points <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">2</span>,<span class="dv">5</span>)</span>
 <span id="cb1-21"><a href="#cb1-21" tabindex="-1"></a>x_val <span class="ot">=</span> <span class="fu">rnorm</span>(<span class="fu">length</span>(change_points))</span>
-<span id="cb1-22"><a href="#cb1-22" tabindex="-1"></a>(<span class="fu">simple_sims</span>(</span>
-<span id="cb1-23"><a href="#cb1-23" tabindex="-1"></a>      <span class="at">iteration_exprs =</span> <span class="fu">list</span>(x <span class="sc">~</span> <span class="fu">time_var</span>(x_val,change_points))</span>
-<span id="cb1-24"><a href="#cb1-24" tabindex="-1"></a>    , <span class="at">int_vecs =</span> <span class="fu">list</span>(<span class="at">change_points =</span> change_points, <span class="at">time_steps =</span> <span class="dv">10</span><span class="dt">L</span>)</span>
-<span id="cb1-25"><a href="#cb1-25" tabindex="-1"></a>    , <span class="at">mats =</span> <span class="fu">list</span>(<span class="at">x =</span> empty_matrix, <span class="at">x_val=</span>x_val)</span>
-<span id="cb1-26"><a href="#cb1-26" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> <span class="fu">filter</span>(matrix<span class="sc">==</span><span class="st">"x"</span>)</span>
+<span id="cb1-22"><a href="#cb1-22" tabindex="-1"></a><span class="fu">simple_sims</span>(</span>
+<span id="cb1-23"><a href="#cb1-23" tabindex="-1"></a>    <span class="at">iteration_exprs =</span> <span class="fu">list</span>(x <span class="sc">~</span> <span class="fu">time_var</span>(x_val,change_points))</span>
+<span id="cb1-24"><a href="#cb1-24" tabindex="-1"></a>  , <span class="at">int_vecs =</span> <span class="fu">list</span>(<span class="at">change_points =</span> change_points)</span>
+<span id="cb1-25"><a href="#cb1-25" tabindex="-1"></a>  , <span class="at">mats =</span> <span class="fu">list</span>(<span class="at">x =</span> empty_matrix, <span class="at">x_val=</span>x_val)</span>
+<span id="cb1-26"><a href="#cb1-26" tabindex="-1"></a>  , <span class="at">time_steps =</span> <span class="dv">10</span></span>
 <span id="cb1-27"><a href="#cb1-27" tabindex="-1"></a>)</span></code></pre><p></p></div>
 </div>
 

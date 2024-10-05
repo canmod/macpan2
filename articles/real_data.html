@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.8.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.9.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -636,38 +636,14 @@ results</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_cal</span> <span class="op">=</span> <span class="fu">make_rbf_calibrator</span><span class="op">(</span>dimension <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span>
-<span><span class="co">#&gt; $par</span></span>
-<span><span class="co">#&gt;     params     params     params     params     params </span></span>
-<span><span class="co">#&gt;  1.1218467 66.4485198  1.1759854  0.1314490  0.8658039 </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $objective</span></span>
-<span><span class="co">#&gt; [1] 2901.964</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $convergence</span></span>
-<span><span class="co">#&gt; [1] 1</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $iterations</span></span>
-<span><span class="co">#&gt; [1] 126</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $evaluations</span></span>
-<span><span class="co">#&gt; function gradient </span></span>
-<span><span class="co">#&gt;      200      127 </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $message</span></span>
-<span><span class="co">#&gt; [1] "function evaluation limit reached without convergence (9)"</span></span>
-<span><span class="fu">plot_fit</span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span></code></pre></div>
-<p><img src="real_data_files/figure-html/unnamed-chunk-22-1.png" width="672"></p>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sir_cal</span> <span class="op">=</span> <span class="fu">make_rbf_calibrator</span><span class="op">(</span>dimension <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
 <span><span class="co">#&gt; NA/NaN function evaluation</span></span>
 <span><span class="co">#&gt; $par</span></span>
-<span><span class="co">#&gt;     params     params     params     params     params     params </span></span>
-<span><span class="co">#&gt;  0.4731715 12.4140284 10.6573571 -0.5518092 -0.6868190  0.6673706 </span></span>
+<span><span class="co">#&gt;       params       params       params       params       params </span></span>
+<span><span class="co">#&gt;   1.07372447 365.34139607   0.21804031   0.09069968   0.86580386 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $objective</span></span>
-<span><span class="co">#&gt; [1] 2977.586</span></span>
+<span><span class="co">#&gt; [1] 2897.368</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $convergence</span></span>
 <span><span class="co">#&gt; [1] 1</span></span>
@@ -677,15 +653,43 @@ results</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $evaluations</span></span>
 <span><span class="co">#&gt; function gradient </span></span>
-<span><span class="co">#&gt;      192      151 </span></span>
+<span><span class="co">#&gt;      174      151 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $message</span></span>
 <span><span class="co">#&gt; [1] "iteration limit reached without convergence (10)"</span></span>
+<span><span class="fu">plot_fit</span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span></code></pre></div>
+<p><img src="real_data_files/figure-html/unnamed-chunk-22-1.png" width="672"></p>
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sir_cal</span> <span class="op">=</span> <span class="fu">make_rbf_calibrator</span><span class="op">(</span>dimension <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
+<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
+<span><span class="co">#&gt; $par</span></span>
+<span><span class="co">#&gt;     params     params     params     params     params     params </span></span>
+<span><span class="co">#&gt;  0.4662692 15.7705637  8.5178748 -0.5631177 -0.6997072  0.6673706 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $objective</span></span>
+<span><span class="co">#&gt; [1] 2977.803</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $convergence</span></span>
+<span><span class="co">#&gt; [1] 1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $iterations</span></span>
+<span><span class="co">#&gt; [1] 150</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $evaluations</span></span>
+<span><span class="co">#&gt; function gradient </span></span>
+<span><span class="co">#&gt;      200      150 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $message</span></span>
+<span><span class="co">#&gt; [1] "function evaluation limit reached without convergence (9)"</span></span>
 <span><span class="fu">plot_fit</span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span></code></pre></div>
 <p><img src="real_data_files/figure-html/unnamed-chunk-23-1.png" width="672"></p>
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_cal</span> <span class="op">=</span> <span class="fu">make_rbf_calibrator</span><span class="op">(</span>dimension <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
+<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
 <span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
 <span><span class="co">#&gt; NA/NaN function evaluation</span></span>
 <span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
@@ -705,11 +709,11 @@ results</p>
 <span><span class="co">#&gt; [1] 0</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $iterations</span></span>
-<span><span class="co">#&gt; [1] 69</span></span>
+<span><span class="co">#&gt; [1] 67</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $evaluations</span></span>
 <span><span class="co">#&gt; function gradient </span></span>
-<span><span class="co">#&gt;       98       70 </span></span>
+<span><span class="co">#&gt;       98       68 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $message</span></span>
 <span><span class="co">#&gt; [1] "relative convergence (4)"</span></span>
@@ -726,22 +730,22 @@ results</p>
 <span><span class="co">#&gt; NA/NaN function evaluation</span></span>
 <span><span class="co">#&gt; $par</span></span>
 <span><span class="co">#&gt;      params      params      params      params      params      params </span></span>
-<span><span class="co">#&gt;  1.24059779 98.66060621  0.10057708  0.39995537 -0.11227640  0.34094610 </span></span>
+<span><span class="co">#&gt;  1.24671910 61.38245959  0.16124566  0.40605614 -0.11477326  0.33939236 </span></span>
 <span><span class="co">#&gt;      params      params </span></span>
-<span><span class="co">#&gt; -0.06435174  0.61040344 </span></span>
+<span><span class="co">#&gt; -0.07429845  0.61040344 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $objective</span></span>
-<span><span class="co">#&gt; [1] 1599.589</span></span>
+<span><span class="co">#&gt; [1] 1601.549</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $convergence</span></span>
 <span><span class="co">#&gt; [1] 1</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $iterations</span></span>
-<span><span class="co">#&gt; [1] 120</span></span>
+<span><span class="co">#&gt; [1] 129</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $evaluations</span></span>
 <span><span class="co">#&gt; function gradient </span></span>
-<span><span class="co">#&gt;      200      121 </span></span>
+<span><span class="co">#&gt;      200      130 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $message</span></span>
 <span><span class="co">#&gt; [1] "function evaluation limit reached without convergence (9)"</span></span>
@@ -752,22 +756,22 @@ results</p>
 <span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $par</span></span>
 <span><span class="co">#&gt;       params       params       params       params       params       params </span></span>
-<span><span class="co">#&gt; -0.002018382 36.382781818 37.407127485 -4.343565531  1.898383937 -6.128123412 </span></span>
+<span><span class="co">#&gt; -0.003169677 50.290111756 30.026102089 -4.450364816  1.919450463 -6.177605279 </span></span>
 <span><span class="co">#&gt;       params       params       params </span></span>
-<span><span class="co">#&gt;  1.790803487 -6.956116759  0.596297469 </span></span>
+<span><span class="co">#&gt;  1.776699439 -7.022692636  0.596297469 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $objective</span></span>
-<span><span class="co">#&gt; [1] 1434.207</span></span>
+<span><span class="co">#&gt; [1] 1433.989</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $convergence</span></span>
 <span><span class="co">#&gt; [1] 1</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $iterations</span></span>
-<span><span class="co">#&gt; [1] 126</span></span>
+<span><span class="co">#&gt; [1] 122</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $evaluations</span></span>
 <span><span class="co">#&gt; function gradient </span></span>
-<span><span class="co">#&gt;      200      126 </span></span>
+<span><span class="co">#&gt;      200      122 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $message</span></span>
 <span><span class="co">#&gt; [1] "function evaluation limit reached without convergence (9)"</span></span>
@@ -780,26 +784,24 @@ results</p>
 <span><span class="co">#&gt; NA/NaN function evaluation</span></span>
 <span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
 <span><span class="co">#&gt; NA/NaN function evaluation</span></span>
-<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
-<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
 <span><span class="co">#&gt; $par</span></span>
-<span><span class="co">#&gt;      params      params      params      params      params      params </span></span>
-<span><span class="co">#&gt;   0.1391943 212.7282161 200.5090521  -8.2763703   3.5510051  -4.0800518 </span></span>
-<span><span class="co">#&gt;      params      params      params      params </span></span>
-<span><span class="co">#&gt;   0.8205244  -1.3832195  -1.8601103   0.5863554 </span></span>
+<span><span class="co">#&gt;     params     params     params     params     params     params     params </span></span>
+<span><span class="co">#&gt;  0.7802570  7.7900568  5.2024837 -0.2791101  0.2589907 -0.5956717  0.3101396 </span></span>
+<span><span class="co">#&gt;     params     params     params </span></span>
+<span><span class="co">#&gt; -0.3747950 -0.1376810  0.5863554 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $objective</span></span>
-<span><span class="co">#&gt; [1] 1452.762</span></span>
+<span><span class="co">#&gt; [1] 1441.466</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $convergence</span></span>
 <span><span class="co">#&gt; [1] 1</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $iterations</span></span>
-<span><span class="co">#&gt; [1] 109</span></span>
+<span><span class="co">#&gt; [1] 128</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $evaluations</span></span>
 <span><span class="co">#&gt; function gradient </span></span>
-<span><span class="co">#&gt;      200      110 </span></span>
+<span><span class="co">#&gt;      200      128 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $message</span></span>
 <span><span class="co">#&gt; [1] "function evaluation limit reached without convergence (9)"</span></span>
@@ -810,80 +812,44 @@ results</p>
 <span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
 <span><span class="co">#&gt; NA/NaN function evaluation</span></span>
-<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
-<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
-<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
-<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
-<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
-<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
-<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
-<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
-<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
-<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
-<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
-<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
-<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
-<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
-<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
-<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
-<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
-<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
-<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
-<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
-<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
-<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
-<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
-<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
-<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
-<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
-<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
-<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
-<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
-<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
-<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
-<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
 <span><span class="co">#&gt; $par</span></span>
-<span><span class="co">#&gt;        params        params        params        params        params </span></span>
-<span><span class="co">#&gt;  1.337916e-02  1.340891e+04  4.318194e-03 -5.838348e-02 -2.083731e+00 </span></span>
-<span><span class="co">#&gt;        params        params        params        params        params </span></span>
-<span><span class="co">#&gt;  6.195733e-01 -4.195589e+00  7.887362e-01 -2.133883e+00  5.044334e-01 </span></span>
-<span><span class="co">#&gt;        params </span></span>
-<span><span class="co">#&gt;  5.801754e-01 </span></span>
+<span><span class="co">#&gt;      params      params      params      params      params      params </span></span>
+<span><span class="co">#&gt;  0.02862238 13.83679544  6.50568272 -0.64364604 -1.38502686 -0.17206797 </span></span>
+<span><span class="co">#&gt;      params      params      params      params      params </span></span>
+<span><span class="co">#&gt; -3.83455289 -0.06296071 -1.56407525 -3.70588098  0.58017538 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $objective</span></span>
-<span><span class="co">#&gt; [1] 1404.519</span></span>
+<span><span class="co">#&gt; [1] 1471.266</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $convergence</span></span>
-<span><span class="co">#&gt; [1] 0</span></span>
+<span><span class="co">#&gt; [1] 1</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $iterations</span></span>
-<span><span class="co">#&gt; [1] 83</span></span>
+<span><span class="co">#&gt; [1] 116</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $evaluations</span></span>
 <span><span class="co">#&gt; function gradient </span></span>
-<span><span class="co">#&gt;      199       84 </span></span>
+<span><span class="co">#&gt;      200      116 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $message</span></span>
-<span><span class="co">#&gt; [1] "relative convergence (4)"</span></span>
-<span><span class="fu">plot_fit</span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in max(ids, na.rm = TRUE): no non-missing arguments to max; returning</span></span>
-<span><span class="co">#&gt; -Inf</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "function evaluation limit reached without convergence (9)"</span></span>
+<span><span class="fu">plot_fit</span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span></code></pre></div>
 <p><img src="real_data_files/figure-html/unnamed-chunk-28-1.png" width="672"></p>
 <p>Interestingly we have now managed to fit <code>gamma</code></p>
 <div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/mp_tmb_coef.html">mp_tmb_coef</a></span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span>
-<span><span class="co">#&gt;         term           mat row col      default  type      estimate std.error</span></span>
-<span><span class="co">#&gt; 1     params         gamma   0   0  0.100000000 fixed  1.337916e-02       NaN</span></span>
-<span><span class="co">#&gt; 2   params.1             I   0   0  1.000000000 fixed  1.340891e+04       NaN</span></span>
-<span><span class="co">#&gt; 3  params.10 prior_sd_beta   0   0  1.000000000 fixed  5.801754e-01       NaN</span></span>
-<span><span class="co">#&gt; 4   params.2   report_prob   0   0  0.003333333 fixed  4.318194e-03       NaN</span></span>
-<span><span class="co">#&gt; 5   params.3 time_var_beta   0   0 -0.006264538 fixed -5.838348e-02       NaN</span></span>
-<span><span class="co">#&gt; 6   params.4 time_var_beta   1   0  0.001836433 fixed -2.083731e+00       NaN</span></span>
-<span><span class="co">#&gt; 7   params.5 time_var_beta   2   0 -0.008356286 fixed  6.195733e-01       NaN</span></span>
-<span><span class="co">#&gt; 8   params.6 time_var_beta   3   0  0.015952808 fixed -4.195589e+00       NaN</span></span>
-<span><span class="co">#&gt; 9   params.7 time_var_beta   4   0  0.003295078 fixed  7.887362e-01       NaN</span></span>
-<span><span class="co">#&gt; 10  params.8 time_var_beta   5   0 -0.008204684 fixed -2.133883e+00       NaN</span></span>
-<span><span class="co">#&gt; 11  params.9 time_var_beta   6   0  0.004874291 fixed  5.044334e-01       NaN</span></span></code></pre></div>
+<span><span class="co">#&gt;         term           mat row col     default  type    estimate   std.error</span></span>
+<span><span class="co">#&gt; 1     params         gamma   0   0 0.100000000 fixed  0.02862238  0.00652316</span></span>
+<span><span class="co">#&gt; 2   params.1             I   0   0 1.000000000 fixed 13.83679544 19.17824368</span></span>
+<span><span class="co">#&gt; 3  params.10 prior_sd_beta   0   0 1.000000000 fixed  0.58017538  0.01825558</span></span>
+<span><span class="co">#&gt; 4   params.2   report_prob   0   0 0.003333333 fixed  6.50568272  9.02118967</span></span>
+<span><span class="co">#&gt; 5   params.3 time_var_beta   0   0 0.000000000 fixed -0.64364604  0.18346250</span></span>
+<span><span class="co">#&gt; 6   params.4 time_var_beta   1   0 0.000000000 fixed -1.38502686  0.14960302</span></span>
+<span><span class="co">#&gt; 7   params.5 time_var_beta   2   0 0.000000000 fixed -0.17206797  0.11830797</span></span>
+<span><span class="co">#&gt; 8   params.6 time_var_beta   3   0 0.000000000 fixed -3.83455289  0.13803399</span></span>
+<span><span class="co">#&gt; 9   params.7 time_var_beta   4   0 0.000000000 fixed -0.06296071  0.16608048</span></span>
+<span><span class="co">#&gt; 10  params.8 time_var_beta   5   0 0.000000000 fixed -1.56407525  0.10524492</span></span>
+<span><span class="co">#&gt; 11  params.9 time_var_beta   6   0 0.000000000 fixed -3.70588098  0.24480729</span></span></code></pre></div>
 <p>This is a much slower recovery rate. Expected time in the R box is
 about one year! Not believeable, but the point is to make it easier to
 fit models so you can try more things.</p>

@@ -11,7 +11,7 @@ a parameter with flexible radial basis functions."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.8.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.9.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -59,8 +59,9 @@ a parameter with flexible radial basis functions.</p>
 <span>  <span class="va">tv</span>,</span>
 <span>  <span class="va">dimension</span>,</span>
 <span>  <span class="va">initial_weights</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">1L</span>,</span>
+<span>  <span class="va">seed</span>,</span>
 <span>  prior_sd <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  fit_prior_sd <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  sparse_tol <span class="op">=</span> <span class="fl">0.01</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -89,8 +90,12 @@ if they are not provided.</p></dd>
 
 
 <dt id="arg-prior-sd">prior_sd<a class="anchor" aria-label="anchor" href="#arg-prior-sd"></a></dt>
-<dd><p>Optional prior standard deviation default value for radial
+<dd><p>Prior standard deviation default value for radial
 basis function coefficients, defaults to 1.</p></dd>
+
+
+<dt id="arg-fit-prior-sd">fit_prior_sd<a class="anchor" aria-label="anchor" href="#arg-fit-prior-sd"></a></dt>
+<dd><p>Should the prior sd be be fitted.</p></dd>
 
 
 <dt id="arg-sparse-tol">sparse_tol<a class="anchor" aria-label="anchor" href="#arg-sparse-tol"></a></dt>

@@ -9,7 +9,7 @@ are updated according to different numerical methods."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.8.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.9.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -163,7 +163,49 @@ distribution.</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 4: I ~ I + infection - recovery</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 5: R ~ R + recovery</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-in"><span><span class="co">#sir |&gt; mp_rk4()               |&gt; mp_expand()</span></span></span>
+<span class="r-in"><span><span class="va">sir</span> <span class="op">|&gt;</span> <span class="fu">mp_rk4</span><span class="op">(</span><span class="op">)</span>               <span class="op">|&gt;</span> <span class="fu"><a href="mp_expand.html">mp_expand</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ---------------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Default values:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ---------------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  matrix row col value</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    beta           0.2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   gamma           0.1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       N         100.0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       I           1.0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       R           0.0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ---------------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Before the simulation loop (t = 0):</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ---------------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1: S ~ N - I - R</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ---------------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> At every iteration of the simulation loop (t = 1 to T):</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ---------------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1: infection ~ S * (I * beta/N)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2: recovery ~ I * (gamma)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3: k1_S ~ -infection</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  4: k1_I ~ +infection - recovery</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5: k1_R ~ +recovery</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  6: infection ~ (S + (k1_S/2)) * ((I + (k1_I/2)) * beta/N)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  7: recovery ~ (I + (k1_I/2)) * (gamma)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8: k2_S ~ -infection</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  9: k2_I ~ +infection - recovery</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10: k2_R ~ +recovery</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11: infection ~ (S + (k2_S/2)) * ((I + (k2_I/2)) * beta/N)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12: recovery ~ (I + (k2_I/2)) * (gamma)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13: k3_S ~ -infection</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14: k3_I ~ +infection - recovery</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15: k3_R ~ +recovery</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16: infection ~ (S + k3_S) * ((I + k3_I) * beta/N)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 17: recovery ~ (I + k3_I) * (gamma)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 18: k4_S ~ -infection</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 19: k4_I ~ +infection - recovery</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 20: k4_R ~ +recovery</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 21: S ~ S + (k1_S + 2 * k2_S + 2 * k3_S + k4_S)/6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 22: I ~ I + (k1_I + 2 * k2_I + 2 * k3_I + k4_I)/6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 23: R ~ R + (k1_R + 2 * k2_R + 2 * k3_R + k4_R)/6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span><span class="va">sir</span> <span class="op">|&gt;</span> <span class="fu">mp_euler_multinomial</span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="mp_expand.html">mp_expand</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---------------------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Default values:</span>
