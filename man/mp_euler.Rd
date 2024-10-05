@@ -70,7 +70,7 @@ distribution.
 sir = mp_tmb_library("starter_models", "sir", package = "macpan2")
 sir
 sir |> mp_euler()             |> mp_expand()
-#sir |> mp_rk4()               |> mp_expand()
+sir |> mp_rk4()               |> mp_expand()
 sir |> mp_euler_multinomial() |> mp_expand()
 
 }

@@ -11,7 +11,6 @@ editor_options:
   chunk_output_type: console
 ---
 
-
 [![status](https://img.shields.io/badge/status-mature%20draft-yellow)](https://canmod.github.io/macpan2/articles/vignette-status#mature-draft)
 
 ```{r opts, include = FALSE}

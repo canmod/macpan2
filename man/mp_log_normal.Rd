@@ -4,10 +4,18 @@
 \alias{mp_log_normal}
 \title{Log-Normal Distribution}
 \usage{
-mp_log_normal(sd)
+mp_log_normal(location = DistrParam("location"), sd)
 }
 \arguments{
+\item{location}{Location parameter. Only necessary if used as a prior
+distribution. If it is used as a likelihood component the location
+parameter will be taken as the simulated variable being fitted to data,
+and so this \code{location} parameter should be left to the default.}
+
 \item{sd}{Standard deviation parameter.}
+}
+\value{
+DistrSpec
 }
 \description{
 Log-Normal Distribution

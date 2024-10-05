@@ -1,0 +1,148 @@
+---
+title: "SIR with demography"
+index_entry: "An SIR model with birth and death"
+bibliography: bibliography.bib
+link-citations: TRUE
+author: Steve Walker
+output: 
+  github_document:
+    toc: true
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "./figures/"
+)
+```
+
+# Setup
+
+The R code in this article requires the following setup.
+```{r setup}
+if (!require(macpan2)) {
+  repos = c('https://canmod.r-universe.dev', 'https://cloud.r-project.org')
+  install.packages('macpan2', repos = repos)
+}
+if (!require(ggplot2)) install.packages("ggplot2")
+if (!require(dplyr)) install.packages("dplyr")
+```
+
+# Introduction
+
+This is an extension of the [sir](inst/starter_models/sir) model to include birth and death.
+
+# States
+
+| variable | description                       |
+| -------- | --------------------------------- |
+| S        | Number of susceptible individuals |
+| I        | Number of infectious individuals  |
+| R        | Number of recovered individuals   |
+
+The size of the total population is, $N = S + I + R$.
+
+# Parameters
+
+| variable | description                  |
+| -------- | ---------------------------- |
+| $\beta$  | per capita transmission rate |
+| $\gamma$ | per capita recovery rate     |
+| $\nu$    | per capita birth rate        |
+| $\mu$    | per capita mortality rate    |
+
+The SIR model with demography often assumes that the time scale of epidemic changes is much shorter than demographic changes [@earn2008light]. This translates to a constant population size $N$ over time, with $\nu = \mu$. We parameterize birth and mortality rates separately to allow for the general case in which epidemic and demographic dynamics occur on similar time scales. 
+
+# Dynamics 
+
+We assume new individuals (births) join the susceptible compartment, and individuals can leave the population (die) from any compartment.
+
+$$
+\begin{align*}
+\frac{dS}{dt} &= \nu N -\beta S\frac{I}{N} - \mu S \\
+\frac{dI}{dt} &= \beta S\frac{I}{N} - \gamma I - \mu I \\
+\frac{dR}{dt} &= \gamma I - \mu R
+\end{align*}
+$$
+
+# Flow Diagram
+
+Individuals 
+
+```{r}
+spec = mp_tmb_library("starter_models", "sir_demog", package = "macpan2")
+```
+
+```{r flow_diagram, echo = FALSE, fig.height=4, fig.width=6}
+y_pos = function(min, max, rng = 10) {
+  y = c(
+      S = max
+    , I1 = max, I2 = max, I3 = max, I4 = max
+    , A1 = min, A2 = min, A3 = min, A4 = min
+    , D = min, N = min
+  )
+  aa = y[!names(y) %in% c("D", "N")]
+  dd = ifelse(aa == max, rng, 0) |> setNames(sprintf("%s_%s", "D_bg", names(aa)))
+  c(y, dd) / rng
+}
+x_pos = function(min, max, rng = 10) {
+  x = c(
+      S = 1
+    , I1 = min, I2 = min + 1.5, I3 = min + 3, I4 = min + 4.5
+    , A1 = min, A2 = min + 1.5, A3 = min + 3, A4 = min + 4.5
+    , D = rng - 1, N = 1
+  )
+  aa = x[!names(x) %in% c("D", "N")]
+  names(aa) = sprintf("%s_%s", "D_bg", names(aa))
+  c(x, aa) / rng
+}
+
+node_size = 10
+edge_data = (spec
+  |> mp_flow_frame(topological_sort = FALSE)
+  |> mutate(name = ifelse(rate == "beta", "birth", name))
+  |> mutate(rate = ifelse(rate %in% c("tau", "phi", "mu", "beta")
+      , sprintf("phantom(0) * phantom(0) * %s", rate)
+      , sprintf("atop(%s, phantom(0))", rate)
+  ))
+  |> mutate(to = ifelse(to == ""
+      , sprintf("D_bg_%s", from)
+      , to
+  ))
+  |> mutate(from = ifelse(to == "S", "N", from))
+  |> distinct()
+)
+node_data = (data.frame(name = unique(c(edge_data$from, edge_data$to)))
+  |> mutate(labels = ifelse(startsWith(name, "D_bg_"), "", name))
+  |> mutate(sizes = ifelse(startsWith(name, "D_bg_"), 0, node_size))
+  |> mutate(is_N = name == "N")
+)
+
+(node_data
+  |> tbl_graph(edge_data)
+  |> ggraph('manual', x = x_pos(3, 7)[name], y = y_pos(3, 7)[name])
+  + geom_edge_arc(aes(label = rate)
+    , arrow = arrow(length = unit(node_size * 0.3, 'mm'))
+    , end_cap = circle(node_size / 2, 'mm')
+    , start_cap = circle(node_size / 2, 'mm')
+    , label_parse = TRUE
+    , strength = 0.06
+  )
+  + geom_node_point(aes(size = sizes, colour = is_N))
+  + geom_node_text(aes(label = labels), family = "mono")
+  + theme_graph(background = NA, plot_margin = margin(0, 0, 0, 0))
+  + scale_x_continuous(limits = c(0, 1), breaks = seq(from = 0, to = 1, by = 0.05))
+  + scale_y_continuous(limits = c(0, 1))
+  + scale_size_continuous(guide = "none", range = c(-1, node_size))
+  + scale_colour_manual(guide = "none", values = c("FALSE" = "lightgrey", "TRUE" = "white"))
+)
+```
+
+# Model Specification
+
+This model has been specified in the `sir_demog` directory [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/sir_demog/tmb.R) and is accessible from the `macpan2` model library (see [Example Models](https://canmod.github.io/macpan2/articles/example_models.html) for details). 
+
+# References

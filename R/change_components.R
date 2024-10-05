@@ -109,8 +109,6 @@ GammaConvolution = function(variable, length, height, mean, cv) {
     , Y ~ convolution(X, kappa)
   )
   
-  self$user_formulas = function() {
-    xxx
-  }
+  self$user_formulas = function() {}
   return_object(self, "GammaConvolution")
 }

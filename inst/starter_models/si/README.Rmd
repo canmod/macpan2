@@ -1,0 +1,101 @@
+---
+title: "Basic SI"
+index_entry: "A very simple epidemic model"
+bibliography: ../../references.bib
+link-citations: TRUE
+author: Jennifer Freeman
+output: 
+  github_document:
+    toc: true
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "./figures/"
+)
+```
+
+This is the simplest possible epidemic model [@earn2008light].
+
+```{r flow_diagram, echo = FALSE, fig.height=1, fig.width=4, message=FALSE, warning=FALSE}
+library(macpan2)
+library(ggplot2)
+system.file("utils", "layout-plot-utils.R", package = "macpan2") |> source()
+si = mp_tmb_library("starter_models", "si", package = "macpan2")
+plot_data = (si 
+  |> mp_flow_frame() 
+  |> mp_layout_path() 
+  |> mp_add_ports(x_pad = 0.2)
+)
+(plot_data
+  |> mp_plot_layout()
+  + geom_label(aes(x = x, y = y, label = rate)
+      , parse = TRUE
+      , colour = "blue"
+      , data = plot_data$edges_df
+  )
+)
+```
+
+The code in this article uses the following packages.
+
+```{r packages, message=FALSE, warning=FALSE}
+library(macpan2)
+library(ggplot2)
+library(dplyr)
+```
+
+# States
+
+| variable | description                       |
+| -------- | --------------------------------- |
+| S        | Number of susceptible individuals |
+| I        | Number of infectious individuals  |
+
+The size of the total population is, $N = S + I$.
+
+# Parameters
+
+| variable | description                  |
+| -------- | ---------------------------- |
+| $\beta$  | per capita transmission rate |
+
+# Dynamics 
+
+$$
+\begin{align*}
+\frac{dS}{dt} &= -\beta S\frac{I}{N} \\
+\frac{dI}{dt} &= \beta S\frac{I}{N}\\
+\end{align*}
+$$
+
+# Model Specification
+
+This model has been specified in the `si` directory [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/si/tmb.R) and is accessible from the `macpan2` model library (see [Example Models](https://canmod.github.io/macpan2/articles/example_models.html) for details). 
+
+# Simulation
+
+Simulation of this and other models depends on the kind of [state update](https://canmod.github.io/macpan2/reference/mp_euler) that you use. Here we compare Euler, Euler-multinomial, hazard, and RK4.
+
+```{r simulation}
+specs = mp_tmb_library("starter_models"
+  , "si"
+  , package = "macpan2"
+  , alternative_specs = TRUE
+)
+(specs
+  |> lapply(mp_simulator, 50L, "I")
+  |> lapply(mp_trajectory)
+  |> bind_rows(.id = "integrator")
+  |> rename(prevalance = value)
+  |> ggplot()
+  + geom_line(aes(time, prevalance, colour = integrator))
+  + theme_bw()
+)
+```
+
+# References

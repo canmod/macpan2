@@ -137,7 +137,7 @@ focal_calib = mp_tmb_calibrator(
   , traj = list(
       # set likelihoods for trajectories we are fitting to
       reported_incidence = mp_neg_bin(disp = 0.1)
-    , W = mp_log_normal(sd = 1)
+    , W = mp_normal(sd = 1)
   )
   , par = c(
         # parameters to fit

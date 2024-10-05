@@ -398,7 +398,17 @@ make_names_list = function(obj, meth_nms) {
 }
 
 make_nested_names = function(x) {
-  nms = mapply(sprintf, lapply(x, names), names(x), MoreArgs = list(fmt = "%s_%s"))
+  nms_x = names(x)
+  nested_nms = lapply(x, names)
+  null_loc = which(sapply(nested_nms,is.null))
+  if (length(null_loc) > 0) {
+    nested_nms = nested_nms[-null_loc]
+    nms_x = nms_x[-null_loc]
+  }
+  nms = mapply(sprintf, nested_nms, nms_x, MoreArgs = list(fmt = "%s_%s"))
+  if (length(nms) == 0){
+    nms = character()
+  }
   make.unique(nms, sep = "_")
 }
 

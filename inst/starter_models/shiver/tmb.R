@@ -14,14 +14,14 @@ dynamic_computations = list(
 
 
 flow_rates = list(
-    mp_per_capita_flow("S", "V", vaccination ~ ((a * S)/(b + S))/S)
-  , mp_per_capita_flow("V", "S", vaccine_waning ~ rho)
-  , mp_per_capita_flow("S", "E", unvaccinated_exposure ~ I * beta_s/N_mix)
-  , mp_per_capita_flow("V", "E", vaccinated_exposure ~  I * beta_v/N_mix)
-  , mp_per_capita_flow("E", "I", infection ~ alpha)
-  , mp_per_capita_flow("I", "R", infectious_recovery ~ gamma_i)
-  , mp_per_capita_flow("I", "H", hospitalizations ~ sigma)
-  , mp_per_capita_flow("H", "R", hospital_recovery ~ gamma_h)
+    mp_per_capita_flow("S", "V", "((a * S)/(b + S))/S", "vaccination")
+  , mp_per_capita_flow("V", "S", "rho"                , "vaccine_waning")
+  , mp_per_capita_flow("S", "E", "I * beta_s/N_mix"   , "unvaccinated_infection")
+  , mp_per_capita_flow("V", "E", "I * beta_v/N_mix"   , "vaccinated_infection")
+  , mp_per_capita_flow("E", "I", "alpha"              , "progression")
+  , mp_per_capita_flow("I", "R", "gamma_i"            , "infectious_recovery")
+  , mp_per_capita_flow("I", "H", "sigma"              , "hospitalizations")
+  , mp_per_capita_flow("H", "R", "gamma_h"            , "hospital_recovery")
 )
 
 ## set defaults

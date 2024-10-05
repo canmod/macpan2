@@ -41,12 +41,13 @@ test_that("bad outputs give warnings", {
 })
 test_that("trajectories specified with likelihood distributions end up in calibrator outputs", {
   sir = mp_tmb_library("starter_models", "sir", package = "macpan2")
-  sir_sims = mp_simulator(sir, time_steps = 5, outputs = c("I","R")) |> mp_trajectory()
+  sir_sims = mp_simulator(sir, time_steps = 5, outputs = c("S","I","R")) |> mp_trajectory()
   
   sir_cal = mp_tmb_calibrator(sir
     , data = sir_sims
     # trajectories specified with likelihood distributions
     , traj = list(
+        S = mp_neg_bin(disp = 0.5),
         I = mp_neg_bin(disp = 0.5),
         R = mp_log_normal(sd = 1)
     )
@@ -54,7 +55,7 @@ test_that("trajectories specified with likelihood distributions end up in calibr
     # outputs left to default
   ) 
   
-  expect_identical(c("I","R")
+  expect_identical(c("S","I","R")
    , sir_cal$cal_spec$must_save
   )
   
