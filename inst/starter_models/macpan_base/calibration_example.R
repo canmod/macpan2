@@ -2,7 +2,6 @@ library(macpan2)
 library(dplyr)
 library(ggplot2)
 library(tidyr)
-library(piggyback)
 options(macpan2_default_loss = "neg_bin") 
 
 ## -------------------------
