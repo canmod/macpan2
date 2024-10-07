@@ -230,3 +230,39 @@ test_that("default transformations for distributional parameters can be updated"
     )
   )
 })
+
+test_that("not fitting a distributional parameter is the same as mp_nofit",{
+  
+  spec = (mp_tmb_library("starter_models", "sir", package = "macpan2")
+    |> mp_tmb_insert(default = list(sd = 34))
+  )
+  sir_data = (mp_simulator(spec, time_steps = 5, outputs = c("I"))
+    |> mp_trajectory()
+  )
+  nofit_cal = mp_tmb_calibrator(spec
+    , data = sir_data
+    , traj = "I"
+    , par = list(beta = mp_normal(12,"sd"))
+  )
+  
+  mp_nofit_cal = mp_tmb_calibrator(spec
+    , data = sir_data
+    , traj = "I"
+    , par = list(beta = mp_normal(mp_nofit(12),mp_nofit("sd")))
+  )
+  
+  # verify the objective function is identical
+  expect_identical(
+      as.character(nofit_cal$simulator$tmb_model$obj_fn$obj_fn_expr)[[2]]
+    , as.character(mp_nofit_cal$simulator$tmb_model$obj_fn$obj_fn_expr)[[2]]
+  )
+  
+  mp_optimize(nofit_cal)
+  mp_optimize(mp_nofit_cal)
+  
+  # verify the optimization is identical
+  expect_identical(
+      mp_tmb_coef(nofit_cal)
+    , mp_tmb_coef(mp_nofit_cal)
+  )
+})

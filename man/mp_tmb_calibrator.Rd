@@ -27,8 +27,7 @@ produced by \code{\link{mp_trajectory}}.}
 
 \item{traj}{A character vector giving the names of trajectories to fit
 to data, or a named list of likelihood distributions specified with
-\code{\link{mp_normal}}, \code{\link{mp_log_normal}}, \code{\link{mp_neg_bin}},
-or \code{\link{mp_poisson}} for each trajectory.}
+\code{\link{?macpan2::distribution}} for each trajectory.}
 
 \item{par}{A character vector giving the names of parameters, either
 time-varying or not, to fit using trajectory match.}
