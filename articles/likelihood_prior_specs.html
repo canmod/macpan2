@@ -78,7 +78,102 @@
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/bbolker/broom.mixed" class="external-link">broom.mixed</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>macpan2_verbose <span class="op">=</span>  <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
-  </main>
+<div class="section level2">
+<h2 id="calibration-defaults">Calibration Defaults<a class="anchor" aria-label="anchor" href="#calibration-defaults"></a>
+</h2>
+<!-- https://canmod.github.io/macpan2/articles/calibration.html#statistical-model -->
+<p>The calibration interface allows for the direct specification of
+likelihood and prior components. The objective function in calibration
+is the summation of negative log likelihoods and negative log prior
+densities.</p>
+<p>By default, the interface assumes <strong>poisson
+likelihoods</strong> and <strong>uniform priors</strong>. This is
+demonstrated in the objective function in this <a href="https://canmod.github.io/macpan2/articles/calibration.html#step-1-add-calibration-information">calibration
+example</a>. The calibration output shows a poisson likelihood is used
+for the trajectory variable <code>I</code> and no additional objective
+function terms indicate the parameters <code>beta</code> and
+<code>R</code> have an improper uniform prior density. Indicating we
+have no prior information about these parameters.</p>
+</div>
+<div class="section level2">
+<h2 id="customizing-the-objective-function">Customizing the Objective Function<a class="anchor" aria-label="anchor" href="#customizing-the-objective-function"></a>
+</h2>
+<p>To specify a likelihood and/or prior for a variable in our model we
+can select a distribution from the list of available
+distributions,<code><a href="../reference/distribution.html">?macpan2::distribution</a></code>.</p>
+<div class="section level3">
+<h3 id="prior-specification">Prior Specification<a class="anchor" aria-label="anchor" href="#prior-specification"></a>
+</h3>
+<!-- is this the only way to specify priors ? -->
+<p>Specifying priors is usually done through the <code>par</code>
+argument of <code>mp_tmb_calibrator</code>. <a href="https://github.com/canmod/macpan2/tree/main/inst/starter_models/shiver#re-parameterizing-and-introducing-transformations" class="external-link">Here</a>
+is an example of prior specification in the SHIVER model. The parameter
+<code>logit_p</code>, the logit transformed proportion <code>p</code>,
+is given a normal prior using the distribution function
+<code><a href="../reference/distribution.html">macpan2::mp_normal</a></code> and two numeric inputs for the
+<code>location</code> and standard deviation, <code>sd</code>. The
+remaining parameters are given an improper uniform prior using
+<code><a href="../reference/distribution.html">macpan2::mp_uniform</a></code>.
+<!-- No example of the SHIVER prior specification output to see the change in the objective function --></p>
+</div>
+<div class="section level3">
+<h3 id="likelihood-specification">Likelihood Specification<a class="anchor" aria-label="anchor" href="#likelihood-specification"></a>
+</h3>
+<p>A likelihood can be specified for the trajectory variables in our
+calibration set-up, those identified in the <code>traj</code> argument
+of <code>mp_tmb_calibrator</code>.</p>
+<p>Further into the SHIVER <a href="https://github.com/canmod/macpan2/tree/main/inst/starter_models/shiver#fitting-to-multiple-trajectories" class="external-link">example</a>,
+the variables hospitalizations(<code>H</code>) and
+<code>reported_incidence</code> are both specified with a negative
+binomial likelihood using the <code><a href="../reference/distribution.html">macpan2::mp_neg_bin</a></code> function.
+For likelihoods the location parameter is not set because the
+calibration machinery will use the simulated value for this trajectory
+as the location. The dispersion parameter for <code>mp_neg_bin</code> is
+required.</p>
+</div>
+<div class="section level3">
+<h3 id="fitting-distributional-parameters">Fitting Distributional Parameters<a class="anchor" aria-label="anchor" href="#fitting-distributional-parameters"></a>
+</h3>
+<p>Distributional parameters are those parameters that characterize the
+distribution. Often these are the location and standard deviation. By
+default, these parameters are assumed fixed and not fit. This was the
+case in the previous <a href="#prior-specification">Prior
+Specification</a> example where the distributional parameters for
+<code>location</code> and <code>sd</code> were specified as numeric
+constants.</p>
+<p>Distributional parameters are also assumed fixed when set to the name
+of an existing variable in the model. Ex.
+<code>mp_normal(sd = "sd_var")</code>
+<!-- no existing example of this --></p>
+<p>Distributional parameters however, can be fit in the calibration
+framework in addition to other parameters using
+<code><a href="../reference/fit_distr_params.html">macpan2::mp_fit</a></code>. See
+<code><a href="../reference/fit_distr_params.html">?macpan2::fit_distr_params</a></code> for details. The previous
+example in <a href="#likelihood-specification">Likelihood
+Specification</a> shows the negative binomial dispersion parameter being
+fit with <code>mp_fit</code>. The numeric value provided for dispersion
+is the starting value for the optimization routine. After optimization,
+we can see the fitted dispersion distributional parameters in the
+coefficient table. By default, they are named with a leading
+<code>distr_params_</code> followed by their distributional parameter
+name and corresponding model variable name.</p>
+<div class="section level4">
+<h4 id="distributional-parameter-transformations">Distributional Parameter Transformations<a class="anchor" aria-label="anchor" href="#distributional-parameter-transformations"></a>
+</h4>
+<p>Distributional parameters have default parameter transformations
+inherited from their respective distribution.
+<!-- reference this once properly documented --> For example, standard
+deviations by definition are a strictly positive number, so the log
+transformation is convenient to use to ensure this condition is met.</p>
+<p>Defaults can be changed by passing a distributional parameter
+transformation function <code><a href="../reference/transform_distr_param.html">?macpan2::transform_distr_param</a></code> to
+the <code>trans</code> argument in
+<code><a href="../reference/fit_distr_params.html">?macpan2::fit_distr_params</a></code> functions.</p>
+</div>
+</div>
+</div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside>
 </div>
 
 

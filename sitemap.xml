@@ -31,11 +31,13 @@
 <url><loc>https://canmod.github.io/macpan2/reference/StringData.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/Transform.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/comparison.html</loc></url>
+<url><loc>https://canmod.github.io/macpan2/reference/distribution.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/empty_matrix.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/engine_eval.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/engine_functions.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/finalizer.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/find_all_paths.html</loc></url>
+<url><loc>https://canmod.github.io/macpan2/reference/fit_distr_params.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/index.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/initial_valid_vars.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/macpan2-package.html</loc></url>
@@ -51,27 +53,19 @@
 <url><loc>https://canmod.github.io/macpan2/reference/mp_extract.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_factors.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_final.html</loc></url>
-<url><loc>https://canmod.github.io/macpan2/reference/mp_fit.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_flow_frame.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_group.html</loc></url>
-<url><loc>https://canmod.github.io/macpan2/reference/mp_identity.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_index.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_initial.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_join.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_labels.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_ledgers.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_linear.html</loc></url>
-<url><loc>https://canmod.github.io/macpan2/reference/mp_log.html</loc></url>
-<url><loc>https://canmod.github.io/macpan2/reference/mp_log_normal.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_lookup.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_model_starter.html</loc></url>
-<url><loc>https://canmod.github.io/macpan2/reference/mp_neg_bin.html</loc></url>
-<url><loc>https://canmod.github.io/macpan2/reference/mp_nofit.html</loc></url>
-<url><loc>https://canmod.github.io/macpan2/reference/mp_normal.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_optimize.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_optimizer_output.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_per_capita_flow.html</loc></url>
-<url><loc>https://canmod.github.io/macpan2/reference/mp_poisson.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_positions.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_rbf.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_reduce.html</loc></url>
@@ -99,7 +93,6 @@
 <url><loc>https://canmod.github.io/macpan2/reference/mp_traj.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_trajectory.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_triangle.html</loc></url>
-<url><loc>https://canmod.github.io/macpan2/reference/mp_uniform.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_union.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_zero_vector.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/names_and_labels.html</loc></url>
@@ -109,5 +102,6 @@
 <url><loc>https://canmod.github.io/macpan2/reference/simple_sims.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/to_positions.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/to_string.html</loc></url>
+<url><loc>https://canmod.github.io/macpan2/reference/transform_distr_param.html</loc></url>
 </urlset>
 
