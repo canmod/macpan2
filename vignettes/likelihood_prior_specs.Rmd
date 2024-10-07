@@ -1,0 +1,33 @@
+---
+title: "Specifying Likelihood and Prior Components"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{Specifying Likelihood and Prior Components}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+[![status](https://img.shields.io/badge/status-stub-red)](https://canmod.github.io/macpan2/articles/vignette-status#status-stub-red)
+
+```{r opts, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  fig.width = 6,
+  fig.height = 4,
+  comment = "#>"
+)
+```
+
+```{r setup, message = FALSE, warning = FALSE}
+library(macpan2)
+library(ggplot2)
+library(dplyr)
+library(broom.mixed)
+options(macpan2_verbose =  FALSE)
+```
+
+

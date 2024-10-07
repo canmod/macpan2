@@ -133,6 +133,7 @@ DistrParam = function(generic_name, trans = DistrParamTransDefault()) {
 #' that takes the simulated trajectory as the location).
 #' @param default_trans list of default parameter transformation objects
 #' of class DistrParamTrans for each `distr_param_objs`.
+#' @noRd
 DistrSpec = function(distr_param_objs = list(), default_trans = list()) {
   for (nm in names(distr_param_objs)) distr_param_objs[[nm]] = to_distr_param(distr_param_objs[[nm]])
   for (nm in names(distr_param_objs)) distr_param_objs[[nm]]$generic_name = nm
@@ -490,6 +491,7 @@ TESTDISTR = function(location, sd) {
 # )
 
 #' @return DistrSpec
+#' @noRd
 mp_normal_error = function(sd) {
   mp_normal(location = DistrParam("location"))
 }
