@@ -75,9 +75,22 @@ spec = mp_tmb_library(
     "starter_models", "hiv"
   , package = "macpan2"
 )
+system.file("utils", "layout-plot-utils.R", package = "macpan2") |> source()
 ```
 
 The specification can be used to draw the following flow diagram using code found in the [source for this article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/hiv/README.Rmd).
+
+```{r}
+flows = mp_flow_frame(spec, warn_not_dag = FALSE)
+layout = layout_matrix_factors(flows
+  , east = "^(infection|progression|death)"
+  , north = "^(protection)"
+  , south = "^(unprotection)"
+)
+plot_layout_vignette(flows, layout)
+#layout_matrix_paths(flows, "S")
+```
+
 
 ```{r flow_diagram, echo = FALSE, fig.height=4, fig.width=6}
 y_pos = function(min, max, rng = 10) {

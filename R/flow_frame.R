@@ -46,6 +46,19 @@ topological_sort = function(spec, warn_not_dag = TRUE) {
   )
 }
 
+topological_sort_general = function(flows, resolution_states) {
+  all_states = unique(c(flows$from, flows$to))
+  states = c(resolution_states, setdiff(all_states, resolution_states))
+  topological_sort_engine(flows, states, warn_not_dag = FALSE)
+}
+
+## @param states in sorted order
+is_cyclic = function(flows, states) {
+  from = as.numeric(factor(flows$from, levels = states))
+  to = as.numeric(factor(flows$to, levels = states))
+  to <= from
+}
+
 #' Flow Frame (experimental)
 #' 
 #' Get a data frame representing the flows in a model specification.

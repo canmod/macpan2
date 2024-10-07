@@ -168,7 +168,18 @@ To convert the Michaelis-Menten curve above to a rate, we divide by $S(t)$.
 We first load the model specification from the model library.
 
 ```{r model_spec}
-spec = mp_tmb_library("starter_models","shiver", package="macpan2")
+spec = mp_tmb_library("starter_models", "shiver", package = "macpan2")
+```
+
+```{r}
+flows = mp_flow_frame(spec, warn_not_dag = FALSE)
+layout = layout_matrix_paths(flows, "S")
+layout = layout_matrix_factors(flows
+  , east = "(infection|progression|recovery)$"
+  , south = "waning$"
+  , north = "(hospitalizations|vaccination)$"
+)
+plot_layout_vignette(flows, layout)
 ```
 
 We can draw the flow diagram for this model using the `mp_flow_frame` and the `ggraph` and `tidygraph` packages.
