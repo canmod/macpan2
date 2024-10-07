@@ -16,18 +16,7 @@ not require a \code{location} parameter (e.g., it is a likelihood component
 that takes the simulated trajectory as the location).}
 
 \item{default_trans}{list of default parameter transformation objects
-of class DistrParamTrans for each \code{distr_param_objs}.
-data frame characterizing what distributional parameters associated
-with this distribution should be optimized as fixed effects.
-data frame characterizing what distributional parameters associated
-with this distribution should be optimized as random effects.
-character string giving an expression for the component of a log prior
-density associated with this distribution. this may not be used if
-it is intended to be used as a likelihood component.
-character string giving an expression for the component of a log likelihood
-function associated with this distribution. this may not be used if
-it is intended to be used as a prior distribution component.
-for the future (e.g. beta ~ rnorm(0, 1))}
+of class DistrParamTrans for each \code{distr_param_objs}.}
 }
 \description{
 Class representing the specification of a distribution, either a prior or

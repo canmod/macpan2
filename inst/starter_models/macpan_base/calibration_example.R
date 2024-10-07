@@ -2,7 +2,6 @@ library(macpan2)
 library(dplyr)
 library(ggplot2)
 library(tidyr)
-library(piggyback)
 options(macpan2_default_loss = "neg_bin") 
 
 ## -------------------------
@@ -23,7 +22,9 @@ options(macpan2_default_loss = "neg_bin")
 ## -------------------------
 
 # Observed Ontario COVID-19 data
-ts_data  = readRDS(url(piggyback::pb_download_url("covid_on.RDS","canmod/macpan2")))
+#ts_data  = readRDS(url(piggyback::pb_download_url("covid_on.RDS","canmod/macpan2"))) ## remove piggy back dependency
+ts_data  = readRDS(url("https://github.com/canmod/macpan2/releases/download/macpan1.5_data/covid_on.RDS"))
+
 
 # To further prepare the time series data for calibration we filter for the 
 # appropriate time range and time series variables, create a numeric date field

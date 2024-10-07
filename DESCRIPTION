@@ -42,8 +42,7 @@ Suggests:
     tmbstan,
     numDeriv,
     parallel,
-    iidda.api,
-    piggyback
+    iidda.api
 LinkingTo:
     TMB,
     RcppEigen

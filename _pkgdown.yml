@@ -46,3 +46,4 @@ articles:
   desc: Articles that are not ready for users or developers
   contents:
   - time_varying_parameters
+  - likelihood_prior_specs
