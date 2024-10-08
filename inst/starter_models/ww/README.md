@@ -45,7 +45,10 @@ spec = mp_tmb_library(
 This specification can be used to draw the following flow diagrams using
 code found in the [source for this
 article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/ww/README.Rmd).
-For clarity, we first draw the epidemiological components of the model.
+For clarity, we first draw the epidemiological components of the model,
+which are identical to the
+[macpan_base](https://github.com/canmod/macpan2/tree/main/inst/starter_models/macpan_base)
+model.
 
 ![](./figures/diagram-1.png)<!-- -->
 
