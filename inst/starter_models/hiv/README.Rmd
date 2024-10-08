@@ -1,7 +1,7 @@
 ---
 title: "HIV"
 index_entry: "A simple HIV model"
-bibliography: references.bib
+bibliography: ../../references.bib
 link-citations: TRUE
 author: Steve Walker
 output: 
