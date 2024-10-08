@@ -2,21 +2,57 @@ HIV
 ================
 Steve Walker
 
-- [States](#states)
-- [Parameters](#parameters)
-- [Force-of-Infection](#force-of-infection)
-- [Packages Used](#packages-used)
-- [Dynamics](#dynamics)
-- [Solving the ODEs](#solving-the-odes)
-- [Model Specification](#model-specification)
-- [References](#references)
+-   <a href="#packages-used" id="toc-packages-used">Packages Used</a>
+-   <a href="#dynamics" id="toc-dynamics">Dynamics</a>
+-   <a href="#states" id="toc-states">States</a>
+-   <a href="#parameters" id="toc-parameters">Parameters</a>
+-   <a href="#force-of-infection"
+    id="toc-force-of-infection">Force-of-Infection</a>
+-   <a href="#solving-the-odes" id="toc-solving-the-odes">Solving the
+    ODEs</a>
+-   <a href="#references" id="toc-references">References</a>
 
 This is a description of a `macpan2` implementation of the HIV model
-proposed by ([Granich et al. 2009](#ref-granich2009universal)). Default
-parameter estimates
+proposed by ([Granich et al. 2009](#ref-granich2009universal)). This
+model played a key role in advancing HIV prevention using antiretroviral
+therapy, predicting that a test-and-treat strategy would substantially
+lower HIV incidence ([**hayes2019effect?**](#ref-hayes2019effect)).
+Default parameter estimates
 [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/hiv/tmb.R)
 are inspired by ([Kretzschmar et al.
 2013](#ref-kretzschmar2013prospects)).
+
+# Packages Used
+
+The code in this article uses the following packages.
+
+``` r
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(macpan2)
+library(ggraph)
+library(tidygraph)
+```
+
+# Dynamics
+
+This model has been specified in the `hiv` directory
+[here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/hiv/tmb.R)
+and is accessible from the `macpan2` model library (see [Example
+Models](https://canmod.github.io/macpan2/articles/example_models.html)
+for details). We can read in the model specification using the
+`mp_tmb_library` command.
+
+``` r
+spec = mp_tmb_library("starter_models", "hiv", package = "macpan2")
+```
+
+This specification can be used to draw the following flow diagram using
+code found in the [source for this
+article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/hiv/README.Rmd).
+
+![](./figures/diagram-1.png)<!-- -->
 
 # States
 
@@ -51,39 +87,7 @@ $\frac{\lambda J}{N}$ where $\lambda = \lambda_0 e^{-\alpha P^n}$,
 $P = I/N$, $I = \sum_i(I_i + A_i)$, $J = \sum_i(I_i + \epsilon A_i)$,
 and $N$ is the total number of alive boxes.
 
-The rest of the transition rates are constant per-capita rates.
-
-# Packages Used
-
-The code in this article uses the following packages.
-
-``` r
-library(ggplot2)
-library(dplyr)
-library(tidyr)
-library(macpan2)
-library(ggraph)
-library(tidygraph)
-```
-
-# Dynamics
-
-We can read in the model specification using the `mp_tmb_library`
-command.
-
-``` r
-spec = mp_tmb_library(
-    "starter_models", "hiv"
-  , package = "macpan2"
-)
-system.file("utils", "box-drawing.R", package = "macpan2") |> source()
-```
-
-The specification can be used to draw the following flow diagram using
-code found in the [source for this
-article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/hiv/README.Rmd).
-
-![](./figures/diagram-1.png)<!-- -->
+The remaining transition rates are constant per-capita rates.
 
 # Solving the ODEs
 
@@ -115,14 +119,6 @@ sim = (spec
 ```
 
 ![](./figures/simulations-1.png)<!-- -->
-
-# Model Specification
-
-This model has been specified in the `hiv` directory
-[here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/hiv/tmb.R)
-and is accessible from the `macpan2` model library (see [Example
-Models](https://canmod.github.io/macpan2/articles/example_models.html)
-for details).
 
 # References
 

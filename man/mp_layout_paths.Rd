@@ -37,6 +37,17 @@ loops in the flow model, and so should be ignored when building the layout.}
 \item{ignore}{Regular expression for matching the names of flows that should
 be removed from the layout analysis entirely. These will be isolated in
 a data frame for custom drawing of 'difficult' edges.}
+
+\item{x_gap}{Size of the gap to the left and right of the 1-by-1 space
+provided for a node.}
+
+\item{y_gap}{Size of the gap above and below the 1-by-1 space
+provided for a node.}
+
+\item{north_south_sep}{Horizontal separation between north and south
+flow arrows.}
+
+\item{east_west_sep}{Vertical separation between east and west flow arrows.}
 }
 \description{
 Layout the flow diagram of a model specification so that each row is

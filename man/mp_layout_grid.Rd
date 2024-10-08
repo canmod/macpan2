@@ -35,6 +35,17 @@ be connected westward in the layout.}
 
 \item{loops}{Regular expression for matching the names of flows that cause
 loops in the flow model, and so should be ignored when building the layout.}
+
+\item{x_gap}{Size of the gap to the left and right of the 1-by-1 space
+provided for a node.}
+
+\item{y_gap}{Size of the gap above and below the 1-by-1 space
+provided for a node.}
+
+\item{north_south_sep}{Horizontal separation between north and south
+flow arrows.}
+
+\item{east_west_sep}{Vertical separation between east and west flow arrows.}
 }
 \description{
 Create a grid on which to layout the flow diagram of a model specification.
