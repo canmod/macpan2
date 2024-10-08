@@ -57,10 +57,10 @@ layout = mp_layout_grid(spec
   , y_gap = 0.3
   , north_south_sep = 0.15
 )
-diagram = plot_flow_diagram(layout)
-(diagram 
-  |> draw_outflows(layout)
-  |> draw_inflows(layout)
+(layout
+  |> plot_flow_diagram(show_flow_rates = TRUE)
+  |> draw_outflows(layout, show_flow_rates = TRUE)
+  |> draw_inflows(layout, show_flow_rates = TRUE)
 )
 ```
 

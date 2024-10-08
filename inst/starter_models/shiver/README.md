@@ -216,12 +216,12 @@ actual_daily_reports = expected_daily_reports - missed_reports
 Daily COVID19 hospitalization data for Ontario was obtained from the
 [Ontario Data
 Catalogue](https://data.ontario.ca/dataset/covid-19-vaccine-data-in-ontario/resource/274b819c-5d69-4539-a4db-f2950794138c).
-The data contains daily hospitalization counts stratitfied by
-vaccination status and severity of hospitalization care. For simplicity,
-we aggregate all counts into one. We will use the first data point
-(August 10, 2021) as the initial condition for H, and the second data
-point (August 11, 2021) as day 1 of the scenario. To incorporate missed
-data reporting, we randomly remove 10 records.
+The data contains daily hospitalization counts stratified by vaccination
+status and severity of hospitalization care. For simplicity, we
+aggregate all counts into one. We will use the first data point (August
+10, 2021) as the initial condition for H, and the second data point
+(August 11, 2021) as day 1 of the scenario. To incorporate missed data
+reporting, we randomly remove 10 records.
 
 ``` r
 set.seed(expected_daily_reports)
