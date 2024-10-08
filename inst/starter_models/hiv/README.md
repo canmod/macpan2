@@ -76,13 +76,14 @@ spec = mp_tmb_library(
     "starter_models", "hiv"
   , package = "macpan2"
 )
+system.file("utils", "box-drawing.R", package = "macpan2") |> source()
 ```
 
 The specification can be used to draw the following flow diagram using
 code found in the [source for this
 article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/hiv/README.Rmd).
 
-![](./figures/flow_diagram-1.png)<!-- -->
+![](./figures/diagram-1.png)<!-- -->
 
 # Solving the ODEs
 

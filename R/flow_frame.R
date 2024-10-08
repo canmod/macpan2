@@ -46,10 +46,18 @@ topological_sort = function(spec, warn_not_dag = TRUE) {
   )
 }
 
-topological_sort_general = function(flows, resolution_states) {
+#' @param loops States used to ignore any flows that have those
+#' states as the `to` compartment, usually to create a DAG so that topological
+#' sort is valid.
+#' @noRd
+topological_sort_general = function(flows, loops = "^$") {
   all_states = unique(c(flows$from, flows$to))
-  states = c(resolution_states, setdiff(all_states, resolution_states))
-  topological_sort_engine(flows, states, warn_not_dag = FALSE)
+  flows = flows[flows$type == "flow", , drop = FALSE]
+  flows = flows[!grepl(loops, flows$name), , drop = FALSE]
+  states = unique(c(flows$from, flows$to))
+  missing_states = setdiff(all_states, states)
+  sorted_states = topological_sort_engine(flows, states, warn_not_dag = TRUE)
+  c(sorted_states, missing_states)
 }
 
 ## @param states in sorted order
@@ -66,17 +74,17 @@ is_cyclic = function(flows, states) {
 #' @param spec A \code{\link{mp_tmb_model_spec}}.
 #' @param topological_sort Should the states be topologically sorted to
 #' respect the main direction of flow?
-#' @param warn_not_dag Should a warning be thrown if the flow model is  
-#' not a directed acyclic graph. This is only relevant if `topological_sort`
-#' is used.
+#' @param loops Pattern for matching the names of flows that make 
+#' the flow model not a DAG, which is a critical assumption when topologically 
+#' sorting the order of states and flows in the output. This is only relevant if 
+#' `topological_sort` is used.
 #' @returns A data frame that gives information provided in calls to
 #' \code{\link{mp_per_capita_flow}} and \code{\link{mp_per_capita_inflow}}.
 #' 
 #' @export
-mp_flow_frame = function(spec, topological_sort = TRUE, warn_not_dag = TRUE) {
+mp_flow_frame = function(spec, topological_sort = TRUE, loops = "^$") {
   cf = spec$change_model$change_frame()
   ff = spec$change_model$flow_frame()
-  sv = unique(cf$state)
   to = cf[startsWith(cf$change, "+"), , drop = FALSE]
   from = cf[startsWith(cf$change, "-"), , drop = FALSE]
   to$change = sub("^\\+", "", to$change) |> reset_rownames()
@@ -109,7 +117,7 @@ mp_flow_frame = function(spec, topological_sort = TRUE, warn_not_dag = TRUE) {
     outflows$from_name = outflows$from
   }
   if (topological_sort) {
-    topo = topological_sort_engine(flows, sv, warn_not_dag)
+    topo = topological_sort_general(flows, loops)
     flows = flows[order(factor(flows$from, levels = topo)), , drop = FALSE]
   }
   flows = rbind(flows, inflows, outflows)

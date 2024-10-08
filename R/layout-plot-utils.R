@@ -1,33 +1,3 @@
-#' Plot Flow Diagrams (experimental)
-#' 
-#' @param flows Data frame of flows produced by \code{\link{mp_flow_frame}}.
-#' @param layout A character matrix with 
-mp_plot_flow_diagram = function(flows, layout, size = 6) {
-  lattice = node_lattice(layout)
-  nodes = node_dimensions(lattice)
-  edges = edge_dimensions(flows, nodes, lattice)
-
-  p = (ggplot()
-    + geom_segment(
-        aes(x = x_from, xend = x_to, y = y_from, yend = y_to)
-      , data = edges
-      , arrow = mp_flow_arrow
-      , colour = "blue"
-    )
-    + geom_rect(aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax)
-      , fill = "lightblue"
-      , data = nodes
-    )
-    + geom_text(
-        aes(x, y, label = state)
-      , size = size
-      , data = nodes
-      , colour = "blue"
-    )
-    + mp_ggtheme
-  )
-  p
-}
 
 LayoutMatrixUtils = function() {
   self = Base()
@@ -50,18 +20,36 @@ LayoutMatrixUtils = function() {
       , nc = ncol(layout)
     )
   }
-  self$nodes = function(x_gap = 0.2, y_gap = 0.2) {
+  self$nodes = function() {
     lattice = self$lattice()
     states = names(lattice$rows)
     pos = data.frame(state = states
-      , ymax = lattice$nr - vapply(lattice$rows, min, integer(1L)) + 1.5 - y_gap
-      , ymin = lattice$nr - vapply(lattice$rows, max, integer(1L)) + 0.5 + y_gap
-      , xmin = vapply(lattice$cols, min, integer(1L)) - 0.5 + x_gap
-      , xmax = vapply(lattice$cols, max, integer(1L)) + 0.5 - x_gap
+      , ymax = lattice$nr - vapply(lattice$rows, min, integer(1L)) + 1.5 - self$y_gap
+      , ymin = lattice$nr - vapply(lattice$rows, max, integer(1L)) + 0.5 + self$y_gap
+      , xmin = vapply(lattice$cols, min, integer(1L)) - 0.5 + self$x_gap
+      , xmax = vapply(lattice$cols, max, integer(1L)) + 0.5 - self$x_gap
     )
     pos$x = 0.5 * (pos$xmin + pos$xmax)
     pos$y = 0.5 * (pos$ymin + pos$ymax)
     pos
+  }
+  self$edges_flows = function() {
+    self$merge(self$flows(), self$nodes()) |> self$edge_dimensions()
+  }
+  self$edges_flows_ignored = function() {
+    self$merge(self$flows_ignored(), self$nodes())
+  }
+  self$edges_inflows = function() {
+    (self$inflows()
+      |> merge(self$nodes(), by.x = "to", by.y = "state")
+      |> self$inflow_dimensions()
+    )
+  }
+  self$edges_outflows = function() {
+    (self$outflows()
+      |> merge(self$nodes(), by.x = "from", by.y = "state")
+      |> self$outflow_dimensions()
+    )
   }
   self$merge = function(edges, nodes) {
     edges = edges[edges$type == "flow", , drop = FALSE]
@@ -71,10 +59,23 @@ LayoutMatrixUtils = function() {
     )
     merged_data
   }
-  edge_dimensions = function(edges, nodes) {
+  self$outflow_dimensions = function(edges_frame) {
+    e = edges_frame
+    e$xend = e$xmin - self$x_gap
+    e$yend = e$ymax + self$x_gap
+    e$xlab = 0.5 * (e$xmin + e$xend)
+    e$ylab = 0.5 * (e$ymax + e$yend)
+    return(e)
+  }
+  self$inflow_dimensions = function(edges_frame) {
+    e = edges_frame
+    e$xstart = e$xmin - 2 * self$x_gap
+    e$xlab = e$xmin - self$x_gap
+    return(e)
+  }
+  self$edge_dimensions = function(edges_frame) {
+    e = edges_frame
     lattice = self$lattice()
-    e = layout_merge(flows, nodes)
-  
     shared_rows = mapply(intersect
       , lattice$rows[e$from]
       , lattice$rows[e$to]
@@ -93,8 +94,8 @@ LayoutMatrixUtils = function() {
     e$dir = 0
     e$x = 0
     e$y = 0
-    x_gap = 0.3
-    y_gap = 0.3
+    x_gap = self$x_gap
+    y_gap = self$y_gap
     e = within(e, {
       dir[vert] <- y_to[vert] - y_from[vert]
       dir[hori] <- x_to[hori] - x_from[hori]
@@ -109,6 +110,10 @@ LayoutMatrixUtils = function() {
       x[vert] <- vapply(shared_cols[vert], min, integer(1L))
       y[vert] <- 0.5 * (y_from[vert] + y_to[vert])
       x[hori] <- 0.5 * (x_from[hori] + x_to[hori])
+      x[north] <- x[north] + 0.5 * self$north_south_sep
+      x[south] <- x[south] - 0.5 * self$north_south_sep
+      y[east] <- y[east] + 0.5 * self$east_west_sep
+      y[west] <- y[west] - 0.5 * self$east_west_sep
       
       ## where to plot arrow heads and tails
       x_from[east] <- xmax_from[east]
@@ -165,22 +170,98 @@ LayoutMatrix = function() {
 }
 
 #' @export
-print.LayoutMatrix = function(x, ...) print(self$matrix())
+print.LayoutMatrix = function(x, ...) {
+  print(x$matrix())
+  invisible(x)
+}
 
-LayoutMatrixFactors = function(spec
+#' Flow Diagram Grid Layout
+#' 
+#' Create a grid on which to layout the flow diagram of a model specification.
+#' 
+#' @param spec A model specification made with \code{\link{mp_tmb_model_spec}}
+#' or related function.
+#' @param east Regular expression for matching the names of flows that will
+#' be connected eastward in the layout.
+#' @param south Regular expression for matching the names of flows that will
+#' be connected southward in the layout.
+#' @param north Regular expression for matching the names of flows that will
+#' be connected northward in the layout.
+#' @param west Regular expression for matching the names of flows that will
+#' be connected westward in the layout.
+#' @param loops Regular expression for matching the names of flows that cause
+#' loops in the flow model, and so should be ignored when building the layout.
+#' 
+#' @export
+mp_layout_grid = function(spec
     , east = ""
+    , south = "^$"
     , north = "^$"
     , west = "^$"
+    , loops = north ## often reasonable to have loops go north 
+    , x_gap = 0.3
+    , y_gap = 0.3
+    , north_south_sep = 0
+    , east_west_sep = 0
+) LayoutMatrixGrid(spec, east, south, north, west, loops, x_gap, y_gap, north_south_sep, east_west_sep)
+
+#' Flow Diagram Grid Layout
+#' 
+#' Layout the flow diagram of a model specification so that each row is 
+#' one of the paths through the model (ignoring loops).
+#' 
+#' @param spec A model specification made with \code{\link{mp_tmb_model_spec}}
+#' or related function.
+#' @param sort_paths Should the paths/rows be sorted to minimize the 
+#' number times an edge must go through a node that it is not connected with?
+#' @param combine_columns Should each state/node get its own column in the
+#' layout (`FALSE`) or should the algorithm try to place branching states 
+#' in the same column (`TRUE`, default).
+#' @param deduplicate_edges Should each row have all of the edges in the path
+#' or should duplicate edges be removed?
+#' @param loops Regular expression for matching the names of flows that cause
+#' loops in the flow model, and so should be ignored when building the layout.
+#' @param ignore Regular expression for matching the names of flows that should
+#' be removed from the layout analysis entirely. These will be isolated in
+#' a data frame for custom drawing of 'difficult' edges.
+#' 
+#' @export
+mp_layout_paths = function(spec
+    , sort_paths = TRUE
+    , combine_columns = TRUE
+    , deduplicate_edges = TRUE
+    , loops = "^$"
+    , ignore = "^$"
+    , x_gap = 0.3
+    , y_gap = 0.3
+    , north_south_sep = 0
+    , east_west_sep = 0
+  ) LayoutMatrixPaths(spec, sort_paths, combine_columns, deduplicate_edges, loops, ignore, x_gap, y_gap, north_south_sep, east_west_sep)
+
+LayoutMatrixGrid = function(spec
+    , east = ""
     , south = "^$"
+    , north = "^$"
+    , west = "^$"
+    , loops = north ## often reasonable to have loops go north 
+    , x_gap = 0.3
+    , y_gap = 0.3
+    , north_south_sep = 0
+    , east_west_sep = 0
 ) {
   self = LayoutMatrix()
   self$spec = spec
+  self$loops = loops
   self$east = east
   self$north = north
   self$west = west
   self$south = south
+  self$x_gap = x_gap
+  self$y_gap = y_gap
+  self$north_south_sep = north_south_sep
+  self$east_west_sep = east_west_sep
   
-  flows = mp_flow_frame(spec, warn_not_dag = FALSE)
+  flows = mp_flow_frame(spec, loops = loops)
   simple_flows = flows[flows$type == "flow", , drop = FALSE]
   self$.east = grepl(east, simple_flows$name)
   self$.west = grepl(west, simple_flows$name)
@@ -193,20 +274,20 @@ LayoutMatrixFactors = function(spec
     ff = self$.flows[self$.flows$type == "flow", , drop = FALSE]
     ff[self$.include, , drop = FALSE]
   }
-  self$flows_ignores = function() {
+  self$flows_ignored = function() {
     ff = self$.flows[self$.flows$type == "flow", , drop = FALSE]
     ff[!self$.include, , drop = FALSE]
   }
   self$inflows = function() {
     self$.flows[self$.flows$type == "inflow", , drop = FALSE]
   }
-  self$inflows = function() {
+  self$outflows = function() {
     self$.flows[self$.flows$type == "outflow", , drop = FALSE]
   }
   
   self$matrix = function() {
     flows = self$flows()
-    states = topological_sort_engine(flows, warn_not_dag = FALSE)
+    states = topological_sort_general(flows, loops = self$loops)
     layout = matrix("", 2L * length(states) + 1L, 2L * length(states) + 1L)
     layout[length(states), length(states)] = states[1L]
     
@@ -224,9 +305,9 @@ LayoutMatrixFactors = function(spec
       state_rows = lr[i]
       state_cols = lc[i]
       neighbour = links$N[[state]]
-      if (length(neighbour) == 1L) layout[max(state_rows) + 1L, min(state_cols)] = neighbour
-      neighbour = links$S[[state]]
       if (length(neighbour) == 1L) layout[min(state_rows) - 1L, min(state_cols)] = neighbour
+      neighbour = links$S[[state]]
+      if (length(neighbour) == 1L) layout[max(state_rows) + 1L, min(state_cols)] = neighbour
       neighbour = links$E[[state]]
       if (length(neighbour) == 1L) layout[min(state_rows), max(state_cols) + 1L] = neighbour
       neighbour = links$W[[state]]
@@ -240,43 +321,59 @@ LayoutMatrixFactors = function(spec
 }
 
 LayoutMatrixPaths = function(spec
-    , start_state = character()
     , sort_paths = TRUE
     , combine_columns = TRUE
     , deduplicate_edges = TRUE
+    , loops = "^$"
+    , ignore = "^$"
+    , x_gap = 0.3
+    , y_gap = 0.3
+    , north_south_sep = 0
+    , east_west_sep = 0
   ) {
   self = LayoutMatrix()
   self$spec = spec
-  self$start_state = start_state
+  self$loops = loops
   self$sort_paths = sort_paths
   self$combine_columns = combine_columns
   self$deduplicate_edges = deduplicate_edges
+  self$x_gap = x_gap
+  self$y_gap = y_gap
+  self$north_south_sep = north_south_sep
+  self$east_west_sep = east_west_sep
   
-  flows = mp_flow_frame(spec, warn_not_dag = FALSE)
-  simple_flows = flows[flows$type == "flow", , drop = FALSE]
-  sorted_states = macpan2:::topological_sort_engine(simple_flows, warn_not_dag = FALSE)
-  #as.numeric(factor(flows$to, levels = sorted_states)) - as.numeric(factor(flows$from, levels = sorted_states))
+  self$.flows = mp_flow_frame(spec, loops = loops)
+  states = macpan2:::topological_sort_general(self$.flows, loops = loops)
+  self$.paths <- find_all_paths(self$.flows, states[1L])
+  if (length(self$.paths) == 0L) stop("model has no paths!")
+  if (length(self$.paths) == 1L) self$sort_paths = FALSE
   
+  self$.include = !grepl(ignore, self$.flows$name)
   
   self$flows = function() {
-    ff = self$.flows
+    ff = self$.flows[self$.include, , drop = FALSE]
     ff[ff$type == "flow", , drop = FALSE]
+  }
+  self$flows_ignored = function() {
+    ff = self$.flows[!self$.include, , drop = FALSE]
+    ff[ff$type == "flow", , drop = FALSE]
+  }
+  self$inflows = function() {
+    ff = self$.flows[self$.include, , drop = FALSE]
+    ff[ff$type == "inflow", , drop = FALSE]
+  }
+  self$outflows = function() {
+    ff = self$.flows[self$.include, , drop = FALSE]
+    ff[ff$type == "outflow", , drop = FALSE]
   }
   
   self$matrix = function() {
     flows = self$.flows
-    paths <- find_all_paths(flows, self$start_state)
-    if (length(paths) == 0L) stop("model has no paths!")
-    if (length(paths) == 1L) sort_paths = FALSE
     
-    # Identify all unique nodes from the edges and sort them topologically
-    states <- unique(c(flows$from, flows$to))
-    start_state = intersect(states, start_state)
-    states = c(start_state, setdiff(states, start_state))
-    states = macpan2:::topological_sort_engine(flows, states, warn_not_dag = FALSE)
+    states = macpan2:::topological_sort_general(flows, self$loops)
     
     # Pad each path by aligning nodes to their respective positions
-    padded_paths <- lapply(paths, function(path) {
+    padded_paths <- lapply(self$.paths, function(path) {
       padded <- rep("", length(states))  # Create an empty vector of the same length as all_nodes
       for (i in seq_along(path)) {
         state <- path[i]
@@ -288,23 +385,38 @@ LayoutMatrixPaths = function(spec
     # Convert the list of padded paths to a matrix
     padded_paths_matrix <- do.call(rbind, padded_paths)
     
-    if (sort_paths) {
+    # Remove blank rows and columns (might be unnecessary)
+    blank_els = padded_paths_matrix == ""
+    rr = !apply(blank_els, 1L, all)
+    cc = !apply(blank_els, 2L, all)
+    padded_paths_matrix = padded_paths_matrix[rr, cc]
+    
+    if (self$sort_paths) {
       i = macpan2:::order_corresp(padded_paths_matrix)
       padded_paths_matrix = padded_paths_matrix[i, , drop = FALSE]
-      paths = paths[i]
+      self$.paths = self$.paths[i]
     }
     
-    path_to_edges = function(path) data.frame(from = path[-length(path)], to = path[-1])
-    path_ids = lapply(paths, path_to_edges) |> bind_rows(.id = "path_id")
-    path_ids$path_id = as.numeric(path_ids$path_id)
     
     ## only need one edge per node-pair
-    if (deduplicate_edges) {
-      i = duplicated(path_ids[, c("to", "from")])
-      path_ids = path_ids[!i, , drop = FALSE]
-    }
-    if (combine_columns) {
+    if (self$combine_columns) {
       padded_paths_matrix = macpan2:::combine_adjacent_columns(padded_paths_matrix)
+    }
+    if (self$deduplicate_edges) {
+      path_to_edges = function(path) data.frame(from = path[-length(path)], to = path[-1])
+      path_ids = lapply(self$.paths, path_to_edges) |> bind_rows(.id = "path_id")
+      path_ids$path_id = as.numeric(path_ids$path_id)
+      i = duplicated(path_ids[, c("to", "from")])
+      edges_to_keep = path_ids[!i, , drop = FALSE]
+      for (state in states) {
+        paths_required_for_state = c(
+            edges_to_keep$path_id[edges_to_keep$from == state]
+          , edges_to_keep$path_id[edges_to_keep$to == state]
+        )
+        state_rows = setdiff(seq_along(self$.paths), paths_required_for_state)
+        k = (padded_paths_matrix == state) & (row(padded_paths_matrix) %in% state_rows)
+        padded_paths_matrix[k] = ""
+      }
     }
     
     return(padded_paths_matrix)
@@ -499,7 +611,10 @@ edge_dimensions = function(flows, node_data, lattice) {
     x_from[vert] <- x[vert]
     x_to[vert] <- x[vert]
   })
-
+  
+  
+  
+  return(e)
 }
 
 
@@ -757,16 +872,6 @@ mp_plot_layout = function(layout, size = 6) {
   )
   p
 }
-# mp_ggtheme = theme(
-#   axis.line = element_blank(),
-#   axis.text = element_blank(),
-#   axis.ticks = element_blank(),
-#   axis.title = element_blank(),
-#   panel.background = element_blank(),
-#   panel.grid = element_blank(),
-#   plot.background = element_blank()
-# )
-# mp_flow_arrow = arrow(length = unit(3, 'mm'))
 
 mp_add_ports = function(parsed_paths
   , x_pad = 0.3  ## so you can have space for horizontal arrows
