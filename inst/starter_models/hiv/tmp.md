@@ -13,12 +13,12 @@ Steve Walker
     ODEs</a>
 -   <a href="#references" id="toc-references">References</a>
 
-This article describes a `macpan2` implementation of the HIV model
+This is a description of a `macpan2` implementation of the HIV model
 proposed by ([Granich et al. 2009](#ref-granich2009universal)). This
 model played a key role in advancing HIV prevention using antiretroviral
 therapy, predicting that a test-and-treat strategy would substantially
-lower HIV incidence ([Hayes et al. 2019](#ref-hayes2019effect)). Default
-parameter estimates
+lower HIV incidence ([**hayes2019effect?**](#ref-hayes2019effect)).
+Default parameter estimates
 [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/hiv/tmb.R)
 are inspired by ([Kretzschmar et al.
 2013](#ref-kretzschmar2013prospects)).
@@ -28,9 +28,12 @@ are inspired by ([Kretzschmar et al.
 The code in this article uses the following packages.
 
 ``` r
-library(macpan2)
 library(ggplot2)
 library(dplyr)
+library(tidyr)
+library(macpan2)
+library(ggraph)
+library(tidygraph)
 ```
 
 # Model Specification
@@ -129,15 +132,6 @@ and Brian G Williams. 2009. “Universal Voluntary HIV Testing with
 Immediate Antiretroviral Therapy as a Strategy for Elimination of HIV
 Transmission: A Mathematical Model.” *The Lancet* 373 (9657): 48–57.
 <https://www.thelancet.com/journals/lancet/article/PIIS0140-6736(08)61697-9/abstract>.
-
-</div>
-
-<div id="ref-hayes2019effect" class="csl-entry">
-
-Hayes, Richard J, Deborah Donnell, Sian Floyd, Nomtha Mandla, Justin
-Bwalya, Kalpana Sabapathy, Blia Yang, et al. 2019. “Effect of Universal
-Testing and Treatment on HIV Incidence—HPTN 071 (PopART).” *New England
-Journal of Medicine* 381 (3): 207–18.
 
 </div>
 

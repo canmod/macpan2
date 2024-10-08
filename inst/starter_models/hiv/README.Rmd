@@ -1,7 +1,7 @@
 ---
 title: "HIV"
 index_entry: "A simple HIV model"
-bibliography: references.bib
+bibliography: ../../references.bib
 link-citations: TRUE
 author: Steve Walker
 output: 
@@ -20,7 +20,50 @@ knitr::opts_chunk$set(
 ```
 
 
-This is a description of a `macpan2` implementation of the HIV model proposed by [@granich2009universal]. Default parameter estimates [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/hiv/tmb.R) are inspired by [@kretzschmar2013prospects].
+This article describes a `macpan2` implementation of the HIV model proposed by [@granich2009universal]. This model played a key role in advancing HIV prevention using antiretroviral therapy, predicting that a test-and-treat strategy would substantially lower HIV incidence [@hayes2019effect]. Default parameter estimates [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/hiv/tmb.R) are inspired by [@kretzschmar2013prospects].
+
+# Packages Used
+
+The code in this article uses the following packages.
+
+```{r packages, warning=FALSE, message=FALSE}
+library(macpan2)
+library(ggplot2)
+library(dplyr)
+```
+
+
+# Model Specification
+
+This model has been specified in the `hiv` directory [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/hiv/tmb.R) and is accessible from the `macpan2` model library (see [Example Models](https://canmod.github.io/macpan2/articles/example_models.html) for details). We can read in the model specification using the `mp_tmb_library` command.
+```{r model_lib}
+spec = mp_tmb_library(
+    "starter_models"
+  , "hiv"
+  , package = "macpan2"
+)
+```
+
+This specification can be used to draw the following flow diagram using code found in the [source for this article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/hiv/README.Rmd).
+
+```{r diagram, echo = FALSE, fig.height = 2.5, fig.width = 8.5}
+system.file("utils", "box-drawing.R", package = "macpan2") |> source()
+layout = mp_layout_grid(spec
+  , east = "^(infection|progression|death)"
+  , south = "^(protection)"
+  , north = "^(unprotection)"
+  , loops = "^(unprotection)"
+  , x_gap = 0.3
+  , y_gap = 0.3
+  , north_south_sep = 0.15
+)
+diagram = plot_flow_diagram(layout)
+(diagram 
+  |> draw_outflows(layout)
+  |> draw_inflows(layout)
+)
+```
+
 
 # States
 
@@ -52,113 +95,16 @@ This is a description of a `macpan2` implementation of the HIV model proposed by
 
 This model has the somewhat non-standard functional form for the force-of-infection (per-capita transition rate from `S` to `I1`), $\frac{\lambda J}{N}$ where $\lambda = \lambda_0 e^{-\alpha P^n}$, $P = I/N$, $I = \sum_i(I_i + A_i)$, $J = \sum_i(I_i + \epsilon A_i)$, and $N$ is the total number of alive boxes.
 
-The rest of the transition rates are constant per-capita rates.
-
-# Packages Used
-
-The code in this article uses the following packages.
-```{r packages, warning=FALSE}
-library(ggplot2)
-library(dplyr)
-library(tidyr)
-library(macpan2)
-library(ggraph)
-library(tidygraph)
-```
-
-
-# Dynamics
-
-We can read in the model specification using the `mp_tmb_library` command.
-```{r model_lib}
-spec = mp_tmb_library(
-    "starter_models", "hiv"
-  , package = "macpan2"
-)
-```
-
-The specification can be used to draw the following flow diagram using code found in the [source for this article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/hiv/README.Rmd).
-
-```{r flow_diagram, echo = FALSE, fig.height=4, fig.width=6}
-y_pos = function(min, max, rng = 10) {
-  y = c(
-      S = max
-    , I1 = max, I2 = max, I3 = max, I4 = max
-    , A1 = min, A2 = min, A3 = min, A4 = min
-    , D = min, N = min
-  )
-  aa = y[!names(y) %in% c("D", "N")]
-  dd = ifelse(aa == max, rng, 0) |> setNames(sprintf("%s_%s", "D_bg", names(aa)))
-  c(y, dd) / rng
-}
-x_pos = function(min, max, rng = 10) {
-  x = c(
-      S = 1
-    , I1 = min, I2 = min + 1.5, I3 = min + 3, I4 = min + 4.5
-    , A1 = min, A2 = min + 1.5, A3 = min + 3, A4 = min + 4.5
-    , D = rng - 1, N = 1
-  )
-  aa = x[!names(x) %in% c("D", "N")]
-  names(aa) = sprintf("%s_%s", "D_bg", names(aa))
-  c(x, aa) / rng
-}
-
-node_size = 10
-edge_data = (spec
-  |> mp_flow_frame(topological_sort = FALSE)
-  |> mutate(name = ifelse(rate == "beta", "birth", name))
-  |> mutate(rate = ifelse(rate %in% c("tau", "phi", "mu", "beta")
-      , sprintf("phantom(0) * phantom(0) * %s", rate)
-      , sprintf("atop(%s, phantom(0))", rate)
-  ))
-  |> mutate(to = ifelse(to == ""
-      , sprintf("D_bg_%s", from)
-      , to
-  ))
-  |> mutate(from = ifelse(to == "S", "N", from))
-  |> distinct()
-)
-node_data = (data.frame(name = unique(c(edge_data$from, edge_data$to)))
-  |> mutate(labels = ifelse(startsWith(name, "D_bg_"), "", name))
-  |> mutate(sizes = ifelse(startsWith(name, "D_bg_"), 0, node_size))
-  |> mutate(is_N = name == "N")
-)
-
-(node_data
-  |> tbl_graph(edge_data)
-  |> ggraph('manual', x = x_pos(3, 7)[name], y = y_pos(3, 7)[name])
-  + geom_edge_arc(aes(label = rate)
-    , arrow = arrow(length = unit(node_size * 0.3, 'mm'))
-    , end_cap = circle(node_size / 2, 'mm')
-    , start_cap = circle(node_size / 2, 'mm')
-    , label_parse = TRUE
-    , strength = 0.06
-  )
-  + geom_node_point(aes(size = sizes, colour = is_N))
-  + geom_node_text(aes(label = labels), family = "mono")
-  + theme_graph(background = NA, plot_margin = margin(0, 0, 0, 0))
-  + scale_x_continuous(limits = c(0, 1), breaks = seq(from = 0, to = 1, by = 0.05))
-  + scale_y_continuous(limits = c(0, 1))
-  + scale_size_continuous(guide = "none", range = c(-1, node_size))
-  + scale_colour_manual(guide = "none", values = c("FALSE" = "lightgrey", "TRUE" = "white"))
-)
-```
-
+The remaining transition rates are constant per-capita rates.
 
 # Solving the ODEs
 
-Here is an example trajectory from this model with defaults using the Runge-Kutta ODE solver.
+Here is an example trajectory from this model with small [updates](?mp_tmb_update()) to the default parameters, using the [Runge-Kutta ODE solver](?mp_rk4()).
 
 ```{r simulations}
 outputs = c(sprintf("I%s", 1:4), sprintf("A%s", 1:4))
-I0 = 1/400
-A0 = 0
 sim = (spec
-  |> mp_tmb_update(default = list(
-      lambda0 = 0.36, n = 0.2
-    , I1 = I0, I2 = I0, I3 = I0, I4 = I0
-    , A1 = A0, A2 = A0, A3 = A0, A4 = A0
-  ))
+  |> mp_tmb_update(default = list(lambda0 = 0.36, n = 0.2))
   |> mp_rk4()
   |> mp_simulator(time_steps = 50L, outputs)
 )
@@ -170,12 +116,9 @@ sim = (spec
   + geom_line(aes(time, value))
   + facet_wrap(~ matrix, ncol = 2, scales = 'free', dir = "v")
   + scale_y_continuous(limits = c(0, NA), expand = c(0, 0))
+  + theme_bw()
 )
 ```
 
-
-# Model Specification
-
-This model has been specified in the `hiv` directory [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/hiv/tmb.R) and is accessible from the `macpan2` model library (see [Example Models](https://canmod.github.io/macpan2/articles/example_models.html) for details).
 
 # References

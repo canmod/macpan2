@@ -1,33 +1,45 @@
-MacPan base
-================
-Jennifer Freeman
+---
+title: "MacPan base"
+index_entry: "re-implementation of the McMaster group's COVID-19 model"
+bibliography: ../../references.bib
+link-citations: TRUE
+author: Jennifer Freeman
+output: 
+  github_document:
+    toc: true
+editor_options: 
+  chunk_output_type: console
+---
 
--   <a href="#packages-used" id="toc-packages-used">Packages Used</a>
--   <a href="#model-specification" id="toc-model-specification">Model
-    Specification</a>
--   <a href="#states" id="toc-states">States</a>
--   <a href="#parameters" id="toc-parameters">Parameters</a>
--   <a href="#differential-equations"
-    id="toc-differential-equations">Differential Equations</a>
--   <a href="#references" id="toc-references">References</a>
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "./figures/"
+)
+round_coef_tab = function(x, digits = 4) {
+  id_cols = c("term", "mat", "row", "col", "type")
+  num_cols = setdiff(names(x), id_cols)
+  for (col in num_cols) {
+    x[[col]] = round(x[[col]], digits)
+  }
+  rownames(x) = NULL
+  cols_to_drop = c("term", "col", "type")
+  x = x[, setdiff(names(x), cols_to_drop), drop = FALSE]
+  x
+}
+system.file("utils", "box-drawing.R", package = "macpan2") |> source()
+```
 
-The McMasterPandemic model ([Bolker et al. 2024](#ref-macpan)), which is
-modified SEIR model that incorporates additional infectious compartments
-to reflect the current knowledge of COVID-19 epidemiology. Exposed
-individuals enter four infectious compartments characterized by the
-individuals symptom status (asymptomatic, pre-symptomatic, mild, and
-severe). Severely infected individuals require care through hospital
-and/or Intensive Care Unit (ICU) compartments and either recover or die.
+The McMasterPandemic model [@macpan], which is  modified SEIR model that incorporates additional infectious compartments to reflect the current knowledge of COVID-19 epidemiology. Exposed individuals enter four infectious compartments characterized by the individuals symptom status (asymptomatic, pre-symptomatic, mild, and severe). Severely infected individuals require care through hospital and/or Intensive Care Unit (ICU) compartments and either recover or die.
 
-This model was used throughout the pandemic to support public health
-responses (e.g.,
-<https://mac-theobio.github.io/forecasts/outputs/ON_accuracy.html>).
+This model was used throughout the pandemic to support public health responses (e.g., [https://mac-theobio.github.io/forecasts/outputs/ON_accuracy.html](https://mac-theobio.github.io/forecasts/outputs/ON_accuracy.html)).
 
 # Packages Used
 
 The code in this article uses the following packages.
 
-``` r
+```{r packages, warning=FALSE, message=FALSE}
 library(macpan2)
 library(ggplot2)
 library(dplyr)
@@ -35,14 +47,8 @@ library(dplyr)
 
 # Model Specification
 
-This model has been specified in the `macpan_base` directory
-[here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/macpan_base/tmb.R)
-and is accessible from the `macpan2` model library (see [Example
-Models](https://canmod.github.io/macpan2/articles/example_models.html)
-for details). We can read in the model specification using the
-`mp_tmb_library` command.
-
-``` r
+This model has been specified in the `macpan_base` directory [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/macpan_base/tmb.R) and is accessible from the `macpan2` model library (see [Example Models](https://canmod.github.io/macpan2/articles/example_models.html) for details). We can read in the model specification using the `mp_tmb_library` command.
+```{r model_lib}
 spec = mp_tmb_library(
     "starter_models"
   , "macpan_base"
@@ -50,18 +56,19 @@ spec = mp_tmb_library(
 )
 ```
 
-This specification can be used to draw the following flow diagrams using
-code found in the [source for this
-article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/macpan_base/README.Rmd).
-For clarity, we first draw the epidemiological components of the model
-first, followed by the wastewater shedding component.
+This specification can be used to draw the following flow diagrams using code found in the [source for this article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/macpan_base/README.Rmd). For clarity, we first draw the epidemiological components of the model first, followed by the wastewater shedding component.
 
-![](./figures/diagram-1.png)<!-- -->
+```{r diagram, echo = FALSE, fig.height = 5, fig.width = 8}
+system.file("utils", "box-drawing.R", package = "macpan2") |> source()
+layout = mp_layout_paths(spec, x_gap = 0.1, y_gap = 0.1)
+plot_flow_diagram(layout)
+```
+
 
 # States
 
 | variable | description                                                         |
-|----------|---------------------------------------------------------------------|
+| -------- | ------------------------------------------------------------------- |
 | $S$      | Number of susceptible individuals                                   |
 | $E$      | Number of exposed individuals                                       |
 | $I_a$    | Number of asymptomatic infectious individuals                       |
@@ -75,13 +82,12 @@ first, followed by the wastewater shedding component.
 | $D$      | Number of dead individuals                                          |
 | $R$      | Number of recovered individuals                                     |
 
-The size of the total population is,
-$N = S + E + I_a + I_p + I_m + I_s + H + ICU_s + ICU_d + H_2 + D + R$.
+The size of the total population is, $N = S + E + I_a + I_p + I_m + I_s + H +  ICU_s + ICU_d + H_2 + D + R$.
 
 # Parameters
 
 | variable       | description                                                                         |
-|----------------|-------------------------------------------------------------------------------------|
+| -------------- | ----------------------------------------------------------------------------------- |
 | $\beta_0$      | baseline (non-intervention) transmission across categories                          |
 | $C_a$          | relative asymptomatic transmission (or contact) proportion                          |
 | $C_p$          | relative presymptomatic transmission (or contact) proportion                        |
@@ -107,7 +113,6 @@ $N = S + E + I_a + I_p + I_m + I_s + H + ICU_s + ICU_d + H_2 + D + R$.
 # Differential Equations
 
 <!-- nb. do not remove the spaces in `\delta _ {nh}`. https://github.com/github/markup/issues/1575 -->
-
 $$
 \begin{align*}
 \frac{dS}{dt} &= -\beta_0\left(C_aI_a +C_pI_p + C_mI_m(1-\text{iso}_m) + C_sI_s(1-\text{iso}_s)\right)S/N \\
@@ -125,19 +130,6 @@ $$
 \end{align*}
 $$
 
-When there were discrepancies with how the model is expressed in Papst
-(TBD) versus model definition files, the latter was chosen.
+When there were discrepancies with how the model is expressed in Papst (TBD) versus model definition files, the latter was chosen.
 
-# References
-
-<div id="refs" class="references csl-bib-body hanging-indent">
-
-<div id="ref-macpan" class="csl-entry">
-
-Bolker, Ben, David Earn, Morgan Kain, Mike Li, and Jonathan Dushoff.
-2024. *McMasterPandemic: Pandemic Model*.
-<https://github.com/bbolker/McMasterPandemic>.
-
-</div>
-
-</div>
+# References 

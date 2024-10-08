@@ -4,7 +4,7 @@
 \alias{mp_flow_frame}
 \title{Flow Frame (experimental)}
 \usage{
-mp_flow_frame(spec, topological_sort = TRUE, warn_not_dag = TRUE)
+mp_flow_frame(spec, topological_sort = TRUE, loops = "^$")
 }
 \arguments{
 \item{spec}{A \code{\link{mp_tmb_model_spec}}.}
@@ -12,9 +12,10 @@ mp_flow_frame(spec, topological_sort = TRUE, warn_not_dag = TRUE)
 \item{topological_sort}{Should the states be topologically sorted to
 respect the main direction of flow?}
 
-\item{warn_not_dag}{Should a warning be thrown if the flow model is
-not a directed acyclic graph. This is only relevant if \code{topological_sort}
-is used.}
+\item{loops}{Pattern for matching the names of flows that make
+the flow model not a DAG, which is a critical assumption when topologically
+sorting the order of states and flows in the output. This is only relevant if
+\code{topological_sort} is used.}
 }
 \value{
 A data frame that gives information provided in calls to
