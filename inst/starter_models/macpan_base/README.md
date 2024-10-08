@@ -2,6 +2,7 @@ MacPan base
 ================
 Jennifer Freeman
 
+-   <a href="#packages-used" id="toc-packages-used">Packages Used</a>
 -   <a href="#model-specification" id="toc-model-specification">Model
     Specification</a>
 -   <a href="#states" id="toc-states">States</a>
@@ -21,6 +22,8 @@ and/or Intensive Care Unit (ICU) compartments and either recover or die.
 This model was used throughout the pandemic to support public health
 responses (e.g.,
 <https://mac-theobio.github.io/forecasts/outputs/ON_accuracy.html>).
+
+# Packages Used
 
 The code in this article uses the following packages.
 

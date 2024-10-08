@@ -35,6 +35,8 @@ The McMasterPandemic model [@macpan], which is  modified SEIR model that incorpo
 
 This model was used throughout the pandemic to support public health responses (e.g., [https://mac-theobio.github.io/forecasts/outputs/ON_accuracy.html](https://mac-theobio.github.io/forecasts/outputs/ON_accuracy.html)).
 
+# Packages Used
+
 The code in this article uses the following packages.
 
 ```{r packages, warning=FALSE, message=FALSE}
