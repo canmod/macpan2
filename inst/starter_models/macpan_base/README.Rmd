@@ -37,23 +37,29 @@ This model was used throughout the pandemic to support public health responses (
 
 The code in this article uses the following packages.
 
-```{r packages, message=FALSE, warning=FALSE}
+```{r packages, warning=FALSE, message=FALSE}
+library(macpan2)
 library(ggplot2)
 library(dplyr)
-library(tidyr)
-library(macpan2)
 ```
 
 # Model Specification
 
-This model has been specified in the `macpan_base` directory [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/macpan_base/tmb.R) and is accessible from the `macpan2` model library (see [Example Models](https://canmod.github.io/macpan2/articles/example_models.html) for details). It can be loaded into `R` using the following command.
-```{r spec}
-spec = mp_tmb_library("starter_models", "macpan_base", package = "macpan2")
+This model has been specified in the `macpan_base` directory [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/macpan_base/tmb.R) and is accessible from the `macpan2` model library (see [Example Models](https://canmod.github.io/macpan2/articles/example_models.html) for details). We can read in the model specification using the `mp_tmb_library` command.
+```{r model_lib}
+spec = mp_tmb_library(
+    "starter_models"
+  , "macpan_base"
+  , package = "macpan2"
+)
 ```
 
-This model specification has the following flow diagram (see source for this document for code).
-```{r diagram, echo = FALSE}
-spec |> mp_layout_paths() |> plot_flow_diagram()
+This specification can be used to draw the following flow diagrams using code found in the [source for this article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/macpan_base/README.Rmd). For clarity, we first draw the epidemiological components of the model first, followed by the wastewater shedding component.
+
+```{r diagram, echo = FALSE, fig.height = 5, fig.width = 5}
+system.file("utils", "box-drawing.R", package = "macpan2") |> source()
+layout = mp_layout_paths(spec, x_gap = 0.1, y_gap = 0.1)
+plot_flow_diagram(layout)
 ```
 
 

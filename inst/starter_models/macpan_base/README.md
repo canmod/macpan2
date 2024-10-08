@@ -2,11 +2,13 @@ MacPan base
 ================
 Jennifer Freeman
 
-- [Model Specification](#model-specification)
-- [States](#states)
-- [Parameters](#parameters)
-- [Differential Equations](#differential-equations)
-- [References](#references)
+-   <a href="#model-specification" id="toc-model-specification">Model
+    Specification</a>
+-   <a href="#states" id="toc-states">States</a>
+-   <a href="#parameters" id="toc-parameters">Parameters</a>
+-   <a href="#differential-equations"
+    id="toc-differential-equations">Differential Equations</a>
+-   <a href="#references" id="toc-references">References</a>
 
 The McMasterPandemic model ([Bolker et al. 2024](#ref-macpan)), which is
 modified SEIR model that incorporates additional infectious compartments
@@ -23,10 +25,9 @@ responses (e.g.,
 The code in this article uses the following packages.
 
 ``` r
+library(macpan2)
 library(ggplot2)
 library(dplyr)
-library(tidyr)
-library(macpan2)
 ```
 
 # Model Specification
@@ -35,14 +36,24 @@ This model has been specified in the `macpan_base` directory
 [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/macpan_base/tmb.R)
 and is accessible from the `macpan2` model library (see [Example
 Models](https://canmod.github.io/macpan2/articles/example_models.html)
-for details). It can be loaded into `R` using the following command.
+for details). We can read in the model specification using the
+`mp_tmb_library` command.
 
 ``` r
-spec = mp_tmb_library("starter_models", "macpan_base", package = "macpan2")
+spec = mp_tmb_library(
+    "starter_models"
+  , "macpan_base"
+  , package = "macpan2"
+)
 ```
 
-This model specification has the following flow diagram (see source for
-this document for code). ![](./figures/diagram-1.png)<!-- -->
+This specification can be used to draw the following flow diagrams using
+code found in the [source for this
+article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/macpan_base/README.Rmd).
+For clarity, we first draw the epidemiological components of the model
+first, followed by the wastewater shedding component.
+
+![](./figures/diagram-1.png)<!-- -->
 
 # States
 
@@ -81,20 +92,14 @@ $N = S + E + I_a + I_p + I_m + I_s + H + ICU_s + ICU_d + H_2 + D + R$.
 | $\gamma_m$     | 1/time to recovery for mildly symptomatic infections                                |
 | $\gamma_s$     | 1/time spent in severely symptomatic state before either hospitalization or death   |
 | $\rho$         | 1/time in hospital (initial acute care admission)                                   |
-| $\delta$       | fraction of hospitalized infections that are fatal \*\*                             |
 | $\delta_{nh}$  | probability of mortality without hospitalization                                    |
-| $\text{iso}_m$ | relative self-isolation/distancing of mild cases \*                                 |
-| $\text{iso}_s$ | relative self-isolation/distancing of severe cases \*                               |
+| $\text{iso}_m$ | relative self-isolation/distancing of mild cases                                    |
+| $\text{iso}_s$ | relative self-isolation/distancing of severe cases                                  |
 | $\phi_1$       | fraction of hospitalized infections that only require acute care (no ICU admission) |
 | $\phi_2$       | fraction of ICU infections that are fatal                                           |
 | $\psi_1$       | 1/time spent in ICU before returning to acute care                                  |
 | $\psi_2$       | 1/time spent in ICU before dying                                                    |
 | $\psi_3$       | 1/time in post-ICU acute care before hospital discharge                             |
-
-\* These parameters were not detailed in ([Papst et al.
-2024](#ref-papst2024forecasting)), but they were included in model
-definition files. \*\* This parameter does not appear in the model
-dynamics.
 
 # Differential Equations
 
@@ -129,15 +134,6 @@ When there were discrepancies with how the model is expressed in Papst
 Bolker, Ben, David Earn, Morgan Kain, Mike Li, and Jonathan Dushoff.
 2024. *McMasterPandemic: Pandemic Model*.
 <https://github.com/bbolker/McMasterPandemic>.
-
-</div>
-
-<div id="ref-papst2024forecasting" class="csl-entry">
-
-Papst, Irena, Mike Li, David Champredon, Aamir Fazil, Jonathan Dushoff,
-Ben Bolker, and David Earn. 2024. “Forecasting Infectious Disease Spread
-as New Variants Emerge and Vaccination Rates Increase.” Accessed 4 Jan
-2024.
 
 </div>
 
