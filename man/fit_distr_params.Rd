@@ -21,9 +21,62 @@ the associated distribution. For example, the standard deviation parameter
 \code{sd} in the \code{\link{mp_normal}} distributions has a default log
 transformation specified using \code{\link{mp_log}}.}
 }
+\value{
+A distributional parameter object.
+}
 \description{
 Distributional parameters can be added to the list of parameters that are fit
 during calibration. By default, distributional parameters in priors and
 likelihoods are not fit. Use \code{mp_nofit} to exclude distributional parameters
 from being fit and \code{mp_fit} to fit them.
+}
+\examples{
+
+# First we call the SIR model spec, and generate some data for calibration.
+spec = mp_tmb_library("starter_models", "sir", package = "macpan2")
+data = mp_simulator(spec, 50, "infection") |> mp_trajectory()
+
+# Suppose we want to specify a Normal prior on the transmission parameter 
+# beta, and we are interested in estimating the prior standard deviation.
+# Here we use `mp_fit` to estimate the standard deviation, `sd`, and we 
+# provide a numeric starting value for `sd` in the optimization. 
+cal = mp_tmb_calibrator(
+    spec
+  , data
+  , traj = "infection"
+  , par = list(beta = mp_normal(location = 0.35, sd = mp_fit(0.1)))
+  , default = list(beta = 0.25)
+)
+
+# When viewing the calibration objective function we can see the additional
+# prior density term added for beta. The standard deviation parameter has
+# been automatically named 'distr_params_log_sd_beta'.
+cal$simulator$tmb_model$obj_fn$obj_fn_expr
+
+# Next we optimize and view the fitted parameters. We can see the 
+# distributional parameter in the coefficient table with a default value 
+# equal to the numeric value we provided to `mp_fit` above.
+mp_optimize(cal)
+mp_tmb_coef(cal)
+
+# If instead we want control over the name of the new fitted distributional
+# parameter, we can add a new variable to our model specification with the 
+# default value set to the desired optimization starting value.
+updated_spec = spec |> mp_tmb_insert(default = list(sd_var = 0.1))
+
+# In the calibrator, we use the name of this newly added variable, "sd_var",
+# as input to `mp_fit`.
+cal = mp_tmb_calibrator(
+    updated_spec
+  , data
+  , traj = "infection"
+  , par = list(beta = mp_normal(location = 0.35, sd = mp_fit("sd_var")))
+  , default = list(beta = 0.25)
+)
+
+# We can see this distributional parameter get propogated to the objective 
+# function and the fitted parameter table.
+cal$simulator$tmb_model$obj_fn$obj_fn_expr
+mp_optimize(cal)
+mp_tmb_coef(cal)
 }

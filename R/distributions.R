@@ -407,6 +407,10 @@ DistrParamChar = function(name, instance_name, trans = DistrParamTrans()) {
 }
 DistrParamCharFit = function(name, instance_name, trans = DistrParamTrans()) {
   self = DistrParamChar(name, instance_name, trans)
+  # Need to update default value with trans(default val)
+  # self$default = function() {
+  #   list(self$trans$ref(self$check_in_spec()))  |> setNames(self$instance_name)
+  # }
   self$distr_params_frame = function() {
     self$check_in_spec()
     mat = self$global_name
@@ -416,7 +420,7 @@ DistrParamCharFit = function(name, instance_name, trans = DistrParamTrans()) {
       , default = self$model_spec$default[[mat]]
     )
   }
-  return_object(self, "DistrParamCharNoFit")
+  return_object(self, "DistrParamCharFit")
 }
 DistrParamCharNoFit = function(name, instance_name, trans = DistrParamTrans()) {
   self = DistrParamChar(name, instance_name, trans)
@@ -515,23 +519,31 @@ TESTDISTR = function(location, sd) {
 #' Distributions which can be used to specify prior or likelihood components in 
 #' model calibration.
 #' 
-#' @param location Location parameter. Only necessary if used as a prior
-#' distribution. If it is used as a likelihood component the location
-#' parameter will be taken as the simulated variable being fitted to data,
-#' and so this `location` parameter should be left to the default.
+#' @param location Location parameter.
+#' Specifying the `location` parameter is only necessary when the distribution
+#' is used as a prior distribution. If it is used as a likelihood component the 
+#' location parameter will be taken as the simulated variable being fitted to 
+#' data, and so this `location` parameter should be left to the default.
 #' @param sd Standard deviation parameter.
-#' @param disp Dispersion parameter.
+#' @param disp Dispersion parameter. 
+#' @param default_trans Named list of default transformations for each 
+#' distributional parameter. See `?transform_distr_param` for a list of 
+#' available transformations.
 #' 
+#' @details All distributional parameter arguments can be specified either as 
+#' a numeric value, a character string giving the parameter name, or a 
+#' distributional parameter object (See ?fit_distr_params).
 #' @name distribution
 NULL
 
-#' @description * Uniform Distribution (Improper), only appropriate for prior components - `mp_uniform`
+#' @description * Uniform Distribution (Improper), only appropriate for prior 
+#' components - `mp_uniform`
 #' @name distribution
 #' @export
-mp_uniform = function() { 
+mp_uniform = function(default_trans = list()) { 
   self = DistrSpec(
     distr_param_objs = nlist()
-    , default_trans = list()
+    , default_trans = default_trans
   )
   self$prior = \(par) {
     "-0"
@@ -552,10 +564,12 @@ mp_normal_error = function(sd) {
 #' @description * Normal Distribution - `mp_normal`
 #' @name distribution
 #' @export
-mp_normal = function(location = DistrParam("location"), sd) {
+mp_normal = function(location = DistrParam("location")
+                   , sd
+                   , default_trans = list(location = mp_identity, sd = mp_log)) {
   self = DistrSpec(
       distr_param_objs = nlist(location, sd)
-    , default_trans = list(location = mp_identity, sd = mp_log)
+    , default_trans = default_trans
   )
   self$prior = \(par) {
     sprintf("-sum(dnorm(%s, %s, %s))"
@@ -577,12 +591,14 @@ mp_normal = function(location = DistrParam("location"), sd) {
 #' @description * Log-Normal Distribution - `mp_log_normal`
 #' @name distribution
 #' @export
-mp_log_normal = function(location = DistrParam("location"), sd) {
+mp_log_normal = function(location = DistrParam("location")
+                       , sd
+                       , default_trans = list(location = mp_identity, sd = mp_identity)) {
   self = DistrSpec(
       distr_param_objs = nlist(location, sd)
       # identity transformations because distributional parameters are already
       # specified on the log scale?
-    , default_trans = list(location = mp_identity, sd = mp_identity)
+    , default_trans = default_trans
   )
 
   self$prior = \(par) {
@@ -613,10 +629,11 @@ mp_log_normal = function(location = DistrParam("location"), sd) {
 #' @description * Poisson Distribution - `mp_poisson`
 #' @name distribution
 #' @export
-mp_poisson = function(location = DistrParam("location")) { 
+mp_poisson = function(location = DistrParam("location")
+                    , default_trans = list(location = mp_identity)) { 
   self = DistrSpec(
       distr_param_objs = nlist(location)# should this be named lambda
-    , default_trans = list(location = mp_identity)
+    , default_trans = default_trans
   )
   self$prior = \(par) {
     sprintf("-sum(dpois(%s, %s))"
@@ -635,10 +652,12 @@ mp_poisson = function(location = DistrParam("location")) {
 #' @description * Negative Binomial Distribution - `mp_neg_bin` 
 #' @name distribution
 #' @export
-mp_neg_bin = function(location = DistrParam("location"), disp) {
+mp_neg_bin = function(location = DistrParam("location")
+                    , disp
+                    , default_trans = list(location = mp_identity, disp = mp_log)) {
   self = DistrSpec(
       distr_param_objs = nlist(location, disp)
-    , default_trans = list(location = mp_identity, disp = mp_log)
+    , default_trans = default_trans
   )
   self$prior = \(par) {
     sprintf("-sum(dnbinom(%s, clamp(%s), %s))"
@@ -673,6 +692,56 @@ mp_neg_bin = function(location = DistrParam("location"), disp) {
 #' `sd` in the \code{\link{mp_normal}} distributions has a default log
 #' transformation specified using \code{\link{mp_log}}.
 #' 
+#' @return A distributional parameter object.
+#' @examples
+#' 
+#' # First we call the SIR model spec, and generate some data for calibration.
+#' spec = mp_tmb_library("starter_models", "sir", package = "macpan2")
+#' data = mp_simulator(spec, 50, "infection") |> mp_trajectory()
+#' 
+#' # Suppose we want to specify a Normal prior on the transmission parameter 
+#' # beta, and we are interested in estimating the prior standard deviation.
+#' # Here we use `mp_fit` to estimate the standard deviation, `sd`, and we 
+#' # provide a numeric starting value for `sd` in the optimization. 
+#' cal = mp_tmb_calibrator(
+#'     spec
+#'   , data
+#'   , traj = "infection"
+#'   , par = list(beta = mp_normal(location = 0.35, sd = mp_fit(0.1)))
+#'   , default = list(beta = 0.25)
+#' )
+#' 
+#' # When viewing the calibration objective function we can see the additional
+#' # prior density term added for beta. The standard deviation parameter has
+#' # been automatically named 'distr_params_log_sd_beta'.
+#' cal$simulator$tmb_model$obj_fn$obj_fn_expr
+#' 
+#' # Next we optimize and view the fitted parameters. We can see the 
+#' # distributional parameter in the coefficient table with a default value 
+#' # equal to the numeric value we provided to `mp_fit` above.
+#' mp_optimize(cal)
+#' mp_tmb_coef(cal)
+#' 
+#' # If instead we want control over the name of the new fitted distributional
+#' # parameter, we can add a new variable to our model specification with the 
+#' # default value set to the desired optimization starting value.
+#' updated_spec = spec |> mp_tmb_insert(default = list(sd_var = 0.1))
+#' 
+#' # In the calibrator, we use the name of this newly added variable, "sd_var",
+#' # as input to `mp_fit`.
+#' cal = mp_tmb_calibrator(
+#'     updated_spec
+#'   , data
+#'   , traj = "infection"
+#'   , par = list(beta = mp_normal(location = 0.35, sd = mp_fit("sd_var")))
+#'   , default = list(beta = 0.25)
+#' )
+#' 
+#' # We can see this distributional parameter get propogated to the objective 
+#' # function and the fitted parameter table.
+#' cal$simulator$tmb_model$obj_fn$obj_fn_expr
+#' mp_optimize(cal)
+#' mp_tmb_coef(cal)
 #' @name fit_distr_params
 #' @export
 mp_fit = function(x, trans = DistrParamTransDefault()) UseMethod("mp_fit")
