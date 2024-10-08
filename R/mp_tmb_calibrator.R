@@ -14,8 +14,7 @@
 #' produced by \code{\link{mp_trajectory}}.
 #' @param traj A character vector giving the names of trajectories to fit
 #' to data, or a named list of likelihood distributions specified with
-#' \code{\link{mp_normal}}, \code{\link{mp_log_normal}}, \code{\link{mp_neg_bin}},
-#' or \code{\link{mp_poisson}} for each trajectory.
+#' \code{?macpan2::distribution} for each trajectory.
 #' @param tv A character vector giving the names of parameters to make
 #' time-varying according to the values in \code{data}, or a radial basis 
 #' function specified with \code{\link{mp_rbf}}.

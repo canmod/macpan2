@@ -456,6 +456,25 @@ DistrParamLog = function() {
   return_object(self, "DistrParamLog")
 }
 
+#' Distributional Parameter Transformation
+#'
+#' @name transform_distr_param
+NULL
+
+#' @description * `mp_identity` - Identity transformation 
+#' @format NULL
+#' @rdname transform_distr_param
+#' @export
+mp_identity = DistrParamIdentity()
+
+#' @description * `mp_log` - Log transformation 
+#' @format NULL
+#' @rdname transform_distr_param
+#' @export
+mp_log = DistrParamLog()
+
+
+
 
 
 TESTDISTR = function(location, sd) {
@@ -490,19 +509,48 @@ TESTDISTR = function(location, sd) {
 #     , ...
 # )
 
+
+#' Distributions
+#' 
+#' Distributions which can be used to specify prior or likelihood components in 
+#' model calibration.
+#' 
+#' @param location Location parameter. Only necessary if used as a prior
+#' distribution. If it is used as a likelihood component the location
+#' parameter will be taken as the simulated variable being fitted to data,
+#' and so this `location` parameter should be left to the default.
+#' @param sd Standard deviation parameter.
+#' @param disp Dispersion parameter.
+#' 
+#' @name distribution
+NULL
+
+#' @description * Uniform Distribution (Improper), only appropriate for prior components - `mp_uniform`
+#' @name distribution
+#' @export
+mp_uniform = function() { 
+  self = DistrSpec(
+    distr_param_objs = nlist()
+    , default_trans = list()
+  )
+  self$prior = \(par) {
+    "-0"
+  }
+  self$likelihood = \(obs, sim) { 
+    stop("You cannot specify uniform likelihoods")
+    
+  }
+  return_object(self, "DistrSpecUniform")
+}
+
 #' @return DistrSpec
 #' @noRd
 mp_normal_error = function(sd) {
   mp_normal(location = DistrParam("location"))
 }
 
-#' Normal Distribution
-#' @param location Location parameter. Only necessary if used as a prior
-#' distribution. If it is used as a likelihood component the location
-#' parameter will be taken as the simulated variable being fitted to data,
-#' and so this `location` parameter should be left to the default.
-#' @param sd Standard deviation parameter.
-#' @return DistrSpec
+#' @description * Normal Distribution - `mp_normal`
+#' @name distribution
 #' @export
 mp_normal = function(location = DistrParam("location"), sd) {
   self = DistrSpec(
@@ -526,13 +574,8 @@ mp_normal = function(location = DistrParam("location"), sd) {
   return_object(self, "DistrSpecNormal")
 }
 
-#' Log-Normal Distribution
-#' @param location Location parameter. Only necessary if used as a prior
-#' distribution. If it is used as a likelihood component the location
-#' parameter will be taken as the simulated variable being fitted to data,
-#' and so this `location` parameter should be left to the default.
-#' @param sd Standard deviation parameter.
-#' @return DistrSpec
+#' @description * Log-Normal Distribution - `mp_log_normal`
+#' @name distribution
 #' @export
 mp_log_normal = function(location = DistrParam("location"), sd) {
   self = DistrSpec(
@@ -565,33 +608,10 @@ mp_log_normal = function(location = DistrParam("location"), sd) {
   return_object(self, "DistrSpecLogNormal")
 }
 
-#' Uniform Distribution (Improper)
-#' 
-#' Uniform distributions can only be used as prior distributions and not
-#' likelihood distributions.
-#' @return DistrSpec
-#' @export
-mp_uniform = function() { 
-  self = DistrSpec(
-      distr_param_objs = nlist()
-    , default_trans = list()
-  )
-  self$prior = \(par) {
-    "-0"
-  }
-  self$likelihood = \(obs, sim) { 
-    stop("You cannot specify uniform likelihoods")
 
-  }
-  return_object(self, "DistrSpecUniform")
-}
 
-#' Poisson Distribution
-#' @param location Location parameter. Only necessary if used as a prior
-#' distribution. If it is used as a likelihood component the location
-#' parameter will be taken as the simulated variable being fitted to data,
-#' and so this `location` parameter should be left to the default.
-#' @return DistrSpec
+#' @description * Poisson Distribution - `mp_poisson`
+#' @name distribution
 #' @export
 mp_poisson = function(location = DistrParam("location")) { 
   self = DistrSpec(
@@ -612,13 +632,8 @@ mp_poisson = function(location = DistrParam("location")) {
   }
   return_object(self, "DistrSpecPoisson")
 }
-#' Negative Binomial Distribution
-#' @param location Location parameter. Only necessary if used as a prior
-#' distribution. If it is used as a likelihood component the location
-#' parameter will be taken as the simulated variable being fitted to data,
-#' and so this `location` parameter should be left to the default.
-#' @param disp Dispersion parameter.
-#' @return DistrSpec
+#' @description * Negative Binomial Distribution - `mp_neg_bin` 
+#' @name distribution
 #' @export
 mp_neg_bin = function(location = DistrParam("location"), disp) {
   self = DistrSpec(
@@ -646,7 +661,8 @@ mp_neg_bin = function(location = DistrParam("location"), disp) {
 #' 
 #' Distributional parameters can be added to the list of parameters that are fit
 #' during calibration. By default, distributional parameters in priors and
-#' likelihoods are not fit. 
+#' likelihoods are not fit. Use `mp_nofit` to exclude distributional parameters
+#' from being fit and `mp_fit` to fit them.
 #' 
 #' @param x numeric starting value of the distributional parameter to fit, or 
 #' character name of an existing variable in the model with a default starting
@@ -657,6 +673,7 @@ mp_neg_bin = function(location = DistrParam("location"), disp) {
 #' `sd` in the \code{\link{mp_normal}} distributions has a default log
 #' transformation specified using \code{\link{mp_log}}.
 #' 
+#' @name fit_distr_params
 #' @export
 mp_fit = function(x, trans = DistrParamTransDefault()) UseMethod("mp_fit")
 
@@ -666,19 +683,7 @@ mp_fit.numeric = function(x, trans = DistrParamTransDefault()) DistrParamNumFit(
 #' @export
 mp_fit.character = function(x, trans = DistrParamTransDefault()) DistrParamCharFit("generic_name", x, trans)
 
-#' Not-Fitting Distributional Parameters
-#' 
-#' By default, distributional parameters in priors and likelihoods are not fit. 
-#' 
-#' @param x fixed numeric value for the distributional parameter, or character 
-#' name of an existing variable in the model with a default starting
-#' value to use.
-#' @param trans transformation to apply to the distributional parameter. 
-#' By default, distributional parameters inherit a default transformation from
-#' the associated distribution. For example, the standard deviation parameter
-#' `sd` in the \code{\link{mp_normal}} distributions has a default 
-#' transformation.
-#' 
+#' @rdname fit_distr_params
 #' @export
 mp_nofit = function(x, trans = DistrParamTransDefault()) UseMethod("mp_nofit")
 
@@ -701,21 +706,7 @@ to_distr_param.numeric = function(x) mp_nofit(x)
 #' @export 
 to_distr_param.character = function(x) mp_nofit(x)
 
-#' Log Transformation
-#' 
-#' Log transformation for distributional parameters of class `DistrParam`.
-#' 
-#' @export
-#' @return DistrParamTrans
-mp_log = DistrParamLog()
 
-#' Identity Transformation
-#' 
-#' Identity transformation for distributional parameters of class `DistrParam`.
-#' 
-#' @export
-#' @return DistrParamTrans
-mp_identity = DistrParamIdentity()
 
 
 
