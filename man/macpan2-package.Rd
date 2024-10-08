@@ -26,8 +26,8 @@ Useful links:
 Authors:
 \itemize{
   \item Weiguang Guan
-  \item Ben Bolker
   \item Jen Freeman
+  \item Ben Bolker
   \item Darren Flynn-Primrose
 }
 

@@ -14,7 +14,8 @@ mp_layout_paths(
   x_gap = 0.3,
   y_gap = 0.3,
   north_south_sep = 0,
-  east_west_sep = 0
+  east_west_sep = 0,
+  trim_states = character()
 )
 }
 \arguments{
@@ -48,6 +49,8 @@ provided for a node.}
 flow arrows.}
 
 \item{east_west_sep}{Vertical separation between east and west flow arrows.}
+
+\item{trim_states}{List of states to remove from the diagram}
 }
 \description{
 Layout the flow diagram of a model specification so that each row is

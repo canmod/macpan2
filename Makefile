@@ -168,7 +168,4 @@ compile-dev: misc/dev/dev.cpp
 
 
 inst/starter_models/%/README.md: inst/starter_models/%/README.Rmd
-	echo "rmarkdown::render(input = \"$^\", intermediates_dir = NULL)" | R --slave
-	cat $(dir $@)/header.yaml $(dir $@)/README.md > $(dir $@)/tmp.md
-	cp $(dir $@)/tmp.md $(dir $@)/README.md
-	rm $(dir $@)/tmp.md
+	echo "rmarkdown::render(\"$^\")" | R --slave

@@ -4,7 +4,7 @@ require("ggplot2")
 #' 
 #' @param flows Data frame of flows produced by \code{\link{mp_flow_frame}}.
 #' @param layout A character matrix with 
-plot_flow_diagram = function(layout, size = 6) {
+plot_flow_diagram = function(layout, show_flow_rates = FALSE, size = 6) {
   edges = layout$edges_flows()
   nodes = layout$nodes()
   p = (ggplot()
@@ -26,47 +26,56 @@ plot_flow_diagram = function(layout, size = 6) {
     )
     + mp_ggtheme
   )
-  p
-}
-
-draw_outflows = function(plot, layout) {
-  (plot
-    + geom_label(
+  if (show_flow_rates) {
+    p = p + geom_label(
         aes(x = x, y = y, label = rate)
       , data = layout$edges_flows()
       , colour = "blue"
       , parse = TRUE
     )
+  }
+  return(p)
+}
+
+draw_outflows = function(plot, layout, show_flow_rates = FALSE) {
+  p = (plot
     + geom_segment(
         aes(x = xmin, y = ymax, xend = xend, yend = yend)
       , data = layout$edges_outflows()
       , arrow = mp_flow_arrow
       , colour = "blue"
     )
-    + geom_label(
+  )
+  if (show_flow_rates) {
+    p = p + geom_label(
         aes(x = xlab, y = ylab, label = rate)
       , data = layout$edges_outflows()
       , colour = "blue"
       , parse = TRUE
     )
-  )
+  }
+  return(p)
 }
-draw_inflows = function(plot, layout) {
-  (plot
+draw_inflows = function(plot, layout, show_flow_rates = FALSE) {
+  p = (plot
     + geom_segment(
         aes(x = xstart, y = y, xend = xmin, yend = y)
       , data = layout$edges_inflows()
       , arrow = mp_flow_arrow
       , colour = "blue"
     )
-    + geom_label(
+  )
+  if (show_flow_rates) {
+    p = p + geom_label(
         aes(x = xlab, y = y, label = rate)
       , data = layout$edges_inflows()
       , colour = "blue"
       , parse = TRUE
     )
-  )
+  }
+  return(p)
 }
+draw_conversions = function(plot, layout) {}
 
 mp_ggtheme = theme(
   axis.line = element_blank(),

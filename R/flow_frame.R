@@ -85,6 +85,7 @@ is_cyclic = function(flows, states) {
 mp_flow_frame = function(spec, topological_sort = TRUE, loops = "^$") {
   cf = spec$change_model$change_frame()
   ff = spec$change_model$flow_frame()
+  states = unique(cf$state)
   to = cf[startsWith(cf$change, "+"), , drop = FALSE]
   from = cf[startsWith(cf$change, "-"), , drop = FALSE]
   to$change = sub("^\\+", "", to$change) |> reset_rownames()
@@ -121,6 +122,8 @@ mp_flow_frame = function(spec, topological_sort = TRUE, loops = "^$") {
     flows = flows[order(factor(flows$from, levels = topo)), , drop = FALSE]
   }
   flows = rbind(flows, inflows, outflows)
+  flows$has_from_state = flows$from %in% states
+  flows$has_to_state = flows$to %in% states
   return(flows)
 }
 
