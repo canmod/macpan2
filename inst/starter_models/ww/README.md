@@ -48,7 +48,8 @@ article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/ww/READ
 For clarity, we first draw the epidemiological components of the model
 first, followed by the wastewater shedding component.
 
-![](./figures/diagram-1.png)<!-- -->![](./figures/diagram-2.png)<!-- -->
+![](./figures/diagram-1.png)<!-- -->
+![](./figures/diagram_shedding-1.png)<!-- -->
 
 # States
 
