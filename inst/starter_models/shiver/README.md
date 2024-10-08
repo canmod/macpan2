@@ -533,38 +533,6 @@ We are now ready for the optimization step.
 # optimize to estimate parameters
 # this converges!
 mp_optimize(shiver_calibrator)
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
-#> NA/NaN function evaluation
-
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
-#> NA/NaN function evaluation
-
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
-#> NA/NaN function evaluation
-
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
-#> NA/NaN function evaluation
-
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
-#> NA/NaN function evaluation
-
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
-#> NA/NaN function evaluation
-
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
-#> NA/NaN function evaluation
-
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
-#> NA/NaN function evaluation
-
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
-#> NA/NaN function evaluation
-
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
-#> NA/NaN function evaluation
-
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
-#> NA/NaN function evaluation
 #> $par
 #>       params       params       params       params       params 
 #> 6.585933e+00 6.407071e-02 2.381306e+03 6.358734e-03 4.038911e-02 
@@ -726,23 +694,10 @@ shiver_calibrator = mp_tmb_calibrator(
   , par = prior_distributions
   , outputs = c(states, "infection")
 )
-#> Warning in check_outputs(outputs, matrix_outputs, row_outputs): The following outputs were requested but not available in the model:
-#> infection, 
-#> They will be silently ignored.
 
 # optimize to estimate transmission parameters
 # converges with warnings
 mp_optimize(shiver_calibrator)
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
-#> NA/NaN function evaluation
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
-#> NA/NaN function evaluation
-
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
-#> NA/NaN function evaluation
-
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
-#> NA/NaN function evaluation
 #> $par
 #>       params       params       params       params       params 
 #> -4.157752739 -0.207593565 -8.769173074  0.005611944  0.006871819 
@@ -829,23 +784,10 @@ shiver_calibrator_rk4 = mp_tmb_calibrator(
   , par = prior_distributions
   , outputs = c(states, "infection")
 )
-#> Warning in check_outputs(outputs, matrix_outputs, row_outputs): The following outputs were requested but not available in the model:
-#> infection, 
-#> They will be silently ignored.
 
 # optimize
 # converges with warning
 mp_optimize(shiver_calibrator_rk4)
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
-#> NA/NaN function evaluation
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
-#> NA/NaN function evaluation
-
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
-#> NA/NaN function evaluation
-
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
-#> NA/NaN function evaluation
 #> $par
 #>       params       params       params       params       params 
 #> -4.885527806  0.189588029 -7.950950968  0.004941136  0.006715506 
@@ -1108,8 +1050,6 @@ fixed_a = mp_tmb_calibrator(
 )
 # converges and recovering true beta
 mp_optimize(fixed_a)
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
-#> NA/NaN function evaluation
 #> $par
 #>    params 
 #> -1.214201 
