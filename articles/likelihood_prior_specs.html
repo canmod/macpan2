@@ -101,8 +101,12 @@ have no prior information about these parameters.</p>
 <p>To specify a likelihood and/or prior for a variable in our model we
 can select a distribution from the list of available
 distributions,<code><a href="../reference/distribution.html">?macpan2::distribution</a></code>.</p>
+</div>
+<div class="section level2">
+<h2 id="use-cases">Use Cases<a class="anchor" aria-label="anchor" href="#use-cases"></a>
+</h2>
 <div class="section level3">
-<h3 id="prior-specification">Prior Specification<a class="anchor" aria-label="anchor" href="#prior-specification"></a>
+<h3 id="priors-on-model-parameters">Priors on model parameters<a class="anchor" aria-label="anchor" href="#priors-on-model-parameters"></a>
 </h3>
 <!-- is this the only way to specify priors ? -->
 <p>Specifying priors is usually done through the <code>par</code>
@@ -117,7 +121,7 @@ remaining parameters are given an improper uniform prior using
 <!-- No example of the SHIVER prior specification output to see the change in the objective function --></p>
 </div>
 <div class="section level3">
-<h3 id="likelihood-specification">Likelihood Specification<a class="anchor" aria-label="anchor" href="#likelihood-specification"></a>
+<h3 id="likelihoods-on-model-parameters">Likelihoods on model parameters<a class="anchor" aria-label="anchor" href="#likelihoods-on-model-parameters"></a>
 </h3>
 <p>A likelihood can be specified for the trajectory variables in our
 calibration set-up, those identified in the <code>traj</code> argument
@@ -132,44 +136,57 @@ as the location. The dispersion parameter for <code>mp_neg_bin</code> is
 required.</p>
 </div>
 <div class="section level3">
-<h3 id="fitting-distributional-parameters">Fitting Distributional Parameters<a class="anchor" aria-label="anchor" href="#fitting-distributional-parameters"></a>
+<h3 id="fixed-distributional-parameters">Fixed distributional parameters<a class="anchor" aria-label="anchor" href="#fixed-distributional-parameters"></a>
 </h3>
 <p>Distributional parameters are those parameters that characterize the
 distribution. Often these are the location and standard deviation. By
 default, these parameters are assumed fixed and not fit. This was the
-case in the previous <a href="#prior-specification">Prior
-Specification</a> example where the distributional parameters for
-<code>location</code> and <code>sd</code> were specified as numeric
-constants.</p>
+case in the previous [Prior Specification] example where the
+distributional parameters for <code>location</code> and <code>sd</code>
+were specified as numeric constants.</p>
 <p>Distributional parameters are also assumed fixed when set to the name
 of an existing variable in the model. Ex.
 <code>mp_normal(sd = "sd_var")</code>
 <!-- no existing example of this --></p>
+</div>
+<div class="section level3">
+<h3 id="fitting-distributional-parameters">Fitting Distributional Parameters<a class="anchor" aria-label="anchor" href="#fitting-distributional-parameters"></a>
+</h3>
 <p>Distributional parameters however, can be fit in the calibration
 framework in addition to other parameters using
 <code><a href="../reference/fit_distr_params.html">macpan2::mp_fit</a></code>. See
 <code><a href="../reference/fit_distr_params.html">?macpan2::fit_distr_params</a></code> for details. The previous
-example in <a href="#likelihood-specification">Likelihood
-Specification</a> shows the negative binomial dispersion parameter being
-fit with <code>mp_fit</code>. The numeric value provided for dispersion
-is the starting value for the optimization routine. After optimization,
-we can see the fitted dispersion distributional parameters in the
-coefficient table. By default, they are named with a leading
-<code>distr_params_</code> followed by their distributional parameter
-name and corresponding model variable name.</p>
+example in [Likelihood Specification] shows the negative binomial
+dispersion parameter being fit with <code>mp_fit</code>. The numeric
+value provided for dispersion is the starting value for the optimization
+routine. After optimization, we can see the fitted dispersion
+distributional parameters in the coefficient table. By default, they are
+named with a leading <code>distr_params_</code> followed by their
+distributional parameter name and corresponding model variable name.</p>
 <div class="section level4">
 <h4 id="distributional-parameter-transformations">Distributional Parameter Transformations<a class="anchor" aria-label="anchor" href="#distributional-parameter-transformations"></a>
 </h4>
 <p>Distributional parameters have default parameter transformations
-inherited from their respective distribution.
-<!-- reference this once properly documented --> For example, standard
-deviations by definition are a strictly positive number, so the log
-transformation is convenient to use to ensure this condition is met.</p>
-<p>Defaults can be changed by passing a distributional parameter
+inherited from their respective distribution. See the
+<code>default_trans</code> argument for each distribution
+(<code><a href="../reference/distribution.html">?macpan2::distribution</a></code>). For example, standard deviations
+by definition are a strictly positive number, so the log transformation
+is convenient to use to ensure this condition is met.</p>
+<p>Defaults can be changed by either passing a distributional parameter
 transformation function <code><a href="../reference/transform_distr_param.html">?macpan2::transform_distr_param</a></code> to
 the <code>trans</code> argument in
-<code><a href="../reference/fit_distr_params.html">?macpan2::fit_distr_params</a></code> functions.</p>
+<code><a href="../reference/fit_distr_params.html">?macpan2::fit_distr_params</a></code> functions to change a single
+transformation. To update all transformations, a named list of
+transformations from <code><a href="../reference/transform_distr_param.html">?macpan2::transform_distr_param</a></code> for
+each distributional parameter can be given to the
+<code>default_trans</code> argument of the distribution.</p>
 </div>
+</div>
+<div class="section level3">
+<h3 id="priors-on-distributional-parameters">Priors on distributional parameters<a class="anchor" aria-label="anchor" href="#priors-on-distributional-parameters"></a>
+</h3>
+<pre><code><span></span>
+<span></span></code></pre>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
