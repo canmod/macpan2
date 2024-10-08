@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.9.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.9.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -49,7 +49,7 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">mp_flow_frame</span><span class="op">(</span><span class="va">spec</span>, topological_sort <span class="op">=</span> <span class="cn">TRUE</span>, warn_not_dag <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">mp_flow_frame</span><span class="op">(</span><span class="va">spec</span>, topological_sort <span class="op">=</span> <span class="cn">TRUE</span>, loops <span class="op">=</span> <span class="st">"^$"</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -65,10 +65,11 @@
 respect the main direction of flow?</p></dd>
 
 
-<dt id="arg-warn-not-dag">warn_not_dag<a class="anchor" aria-label="anchor" href="#arg-warn-not-dag"></a></dt>
-<dd><p>Should a warning be thrown if the flow model is
-not a directed acyclic graph. This is only relevant if <code>topological_sort</code>
-is used.</p></dd>
+<dt id="arg-loops">loops<a class="anchor" aria-label="anchor" href="#arg-loops"></a></dt>
+<dd><p>Pattern for matching the names of flows that make
+the flow model not a DAG, which is a critical assumption when topologically
+sorting the order of states and flows in the output. This is only relevant if
+<code>topological_sort</code> is used.</p></dd>
 
 </dl></div>
     <div class="section level2">
