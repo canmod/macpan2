@@ -167,7 +167,7 @@ compile-dev: misc/dev/dev.cpp
 	cd misc/dev; echo "TMB::compile(\"dev.cpp\")" | R --slave
 
 
-inst/model_library/%/README.md: inst/model_library/%/README.Rmd
+inst/starter_models/%/README.md: inst/starter_models/%/README.Rmd
 	echo "rmarkdown::render(input = \"$^\", intermediates_dir = NULL)" | R --slave
 	cat $(dir $@)/header.yaml $(dir $@)/README.md > $(dir $@)/tmp.md
 	cp $(dir $@)/tmp.md $(dir $@)/README.md

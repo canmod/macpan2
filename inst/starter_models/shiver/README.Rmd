@@ -154,7 +154,7 @@ To convert the Michaelis-Menten curve above to a rate, we divide by $S(t)$.
    |> ggplot(aes(S, value))
    + geom_point(alpha=0.3)
    + geom_hline(yintercept = 1,col="red")
-   + geom_text(x=1500,y=0.98,label="maximum rate",col="red")
+   + geom_text(x = 1500, y = 0.98, label = "maximum rate", col = "red")
    + theme_bw()
    + ggtitle("Vaccination Rate")
    + ylab(expression(phi(S(t))))
@@ -165,10 +165,19 @@ To convert the Michaelis-Menten curve above to a rate, we divide by $S(t)$.
 
 # Dynamics
 
-We first load the model specification from the model library.
+We load the model specification from the model library.
 
 ```{r model_spec}
-spec = mp_tmb_library("starter_models","shiver", package="macpan2")
+spec = mp_tmb_library("starter_models", "shiver", package = "macpan2")
+```
+
+```{r}
+layout = macpan2:::LayoutMatrixFactors(spec
+  , east = "(infection|progression|recovery)$"
+  , north = "waning$"
+  , south = "(hospitalizations|vaccination)$"
+)
+plot_flow_diagram(layout)
 ```
 
 We can draw the flow diagram for this model using the `mp_flow_frame` and the `ggraph` and `tidygraph` packages.
