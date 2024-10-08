@@ -20,19 +20,16 @@ knitr::opts_chunk$set(
 ```
 
 
-This is a description of a `macpan2` implementation of the HIV model proposed by [@granich2009universal]. This model played a key role in advancing HIV prevention using antiretroviral therapy, predicting that a test-and-treat strategy would substantially lower HIV incidence [@hayes2019effect]. Default parameter estimates [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/hiv/tmb.R) are inspired by [@kretzschmar2013prospects].
+This article describes a `macpan2` implementation of the HIV model proposed by [@granich2009universal]. This model played a key role in advancing HIV prevention using antiretroviral therapy, predicting that a test-and-treat strategy would substantially lower HIV incidence [@hayes2019effect]. Default parameter estimates [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/hiv/tmb.R) are inspired by [@kretzschmar2013prospects].
 
 # Packages Used
 
 The code in this article uses the following packages.
 
 ```{r packages, warning=FALSE, message=FALSE}
+library(macpan2)
 library(ggplot2)
 library(dplyr)
-library(tidyr)
-library(macpan2)
-library(ggraph)
-library(tidygraph)
 ```
 
 
@@ -40,7 +37,11 @@ library(tidygraph)
 
 This model has been specified in the `hiv` directory [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/hiv/tmb.R) and is accessible from the `macpan2` model library (see [Example Models](https://canmod.github.io/macpan2/articles/example_models.html) for details). We can read in the model specification using the `mp_tmb_library` command.
 ```{r model_lib}
-spec = mp_tmb_library("starter_models", "hiv", package = "macpan2")
+spec = mp_tmb_library(
+    "starter_models"
+  , "hiv"
+  , package = "macpan2"
+)
 ```
 
 This specification can be used to draw the following flow diagram using code found in the [source for this article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/hiv/README.Rmd).
@@ -98,18 +99,12 @@ The remaining transition rates are constant per-capita rates.
 
 # Solving the ODEs
 
-Here is an example trajectory from this model with defaults using the Runge-Kutta ODE solver.
+Here is an example trajectory from this model with small [updates](?mp_tmb_update()) to the default parameters, using the [Runge-Kutta ODE solver](?mp_rk4()).
 
 ```{r simulations}
 outputs = c(sprintf("I%s", 1:4), sprintf("A%s", 1:4))
-I0 = 1/400
-A0 = 0
 sim = (spec
-  |> mp_tmb_update(default = list(
-      lambda0 = 0.36, n = 0.2
-    , I1 = I0, I2 = I0, I3 = I0, I4 = I0
-    , A1 = A0, A2 = A0, A3 = A0, A4 = A0
-  ))
+  |> mp_tmb_update(default = list(lambda0 = 0.36, n = 0.2))
   |> mp_rk4()
   |> mp_simulator(time_steps = 50L, outputs)
 )
@@ -121,6 +116,7 @@ sim = (spec
   + geom_line(aes(time, value))
   + facet_wrap(~ matrix, ncol = 2, scales = 'free', dir = "v")
   + scale_y_continuous(limits = c(0, NA), expand = c(0, 0))
+  + theme_bw()
 )
 ```
 

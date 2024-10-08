@@ -13,7 +13,7 @@ Steve Walker
     ODEs</a>
 -   <a href="#references" id="toc-references">References</a>
 
-This article describes a `macpan2` implementation of the HIV model
+This is a description of a `macpan2` implementation of the HIV model
 proposed by ([Granich et al. 2009](#ref-granich2009universal)). This
 model played a key role in advancing HIV prevention using antiretroviral
 therapy, predicting that a test-and-treat strategy would substantially
@@ -28,9 +28,12 @@ are inspired by ([Kretzschmar et al.
 The code in this article uses the following packages.
 
 ``` r
-library(macpan2)
 library(ggplot2)
 library(dplyr)
+library(tidyr)
+library(macpan2)
+library(ggraph)
+library(tidygraph)
 ```
 
 # Model Specification
