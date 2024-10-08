@@ -2,23 +2,37 @@ SHIVER = SEIR + H + V
 ================
 Jennifer Freeman
 
-- [States](#states)
-- [Parameters](#parameters)
-  - [Variable Vaccination Rate](#variable-vaccination-rate)
-- [Dynamics](#dynamics)
-- [Calibration Example](#calibration-example)
-  - [Calibration Scenario](#calibration-scenario)
-  - [Deciding on Defaults](#deciding-on-defaults)
-  - [Simulating Dynamics](#simulating-dynamics)
-  - [Estimating Parameters](#estimating-parameters)
-  - [Re-parameterizing and Introducing
-    Transformations](#re-parameterizing-and-introducing-transformations)
-  - [Runge-Kutta 4](#runge-kutta-4)
-  - [Fitting to Multiple
-    Trajectories](#fitting-to-multiple-trajectories)
-  - [Parameter Identifiability](#parameter-identifiability)
-- [Model Specification](#model-specification)
-- [References](#references)
+-   <a href="#packages-used-and-settings"
+    id="toc-packages-used-and-settings">Packages Used and Settings</a>
+-   <a href="#model-specification" id="toc-model-specification">Model
+    Specification</a>
+-   <a href="#states" id="toc-states">States</a>
+-   <a href="#parameters" id="toc-parameters">Parameters</a>
+-   <a href="#variable-vaccination-rate"
+    id="toc-variable-vaccination-rate">Variable Vaccination Rate</a>
+-   <a href="#dynamics" id="toc-dynamics">Dynamics</a>
+-   <a href="#calibration-example" id="toc-calibration-example">Calibration
+    Example</a>
+    -   <a href="#calibration-scenario"
+        id="toc-calibration-scenario">Calibration Scenario</a>
+    -   <a href="#deciding-on-defaults" id="toc-deciding-on-defaults">Deciding
+        on Defaults</a>
+    -   <a href="#simulating-dynamics" id="toc-simulating-dynamics">Simulating
+        Dynamics</a>
+    -   <a href="#estimating-parameters"
+        id="toc-estimating-parameters">Estimating Parameters</a>
+    -   <a href="#re-parameterizing-and-introducing-transformations"
+        id="toc-re-parameterizing-and-introducing-transformations">Re-parameterizing
+        and Introducing Transformations</a>
+    -   <a href="#runge-kutta-4" id="toc-runge-kutta-4">Runge-Kutta 4</a>
+    -   <a href="#fitting-to-multiple-trajectories"
+        id="toc-fitting-to-multiple-trajectories">Fitting to Multiple
+        Trajectories</a>
+    -   <a href="#parameter-identifiability"
+        id="toc-parameter-identifiability">Parameter Identifiability</a>
+-   <a href="#model-specification-1" id="toc-model-specification-1">Model
+    Specification</a>
+-   <a href="#references" id="toc-references">References</a>
 
 This model builds on the basic SEIR model, with two additional
 compartments for vaccination and hospitalizations.
@@ -49,6 +63,8 @@ isolated, before recovering from the disease. Hospital isolation means
 this portion of infectious individuals no longer contribute to the
 transmission dynamics.
 
+# Packages Used and Settings
+
 The code in this article uses the following packages.
 
 ``` r
@@ -56,8 +72,6 @@ library(ggplot2)
 library(dplyr)
 library(tidyr)
 library(macpan2)
-library(ggraph)
-library(tidygraph)
 ```
 
 To keep the optimizer from printing too much in this article, we set the
@@ -66,6 +80,31 @@ To keep the optimizer from printing too much in this article, we set the
 ``` r
 options(macpan2_verbose = FALSE)
 ```
+
+# Model Specification
+
+This model has been specified in the `shiver` directory
+[here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/shiver/tmb.R)
+and is accessible from the `macpan2` model library (see [Example
+Models](https://canmod.github.io/macpan2/articles/example_models.html)
+for details). We can read in the model specification using the
+`mp_tmb_library` command.
+
+``` r
+spec = mp_tmb_library(
+    "starter_models"
+  , "shiver"
+  , package = "macpan2"
+)
+```
+
+This specification can be used to draw the following flow diagrams using
+code found in the [source for this
+article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/shiver/README.Rmd).
+For clarity, we first draw the epidemiological components of the model
+first, followed by the wastewater shedding component.
+
+![](./figures/diagram-1.png)<!-- -->
 
 # States
 
@@ -95,7 +134,7 @@ $N_{\text{mix}}=N -H$.
 | $\gamma_H$ | per capita recovery rate for hospitalized individuals                                               |
 | $\sigma$   | per capita rate at which infected individuals develop severe infections and require hospitalization |
 
-## Variable Vaccination Rate
+# Variable Vaccination Rate
 
 We can implement vaccine constraints by adding more model complexity.
 Resource limitations create an upper bound on the number of vaccines
@@ -139,38 +178,6 @@ $S(t)$.
 ![](./figures/var_vax-1.png)<!-- -->
 
 # Dynamics
-
-We first load the model specification from the model library.
-
-``` r
-spec = mp_tmb_library("starter_models","shiver", package="macpan2")
-```
-
-We can draw the flow diagram for this model using the `mp_flow_frame`
-and the `ggraph` and `tidygraph` packages.
-
-``` r
-x_pos = c(S = 1, V = 1, E = 2, I = 3, R = 4, H = 4) / 5
-y_pos = c(S = 4, V = 1, E = 4, I = 4, R = 4, H = 1) / 5
-node_size = 10
-(spec
-  |> mp_flow_frame(warn_not_dag = FALSE)
-  |> as_tbl_graph()
-  |> ggraph('manual', x = x_pos[name], y = y_pos[name])
-  + geom_edge_link(
-      arrow = arrow(length = unit(node_size * 0.3, 'mm'))
-    , end_cap = circle(node_size / 2, 'mm')
-    , start_cap = circle(node_size / 2, 'mm')
-  )
-  + geom_node_point(size = node_size, colour = "lightgrey")
-  + geom_node_text(aes(label = name), family = "mono")
-  + theme_graph(background = NA, plot_margin = margin(0, 0, 0, 0))
-  + scale_x_continuous(limits = c(0, 1))
-  + scale_y_continuous(limits = c(0, 1))
-)
-```
-
-![](./figures/flow_diagram-1.png)<!-- -->
 
 $$
 \begin{align*}

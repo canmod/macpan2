@@ -41,6 +41,8 @@ In reality, vaccinations are only partly effective in developing a protective ho
 
 The SHIVER model assumes all individuals can be exposed to the disease, but transmission rates depend on vaccination status. Additionally, individuals with severe infections are hospitalized and assumed to be isolated, before recovering from the disease. Hospital isolation means this portion of infectious individuals no longer contribute to the transmission dynamics. 
 
+# Packages Used and Settings
+
 The code in this article uses the following packages.
 
 ```{r packages, message=FALSE, warning=FALSE}
@@ -48,14 +50,35 @@ library(ggplot2)
 library(dplyr)
 library(tidyr)
 library(macpan2)
-library(ggraph)
-library(tidygraph)
 ```
 
 To keep the optimizer from printing too much in this article, we set the `macpan2_verbose` option to `FALSE`.
 
 ```{r options}
 options(macpan2_verbose = FALSE)
+```
+
+# Model Specification
+
+This model has been specified in the `shiver` directory [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/shiver/tmb.R) and is accessible from the `macpan2` model library (see [Example Models](https://canmod.github.io/macpan2/articles/example_models.html) for details). We can read in the model specification using the `mp_tmb_library` command.
+```{r model_spec}
+spec = mp_tmb_library(
+    "starter_models"
+  , "shiver"
+  , package = "macpan2"
+)
+```
+
+This specification can be used to draw the following flow diagrams using code found in the [source for this article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/shiver/README.Rmd). For clarity, we first draw the epidemiological components of the model first, followed by the wastewater shedding component.
+
+```{r diagram, echo = FALSE, fig.height = 3, fig.width = 5}
+system.file("utils", "box-drawing.R", package = "macpan2") |> source()
+layout = mp_layout_grid(spec
+  , east = "(infection|progression|recovery)$"
+  , north = "waning$"
+  , south = "(hospitalizations|vaccination)$"
+)
+plot_flow_diagram(layout)
 ```
 
 # States
@@ -86,7 +109,7 @@ The size of the total population is,  $N = S + H + I  + V + E + R$, and the dise
 
 
 
-## Variable Vaccination Rate
+# Variable Vaccination Rate
 
 We can implement vaccine constraints by adding more model complexity. Resource limitations create an upper bound on the number of vaccines that can be administered to susceptibles per time step. There is also the constraint that we can only vaccinate, at most, the current number of susceptibles i.e. the vaccination rate can be at most 1. These constraints naturally lead us to consider a variable vaccination rate $\phi(S(t))$, instead of vaccinating a fixed proportion $\phi > 0$ per time step. 
 
@@ -164,44 +187,6 @@ To convert the Michaelis-Menten curve above to a rate, we divide by $S(t)$.
 ```
 
 # Dynamics
-
-We load the model specification from the model library.
-
-```{r model_spec}
-spec = mp_tmb_library("starter_models", "shiver", package = "macpan2")
-```
-
-```{r}
-layout = macpan2:::LayoutMatrixFactors(spec
-  , east = "(infection|progression|recovery)$"
-  , north = "waning$"
-  , south = "(hospitalizations|vaccination)$"
-)
-plot_flow_diagram(layout)
-```
-
-We can draw the flow diagram for this model using the `mp_flow_frame` and the `ggraph` and `tidygraph` packages.
-
-```{r flow_diagram, fig.height=2, fig.width=4}
-x_pos = c(S = 1, V = 1, E = 2, I = 3, R = 4, H = 4) / 5
-y_pos = c(S = 4, V = 1, E = 4, I = 4, R = 4, H = 1) / 5
-node_size = 10
-(spec
-  |> mp_flow_frame(warn_not_dag = FALSE)
-  |> as_tbl_graph()
-  |> ggraph('manual', x = x_pos[name], y = y_pos[name])
-  + geom_edge_link(
-      arrow = arrow(length = unit(node_size * 0.3, 'mm'))
-    , end_cap = circle(node_size / 2, 'mm')
-    , start_cap = circle(node_size / 2, 'mm')
-  )
-  + geom_node_point(size = node_size, colour = "lightgrey")
-  + geom_node_text(aes(label = name), family = "mono")
-  + theme_graph(background = NA, plot_margin = margin(0, 0, 0, 0))
-  + scale_x_continuous(limits = c(0, 1))
-  + scale_y_continuous(limits = c(0, 1))
-)
-```
 
 $$
 \begin{align*}
