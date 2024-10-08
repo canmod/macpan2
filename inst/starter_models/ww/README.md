@@ -45,10 +45,13 @@ spec = mp_tmb_library(
 This specification can be used to draw the following flow diagrams using
 code found in the [source for this
 article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/ww/README.Rmd).
-For clarity, we first draw the epidemiological components of the model
-first, followed by the wastewater shedding component.
+For clarity, we first draw the epidemiological components of the model.
 
 ![](./figures/diagram-1.png)<!-- -->
+
+The infectious compartments of the above epidemiological component shed
+virus into wastewater with the following sub-model.
+
 ![](./figures/diagram_shedding-1.png)<!-- -->
 
 # States
