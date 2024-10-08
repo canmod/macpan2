@@ -36,7 +36,7 @@ library(tidygraph)
 ```
 
 
-# Dynamics
+# Model Specification
 
 This model has been specified in the `hiv` directory [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/hiv/tmb.R) and is accessible from the `macpan2` model library (see [Example Models](https://canmod.github.io/macpan2/articles/example_models.html) for details). We can read in the model specification using the `mp_tmb_library` command.
 ```{r model_lib}
