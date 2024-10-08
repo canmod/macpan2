@@ -190,21 +190,43 @@ test_that("default distributional parameter transformation is consistent", {
 
 test_that("misspecification of distributional parameters results in the appropriate errors",{
 
-  spec = (mp_tmb_library("starter_models", "sir", package = "macpan2")
+  spec_emptydefault = (mp_tmb_library("starter_models", "sir", package = "macpan2")
     |> mp_tmb_insert(default = list(sd = empty_matrix))
   )
-  sir_data = (mp_simulator(spec, time_steps = 5, outputs = c("I"))
+  spec_nodefault = (mp_tmb_library("starter_models", "sir", package = "macpan2")
+    # insert dummy expression to add variable to the spec
+    |> mp_tmb_insert(expressions = list(sd ~ sd))
+  )
+  sir_data = (mp_simulator(spec_emptydefault, time_steps = 5, outputs = c("I"))
     |> mp_trajectory()
   )
   
   # character misspecification in mp_fit, variable doesn't exist in model
-  expect_error(mp_tmb_calibrator(spec
+  expect_error(mp_tmb_calibrator(spec_emptydefault
      , data = sir_data
      , traj = list(I = mp_normal(sd = mp_fit("Sd")))
      , par = "beta"
     )
     , regexp = "Sd is not in the model spec"
   )
+  
+  # correct specification in mp_fit, but variable default is `empty_matrix`
+  expect_error(mp_tmb_calibrator(spec_emptydefault
+     , data = sir_data
+     , traj = list(I = mp_normal(sd = mp_fit("sd")))
+     , par = "beta"
+    )
+  )
+  
+  # correct specification in mp_fit, but variable has no default
+  expect_error(mp_tmb_calibrator(spec_nodefault
+     , data = sir_data
+     , traj = list(I = mp_normal(sd = mp_fit("sd")))
+     , par = "beta"
+    )
+  , regexp = "sd is not in the model spec"
+  )
+  
 })
 
 test_that("default transformations for distributional parameters can be updated",{

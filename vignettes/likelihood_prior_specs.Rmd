@@ -41,20 +41,23 @@ By default, the interface assumes **poisson likelihoods** and **uniform priors**
 
 To specify a likelihood and/or prior for a variable in our model we can select a distribution from the list of available distributions,`?macpan2::distribution`.
 
-## Prior Specification
+# Use Cases
+
+## Priors on model parameters 
 
 <!-- is this the only way to specify priors ? -->
 Specifying priors is usually done through the `par` argument of `mp_tmb_calibrator`. [Here](https://github.com/canmod/macpan2/tree/main/inst/starter_models/shiver#re-parameterizing-and-introducing-transformations) is an example of prior specification in the SHIVER model. 
 The parameter `logit_p`, the logit transformed proportion `p`, is given a normal prior using the distribution function `macpan2::mp_normal` and two numeric inputs for the `location` and standard deviation, `sd`. The remaining parameters are given an improper uniform prior using `macpan2::mp_uniform`.
 <!-- No example of the SHIVER prior specification output to see the change in the objective function -->
 
-## Likelihood Specification
+## Likelihoods on model parameters
 
 A likelihood can be specified for the trajectory variables in our calibration set-up, those identified in the `traj` argument of `mp_tmb_calibrator`.
 
 Further into the SHIVER [example](https://github.com/canmod/macpan2/tree/main/inst/starter_models/shiver#fitting-to-multiple-trajectories), the variables hospitalizations(`H`) and `reported_incidence` are both specified with a negative binomial likelihood using the `macpan2::mp_neg_bin` function. For likelihoods the location parameter is not set because the calibration machinery will use the simulated value for this trajectory as the location. The dispersion parameter for `mp_neg_bin` is required.
 
-## Fitting Distributional Parameters
+
+## Fixed distributional parameters
 
 Distributional parameters are those parameters that characterize the distribution. Often these are the location and standard deviation. By default, these parameters are assumed fixed and not fit. This was the case in the previous [Prior Specification] example where the distributional parameters for `location` and `sd` were specified as numeric constants. 
 
@@ -62,11 +65,21 @@ Distributional parameters are also assumed fixed when set to the name of an exis
 Ex. `mp_normal(sd = "sd_var")`
 <!-- no existing example of this -->
 
+## Fitting Distributional Parameters
+
 Distributional parameters however, can be fit in the calibration framework in addition to other parameters using `macpan2::mp_fit`. See `?macpan2::fit_distr_params` for details.
 The previous example in [Likelihood Specification] shows the negative binomial dispersion parameter being fit with `mp_fit`. The numeric value provided for dispersion is the starting value for the optimization routine. After optimization, we can see the fitted dispersion distributional parameters in the coefficient table. By default, they are named with a leading `distr_params_` followed by their distributional parameter name and corresponding model variable name.
 
 ### Distributional Parameter Transformations
 
-Distributional parameters have default parameter transformations inherited from their respective distribution. <!-- reference this once properly documented --> For example, standard deviations by definition are a strictly positive number, so the log transformation is convenient to use to ensure this condition is met.
+Distributional parameters have default parameter transformations inherited from their respective distribution. See the `default_trans` argument for each distribution (`?macpan2::distribution`). For example, standard deviations by definition are a strictly positive number, so the log transformation is convenient to use to ensure this condition is met.
 
-Defaults can be changed by passing a distributional parameter transformation function `?macpan2::transform_distr_param` to the `trans` argument in `?macpan2::fit_distr_params` functions.
+Defaults can be changed by either passing a distributional parameter transformation function `?macpan2::transform_distr_param` to the `trans` argument in `?macpan2::fit_distr_params` functions to change a single transformation. To update all transformations, a named list of transformations from `?macpan2::transform_distr_param` for each distributional parameter can be given to the `default_trans` argument of the distribution.
+
+## Priors on distributional parameters
+
+```
+
+
+
+```

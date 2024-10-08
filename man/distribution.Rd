@@ -9,21 +9,41 @@
 \alias{mp_neg_bin}
 \title{Distributions}
 \usage{
-mp_uniform()
+mp_uniform(default_trans = list())
 
-mp_normal(location = DistrParam("location"), sd)
+mp_normal(
+  location = DistrParam("location"),
+  sd,
+  default_trans = list(location = mp_identity, sd = mp_log)
+)
 
-mp_log_normal(location = DistrParam("location"), sd)
+mp_log_normal(
+  location = DistrParam("location"),
+  sd,
+  default_trans = list(location = mp_identity, sd = mp_identity)
+)
 
-mp_poisson(location = DistrParam("location"))
+mp_poisson(
+  location = DistrParam("location"),
+  default_trans = list(location = mp_identity)
+)
 
-mp_neg_bin(location = DistrParam("location"), disp)
+mp_neg_bin(
+  location = DistrParam("location"),
+  disp,
+  default_trans = list(location = mp_identity, disp = mp_log)
+)
 }
 \arguments{
-\item{location}{Location parameter. Only necessary if used as a prior
-distribution. If it is used as a likelihood component the location
-parameter will be taken as the simulated variable being fitted to data,
-and so this \code{location} parameter should be left to the default.}
+\item{default_trans}{Named list of default transformations for each
+distributional parameter. See \code{?transform_distr_param} for a list of
+available transformations.}
+
+\item{location}{Location parameter.
+Specifying the \code{location} parameter is only necessary when the distribution
+is used as a prior distribution. If it is used as a likelihood component the
+location parameter will be taken as the simulated variable being fitted to
+data, and so this \code{location} parameter should be left to the default.}
 
 \item{sd}{Standard deviation parameter.}
 
@@ -34,7 +54,8 @@ Distributions which can be used to specify prior or likelihood components in
 model calibration.
 
 \itemize{
-\item Uniform Distribution (Improper), only appropriate for prior components - \code{mp_uniform}
+\item Uniform Distribution (Improper), only appropriate for prior
+components - \code{mp_uniform}
 }
 
 \itemize{
@@ -52,4 +73,9 @@ model calibration.
 \itemize{
 \item Negative Binomial Distribution - \code{mp_neg_bin}
 }
+}
+\details{
+All distributional parameter arguments can be specified either as
+a numeric value, a character string giving the parameter name, or a
+distributional parameter object (See ?fit_distr_params).
 }
