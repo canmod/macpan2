@@ -17,11 +17,11 @@ Jen Freeman, Steve Walker
 -   <a href="#references" id="toc-references">References</a>
 
 The simplest Lotka-Volterra competition model with two competing species
-([Hastings 1997](#ref-Hastings1997)). This is not a compartmental model
-because individuals of one species do not become individuals of the
-other, unlike say an SIR model where susceptible individuals become
-infectious and then recovered. This competition model, and this other
-[predator-prey
+([Hastings 1997](#ref-Hastings1997competition)). This is not a
+compartmental model because individuals of one species do not become
+individuals of the other, unlike say an SIR model where susceptible
+individuals become infectious and then recovered. This competition
+model, and this other [predator-prey
 model](https://github.com/canmod/macpan2/tree/main/inst/starter_models/lotka_volterra_predator_prey),
 illustrate how `macpan2` can be used for general dynamical modelling.
 
@@ -160,6 +160,8 @@ fake_data = (spec
 
 ![](./figures/fake_data-1.png)<!-- -->
 
+The two species seem to be coexisting.
+
 ## Calibration
 
 Even though we only modified one competition coefficient, `ayx`, we find
@@ -176,17 +178,6 @@ cal = (spec
   )
 )
 mp_optimize(cal)
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
-#> NA/NaN function evaluation
-
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
-#> NA/NaN function evaluation
-
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
-#> NA/NaN function evaluation
-
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
-#> NA/NaN function evaluation
 #> $par
 #>      params      params      params 
 #> 0.004023304 0.494351681 0.487803593 
@@ -256,7 +247,7 @@ comparison_data = list(
 
 <div id="refs" class="references csl-bib-body hanging-indent">
 
-<div id="ref-Hastings1997" class="csl-entry">
+<div id="ref-Hastings1997competition" class="csl-entry">
 
 Hastings, Alan. 1997. “Competition.” In *Population Biology: Concepts
 and Models*, 129–49. New York, NY: Springer New York.
