@@ -259,7 +259,7 @@ specs$holling_3
 The first step when testing a new fitting procedure is to simulate
 clean, well-behaved data from the model and check if you can recover
 parameters close to the true values (see
-[here](https://canmod.github.io/macpan2/articles/calibration.html)) for
+[here](https://canmod.github.io/macpan2/articles/calibration.html) for
 an article on this topic). We modify the specification so that it is
 different from the default library model, which we will then calibrate
 using data generated from this modified model.
