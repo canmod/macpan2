@@ -8,6 +8,14 @@ Jen Freeman, Steve Walker
 -   <a href="#states" id="toc-states">States</a>
 -   <a href="#parameters" id="toc-parameters">Parameters</a>
 -   <a href="#dynamics" id="toc-dynamics">Dynamics</a>
+-   <a href="#calibration-example" id="toc-calibration-example">Calibration
+    Example</a>
+    -   <a href="#simulate-fake-data" id="toc-simulate-fake-data">Simulate fake
+        data</a>
+    -   <a href="#calibrate-to-fake-data"
+        id="toc-calibrate-to-fake-data">calibrate to fake data</a>
+    -   <a href="#explore-the-calibration"
+        id="toc-explore-the-calibration">Explore the calibration</a>
 -   <a href="#references" id="toc-references">References</a>
 
 This is an extension of the
@@ -86,6 +94,160 @@ $$
 \frac{dR}{dt} &= \gamma I - \mu R
 \end{align*}
 $$
+
+# Calibration Example
+
+## Simulate fake data
+
+We modify the specification so that it is different from the default
+library model that we will calibrate. We will use the \[?mp_rk4()\] ODE
+solver.
+
+``` r
+spec_for_making_fake_data = mp_tmb_insert(
+    spec |> mp_rk4()
+  , default = list(mu = 0.1, beta = 0.4)
+)
+```
+
+We simuate 100 time steps of this model.
+
+``` r
+time_steps = 100L
+sim = mp_simulator(  
+    model = spec_for_making_fake_data
+  , time_steps = time_steps
+  , outputs = "infection"
+)
+
+# simulate data (known 'true' trajectory)
+true_traj = obs_traj = mp_trajectory(sim)
+
+# add noise (simulated observed and noisy trajectory)
+set.seed(1L)
+obs_traj$value = rpois(time_steps, true_traj$value)
+```
+
+## calibrate to fake data
+
+We fit `beta` and `mu` to the simulated infection flow (i.e.,
+incidence). To be consistent we use the \[?mp_rk4()\] ODE solver.
+
+``` r
+cal = mp_tmb_calibrator(mp_rk4(spec), obs_traj, "infection", c("beta", "mu"))
+```
+
+Before calibrating, we capture the ‘default’ trajectory that we would
+simulate before our model is calibrated (represents ignorance). This is
+useful to show that calibration ‘did something’.
+
+``` r
+default_traj = mp_trajectory(cal)
+```
+
+Calibrate the model and check for convergence (convergence = 0 is good).
+
+``` r
+mp_optimize(cal)
+#> outer mgc:  24440.95 
+#> outer mgc:  3296.092 
+#> outer mgc:  6809.802 
+#> outer mgc:  4930.044 
+#> outer mgc:  1241.086 
+#> outer mgc:  638.3514 
+#> outer mgc:  381.0098 
+#> outer mgc:  260.7467 
+#> outer mgc:  44.415 
+#> outer mgc:  0.5932129 
+#> outer mgc:  0.0001203194
+#> $par
+#>    params    params 
+#> 0.4096054 0.1002555 
+#> 
+#> $objective
+#> [1] 204.8933
+#> 
+#> $convergence
+#> [1] 0
+#> 
+#> $iterations
+#> [1] 11
+#> 
+#> $evaluations
+#> function gradient 
+#>       14       11 
+#> 
+#> $message
+#> [1] "both X-convergence and relative convergence (5)"
+```
+
+## Explore the calibration
+
+The calibration object now contains the information gained through
+optimization. We can use this information to check the fitted parameter
+values.
+
+``` r
+mp_tmb_coef(cal, conf.int = TRUE)
+#> outer mgc:  0.0001203194 
+#> outer mgc:  61.93006 
+#> outer mgc:  62.25842 
+#> outer mgc:  1643.722 
+#> outer mgc:  1771.836 
+#> outer mgc:  498.8395
+#>       term  mat row col default  type  estimate    std.error   conf.low
+#> 1   params beta   0   0   0.200 fixed 0.4096054 0.0144334428 0.38131633
+#> 2 params.1   mu   0   0   0.095 fixed 0.1002555 0.0009279992 0.09843669
+#>   conf.high
+#> 1 0.4378944
+#> 2 0.1020744
+```
+
+These fits similar to the true values.
+
+``` r
+spec_for_making_fake_data$default[c("beta", "mu")]
+#> $beta
+#> [1] 0.4
+#> 
+#> $mu
+#> [1] 0.1
+```
+
+We can also get the calibrated trajectory with confidence intervals.
+
+``` r
+cal_traj = mp_trajectory_sd(cal, conf.int = TRUE) 
+#> outer mgc:  0.0001203194 
+#> outer mgc:  61.93006 
+#> outer mgc:  62.25842 
+#> outer mgc:  1643.722 
+#> outer mgc:  1771.836
+data = (nlist(true_traj, obs_traj, default_traj, cal_traj)
+  |> bind_rows(.id = "data_type")
+)
+```
+
+The calibrated trajectory and confidence interval are consistent with
+the true trajectory and go through the observed trajectory. The default
+trajectory is much different, indicating that calibration really did do
+what it should do.
+
+``` r
+(data
+  |> ggplot()
+  + geom_line(aes(time, value, colour = data_type))
+  + geom_ribbon(aes(x = time, ymin = conf.low, ymax = conf.high)
+      , alpha = 0.5
+      , colour = "lightgrey"
+      , fill = "lightgrey"
+      , data = cal_traj
+    ) 
+  + theme_bw()
+)
+```
+
+![](./figures/plot_fit-1.png)<!-- -->
 
 # References
 
