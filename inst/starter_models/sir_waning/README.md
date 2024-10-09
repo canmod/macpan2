@@ -48,16 +48,6 @@ This specification can be used to draw the following flow diagram using
 code found in the [source for this
 article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/sir_waning/README.Rmd).
 
-    #> Warning in topological_sort_engine(flows, states, warn_not_dag = TRUE): 
-    #> State network is not acyclic (i think),
-    #> and therefore cannot be topologically sorted.
-    #> Defaulting to original order where necessary.
-
-    #> Warning in topological_sort_engine(flows, states, warn_not_dag = TRUE): 
-    #> State network is not acyclic (i think),
-    #> and therefore cannot be topologically sorted.
-    #> Defaulting to original order where necessary.
-
 ![](./figures/diagram-1.png)<!-- -->
 
 # States

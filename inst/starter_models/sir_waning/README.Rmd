@@ -47,7 +47,10 @@ This specification can be used to draw the following flow diagram using code fou
 
 ```{r diagram, echo = FALSE, fig.height = 2, fig.width = 8}
 system.file("utils", "box-drawing.R", package = "macpan2") |> source()
-layout = mp_layout_paths(spec, ignore = "waning_immunity")
+layout = mp_layout_paths(spec
+  , ignore = "waning_immunity"
+  , loops = "waning_immunity"
+)
 p = (layout
   |> plot_flow_diagram(show_flow_names = TRUE)
   + geom_curve(aes(x = xmin_from, y = ymin_from, xend = xmax_to, yend = ymin_from)
