@@ -15,6 +15,7 @@ Steve Walker
     id="toc-longer-memory-awareness-model">Longer Memory Awareness Model</a>
 -   <a href="#importation-awareness-model"
     id="toc-importation-awareness-model">Importation Awareness Model</a>
+-   <a href="#references" id="toc-references">References</a>
 
 SEIR-type models with awareness-driven behaviour, inspired by ([Weitz et
 al. 2020](#ref-weitz2020awareness)) and ([Hurford et al.
@@ -126,6 +127,31 @@ recent values being weighted more heavily. See
 [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/awareness/tmb.R)
 for details.
 
+This model is able to simulate behavioural cycles, where incidence
+declines because people change their behaviour not because of a
+depletion of susceptible individuals. Note that the `plot_traj` function
+is defined in the [source code for this
+article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/awareness/README.Rmd).
+
+``` r
+set.seed(8L)
+days = 800
+outputs = c(
+    "infection", "death"
+  , "S", "importation"
+)
+sim = (specs$longer_memory_awareness_model
+  |> mp_euler()
+  |> mp_simulator(days, outputs)
+)
+traj = (sim
+  |> mp_trajectory(include_initial = TRUE)
+)
+plot_traj(traj)
+```
+
+![](./figures/behavioural_cycles-1.png)<!-- -->
+
 # Importation Awareness Model
 
 This model is identical to the [longer memory awareness
@@ -133,6 +159,52 @@ model](#longer-memory-awareness-model) except that it includes random
 importations. These importations are simulated by drawing a Bernoulli
 random variable at each time step, adding it to the `I` box, and
 removing from the `R` box.
+
+``` r
+set.seed(8L)
+days = 800
+outputs = c(
+    "infection", "death"
+  , "S", "importation"
+)
+sim = (specs$importation_awareness_model
+  |> mp_euler()
+  |> mp_simulator(days, outputs)
+)
+traj = (sim
+  |> mp_trajectory(include_initial = TRUE)
+)
+plot_traj(traj)
+```
+
+![](./figures/importation-1.png)<!-- -->
+
+This model is particularly interesting for small populations if we use
+the `mp_euler_multinomial` state update method to generate process error
+from the Euler multinomial distribution.
+
+``` r
+set.seed(8L)
+days = 800
+outputs = c(
+    "infection", "death"
+  , "S", "importation"
+)
+sim = (specs$importation_awareness_model
+  |> mp_euler_multinomial()
+  |> mp_simulator(days, outputs)
+)
+traj = (sim
+  |> mp_trajectory(include_initial = TRUE)
+)
+plot_traj(traj)
+```
+
+![](./figures/importation_and_process_error-1.png)<!-- -->
+
+The process error has the effect of irregularly spaced cycles.
+
+# References
 
 <div id="refs" class="references csl-bib-body hanging-indent">
 

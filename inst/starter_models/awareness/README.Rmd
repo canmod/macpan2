@@ -121,6 +121,92 @@ $$
 
 This model is identical to the [delayed death awareness model](#delayed-death-awareness-model), except that the factor $I \gamma f_D$ in the force of infection is replaced with a temporal convolution that takes a weighted average of past values with more recent values being weighted more heavily. See [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/awareness/tmb.R) for details.
 
+This model is able to simulate behavioural cycles, where incidence declines because people change their behaviour not because of a depletion of susceptible individuals. Note that the `plot_traj` function is defined in the [source code for this article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/awareness/README.Rmd).
+
+```{r, echo = FALSE}
+plot_traj = function(traj) {
+  p = (traj
+    |> mutate(matrix = factor(matrix, levels = outputs))
+    |> ggplot()
+    + geom_line(aes(time, value))
+    + facet_wrap(~matrix
+        , scales = "free_y"
+        , ncol = 1
+        , dir = "v"
+      )
+    + scale_y_continuous(limits = c(0, NA), expand = c(0, NA))
+    + scale_x_continuous(
+          minor_breaks = \(x) {
+            y = seq(from = x[1], to = x[2], by = 50L)
+            y[1:(length(y) - 1)]
+          }
+        , expand = c(0, 0)
+      )
+    + ylab("")
+    + xlab("")
+    + theme_bw()
+  )
+  return(p)
+}
+```
+
+```{r behavioural_cycles}
+set.seed(8L)
+days = 800
+outputs = c(
+    "infection", "death"
+  , "S", "importation"
+)
+sim = (specs$longer_memory_awareness_model
+  |> mp_euler()
+  |> mp_simulator(days, outputs)
+)
+traj = (sim
+  |> mp_trajectory(include_initial = TRUE)
+)
+plot_traj(traj)
+```
+
 # Importation Awareness Model
 
 This model is identical to the [longer memory awareness model](#longer-memory-awareness-model) except that it includes random importations. These importations are simulated by drawing a Bernoulli random variable at each time step, adding it to the `I` box, and removing from the `R` box.
+
+```{r importation}
+set.seed(8L)
+days = 800
+outputs = c(
+    "infection", "death"
+  , "S", "importation"
+)
+sim = (specs$importation_awareness_model
+  |> mp_euler()
+  |> mp_simulator(days, outputs)
+)
+traj = (sim
+  |> mp_trajectory(include_initial = TRUE)
+)
+plot_traj(traj)
+```
+
+This model is particularly interesting for small populations if we use the `mp_euler_multinomial` state update method to generate process error from the Euler multinomial distribution.
+
+```{r importation_and_process_error}
+set.seed(8L)
+days = 800
+outputs = c(
+    "infection", "death"
+  , "S", "importation"
+)
+sim = (specs$importation_awareness_model
+  |> mp_euler_multinomial()
+  |> mp_simulator(days, outputs)
+)
+traj = (sim
+  |> mp_trajectory(include_initial = TRUE)
+)
+plot_traj(traj)
+```
+
+The process error has the effect of irregularly spaced cycles.
+
+# References
