@@ -2,7 +2,6 @@ SIR with demography
 ================
 Steve Walker
 
--   <a href="#setup" id="toc-setup">Setup</a>
 -   <a href="#packages-used" id="toc-packages-used">Packages Used</a>
 -   <a href="#model-specification" id="toc-model-specification">Model
     Specification</a>
@@ -10,40 +9,6 @@ Steve Walker
 -   <a href="#parameters" id="toc-parameters">Parameters</a>
 -   <a href="#dynamics" id="toc-dynamics">Dynamics</a>
 -   <a href="#references" id="toc-references">References</a>
-
-# Setup
-
-The R code in this article requires the following setup.
-
-``` r
-if (!require(macpan2)) {
-  repos = c('https://canmod.r-universe.dev', 'https://cloud.r-project.org')
-  install.packages('macpan2', repos = repos)
-}
-#> Loading required package: macpan2
-if (!require(ggplot2)) install.packages("ggplot2")
-#> Loading required package: ggplot2
-if (!require(dplyr)) install.packages("dplyr")
-#> Loading required package: dplyr
-#> 
-#> Attaching package: 'dplyr'
-#> The following object is masked from 'package:macpan2':
-#> 
-#>     all_equal
-#> The following objects are masked from 'package:stats':
-#> 
-#>     filter, lag
-#> The following objects are masked from 'package:base':
-#> 
-#>     intersect, setdiff, setequal, union
-library(ggraph)
-library(tidygraph)
-#> 
-#> Attaching package: 'tidygraph'
-#> The following object is masked from 'package:stats':
-#> 
-#>     filter
-```
 
 This is an extension of the [sir](inst/starter_models/sir) model to
 include birth and death.
@@ -76,7 +41,7 @@ spec = mp_tmb_library(
 )
 ```
 
-This specification can be used to draw the following flow diagrams using
+This specification can be used to draw the following flow diagram using
 code found in the [source for this
 article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/sir_demog/README.Rmd).
 

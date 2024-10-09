@@ -19,20 +19,6 @@ knitr::opts_chunk$set(
 )
 ```
 
-# Setup
-
-The R code in this article requires the following setup.
-```{r setup}
-if (!require(macpan2)) {
-  repos = c('https://canmod.r-universe.dev', 'https://cloud.r-project.org')
-  install.packages('macpan2', repos = repos)
-}
-if (!require(ggplot2)) install.packages("ggplot2")
-if (!require(dplyr)) install.packages("dplyr")
-library(ggraph)
-library(tidygraph)
-```
-
 This is an extension of the [sir](inst/starter_models/sir) model to include birth and death.
 
 # Packages Used
@@ -57,7 +43,7 @@ spec = mp_tmb_library(
 )
 ```
 
-This specification can be used to draw the following flow diagrams using code found in the [source for this article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/sir_demog/README.Rmd).
+This specification can be used to draw the following flow diagram using code found in the [source for this article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/sir_demog/README.Rmd).
 
 ```{r diagram, echo = FALSE, fig.height = 2, fig.width = 8}
 system.file("utils", "box-drawing.R", package = "macpan2") |> source()
