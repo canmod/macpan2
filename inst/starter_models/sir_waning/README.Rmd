@@ -52,7 +52,7 @@ layout = mp_layout_paths(spec
   , loops = "waning_immunity"
 )
 p = (layout
-  |> plot_flow_diagram(show_flow_names = TRUE)
+  |> plot_flow_diagram()
   + geom_curve(aes(x = xmin_from, y = ymin_from, xend = xmax_to, yend = ymin_from)
     , data = layout$edges_flows_ignored()
     , curvature = -0.2
