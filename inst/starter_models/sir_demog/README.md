@@ -2,7 +2,8 @@ SIR with demography
 ================
 Jen Freeman, Steve Walker
 
--   <a href="#packages-used" id="toc-packages-used">Packages Used</a>
+-   <a href="#packages-used-and-settings"
+    id="toc-packages-used-and-settings">Packages Used and Settings</a>
 -   <a href="#model-specification" id="toc-model-specification">Model
     Specification</a>
 -   <a href="#states" id="toc-states">States</a>
@@ -22,7 +23,7 @@ This is an extension of the
 [sir](https://github.com/canmod/macpan2/tree/main/inst/starter_models/sir)
 model to include birth and death.
 
-# Packages Used
+# Packages Used and Settings
 
 The code in this article uses the following packages.
 
@@ -31,6 +32,13 @@ library(ggplot2)
 library(dplyr)
 library(tidyr)
 library(macpan2)
+```
+
+To keep the optimizer from printing too much in this article, we set the
+`macpan2_verbose` option to `FALSE`.
+
+``` r
+options(macpan2_verbose = FALSE)
 ```
 
 # Model Specification
@@ -152,17 +160,6 @@ Calibrate the model and check for convergence (convergence = 0 is good).
 
 ``` r
 mp_optimize(cal)
-#> outer mgc:  24440.95 
-#> outer mgc:  3296.092 
-#> outer mgc:  6809.802 
-#> outer mgc:  4930.044 
-#> outer mgc:  1241.086 
-#> outer mgc:  638.3514 
-#> outer mgc:  381.0098 
-#> outer mgc:  260.7467 
-#> outer mgc:  44.415 
-#> outer mgc:  0.5932129 
-#> outer mgc:  0.0001203194
 #> $par
 #>    params    params 
 #> 0.4096054 0.1002555 
@@ -192,12 +189,6 @@ values.
 
 ``` r
 mp_tmb_coef(cal, conf.int = TRUE)
-#> outer mgc:  0.0001203194 
-#> outer mgc:  61.93006 
-#> outer mgc:  62.25842 
-#> outer mgc:  1643.722 
-#> outer mgc:  1771.836 
-#> outer mgc:  498.8395
 #>       term  mat row col default  type  estimate    std.error   conf.low
 #> 1   params beta   0   0   0.200 fixed 0.4096054 0.0144334428 0.38131633
 #> 2 params.1   mu   0   0   0.095 fixed 0.1002555 0.0009279992 0.09843669
@@ -221,11 +212,6 @@ We can also get the calibrated trajectory with confidence intervals.
 
 ``` r
 cal_traj = mp_trajectory_sd(cal, conf.int = TRUE) 
-#> outer mgc:  0.0001203194 
-#> outer mgc:  61.93006 
-#> outer mgc:  62.25842 
-#> outer mgc:  1643.722 
-#> outer mgc:  1771.836
 data = (nlist(true_traj, obs_traj, default_traj, cal_traj)
   |> bind_rows(.id = "data_type")
 )
