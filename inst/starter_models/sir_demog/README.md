@@ -13,7 +13,7 @@ Jen Freeman, Steve Walker
     -   <a href="#simulate-fake-data" id="toc-simulate-fake-data">Simulate fake
         data</a>
     -   <a href="#calibrate-to-fake-data"
-        id="toc-calibrate-to-fake-data">calibrate to fake data</a>
+        id="toc-calibrate-to-fake-data">Calibrate to fake data</a>
     -   <a href="#explore-the-calibration"
         id="toc-explore-the-calibration">Explore the calibration</a>
 -   <a href="#references" id="toc-references">References</a>
@@ -129,7 +129,7 @@ set.seed(1L)
 obs_traj$value = rpois(time_steps, true_traj$value)
 ```
 
-## calibrate to fake data
+## Calibrate to fake data
 
 We fit `beta` and `mu` to the simulated infection flow (i.e.,
 incidence). To be consistent we use the

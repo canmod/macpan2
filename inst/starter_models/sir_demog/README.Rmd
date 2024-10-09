@@ -119,7 +119,7 @@ set.seed(1L)
 obs_traj$value = rpois(time_steps, true_traj$value)
 ```
 
-## calibrate to fake data
+## Calibrate to fake data
 
 We fit `beta` and `mu` to the simulated infection flow (i.e., incidence). To be consistent we use the [`mp_rk4`](https://canmod.github.io/macpan2/reference/mp_euler.html) ODE solver.
 ```{r calibrator}
