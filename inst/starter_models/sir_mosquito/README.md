@@ -2,12 +2,13 @@ Mosquito-Vector SIR
 ================
 Steve Walker
 
-- [States](#states)
-- [Parameters](#parameters)
-- [Dynamics](#dynamics)
-- [Model Specification](#model-specification)
-- [Simulation](#simulation)
-- [References](#references)
+-   <a href="#states" id="toc-states">States</a>
+-   <a href="#parameters" id="toc-parameters">Parameters</a>
+-   <a href="#dynamics" id="toc-dynamics">Dynamics</a>
+-   <a href="#model-specification" id="toc-model-specification">Model
+    Specification</a>
+-   <a href="#simulation" id="toc-simulation">Simulation</a>
+-   <a href="#references" id="toc-references">References</a>
 
 This
 [model](https://homepages.warwick.ac.uk/~masfz/ModelingInfectiousDiseases/Chapter4/Program_4.4/index.html)
@@ -46,13 +47,12 @@ library(ggplot2)
 The model is described by the following differential equations:
 
 $$
-\frac{dS_H}{dt} = \nu_H - r \beta_{HM} S_H I_M - \mu_H S_H
-$$ $$
-\frac{dI_H}{dt} = r \beta_{HM} S_H I_M - \gamma_H I_H - \mu_H I_H
-$$ $$
-\frac{dS_M}{dt} = \nu_M - r \beta_{MH} S_M I_H - \mu_M S_M
-$$ $$
-\frac{dI_M}{dt} = r \beta_{MH} S_M I_H - \gamma_M I_M - \mu_M I_M
+\begin{align*}
+\frac{dS_H}{dt} &= \nu_H - r \beta_{HM} S_H I_M - \mu_H S_H \\
+\frac{dI_H}{dt} &= r \beta_{HM} S_H I_M - \gamma_H I_H - \mu_H I_H \\
+\frac{dS_M}{dt} &= \nu_M - r \beta_{MH} S_M I_H - \mu_M S_M \\
+\frac{dI_M}{dt} &= r \beta_{MH} S_M I_H - \gamma_M I_M - \mu_M I_M \\
+\end{align*}
 $$
 
 # Model Specification
@@ -65,44 +65,18 @@ for details).
 
 ``` r
 spec = mp_tmb_library("starter_models", "sir_mosquito", package = "macpan2")
-print(spec)
-#> ---------------------
-#> Default values:
-#> ---------------------
-#>   matrix row col     value
-#>        r         5.000e-04
-#>  beta_HM         5.000e-01
-#>  beta_MH         8.000e-01
-#>     mu_H         5.500e-05
-#>     mu_M         1.430e-01
-#>     nu_H         5.500e-02
-#>     nu_M         1.443e+03
-#>  gamma_H         3.300e-02
-#>  gamma_M         0.000e+00
-#>      S_H         1.000e+03
-#>      I_H         1.000e+00
-#>      S_M         1.000e+04
-#>      I_M         1.000e+00
-#>     pool         1.000e+00
-#> 
-#> ---------------------
-#> At every iteration of the simulation loop (t = 1 to T):
-#> ---------------------
-#>  1: mp_per_capita_inflow(from = "pool", to = "S_H", rate = "nu_H", 
-#>       abs_rate = "birth_H")
-#>  2: mp_per_capita_inflow(from = "pool", to = "S_M", rate = "nu_M", 
-#>       abs_rate = "birth_M")
-#>  3: mp_per_capita_flow(from = "S_H", to = "I_H", rate = "r * beta_HM * I_M", 
-#>       abs_rate = "infection_H")
-#>  4: mp_per_capita_flow(from = "S_M", to = "I_M", rate = "r * beta_MH * I_H", 
-#>       abs_rate = "infection_M")
-#>  5: mp_per_capita_outflow(from = "I_H", rate = "gamma_H", abs_rate = "recovery_H")
-#>  6: mp_per_capita_outflow(from = "I_M", rate = "gamma_M", abs_rate = "recovery_M")
-#>  7: mp_per_capita_outflow(from = "S_H", rate = "mu_H", abs_rate = "death_S_H")
-#>  8: mp_per_capita_outflow(from = "I_H", rate = "mu_H", abs_rate = "death_I_H")
-#>  9: mp_per_capita_outflow(from = "S_M", rate = "mu_M", abs_rate = "death_S_M")
-#> 10: mp_per_capita_outflow(from = "I_M", rate = "mu_M", abs_rate = "death_I_M")
 ```
+
+This specification can be used to draw the following flow diagrams using
+code found in the [source for this
+article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/sir_mosquito/README.Rmd).
+The dashed lines show the state dependence of infection, which is the
+only way that the human and mosquito sub-models interact (e.g.,
+mosquitos never become humans, they just infect them). The per-capita
+infection rate for humans depends on the number of infectious mosquitos,
+and vice versa.
+
+![](./figures/diagram-1.png)<!-- -->
 
 # Simulation
 
