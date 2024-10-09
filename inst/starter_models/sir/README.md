@@ -177,8 +177,6 @@ cal = mp_tmb_calibrator(
   , par = c("beta", "gamma")
 )
 mp_optimize(cal)
-#> Warning in (function (start, objective, gradient = NULL, hessian = NULL, :
-#> NA/NaN function evaluation
 #> $par
 #>     params     params 
 #> 0.29778059 0.03310577 
