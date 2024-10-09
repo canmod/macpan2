@@ -107,15 +107,22 @@ $$
 
 ## Simulate fake data
 
-We modify the specification so that it is different from the default
-library model that we will calibrate. We will use the
+The first step when testing a new fitting procedure is to simulate
+clean, well-behaved data from the model and check if you can recover
+parameters close to the true values (see
+[here](https://canmod.github.io/macpan2/articles/calibration.html) for
+an article on this topic). We modify the specification so that it is
+different from the default library model, which we will then calibrate
+using data generated from this modified model. We simulate incidence
+data from this model, and add noise. We will use the
 [`mp_rk4`](https://canmod.github.io/macpan2/reference/mp_euler.html) ODE
 solver.
 
 ``` r
+true = list(mu = 0.1, beta = 0.4)
 spec_for_making_fake_data = mp_tmb_insert(
     spec |> mp_rk4()
-  , default = list(mu = 0.1, beta = 0.4)
+  , default = true
 )
 ```
 
@@ -181,10 +188,6 @@ mp_optimize(cal)
 #> [1] "both X-convergence and relative convergence (5)"
 ```
 
-Note well that it is usually not this easy (see the
-[seir](https://github.com/canmod/macpan2/tree/main/inst/starter_models/seir)
-model for a peak at what can go wrong).
-
 ## Explore the calibration
 
 The calibration object now contains the information gained through
@@ -192,27 +195,16 @@ optimization. We can use this information to check the fitted parameter
 values.
 
 ``` r
-mp_tmb_coef(cal, conf.int = TRUE)
-#>       term  mat row col default  type  estimate    std.error   conf.low
-#> 1   params beta   0   0   0.200 fixed 0.4096054 0.0144334428 0.38131633
-#> 2 params.1   mu   0   0   0.095 fixed 0.1002555 0.0009279992 0.09843669
-#>   conf.high
-#> 1 0.4378944
-#> 2 0.1020744
+coef = mp_tmb_coef(cal) |> round_coef_tab()
+coef$true = true[coef$mat]
+print(coef)
+#>    mat row default estimate std.error true
+#> 1 beta   0   0.200   0.4096    0.0144  0.4
+#> 2   mu   0   0.095   0.1003    0.0009  0.1
 ```
 
-These fits similar to the true values.
-
-``` r
-spec_for_making_fake_data$default[c("beta", "mu")]
-#> $beta
-#> [1] 0.4
-#> 
-#> $mu
-#> [1] 0.1
-```
-
-We can also get the calibrated trajectory with confidence intervals.
+These fits similar to the true values. We can also get the calibrated
+trajectory with confidence intervals.
 
 ``` r
 cal_traj = mp_trajectory_sd(cal, conf.int = TRUE) 
@@ -241,6 +233,10 @@ what it should do.
 ```
 
 ![](./figures/plot_fit-1.png)<!-- -->
+
+Note well that it is usually not this easy (see the
+[seir](https://github.com/canmod/macpan2/tree/main/inst/starter_models/seir)
+model for a peak at what can go wrong).
 
 # References
 

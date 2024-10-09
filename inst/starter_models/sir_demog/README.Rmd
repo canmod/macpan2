@@ -14,9 +14,12 @@ editor_options:
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
+  warning = FALSE,
+  message = FALSE,
   comment = "#>",
   fig.path = "./figures/"
 )
+system.file("utils", "round-coef.R", package = "macpan2") |> source()
 ```
 
 This is an extension of the [sir](https://github.com/canmod/macpan2/tree/main/inst/starter_models/sir) model that includes birth and death.
@@ -101,11 +104,12 @@ $$
 
 ## Simulate fake data
 
-We modify the specification so that it is different from the default library model that we will calibrate. We will use the [`mp_rk4`](https://canmod.github.io/macpan2/reference/mp_euler.html) ODE solver.
+The first step when testing a new fitting procedure is to simulate clean, well-behaved data from the model and check if you can recover parameters close to the true values (see [here](https://canmod.github.io/macpan2/articles/calibration.html) for an article on this topic). We modify the specification so that it is different from the default library model, which we will then calibrate using data generated from this modified model. We simulate incidence data from this model, and add noise. We will use the [`mp_rk4`](https://canmod.github.io/macpan2/reference/mp_euler.html) ODE solver.
 ```{r defaults}
+true = list(mu = 0.1, beta = 0.4)
 spec_for_making_fake_data = mp_tmb_insert(
     spec |> mp_rk4()
-  , default = list(mu = 0.1, beta = 0.4)
+  , default = true
 )
 ```
 
