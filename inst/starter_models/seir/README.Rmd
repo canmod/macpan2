@@ -1,0 +1,171 @@
+---
+title: "basic SEIR"
+index_entry: "vanilla epidemic model with an exposed class"
+bibliography: ../../references.bib
+link-citations: TRUE
+author: Steve Walker
+output: 
+  github_document:
+    toc: true
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "./figures/"
+)
+system.file("utils", "round-coef.R", package = "macpan2") |> source()
+```
+
+We introduce the *exposed* compartment, to capture the time period in which individuals have been exposed to the disease but are not able to infect others yet.
+
+# Packages Used and Settings
+
+The code in this article uses the following packages.
+
+```{r packages, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(macpan2)
+```
+
+To keep the optimizer from printing too much in this article, we set the `macpan2_verbose` option to `FALSE`.
+
+```{r options}
+options(macpan2_verbose = FALSE)
+```
+
+
+# Model Specification
+
+This model has been specified in the `seir` directory [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/seir/tmb.R) and is accessible from the `macpan2` model library (see [Example Models](https://canmod.github.io/macpan2/articles/example_models.html) for details). We can read in the model specification using the `mp_tmb_library` command.
+```{r model_spec}
+spec = mp_tmb_library(
+    "starter_models"
+  , "seir"
+  , package = "macpan2"
+)
+```
+
+This specification can be used to draw the following flow diagram using code found in the [source for this article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/seir/README.Rmd).
+
+```{r diagram, echo = FALSE, fig.height = 1.5, fig.width = 7}
+system.file("utils", "box-drawing.R", package = "macpan2") |> source()
+layout = mp_layout_paths(spec)
+p = plot_flow_diagram(layout, show_flow_rates = TRUE)
+print(p)
+```
+
+# States
+
+| variable | description                       |
+| -------- | --------------------------------- |
+| S        | Number of susceptible individuals |
+| I        | Number of infectious individuals  |
+| R        | Number of recovered individuals   |
+
+The size of the total population is, $N = S + I + R$.
+
+# Parameters
+
+| variable | description                     |
+| -------- | ------------------------------- |
+| $\beta$  | per capita transmission rate    |
+| $\gamma$ | per capita recovery rate        |
+
+# Dynamics 
+
+$$
+\begin{align*}
+\frac{dS}{dt} &= -\beta S\frac{I}{N} \\
+\frac{dI}{dt} &= \beta S\frac{I}{N} - \gamma I \\
+\frac{dR}{dt} &= \gamma I
+\end{align*}
+$$
+
+# Calibration
+
+## Simulate fake data
+
+We modify the specification so that it is different from the default library model that we will calibrate. Then we simulate incidence data from this model, and add noise.
+
+```{r simulation}
+set.seed(1L)
+time_steps = 100L
+true = list(
+    beta = 0.3 # beta value to simulate data with
+  , gamma = 0.05 # gamma value to simulate data with
+  , alpha = 0.1 # alpha value to simulate data with
+)
+seir = (spec
+  |> mp_tmb_insert(
+      phase = "during", at = Inf
+    , expressions = list(noisy_infection ~ rpois(infection))
+    , default = true
+  )
+  |> mp_simulator(
+      time_steps = time_steps
+    , outputs = c("noisy_infection", "infection")
+  )
+)
+  
+observed_data = (seir
+  |> mp_trajectory() 
+  |> mutate(matrix = ifelse(matrix == "infection", "true_infection", "infection"))
+)
+(observed_data
+  |> ggplot()
+  + geom_line(aes(time, value, colour = matrix))
+  + theme_bw()
+)
+```
+
+Note that the incidence per time-step is called `infection` in the model, to indicate that it is the rate at which individuals from from `S` to `I` due to infection. Observe the naming convention in the expanded specification object.
+```{r}
+print(spec |> mp_expand())
+```
+
+## Calibrate the model
+
+```{r calibration}
+cal = mp_tmb_calibrator(
+    spec
+  , data = filter(observed_data, matrix == "infection")
+  , traj = "infection"
+  , par = c("beta", "gamma", "alpha")
+)
+mp_optimize(cal)
+```
+
+## Explore the fit
+
+The calibration object now contains the information gained through optimization. We can use this information to check the fitted parameter values.
+```{r coef}
+coef = mp_tmb_coef(cal) |> round_coef_tab()
+coef$true = true[coef$mat]
+print(coef)
+```
+The estimate is not very close to the true value, indicate that although the optimizer converged it was not able to find the true parameter values. This is a strong indication that there is not enough information in incidence data to estimate all three model parameters. This case is made stronger by the excellent fit to the data, as we should below. A good fit that converged, but to incorrect parameter values, is always a possibility. One should be cautious about estimating parameters from data and check to make sure that the parameters make sense. A more realistic exploration of these identifiability issues can be found in or description of the [SHIVER model](https://github.com/canmod/macpan2/tree/main/inst/starter_models/shiver).
+
+```{r traj_fit} 
+comparison_data = list(
+    obs = observed_data
+  , fit = mp_trajectory_sd(cal, conf.int = TRUE)
+) |> bind_rows(.id = "type")
+(comparison_data
+  |> filter(matrix == "infection")
+  |> ggplot()
+  + geom_line(aes(time, value, colour = type))
+  + geom_ribbon(aes(time, ymin = conf.low, ymax = conf.high)
+    , colour = "red"
+    , fill = "red"
+    , alpha = 0.5
+    , filter(comparison_data, type == "fit")
+  )
+  + theme_bw()
+)
+```
