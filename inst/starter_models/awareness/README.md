@@ -152,6 +152,16 @@ plot_traj(traj)
 
 ![](./figures/behavioural_cycles-1.png)<!-- -->
 
+This code uses the [`mp_euler`](?mp_euler()) function for ensuring that
+the Euler method is used to solve the differential equations. This
+method is the default, but we draw attention to it here as we will
+change it below. Then we do the
+[standard](https://canmod.github.io/macpan2/articles/quickstart.html)
+`macpan2` thing of generating simulator (using
+[mp_simulator](?mp_simulator())) and then using that simulator to
+simulate trajectories from the model (using
+[mp_trajectory](?mp_trajector())).
+
 # Importation Awareness Model
 
 This model is identical to the [longer memory awareness
@@ -180,8 +190,9 @@ plot_traj(traj)
 ![](./figures/importation-1.png)<!-- -->
 
 This model is particularly interesting for small populations if we use
-the `mp_euler_multinomial` state update method to generate process error
-from the Euler multinomial distribution.
+the [`mp_euler_multinomial`](?mp_euler_multinomial()) state update
+method to generate process error from the Euler multinomial
+distribution.
 
 ``` r
 set.seed(8L)
