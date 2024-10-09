@@ -59,7 +59,7 @@ spec = mp_tmb_library(
 
 This specification can be used to draw the following flow diagram using code found in the [source for this article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/sir/README.Rmd).
 
-```{r diagram, echo = FALSE, fig.height = 2, fig.width = 8}
+```{r diagram, echo = FALSE, fig.height = 1.8, fig.width = 7}
 system.file("utils", "box-drawing.R", package = "macpan2") |> source()
 layout = mp_layout_paths(spec)
 p = plot_flow_diagram(layout, show_flow_rates = TRUE)
