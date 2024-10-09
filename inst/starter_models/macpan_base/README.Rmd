@@ -56,7 +56,7 @@ spec = mp_tmb_library(
 )
 ```
 
-This specification can be used to draw the following flow diagrams using code found in the [source for this article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/macpan_base/README.Rmd). For clarity, we first draw the epidemiological components of the model first, followed by the wastewater shedding component.
+This specification can be used to draw the following flow diagrams using code found in the [source for this article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/macpan_base/README.Rmd).
 
 ```{r diagram, echo = FALSE, fig.height = 5, fig.width = 8}
 system.file("utils", "box-drawing.R", package = "macpan2") |> source()

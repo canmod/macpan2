@@ -59,8 +59,8 @@ layout = mp_layout_grid(spec
 )
 (layout
   |> plot_flow_diagram(show_flow_rates = TRUE)
-  |> draw_outflows(layout, show_flow_rates = TRUE)
-  |> draw_inflows(layout, show_flow_rates = TRUE)
+  |> draw_outflows(layout, show_labels = TRUE, lab = "rate")
+  |> draw_inflows(layout, show_labels = TRUE, lab = "rate")
 )
 ```
 

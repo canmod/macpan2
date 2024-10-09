@@ -1,15 +1,70 @@
----
-title: "awareness models"
-index_entry: "behaviour modifications in response to death"
-author: Steve Walker
----
+awareness models
+================
+Steve Walker
 
-SEIR-type model with awareness-driven behaviour, inspired by [this](https://doi.org/10.1073/pnas.2009911117) and [this](https://doi.org/10.1016/j.jtbi.2022.111378).
+-   <a href="#packages-used" id="toc-packages-used">Packages Used</a>
+-   <a href="#model-specification" id="toc-model-specification">Model
+    Specification</a>
+-   <a href="#states" id="toc-states">States</a>
+-   <a href="#parameters" id="toc-parameters">Parameters</a>
+-   <a href="#base-awareness-model" id="toc-base-awareness-model">Base
+    Awareness Model</a>
+-   <a href="#delayed-death-awareness-model"
+    id="toc-delayed-death-awareness-model">Delayed Death Awareness Model</a>
+-   <a href="#longer-memory-awareness-model"
+    id="toc-longer-memory-awareness-model">Longer Memory Awareness Model</a>
+-   <a href="#importation-awareness-model"
+    id="toc-importation-awareness-model">Importation Awareness Model</a>
+
+SEIR-type models with awareness-driven behaviour, inspired by ([Weitz et
+al. 2020](#ref-weitz2020awareness)) and ([Hurford et al.
+2023](#ref-hurford2023pandemic)).
+
+# Packages Used
+
+The code in this article uses the following packages.
+
+``` r
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(macpan2)
+```
+
+# Model Specification
+
+We describe several models here that have been specified in the
+`awareness` directory
+[here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/awareness/tmb.R)
+and are accessible from the `macpan2` model library (see [Example
+Models](https://canmod.github.io/macpan2/articles/example_models.html)
+for details). We can read in the model specification using the
+`mp_tmb_library` command.
+
+``` r
+specs = mp_tmb_library(
+    "starter_models"
+  , "awareness"
+  , package = "macpan2"
+  , alternative_specs = TRUE
+)
+print(names(specs))
+#> [1] "awareness_model"               "delayed_death_awareness_model"
+#> [3] "longer_memory_awareness_model" "importation_awareness_model"
+```
+
+This specification can be used to draw the following flow diagrams using
+code found in the [source for this
+article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/awareness/README.Rmd).
+
+![](./figures/diagram-1.png)<!-- -->
+
+![](./figures/diagram-delayed-death-1.png)<!-- -->
 
 # States
 
 | variable | description  |
-| -------- | ------------ |
+|----------|--------------|
 | S        | Susceptible  |
 | E        | Exposed      |
 | I        | Infectious   |
@@ -18,16 +73,15 @@ SEIR-type model with awareness-driven behaviour, inspired by [this](https://doi.
 | H        | Hospitalized |
 |          |              |
 
-
 # Parameters
 
 | variable               | description                                                                   |
-| ---------------------- | ----------------------------------------------------------------------------- |
+|------------------------|-------------------------------------------------------------------------------|
 | $\beta$                | per capita transmission rate                                                  |
 | $\mu$                  | per capita infection rate (average time spent in compartment E is $1/\alpha$) |
 | $\gamma$               | per capita recovery/death rate                                                |
 | `importation_prob`     | probability that one more infectious individual will arrive on any day.       |
-| `memory_length`        | how long do people 'care about' deaths (days)                                 |
+| `memory_length`        | how long do people ‘care about’ deaths (days)                                 |
 | $1/\gamma_h$           | mean time between isolation and death (days)                                  |
 | $\delta_c$             | half-saturation constant for death awareness.                                 |
 | $\delta_{\text{long}}$ | half-saturation constant for longer-term death awareness.                     |
@@ -61,8 +115,42 @@ $$
 
 # Longer Memory Awareness Model
 
-This model is identical to the [delayed death awareness model](#delayed-death-awareness-model), except that the factor $I \gamma f_D$ in the force of infection is replaced with a temporal convolution that takes a weighted average of past values with more recent values being weighted more heavily. See [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/awareness/tmb.R) for details.
+This model is identical to the [delayed death awareness
+model](#delayed-death-awareness-model), except that the factor
+$I \gamma f_D$ in the force of infection is replaced with a temporal
+convolution that takes a weighted average of past values with more
+recent values being weighted more heavily. See
+[here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/awareness/tmb.R)
+for details.
 
 # Importation Awareness Model
 
-This model is identical to the [longer memory awareness model](#longer-memory-awareness-model) except that it includes random importations. These importations are simulated by drawing a Bernoulli random variable at each time step, adding it to the `I` box, and removing from the `R` box.
+This model is identical to the [longer memory awareness
+model](#longer-memory-awareness-model) except that it includes random
+importations. These importations are simulated by drawing a Bernoulli
+random variable at each time step, adding it to the `I` box, and
+removing from the `R` box.
+
+<div id="refs" class="references csl-bib-body hanging-indent">
+
+<div id="ref-hurford2023pandemic" class="csl-entry">
+
+Hurford, Amy, Maria M Martignoni, J Concepción Loredo-Osti, Francis
+Anokye, Julien Arino, Bilal Saleh Husain, Brian Gaas, and James
+Watmough. 2023. “Pandemic Modelling for Regions Implementing an
+Elimination Strategy.” *Journal of Theoretical Biology* 561: 111378.
+<https://doi.org/10.1016/j.jtbi.2022.111378>.
+
+</div>
+
+<div id="ref-weitz2020awareness" class="csl-entry">
+
+Weitz, Joshua S, Sang Woo Park, Ceyhun Eksin, and Jonathan Dushoff.
+2020. “Awareness-Driven Behavior Changes Can Shift the Shape of
+Epidemics Away from Peaks and Toward Plateaus, Shoulders, and
+Oscillations.” *Proceedings of the National Academy of Sciences* 117
+(51): 32764–71. <https://doi.org/10.1073/pnas.2009911117>.
+
+</div>
+
+</div>
