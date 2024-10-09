@@ -268,3 +268,11 @@ lhs_pieces = function(formula) {
   }
   return(l)
 }
+
+vars_in_lhs = function(formula) {
+  formula_components(formula, side = "left")$variables
+}
+
+vars_in_str = function(x) x |> one_sided() |> vars_in_lhs()
+
+vars_in_char = function(x) lapply(x, vars_in_str)

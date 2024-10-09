@@ -127,6 +127,29 @@ mp_flow_frame = function(spec, topological_sort = TRUE, loops = "^$") {
   return(flows)
 }
 
+#' State Dependence Frame
+#' 
+#' Data frame giving states that per-capita flow rates directly depend on.
+#' This is intended for plotting diagrams and not for mathematical analysis,
+#' in that it does not describe indirect dependence for flow rates on state
+#' variables.
+#' 
+#' @param spec Model specification from \code{\link{spec}}.
+#' 
+#' @export
+mp_state_dependence_frame = function(spec) {
+  ff = mp_flow_frame(spec, topological_sort = FALSE)
+  ss = mp_state_vars(spec)
+  (ff$rate
+    |> vars_in_char() 
+    |> lapply(intersect, ss) 
+    |> setNames(ff$name) 
+    |> melt_list_of_char_vecs()
+    |> setNames(c("state", "flow"))
+    |> as.data.frame()
+  )
+}
+
 #' State Variables
 #' 
 #' Get the state variables in a model specification.
@@ -208,6 +231,12 @@ find_all_paths <- function(edges_df, start_node_guesses = character(0L)) {
 
 
 combine_adjacent_columns <- function(padded_paths_matrix) {
+  if (!is.matrix(padded_paths_matrix)) return(matrix(padded_paths_matrix, nrow = 1L))
+  if (all(padded_paths_matrix != "")) return(padded_paths_matrix)
+  if (nrow(padded_paths_matrix) == 1L) {
+    warning("one-row matrix with blanks. this indicates that something went wrong.")
+    return(padded_paths_matrix)
+  }
   combined_matrix <- padded_paths_matrix
   i <- 1
   

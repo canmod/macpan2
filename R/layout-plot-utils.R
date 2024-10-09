@@ -465,7 +465,7 @@ LayoutMatrixPaths = function(spec
     
     ## only need one edge per node-pair
     if (self$combine_columns) {
-      padded_paths_matrix = macpan2:::combine_adjacent_columns(padded_paths_matrix)
+      padded_paths_matrix = combine_adjacent_columns(padded_paths_matrix)
     }
     path_to_edges = function(path) data.frame(from = path[-length(path)], to = path[-1])
     path_ids = lapply(self$.paths, path_to_edges) |> bind_rows(.id = "path_id")

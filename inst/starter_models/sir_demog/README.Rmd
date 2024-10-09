@@ -94,7 +94,7 @@ $$
 
 ## Simulate fake data
 
-We modify the specification so that it is different from the default library model that we will calibrate. We will use the ?mp_rk4() ODE solver.
+We modify the specification so that it is different from the default library model that we will calibrate. We will use the [`mp_rk4`](https://canmod.github.io/macpan2/reference/mp_euler.html) ODE solver.
 ```{r defaults}
 spec_for_making_fake_data = mp_tmb_insert(
     spec |> mp_rk4()
@@ -121,7 +121,7 @@ obs_traj$value = rpois(time_steps, true_traj$value)
 
 ## calibrate to fake data
 
-We fit `beta` and `mu` to the simulated infection flow (i.e., incidence). To be consistent we use the ?mp_rk4() ODE solver.
+We fit `beta` and `mu` to the simulated infection flow (i.e., incidence). To be consistent we use the [`mp_rk4`](https://canmod.github.io/macpan2/reference/mp_euler.html) ODE solver.
 ```{r calibrator}
 cal = mp_tmb_calibrator(mp_rk4(spec), obs_traj, "infection", c("beta", "mu"))
 ```
