@@ -69,7 +69,7 @@ This model has been specified in the `sir_mosquito` directory [here](https://git
 spec = mp_tmb_library("starter_models", "sir_mosquito", package = "macpan2")
 ```
 
-This specification can be used to draw the following flow diagrams using code found in the [source for this article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/sir_mosquito/README.Rmd). The dashed lines show the state dependence of infection, which is the only way that the human and mosquito sub-models interact (e.g., mosquitos never become humans, they just infect them). The per-capita infection rate for humans depends on the number of infectious mosquitos, and vice versa.
+This specification can be used to draw the following flow diagram using code found in the [source for this article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/sir_mosquito/README.Rmd). The dashed lines show the state dependence of infection, which is the only way that the human and mosquito sub-models interact (e.g., mosquitos never become humans, they just infect them). The per-capita infection rate for humans depends on the number of infectious mosquitos, and vice versa.
 
 ```{r diagram, echo = FALSE, fig.height = 3, fig.width = 8.5}
 system.file("utils", "box-drawing.R", package = "macpan2") |> source()

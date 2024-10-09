@@ -67,7 +67,7 @@ for details).
 spec = mp_tmb_library("starter_models", "sir_mosquito", package = "macpan2")
 ```
 
-This specification can be used to draw the following flow diagrams using
+This specification can be used to draw the following flow diagram using
 code found in the [source for this
 article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/sir_mosquito/README.Rmd).
 The dashed lines show the state dependence of infection, which is the
