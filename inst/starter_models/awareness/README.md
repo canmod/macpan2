@@ -202,7 +202,8 @@ plot_traj(traj)
 
 ![](./figures/importation_and_process_error-1.png)<!-- -->
 
-The process error has the effect of irregularly spaced cycles.
+The process error combined with the random importation has the effect of
+irregularly spaced cycles.
 
 # References
 

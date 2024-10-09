@@ -207,6 +207,6 @@ traj = (sim
 plot_traj(traj)
 ```
 
-The process error has the effect of irregularly spaced cycles.
+The process error combined with the random importation has the effect of irregularly spaced cycles.
 
 # References
