@@ -182,7 +182,10 @@ The estimate is different enough from the default to indicate that the
 optimizer did ‘something’, and the estimate is close enough to the true
 value to indicate that it did the right thing. Indeed the fit to the
 data is excellent, although we should expect this given that we fitted
-the same model used to generate the data.
+the same model used to generate the data. Note well that it is usually
+not this easy (see the
+[seir](https://github.com/canmod/macpan2/tree/main/inst/starter_models/seir)
+model for a peak at what can go wrong).
 
 ``` r
 comparison_data = list(
