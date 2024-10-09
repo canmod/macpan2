@@ -104,7 +104,7 @@ set.seed(1L)
 time_steps = 100L
 true = list(
     beta = 0.3 # beta value to simulate data with
-  , phi = 0.001 # phi value to simulate data with
+  , phi = 0.05 # phi value to simulate data with
 )
 sir_waning = (spec
   |> mp_tmb_insert(
@@ -125,6 +125,7 @@ observed_data = (sir_waning
 (observed_data
   |> ggplot()
   + geom_line(aes(time, value, colour = matrix))
+  + theme_bw()
 )
 ```
 
@@ -169,6 +170,7 @@ comparison_data = list(
     , alpha = 0.5
     , filter(comparison_data, type == "fit")
   )
+  + theme_bw()
 )
 ```
 
