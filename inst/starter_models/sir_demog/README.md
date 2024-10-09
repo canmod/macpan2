@@ -21,7 +21,7 @@ Jen Freeman, Steve Walker
 
 This is an extension of the
 [sir](https://github.com/canmod/macpan2/tree/main/inst/starter_models/sir)
-model to include birth and death.
+model that includes birth and death.
 
 # Packages Used and Settings
 
