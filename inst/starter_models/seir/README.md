@@ -2,15 +2,19 @@ basic SEIR
 ================
 Steve Walker
 
-- [Packages Used and Settings](#packages-used-and-settings)
-- [Model Specification](#model-specification)
-- [States](#states)
-- [Parameters](#parameters)
-- [Dynamics](#dynamics)
-- [Calibration](#calibration)
-  - [Simulate fake data](#simulate-fake-data)
-  - [Calibrate the model](#calibrate-the-model)
-  - [Explore the fit](#explore-the-fit)
+-   <a href="#packages-used-and-settings"
+    id="toc-packages-used-and-settings">Packages Used and Settings</a>
+-   <a href="#model-specification" id="toc-model-specification">Model
+    Specification</a>
+-   <a href="#states" id="toc-states">States</a>
+-   <a href="#parameters" id="toc-parameters">Parameters</a>
+-   <a href="#dynamics" id="toc-dynamics">Dynamics</a>
+-   <a href="#calibration" id="toc-calibration">Calibration</a>
+    -   <a href="#simulate-fake-data" id="toc-simulate-fake-data">Simulate fake
+        data</a>
+    -   <a href="#calibrate-the-model" id="toc-calibrate-the-model">Calibrate
+        the model</a>
+    -   <a href="#explore-the-fit" id="toc-explore-the-fit">Explore the fit</a>
 
 We introduce the *exposed* compartment, to capture the time period in
 which individuals have been exposed to the disease but are not able to
@@ -208,11 +212,17 @@ print(coef)
 #> 3 alpha   0     0.5   0.4357    0.9622  0.1
 ```
 
-The estimate is different enough from the default to indicate that the
-optimizer did ‘something’, and the estimate is close enough to the true
-value to indicate that it did the right thing. Indeed the fit to the
-data is excellent, although we should expect this given that we fitted
-the same model used to generate the data.
+The estimate is not very close to the true value, indicate that although
+the optimizer converged it was not able to find the true parameter
+values. This is a strong indication that there is not enough information
+in incidence data to estimate all three model parameters. This case is
+made stronger by the excellent fit to the data, as we should below. A
+good fit that converged, but to incorrect parameter values, is always a
+possibility. One should be cautious about estimating parameters from
+data and check to make sure that the parameters make sense. A more
+realistic exploration of these identifiability issues can be found in or
+description of the [SHIVER
+model](https://github.com/canmod/macpan2/tree/main/inst/starter_models/shiver).
 
 ``` r
 comparison_data = list(
