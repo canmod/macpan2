@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
 system.file("utils", "round-coef.R", package = "macpan2") |> source()
 ```
 
-The simplest Lotka-Volterra competition model with two competing species [@Hastings1997]. This is not a compartmental model because individuals of one species do not become individuals of the other, unlike say an SIR model where susceptible individuals become infectious and then recovered. This competition model, and this other [predator-prey model](https://github.com/canmod/macpan2/tree/main/inst/starter_models/lotka_volterra_predator_prey), illustrate how `macpan2` can be used for general dynamical modelling.
+The simplest Lotka-Volterra competition model with two competing species [@Hastings1997competition]. This is not a compartmental model because individuals of one species do not become individuals of the other, unlike say an SIR model where susceptible individuals become infectious and then recovered. This competition model, and this other [predator-prey model](https://github.com/canmod/macpan2/tree/main/inst/starter_models/lotka_volterra_predator_prey), illustrate how `macpan2` can be used for general dynamical modelling.
 
 # Packages Used and Settings
 
@@ -119,6 +119,8 @@ fake_data = (spec
   + theme_bw()
 )
 ```
+
+The two species seem to be coexisting.
 
 ## Calibration
 
