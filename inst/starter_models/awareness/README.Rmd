@@ -47,7 +47,7 @@ specs = mp_tmb_library(
 print(names(specs))
 ```
 
-This specification can be used to draw the following flow diagrams using code found in the [source for this article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/awareness/README.Rmd).
+This specification can be used to draw the following flow diagram using code found in the [source for this article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/awareness/README.Rmd). This is the diagram for the simple awareness model. 
 
 ```{r diagram, echo = FALSE, fig.height = 2, fig.width = 5}
 system.file("utils", "box-drawing.R", package = "macpan2") |> source()
@@ -55,6 +55,7 @@ layout = mp_layout_paths(specs$awareness_model)
 plot_flow_diagram(layout)
 ```
 
+The other three models in this example have a hospital box as well.
 
 ```{r diagram-delayed-death, echo = FALSE, fig.height = 2, fig.width = 5}
 system.file("utils", "box-drawing.R", package = "macpan2") |> source()

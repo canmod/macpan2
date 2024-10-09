@@ -53,11 +53,14 @@ print(names(specs))
 #> [3] "longer_memory_awareness_model" "importation_awareness_model"
 ```
 
-This specification can be used to draw the following flow diagrams using
+This specification can be used to draw the following flow diagram using
 code found in the [source for this
 article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/awareness/README.Rmd).
+This is the diagram for the simple awareness model.
 
 ![](./figures/diagram-1.png)<!-- -->
+
+The other three models in this example have a hospital box as well.
 
 ![](./figures/diagram-delayed-death-1.png)<!-- -->
 
