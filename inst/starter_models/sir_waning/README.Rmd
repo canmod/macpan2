@@ -146,9 +146,6 @@ cal = mp_tmb_calibrator(
   , traj = "I"
   , par = c("beta", "phi")
 )
-```
-
-```{r optimize}
 mp_optimize(cal)
 ```
 

@@ -173,6 +173,7 @@ inst/starter_models/%/README.md: inst/starter_models/%/README.Rmd
 inst/starter_models/%/README.push: inst/starter_models/%/README.md
 	@first_dir=$(dir $(firstword $^))
 	@echo Pushing directory: $(first_dir)
-	git add -u $(first_dir)
-	git commit -m "starter model"
-	git push
+	@git add -u $(first_dir)
+	@git commit -m "starter model"
+	@git push
+	@touch $@
