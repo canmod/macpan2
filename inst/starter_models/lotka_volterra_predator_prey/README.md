@@ -371,6 +371,8 @@ comparison_data = list(
 
 ![](./figures/traj_fit-1.png)<!-- -->
 
+Starting to see those classic predator-prey cycles!
+
 # References
 
 <div id="refs" class="references csl-bib-body hanging-indent">

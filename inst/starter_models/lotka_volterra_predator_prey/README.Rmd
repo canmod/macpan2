@@ -220,5 +220,6 @@ comparison_data = list(
 )
 ```
 
+Starting to see those classic predator-prey cycles!
 
 # References
