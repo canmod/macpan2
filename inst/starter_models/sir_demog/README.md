@@ -1,6 +1,6 @@
 SIR with demography
 ================
-Steve Walker
+Jen Freeman, Steve Walker
 
 -   <a href="#packages-used" id="toc-packages-used">Packages Used</a>
 -   <a href="#model-specification" id="toc-model-specification">Model
@@ -10,8 +10,9 @@ Steve Walker
 -   <a href="#dynamics" id="toc-dynamics">Dynamics</a>
 -   <a href="#references" id="toc-references">References</a>
 
-This is an extension of the [sir](inst/starter_models/sir) model to
-include birth and death.
+This is an extension of the
+[sir](https://github.com/canmod/macpan2/tree/main/inst/starter_models/sir)
+model to include birth and death.
 
 # Packages Used
 
