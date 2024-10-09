@@ -2,7 +2,8 @@ SIR with waning immunity
 ================
 Jen Freeman, Steve Walker
 
--   <a href="#packages-used" id="toc-packages-used">Packages Used</a>
+-   <a href="#packages-used-and-settings"
+    id="toc-packages-used-and-settings">Packages Used and Settings</a>
 -   <a href="#model-specification" id="toc-model-specification">Model
     Specification</a>
 -   <a href="#states" id="toc-states">States</a>
@@ -22,7 +23,7 @@ arising indefinitely. This is an extension of the
 [sir](https://github.com/canmod/macpan2/tree/main/inst/starter_models/sir)
 model to include such immunity waning.
 
-# Packages Used
+# Packages Used and Settings
 
 The code in this article uses the following packages.
 
@@ -31,6 +32,13 @@ library(ggplot2)
 library(dplyr)
 library(tidyr)
 library(macpan2)
+```
+
+To keep the optimizer from printing too much in this article, we set the
+`macpan2_verbose` option to `FALSE`.
+
+``` r
+options(macpan2_verbose = FALSE)
 ```
 
 # Model Specification
@@ -137,13 +145,6 @@ cal = mp_tmb_calibrator(
 
 ``` r
 mp_optimize(cal)
-#> outer mgc:  24904.45 
-#> outer mgc:  542.6844 
-#> outer mgc:  420.7835 
-#> outer mgc:  161.7204 
-#> outer mgc:  4.866829 
-#> outer mgc:  0.01210386 
-#> outer mgc:  1.404859e-08
 #> $par
 #>     params     params 
 #> 0.30160534 0.04986632 
@@ -173,12 +174,6 @@ values.
 
 ``` r
 coef = mp_tmb_coef(cal) |> round_coef_tab()
-#> outer mgc:  1.404859e-08 
-#> outer mgc:  50.68909 
-#> outer mgc:  52.02925 
-#> outer mgc:  100.4781 
-#> outer mgc:  106.8408 
-#> outer mgc:  132.4467
 coef$true = true[coef$mat]
 print(coef)
 #>    mat row default estimate std.error true
@@ -197,11 +192,6 @@ comparison_data = list(
     obs = observed_data
   , fit = mp_trajectory_sd(cal, conf.int = TRUE)
 ) |> bind_rows(.id = "type")
-#> outer mgc:  1.404859e-08 
-#> outer mgc:  50.68909 
-#> outer mgc:  52.02925 
-#> outer mgc:  100.4781 
-#> outer mgc:  106.8408
 (comparison_data
   |> filter(matrix == "I")
   |> ggplot()

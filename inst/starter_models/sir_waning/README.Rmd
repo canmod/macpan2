@@ -22,7 +22,7 @@ system.file("utils", "round-coef.R", package = "macpan2") |> source()
 
 Endemic pathogens can sometimes be modelled by sending R back to S, thereby controlling susceptible depletion such that new infections keep arising indefinitely. This is an extension of the [sir](https://github.com/canmod/macpan2/tree/main/inst/starter_models/sir) model to include such immunity waning.
 
-# Packages Used
+# Packages Used and Settings
 
 The code in this article uses the following packages.
 
@@ -32,6 +32,13 @@ library(dplyr)
 library(tidyr)
 library(macpan2)
 ```
+
+To keep the optimizer from printing too much in this article, we set the `macpan2_verbose` option to `FALSE`.
+
+```{r options}
+options(macpan2_verbose = FALSE)
+```
+
 
 # Model Specification
 
