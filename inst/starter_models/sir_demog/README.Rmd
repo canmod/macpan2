@@ -143,21 +143,16 @@ Calibrate the model and check for convergence (convergence = 0 is good).
 mp_optimize(cal)
 ```
 
-Note well that it is usually not this easy (see the [seir](https://github.com/canmod/macpan2/tree/main/inst/starter_models/seir) model for a peak at what can go wrong).
-
 ## Explore the calibration
 
 The calibration object now contains the information gained through optimization. We can use this information to check the fitted parameter values.
 ```{r fits}
-mp_tmb_coef(cal, conf.int = TRUE)
+coef = mp_tmb_coef(cal) |> round_coef_tab()
+coef$true = true[coef$mat]
+print(coef)
 ```
 
-These fits similar to the true values.
-```{r true}
-spec_for_making_fake_data$default[c("beta", "mu")]
-```
-
-We can also get the calibrated trajectory with confidence intervals.
+These fits similar to the true values. We can also get the calibrated trajectory with confidence intervals.
 ```{r ci}
 cal_traj = mp_trajectory_sd(cal, conf.int = TRUE) 
 data = (nlist(true_traj, obs_traj, default_traj, cal_traj)
@@ -179,5 +174,7 @@ The calibrated trajectory and confidence interval are consistent with the true t
   + theme_bw()
 )
 ```
+
+Note well that it is usually not this easy (see the [seir](https://github.com/canmod/macpan2/tree/main/inst/starter_models/seir) model for a peak at what can go wrong).
 
 # References

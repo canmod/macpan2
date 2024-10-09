@@ -1,0 +1,168 @@
+---
+title: "Lotka-Volterra"
+index_entry: "simple two-species competition model"
+bibliography: ../../references.bib
+link-citations: TRUE
+author: Jen Freeman, Steve Walker
+output: 
+  github_document:
+    toc: true
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "./figures/"
+)
+system.file("utils", "round-coef.R", package = "macpan2") |> source()
+```
+
+The simplest Lotka-Volterra competition model with two competing species [@Hastings1997]. This is not a compartmental model because individuals of one species do not become individuals of the other, unlike say an SIR model where susceptible individuals become infectious and then recovered. This competition model, and this other [predator-prey model](https://github.com/canmod/macpan2/tree/main/inst/starter_models/lotka_volterra_predator_prey), illustrate how `macpan2` can be used for general dynamical modelling.
+
+# Packages Used and Settings
+
+The code in this article uses the following packages.
+
+```{r packages, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(macpan2)
+```
+
+To keep the optimizer from printing too much in this article, we set the `macpan2_verbose` option to `FALSE`.
+
+```{r options}
+options(macpan2_verbose = FALSE)
+```
+
+
+# Model Specification
+
+This model has been specified in the `lotka_volterra_competition` directory [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/lotka_volterra_competition/tmb.R) and is accessible from the `macpan2` model library (see [Example Models](https://canmod.github.io/macpan2/articles/example_models.html) for details). We can read in the model specification using the `mp_tmb_library` command.
+```{r model_spec}
+spec = mp_tmb_library(
+    "starter_models"
+  , "lotka_volterra_competition"
+  , package = "macpan2"
+)
+print(spec)
+```
+
+# Species
+
+| variable | description                          |
+| -------- | ------------------------------------ |
+| $X$      | number of individuals in species $x$ |
+| $Y$      | number of individuals in species $y$ |
+
+# Parameters
+
+| variable      | description                                                                                        |
+| ------------- | -------------------------------------------------------------------------------------------------- |
+| $r_i$         | growth rate of species $i$                                                                         |
+| $a_{ij}$      | intra/inter-specific density dependence, ``effect of species $j$ on species $i$'' (Hastings, 1997) |
+| $K_{i}$       | carrying capacity of species $i$                                                                   |
+| $\alpha_{ij}$ | relative effect of species $j$ on species $i$ (Hastings, 1997)                                     |
+
+# Dynamics
+$$
+\begin{align*}
+\frac{dX}{dt} &= r_x X (1 - a_{xx}X - a_{xy}Y) \\
+\frac{dY}{dt} &= r_y Y (1 - a_{yy}Y - a_{yx}X)
+\end{align*}
+$$
+
+This model can also be expressed in an equivalent form using the carrying capacity of each species.
+
+$$
+\begin{align*}
+\frac{dX}{dt} &= \frac{r_x X}{K_x} (K_x - X - \alpha_{xy}Y) \\
+\frac{dY}{dt} &= \frac{r_y Y}{K_y} (K_y - Y - \alpha_{yx}X)
+\end{align*}
+$$
+
+# Calibration
+
+## Simulate fake data
+
+We modify the specification so that it is different from the default library model that we will calibrate.
+```{r fake_data}
+set.seed(1L)
+# set number of time steps in simulation
+time_steps = 100L
+# ayx value to simulate data with (species X has a carrying capacity of 200)
+true = list(ayx = 0.8/200)
+
+# simulator object
+fake_data = (spec
+  |> mp_tmb_insert(
+      phase = "during"
+    , at = Inf
+    , expressions = list(X_noisy ~ rpois(X), Y_noisy ~ rpois(Y))
+    , default = true
+  )
+  |> mp_simulator(  
+      time_steps = time_steps
+    , outputs = c("X_noisy","Y_noisy")
+  )
+  |> mp_trajectory()
+  |> mutate(matrix = substr(matrix, 1L, 1L))
+)
+
+(fake_data
+  |> ggplot()
+  + geom_line(aes(time, value, colour = matrix))
+  + theme_bw()
+)
+```
+
+## Calibration
+
+Even though we only modified one competition coefficient, `ayx`, we find that we need to also fit the intrinsic rates of increase to get a good fit (see graph below). This suggests that there is a non-identifiability issue with this model.
+```{r}
+cal = (spec
+  |> mp_tmb_calibrator(
+      data = fake_data
+    , traj = c("X", "Y")
+    , par = c("ayx","rx", "ry")
+  )
+)
+mp_optimize(cal)
+```
+
+## Explore the fit
+
+The calibration object now contains the information gained through optimization. We can use this information to check the fitted parameter values.
+```{r coef}
+mp_tmb_coef(cal, conf.int = TRUE) |> round_coef_tab()
+print(true)
+```
+The estimate is different enough from the default to indicate that the optimizer did 'something', and the estimate is close enough to the true value to indicate that it did the right thing. 
+
+Here is the fit to the data.
+
+```{r traj_fit} 
+comparison_data = list(
+    obs = fake_data
+  , fit = mp_trajectory_sd(cal, conf.int = TRUE)
+) |> bind_rows(.id = "type")
+(comparison_data
+  |> ggplot()
+  + geom_line(aes(time, value, colour = type))
+  + facet_wrap(~matrix)
+  + geom_ribbon(aes(time, ymin = conf.low, ymax = conf.high)
+    , colour = "red"
+    , fill = "red"
+    , alpha = 0.5
+    , filter(comparison_data, type == "fit")
+  )
+  + theme_bw()
+)
+```
+
+
+# References
