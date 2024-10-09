@@ -22,44 +22,12 @@ knitr::opts_chunk$set(
 
 This [model](https://homepages.warwick.ac.uk/~masfz/ModelingInfectiousDiseases/Chapter4/Program_4.4/index.html) from [@keeling2011modeling] describes the transmission dynamics between humans and mosquitoes, focusing on a vector-borne disease.
 
-The code in this article uses the following packages.
+# Packages Used
 
 ```{r packages, message=FALSE, warning=FALSE}
 library(macpan2)
 library(ggplot2)
 ```
-
-# States
-
-| **Variable** | **Description**                                  |
-|--------------|--------------------------------------------------|
-| $S_H$          | Number of susceptible humans                     |
-| $I_H$          | Number of infected humans                        |
-| $S_M$          | Number of susceptible mosquitoes                 |
-| $I_M$          | Number of infected mosquitoes                    |
-
-# Parameters
-
-| **Variable**  | **Description**                                  |
-|---------------|--------------------------------------------------|
-| $r$             | Rate at which humans are bitten |
-| $\beta_{ij}$             | Transmission probability (following a bite) to species $i$ from species $j$.|
-| $\gamma_i$             | Recovery rate for host species $i$.                          |
-| $\nu_i$             | Birth rate for host species $i$.                                 |
-| $\mu_i$             | Death rate for species $i$                    |
-
-# Dynamics
-
-The model is described by the following differential equations:
-
-$$
-\begin{align*}
-\frac{dS_H}{dt} &= \nu_H - r \beta_{HM} S_H I_M - \mu_H S_H \\
-\frac{dI_H}{dt} &= r \beta_{HM} S_H I_M - \gamma_H I_H - \mu_H I_H \\
-\frac{dS_M}{dt} &= \nu_M - r \beta_{MH} S_M I_H - \mu_M S_M \\
-\frac{dI_M}{dt} &= r \beta_{MH} S_M I_H - \gamma_M I_M - \mu_M I_M \\
-\end{align*}
-$$
 
 # Model Specification
 
@@ -106,6 +74,39 @@ layout = mp_layout_paths(spec)
   )
 )
 ```
+
+
+# States
+
+| **Variable** | **Description**                                  |
+|--------------|--------------------------------------------------|
+| $S_H$          | Number of susceptible humans                     |
+| $I_H$          | Number of infected humans                        |
+| $S_M$          | Number of susceptible mosquitoes                 |
+| $I_M$          | Number of infected mosquitoes                    |
+
+# Parameters
+
+| **Variable**  | **Description**                                  |
+|---------------|--------------------------------------------------|
+| $r$             | Rate at which humans are bitten |
+| $\beta_{ij}$             | Transmission probability (following a bite) to species $i$ from species $j$.|
+| $\gamma_i$             | Recovery rate for host species $i$.                          |
+| $\nu_i$             | Birth rate for host species $i$.                                 |
+| $\mu_i$             | Death rate for species $i$                    |
+
+# Dynamics
+
+The model is described by the following differential equations:
+
+$$
+\begin{align*}
+\frac{dS_H}{dt} &= \nu_H - r \beta_{HM} S_H I_M - \mu_H S_H \\
+\frac{dI_H}{dt} &= r \beta_{HM} S_H I_M - \gamma_H I_H - \mu_H I_H \\
+\frac{dS_M}{dt} &= \nu_M - r \beta_{MH} S_M I_H - \mu_M S_M \\
+\frac{dI_M}{dt} &= r \beta_{MH} S_M I_H - \gamma_M I_M - \mu_M I_M \\
+\end{align*}
+$$
 
 
 # Simulation
