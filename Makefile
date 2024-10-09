@@ -173,6 +173,6 @@ inst/starter_models/%/README.md: inst/starter_models/%/README.Rmd
 inst/starter_models/%/README.push: inst/starter_models/%/README.md
 	@echo Pushing directory: $(dir $^)
 	git add -u $(dir $^)
-	git commit -m "starter model"
+	git commit -m "[skip ci] work on starter models"
 	git push
 	touch $@
