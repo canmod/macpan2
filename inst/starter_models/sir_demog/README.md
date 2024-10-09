@@ -181,6 +181,10 @@ mp_optimize(cal)
 #> [1] "both X-convergence and relative convergence (5)"
 ```
 
+Note well that it is usually not this easy (see the
+[seir](https://github.com/canmod/macpan2/tree/main/inst/starter_models/seir)
+model for a peak at what can go wrong).
+
 ## Explore the calibration
 
 The calibration object now contains the information gained through
