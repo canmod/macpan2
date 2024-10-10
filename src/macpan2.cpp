@@ -2838,7 +2838,7 @@ public:
                 } else {
                     delta_t = 1.0;
                 }
-                if (args[0].rows() != 1 | args[0].cols() != 1) {
+                if ((args[0].rows() != 1) | (args[0].cols() != 1)) {
                     //std::cout << "++++++" << std::endl;
                     //std::cout << args[0] << std::endl;
                     SetError(MP2_EULER_MULTINOM_SIM, "The first 'size' argument must be scalar.", row, MP2_EULER_MULTINOM_SIM, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
