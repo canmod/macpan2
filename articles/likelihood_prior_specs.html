@@ -185,8 +185,74 @@ each distributional parameter can be given to the
 <div class="section level3">
 <h3 id="priors-on-distributional-parameters">Priors on distributional parameters<a class="anchor" aria-label="anchor" href="#priors-on-distributional-parameters"></a>
 </h3>
-<pre><code><span></span>
-<span></span></code></pre>
+<p>We can specify priors on distributional parameters by:</p>
+<ol style="list-style-type: decimal">
+<li>creating a variable in the model for this distributional
+parameter</li>
+<li>referring to the distributional parameter name when specifying the
+prior on the focal parameter</li>
+<li>using the distributional parameter name to specify its own prior in
+the usual way</li>
+</ol>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">spec</span> <span class="op">=</span> <span class="op">(</span></span>
+<span>  <span class="fu"><a href="../reference/mp_tmb_library.html">mp_tmb_library</a></span><span class="op">(</span><span class="st">"starter_models"</span>, <span class="st">"sir"</span>, package <span class="op">=</span> <span class="st">"macpan2"</span><span class="op">)</span></span>
+<span>  </span>
+<span>  <span class="co">## 1. update the spec to include a new variable named 'my_var' to serve as</span></span>
+<span>  <span class="co">## the standard deviation parameter for the Normal prior on 'beta'.</span></span>
+<span>  <span class="co">## A numeric value of 0.1 is specified as the default for 'my_var', the </span></span>
+<span>  <span class="co">## starting value in optimization.</span></span>
+<span>  <span class="op">|&gt;</span> <span class="fu"><a href="../reference/mp_tmb_insert.html">mp_tmb_insert</a></span><span class="op">(</span>default <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>my_var <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">## generate data for calibration</span></span>
+<span><span class="va">data</span> <span class="op">=</span> <span class="fu"><a href="../reference/mp_simulator.html">mp_simulator</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fl">50</span>, <span class="st">"infection"</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="../reference/mp_trajectory.html">mp_trajectory</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co">## set-up calibrator</span></span>
+<span><span class="va">cal</span> <span class="op">=</span> <span class="fu"><a href="../reference/mp_tmb_calibrator.html">mp_tmb_calibrator</a></span><span class="op">(</span></span>
+<span>    <span class="va">spec</span></span>
+<span>  , <span class="va">data</span></span>
+<span>  , traj <span class="op">=</span> <span class="st">"infection"</span></span>
+<span>    <span class="co">## 2. We set a Normal prior on beta, and set the `sd` argument to 'my_var'</span></span>
+<span>    <span class="co">## (would it ever make sense to use mp_fit for `sd` here?)</span></span>
+<span>  , par <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>beta <span class="op">=</span> <span class="fu"><a href="../reference/distribution.html">mp_normal</a></span><span class="op">(</span>location <span class="op">=</span> <span class="fl">0.35</span>, sd <span class="op">=</span> <span class="fu"><a href="../reference/fit_distr_params.html">mp_nofit</a></span><span class="op">(</span><span class="st">"my_var"</span><span class="op">)</span><span class="op">)</span></span>
+<span>      <span class="co">## 3. setting a log-normal prior on 'my_var'</span></span>
+<span>    , my_var <span class="op">=</span> <span class="fu"><a href="../reference/distribution.html">mp_log_normal</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span> </span>
+<span>  <span class="op">)</span></span>
+<span>  , default <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>beta <span class="op">=</span> <span class="fl">0.25</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co">## we can see the prior density for both 'beta' and 'my_var' in the calibration</span></span>
+<span><span class="co">## objective function</span></span>
+<span><span class="va">cal</span><span class="op">$</span><span class="va">simulator</span><span class="op">$</span><span class="va">tmb_model</span><span class="op">$</span><span class="va">obj_fn</span><span class="op">$</span><span class="va">obj_fn_expr</span></span>
+<span><span class="co">#&gt; ~-sum(dpois(obs_infection, clamp(sim_infection))) - sum(dnorm(beta, </span></span>
+<span><span class="co">#&gt;     0.35, exp(my_var))) - sum(dnorm(log(my_var), 1, 1))</span></span>
+<span><span class="co">#&gt; &lt;environment: 0x556242881b58&gt;</span></span>
+<span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">cal</span><span class="op">)</span></span>
+<span><span class="co">#&gt; $par</span></span>
+<span><span class="co">#&gt;    params    params </span></span>
+<span><span class="co">#&gt; 0.2000017 1.0015207 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $objective</span></span>
+<span><span class="co">#&gt; [1] 53.08736</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $convergence</span></span>
+<span><span class="co">#&gt; [1] 0</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $iterations</span></span>
+<span><span class="co">#&gt; [1] 9</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $evaluations</span></span>
+<span><span class="co">#&gt; function gradient </span></span>
+<span><span class="co">#&gt;       10       10 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $message</span></span>
+<span><span class="co">#&gt; [1] "relative convergence (4)"</span></span>
+<span><span class="fu"><a href="../reference/mp_tmb_coef.html">mp_tmb_coef</a></span><span class="op">(</span><span class="va">cal</span><span class="op">)</span></span>
+<span><span class="co">#&gt;       term    mat row col default  type  estimate   std.error</span></span>
+<span><span class="co">#&gt; 1   params   beta   0   0    0.25 fixed 0.2000017 0.009166585</span></span>
+<span><span class="co">#&gt; 2 params.1 my_var   0   0    0.10 fixed 1.0015207 0.707373865</span></span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
