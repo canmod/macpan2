@@ -405,7 +405,7 @@ LayoutMatrixPaths = function(spec
   
   self$.include = !grepl(ignore, self$.flows_inside$name)
   
-  states = macpan2:::topological_sort_general(self$.flows_inside, loops = loops)
+  states = topological_sort_general(self$.flows_inside, loops = loops)
   self$.paths <- find_all_paths(self$.flows_inside, states[1L])
   
   if (length(self$.paths) == 0L) stop("model has no paths!")
@@ -435,7 +435,7 @@ LayoutMatrixPaths = function(spec
   self$matrix = function() {
     flows = self$flows()
     
-    states = macpan2:::topological_sort_general(flows, self$loops)
+    states = topological_sort_general(flows, self$loops)
     
     # Pad each path by aligning nodes to their respective positions
     padded_paths <- lapply(self$.paths, function(path) {
@@ -457,7 +457,7 @@ LayoutMatrixPaths = function(spec
     padded_paths_matrix = padded_paths_matrix[rr, cc]
     
     if (self$sort_paths) {
-      i = macpan2:::order_corresp(padded_paths_matrix)
+      i = order_corresp(padded_paths_matrix)
       padded_paths_matrix = padded_paths_matrix[i, , drop = FALSE]
       self$.paths = self$.paths[i]
     }
@@ -754,7 +754,7 @@ neighbour_list = function(flows) {
 #   all_nodes <- unique(c(edges_df$from, edges_df$to))
 #   resolve_nodes = intersect(all_nodes, resolve_nodes)
 #   all_nodes = c(resolve_nodes, setdiff(all_nodes, resolve_nodes))
-#   all_nodes = macpan2:::topological_sort_engine(edges_df, all_nodes, warn_not_dag = !align_dir_flows)
+#   all_nodes = topological_sort_engine(edges_df, all_nodes, warn_not_dag = !align_dir_flows)
 #   
 #   # Step 2: Pad each path by aligning nodes to their respective positions
 #   if (align_dir_flows) {
