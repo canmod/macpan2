@@ -78,8 +78,45 @@ Defaults can be changed by either passing a distributional parameter transformat
 
 ## Priors on distributional parameters
 
-```
+We can specify priors on distributional parameters by:
+
+  1. creating a variable in the model for this distributional parameter
+  2. referring to the distributional parameter name when specifying the prior on the focal parameter
+  3. using the distributional parameter name to specify its own prior in the usual way
+ 
+```{r}
+spec = (
+  mp_tmb_library("starter_models", "sir", package = "macpan2")
+  
+  ## 1. update the spec to include a new variable named 'my_var' to serve as
+  ## the standard deviation parameter for the Normal prior on 'beta'.
+  ## A numeric value of 0.1 is specified as the default for 'my_var', the 
+  ## starting value in optimization.
+  |> mp_tmb_insert(default = list(my_var = 0.1))
+)
+## generate data for calibration
+data = mp_simulator(spec, 50, "infection") |> mp_trajectory()
+
+## set-up calibrator
+cal = mp_tmb_calibrator(
+    spec
+  , data
+  , traj = "infection"
+    ## 2. We set a Normal prior on beta, and set the `sd` argument to 'my_var'
+    ## (would it ever make sense to use mp_fit for `sd` here?)
+  , par = list(beta = mp_normal(location = 0.35, sd = mp_nofit("my_var"))
+      ## 3. setting a log-normal prior on 'my_var'
+    , my_var = mp_log_normal(1,1) 
+  )
+  , default = list(beta = 0.25)
+)
+
+## we can see the prior density for both 'beta' and 'my_var' in the calibration
+## objective function
+cal$simulator$tmb_model$obj_fn$obj_fn_expr
 
 
+mp_optimize(cal)
+mp_tmb_coef(cal)
 
 ```
