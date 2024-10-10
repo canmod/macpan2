@@ -79,7 +79,32 @@ Defaults can be changed by either passing a distributional parameter transformat
 ## Priors on distributional parameters
 
 ```
+spec = (
+  mp_tmb_library("starter_models", "sir", package = "macpan2")
+  
+  ## update the spec to include a new variable named 'my_var' to serve as
+  ## the standard deviation parameter for the Normal prior on 'beta'.
+  ## A numeric value of 0.1 is specified as the default for 'my_var', the 
+  ## starting value in optimization.
+  |> mp_tmb_insert(default = list(my_var = 0.1))
+)
+data = mp_simulator(spec, 50, "infection") |> mp_trajectory()
 
+cal = mp_tmb_calibrator(
+    spec
+  , data
+  , traj = "infection"
+    ## we set the `sd` argument to 'my_var' (fit or no_fit?)
+  , par = list(beta = mp_normal(location = 0.35, sd = mp_nofit("my_var"))
+      ## setting a prior on 'my_var'
+    , my_var = mp_log_normal(1,1) 
+  )
+  , default = list(beta = 0.25)
+)
 
+mp_optimize(cal)
+
+## my_var is incorrectly added twice to params_table
+mp_tmb_coef(cal)
 
 ```

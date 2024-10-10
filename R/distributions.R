@@ -389,14 +389,12 @@ DistrParamNumFit = function(name, value, trans = DistrParamTrans()) {
 
 DistrParamChar = function(name, instance_name, trans = DistrParamTrans()) {
   self = DistrParam(name, trans)
-  self$instance_name = as.character(instance_name)
-  self$global_name = instance_name
+  ## name of existing variable in model (ex. 'sd_var')
+  self$instance_name = as.character(instance_name) 
+  self$global_name = instance_name 
   self$update_instance_name = function(name) self  ## these should probably be the abstract version
   self$update_global_name = function(name) self
-  self$update_names = function(name) {
-    self$variable_name = name
-    self
-  }
+  ## objective function expression should use dist param transformation
   self$expr_ref = function() self$trans$ref(self$global_name)
   self$check_in_spec = function() {
     if (!self$global_name %in% names(self$model_spec$default)) {
@@ -407,17 +405,36 @@ DistrParamChar = function(name, instance_name, trans = DistrParamTrans()) {
 }
 DistrParamCharFit = function(name, instance_name, trans = DistrParamTrans()) {
   self = DistrParamChar(name, instance_name, trans)
-  # Need to update default value with trans(default val)
-  # self$default = function() {
-  #   list(self$trans$ref(self$check_in_spec()))  |> setNames(self$instance_name)
-  # }
+
+  # need to override self$update_names, otherwise user specified variable
+  # gets overwritten (self$global_name and self$instance name becomes 'log_sd_beta')
+  self$update_names = function(name) {
+    self$variable_name = name # ex. beta
+    # user specified name (in model) with transformations (ex. 'log_sd_var')
+    # self$instance_name = self$trans$nm(sprintf("%s", self$instance_name))
+    self
+  }
+  
+  self$default = function() {
+    list(self$trans$val(self$model_spec$default[[self$global_name]])) |> setNames(self$instance_name)
+  }
+  self$default_objs = function() list(self) |> setNames(self$instance_name)
+  
+  #self$update_global_name = function() self$global_name = self$instance_name
+  
+  # self$distr_list$beta$distr_param_objs$sd$.value
   self$distr_params_frame = function() {
+    if (length(self$global_name) != 1L | length(self$default()) != 1L) {
+      return(empty_frame(c("mat", "row", "col", "default")))
+    }
     self$check_in_spec()
-    mat = self$global_name
+    global_mat_name = self$global_name 
+    local_mat_name = self$instance_name
     data.frame(
-        mat = mat
+        mat = local_mat_name
       , row = 0L, col = 0L
-      , default = self$model_spec$default[[mat]]
+      # does default table already have transformed value at this point
+      , default = self$trans$val(self$model_spec$default[[global_mat_name]])
     )
   }
   return_object(self, "DistrParamCharFit")
@@ -426,7 +443,11 @@ DistrParamCharNoFit = function(name, instance_name, trans = DistrParamTrans()) {
   self = DistrParamChar(name, instance_name, trans)
   self$default = function() {
     self$check_in_spec()
-    list()
+   list()
+  }
+  self$update_names = function(name) {
+    self$variable_name = name
+    self
   }
   return_object(self, "DistrParamCharNoFit")
 }
