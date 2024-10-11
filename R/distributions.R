@@ -497,11 +497,13 @@ DistrParamLog = function() {
   return_object(self, "DistrParamLog")
 }
 
+#' @importFrom stats qlogis
 DistrParamLogit = function() {
   self = DistrParamTrans()
   self$ref = function(x) sprintf("(1 / (1 + exp(-%s)))", x)
   self$nm  = function(x) sprintf("logit_%s", x)
   self$val = function(x) qlogis(x)
+  return_object(self, "DistrParamLogit")
 }
 
 #' Distributional Parameter Transformation

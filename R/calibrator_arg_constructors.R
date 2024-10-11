@@ -37,6 +37,7 @@ mp_tv = function(parameters) {
 #' of accuracy can be visually apparent as jumps in graphs of the time-varying
 #' parameter.
 #' 
+#' @importFrom stats rnorm
 #' @export
 mp_rbf = function(tv, dimension, initial_weights, seed, prior_sd = 1, fit_prior_sd = TRUE, sparse_tol = 1e-2) {
   if (missing(initial_weights)) {

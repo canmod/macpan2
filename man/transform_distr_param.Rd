@@ -12,7 +12,7 @@ mp_identity
 
 mp_log
 
-mp_logit(x)
+mp_logit
 }
 \description{
 \itemize{
