@@ -1,4 +1,4 @@
-SIR with demography
+SIR with Demography
 ================
 Jen Freeman, Steve Walker
 

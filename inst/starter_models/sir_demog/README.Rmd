@@ -1,5 +1,5 @@
 ---
-title: "SIR with demography"
+title: "SIR with Demography"
 index_entry: "An SIR model with birth and death"
 bibliography: ../../references.bib
 link-citations: TRUE
