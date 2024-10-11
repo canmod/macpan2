@@ -1008,7 +1008,7 @@ TMBTraj.TrajArg = function(traj
   self$check_assumptions = function(orig_spec, data_struc) {
     self$check_assumptions_basic(orig_spec, data_struc)
     self$arg$likelihood$check_variables(data_struc$matrix_list)
-    for (t in names(self$arg$likelihood$distr_list)){
+    for (t in names(self$arg$likelihood$distr_list)) {
       self$arg$likelihood$distr_list[[t]]$check_args(self$arg$likelihood$distr_list[[t]]$distr_param_objs)
     }
     NULL
@@ -1049,11 +1049,12 @@ TMBPar.ParArg = function(par
   self$arg = par
   self$arg$param = DistrList(self$arg$param, spec)
   self$arg$param$update_global_names(self)
+  self$arg$param$error_if_not_all_have_location()
   
   self$check_assumptions = function(orig_spec, data_struc) {
     self$check_assumptions_basic(orig_spec, data_struc)
     self$arg$param$check_variables(data_struc$matrix_list)
-    for (p in self$par){
+    for (p in self$par) {
       self$arg$param$distr_list[[p]]$check_args(self$arg$param$distr_list[[p]]$distr_param_objs)
     }
     NULL

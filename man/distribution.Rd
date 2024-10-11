@@ -12,24 +12,24 @@
 mp_uniform(default_trans = list())
 
 mp_normal(
-  location = DistrParam("location"),
+  location = mp_distr_param_null("location"),
   sd,
   default_trans = list(location = mp_identity, sd = mp_log)
 )
 
 mp_log_normal(
-  location = DistrParam("location"),
+  location = mp_distr_param_null("location"),
   sd,
   default_trans = list(location = mp_identity, sd = mp_identity)
 )
 
 mp_poisson(
-  location = DistrParam("location"),
+  location = mp_distr_param_null("location"),
   default_trans = list(location = mp_identity)
 )
 
 mp_neg_bin(
-  location = DistrParam("location"),
+  location = mp_distr_param_null("location"),
   disp,
   default_trans = list(location = mp_identity, disp = mp_log)
 )

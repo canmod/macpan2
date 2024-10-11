@@ -5,11 +5,14 @@
 \alias{transform_distr_param}
 \alias{mp_identity}
 \alias{mp_log}
+\alias{mp_logit}
 \title{Distributional Parameter Transformation}
 \usage{
 mp_identity
 
 mp_log
+
+mp_logit(x)
 }
 \description{
 \itemize{
@@ -18,6 +21,10 @@ mp_log
 
 \itemize{
 \item \code{mp_log} - Log transformation
+}
+
+\itemize{
+\item \code{mp_logit} - Logit transformation
 }
 }
 \keyword{datasets}

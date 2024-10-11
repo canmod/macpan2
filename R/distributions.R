@@ -89,7 +89,7 @@ DistrParam = function(generic_name, trans = DistrParamTransDefault()) {
   
   ## section 2a: list of values to be added as default matrices to a 
   ## mp_tmb_model_spec through a `default` argument. this list is either
-  ## length 0 (if this distribuytional parameter does not have to be added
+  ## length 0 (if this distributional parameter does not have to be added
   ## to the model spec) or length 1 (if it does). any other length is
   ## invalid
   self$default = function() list()
@@ -156,8 +156,8 @@ DistrSpec = function(distr_param_objs = list(), default_trans = list()) {
   # parameters for each vector component.
   self$check_args = function(distr_param_objs){
     nms = names(distr_param_objs)
-    for (nm in nms){
-      if (length(distr_param_objs[[nm]]$expr_ref()) > 1){
+    for (nm in nms) {
+      if (length(distr_param_objs[[nm]]$expr_ref()) > 1) {
         stop("Expression given for the distributional parameter, ", nm, ", for the variable, " , distr_param_objs[[nm]]$variable_name, ", has more than one element.")
       }
     }
@@ -184,7 +184,11 @@ DistrSpec = function(distr_param_objs = list(), default_trans = list()) {
   self$remove_location_parameter = function() {
     self$distr_param_objs$location = NULL
     ## TODO: better more informative error message
-    self$prior = function(par) stop("this distribution has had its location parameter removed and therefore cannot be used to compute a prior -- only a likelihood")
+    self$prior = function(par) stop("this distribution has had its location parameter removed and therefore cannot be used to compute a prior -- only a likelihood.")
+  }
+  self$has_location = function() {
+    loc = self$distr_param_objs$location
+    return(!inherits(loc, "DistrParamNull"))
   }
   
   ## section 2: distributional parameters that need to be added as 
@@ -302,6 +306,18 @@ DistrList = function(distr_list = list(), model_spec = mp_tmb_model_spec()) {
   self$remove_location_parameters = function() {
     for (o in self$distr_list) o$remove_location_parameter()
   }
+  self$error_if_not_all_have_location = function() {
+    x = method_apply(self$distr_list, "has_location") |> setNames(names(self$distr_list))
+    all_have = x |> unlist(use.names = TRUE) |> all()
+    if (!all_have) {
+      bads = names(x)[!unlist(x)]
+      msg = sprintf(
+          "\nThe following distributions do not have location parameters:\n%s"
+        , paste(bads, collapse = "   \n")
+      )
+      stop(msg)
+    }
+  }
   
   #' @param obj An object with an `obj$distr_params()` method returning a flat list
   #' of named numerical matrices, and an `obj$global_names()` method returning
@@ -346,6 +362,27 @@ DistrList = function(distr_list = list(), model_spec = mp_tmb_model_spec()) {
   return_object(self, "DistrList")
 }
 
+mp_distr_param_null = function(generic_name) DistrParamNull(generic_name)
+DistrParamNull = function(generic_name) {
+  self = DistrParam(generic_name, DistrParamTrans())
+  # self$err = function() {
+  #   if (self$variable_name == "") {
+  #     msg = sprintf("A %s parameter for some distribution is not provided"
+  #       , self$generic_name
+  #     )
+  #   } else {
+  #     msg = sprintf("A %s parameter for a distribution on %s is not provided"
+  #       , self$generic_name
+  #       , self$variable_name
+  #     )
+  #   }
+  #   msg
+  # }
+  # self$default = function() stop(self$err())
+  # self$default_objs = function() stop(self$err())
+  # self$expr_ref = function() stop(self$err())
+  return_object(self, "DistrParamNull")
+}
 DistrParamNum = function(generic_name, value, trans = DistrParamTrans()) {
   self = DistrParam(generic_name, trans)
   self$.value = as.numeric(value)
@@ -460,6 +497,13 @@ DistrParamLog = function() {
   return_object(self, "DistrParamLog")
 }
 
+DistrParamLogit = function() {
+  self = DistrParamTrans()
+  self$ref = function(x) sprintf("(1 / (1 + exp(-%s)))", x)
+  self$nm  = function(x) sprintf("logit_%s", x)
+  self$val = function(x) qlogis(x)
+}
+
 #' Distributional Parameter Transformation
 #'
 #' @name transform_distr_param
@@ -477,8 +521,11 @@ mp_identity = DistrParamIdentity()
 #' @export
 mp_log = DistrParamLog()
 
-
-
+#' @description * `mp_logit` - Logit transformation 
+#' @format NULL
+#' @rdname transform_distr_param
+#' @export
+mp_logit = DistrParamLogit()
 
 
 TESTDISTR = function(location, sd) {
@@ -555,18 +602,14 @@ mp_uniform = function(default_trans = list()) {
   return_object(self, "DistrSpecUniform")
 }
 
-#' @return DistrSpec
-#' @noRd
-mp_normal_error = function(sd) {
-  mp_normal(location = DistrParam("location"))
-}
 
 #' @description * Normal Distribution - `mp_normal`
 #' @name distribution
 #' @export
-mp_normal = function(location = DistrParam("location")
-                   , sd
-                   , default_trans = list(location = mp_identity, sd = mp_log)) {
+mp_normal = function(location = mp_distr_param_null("location")
+     , sd
+     , default_trans = list(location = mp_identity, sd = mp_log)
+  ) {
   self = DistrSpec(
       distr_param_objs = nlist(location, sd)
     , default_trans = default_trans
@@ -591,7 +634,7 @@ mp_normal = function(location = DistrParam("location")
 #' @description * Log-Normal Distribution - `mp_log_normal`
 #' @name distribution
 #' @export
-mp_log_normal = function(location = DistrParam("location")
+mp_log_normal = function(location = mp_distr_param_null("location")
                        , sd
                        , default_trans = list(location = mp_identity, sd = mp_identity)) {
   self = DistrSpec(
@@ -625,11 +668,53 @@ mp_log_normal = function(location = DistrParam("location")
 }
 
 
+#' @description * Logit-Normal Distribution - `mp_logit_normal`
+#' @name distribution
+#' @export
+mp_logit_normal = function(location = mp_distr_param_null("location")
+     , sd
+     , default_trans = list(location = mp_identity, sd = mp_identity)
+  ) {
+  self = DistrSpec(
+      distr_param_objs = nlist(location, sd)
+      # identity transformations because distributional parameters are already
+      # specified on the log scale?
+    , default_trans = default_trans
+  )
+
+  self$prior = \(par) {
+    sprintf("-sum(dnorm(log(%s) - log(1 - %s), %s, %s))"
+            , par, par
+            , self$distr_param_objs$location$expr_ref()
+            , self$distr_param_objs$sd$expr_ref()
+    )
+  }
+  self$likelihood = \(obs, sim) {
+    sprintf("-sum(dnorm(log(%s) - log(1 - %s), log(%s) - log(1 - %s), %s))"
+            , obs, obs
+            , sim, sim
+            , self$distr_param_objs$sd$expr_ref()
+    )
+  }
+  self$check_variable = function(variable) {
+    any_bad_0 = lapply(variable, all.equal, 0) |> vapply(isTRUE, logical(1L)) |> any()
+    any_bad_1 = lapply(variable, all.equal, 1) |> vapply(isTRUE, logical(1L)) |> any()
+    if (any_bad_0) {
+      warning(sprintf("Logit-normal distribution chosen for %s that contains zeros at the beginning of the simulation", self$variable_name))
+    }
+    if (any_bad_1) {
+      warning(sprintf("Logit-normal distribution chosen for %s that contains ones at the beginning of the simulation", self$variable_name))
+    }
+  }
+  return_object(self, "DistrSpecLogNormal")
+}
+
+
 
 #' @description * Poisson Distribution - `mp_poisson`
 #' @name distribution
 #' @export
-mp_poisson = function(location = DistrParam("location")
+mp_poisson = function(location = mp_distr_param_null("location")
                     , default_trans = list(location = mp_identity)) { 
   self = DistrSpec(
       distr_param_objs = nlist(location)# should this be named lambda
@@ -652,7 +737,7 @@ mp_poisson = function(location = DistrParam("location")
 #' @description * Negative Binomial Distribution - `mp_neg_bin` 
 #' @name distribution
 #' @export
-mp_neg_bin = function(location = DistrParam("location")
+mp_neg_bin = function(location = mp_distr_param_null("location")
                     , disp
                     , default_trans = list(location = mp_identity, disp = mp_log)) {
   self = DistrSpec(
@@ -764,6 +849,7 @@ mp_nofit.character = function(x, trans = DistrParamTransDefault()) DistrParamCha
 
 
 
+
 to_distr_param = function(x) UseMethod("to_distr_param")
 
 #' @export
@@ -777,6 +863,10 @@ to_distr_param.character = function(x) mp_nofit(x)
 
 
 
+
+
+
+### below is for testing back-compatibility
 
 
 #' Poisson Distribution
