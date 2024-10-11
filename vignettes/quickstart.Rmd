@@ -97,7 +97,7 @@ Because `macpan2` is primarily developed for such computationally challenging it
 
 ## Generating Simulations
 
-Now that we have a simulation engine object,  `si_simulator`, we use it to generate simulation results using the `mp_trajectory` function. The results come out in [long (or "narrow") format](https://en.wikipedia.org/wiki/Wide_and_narrow_data), where there is exactly one value per row:
+Now that we have a simulation engine object,  `si_simulator`, we use it to generate simulation results using the `?mp_trajectory()` function. The results come out in [long (or "narrow") format](https://en.wikipedia.org/wiki/Wide_and_narrow_data), where there is exactly one value per row:
 
 ```{r run_sims}
 si_results = mp_trajectory(si_simulator)
