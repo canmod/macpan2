@@ -251,7 +251,7 @@ focal_model = (spec
    
    # add phenomenological heterogeneity:
    |> mp_tmb_update(phase = "during"
-      , at =1L
+      , at = 1L
       , expressions = list(
         mp_per_capita_flow(
             "S", "E"
@@ -262,22 +262,11 @@ focal_model = (spec
    )
    
    # compute gamma-density delay kernel for convolution:
-   |> mp_tmb_insert(phase = "before"
-      , at = Inf
-      , expressions = list(
-          gamma_shape ~ 1 / (c_delay_cv^2)
-        , gamma_scale ~ c_delay_mean * c_delay_cv^2
-        , gamma ~ pgamma(1:(qmax+1), gamma_shape, gamma_scale)
-        , delta ~ gamma[1:(qmax)] - gamma[0:(qmax - 1)]
-        , kappa ~ c_prop * delta / sum(delta)
-      )
-      , default = list(qmax = empty_matrix)
-   )
-   
-   # add convolution to compute case reports from incidence:
-   |> mp_tmb_insert(phase = "during"
-      , at = Inf
-      , expressions = list(report ~ convolution(S.E, kappa))
+   |> mp_tmb_insert_reports("S.E"
+      , report_prob = 0.1
+      , mean_delay = 11
+      , cv_delay = 0.25
+      , reports_name = "report"
    )
    
    # add time-varying transmission with mobility data:
@@ -337,15 +326,9 @@ focal_calib = mp_tmb_calibrator(
     
     # set initial parameter values for optimizer
     
-    # width of convolution kernel computed according to:
-    # https://canmod.net/misc/flex_specs#computing-convolutions
-    # shape = 1/(mp_default_list(focal_model)$c_delay_cv^2)
-    # scale = mp_default_list(focal_model)$c_delay_mean * mp_default_list(focal_model)$c_delay_cv^2
-    # qmax = ceiling(qgamma(0.95, shape, scale))
-    , qmax = 34
-    , log_beta0=log(5)
+    , log_beta0 = log(5)
     , logit_nonhosp_mort = -0.5
-    , log_mobility_coefficients = rep(0,5)
+    , log_mobility_coefficients = rep(0, 5)
     , log_zeta = 1
     
   )

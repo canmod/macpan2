@@ -389,7 +389,7 @@ mp_final_list.TMBSimulator = function(model) {
 #' 
 #' Return simulations of the trajectory of the output
 #' variables of a dynamical model simulator. To see this functionality 
-#' in context, please see vignette("quickstart").
+#' in context, please see `vignette("quickstart")`.
 #' 
 #' @param model A dynamical model simulator produced by
 #' \code{\link{mp_simulator}}.
@@ -442,7 +442,10 @@ mp_final_list.TMBSimulator = function(model) {
 #' }
 #' 
 #' @examples
-#' spec = mp_tmb_library("starter_models", "si", package = "macpan2")
+#' spec = mp_tmb_library("starter_models"
+#'   , "si"
+#'   , package = "macpan2"
+#' )
 #' simulator = mp_simulator(spec
 #'   , time_steps = 10L
 #'   , outputs = c("infection", "I")
