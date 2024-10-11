@@ -178,3 +178,4 @@ inst/starter_models/%/README.push: inst/starter_models/%/README.md
 	git push
 	touch $@
 
+all-starters: inst/starter_models/*/README.push
