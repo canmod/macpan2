@@ -1,6 +1,6 @@
 ---
-title: "awareness models"
-index_entry: "behaviour modifications in response to death"
+title: "Awareness Models"
+index_entry: "Behaviour modifications in response to death"
 bibliography: ../../references.bib
 link-citations: TRUE
 author: Steve Walker

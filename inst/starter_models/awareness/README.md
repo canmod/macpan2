@@ -1,4 +1,4 @@
-awareness models
+Awareness Models
 ================
 Steve Walker
 
