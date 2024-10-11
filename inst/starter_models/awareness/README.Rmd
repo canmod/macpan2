@@ -34,6 +34,7 @@ library(tidyr)
 library(macpan2)
 ```
 
+
 # Model Specification
 
 We describe several models here that have been specified in the `awareness` directory [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/awareness/tmb.R) and are accessible from the `macpan2` model library (see [Example Models](https://canmod.github.io/macpan2/articles/example_models.html) for details). We can read in the model specification using the `mp_tmb_library` command.

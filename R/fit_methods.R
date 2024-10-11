@@ -71,6 +71,8 @@ mp_add_effects_descr = function(coef_table, model) {
 #' @export
 mp_tmb_coef = function(model, back_transform = TRUE, ...) UseMethod("mp_tmb_coef")
 
+#' @importFrom stats make.link
+#' @importFrom utils strcapture
 #' @export
 mp_tmb_coef.TMBSimulator = function(model, back_transform = TRUE, ...) {
   assert_dependency("broom.mixed")

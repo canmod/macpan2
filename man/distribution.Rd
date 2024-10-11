@@ -5,6 +5,7 @@
 \alias{mp_uniform}
 \alias{mp_normal}
 \alias{mp_log_normal}
+\alias{mp_logit_normal}
 \alias{mp_poisson}
 \alias{mp_neg_bin}
 \title{Distributions}
@@ -12,24 +13,30 @@
 mp_uniform(default_trans = list())
 
 mp_normal(
-  location = DistrParam("location"),
+  location = mp_distr_param_null("location"),
   sd,
   default_trans = list(location = mp_identity, sd = mp_log)
 )
 
 mp_log_normal(
-  location = DistrParam("location"),
+  location = mp_distr_param_null("location"),
+  sd,
+  default_trans = list(location = mp_identity, sd = mp_identity)
+)
+
+mp_logit_normal(
+  location = mp_distr_param_null("location"),
   sd,
   default_trans = list(location = mp_identity, sd = mp_identity)
 )
 
 mp_poisson(
-  location = DistrParam("location"),
+  location = mp_distr_param_null("location"),
   default_trans = list(location = mp_identity)
 )
 
 mp_neg_bin(
-  location = DistrParam("location"),
+  location = mp_distr_param_null("location"),
   disp,
   default_trans = list(location = mp_identity, disp = mp_log)
 )
@@ -64,6 +71,10 @@ components - \code{mp_uniform}
 
 \itemize{
 \item Log-Normal Distribution - \code{mp_log_normal}
+}
+
+\itemize{
+\item Logit-Normal Distribution - \code{mp_logit_normal}
 }
 
 \itemize{

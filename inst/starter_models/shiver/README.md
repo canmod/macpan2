@@ -1,38 +1,26 @@
 SHIVER = SEIR + H + V
 ================
-Jennifer Freeman
+Jennifer Freeman, Steve Walker
 
--   <a href="#packages-used-and-settings"
-    id="toc-packages-used-and-settings">Packages Used and Settings</a>
--   <a href="#model-specification" id="toc-model-specification">Model
-    Specification</a>
--   <a href="#states" id="toc-states">States</a>
--   <a href="#parameters" id="toc-parameters">Parameters</a>
--   <a href="#variable-vaccination-rate"
-    id="toc-variable-vaccination-rate">Variable Vaccination Rate</a>
--   <a href="#dynamics" id="toc-dynamics">Dynamics</a>
--   <a href="#calibration-example" id="toc-calibration-example">Calibration
-    Example</a>
-    -   <a href="#calibration-scenario"
-        id="toc-calibration-scenario">Calibration Scenario</a>
-    -   <a href="#deciding-on-defaults" id="toc-deciding-on-defaults">Deciding
-        on Defaults</a>
-    -   <a href="#simulating-dynamics" id="toc-simulating-dynamics">Simulating
-        Dynamics</a>
-    -   <a href="#estimating-parameters"
-        id="toc-estimating-parameters">Estimating Parameters</a>
-    -   <a href="#re-parameterizing-and-introducing-transformations"
-        id="toc-re-parameterizing-and-introducing-transformations">Re-parameterizing
-        and Introducing Transformations</a>
-    -   <a href="#runge-kutta-4" id="toc-runge-kutta-4">Runge-Kutta 4</a>
-    -   <a href="#fitting-to-multiple-trajectories"
-        id="toc-fitting-to-multiple-trajectories">Fitting to Multiple
-        Trajectories</a>
-    -   <a href="#parameter-identifiability"
-        id="toc-parameter-identifiability">Parameter Identifiability</a>
--   <a href="#model-specification-1" id="toc-model-specification-1">Model
-    Specification</a>
--   <a href="#references" id="toc-references">References</a>
+- [Packages Used and Settings](#packages-used-and-settings)
+- [Model Specification](#model-specification)
+- [States](#states)
+- [Parameters](#parameters)
+- [Variable Vaccination Rate](#variable-vaccination-rate)
+- [Dynamics](#dynamics)
+- [Calibration Example](#calibration-example)
+  - [Calibration Scenario](#calibration-scenario)
+  - [Deciding on Defaults](#deciding-on-defaults)
+  - [Simulating Dynamics](#simulating-dynamics)
+  - [Estimating Parameters](#estimating-parameters)
+  - [Re-parameterizing and Introducing
+    Transformations](#re-parameterizing-and-introducing-transformations)
+  - [Runge-Kutta 4](#runge-kutta-4)
+  - [Fitting to Multiple
+    Trajectories](#fitting-to-multiple-trajectories)
+  - [Parameter Identifiability](#parameter-identifiability)
+- [Model Specification](#model-specification-1)
+- [References](#references)
 
 This model builds on the basic SEIR model, with two additional
 compartments for vaccination and hospitalizations.
@@ -101,8 +89,6 @@ spec = mp_tmb_library(
 This specification can be used to draw the following flow diagrams using
 code found in the [source for this
 article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/shiver/README.Rmd).
-For clarity, we first draw the epidemiological components of the model
-first, followed by the wastewater shedding component.
 
 ![](./figures/diagram-1.png)<!-- -->
 

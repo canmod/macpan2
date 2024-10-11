@@ -1,6 +1,6 @@
 ---
-title: "MacPan base"
-index_entry: "re-implementation of the McMaster group's COVID-19 model"
+title: "Macpan Base"
+index_entry: "Re-implementation of the McMaster group's COVID-19 model"
 bibliography: ../../references.bib
 link-citations: TRUE
 author: Jennifer Freeman
@@ -15,7 +15,9 @@ editor_options:
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  fig.path = "./figures/"
+  fig.path = "./figures/",
+  message = FALSE,
+  warning = FALSE
 )
 round_coef_tab = function(x, digits = 4) {
   id_cols = c("term", "mat", "row", "col", "type")
@@ -131,5 +133,377 @@ $$
 $$
 
 When there were discrepancies with how the model is expressed in Papst (TBD) versus model definition files, the latter was chosen.
+
+# Calibration
+
+## Observed data prep
+
+We fit this model to observed death and case reports. For convenience we have saved some Ontario COVID-19 data in the `macpan2` package.
+```{r get_data}
+ts_data  = readRDS(url("https://github.com/canmod/macpan2/releases/download/macpan1.5_data/covid_on.RDS"))
+```
+
+
+To further prepare the time series data for calibration we filter for the appropriate time range and time series variables, create a numeric date field named 'time'.
+```{r prep_ts}
+prepped_ts_data = (ts_data
+  |> rename(matrix = var)
+  # dates from base model calibration (Figure 4)
+  |> filter(date >= "2020-02-24" & date < "2020-08-31")
+  # create unique time identifier
+  |> arrange(date)
+  |> group_by(date)
+  |> mutate(time = cur_group_id())
+  |> ungroup()
+  # one negative value for daily deaths (removing for now time==178)
+  # this explains negative values:
+  # https://github.com/ccodwg/Covid19Canada?tab=readme-ov-file#datasets
+  |> filter(matrix %in% c("death","report") & value >= 0)
+
+)
+```
+
+
+To further prepare the mobility data for calibration we filter for the appropriate time range, create a numeric date field named 'time' and compute the logarithm of the mobility index.
+```{r prep_mob}
+prepped_mobility_data = (ts_data
+  |> filter(var == "mobility_index")
+  # dates from base model calibration (Figure 4)
+  |> filter(date >= "2020-02-24" & date < "2020-08-31")
+  # create unique time identifier
+  |> arrange(date)
+  |> group_by(date)
+  |> mutate(time = cur_group_id())
+  |> ungroup()
+  |> mutate(log_mobility_ind = log(value))
+)
+```
+
+
+Mobility breakpoints identified for piecewise varying transmission.
+```{r mob_breaks}
+mobility_breaks = (prepped_ts_data
+  |> filter(date %in% c("2020-04-01", "2020-08-07"), matrix=="report")
+  |> pull(time)
+)
+```
+
+To support code below, we define the number of time steps in the model from the data.
+```{r time_steps}
+time_steps = nrow(prepped_ts_data %>% select(date) %>% unique())
+prepped_ts_data = select(prepped_ts_data, -date)
+```
+
+## Mobility Sub-Model
+
+The function `S_j` computes the logistic transition curve for mobility breakpoints, and this function is used to produce the model matrix, `X`, describing the temporal change in transmission using mobility data and piecewise breaks smoothed with the logistic curve.
+```{r mobility_matrix}
+S_j = function(t, tau_j, s) 1/(1 + exp((t - tau_j) / s))
+X = cbind(
+      prepped_mobility_data$log_mobility_ind
+    , S_j(1:time_steps, mobility_breaks[1], 3)
+    , S_j(1:time_steps, mobility_breaks[1], 3) * prepped_mobility_data$log_mobility_ind
+    , S_j(1:time_steps, mobility_breaks[2], 3)
+    , S_j(1:time_steps, mobility_breaks[2], 3) * prepped_mobility_data$log_mobility_ind
+    ) %>% as.matrix()
+X_sparse = macpan2:::sparse_matrix_notation(X, TRUE)
+model_matrix_values = X_sparse$values
+row_ind = X_sparse$row_index
+col_ind = X_sparse$col_index
+```
+
+
+## Update the Model Specification for Calibration
+
+Update model specification to include additional components described in manuscript and required for calibration.
+```{r focal_model}
+focal_model = (spec 
+   # add variable transformations:
+   |> mp_tmb_insert(phase = "before"
+      , at = 1L
+      , expressions = list(
+          zeta ~ exp(log_zeta)
+        , beta0 ~ exp(log_beta0)
+        , nonhosp_mort ~ 1/(1+exp((-logit_nonhosp_mort)))
+        , E ~ exp(log_E)
+      )
+      , default = list(
+          log_zeta = empty_matrix
+        , log_beta0 = empty_matrix
+        , logit_nonhosp_mort = empty_matrix
+        , log_E = empty_matrix
+      )
+
+   )
+   
+   # add accumulator variables:
+   # death - new deaths each time step
+   |> mp_tmb_insert(phase = "during"
+      , at = Inf
+      , expressions = list(death ~ ICUd.D + Is.D)
+   )
+   
+   # add phenomenological heterogeneity:
+   |> mp_tmb_update(phase = "during"
+      , at =1L
+      , expressions = list(
+        mp_per_capita_flow(
+            "S", "E"
+          , "((S/N)^zeta) * (beta / N) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s))"
+          , "S.E"
+        ))
+
+   )
+   
+   # compute gamma-density delay kernel for convolution:
+   |> mp_tmb_insert(phase = "before"
+      , at = Inf
+      , expressions = list(
+          gamma_shape ~ 1 / (c_delay_cv^2)
+        , gamma_scale ~ c_delay_mean * c_delay_cv^2
+        , gamma ~ pgamma(1:(qmax+1), gamma_shape, gamma_scale)
+        , delta ~ gamma[1:(qmax)] - gamma[0:(qmax - 1)]
+        , kappa ~ c_prop * delta / sum(delta)
+      )
+      , default = list(qmax = empty_matrix)
+   )
+   
+   # add convolution to compute case reports from incidence:
+   |> mp_tmb_insert(phase = "during"
+      , at = Inf
+      , expressions = list(report ~ convolution(S.E, kappa))
+   )
+   
+   # add time-varying transmission with mobility data:
+   |> mp_tmb_insert(phase = "before"
+      , at = Inf
+      , expressions = list(relative_beta_values ~ group_sums(model_matrix_values * log_mobility_coefficients[col_ind], row_ind, model_matrix_values))
+      , default = list(log_mobility_coefficients = empty_matrix, model_matrix_values = empty_matrix)
+      , integers = list(row_ind = row_ind, col_ind = col_ind)
+   )
+   |> mp_tmb_insert(phase = "during"
+      , at = 1L
+      , expressions = list(
+        beta ~ exp(log_beta0 + relative_beta_values[time_step(1)])
+      )
+   )
+
+)
+```
+
+
+## Calibration
+
+```{r calibrator}
+focal_calib = mp_tmb_calibrator(
+    spec = focal_model |> mp_rk4()
+  , data = prepped_ts_data
+  , traj = c("report","death") 
+  , par = c(
+      "log_zeta"
+    , "log_beta0"
+    , "logit_nonhosp_mort"
+    , "log_mobility_coefficients"
+    , "log_E" 
+    # negative binomial dispersion parameters for reports and deaths get added
+    # automatically with options(macpan2_default_loss = "neg_bin") set above
+  )
+  , outputs = c("death","report")
+  , default = list(
+    
+    # states
+    # Population of Ontario (2019) from:
+    # https://github.com/mac-theobio/macpan_base/blob/main/code/ontario_calibrate_comb.R
+      S = 14.57e6 - 5 
+    , log_E = log(5)
+    , Ia = 0
+    , Ip = 0
+    , Im = 0
+    , Is = 0
+    , R = 0
+    , H = 0
+    , ICUs = 0
+    , ICUd = 0
+    , H2 = 0
+    , D = 0
+    
+    , model_matrix_values = model_matrix_values
+    
+    # set initial parameter values for optimizer
+    
+    # width of convolution kernel computed according to:
+    # https://canmod.net/misc/flex_specs#computing-convolutions
+    # shape = 1/(mp_default_list(focal_model)$c_delay_cv^2)
+    # scale = mp_default_list(focal_model)$c_delay_mean * mp_default_list(focal_model)$c_delay_cv^2
+    # qmax = ceiling(qgamma(0.95, shape, scale))
+    , qmax = 34
+    , log_beta0=log(5)
+    , logit_nonhosp_mort = -0.5
+    , log_mobility_coefficients = rep(0,5)
+    , log_zeta = 1
+    
+  )
+)
+# converges
+mp_optimize(focal_calib)
+```
+
+## Explore Calibration
+
+We can get the trajectory and confidence intervals.
+```{r get_trajectory}
+fitted_data = mp_trajectory_sd(focal_calib, conf.int = TRUE)
+```
+
+```{r coefficients}
+# View estimates and their confidence intervals:
+# zeta ~ 0(wide CI), do we need phenomenological heterogeneity?
+# beta0 ~ 0.18, order of magnitude smaller than manuscript estimate (Table 1)
+# mobility coefficients:
+#   mobility power                                 ~ 3.6 (huge std err)
+#   relative change in transmission (breakpoint 1) ~ 3.9 (3.4,4.6)
+#   change in mobility power (breakpoint 1)        ~ 1.04 (0.8,1.4)
+#   relative change in transmission (breakpoint 2) ~ 0.64 (0.56,0.74)
+#   change in mobility power (breakpoint 2)        ~ 0.21 (wide CI)
+# E(0) ~ 173(102,295) plausible for early pandemic (but different from manuscript)
+# nohosp_mort ~ 0.14(0.11,0.16) is this too high?
+# theta_report ~ 3(2.8,3.3) very different from manuscript
+# theta_death ~ 0.5(0.2,0.8) very different from manuscript
+mp_tmb_coef(focal_calib, conf.int = TRUE)
+```
+
+
+```{r plot_fit}
+(ggplot(prepped_ts_data, aes(time,value))
+  + geom_point()
+  + geom_line(aes(time, value)
+              , data = fitted_data |> filter(matrix %in% c("death","report"))
+              , colour = "red"
+  )
+  + geom_ribbon(aes(time, ymin = conf.low, ymax = conf.high)
+                , data = fitted_data |> filter(matrix %in% c("death","report"))
+                , alpha = 0.2
+                , colour = "red"
+  )
+  + facet_wrap(vars(matrix),scales = 'free')
+  + theme_bw()
+)
+```
+
+
+
+# Computing $\mathcal{R}_0$ with a Cohort Model
+
+The following is some advanced material that we are planning to include as a feature for calculating $\mathcal{R}_0$ in the package for 
+
+Simulate a single exposed individual through time (N=1, E=1, all other states 0). The transmission kernel is the force of infection at each time step of the simulation. We sum the transmission kernel to get an estimate on $\mathcal{R}_0$ (for a given set of parameters?)
+
+In our case, our focal model includes phenomenological heterogeneity and setting S to 0, leads to 0^0 issues. The way out, I think, is to realize that the kernel method assumes we are at the beginning of the epidemic and therefore that S/N ~ 1.  In this case, FOI reduces to beta * I / N, which presents no issue.  So we do not need safe_power.
+
+Update focal model model to remove inflow to E (ensuring no new susceptible individuals reach E). This update also automatically turns off outflow from S, which is also what we want because this makes S/N ~ 1. In this case we don't initialize S to 0. We have N = N_focal (full population), `N_cohort` = cohort population (1 in this case).
+```{r cohort_model}
+cohort_model_ph = (
+  focal_model
+  %>% mp_tmb_update(phase="during"
+                    , at = 2L
+                    , expressions = list(S.E ~ (S^zeta) * (beta / (N^(zeta) * N_cohort)) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s)))
+                    , default = list(S.E = 0))
+)
+```
+
+This cohort model allows us to simulate the cohort.
+```{r simulate_cohort}
+cohort_sim_ph = (mp_simulator(cohort_model_ph
+                  , time_steps = 100L
+                  , outputs = "S.E"
+                  , default = list(
+                      S = 14.57e6 - 1 
+                    , log_E = log(1)
+                    , Ia = 0
+                    , Ip = 0
+                    , Im = 0
+                    , Is = 0
+                    , R = 0
+                    , H = 0
+                    , ICUs = 0
+                    , ICUd = 0
+                    , H2 = 0
+                    , D = 0
+                    , N_cohort = 1
+                    , model_matrix_values = model_matrix_values
+                    , qmax = 34
+                    , log_beta0=log(1)
+                    , logit_nonhosp_mort = -0.5
+                    , log_mobility_coefficients = rep(0,5)
+                    , log_zeta = 1
+                    )
+  ) |> mp_trajectory()
+) 
+```
+
+If we ran our simulations for long enough, the sum of these simulations is $\mathcal{R}_0$.
+```{r R0}
+R0_ph = sum(cohort_sim_ph$value)
+print(R0_ph)
+```
+
+Should we turn off phenomenological heterogeneity, or turn off inflow to E? If so, update S.E flow to remove phenomenological heterogeneity add duplicate foi expression because we can't recover the foi = S.E / S, when S is 0. In this case we do initialize S to 0.
+```{r cohort_no_ph}
+cohort_model = (focal_model
+  %>% mp_tmb_update(phase="during"
+                    , at = 2L
+                    , expressions = list(mp_per_capita_flow(
+        "S", "E"
+      , "(beta / N) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs * (1 - iso_s))"
+      , "S.E" 
+    )
+  ))
+  %>% mp_tmb_insert(phase="during"
+                    , at = Inf
+                    , expressions = list(foi ~ (beta / N) * (Ia * Ca + Ip * Cp + Im * Cm * (1 - iso_m) + Is * Cs *(1 - iso_s)))
+  )
+)
+
+cohort_sim = (mp_simulator(cohort_model
+                           , time_steps = 100L
+                           , outputs = "foi"
+                           , default = list(
+                               S = 0
+                             , log_E = log(1)
+                             , Ia = 0
+                             , Ip = 0
+                             , Im = 0
+                             , Is = 0
+                             , R = 0
+                             , H = 0
+                             , ICUs = 0
+                             , ICUd = 0
+                             , H2 = 0
+                             , D = 0
+                             , N = 1
+                             , model_matrix_values = model_matrix_values
+                             , qmax = 34
+                             , log_beta0=log(1)
+                             , logit_nonhosp_mort = -0.5
+                             , log_mobility_coefficients = rep(0,5)
+                             , log_zeta = 1) # not actually used
+  ) |> mp_trajectory()
+) 
+
+R0 = sum(cohort_sim$value)
+print(R0)
+```
+
+It turns out that we arrive at approximately the same answer with both approaches.
+```{r check_R0}
+all.equal(R0_ph, R0)
+```
+
+To solve for intrinsic growth rate `r`, we find the root of the Euler-Lotka equation.
+```{r euler_lotka}
+euler_lotka = function(r) sum(cohort_sim$value * exp(-r * cohort_sim$time)) - 1
+uniroot(euler_lotka, c(0,10))
+```
+
 
 # References 

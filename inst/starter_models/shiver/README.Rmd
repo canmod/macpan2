@@ -3,7 +3,7 @@ title: "SHIVER = SEIR + H + V"
 index_entry: "A modified SEIR model with Hospitalization and Vaccination"
 bibliography: ../../references.bib
 link-citations: TRUE
-author: Jennifer Freeman
+author: Jennifer Freeman, Steve Walker
 output: 
   github_document:
     toc: true
@@ -668,8 +668,7 @@ shiver_calibrator = mp_tmb_calibrator(
     # row bind both observed data
   , data = dd
     # fit both trajectories with negative binomial distributions
-  , traj = list(H = mp_neg_bin(
-      disp = mp_fit(1))
+  , traj = list(H = mp_neg_bin(disp = mp_fit(1))
     , reported_incidence = mp_neg_bin(disp = mp_fit(1))
   )
   , par = prior_distributions
