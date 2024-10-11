@@ -15,6 +15,10 @@ Log-Normal Distribution - mp_log_normal
 
 
 
+Logit-Normal Distribution - mp_logit_normal
+
+
+
 Poisson Distribution - mp_poisson
 
 
@@ -37,6 +41,10 @@ Log-Normal Distribution - mp_log_normal
 
 
 
+Logit-Normal Distribution - mp_logit_normal
+
+
+
 Poisson Distribution - mp_poisson
 
 
@@ -51,7 +59,7 @@ Negative Binomial Distribution - mp_neg_bin
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.9.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.10.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -94,6 +102,7 @@ model calibration.</p>
 components - <code>mp_uniform</code></p></li>
 </ul><ul><li><p>Normal Distribution - <code>mp_normal</code></p></li>
 </ul><ul><li><p>Log-Normal Distribution - <code>mp_log_normal</code></p></li>
+</ul><ul><li><p>Logit-Normal Distribution - <code>mp_logit_normal</code></p></li>
 </ul><ul><li><p>Poisson Distribution - <code>mp_poisson</code></p></li>
 </ul><ul><li><p>Negative Binomial Distribution - <code>mp_neg_bin</code></p></li>
 </ul></div>
@@ -103,24 +112,30 @@ components - <code>mp_uniform</code></p></li>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">mp_uniform</span><span class="op">(</span>default_trans <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">mp_normal</span><span class="op">(</span></span>
-<span>  location <span class="op">=</span> <span class="fu">DistrParam</span><span class="op">(</span><span class="st">"location"</span><span class="op">)</span>,</span>
+<span>  location <span class="op">=</span> <span class="fu">mp_distr_param_null</span><span class="op">(</span><span class="st">"location"</span><span class="op">)</span>,</span>
 <span>  <span class="va">sd</span>,</span>
 <span>  default_trans <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>location <span class="op">=</span> <span class="va">mp_identity</span>, sd <span class="op">=</span> <span class="va">mp_log</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">mp_log_normal</span><span class="op">(</span></span>
-<span>  location <span class="op">=</span> <span class="fu">DistrParam</span><span class="op">(</span><span class="st">"location"</span><span class="op">)</span>,</span>
+<span>  location <span class="op">=</span> <span class="fu">mp_distr_param_null</span><span class="op">(</span><span class="st">"location"</span><span class="op">)</span>,</span>
+<span>  <span class="va">sd</span>,</span>
+<span>  default_trans <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>location <span class="op">=</span> <span class="va">mp_identity</span>, sd <span class="op">=</span> <span class="va">mp_identity</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">mp_logit_normal</span><span class="op">(</span></span>
+<span>  location <span class="op">=</span> <span class="fu">mp_distr_param_null</span><span class="op">(</span><span class="st">"location"</span><span class="op">)</span>,</span>
 <span>  <span class="va">sd</span>,</span>
 <span>  default_trans <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>location <span class="op">=</span> <span class="va">mp_identity</span>, sd <span class="op">=</span> <span class="va">mp_identity</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">mp_poisson</span><span class="op">(</span></span>
-<span>  location <span class="op">=</span> <span class="fu">DistrParam</span><span class="op">(</span><span class="st">"location"</span><span class="op">)</span>,</span>
+<span>  location <span class="op">=</span> <span class="fu">mp_distr_param_null</span><span class="op">(</span><span class="st">"location"</span><span class="op">)</span>,</span>
 <span>  default_trans <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>location <span class="op">=</span> <span class="va">mp_identity</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">mp_neg_bin</span><span class="op">(</span></span>
-<span>  location <span class="op">=</span> <span class="fu">DistrParam</span><span class="op">(</span><span class="st">"location"</span><span class="op">)</span>,</span>
+<span>  location <span class="op">=</span> <span class="fu">mp_distr_param_null</span><span class="op">(</span><span class="st">"location"</span><span class="op">)</span>,</span>
 <span>  <span class="va">disp</span>,</span>
 <span>  default_trans <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>location <span class="op">=</span> <span class="va">mp_identity</span>, disp <span class="op">=</span> <span class="va">mp_log</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
