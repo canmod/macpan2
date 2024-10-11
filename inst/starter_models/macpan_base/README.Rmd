@@ -33,11 +33,9 @@ round_coef_tab = function(x, digits = 4) {
 system.file("utils", "box-drawing.R", package = "macpan2") |> source()
 ```
 
-The McMasterPandemic model [@macpan], which is  modified SEIR model that incorporates additional infectious compartments to reflect the current knowledge of COVID-19 epidemiology. Exposed individuals enter four infectious compartments characterized by the individuals symptom status (asymptomatic, pre-symptomatic, mild, and severe). Severely infected individuals require care through hospital and/or Intensive Care Unit (ICU) compartments and either recover or die.
+The McMasterPandemic model [@macpan], which is  modified SEIR model that incorporates additional infectious compartments to reflect COVID-19 epidemiology. Exposed individuals enter four infectious compartments characterized by symptom status (asymptomatic, pre-symptomatic, mild, and severe). Severely infected individuals require care through hospital and/or Intensive Care Unit (ICU) compartments and either recover or die. This model was used throughout the pandemic to support public health responses (e.g., [https://mac-theobio.github.io/forecasts/outputs/ON_accuracy.html](https://mac-theobio.github.io/forecasts/outputs/ON_accuracy.html)).
 
-This model was used throughout the pandemic to support public health responses (e.g., [https://mac-theobio.github.io/forecasts/outputs/ON_accuracy.html](https://mac-theobio.github.io/forecasts/outputs/ON_accuracy.html)).
-
-# Packages Used
+# Packages and Settings Used
 
 The code in this article uses the following packages.
 
@@ -46,6 +44,13 @@ library(macpan2)
 library(ggplot2)
 library(dplyr)
 ```
+
+To keep the optimizer from printing too much in this article, we set the `macpan2_verbose` option to `FALSE`.
+
+```{r options}
+options(macpan2_verbose = FALSE)
+```
+
 
 # Model Specification
 
@@ -58,7 +63,7 @@ spec = mp_tmb_library(
 )
 ```
 
-This specification can be used to draw the following flow diagrams using code found in the [source for this article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/macpan_base/README.Rmd).
+This specification can be used to draw the following flow diagram using code found in the [source for this article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/macpan_base/README.Rmd).
 
 ```{r diagram, echo = FALSE, fig.height = 5, fig.width = 8}
 system.file("utils", "box-drawing.R", package = "macpan2") |> source()
@@ -132,7 +137,6 @@ $$
 \end{align*}
 $$
 
-When there were discrepancies with how the model is expressed in Papst (TBD) versus model definition files, the latter was chosen.
 
 # Calibration
 
@@ -140,11 +144,14 @@ When there were discrepancies with how the model is expressed in Papst (TBD) ver
 
 We fit this model to observed death and case reports. For convenience we have saved some Ontario COVID-19 data in the `macpan2` package.
 ```{r get_data}
-ts_data  = readRDS(url("https://github.com/canmod/macpan2/releases/download/macpan1.5_data/covid_on.RDS"))
+ts_data  = ("https://github.com/canmod/macpan2"
+  |> file.path("releases/download/macpan1.5_data/covid_on.RDS")
+  |> url()
+  |> readRDS()
+)
 ```
 
-
-To further prepare the time series data for calibration we filter for the appropriate time range and time series variables, create a numeric date field named 'time'.
+To further prepare the time series data for calibration we filter for the appropriate time range and time series variables, to create a numeric date field named 'time'.
 ```{r prep_ts}
 prepped_ts_data = (ts_data
   |> rename(matrix = var)
@@ -355,21 +362,9 @@ We can get the trajectory and confidence intervals.
 fitted_data = mp_trajectory_sd(focal_calib, conf.int = TRUE)
 ```
 
+View estimates and their confidence intervals.
 ```{r coefficients}
-# View estimates and their confidence intervals:
-# zeta ~ 0(wide CI), do we need phenomenological heterogeneity?
-# beta0 ~ 0.18, order of magnitude smaller than manuscript estimate (Table 1)
-# mobility coefficients:
-#   mobility power                                 ~ 3.6 (huge std err)
-#   relative change in transmission (breakpoint 1) ~ 3.9 (3.4,4.6)
-#   change in mobility power (breakpoint 1)        ~ 1.04 (0.8,1.4)
-#   relative change in transmission (breakpoint 2) ~ 0.64 (0.56,0.74)
-#   change in mobility power (breakpoint 2)        ~ 0.21 (wide CI)
-# E(0) ~ 173(102,295) plausible for early pandemic (but different from manuscript)
-# nohosp_mort ~ 0.14(0.11,0.16) is this too high?
-# theta_report ~ 3(2.8,3.3) very different from manuscript
-# theta_death ~ 0.5(0.2,0.8) very different from manuscript
-mp_tmb_coef(focal_calib, conf.int = TRUE)
+mp_tmb_coef(focal_calib, conf.int = TRUE) |> round_coef_tab()
 ```
 
 

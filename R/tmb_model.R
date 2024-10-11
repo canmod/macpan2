@@ -397,6 +397,49 @@ mp_final_list.TMBSimulator = function(model) {
 #' associated with the initial values. See \code{\link{mp_initial}} for another 
 #' approach to getting the initial values.
 #' 
+#' @returns A data frame with one row for each simulated value and the following
+#' columns.
+#' \describe{
+#'   \item{matrix}{
+#'      Name of the variable in the model. All variables are matrix-valued
+#'      in `macpan2` (scalars are technically 1-by-1 matrices), which explains
+#'      the name of this field. In hindsight I would have called it `variable`.
+#'   }
+#'   \item{time}{
+#'      Time index of the simulated value, with `time = 0` indicating initial 
+#'      values.
+#'   }
+#'   \item{row}{
+#'      The 0-based index of the row of the matrix, or the name of the row
+#'      of the matrix if row names (or names for column vectors) are supplied 
+#'      for the default value of the matrix.
+#'   }
+#'   \item{col}{
+#'      The 0-based index of the column of the matrix, or the name of the column
+#'      of the matrix if column names are supplied for the default value of the 
+#'      matrix. It is also possible that this column is blank if everything
+#'      is either a scalar or column vector (a common case).
+#'    }
+#'   \item{value}{(`mp_trajectory` and `mp_trajectory_sd`) Simulation values.}
+#'   \item{sd}{
+#'      (for `mp_trajectory_sd` only) 
+#'      The standard deviations of the simulated values accounting for parameter
+#'      estimation uncertainty.
+#'   }
+#'   \item{conf.low}{
+#'      (for `mp_trajectory_sd` only)
+#'      The lower bounds of the confidence interval for the simulated values.
+#'   }
+#'   \item{conf.high}{
+#'      (for `mp_trajectory_sd` only)
+#'      The upper bounds of the confidence interval for the simulated values.
+#'    }
+#'   \item{n%}{
+#'      (for `mp_trajectory_[ensemble|sim]`)
+#'      The n-th quantiles of the simulation values over repeated simulations.
+#'   }
+#' }
+#' 
 #' @export
 mp_trajectory = function(model, include_initial = FALSE) {
   UseMethod("mp_trajectory")
@@ -471,13 +514,12 @@ mp_trajectory_ensemble.TMBCalibrator = function(model, n, probs = c(0.025, 0.975
 }
 
 
-## not ready to export yet because we are not sure how to construct a single
+## still not really sure how to construct a single
 ## ad_fun that works both with process error simulation and deterministic 
 ## trajectory matching
 
 
-##' Random Trajectory Simulations
-##' 
+
 ##' @param n Number of random trajectories to simulate.
 ##' @param probs Numeric vector of probabilities corresponding to quantiles for 
 ##' summarizing the results over the random realizations.
@@ -739,7 +781,12 @@ TMBSimulator = function(tmb_model
       , .probs = c(0.025, 0.5, 0.975)
     ) {
     r = self$report(..., .phases = .phases)
-    rr = (MASS::mvrnorm(.n, self$par.fixed(), self$cov.fixed())
+    ff = self$par.fixed()
+    cc = self$cov.fixed()
+    if (isFALSE(!any(is.nan(cc)))) {
+      stop("The covariance matrix of the fixed effects has NaNs. Perhaps this model has not yet been calibrated or even parameterized? Or perhaps the fit is singular?")
+    }
+    rr = (MASS::mvrnorm(.n, ff, cc)
       |> apply(1, self$report_values, .phases = .phases)
       |> apply(1, quantile, probs = .probs)
       |> t()

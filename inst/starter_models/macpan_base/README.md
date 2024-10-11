@@ -1,8 +1,8 @@
-MacPan base
+Macpan Base
 ================
 Jennifer Freeman
 
-- [Packages Used](#packages-used)
+- [Packages and Settings Used](#packages-and-settings-used)
 - [Model Specification](#model-specification)
 - [States](#states)
 - [Parameters](#parameters)
@@ -20,17 +20,15 @@ Jennifer Freeman
 
 The McMasterPandemic model ([Bolker et al. 2024](#ref-macpan)), which is
 modified SEIR model that incorporates additional infectious compartments
-to reflect the current knowledge of COVID-19 epidemiology. Exposed
-individuals enter four infectious compartments characterized by the
-individuals symptom status (asymptomatic, pre-symptomatic, mild, and
-severe). Severely infected individuals require care through hospital
-and/or Intensive Care Unit (ICU) compartments and either recover or die.
-
-This model was used throughout the pandemic to support public health
-responses (e.g.,
+to reflect COVID-19 epidemiology. Exposed individuals enter four
+infectious compartments characterized by symptom status (asymptomatic,
+pre-symptomatic, mild, and severe). Severely infected individuals
+require care through hospital and/or Intensive Care Unit (ICU)
+compartments and either recover or die. This model was used throughout
+the pandemic to support public health responses (e.g.,
 <https://mac-theobio.github.io/forecasts/outputs/ON_accuracy.html>).
 
-# Packages Used
+# Packages and Settings Used
 
 The code in this article uses the following packages.
 
@@ -38,6 +36,13 @@ The code in this article uses the following packages.
 library(macpan2)
 library(ggplot2)
 library(dplyr)
+```
+
+To keep the optimizer from printing too much in this article, we set the
+`macpan2_verbose` option to `FALSE`.
+
+``` r
+options(macpan2_verbose = FALSE)
 ```
 
 # Model Specification
@@ -57,7 +62,7 @@ spec = mp_tmb_library(
 )
 ```
 
-This specification can be used to draw the following flow diagrams using
+This specification can be used to draw the following flow diagram using
 code found in the [source for this
 article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/macpan_base/README.Rmd).
 
@@ -130,9 +135,6 @@ $$
 \end{align*}
 $$
 
-When there were discrepancies with how the model is expressed in Papst
-(TBD) versus model definition files, the latter was chosen.
-
 # Calibration
 
 ## Observed data prep
@@ -141,12 +143,16 @@ We fit this model to observed death and case reports. For convenience we
 have saved some Ontario COVID-19 data in the `macpan2` package.
 
 ``` r
-ts_data  = readRDS(url("https://github.com/canmod/macpan2/releases/download/macpan1.5_data/covid_on.RDS"))
+ts_data  = ("https://github.com/canmod/macpan2"
+  |> file.path("releases/download/macpan1.5_data/covid_on.RDS")
+  |> url()
+  |> readRDS()
+)
 ```
 
 To further prepare the time series data for calibration we filter for
-the appropriate time range and time series variables, create a numeric
-date field named ‘time’.
+the appropriate time range and time series variables, to create a
+numeric date field named ‘time’.
 
 ``` r
 prepped_ts_data = (ts_data
@@ -357,144 +363,6 @@ focal_calib = mp_tmb_calibrator(
 )
 # converges
 mp_optimize(focal_calib)
-#> outer mgc:  464198.9 
-#> outer mgc:  206291.3 
-#> outer mgc:  277399.9 
-#> outer mgc:  123919.2 
-#> outer mgc:  62669.62 
-#> outer mgc:  43175.41 
-#> outer mgc:  12045.94 
-#> outer mgc:  2009.163 
-#> outer mgc:  4699.982 
-#> outer mgc:  1280.61 
-#> outer mgc:  1959.389 
-#> outer mgc:  2197.84 
-#> outer mgc:  2598.58 
-#> outer mgc:  1801.487 
-#> outer mgc:  1683.596 
-#> outer mgc:  837.0336 
-#> outer mgc:  1238.395 
-#> outer mgc:  250.4317 
-#> outer mgc:  422.8622 
-#> outer mgc:  396.0051 
-#> outer mgc:  295.646 
-#> outer mgc:  263.7446 
-#> outer mgc:  184.0072 
-#> outer mgc:  235.371 
-#> outer mgc:  140.5446 
-#> outer mgc:  420.7473 
-#> outer mgc:  76.19063 
-#> outer mgc:  191.1308 
-#> outer mgc:  191.0764 
-#> outer mgc:  205.1883 
-#> outer mgc:  252.5784 
-#> outer mgc:  230.8998 
-#> outer mgc:  252.3025 
-#> outer mgc:  214.5108 
-#> outer mgc:  240.2282 
-#> outer mgc:  194.4268 
-#> outer mgc:  420.4915 
-#> outer mgc:  107.8389 
-#> outer mgc:  724.2023 
-#> outer mgc:  27.78877 
-#> outer mgc:  120.7651 
-#> outer mgc:  610.5989 
-#> outer mgc:  34.03929 
-#> outer mgc:  128.7617 
-#> outer mgc:  434.6105 
-#> outer mgc:  53.35816 
-#> outer mgc:  771.0387 
-#> outer mgc:  10.57253 
-#> outer mgc:  137.1906 
-#> outer mgc:  168.7642 
-#> outer mgc:  214.5904 
-#> outer mgc:  79.08095 
-#> outer mgc:  97.2613 
-#> outer mgc:  93.59715 
-#> outer mgc:  263.6426 
-#> outer mgc:  33.36824 
-#> outer mgc:  41.497 
-#> outer mgc:  161.355 
-#> outer mgc:  64.72287 
-#> outer mgc:  96.64981 
-#> outer mgc:  91.75068 
-#> outer mgc:  85.95648 
-#> outer mgc:  81.80533 
-#> outer mgc:  76.08382 
-#> outer mgc:  72.38908 
-#> outer mgc:  66.87035 
-#> outer mgc:  63.374 
-#> outer mgc:  58.28888 
-#> outer mgc:  54.72251 
-#> outer mgc:  134.8422 
-#> outer mgc:  22.33034 
-#> outer mgc:  22.57781 
-#> outer mgc:  87.00417 
-#> outer mgc:  38.15251 
-#> outer mgc:  39.31674 
-#> outer mgc:  127.3303 
-#> outer mgc:  12.68002 
-#> outer mgc:  12.78859 
-#> outer mgc:  49.14113 
-#> outer mgc:  45.76847 
-#> outer mgc:  44.74042 
-#> outer mgc:  40.74307 
-#> outer mgc:  40.88682 
-#> outer mgc:  35.85751 
-#> outer mgc:  37.42011 
-#> outer mgc:  31.24157 
-#> outer mgc:  34.00924 
-#> outer mgc:  27.18883 
-#> outer mgc:  30.21041 
-#> outer mgc:  23.94069 
-#> outer mgc:  25.88689 
-#> outer mgc:  21.32554 
-#> outer mgc:  61.35206 
-#> outer mgc:  7.869171 
-#> outer mgc:  7.579318 
-#> outer mgc:  28.53918 
-#> outer mgc:  24.77954 
-#> outer mgc:  23.61663 
-#> outer mgc:  22.35336 
-#> outer mgc:  21.30244 
-#> outer mgc:  20.01761 
-#> outer mgc:  19.10098 
-#> outer mgc:  17.74856 
-#> outer mgc:  16.97831 
-#> outer mgc:  15.5398 
-#> outer mgc:  14.87941 
-#> outer mgc:  13.40578 
-#> outer mgc:  12.74096 
-#> outer mgc:  11.35231 
-#> outer mgc:  10.54555 
-#> outer mgc:  24.06877 
-#> outer mgc:  4.931889 
-#> outer mgc:  4.499848 
-#> outer mgc:  15.91305 
-#> outer mgc:  6.829861 
-#> outer mgc:  5.982218 
-#> outer mgc:  23.24753 
-#> outer mgc:  1.992496 
-#> outer mgc:  1.816683 
-#> outer mgc:  6.413924 
-#> outer mgc:  5.799307 
-#> outer mgc:  4.79566 
-#> outer mgc:  4.02995 
-#> outer mgc:  10.74125 
-#> outer mgc:  1.882369 
-#> outer mgc:  1.569593 
-#> outer mgc:  1.308247 
-#> outer mgc:  1.090408 
-#> outer mgc:  3.430568 
-#> outer mgc:  2.382979 
-#> outer mgc:  1.655393 
-#> outer mgc:  1.132065 
-#> outer mgc:  2.520275 
-#> outer mgc:  0.6971995 
-#> outer mgc:  0.4287998 
-#> outer mgc:  0.2637154 
-#> outer mgc:  0.4919979 
-#> outer mgc:  0.1730144
 #> $par
 #>      params      params      params      params      params      params 
 #> -11.8661427  -1.6061443  -1.3693963  -8.9894233   1.5250569   0.4485781 
@@ -524,82 +392,22 @@ We can get the trajectory and confidence intervals.
 
 ``` r
 fitted_data = mp_trajectory_sd(focal_calib, conf.int = TRUE)
-#> outer mgc:  0.1730144 
-#> outer mgc:  0.1732991 
-#> outer mgc:  0.1727301 
-#> outer mgc:  5277.764 
-#> outer mgc:  5217.212 
-#> outer mgc:  17.18549 
-#> outer mgc:  17.52086 
-#> outer mgc:  2130.696 
-#> outer mgc:  2140.877 
-#> outer mgc:  2724.153 
-#> outer mgc:  2708.907 
-#> outer mgc:  725.9018 
-#> outer mgc:  726.8065 
-#> outer mgc:  5232.033 
-#> outer mgc:  5172.877 
-#> outer mgc:  2130.627 
-#> outer mgc:  2140.807 
-#> outer mgc:  425.823 
-#> outer mgc:  425.8619
 ```
 
+View estimates and their confidence intervals.
+
 ``` r
-# View estimates and their confidence intervals:
-# zeta ~ 0(wide CI), do we need phenomenological heterogeneity?
-# beta0 ~ 0.18, order of magnitude smaller than manuscript estimate (Table 1)
-# mobility coefficients:
-#   mobility power                                 ~ 3.6 (huge std err)
-#   relative change in transmission (breakpoint 1) ~ 3.9 (3.4,4.6)
-#   change in mobility power (breakpoint 1)        ~ 1.04 (0.8,1.4)
-#   relative change in transmission (breakpoint 2) ~ 0.64 (0.56,0.74)
-#   change in mobility power (breakpoint 2)        ~ 0.21 (wide CI)
-# E(0) ~ 173(102,295) plausible for early pandemic (but different from manuscript)
-# nohosp_mort ~ 0.14(0.11,0.16) is this too high?
-# theta_report ~ 3(2.8,3.3) very different from manuscript
-# theta_death ~ 0.5(0.2,0.8) very different from manuscript
-mp_tmb_coef(focal_calib, conf.int = TRUE)
-#> outer mgc:  0.1730144 
-#> outer mgc:  0.1732991 
-#> outer mgc:  0.1727301 
-#> outer mgc:  5277.764 
-#> outer mgc:  5217.212 
-#> outer mgc:  17.18549 
-#> outer mgc:  17.52086 
-#> outer mgc:  2130.696 
-#> outer mgc:  2140.877 
-#> outer mgc:  2724.153 
-#> outer mgc:  2708.907 
-#> outer mgc:  725.9018 
-#> outer mgc:  726.8065 
-#> outer mgc:  5232.033 
-#> outer mgc:  5172.877 
-#> outer mgc:  2130.627 
-#> outer mgc:  2140.807 
-#> outer mgc:  425.823 
-#> outer mgc:  425.8619 
-#> outer mgc:  4153.555
-#>       term                   mat row col   default  type     estimate
-#> 1   params                  zeta   0   0 2.7182818 fixed 7.024246e-06
-#> 2 params.1                 beta0   0   0 5.0000000 fixed 2.006598e-01
-#> 4 params.3 mobility_coefficients   0   0 1.0000000 fixed 1.247220e-04
-#> 5 params.4 mobility_coefficients   1   0 1.0000000 fixed 4.595405e+00
-#> 6 params.5 mobility_coefficients   2   0 1.0000000 fixed 1.566084e+00
-#> 7 params.6 mobility_coefficients   3   0 1.0000000 fixed 5.690820e-01
-#> 8 params.7 mobility_coefficients   4   0 1.0000000 fixed 5.876330e+03
-#> 9 params.8                     E   0   0 5.0000000 fixed 1.379989e+02
-#> 3 params.2          nonhosp_mort   0   0 0.3775407 fixed 2.027174e-01
-#>      std.error     conf.low    conf.high
-#> 1 1.645674e-02 2.220446e-16          Inf
-#> 2 4.586122e-03 1.918695e-01 2.098528e-01
-#> 4 4.052456e-04 2.139078e-07 7.272095e-02
-#> 5 2.191076e-01 4.185417e+00 5.045554e+00
-#> 6 1.134402e-01 1.358807e+00 1.804980e+00
-#> 7 1.496536e-02 5.404935e-01 5.991827e-01
-#> 8 1.907115e+04 1.015314e+01 3.401041e+06
-#> 9 2.625957e+01 9.503904e+01 2.003777e+02
-#> 3 5.228220e-03 1.926632e-01 2.131578e-01
+mp_tmb_coef(focal_calib, conf.int = TRUE) |> round_coef_tab()
+#>                     mat row default  estimate  std.error conf.low    conf.high
+#> 1                  zeta   0  2.7183    0.0000     0.0165   0.0000          Inf
+#> 2                 beta0   0  5.0000    0.2007     0.0046   0.1919       0.2099
+#> 3 mobility_coefficients   0  1.0000    0.0001     0.0004   0.0000       0.0727
+#> 4 mobility_coefficients   1  1.0000    4.5954     0.2191   4.1854       5.0456
+#> 5 mobility_coefficients   2  1.0000    1.5661     0.1134   1.3588       1.8050
+#> 6 mobility_coefficients   3  1.0000    0.5691     0.0150   0.5405       0.5992
+#> 7 mobility_coefficients   4  1.0000 5876.3299 19071.1531  10.1531 3401041.1989
+#> 8                     E   0  5.0000  137.9989    26.2596  95.0390     200.3777
+#> 9          nonhosp_mort   0  0.3775    0.2027     0.0052   0.1927       0.2132
 ```
 
 ``` r
@@ -632,16 +440,16 @@ time step of the simulation. We sum the transmission kernel to get an
 estimate on $\mathcal{R}_0$ (for a given set of parameters?)
 
 In our case, our focal model includes phenomenological heterogeneity and
-setting S to 0, leads to 0^0 issues. SW said: “The way out, I think, is
-to realize that the kernel method assumes we are at the beginning of the
-epidemic and therefore that S/N ~ 1. In this case, FOI reduces to beta
-\* I / N, which presents no issue. So we do not need safe_power.”
+setting S to 0, leads to 0^0 issues. The way out, I think, is to realize
+that the kernel method assumes we are at the beginning of the epidemic
+and therefore that S/N ~ 1. In this case, FOI reduces to beta \* I / N,
+which presents no issue. So we do not need safe_power.
 
 Update focal model model to remove inflow to E (ensuring no new
-susceptibles reach E). This update also automatically turns off outflow
-from S, which is also what we want because this makes S/N ~ 1. In this
-case we don’t initialize S to 0. We have N = N_focal (full population),
-`N_cohort` = cohort population (1 in this case).
+susceptible individuals reach E). This update also automatically turns
+off outflow from S, which is also what we want because this makes S/N
+~ 1. In this case we don’t initialize S to 0. We have N = N_focal (full
+population), `N_cohort` = cohort population (1 in this case).
 
 ``` r
 cohort_model_ph = (

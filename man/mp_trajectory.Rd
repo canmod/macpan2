@@ -35,6 +35,50 @@ intervals.}
 \item{probs}{Numeric vector of probabilities corresponding to quantiles for
 summarizing the results over the random realizations.}
 }
+\value{
+A data frame with one row for each simulated value and the following
+columns.
+\describe{
+\item{matrix}{
+Name of the variable in the model. All variables are matrix-valued
+in \code{macpan2} (scalars are technically 1-by-1 matrices), which explains
+the name of this field. In hindsight I would have called it \code{variable}.
+}
+\item{time}{
+Time index of the simulated value, with \code{time = 0} indicating initial
+values.
+}
+\item{row}{
+The 0-based index of the row of the matrix, or the name of the row
+of the matrix if row names (or names for column vectors) are supplied
+for the default value of the matrix.
+}
+\item{col}{
+The 0-based index of the column of the matrix, or the name of the column
+of the matrix if column names are supplied for the default value of the
+matrix. It is also possible that this column is blank if everything
+is either a scalar or column vector (a common case).
+}
+\item{value}{(\code{mp_trajectory} and \code{mp_trajectory_sd}) Simulation values.}
+\item{sd}{
+(for \code{mp_trajectory_sd} only)
+The standard deviations of the simulated values accounting for parameter
+estimation uncertainty.
+}
+\item{conf.low}{
+(for \code{mp_trajectory_sd} only)
+The lower bounds of the confidence interval for the simulated values.
+}
+\item{conf.high}{
+(for \code{mp_trajectory_sd} only)
+The upper bounds of the confidence interval for the simulated values.
+}
+\item{n\%}{
+(for \code{mp_trajectory_[ensemble|sim]})
+The n-th quantiles of the simulation values over repeated simulations.
+}
+}
+}
 \description{
 Return simulations of the trajectory of the output
 variables of a dynamical model simulator.

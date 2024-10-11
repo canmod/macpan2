@@ -32,7 +32,7 @@ round_coef_tab = function(x, digits = 4) {
 
 The McMasterPandemic model [@macpan] modified to include a wastewater component.
 
-# Packages Used
+# Packages and Settings Used
 
 The code in this article uses the following packages.
 
@@ -42,6 +42,12 @@ library(ggplot2)
 library(dplyr)
 library(lubridate)
 
+```
+
+To keep the optimizer from printing too much in this article, we set the `macpan2_verbose` option to `FALSE`.
+
+```{r options}
+options(macpan2_verbose = FALSE)
 ```
 
 # Model Specification
