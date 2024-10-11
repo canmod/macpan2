@@ -24,20 +24,11 @@ This is the simplest possible epidemic model [@earn2008light].
 ```{r flow_diagram, echo = FALSE, fig.height=1, fig.width=4, message=FALSE, warning=FALSE}
 library(macpan2)
 library(ggplot2)
-system.file("utils", "layout-plot-utils.R", package = "macpan2") |> source()
+system.file("utils", "box-drawing.R", package = "macpan2") |> source()
 si = mp_tmb_library("starter_models", "si", package = "macpan2")
-plot_data = (si 
-  |> mp_flow_frame() 
-  |> mp_layout_path() 
-  |> mp_add_ports(x_pad = 0.2)
-)
-(plot_data
-  |> mp_plot_layout()
-  + geom_label(aes(x = x, y = y, label = rate)
-      , parse = TRUE
-      , colour = "blue"
-      , data = plot_data$edges_df
-  )
+(si 
+  |> mp_layout_paths() 
+  |> plot_flow_diagram(show_flow_rates = TRUE)
 )
 ```
 

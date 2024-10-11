@@ -2,15 +2,13 @@ Wastewater model
 ================
 Jennifer Freeman
 
--   <a href="#packages-used" id="toc-packages-used">Packages Used</a>
--   <a href="#model-specification" id="toc-model-specification">Model
-    Specification</a>
--   <a href="#states" id="toc-states">States</a>
--   <a href="#parameters" id="toc-parameters">Parameters</a>
--   <a href="#dynamics" id="toc-dynamics">Dynamics</a>
--   <a href="#model-specification-1" id="toc-model-specification-1">Model
-    Specification</a>
--   <a href="#references" id="toc-references">References</a>
+- [Packages Used](#packages-used)
+- [Model Specification](#model-specification)
+- [States](#states)
+- [Parameters](#parameters)
+- [Dynamics](#dynamics)
+- [Model Specification](#model-specification-1)
+- [References](#references)
 
 The McMasterPandemic model ([Bolker et al. 2024](#ref-macpan)) modified
 to include a wastewater component.

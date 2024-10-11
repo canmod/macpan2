@@ -506,6 +506,14 @@ DistrParamLogit = function() {
   return_object(self, "DistrParamLogit")
 }
 
+DistrParamSqrt = function() {
+  self = DistrParamTrans()
+  self$ref = function(x) sprintf("(%s^2)", x)
+  self$nm  = function(x) sprintf("sqrt_%s", x)
+  self$val = function(x) sqrt(x)
+  return_object(self, "DistrParamSqrt")
+}
+
 #' Distributional Parameter Transformation
 #'
 #' @name transform_distr_param
@@ -528,6 +536,12 @@ mp_log = DistrParamLog()
 #' @rdname transform_distr_param
 #' @export
 mp_logit = DistrParamLogit()
+
+#' @description * `mp_sqrt` - Square-root transformation 
+#' @format NULL
+#' @rdname transform_distr_param
+#' @export
+mp_sqrt = DistrParamSqrt()
 
 
 TESTDISTR = function(location, sd) {

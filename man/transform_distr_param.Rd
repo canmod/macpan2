@@ -6,6 +6,7 @@
 \alias{mp_identity}
 \alias{mp_log}
 \alias{mp_logit}
+\alias{mp_sqrt}
 \title{Distributional Parameter Transformation}
 \usage{
 mp_identity
@@ -13,6 +14,8 @@ mp_identity
 mp_log
 
 mp_logit
+
+mp_sqrt
 }
 \description{
 \itemize{
@@ -25,6 +28,10 @@ mp_logit
 
 \itemize{
 \item \code{mp_logit} - Logit transformation
+}
+
+\itemize{
+\item \code{mp_sqrt} - Square-root transformation
 }
 }
 \keyword{datasets}

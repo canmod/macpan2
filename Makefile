@@ -53,11 +53,12 @@ quick-test-all:
 	make run-tests
 	make run-examples
 
-
 quick-test:
 	make quick-doc-install
 	make run-tests
 
+run-starter-readme-code:
+	Rscript misc/build/run_starter_readme_code.R
 
 run-examples:
 	Rscript misc/build/run_examples.R
@@ -176,3 +177,4 @@ inst/starter_models/%/README.push: inst/starter_models/%/README.md
 	git commit -m "[skip ci] work on starter models"
 	git push
 	touch $@
+
