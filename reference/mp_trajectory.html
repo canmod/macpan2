@@ -50,7 +50,7 @@ in context, please see vignette("quickstart").'></head><body>
     <div class="ref-description section level2">
     <p>Return simulations of the trajectory of the output
 variables of a dynamical model simulator. To see this functionality
-in context, please see vignette("quickstart").</p>
+in context, please see <code><a href="../articles/quickstart.html">vignette("quickstart")</a></code>.</p>
     </div>
 
     <div class="section level2">
@@ -163,7 +163,10 @@ is one column for each of the quantiles defined in <code>probs</code>.</p></li>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">spec</span> <span class="op">=</span> <span class="fu"><a href="mp_tmb_library.html">mp_tmb_library</a></span><span class="op">(</span><span class="st">"starter_models"</span>, <span class="st">"si"</span>, package <span class="op">=</span> <span class="st">"macpan2"</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">spec</span> <span class="op">=</span> <span class="fu"><a href="mp_tmb_library.html">mp_tmb_library</a></span><span class="op">(</span><span class="st">"starter_models"</span></span></span>
+<span class="r-in"><span>  , <span class="st">"si"</span></span></span>
+<span class="r-in"><span>  , package <span class="op">=</span> <span class="st">"macpan2"</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">simulator</span> <span class="op">=</span> <span class="fu"><a href="mp_simulator.html">mp_simulator</a></span><span class="op">(</span><span class="va">spec</span></span></span>
 <span class="r-in"><span>  , time_steps <span class="op">=</span> <span class="fl">10L</span></span></span>
 <span class="r-in"><span>  , outputs <span class="op">=</span> <span class="fu"><a href="engine_functions.html">c</a></span><span class="op">(</span><span class="st">"infection"</span>, <span class="st">"I"</span><span class="op">)</span></span></span>
