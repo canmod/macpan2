@@ -81,7 +81,8 @@ The n-th quantiles of the simulation values over repeated simulations.
 }
 \description{
 Return simulations of the trajectory of the output
-variables of a dynamical model simulator.
+variables of a dynamical model simulator. To see this functionality
+in context, please see vignette("quickstart").
 }
 \section{Functions}{
 \itemize{
@@ -101,3 +102,13 @@ the trajectory. Instead of a \code{value} column in the output data frame, there
 is one column for each of the quantiles defined in \code{probs}.
 
 }}
+\examples{
+spec = mp_tmb_library("starter_models", "si", package = "macpan2")
+simulator = mp_simulator(spec
+  , time_steps = 10L
+  , outputs = c("infection", "I")
+)
+trajectory = mp_trajectory(simulator)
+print(trajectory)
+
+}
