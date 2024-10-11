@@ -82,7 +82,7 @@ The n-th quantiles of the simulation values over repeated simulations.
 \description{
 Return simulations of the trajectory of the output
 variables of a dynamical model simulator. To see this functionality
-in context, please see vignette("quickstart").
+in context, please see \code{vignette("quickstart")}.
 }
 \section{Functions}{
 \itemize{
@@ -103,7 +103,10 @@ is one column for each of the quantiles defined in \code{probs}.
 
 }}
 \examples{
-spec = mp_tmb_library("starter_models", "si", package = "macpan2")
+spec = mp_tmb_library("starter_models"
+  , "si"
+  , package = "macpan2"
+)
 simulator = mp_simulator(spec
   , time_steps = 10L
   , outputs = c("infection", "I")

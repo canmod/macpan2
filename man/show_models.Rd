@@ -19,7 +19,7 @@ show_models(
 links to model readme files?}
 }
 \value{
-a data frame containing entries \code{dir} (model directory), \code{title} (model title), \code{index_entry} (short description)
+a data frame containing entries \code{Directory} (model directory), \code{Title} (model title), \code{Description} (short description)
 }
 \description{
 Collects information from the headers of the README files in the model directories
