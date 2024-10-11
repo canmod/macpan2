@@ -1,17 +1,21 @@
-SIR with waning immunity
+SIR with Waning Immunity
 ================
 Jen Freeman, Steve Walker
 
-- [Packages Used and Settings](#packages-used-and-settings)
-- [Model Specification](#model-specification)
-- [States](#states)
-- [Parameters](#parameters)
-- [Dynamics](#dynamics)
-- [Calibration](#calibration)
-  - [Simulate fake data](#simulate-fake-data)
-  - [Calibrate the model](#calibrate-the-model)
-  - [Explore the fit](#explore-the-fit)
-- [References](#references)
+-   <a href="#packages-used-and-settings"
+    id="toc-packages-used-and-settings">Packages Used and Settings</a>
+-   <a href="#model-specification" id="toc-model-specification">Model
+    Specification</a>
+-   <a href="#states" id="toc-states">States</a>
+-   <a href="#parameters" id="toc-parameters">Parameters</a>
+-   <a href="#dynamics" id="toc-dynamics">Dynamics</a>
+-   <a href="#calibration" id="toc-calibration">Calibration</a>
+    -   <a href="#simulate-fake-data" id="toc-simulate-fake-data">Simulate fake
+        data</a>
+    -   <a href="#calibrate-the-model" id="toc-calibrate-the-model">Calibrate
+        the model</a>
+    -   <a href="#explore-the-fit" id="toc-explore-the-fit">Explore the fit</a>
+-   <a href="#references" id="toc-references">References</a>
 
 Endemic pathogens can sometimes be modelled by sending R back to S,
 thereby controlling susceptible depletion such that new infections keep

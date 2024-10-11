@@ -1,6 +1,6 @@
 ---
-title: "SIR with waning immunity"
-index_entry: "a basic SIR model with a flow from R back to S"
+title: "SIR with Waning Immunity"
+index_entry: "A basic SIR model with a flow from R back to S"
 bibliography: ../../references.bib
 link-citations: TRUE
 author: Jen Freeman, Steve Walker
