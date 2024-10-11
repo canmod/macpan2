@@ -1,4 +1,4 @@
-basic SIR
+Basic SIR
 ================
 Steve Walker
 

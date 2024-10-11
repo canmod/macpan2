@@ -1,6 +1,6 @@
 ---
-title: "basic SIR"
-index_entry: "a very simple epidemic model"
+title: "Basic SIR"
+index_entry: "A very simple epidemic model"
 bibliography: ../../references.bib
 link-citations: TRUE
 author: Steve Walker
