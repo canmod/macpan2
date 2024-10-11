@@ -62,8 +62,8 @@ Agency of Canada](https://www.canada.ca/en/public-health.html) uses
     guide](https://canmod.github.io/macpan2/articles/quickstart)
 -   [`TMB` engine](https://canmod.github.io/macpan2/articles/cpp_side)
     \[specification document\]
--   [Project history and
-    trajectory](https://canmod.net/misc/macpan2_presentation) \[slides\]
+-   [Project history and trajectory](https://canmod.net/misc/pyRC)
+    \[slides\]
 
 ## Installation
 
