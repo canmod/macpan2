@@ -1,6 +1,6 @@
 ---
 title: "Lotka-Volterra"
-index_entry: "simple predator-prey model"
+index_entry: "Simple predator-prey model"
 bibliography: ../../references.bib
 link-citations: TRUE
 author: Jen Freeman, Steve Walker
