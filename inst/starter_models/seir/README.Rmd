@@ -1,6 +1,6 @@
 ---
-title: "basic SEIR"
-index_entry: "vanilla epidemic model with an exposed class"
+title: "Basic SEIR"
+index_entry: "Simple epidemic model with an exposed class"
 bibliography: ../../references.bib
 link-citations: TRUE
 author: Steve Walker

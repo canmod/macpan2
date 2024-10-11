@@ -1,4 +1,4 @@
-basic SEIR
+Basic SEIR
 ================
 Steve Walker
 
