@@ -12,7 +12,7 @@ home:
   - text: Roadmap
     href: https://github.com/orgs/canmod/projects/2
   - text: Project history and trajectory
-    href: https://canmod.net/misc/macpan2_presentation
+    href: https://canmod.net/misc/pyRC
 articles:
 - title: User Guides
   navbar: ~
