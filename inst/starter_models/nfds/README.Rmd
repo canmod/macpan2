@@ -1,5 +1,5 @@
 ---
-title: "NFDS and vaccine design"
+title: "NFDS and Vaccine Design"
 index_entry: "An ecological model using population genomics to design optimal vaccines as implemented in Colijn et al. (2020)"
 bibliography: references.bib
 link-citations: TRUE

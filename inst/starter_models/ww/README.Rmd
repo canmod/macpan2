@@ -1,5 +1,5 @@
 ---
-title: "Wastewater model"
+title: "Wastewater Model"
 index_entry: "Macpan base with an additional wastewater component"
 bibliography: ../../references.bib
 link-citations: TRUE
