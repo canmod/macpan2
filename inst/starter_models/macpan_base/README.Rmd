@@ -151,7 +151,7 @@ ts_data  = ("https://github.com/canmod/macpan2"
 )
 ```
 
-To further prepare the time series data for calibration we filter for the appropriate time range and time series variables, to create a numeric date field named 'time'.
+To further prepare the time series data in the [format required by `macpan2`](https://canmod.github.io/macpan2/reference/mp_trajectory.html#value) we filter for the appropriate time range and time series variables, to create a numeric date field named 'time'.
 ```{r prep_ts}
 prepped_ts_data = (ts_data
   |> rename(matrix = var)
@@ -166,7 +166,6 @@ prepped_ts_data = (ts_data
   # this explains negative values:
   # https://github.com/ccodwg/Covid19Canada?tab=readme-ov-file#datasets
   |> filter(matrix %in% c("death","report") & value >= 0)
-
 )
 ```
 
@@ -190,7 +189,7 @@ prepped_mobility_data = (ts_data
 Mobility breakpoints identified for piecewise varying transmission.
 ```{r mob_breaks}
 mobility_breaks = (prepped_ts_data
-  |> filter(date %in% c("2020-04-01", "2020-08-07"), matrix=="report")
+  |> filter(date %in% c("2020-04-01", "2020-08-07"), matrix == "report")
   |> pull(time)
 )
 ```

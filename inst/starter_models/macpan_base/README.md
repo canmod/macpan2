@@ -2,21 +2,29 @@ Macpan Base
 ================
 Jennifer Freeman
 
-- [Packages and Settings Used](#packages-and-settings-used)
-- [Model Specification](#model-specification)
-- [States](#states)
-- [Parameters](#parameters)
-- [Differential Equations](#differential-equations)
-- [Calibration](#calibration)
-  - [Observed data prep](#observed-data-prep)
-  - [Mobility Sub-Model](#mobility-sub-model)
-  - [Update the Model Specification for
-    Calibration](#update-the-model-specification-for-calibration)
-  - [Calibration](#calibration-1)
-  - [Explore Calibration](#explore-calibration)
-- [Computing $\mathcal{R}_0$ with a Cohort
-  Model](#computing-mathcalr_0-with-a-cohort-model)
-- [References](#references)
+-   <a href="#packages-and-settings-used"
+    id="toc-packages-and-settings-used">Packages and Settings Used</a>
+-   <a href="#model-specification" id="toc-model-specification">Model
+    Specification</a>
+-   <a href="#states" id="toc-states">States</a>
+-   <a href="#parameters" id="toc-parameters">Parameters</a>
+-   <a href="#differential-equations"
+    id="toc-differential-equations">Differential Equations</a>
+-   <a href="#calibration" id="toc-calibration">Calibration</a>
+    -   <a href="#observed-data-prep" id="toc-observed-data-prep">Observed data
+        prep</a>
+    -   <a href="#mobility-sub-model" id="toc-mobility-sub-model">Mobility
+        Sub-Model</a>
+    -   <a href="#update-the-model-specification-for-calibration"
+        id="toc-update-the-model-specification-for-calibration">Update the Model
+        Specification for Calibration</a>
+    -   <a href="#calibration-1" id="toc-calibration-1">Calibration</a>
+    -   <a href="#explore-calibration" id="toc-explore-calibration">Explore
+        Calibration</a>
+-   <a href="#computing-mathcalr_0-with-a-cohort-model"
+    id="toc-computing-mathcalr_0-with-a-cohort-model">Computing <span
+    class="math inline">ℛ<sub>0</sub></span> with a Cohort Model</a>
+-   <a href="#references" id="toc-references">References</a>
 
 The McMasterPandemic model ([Bolker et al. 2024](#ref-macpan)), which is
 modified SEIR model that incorporates additional infectious compartments
@@ -150,9 +158,10 @@ ts_data  = ("https://github.com/canmod/macpan2"
 )
 ```
 
-To further prepare the time series data for calibration we filter for
-the appropriate time range and time series variables, to create a
-numeric date field named ‘time’.
+To further prepare the time series data in the [format required by
+`macpan2`](https://canmod.github.io/macpan2/reference/mp_trajectory.html#value)
+we filter for the appropriate time range and time series variables, to
+create a numeric date field named ‘time’.
 
 ``` r
 prepped_ts_data = (ts_data
@@ -168,7 +177,6 @@ prepped_ts_data = (ts_data
   # this explains negative values:
   # https://github.com/ccodwg/Covid19Canada?tab=readme-ov-file#datasets
   |> filter(matrix %in% c("death","report") & value >= 0)
-
 )
 ```
 
@@ -442,13 +450,13 @@ estimate on $\mathcal{R}_0$ (for a given set of parameters?)
 In our case, our focal model includes phenomenological heterogeneity and
 setting S to 0, leads to 0^0 issues. The way out, I think, is to realize
 that the kernel method assumes we are at the beginning of the epidemic
-and therefore that S/N ~ 1. In this case, FOI reduces to beta \* I / N,
+and therefore that S/N \~ 1. In this case, FOI reduces to beta \* I / N,
 which presents no issue. So we do not need safe_power.
 
 Update focal model model to remove inflow to E (ensuring no new
 susceptible individuals reach E). This update also automatically turns
 off outflow from S, which is also what we want because this makes S/N
-~ 1. In this case we don’t initialize S to 0. We have N = N_focal (full
+\~ 1. In this case we don’t initialize S to 0. We have N = N_focal (full
 population), `N_cohort` = cohort population (1 in this case).
 
 ``` r

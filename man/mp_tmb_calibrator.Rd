@@ -27,7 +27,7 @@ produced by \code{\link{mp_trajectory}}.}
 
 \item{traj}{A character vector giving the names of trajectories to fit
 to data, or a named list of likelihood distributions specified with
-\code{?macpan2::distribution} for each trajectory.}
+\code{\link{distribution}} for each trajectory.}
 
 \item{par}{A character vector giving the names of parameters, either
 time-varying or not, to fit using trajectory match.}
