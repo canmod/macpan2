@@ -289,7 +289,7 @@ TMBCalDataStruc = function(data, time) {
   self$time_steps = time$bound_steps()[2L]
   data$time_ids = time$time_ids(data$time)
   self$data_time_ids = data$time_ids
-  self$data_time_steps = length(data$time_ids)
+  self$data_time_steps = max(data$time_ids)
   data = rename_synonyms(data
     , time = c(
         "time", "Time", "ID", "time_id", "id", "date", "Date"
