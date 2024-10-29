@@ -94,7 +94,7 @@ please get them in the usual way (i.e. using
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/bbolker/broom.mixed" class="external-link">broom.mixed</a></span><span class="op">)</span></span></code></pre></div>
 <p>In addition, we need the <code>iidda.api</code> package.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="va">iidda.api</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="va"><a href="https://canmod.github.io/iidda-tools/iidda.api" class="external-link">iidda.api</a></span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">repos</span> <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span></span>
 <span>      <span class="st">"https://canmod.r-universe.dev"</span></span>
 <span>    , <span class="st">"https://cran.r-project.org"</span></span>
@@ -102,10 +102,10 @@ please get them in the usual way (i.e. using
 <span>  <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"iidda.api"</span>, repos <span class="op">=</span> <span class="va">repos</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span><span class="co">#&gt; Warning in check_rapiclient(): Your installation of rapiclient does not support</span></span>
-<span><span class="co">#&gt; passing vectors to the arguments of iidda.api functions.If you wish to pass</span></span>
+<span><span class="co">#&gt; passing vectors to the arguments of iidda.api functions. If you wish to pass</span></span>
 <span><span class="co">#&gt; vectors, please follow installation instructions for rapiclient here:</span></span>
 <span><span class="co">#&gt; https://canmod.r-universe.dev/rapiclient</span></span>
-<span><span class="va">api_hook</span> <span class="op">=</span> <span class="fu">iidda.api</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/iidda.api/man/ops.html" class="external-link">ops_staging</a></span></span></code></pre></div>
+<span><span class="va">api_hook</span> <span class="op">=</span> <span class="fu">iidda.api</span><span class="fu">::</span><span class="va"><a href="https://canmod.github.io/iidda-tools/iidda.api/reference/ops.html" class="external-link">ops_staging</a></span></span></code></pre></div>
 <p>And we set a few options for convenience.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>iidda_api_msgs <span class="op">=</span> <span class="cn">FALSE</span>, macpan2_verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
