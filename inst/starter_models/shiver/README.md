@@ -2,25 +2,37 @@ SHIVER = SEIR + H + V
 ================
 Jennifer Freeman, Steve Walker
 
-- [Packages Used and Settings](#packages-used-and-settings)
-- [Model Specification](#model-specification)
-- [States](#states)
-- [Parameters](#parameters)
-- [Variable Vaccination Rate](#variable-vaccination-rate)
-- [Dynamics](#dynamics)
-- [Calibration Example](#calibration-example)
-  - [Calibration Scenario](#calibration-scenario)
-  - [Deciding on Defaults](#deciding-on-defaults)
-  - [Simulating Dynamics](#simulating-dynamics)
-  - [Estimating Parameters](#estimating-parameters)
-  - [Re-parameterizing and Introducing
-    Transformations](#re-parameterizing-and-introducing-transformations)
-  - [Runge-Kutta 4](#runge-kutta-4)
-  - [Fitting to Multiple
-    Trajectories](#fitting-to-multiple-trajectories)
-  - [Parameter Identifiability](#parameter-identifiability)
-- [Model Specification](#model-specification-1)
-- [References](#references)
+-   <a href="#packages-used-and-settings"
+    id="toc-packages-used-and-settings">Packages Used and Settings</a>
+-   <a href="#model-specification" id="toc-model-specification">Model
+    Specification</a>
+-   <a href="#states" id="toc-states">States</a>
+-   <a href="#parameters" id="toc-parameters">Parameters</a>
+-   <a href="#variable-vaccination-rate"
+    id="toc-variable-vaccination-rate">Variable Vaccination Rate</a>
+-   <a href="#dynamics" id="toc-dynamics">Dynamics</a>
+-   <a href="#calibration-example" id="toc-calibration-example">Calibration
+    Example</a>
+    -   <a href="#calibration-scenario"
+        id="toc-calibration-scenario">Calibration Scenario</a>
+    -   <a href="#deciding-on-defaults" id="toc-deciding-on-defaults">Deciding
+        on Defaults</a>
+    -   <a href="#simulating-dynamics" id="toc-simulating-dynamics">Simulating
+        Dynamics</a>
+    -   <a href="#estimating-parameters"
+        id="toc-estimating-parameters">Estimating Parameters</a>
+    -   <a href="#re-parameterizing-and-introducing-transformations"
+        id="toc-re-parameterizing-and-introducing-transformations">Re-parameterizing
+        and Introducing Transformations</a>
+    -   <a href="#runge-kutta-4" id="toc-runge-kutta-4">Runge-Kutta 4</a>
+    -   <a href="#fitting-to-multiple-trajectories"
+        id="toc-fitting-to-multiple-trajectories">Fitting to Multiple
+        Trajectories</a>
+    -   <a href="#parameter-identifiability"
+        id="toc-parameter-identifiability">Parameter Identifiability</a>
+-   <a href="#model-specification-1" id="toc-model-specification-1">Model
+    Specification</a>
+-   <a href="#references" id="toc-references">References</a>
 
 This model builds on the basic SEIR model, with two additional
 compartments for vaccination and hospitalizations.
@@ -686,7 +698,7 @@ shiver_calibrator = mp_tmb_calibrator(
 mp_optimize(shiver_calibrator)
 #> $par
 #>       params       params       params       params       params 
-#> -4.157752739 -0.207593565 -8.769173074  0.005611944  0.006871819 
+#> -4.157752739 -0.207593565 -8.769173070  0.005611944  0.006871819 
 #> 
 #> $objective
 #> [1] 383.1069
@@ -870,7 +882,7 @@ multi_traj_spec = (reparameterized_spec
 ``` r
 ## we need a more elaborate prior distribution
 sd_par = 1 ## for convenience we give all parameters the same prior sd, for now
-sd_state = 8 ## extremely vague priors on state variables
+sd_state = 4 ## extremely vague priors on state variables
 prior_distributions = list(
     log_beta = mp_normal(log(0.2), sd_par)
   , log_sigma = mp_normal(log(sigma), sd_par)
@@ -888,61 +900,66 @@ dd = rbind(reported_hospitalizations, reported_cases)
 
 # calibrate
 shiver_calibrator = mp_tmb_calibrator(
-    spec = multi_traj_spec |> mp_hazard()
+    spec = (multi_traj_spec 
+      |> mp_hazard()
+    )
     # row bind both observed data
   , data = dd
-    # fit both trajectories with negative binomial distributions
-  , traj = list(H = mp_neg_bin(
-      disp = mp_fit(1))
-    , reported_incidence = mp_neg_bin(disp = mp_fit(1))
+    # fit both trajectories with log-normal distributions
+    # (changed from negative binomial because apparently it is easier
+    # to fit standard deviations than dispersion parameters)
+  , traj = list(H = mp_log_normal(sd = mp_fit(1))
+    , reported_incidence = mp_log_normal(sd = mp_fit(1))
   )
   , par = prior_distributions
     # fit the transmission rate using four radial basis functions for
     # a flexible model of time variation.
-  , tv = mp_rbf("rbf_beta", 4, sparse_tol = 1e-8)
+  , tv = mp_rbf("rbf_beta", 5, sparse_tol = 1e-8)
   , outputs = c(states, "reported_incidence", "beta")
 )
 ```
 
 Next we optimize, and look at our estimates.
 
-    #>                                     mat row   default  estimate std.error
-    #> 1                     time_var_rbf_beta   1    0.0000    0.2041    0.0220
-    #> 2                     time_var_rbf_beta   2    0.0000   -0.5628    0.0616
-    #> 3                     time_var_rbf_beta   3    0.0000    2.8213    0.2924
-    #> 4                     prior_sd_rbf_beta   0    1.0000    0.5721    0.0155
-    #> 5                     time_var_rbf_beta   0    0.0000   -0.1323    0.0130
-    #> 6                                  beta   0    0.0100    0.3680    0.0302
-    #> 7                                 sigma   0    0.0498    0.0388    0.0116
-    #> 8                   distr_params_disp_H   0    1.0000  528.7879   59.1467
-    #> 9  distr_params_disp_reported_incidence   0    1.0000   22.5734    3.6071
-    #> 10                              gamma_h   0    0.0498    1.1633    0.2734
-    #> 11                            E_I_ratio   0    0.0100    0.0910    0.1082
-    #> 12                                    I   0 2718.5714 2697.4890  703.2089
-    #> 13                                    H   0   63.0000    0.0001    0.0909
-    #> 14                                    R   0    1.0000    0.9951 2959.8807
-    #> 15                          report_prob   0    0.5000    0.8547    0.1647
-    #> 16                                    p   0    0.0100    0.2816   11.2698
-    #>     conf.low conf.high
-    #> 1     0.1609    0.2472
-    #> 2    -0.6836   -0.4420
-    #> 3     2.2482    3.3945
-    #> 4     0.5417    0.6025
-    #> 5    -0.1578   -0.1067
-    #> 6     0.3133    0.4321
-    #> 7     0.0216    0.0698
-    #> 8   424.6897  658.4022
-    #> 9    16.5037   30.8754
-    #> 10    0.7339    1.8441
-    #> 11    0.0089    0.9354
-    #> 12 1618.3028 4496.3445
-    #> 13    0.0000       Inf
-    #> 14    0.0000       Inf
-    #> 15    0.3040    0.9875
-    #> 16    0.0000    1.0000
+    #>                                   mat row   default  estimate std.error
+    #> 1                   time_var_rbf_beta   1    0.0000   -0.0300    0.0487
+    #> 2                   time_var_rbf_beta   2    0.0000    0.0485    0.0541
+    #> 3                   time_var_rbf_beta   3    0.0000   -0.0695    0.0679
+    #> 4                   time_var_rbf_beta   4    0.0000    0.1091    0.0907
+    #> 5                   prior_sd_rbf_beta   0    1.0000    0.5297    0.0177
+    #> 6                   distr_params_sd_H   0    1.0000    0.0752    0.0157
+    #> 7  distr_params_sd_reported_incidence   0    1.0000    0.2209    0.0187
+    #> 8                   time_var_rbf_beta   0    0.0000   -0.0270    0.0431
+    #> 9                                beta   0    0.0100    0.3099    0.0443
+    #> 10                              sigma   0    0.0498    0.0336    0.0113
+    #> 11                            gamma_h   0    0.0498    0.9811    0.1856
+    #> 12                          E_I_ratio   0    0.0100    0.0851    0.1017
+    #> 13                                  I   0 2718.5714 2986.9423  943.6758
+    #> 14                                  H   0   63.0000    0.1453    2.9807
+    #> 15                                  R   0    1.0000    1.0000   54.5981
+    #> 16                        report_prob   0    0.5000    0.8292    0.2194
+    #> 17                                  p   0    0.0100    0.2197    9.1710
+    #>     conf.low    conf.high
+    #> 1    -0.1255 6.550000e-02
+    #> 2    -0.0576 1.546000e-01
+    #> 3    -0.2026 6.360000e-02
+    #> 4    -0.0687 2.869000e-01
+    #> 5     0.4951 5.643000e-01
+    #> 6     0.0445 1.060000e-01
+    #> 7     0.1843 2.574000e-01
+    #> 8    -0.1116 5.750000e-02
+    #> 9     0.2342 4.102000e-01
+    #> 10    0.0174 6.490000e-02
+    #> 11    0.6772 1.421400e+00
+    #> 12    0.0082 8.853000e-01
+    #> 13 1608.0649 5.548174e+03
+    #> 14    0.0000 4.193101e+16
+    #> 15    0.0000 2.978526e+46
+    #> 16    0.1891 9.902000e-01
+    #> 17    0.0000 1.000000e+00
 
 Our prior for `sigma` is similar to the posterior, but `gamma_h` seems
-to have been pushed up by the data from about `0.05` to about `1.11`. We
+to have been pushed up by the data from about `0.05` to about 0.98. We
 still do not have confidence in our estimate of `p`. We now have five
 other parameters controlling transmission, and so to interpret them we
 really need a plot of how transmission varies over time in the model. We
