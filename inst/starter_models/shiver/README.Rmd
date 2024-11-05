@@ -154,6 +154,7 @@ varvax = simple_sims(
    + ggtitle("Michaelis-Menten function")
    + ylab(expression(f(S(t))))
    + xlab(expression(S(t)))
+   + theme_bw()
 )
 
 
@@ -174,6 +175,7 @@ To convert the Michaelis-Menten curve above to a rate, we divide by $S(t)$.
    + ggtitle("Vaccination Rate")
    + ylab(expression(phi(S(t))))
    + xlab(expression(S(t)))
+   + theme_bw()
 )
 
 ```
@@ -425,6 +427,7 @@ What's worse is the fit is good, even though the parameter estimates do not make
   + geom_ribbon(aes(ymin = conf.low, ymax = conf.high), fill = "red", alpha = 0.3)
   + geom_point(data = reported_hospitalizations, aes(time, value))
   + ylim(c(0, NA))
+  + theme_bw()
 )
 ```
 
@@ -517,6 +520,7 @@ The fit is very similar to the model without a reparameterization, but with diff
   + geom_ribbon(aes(ymin = conf.low, ymax = conf.high), fill = "red", alpha = 0.3)
   + geom_point(data = reported_hospitalizations, aes(time, value))
   + ylim(c(0, NA))
+  + theme_bw()
 )
 ```
 
@@ -676,7 +680,7 @@ shiver_calibrator = mp_tmb_calibrator(
     , reported_incidence = mp_log_normal(sd = mp_fit(1))
   )
   , par = prior_distributions
-    # fit the transmission rate using four radial basis functions for
+    # fit the transmission rate using five radial basis functions for
     # a flexible model of time variation.
   , tv = mp_rbf("rbf_beta", 5, sparse_tol = 1e-8)
   , outputs = c(states, "reported_incidence", "beta")

@@ -759,6 +759,7 @@ goes to zero, which is not at all realistic.
   + geom_ribbon(aes(ymin = conf.low, ymax = conf.high), fill = "red", alpha = 0.3)
   + geom_point(data = reported_hospitalizations, aes(time, value))
   + ylim(c(0, NA))
+  + theme_bw()
 )
 ```
 
@@ -912,7 +913,7 @@ shiver_calibrator = mp_tmb_calibrator(
     , reported_incidence = mp_log_normal(sd = mp_fit(1))
   )
   , par = prior_distributions
-    # fit the transmission rate using four radial basis functions for
+    # fit the transmission rate using five radial basis functions for
     # a flexible model of time variation.
   , tv = mp_rbf("rbf_beta", 5, sparse_tol = 1e-8)
   , outputs = c(states, "reported_incidence", "beta")
