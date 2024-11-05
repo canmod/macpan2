@@ -21,6 +21,15 @@ mp_simulator = function(model
 }
 
 #' @export
+mp_simulator.default = function(model
+    , time_steps
+    , outputs
+    , default = list()
+  ) {
+  stop("You can only create a simulator from a model specification or a calibrator. But a ", class(model)[1L], " was passed instead.")
+}
+
+#' @export
 mp_simulator.TMBModelSpec = function(model
     , time_steps
     , outputs
