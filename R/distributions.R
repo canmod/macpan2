@@ -27,7 +27,7 @@
 #' @param name Generic name of the distributional parameter (e.g., sd, 
 #' location, disp)
 #' 
-#' @section Optimization Context
+#' @section Optimization Context:
 #' 
 #' Some decisions cannot be made without knowing more about the optimization 
 #' problem in which this distributional parameter is being used. This
@@ -117,12 +117,11 @@ DistrParam = function(generic_name, trans = DistrParamTransDefault()) {
   return_object(self, "DistrParam")
 }
 
+
 #' Distribution Specification
 #' 
 #' Class representing the specification of a distribution, either a prior or
-#' likelihood component.
-#' 
-#' Extend this class to develop new distributions.
+#' likelihood component. Extend this class to develop new distributions.
 #' 
 #' @param distr_param_objs List of DistrParam objects defining the distribution. All 
 #' distributions must have a `location` parameter as the first parameter when 
@@ -132,7 +131,8 @@ DistrParam = function(generic_name, trans = DistrParamTransDefault()) {
 #' not require a `location` parameter (e.g., it is a likelihood component
 #' that takes the simulated trajectory as the location).
 #' @param default_trans list of default parameter transformation objects
-#' of class DistrParamTrans for each `distr_param_objs`.
+#' of class `DistrParamTrans` for each `distr_param_objs`.
+#' 
 #' @noRd
 DistrSpec = function(distr_param_objs = list(), default_trans = list()) {
   for (nm in names(distr_param_objs)) distr_param_objs[[nm]] = to_distr_param(distr_param_objs[[nm]])
@@ -212,8 +212,8 @@ DistrSpec = function(distr_param_objs = list(), default_trans = list()) {
   ## section 5: what distributional parameters should be fitted by the
   ## calibration machinery?
   
-  #' data frame characterizing what distributional parameters associated
-  #' with this distribution should be optimized as fixed effects.
+  # data frame characterizing what distributional parameters associated
+  # with this distribution should be optimized as fixed effects.
   self$distr_params_frame = function() {
     (self$distr_param_objs
       |> oor::method_apply("distr_params_frame")
@@ -221,8 +221,8 @@ DistrSpec = function(distr_param_objs = list(), default_trans = list()) {
     )
   }
   
-  #' data frame characterizing what distributional parameters associated
-  #' with this distribution should be optimized as random effects.
+  # data frame characterizing what distributional parameters associated
+  # with this distribution should be optimized as random effects.
   self$distr_random_frame = function() {
     (self$distr_param_objs
       |> oor::method_apply("distr_random_frame")
@@ -238,17 +238,17 @@ DistrSpec = function(distr_param_objs = list(), default_trans = list()) {
   ## the engine as expressions. this, along with the distr_param_objs,
   ## is what needs to be defined to make a new distribution.
   
-  #' character string giving an expression for the component of a log prior
-  #' density associated with this distribution. this may not be used if
-  #' it is intended to be used as a likelihood component.
+  # character string giving an expression for the component of a log prior
+  # density associated with this distribution. this may not be used if
+  # it is intended to be used as a likelihood component.
   self$prior = \(par) character()
   
-  #' character string giving an expression for the component of a log likelihood
-  #' function associated with this distribution. this may not be used if
-  #' it is intended to be used as a prior distribution component.
+  # character string giving an expression for the component of a log likelihood
+  # function associated with this distribution. this may not be used if
+  # it is intended to be used as a prior distribution component.
   self$likelihood = \(obs, sim) character()
   
-  #' for the future (e.g. beta ~ rnorm(0, 1))
+  # for the future (e.g. beta ~ rnorm(0, 1))
   self$noisy_parameter = \() character()
   self$noisy_trajectory = \(sim) character()
   
@@ -886,6 +886,9 @@ to_distr_param.character = function(x) mp_nofit(x)
 
 
 #' Poisson Distribution
+#' 
+#' @param location Distributional parameter for the location of the 
+#' distribution.
 #' @noRd
 mp_poisson2 = function(location) {
   self = DistrSpec()
@@ -895,6 +898,7 @@ mp_poisson2 = function(location) {
 }
 
 #' Negative Binomial Distribution
+#' 
 #' @param disp Dispersion parameter.
 #' @noRd
 mp_neg_bin2 = function(disp) {
@@ -910,7 +914,8 @@ mp_neg_bin2 = function(disp) {
 }
 
 
-#' Normal Distributon
+#' Normal Distribution
+#' 
 #' @param location Location parameter. Only necessary if used as a prior
 #' distribution. If it is used as a likelihood component the location
 #' parameter will be taken as the simulated variable being fitted to data,
@@ -942,6 +947,7 @@ mp_normal_test = function(x, location, log_sd) {
 }
 
 #' Log-Normal Distribution
+#' 
 #' @param sd Standard deviation parameter.
 #' @noRd
 mp_log_normal2 = function(sd) {

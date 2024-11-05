@@ -44,7 +44,11 @@ Time = function(time_steps) {
 }
 
 as_Time = function(x) UseMethod("as_Time")
+
+#' @export
 as_Time.Time = function(x) x
+
+#' @export
 as_Time.DateTimeSteps = function(x) x$time_obj()
 
 ## Abstract class for generating time steps from date/time objects

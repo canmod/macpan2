@@ -61,7 +61,6 @@ mp_cartesian_binary = function(x, y) {
 #' @param x An index.
 #' @param suffixes Length-2 character vector giving suffixes that
 #' disambiguate the column names in the output.
-#' @inheritParams cartesian
 #' @family products
 #' @export
 mp_square = function(x, suffixes = c("A", "B")) {

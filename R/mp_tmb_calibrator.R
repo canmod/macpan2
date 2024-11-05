@@ -509,6 +509,7 @@ TMBTV = function(tv, struc, spec, existing_global_names = character()) {
   UseMethod("TMBTV")
 }
 
+#' @export
 TMBTV.character = function(
       tv
     , struc
@@ -623,6 +624,7 @@ TMBTV.character = function(
   return_object(self, "TMBTV")
 }
 
+#' @export
 TMBTV.TVArg = function(
       tv
     , struc
@@ -662,6 +664,7 @@ TMBTV.TVArg = function(
   return_object(self, "TMBTV")
 }
 
+#' @export
 TMBTV.RBFArg = function(
       tv
     , struc
@@ -822,6 +825,7 @@ TMBTraj = function(traj
   UseMethod("TMBTraj")
 }
 
+#' @export
 TMBTraj.function = function(        
       traj # function that takes a struc, spec, and existing_global_names and returns a TMBTraj object
     , struc # = TMBCalDataStruc()
@@ -831,6 +835,7 @@ TMBTraj.function = function(
   traj(struc, spec, existing_global_names)
 }
 
+#' @export
 TMBTraj.character = function(
         traj = character()
       , struc # = TMBCalDataStruc()
@@ -958,6 +963,7 @@ TMBTraj.character = function(
   return_object(self, "TMBTraj")
 }
 
+#' @export
 TMBTraj.list = function(traj
     , struc
     , spec
@@ -970,6 +976,7 @@ TMBTraj.list = function(traj
   )
 }
 
+#' @export
 TMBTraj.TrajArg = function(traj
       , struc
       , spec
@@ -1017,18 +1024,35 @@ TMBTraj.TrajArg = function(traj
   return_object(self, "TMBTraj")
 }
 
+#' @export
 TMBPar = function(par
       , tv, traj, spec
       , existing_global_names = character()
     ) UseMethod("TMBPar")
 
+#' @export
 TMBPar.ParArg = function(par
       , tv, traj, spec
       , existing_global_names = character()
     ) {
   self = TMBPar(names(par$param), tv, traj, spec, existing_global_names)
+  self$par_ranef = names(par$random)
   
-  self$distr_params = function() self$arg$param$default()
+  self$distr_params = function() {
+    y = self$arg$param$default()
+    if (!is.null(self$par_ranef)) {
+      y = c(y, self$arg$random$default())
+    }
+    y
+  }
+
+  self$random_frame = function() {
+    pf = (self$spec$default[self$par_ranef]
+      |> melt_default_matrix_list(FALSE)
+      |> rename_synonyms(mat = "matrix", default = "value")
+    )
+    bind_rows(pf, self$tv$tv_random_frame())
+  }
   
   self$prior_expr_chars = function() {
     # union to get both parameters and
@@ -1040,16 +1064,25 @@ TMBPar.ParArg = function(par
       pp = self$arg$param$distr_list[[nm]]
       y = c(y, pp$prior(nm))
     }
+    for (i in seq_along(self$par_ranef)) {
+      nm = self$par_ranef[i]
+      pp = self$arg$random$distr_list[[nm]]
+      y = c(y, pp$prior(nm))
+    }
     y
   }
   
   self$distr_params_frame = function() self$arg$param$distr_params_frame()
+  self$distr_random_frame = function() self$arg$random$distr_params_frame()
   
   ## adapt (prior) distributional parameters to this parameter object
   self$arg = par
   self$arg$param = DistrList(self$arg$param, spec)
+  self$arg$random = DistrList(self$arg$random, spec)
   self$arg$param$update_global_names(self)
+  self$arg$random$update_global_names(self)
   self$arg$param$error_if_not_all_have_location()
+  self$arg$random$error_if_not_all_have_location()
   
   self$check_assumptions = function(orig_spec, data_struc) {
     self$check_assumptions_basic(orig_spec, data_struc)
@@ -1062,6 +1095,7 @@ TMBPar.ParArg = function(par
   return_object(self, "TMBPar")
 }
 
+#' @export
 TMBPar.list = function(par
       , tv, traj, spec
       , existing_global_names = character()
@@ -1074,6 +1108,7 @@ TMBPar.list = function(par
   )
 }
 
+#' @export
 TMBPar.character = function(par
       , tv, traj, spec
       , existing_global_names = character()

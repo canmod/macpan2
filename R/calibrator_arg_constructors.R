@@ -1,5 +1,6 @@
 ## construct objects to pass to the par argument of mp_tmb_calibrator
 
+#' @export
 mp_par = function(param, random) {
   arg = list()
   arg$param = param
@@ -10,6 +11,7 @@ mp_par = function(param, random) {
 ## construct objects to pass to the tv argument of mp_tmb_calibrator
 
 #' @param parameters List of time-variation specifications for parameters.
+#' @noRd
 mp_tv = function(parameters) {
   arg = list()
   arg$parameters = parameters
