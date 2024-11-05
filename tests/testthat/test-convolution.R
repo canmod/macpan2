@@ -91,8 +91,8 @@ macpan2_convolution = sim_data %>% filter(matrix == "Y" & time %in% c(4,5,6)) %>
 manual_convolution = c(kappa[4]*x[1]+kappa[3]*x[2]+kappa[2]*x[3]+kappa[1]*x[4]
                        , kappa[4]*x[2]+kappa[3]*x[3]+kappa[2]*x[4]+kappa[1]*x[5]
                        , kappa[4]*x[3]+kappa[3]*x[4]+kappa[2]*x[5]+kappa[1]*x[6])
-
-cbind(manual_convolution, macpan2_convolution)
+filter_convolution = c(na.omit(stats::filter(x, kappa, sides = 1)))
+cbind(manual_convolution, macpan2_convolution, filter_convolution)
 
 engine_eval(~pgamma(3, 16, 0.6875))
 pgamma(3, 16, scale = 0.6875)
