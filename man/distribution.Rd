@@ -88,5 +88,5 @@ components - \code{mp_uniform}
 \details{
 All distributional parameter arguments can be specified either as
 a numeric value, a character string giving the parameter name, or a
-distributional parameter object (See ?fit_distr_params).
+distributional parameter object (See \code{\link{fit_distr_params}}).
 }

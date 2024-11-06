@@ -1025,13 +1025,13 @@ TMBTraj.TrajArg = function(traj
   return_object(self, "TMBTraj")
 }
 
-#' @export
+
 TMBPar = function(par
       , tv, traj, spec
       , existing_global_names = character()
     ) UseMethod("TMBPar")
 
-#' @export
+#' @exportS3Method macpan2::TMBPar
 TMBPar.ParArg = function(par
       , tv, traj, spec
       , existing_global_names = character()
@@ -1092,7 +1092,7 @@ TMBPar.ParArg = function(par
   return_object(self, "TMBPar")
 }
 
-#' @export
+#' @exportS3Method macpan2::TMBPar
 TMBPar.list = function(par
       , tv, traj, spec
       , existing_global_names = character()
@@ -1104,7 +1104,7 @@ TMBPar.list = function(par
   )
 }
 
-#' @export
+#' @exportS3Method macpan2::TMBPar
 TMBPar.character = function(par
       , tv, traj, spec
       , existing_global_names = character()
