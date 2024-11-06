@@ -11,7 +11,7 @@ in context, please see vignette("quickstart").'></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.10.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.11.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -61,7 +61,9 @@ in context, please see <code><a href="../articles/quickstart.html">vignette("qui
 <span></span>
 <span><span class="fu">mp_trajectory_ensemble</span><span class="op">(</span><span class="va">model</span>, <span class="va">n</span>, probs <span class="op">=</span> <span class="fu"><a href="engine_functions.html">c</a></span><span class="op">(</span><span class="fl">0.025</span>, <span class="fl">0.975</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">mp_trajectory_sim</span><span class="op">(</span><span class="va">model</span>, <span class="va">n</span>, probs <span class="op">=</span> <span class="fu"><a href="engine_functions.html">c</a></span><span class="op">(</span><span class="fl">0.025</span>, <span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>, <span class="fl">0.975</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">mp_trajectory_sim</span><span class="op">(</span><span class="va">model</span>, <span class="va">n</span>, probs <span class="op">=</span> <span class="fu"><a href="engine_functions.html">c</a></span><span class="op">(</span><span class="fl">0.025</span>, <span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>, <span class="fl">0.975</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">mp_trajectory_replicate</span><span class="op">(</span><span class="va">model</span>, <span class="va">n</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -159,6 +161,7 @@ fitted trajectory.</p></li>
 <li><p><code>mp_trajectory_sim()</code>: Generate quantiles over <code>n</code> realizations of
 the trajectory. Instead of a <code>value</code> column in the output data frame, there
 is one column for each of the quantiles defined in <code>probs</code>.</p></li>
+<li><p><code>mp_trajectory_replicate()</code>: Generate a list of <code>n</code> simulation results.</p></li>
 </ul></div>
 
     <div class="section level2">

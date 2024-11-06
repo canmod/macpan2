@@ -25,7 +25,6 @@
 <url><loc>https://canmod.github.io/macpan2/index.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/news/index.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/BinaryOperator.html</loc></url>
-<url><loc>https://canmod.github.io/macpan2/reference/DistrSpec.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/LedgerDefinition.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/Reader.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/StringData.html</loc></url>
@@ -67,6 +66,7 @@
 <url><loc>https://canmod.github.io/macpan2/reference/mp_model_starter.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_optimize.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_optimizer_output.html</loc></url>
+<url><loc>https://canmod.github.io/macpan2/reference/mp_par.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_per_capita_flow.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_positions.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_rbf.html</loc></url>
