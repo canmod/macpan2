@@ -103,6 +103,10 @@ Example calibrations of varying levels of complexity.
 * [SHIVER model to COVID](https://github.com/canmod/macpan2/tree/main/inst/starter_models/shiver#calibration-example)
 * [SEIR model using toy data](https://github.com/canmod/macpan2/tree/main/inst/starter_models/seir#calibration)
 
+### What likelihood and prior distribution assumptions does `macpan2` make?
+
+You are free to declare any value in the model to be a trajectory or parameter. Trajectories are compared with observed data to produce a likelihood component (e.g., case reports are distributed with a negative binomial distribution with dispersion parameter `1`) and parameters are used to produce a component of the prior distribution (e.g., the transmission rate is log normally distributed with mean `0.2` and standard deviation `1`). Available distributional assumptions and settings are described [here](https://canmod.github.io/macpan2/articles/likelihood_prior_specs), but inspecting the examples linked to in the previous FAQ will be more useful for figuring out how to use this functionality.
+
 ### Can I hack `macpan2` to use MCMC esimation?
 
 [Yes](https://canmod.github.io/macpan2/articles/calibration_advanced.html#hamiltonian-mc).
@@ -111,7 +115,11 @@ Example calibrations of varying levels of complexity.
 
 Coming soon!
 
-## Plotting
+## Plotting Simulated Trajectories
+
+### How can I plot simulated trajectories?
+
+This question is answered in the [quickstart guide](https://canmod.github.io/macpan2/articles/quickstart).
 
 ### How can I plot a calibrated model with the observed data used in the calibration?
 
@@ -128,9 +136,11 @@ fitted_data = mp_trajectory(model_calibrator)
 ```
 
 
-## Warning Messages
+## Calibration Troubleshooting
 
 ### Should I worry about `NA/NaN function evaluation` warnings?
+
+The optimizer will sometimes give warnings like this.
 
 ```
 Warning messages:
@@ -138,20 +148,31 @@ Warning messages:
   NA/NaN function evaluation
 ```
 
+These are usually nothing to worry about, though you should take note of them. Typically this warning indicates that the optimizer tried parameter values that led the objective function (i.e., the negative log posterior density) to be non-numeric. Usually, the opimizer is smart enough (if it is possible) to get back on track. The key thing to watch out for is whether the optimizer converged, which can be explored using the `mp_optimizer_output()` function that is illustrated in [this article](https://canmod.github.io/macpan2/articles/calibration).
+
+### What should I do if I do not converge?
+
+It depends on the reason for non-convergence. The optimizer tries to give you information about this, and you can get this information using the `mp_optimizer_output()`.
+
+### How do I increase the number of iterations that the optimizer takes?
+
+When non-convergence results because the optimizer reaches the maximum number of iterations that it was allowed to take, you can increase this number (TODO: show example of how). Sometimes however, running out of iterations can (but not always) be a sign that there is not very much information in the data about the model parameters being estimated.
+
 ## Parameter Estimation and Uncertainty
 
-### What can I do when my confidence intervals overlap zero for a parameter or trajectory that should be positive?
+### What can I do when my confidence intervals overlap zero for a parameter that should be positive?
 
-Parameter transformations ...
+You should use `mp_tmb_insert()` to transform your parameters so that they cannot go negative. TODO: link to an example.
 
 ### Can I weight the importance of trajectories when fitting to more than one of them?
 
+Yes, but it is not recommended until you are deep into it. TODO: give explanation and link to example.
 
 ## Dynamical Instabilities
 
 ### What is the best way for me to keep my state variables from going negative?
 
-The hazard correction works best in my experience.
+The hazard correction (`mp_hazard()`) works best in my experience. TODO: link to example.
 
 ## Initial Conditions
 
@@ -219,7 +240,7 @@ fitted_data = mp_trajectory(calibrator)
 )
 ```
 
-Real data will be as simple, but these principles will help.
+Real data will not be as simple, but these principles will help.
 
 ## Time Variation of Parameters
 

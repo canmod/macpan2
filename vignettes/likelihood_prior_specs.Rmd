@@ -74,7 +74,7 @@ The previous example in [Likelihood Specification] shows the negative binomial d
 
 Distributional parameters have default parameter transformations inherited from their respective distribution. See the `default_trans` argument for each distribution (`?macpan2::distribution`). For example, standard deviations by definition are a strictly positive number, so the log transformation is convenient to use to ensure this condition is met.
 
-Defaults can be changed by either passing a distributional parameter transformation function `?macpan2::transform_distr_param` to the `trans` argument in `?macpan2::fit_distr_params` functions to change a single transformation. To update all transformations, a named list of transformations from `?macpan2::transform_distr_param` for each distributional parameter can be given to the `default_trans` argument of the distribution.
+Defaults can be changed by either passing a distributional parameter transformation function `?macpan2::transform_distr_param` to the `trans_distr_param` argument in `?macpan2::fit_distr_params` functions to change a single transformation. To update all transformations, a named list of transformations from `?macpan2::transform_distr_param` for each distributional parameter can be given to the `default_trans` argument of the distribution.
 
 ## Priors on distributional parameters
 
@@ -115,8 +115,6 @@ cal = mp_tmb_calibrator(
 ## objective function
 cal$simulator$tmb_model$obj_fn$obj_fn_expr
 
-
 mp_optimize(cal)
 mp_tmb_coef(cal)
-
 ```
