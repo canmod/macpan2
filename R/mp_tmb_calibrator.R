@@ -406,6 +406,7 @@ TMBTrajAbstract = function() {
   ## and other times it is a condensation of the output variables
   ## in the spec.
   self$distr_params = function() list()
+  self$distr_random = function() list()
   self$cond_params = function() list()
   self$cond_exprs = function() list()
   self$cond_temp = function() list()
@@ -1036,15 +1037,11 @@ TMBPar.ParArg = function(par
       , existing_global_names = character()
     ) {
   self = TMBPar(names(par$param), tv, traj, spec, existing_global_names)
+  
   self$par_ranef = names(par$random)
   
-  self$distr_params = function() {
-    y = self$arg$param$default()
-    if (!is.null(self$par_ranef)) {
-      y = c(y, self$arg$random$default())
-    }
-    y
-  }
+  self$distr_params = function() self$arg$param$default()
+  self$distr_random = function() self$arg$random$default()
 
   self$random_frame = function() {
     pf = (self$spec$default[self$par_ranef]
@@ -1079,8 +1076,8 @@ TMBPar.ParArg = function(par
   self$arg = par
   self$arg$param = DistrList(self$arg$param, spec)
   self$arg$random = DistrList(self$arg$random, spec)
-  self$arg$param$update_global_names(self)
-  self$arg$random$update_global_names(self)
+  self$arg$param$update_global_names(self, "distr_params")
+  self$arg$random$update_global_names(self, "distr_random")
   self$arg$param$error_if_not_all_have_location()
   self$arg$random$error_if_not_all_have_location()
   
@@ -1101,8 +1098,7 @@ TMBPar.list = function(par
       , existing_global_names = character()
     ) {
   TMBPar(
-    # ignore random (will be incorporated later)
-      mp_par(param = par, random = NULL)
+      mp_par(param = par, random = list())
     , tv, traj, spec
     , existing_global_names
   )

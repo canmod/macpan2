@@ -319,11 +319,13 @@ DistrList = function(distr_list = list(), model_spec = mp_tmb_model_spec()) {
     }
   }
   
-  #' @param obj An object with an `obj$distr_params()` method returning a flat list
+  #' @param obj An object with an `obj[[mth]]()` method returning a flat list
   #' of named numerical matrices, and an `obj$global_names()` method returning
-  #' the list of names that need to be avoided in namespace clashes
-  self$update_global_names = function(obj) {
-    nms = names(globalize(obj, "distr_params"))
+  #' the list of names that need to be avoided in namespace clashes.
+  #' @param mth Name of a method (probably either "distr_params" or 
+  #' "distr_random").
+  self$update_global_names = function(obj, mth = "distr_params") {
+    nms = names(globalize(obj, mth))
     default_objs = method_apply(self$distr_list, "default_objs") |> Reduce(f = "c")
     ## assume length(nms) == length(default_objs)
     for (i in seq_along(nms)) default_objs[[i]]$update_global_name(nms[i])
