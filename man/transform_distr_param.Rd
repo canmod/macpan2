@@ -18,6 +18,8 @@ mp_logit
 mp_sqrt
 }
 \description{
+Objects used
+
 \itemize{
 \item \code{mp_identity} - Identity transformation
 }

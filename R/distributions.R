@@ -130,22 +130,22 @@ DistrParam = function(generic_name, trans = DistrParamTransDefault()) {
 #' should be called later if it is determined that the distribution does
 #' not require a `location` parameter (e.g., it is a likelihood component
 #' that takes the simulated trajectory as the location).
-#' @param default_trans list of default parameter transformation objects
+#' @param trans_distr_param list of parameter transformation objects
 #' of class `DistrParamTrans` for each `distr_param_objs`.
 #' 
 #' @noRd
-DistrSpec = function(distr_param_objs = list(), default_trans = list()) {
+DistrSpec = function(distr_param_objs = list(), trans_distr_param = list()) {
   for (nm in names(distr_param_objs)) distr_param_objs[[nm]] = to_distr_param(distr_param_objs[[nm]])
   for (nm in names(distr_param_objs)) distr_param_objs[[nm]]$generic_name = nm
-  for (nm in names(default_trans)) {
-    distr_param_objs[[nm]]$trans = distr_param_objs[[nm]]$trans$resolve_default(default_trans[[nm]])
+  for (nm in names(trans_distr_param)) {
+    distr_param_objs[[nm]]$trans = distr_param_objs[[nm]]$trans$resolve_default(trans_distr_param[[nm]])
   }
   
   # Part A: Boilerplate -- no need to override these in extensions of this class
   
   self = Base()
   self$distr_param_objs = distr_param_objs
-  self$default_trans = default_trans
+  self$trans_distr_param = trans_distr_param
   
   ## section 0: check distributional parameter objects
   
@@ -517,6 +517,8 @@ DistrParamSqrt = function() {
 }
 
 #' Distributional Parameter Transformation
+#' 
+#' Objects used
 #'
 #' @name transform_distr_param
 NULL
@@ -591,9 +593,9 @@ TESTDISTR = function(location, sd) {
 #' data, and so this `location` parameter should be left to the default.
 #' @param sd Standard deviation parameter.
 #' @param disp Dispersion parameter. 
-#' @param default_trans Named list of default transformations for each 
-#' distributional parameter. See `?transform_distr_param` for a list of 
-#' available transformations.
+#' @param trans_distr_param Named list of transformations for each 
+#' distributional parameter. See \code{\link{transform_distr_param}} for a 
+#' list of available transformations.
 #' 
 #' @details All distributional parameter arguments can be specified either as 
 #' a numeric value, a character string giving the parameter name, or a 
@@ -605,10 +607,10 @@ NULL
 #' components - `mp_uniform`
 #' @name distribution
 #' @export
-mp_uniform = function(default_trans = list()) { 
+mp_uniform = function(trans_distr_param = list()) { 
   self = DistrSpec(
     distr_param_objs = nlist()
-    , default_trans = default_trans
+    , trans_distr_param = trans_distr_param
   )
   self$prior = \(par) {
     "-0"
@@ -626,11 +628,11 @@ mp_uniform = function(default_trans = list()) {
 #' @export
 mp_normal = function(location = mp_distr_param_null("location")
      , sd
-     , default_trans = list(location = mp_identity, sd = mp_log)
+     , trans_distr_param = list(location = mp_identity, sd = mp_log)
   ) {
   self = DistrSpec(
       distr_param_objs = nlist(location, sd)
-    , default_trans = default_trans
+    , trans_distr_param = trans_distr_param
   )
   self$prior = \(par) {
     sprintf("-sum(dnorm(%s, %s, %s))"
@@ -654,12 +656,12 @@ mp_normal = function(location = mp_distr_param_null("location")
 #' @export
 mp_log_normal = function(location = mp_distr_param_null("location")
                        , sd
-                       , default_trans = list(location = mp_identity, sd = mp_identity)) {
+                       , trans_distr_param = list(location = mp_identity, sd = mp_identity)) {
   self = DistrSpec(
       distr_param_objs = nlist(location, sd)
       # identity transformations because distributional parameters are already
       # specified on the log scale?
-    , default_trans = default_trans
+    , trans_distr_param = trans_distr_param
   )
 
   self$prior = \(par) {
@@ -691,13 +693,13 @@ mp_log_normal = function(location = mp_distr_param_null("location")
 #' @export
 mp_logit_normal = function(location = mp_distr_param_null("location")
      , sd
-     , default_trans = list(location = mp_identity, sd = mp_identity)
+     , trans_distr_param = list(location = mp_identity, sd = mp_identity)
   ) {
   self = DistrSpec(
       distr_param_objs = nlist(location, sd)
       # identity transformations because distributional parameters are already
       # specified on the log scale?
-    , default_trans = default_trans
+    , trans_distr_param = trans_distr_param
   )
 
   self$prior = \(par) {
@@ -733,10 +735,10 @@ mp_logit_normal = function(location = mp_distr_param_null("location")
 #' @name distribution
 #' @export
 mp_poisson = function(location = mp_distr_param_null("location")
-                    , default_trans = list(location = mp_identity)) { 
+                    , trans_distr_param = list(location = mp_identity)) { 
   self = DistrSpec(
       distr_param_objs = nlist(location)# should this be named lambda
-    , default_trans = default_trans
+    , trans_distr_param = trans_distr_param
   )
   self$prior = \(par) {
     sprintf("-sum(dpois(%s, %s))"
@@ -757,10 +759,10 @@ mp_poisson = function(location = mp_distr_param_null("location")
 #' @export
 mp_neg_bin = function(location = mp_distr_param_null("location")
                     , disp
-                    , default_trans = list(location = mp_identity, disp = mp_log)) {
+                    , trans_distr_param = list(location = mp_identity, disp = mp_log)) {
   self = DistrSpec(
       distr_param_objs = nlist(location, disp)
-    , default_trans = default_trans
+    , trans_distr_param = trans_distr_param
   )
   self$prior = \(par) {
     sprintf("-sum(dnbinom(%s, clamp(%s), %s))"
