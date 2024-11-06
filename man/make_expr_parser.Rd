@@ -44,7 +44,7 @@ from the environment of the formula being parsed}
 Generate an Arithmetic Expression Parser
 }
 \examples{
-parser = make_expr_parser('parser', finalizer_char)
+parser = make_expr_parser(finalizer = finalizer_char)
 foi = ~ beta * I / 100
 valid_funcs = setNames(
   list(`*`, `/`),

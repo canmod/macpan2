@@ -48,19 +48,26 @@ assert_string = function(x) {
   x
 }
 
+if (FALSE) {
+
 ## take a description of a parameter and return a 
 ## (possibly empty) list containing expressions
 ## to put at the beginning of the before phase.
 param_desc_to_inverse = function(desc, model) UseMethod("param_desc_to_inverse")
+
 param_desc_to_inverse.character = function(desc, model) list()
+
 param_desc_to_inverse.formula = function(desc, model) list(desc)
+
 param_desc_to_inverse.list = function(desc, model) c(lapply(desc, param_desc_to_inverse))
+
 param_desc_to_inverse.Transform = function(desc, model) list(desc$inverse_two_sided_formula())
 
 
 ## take a description of a parameter and return
 ## a string giving the name of the parameter
 param_desc_to_name = function(desc, model) UseMethod("param_desc_to_name")
+
 param_desc_to_name.character = function(desc, model) {
   existing_names = model$default |> names()
   if (!desc %in% existing_names) {
@@ -72,7 +79,9 @@ param_desc_to_name.character = function(desc, model) {
   }
   assert_string(desc)
 }
+
 param_desc_to_name.formula = function(desc) trans_lhs_var(desc)
+
 param_desc_to_name.list = function(desc) {
   if (!all(vapply(desc, is_two_sided, logical(1L)))) {
     stop(
@@ -82,6 +91,7 @@ param_desc_to_name.list = function(desc) {
   }
   param_desc_to_name(desc[[length(desc)]])  ## lhs of the last expression is the parameter name
 }
+
 param_desc_to_name.Transform = function(desc, model) desc$variable
 
 
@@ -90,11 +100,14 @@ param_desc_to_name.Transform = function(desc, model) desc$variable
 ## take a description of a parameter and return
 ## a transformation object
 param_desc_to_trans_obj = function(desc) UseMethod("param_desc_to_inverse")
+
 param_desc_to_trans_obj.character = function(desc) {
   assert_string(desc)
   two_sided(desc, desc) |> list()
 }
+
 param_desc_to_trans_obj.formula = function(desc) find_trans(desc)
+
 param_desc_to_trans_obj.list = function(desc) {
   param_desc_to_name(desc) |> param_desc_to_trans_obj()
 }
@@ -121,7 +134,7 @@ param_desc_to_trans_obj.list = function(desc) {
 #' @section Transformation Object:
 #'
 #' @section List of Formulas:
-#' 
+#' @noRd
 TMBObjectiveParam = function(model, param_description) {
   self = Base()
   self$model = model
@@ -131,4 +144,5 @@ TMBObjectiveParam = function(model, param_description) {
   self$trans_expr_list = function() self$trans_obj()
   
   return_object(self, "TMBObjectiveParam")
+}
 }

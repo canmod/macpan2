@@ -27,7 +27,7 @@
 #' @param name Generic name of the distributional parameter (e.g., sd, 
 #' location, disp)
 #' 
-#' @section Optimization Context
+#' @section Optimization Context:
 #' 
 #' Some decisions cannot be made without knowing more about the optimization 
 #' problem in which this distributional parameter is being used. This
@@ -117,12 +117,11 @@ DistrParam = function(generic_name, trans = DistrParamTransDefault()) {
   return_object(self, "DistrParam")
 }
 
+
 #' Distribution Specification
 #' 
 #' Class representing the specification of a distribution, either a prior or
-#' likelihood component.
-#' 
-#' Extend this class to develop new distributions.
+#' likelihood component. Extend this class to develop new distributions.
 #' 
 #' @param distr_param_objs List of DistrParam objects defining the distribution. All 
 #' distributions must have a `location` parameter as the first parameter when 
@@ -131,21 +130,22 @@ DistrParam = function(generic_name, trans = DistrParamTransDefault()) {
 #' should be called later if it is determined that the distribution does
 #' not require a `location` parameter (e.g., it is a likelihood component
 #' that takes the simulated trajectory as the location).
-#' @param default_trans list of default parameter transformation objects
-#' of class DistrParamTrans for each `distr_param_objs`.
+#' @param trans_distr_param list of parameter transformation objects
+#' of class `DistrParamTrans` for each `distr_param_objs`.
+#' 
 #' @noRd
-DistrSpec = function(distr_param_objs = list(), default_trans = list()) {
+DistrSpec = function(distr_param_objs = list(), trans_distr_param = list()) {
   for (nm in names(distr_param_objs)) distr_param_objs[[nm]] = to_distr_param(distr_param_objs[[nm]])
   for (nm in names(distr_param_objs)) distr_param_objs[[nm]]$generic_name = nm
-  for (nm in names(default_trans)) {
-    distr_param_objs[[nm]]$trans = distr_param_objs[[nm]]$trans$resolve_default(default_trans[[nm]])
+  for (nm in names(trans_distr_param)) {
+    distr_param_objs[[nm]]$trans = distr_param_objs[[nm]]$trans$resolve_default(trans_distr_param[[nm]])
   }
   
   # Part A: Boilerplate -- no need to override these in extensions of this class
   
   self = Base()
   self$distr_param_objs = distr_param_objs
-  self$default_trans = default_trans
+  self$trans_distr_param = trans_distr_param
   
   ## section 0: check distributional parameter objects
   
@@ -212,8 +212,8 @@ DistrSpec = function(distr_param_objs = list(), default_trans = list()) {
   ## section 5: what distributional parameters should be fitted by the
   ## calibration machinery?
   
-  #' data frame characterizing what distributional parameters associated
-  #' with this distribution should be optimized as fixed effects.
+  # data frame characterizing what distributional parameters associated
+  # with this distribution should be optimized as fixed effects.
   self$distr_params_frame = function() {
     (self$distr_param_objs
       |> oor::method_apply("distr_params_frame")
@@ -221,8 +221,8 @@ DistrSpec = function(distr_param_objs = list(), default_trans = list()) {
     )
   }
   
-  #' data frame characterizing what distributional parameters associated
-  #' with this distribution should be optimized as random effects.
+  # data frame characterizing what distributional parameters associated
+  # with this distribution should be optimized as random effects.
   self$distr_random_frame = function() {
     (self$distr_param_objs
       |> oor::method_apply("distr_random_frame")
@@ -238,17 +238,17 @@ DistrSpec = function(distr_param_objs = list(), default_trans = list()) {
   ## the engine as expressions. this, along with the distr_param_objs,
   ## is what needs to be defined to make a new distribution.
   
-  #' character string giving an expression for the component of a log prior
-  #' density associated with this distribution. this may not be used if
-  #' it is intended to be used as a likelihood component.
+  # character string giving an expression for the component of a log prior
+  # density associated with this distribution. this may not be used if
+  # it is intended to be used as a likelihood component.
   self$prior = \(par) character()
   
-  #' character string giving an expression for the component of a log likelihood
-  #' function associated with this distribution. this may not be used if
-  #' it is intended to be used as a prior distribution component.
+  # character string giving an expression for the component of a log likelihood
+  # function associated with this distribution. this may not be used if
+  # it is intended to be used as a prior distribution component.
   self$likelihood = \(obs, sim) character()
   
-  #' for the future (e.g. beta ~ rnorm(0, 1))
+  # for the future (e.g. beta ~ rnorm(0, 1))
   self$noisy_parameter = \() character()
   self$noisy_trajectory = \(sim) character()
   
@@ -319,11 +319,13 @@ DistrList = function(distr_list = list(), model_spec = mp_tmb_model_spec()) {
     }
   }
   
-  #' @param obj An object with an `obj$distr_params()` method returning a flat list
+  #' @param obj An object with an `obj[[mth]]()` method returning a flat list
   #' of named numerical matrices, and an `obj$global_names()` method returning
-  #' the list of names that need to be avoided in namespace clashes
-  self$update_global_names = function(obj) {
-    nms = names(globalize(obj, "distr_params"))
+  #' the list of names that need to be avoided in namespace clashes.
+  #' @param mth Name of a method (probably either "distr_params" or 
+  #' "distr_random").
+  self$update_global_names = function(obj, mth = "distr_params") {
+    nms = names(globalize(obj, mth))
     default_objs = method_apply(self$distr_list, "default_objs") |> Reduce(f = "c")
     ## assume length(nms) == length(default_objs)
     for (i in seq_along(nms)) default_objs[[i]]$update_global_name(nms[i])
@@ -515,6 +517,8 @@ DistrParamSqrt = function() {
 }
 
 #' Distributional Parameter Transformation
+#' 
+#' Objects used
 #'
 #' @name transform_distr_param
 NULL
@@ -589,13 +593,13 @@ TESTDISTR = function(location, sd) {
 #' data, and so this `location` parameter should be left to the default.
 #' @param sd Standard deviation parameter.
 #' @param disp Dispersion parameter. 
-#' @param default_trans Named list of default transformations for each 
-#' distributional parameter. See `?transform_distr_param` for a list of 
-#' available transformations.
+#' @param trans_distr_param Named list of transformations for each 
+#' distributional parameter. See \code{\link{transform_distr_param}} for a 
+#' list of available transformations.
 #' 
 #' @details All distributional parameter arguments can be specified either as 
 #' a numeric value, a character string giving the parameter name, or a 
-#' distributional parameter object (See ?fit_distr_params).
+#' distributional parameter object (See \code{\link{fit_distr_params}}).
 #' @name distribution
 NULL
 
@@ -603,10 +607,10 @@ NULL
 #' components - `mp_uniform`
 #' @name distribution
 #' @export
-mp_uniform = function(default_trans = list()) { 
+mp_uniform = function(trans_distr_param = list()) { 
   self = DistrSpec(
     distr_param_objs = nlist()
-    , default_trans = default_trans
+    , trans_distr_param = trans_distr_param
   )
   self$prior = \(par) {
     "-0"
@@ -624,11 +628,11 @@ mp_uniform = function(default_trans = list()) {
 #' @export
 mp_normal = function(location = mp_distr_param_null("location")
      , sd
-     , default_trans = list(location = mp_identity, sd = mp_log)
+     , trans_distr_param = list(location = mp_identity, sd = mp_log)
   ) {
   self = DistrSpec(
       distr_param_objs = nlist(location, sd)
-    , default_trans = default_trans
+    , trans_distr_param = trans_distr_param
   )
   self$prior = \(par) {
     sprintf("-sum(dnorm(%s, %s, %s))"
@@ -652,12 +656,12 @@ mp_normal = function(location = mp_distr_param_null("location")
 #' @export
 mp_log_normal = function(location = mp_distr_param_null("location")
                        , sd
-                       , default_trans = list(location = mp_identity, sd = mp_identity)) {
+                       , trans_distr_param = list(location = mp_identity, sd = mp_identity)) {
   self = DistrSpec(
       distr_param_objs = nlist(location, sd)
       # identity transformations because distributional parameters are already
       # specified on the log scale?
-    , default_trans = default_trans
+    , trans_distr_param = trans_distr_param
   )
 
   self$prior = \(par) {
@@ -689,13 +693,13 @@ mp_log_normal = function(location = mp_distr_param_null("location")
 #' @export
 mp_logit_normal = function(location = mp_distr_param_null("location")
      , sd
-     , default_trans = list(location = mp_identity, sd = mp_identity)
+     , trans_distr_param = list(location = mp_identity, sd = mp_identity)
   ) {
   self = DistrSpec(
       distr_param_objs = nlist(location, sd)
       # identity transformations because distributional parameters are already
       # specified on the log scale?
-    , default_trans = default_trans
+    , trans_distr_param = trans_distr_param
   )
 
   self$prior = \(par) {
@@ -731,10 +735,10 @@ mp_logit_normal = function(location = mp_distr_param_null("location")
 #' @name distribution
 #' @export
 mp_poisson = function(location = mp_distr_param_null("location")
-                    , default_trans = list(location = mp_identity)) { 
+                    , trans_distr_param = list(location = mp_identity)) { 
   self = DistrSpec(
       distr_param_objs = nlist(location)# should this be named lambda
-    , default_trans = default_trans
+    , trans_distr_param = trans_distr_param
   )
   self$prior = \(par) {
     sprintf("-sum(dpois(%s, %s))"
@@ -755,10 +759,10 @@ mp_poisson = function(location = mp_distr_param_null("location")
 #' @export
 mp_neg_bin = function(location = mp_distr_param_null("location")
                     , disp
-                    , default_trans = list(location = mp_identity, disp = mp_log)) {
+                    , trans_distr_param = list(location = mp_identity, disp = mp_log)) {
   self = DistrSpec(
       distr_param_objs = nlist(location, disp)
-    , default_trans = default_trans
+    , trans_distr_param = trans_distr_param
   )
   self$prior = \(par) {
     sprintf("-sum(dnbinom(%s, clamp(%s), %s))"
@@ -886,6 +890,9 @@ to_distr_param.character = function(x) mp_nofit(x)
 
 
 #' Poisson Distribution
+#' 
+#' @param location Distributional parameter for the location of the 
+#' distribution.
 #' @noRd
 mp_poisson2 = function(location) {
   self = DistrSpec()
@@ -895,6 +902,7 @@ mp_poisson2 = function(location) {
 }
 
 #' Negative Binomial Distribution
+#' 
 #' @param disp Dispersion parameter.
 #' @noRd
 mp_neg_bin2 = function(disp) {
@@ -910,7 +918,8 @@ mp_neg_bin2 = function(disp) {
 }
 
 
-#' Normal Distributon
+#' Normal Distribution
+#' 
 #' @param location Location parameter. Only necessary if used as a prior
 #' distribution. If it is used as a likelihood component the location
 #' parameter will be taken as the simulated variable being fitted to data,
@@ -942,6 +951,7 @@ mp_normal_test = function(x, location, log_sd) {
 }
 
 #' Log-Normal Distribution
+#' 
 #' @param sd Standard deviation parameter.
 #' @noRd
 mp_log_normal2 = function(sd) {

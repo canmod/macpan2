@@ -1,7 +1,7 @@
 
 StructuredVector = function(x, ...) UseMethod("StructuredVector")
 
-
+#' @export
 StructuredVector.data.frame = function(x, index = NULL, values_name = "values", ...) {
   nms = setdiff(names(x), values_name)
   if (is.null(index)) index = mp_index(x[, nms, drop = FALSE])
@@ -51,7 +51,7 @@ StructuredVector.data.frame = function(x, index = NULL, values_name = "values", 
   v$set_all_numbers(values)
 }
 
-
+#' @export
 StructuredVector.numeric = function(x, index, ...) {
   v = StructuredVector(index)
   index_name = to_name(index$labelling_column_names)
@@ -60,13 +60,14 @@ StructuredVector.numeric = function(x, index, ...) {
   do.call(v$set_numbers, args)
 }
 
-
+#' @export
 StructuredVector.StructuredVector = function(x, index, ...) {
   StructuredVector(x$numbers(), index, ...)
 }
 
 
 #' @importFrom utils write.csv write.table
+#' @export
 StructuredVector.Index = function(x, ...) {
   self = Base()
   self$index = x

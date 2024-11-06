@@ -1,5 +1,16 @@
 ## construct objects to pass to the par argument of mp_tmb_calibrator
 
+#' Fit Parameters
+#' 
+#' Define the prior distributions for parameters and random effects to be
+#' passed to `par` argument of the \code{\link{mp_tmb_calibrator}} function.
+#' 
+#' @param param Named list of distributional specifications for the
+#' fixed effects.
+#' @param random Named list of distributional specifications for the random
+#' effects.
+#' 
+#' @export
 mp_par = function(param, random) {
   arg = list()
   arg$param = param
@@ -10,6 +21,7 @@ mp_par = function(param, random) {
 ## construct objects to pass to the tv argument of mp_tmb_calibrator
 
 #' @param parameters List of time-variation specifications for parameters.
+#' @noRd
 mp_tv = function(parameters) {
   arg = list()
   arg$parameters = parameters
