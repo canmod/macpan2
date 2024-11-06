@@ -554,6 +554,18 @@ mp_trajectory_sim = function(model, n, probs = c(0.025, 0.25, 0.5, 0.75, 0.975))
   UseMethod("mp_trajectory_sim")
 }
 
+##' @describeIn mp_trajectory Generate a list of `n` simulation results.
+##' @export
+mp_trajectory_replicate = function(model, n) {
+  UseMethod("mp_trajectory_replicate")
+}
+
+#' @export
+mp_trajectory_replicate.TMBSimulator = function(model, n) {
+  r = replicate(n, model$simulate(), simplify = FALSE)
+  return(r)
+}
+
 ##' @export
 mp_trajectory_sim.TMBSimulator = function(model, n, probs = c(0.025, 0.25, 0.5, 0.75, 0.975)) {
   r = model$simulate()
@@ -571,6 +583,7 @@ mp_trajectory_sim.TMBSimulator = function(model, n, probs = c(0.025, 0.25, 0.5, 
 mp_trajectory_sim.TMBCalibrator = function(model, n, probs = c(0.025, 0.25, 0.5, 0.75, 0.975)) {
   stop("Under construction")
 }
+
 
 TMBDynamicSimulator = function(tmb_simulator, dynamic_model) {
   self = tmb_simulator

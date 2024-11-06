@@ -19,7 +19,7 @@ handle_abs_rate_args = function(rate, rate_name = NULL) {
 handle_rate_args = function(rate, abs_rate = NULL) {
   if (!is_two_sided(rate)) {
     if (is_one_sided(rate)) rate = rhs_char(rate)
-      if (is.null(abs_rate)) stop("abs_rate must be specified when rate is a one_sided formula.")
+    if (is.null(abs_rate)) stop("abs_rate must be specified when rate is a one_sided formula or character string.")
     rate = two_sided(abs_rate, rate)
   }
   return(rate)

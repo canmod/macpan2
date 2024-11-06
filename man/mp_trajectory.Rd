@@ -5,6 +5,7 @@
 \alias{mp_trajectory_sd}
 \alias{mp_trajectory_ensemble}
 \alias{mp_trajectory_sim}
+\alias{mp_trajectory_replicate}
 \title{Trajectory}
 \usage{
 mp_trajectory(model, include_initial = FALSE)
@@ -14,6 +15,8 @@ mp_trajectory_sd(model, conf.int = FALSE, conf.level = 0.95)
 mp_trajectory_ensemble(model, n, probs = c(0.025, 0.975))
 
 mp_trajectory_sim(model, n, probs = c(0.025, 0.25, 0.5, 0.75, 0.975))
+
+mp_trajectory_replicate(model, n)
 }
 \arguments{
 \item{model}{A dynamical model simulator produced by
@@ -100,6 +103,8 @@ fitted trajectory.
 \item \code{mp_trajectory_sim()}: Generate quantiles over \code{n} realizations of
 the trajectory. Instead of a \code{value} column in the output data frame, there
 is one column for each of the quantiles defined in \code{probs}.
+
+\item \code{mp_trajectory_replicate()}: Generate a list of \code{n} simulation results.
 
 }}
 \examples{

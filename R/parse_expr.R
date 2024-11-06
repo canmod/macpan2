@@ -38,7 +38,7 @@ is_name_or_number = function(x) {
 #' }
 #'
 #' @examples
-#' parser = make_expr_parser('parser', finalizer_char)
+#' parser = make_expr_parser(finalizer = finalizer_char)
 #' foi = ~ beta * I / 100
 #' valid_funcs = setNames(
 #'   list(`*`, `/`),
@@ -277,7 +277,7 @@ finalizer_index = function(x) {
 }
 
 parse_expr = make_expr_parser(finalizer = finalizer_index)
-method_parser = make_expr_parser("method_parser", finalizer_char)
+method_parser = make_expr_parser(finalizer = finalizer_char)
 
 get_indices = function(x, vec, vec_type, expr_as_string, zero_based = FALSE) {
   if (!is.character(vec)) vec = names(vec)

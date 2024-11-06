@@ -10,41 +10,41 @@
 \alias{mp_neg_bin}
 \title{Distributions}
 \usage{
-mp_uniform(default_trans = list())
+mp_uniform(trans_distr_param = list())
 
 mp_normal(
   location = mp_distr_param_null("location"),
   sd,
-  default_trans = list(location = mp_identity, sd = mp_log)
+  trans_distr_param = list(location = mp_identity, sd = mp_log)
 )
 
 mp_log_normal(
   location = mp_distr_param_null("location"),
   sd,
-  default_trans = list(location = mp_identity, sd = mp_identity)
+  trans_distr_param = list(location = mp_identity, sd = mp_identity)
 )
 
 mp_logit_normal(
   location = mp_distr_param_null("location"),
   sd,
-  default_trans = list(location = mp_identity, sd = mp_identity)
+  trans_distr_param = list(location = mp_identity, sd = mp_identity)
 )
 
 mp_poisson(
   location = mp_distr_param_null("location"),
-  default_trans = list(location = mp_identity)
+  trans_distr_param = list(location = mp_identity)
 )
 
 mp_neg_bin(
   location = mp_distr_param_null("location"),
   disp,
-  default_trans = list(location = mp_identity, disp = mp_log)
+  trans_distr_param = list(location = mp_identity, disp = mp_log)
 )
 }
 \arguments{
-\item{default_trans}{Named list of default transformations for each
-distributional parameter. See \code{?transform_distr_param} for a list of
-available transformations.}
+\item{trans_distr_param}{Named list of transformations for each
+distributional parameter. See \code{\link{transform_distr_param}} for a
+list of available transformations.}
 
 \item{location}{Location parameter.
 Specifying the \code{location} parameter is only necessary when the distribution
@@ -88,5 +88,5 @@ components - \code{mp_uniform}
 \details{
 All distributional parameter arguments can be specified either as
 a numeric value, a character string giving the parameter name, or a
-distributional parameter object (See ?fit_distr_params).
+distributional parameter object (See \code{\link{fit_distr_params}}).
 }
