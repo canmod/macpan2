@@ -23,6 +23,8 @@ knitr::opts_chunk$set(
 )
 ```
 
+## Setup and Example Models and Data
+
 ```{r setup, message = FALSE, warning = FALSE}
 library(macpan2)
 library(ggplot2)

@@ -40,7 +40,7 @@ Simulating from this model requires choosing the number of time-steps to run and
 ```{r plot-tmb-si, fig.height=3}
 library(ggplot2)
 library(dplyr)
-(si
+si_plot = (si
  
  ## macpan2
  |> mp_simulator(
@@ -61,6 +61,7 @@ library(dplyr)
  + facet_wrap(~ quantity, scales = "free")
  + theme_bw()
 )
+print(si_plot)
 ```
 
 (Above, we used the [base R pipe operator](https://www.tidyverse.org/blog/2023/04/base-vs-magrittr-pipe/#pipes), `|>`.)
