@@ -161,16 +161,77 @@ R pipe</a> operator throughout our examples. Please read this link for
 details.</p>
 </div>
 <div class="section level3">
-<h3 id="why-do-i-see-and-at-the-start-of-lines">Why do I see <code>|&gt;</code>, <code>,</code>, and <code>+</code>
-at the start of lines?<a class="anchor" aria-label="anchor" href="#why-do-i-see-and-at-the-start-of-lines"></a>
+<h3 id="why-do-i-see-weird-symbols-at-the-start-of-lines">Why do I see weird symbols at the start of lines?<a class="anchor" aria-label="anchor" href="#why-do-i-see-weird-symbols-at-the-start-of-lines"></a>
 </h3>
 <p>We start lines with characters that many people put at the end of
-lines. These continuation characters tell R that there is more code that
-is included in an expression. We prefer to put these characters at the
-start of lines because it makes it slightly easier to comment lines out.
-Note that for this approach to work you need to wrap these continued
-expressions in parentheses. See the <a href="https://canmod.github.io/macpan2/articles/quickstart.html">quickstart</a>
+lines, such as the commas, plus signs and the <a href="https://www.tidyverse.org/blog/2023/04/base-vs-magrittr-pipe/#pipes" class="external-link">base
+R pipe</a>. These continuation characters tell R that there is more code
+that is included in an expression. We prefer to put these characters at
+the start of lines because it makes it slightly easier to comment lines
+out. Note that for this approach to work you need to wrap these
+continued expressions in parentheses. See the <a href="https://canmod.github.io/macpan2/articles/quickstart.html">quickstart</a>
 guide for examples of this style.</p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="calibration-details-and-outputs">Calibration Details and Outputs<a class="anchor" aria-label="anchor" href="#calibration-details-and-outputs"></a>
+</h2>
+<div class="section level3">
+<h3 id="what-model-fitting-approach-does-macpan2-use">What model fitting approach does <code>macpan2</code> use?<a class="anchor" aria-label="anchor" href="#what-model-fitting-approach-does-macpan2-use"></a>
+</h3>
+<p>We fit models by finding the values of parameters at the peak of a
+posterior distribution. This approach is sometimes called <a href="https://en.wikipedia.org/wiki/Maximum_a_posteriori_estimation" class="external-link">maximum
+a posteriori (MAP) estimation</a>. This approach allows us to get
+approximate Bayesian uncertainty estimates by approximating the
+posterior distribution as a multivariate Gaussian centered at the peak
+obtained by MAP. One is able to declare that parameters be considered
+random effects, which means that they are integrated out of the
+posterior distribution using the <a href="https://en.wikipedia.org/wiki/Laplace%27s_approximation" class="external-link">Laplace
+approximation</a>. Using this approach allows us to reduce the
+dimensionality of the posterior distribution used in MAP by only
+optimizing over the fixed effect parameters.</p>
+<p>This approximate posterior distribution can be used to obtain
+confidence / credible intervals for any continuous function of model
+variables. The two main examples of this are as follows.</p>
+<ol style="list-style-type: decimal">
+<li>Confidence intervals on fitted parameters using
+<code>mp_tmb_coef(., conf.int = TRUE)</code>.</li>
+<li>Confidence intervals on fitted trajectories using
+<code><a href="../reference/mp_trajectory.html">mp_trajectory_sd()</a></code>
+</li>
+</ol>
+<p>This approach to computing confidence intervals using Gaussian
+approximations to the posterior is a special case of the <a href="https://en.wikipedia.org/wiki/Delta_method" class="external-link">delta method</a> that
+is implemented in <a href="https://github.com/kaskr/adcomp" class="external-link">TMB</a>,
+which is described <a href="https://kaskr.github.io/adcomp/_book/Appendix.html#theory-underlying-sdreport" class="external-link">here</a>.</p>
+<p>Example calibrations of varying levels of complexity.</p>
+<ul>
+<li><a href="https://canmod.github.io/macpan2/articles/calibration">Intro to
+calibration using toy data</a></li>
+<li><a href="https://canmod.github.io/macpan2/articles/real_data">Intro
+to calibration using real scarlet fever data</a></li>
+<li><a href="https://canmod.github.io/macpan2/articles/calibration_advanced.html">For
+hackers only</a></li>
+<li><a href="https://github.com/canmod/macpan2/tree/main/inst/starter_models/macpan_base#calibration" class="external-link">McMaster
+COVID model</a></li>
+<li><a href="https://github.com/canmod/macpan2/tree/main/inst/starter_models/ww#calibration" class="external-link">Wastewater
+model of COVID</a></li>
+<li><a href="https://github.com/canmod/macpan2/tree/main/inst/starter_models/shiver#calibration-example" class="external-link">SHIVER
+model to COVID</a></li>
+<li><a href="https://github.com/canmod/macpan2/tree/main/inst/starter_models/seir#calibration" class="external-link">SEIR
+model using toy data</a></li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="can-i-hack-macpan2-to-use-mcmc-esimation">Can I hack <code>macpan2</code> to use MCMC esimation?<a class="anchor" aria-label="anchor" href="#can-i-hack-macpan2-to-use-mcmc-esimation"></a>
+</h3>
+<p><a href="https://canmod.github.io/macpan2/articles/calibration_advanced.html#hamiltonian-mc">Yes</a>.</p>
+</div>
+<div class="section level3">
+<h3 id="can-i-get-a-new-model-specification-with-fitted-parameters-as-defaults-from-a-calibrated-calibrator-object">Can I get a new model specification with fitted parameters as
+defaults, from a calibrated calibrator object?<a class="anchor" aria-label="anchor" href="#can-i-get-a-new-model-specification-with-fitted-parameters-as-defaults-from-a-calibrated-calibrator-object"></a>
+</h3>
+<p>Coming soon!</p>
 </div>
 </div>
 <div class="section level2">
@@ -471,6 +532,99 @@ randomness?<a class="anchor" aria-label="anchor" href="#why-do-i-keep-getting-th
 <h3 id="what-are-the-mathematical-details-of-the-euler-multinomial-process-error-model">What are the mathematical details of the Euler multinomial process
 error model?<a class="anchor" aria-label="anchor" href="#what-are-the-mathematical-details-of-the-euler-multinomial-process-error-model"></a>
 </h3>
+<p>The <a href="https://kingaa.github.io/manuals/pomp/html/eulermultinom.html" class="external-link">Euler-multinomial</a>
+state update method assumes that the number of individuals that move
+from one box to another in a single time-step is a random non-negative
+integer, coming from a particular multinomial distribution that we now
+describe.</p>
+<p>The probability of staying in the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>th
+box through an entire time-step is assumed to be the following (TODO:
+relate this to Poisson processes).</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mrow><mi>i</mi><mi>i</mi></mrow></msub><mo>=</mo><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><munder><mo>∑</mo><mi>j</mi></munder><msub><mi>r</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+p_{ii} = \exp\left(-\sum_j r_{ij}\right)
+</annotation></semantics></math></p>
+<p>This probability assumes that the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">r_{ij}</annotation></semantics></math>
+are held constant throughout the entire time-step, although they can
+change when each time-step begins.</p>
+<p>The probability of moving from box
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
+to box
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>
+in one time-step is given by the following.</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><msub><mi>p</mi><mrow><mi>i</mi><mi>i</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mfrac><msub><mi>r</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mrow><munder><mo>∑</mo><mi>j</mi></munder><msub><mi>r</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub></mrow></mfrac></mrow><annotation encoding="application/x-tex">
+p_{ij} = (1 - p_{ii}) \frac{r_{ij}}{\sum_j r_{ij}}
+</annotation></semantics></math></p>
+<p>This probability is just the probability of not staying in box
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>,
+which is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><msub><mi>p</mi><mrow><mi>i</mi><mi>i</mi></mrow></msub></mrow><annotation encoding="application/x-tex">1 - p_{ii}</annotation></semantics></math>,
+and specifically going to box
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>,
+which is assumed to be given by this expression
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mfrac><msub><mi>r</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mrow><msub><mo>∑</mo><mi>j</mi></msub><msub><mi>r</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub></mrow></mfrac><annotation encoding="application/x-tex">\frac{r_{ij}}{\sum_j r_{ij}}</annotation></semantics></math>.</p>
+<p>Let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ρ</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">\rho_{ij}</annotation></semantics></math>
+be the random number of individuals that move from box
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
+to box
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>
+in one time-step. The expected value of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ρ</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">\rho_{ij}</annotation></semantics></math>
+is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><msub><mi>x</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">p_{ij} x_i</annotation></semantics></math>.
+However, these random variables are not independent events, because the
+total number of individuals,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∑</mo><mi>i</mi></msub><msub><mi>x</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">\sum_i x_i</annotation></semantics></math>,
+has to remain constant through a single time-step (at least in the
+models that we are currently considering).</p>
+<p>To account for this non-independence, we collect the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ρ</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">\rho_{ij}</annotation></semantics></math>
+associated with a from compartment
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
+into a vector
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ρ</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\rho_i</annotation></semantics></math>.
+We collect similar vector of probabilities,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>p</mi><mi>i</mi></msub><annotation encoding="application/x-tex">p_i</annotation></semantics></math>.
+Each
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ρ</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\rho_i</annotation></semantics></math>
+is a random draw from a multinomial distribution with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>i</mi></msub><annotation encoding="application/x-tex">x_i</annotation></semantics></math>
+trials and probability vector,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>p</mi><mi>i</mi></msub><annotation encoding="application/x-tex">p_i</annotation></semantics></math>.</p>
+<p>Once these random draws have been made, the state variables can be
+updated at each time-step as follows.</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>i</mi></msub><mo>=</mo><msub><mi>x</mi><mi>i</mi></msub><mo>−</mo><munder><mo>∑</mo><mi>j</mi></munder><msub><mi>ρ</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>+</mo><munder><mo>∑</mo><mi>j</mi></munder><msub><mi>ρ</mi><mrow><mi>j</mi><mi>i</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
+x_i = x_i - \sum_j \rho_{ij} + \sum_j \rho_{ji}
+</annotation></semantics></math></p>
+<p>Note that we do not actually need to generate values for the diagonal
+elements,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ρ</mi><mrow><mi>i</mi><mi>i</mi></mrow></msub><annotation encoding="application/x-tex">\rho_{ii}</annotation></semantics></math>,
+because they cancel out in this update equation. We also can ignore any
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ρ</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">\rho_{ij}</annotation></semantics></math>
+such that
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">r_{ij} = 0</annotation></semantics></math>.</p>
+<p>Under the SIR example we have a particularly simple Euler-binomial
+distribution because there are no branching flows – when individuals
+leave S they can only go to I and when they leave I they can only go to
+R. These two flows are given by the following distributions.</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ρ</mi><mrow><mi>S</mi><mi>I</mi></mrow></msub><mo>∼</mo><mtext mathvariant="normal">Binomial</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>S</mi><mo>,</mo><msub><mi>p</mi><mrow><mi>S</mi><mi>I</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+\rho_{SI} \sim \text{Binomial}(S, p_{SI})
+</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ρ</mi><mrow><mi>I</mi><mi>R</mi></mrow></msub><mo>∼</mo><mtext mathvariant="normal">Binomial</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>I</mi><mo>,</mo><msub><mi>p</mi><mrow><mi>I</mi><mi>R</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+\rho_{IR} \sim \text{Binomial}(I, p_{IR})
+</annotation></semantics></math></p>
+<p>In models with branching flows we would have multinomial
+distributions. But in this model the state update is given by the
+following equations.</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mo>=</mo><mi>S</mi><mo>−</mo><msub><mi>ρ</mi><mrow><mi>S</mi><mi>I</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
+S = S - \rho_{SI}
+</annotation></semantics></math><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mo>=</mo><mi>I</mi><mo>−</mo><msub><mi>ρ</mi><mrow><mi>I</mi><mi>R</mi></mrow></msub><mo>+</mo><msub><mi>ρ</mi><mrow><mi>S</mi><mi>I</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
+I = I - \rho_{IR} + \rho_{SI}
+</annotation></semantics></math><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>=</mo><mi>R</mi><mo>+</mo><msub><mi>ρ</mi><mrow><mi>I</mi><mi>R</mi></mrow></msub></mrow><annotation encoding="application/x-tex">
+R = R + \rho_{IR}
+</annotation></semantics></math></p>
 </div>
 <div class="section level3">
 <h3 id="can-macpan2-do-the-gillespie-algorithm">Can <code>macpan2</code> do the Gillespie algorithm<a class="anchor" aria-label="anchor" href="#can-macpan2-do-the-gillespie-algorithm"></a>
