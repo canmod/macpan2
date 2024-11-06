@@ -76,13 +76,40 @@ The `tmb` part refers to the [TMB](https://github.com/kaskr/adcomp) package, on 
 
 We use the [base R pipe](https://www.tidyverse.org/blog/2023/04/base-vs-magrittr-pipe/#pipes) operator throughout our examples. Please read this link for details.
 
-### Why do I see `|>`, `,`, and `+` at the start of lines?
+### Why do I see weird symbols at the start of lines?
 
-We start lines with characters that many people put at the end of lines. These continuation characters tell R that there is more code that is included in an expression.  We prefer to put these characters at the start of lines because it makes it slightly easier to comment lines out.  Note that for this approach to work you need to wrap these continued expressions in parentheses. See the [quickstart](https://canmod.github.io/macpan2/articles/quickstart.html) guide for examples of this style.
+We start lines with characters that many people put at the end of lines, such as the commas, plus signs and the [base R pipe](https://www.tidyverse.org/blog/2023/04/base-vs-magrittr-pipe/#pipes). These continuation characters tell R that there is more code that is included in an expression.  We prefer to put these characters at the start of lines because it makes it slightly easier to comment lines out.  Note that for this approach to work you need to wrap these continued expressions in parentheses. See the [quickstart](https://canmod.github.io/macpan2/articles/quickstart.html) guide for examples of this style.
 
-## Calibration Outputs
+## Calibration Details and Outputs
+
+### What model fitting approach does `macpan2` use?
+
+We fit models by finding the values of parameters at the peak of a posterior distribution. This approach is sometimes called [maximum a posteriori (MAP) estimation](https://en.wikipedia.org/wiki/Maximum_a_posteriori_estimation). This approach allows us to get approximate Bayesian uncertainty estimates by approximating the posterior distribution as a multivariate Gaussian centered at the peak obtained by MAP.  One is able to declare that parameters be considered random effects, which means that they are integrated out of the posterior distribution using the [Laplace approximation](https://en.wikipedia.org/wiki/Laplace%27s_approximation). Using this approach allows us to reduce the dimensionality of the posterior distribution used in MAP by only optimizing over the fixed effect parameters.
+
+This approximate posterior distribution can be used to obtain confidence / credible intervals for any continuous function of model variables. The two main examples of this are as follows.
+
+1. Confidence intervals on fitted parameters using `mp_tmb_coef(., conf.int = TRUE)`.
+2. Confidence intervals on fitted trajectories using `mp_trajectory_sd()`
+
+This approach to computing confidence intervals using Gaussian approximations to the posterior is a special case of the [delta method](https://en.wikipedia.org/wiki/Delta_method) that is implemented in [TMB](https://github.com/kaskr/adcomp), which is described [here](https://kaskr.github.io/adcomp/_book/Appendix.html#theory-underlying-sdreport).
+
+Example calibrations of varying levels of complexity.
+
+* [Intro to calibration using toy data](https://canmod.github.io/macpan2/articles/calibration)
+* [Intro to calibration using real scarlet fever data](https://canmod.github.io/macpan2/articles/real_data)
+* [For hackers only](https://canmod.github.io/macpan2/articles/calibration_advanced.html)
+* [McMaster COVID model](https://github.com/canmod/macpan2/tree/main/inst/starter_models/macpan_base#calibration)
+* [Wastewater model of COVID](https://github.com/canmod/macpan2/tree/main/inst/starter_models/ww#calibration)
+* [SHIVER model to COVID](https://github.com/canmod/macpan2/tree/main/inst/starter_models/shiver#calibration-example)
+* [SEIR model using toy data](https://github.com/canmod/macpan2/tree/main/inst/starter_models/seir#calibration)
+
+### Can I hack `macpan2` to use MCMC esimation?
+
+[Yes](https://canmod.github.io/macpan2/articles/calibration_advanced.html#hamiltonian-mc).
 
 ### Can I get a new model specification with fitted parameters as defaults, from a calibrated calibrator object?
+
+Coming soon!
 
 ## Plotting
 
