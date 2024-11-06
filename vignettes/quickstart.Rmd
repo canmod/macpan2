@@ -22,7 +22,6 @@ library(ggplot2)
 library(dplyr)
 library(tidyr)
 library(macpan2)
-library(macpan2)
 si = mp_tmb_model_spec(
     before = S ~ N - I
   , during = mp_per_capita_flow(
