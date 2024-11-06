@@ -461,9 +461,10 @@ $$
 
 ### Can `macpan2` do the Gillespie algorithm
 
-### Why am I getting `NaN`s?
+No. At least not without substantial hacking.  The Euler Multinomial is used instead
 
-It might be because you are using non-integer starting values for the state variables. For example, 
+
+### More Process Error (incomplete)
 
 ```{r}
 set.seed(1L)
@@ -527,8 +528,6 @@ sim = (spec
 sim |> mp_trajectory_replicate(10)
 ```
 
-
-## Auto-Regressive Process Error
 
 ```{r}
 proc_err = rnorm(50)
