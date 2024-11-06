@@ -364,7 +364,20 @@ DistrList = function(distr_list = list(), model_spec = mp_tmb_model_spec()) {
   return_object(self, "DistrList")
 }
 
+#' Null Distributional Parameter
+#' 
+#' This function is used internally by `macpan2` to tag
+#' distributional parameters with values that will be determined
+#' by simulations. The main example of this is the location
+#' parameter of a likelihood component is given by the
+#' simulations of the trajectory associated with that component.
+#'
+#' @param generic_name Generic name of the distributional parameter
+#' (e.g., `location`, `sd`, `disp`).
+#' @keywords internal
+#' @export
 mp_distr_param_null = function(generic_name) DistrParamNull(generic_name)
+
 DistrParamNull = function(generic_name) {
   self = DistrParam(generic_name, DistrParamTrans())
   # self$err = function() {
@@ -590,7 +603,8 @@ TESTDISTR = function(location, sd) {
 #' Specifying the `location` parameter is only necessary when the distribution
 #' is used as a prior distribution. If it is used as a likelihood component the 
 #' location parameter will be taken as the simulated variable being fitted to 
-#' data, and so this `location` parameter should be left to the default.
+#' data, and so this `location` parameter should be left to the default
+#' produced by the \code{\link{mp_distr_param_null}}.
 #' @param sd Standard deviation parameter.
 #' @param disp Dispersion parameter. 
 #' @param trans_distr_param Named list of transformations for each 

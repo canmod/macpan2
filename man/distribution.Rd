@@ -50,7 +50,8 @@ list of available transformations.}
 Specifying the \code{location} parameter is only necessary when the distribution
 is used as a prior distribution. If it is used as a likelihood component the
 location parameter will be taken as the simulated variable being fitted to
-data, and so this \code{location} parameter should be left to the default.}
+data, and so this \code{location} parameter should be left to the default
+produced by the \code{\link{mp_distr_param_null}}.}
 
 \item{sd}{Standard deviation parameter.}
 
