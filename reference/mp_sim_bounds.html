@@ -43,6 +43,7 @@ always be daily)."></head><body>
     <li><a class="dropdown-item" href="../articles/calibration.html">Calibrating Compartmental Models to Data</a></li>
     <li><a class="dropdown-item" href="../articles/real_data.html">Fitting to Real Data</a></li>
     <li><a class="dropdown-item" href="../articles/state_updaters.html">ODE Solvers, Process Error, and Difference Equations</a></li>
+    <li><a class="dropdown-item" href="../articles/FAQs.html">FAQs</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul></li>
@@ -97,7 +98,10 @@ always be daily).</p>
 <dt id="arg-time-scale">time_scale<a class="anchor" aria-label="anchor" href="#arg-time-scale"></a></dt>
 <dd><p>Qualitative description of the size of a time step.
 currently only <code>"steps"</code>, <code>"daily"</code>, and <code>"weekly"</code> are allowed,
-and <code>"weekly"</code> is not well tested.</p></dd>
+and but <code>"steps"</code> is the only recommended version as the other two
+are poorly tested and will throw a warning. The recommended <code>"steps"</code>
+option assumes that positive integers are used to indicate a particular
+point in the simulation.</p></dd>
 
 </dl></div>
 
