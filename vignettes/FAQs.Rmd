@@ -1,0 +1,486 @@
+---
+title: "FAQs"
+output: 
+  html_document:
+    toc: true
+    keep_md: yes
+vignette: >
+  %\VignetteIndexEntry{FAQs}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+[![status](https://img.shields.io/badge/status-working%20draft-red)](https://canmod.github.io/macpan2/articles/vignette-status#working-draft)
+
+```{r opts, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  fig.width = 6,
+  fig.height = 4,
+  comment = "#>"
+)
+```
+
+```{r setup, message = FALSE, warning = FALSE}
+library(macpan2)
+library(ggplot2)
+library(dplyr)
+library(broom.mixed)
+options(macpan2_verbose =  FALSE)
+```
+
+```{r}
+library(macpan2)
+si = mp_tmb_model_spec(
+    before = S ~ 1 - I
+  , during = mp_per_capita_flow(
+        from     = "S"         ## compartment from which individuals flow
+      , to       = "I"         ## compartment to which individuals flow
+      , rate     = "beta * I"  ## expression giving _per-capita_ flow rate
+      , abs_rate = "infection" ## name for _absolute_ flow rate = beta * I * S
+    )
+  , default = list(I = 0.01, beta = 0.2)
+)
+print(si)
+library(ggplot2)
+library(dplyr)
+example_data = (si
+ |> mp_simulator(time_steps = 50, outputs = "infection")
+ |> mp_trajectory()
+)
+incidence_example = (example_data
+ |> mutate(value = 100 * value)
+ |> pull(value)
+)
+```
+
+## Naming Convensions
+
+### Why is the package called `macpan2`?
+
+This `macpan2` package grew out of the [McMasterPandemic](https://github.com/mac-theobio/McMasterPandemic) project. Over the years the people involved in that project started calling it macpan, and `macpan2` is the successor. There is no package called `macpan`.
+
+### Why do most of the functions start with `mp_`?
+
+The `mp` stands for mac-pan. The idea is to make it easy to see in scripts what functions come from `macpan2` and what functions come from other packages.
+
+### Why do some of the functions start with `mp_tmb_`?
+
+The `tmb` part refers to the [TMB](https://github.com/kaskr/adcomp) package, on which `macpan2` is built. We hope to one day use other computational engines (e.g., [stan](TODO)), at which point users will be able to see what computational engine is being used in their scripts. But for now `tmb` is the only computational engine and so the only thing indicated by `mp_tmb_` is that you are using a function that is intended to be specific to computations with TMB. Functions that do not start with `mp_tmb_` should be engine-agnostic and able to be used with any engine.
+
+## Coding Style
+
+### What does `|>` mean?
+
+We use the [base R pipe](https://www.tidyverse.org/blog/2023/04/base-vs-magrittr-pipe/#pipes) operator throughout our examples. Please read this link for details.
+
+### Why do I see `|>`, `,`, and `+` at the start of lines?
+
+We start lines with characters that many people put at the end of lines. These continuation characters tell R that there is more code that is included in an expression.  We prefer to put these characters at the start of lines because it makes it slightly easier to comment lines out.  Note that for this approach to work you need to wrap these continued expressions in parentheses. See the [quickstart](https://canmod.github.io/macpan2/articles/quickstart.html) guide for examples of this style.
+
+## Plotting
+
+### How can I plot a calibrated model with the observed data used in the calibration?
+
+This is my favourite way to do it.
+
+```{r, eval = FALSE}
+fitted_data = mp_trajectory(model_calibrator)
+(observed_data
+  |> ggplot()
+  + geom_point(aes(time, value))
+  + geom_line(aes(time, value), data = fitted_data)
+  + theme_bw()
+)
+```
+
+
+## Warning Messages
+
+### Should I worry about `NA/NaN function evaluation` warnings?
+
+```
+Warning messages:
+1: In (function (start, objective, gradient = NULL, hessian = NULL,  :
+  NA/NaN function evaluation
+```
+
+## Parameter Estimation and Uncertainty
+
+### What can I do when my confidence intervals overlap zero for a parameter or trajectory that should be positive?
+
+Parameter transformations ...
+
+### Can I weight the importance of trajectories when fitting to more than one of them?
+
+
+## Dynamical Instabilities
+
+### What is the best way for me to keep my state variables from going negative?
+
+The hazard correction works best in my experience.
+
+## Initial Conditions
+
+### My data start mid-epidemic so how do I know what the initial number of infectious individuals is?
+
+This is a common situation as data collection often gets better after it is clear that there is a problem. But simulating epidemic models requires specifying the initial conditions of all of the state variables, and we do not have data on that. The basic idea for solving this problem is to fit the initial numbers of some of the state variables. But there are issues.
+
+Let's get an example. We manipulate the example infection data above by removing the first 25 time steps. The first issue is what to set the time steps as. We could just keep them as they were (i.e., `26:50`) but this would be cheating because it would be preserving the time of the start of the epidemic as 25 time steps again, and in real life we do not know this information. So we pretend that the epidemic started 10 time steps before the data start.
+
+```{r}
+start_date_offset = 10
+in_progress_epidemic = (example_data
+  |> filter(time > 25)
+  |> mutate(
+        value = rpois(length(value), 100 * value)
+      , time = start_date_offset + row_number()
+  )
+)
+max_time = max(in_progress_epidemic$time)
+(ggplot()
+  + geom_point(aes(time, value), data = in_progress_epidemic)
+  + scale_x_continuous(limits = c(1, max_time))
+  + theme_bw()
+)
+```
+
+The blank space on the graph from time `1` to `10` represents the period of the outbreak without data. The exact size of this period is not crucial, only that it is long enough to let the dynamics of model settle down and become independent of the initial values of the state variables. Actually, for this simple SI model example we could even ignore this start-time issue, and just fit the initial values of the number of infectious individuals. But in models with many state variables it becomes very easy to specify initial conditions that the model wouldn't go to naturally, resulting in dynamical instability. This instability can cause optimization problems because the optimizer might choose starting conditions that lead to instabilities and therefore bad fits.
+
+But we will continue with the SI model to illustrate the general idea with relative simplicity. There are a few key ideas in the code below.
+
+1. We express the initial number of infectious individuals as `N` times a logistic function of a new parameter, `logit_prop_I`, giving the proportion of the population that is infectious on the logit scale. This transformation allows us to fit `logit_prop_I` while ensuring that the initial value of `I` stays between `0` and `N`.
+2. We use the `mp_sim_bounds` function to assert that the first time step is `1` and the last time step is `max_time`, which in this case is `r max_time`.
+3. We give a prior distribution for `logit_prop_I`
+
+```{r}
+calibrator = ("starter_models"
+ |> mp_tmb_library("si", package = "macpan2")
+ |> mp_tmb_insert(phase = "before"
+    , expressions = list(I ~ N / (1 + exp(-logit_prop_I)))
+    , default = list(logit_prop_I = 0)
+  )
+ |> mp_tmb_calibrator(
+      data = in_progress_epidemic
+    , traj = list(infection = mp_neg_bin(disp = 1))
+    , par = list(
+        beta = mp_normal(location = 0.4, sd = 1)
+      , logit_prop_I = mp_normal(location = 0, sd = 1)
+    )
+    , time = mp_sim_bounds(1, max_time, "steps")
+ )
+)
+mp_optimize(calibrator)
+cc = mp_tmb_coef(calibrator, conf.int = TRUE)
+print(cc)
+```
+
+We see that we are able to fit both the transmission rate, `beta`, and the initial proportion of infectious individuals, and get reasonable confidence intervals. Note that `logit_prop_I` has been automatically back-transformed to `prop_I`, but this functionality can be turned off by setting `back_transform = FALSE` in `mp_tmb_coef`. The plot below shows how the model is able to fit to the data without knowing the initial number of infectious individuals `r start_date_offset` 
+
+```{r}
+fitted_data = mp_trajectory(calibrator)
+(ggplot()
+  + geom_point(aes(time, value), data = in_progress_epidemic)
+  + geom_line(aes(time, value), data = fitted_data)
+  + theme_bw()
+)
+```
+
+Real data will be as simple, but these principles will help.
+
+## Time Variation of Parameters
+
+### How can I use a known time series of values?
+
+### What if my time-series has missing values?
+
+### What can I do if I do not know the functional form of time-variation?
+
+## Under Reporting, Delayed Reporting, and Total Reporting
+
+### How should I account for under-reporting in `macpan2`?
+
+
+### How should I account for delayed reporting as well as under-reporting in `macpan2`?
+
+```{r, echo = FALSE}
+qmax = 16 # length of kernel
+n = 6  # number of time steps
+c_delay_cv = 0.25
+c_delay_mean = 11
+c_prop = 1
+gamma_shape = 1 / (c_delay_cv^2)
+gamma_scale = c_delay_mean * c_delay_cv^2
+gamma = pgamma(1:(qmax+1), gamma_shape, scale = gamma_scale)
+delta = gamma[2:(qmax+1)] - gamma[1:(qmax)]
+kappa = c_prop * delta / sum(delta)
+color_palette <- c(
+  "True unknown simulated incidence" = "#0072B2",  # Blue
+  "Expected reported cases" = "#D55E00",          # Orange
+  "Observed reported cases" = "#CC79A7"           # Purple
+)
+d = list(
+  `True unknown simulated incidence` = list(
+      `Time Step` = seq_along(incidence_example)
+    , Value = incidence_example
+  )
+  , `Expected reported cases` = list(
+      `Time Step` = seq_along(incidence_example)
+    , Value = stats::filter(incidence_example, kappa, sides = 1L)
+  )
+  , `Observed reported cases` = list(
+      `Time Step` = seq_along(incidence_example)
+    , Value = suppressWarnings(rpois(length(incidence_example), stats::filter(incidence_example, kappa, sides = 1L)))
+  )
+) |> bind_rows(.id = "Variable") |> filter(!is.na(Value))
+```
+
+The challenge introduced by reporting delays is that we cannot compare the simulated incidence values from our model with observed case reports, because there is a reporting delay. The following toy example shows how the apparent peak in the data follows the simulations.
+
+```{r, echo = FALSE}
+plot = (d
+  |> dplyr::filter(Variable != "Expected reported cases")
+  |> ggplot()
+  + geom_line(aes(`Time Step`, Value, colour = Variable))
+  + scale_color_manual("", values = color_palette)
+  + ylab("")
+  + theme_bw() + theme(legend.position = "top")
+  + guides(color = guide_legend(nrow = 1, byrow = FALSE))
+)
+print(plot)
+```
+
+So before comparing the simulations with observed data, we use convolution to transform the simulated incidence values into a time series of reported cases that is expected by the model. Keep reading to find out specifically how this is done.
+
+```{r, echo = FALSE}
+plot = (d
+  |> dplyr::filter(Variable != "Observed reported cases")
+  |> ggplot()
+  + geom_line(aes(`Time Step`, Value, colour = Variable))
+  + scale_color_manual("", values = color_palette)
+  + ylab("")
+  + theme_bw() + theme(legend.position = "top")
+  + guides(color = guide_legend(nrow = 1, byrow = FALSE))
+)
+print(plot)
+```
+
+Now we can now compare the observed and expected reported cases in a manner that accounts for reporting delays.
+
+```{r, echo = FALSE}
+plot = (d
+  |> ggplot()
+  + geom_line(aes(`Time Step`, Value, colour = Variable))
+  + scale_color_manual("", values = color_palette)
+  + ylab("")
+  + theme_bw() + theme(legend.position = "top")
+  + guides(color = guide_legend(nrow = 2, byrow = FALSE))
+)
+print(plot)
+```
+
+Now to explain how the expected reported case curve is computed. In this method we assume that each new case waits a Gamma-distributed random amount of time before it is observed. The mean and coefficient of variation of this distribution can be fitted parameters. During the COVID-19 pandemic the McMaster group found that a Gamma distribution with mean delay of 11 days and coefficient of variation of 0.25 was a reasonable model.
+
+The following figure illustrates how a single expected case report is computed, in this case at time 26. The Gamma distribution of delay times is represented as bars giving the probability that a new case at a particular time is reported at time 26, which is given as the dashed horizontal line. Note how the reported number of cases is roughly near (but not identical) to the simulated number of cases at the peak of the delay distribution. This makes sense because we would expect most of our reports now to come from the highest probability time in the past.
+
+```{r, echo = FALSE}
+d = data.frame(time_step = 10 + seq_along(kappa), kernel = kappa, incidence = incidence_example[10 + seq_along(kappa)])
+br = 1:5
+breaks = data.frame(
+    y = c(br, sum(d$kernel * d$incidence))
+  , lab = c(as.character(br), "Reported")
+)
+# Create the ggplot
+axis_scaler = 5
+plot <- ggplot(d, aes(x = time_step)) +
+  geom_point(aes(y = incidence), color = "blue") +
+  geom_hline(aes(yintercept = sum(kernel * incidence)), colour = "blue", linetype = "dashed") + 
+  geom_col(aes(y = kernel * axis_scaler), alpha = 0.5, fill = "grey") +
+  scale_y_continuous(
+    name = "True unknown simulated incidence (blue dots)",
+    breaks = breaks$y,
+    labels = breaks$lab, minor_breaks = NULL,
+    sec.axis = sec_axis(~ ./axis_scaler, name = "Gamma distribution of reporting delays (bars)", breaks = c(0, 0.2, 0.4, 0.6, 0.8, 1)),
+  ) +
+  xlab("Time Step") + 
+  ggtitle("Illustrating Convolution of Incidence", subtitle = "Dashed line gives expected reported cases at time 26") + 
+  theme_bw()
+
+# Print the plot
+print(plot)
+```
+
+In `macpan2` we typically have a model that doesn't account for delayed reporting and we want to update it to do so before fitting to data. One can use the `mp_tmb_insert_reports()` function for this purpose.
+```{r}
+si_with_delays = (si
+ |> mp_tmb_insert_reports(
+      incidence_name = "infection"
+    , mean_delay = 11
+    , cv_delay = 0.25
+    , report_prob = 0.1
+    , reports_name = "reports"
+ )
+)
+(si_with_delays
+  |> mp_simulator(
+      time_steps = 50L
+    , outputs = c("infection", "reports")
+  )
+  |> mp_trajectory()
+  |> ggplot()
+  + geom_line(aes(time, value, colour = matrix))
+  + theme_bw()
+)
+```
+
+Note how this function allows accounting for under-reporting as well, by specifying a `report_prob` that is less than `1`.
+
+```
+16: dist ~ pgamma(1:17, 1/(incidence_cv_delay), incidence_mean_delay * (incidence_cv_delay^2))
+17: delta ~ dist[1:16] - dist[0:15]
+18: kernel ~ incidence_report_prob * delta/sum(delta)
+19: reported_incidence ~ convolution(incidence, kernel)
+```
+
+### Can `macpan2` use hidden Markov models to account for reporting bias?
+
+## Stochastic Simulation
+
+### How can I set the seed for the random number generator?
+
+### Why do I keep getting the same result even though my model has randomness?
+
+### What are the mathematical details of the Euler multinomial process error model?
+
+
+### Can `macpan2` do the Gillespie algorithm
+
+### Why am I getting `NaN`s?
+
+It might be because you are using non-integer starting values for the state variables. For example, 
+
+```{r}
+set.seed(1L)
+spec = mp_tmb_model_spec(
+    before = list(
+        R ~ vaxprop * N
+      , S ~ N - I - R
+    )
+  , during = list(
+        infection ~ reulermultinom(S, beta * I / N)
+      , recovery ~ reulermultinom(I, gamma)
+      , S ~ S - infection
+      , I ~ I + infection - recovery
+      , R ~ R + recovery
+    )
+  , default = list(
+        vaxprop = 0.71111111
+      , N = 1000
+      , I = 10
+      , beta = 1.25
+      , gamma = 1.1
+    )
+)
+(spec
+  |> mp_simulator(
+      time_steps = 10
+    , outputs = "infection"
+  ) 
+  |> mp_trajectory_replicate(1L)
+)
+```
+
+
+```{r}
+vaxprop = 0.7
+N = 1000
+set.seed(10)
+spec = mp_tmb_model_spec(
+    before = list(S ~ N - I - R)
+  , during = list(
+        infection ~ reulermultinom(S, beta * I / N)
+      , recovery ~ reulermultinom(I, gamma)
+      , S ~ S - infection
+      , I ~ I + infection - recovery
+      , R ~ R + recovery
+    )
+  , default = list(
+        N = N
+      , R = round(vaxprop * N)
+      , I = 10
+      , beta = 1.25
+      , gamma = 1.1
+    )
+)
+sim = (spec
+  |> mp_simulator(
+      time_steps = 10
+    , outputs = "infection"
+  )
+)
+sim |> mp_trajectory_replicate(10)
+```
+
+
+## Auto-Regressive Process Error
+
+```{r}
+proc_err = rnorm(50)
+spec = mp_tmb_model_spec(
+    before = list(S ~ N - I - R)
+  , during = list(
+        mean_foi ~ beta * I / N
+      , mean_infection ~ mean_foi * S
+      , dev_foi ~ exp(proc_err[time_step(1)])
+      , mp_per_capita_flow("S", "I", "dev_foi * mean_foi", "infection")
+      , mp_per_capita_flow("I", "R", "gamma", "recovery")
+    )
+  , default = list(
+        N = N
+      , R = 0
+      , I = 1
+      , beta = 0.4
+      , gamma = 0.2
+      , proc_err = proc_err
+    )
+)
+sim = (spec |> mp_hazard()
+  |> mp_simulator(
+      time_steps = 50
+    , outputs = "infection"
+  )
+)
+sim_infection = (sim
+  |> mp_trajectory()
+  |> mutate(value = rpois(length(value), value))
+)
+```
+```{r}
+fixef = list(
+    beta = mp_log_normal(location = 0.2, sd = 1)
+  , gamma = mp_log_normal(location = 0.2, sd = 1)
+)
+ranef = list()
+  #proc_err = mp_normal(location = 0, sd = 0.1)
+#)
+cal = mp_tmb_calibrator(
+    spec = mp_tmb_update(spec, default = list(beta = 0.2, proc_err = rep(0, 50)))
+  , data = sim_infection
+  , traj = list(infection = mp_neg_bin(disp = 1))
+  , par = fixef # mp_par(param = fixef, random = ranef)
+  , outputs = "mean_infection"
+)
+mp_optimize(cal)
+mp_tmb_coef(cal)
+```
+
+```{r}
+fit_infection = mp_trajectory(cal)
+(ggplot()
+  + geom_point(aes(time, value), data = sim_infection)
+  + geom_line(aes(time, value, colour = matrix), data = fit_infection)
+  + theme_bw()
+)
+```

@@ -22,6 +22,7 @@ articles:
   - calibration
   - real_data
   - state_updaters
+  - FAQs
 - title: Specs
   desc: Specification Documents
   contents:

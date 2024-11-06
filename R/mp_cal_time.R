@@ -16,10 +16,16 @@
 #' @param sim_end End time of each simulation.
 #' @param time_scale Qualitative description of the size of a time step.
 #' currently only `"steps"`, `"daily"`, and `"weekly"` are allowed,
-#' and `"weekly"` is not well tested.
+#' and but `"steps"` is the only recommended version as the other two
+#' are poorly tested and will throw a warning. The recommended `"steps"`
+#' option assumes that positive integers are used to indicate a particular
+#' point in the simulation.
 #' 
 #' @export
 mp_sim_bounds = function(sim_start, sim_end, time_scale) {
+  if (time_scale != "steps") {
+    warning('The only recommended choice for time_scale is "steps", but ', time_scale, ' was chosen.')
+  }
   CalTime(sim_start, sim_end, time_scale)
 }
 

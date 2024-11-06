@@ -13,7 +13,10 @@ mp_sim_bounds(sim_start, sim_end, time_scale)
 
 \item{time_scale}{Qualitative description of the size of a time step.
 currently only \code{"steps"}, \code{"daily"}, and \code{"weekly"} are allowed,
-and \code{"weekly"} is not well tested.}
+and but \code{"steps"} is the only recommended version as the other two
+are poorly tested and will throw a warning. The recommended \code{"steps"}
+option assumes that positive integers are used to indicate a particular
+point in the simulation.}
 }
 \description{
 Set the simulation bounds (start time and end time) for a
