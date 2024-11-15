@@ -70,7 +70,7 @@ The `mp` stands for mac-pan. The idea is to make it easy to see in scripts what 
 
 ### Why do some of the functions start with `mp_tmb_`?
 
-The `tmb` part refers to the [TMB](https://github.com/kaskr/adcomp) package, on which `macpan2` is built. We hope to one day use other computational engines (e.g., [stan](TODO)), at which point users will be able to see what computational engine is being used in their scripts. But for now `tmb` is the only computational engine and so the only thing indicated by `mp_tmb_` is that you are using a function that is intended to be specific to computations with TMB. Functions that do not start with `mp_tmb_` should be engine-agnostic and able to be used with any engine.
+The `tmb` part refers to the [TMB](https://github.com/kaskr/adcomp) package, on which `macpan2` is built. We hope to one day use other computational engines (e.g., [stan](https://mc-stan.org/)), at which point users will be able to see what computational engine is being used in their scripts. But for now `tmb` is the only computational engine and so the only thing indicated by `mp_tmb_` is that you are using a function that is intended to be specific to computations with TMB. Functions that do not start with `mp_tmb_` should be engine-agnostic and able to be used with any engine when and if such engines are supported.
 
 ## Coding Style
 
@@ -80,7 +80,7 @@ We use the [base R pipe](https://www.tidyverse.org/blog/2023/04/base-vs-magrittr
 
 ### Why do I see weird symbols at the start of lines?
 
-We start lines with characters that many people put at the end of lines, such as the commas, plus signs and the [base R pipe](https://www.tidyverse.org/blog/2023/04/base-vs-magrittr-pipe/#pipes). These continuation characters tell R that there is more code that is included in an expression.  We prefer to put these characters at the start of lines because it makes it slightly easier to comment lines out.  Note that for this approach to work you need to wrap these continued expressions in parentheses. See the [quickstart](https://canmod.github.io/macpan2/articles/quickstart.html) guide for examples of this style.
+In many of our examples we start lines with characters that many people put at the end of lines, such as the commas, plus signs and the [base R pipe](https://www.tidyverse.org/blog/2023/04/base-vs-magrittr-pipe/#pipes). These characters tell R how the code on the rest of the line is to combined with previous lines.  We prefer to put these characters at the start of lines because it makes it slightly easier to comment lines out.  Note that for this approach to work you need to wrap these continued expressions in parentheses. See the [quickstart](https://canmod.github.io/macpan2/articles/quickstart.html) guide for examples of this style.
 
 ## Calibration Details and Outputs
 
@@ -135,6 +135,7 @@ fitted_data = mp_trajectory(model_calibrator)
   + geom_line(aes(time, value), data = fitted_data)
   + theme_bw()
 )
+
 ```
 
 
@@ -150,7 +151,7 @@ Warning messages:
   NA/NaN function evaluation
 ```
 
-These are usually nothing to worry about, though you should take note of them. Typically this warning indicates that the optimizer tried parameter values that led the objective function (i.e., the negative log posterior density) to be non-numeric. Usually, the opimizer is smart enough (if it is possible) to get back on track. The key thing to watch out for is whether the optimizer converged, which can be explored using the `mp_optimizer_output()` function that is illustrated in [this article](https://canmod.github.io/macpan2/articles/calibration).
+This is usually nothing to worry about, though you should take note of it. Typically this warning indicates that the optimizer tried parameter values that led the objective function (i.e., the negative log posterior density) to be non-numeric. Usually, the opimizer is smart enough (if it is possible) to get back on track. The key thing to watch out for is whether the optimizer converged, which can be explored using the `mp_optimizer_output()` function that is illustrated in [this article](https://canmod.github.io/macpan2/articles/calibration).
 
 ### What should I do if I do not converge?
 
