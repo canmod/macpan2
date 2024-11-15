@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.11.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.11.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -145,13 +145,14 @@ functions come from other packages.</p>
 </h3>
 <p>The <code>tmb</code> part refers to the <a href="https://github.com/kaskr/adcomp" class="external-link">TMB</a> package, on which
 <code>macpan2</code> is built. We hope to one day use other
-computational engines (e.g., <a href="TODO">stan</a>), at which point
-users will be able to see what computational engine is being used in
-their scripts. But for now <code>tmb</code> is the only computational
-engine and so the only thing indicated by <code>mp_tmb_</code> is that
-you are using a function that is intended to be specific to computations
-with TMB. Functions that do not start with <code>mp_tmb_</code> should
-be engine-agnostic and able to be used with any engine.</p>
+computational engines (e.g., <a href="https://mc-stan.org/" class="external-link">stan</a>),
+at which point users will be able to see what computational engine is
+being used in their scripts. But for now <code>tmb</code> is the only
+computational engine and so the only thing indicated by
+<code>mp_tmb_</code> is that you are using a function that is intended
+to be specific to computations with TMB. Functions that do not start
+with <code>mp_tmb_</code> should be engine-agnostic and able to be used
+with any engine when and if such engines are supported.</p>
 </div>
 </div>
 <div class="section level2">
@@ -167,10 +168,11 @@ details.</p>
 <div class="section level3">
 <h3 id="why-do-i-see-weird-symbols-at-the-start-of-lines">Why do I see weird symbols at the start of lines?<a class="anchor" aria-label="anchor" href="#why-do-i-see-weird-symbols-at-the-start-of-lines"></a>
 </h3>
-<p>We start lines with characters that many people put at the end of
-lines, such as the commas, plus signs and the <a href="https://www.tidyverse.org/blog/2023/04/base-vs-magrittr-pipe/#pipes" class="external-link">base
-R pipe</a>. These continuation characters tell R that there is more code
-that is included in an expression. We prefer to put these characters at
+<p>In many of our examples we start lines with characters that many
+people put at the end of lines, such as the commas, plus signs and the
+<a href="https://www.tidyverse.org/blog/2023/04/base-vs-magrittr-pipe/#pipes" class="external-link">base
+R pipe</a>. These characters tell R how the code on the rest of the line
+is to combined with previous lines. We prefer to put these characters at
 the start of lines because it makes it slightly easier to comment lines
 out. Note that for this approach to work you need to wrap these
 continued expressions in parentheses. See the <a href="https://canmod.github.io/macpan2/articles/quickstart.html">quickstart</a>
@@ -288,8 +290,8 @@ warnings?<a class="anchor" aria-label="anchor" href="#should-i-worry-about-nanan
 <pre><code>Warning messages:
 1: In (function (start, objective, gradient = NULL, hessian = NULL,  :
   NA/NaN function evaluation</code></pre>
-<p>These are usually nothing to worry about, though you should take note
-of them. Typically this warning indicates that the optimizer tried
+<p>This is usually nothing to worry about, though you should take note
+of it. Typically this warning indicates that the optimizer tried
 parameter values that led the objective function (i.e., the negative log
 posterior density) to be non-numeric. Usually, the opimizer is smart
 enough (if it is possible) to get back on track. The key thing to watch

@@ -1,0 +1,6 @@
+======== macpan2 log file ========
+Error code = 0
+Error message = OK
+Expression row = 0
+Function code = -99
+Time step = 0
