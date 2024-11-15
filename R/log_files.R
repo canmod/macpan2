@@ -14,7 +14,8 @@
 #' * Other methods inherited from \code{\link{Files}}
 #'
 #' @noRd
-LogFile = function(directory = tempdir()) {
+LogFile = function(directory = NULL) {
+  if (is.null(directory)) directory = mp_session_dir()
   self = Files(fix_dir(directory), reader_spec("log.txt", TXTReader))
   self$log = function() self$get("log")
   self$data_arg = function() list(log_file = self$.file_path("log"))
@@ -27,6 +28,13 @@ LogFile = function(directory = tempdir()) {
   return_object(self, "LogFile")
 }
 
+mp_session_dir = function() {
+  session_name = getOption("macpan2_session_name")
+  wd = getwd()
+  ld = file.path(wd, ".macpan", session_name)
+  if (!dir.exists(ld)) dir.create(ld, recursive = TRUE)
+  return(ld)
+}
 make_file = function(directory) {
   file_path = file.path(directory, "log.txt")
   file.create(file_path)

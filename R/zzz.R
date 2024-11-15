@@ -9,6 +9,8 @@
     , macpan2_vec_by = c("state", "flow_rates", "trans_rates") |> self_named_vector()
     #, macpan2_memoise = TRUE
     
+    # where the log files go (e.g. `.macpan2/default`)
+    , macpan2_session_name = "default"
     
     # tolerances
     , macpan2_tol_hazard_div = 1e-8
