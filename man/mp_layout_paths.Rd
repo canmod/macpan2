@@ -2,7 +2,7 @@
 % Please edit documentation in R/layout-plot-utils.R
 \name{mp_layout_paths}
 \alias{mp_layout_paths}
-\title{Flow Diagram Grid Layout}
+\title{Flow Diagram Grid Layout (experimental)}
 \usage{
 mp_layout_paths(
   spec,

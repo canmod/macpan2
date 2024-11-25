@@ -196,7 +196,7 @@ print.LayoutMatrix = function(x, ...) {
   invisible(x)
 }
 
-#' Flow Diagram Grid Layout
+#' Flow Diagram Grid Layout (experimental)
 #' 
 #' Create a grid on which to layout the flow diagram of a model specification.
 #' 
@@ -235,7 +235,7 @@ mp_layout_grid = function(spec
     , trim_states = character()
 ) LayoutMatrixGrid(spec, east, south, north, west, loops, x_gap, y_gap, north_south_sep, east_west_sep, trim_states)
 
-#' Flow Diagram Grid Layout
+#' Flow Diagram Grid Layout (experimental)
 #' 
 #' Layout the flow diagram of a model specification so that each row is 
 #' one of the paths through the model (ignoring loops).
@@ -450,10 +450,11 @@ LayoutMatrixPaths = function(spec
     # Convert the list of padded paths to a matrix
     padded_paths_matrix <- do.call(rbind, padded_paths)
     
-    # Remove blank rows and columns (might be unnecessary)
+    # Remove unnecessary rows and columns (might be unnecessary)
     blank_els = padded_paths_matrix == ""
-    rr = !apply(blank_els, 1L, all)
-    cc = !apply(blank_els, 2L, all)
+    rr = apply(!blank_els, 1L, sum) > 1L ## paths have more than one state
+    cc = !apply(blank_els, 2L, all)      ## blank columns are a waste of space
+    
     padded_paths_matrix = padded_paths_matrix[rr, cc]
     
     if (self$sort_paths) {
