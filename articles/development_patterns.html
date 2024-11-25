@@ -8,8 +8,8 @@
 <title>Development Principles and Patterns • macpan2</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
-<link href="../deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Development Principles and Patterns">
 </head>
 <body>
@@ -123,7 +123,7 @@ This function returns an object of class <code>CSVReader</code>.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_flows_reader</span> <span class="op">=</span> <span class="fu"><a href="../reference/Reader.html">CSVReader</a></span><span class="op">(</span><span class="va">sir_path</span>, <span class="st">"flows.csv"</span><span class="op">)</span></span>
 <span><span class="va">sir_flows_reader</span></span>
-<span><span class="co">#&gt; Classes 'CSVReader', 'Reader', 'Base' &lt;environment: 0x562e5f28ef68&gt; </span></span>
+<span><span class="co">#&gt; Classes 'CSVReader', 'Reader', 'Base' &lt;environment: 0x5557216a3ef8&gt; </span></span>
 <span><span class="co">#&gt; read : function ()  </span></span>
 <span><span class="co">#&gt; read_base : function ()</span></span></code></pre></div>
 <p>We get a print out of the <code>S3</code> class of the object, which
@@ -242,7 +242,7 @@ class.</p>
 <span><span class="op">}</span></span>
 <span><span class="va">does_nothing</span> <span class="op">=</span> <span class="fu">DoesNothing</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">does_nothing</span></span>
-<span><span class="co">#&gt; Classes 'DoesNothing', 'Base' &lt;environment: 0x562e608270f8&gt;</span></span></code></pre></div>
+<span><span class="co">#&gt; Classes 'DoesNothing', 'Base' &lt;environment: 0x555722c3bfc8&gt;</span></span></code></pre></div>
 <p>The first line in this constructor uses the <code>Base</code>
 function to create an <code>environment</code> called <code>self</code>.
 The second line sets <code>self</code>s S3 <code>class</code> to
@@ -257,7 +257,7 @@ field.</p>
 <span><span class="op">}</span></span>
 <span><span class="va">does_nothing</span> <span class="op">=</span> <span class="fu">DoesNothing</span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span>
 <span><span class="va">does_nothing</span></span>
-<span><span class="co">#&gt; Classes 'DoesNothing', 'Base' &lt;environment: 0x562e60aa5690&gt;</span></span></code></pre></div>
+<span><span class="co">#&gt; Classes 'DoesNothing', 'Base' &lt;environment: 0x555722eba560&gt;</span></span></code></pre></div>
 <p>This looks identical to the first version, but now we have stored a
 value for <code>n</code>.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
