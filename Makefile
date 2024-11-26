@@ -15,7 +15,7 @@ all:
 install-deps:
 	Rscript -e "remotes::install_deps()"
 	Rscript -e "remotes::install_github('canmod/oor@validity')"
-
+	Rscript -e "install.packages('TMB', type = 'source', repos = 'https://cran.r-project.org')"
 
 # Use this rule if you are doing R development or want to promote
 # dev.cpp to macpan2.cpp before doing R development.
