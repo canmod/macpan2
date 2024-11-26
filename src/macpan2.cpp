@@ -315,7 +315,7 @@ struct ListOfMatrices
 
     ListOfMatrices(SEXP ii) { // Constructor
         // Get elements by their indices
-        int n = length(ii);
+        int n = Rf_length(ii);
         vector<matrix<Type>> vs(n);
         m_matrices = vs;
 
@@ -504,7 +504,7 @@ public:
 // MORE UTILITY FUNCTIONS ------------------------
 
 int is_int_in(int i, std::vector<int> vec) {
-    for (int j = 0; j < vec.size(); j++) {
+    for (unsigned int j = 0; j < vec.size(); j++) {
         //std::cout << "i=" << i << std::endl;
         //std::cout << "vec[j]=" << vec[j] << std::endl;
         if (i == vec[j]) return 1;
@@ -649,7 +649,7 @@ public:
         } else {
             matrix<Type> m = get_as_mat(i);
             std::vector<int> v(m.rows());
-            for (int i = 0; i < v.size(); i++) {
+            for (unsigned int i = 0; i < v.size(); i++) {
                 v[i] = CppAD::Integer(m.coeff(i, 0));
             }
             return v;
@@ -705,28 +705,28 @@ public:
     
     std::vector<int> all_rows() {
         std::vector<int> v(items_.size());
-        for (int i = 0; i < v.size(); i++) {
+        for (unsigned int i = 0; i < v.size(); i++) {
             v[i] = rows(i);
         }
         return v;
     }
     std::vector<int> all_cols() {
         std::vector<int> v(items_.size());
-        for (int i = 0; i < v.size(); i++) {
+        for (unsigned int i = 0; i < v.size(); i++) {
             v[i] = cols(i);
         }
         return v;
     }
     std::vector<int> all_type_ints() {
         std::vector<int> v(items_.size());
-        for (int i = 0; i < v.size(); i++) {
+        for (unsigned int i = 0; i < v.size(); i++) {
             v[i] = type_int(i);
         }
         return v;
     }
     int all_matrices() {
         int v = 1;
-        for (int i = 0; i < items_.size(); i++) {
+        for (unsigned int i = 0; i < items_.size(); i++) {
             v = v * (1 - type_int(i));
         }
         return v;
@@ -1021,7 +1021,8 @@ public:
         int doing_lag = 0;
         Type sum, eps, limit, var, by, left_over, remaining_prop, p0; // intermediate scalars
         Type delta_t; // for reulermultinom
-        int rows, cols, lag, rowIndex, colIndex, matIndex, grpIndex, cp, off, size, times;
+        int rows, cols, lag, rowIndex, colIndex, matIndex, cp, off, size, times;
+        unsigned int grpIndex;
         int size_in, size_out;
         int sz, start, err_code, curr_meth_id;
         // size_t numMats;
@@ -1047,7 +1048,7 @@ public:
                 m = getNthMat(0, curr_meth_id, valid_vars, meth_mats);
                 v = getNthIntVec(0, curr_meth_id, valid_int_vecs, meth_int_vecs);
                 m1 = matrix<Type>::Zero(v.size(), m.cols());
-                for (int i = 0; i < v.size(); i++)
+                for (unsigned int i = 0; i < v.size(); i++)
                     m1.row(i) = m.row(v[i]);
                 return m1;
             case METH_MAT_MULT_TO_ROWS:
@@ -1057,12 +1058,12 @@ public:
                 v = getNthIntVec(0, curr_meth_id, valid_int_vecs, meth_int_vecs);
                 v1 = getNthIntVec(1, curr_meth_id, valid_int_vecs, meth_int_vecs);
                 m2 = matrix<Type>::Zero(v1.size(), m1.cols());
-                for (int i = 0; i < v1.size(); i++)
+                for (unsigned int i = 0; i < v1.size(); i++)
                 {
                     m2.row(i) = m1.row(v1[i]);
                 }
                 m3 = m * m2;
-                for (int k = 0; k < v.size(); k++)
+                for (unsigned int k = 0; k < v.size(); k++)
                     valid_vars.m_matrices[matIndex].row(v[k]) = m3.row(k);
                 return m4; // empty matrix
 
@@ -1115,7 +1116,7 @@ public:
                 }
                 m2 = matrix<Type>::Zero(u.size(), m.cols());
                 m3 = matrix<Type>::Zero(v.size(), m1.cols());
-                for (int i = 0; i < u.size(); i++)
+                for (unsigned int i = 0; i < u.size(); i++)
                 {
                     m2.row(i) = m.row(u[i]);
                     m3.row(i) = m1.row(v[i]);
@@ -2127,7 +2128,7 @@ public:
                     //std::cout << "timeIndex.size: " << timeIndex.size() << std::endl;
                     //printIntVectorWithLabel(timeIndex, "default time index vector");
                     if (doing_lag) {
-                        for (int i = 0; i < timeIndex.size(); i++) {
+                        for (unsigned int i = 0; i < timeIndex.size(); i++) {
                             timeIndex[i] = t - timeIndex[i];
                             if (timeIndex[i] < 0) {
                                 SetError(MP2_RBIND_LAG, "Lag functionality is conceptually flawed at the moment for lags greater than 1. All other lags are currently not allowed.", row, int_func, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
@@ -2174,7 +2175,7 @@ public:
                 int rbind_length, nRows, nCols;
                 rbind_length = 0; // count of legitimate time steps to select
                 //std::cout << "lowerTimeBound " << lowerTimeBound << std::endl
-                for (int i = 0; i < timeIndex.size(); i++)
+                for (unsigned int i = 0; i < timeIndex.size(); i++)
                 {
                     rowIndex = timeIndex[i];
                     if (rowIndex < t && rowIndex >= lowerTimeBound)
@@ -2218,7 +2219,7 @@ public:
                     // cols = hist[0].m_matrices[matIndex].cols();
                     m = matrix<Type>::Zero(rbind_length * rows, cols);
                     rbind_length = 0;
-                    for (int i = 0; i < timeIndex.size(); i++)
+                    for (unsigned int i = 0; i < timeIndex.size(); i++)
                     {
                         rowIndex = timeIndex[i];
                         if (rowIndex < t && rowIndex >= lowerTimeBound)
@@ -3297,9 +3298,9 @@ public:
                 }
                 assignment_value = RecycleToShape(assignment_value, v1.size(), v2.size());
     
-                for (int i = 0; i < v1.size(); i++)
+                for (unsigned int i = 0; i < v1.size(); i++)
                 {
-                    for (int j = 0; j < v2.size(); j++)
+                    for (unsigned int j = 0; j < v2.size(); j++)
                     {
                         m.coeffRef(v1[i], v2[j]) = assignment_value.coeff(i, j);
                     }
@@ -3385,7 +3386,7 @@ vector<ListOfMatrices<Type>> MakeSimulationHistory(
 
     vector<ListOfMatrices<Type>> simulation_history(time_steps + 2);
     matrix<Type> empty_matrix;
-    for (int i = 0; i < mats_save_hist.size(); i++)
+    for (unsigned int i = 0; i < mats_save_hist.size(); i++)
         //std::cout << "matrix: " << size << std::endl;
         if (mats_save_hist[i] == 0)
             hist_shape_template.m_matrices[i] = empty_matrix;
@@ -3406,7 +3407,7 @@ void UpdateSimulationHistory(
     // ListOfMatrices<Type> ms(mats);
     // if the history of the matrix is not to be saved,
     // just save a 1-by-1 with a zero instead to save space
-    for (int i = 0; i < mats_save_hist.size(); i++)
+    for (unsigned int i = 0; i < mats_save_hist.size(); i++)
         if (mats_save_hist[i] != 0)
             hist_shape_template.m_matrices[i] = mats.m_matrices[i];
 
@@ -3750,7 +3751,7 @@ Type objective_function<Type>::operator()()
 
     // int r = 0;
     int table_rows = 0;
-    for (int i = 0; i < mats_return.size(); i++) {
+    for (unsigned int i = 0; i < mats_return.size(); i++) {
         if (mats_return[i] == 1) {
             if (mats_save_hist[i] == 0) { // Report the last one
                 table_rows += mats.m_matrices[i].rows() * mats.m_matrices[i].cols();
@@ -3767,7 +3768,7 @@ Type objective_function<Type>::operator()()
     matrix<Type> values(table_rows, 5);
 
     int cur = 0;
-    for (int i = 0; i < mats_return.size(); i++) {
+    for (unsigned int i = 0; i < mats_return.size(); i++) {
         if (mats_return[i] == 1) {
             if (mats_save_hist[i] == 0) { // Report the last one
                 for (int jj = 0; jj < mats.m_matrices[i].cols(); jj++)
