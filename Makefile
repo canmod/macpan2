@@ -13,6 +13,7 @@ all:
 
 
 install-deps:
+	Rscript -e "remotes::install_deps()"
 	Rscript -e "remotes::install_github('canmod/oor@validity')"
 
 
