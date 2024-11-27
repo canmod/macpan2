@@ -117,46 +117,41 @@ mp_tmb_calibrator = function(spec, data
   ## TODO: handle likelihood trajectories
   
   ## add time-varying parameters
-  if (tv$type() == "piecewise") {
-    cal_spec = mp_tmb_insert(cal_spec
-      , phase = "during"
-      , at = 1L
-      , expressions = tv$var_update_exprs()
-      , default = globalize(tv, "time_var")
-      , integers = c(
-          globalize(tv, "change_points")
-        , globalize(tv, "change_pointer")
-      )
+  cal_spec = mp_tmb_update(cal_spec
+    , default = globalize(tv, "time_var")
+    , integers = c(
+        globalize(tv, "change_points")
+      , globalize(tv, "change_pointer")
       , must_not_save = names(globalize(tv, "time_var"))
     )
-  } else if (tv$type() == "smooth") {
-    cal_spec = mp_tmb_insert(cal_spec
-      , phase = "before"
-      , at = Inf
-      , expressions = tv$before_loop()
-      , default = c(
-          globalize(tv, "time_var")
-        , globalize(tv, "values_var")
-        , globalize(tv, "outputs_var")
-        , globalize(tv, "prior_sd")
-      )
-      , integers = c(
-          globalize(tv, "row_indexes")
-        , globalize(tv, "col_indexes")
-        , globalize(tv, "data_time_indexes")
-      )
-      , must_not_save = c(
-          names(globalize(tv, "time_var"))
-        , names(globalize(tv, "values_var"))
-        , names(globalize(tv, "outputs_var"))
-      )
+  )
+  cal_spec = mp_tmb_update(cal_spec
+    , default = c(
+        globalize(tv, "values_var")
+      , globalize(tv, "outputs_var")
+      , globalize(tv, "prior_sd")
     )
-    cal_spec = mp_tmb_insert(cal_spec
-      , phase = "during"
-      , at = 1L
-      , expressions = tv$var_update_exprs()
+    , integers = c(
+        globalize(tv, "row_indexes")
+      , globalize(tv, "col_indexes")
+      , globalize(tv, "data_time_indexes")
     )
-  }
+    , must_not_save = c(
+        names(globalize(tv, "time_var"))
+      , names(globalize(tv, "values_var"))
+      , names(globalize(tv, "outputs_var"))
+    )
+  )
+  cal_spec = mp_tmb_insert(cal_spec
+    , phase = "before"
+    , at = Inf
+    , expressions = tv$before_loop()
+  )
+  cal_spec = mp_tmb_insert(cal_spec
+    , phase = "during"
+    , at = 1L
+    , expressions = tv$var_update_exprs()
+  )
   
   ## add parameter transformations
   cal_spec = mp_tmb_insert(cal_spec
@@ -449,6 +444,14 @@ TMBTVAbstract = function() {
   ## The names of the list are the time-varying 
   ## matrices in the spec.
   self$change_points = function() list()
+  self$change_pointer = function() list()
+  
+  self$values_var = function() list()
+  self$outputs_var = function() list()
+  self$prior_sd = function() list()
+  self$row_indexes = function() list()
+  self$col_indexes = function() list()
+  self$data_time_indexes = function() list()
   
   ## List of expressions that update parameters that
   ## are time-varying
@@ -467,6 +470,19 @@ TMBTVAbstract = function() {
   ## to time-varying parameters
   self$tv_params_frame = function(tv_pars) self$empty_params_frame
   self$tv_random_frame = function() self$empty_params_frame
+  
+  
+  self$local_names = function() {
+    make_names_list(self
+      , c(
+          "time_var", "values_var", "outputs_var"
+        , "row_indexes", "col_indexes", "data_time_indexes"
+        , "prior_sd"
+        , "change_points", "change_pointer"
+      )
+    )
+  }
+  
   
   return_object(self, "TMBTVAbstract")
 }
@@ -582,15 +598,6 @@ TMBTV.character = function(
       |> setNames(nms)
     )
   }
-  
-  ## define local and external names ... to prepare
-  ## for creating expressions, which require global,
-  ## not local names
-  self$local_names = function() {
-    make_names_list(self
-      , c("time_var", "change_points", "change_pointer")
-    )
-  }
     
   ## produce expressions
   self$var_update_exprs = function() {
@@ -652,6 +659,7 @@ TMBTV.TVArg = function(
   ## The names of the list are the time-varying 
   ## matrices in the spec.
   self$change_points = function() list()
+  self$change_pointer = function() list()
   
   ## List of expressions that update parameters that
   ## are time-varying
@@ -726,15 +734,6 @@ TMBTV.RBFArg = function(
     s = sprintf("%s ~ exp(time_var(%s, %s))", self$par_name, nms$outputs_var, nms$data_time_indexes)
 
     list(as.formula(s))
-  }
-  self$local_names = function() {
-    make_names_list(self
-      , c(
-          "time_var", "values_var", "outputs_var"
-        , "row_indexes", "col_indexes", "data_time_indexes"
-        , "prior_sd"
-      )
-    )
   }
   
   ## character vector of signed expressions that give components

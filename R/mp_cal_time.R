@@ -29,6 +29,10 @@ mp_sim_bounds = function(sim_start, sim_end, time_scale) {
   CalTime(sim_start, sim_end, time_scale)
 }
 
+mp_time_offset = function(start_date_offset, end_date_offset, time_scale) {
+  
+}
+
 CalTime = function(sim_start, sim_end, time_scale) {
   self = mp_time_scale(sim_start, sim_end, time_scale, checker = NoError)
   self$sim_start = sim_start
@@ -53,5 +57,3 @@ CalTime = function(sim_start, sim_end, time_scale) {
   
   return_object(self, "CalTime")
 }
-
-
