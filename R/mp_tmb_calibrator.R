@@ -536,7 +536,6 @@ TMBTV.character = function(
   self = TMBTVAbstract()
   self$existing_global_names = existing_global_names
   self$spec = spec
-  self$type = function() "piecewise"
   
   ## internal data structure:
   ## assumes tv is a character vector
@@ -642,7 +641,6 @@ TMBTV.TVArg = function(
   self = TMBTVAbstract()
   self$existing_global_names = existing_global_names
   self$spec = spec
-  self$type = function() "list"
   
   self$before_loop = function() list()
   self$after_loop = function() list()
@@ -683,7 +681,6 @@ TMBTV.RBFArg = function(
   self = TMBTVAbstract()
   self$existing_global_names = existing_global_names
   self$spec = spec
-  self$type = function() "smooth"
   
   self$rbf_data = sparse_rbf_notation(
       struc$data_time_steps

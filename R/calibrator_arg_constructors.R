@@ -74,6 +74,14 @@ mp_rbf = function(tv, dimension, initial_weights, seed, prior_sd = 1, fit_prior_
 }
 
 
+mp_piecewise = function(tv, data) {
+  arg = list()
+  arg$tv = tv
+  arg$data = data
+  structure(arg, class = "PiecewiseArg")
+}
+
+
 ## construct objects to pass to the traj argument of mp_tmb_calibrator
 
 #' Trajectory Specification
