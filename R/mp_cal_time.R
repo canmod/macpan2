@@ -22,16 +22,51 @@
 #' point in the simulation.
 #' 
 #' @export
-mp_sim_bounds = function(sim_start, sim_end, time_scale) {
-  if (time_scale != "steps") {
-    warning('The only recommended choice for time_scale is "steps", but ', time_scale, ' was chosen.')
+mp_sim_bounds = function(sim_start, sim_end, time_scale, time_column = "time") {
+  self = Base()
+  self$sim_start = sim_start
+  self$sim_end = sim_end
+  self$time_scale = time_scale
+  self$time_column = time_column
+  self$cal_time_steps = function(data) {
+    column = data[[self$time_column]]
+    dat_start = min(column)
+    dat_end = max(column)
+    ## TODO: check type consistency
+    constr = switch(self$time_scale
+      , steps = CalTimeStepsInt
+      , daily = CalTimeStepsDaily
+    )
+    constr(self$sim_start, self$sim_end, dat_start, dat_end)
   }
-  CalTime(sim_start, sim_end, time_scale)
+  return_object(self, "SimBounds")
 }
 
-mp_time_offset = function(start_date_offset, end_date_offset, time_scale) {
-  
+mp_sim_offset = function(sim_start_offset, sim_end_offset, time_scale, time_column = "time") {
+  self = Base()
+  self$sim_start_offset = as.integer(sim_start_offset)
+  self$sim_end_offset = as.integer(sim_end_offset)
+  self$time_scale = time_scale
+  self$time_column = time_column
+  self$cal_time_steps = function(data) {
+    column = data[[self$time_column]]
+    if (is.character(column)) column = as.Date(column)
+    if (!inherits(column, "Date")) column = as.integer(column)
+    dat_start = min(column)
+    dat_end = max(column)
+    sim_start = dat_start - self$sim_start_offset
+    sim_end = dat_end + self$sim_end_offset
+    ## TODO: check type consistency
+    constr = switch(self$time_scale
+      , steps = CalTimeStepsInt
+      , daily = CalTimeStepsDaily
+    )
+    constr(sim_start, sim_end, dat_start, dat_end)
+  }
+  return_object(self, "SimOffset")
 }
+
+
 
 CalTime = function(sim_start, sim_end, time_scale) {
   self = mp_time_scale(sim_start, sim_end, time_scale, checker = NoError)

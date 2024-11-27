@@ -4,7 +4,7 @@
 \alias{mp_sim_bounds}
 \title{Simulation Bounds (Experimental)}
 \usage{
-mp_sim_bounds(sim_start, sim_end, time_scale)
+mp_sim_bounds(sim_start, sim_end, time_scale, time_column = "time")
 }
 \arguments{
 \item{sim_start}{Start time of each simulation.}

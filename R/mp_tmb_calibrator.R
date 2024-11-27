@@ -50,7 +50,7 @@
 #' @export
 mp_tmb_calibrator = function(spec, data
     , traj
-    , par
+    , par = character()
     , tv = character()
     , outputs = traj
     , default = list()
@@ -171,7 +171,7 @@ mp_tmb_calibrator = function(spec, data
   
   if (!is.character(outputs)) outputs = traj$outputs()
   cal_sim = cal_spec$simulator_fresh(
-      time_steps = struc$time_steps
+      time_steps = struc$time_steps_obj$sim_len()
     , outputs = outputs
     , initialize_ad_fun = FALSE
   )
@@ -255,9 +255,9 @@ mp_optimize.TMBCalibrator = function(model, optimizer = c("nlminb", "optim"), ..
 
 TMBCalDataStruc = function(data, time) {
   self = Base()
-  
-  ## infer if the time field in the data
-  ## is measured in time-steps
+
+  # ## infer if the time field in the data
+  # ## is measured in time-steps
   infer_time_step = function(x) {
     y = is.numeric(x)
     if (y) return(TRUE)
@@ -268,23 +268,11 @@ TMBCalDataStruc = function(data, time) {
     }
     FALSE
   }
-  if (is.null(time)) {
-    if (infer_time_step(data$time)) {
-      data$time = as.integer(data$time)
-      time = Steps(min(data$time), max(data$time))
-    } else {
-      ## TODO: I'm guessing this could fail cryptically
-      time = Daily(min(data$time), max(data$time), checker = NoError)
-    }
-  }
-  else {
-    time = assert_cls(time, "CalTime", match.call(), "?mp_cal_time")
-    time$update_data_bounds(data)
-  }
-  self$time_steps = time$bound_steps()[2L]
-  data$time_ids = time$time_ids(data$time)
-  self$data_time_ids = data$time_ids
-  self$data_time_steps = max(data$time_ids)
+  
+  # self$time_steps = time$bound_steps()[2L]
+  # data$time_ids = time$time_ids(data$time)
+  # self$data_time_ids = data$time_ids
+  # self$data_time_steps = max(data$time_ids)
   data = rename_synonyms(data
     , time = c(
         "time", "Time", "ID", "time_id", "id", "date", "Date"
@@ -297,6 +285,17 @@ TMBCalDataStruc = function(data, time) {
     , col = c("col", "Col", "column", "Column")
     , value = c("value", "Value", "val", "Val", "default", "Default")
   )
+  if (is.null(time)) {
+    if (infer_time_step(data$time)) {
+      data$time = as.integer(data$time)
+      time = mp_sim_bounds(min(data$time), max(data$time), "steps")
+    } else {
+      data$time = as.Date(data$time)
+      time = mp_sim_bounds(min(data$time), max(data$time), "daily")
+    }
+  }
+  self$time_steps_obj = time$cal_time_steps(data)
+  data$time_ids = self$time_steps_obj$external_to_internal(data$time)
   ## TODO: Still splitting on matrices, which doesn't allow flexibility
   ## in what counts as an 'output'. In general, an output could be
   ## a matrix, row, or column.
@@ -315,6 +314,7 @@ TMBCalDataStruc = function(data, time) {
     NULL
   }
   
+  ## subset of matrix_list
   self$init_list = function(matrices) {
     self$check_matrices(matrices)
     self$matrix_list[matrices]
@@ -323,6 +323,85 @@ TMBCalDataStruc = function(data, time) {
 }
 
 
+CalTimeStepsAbstract = function() {
+  self = Base()
+  self$sim_len = function() integer(1L)
+  self$dat_len = function() integer(1L)
+  self$sim_1st = function() 1L
+  self$dat_1st = function() integer(1L)
+  self$sim_vec = function() integer(0L)
+  self$dat_vec = function() integer(0L)
+  self$internal_to_external = function(internal) internal
+  self$external_to_internal = function(external) external
+  self$consistency = function() {
+    if (self$ext_sim_1st > self$ext_dat_1st) warning("Simulation starts after data begin.")
+    if (self$ext_dat_end > self$ext_sim_end) warning("Data end after simulation ends.")
+  }
+  self$sim_vec = function() seq(from = self$sim_1st(), by = 1L, len = self$sim_len())
+  self$dat_vec = function() seq(from = self$dat_1st(), by = 1L, len = self$dat_len())
+  return_object(self, "CalTimeStepsAbstract")
+}
+CalTimeStepsInt = function(ext_sim_1st, ext_sim_end, ext_dat_1st, ext_dat_end) {
+  self = CalTimeStepsAbstract()
+  self$ext_sim_1st = as.integer(ext_sim_1st)
+  self$ext_sim_end = as.integer(ext_sim_end)
+  self$ext_dat_1st = as.integer(ext_dat_1st)
+  self$ext_dat_end = as.integer(ext_dat_end)
+  self$consistency()
+  self$dat_1st = function() self$ext_dat_1st - self$ext_sim_1st + self$sim_1st()
+  self$sim_len = function() self$ext_sim_end - self$ext_sim_1st + self$sim_1st()
+  self$dat_len = function() self$ext_dat_end - self$ext_dat_1st + 1L
+  self$internal_to_external = function(internal) internal - self$sim_1st() + self$ext_sim_1st
+  self$external_to_internal = function(external) external - self$ext_sim_1st + self$sim_1st()
+  return_object(self, "CalTimeStepsInt")
+}
+if (FALSE) {
+  xx = CalTimeStepsInt(-30, 500, 10, 400)
+  xx$dat_vec() |> length()
+  xx$dat_len()
+  xx$dat_1st()
+  xx$sim_vec() |> length()
+  xx$sim_len()
+  xx$sim_1st()
+  xx$external_to_internal(50)
+}
+
+CalTimeStepsDaily = function(ext_sim_1st, ext_sim_end, ext_dat_1st, ext_dat_end) {
+  self = CalTimeStepsAbstract()
+  self$ext_sim_1st = as.Date(ext_sim_1st)
+  self$ext_sim_end = as.Date(ext_sim_end)
+  self$ext_dat_1st = as.Date(ext_dat_1st)
+  self$ext_dat_end = as.Date(ext_dat_end)
+  self$consistency()
+  self$dat_1st = function() {
+    d = difftime(self$ext_dat_1st, self$ext_sim_1st, units = "days")
+    as.integer(d) + self$sim_1st()
+  }
+  self$sim_len = function() {
+    d = difftime(self$ext_sim_end, self$ext_sim_1st, units = "days")
+    as.integer(d) + self$sim_1st()
+  }
+  self$dat_len = function() {
+    d = difftime(self$ext_dat_end, self$ext_dat_1st, units = "days")
+    as.integer(d) + 1L
+  }
+  self$internal_to_external = function(internal) internal + (self$ext_sim_1st - self$sim_1st())
+  self$external_to_internal = function(external) {
+    d = difftime(as.Date(external), self$ext_sim_1st, units = "days")
+    as.integer(d) + 1L
+  }
+  return_object(self, "CalTimeStepsLegacy")
+}
+if (FALSE) {
+  xx = CalTimeStepsDaily("2021-01-01", "2022-04-02", "2021-03-05", "2022-02-01")
+  xx$dat_vec() |> length()
+  xx$dat_len()
+  xx$dat_1st()
+  xx$sim_vec() |> length()
+  xx$sim_len()
+  xx$sim_1st()
+  xx$external_to_internal("2022-04-02")
+}
 
 #' Optimizer Output
 #'
@@ -683,7 +762,7 @@ TMBTV.RBFArg = function(
   self$spec = spec
   
   self$rbf_data = sparse_rbf_notation(
-      struc$data_time_steps
+      struc$time_steps_obj$dat_len()
     , tv$dimension
     , zero_based = TRUE
     , tol = tv$sparse_tol
@@ -691,7 +770,7 @@ TMBTV.RBFArg = function(
   self$initial_outputs = c(self$rbf_data$M %*% tv$initial_weights)
   self$initial_weights = tv$initial_weights
   self$dimension = tv$dimension
-  self$data_time_ids = struc$data_time_ids
+  self$data_time_ids = struc$time_steps_obj$dat_vec()
   self$par_name = tv$tv
   self$prior_sd_default = tv$prior_sd
   self$fit_prior_sd = tv$fit_prior_sd
