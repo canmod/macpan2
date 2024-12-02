@@ -4,7 +4,7 @@
 \alias{mp_traj}
 \title{Trajectory Specification}
 \usage{
-mp_traj(likelihood = list(), condensation = list())
+mp_traj(likelihood = empty_named_list(), condensation = empty_named_list())
 }
 \arguments{
 \item{likelihood}{List of likelihood components. The names of the list

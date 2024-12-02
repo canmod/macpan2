@@ -51,16 +51,20 @@ bind_rows <- function(..., .id = NULL) {
   if (!missing(.id)) {
     lsts <- lapply(seq_along(lsts), function(i) {
       nms <- names(lsts)
-      id_df <- data.frame(id = if (is.null(nms)) as.character(i) else nms[i], stringsAsFactors = FALSE)
+      id_col = if (is.null(nms)) {
+        as.character(i)
+      } else if (nrow(lsts[[i]]) == 0L) {
+        character()
+      } else {
+        nms[i]
+      }
+      id_df <- data.frame(id = id_col, stringsAsFactors = FALSE)
       colnames(id_df) <- .id
       y = try(cbind(id_df, lsts[[i]]), silent = TRUE)
       if (inherits(y, "try-error")) return(NULL)
       y
     })
   }
-
-  # some_rows = function(x) isTRUE(nrow(x) != 0L)
-  # lsts <- Filter()
   nms <- unique(unlist(lapply(lsts, names)))
   lsts <- lapply(
     lsts,

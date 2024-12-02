@@ -188,12 +188,11 @@ obs_data = (covid_on
 ```{r time_bounds}
 burn_in_period  = 15 ## number of days before the data start to begin the simulations
 forecast_period = 30 ## number of days after the data end to make forecasts
-time_bounds = mp_sim_bounds(
-    sim_start = min(obs_data$time) - lubridate::days(burn_in_period)
-  , sim_end   = max(obs_data$time) + lubridate::days(forecast_period)
-  , "daily"
+time_bounds = mp_sim_offset(
+    sim_start_offset = 15
+  , sim_end_offset = 30
+  , time_scale = "daily"
 )
-steps = time_bounds$time_id_engine ## function to convert dates to time-steps
 ```
 
 

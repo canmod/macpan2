@@ -4,10 +4,10 @@
 \alias{mp_par}
 \title{Fit Parameters}
 \usage{
-mp_par(param, random)
+mp_par(params = empty_named_list(), random = empty_named_list())
 }
 \arguments{
-\item{param}{Named list of distributional specifications for the
+\item{params}{Named list of distributional specifications for the
 fixed effects.}
 
 \item{random}{Named list of distributional specifications for the random
