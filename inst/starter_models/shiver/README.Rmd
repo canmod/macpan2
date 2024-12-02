@@ -783,4 +783,3 @@ We are able to recover the transmission rate `beta` but not the proportion `p`, 
 This model has been specified in the `shiver` directory [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/shiver/tmb.R) and is accessible from the `macpan2` model library (see [Example Models](https://canmod.github.io/macpan2/articles/example_models.html) for details). 
 
 # References
-

@@ -8,7 +8,7 @@ mp_tmb_calibrator(
   spec,
   data,
   traj,
-  par,
+  par = character(),
   tv = character(),
   outputs = traj,
   default = list(),

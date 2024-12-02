@@ -53,6 +53,7 @@ quick-test-all:
 	make run-vignette-code
 	make run-tests
 	make run-examples
+	make run-starter-readme-code
 
 quick-test:
 	make quick-doc-install

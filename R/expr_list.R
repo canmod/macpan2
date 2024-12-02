@@ -221,9 +221,9 @@ ExprList = function(
 model_steps_printer = function(steps_list, eval_schedule, file = "", time_steps = "T") {
   if (sum(eval_schedule) == 0L) {
     lines = c(
-        "---------------------",
-        "Empty simulator",
-        "---------------------"
+        "-------------------------",
+        "Empty model specification",
+        "-------------------------"
       ) |> cat(file = file, sep = "\n", append = FALSE)
   } else {
     to = cumsum(eval_schedule)

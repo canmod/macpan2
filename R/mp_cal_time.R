@@ -28,7 +28,7 @@ mp_sim_bounds = function(sim_start, sim_end, time_scale, time_column = "time") {
   self$sim_end = sim_end
   self$time_scale = time_scale
   self$time_column = time_column
-  self$cal_time_steps = function(data) {
+  self$cal_time_steps = function(data, original_coercer = force) {
     column = data[[self$time_column]]
     dat_start = min(column)
     dat_end = max(column)
@@ -37,18 +37,19 @@ mp_sim_bounds = function(sim_start, sim_end, time_scale, time_column = "time") {
       , steps = CalTimeStepsInt
       , daily = CalTimeStepsDaily
     )
-    constr(self$sim_start, self$sim_end, dat_start, dat_end)
+    constr(self$sim_start, self$sim_end, dat_start, dat_end, original_coercer)
   }
   return_object(self, "SimBounds")
 }
 
+#' @export
 mp_sim_offset = function(sim_start_offset, sim_end_offset, time_scale, time_column = "time") {
   self = Base()
   self$sim_start_offset = as.integer(sim_start_offset)
   self$sim_end_offset = as.integer(sim_end_offset)
   self$time_scale = time_scale
   self$time_column = time_column
-  self$cal_time_steps = function(data) {
+  self$cal_time_steps = function(data, original_coercer = force) {
     column = data[[self$time_column]]
     if (is.character(column)) column = as.Date(column)
     if (!inherits(column, "Date")) column = as.integer(column)
@@ -61,7 +62,7 @@ mp_sim_offset = function(sim_start_offset, sim_end_offset, time_scale, time_colu
       , steps = CalTimeStepsInt
       , daily = CalTimeStepsDaily
     )
-    constr(sim_start, sim_end, dat_start, dat_end)
+    constr(sim_start, sim_end, dat_start, dat_end, original_coercer)
   }
   return_object(self, "SimOffset")
 }

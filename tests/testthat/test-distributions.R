@@ -49,14 +49,16 @@ test_that("distributions give appropriate variable assumption warnings", {
   )
   # The variable assumption is violated here. For the log-normal distribution,
   # the variable cannot be zero.
+  # TODO: be careful! it didn't look like this test made sense,
+  # but it was working before so what changed?
   expect_warning(mp_tmb_calibrator(sir_spec
-     , data = bind_rows(sir_prevalence, sir_beta)
-     , traj = "I"
-     , par = list(beta = mp_log_normal(location = 1, sd = 1))
-     , tv = "beta"
-     , default = list(N = 300)
-    )
-    , regexp = "contains zeros at the beginning of the simulation"
+    , data = bind_rows(sir_prevalence, sir_beta)
+    , traj = "I"
+    , par = list(beta = mp_log_normal(location = 1, sd = 1))
+    , tv = "beta"
+    , default = list(N = 300)
+   )
+   , regexp = "contains zeros at the beginning of the simulation"
   )
   
   data = mp_simulator(sir_spec, 50, "infection") |> mp_trajectory()

@@ -5,15 +5,18 @@
 #' Define the prior distributions for parameters and random effects to be
 #' passed to `par` argument of the \code{\link{mp_tmb_calibrator}} function.
 #' 
-#' @param param Named list of distributional specifications for the
+#' @param params Named list of distributional specifications for the
 #' fixed effects.
 #' @param random Named list of distributional specifications for the random
 #' effects.
 #' 
 #' @export
-mp_par = function(param, random) {
+mp_par = function(
+      params = empty_named_list()
+    , random = empty_named_list()
+  ) {
   arg = list()
-  arg$param = param
+  arg$params = params
   arg$random = random
   structure(arg, class = "ParArg")
 }
@@ -22,9 +25,17 @@ mp_par = function(param, random) {
 
 #' @param parameters List of time-variation specifications for parameters.
 #' @noRd
-mp_tv = function(parameters) {
+mp_tv = function(
+      params = empty_named_list()
+    , random = empty_named_list()
+    , known = empty_named_list()
+    , linear = empty_named_list()
+  ) {
   arg = list()
-  arg$parameters = parameters
+  arg$params = params
+  arg$random = random
+  arg$known = known
+  arg$linear = linear
   structure(arg, class = "TVArg")
 }
 
@@ -73,6 +84,16 @@ mp_rbf = function(tv, dimension, initial_weights, seed, prior_sd = 1, fit_prior_
   structure(arg, class = "RBFArg")
 }
 
+#' @export
+mp_rbf_exper = function(dimension
+    , initial_weights
+    , seed
+    , prior_sd = 1
+    , fit_prior_sd = TRUE
+    , sparse_tol = 1e-2) {
+  mp_rbf("", dimension, initial_weights, seed, prior_sd, fit_prior_sd, sparse_tol)
+}
+
 
 mp_piecewise = function(tv, data) {
   arg = list()
@@ -96,8 +117,8 @@ mp_piecewise = function(tv, data) {
 #' identify the trajectories produced by each condensation method.
 #' @export
 mp_traj = function(
-      likelihood = list()
-    , condensation = list()
+      likelihood = empty_named_list()
+    , condensation = empty_named_list()
   ) {
   arg = list()
   arg$likelihood = likelihood

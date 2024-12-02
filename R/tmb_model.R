@@ -476,7 +476,9 @@ mp_trajectory.TMBSimulator = function(model, include_initial = FALSE) {
 
 #' @export
 mp_trajectory.TMBCalibrator = function(model, include_initial = FALSE) {
-  mp_trajectory(model$simulator, include_initial = include_initial)
+  traj = mp_trajectory(model$simulator, include_initial = include_initial)
+  traj$time = model$time_steps_obj$internal_to_external(traj$time)
+  return(traj)
 } 
 
 
@@ -514,20 +516,20 @@ mp_trajectory_sd.TMBSimulator = function(model, conf.int = FALSE, conf.level = 0
     r$conf.low = r$value + r$sd * qnorm(alpha)
     r$conf.high = r$value + r$sd * qnorm(1 - alpha)
   }
-  r
+  return(r)
 } 
 
 #' @export
 mp_trajectory_sd.TMBCalibrator = function(model, conf.int = FALSE, conf.level = 0.95) {
   traj = mp_trajectory_sd(model$simulator, conf.int, conf.level)
-  time = model$cal_args$time
-  if (!is.null(time)) traj$time = time$ending_time_engine(traj$time)
-  traj
+  traj$time = model$time_steps_obj$internal_to_external(traj$time)
+  return(traj)
 }
 
 #' @export
 mp_trajectory_ensemble.TMBSimulator = function(model, n, probs = c(0.025, 0.975)) {
-  model$report_ensemble(.n = n, .probs = probs)
+  traj = model$report_ensemble(.n = n, .probs = probs)
+  return(traj)
 }
 
 #' @export
