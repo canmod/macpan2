@@ -818,10 +818,6 @@ TMBTV.TVArg = function(tv
   }
   
   self$var_update_exprs = function() {
-    ## turns out all types of time variation require
-    ## the same step here, but going to keep it
-    ## separated for now in case we would like to
-    ## modify specific types.
     nms = self$global_names_by_tv_type()
     s = character()
     s = c(s, sprintf("%s ~ time_var(%s, %s)"
@@ -839,7 +835,7 @@ TMBTV.TVArg = function(tv
       , nms$known$time_var
       , nms$known$change_points
     ))
-    s = c(s, sprintf("%s ~ time_var(%s, %s)"
+    s = c(s, sprintf("%s ~ exp(time_var(%s, %s))"
       , self$lnms
       , nms$linear$outputs_var
       , nms$linear$data_time_indexes
@@ -940,8 +936,8 @@ TMBTV.TVArg = function(tv
       , nms$outputs_var, nms$values_var, nms$time_var
       , nms$col_indexes, nms$row_indexes, nms$outputs_var
     )
-    s2 = sprintf("%s ~ %s * exp(c(%s[0], %s))"
-      , nms$outputs_var, self$lnms, nms$outputs_var, nms$outputs_var
+    s2 = sprintf("%s ~ c(%s[0], %s)"
+      , nms$outputs_var, nms$outputs_var, nms$outputs_var
     )
     as.list(c(lapply(s, as.formula), lapply(s2, as.formula)))
   }
