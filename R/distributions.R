@@ -647,9 +647,14 @@ mp_normal = function(location = mp_distr_param_null("location")
 #' @description * Log-Normal Distribution - `mp_log_normal`
 #' @name distribution
 #' @export
-mp_log_normal = function(location = mp_distr_param_null("location")
-                       , sd
-                       , trans_distr_param = list(location = mp_identity, sd = mp_identity)) {
+mp_log_normal = function(
+       location = mp_distr_param_null("location")
+     , sd
+     , trans_distr_param = list(
+          location = mp_identity
+        , sd = mp_identity
+      )
+  ) {
   self = DistrSpec(
       distr_param_objs = nlist(location, sd)
       # identity transformations because distributional parameters are already
@@ -662,6 +667,7 @@ mp_log_normal = function(location = mp_distr_param_null("location")
             , par
             , self$distr_param_objs$location$expr_ref()
             , self$distr_param_objs$sd$expr_ref()
+            #, par
     )
   }
   self$likelihood = \(obs, sim) {
@@ -669,6 +675,7 @@ mp_log_normal = function(location = mp_distr_param_null("location")
             , obs
             , sim
             , self$distr_param_objs$sd$expr_ref()
+            #, obs
     )
   }
   self$check_variable = function(variable) {
@@ -696,17 +703,19 @@ mp_logit_normal = function(location = mp_distr_param_null("location")
   )
 
   self$prior = \(par) {
-    sprintf("-sum(dnorm(log(%s) - log(1 - %s), %s, %s))"
+    sprintf("-sum(dnorm(log(%s) - log(1 - %s), %s, %s) / (%s * (1 - %s)))"
             , par, par
             , self$distr_param_objs$location$expr_ref()
             , self$distr_param_objs$sd$expr_ref()
+            , par, par
     )
   }
   self$likelihood = \(obs, sim) {
-    sprintf("-sum(dnorm(log(%s) - log(1 - %s), log(%s) - log(1 - %s), %s))"
+    sprintf("-sum(dnorm(log(%s) - log(1 - %s), log(%s) - log(1 - %s), %s) / (%s * (1 - %s)))"
             , obs, obs
             , sim, sim
             , self$distr_param_objs$sd$expr_ref()
+            , obs, obs
     )
   }
   self$check_variable = function(variable) {

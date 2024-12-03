@@ -1,4 +1,13 @@
 library(macpan2); library(testthat); library(dplyr); library(tidyr); library(ggplot2)
+
+norm = mp_normal(location = "texas", sd = "fred")
+norm$likelihood("obs", "exp")
+norm$prior("beta")
+norm$distr_param_objs$location$expr_ref()
+norm$distr_param_objs$sd$expr_ref()
+
+
+
 test_that("distributions give appropriate variable assumption warnings", {
   
   # At this time the only distribution with variable assumptions is the 

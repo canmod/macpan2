@@ -213,6 +213,8 @@ print.TMBCalibrator = function(x, ...) {
   }
 }
 
+
+
 #' Optimize
 #'
 #' @param model A model object capable of being optimized. See below
@@ -740,14 +742,14 @@ TMBTV.TVArg = function(tv
   self$ptv_list = struc$matrix_list[self$pnms] |> fix_tv_list()
   self$rtv_list = struc$matrix_list[self$rnms] |> fix_tv_list()
   self$ktv_list = struc$matrix_list[self$knms] |> fix_tv_list()
-  self$stv_list = self$tv$linear |> fix_linear_list()
+  self$ltv_list = self$tv$linear |> fix_linear_list()
   
   self$time_var = function() {
     l = list()
     for (nm in self$pnms) l[[nm]] = self$ptv_list[[nm]]$default
     for (nm in self$rnms) l[[nm]] = self$rtv_list[[nm]]$default
     for (nm in self$knms) l[[nm]] = self$ktv_list[[nm]]$default
-    for (nm in self$lnms) l[[nm]] = self$stv_list[[nm]]$initial_weights
+    for (nm in self$lnms) l[[nm]] = self$ltv_list[[nm]]$initial_weights
     return(l)
   }
   
@@ -775,20 +777,20 @@ TMBTV.TVArg = function(tv
   
   self$values_var = function() {
     l = list()
-    for (nm in self$lnms) l[[nm]] = self$stv_list[[nm]]$sparse_basis_data$values
+    for (nm in self$lnms) l[[nm]] = self$ltv_list[[nm]]$sparse_basis_data$values
     return(l)
   }
   
   self$prior_sd = function() {
     l = list()
-    for (nm in self$lnms) l[[nm]] = self$stv_list[[nm]]$prior_sd
+    for (nm in self$lnms) l[[nm]] = self$ltv_list[[nm]]$prior_sd
     return(l)
   }
   
   self$row_indexes = function() {
     l = list()
     for (nm in self$lnms) {
-      l[[nm]] = as.integer(self$stv_list[[nm]]$sparse_basis_data$row_index)
+      l[[nm]] = as.integer(self$ltv_list[[nm]]$sparse_basis_data$row_index)
     }
     return(l)
   }
@@ -796,14 +798,14 @@ TMBTV.TVArg = function(tv
   self$col_indexes = function() {
     l = list()
     for (nm in self$lnms) {
-      l[[nm]] = as.integer(self$stv_list[[nm]]$sparse_basis_data$col_index)
+      l[[nm]] = as.integer(self$ltv_list[[nm]]$sparse_basis_data$col_index)
     }
     return(l)
   }
   
   self$outputs_var = function() {
     l = list()
-    for (nm in self$lnms) l[[nm]] = self$stv_list[[nm]]$initial_outputs
+    for (nm in self$lnms) l[[nm]] = self$ltv_list[[nm]]$initial_outputs
     return(l)
   }
   
@@ -816,6 +818,10 @@ TMBTV.TVArg = function(tv
   }
   
   self$var_update_exprs = function() {
+    ## turns out all types of time variation require
+    ## the same step here, but going to keep it
+    ## separated for now in case we would like to
+    ## modify specific types.
     nms = self$global_names_by_tv_type()
     s = character()
     s = c(s, sprintf("%s ~ time_var(%s, %s)"
@@ -833,7 +839,7 @@ TMBTV.TVArg = function(tv
       , nms$known$time_var
       , nms$known$change_points
     ))
-    s = c(s, sprintf("%s ~ exp(time_var(%s, %s))"
+    s = c(s, sprintf("%s ~ time_var(%s, %s)"
       , self$lnms
       , nms$linear$outputs_var
       , nms$linear$data_time_indexes
@@ -899,8 +905,22 @@ TMBTV.TVArg = function(tv
     ## during calibration
     ## (e.g., time_var_beta)
     gnms = self$global_names_by_tv_type()
-    gnms = c(gnms$params$time_var, gnms$linear$time_var)
-    self$.util_params_frame(gnms)
+    nms = c(gnms$params$time_var, gnms$linear$time_var)
+    d = self$.util_params_frame(nms)
+    linear = self$tv$linear
+    for (nms in names(linear)) {
+      p = linear[[nms]]
+      if (p$fit_prior_sd) {
+        d_prior = data.frame(
+            mat = gnms$linear$prior_sd[[nms]]
+          , row = 0L
+          , col = 0L
+          , default = p$prior_sd
+        )
+        d = rbind(d, d_prior)
+      }
+    }
+    return(d)
   }
   
   self$tv_random_frame = function() {
@@ -913,6 +933,21 @@ TMBTV.TVArg = function(tv
     gnms = c(gnms$random$time_var)
     self$.util_params_frame(gnms)
   }
+  
+  self$before_loop = function() {
+    nms = self$global_names_by_tv_type()$linear
+    s = sprintf("%s ~ group_sums(%s * %s[%s], %s, %s)"
+      , nms$outputs_var, nms$values_var, nms$time_var
+      , nms$col_indexes, nms$row_indexes, nms$outputs_var
+    )
+    s2 = sprintf("%s ~ %s * exp(c(%s[0], %s))"
+      , nms$outputs_var, self$lnms, nms$outputs_var, nms$outputs_var
+    )
+    as.list(c(lapply(s, as.formula), lapply(s2, as.formula)))
+  }
+  
+  #self$tv_distr_params = function() self$tv$params$default()
+  #self$tv_distr_random = function() self$tv$random$default()
   
   self$tv$params = macpan2:::DistrList(self$tv$params, spec)
   self$tv$random = macpan2:::DistrList(self$tv$random, spec)
@@ -1473,7 +1508,7 @@ TMBPar.ParArg = function(par
     bind_rows(pf
       , self$traj$distr_params_frame()
       , self$distr_params_frame()
-      ## do we need tv params here?
+      #, self$tv_distr_params_frame()
     )
   }
   self$random_frame = function() {
@@ -1487,7 +1522,7 @@ TMBPar.ParArg = function(par
     )
   }
   
-  self$distr_params = function() self$par$params$default()
+  self$distr_params = function() self$par$params$default() # self$tv$params$default()
   self$distr_random = function() self$par$random$default()
   self$distr_params_frame = function() self$par$params$distr_params_frame()
   self$distr_random_frame = function() self$par$random$distr_params_frame()
