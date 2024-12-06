@@ -301,9 +301,8 @@ print.TMBModelSpec = function(x, ...) {
 }
 
 spec_printer = function(x, include_defaults) {
-  #e = ExprList(x$before, x$during, x$after)
-  #e = x$expr_list()
-  if (include_defaults) {
+  has_defaults = length(x$default) > 0L
+  if (include_defaults & has_defaults) {
     cat("---------------------\n")
     msg("Default values:\n") |> cat()
     cat("---------------------\n")
