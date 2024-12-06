@@ -42,6 +42,25 @@ mp_sim_bounds = function(sim_start, sim_end, time_scale, time_column = "time") {
   return_object(self, "SimBounds")
 }
 
+#' Simulation Offsets (Experimental)
+#' 
+#' Offset the starting and ending times of the simulation, from the
+#' start and end time of the data used in calibration. This is used to 
+#' override the default offsets of zero taken from the observed data passed to 
+#' \code{\link{mp_tmb_calibrator}}.
+#' 
+#' @param sim_start_offset Number of time steps before the first data point
+#' to start each simulation.
+#' @param sim_end_offset Number of time steps after the last data point to
+#' end each simulation.
+#' @param time_scale Qualitative description of the size of a time step.
+#' currently only `"steps"`, `"daily"`, and `"weekly"` are allowed,
+#' and but `"steps"` is the only recommended version as the other two
+#' are poorly tested and will throw a warning. The recommended `"steps"`
+#' option assumes that positive integers are used to indicate a particular
+#' point in the simulation.
+#' 
+#' @export
 mp_sim_offset = function(sim_start_offset, sim_end_offset, time_scale, time_column = "time") {
   self = Base()
   self$sim_start_offset = as.integer(sim_start_offset)
@@ -65,7 +84,6 @@ mp_sim_offset = function(sim_start_offset, sim_end_offset, time_scale, time_colu
   }
   return_object(self, "SimOffset")
 }
-
 
 
 CalTime = function(sim_start, sim_end, time_scale) {
