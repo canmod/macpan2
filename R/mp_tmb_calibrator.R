@@ -1,3 +1,9 @@
+## temporary source of ideas:
+## https://github.com/canmod/macpan2/commit/022a1e0af9ffd2146ff9496abbc8a3d7996c1760#diff-698a62c40da16725b9c4c0d5a59fbd6d4002d697f1194bd1dd2766b2485af3cb
+## 
+## TODO: delete this line if i forget why it is here
+
+
 #' Make TMB Calibrator
 #' 
 #' Construct an object that can get used to calibrate an object produced by 
@@ -54,7 +60,7 @@ mp_tmb_calibrator = function(spec, data
     , tv = character()
     , outputs = traj
     , default = list()
-    , time = NULL ## TODO: implement start-date offset. TODO: implement forecast extension
+    , time = NULL
   ) {
   cal_args = nlist(traj, par, tv, outputs, default, time)
   if (inherits(spec, "TMBSimulator")) {
@@ -122,8 +128,8 @@ mp_tmb_calibrator = function(spec, data
     , integers = c(
         globalize(tv, "change_points")
       , globalize(tv, "change_pointer")
-      , must_not_save = names(globalize(tv, "time_var"))
     )
+    , must_not_save = names(globalize(tv, "time_var"))
   )
   cal_spec = mp_tmb_update(cal_spec
     , default = c(
@@ -180,16 +186,17 @@ mp_tmb_calibrator = function(spec, data
   cal_sim$replace$params_frame(par$params_frame())
   cal_sim$replace$random_frame(par$random_frame())
   
-  TMBCalibrator(spec, spec$copy(), cal_spec, cal_sim, cal_args)
+  TMBCalibrator(spec, spec$copy(), cal_spec, cal_sim, cal_args, struc$time_steps_obj)
 }
 
-TMBCalibrator = function(orig_spec, new_spec, cal_spec, simulator, cal_args = NULL) {
+TMBCalibrator = function(orig_spec, new_spec, cal_spec, simulator, cal_args = NULL, time_steps_obj = NULL) {
   self = Base()
   self$orig_spec = orig_spec  ## original spec for reference
   self$new_spec = new_spec  ## gets updated as optimization proceeds
   self$cal_spec = cal_spec  ## contaminated with stuff required for calibration
   self$simulator = simulator  ## model simulator object keeping track of optimization attempts
   self$cal_args = cal_args
+  self$time_steps_obj = time_steps_obj
   return_object(self, "TMBCalibrator")
 }
 
@@ -285,6 +292,15 @@ TMBCalDataStruc = function(data, time) {
     , col = c("col", "Col", "column", "Column")
     , value = c("value", "Value", "val", "Val", "default", "Default")
   )
+  if (is.character(data$time)) {
+    original_coercer = as.character
+  } else if (is.integer(data$time)) {
+    original_coercer = as.integer
+  } else if (inherits(data$time, "Date")) {
+    original_coercer = as.Date
+  } else {
+    original_coercer = force
+  }
   if (is.null(time)) {
     if (infer_time_step(data$time)) {
       data$time = as.integer(data$time)
@@ -294,7 +310,7 @@ TMBCalDataStruc = function(data, time) {
       time = mp_sim_bounds(min(data$time), max(data$time), "daily")
     }
   }
-  self$time_steps_obj = time$cal_time_steps(data)
+  self$time_steps_obj = time$cal_time_steps(data, original_coercer)
   data$time_ids = self$time_steps_obj$external_to_internal(data$time)
   ## TODO: Still splitting on matrices, which doesn't allow flexibility
   ## in what counts as an 'output'. In general, an output could be
@@ -341,17 +357,21 @@ CalTimeStepsAbstract = function() {
   self$dat_vec = function() seq(from = self$dat_1st(), by = 1L, len = self$dat_len())
   return_object(self, "CalTimeStepsAbstract")
 }
-CalTimeStepsInt = function(ext_sim_1st, ext_sim_end, ext_dat_1st, ext_dat_end) {
+CalTimeStepsInt = function(ext_sim_1st, ext_sim_end, ext_dat_1st, ext_dat_end, original_coercer = force) {
   self = CalTimeStepsAbstract()
   self$ext_sim_1st = as.integer(ext_sim_1st)
   self$ext_sim_end = as.integer(ext_sim_end)
   self$ext_dat_1st = as.integer(ext_dat_1st)
   self$ext_dat_end = as.integer(ext_dat_end)
+  self$original_coercer = original_coercer
   self$consistency()
   self$dat_1st = function() self$ext_dat_1st - self$ext_sim_1st + self$sim_1st()
   self$sim_len = function() self$ext_sim_end - self$ext_sim_1st + self$sim_1st()
   self$dat_len = function() self$ext_dat_end - self$ext_dat_1st + 1L
-  self$internal_to_external = function(internal) internal - self$sim_1st() + self$ext_sim_1st
+  self$internal_to_external = function(internal) {
+    external = as.integer(internal) - self$sim_1st() + self$ext_sim_1st
+    self$original_coercer(external)
+  }
   self$external_to_internal = function(external) external - self$ext_sim_1st + self$sim_1st()
   return_object(self, "CalTimeStepsInt")
 }
@@ -366,12 +386,13 @@ if (FALSE) {
   xx$external_to_internal(50)
 }
 
-CalTimeStepsDaily = function(ext_sim_1st, ext_sim_end, ext_dat_1st, ext_dat_end) {
+CalTimeStepsDaily = function(ext_sim_1st, ext_sim_end, ext_dat_1st, ext_dat_end, original_coercer = force) {
   self = CalTimeStepsAbstract()
   self$ext_sim_1st = as.Date(ext_sim_1st)
   self$ext_sim_end = as.Date(ext_sim_end)
   self$ext_dat_1st = as.Date(ext_dat_1st)
   self$ext_dat_end = as.Date(ext_dat_end)
+  self$original_coercer = original_coercer
   self$consistency()
   self$dat_1st = function() {
     d = difftime(self$ext_dat_1st, self$ext_sim_1st, units = "days")
@@ -385,7 +406,10 @@ CalTimeStepsDaily = function(ext_sim_1st, ext_sim_end, ext_dat_1st, ext_dat_end)
     d = difftime(self$ext_dat_end, self$ext_dat_1st, units = "days")
     as.integer(d) + 1L
   }
-  self$internal_to_external = function(internal) internal + (self$ext_sim_1st - self$sim_1st())
+  self$internal_to_external = function(internal) {
+    external = internal + (self$ext_sim_1st - self$sim_1st())
+    self$original_coercer(external)
+  }
   self$external_to_internal = function(external) {
     d = difftime(as.Date(external), self$ext_sim_1st, units = "days")
     as.integer(d) + 1L
@@ -664,7 +688,7 @@ TMBTV.character = function(
     bind_rows(l)
   }
   self$change_pointer = function() {
-    ## Depended upon to return a list if length-one
+    ## Depended upon to return a list of length-one
     ## integer vectors with a single zero. Names of 
     ## the list are the time-varying matrices in the
     ## spec. 

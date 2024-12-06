@@ -78,7 +78,7 @@ mp_tmb_coef.TMBSimulator = function(model, back_transform = TRUE, ...) {
   assert_dependency("broom.mixed")
   tab = mp_add_effects_descr(broom.mixed::tidy(mp_tmb(model), ...), model)
   
-  if (back_transform){
+  if (back_transform & (nrow(tab) > 0L)) {
     vars1 <- intersect(c("default", "estimate", "conf.low", "conf.high"), names(tab))
     # regex matching log or logit transformed model coefficient/parameter names 
     # including time varying parameters and distributional parameters
