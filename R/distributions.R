@@ -387,7 +387,7 @@ DistrParamNum = function(generic_name, value, trans = DistrParamTrans()) {
 }
 DistrParamNumNoFit = function(name, value, trans = DistrParamTrans()) {
   self = DistrParamNum(name, value, trans)
-  self$expr_ref = function() self$trans$ref(as.character(self$.value))
+  self$expr_ref = function() self$trans$ref_inv(as.character(self$.value))
   self$update_names = function(name) {
     self$variable_name = name
     self
@@ -402,7 +402,7 @@ DistrParamNumFit = function(name, value, trans = DistrParamTrans()) {
     list(self$trans$val(self$.value)) |> setNames(self$instance_name)
   }
   self$default_objs = function() list(self) |> setNames(self$instance_name)
-  self$expr_ref = function() self$trans$ref(self$global_name)
+  self$expr_ref = function() self$trans$ref_inv(self$global_name)
   self$distr_params_frame = function() {
     if (length(self$global_name) != 1L | length(self$default()) != 1L) {
       return(empty_frame(c("mat", "row", "col", "default")))
@@ -428,7 +428,7 @@ DistrParamChar = function(name, instance_name, trans = DistrParamTrans()) {
     self$variable_name = name
     self
   }
-  self$expr_ref = function() self$trans$ref(self$global_name)
+  self$expr_ref = function() self$trans$ref_inv(self$global_name)
   self$check_in_spec = function() {
     if (!self$global_name %in% names(self$model_spec$default)) {
       stop(self$global_name, " is not in the model spec")
@@ -440,7 +440,7 @@ DistrParamCharFit = function(name, instance_name, trans = DistrParamTrans()) {
   self = DistrParamChar(name, instance_name, trans)
   # Need to update default value with trans(default val)
   # self$default = function() {
-  #   list(self$trans$ref(self$check_in_spec()))  |> setNames(self$instance_name)
+  #   list(self$trans$ref_inv(self$check_in_spec()))  |> setNames(self$instance_name)
   # }
   self$distr_params_frame = function() {
     self$check_in_spec()
@@ -466,8 +466,10 @@ DistrParamCharNoFit = function(name, instance_name, trans = DistrParamTrans()) {
 DistrParamTrans = function() {
   self = Base()
   self$ref = function(x) x
+  self$ref_inv = function(x) x
   self$nm  = function(x) x
   self$val = function(x) x
+  self$val_inv = function(x) x
   self$resolve_default = function(default) self
   return_object(self, "DistrParamTrans")
 }
@@ -485,32 +487,36 @@ DistrParamIdentity = function() {
 
 DistrParamLog = function() {
   self = DistrParamTrans()
-  self$ref = function(x) sprintf("exp(%s)", x)
+  self$ref = function(x) sprintf("log(%s)", x)
+  self$ref_inv = function(x) sprintf("exp(%s)", x)
   self$nm  = function(x) sprintf("log_%s", x)
   self$val = function(x) log(x)
+  self$val_inv = function(x) exp(x)
   return_object(self, "DistrParamLog")
 }
 
-#' @importFrom stats qlogis
+#' @importFrom stats qlogis plogis
 DistrParamLogit = function() {
   self = DistrParamTrans()
-  self$ref = function(x) sprintf("(1 / (1 + exp(-%s)))", x)
+  self$ref = function(x) sprintf("(log(%s) - log(1-%s))", x, x)
+  self$ref_inv = function(x) sprintf("(1 / (1 + exp(-%s)))", x)
   self$nm  = function(x) sprintf("logit_%s", x)
   self$val = function(x) qlogis(x)
+  self$val_inv = function(x) plogis(x)
   return_object(self, "DistrParamLogit")
 }
 
 DistrParamSqrt = function() {
   self = DistrParamTrans()
-  self$ref = function(x) sprintf("(%s^2)", x)
+  self$ref = function(x) sprintf("(%s^0.5)", x)
+  self$ref_inv = function(x) sprintf("(%s^2)", x)
   self$nm  = function(x) sprintf("sqrt_%s", x)
   self$val = function(x) sqrt(x)
+  self$val_inv = function(x) x^2
   return_object(self, "DistrParamSqrt")
 }
 
-#' Distributional Parameter Transformation
-#' 
-#' Objects used
+#' Link Functions and Transformation 
 #'
 #' @name transform_distr_param
 NULL

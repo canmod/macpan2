@@ -245,6 +245,85 @@ mp_tmb_insert_reports = function(model
   )
 }
 
+#' @export
+mp_tmb_insert_log_linear = function(model
+    , parameter_name
+    , design_matrices ## list of matrices -- one for each window
+    , time_var_parameters ## named list of parameter vectors for each window (names give window names)
+    , window_names = names(time_var_parameters)
+    #, change_points ## list of change-point integer vectors
+    #, offset_references ## list of character vectors
+    , baseline_functions = c(
+          list(macpan2:::TimeVarBaselineParameter())
+        , rep(list(macpan2:::TimeVarBaselineNumeric(0)), length(design_matrices) - 1)
+      )
+    , link_functions = rep(list(mp_identity), length(design_matrices)) ## list of DistrParamTrans objects
+    , full_series_name = sprintf("time_var_output_%s", parameter_name)
+    , baseline_names = sprintf("baseline_%s", window_names)
+    , matrix_coef_names = sprintf("matrix_coef_%s", window_names)
+    , matrix_row_names = sprintf("matrix_row_%s", window_names)
+    , matrix_col_names = sprintf("matrix_col_%s", window_names)
+    , linear_pred_names = sprintf("linear_pred_%s", window_names)
+    , time_var_names = sprintf("time_var_%s", window_names)
+    , time_index_name = sprintf("time_index_%s", parameter_name)
+    , sparsity_tolerance = 0
+  ) {
+  sparse_matrices = lapply(design_matrices, macpan2:::sparse_matrix_notation, tol = sparsity_tolerance)
+  
+  matrix_coefs = lapply(sparse_matrices, getElement, "values") |> setNames(matrix_coef_names)
+  matrix_row = lapply(sparse_matrices, getElement, "row_index") |> setNames(matrix_row_names)
+  matrix_col = lapply(sparse_matrices, getElement, "col_index") |> setNames(matrix_col_names)
+  linear_pred = lapply(design_matrices, \(x) numeric(nrow(x))) |> setNames(linear_pred_names)
+  
+  inv_links = character()
+  before = character()
+  if (baseline_functions[[1]]$not_for_first_window()) stop("Invalid baseline specification.")
+  eta = ""
+  for (i in seq_along(design_matrices)) {
+    if (i > 1L) eta = linear_pred_names[i - 1L]
+    before = append(before, baseline_functions[[i]]$calc(
+        baseline_names[i]
+      , eta
+      , link_functions[[i]]
+      , parameter_name
+    ))
+    before = append(before, sprintf("%s ~ %s + group_sums(%s * %s[%s], %s, %s)"
+      , linear_pred_names[i], baseline_names[i]
+      , matrix_coef_names[i], time_var_names[i]
+      , matrix_col_names[i], matrix_row_names[i], linear_pred_names[i]
+    ))
+    inv_links = append(inv_links, link_functions[[i]]$ref_inv(linear_pred_names[i]))
+  }
+  series = paste(inv_links, collapse = ", ")
+  before = append(before
+    , sprintf("%s ~ c(%s)", full_series_name, series)
+  ) |> lapply(as.formula)
+  
+  during = sprintf("%s ~ time_var(%s, %s)"
+    , parameter_name
+    , full_series_name
+    , time_index_name
+  ) |> lapply(as.formula)
+  
+  
+  time_index = list(seq_len(length(unlist(linear_pred)))) |> setNames(time_index_name)
+  time_var = time_var_parameters |> setNames(time_var_names)
+  
+  
+  model = mp_tmb_insert(model
+    , phase = "before"
+    , at = 1L
+    , expressions = before
+    , default = c(matrix_coefs, linear_pred, time_var)
+    , integers = c(matrix_row, matrix_col, time_index)
+  )
+  model = mp_tmb_insert(model
+    , phase = "during"
+    , at = 1L
+    , expressions = during
+  )
+  return(model)
+}
 
 ## model is a spec
 ## new_defaults is a list of raw defaults, each type of which has a `names` S3 method

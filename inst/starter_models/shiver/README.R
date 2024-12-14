@@ -80,6 +80,7 @@ varvax = simple_sims(
    + ggtitle("Michaelis-Menten function")
    + ylab(expression(f(S(t))))
    + xlab(expression(S(t)))
+   + theme_bw()
 )
 
 
@@ -98,6 +99,7 @@ varvax = simple_sims(
    + ggtitle("Vaccination Rate")
    + ylab(expression(phi(S(t))))
    + xlab(expression(S(t)))
+   + theme_bw()
 )
 
 
@@ -296,6 +298,7 @@ est_coef
   + geom_ribbon(aes(ymin = conf.low, ymax = conf.high), fill = "red", alpha = 0.3)
   + geom_point(data = reported_hospitalizations, aes(time, value))
   + ylim(c(0, NA))
+  + theme_bw()
 )
 
 
@@ -371,6 +374,7 @@ print(cc)
   + geom_ribbon(aes(ymin = conf.low, ymax = conf.high), fill = "red", alpha = 0.3)
   + geom_point(data = reported_hospitalizations, aes(time, value))
   + ylim(c(0, NA))
+  + theme_bw()
 )
 
 
@@ -484,7 +488,7 @@ multi_traj_spec = (reparameterized_spec
 ## ----multiple_traj_calib------------------------------------------------------
 ## we need a more elaborate prior distribution
 sd_par = 1 ## for convenience we give all parameters the same prior sd, for now
-sd_state = 8 ## extremely vague priors on state variables
+sd_state = 4 ## extremely vague priors on state variables
 prior_distributions = list(
     log_beta = mp_normal(log(0.2), sd_par)
   , log_sigma = mp_normal(log(sigma), sd_par)
@@ -502,17 +506,21 @@ dd = rbind(reported_hospitalizations, reported_cases)
 
 # calibrate
 shiver_calibrator = mp_tmb_calibrator(
-    spec = multi_traj_spec |> mp_hazard()
+    spec = (multi_traj_spec 
+      |> mp_hazard()
+    )
     # row bind both observed data
   , data = dd
-    # fit both trajectories with negative binomial distributions
-  , traj = list(H = mp_neg_bin(disp = mp_fit(1))
-    , reported_incidence = mp_neg_bin(disp = mp_fit(1))
+    # fit both trajectories with log-normal distributions
+    # (changed from negative binomial because apparently it is easier
+    # to fit standard deviations than dispersion parameters)
+  , traj = list(H = mp_log_normal(sd = mp_fit(1))
+    , reported_incidence = mp_log_normal(sd = mp_fit(1))
   )
   , par = prior_distributions
-    # fit the transmission rate using four radial basis functions for
+    # fit the transmission rate using five radial basis functions for
     # a flexible model of time variation.
-  , tv = mp_rbf("rbf_beta", 4, sparse_tol = 1e-8)
+  , tv = mp_rbf("rbf_beta", 5, sparse_tol = 1e-8)
   , outputs = c(states, "reported_incidence", "beta")
 )
 
@@ -525,12 +533,11 @@ mp_optimize(shiver_calibrator)
 
 ## ----mult_traj_estimates, echo=FALSE------------------------------------------
 #check estimates
-mp_tmb_coef(shiver_calibrator, conf.int = TRUE) |> round_coef_tab()
+cc = mp_tmb_coef(shiver_calibrator, conf.int = TRUE)
+round_coef_tab(cc)
 
 
 ## ----mult_traj_fit, echo=FALSE------------------------------------------------
-# how does data look with these parameters
-# not good!
 (shiver_calibrator
    |> mp_trajectory_sd(conf.int = TRUE)
    |> ggplot(aes(time, value))
@@ -542,7 +549,7 @@ mp_tmb_coef(shiver_calibrator, conf.int = TRUE) |> round_coef_tab()
     )
    + geom_point(data = dd, aes(time, value))
    + facet_wrap(vars(matrix), scales = 'free')
-   #+ ylim(c(0, NA))
+   + theme_bw()
 )
 
 

@@ -115,6 +115,7 @@ enum macpan2_func
     , MP2_MEAN = 51 // fwrap,null: mean(x)
     , MP2_SD = 52 // fwrap,null: sd(x)
     , MP2_PROPORTIONS = 53 // fwrap,null: proportions(x)
+    , MP2_LAST = 54 // fwrap,null: last(x)
 };
 
 enum macpan2_meth
@@ -701,6 +702,10 @@ public:
         else {
             return items_[i].mat.cols();
         }
+    }
+    
+    matrix<Type> get_last_element(int i) {
+        return get_as_mat(i).block(rows(i) - 1, cols(i) - 1, 1, 1);
     }
     
     std::vector<int> all_rows() {
@@ -2034,6 +2039,10 @@ public:
                     return m;
                 }
                 return args[0].block(rowIndex, colIndex, rows, cols);
+            
+            case MP2_LAST: // last(x)
+                return args.get_last_element(0);
+                
 
             // #' ## Accessing Past Values in the Simulation History
             // #'
