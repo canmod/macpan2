@@ -46,5 +46,20 @@ ChangeModelDefaults = function() {
       |> unique()
     )
   }
+  self$duplicated_change_names = function() {
+    frame = self$flow_frame()
+    dups = frame$change[duplicated(frame$change)]
+    return(dups)
+  }
+  self$check = function() {
+    dups = self$duplicated_change_names()
+    if (length(dups) > 0L) {
+      stop(
+          "The following names are duplicates:\n   "
+        , paste(dups, collapse = "   \n")
+      )
+    }
+    NULL
+  }
   return_object(self, "ChangeModelDefaults")
 }
