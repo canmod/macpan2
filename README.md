@@ -149,7 +149,7 @@ library(dplyr)
  |> mp_simulator(time_steps = 50, outputs = c("I", "infection"))
  |> mp_trajectory()
  |> mutate(quantity = case_match(matrix
-    , "I" ~ "Prevalance"
+    , "I" ~ "Prevalence"
     , "infection" ~ "Incidence"
   ))
  |> ggplot() 

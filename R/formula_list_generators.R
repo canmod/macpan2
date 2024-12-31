@@ -255,7 +255,7 @@ SimpleChangeModel = function(before = list(), during = list(), after = list()) {
   }
   self$before_loop = function() self$before
   self$after_loop = function() self$after
-  
+  self$check()
   return_object(self, "SimpleChangeModel")
 }
 
@@ -269,6 +269,7 @@ AllFormulaChangeModel = function(before = list(), during = list(), after = list(
   self$before_flows = function() self$during
   self$after_loop = function() self$after
   
+  self$check()
   return_object(self, "AllFormulaChangeModel")
 }
 
@@ -458,13 +459,21 @@ get_change_model = function(before, during, after) {
   AllFormulaChangeModel(before, during, after)
 }
 force_expr_list = function(x) {
+  is_change_component = function(x) inherits(x, "ChangeComponent")
+  is_valid = function(x) isTRUE(is_two_sided(x) | is_change_component(x))
   if (is_two_sided(x)) return(list(x))
-  if (inherits(x, "ChangeComponent")) return(list(x))
+  if (is_change_component(x)) return(list(x))
   if (!is.list(x)) {
-    ## TODO: should make more sense!
+    ## TODO: msg should make more sense to humans
     stop("Argument must be a formula, change component, or a list of such objects.")
   }
-  ## TODO: check that we have a list of valid components
+  invalid = !vapply(x, is_valid, logical(1L))
+  if (any(invalid)) {
+    stop(
+        "The expressions at the following positions are invalid: "
+      , paste(which(invalid), collapse = ", ")
+    )
+  }
   return(x)
 }
 
