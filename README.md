@@ -76,7 +76,7 @@ command.
 This command will install the current version of `macpan2`. For projects
 in production that need to keep track of specific versions of `macpan2`,
 snapshots and other reproducibility information can be obtained
-[here](https://canmod.r-universe.dev/api). Please see [this
+[here](https://canmod.r-universe.dev/apis). Please see [this
 article](https://ropensci.org/blog/2022/01/06/runiverse-renv/) for an
 explanation of how to manage reproducibility using `r-universe`.
 
@@ -149,7 +149,7 @@ library(dplyr)
  |> mp_simulator(time_steps = 50, outputs = c("I", "infection"))
  |> mp_trajectory()
  |> mutate(quantity = case_match(matrix
-    , "I" ~ "Prevalance"
+    , "I" ~ "Prevalence"
     , "infection" ~ "Incidence"
   ))
  |> ggplot() 
