@@ -626,8 +626,8 @@ Here is a reasonably difficult problem -- fit an SIR model to weekly measles inc
 ```{r sir_plot, fig.width=6}
 measles = read.csv(
   file.path(
-    "https://raw.githubusercontent.com/davidearn/iidda/master/data",
-    "meas_uk__lon_1944-94_wk/source-data/meas_uk__lon_1944-94_wk.csv"
+    "https://raw.githubusercontent.com/canmod/iidda/main/pipelines/classic-iidda/digitizations",
+    "meas_uk__lon_1944-94_wk.csv"
   ),
   comment = "#"
 )
