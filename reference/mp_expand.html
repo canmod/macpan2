@@ -19,7 +19,7 @@ formulas."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.12.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.13.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -87,12 +87,12 @@ formulas.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---------------------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Default values:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  matrix row col value</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    beta           0.2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   gamma           0.1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       N         100.0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       I           1.0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       R           0.0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  quantity value</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      beta   0.2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     gamma   0.1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         N 100.0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         I   1.0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         R   0.0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---------------------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Before the simulation loop (t = 0):</span>
@@ -102,20 +102,20 @@ formulas.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---------------------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> At every iteration of the simulation loop (t = 1 to T):</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1: mp_per_capita_flow(from = "S", to = "I", rate = infection ~ I * </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      beta/N)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2: mp_per_capita_flow(from = "I", to = "R", rate = recovery ~ gamma)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1: mp_per_capita_flow(from = "S", to = "I", rate = "beta * I / N", </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      abs_rate = "infection")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2: mp_per_capita_flow(from = "I", to = "R", rate = "gamma", abs_rate = "recovery")</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span><span class="fu"><a href="engine_functions.html">print</a></span><span class="op">(</span><span class="fu">mp_expand</span><span class="op">(</span><span class="va">sir</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---------------------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Default values:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  matrix row col value</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    beta           0.2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   gamma           0.1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       N         100.0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       I           1.0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       R           0.0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  quantity value</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      beta   0.2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     gamma   0.1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         N 100.0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         I   1.0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         R   0.0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---------------------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Before the simulation loop (t = 0):</span>
@@ -125,7 +125,7 @@ formulas.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---------------------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> At every iteration of the simulation loop (t = 1 to T):</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1: infection ~ S * (I * beta/N)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1: infection ~ S * (beta * I/N)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2: recovery ~ I * (gamma)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 3: S ~ S - infection</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 4: I ~ I + infection - recovery</span>

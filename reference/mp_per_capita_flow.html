@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.12.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.13.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -82,9 +82,13 @@ the per-capita rate of flow from <code>from</code> to <code>to</code>.</p></dd>
 
 
 <dt id="arg-abs-rate">abs_rate<a class="anchor" aria-label="anchor" href="#arg-abs-rate"></a></dt>
-<dd><p>String giving the name for the absolute flow rate,
-which will be computed as <code>from * rate</code>. If a formula is passed to
-<code>rate</code> (not recommended), then this <code>abs_rate</code> argument will be ignored.</p></dd>
+<dd><p>String giving the name for the absolute flow rate.
+By default, during simulations, the absolute flow rate will be computed as
+<code>from * rate</code>. This default behaviour will simulate the compartmental model
+as discrete difference equations, but this default can be changed to use
+other approaches (see <code><a href="state_updates.html">state_updates</a></code>).
+If a formula is passed to <code>rate</code> (not recommended for better readability),
+then this <code>abs_rate</code> argument will be ignored.</p></dd>
 
 
 <dt id="arg-rate-name">rate_name<a class="anchor" aria-label="anchor" href="#arg-rate-name"></a></dt>

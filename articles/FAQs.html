@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.12.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.13.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -100,9 +100,9 @@
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; Default values:</span></span>
 <span><span class="co">#&gt; ---------------------</span></span>
-<span><span class="co">#&gt;  matrix row col value</span></span>
-<span><span class="co">#&gt;       I          0.01</span></span>
-<span><span class="co">#&gt;    beta          0.20</span></span>
+<span><span class="co">#&gt;  quantity value</span></span>
+<span><span class="co">#&gt;         I  0.01</span></span>
+<span><span class="co">#&gt;      beta  0.20</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; Before the simulation loop (t = 0):</span></span>
@@ -347,7 +347,7 @@ explanation and link to example.</p>
 <h3 id="what-is-the-best-way-for-me-to-keep-my-state-variables-from-going-negative">What is the best way for me to keep my state variables from going
 negative?<a class="anchor" aria-label="anchor" href="#what-is-the-best-way-for-me-to-keep-my-state-variables-from-going-negative"></a>
 </h3>
-<p>The hazard correction (<code><a href="../reference/mp_euler.html">mp_hazard()</a></code>) works best in my
+<p>The hazard correction (<code><a href="../reference/state_updates.html">mp_hazard()</a></code>) works best in my
 experience. TODO: link to example.</p>
 </div>
 </div>
@@ -915,7 +915,7 @@ is used instead</p>
 <span>      , proc_err <span class="op">=</span> <span class="va">proc_err</span></span>
 <span>    <span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">sim</span> <span class="op">=</span> <span class="op">(</span><span class="va">spec</span> <span class="op">|&gt;</span> <span class="fu"><a href="../reference/mp_euler.html">mp_hazard</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">sim</span> <span class="op">=</span> <span class="op">(</span><span class="va">spec</span> <span class="op">|&gt;</span> <span class="fu"><a href="../reference/state_updates.html">mp_hazard</a></span><span class="op">(</span><span class="op">)</span></span>
 <span>  <span class="op">|&gt;</span> <span class="fu"><a href="../reference/mp_simulator.html">mp_simulator</a></span><span class="op">(</span></span>
 <span>      time_steps <span class="op">=</span> <span class="fl">50</span></span>
 <span>    , outputs <span class="op">=</span> <span class="st">"infection"</span></span>

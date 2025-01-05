@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.12.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.13.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -186,12 +186,12 @@ following code.</p>
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; Default values:</span></span>
 <span><span class="co">#&gt; ---------------------</span></span>
-<span><span class="co">#&gt;  matrix row col value</span></span>
-<span><span class="co">#&gt;    beta           0.2</span></span>
-<span><span class="co">#&gt;   gamma           0.1</span></span>
-<span><span class="co">#&gt;       N         100.0</span></span>
-<span><span class="co">#&gt;       I           1.0</span></span>
-<span><span class="co">#&gt;       R           0.0</span></span>
+<span><span class="co">#&gt;  quantity value</span></span>
+<span><span class="co">#&gt;      beta   0.2</span></span>
+<span><span class="co">#&gt;     gamma   0.1</span></span>
+<span><span class="co">#&gt;         N 100.0</span></span>
+<span><span class="co">#&gt;         I   1.0</span></span>
+<span><span class="co">#&gt;         R   0.0</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; Before the simulation loop (t = 0):</span></span>
@@ -201,9 +201,9 @@ following code.</p>
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; At every iteration of the simulation loop (t = 1 to T):</span></span>
 <span><span class="co">#&gt; ---------------------</span></span>
-<span><span class="co">#&gt; 1: mp_per_capita_flow(from = "S", to = "I", rate = infection ~ I * </span></span>
-<span><span class="co">#&gt;      beta/N)</span></span>
-<span><span class="co">#&gt; 2: mp_per_capita_flow(from = "I", to = "R", rate = recovery ~ gamma)</span></span></code></pre></div>
+<span><span class="co">#&gt; 1: mp_per_capita_flow(from = "S", to = "I", rate = "beta * I / N", </span></span>
+<span><span class="co">#&gt;      abs_rate = "infection")</span></span>
+<span><span class="co">#&gt; 2: mp_per_capita_flow(from = "I", to = "R", rate = "gamma", abs_rate = "recovery")</span></span></code></pre></div>
 <p>To see how to actually generate simulations from this model see <a href="https://canmod.github.io/macpan2/articles/quickstart">this
 article</a>. To use another model, again, replace <code>sir</code> with
 another entry in the <code>dir</code> column above.</p>
@@ -219,12 +219,12 @@ own model one may use the following code.</p>
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; Default values:</span></span>
 <span><span class="co">#&gt; ---------------------</span></span>
-<span><span class="co">#&gt;  matrix row col value</span></span>
-<span><span class="co">#&gt;    beta           0.2</span></span>
-<span><span class="co">#&gt;   gamma           0.1</span></span>
-<span><span class="co">#&gt;       N         100.0</span></span>
-<span><span class="co">#&gt;       I           1.0</span></span>
-<span><span class="co">#&gt;       R           0.0</span></span>
+<span><span class="co">#&gt;  quantity value</span></span>
+<span><span class="co">#&gt;      beta   0.2</span></span>
+<span><span class="co">#&gt;     gamma   0.1</span></span>
+<span><span class="co">#&gt;         N 100.0</span></span>
+<span><span class="co">#&gt;         I   1.0</span></span>
+<span><span class="co">#&gt;         R   0.0</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; Before the simulation loop (t = 0):</span></span>
@@ -234,9 +234,9 @@ own model one may use the following code.</p>
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; At every iteration of the simulation loop (t = 1 to T):</span></span>
 <span><span class="co">#&gt; ---------------------</span></span>
-<span><span class="co">#&gt; 1: mp_per_capita_flow(from = "S", to = "I", rate = infection ~ I * </span></span>
-<span><span class="co">#&gt;      beta/N)</span></span>
-<span><span class="co">#&gt; 2: mp_per_capita_flow(from = "I", to = "R", rate = recovery ~ gamma)</span></span></code></pre></div>
+<span><span class="co">#&gt; 1: mp_per_capita_flow(from = "S", to = "I", rate = "beta * I / N", </span></span>
+<span><span class="co">#&gt;      abs_rate = "infection")</span></span>
+<span><span class="co">#&gt; 2: mp_per_capita_flow(from = "I", to = "R", rate = "gamma", abs_rate = "recovery")</span></span></code></pre></div>
 <p>After running this code you can go to the files in
 <code>my_sir_dir</code> and modify what you see there. Note that you
 typically want to chose a specific directory for your model instead of
@@ -248,12 +248,12 @@ usual way.</p>
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; Default values:</span></span>
 <span><span class="co">#&gt; ---------------------</span></span>
-<span><span class="co">#&gt;  matrix row col value</span></span>
-<span><span class="co">#&gt;    beta           0.2</span></span>
-<span><span class="co">#&gt;   gamma           0.1</span></span>
-<span><span class="co">#&gt;       N         100.0</span></span>
-<span><span class="co">#&gt;       I           1.0</span></span>
-<span><span class="co">#&gt;       R           0.0</span></span>
+<span><span class="co">#&gt;  quantity value</span></span>
+<span><span class="co">#&gt;      beta   0.2</span></span>
+<span><span class="co">#&gt;     gamma   0.1</span></span>
+<span><span class="co">#&gt;         N 100.0</span></span>
+<span><span class="co">#&gt;         I   1.0</span></span>
+<span><span class="co">#&gt;         R   0.0</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; Before the simulation loop (t = 0):</span></span>
@@ -263,9 +263,9 @@ usual way.</p>
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; At every iteration of the simulation loop (t = 1 to T):</span></span>
 <span><span class="co">#&gt; ---------------------</span></span>
-<span><span class="co">#&gt; 1: mp_per_capita_flow(from = "S", to = "I", rate = infection ~ I * </span></span>
-<span><span class="co">#&gt;      beta/N)</span></span>
-<span><span class="co">#&gt; 2: mp_per_capita_flow(from = "I", to = "R", rate = recovery ~ gamma)</span></span></code></pre></div>
+<span><span class="co">#&gt; 1: mp_per_capita_flow(from = "S", to = "I", rate = "beta * I / N", </span></span>
+<span><span class="co">#&gt;      abs_rate = "infection")</span></span>
+<span><span class="co">#&gt; 2: mp_per_capita_flow(from = "I", to = "R", rate = "gamma", abs_rate = "recovery")</span></span></code></pre></div>
 <p>These look identical to what came before, but that’s just because it
 hasn’t been modified … yet …</p>
 </div>

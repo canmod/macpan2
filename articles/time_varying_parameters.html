@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.12.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.13.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -195,15 +195,15 @@ transmission rate.</p>
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; Default values:</span></span>
 <span><span class="co">#&gt; ---------------------</span></span>
-<span><span class="co">#&gt;       matrix row col value</span></span>
-<span><span class="co">#&gt;         beta         8e-01</span></span>
-<span><span class="co">#&gt;        gamma         2e-01</span></span>
-<span><span class="co">#&gt;            N         1e+02</span></span>
-<span><span class="co">#&gt;            I         1e+00</span></span>
-<span><span class="co">#&gt;            R         0e+00</span></span>
-<span><span class="co">#&gt;  beta_values   0     8e-01</span></span>
-<span><span class="co">#&gt;  beta_values   1     1e-02</span></span>
-<span><span class="co">#&gt;  beta_values   2     4e-01</span></span>
+<span><span class="co">#&gt;       matrix row value</span></span>
+<span><span class="co">#&gt;         beta     8e-01</span></span>
+<span><span class="co">#&gt;        gamma     2e-01</span></span>
+<span><span class="co">#&gt;            N     1e+02</span></span>
+<span><span class="co">#&gt;            I     1e+00</span></span>
+<span><span class="co">#&gt;            R     0e+00</span></span>
+<span><span class="co">#&gt;  beta_values   0 8e-01</span></span>
+<span><span class="co">#&gt;  beta_values   1 1e-02</span></span>
+<span><span class="co">#&gt;  beta_values   2 4e-01</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; Before the simulation loop (t = 0):</span></span>
@@ -214,9 +214,9 @@ transmission rate.</p>
 <span><span class="co">#&gt; At every iteration of the simulation loop (t = 1 to T):</span></span>
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; 1: beta ~ time_var(beta_values, beta_changepoints)</span></span>
-<span><span class="co">#&gt; 2: mp_per_capita_flow(from = "S", to = "I", rate = infection ~ I * </span></span>
-<span><span class="co">#&gt;      beta/N)</span></span>
-<span><span class="co">#&gt; 3: mp_per_capita_flow(from = "I", to = "R", rate = recovery ~ gamma)</span></span>
+<span><span class="co">#&gt; 2: mp_per_capita_flow(from = "S", to = "I", rate = "beta * I / N", </span></span>
+<span><span class="co">#&gt;      abs_rate = "infection")</span></span>
+<span><span class="co">#&gt; 3: mp_per_capita_flow(from = "I", to = "R", rate = "gamma", abs_rate = "recovery")</span></span>
 <span></span>
 <span><span class="co"># create simulator object</span></span>
 <span><span class="va">piecewise_simulator</span> <span class="op">=</span> <span class="op">(</span><span class="va">piecewise_spec</span></span>
@@ -277,18 +277,18 @@ must be positive and the domain of the logarithm is
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; Default values:</span></span>
 <span><span class="co">#&gt; ---------------------</span></span>
-<span><span class="co">#&gt;           matrix row col      value</span></span>
-<span><span class="co">#&gt;             beta           0.800000</span></span>
-<span><span class="co">#&gt;            gamma           0.200000</span></span>
-<span><span class="co">#&gt;                N         100.000000</span></span>
-<span><span class="co">#&gt;                I           1.000000</span></span>
-<span><span class="co">#&gt;                R           0.000000</span></span>
-<span><span class="co">#&gt;      beta_values   0       0.800000</span></span>
-<span><span class="co">#&gt;      beta_values   1       0.010000</span></span>
-<span><span class="co">#&gt;      beta_values   2       0.400000</span></span>
-<span><span class="co">#&gt;  log_beta_values   0      -1.914868</span></span>
-<span><span class="co">#&gt;  log_beta_values   1      -1.914868</span></span>
-<span><span class="co">#&gt;  log_beta_values   2      -1.914868</span></span>
+<span><span class="co">#&gt;           matrix row      value</span></span>
+<span><span class="co">#&gt;             beta       0.800000</span></span>
+<span><span class="co">#&gt;            gamma       0.200000</span></span>
+<span><span class="co">#&gt;                N     100.000000</span></span>
+<span><span class="co">#&gt;                I       1.000000</span></span>
+<span><span class="co">#&gt;                R       0.000000</span></span>
+<span><span class="co">#&gt;      beta_values   0   0.800000</span></span>
+<span><span class="co">#&gt;      beta_values   1   0.010000</span></span>
+<span><span class="co">#&gt;      beta_values   2   0.400000</span></span>
+<span><span class="co">#&gt;  log_beta_values   0  -1.914868</span></span>
+<span><span class="co">#&gt;  log_beta_values   1  -1.914868</span></span>
+<span><span class="co">#&gt;  log_beta_values   2  -1.914868</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; Before the simulation loop (t = 0):</span></span>
@@ -300,9 +300,9 @@ must be positive and the domain of the logarithm is
 <span><span class="co">#&gt; At every iteration of the simulation loop (t = 1 to T):</span></span>
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; 1: beta ~ time_var(beta_values, beta_changepoints)</span></span>
-<span><span class="co">#&gt; 2: mp_per_capita_flow(from = "S", to = "I", rate = infection ~ I * </span></span>
-<span><span class="co">#&gt;      beta/N)</span></span>
-<span><span class="co">#&gt; 3: mp_per_capita_flow(from = "I", to = "R", rate = recovery ~ gamma)</span></span></code></pre></div>
+<span><span class="co">#&gt; 2: mp_per_capita_flow(from = "S", to = "I", rate = "beta * I / N", </span></span>
+<span><span class="co">#&gt;      abs_rate = "infection")</span></span>
+<span><span class="co">#&gt; 3: mp_per_capita_flow(from = "I", to = "R", rate = "gamma", abs_rate = "recovery")</span></span></code></pre></div>
 <p>Next we create the calibrator object and specify that we want to
 estimate the vector of time varying transmission rates,
 <code>log_beta_values</code>, by passing this parameter name to the
