@@ -53,10 +53,13 @@ test_that("mp_rk4() does not repeat formulas that assign values to state variabl
 test_that("mp_rk4() gives the same state variable updates as mp_rk4_old()", {
   sir = mp_tmb_library("starter_models", "sir", package = "macpan2")
 
-  I = sir |> mp_rk4() |> mp_simulator(30L, "I") |> mp_trajectory()
-  I_old = sir |> mp_rk4_old() |> mp_simulator(30L, "I") |> mp_trajectory()
-  infection = sir |> mp_rk4() |> mp_simulator(30L, "infection") |> mp_trajectory()
-  infection_old = sir |> mp_rk4_old() |> mp_simulator(30L, "infection") |> mp_trajectory()
+  new = sir |> mp_rk4()     |> mp_simulator(30L, c("I", "infection")) |> mp_trajectory()
+  old = sir |> mp_rk4_old() |> mp_simulator(30L, c("I", "infection")) |> mp_trajectory()
+  
+  I     = filter(new, matrix == "I")
+  I_old = filter(old, matrix == "I")
+  infection     = filter(new, matrix == "infection")
+  infection_old = filter(old, matrix == "infection")
   
   expect_equal(I, I_old)
   expect_gt(mean(infection_old$value), mean(infection$value))
