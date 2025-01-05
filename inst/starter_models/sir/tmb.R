@@ -3,8 +3,8 @@ library(macpan2)
 initialize_state = list(S ~ N - I - R)
 
 flows = list(
-    mp_per_capita_flow("S", "I", infection ~ I * beta / N)
-  , mp_per_capita_flow("I", "R", recovery ~ gamma)
+    mp_per_capita_flow("S", "I", "beta * I / N", "infection")
+  , mp_per_capita_flow("I", "R", "gamma", "recovery")
 )
 
 default = list(

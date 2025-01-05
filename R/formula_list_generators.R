@@ -317,19 +317,19 @@ MockChangeModel = function() {
 
 ##' State Updates
 ##' 
-##' Use these functions to update a model spec so that the state variables
-##' are updated according to different numerical methods.
+##' These functions return a modified version of a model specification, such 
+##' that the state variables are updated each time step according to different 
+##' numerical methods.
+##' 
+##' To see the computations that update the state variables under these 
+##' modified specifications, one may use the
+##' \code{\link{mp_expand}} function (see examples).
 ##' 
 ##' The default update method for model specifications produced using
 ##' \code{\link{mp_tmb_model_spec}} is `mp_euler`. This update method
 ##' yields a difference-equation model where the state is updated once
 ##' per time-step using the absolute flow rate as the difference between
 ##' steps.
-##' 
-##' These state update functions are used to modify a model specification to
-##' use a particular kind of state update. To see these modified models for
-##' a particular example one may use the \code{\link{mp_expand}} function
-##' (see examples).
 ##' 
 ##' @param model Object with quantities that have been explicitly 
 ##' marked as state variables.
@@ -341,10 +341,18 @@ MockChangeModel = function() {
 ##' sir |> mp_rk4()               |> mp_expand()
 ##' sir |> mp_euler_multinomial() |> mp_expand()
 ##' 
+##' @name state_updates
+NULL
+
+##' @describeIn state_updates ODE solver using the Euler method, which is
+##' equivalent to treating the model as a set of discrete-time difference 
+##' equations. This is the default method used by 
+##' \code{\link{mp_tmb_model_spec}}, but this default can be changed using
+##' the functions described below.
 ##' @export
 mp_euler = function(model) UseMethod("mp_euler")
 
-##' @describeIn mp_euler ODE solver using Runge-Kutta 4. Any formulas that
+##' @describeIn state_updates ODE solver using Runge-Kutta 4. Any formulas that
 ##' appear before model flows in the `during` list will only be updated
 ##' with RK4 if they do contain functions in 
 ##' `getOption("macpan2_non_iterable_funcs")` and if they do not make any
@@ -362,17 +370,24 @@ mp_euler = function(model) UseMethod("mp_euler")
 ##' will only be called once per time-step, and so it should never be removed
 ##' from the list of non-iterable functions. Although in principle it could
 ##' make sense to update state variables manually, it currently causes us to
-##' be confused. We therefore require that all state variables updates are set
-##' explicitly (e.g., with \code{\link{mp_per_capita_flow}}) if any are explicit.
+##' be confused. We therefore require that all state variable updates are set
+##' explicitly (e.g., with \code{\link{mp_per_capita_flow}}).
 ##' @export
 mp_rk4 = function(model) UseMethod("mp_rk4")
 
-##' @describeIn mp_euler Update state with process error given by the 
+##' @describeIn state_updates Old version of `mp_rk4` that doesn't keep track
+##' of absolute flows through each time-step. As a result this version is
+##' more efficient but makes it more difficult to compute things like 
+##' incidence over a time scale.
+##' @export
+mp_rk4_old = function(model) UseMethod("mp_rk4_old")
+
+##' @describeIn state_updates Update state with process error given by the 
 ##' Euler-multinomial distribution. 
 ##' @export
 mp_euler_multinomial = function(model) UseMethod("mp_euler_multinomial")
 
-##' @describeIn mp_euler Update state with hazard steps, which is equivalent
+##' @describeIn state_updates Update state with hazard steps, which is equivalent
 ##' to taking the step given by the expected value of the Euler-multinomial
 ##' distribution.
 ##' @export
@@ -383,6 +398,10 @@ mp_euler.TMBModelSpec = function(model) model$change_update_method("euler")
 
 ##' @export
 mp_rk4.TMBModelSpec = function(model) model$change_update_method("rk4")
+
+##' @export
+mp_rk4_old.TMBModelSpec = function(model) model$change_update_method("rk4_old")
+
 
 ##' @export
 mp_euler_multinomial.TMBModelSpec = function(model) model$change_update_method("euler_multinomial")
@@ -446,6 +465,7 @@ get_state_update_method = function(state_update, change_model) {
   }
   cls_nm = sprintf("%sUpdateMethod", var_case_to_cls_case(state_update))
   if (state_update == "rk4") cls_nm = "RK4UpdateMethod"
+  if (state_update == "rk4_old") cls_nm = "RK4OldUpdateMethod"
   get(cls_nm)(change_model)
 }
 get_change_model = function(before, during, after) {
@@ -490,9 +510,7 @@ EulerUpdateMethod = function(change_model, existing_global_names = character()) 
   self = UpdateMethod()
   self$change_model = change_model
   
-  ## nb: euler method requires no additional names from the spec
-  #self$existing_global_names = existing_global_names
-  
+  ## euler method requires no additional names from the spec
   
   self$before = function() self$change_model$before_loop()
   self$during = function() {
@@ -517,7 +535,7 @@ EulerUpdateMethod = function(change_model, existing_global_names = character()) 
 }
 
 
-RK4UpdateMethod = function(change_model) {
+RK4OldUpdateMethod = function(change_model) {
   self = UpdateMethod()
   self$change_model = change_model
   
@@ -580,6 +598,97 @@ RK4UpdateMethod = function(change_model) {
   return_object(self, "EulerUpdateMethod")
 }
 
+RK4UpdateMethod = function(change_model) {
+  self = UpdateMethod()
+  self$change_model = change_model
+  
+  self$before = function() self$change_model$before_loop()
+  self$during = function() {
+    before_components = self$change_model$before_flows()
+    flow_frame = self$change_model$flow_frame()
+    components = flow_frame_to_absolute_flows(flow_frame)
+    before_state = self$change_model$before_state()
+    # before = c(before_components, components, before_state)
+    update_state = self$change_model$update_state()
+    update_flows = self$change_model$update_flows() |> unlist(recursive = FALSE, use.names = FALSE)
+    
+    new_update = list()
+    new_before = list()
+    
+    states = vapply(update_state, lhs_char, character(1L))
+    rates = vapply(update_state, rhs_char, character(1L))
+    flows = flow_frame$change
+    
+    existing_names = self$change_model$all_user_aware_names()
+    local_state_step_names = list(
+        k1 = sprintf("k1_%s", states)
+      , k2 = sprintf("k2_%s", states)
+      , k3 = sprintf("k3_%s", states)
+      , k4 = sprintf("k4_%s", states)
+    )
+    local_flow_step_names = list(
+        k1 = sprintf("k1_%s", flows)
+      , k2 = sprintf("k2_%s", flows)
+      , k3 = sprintf("k3_%s", flows)
+      , k4 = sprintf("k4_%s", flows)
+    )
+    state_step_names = map_names(existing_names, local_state_step_names)
+    flow_step_names = map_names(existing_names, local_flow_step_names)
+    
+    rate_formulas = sprintf("%s ~ %s", state_step_names$k1, rates) |> lapply(as.formula)
+    
+    make_before = function(stage) {
+      stage_flow_frame = within(flow_frame, change <- flow_step_names[[stage]])
+      stage_components = macpan2:::flow_frame_to_absolute_flows(stage_flow_frame)
+      if (stage == "k1") {
+        stage_before_components = before_components
+      } else {
+        stage_before_components = only_iterable(before_components, states)
+      }
+      c(stage_before_components, stage_components)
+    }
+    
+    ## rk4 step 1
+    flow_replacements = sprintf("%s ~ %s", flows, flow_step_names$k1) |> lapply(as.formula)
+    k1_new_before = make_before("k1")
+    k1_new_update = macpan2:::update_formulas(rate_formulas, flow_replacements)
+    
+    ## rk4 step 2
+    state_replacements = sprintf("%s ~ (%s + (%s / 2))", states, states, state_step_names$k1) |> lapply(as.formula)
+    flow_replacements = sprintf("%s ~ %s", flows, flow_step_names$k2) |> lapply(as.formula)
+    k2_new_before = macpan2:::update_formulas(make_before("k2"), state_replacements)
+    k2_new_update = sprintf("%s ~ %s", state_step_names$k2, rates) |> lapply(as.formula) |> macpan2:::update_formulas(flow_replacements)
+    
+    ## rk4 step 3
+    state_replacements = sprintf("%s ~ (%s + (%s / 2))", states, states, state_step_names$k2) |> lapply(as.formula)
+    flow_replacements = sprintf("%s ~ %s", flows, flow_step_names$k3) |> lapply(as.formula)
+    k3_new_before = macpan2:::update_formulas(make_before("k3"), state_replacements)
+    k3_new_update = sprintf("%s ~ %s", state_step_names$k3, rates) |> lapply(as.formula) |> macpan2:::update_formulas(flow_replacements)
+    
+    ## rk4 step 4
+    state_replacements = sprintf("%s ~ (%s + %s)", states, states, state_step_names$k3) |> lapply(as.formula)
+    flow_replacements = sprintf("%s ~ %s", flows, flow_step_names$k4) |> lapply(as.formula)
+    k4_new_before = macpan2:::update_formulas(make_before("k4"), state_replacements)
+    k4_new_update = sprintf("%s ~ %s", state_step_names$k4, rates) |> lapply(as.formula) |> macpan2:::update_formulas(flow_replacements)
+    
+    ## final update step
+    final_flow_update = sprintf("%s ~ (%s + 2 * %s + 2 * %s + %s)/6"
+      , flows, flow_step_names$k1, flow_step_names$k2, flow_step_names$k3, flow_step_names$k4
+    ) |> lapply(as.formula)
+    final_state_update = sprintf("%s ~ %s %s", states, states, rates) |> lapply(as.formula) |> setNames(states)
+    after_components = self$change_model$after_state()
+    c(
+        k1_new_before, k1_new_update
+      , k2_new_before, k2_new_update
+      , k3_new_before, k3_new_update
+      , k4_new_before, k4_new_update
+      , final_flow_update, final_state_update
+      , after_components
+    )
+  }
+  self$after = function() self$change_model$after_loop()
+  return_object(self, "EulerUpdateMethod")
+}
 
 EulerMultinomialUpdateMethod = function(change_model) {
   self = Base()
@@ -691,9 +800,13 @@ HazardUpdateMethod = function(change_model) {
 #' a two-sided formula with the left-hand-side giving the name of the absolute 
 #' flow rate per unit time-stepand the right-hand-side giving an expression for 
 #' the per-capita rate of flow from `from` to `to`.
-#' @param abs_rate String giving the name for the absolute flow rate,
-#' which will be computed as `from * rate`. If a formula is passed to
-#' `rate` (not recommended), then this `abs_rate` argument will be ignored.
+#' @param abs_rate String giving the name for the absolute flow rate. 
+#' By default, during simulations, the absolute flow rate will be computed as
+#' `from * rate`. This default behaviour will simulate the compartmental model
+#' as discrete difference equations, but this default can be changed to use
+#' other approaches (see \code{\link{state_updates}}).
+#' If a formula is passed to `rate` (not recommended for better readability), 
+#' then this `abs_rate` argument will be ignored.
 #' @param rate_name String giving the name for the absolute flow rate.
 #' 
 #' @examples

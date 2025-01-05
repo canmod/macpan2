@@ -7,7 +7,7 @@ TMBModelSpec = function(
     , must_save = character()
     , must_not_save = character()
     , sim_exprs = character()
-    , state_update = c("euler", "rk4", "euler_multinomial", "hazard")
+    , state_update = c("euler", "rk4", "euler_multinomial", "hazard", "rk4_old")
   ) {
   must_not_save = handle_saving_conflicts(must_save, must_not_save)
   self = Base()
@@ -104,7 +104,7 @@ TMBModelSpec = function(
     )
   }
   self$change_update_method = function(
-      state_update = c("euler", "rk4", "euler_multinomial", "hazard")
+      state_update = c("euler", "rk4", "euler_multinomial", "hazard", "rk4_old")
     ) {
     
     if (self$state_update == "no") {
@@ -296,21 +296,54 @@ must_save_time_args = function(formulas) {
 mp_tmb_model_spec = TMBModelSpec
 
 #' @export
-print.TMBModelSpec = function(x, ...) {
-  spec_printer(x, include_defaults = TRUE)
-}
+print.TMBModelSpec = function(x, ...) mp_print_spec(x)
 
 spec_printer = function(x, include_defaults) {
-  #e = ExprList(x$before, x$during, x$after)
-  #e = x$expr_list()
   if (include_defaults) {
     cat("---------------------\n")
     msg("Default values:\n") |> cat()
     cat("---------------------\n")
-    print(melt_default_matrix_list(x$default), row.names = FALSE)
+    print(melt_default_matrix_list(x$default, simplify_as_scalars = TRUE), row.names = FALSE)
     cat("\n")
   }
   exprs = c(x$before, x$during, x$after)
   schedule = c(length(x$before), length(x$during), length(x$after))
   model_steps_printer(exprs, schedule)
+}
+
+#' Print Model Specification
+#' 
+#' @param model A model produced by \code{\link{mp_tmb_model_spec}}.
+#' 
+#' @export
+mp_print_spec = function(model) spec_printer(model, include_defaults = TRUE)
+
+#' @describeIn mp_print_spec Print just the expressions executed before the
+#' simulation loop.
+#' @export
+mp_print_before = function(model) {
+  model_steps_printer(
+      model$before
+    , c(length(model$before), 0L, 0L)
+  )
+}
+
+#' @describeIn mp_print_spec Print just the expressions executed during each
+#' iteration of the simulation loop.
+#' @export
+mp_print_during = function(model) {
+  model_steps_printer(
+      model$during
+    , c(0L, length(model$during), 0L)
+  )
+}
+
+#' @describeIn mp_print_spec Print just the expressions executed after the
+#' simulation loop.
+#' @export
+mp_print_after = function(model) {
+  model_steps_printer(
+      model$after
+    , c(0L, 0L, length(model$after))
+  )
 }
