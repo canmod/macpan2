@@ -7,7 +7,13 @@ TMBModelSpec = function(
     , must_save = character()
     , must_not_save = character()
     , sim_exprs = character()
-    , state_update = c("euler", "rk4", "euler_multinomial", "hazard", "rk4_old")
+    , state_update = c(
+          "euler"
+        , "rk4"
+        , "euler_multinomial"
+        , "hazard"
+        , "rk4_old"
+      )
   ) {
   must_not_save = handle_saving_conflicts(must_save, must_not_save)
   self = Base()
@@ -296,6 +302,17 @@ must_save_time_args = function(formulas) {
 #' @param state_update (experimental) Optional character vector for how to 
 #' update the state variables when it is relevant. Options include `"euler"`, 
 #' `"rk4"`, and `"euler_multinomial"`.
+#' 
+#' @examples
+#' spec = mp_tmb_model_spec(
+#'     during = mp_per_capita_flow("S", "I", "beta * I / N", "infection")
+#'   , default = list(N = 100, S = 99, I = 1, beta = 0.2)
+#' )
+#' (spec 
+#'   |> mp_simulator(time_steps = 5L, output = "infection") 
+#'   |> mp_trajectory()
+#' )
+#' 
 #' @export
 mp_tmb_model_spec = TMBModelSpec
 

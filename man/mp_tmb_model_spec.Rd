@@ -72,3 +72,14 @@ update the state variables when it is relevant. Options include \code{"euler"},
 \description{
 Specify a simulation model in the TMB engine.
 }
+\examples{
+spec = mp_tmb_model_spec(
+    during = mp_per_capita_flow("S", "I", "beta * I / N", "infection")
+  , default = list(N = 100, S = 99, I = 1, beta = 0.2)
+)
+(spec 
+  |> mp_simulator(time_steps = 5L, output = "infection") 
+  |> mp_trajectory()
+)
+
+}
