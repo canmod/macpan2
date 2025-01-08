@@ -251,20 +251,24 @@ must_save_time_args = function(formulas) {
 }
 #' Specify a TMB Model
 #' 
-#' Specify a model in the TMB engine.
+#' Specify a simulation model in the TMB engine.
 #' 
-#' @param before List of formulas to be evaluated (in the order provided) before
-#' the simulation loop begins. Each \code{\link{formula}} must have a left hand
+#' @param before List of expressions to be evaluated (in the order provided)
+#' before the simulation loop begins. Expressions can either be standard
+#' R \code{\link{formula}} objects or calls to flow functions (e.g., 
+#' \code{\link{mp_per_capita_flow}}). Formulas must have a left hand
 #' side that gives the name of the matrix being updated, and a right hand side
-#' giving an expression containing only the names of matrices in the model,
-#' functions defined in the TMB engine, and numerical literals (e.g.
-#' \code{3.14}). The available functions in the TMB engine  can be described in
-#' \code{\link{engine_functions}}. Names can be provided for the components of
-#' \code{before}, and these names do not have to be unique. These names are
-#' used by the \code{sim_exprs} argument.
-#' @param during List of formulas to be evaluated at every iteration of the
+#' giving an expression containing only (1) the names of quantities in the 
+#' model, (2) functions defined in the TMB engine, and (3) numerical literals 
+#' (e.g., \code{3.14}). The available functions in the TMB engine  can be 
+#' described in \code{\link{engine_functions}}. Names can be provided for the 
+#' components of \code{before}, and these names do not have to be unique. These 
+#' names are used by the \code{sim_exprs} argument.
+#' @param during List of formulas or calls to flow functions (e.g., 
+#' \code{\link{mp_per_capita_flow}}) to be evaluated at every iteration of the
 #' simulation loop, with the same rules as \code{before}.
-#' @param after List of formulas to be evaluated after the simulation loop,
+#' @param after List of formulas or calls to flow functions (e.g., 
+#' \code{\link{mp_per_capita_flow}}) to be evaluated after the simulation loop,
 #' with the same rules as \code{before}.
 #' @param default Named list of objects, each of which can be coerced into 
 #' a \code{\link{numeric}} \code{\link{matrix}}. The names refer to 
@@ -289,9 +293,9 @@ must_save_time_args = function(formulas) {
 #' being evaluated. For example, expressions that generate stochasticity should
 #' be listed in \code{sim_exprs} because TMB objective functions must be
 #' continuous.
-#' @param state_update (experimental) Optional character vector for how to update the
-#' state variables when it is relevant. Options include `"euler"`, `"rk4"`, 
-#' and `"euler_multinomial"`.
+#' @param state_update (experimental) Optional character vector for how to 
+#' update the state variables when it is relevant. Options include `"euler"`, 
+#' `"rk4"`, and `"euler_multinomial"`.
 #' @export
 mp_tmb_model_spec = TMBModelSpec
 

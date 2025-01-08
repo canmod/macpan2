@@ -29,6 +29,8 @@ that the state variables are updated each time step according to different
 numerical methods.
 }
 \details{
+By choosing one of these functions, one is able to convert
+
 To see the computations that update the state variables under these
 modified specifications, one may use the
 \code{\link{mp_expand}} function (see examples).

@@ -35,7 +35,7 @@ test_that("mp_rk4() does not interfere with preceding time step dependent functi
 })
 
 test_that("mp_rk4() does not repeat formulas that assign values to state variables", {
-
+  
   si = mp_tmb_library("starter_models", "si", package = "macpan2")
   si_dumb = mp_tmb_insert(si
      , phase = "during"
