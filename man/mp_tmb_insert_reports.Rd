@@ -24,10 +24,14 @@ mp_tmb_insert_reports(
 \item{report_prob}{Value to use for the reporting probability; the
 proportion of cases that get reported.}
 
-\item{mean_delay}{Mean of the Gamma distribution of reporting delay times.}
+\item{mean_delay}{Mean of the Gamma distribution of reporting delay times
+measured in time steps. For example, if the mean delay time in days is 14
+and each time step in the model corresponds to one week, then \code{mean_delay}
+should be set to \code{2}.}
 
 \item{cv_delay}{Coefficient of variation of the Gamma distribution of
-reporting delay times.}
+reporting delay times, with time measured in time steps (see more on this
+in the description of the \code{mean_delay} argument immediately above).}
 
 \item{reports_name}{Name of the new reports variable.}
 
@@ -44,4 +48,22 @@ for reporting delays and under-reporting. This new reports variable is
 a convolution of the simulation history of an incidence variable with
 a kernel that is proportional to a Gamma distribution of reporting
 delay times.
+}
+\examples{
+sir = mp_tmb_library("starter_models", "sir", package = "macpan2")
+sir_delays = mp_tmb_insert_reports(sir
+  , incidence_name = "infection"
+  , report_prob = 0.1
+  , mean_delay = 14
+  , cv_delay = 0.25
+  , reports_name = "reports"
+)
+sir_delays |> mp_print_during()
+(sir_delays 
+  |> mp_simulator(
+      time_steps = 50L
+    , outputs = c("infection", "reports"), 50L)
+  |> mp_trajectory()
+)
+
 }

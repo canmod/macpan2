@@ -299,9 +299,10 @@ must_save_time_args = function(formulas) {
 #' being evaluated. For example, expressions that generate stochasticity should
 #' be listed in \code{sim_exprs} because TMB objective functions must be
 #' continuous.
-#' @param state_update (experimental) Optional character vector for how to 
-#' update the state variables when it is relevant. Options include `"euler"`, 
-#' `"rk4"`, and `"euler_multinomial"`.
+#' @param state_update Optional character vector for how to update the state 
+#' variables when it is relevant. Can be the name of any 
+#' \code{\link{state_updates}} function with the `mp_` prefix removed (e.g., 
+#' `"euler"`, `"rk4"`, and `"euler_multinomial"`).
 #' 
 #' @examples
 #' spec = mp_tmb_model_spec(

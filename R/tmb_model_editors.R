@@ -197,13 +197,34 @@ mp_tmb_delete = function(model
 #' @param incidence_name Name of the incidence variable to be transformed.
 #' @param report_prob Value to use for the reporting probability; the
 #' proportion of cases that get reported.
-#' @param mean_delay Mean of the Gamma distribution of reporting delay times.
+#' @param mean_delay Mean of the Gamma distribution of reporting delay times
+#' measured in time steps. For example, if the mean delay time in days is 14
+#' and each time step in the model corresponds to one week, then `mean_delay`
+#' should be set to `2`.
 #' @param cv_delay Coefficient of variation of the Gamma distribution of
-#' reporting delay times.
+#' reporting delay times, with time measured in time steps (see more on this
+#' in the description of the `mean_delay` argument immediately above).
 #' @param reports_name Name of the new reports variable.
 #' @param report_prob_name Name of the variable containing `report_prob`.
 #' @param mean_delay_name Name of the variable containing `mean_delay`.
 #' @param cv_delay_name Name of the variable containing `cv_delay`.
+#' @examples
+#' sir = mp_tmb_library("starter_models", "sir", package = "macpan2")
+#' sir_delays = mp_tmb_insert_reports(sir
+#'   , incidence_name = "infection"
+#'   , report_prob = 0.1
+#'   , mean_delay = 14
+#'   , cv_delay = 0.25
+#'   , reports_name = "reports"
+#' )
+#' sir_delays |> mp_print_during()
+#' (sir_delays 
+#'   |> mp_simulator(
+#'       time_steps = 50L
+#'     , outputs = c("infection", "reports"), 50L)
+#'   |> mp_trajectory()
+#' )
+#' 
 #' @export
 mp_tmb_insert_reports = function(model
   , incidence_name
@@ -229,7 +250,7 @@ mp_tmb_insert_reports = function(model
   kernel_length = qgamma(0.95, shape, scale = scale) |> ceiling() |> as.integer()
 
   expressions = c(
-      sprintf("%s ~ pgamma(1:%s, 1/(%s), %s * (%s^2))", map$dist, kernel_length + 1L, cv_delay_name, mean_delay_name, cv_delay_name)
+      sprintf("%s ~ pgamma(1:%s, 1/(%s^2), %s * (%s^2))", map$dist, kernel_length + 1L, cv_delay_name, mean_delay_name, cv_delay_name)
     , sprintf("%s ~ %s[1:%s] - %s[0:%s]", map$delta, map$dist, kernel_length, map$dist, kernel_length - 1L)
     , sprintf("%s ~ %s * %s / sum(%s)", map$kernel, report_prob_name, map$delta, map$delta)
     , sprintf("%s ~ convolution(%s, %s)", reports_name, incidence_name, map$kernel)
