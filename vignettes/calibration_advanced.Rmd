@@ -623,7 +623,7 @@ fit <- sir_simulator$optimize$nlminb()
 
 Here is a reasonably difficult problem -- fit an SIR model to weekly measles incidence data from London UK over about six decades.
 
-<!-- FIXME: store data locally, don't rely on IIDA ... -->
+<!-- FIXME: store data locally, don't rely on IIDDA ... -->
 ```{r sir_plot, fig.width=6}
 measles = read.csv(
   file.path(
