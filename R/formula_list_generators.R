@@ -90,17 +90,20 @@ ChangeModel = function() {
   # list of formula expressions to be added to an `after` list
   self$after_loop = function() list()
   
+  self$empty_flow_frame = empty_frame("size", "change", "rate", "abs_rate")
+  self$empty_change_frame = empty_frame("state", "change")
+  
   # one row per flow
   #  size : aka name of the from compartment
   #  change : absolute flow rate name
   #  rate : string with expression for the per-capita flow rate
   #  abs_rate : string with expression for the absolute flow rate
-  self$flow_frame = function() empty_frame("size", "change", "rate", "abs_rate")
+  self$flow_frame = function() self$empty_flow_frame
   
   # one row per term in a state update expression
   #  state : name of the state being updated
   #  change : string with the term in the expression that updates that state
-  self$change_frame = function() empty_frame("state", "change")
+  self$change_frame = function() self$empty_change_frame
   
   # character vector of ChangeComponent class names used in the model
   self$change_classes = function() character()

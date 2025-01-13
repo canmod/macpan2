@@ -2,15 +2,20 @@
 ChangeModelDefaults = function() {
   self = ChangeModel()
   
+  self$change_list = list()
+  
   self$flow_frame = function() {
-    ## TODO: check for change_list
-    (self$change_list
+    cl = self$change_list
+    if (length(cl) == 0L) return(self$empty_flow_frame)
+    (cl
       |> method_apply("flow_frame")
       |> bind_rows()
     )
   }
   self$change_frame = function() {
-    (self$change_list
+    cl = self$change_list
+    if (length(cl) == 0L) return(self$empty_change_frame)
+    (cl
       |> method_apply("change_frame")
       |> bind_rows()
     )
