@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.13.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.14.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -332,7 +332,8 @@ we’re clamping variables … ?? (The simulated output doesn’t look
 <span><span class="co">#&gt; outer mgc:  2.831973 </span></span>
 <span><span class="co">#&gt; outer mgc:  0.6015714 </span></span>
 <span><span class="co">#&gt; outer mgc:  0.009401567 </span></span>
-<span><span class="co">#&gt; outer mgc:  1.102318e-06</span></span></code></pre></div>
+<span><span class="co">#&gt; outer mgc:  1.102318e-06 </span></span>
+<span><span class="co">#&gt; outer mgc:  4.365399e-13</span></span></code></pre></div>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">sim_plot</span><span class="op">(</span>pars <span class="op">=</span> <span class="va">fit</span><span class="op">$</span><span class="va">par</span><span class="op">)</span></span></code></pre></div>
 <p><img src="calibration_advanced_files/figure-html/show_real-1.png" width="576"></p>
@@ -359,13 +360,13 @@ chapter 7 for an introduction to some of the issues.</p>
 <span>      , upr_delta <span class="op">=</span> <span class="va">value</span> <span class="op">+</span> <span class="fl">1.96</span> <span class="op">*</span> <span class="va">sd</span></span>
 <span>    <span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; outer mgc:  1.102318e-06 </span></span>
-<span><span class="co">#&gt; outer mgc:  2.135549 </span></span>
-<span><span class="co">#&gt; outer mgc:  2.137124 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.5301401 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.5279329 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.007252414 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.007242536</span></span>
+<span><span class="co">#&gt; outer mgc:  4.365399e-13 </span></span>
+<span><span class="co">#&gt; outer mgc:  2.13555 </span></span>
+<span><span class="co">#&gt; outer mgc:  2.137123 </span></span>
+<span><span class="co">#&gt; outer mgc:  0.5301412 </span></span>
+<span><span class="co">#&gt; outer mgc:  0.5279318 </span></span>
+<span><span class="co">#&gt; outer mgc:  0.007252309 </span></span>
+<span><span class="co">#&gt; outer mgc:  0.007242641</span></span>
 <span><span class="va">gg_base</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">res</span></span>
 <span>  <span class="op">|&gt;</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">time</span>, y <span class="op">=</span> <span class="va">value</span><span class="op">)</span><span class="op">)</span> </span>
 <span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>colour <span class="op">=</span> <span class="va">var</span><span class="op">)</span><span class="op">)</span> </span>
@@ -403,31 +404,31 @@ directly from the fit (it does take some extra computation).</p>
 <span><span class="va">nsim</span> <span class="op">&lt;-</span> <span class="fl">1000</span></span>
 <span><span class="va">par</span> <span class="op">&lt;-</span> <span class="va">fit</span><span class="op">$</span><span class="va">par</span></span>
 <span><span class="va">H</span> <span class="op">&lt;-</span> <span class="fu">numDeriv</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/numDeriv/man/jacobian.html" class="external-link">jacobian</a></span><span class="op">(</span><span class="va">sir_simulator</span><span class="op">$</span><span class="fu">ad_fun</span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="va">gr</span>, <span class="va">par</span><span class="op">)</span></span>
-<span><span class="co">#&gt; outer mgc:  1.102318e-06 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.1175492 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.1175562 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.03944411 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.03943403 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.002035877 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.002034903 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.05877466 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.05877806 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.01971997 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.0197191 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.001017896 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.001017494 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.02938693 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.02938943 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.009859049 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.009860486 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.000508977 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.0005087181 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.01469295 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.01469523 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.004928877 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.00493089 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.0002545353 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.0002543122</span></span>
+<span><span class="co">#&gt; outer mgc:  4.365399e-13 </span></span>
+<span><span class="co">#&gt; outer mgc:  0.1175503 </span></span>
+<span><span class="co">#&gt; outer mgc:  0.1175551 </span></span>
+<span><span class="co">#&gt; outer mgc:  0.03944521 </span></span>
+<span><span class="co">#&gt; outer mgc:  0.03943293 </span></span>
+<span><span class="co">#&gt; outer mgc:  0.002035771 </span></span>
+<span><span class="co">#&gt; outer mgc:  0.002035009 </span></span>
+<span><span class="co">#&gt; outer mgc:  0.05877576 </span></span>
+<span><span class="co">#&gt; outer mgc:  0.05877695 </span></span>
+<span><span class="co">#&gt; outer mgc:  0.01972107 </span></span>
+<span><span class="co">#&gt; outer mgc:  0.019718 </span></span>
+<span><span class="co">#&gt; outer mgc:  0.00101779 </span></span>
+<span><span class="co">#&gt; outer mgc:  0.0010176 </span></span>
+<span><span class="co">#&gt; outer mgc:  0.02938803 </span></span>
+<span><span class="co">#&gt; outer mgc:  0.02938833 </span></span>
+<span><span class="co">#&gt; outer mgc:  0.009860151 </span></span>
+<span><span class="co">#&gt; outer mgc:  0.009859384 </span></span>
+<span><span class="co">#&gt; outer mgc:  0.0005088714 </span></span>
+<span><span class="co">#&gt; outer mgc:  0.0005088237 </span></span>
+<span><span class="co">#&gt; outer mgc:  0.01469405 </span></span>
+<span><span class="co">#&gt; outer mgc:  0.01469413 </span></span>
+<span><span class="co">#&gt; outer mgc:  0.00492998 </span></span>
+<span><span class="co">#&gt; outer mgc:  0.004929788 </span></span>
+<span><span class="co">#&gt; outer mgc:  0.0002544297 </span></span>
+<span><span class="co">#&gt; outer mgc:  0.0002544178</span></span>
 <span><span class="co">## FIXME: why doesn't this match?</span></span>
 <span><span class="co">## H0 &lt;- with(sir_simulator$ad_fun(), optimHess(par, fn = fn, gr = gr))</span></span>
 <span><span class="va">Sigma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/solve.html" class="external-link">solve</a></span><span class="op">(</span><span class="va">H</span><span class="op">)</span></span>
@@ -540,9 +541,9 @@ parameters as a baseline, but jitter them randomly by ±40%.</p>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 5</span></span></span>
 <span><span class="co">#&gt;   term      estimate std.error conf.low conf.high</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> params[1]    0.554    0.032<span style="text-decoration: underline;">4</span>    0.498     0.627</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> params[2]   -<span style="color: #BB0000;">0.750</span>    0.070<span style="text-decoration: underline;">0</span>   -<span style="color: #BB0000;">0.881</span>    -<span style="color: #BB0000;">0.613</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> params[3]    2.54     0.558     1.37      3.59</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> params[1]    0.553    0.031<span style="text-decoration: underline;">4</span>    0.496     0.623</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> params[2]   -<span style="color: #BB0000;">0.748</span>    0.069<span style="text-decoration: underline;">9</span>   -<span style="color: #BB0000;">0.880</span>    -<span style="color: #BB0000;">0.603</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> params[3]    2.56     0.575     1.41      3.63</span></span></code></pre></div>
 <p>(We should other diagnostics - check for divergent transitions, look
 at
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>R</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat R</annotation></semantics></math>,
@@ -834,7 +835,7 @@ value? Way to modify starting conditions for optimizer on the fly?
 </h2>
 <p>Here is a reasonably difficult problem – fit an SIR model to weekly
 measles incidence data from London UK over about six decades.</p>
-<!-- FIXME: store data locally, don't rely on IIDA ... -->
+<!-- FIXME: store data locally, don't rely on IIDDA ... -->
 <div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">measles</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span></span>
