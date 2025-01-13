@@ -28,9 +28,13 @@ a two-sided formula with the left-hand-side giving the name of the absolute
 flow rate per unit time-stepand the right-hand-side giving an expression for
 the per-capita rate of flow from \code{from} to \code{to}.}
 
-\item{abs_rate}{String giving the name for the absolute flow rate,
-which will be computed as \code{from * rate}. If a formula is passed to
-\code{rate} (not recommended), then this \code{abs_rate} argument will be ignored.}
+\item{abs_rate}{String giving the name for the absolute flow rate.
+By default, during simulations, the absolute flow rate will be computed as
+\code{from * rate}. This default behaviour will simulate the compartmental model
+as discrete difference equations, but this default can be changed to use
+other approaches (see \code{\link{state_updates}}).
+If a formula is passed to \code{rate} (not recommended for better readability),
+then this \code{abs_rate} argument will be ignored.}
 
 \item{rate_name}{String giving the name for the absolute flow rate.}
 }

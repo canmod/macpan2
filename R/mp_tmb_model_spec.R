@@ -7,7 +7,13 @@ TMBModelSpec = function(
     , must_save = character()
     , must_not_save = character()
     , sim_exprs = character()
-    , state_update = c("euler", "rk4", "euler_multinomial", "hazard")
+    , state_update = c(
+          "euler"
+        , "rk4"
+        , "euler_multinomial"
+        , "hazard"
+        , "rk4_old"
+      )
   ) {
   must_not_save = handle_saving_conflicts(must_save, must_not_save)
   self = Base()
@@ -104,7 +110,7 @@ TMBModelSpec = function(
     )
   }
   self$change_update_method = function(
-      state_update = c("euler", "rk4", "euler_multinomial", "hazard")
+      state_update = c("euler", "rk4", "euler_multinomial", "hazard", "rk4_old")
     ) {
     
     if (self$state_update == "no") {
@@ -251,20 +257,24 @@ must_save_time_args = function(formulas) {
 }
 #' Specify a TMB Model
 #' 
-#' Specify a model in the TMB engine.
+#' Specify a simulation model in the TMB engine.
 #' 
-#' @param before List of formulas to be evaluated (in the order provided) before
-#' the simulation loop begins. Each \code{\link{formula}} must have a left hand
+#' @param before List of expressions to be evaluated (in the order provided)
+#' before the simulation loop begins. Expressions can either be standard
+#' R \code{\link{formula}} objects or calls to flow functions (e.g., 
+#' \code{\link{mp_per_capita_flow}}). Formulas must have a left hand
 #' side that gives the name of the matrix being updated, and a right hand side
-#' giving an expression containing only the names of matrices in the model,
-#' functions defined in the TMB engine, and numerical literals (e.g.
-#' \code{3.14}). The available functions in the TMB engine  can be described in
-#' \code{\link{engine_functions}}. Names can be provided for the components of
-#' \code{before}, and these names do not have to be unique. These names are
-#' used by the \code{sim_exprs} argument.
-#' @param during List of formulas to be evaluated at every iteration of the
+#' giving an expression containing only (1) the names of quantities in the 
+#' model, (2) functions defined in the TMB engine, and (3) numerical literals 
+#' (e.g., \code{3.14}). The available functions in the TMB engine  can be 
+#' described in \code{\link{engine_functions}}. Names can be provided for the 
+#' components of \code{before}, and these names do not have to be unique. These 
+#' names are used by the \code{sim_exprs} argument.
+#' @param during List of formulas or calls to flow functions (e.g., 
+#' \code{\link{mp_per_capita_flow}}) to be evaluated at every iteration of the
 #' simulation loop, with the same rules as \code{before}.
-#' @param after List of formulas to be evaluated after the simulation loop,
+#' @param after List of formulas or calls to flow functions (e.g., 
+#' \code{\link{mp_per_capita_flow}}) to be evaluated after the simulation loop,
 #' with the same rules as \code{before}.
 #' @param default Named list of objects, each of which can be coerced into 
 #' a \code{\link{numeric}} \code{\link{matrix}}. The names refer to 
@@ -289,16 +299,25 @@ must_save_time_args = function(formulas) {
 #' being evaluated. For example, expressions that generate stochasticity should
 #' be listed in \code{sim_exprs} because TMB objective functions must be
 #' continuous.
-#' @param state_update (experimental) Optional character vector for how to update the
-#' state variables when it is relevant. Options include `"euler"`, `"rk4"`, 
-#' and `"euler_multinomial"`.
+#' @param state_update (experimental) Optional character vector for how to 
+#' update the state variables when it is relevant. Options include `"euler"`, 
+#' `"rk4"`, and `"euler_multinomial"`.
+#' 
+#' @examples
+#' spec = mp_tmb_model_spec(
+#'     during = mp_per_capita_flow("S", "I", "beta * I / N", "infection")
+#'   , default = list(N = 100, S = 99, I = 1, beta = 0.2)
+#' )
+#' (spec 
+#'   |> mp_simulator(time_steps = 5L, output = "infection") 
+#'   |> mp_trajectory()
+#' )
+#' 
 #' @export
 mp_tmb_model_spec = TMBModelSpec
 
 #' @export
-print.TMBModelSpec = function(x, ...) {
-  spec_printer(x, include_defaults = TRUE)
-}
+print.TMBModelSpec = function(x, ...) mp_print_spec(x)
 
 spec_printer = function(x, include_defaults) {
   has_defaults = length(x$default) > 0L
@@ -306,10 +325,47 @@ spec_printer = function(x, include_defaults) {
     cat("---------------------\n")
     msg("Default values:\n") |> cat()
     cat("---------------------\n")
-    print(melt_default_matrix_list(x$default), row.names = FALSE)
+    print(melt_default_matrix_list(x$default, simplify_as_scalars = TRUE), row.names = FALSE)
     cat("\n")
   }
   exprs = c(x$before, x$during, x$after)
   schedule = c(length(x$before), length(x$during), length(x$after))
   model_steps_printer(exprs, schedule)
+}
+
+#' Print Model Specification
+#' 
+#' @param model A model produced by \code{\link{mp_tmb_model_spec}}.
+#' 
+#' @export
+mp_print_spec = function(model) spec_printer(model, include_defaults = TRUE)
+
+#' @describeIn mp_print_spec Print just the expressions executed before the
+#' simulation loop.
+#' @export
+mp_print_before = function(model) {
+  model_steps_printer(
+      model$before
+    , c(length(model$before), 0L, 0L)
+  )
+}
+
+#' @describeIn mp_print_spec Print just the expressions executed during each
+#' iteration of the simulation loop.
+#' @export
+mp_print_during = function(model) {
+  model_steps_printer(
+      model$during
+    , c(0L, length(model$during), 0L)
+  )
+}
+
+#' @describeIn mp_print_spec Print just the expressions executed after the
+#' simulation loop.
+#' @export
+mp_print_after = function(model) {
+  model_steps_printer(
+      model$after
+    , c(0L, 0L, length(model$after))
+  )
 }

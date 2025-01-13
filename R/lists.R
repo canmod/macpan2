@@ -83,12 +83,24 @@ melt_matrix = function(x, zeros_are_blank = TRUE) {
   data.frame(row = row, col = col, value = as.vector(x))
 }
 
-melt_default_matrix_list = function(x, zeros_are_blank = TRUE) {
+melt_default_matrix_list = function(x, zeros_are_blank = TRUE, simplify_as_scalars = FALSE) {
   if (length(x) == 0L) return(NULL)
   f = (x
    |> lapply(melt_matrix, zeros_are_blank)
    |> bind_rows(.id = "matrix")
   )
+  if (simplify_as_scalars) {
+    rm_rs = all(f$row == "")
+    rm_cs = all(f$col == "")
+    if (rm_rs) f$row = NULL
+    if (rm_cs) f$col = NULL
+    if (rm_rs & rm_cs) {
+      nms = colnames(f)
+      mat_col = nms == "matrix"
+      if (any(mat_col)) names(f)[mat_col] = "quantity"
+    }
+  }
+  
   rownames(f) = NULL
   f
 }

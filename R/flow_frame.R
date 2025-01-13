@@ -165,6 +165,19 @@ mp_state_vars = function(spec) {
   vapply(spec$change_model$update_state(), lhs_char, character(1L))
 }
 
+#' Change Frame
+#' 
+#' Get the changes made to each state variable at each time step.
+#' 
+#' @param spec Model specification (\code{\link{mp_tmb_model_spec}}).
+#' 
+#' @return Data frame with two columns: `state` and `change`. Each row
+#' describes one change.
+#' 
+#' @export
+mp_change_frame = function(spec) spec$change_model$change_frame()
+
+
 
 #' Find all Paths
 #' 
