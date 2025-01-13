@@ -15,6 +15,7 @@ plot_flow_diagram = function(layout
     , show_flow_rates = FALSE, show_flow_names = FALSE
     , state_dependence = data.frame()
     , size = 6
+    , state_colour = "#002B5B", box_colour = "#EAF6FF", line_colour = state_colour, flow_colour = state_colour
   ) {
   edges = layout$edges_flows()
   nodes = layout$nodes()
@@ -32,17 +33,17 @@ plot_flow_diagram = function(layout
         aes(x = x_from, xend = x_to, y = y_from, yend = y_to)
       , data = edges
       , arrow = mp_flow_arrow
-      , colour = "blue"
+      , colour = line_colour
     )
     + geom_rect(aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax)
-      , fill = "lightblue"
+      , fill = box_colour
       , data = nodes
     )
     + geom_text(
         aes(x, y, label = state)
       , size = size
       , data = nodes
-      , colour = "blue"
+      , colour = state_colour
     )
     + mp_ggtheme
   )
@@ -50,7 +51,7 @@ plot_flow_diagram = function(layout
     p = p + geom_label(
         aes(x = x, y = y, label = rate)
       , data = edges
-      , colour = "blue"
+      , colour = flow_colour
       , parse = TRUE
     )
   }

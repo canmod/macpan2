@@ -27,7 +27,9 @@
     
     # functions that cannot be called repeatedly 
     # _within_ a single time-step (as would
-    # happen for example with RK4 state updates)
+    # happen for example with RK4 state updates).
+    # randomness and time-variation are the only
+    # examples we have now.
     , macpan2_non_iterable_funcs = c(
           "time_var"
         , "rbinom"
