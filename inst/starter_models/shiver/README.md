@@ -2,25 +2,37 @@ SHIVER = SEIR + H + V
 ================
 Jennifer Freeman, Steve Walker
 
-- [Packages Used and Settings](#packages-used-and-settings)
-- [Model Specification](#model-specification)
-- [States](#states)
-- [Parameters](#parameters)
-- [Variable Vaccination Rate](#variable-vaccination-rate)
-- [Dynamics](#dynamics)
-- [Calibration Example](#calibration-example)
-  - [Calibration Scenario](#calibration-scenario)
-  - [Deciding on Defaults](#deciding-on-defaults)
-  - [Simulating Dynamics](#simulating-dynamics)
-  - [Estimating Parameters](#estimating-parameters)
-  - [Re-parameterizing and Introducing
-    Transformations](#re-parameterizing-and-introducing-transformations)
-  - [Runge-Kutta 4](#runge-kutta-4)
-  - [Fitting to Multiple
-    Trajectories](#fitting-to-multiple-trajectories)
-  - [Parameter Identifiability](#parameter-identifiability)
-- [Model Specification](#model-specification-1)
-- [References](#references)
+-   <a href="#packages-used-and-settings"
+    id="toc-packages-used-and-settings">Packages Used and Settings</a>
+-   <a href="#model-specification" id="toc-model-specification">Model
+    Specification</a>
+-   <a href="#states" id="toc-states">States</a>
+-   <a href="#parameters" id="toc-parameters">Parameters</a>
+-   <a href="#variable-vaccination-rate"
+    id="toc-variable-vaccination-rate">Variable Vaccination Rate</a>
+-   <a href="#dynamics" id="toc-dynamics">Dynamics</a>
+-   <a href="#calibration-example" id="toc-calibration-example">Calibration
+    Example</a>
+    -   <a href="#calibration-scenario"
+        id="toc-calibration-scenario">Calibration Scenario</a>
+    -   <a href="#deciding-on-defaults" id="toc-deciding-on-defaults">Deciding
+        on Defaults</a>
+    -   <a href="#simulating-dynamics" id="toc-simulating-dynamics">Simulating
+        Dynamics</a>
+    -   <a href="#estimating-parameters"
+        id="toc-estimating-parameters">Estimating Parameters</a>
+    -   <a href="#re-parameterizing-and-introducing-transformations"
+        id="toc-re-parameterizing-and-introducing-transformations">Re-parameterizing
+        and Introducing Transformations</a>
+    -   <a href="#runge-kutta-4" id="toc-runge-kutta-4">Runge-Kutta 4</a>
+    -   <a href="#fitting-to-multiple-trajectories"
+        id="toc-fitting-to-multiple-trajectories">Fitting to Multiple
+        Trajectories</a>
+    -   <a href="#parameter-identifiability"
+        id="toc-parameter-identifiability">Parameter Identifiability</a>
+-   <a href="#model-specification-1" id="toc-model-specification-1">Model
+    Specification</a>
+-   <a href="#references" id="toc-references">References</a>
 
 This model builds on the basic SEIR model, with two additional
 compartments for vaccination and hospitalizations.
@@ -29,7 +41,7 @@ Vaccines are typically subject to resource constraints and distribution
 strategies might prioritize vaccinations for specific subpopulations,
 such as immunocompromised people, to reduce bad outcomes. We model this
 with a flow of susceptibles entering the vaccination class. This flow
-could be a fixed rate, i.e. a constant proportion of the population
+could be a fixed rate, i.e. a constant proportion of the population
 receives a vaccine each time step, but instead we wish to capture a more
 realistic vaccination rate by allowing it to vary (see [Variable
 Vaccination Rate](#variable-vaccination-rate)).
@@ -103,22 +115,22 @@ article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/shiver/
 | E        | Number of exposed individuals      |
 | R        | Number of recovered individuals    |
 
-The size of the total population is, $N = S + H + I  + V + E + R$, and
+The size of the total population is, $N = S + H + I + V + E + R$, and
 the disease spreads through homogeneous mixing of the subpopulation
 $N_{\text{mix}}=N -H$.
 
 # Parameters
 
-| variable | description |
-|----|----|
-| $\phi$ | per capita vaccination rate of susceptibles |
-| $\rho$ | per capita vaccine waning rate |
-| $\beta_S$ | per capita transmission rate for susceptibles (in $N_{\text{mix}}$ population) |
-| $\beta_V$ | per capita transmission rate for vaccinated individuals (in $N_{\text{mix}}$ population) |
-| $\alpha$ | per capita infection rate (average time spent in compartment $E$ is $1/\alpha$) |
-| $\gamma_I$ | per capita recovery rate for infected individuals |
-| $\gamma_H$ | per capita recovery rate for hospitalized individuals |
-| $\sigma$ | per capita rate at which infected individuals develop severe infections and require hospitalization |
+| variable   | description                                                                                         |
+|------------|-----------------------------------------------------------------------------------------------------|
+| $\phi$     | per capita vaccination rate of susceptibles                                                         |
+| $\rho$     | per capita vaccine waning rate                                                                      |
+| $\beta_S$  | per capita transmission rate for susceptibles (in $N_{\text{mix}}$ population)                      |
+| $\beta_V$  | per capita transmission rate for vaccinated individuals (in $N_{\text{mix}}$ population)            |
+| $\alpha$   | per capita infection rate (average time spent in compartment $E$ is $1/\alpha$)                     |
+| $\gamma_I$ | per capita recovery rate for infected individuals                                                   |
+| $\gamma_H$ | per capita recovery rate for hospitalized individuals                                               |
+| $\sigma$   | per capita rate at which infected individuals develop severe infections and require hospitalization |
 
 # Variable Vaccination Rate
 
@@ -126,7 +138,7 @@ We can implement vaccine constraints by adding more model complexity.
 Resource limitations create an upper bound on the number of vaccines
 that can be administered to susceptibles per time step. There is also
 the constraint that we can only vaccinate, at most, the current number
-of susceptibles i.e. the vaccination rate can be at most 1. These
+of susceptibles i.e. the vaccination rate can be at most 1. These
 constraints naturally lead us to consider a variable vaccination rate
 $\phi(S(t))$, instead of vaccinating a fixed proportion $\phi > 0$ per
 time step.
@@ -617,25 +629,25 @@ print(reparameterized_spec)
 #> ---------------------
 #> Default values:
 #> ---------------------
-#>       quantity         value
-#>              a  1.684889e+04
-#>              b  1.684889e+04
-#>            rho  5.555556e-03
-#>         beta_s  2.000000e-01
-#>         beta_v  5.000000e-02
-#>          alpha  3.030303e-01
-#>        gamma_i  1.000000e-01
-#>        gamma_h  7.000000e-02
-#>          sigma  1.000000e-01
-#>              N  1.480000e+08
-#>              I  2.718571e+03
-#>              V  1.015657e+04
-#>              E  0.000000e+00
-#>              H  6.300000e+01
-#>              R  0.000000e+00
-#>        logit_p -4.595120e+00
-#>       log_beta -4.605170e+00
-#>  log_E_I_ratio -4.605170e+00
+#>         matrix row col         value
+#>              a          1.684889e+04
+#>              b          1.684889e+04
+#>            rho          5.555556e-03
+#>         beta_s          2.000000e-01
+#>         beta_v          5.000000e-02
+#>          alpha          3.030303e-01
+#>        gamma_i          1.000000e-01
+#>        gamma_h          7.000000e-02
+#>          sigma          1.000000e-01
+#>              N          1.480000e+08
+#>              I          2.718571e+03
+#>              V          1.015657e+04
+#>              E          0.000000e+00
+#>              H          6.300000e+01
+#>              R          0.000000e+00
+#>        logit_p         -4.595120e+00
+#>       log_beta         -4.605170e+00
+#>  log_E_I_ratio         -4.605170e+00
 #> 
 #> ---------------------
 #> Before the simulation loop (t = 0):
@@ -910,45 +922,45 @@ shiver_calibrator = mp_tmb_calibrator(
 
 Next we optimize, and look at our estimates.
 
-    #>                                   mat row   default   estimate  std.error
-    #> 1                   time_var_rbf_beta   1    0.0000     0.2706        NaN
-    #> 2                   time_var_rbf_beta   2    0.0000    -0.0580     0.1147
-    #> 3                   time_var_rbf_beta   3    0.0000    -0.0752     0.3265
-    #> 4                   time_var_rbf_beta   4    0.0000     0.0829     0.8638
-    #> 5                   prior_sd_rbf_beta   0    1.0000     0.5297     0.0177
-    #> 6                   distr_params_sd_H   0    1.0000     0.0732     0.0051
-    #> 7  distr_params_sd_reported_incidence   0    1.0000     1.8991     0.1423
-    #> 8                   time_var_rbf_beta   0    0.0000    -0.4327        NaN
-    #> 9                                beta   0    0.0100     0.8061     0.2597
-    #> 10                              sigma   0    0.0498     0.0004     0.0003
-    #> 11                            gamma_h   0    0.0498     0.0233     0.0022
-    #> 12                          E_I_ratio   0    0.0100     0.0839     0.1239
-    #> 13                                  I   0 2718.5714 28127.2583 22697.4586
-    #> 14                                  H   0   63.0000    97.0439     7.5258
-    #> 15                                  R   0    1.0000     1.0000    54.5978
-    #> 16                        report_prob   0    0.5000     0.5631     0.4171
-    #> 17                                  p   0    0.0100     0.2405     9.8432
+    #>                                   mat row   default  estimate std.error
+    #> 1                   time_var_rbf_beta   1    0.0000   -0.0300    0.0487
+    #> 2                   time_var_rbf_beta   2    0.0000    0.0485    0.0541
+    #> 3                   time_var_rbf_beta   3    0.0000   -0.0695    0.0679
+    #> 4                   time_var_rbf_beta   4    0.0000    0.1091    0.0907
+    #> 5                   prior_sd_rbf_beta   0    1.0000    0.5297    0.0177
+    #> 6                   distr_params_sd_H   0    1.0000    0.0752    0.0157
+    #> 7  distr_params_sd_reported_incidence   0    1.0000    0.2209    0.0187
+    #> 8                   time_var_rbf_beta   0    0.0000   -0.0270    0.0431
+    #> 9                                beta   0    0.0100    0.3099    0.0443
+    #> 10                              sigma   0    0.0498    0.0336    0.0113
+    #> 11                            gamma_h   0    0.0498    0.9811    0.1856
+    #> 12                          E_I_ratio   0    0.0100    0.0851    0.1017
+    #> 13                                  I   0 2718.5714 2986.9423  943.6758
+    #> 14                                  H   0   63.0000    0.1453    2.9807
+    #> 15                                  R   0    1.0000    1.0000   54.5981
+    #> 16                        report_prob   0    0.5000    0.8292    0.2194
+    #> 17                                  p   0    0.0100    0.2197    9.1710
     #>     conf.low    conf.high
-    #> 1        NaN          NaN
-    #> 2    -0.2828 1.668000e-01
-    #> 3    -0.7150 5.647000e-01
-    #> 4    -1.6102 1.776000e+00
+    #> 1    -0.1255 6.550000e-02
+    #> 2    -0.0576 1.546000e-01
+    #> 3    -0.2026 6.360000e-02
+    #> 4    -0.0687 2.869000e-01
     #> 5     0.4951 5.643000e-01
-    #> 6     0.0631 8.330000e-02
-    #> 7     1.6201 2.178100e+00
-    #> 8        NaN          NaN
-    #> 9     0.4287 1.515700e+00
-    #> 10    0.0001 1.600000e-03
-    #> 11    0.0193 2.810000e-02
-    #> 12    0.0046 1.518600e+00
-    #> 13 5784.2259 1.367759e+05
-    #> 14   83.3599 1.129742e+02
-    #> 15    0.0000 2.978104e+46
-    #> 16    0.0444 9.728000e-01
+    #> 6     0.0445 1.060000e-01
+    #> 7     0.1843 2.574000e-01
+    #> 8    -0.1116 5.750000e-02
+    #> 9     0.2342 4.102000e-01
+    #> 10    0.0174 6.490000e-02
+    #> 11    0.6772 1.421400e+00
+    #> 12    0.0082 8.853000e-01
+    #> 13 1608.0649 5.548174e+03
+    #> 14    0.0000 4.193101e+16
+    #> 15    0.0000 2.978526e+46
+    #> 16    0.1891 9.902000e-01
     #> 17    0.0000 1.000000e+00
 
 Our prior for `sigma` is similar to the posterior, but `gamma_h` seems
-to have been pushed up by the data from about `0.05` to about 0.02. We
+to have been pushed up by the data from about `0.05` to about 0.98. We
 still do not have confidence in our estimate of `p`. We now have five
 other parameters controlling transmission, and so to interpret them we
 really need a plot of how transmission varies over time in the model. We
@@ -1080,8 +1092,7 @@ for details).
 
 # References
 
-<div id="refs" class="references csl-bib-body hanging-indent"
-entry-spacing="0">
+<div id="refs" class="references csl-bib-body hanging-indent">
 
 <div id="ref-bolker2008" class="csl-entry">
 
