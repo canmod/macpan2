@@ -41,7 +41,7 @@ Vaccines are typically subject to resource constraints and distribution
 strategies might prioritize vaccinations for specific subpopulations,
 such as immunocompromised people, to reduce bad outcomes. We model this
 with a flow of susceptibles entering the vaccination class. This flow
-could be a fixed rate, i.e. a constant proportion of the population
+could be a fixed rate, i.e. a constant proportion of the population
 receives a vaccine each time step, but instead we wish to capture a more
 realistic vaccination rate by allowing it to vary (see [Variable
 Vaccination Rate](#variable-vaccination-rate)).
@@ -138,7 +138,7 @@ We can implement vaccine constraints by adding more model complexity.
 Resource limitations create an upper bound on the number of vaccines
 that can be administered to susceptibles per time step. There is also
 the constraint that we can only vaccinate, at most, the current number
-of susceptibles i.e. the vaccination rate can be at most 1. These
+of susceptibles i.e. the vaccination rate can be at most 1. These
 constraints naturally lead us to consider a variable vaccination rate
 $\phi(S(t))$, instead of vaccinating a fixed proportion $\phi > 0$ per
 time step.
