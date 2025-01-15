@@ -86,6 +86,7 @@ mp_tmb_insert = function(model
   model = assert_cls(model, "TMBModelSpec", match.call(), "?mp_tmb_model_spec")
   valid$char1$check(phase)
   at = valid$num1$assert(at)
+  expressions = force_expr_list(expressions)
   
   model = model$copy()
   model[[phase]] = append(model[[phase]], expressions, after = at - 1L)
@@ -124,6 +125,7 @@ mp_tmb_update = function(model
   model = assert_cls(model, "TMBModelSpec", match.call(), "?mp_tmb_model_spec")
   valid$char1$check(phase)
   at = valid$num1$assert(at)
+  expressions = force_expr_list(expressions)
   
   model = model$copy()
   where = at - 1L + seq_along(expressions)
