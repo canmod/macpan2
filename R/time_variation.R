@@ -3,20 +3,20 @@ library(oor)
 TimeVarBaseline = function() {
   self = Base()
   self$not_for_first_window = function() FALSE
-  self$calc = function(baseline, eta_last, link, link_last, par_nm) sprintf("%s ~ 0", baseline)
+  self$calc = function(baseline, eta_last, link, par_nm) sprintf("%s ~ 0", baseline)
   return_object(self, "BaselineFunction")
 }
 TimeVarBaselineLast = function() {
   self = TimeVarBaseline()
   self$not_for_first_window = function() TRUE
-  self$calc = function(baseline, eta_last, link, link_last, par_nm) {
+  self$calc = function(baseline, eta_last, link, par_nm) {
     sprintf("%s ~ last(%s)", baseline, eta_last)
   }
   return_object(self, "TimeVarBaselineLast")
 }
 TimeVarBaselineParameter = function() {
   self = TimeVarBaseline()
-  self$calc = function(baseline, eta_last, link, link_last, par_nm) {
+  self$calc = function(baseline, eta_last, link, par_nm) {
     sprintf("%s ~ %s", baseline, link$ref(par_nm))
   }
   return_object(self, "TimeVarBaselineParameter")
@@ -25,7 +25,7 @@ TimeVarBaselineModelVar = function(model_var, link = mp_identity) {
   self = TimeVarBaseline()
   self$model_var = model_var
   self$link = link ## make NULL to use link function for the window
-  self$calc = function(baseline, eta_last, link, link_last, par_nm) {
+  self$calc = function(baseline, eta_last, link, par_nm) {
     if (!is.null(self$link)) link = self$link
     sprintf("%s ~ %s", baseline, link$ref(self$model_var))
   }
@@ -34,11 +34,24 @@ TimeVarBaselineModelVar = function(model_var, link = mp_identity) {
 TimeVarBaselineNumeric = function(value) {
   self = TimeVarBaseline()
   self$value = value
-  self$calc = function(baseline, eta_last, link, link_last, par_nm) {
+  self$calc = function(baseline, eta_last, link, par_nm) {
     sprintf("%s ~ %s", baseline, link$ref(self$value))
   }
   return_object(self, "TimeVarBaselineNumeric")
 }
+TimeVarBaselineNumericLinear = function(value) {
+  self = TimeVarBaseline()
+  self$value = value
+  self$calc = function(baseline, eta_last, link, par_nm) {
+    sprintf("%s ~ %s", baseline, self$value)
+  }
+  return_object(self, "TimeVarBaselineNumericLinear")
+}
+TimeVarBaselineZeroLinear = function() {
+  self = TimeVarBaselineNumericLinear(0)
+  return_object(self, "TimeVarBaselineZeroLinear")
+}
+
 
 LinearTimeVar = function(variable_name, matrix_list, time_index_list) {
   
@@ -90,6 +103,9 @@ inds = list(
 )
 xx = LinearTimeVar("beta", mats, inds)
 xx$matrix()
+xx$check()
+
+xx$
 
 TimeVar = function(par_orig_nm) {
   self = Base()

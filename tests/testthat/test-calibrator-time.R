@@ -1,3 +1,4 @@
+library(macpan2); library(testthat); library(dplyr); library(tidyr); library(ggplot2)
 test_that("times can be supplied as times, and assume daily time-step", {
   sir_obs = (read.csv(
     system.file("starter_models/shiver/data/hospitalizations_ontario.csv", package = "macpan2")
