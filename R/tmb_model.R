@@ -186,8 +186,8 @@ TMBModel = function(
       random = self$random$vector()
     )
     
-    ## FIXME: need a dummy parameter if the model has not
-    ## yet been parameterized. is there a more TMB-ish
+    ## FIXME: Need a dummy parameter if the model has not
+    ## yet been parameterized. Is there a more TMB-ish
     ## way to do this?
     if (length(p$params) == 0L) p$params = 0
     p
