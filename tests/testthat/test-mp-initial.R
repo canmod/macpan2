@@ -1,3 +1,4 @@
+library(macpan2); library(testthat); library(dplyr); library(tidyr); library(ggplot2)
 test_that("initial values in model specifications and model simulators are consistent up to row order", {
 
   sir_spec = mp_tmb_library("starter_models", "sir", package = "macpan2")
