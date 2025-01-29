@@ -239,8 +239,10 @@ mp_optimize.TMBSimulator = function(model
     , ...
   ) {
   optimizer = match.arg(optimizer)
-  optimizer_results = model$optimize[[optimizer]](...)
-  return(optimizer_results)
+  opt_args = list(...)
+  opt_method = model$optimize[[optimizer]]
+  opt_results = do.call(opt_method, opt_args)
+  return(opt_results)
 } 
 
 #' @describeIn mp_optimize Optimize a TMB calibrator.
