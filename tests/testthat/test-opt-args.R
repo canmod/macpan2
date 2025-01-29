@@ -1,4 +1,3 @@
-library(macpan2); library(testthat); library(dplyr); library(tidyr); library(ggplot2)
 test_that("optimizer-specific arguments are passed (#240)", {
   options(macpan2_verbose = FALSE)
   
