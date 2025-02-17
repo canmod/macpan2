@@ -55,6 +55,7 @@
 \alias{mean}
 \alias{sd}
 \alias{proportions}
+\alias{last}
 \title{Engine Functions}
 \description{
 Functions currently supported by the C++ TMB engine

@@ -835,4 +835,5 @@
 #' @aliases mean
 #' @aliases sd
 #' @aliases proportions
+#' @aliases last
 NULL

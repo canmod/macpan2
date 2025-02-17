@@ -320,7 +320,8 @@ mp_tmb_model_spec = TMBModelSpec
 print.TMBModelSpec = function(x, ...) mp_print_spec(x)
 
 spec_printer = function(x, include_defaults) {
-  if (include_defaults) {
+  has_defaults = length(x$default) > 0L
+  if (include_defaults & has_defaults) {
     cat("---------------------\n")
     msg("Default values:\n") |> cat()
     cat("---------------------\n")
