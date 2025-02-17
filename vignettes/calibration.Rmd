@@ -32,7 +32,7 @@ options(macpan2_verbose =  FALSE)
 
 Before reading this article on calibrating models to data, please first look at the [quickstart guide](https://canmod.github.io/macpan2/articles/quickstart) and the article on the [model library](https://canmod.github.io/macpan2/articles/example_models).
 
-## Hello World
+## Hello, World
 
 We'll do the first thing you should always do when trying out a new fitting procedure: simulate clean, nice data from the model and see if you can recover something close to the true parameters.
 
@@ -54,7 +54,8 @@ sir_simulator = mp_simulator(sir_spec
   , outputs = c("S", "I", "R")
   , default = list(N = 300, R = 100, beta = 0.25, gamma = 0.1)
 )
-sir_results = mp_trajectory(sir_simulator)
+sir_results = mp_trajectory(sir_simulator) |>
+    mutate(across(matrix, ~factor(., levels = c("S", "I", "R"))))
 (sir_results
   |> ggplot(aes(time, value, colour = matrix))
   + geom_line()
@@ -87,14 +88,14 @@ The next step is to produce an object that can be calibrated through optimizatio
 ```{r calibrator}
 sir_calibrator = mp_tmb_calibrator(sir_spec
   , data = sir_prevalence
-  , traj = "I"
+  , traj = list(I = mp_poisson()),
   , par = c("beta", "R")
   , default = list(N = 300)
 )
 print(sir_calibrator)
 ```
 
-Note that the calibrator has a few new expressions that deal with comparisons with data. In particular it is the objective function that we will optimize. But before that we can do a sanity check to make sure that the default values give a reasonable-looking trajectory.
+The calibrator has a few new expressions that deal with comparisons with data; in particular, it defines the objective function that we will optimize. But before that we can do a sanity check to make sure that the default values give a reasonable-looking trajectory.
 
 ```{r plot1}
 (sir_calibrator 
@@ -107,17 +108,17 @@ Note that the calibrator has a few new expressions that deal with comparisons wi
 
 ### Step 2: do the fit
 
-Doing the fit is straightforward.
+Doing the fit is straightforward; this calls a nonlinear optimizer built into base R (`nlminb` by default), starting from the default values specified in the calibrator.
 
 ```{r sir_fit, results = "hide"}
 mp_optimize(sir_calibrator)
 ```
 
-Note that the `mp_optimize` function has modified the `sir_calibrator` object, which now contains the new fitted parameter values and the results of the optimization.
+The `mp_optimize` function has **modified** the `sir_calibrator` object in place; it now contains the new fitted parameter values and the results of the optimization.
 
 ### Step 3: check the fit
 
-We can print the results of the optimizer (`nlminb` in this case) using the `mp_optimizer_output` function. **Always check the value of the convergence code** (if it's not 0, then something *may* have gone wrong ...).
+We can print the results of the optimizer (`nlminb` in this case) using the `mp_optimizer_output` function. **Always check the value of the convergence code** (if it's not 0, then something may have gone wrong ...).
 
 ```{r check_fit}
 mp_optimizer_output(sir_calibrator)
@@ -125,14 +126,16 @@ mp_optimize(sir_calibrator)
 mp_optimizer_output(sir_calibrator, what="all")
 ```
 
-As mentioned above, the best-fit parameters are stored internally, and we can get information about
-them using the `mp_tmb_coef` function. (Note that if you get a message about the `broom.mixed` package, please install it. `mp_tmb_coef` is a wrapper for this function).
+As mentioned above, the best-fit parameters are stored internally; we can get information about
+them using the `mp_tmb_coef` function. (If you get a message about the `broom.mixed` package, please install it. `mp_tmb_coef` is a wrapper for `broom.mixed::tidy()`).
+
 ```{r params}
 sir_estimates = mp_tmb_coef(sir_calibrator, conf.int = TRUE)
-print(sir_estimates)
+print(sir_estimates, digits = 3)
 ```
 
-These correspond pretty well to the known true values of the simulation model.
+This parameter corresponds pretty well to the known true values we used to simulate.
+
 ```{r default_reminder}
 mp_default(sir_simulator) |> filter(matrix %in% sir_estimates$mat)
 ```
@@ -173,4 +176,4 @@ $$
 
 Given these assumptions we choose $\mathbf b$ to maximize the resulting likelihood function, and use functionality from the `TMB` package (and sometimes the `tmbstan`/`rstan` packages) to do statistical inference on the fitted parameters and trajectories.
 
-We recognize that this statistical model will often be overly restrictive. The `macpan2` package has a developer interface that is much more flexible, allowing for more detailed control over `TMB`, `tmbstan`, and `rstan`. This interface allows for arbitrary likelihood functions, prior distributions, parameter transformations, flexible parameter time-variation models, random effects and more. See [here](https://canmod.github.io/macpan2/articles/calibration_advanced.html) and [here](https://canmod.github.io/macpan2/articles/time_varying_parameters.html) for more information, although because these guides describe a developer interface the instructions may be unclear to some or many readers. Our plan is to continue adding interface layers, such as the interface described in this vignette, so that more of `macpan2` can be exposed to users.
+This statistical model will often be too simple. The `macpan2` package has an extremely flexible developer interface that allows for more detailed control over `TMB`, `tmbstan`, and `rstan`. This interface allows for arbitrary likelihood functions, prior distributions, parameter transformations, flexible parameter time-variation models, random effects and more. See [here](https://canmod.github.io/macpan2/articles/calibration_advanced.html) and [here](https://canmod.github.io/macpan2/articles/time_varying_parameters.html) for more information, although because these guides describe a developer interface the instructions may be unclear to some or many readers. Our plan is to continue adding interface layers, such as the interface described in this vignette, so that more of `macpan2` can be exposed to users.
