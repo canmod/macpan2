@@ -14,6 +14,7 @@ articles:
   example_models: example_models.html
   FAQs: FAQs.html
   likelihood_prior_specs: likelihood_prior_specs.html
+  options: options.html
   quickstart: quickstart.html
   real_data: real_data.html
   state_dependent_rates: state_dependent_rates.html
@@ -21,7 +22,7 @@ articles:
   time_varying_parameters_advanced: time_varying_parameters_advanced.html
   time_varying_parameters: time_varying_parameters.html
   vignette_status: vignette_status.html
-last_built: 2025-02-03T18:24Z
+last_built: 2025-02-19T20:30Z
 urls:
   reference: https://canmod.github.io/macpan2/reference
   article: https://canmod.github.io/macpan2/articles
