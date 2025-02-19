@@ -1,0 +1,71 @@
+cff-version: 1.2.0
+message: "If you use macpan2 in your research, please cite it using the following reference."
+title: "macpan2: Fast and Flexible Compartmental Modelling"
+authors:
+  - family-names: "Walker"
+    given-names: "Steve"
+    email: "swalk@mcmaster.ca"
+    roles: ["creator", "author"]
+  - family-names: "Guan"
+    given-names: "Weiguang"
+    roles: ["author"]
+  - family-names: "Freeman"
+    given-names: "Jen"
+    roles: ["author"]
+  - family-names: "Bolker"
+    given-names: "Ben"
+    roles: ["author"]
+  - family-names: "Flynn-Primrose"
+    given-names: "Darren"
+    roles: ["author"]
+  - family-names: "Zhao"
+        given-names: "Kevin"
+        roles: ["contributor"]
+  - family-names: "Papst"
+    given-names: "Irena"
+    roles: ["contributor"]
+  - family-names: "Li"
+    given-names: "Michael"
+    roles: ["contributor"]
+version: "1.14.3"
+date-released: "2025-02-19"
+url: "https://github.com/canmod/macpan2"
+repository-code: "https://github.com/canmod/macpan2"
+license: "GPL-3.0"
+keywords:
+  - epidemiological modeling
+  - infectious disease dynamics
+  - compartmental models
+description: "Fast and flexible compartmental modelling with Template Model Builder."
+references:
+  - type: "software"
+    title: "macpan2: Fast and Flexible Compartmental Modelling"
+    authors:
+      - family-names: "Walker"
+        given-names: "Steve"
+        email: "swalk@mcmaster.ca"
+        roles: ["creator", "author"]
+      - family-names: "Guan"
+        given-names: "Weiguang"
+        roles: ["author"]
+      - family-names: "Freeman"
+        given-names: "Jen"
+        roles: ["author"]
+      - family-names: "Bolker"
+        given-names: "Ben"
+        roles: ["author"]
+      - family-names: "Flynn-Primrose"
+        given-names: "Darren"
+        roles: ["author"]
+      - family-names: "Zhao"
+        given-names: "Kevin"
+        roles: ["contributor"]
+      - family-names: "Papst"
+        given-names: "Irena"
+        roles: ["contributor"]
+      - family-names: "Li"
+        given-names: "Michael"
+        roles: ["contributor"]
+    publisher: "Zenodo"
+    year: "2025"
+    doi: "10.5281/zenodo.14796217"
