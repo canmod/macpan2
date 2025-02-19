@@ -19,8 +19,8 @@ authors:
     given-names: "Darren"
     roles: ["author"]
   - family-names: "Zhao"
-        given-names: "Kevin"
-        roles: ["contributor"]
+    given-names: "Kevin"
+    roles: ["contributor"]
   - family-names: "Papst"
     given-names: "Irena"
     roles: ["contributor"]
