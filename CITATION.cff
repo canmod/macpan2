@@ -27,8 +27,6 @@ authors:
   - family-names: "Li"
     given-names: "Michael"
     roles: ["contributor"]
-version: "1.14.3"
-date-released: "2025-02-19"
 url: "https://github.com/canmod/macpan2"
 repository-code: "https://github.com/canmod/macpan2"
 license: "GPL-3.0"
@@ -67,5 +65,4 @@ references:
         given-names: "Michael"
         roles: ["contributor"]
     publisher: "Zenodo"
-    year: "2025"
     doi: "10.5281/zenodo.14796217"
