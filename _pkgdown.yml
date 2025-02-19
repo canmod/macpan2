@@ -48,10 +48,10 @@ reference:
     model specifications.
   contents:
   - mp_print_spec
-  - mp_flow_frame
-  - mp_change_frame
   - mp_initial
   - mp_default
+  - mp_flow_frame
+  - mp_change_frame
   - mp_state_vars
   - mp_state_dependence_frame
 
@@ -61,16 +61,20 @@ reference:
   desc: Functions for creating a model simulator object.
   contents:
   - mp_simulator
+  - mp_trajectory
+  - mp_initial
+  - mp_final
 
+- subtitle: Generate Simulations
+  desc: Functions that generate simulations from a simulator object.
+  contents:
+  
 - subtitle: Explore Model Simulators and Simulations
   desc: > 
     Functions that extract or print information contained within 
     model simulators.
   contents:
-  - mp_trajectory
-  - mp_initial
   - mp_default
-  - mp_final
   - mp_tmb
   - mp_effects_descr
   - mp_tmb_fixef_cov

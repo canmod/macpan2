@@ -1,4 +1,4 @@
-#' Simulator
+#' Create a Simulator
 #' 
 #' Construct a simulator from a model specification object.
 #' 
