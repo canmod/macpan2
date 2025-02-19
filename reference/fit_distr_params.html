@@ -112,7 +112,7 @@ transformation specified using <code><a href="transform_distr_param.html">mp_log
 <span class="r-in"><span><span class="va">cal</span><span class="op">$</span><span class="va">simulator</span><span class="op">$</span><span class="va">tmb_model</span><span class="op">$</span><span class="va">obj_fn</span><span class="op">$</span><span class="va">obj_fn_expr</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ~-sum(dpois(obs_infection, clamp(sim_infection))) - sum(dnorm(beta, </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     0.35, exp(distr_params_log_sd_beta)))</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x5617d4847c30&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x564d41250c78&gt;</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Next we optimize and view the fitted parameters. We can see the </span></span></span>
 <span class="r-in"><span><span class="co"># distributional parameter in the coefficient table with a default value </span></span></span>
@@ -175,7 +175,7 @@ transformation specified using <code><a href="transform_distr_param.html">mp_log
 <span class="r-in"><span><span class="va">cal</span><span class="op">$</span><span class="va">simulator</span><span class="op">$</span><span class="va">tmb_model</span><span class="op">$</span><span class="va">obj_fn</span><span class="op">$</span><span class="va">obj_fn_expr</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ~-sum(dpois(obs_infection, clamp(sim_infection))) - sum(dnorm(beta, </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     0.35, exp(sd_var)))</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x5617d4805868&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x564d410f24e0&gt;</span>
 <span class="r-in"><span><span class="fu"><a href="mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">cal</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  389.7016 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  258.9379 </span>

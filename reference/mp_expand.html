@@ -5,13 +5,19 @@ this is only applicable for mp_tmb_model_spec objects
 that have explicit flows
 (e.g. mp_per_capita_flow). For such models, mp_expand
 produces a model with expression lists composed entirely of plain R
-formulas."><meta property="og:description" content="Expand a structured model so that it is represented in an unstructured
+formulas.
+Reduce a model by removing any model structure
+(e.g. mp_per_capita_flow), so that expression lists
+are plain R formulas."><meta property="og:description" content="Expand a structured model so that it is represented in an unstructured
 format requiring a more verbose description. Currently,
 this is only applicable for mp_tmb_model_spec objects
 that have explicit flows
 (e.g. mp_per_capita_flow). For such models, mp_expand
 produces a model with expression lists composed entirely of plain R
-formulas."></head><body>
+formulas.
+Reduce a model by removing any model structure
+(e.g. mp_per_capita_flow), so that expression lists
+are plain R formulas."></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -64,11 +70,16 @@ that have explicit flows
 (e.g. <code><a href="mp_per_capita_flow.html">mp_per_capita_flow</a></code>). For such models, <code>mp_expand</code>
 produces a model with expression lists composed entirely of plain R
 formulas.</p>
+<p>Reduce a model by removing any model structure
+(e.g. <code><a href="mp_per_capita_flow.html">mp_per_capita_flow</a></code>), so that expression lists
+are plain R formulas.</p>
     </div>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">mp_expand</span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">mp_expand</span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">mp_reduce</span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -79,6 +90,12 @@ formulas.</p>
 <dd><p>A model object.</p></dd>
 
 </dl></div>
+    <div class="section level2">
+    <h2 id="functions">Functions<a class="anchor" aria-label="anchor" href="#functions"></a></h2>
+
+<ul><li><p><code>mp_reduce()</code>: Synonym of <code>mp_expand</code> present only for
+back-compatibility. Please use <code>mp_expand</code> in new projects.</p></li>
+</ul></div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
