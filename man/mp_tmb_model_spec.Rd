@@ -2,7 +2,7 @@
 % Please edit documentation in R/mp_tmb_model_spec.R
 \name{mp_tmb_model_spec}
 \alias{mp_tmb_model_spec}
-\title{Specify a TMB Model}
+\title{Create TMB Model Specification}
 \usage{
 mp_tmb_model_spec(
   before = list(),

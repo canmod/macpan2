@@ -2,7 +2,7 @@
 % Please edit documentation in R/make_model_index.R
 \name{show_models}
 \alias{show_models}
-\title{Print a table of contents of available models}
+\title{Print a Table of Existing Models}
 \usage{
 show_models(
   dir = system.file("starter_models", package = "macpan2"),
@@ -22,8 +22,8 @@ links to model readme files?}
 a data frame containing entries \code{Directory} (model directory), \code{Title} (model title), \code{Description} (short description)
 }
 \description{
-Collects information from the headers of the README files in the model directories
-and returns the results as a data frame
+Collects information from the headers of the README files in
+model directories and returns the results as a data frame
 }
 \examples{
 show_models(show_missing = TRUE)

@@ -18,10 +18,16 @@ reference:
 
 - subtitle: Create Model Specifications
   desc: >
-    Functions for creating, finding, and reading model specification objects.
+    Functions for creating new model specification objects.
   contents:
   - mp_tmb_model_spec
   - mp_per_capita_flow
+  
+- subtitle: Find Model Specifications
+  desc: >
+    Functions for finding, copying, and loading existing model
+    specification objects.
+  contents:
   - show_models
   - mp_tmb_library
   - mp_model_starter
@@ -35,7 +41,6 @@ reference:
   - mp_tmb_insert_reports
   - mp_euler
   - mp_expand
-  - mp_reduce
 
 - subtitle: Explore Model Specifications
   desc: > 
@@ -80,7 +85,7 @@ reference:
   - mp_par
   - mp_traj
   - mp_rbf
-  - mp_identity
+  - transform_distr_param
 
 - subtitle: Specify Distributional Assumptions
   desc: > 

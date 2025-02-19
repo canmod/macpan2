@@ -2,7 +2,7 @@
 % Please edit documentation in R/mp_library.R
 \name{mp_tmb_library}
 \alias{mp_tmb_library}
-\title{TMB Library}
+\title{Read Item from a Model Library}
 \usage{
 mp_tmb_library(..., package = NULL, alternative_specs = FALSE)
 }

@@ -2,9 +2,12 @@
 % Please edit documentation in R/formula_list_generators.R
 \name{mp_expand}
 \alias{mp_expand}
+\alias{mp_reduce}
 \title{Expand Model}
 \usage{
 mp_expand(model)
+
+mp_reduce(model)
 }
 \arguments{
 \item{model}{A model object.}
@@ -17,7 +20,17 @@ that have explicit flows
 (e.g. \code{\link{mp_per_capita_flow}}). For such models, \code{mp_expand}
 produces a model with expression lists composed entirely of plain R
 formulas.
+
+Reduce a model by removing any model structure
+(e.g. \code{\link{mp_per_capita_flow}}), so that expression lists
+are plain R formulas.
 }
+\section{Functions}{
+\itemize{
+\item \code{mp_reduce()}: Synonym of \code{mp_expand} present only for
+back-compatibility. Please use \code{mp_expand} in new projects.
+
+}}
 \examples{
 sir = mp_tmb_library("starter_models", "sir", package = "macpan2")
 print(sir)

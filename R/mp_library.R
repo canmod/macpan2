@@ -3,7 +3,7 @@ mp_library = function(...) {
   stop("under construction")
 }
 
-#' TMB Library
+#' Read Item from a Model Library
 #' 
 #' Get a TMB model specification from a model library.
 #' 
@@ -62,7 +62,7 @@ mp_tmb_library = function(..., package = NULL, alternative_specs = FALSE) {
   stop("Malformed model library entry.")
 }
 
-#' Model Starter
+#' Copy Existing Model as a Starting Point
 #'
 #' Create a directory with a template model definition.
 #'

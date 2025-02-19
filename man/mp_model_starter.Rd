@@ -2,7 +2,7 @@
 % Please edit documentation in R/mp_library.R
 \name{mp_model_starter}
 \alias{mp_model_starter}
-\title{Model Starter}
+\title{Copy Existing Model as a Starting Point}
 \usage{
 mp_model_starter(starter_name, dir)
 }

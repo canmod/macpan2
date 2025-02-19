@@ -54,10 +54,10 @@ get_mod_info <- function(f) {
     return(data.frame(dir=f_base, res))
 }
 
-#' Print a table of contents of available models
+#' Print a Table of Existing Models
 #'
-#' Collects information from the headers of the README files in the model directories
-#' and returns the results as a data frame
+#' Collects information from the headers of the README files in
+#' model directories and returns the results as a data frame
 #'
 #' @param dir directory to list
 #' @param show_missing (logical) include entries for models with no README information?

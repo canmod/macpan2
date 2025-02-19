@@ -256,7 +256,7 @@ must_save_time_args = function(formulas) {
   return(time_args)
 }
 
-#' Specify a TMB Model
+#' Create TMB Model Specification
 #' 
 #' Specify a simulation model in the TMB engine.
 #' 
