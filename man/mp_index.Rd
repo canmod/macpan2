@@ -157,3 +157,4 @@ Other functions that return index tables
 \code{\link{mp_union}()}
 }
 \concept{indexes}
+\concept{population-structure}

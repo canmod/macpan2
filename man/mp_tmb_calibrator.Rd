@@ -7,8 +7,8 @@
 mp_tmb_calibrator(
   spec,
   data,
-  traj,
-  par,
+  traj = list(),
+  par = list(),
   tv = character(),
   outputs = traj,
   default = list(),
@@ -72,3 +72,4 @@ cal = mp_tmb_calibrator(
 mp_optimize(cal)
 mp_tmb_coef(cal)  ## requires broom.mixed package
 }
+\concept{create-model-calibrator}

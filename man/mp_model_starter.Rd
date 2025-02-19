@@ -15,3 +15,4 @@ template model definition.}
 \description{
 Create a directory with a template model definition.
 }
+\concept{create-model-spec}

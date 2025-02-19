@@ -11,6 +11,7 @@
 #' values defined in the model specification object. Any number of objects
 #' can be updated or not.
 #' 
+#' @concept create-model-simulator
 #' @export
 mp_simulator = function(model
     , time_steps
@@ -66,6 +67,7 @@ mp_simulator.TMBCalibrator = function(model
 mp_simulator.TMBParameterizedModelSpec = function(model
   , time_steps, outputs, default = list()
 ) {
+  ## FIXME: doesn't seem to be used anywhere
   simulator = mp_simulator(model$spec, time_steps, outputs, default)
 }
 
@@ -213,9 +215,8 @@ TMBModel = function(
   self$ad_fun = function(
         tmb_cpp = getOption("macpan2_dll")
       , verbose = getOption("macpan2_verbose")
-      , derivs = getOption("macpan2_tmb_derivs")
     ) {
-    do.call(TMB::MakeADFun, self$make_ad_fun_arg(tmb_cpp))
+    do.call(TMB::MakeADFun, self$make_ad_fun_arg(tmb_cpp, verbose))
   }
 
   self$simulator = function(

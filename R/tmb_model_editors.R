@@ -1,8 +1,7 @@
-#' Modify a TMB Model Spec
+#' Transform a TMB Model Spec
 #' 
 #' Insert, update, or delete elements of a TMB model spec, produced using
-#' \code{\link{mp_tmb_library}} or \code{\link{mp_tmb_model_spec}}, or
-#' \code{\link{mp_tmb_delete}}. The
+#' \code{\link{mp_tmb_library}} or \code{\link{mp_tmb_model_spec}}. The
 #' only difference between `mp_tmb_insert` and `mp_tmb_update` is that
 #' the former shifts the positions of existing expressions to make room
 #' for the new expressions, whereas the latter overwrites existing expressions
@@ -72,6 +71,7 @@
 #'   , default = list(log_beta = log(0.5))
 #' )
 #' 
+#' @concept transform-model-spec
 #' @export
 mp_tmb_insert = function(model
     , phase = "during"
@@ -110,6 +110,7 @@ mp_tmb_insert = function(model
 }
 
 
+#' @concept transform-model-spec
 #' @rdname mp_tmb_insert
 #' @export
 mp_tmb_update = function(model
@@ -149,6 +150,7 @@ mp_tmb_update = function(model
   )
 }
 
+#' @concept transform-model-spec
 #' @rdname mp_tmb_insert
 #' @export
 mp_tmb_delete = function(model
@@ -206,6 +208,8 @@ mp_tmb_delete = function(model
 #' @param report_prob_name Name of the variable containing `report_prob`.
 #' @param mean_delay_name Name of the variable containing `mean_delay`.
 #' @param cv_delay_name Name of the variable containing `cv_delay`.
+#' 
+#' @concept transform-model-spec
 #' @export
 mp_tmb_insert_reports = function(model
   , incidence_name
@@ -596,9 +600,6 @@ TMBSimulatorUpdater = function(simulator) {
     for (v in names(.vec_by)) {
       if (.vec_by[v] == "") .vec_by[v] = "...RAW...INDICES..."
     }
-    # if (.vec_by_states == "") .vec_by_states = "...RAW...INDICES..."
-    # if (.vec_by_flows == "") .vec_by_flows = "...RAW...INDICES..."
-    #component_vec_by = c(state = .vec_by_states, flow = .vec_by_flows)
     if (inherits(self$model$init_mats$.structure_labels, "NullLabels")) {
       args = list(...)
     } else {

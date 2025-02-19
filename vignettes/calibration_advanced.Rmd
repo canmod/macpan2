@@ -34,6 +34,7 @@ if (packageVersion("macpan2helpers") < mp2hver) {
 library(dplyr)
 library(tidyr)
 library(ggplot2); theme_set(theme_bw())
+options(macpan2_verbose = FALSE)
 ```
 
 In addition to these packages, the `broom.mixed` package and `outbreaks` package will be used below (if installed).

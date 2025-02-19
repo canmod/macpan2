@@ -13,6 +13,163 @@ home:
     href: https://github.com/orgs/canmod/projects/2
   - text: Project history and trajectory
     href: https://canmod.net/misc/pyRC
+reference:
+- title: Specifications
+
+- subtitle: Create Model Specifications
+  desc: >
+    Functions for creating, finding, and reading model specification objects.
+  contents:
+  - mp_tmb_model_spec
+  - mp_per_capita_flow
+  - show_models
+  - mp_tmb_library
+  - mp_model_starter
+
+- subtitle: Transform Model Specifications
+  desc: > 
+    Functions that take a model specification as input and return a modified 
+    version of that specification.
+  contents:
+  - mp_tmb_insert
+  - mp_tmb_insert_reports
+  - mp_euler
+  - mp_expand
+  - mp_reduce
+
+- subtitle: Explore Model Specifications
+  desc: > 
+    Functions that extract or print information contained within 
+    model specifications.
+  contents:
+  - mp_print_spec
+  - mp_flow_frame
+  - mp_change_frame
+  - mp_initial
+  - mp_default
+  - mp_state_vars
+  - mp_state_dependence_frame
+
+- title: Simulators
+
+- subtitle: Create New Model Simulators
+  desc: Functions for creating a model simulator object.
+  contents:
+  - mp_simulator
+
+- subtitle: Explore Model Simulators and Simulations
+  desc: > 
+    Functions that extract or print information contained within 
+    model simulators.
+  contents:
+  - mp_trajectory
+  - mp_initial
+  - mp_default
+  - mp_final
+  - mp_tmb
+  - mp_effects_descr
+  - mp_tmb_fixef_cov
+  - mp_tmbstan_coef
+
+- title: Calibrators
+
+- subtitle: Create Model Calibrator
+  desc: Create a simulator that can be calibrated to data
+  contents:
+  - mp_tmb_calibrator
+  - mp_par
+  - mp_traj
+  - mp_rbf
+  - mp_identity
+
+- subtitle: Specify Distributional Assumptions
+  desc: > 
+    Functions for specifying distributional assumptions for priors 
+    and likelihoods.
+  contents:
+  - mp_uniform
+  - mp_fit
+
+- subtitle: Optimize Calibrator Model
+  desc: > 
+    Functions that take a model specification as input and return a modified 
+    version of that specification.
+  contents:
+  - mp_optimize
+
+- subtitle: Explore Model Calibrators and Calibrations
+  desc: > 
+    Functions that extract or print information contained within 
+    model calibrators.
+  contents:
+  - mp_trajectory
+  - mp_tmb_coef
+  - mp_tmb
+  - mp_optimizer_output
+  - mp_effects_descr
+  - mp_tmb_fixef_cov
+  - mp_tmbstan_coef
+
+- title: Not Ready or Old
+
+- subtitle: Structured Populations (Not Ready for Users)
+  desc: > 
+    Functions for specifying population structure 
+    (e.g., age, space, immunity status).
+  contents:
+  - LedgerDefinition
+  - mp_cartesian
+  - mp_extract
+  - mp_index
+  - mp_join
+  - mp_linear
+  - mp_positions
+  - mp_reference
+  - mp_rename
+  - mp_square
+  - mp_symmetric
+  - mp_triangle
+  - mp_factors
+  - mp_group
+  - mp_labels
+  - mp_ledgers
+  - mp_lookup
+  - mp_slices
+  - mp_structured_vector
+  - mp_subset
+  - mp_union
+  - to_labels
+  - to_positions
+  - to_string
+  - mp_aggregate
+
+- title: Other
+  desc: Functions that are not described above.
+  contents:
+  - empty_matrix
+  - mp_zero_vector
+  - nlist
+  - engine_eval
+  - simple_sims
+  - engine_functions
+  - finalizer_char
+  - find_all_paths
+  - initial_valid_vars
+  - make_expr_parser
+  - mp_dynamic_model
+  - mp_dynamic_simulator
+  - mp_layout_grid
+  - mp_sim_bounds
+  - mp_time_scale
+  - mp_tmb_expr_list
+  - rbf
+  - mp_layout_paths
+  - BinaryOperator
+  - Reader
+  - StringDataFromFrame
+  - Transform
+  - all_equal
+
 articles:
 - title: User Guides
   navbar: ~
@@ -48,3 +205,4 @@ articles:
   contents:
   - time_varying_parameters
   - likelihood_prior_specs
+  - options

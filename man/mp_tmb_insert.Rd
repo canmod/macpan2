@@ -4,7 +4,7 @@
 \alias{mp_tmb_insert}
 \alias{mp_tmb_update}
 \alias{mp_tmb_delete}
-\title{Modify a TMB Model Spec}
+\title{Transform a TMB Model Spec}
 \usage{
 mp_tmb_insert(
   model,
@@ -97,8 +97,7 @@ A new model spec object with updated and/or inserted information.
 }
 \description{
 Insert, update, or delete elements of a TMB model spec, produced using
-\code{\link{mp_tmb_library}} or \code{\link{mp_tmb_model_spec}}, or
-\code{\link{mp_tmb_delete}}. The
+\code{\link{mp_tmb_library}} or \code{\link{mp_tmb_model_spec}}. The
 only difference between \code{mp_tmb_insert} and \code{mp_tmb_update} is that
 the former shifts the positions of existing expressions to make room
 for the new expressions, whereas the latter overwrites existing expressions
@@ -141,3 +140,4 @@ mp_tmb_insert(si, phase = "before"
 )
 
 }
+\concept{transform-model-spec}

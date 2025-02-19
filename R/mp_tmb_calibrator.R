@@ -47,10 +47,11 @@
 #' )
 #' mp_optimize(cal)
 #' mp_tmb_coef(cal)  ## requires broom.mixed package
+#' @concept create-model-calibrator
 #' @export
 mp_tmb_calibrator = function(spec, data
-    , traj
-    , par
+    , traj = list()
+    , par = list()
     , tv = character()
     , outputs = traj
     , default = list()
@@ -307,6 +308,14 @@ TMBCalDataStruc = function(data, time) {
   ## TODO: Still splitting on matrices, which doesn't allow flexibility
   ## in what counts as an 'output'. In general, an output could be
   ## a matrix, row, or column.
+  if (!"matrix" %in% colnames(data)) {
+    stop(
+      "Supplied data did not contain a column called 'matrix' ",
+      "(or its synonym 'variable' or short forms of 'matrix' ",
+      "or 'variable' such as 'mat' or 'var'). Such a column is ",
+      "required to relate simulated and observed matrices (i.e., variables)."
+    )
+  }
   self$matrix_list = split(data, data$matrix)
   
   self$check_matrices = function(matrices) {

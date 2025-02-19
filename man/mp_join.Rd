@@ -103,3 +103,4 @@ Other functions that return ledgers
 \code{\link{mp_aggregate}()}
 }
 \concept{ledgers}
+\concept{population-structure}

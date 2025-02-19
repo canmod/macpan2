@@ -625,6 +625,7 @@ mp_uniform = function(trans_distr_param = list()) {
 
 #' @description * Normal Distribution - `mp_normal`
 #' @name distribution
+#' @concept distributional-assumptions
 #' @export
 mp_normal = function(location = mp_distr_param_null("location")
      , sd
@@ -848,6 +849,7 @@ mp_neg_bin = function(location = mp_distr_param_null("location")
 #' mp_optimize(cal)
 #' mp_tmb_coef(cal)
 #' @name fit_distr_params
+#' @concept distributional-assumptions
 #' @export
 mp_fit = function(x, trans = DistrParamTransDefault()) UseMethod("mp_fit")
 

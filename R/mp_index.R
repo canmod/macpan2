@@ -87,6 +87,7 @@
 #' @seealso [mp_structured_vector()]
 #' @seealso [mp_set_numbers()]
 #'
+#' @concept population-structure
 #' @export
 mp_index = function(..., labelling_column_names) UseMethod("mp_index")
 
@@ -298,6 +299,7 @@ infer_labelling_columns = function(partition) {
 #' @param dimension_name Name of a dimension used in a ledger if
 #' applicable.
 #' 
+#' @concept population-structure
 #' @export
 mp_reference = function(x, dimension_name) {
   UseMethod("mp_reference")
@@ -323,6 +325,7 @@ mp_reference.Index = function(x, dimension_name) {
 #' @param x Object
 #' @param dimension_name Name of a dimension used in a ledger.
 #' 
+#' @concept population-structure
 #' @export
 mp_extract = function(x, dimension_name) {
   UseMethod("mp_extract")
@@ -364,6 +367,7 @@ mp_extract.ModelDefRun = function(x, dimension_name) {
 #' @param zero_based Use zero-based indexing? Defaults to \code{TRUE},
 #' otherwise standard R one-based indexing is used.
 #' 
+#' @concept population-structure
 #' @export
 mp_positions = function(x, table, zero_based = TRUE) {
   p = match(x, table)
@@ -379,6 +383,7 @@ mp_positions = function(x, table, zero_based = TRUE) {
 #' is a character vector giving the old name.
 #'
 #' @family indexes
+#' @concept population-structure
 #' @export
 mp_rename = function(x, ...) {
   l = list(...)

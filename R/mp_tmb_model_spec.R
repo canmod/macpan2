@@ -157,7 +157,7 @@ TMBModelSpec = function(
     mat_args = c(mats, mat_options$from_spec(
         mats
       , outputs
-      , c(self$must_save,time_args)
+      , c(self$must_save, time_args)
       , self$must_not_save
     ))
     TMBModel(
@@ -255,6 +255,7 @@ must_save_time_args = function(formulas) {
   )
   return(time_args)
 }
+
 #' Specify a TMB Model
 #' 
 #' Specify a simulation model in the TMB engine.
@@ -313,6 +314,7 @@ must_save_time_args = function(formulas) {
 #'   |> mp_trajectory()
 #' )
 #' 
+#' @concept create-model-spec
 #' @export
 mp_tmb_model_spec = TMBModelSpec
 

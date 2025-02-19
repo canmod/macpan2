@@ -28,6 +28,7 @@ mp_library = function(...) {
 #'   , package = "macpan2"
 #' )
 #' 
+#' @concept create-model-spec
 #' @export
 mp_tmb_library = function(..., package = NULL, alternative_specs = FALSE) {
   if (is.null(package)) {
@@ -69,6 +70,7 @@ mp_tmb_library = function(..., package = NULL, alternative_specs = FALSE) {
 #' @param dir String giving the path to a directory for copying the
 #' template model definition.
 #'
+#' @concept create-model-spec
 #' @export
 mp_model_starter = function(starter_name, dir) {
   starter_dir = system.file("starter_models"

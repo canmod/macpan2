@@ -22,3 +22,4 @@ can be updated or not.}
 \description{
 Construct a simulator from a model specification object.
 }
+\concept{create-model-simulator}
