@@ -61,13 +61,13 @@ reference:
   desc: Functions for creating a model simulator object.
   contents:
   - mp_simulator
-  - mp_trajectory
-  - mp_initial
-  - mp_final
 
 - subtitle: Generate Simulations
   desc: Functions that generate simulations from a simulator object.
   contents:
+  - mp_trajectory
+  - mp_initial
+  - mp_final
   
 - subtitle: Explore Model Simulators and Simulations
   desc: > 
