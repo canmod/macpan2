@@ -179,17 +179,23 @@ mp_change_frame = function(spec) spec$change_model$change_frame()
 
 
 
-#' Find all Paths
+#' Find all Paths Through Compartments
 #' 
 #' Find all paths through a compartmental model.
 #' 
-#' @param edges_df A data frame with a `from` and a `to` column.
+#' @param edges_df A data frame with a `from` and a `to` column, which can
+#' be extracted from a model specification object using the 
+#' \code{\link{mp_flow_frame}}.
 #' @param start_node_guesses Optional guesses for nodes that start
 #' paths. This is useful for models that are not directed acyclic 
 #' graphs (DAGs).
 #' 
 #' @return List of character vectors of state variable names, each
 #' vector describing a path through the model.
+#' 
+#' @examples
+#' spec = mp_tmb_library("starter_models", "macpan_base", package = "macpan2")
+#' spec |> mp_flow_frame() |> find_all_paths()
 #' 
 #' @export
 find_all_paths <- function(edges_df, start_node_guesses = character(0L)) {
