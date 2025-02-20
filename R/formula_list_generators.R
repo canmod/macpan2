@@ -803,7 +803,7 @@ HazardUpdateMethod = function(change_model) {
 
 # Change Components
 
-#' Specify Flow Between Compartments.
+#' Specify Flow Between Compartments
 #' 
 #' Specify different kinds of flows between compartments.
 #' 

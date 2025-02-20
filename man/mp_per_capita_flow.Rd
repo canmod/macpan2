@@ -5,7 +5,7 @@
 \alias{mp_per_capita_inflow}
 \alias{mp_per_capita_outflow}
 \alias{mp_absolute_flow}
-\title{Specify Flow Between Compartments.}
+\title{Specify Flow Between Compartments}
 \usage{
 mp_per_capita_flow(from, to, rate, abs_rate = NULL)
 
