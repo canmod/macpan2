@@ -88,7 +88,7 @@ spec = mp_tmb_model_spec(
 spec2 = mp_tmb_model_spec(
     during = list(
           force_of_infection ~ beta * I / N
-        , mp_per_capita_flow("S", "I", force_of_infection, "infection")
+        , mp_per_capita_flow("S", "I", "force_of_infection", "infection")
     )
   , default = list(N = 100, S = 99, I = 1, beta = 0.2)
 )
@@ -104,7 +104,7 @@ spec2 = mp_tmb_model_spec(
 ## while ensuring consistent values for `S`.
 spec3 = mp_tmb_model_spec(
     before = S ~ N - I
-    during = mp_per_capita_flow("S", "I", "beta * I / N", "infection")
+  , during = mp_per_capita_flow("S", "I", "beta * I / N", "infection")
   , default = list(N = 100, I = 1, beta = 0.2)
 )
 (spec3 
