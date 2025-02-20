@@ -18,7 +18,8 @@ reference:
 
 - subtitle: Create Model Specifications
   desc: >
-    Functions for creating new model specification objects.
+    Functions for creating new model specification objects, which describe
+    dynamical models with special support for compartmental models.
   contents:
   - mp_tmb_model_spec
   - mp_per_capita_flow
@@ -26,9 +27,9 @@ reference:
 - subtitle: Find Model Specifications
   desc: >
     Functions for finding, copying, and loading existing model
-    specification objects.
+    specification objects from model libraries.
   contents:
-  - show_models
+  - mp_show_models
   - mp_tmb_library
   - mp_model_starter
 

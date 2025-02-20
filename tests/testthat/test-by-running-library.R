@@ -1,6 +1,6 @@
 test_that("all models in the library can run", {
   model_names = setdiff(
-    show_models()$dir,
+    mp_show_models()$dir,
     ## TODO: review this list of models
     ## to avoid running. maybe we do
     ## want to run some of them. the

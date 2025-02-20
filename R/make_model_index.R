@@ -67,7 +67,7 @@ get_mod_info <- function(f) {
 #' @examples show_models(show_missing = TRUE)
 #' @importFrom stats na.omit
 #' @export
-show_models <- function(
+mp_show_models <- function(
         dir = system.file("starter_models", package = "macpan2")
       , show_missing = FALSE
       , for_markdown = FALSE
@@ -94,6 +94,11 @@ show_models <- function(
     res = setNames(res, c("Directory", "Title", "Description"))
     return(res)
 }
+
+#' @describeIn mp_show_models Synonym for `mp_show_models`, which is
+#' preferred. Present for back-compatibility.
+#' @export
+show_models = mp_show_models
 
 model_link = function(model_name) {
   sprintf(
