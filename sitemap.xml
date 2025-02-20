@@ -26,7 +26,6 @@
 <url><loc>https://canmod.github.io/macpan2/authors.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/index.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/news/index.html</loc></url>
-<url><loc>https://canmod.github.io/macpan2/reference/BinaryOperator.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/LedgerDefinition.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/Reader.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/StringData.html</loc></url>
@@ -44,6 +43,7 @@
 <url><loc>https://canmod.github.io/macpan2/reference/macpan2-package.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/make_expr_parser.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_aggregate.html</loc></url>
+<url><loc>https://canmod.github.io/macpan2/reference/mp_binary_operator.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_cartesian.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_change_frame.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_default.html</loc></url>
