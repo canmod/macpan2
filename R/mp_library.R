@@ -19,7 +19,7 @@ mp_library = function(...) {
 #' specification objects. For models without alternatives this will cause
 #' the return value to be a list with one element containing a spec object.
 #' 
-#' @seealso [show_models()]
+#' @seealso [mp_show_models()]
 #' 
 #' @examples
 #' mp_tmb_library(

@@ -71,16 +71,13 @@ reference:
   - mp_initial
   - mp_final
   
-- subtitle: Explore Model Simulators and Simulations
+- subtitle: Explore Model Simulators
   desc: > 
     Functions that extract or print information contained within 
     model simulators.
   contents:
   - mp_default
   - mp_tmb
-  - mp_effects_descr
-  - mp_tmb_fixef_cov
-  - mp_tmbstan_coef
 
 - title: Calibrators
 
@@ -92,6 +89,8 @@ reference:
   - mp_traj
   - mp_rbf
   - transform_distr_param
+  - mp_sim_bounds
+  - mp_time_scale
 
 - subtitle: Specify Distributional Assumptions
   desc: > 
@@ -121,13 +120,59 @@ reference:
   - mp_tmb_fixef_cov
   - mp_tmbstan_coef
 
-- title: Not Ready or Old
+- title: Utilities
 
-- subtitle: Structured Populations (Not Ready for Users)
+- subtitle: Lightweight Simulation
+  desc: >
+    Simple functions for simulation without simulators, so that the 
+    `?engine_functions` can be explored.
+  contents:
+  - engine_eval
+  - simple_sims
+  
+- title: Utilities
+
+- subtitle: Creating Matrices, Vectors, and Lists
+  desc: >
+    Utilities for constructing matrices, vectors, and lists for 
+    use with `macpan2`.
+  contents:
+  - empty_matrix
+  - mp_zero_vector
+  - nlist
+  - rbf
+  - BinaryOperator
+
+- subtitle: Developer Utilities
+  desc: >
+    Utilities for `macpan2` developers. TODO: Justify why these are exposed
+    to users or do not expose.
+  contents:
+  - finalizer_char
+  - initial_valid_vars
+  - make_expr_parser
+  - mp_tmb_expr_list
+  - Reader
+  - Transform
+
+- title: Not Ready
+
+- subtitle: Box Diagram Layouts (Not Ready)
+  desc: >
+    Functions for semi-automatically laying out compartments in model
+    specifications as boxes on a plot.
+  contents:
+  - mp_layout_grid
+  - mp_layout_paths
+  - find_all_paths
+
+- subtitle: Structured Populations (Not Ready)
   desc: > 
     Functions for specifying population structure 
     (e.g., age, space, immunity status).
   contents:
+  - mp_dynamic_model
+  - mp_dynamic_simulator
   - LedgerDefinition
   - mp_cartesian
   - mp_extract
@@ -153,32 +198,9 @@ reference:
   - to_positions
   - to_string
   - mp_aggregate
-
-- title: Other
-  desc: Functions that are not described above.
-  contents:
-  - empty_matrix
-  - mp_zero_vector
-  - nlist
-  - engine_eval
-  - simple_sims
-  - finalizer_char
-  - find_all_paths
-  - initial_valid_vars
-  - make_expr_parser
-  - mp_dynamic_model
-  - mp_dynamic_simulator
-  - mp_layout_grid
-  - mp_sim_bounds
-  - mp_time_scale
-  - mp_tmb_expr_list
-  - rbf
-  - mp_layout_paths
-  - BinaryOperator
-  - Reader
   - StringDataFromFrame
-  - Transform
   - all_equal
+
 
 articles:
 - title: User Guides
@@ -189,7 +211,7 @@ articles:
   - calibration
   - real_data
   - state_updaters
-  - FAQs
+  - options
 - title: Specs
   desc: Specification Documents
   contents:
@@ -215,4 +237,4 @@ articles:
   contents:
   - time_varying_parameters
   - likelihood_prior_specs
-  - options
+  - FAQs
