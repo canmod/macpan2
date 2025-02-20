@@ -9,8 +9,7 @@ Authors@R: c(
   person("Darren Flynn-Primrose", role="aut"),
   person("Irena Papst", role="ctb"),
   person("Michael Li", role="ctb"),
-  person("Kevin Zhao", role="ctb")
-)
+  person("Kevin Zhao", role="ctb"))
 Description: Fast and flexible compartmental modelling with Template Model Builder.
 License: GPL-3
 Depends:
