@@ -129,8 +129,6 @@ reference:
   contents:
   - engine_eval
   - simple_sims
-  
-- title: Utilities
 
 - subtitle: Creating Matrices, Vectors, and Lists
   desc: >
