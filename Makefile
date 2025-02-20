@@ -180,3 +180,12 @@ inst/starter_models/%/README.push: inst/starter_models/%/README.md
 	touch $@
 
 all-starters: inst/starter_models/*/README.push
+
+pkgdown: 
+	Rscript -e "pkgdown::build_site()"
+	Rscript -e "pkgdown::preview_site()"
+
+pkgdown-reference-index:
+	make quick-doc-install
+	Rscript -e "pkgdown::build_reference_index()"
+	Rscript -e "pkgdown::preview_site()"
