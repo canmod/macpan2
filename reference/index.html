@@ -51,7 +51,7 @@
     </div><div class="section level2">
 
       <h3 id="create-model-specifications">Create Model Specifications<a class="anchor" aria-label="anchor" href="#create-model-specifications"></a></h3>
-      <div class="section-desc"><p>Functions for creating new model specification objects, which describe dynamical models with special support for compartmental models.</p></div>
+      <div class="section-desc"><p>Functions for creating new model specification objects, which describe dynamical models with special support for compartmental modelling. The <code><a href="../articles/quickstart.html">vignette("quickstart")</a></code> article describes how these functions are used in context.</p></div>
 
 
     </div><div class="section level2">
@@ -70,7 +70,7 @@
           <code><a href="mp_per_capita_flow.html">mp_per_capita_flow()</a></code> <code><a href="mp_per_capita_flow.html">mp_per_capita_inflow()</a></code> <code><a href="mp_per_capita_flow.html">mp_per_capita_outflow()</a></code> <code><a href="mp_per_capita_flow.html">mp_absolute_flow()</a></code>
 
         </dt>
-        <dd>Specify Flow Between Compartments.</dd>
+        <dd>Specify Flow Between Compartments</dd>
       </dl><dl><dt>
 
           <code><a href="engine_functions.html">engine_functions</a></code> <code><a href="engine_functions.html">`+`</a></code> <code><a href="engine_functions.html">`-`</a></code> <code><a href="engine_functions.html">`*`</a></code> <code><a href="engine_functions.html">`/`</a></code> <code><a href="engine_functions.html">`^`</a></code> <code><a href="engine_functions.html">exp</a></code> <code><a href="engine_functions.html">log</a></code> <code><a href="engine_functions.html">`(`</a></code> <code><a href="engine_functions.html">c</a></code> <code><a href="engine_functions.html">matrix</a></code> <code><a href="engine_functions.html">`%*%`</a></code> <code><a href="engine_functions.html">sum</a></code> <code><a href="engine_functions.html">rep</a></code> <code><a href="engine_functions.html">row_sums</a></code> <code><a href="engine_functions.html">col_sums</a></code> <code><a href="engine_functions.html">group_sums</a></code> <code><a href="engine_functions.html">`[`</a></code> <code><a href="engine_functions.html">block</a></code> <code><a href="engine_functions.html">t</a></code> <code><a href="engine_functions.html">rbind_time</a></code> <code><a href="engine_functions.html">rbind_lag</a></code> <code><a href="engine_functions.html">cbind_time</a></code> <code><a href="engine_functions.html">cbind_lag</a></code> <code><a href="engine_functions.html">`:`</a></code> <code><a href="engine_functions.html">seq</a></code> <code><a href="engine_functions.html">convolution</a></code> <code><a href="engine_functions.html">cbind</a></code> <code><a href="engine_functions.html">rbind</a></code> <code><a href="engine_functions.html">time_step</a></code> <code><a href="engine_functions.html">assign</a></code> <code><a href="engine_functions.html">unpack</a></code> <code><a href="engine_functions.html">recycle</a></code> <code><a href="engine_functions.html">clamp</a></code> <code><a href="engine_functions.html">dpois</a></code> <code><a href="engine_functions.html">dnbinom</a></code> <code><a href="engine_functions.html">dnorm</a></code> <code><a href="engine_functions.html">rpois</a></code> <code><a href="engine_functions.html">rnbinom</a></code> <code><a href="engine_functions.html">rnorm</a></code> <code><a href="engine_functions.html">`%x%`</a></code> <code><a href="engine_functions.html">to_diag</a></code> <code><a href="engine_functions.html">from_diag</a></code> <code><a href="engine_functions.html">time_group</a></code> <code><a href="engine_functions.html">cos</a></code> <code><a href="engine_functions.html">print</a></code> <code><a href="engine_functions.html">time_var</a></code> <code><a href="engine_functions.html">rbinom</a></code> <code><a href="engine_functions.html">reulermultinom</a></code> <code><a href="engine_functions.html">round</a></code> <code><a href="engine_functions.html">pgamma</a></code> <code><a href="engine_functions.html">mean</a></code> <code><a href="engine_functions.html">sd</a></code> <code><a href="engine_functions.html">proportions</a></code>
@@ -80,7 +80,7 @@
       </dl></div><div class="section level2">
 
       <h3 id="find-model-specifications">Find Model Specifications<a class="anchor" aria-label="anchor" href="#find-model-specifications"></a></h3>
-      <div class="section-desc"><p>Functions for finding, copying, and loading existing model specification objects from model libraries.</p></div>
+      <div class="section-desc"><p>Functions for finding, copying, and loading existing model specification objects from model libraries. The <code><a href="../articles/example_models.html">vignette("example_models")</a></code> article describes how these functions are used in context.</p></div>
 
 
     </div><div class="section level2">
@@ -90,16 +90,16 @@
 
       <dl><dt>
 
-          <code><a href="mp_show_models.html">mp_show_models()</a></code> <code><a href="mp_show_models.html">show_models()</a></code>
-
-        </dt>
-        <dd>Print a Table of Existing Models</dd>
-      </dl><dl><dt>
-
           <code><a href="mp_tmb_library.html">mp_tmb_library()</a></code>
 
         </dt>
         <dd>Read Item from a Model Library</dd>
+      </dl><dl><dt>
+
+          <code><a href="mp_show_models.html">mp_show_models()</a></code> <code><a href="mp_show_models.html">show_models()</a></code>
+
+        </dt>
+        <dd>Print a Table of Existing Models</dd>
       </dl><dl><dt>
 
           <code><a href="mp_model_starter.html">mp_model_starter()</a></code>
@@ -143,7 +143,7 @@
         <dd>Expand Model</dd>
       </dl></div><div class="section level2">
 
-      <h3 id="explore-model-specifications">Explore Model Specifications<a class="anchor" aria-label="anchor" href="#explore-model-specifications"></a></h3>
+      <h3 id="unpack-model-specifications">Unpack Model Specifications<a class="anchor" aria-label="anchor" href="#unpack-model-specifications"></a></h3>
       <div class="section-desc"><p>Functions that extract or print information contained within model specifications.</p></div>
 
 
@@ -248,7 +248,7 @@
         <dd>Final Values</dd>
       </dl></div><div class="section level2">
 
-      <h3 id="explore-model-simulators">Explore Model Simulators<a class="anchor" aria-label="anchor" href="#explore-model-simulators"></a></h3>
+      <h3 id="unpack-model-simulators">Unpack Model Simulators<a class="anchor" aria-label="anchor" href="#unpack-model-simulators"></a></h3>
       <div class="section-desc"><p>Functions that extract or print information contained within model simulators.</p></div>
 
 
@@ -368,10 +368,16 @@
 
         </dt>
         <dd>Optimize</dd>
+      </dl><dl><dt>
+
+          <code><a href="mp_optimizer_output.html">mp_optimizer_output()</a></code>
+
+        </dt>
+        <dd>Optimizer Output</dd>
       </dl></div><div class="section level2">
 
-      <h3 id="explore-model-calibrators-and-calibrations">Explore Model Calibrators and Calibrations<a class="anchor" aria-label="anchor" href="#explore-model-calibrators-and-calibrations"></a></h3>
-      <div class="section-desc"><p>Functions that extract or print information contained within model calibrators.</p></div>
+      <h3 id="generate-calibrated-simulations-and-parameters">Generate Calibrated Simulations and Parameters<a class="anchor" aria-label="anchor" href="#generate-calibrated-simulations-and-parameters"></a></h3>
+      <div class="section-desc"><p>Functions that generate simulations and tables of fitted parameters from a calibator object.</p></div>
 
 
     </div><div class="section level2">
@@ -393,18 +399,6 @@
         <dd>TMB Model Coefficient Table</dd>
       </dl><dl><dt>
 
-          <code><a href="mp_tmb.html">mp_tmb()</a></code>
-
-        </dt>
-        <dd>Get Underlying TMB Object</dd>
-      </dl><dl><dt>
-
-          <code><a href="mp_optimizer_output.html">mp_optimizer_output()</a></code>
-
-        </dt>
-        <dd>Optimizer Output</dd>
-      </dl><dl><dt>
-
           <code><a href="mp_effects_descr.html">mp_effects_descr()</a></code> <code><a href="mp_effects_descr.html">mp_add_effects_descr()</a></code>
 
         </dt>
@@ -422,6 +416,29 @@
         </dt>
         <dd>Model Coefficient Table with stan</dd>
       </dl></div><div class="section level2">
+
+      <h3 id="generate-fitted-parameter-tables">Generate Fitted Parameter Tables<a class="anchor" aria-label="anchor" href="#generate-fitted-parameter-tables"></a></h3>
+
+
+
+    </div><div class="section level2">
+
+      <h3 id="unpack-model-calibrators-and-calibrations">Unpack Model Calibrators and Calibrations<a class="anchor" aria-label="anchor" href="#unpack-model-calibrators-and-calibrations"></a></h3>
+      <div class="section-desc"><p>Functions that extract or print information contained within model calibrators.</p></div>
+
+
+    </div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="mp_tmb.html">mp_tmb()</a></code>
+
+        </dt>
+        <dd>Get Underlying TMB Object</dd>
+      </dl></div><div class="section level2">
       <h2 id="utilities">Utilities<a class="anchor" aria-label="anchor" href="#utilities"></a></h2>
 
 
@@ -430,7 +447,7 @@
     </div><div class="section level2">
 
       <h3 id="lightweight-simulation">Lightweight Simulation<a class="anchor" aria-label="anchor" href="#lightweight-simulation"></a></h3>
-      <div class="section-desc"><p>Simple functions for simulation without simulators, so that the <code><a href="../reference/engine_functions.html">?engine_functions</a></code> can be explored.</p></div>
+      <div class="section-desc"><p>Simple functions for simulation without simulator objects, so that the <code><a href="../reference/engine_functions.html">?engine_functions</a></code> can be explored in isolation from compartmental models.</p></div>
 
 
     </div><div class="section level2">
@@ -463,6 +480,12 @@
 
       <dl><dt>
 
+          <code><a href="nlist.html">nlist()</a></code>
+
+        </dt>
+        <dd>Self Naming List</dd>
+      </dl><dl><dt>
+
           <code><a href="empty_matrix.html">empty_matrix</a></code>
 
         </dt>
@@ -473,12 +496,6 @@
 
         </dt>
         <dd>Zero Vector</dd>
-      </dl><dl><dt>
-
-          <code><a href="nlist.html">nlist()</a></code>
-
-        </dt>
-        <dd>Self Naming List</dd>
       </dl><dl><dt>
 
           <code><a href="rbf.html">rbf()</a></code>
