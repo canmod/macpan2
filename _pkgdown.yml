@@ -23,6 +23,7 @@ reference:
   contents:
   - mp_tmb_model_spec
   - mp_per_capita_flow
+  - engine_functions
   
 - subtitle: Find Model Specifications
   desc: >
@@ -161,7 +162,6 @@ reference:
   - nlist
   - engine_eval
   - simple_sims
-  - engine_functions
   - finalizer_char
   - find_all_paths
   - initial_valid_vars
