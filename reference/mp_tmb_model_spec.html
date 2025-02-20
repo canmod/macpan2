@@ -143,7 +143,65 @@ update the state variables when it is relevant. Options include <code>"euler"</c
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co">## A simple SI model.</span></span></span>
+<span class="r-in"><span><span class="va">spec</span> <span class="op">=</span> <span class="fu">mp_tmb_model_spec</span><span class="op">(</span></span></span>
+<span class="r-in"><span>    during <span class="op">=</span> <span class="fu"><a href="mp_per_capita_flow.html">mp_per_capita_flow</a></span><span class="op">(</span><span class="st">"S"</span>, <span class="st">"I"</span>, <span class="st">"beta * I / N"</span>, <span class="st">"infection"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  , default <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>N <span class="op">=</span> <span class="fl">100</span>, S <span class="op">=</span> <span class="fl">99</span>, I <span class="op">=</span> <span class="fl">1</span>, beta <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">(</span><span class="va">spec</span> </span></span>
+<span class="r-in"><span>  <span class="op">|&gt;</span> <span class="fu"><a href="mp_simulator.html">mp_simulator</a></span><span class="op">(</span>time_steps <span class="op">=</span> <span class="fl">5L</span>, output <span class="op">=</span> <span class="st">"infection"</span><span class="op">)</span> </span></span>
+<span class="r-in"><span>  <span class="op">|&gt;</span> <span class="fu"><a href="mp_trajectory.html">mp_trajectory</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      matrix time row col     value</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 infection    1   0   0 0.1980000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 infection    2   0   0 0.2367296</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 infection    3   0   0 0.2828290</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 infection    4   0   0 0.3376117</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 infection    5   0   0 0.4025866</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">## The `~` can be used for flexibly defining dynamical variables.</span></span></span>
+<span class="r-in"><span><span class="va">spec2</span> <span class="op">=</span> <span class="fu">mp_tmb_model_spec</span><span class="op">(</span></span></span>
+<span class="r-in"><span>    during <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>          <span class="va">force_of_infection</span> <span class="op">~</span> <span class="va">beta</span> <span class="op">*</span> <span class="va">I</span> <span class="op">/</span> <span class="va">N</span></span></span>
+<span class="r-in"><span>        , <span class="fu"><a href="mp_per_capita_flow.html">mp_per_capita_flow</a></span><span class="op">(</span><span class="st">"S"</span>, <span class="st">"I"</span>, <span class="st">"force_of_infection"</span>, <span class="st">"infection"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>    <span class="op">)</span></span></span>
+<span class="r-in"><span>  , default <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>N <span class="op">=</span> <span class="fl">100</span>, S <span class="op">=</span> <span class="fl">99</span>, I <span class="op">=</span> <span class="fl">1</span>, beta <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">(</span><span class="va">spec2</span></span></span>
+<span class="r-in"><span>  <span class="op">|&gt;</span> <span class="fu"><a href="mp_simulator.html">mp_simulator</a></span><span class="op">(</span>time_steps <span class="op">=</span> <span class="fl">5L</span>, output <span class="op">=</span> <span class="st">"force_of_infection"</span><span class="op">)</span> </span></span>
+<span class="r-in"><span>  <span class="op">|&gt;</span> <span class="fu"><a href="mp_trajectory.html">mp_trajectory</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>               matrix time row col       value</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 force_of_infection    1   0   0 0.002000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 force_of_infection    2   0   0 0.002396000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 force_of_infection    3   0   0 0.002869459</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 force_of_infection    4   0   0 0.003435117</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 force_of_infection    5   0   0 0.004110341</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">## The `before` argument can be used to pre-compute quantities before</span></span></span>
+<span class="r-in"><span><span class="co">## the simulation loop begins. Here we compute `S` from `N` and `I`,</span></span></span>
+<span class="r-in"><span><span class="co">## instead of specifying `S` in the `default` list. The potential</span></span></span>
+<span class="r-in"><span><span class="co">## benefit here is that one could make `I` a parameter to be fitted,</span></span></span>
+<span class="r-in"><span><span class="co">## while ensuring consistent values for `S`.</span></span></span>
+<span class="r-in"><span><span class="va">spec3</span> <span class="op">=</span> <span class="fu">mp_tmb_model_spec</span><span class="op">(</span></span></span>
+<span class="r-in"><span>    before <span class="op">=</span> <span class="va">S</span> <span class="op">~</span> <span class="va">N</span> <span class="op">-</span> <span class="va">I</span></span></span>
+<span class="r-in"><span>  , during <span class="op">=</span> <span class="fu"><a href="mp_per_capita_flow.html">mp_per_capita_flow</a></span><span class="op">(</span><span class="st">"S"</span>, <span class="st">"I"</span>, <span class="st">"beta * I / N"</span>, <span class="st">"infection"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  , default <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>N <span class="op">=</span> <span class="fl">100</span>, I <span class="op">=</span> <span class="fl">1</span>, beta <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">(</span><span class="va">spec3</span> </span></span>
+<span class="r-in"><span>  <span class="op">|&gt;</span> <span class="fu"><a href="mp_simulator.html">mp_simulator</a></span><span class="op">(</span>time_steps <span class="op">=</span> <span class="fl">5L</span>, output <span class="op">=</span> <span class="st">"infection"</span><span class="op">)</span> </span></span>
+<span class="r-in"><span>  <span class="op">|&gt;</span> <span class="fu"><a href="mp_trajectory.html">mp_trajectory</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      matrix time row col     value</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 infection    1   0   0 0.1980000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 infection    2   0   0 0.2367296</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 infection    3   0   0 0.2828290</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 infection    4   0   0 0.3376117</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 infection    5   0   0 0.4025866</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span></span></span>
+</code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
