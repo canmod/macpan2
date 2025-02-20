@@ -139,7 +139,7 @@ reference:
   - mp_zero_vector
   - nlist
   - rbf
-  - BinaryOperator
+  - mp_binary_operator
 
 - subtitle: Developer Utilities
   desc: >

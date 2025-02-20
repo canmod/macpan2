@@ -35,6 +35,7 @@ Other contributors:
 \itemize{
   \item Irena Papst [contributor]
   \item Michael Li [contributor]
+  \item Kevin Zhao [contributor]
 }
 
 }

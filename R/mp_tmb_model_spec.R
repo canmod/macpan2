@@ -258,7 +258,8 @@ must_save_time_args = function(formulas) {
 
 #' Create TMB Model Specification
 #' 
-#' Specify a simulation model in the TMB engine.
+#' Specify a simulation model in the TMB engine. A detailed explanation of this
+#' function is covered in `vignette("quickstart")`.
 #' 
 #' @param before List of expressions to be evaluated (in the order provided)
 #' before the simulation loop begins. Expressions can either be standard
@@ -305,6 +306,7 @@ must_save_time_args = function(formulas) {
 #' `"rk4"`, and `"euler_multinomial"`.
 #' 
 #' @examples
+#' ## A simple SI model.
 #' spec = mp_tmb_model_spec(
 #'     during = mp_per_capita_flow("S", "I", "beta * I / N", "infection")
 #'   , default = list(N = 100, S = 99, I = 1, beta = 0.2)
@@ -313,6 +315,36 @@ must_save_time_args = function(formulas) {
 #'   |> mp_simulator(time_steps = 5L, output = "infection") 
 #'   |> mp_trajectory()
 #' )
+#' 
+#' ## The `~` can be used for flexibly defining dynamical variables.
+#' spec2 = mp_tmb_model_spec(
+#'     during = list(
+#'           force_of_infection ~ beta * I / N
+#'         , mp_per_capita_flow("S", "I", force_of_infection, "infection")
+#'     )
+#'   , default = list(N = 100, S = 99, I = 1, beta = 0.2)
+#' )
+#' (spec2
+#'   |> mp_simulator(time_steps = 5L, output = "force_of_infection") 
+#'   |> mp_trajectory()
+#' )
+#' 
+#' ## The `before` argument can be used to pre-compute quantities before
+#' ## the simulation loop begins. Here we compute `S` from `N` and `I`,
+#' ## instead of specifying `S` in the `default` list. The potential
+#' ## benefit here is that one could make `I` a parameter to be fitted,
+#' ## while ensuring consistent values for `S`.
+#' spec3 = mp_tmb_model_spec(
+#'     before = S ~ N - I
+#'     during = mp_per_capita_flow("S", "I", "beta * I / N", "infection")
+#'   , default = list(N = 100, I = 1, beta = 0.2)
+#' )
+#' (spec3 
+#'   |> mp_simulator(time_steps = 5L, output = "infection") 
+#'   |> mp_trajectory()
+#' )
+#' 
+#' 
 #' 
 #' @concept create-model-spec
 #' @export

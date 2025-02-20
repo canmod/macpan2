@@ -39,5 +39,5 @@ preferred. Present for back-compatibility.
 
 }}
 \examples{
-show_models(show_missing = TRUE)
+mp_show_models(show_missing = TRUE)
 }

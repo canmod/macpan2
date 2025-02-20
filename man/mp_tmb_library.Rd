@@ -33,6 +33,6 @@ mp_tmb_library(
 
 }
 \seealso{
-\code{\link[=show_models]{show_models()}}
+\code{\link[=mp_show_models]{mp_show_models()}}
 }
 \concept{create-model-spec}

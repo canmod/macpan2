@@ -64,7 +64,7 @@ get_mod_info <- function(f) {
 #' @param for_markdown (logical) format for rendering the table with markdown-formatted
 #' links to model readme files?
 #' @return a data frame containing entries \code{Directory} (model directory), \code{Title} (model title), \code{Description} (short description)
-#' @examples show_models(show_missing = TRUE)
+#' @examples mp_show_models(show_missing = TRUE)
 #' @importFrom stats na.omit
 #' @export
 mp_show_models <- function(
