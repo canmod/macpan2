@@ -358,7 +358,14 @@ spec_printer = function(x, include_defaults) {
     cat("---------------------\n")
     msg("Default values:\n") |> cat()
     cat("---------------------\n")
-    print(melt_default_matrix_list(x$default, simplify_as_scalars = TRUE), row.names = FALSE)
+    if (length(x$default) > 0L) {
+      print(
+          melt_default_matrix_list(x$default, simplify_as_scalars = TRUE)
+        , row.names = FALSE
+      )
+    } else {
+      cat("Model structure does not allow for numeric inputs.\n")
+    }
     cat("\n")
   }
   exprs = c(x$before, x$during, x$after)

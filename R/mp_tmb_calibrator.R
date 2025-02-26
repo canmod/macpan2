@@ -50,8 +50,8 @@
 #' @concept create-model-calibrator
 #' @export
 mp_tmb_calibrator = function(spec, data
-    , traj = list()
-    , par = list()
+    , traj = character()
+    , par = character()
     , tv = character()
     , outputs = traj
     , default = list()
@@ -276,23 +276,31 @@ TMBCalDataStruc = function(data, time) {
     }
     FALSE
   }
-  if (is.null(time)) {
-    if (infer_time_step(data$time)) {
-      data$time = as.integer(data$time)
-      time = Steps(min(data$time), max(data$time))
-    } else {
-      ## TODO: I'm guessing this could fail cryptically
-      time = Daily(min(data$time), max(data$time), checker = NoError)
+  if (nrow(data) == 0L) {
+    time = Steps(1, 1)
+  } else {
+    if (is.null(time)) {
+      if (infer_time_step(data$time)) {
+        data$time = as.integer(data$time)
+        time = Steps(min(data$time), max(data$time))
+      } else {
+        ## TODO: I'm guessing this could fail cryptically
+        time = Daily(min(data$time), max(data$time), checker = NoError)
+      }
     }
-  }
-  else {
-    time = assert_cls(time, "CalTime", match.call(), "?mp_cal_time")
-    time$update_data_bounds(data)
+    else {
+      time = assert_cls(time, "CalTime", match.call(), "?mp_cal_time")
+      time$update_data_bounds(data)
+    }
   }
   self$time_steps = time$bound_steps()[2L]
   data$time_ids = time$time_ids(data$time)
   self$data_time_ids = data$time_ids
-  self$data_time_steps = max(data$time_ids)
+  if (nrow(data) == 0L) {
+    self$data_time_steps = 1L
+  } else {
+    self$data_time_steps = max(data$time_ids)
+  }
   data = rename_synonyms(data
     , time = c(
         "time", "Time", "ID", "time_id", "id", "date", "Date"

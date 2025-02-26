@@ -134,7 +134,7 @@ reference:
 
 - title: Utilities
 
-- subtitle: Lightweight Simulation
+- subtitle: Lightweight Simulation Utilities
   desc: >
     Simple functions for simulation without simulator objects, so that the 
     `?engine_functions` can be explored in isolation from compartmental models.
