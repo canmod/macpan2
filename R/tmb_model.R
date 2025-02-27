@@ -395,7 +395,7 @@ mp_final_list.TMBSimulator = function(model) {
   mp_final(model) |> cast_default_matrix_list()
 }
 
-#' Trajectory
+#' Simulate Dynamical Model Trajectories
 #' 
 #' Return simulations of the trajectory of the output
 #' variables of a dynamical model simulator. To see this functionality 
@@ -479,6 +479,21 @@ mp_trajectory.TMBSimulator = function(model, include_initial = FALSE) {
 mp_trajectory.TMBCalibrator = function(model, include_initial = FALSE) {
   mp_trajectory(model$simulator, include_initial = include_initial)
 } 
+
+#' @param params List of parameters to update.
+#' @param random List of random effect parameters to update.
+#' @describeIn mp_trajectory Produce a trajectory for alternative parameter
+#' values.
+#' @noRd
+mp_trajectory_par = function(model, params, random, include_initial = FALSE) {
+  UseMethod("mp_trajectory_par")
+}
+
+#' @noRd
+mp_trajectory_par.TMBSimulator = function(model, params, random, include_initial = FALSE) {
+  
+}
+
 
 
 #' @param conf.int Should confidence intervals be produced?

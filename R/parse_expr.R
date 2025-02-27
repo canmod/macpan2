@@ -358,6 +358,23 @@ initial_valid_vars = function(valid_var_names) {
 #' @export
 empty_matrix = matrix(numeric(0L), 0L, 0L)
 
+#' Empty Trajectory
+#' 
+#' Output of \code{\link{mp_trajectory}} if nothing is simulated.
+#' 
+#' @name empty_trajectory
+#' @format A data frame with zero rows and the following columns: `matrix`,
+#' `time`, `row`, `col`, `value`.
+#' @export
+empty_trajectory = data.frame(
+    matrix = character()
+  , time = integer()
+  , row = numeric()
+  , col = numeric()
+  , value = numeric()
+)
+
+
 is_empty_matrix = function(x) {
   if (!is.matrix(x)) return(FALSE)
   d = dim(x)

@@ -149,6 +149,7 @@ reference:
   contents:
   - nlist
   - empty_matrix
+  - empty_trajectory
   - mp_zero_vector
   - rbf
   - mp_binary_operator

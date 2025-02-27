@@ -40,13 +40,6 @@ TMBModelSpec = function(
       , self$update_method$after()
     )
   }
-  self$unrendered_expr_list = function() {
-    ExprList(
-        self$before
-      , self$during
-      , self$after
-    )
-  }
   
   self$all_derived_vars = function() {
     self$expr_list()$all_derived_vars()
