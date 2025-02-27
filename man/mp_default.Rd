@@ -5,12 +5,19 @@
 \alias{mp_default_list}
 \title{Default Values}
 \usage{
-mp_default(model)
+mp_default(model, include_all = FALSE)
 
-mp_default_list(model)
+mp_default_list(model, include_all = FALSE)
 }
 \arguments{
 \item{model}{A model object from which to extract default values.}
+
+\item{include_all}{Include all default variables, even those that are not
+used in the \code{before}, \code{during}, or \code{after} phase of the simulations.
+Examples of default variables that are excluded by default include data
+that are only used by an objective function or variables intended to be
+used in an extended model specification produced using functions like
+\code{\link{mp_tmb_insert}} and \code{\link{mp_tmb_update}}.}
 }
 \value{
 A long-format data frame with default values for matrices required

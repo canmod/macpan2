@@ -50,6 +50,20 @@ TMBModelSpec = function(
   self$all_formula_vars = function() {
     self$expr_list()$all_formula_vars()
   }
+  self$all_default_mats = function() {
+    setdiff(
+        self$all_default_vars()
+      , names(self$integers)
+    )
+  }
+  ## matrices in self$default that are not used by any expressions.
+  ## note that unused expressions are not always useless. for example
+  ## observed data might be added to a spec, and these data will not
+  ## be used by the simulations but could be used to compute the
+  ## objective function in a calibrator.
+  self$all_unused_defaults = function() {
+    setdiff(names(self$default), self$all_default_mats())
+  }
   
   ## check for name ambiguity
   self$check_names = function() {

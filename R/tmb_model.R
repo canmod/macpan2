@@ -265,43 +265,71 @@ TMBModel = function(
 #' Default Values
 #' 
 #' @param model A model object from which to extract default values.
+#' @param include_all Include all default variables, even those that are not
+#' used in the `before`, `during`, or `after` phase of the simulations.
+#' Examples of default variables that are excluded by default include data
+#' that are only used by an objective function or variables intended to be
+#' used in an extended model specification produced using functions like 
+#' \code{\link{mp_tmb_insert}} and \code{\link{mp_tmb_update}}.
 #' @returns A long-format data frame with default values for matrices required
 #' as input to model objects. The columns of this output are `matrix`, `row`,
 #' `col`, and `value`. Scalar matrices do not have any entries in the `row` or
 #' `col` columns.
 #' @export
-mp_default = function(model) UseMethod("mp_default")
+mp_default = function(model, include_all = FALSE) UseMethod("mp_default")
 
 #' @describeIn mp_default List of the default variables as matrices.
 #' @export
-mp_default_list = function(model) UseMethod("mp_default_list")
+mp_default_list = function(model, include_all = FALSE) UseMethod("mp_default_list")
 
 #' @export
-mp_default.TMBModelSpec = function(model) {
-  melt_default_matrix_list(mp_default_list(model))
+mp_default.TMBModelSpec = function(model, include_all = FALSE) {
+  melt_default_matrix_list(mp_default_list(model, include_all))
 }
 
 #' @export
-mp_default_list.TMBModelSpec = function(model) model$default
-
-#' @export
-mp_default.TMBSimulator = function(model) {
-  melt_default_matrix_list(mp_default_list(model))
+mp_default_list.TMBModelSpec = function(model, include_all = FALSE) {
+  default = model$default
+  if (!include_all) {
+    default_mats = model$all_default_mats()
+    default = default[default_mats]
+  }
+  return(default)
 }
 
 #' @export
-mp_default_list.TMBSimulator = function(model) {
+mp_default.TMBSimulator = function(model, include_all = FALSE) {
+  melt_default_matrix_list(mp_default_list(model, include_all))
+}
+
+#' @export
+mp_default_list.TMBSimulator = function(model, include_all = FALSE) {
   mats_list = model$tmb_model$init_mats
   expr_list = model$tmb_model$expr_list
   int_vecs = model$tmb_model$engine_methods$int_vecs
-  all_default_mats = setdiff(
-      expr_list$all_default_vars()
-    , int_vecs$const_names()
-  )
-  mats_list$all_matrices()[all_default_mats]
+  default = mats_list$all_matrices()
+  if (!include_all) {
+    all_default_mats = setdiff(
+        expr_list$all_default_vars()
+      , int_vecs$const_names()
+    )
+    default = default[all_default_mats]
+  }
+  return(default)
 }
 
-#' Initial Values
+#' @export
+mp_default.TMBCalibrator = function(model, include_all = FALSE) {
+  mp_default(model$simulator, include_all)
+}
+
+#' @export
+mp_default_list.TMBCalibrator = function(model, include_all = FALSE) {
+  mp_default_list(model$simulator, include_all)
+}
+
+
+#' Initial Values of Variables Immediately Before the Simulation Loop
 #' 
 #' Return a data frame containing the values of variables at the end of the
 #' `before` phase, right before the simulation loop begins (i.e. right before
@@ -320,9 +348,39 @@ mp_initial = function(model) UseMethod("mp_initial")
 #' @export
 mp_initial_list = function(model) UseMethod("mp_initial_list")
 
-
 #' @export
 mp_initial.TMBModelSpec = function(model) {
+  spec_initial_util(model, simplify_ids = TRUE)
+}
+
+#' @export
+mp_initial_list.TMBModelSpec = function(model) {
+  (model
+    |> spec_initial_util(simplify_ids = FALSE) ## the casting does the simplification
+    |> cast_default_matrix_list()
+  )
+}
+
+#' @export
+mp_initial.TMBSimulator = function(model) {
+  sim_initial_util(model, simplify_ids = TRUE)
+}
+
+#' @export
+mp_initial_list.TMBSimulator = function(model) {
+  (model
+    |> sim_initial_util(simplify_ids = FALSE) 
+    |> cast_default_matrix_list()
+  )
+}
+
+#' @export
+mp_initial.TMBCalibrator = function(model) mp_initial(model$simulator)
+
+#' @export
+mp_initial_list.TMBCalibrator = function(model) mp_initial_list(model$simulator)
+
+spec_initial_util = function(model, simplify_ids = TRUE) {
   # warning("under construction")
   ## Should this just be whatever the report returns in the before phase?
   ## And in this way be analogous to mp_final?  I think so.
@@ -334,29 +392,25 @@ mp_initial.TMBModelSpec = function(model) {
       model$all_default_vars()
     , all_derived_mats_in_before_step
   ) |> unique()
-  mp_simulator(model, 0L, outputs)$report(.phases = "before")
+  r = mp_simulator(model, time_steps = 0L, outputs)$report(.phases = "before")
+  r$time = NULL
+  if (simplify_ids) r = simplify_row_col_ids(r)
+  return(r)
 }
-
-#'@export
-mp_initial_list.TMBModelSpec = function(model) {
-  mp_initial(model) |> cast_default_matrix_list()
-}
-
-#' @export
-mp_initial.TMBSimulator = function(model) {
-  # warning("under construction")
+sim_initial_util = function(model, simplify_ids = TRUE) {
   mats_list = model$tmb_model$init_mats
   int_vecs = model$tmb_model$engine_methods$int_vecs
   expr_list = model$tmb_model$expr_list
   
   before_expr_list = ExprList(expr_list$before)
   
-  defaults = expr_list$all_default_vars()
+  all_ints = names(int_vecs$list)
+  defaults = setdiff(expr_list$all_default_vars(), all_ints)
   
   outputs = (defaults
     |> c(before_expr_list$all_derived_vars())
     |> unique()
-    |> setdiff(names(int_vecs$list))
+    |> setdiff(all_ints)
   )
   
   spec = mp_tmb_model_spec(
@@ -365,13 +419,12 @@ mp_initial.TMBSimulator = function(model) {
     , integers = int_vecs$list
   )
   
-  mp_simulator(spec, 0, outputs)$report(.phases = "before")
+  r = mp_simulator(spec, time_steps = 0L, outputs)$report(.phases = "before")
+  r$time = NULL
+  if (simplify_ids) r = simplify_row_col_ids(r)
+  return(r)
 }
 
-#'@export
-mp_initial_list.TMBSimulator = function(model) {
-  mp_initial(model) |> cast_default_matrix_list()
-}
 
 #' Final Values
 #' 
@@ -468,10 +521,15 @@ mp_trajectory = function(model, include_initial = FALSE) {
   UseMethod("mp_trajectory")
 }
 
-#' @export
-mp_trajectory.TMBSimulator = function(model, include_initial = FALSE) {
+resolve_phases = function(include_initial) {
   phases = "during"
   if (include_initial) phases = c("before", "during")
+  return(phases)
+}
+
+#' @export
+mp_trajectory.TMBSimulator = function(model, include_initial = FALSE) {
+  phases = resolve_phases(include_initial)
   model$report(.phases = phases) |> reset_rownames()
 }
 
@@ -504,7 +562,7 @@ mp_trajectory_par.TMBSimulator = function(model, params, random, include_initial
 #' information provided by the `sdreport` function in `TMB` with default
 #' settings.
 #' @export
-mp_trajectory_sd = function(model, conf.int = FALSE, conf.level = 0.95) {
+mp_trajectory_sd = function(model, conf.int = FALSE, conf.level = 0.95, include_initial = FALSE) {
   UseMethod("mp_trajectory_sd")
 }
 
@@ -523,9 +581,10 @@ mp_trajectory_ensemble = function(model, n, probs = c(0.025, 0.975)) {
   
 #' @importFrom stats qnorm
 #' @export
-mp_trajectory_sd.TMBSimulator = function(model, conf.int = FALSE, conf.level = 0.95) {
+mp_trajectory_sd.TMBSimulator = function(model, conf.int = FALSE, conf.level = 0.95, include_initial = FALSE) {
+  phases = resolve_phases(include_initial)
   alpha = (1 - conf.level) / 2
-  r = model$report_with_sd()
+  r = model$report_with_sd(.phases = phases)
   if (conf.int) {
     r$conf.low = r$value + r$sd * qnorm(alpha)
     r$conf.high = r$value + r$sd * qnorm(1 - alpha)
@@ -534,8 +593,8 @@ mp_trajectory_sd.TMBSimulator = function(model, conf.int = FALSE, conf.level = 0
 } 
 
 #' @export
-mp_trajectory_sd.TMBCalibrator = function(model, conf.int = FALSE, conf.level = 0.95) {
-  traj = mp_trajectory_sd(model$simulator, conf.int, conf.level)
+mp_trajectory_sd.TMBCalibrator = function(model, conf.int = FALSE, conf.level = 0.95, include_initial = FALSE) {
+  traj = mp_trajectory_sd(model$simulator, conf.int, conf.level, include_initial)
   time = model$cal_args$time
   if (!is.null(time)) traj$time = time$ending_time_engine(traj$time)
   traj
