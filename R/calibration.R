@@ -107,6 +107,57 @@ TMBCurrentParams = function(simulator) { ## TMBSimulator
   self$random_frame = function() {
     self$simulator$tmb_model$random$data_frame(current = self$random_vector())
   }
+  
+  ## update a matrix_list, which is a list of numeric matrices (or numeric 
+  ## vectors, which will be treated as n-by-1 matrices) so that the current 
+  ## fitted values of parameters are used to replace associated values in the 
+  ## matrix_list
+  self$update_matrix_list = function(matrix_list) {
+    current_frame = rbind(self$params_frame(), self$random_frame())
+    for (i in seq_len(nrow(current_frame))) {
+      mat = current_frame[i, "mat"]
+      if (!mat %in% names(matrix_list)) {
+        stop(
+          sprintf(
+              "Attempting to update matrix, %s, but there is no matrix with this name in the matrix list with these names:\n    %s"
+            , mat, paste(names(matrix_list), collapse = "\n    ")
+          )
+        )
+      }
+      
+      row = current_frame[i, "row"]
+      nr = nrow(matrix_list[[mat]])
+      if (is.null(nr)) nr = length(matrix_list[[mat]])
+      if (row > nr) {
+        stop(
+          sprintf(
+              "Matrix, %s, only has %s rows, but attempting to update row %s"
+            , mat, nr, row + 1L
+          )
+        )
+      }
+      
+      col = current_frame[i, "col"]
+      nc = ncol(matrix_list[[mat]])
+      if (is.null(nc)) nc = 1L
+      if (col > nc) {
+        stop(
+          sprintf(
+              "Matrix, %s, only has %s columns, but attempting to update column %s"
+            , mat, nc, col + 1L
+          )
+        )
+      }
+      
+      val = current_frame[i, "current"]
+      if (is.matrix(matrix_list[[mat]])) {
+        matrix_list[[mat]][row + 1L, col + 1L] = val
+      } else {
+        matrix_list[[mat]][row + 1L] = val
+      }
+    } # endfor
+    return(matrix_list)
+  }
   return_object(self, "OptimizedParams")
 }
 
