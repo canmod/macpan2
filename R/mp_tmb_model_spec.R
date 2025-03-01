@@ -346,24 +346,28 @@ mp_tmb_model_spec = TMBModelSpec
 #' @export
 print.TMBModelSpec = function(x, ...) mp_print_spec(x)
 
-spec_printer = function(x, include_defaults) {
-  if (include_defaults) {
+defaults_printer = function(x) {
+  if (length(x$default) > 0L) {
     cat("---------------------\n")
     msg("Default values:\n") |> cat()
+    print(
+        melt_default_matrix_list(x$default, simplify_as_scalars = TRUE)
+      , row.names = FALSE
+    )
     cat("---------------------\n")
-    if (length(x$default) > 0L) {
-      print(
-          melt_default_matrix_list(x$default, simplify_as_scalars = TRUE)
-        , row.names = FALSE
-      )
-    } else {
-      cat("Model structure does not allow for numeric inputs.\n")
-    }
     cat("\n")
   }
+}
+
+spec_printer = function(x, include_defaults) {
+  if (include_defaults) defaults_printer(x)
   exprs = c(x$before, x$during, x$after)
   schedule = c(length(x$before), length(x$during), length(x$after))
   model_steps_printer(exprs, schedule)
+  more_help = c(
+      "Discover more about this model specification using functions described here:"
+    , "https://canmod.github.io/macpan2/reference#unpack-model-specifications"
+  )
 }
 
 #' Print Model Specification
@@ -401,4 +405,12 @@ mp_print_after = function(model) {
       model$after
     , c(0L, 0L, length(model$after))
   )
+}
+
+
+#' @describeIn mp_tmb_model_spec Summarize aspects (TODO: what aspects) of
+#' a model specification.
+#' @export
+summary.TMBModelSpec = function(object, ...) {
+  
 }

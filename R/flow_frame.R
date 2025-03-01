@@ -3,6 +3,7 @@ topological_sort_engine = function(flows, state_nms, warn_not_dag = TRUE) {
     stopifnot(focal_state %in% state_nms)
     focal_state %in% to_states
   }
+  if (warn_not_dag) warned_once = FALSE
   if (missing(state_nms)) state_nms = unique(c(flows$from, flows$to))
   state_order = c()
   n = length(state_nms)
@@ -24,15 +25,21 @@ topological_sort_engine = function(flows, state_nms, warn_not_dag = TRUE) {
       & length(remaining_inflow) != 0L
     )
     if (is_acyclic) {
-      if (warn_not_dag) {
+      if (warn_not_dag & !warned_once) {
         warning(
-         "\nState network is not acyclic (i think),",
-         "\nand therefore cannot be topologically sorted.",
+         "\nFlow among states contains cycles. This means",
+         "\nthat states can be revisited, and therefore",
+         "\ncannot be unambiguouly sorted to respect the",
+         "\ndirection of all flows.",
          "\nDefaulting to original order where necessary."
         )
+        warned_once = TRUE
       }
-      state_order = c(state_order, state_nms) |> unique()
-      state_nms = character(0L)
+      
+      ## assume the next state name is in the right order, but move
+      ## on and try to sort the rest
+      state_order = c(state_order, state_nms[1L]) |> unique()
+      state_nms = state_nms[-1L]
     }
   }
   state_order
@@ -50,12 +57,13 @@ topological_sort = function(spec, warn_not_dag = TRUE) {
 #' states as the `to` compartment, usually to create a DAG so that topological
 #' sort is valid.
 #' @noRd
-topological_sort_general = function(flows, loops = "^$") {
-  all_states = unique(c(flows$from, flows$to))
+topological_sort_general = function(flows, loops = "^$", all_states = NULL) {
+  if (is.null(all_states)) all_states = unique(c(flows$from, flows$to))
   flows = flows[flows$type == "flow", , drop = FALSE]
   flows = flows[!grepl(loops, flows$name), , drop = FALSE]
   states = unique(c(flows$from, flows$to))
   missing_states = setdiff(all_states, states)
+  states = setdiff(all_states, missing_states)
   sorted_states = topological_sort_engine(flows, states, warn_not_dag = TRUE)
   c(sorted_states, missing_states)
 }
@@ -118,7 +126,7 @@ mp_flow_frame = function(spec, topological_sort = TRUE, loops = "^$") {
     outflows$from_name = outflows$from
   }
   if (topological_sort) {
-    topo = topological_sort_general(flows, loops)
+    topo = topological_sort_general(flows, loops, states)
     flows = flows[order(factor(flows$from, levels = topo)), , drop = FALSE]
   }
   flows = rbind(flows, inflows, outflows)
@@ -155,14 +163,69 @@ mp_state_dependence_frame = function(spec) {
 #' Get the state variables in a model specification.
 #' 
 #' @param spec Model specification (\code{\link{mp_tmb_model_spec}}).
+#' @param topological_sort Should the states be 
+#' [topologically sorted](https://en.wikipedia.org/wiki/Topological_sorting) to
+#' respect the main direction of flow? The default is no topological sorting,
+#' which differs from \code{\link{mp_flow_frame}}.
+#' @param loops Pattern for matching the names of flows that make 
+#' the flow model not a DAG, which is a critical assumption when topologically 
+#' sorting the order of states and flows in the output. This is only relevant if 
+#' `topological_sort` is used.
 #' 
 #' @return Character vector of names of all state variables that have been
 #' explicitly represented in the model using functions like
 #' \code{\link{mp_per_capita_flow}}.
 #' 
+#' @examples
+#' si = mp_tmb_library("starter_models", "si", package = "macpan2")
+#' (si
+#'   |> mp_simulator(time_steps = 5L, mp_state_vars(si))
+#'   |> mp_trajectory()
+#' )
+#' 
 #' @export
-mp_state_vars = function(spec) {
-  vapply(spec$change_model$update_state(), lhs_char, character(1L))
+mp_state_vars = function(spec, topological_sort = FALSE, loops = "^$") {
+  states = vapply(spec$change_model$update_state(), lhs_char, character(1L))
+  flows = mp_flow_frame(spec, topological_sort = FALSE)
+  if (topological_sort) states = topological_sort_general(flows, loops, states)
+  return(states)
+}
+
+#' Flow Variables
+#' 
+#' Get names of variables that contain the absolute flow between compartments.
+#' The absolute flow is the magnitude of a flow per time step.
+#' 
+#' @param spec Model specification (\code{\link{mp_tmb_model_spec}}).
+#' @param topological_sort Should the flows be 
+#' [topologically sorted](https://en.wikipedia.org/wiki/Topological_sorting) to
+#' respect the main direction of flow? The default is no topological sorting,
+#' which differs from \code{\link{mp_flow_frame}}.
+#' @param loops Pattern for matching the names of flows that make 
+#' the flow model not a DAG, which is a critical assumption when topologically 
+#' sorting the order of states and flows in the output. This is only relevant if 
+#' `topological_sort` is used.
+#' 
+#' @return Character vector of names of all flow variables that have been
+#' explicitly represented in the model using functions like
+#' \code{\link{mp_per_capita_flow}}.
+#' @examples
+#' 
+#' si = mp_tmb_library("starter_models", "si", package = "macpan2")
+#' (si
+#'   |> mp_simulator(time_steps = 5L, mp_flow_vars(si))
+#'   |> mp_trajectory()
+#' )
+#' 
+#' @export
+mp_flow_vars = function(spec, topological_sort = FALSE, loops = "^$") {
+  if (topological_sort) {
+    flows = mp_flow_frame(spec, topological_sort, loops)
+    flow_vars = flows$name
+  } else {
+    flow_vars = spec$change_model$flow_frame()$change
+  }
+  unique(flow_vars)
 }
 
 #' Change Frame

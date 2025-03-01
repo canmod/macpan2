@@ -2,6 +2,7 @@
 % Please edit documentation in R/mp_tmb_model_spec.R
 \name{mp_tmb_model_spec}
 \alias{mp_tmb_model_spec}
+\alias{summary.TMBModelSpec}
 \title{Create TMB Model Specification}
 \usage{
 mp_tmb_model_spec(
@@ -15,6 +16,8 @@ mp_tmb_model_spec(
   sim_exprs = character(),
   state_update = c("euler", "rk4", "euler_multinomial", "hazard", "rk4_old")
 )
+
+\method{summary}{TMBModelSpec}(object, ...)
 }
 \arguments{
 \item{before}{List of expressions to be evaluated (in the order provided)
@@ -73,6 +76,12 @@ update the state variables when it is relevant. Options include \code{"euler"},
 Specify a simulation model in the TMB engine. A detailed explanation of this
 function is covered in \code{vignette("quickstart")}.
 }
+\section{Functions}{
+\itemize{
+\item \code{summary(TMBModelSpec)}: Summarize aspects (TODO: what aspects) of
+a model specification.
+
+}}
 \examples{
 ## A simple SI model.
 spec = mp_tmb_model_spec(
