@@ -356,6 +356,11 @@ defaults_printer = function(x) {
     )
     cat("---------------------\n")
     cat("\n")
+  } else {
+    cat("---------------------\n")
+    msg("No of default values\n") |> cat()
+    cat("---------------------\n")
+    cat("\n")
   }
 }
 
@@ -365,9 +370,10 @@ spec_printer = function(x, include_defaults) {
   schedule = c(length(x$before), length(x$during), length(x$after))
   model_steps_printer(exprs, schedule)
   more_help = c(
-      "Discover more about this model specification using functions described here:"
-    , "https://canmod.github.io/macpan2/reference#unpack-model-specifications"
+      "Discover more about this model specification\nusing functions described here:\n"
+    , "https://canmod.github.io/macpan2/reference#unpack-model-specifications \n"
   )
+  cat(more_help)
 }
 
 #' Print Model Specification
@@ -405,12 +411,4 @@ mp_print_after = function(model) {
       model$after
     , c(0L, 0L, length(model$after))
   )
-}
-
-
-#' @describeIn mp_tmb_model_spec Summarize aspects (TODO: what aspects) of
-#' a model specification.
-#' @export
-summary.TMBModelSpec = function(object, ...) {
-  
 }
