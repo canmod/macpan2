@@ -62,6 +62,20 @@ mp_tmb_library = function(..., package = NULL, alternative_specs = FALSE) {
   stop("Malformed model library entry.")
 }
 
+#' @describeIn mp_tmb_library List of one model specification for each model
+#' in the library.
+#' @export
+mp_tmb_entire_library = function() {
+  sapply(
+      mp_show_models()$Directory
+    , \(model_dir) {
+        mp_tmb_library("starter_models", model_dir, package = "macpan2")
+    }
+    , simplify = FALSE
+    , USE.NAMES = TRUE
+  )
+}
+
 #' Copy Existing Model as a Starting Point
 #'
 #' Create a directory with a template model definition.
