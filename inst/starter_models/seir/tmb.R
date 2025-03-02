@@ -7,7 +7,6 @@ initialize_state = list(
 flows = list(
     mp_per_capita_flow("S", "E", "beta * I / N", "exposure")
   , mp_per_capita_flow("E", "I", "alpha", "infection")
-  , S ~ N - I - R - E
   , mp_per_capita_flow("I", "R", "gamma", "recovery")
 )
 
