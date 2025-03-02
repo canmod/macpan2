@@ -2,9 +2,12 @@
 % Please edit documentation in R/mp_library.R
 \name{mp_tmb_library}
 \alias{mp_tmb_library}
+\alias{mp_tmb_entire_library}
 \title{Read Item from a Model Library}
 \usage{
 mp_tmb_library(..., package = NULL, alternative_specs = FALSE)
+
+mp_tmb_entire_library()
 }
 \arguments{
 \item{...}{File path components pointing to a directory that
@@ -24,6 +27,12 @@ the return value to be a list with one element containing a spec object.}
 \description{
 Get a TMB model specification from a model library.
 }
+\section{Functions}{
+\itemize{
+\item \code{mp_tmb_entire_library()}: List of one model specification for each model
+in the library.
+
+}}
 \examples{
 mp_tmb_library(
     "starter_models"
