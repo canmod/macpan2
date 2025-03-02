@@ -264,13 +264,18 @@ TMBModel = function(
 
 #' Default Values
 #' 
-#' @param model A model object from which to extract default values.
+#' @param model A model object from which to extract default values. If
+#' `model` is a calibrator object (see \code{\link{mp_tmb_calibrator}})
+#' that has been optimized (using \code{\link{mp_optimize}}), then the values
+#' returned by `mp_default` and `mp_default_list` are updated to reflect this
+#' calibration/optimization process.
 #' @param include_all Include all default variables, even those that are not
 #' used in the `before`, `during`, or `after` phase of the simulations.
-#' Examples of default variables that are excluded by default include data
-#' that are only used by an objective function or variables intended to be
-#' used in an extended model specification produced using functions like 
+#' When `include_all` is `FALSE`, examples of excluded variables are
+#' those used by an objective function only or those intended to be used in an 
+#' extended model specification produced using functions like 
 #' \code{\link{mp_tmb_insert}} and \code{\link{mp_tmb_update}}.
+#' 
 #' @returns A long-format data frame with default values for matrices required
 #' as input to model objects. The columns of this output are `matrix`, `row`,
 #' `col`, and `value`. Scalar matrices do not have any entries in the `row` or
@@ -304,10 +309,11 @@ mp_default.TMBSimulator = function(model, include_all = FALSE) {
 
 #' @export
 mp_default_list.TMBSimulator = function(model, include_all = FALSE) {
-  mats_list = model$tmb_model$init_mats
+  init_mats = model$tmb_model$init_mats
   expr_list = model$tmb_model$expr_list
   int_vecs = model$tmb_model$engine_methods$int_vecs
-  default = mats_list$all_matrices()
+  update = model$current$update_matrix_list
+  default = init_mats$all_matrices()
   if (!include_all) {
     all_default_mats = setdiff(
         expr_list$all_default_vars()
@@ -315,6 +321,7 @@ mp_default_list.TMBSimulator = function(model, include_all = FALSE) {
     )
     default = default[all_default_mats]
   }
+  default = update(default)
   return(default)
 }
 
@@ -398,9 +405,11 @@ spec_initial_util = function(model, simplify_ids = TRUE) {
   return(r)
 }
 sim_initial_util = function(model, simplify_ids = TRUE) {
-  mats_list = model$tmb_model$init_mats
+  init_mats = model$tmb_model$init_mats
   int_vecs = model$tmb_model$engine_methods$int_vecs
   expr_list = model$tmb_model$expr_list
+  
+  update = model$current$update_matrix_list
   
   before_expr_list = ExprList(expr_list$before)
   
@@ -415,7 +424,7 @@ sim_initial_util = function(model, simplify_ids = TRUE) {
   
   spec = mp_tmb_model_spec(
       before = expr_list$before
-    , default = mats_list$all_matrices()[defaults]
+    , default = init_mats$all_matrices()[defaults] |> update()
     , integers = int_vecs$list
   )
   
