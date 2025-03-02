@@ -222,7 +222,7 @@ model_steps_printer = function(steps_list, eval_schedule, file = "", time_steps 
   if (sum(eval_schedule) == 0L) {
     lines = c(
         "---------------------",
-        "Empty simulator",
+        "No simulation steps",
         "---------------------"
       ) |> cat(file = file, sep = "\n", append = FALSE)
   } else {
