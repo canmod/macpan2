@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.14.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.15.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -108,11 +108,11 @@ model looks like this.</p>
 <span><span class="fu"><a href="../reference/engine_functions.html">print</a></span><span class="op">(</span><span class="va">si_implicit</span><span class="op">)</span></span>
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; Default values:</span></span>
-<span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt;  quantity  value</span></span>
 <span><span class="co">#&gt;         I   1.00</span></span>
 <span><span class="co">#&gt;         N 100.00</span></span>
 <span><span class="co">#&gt;      beta   0.25</span></span>
+<span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; Before the simulation loop (t = 0):</span></span>
@@ -135,11 +135,11 @@ model looks like this.</p>
 <span><span class="fu"><a href="../reference/engine_functions.html">print</a></span><span class="op">(</span><span class="va">si_explicit</span><span class="op">)</span></span>
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; Default values:</span></span>
-<span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt;  quantity  value</span></span>
 <span><span class="co">#&gt;         I   1.00</span></span>
 <span><span class="co">#&gt;         N 100.00</span></span>
 <span><span class="co">#&gt;      beta   0.25</span></span>
+<span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; Before the simulation loop (t = 0):</span></span>
@@ -241,13 +241,13 @@ infectious individuals is exactly the incidence.</p>
 <span><span class="fu"><a href="../reference/engine_functions.html">print</a></span><span class="op">(</span><span class="va">siv</span><span class="op">)</span></span>
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; Default values:</span></span>
-<span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt;  quantity  value</span></span>
 <span><span class="co">#&gt;         I   1.00</span></span>
 <span><span class="co">#&gt;         V   0.00</span></span>
 <span><span class="co">#&gt;         N 100.00</span></span>
 <span><span class="co">#&gt;      beta   0.25</span></span>
 <span><span class="co">#&gt;       rho   0.10</span></span>
+<span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; Before the simulation loop (t = 0):</span></span>
@@ -441,7 +441,7 @@ I     recovery   gamma</code></pre>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">si</span> <span class="op">=</span> <span class="fu"><a href="../reference/mp_tmb_library.html">mp_tmb_library</a></span><span class="op">(</span><span class="st">"starter_models"</span>, <span class="st">"sir"</span>, package <span class="op">=</span> <span class="st">"macpan2"</span><span class="op">)</span></span>
 <span><span class="va">si</span><span class="op">$</span><span class="va">change_model</span></span>
-<span><span class="co">#&gt; Classes 'SimpleChangeModel', 'ChangeModelDefaults', 'ChangeModel', 'Base' &lt;environment: 0x5618ba1fda28&gt; </span></span>
+<span><span class="co">#&gt; Classes 'SimpleChangeModel', 'ChangeModelDefaults', 'ChangeModel', 'Base' &lt;environment: 0x55c293b49d88&gt; </span></span>
 <span><span class="co">#&gt; after_loop : function ()  </span></span>
 <span><span class="co">#&gt; after_state : function ()  </span></span>
 <span><span class="co">#&gt; all_user_aware_names : function ()  </span></span>
@@ -473,26 +473,26 @@ I     recovery   gamma</code></pre>
 <span><span class="va">si</span><span class="op">$</span><span class="va">change_model</span><span class="op">$</span><span class="fu">update_state</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [[1]]</span></span>
 <span><span class="co">#&gt; S ~ -infection</span></span>
-<span><span class="co">#&gt; &lt;environment: 0x5618bea3fb20&gt;</span></span>
+<span><span class="co">#&gt; &lt;environment: 0x55c28d71cb18&gt;</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; [[2]]</span></span>
 <span><span class="co">#&gt; I ~ +infection - recovery</span></span>
-<span><span class="co">#&gt; &lt;environment: 0x5618bea3fb20&gt;</span></span>
+<span><span class="co">#&gt; &lt;environment: 0x55c28d71cb18&gt;</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; [[3]]</span></span>
 <span><span class="co">#&gt; R ~ +recovery</span></span>
-<span><span class="co">#&gt; &lt;environment: 0x5618bea3fb20&gt;</span></span>
+<span><span class="co">#&gt; &lt;environment: 0x55c28d71cb18&gt;</span></span>
 <span><span class="va">si</span><span class="op">$</span><span class="va">change_model</span><span class="op">$</span><span class="fu">update_flows</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $S</span></span>
 <span><span class="co">#&gt; $S[[1]]</span></span>
 <span><span class="co">#&gt; infection ~ beta * I/N</span></span>
-<span><span class="co">#&gt; &lt;environment: 0x5618c23df3e8&gt;</span></span>
+<span><span class="co">#&gt; &lt;environment: 0x55c28d65b700&gt;</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $I</span></span>
 <span><span class="co">#&gt; $I[[1]]</span></span>
 <span><span class="co">#&gt; recovery ~ gamma</span></span>
-<span><span class="co">#&gt; &lt;environment: 0x5618c23df3e8&gt;</span></span></code></pre></div>
+<span><span class="co">#&gt; &lt;environment: 0x55c28d65b700&gt;</span></span></code></pre></div>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">=</span> <span class="fu"><a href="../reference/mp_tmb_model_spec.html">mp_tmb_model_spec</a></span><span class="op">(</span></span>
 <span>  during <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
@@ -504,13 +504,13 @@ I     recovery   gamma</code></pre>
 <span><span class="co">#&gt; $A</span></span>
 <span><span class="co">#&gt; $A[[1]]</span></span>
 <span><span class="co">#&gt; r ~ a</span></span>
-<span><span class="co">#&gt; &lt;environment: 0x5618c39eead0&gt;</span></span>
+<span><span class="co">#&gt; &lt;environment: 0x55c28c8cb908&gt;</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $B</span></span>
 <span><span class="co">#&gt; $B[[1]]</span></span>
 <span><span class="co">#&gt; rr ~ b</span></span>
-<span><span class="co">#&gt; &lt;environment: 0x5618c39eead0&gt;</span></span></code></pre></div>
+<span><span class="co">#&gt; &lt;environment: 0x55c28c8cb908&gt;</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="updatemethod-classes">
