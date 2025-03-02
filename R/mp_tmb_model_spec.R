@@ -358,9 +358,8 @@ defaults_printer = function(x) {
     cat("\n")
   } else {
     cat("---------------------\n")
-    msg("No of default values\n") |> cat()
+    msg("No default values\n") |> cat()
     cat("---------------------\n")
-    cat("\n")
   }
 }
 
@@ -370,10 +369,10 @@ spec_printer = function(x, include_defaults) {
   schedule = c(length(x$before), length(x$during), length(x$after))
   model_steps_printer(exprs, schedule)
   more_help = c(
-      "Discover more about this model specification\nusing functions described here:\n"
-    , "https://canmod.github.io/macpan2/reference#unpack-model-specifications \n"
+      "Discover more about model specifications here:\n"
+    , "https://canmod.github.io/macpan2/reference#specifications \n"
   )
-  cat(more_help)
+  # cat(more_help)
 }
 
 #' Print Model Specification
