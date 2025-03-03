@@ -54,20 +54,20 @@ get_mod_info <- function(f) {
     return(data.frame(dir=f_base, res))
 }
 
-#' Print a table of contents of available models
+#' Print a Table of Existing Models
 #'
-#' Collects information from the headers of the README files in the model directories
-#' and returns the results as a data frame
+#' Collects information from the headers of the README files in
+#' model directories and returns the results as a data frame
 #'
 #' @param dir directory to list
 #' @param show_missing (logical) include entries for models with no README information?
 #' @param for_markdown (logical) format for rendering the table with markdown-formatted
 #' links to model readme files?
 #' @return a data frame containing entries \code{Directory} (model directory), \code{Title} (model title), \code{Description} (short description)
-#' @examples show_models(show_missing = TRUE)
+#' @examples mp_show_models(show_missing = TRUE)
 #' @importFrom stats na.omit
 #' @export
-show_models <- function(
+mp_show_models <- function(
         dir = system.file("starter_models", package = "macpan2")
       , show_missing = FALSE
       , for_markdown = FALSE
@@ -94,6 +94,11 @@ show_models <- function(
     res = setNames(res, c("Directory", "Title", "Description"))
     return(res)
 }
+
+#' @describeIn mp_show_models Synonym for `mp_show_models`, which is
+#' preferred. Present for back-compatibility.
+#' @export
+show_models = mp_show_models
 
 model_link = function(model_name) {
   sprintf(

@@ -11,8 +11,209 @@ home:
   links:
   - text: Roadmap
     href: https://github.com/orgs/canmod/projects/2
-  - text: Project history and trajectory
+  - text: Presentation slides
     href: https://canmod.net/misc/pyRC
+reference:
+- title: Specifications
+
+- subtitle: Create Model Specifications
+  desc: >
+    Functions for creating new model specification objects, which describe
+    dynamical models with special support for compartmental modelling. The 
+    `vignette("quickstart")` article describes how these functions are used
+    in context.
+  contents:
+  - mp_tmb_model_spec
+  - mp_per_capita_flow
+  - engine_functions
+  
+- subtitle: Find Model Specifications
+  desc: >
+    Functions for finding, copying, and loading existing model
+    specification objects from model libraries. The `vignette("example_models")`
+    article describes how these functions are used in context.
+  contents:
+  - mp_tmb_library
+  - mp_show_models
+  - mp_model_starter
+
+- subtitle: Transform Model Specifications
+  desc: > 
+    Functions that take a model specification as input and return a modified 
+    version of that specification.
+  contents:
+  - mp_tmb_insert
+  - mp_tmb_insert_reports
+  - mp_euler
+  - mp_expand
+
+- subtitle: Unpack Model Specifications
+  desc: > 
+    Functions that extract or print information contained within 
+    model specifications.
+  contents:
+  - mp_print_spec
+  - mp_initial
+  - mp_default
+  - mp_flow_frame
+  - mp_change_frame
+  - mp_state_vars
+  - mp_flow_vars
+  - mp_state_dependence_frame
+
+- title: Simulators
+
+- subtitle: Create New Model Simulators
+  desc: Functions for creating a model simulator object.
+  contents:
+  - mp_simulator
+
+- subtitle: Generate Simulations
+  desc: >
+    Functions that generate simulations from a simulator object.
+  contents:
+  - mp_trajectory
+  - mp_initial
+  - mp_final
+  
+- subtitle: Unpack Model Simulators
+  desc: > 
+    Functions that extract or print information contained within 
+    model simulators.
+  contents:
+  - mp_default
+  - mp_tmb
+
+- title: Calibrators
+
+- subtitle: Create Model Calibrator
+  desc: Create a simulator that can be calibrated to data
+  contents:
+  - mp_tmb_calibrator
+  - mp_par
+  - mp_traj
+  - mp_rbf
+  - transform_distr_param
+  - mp_sim_bounds
+  - mp_time_scale
+
+- subtitle: Specify Distributional Assumptions
+  desc: > 
+    Functions for specifying distributional assumptions for priors 
+    and likelihoods.
+  contents:
+  - mp_uniform
+  - mp_fit
+
+- subtitle: Optimize Calibrator Model
+  desc: > 
+    Functions that take a model specification as input and return a modified 
+    version of that specification.
+  contents:
+  - mp_optimize
+  - mp_optimizer_output
+
+- subtitle: Generate Calibrated Simulations and Parameters
+  desc: >
+    Functions that generate simulations and tables of fitted parameters
+    from a calibator object.
+  contents:
+  - mp_trajectory
+  - mp_tmb_coef
+  - mp_effects_descr
+  - mp_tmb_fixef_cov
+  - mp_tmbstan_coef
+
+- subtitle: Generate Fitted Parameter Tables
+
+- subtitle: Unpack Model Calibrators and Calibrations
+  desc: > 
+    Functions that extract or print information contained within 
+    model calibrators.
+  contents:
+  - mp_tmb
+
+- title: Utilities
+
+- subtitle: Lightweight Simulation Utilities
+  desc: >
+    Simple functions for simulation without simulator objects, so that the 
+    `?engine_functions` can be explored in isolation from compartmental models.
+  contents:
+  - engine_eval
+  - simple_sims
+
+- subtitle: Creating Matrices, Vectors, and Lists
+  desc: >
+    Utilities for constructing matrices, vectors, and lists for 
+    use with `macpan2`.
+  contents:
+  - nlist
+  - empty_matrix
+  - empty_trajectory
+  - mp_zero_vector
+  - rbf
+  - mp_binary_operator
+
+- subtitle: Developer Utilities
+  desc: >
+    Utilities for `macpan2` developers. TODO: Justify why these are exposed
+    to users or do not expose.
+  contents:
+  - finalizer_char
+  - initial_valid_vars
+  - make_expr_parser
+  - mp_tmb_expr_list
+  - Reader
+  - Transform
+
+- title: Not Ready
+
+- subtitle: Box Diagram Layouts (Not Ready)
+  desc: >
+    Functions for semi-automatically laying out compartments in model
+    specifications as boxes on a plot.
+  contents:
+  - mp_layout_grid
+  - mp_layout_paths
+  - find_all_paths
+
+- subtitle: Structured Populations (Not Ready)
+  desc: > 
+    Functions for specifying population structure 
+    (e.g., age, space, immunity status).
+  contents:
+  - mp_dynamic_model
+  - mp_dynamic_simulator
+  - LedgerDefinition
+  - mp_cartesian
+  - mp_extract
+  - mp_index
+  - mp_join
+  - mp_linear
+  - mp_positions
+  - mp_reference
+  - mp_rename
+  - mp_square
+  - mp_symmetric
+  - mp_triangle
+  - mp_factors
+  - mp_group
+  - mp_labels
+  - mp_ledgers
+  - mp_lookup
+  - mp_slices
+  - mp_structured_vector
+  - mp_subset
+  - mp_union
+  - to_labels
+  - to_positions
+  - to_string
+  - mp_aggregate
+  - StringDataFromFrame
+  - all_equal
+
+
 articles:
 - title: User Guides
   navbar: ~
@@ -22,7 +223,7 @@ articles:
   - calibration
   - real_data
   - state_updaters
-  - FAQs
+  - options
 - title: Specs
   desc: Specification Documents
   contents:
@@ -48,3 +249,4 @@ articles:
   contents:
   - time_varying_parameters
   - likelihood_prior_specs
+  - FAQs

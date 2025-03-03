@@ -40,13 +40,6 @@ TMBModelSpec = function(
       , self$update_method$after()
     )
   }
-  self$unrendered_expr_list = function() {
-    ExprList(
-        self$before
-      , self$during
-      , self$after
-    )
-  }
   
   self$all_derived_vars = function() {
     self$expr_list()$all_derived_vars()
@@ -157,7 +150,7 @@ TMBModelSpec = function(
     mat_args = c(mats, mat_options$from_spec(
         mats
       , outputs
-      , c(self$must_save,time_args)
+      , c(self$must_save, time_args)
       , self$must_not_save
     ))
     TMBModel(
@@ -255,9 +248,11 @@ must_save_time_args = function(formulas) {
   )
   return(time_args)
 }
-#' Specify a TMB Model
+
+#' Create TMB Model Specification
 #' 
-#' Specify a simulation model in the TMB engine.
+#' Specify a simulation model in the TMB engine. A detailed explanation of this
+#' function is covered in `vignette("quickstart")`.
 #' 
 #' @param before List of expressions to be evaluated (in the order provided)
 #' before the simulation loop begins. Expressions can either be standard
@@ -304,6 +299,7 @@ must_save_time_args = function(formulas) {
 #' `"rk4"`, and `"euler_multinomial"`.
 #' 
 #' @examples
+#' ## A simple SI model.
 #' spec = mp_tmb_model_spec(
 #'     during = mp_per_capita_flow("S", "I", "beta * I / N", "infection")
 #'   , default = list(N = 100, S = 99, I = 1, beta = 0.2)
@@ -313,24 +309,70 @@ must_save_time_args = function(formulas) {
 #'   |> mp_trajectory()
 #' )
 #' 
+#' ## The `~` can be used for flexibly defining dynamical variables.
+#' spec2 = mp_tmb_model_spec(
+#'     during = list(
+#'           force_of_infection ~ beta * I / N
+#'         , mp_per_capita_flow("S", "I", "force_of_infection", "infection")
+#'     )
+#'   , default = list(N = 100, S = 99, I = 1, beta = 0.2)
+#' )
+#' (spec2
+#'   |> mp_simulator(time_steps = 5L, output = "force_of_infection") 
+#'   |> mp_trajectory()
+#' )
+#' 
+#' ## The `before` argument can be used to pre-compute quantities before
+#' ## the simulation loop begins. Here we compute `S` from `N` and `I`,
+#' ## instead of specifying `S` in the `default` list. The potential
+#' ## benefit here is that one could make `I` a parameter to be fitted,
+#' ## while ensuring consistent values for `S`.
+#' spec3 = mp_tmb_model_spec(
+#'     before = S ~ N - I
+#'   , during = mp_per_capita_flow("S", "I", "beta * I / N", "infection")
+#'   , default = list(N = 100, I = 1, beta = 0.2)
+#' )
+#' (spec3 
+#'   |> mp_simulator(time_steps = 5L, output = "infection") 
+#'   |> mp_trajectory()
+#' )
+#' 
+#' 
+#' 
+#' @concept create-model-spec
 #' @export
 mp_tmb_model_spec = TMBModelSpec
 
 #' @export
 print.TMBModelSpec = function(x, ...) mp_print_spec(x)
 
-spec_printer = function(x, include_defaults) {
-  has_defaults = length(x$default) > 0L
-  if (include_defaults & has_defaults) {
+defaults_printer = function(x) {
+  if (length(x$default) > 0L) {
     cat("---------------------\n")
     msg("Default values:\n") |> cat()
+    print(
+        melt_default_matrix_list(x$default, simplify_as_scalars = TRUE)
+      , row.names = FALSE
+    )
     cat("---------------------\n")
-    print(melt_default_matrix_list(x$default, simplify_as_scalars = TRUE), row.names = FALSE)
     cat("\n")
+  } else {
+    cat("---------------------\n")
+    msg("No default values\n") |> cat()
+    cat("---------------------\n")
   }
+}
+
+spec_printer = function(x, include_defaults) {
+  if (include_defaults) defaults_printer(x)
   exprs = c(x$before, x$during, x$after)
   schedule = c(length(x$before), length(x$during), length(x$after))
   model_steps_printer(exprs, schedule)
+  more_help = c(
+      "Discover more about model specifications here:\n"
+    , "https://canmod.github.io/macpan2/reference#specifications \n"
+  )
+  # cat(more_help)
 }
 
 #' Print Model Specification

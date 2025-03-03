@@ -22,4 +22,5 @@ Other functions that take products of index tables and return one index tables
 \code{\link{mp_symmetric}()},
 \code{\link{mp_triangle}()}
 }
+\concept{population-structure}
 \concept{products}

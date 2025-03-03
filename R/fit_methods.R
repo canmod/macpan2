@@ -18,6 +18,8 @@ mp_effects_descr.TMBModel = function(model) {
     , .id = "term"
   )
   
+  if (nrow(descr) == 0L) descr$term = character()
+  
   ## FIXME: fragile -- assumes that broom.mixed (or broom??) will continue
   ## to make term names unique.
   descr$term = make.unique(descr$term)

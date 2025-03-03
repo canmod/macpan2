@@ -1,6 +1,6 @@
 ## Auto-generated - do not edit by hand
 
-#' Engine Functions
+#' Functions Available in the Simulation Engine
 #'
 #' Functions currently supported by the C++ TMB engine
 #' for constructing expressions for defining model

@@ -19,3 +19,4 @@ Return an integer vector of positions of \code{x} in
 \code{table}. Currently this is a simple wrapper around
 \code{\link{match}}.
 }
+\concept{population-structure}

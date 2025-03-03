@@ -48,7 +48,16 @@ bind_rows <- function(..., .id = NULL) {
   lsts <- flatten(lsts)
   lsts <- Filter(Negate(is.null), lsts)
   
-  if (!missing(.id)) {
+  all_empty = all(vapply(lsts, nrow, integer(1L)) == 0L)
+  
+  if (!missing(.id) & all_empty) {
+    lsts = lapply(lsts, function(x) {
+      x[[.id]] = character()
+      return(x)
+    })
+  }
+  
+  if (!missing(.id) & !all_empty) {
     lsts <- lapply(seq_along(lsts), function(i) {
       nms <- names(lsts)
       id_col = if (is.null(nms)) {

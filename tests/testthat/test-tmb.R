@@ -8,6 +8,3 @@ m = macpan2:::TMBModel(
   macpan2:::ObjectiveFunction(~x),
   macpan2:::Time(10)
 )
-#f = m$make_ad_fun()
-#f$report()$mats_returned
-#f$fn()

@@ -2,12 +2,14 @@
 % Please edit documentation in R/flow_frame.R
 \name{find_all_paths}
 \alias{find_all_paths}
-\title{Find all Paths}
+\title{Find all Paths Through Compartments}
 \usage{
 find_all_paths(edges_df, start_node_guesses = character(0L))
 }
 \arguments{
-\item{edges_df}{A data frame with a \code{from} and a \code{to} column.}
+\item{edges_df}{A data frame with a \code{from} and a \code{to} column, which can
+be extracted from a model specification object using the
+\code{\link{mp_flow_frame}}.}
 
 \item{start_node_guesses}{Optional guesses for nodes that start
 paths. This is useful for models that are not directed acyclic
@@ -19,4 +21,9 @@ vector describing a path through the model.
 }
 \description{
 Find all paths through a compartmental model.
+}
+\examples{
+spec = mp_tmb_library("starter_models", "macpan_base", package = "macpan2")
+spec |> mp_flow_frame() |> find_all_paths()
+
 }

@@ -56,7 +56,7 @@
 \alias{sd}
 \alias{proportions}
 \alias{last}
-\title{Engine Functions}
+\title{Functions Available in the Simulation Engine}
 \description{
 Functions currently supported by the C++ TMB engine
 for constructing expressions for defining model

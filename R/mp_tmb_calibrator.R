@@ -53,9 +53,10 @@
 #' )
 #' mp_optimize(cal)
 #' mp_tmb_coef(cal)  ## requires broom.mixed package
+#' @concept create-model-calibrator
 #' @export
 mp_tmb_calibrator = function(spec, data
-    , traj
+    , traj = character()
     , par = character()
     , tv = character()
     , outputs = traj
@@ -241,8 +242,10 @@ mp_optimize.TMBSimulator = function(model
     , ...
   ) {
   optimizer = match.arg(optimizer)
-  optimizer_results = model$optimize[[optimizer]](...)
-  return(optimizer_results)
+  opt_args = list(...)
+  opt_method = model$optimize[[optimizer]]
+  opt_results = do.call(opt_method, opt_args)
+  return(opt_results)
 } 
 
 #' @describeIn mp_optimize Optimize a TMB calibrator.
@@ -275,11 +278,39 @@ TMBCalDataStruc = function(data, time) {
     }
     FALSE
   }
+
   
   # self$time_steps = time$bound_steps()[2L]
   # data$time_ids = time$time_ids(data$time)
   # self$data_time_ids = data$time_ids
   # self$data_time_steps = max(data$time_ids)
+
+  # if (nrow(data) == 0L) {
+  #   time = Steps(1, 1)
+  # } else {
+  #   if (is.null(time)) {
+  #     if (infer_time_step(data$time)) {
+  #       data$time = as.integer(data$time)
+  #       time = Steps(min(data$time), max(data$time))
+  #     } else {
+  #       ## TODO: I'm guessing this could fail cryptically
+  #       time = Daily(min(data$time), max(data$time), checker = NoError)
+  #     }
+  #   }
+  #   else {
+  #     time = assert_cls(time, "CalTime", match.call(), "?mp_cal_time")
+  #     time$update_data_bounds(data)
+  #   }
+  # }
+  # self$time_steps = time$bound_steps()[2L]
+  # data$time_ids = time$time_ids(data$time)
+  # self$data_time_ids = data$time_ids
+  # if (nrow(data) == 0L) {
+  #   self$data_time_steps = 1L
+  # } else {
+  #   self$data_time_steps = max(data$time_ids)
+  # }
+
   data = rename_synonyms(data
     , time = c(
         "time", "Time", "ID", "time_id", "id", "date", "Date"
@@ -301,13 +332,17 @@ TMBCalDataStruc = function(data, time) {
   } else {
     original_coercer = force
   }
-  if (is.null(time)) {
-    if (infer_time_step(data$time)) {
-      data$time = as.integer(data$time)
-      time = mp_sim_bounds(min(data$time), max(data$time), "steps")
-    } else {
-      data$time = as.Date(data$time)
-      time = mp_sim_bounds(min(data$time), max(data$time), "daily")
+  if (nrow(data) == 0L) {
+    time = Steps(1, 1)
+  } else {
+    if (is.null(time)) {
+      if (infer_time_step(data$time)) {
+        data$time = as.integer(data$time)
+        time = mp_sim_bounds(min(data$time), max(data$time), "steps")
+      } else {
+        data$time = as.Date(data$time)
+        time = mp_sim_bounds(min(data$time), max(data$time), "daily")
+      }
     }
   }
   self$time_steps_obj = time$cal_time_steps(data, original_coercer)
@@ -315,6 +350,14 @@ TMBCalDataStruc = function(data, time) {
   ## TODO: Still splitting on matrices, which doesn't allow flexibility
   ## in what counts as an 'output'. In general, an output could be
   ## a matrix, row, or column.
+  if (!"matrix" %in% colnames(data)) {
+    stop(
+      "Supplied data did not contain a column called 'matrix' ",
+      "(or its synonym 'variable' or short forms of 'matrix' ",
+      "or 'variable' such as 'mat' or 'var'). Such a column is ",
+      "required to relate simulated and observed matrices (i.e., variables)."
+    )
+  }
   self$matrix_list = split(data, data$matrix)
   
   self$check_matrices = function(matrices) {

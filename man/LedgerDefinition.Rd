@@ -24,3 +24,4 @@ mp_join(
 #>    S.old   I.old
 }\if{html}{\out{</div>}}
 }
+\concept{population-structure}

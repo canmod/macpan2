@@ -2,7 +2,7 @@
 % Please edit documentation in R/tmb_model.R
 \name{mp_simulator}
 \alias{mp_simulator}
-\title{Simulator}
+\title{Create a Simulator}
 \usage{
 mp_simulator(model, time_steps, outputs, default = list())
 }
@@ -22,3 +22,4 @@ can be updated or not.}
 \description{
 Construct a simulator from a model specification object.
 }
+\concept{create-model-simulator}

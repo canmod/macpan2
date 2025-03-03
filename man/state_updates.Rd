@@ -7,7 +7,7 @@
 \alias{mp_rk4_old}
 \alias{mp_euler_multinomial}
 \alias{mp_hazard}
-\title{State Updates}
+\title{Change How State Variables are Updated}
 \usage{
 mp_euler(model)
 

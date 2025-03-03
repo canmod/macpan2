@@ -1,7 +1,12 @@
 is_name_or_number = function(x) {
   is.name(x) | is.numeric(x)
 }
-
+is_na = function(x) {
+  i = is.vector(x)
+  if (any(i)) i[i] = length(x[i]) == 1L
+  if (any(i)) i[i] = is.na(x[i])
+  return(i)
+}
 
 #' Generate an Arithmetic Expression Parser
 #'
@@ -114,13 +119,15 @@ make_expr_parser = function(
   }
 
   function(x) {
-    #penv = parent.frame()
-    #browser()
 
     # parse_expr recursively adjusts a specially-structured
     # list of expressions, but the user should be able to
     # just supply a call expression initially
     if (is.call(x)) x = formula_to_parsing_list(x)
+    
+    # literal NA tokens to be treated as missing _numeric_ values
+    which_na = vapply(x$x, is_na, logical(1L))
+    if (any(which_na)) x$x[which_na] = rep(list(NA_real_), sum(which_na))
 
     # continue the recursion until each expression in the list is
     # either a name or a number
@@ -350,6 +357,23 @@ initial_valid_vars = function(valid_var_names) {
 #' identical(spec$empty_matrices()$x, empty_matrix) ## TRUE
 #' @export
 empty_matrix = matrix(numeric(0L), 0L, 0L)
+
+#' Empty Trajectory
+#' 
+#' Output of \code{\link{mp_trajectory}} if nothing is simulated.
+#' 
+#' @name empty_trajectory
+#' @format A data frame with zero rows and the following columns: `matrix`,
+#' `time`, `row`, `col`, `value`.
+#' @export
+empty_trajectory = data.frame(
+    matrix = character()
+  , time = integer()
+  , row = numeric()
+  , col = numeric()
+  , value = numeric()
+)
+
 
 is_empty_matrix = function(x) {
   if (!is.matrix(x)) return(FALSE)

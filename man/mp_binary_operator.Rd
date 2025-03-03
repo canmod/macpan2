@@ -2,9 +2,12 @@
 % Please edit documentation in R/binary_operator.R
 \name{BinaryOperator}
 \alias{BinaryOperator}
+\alias{mp_binary_operator}
 \title{Binary Operator}
 \usage{
 BinaryOperator(operator)
+
+mp_binary_operator(operator)
 }
 \arguments{
 \item{operator}{A binary operator. Valid binary operations have the following characteristics. \cr - They are functions. \cr - They have exactly two arguments. \cr - They do not have any ... arguments}
@@ -21,6 +24,11 @@ base \proglang{R}. The difference is clarified in
 \code{vignette("elementwise_binary_operators")}, and \code{BinaryOperator} is
 primarily used as a resource for that vignette.
 }
+\section{Functions}{
+\itemize{
+\item \code{BinaryOperator()}: Synonym of \code{mp_binary_operator}.
+
+}}
 \examples{
 set.seed(1L)
 A = matrix(abs(rnorm(6)), 3, 2)  # 3 by 2 matrix

@@ -6,7 +6,7 @@
 \alias{mp_trajectory_ensemble}
 \alias{mp_trajectory_sim}
 \alias{mp_trajectory_replicate}
-\title{Trajectory}
+\title{Simulate Dynamical Model Trajectories}
 \usage{
 mp_trajectory(model, include_initial = FALSE)
 

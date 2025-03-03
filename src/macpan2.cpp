@@ -1223,7 +1223,7 @@ public:
             if (GetErrorCode())
                 return m; // early return
 
-            // #' Engine Functions
+            // #' Functions Available in the Simulation Engine
             // #'
             // #' Functions currently supported by the C++ TMB engine
             // #' for constructing expressions for defining model
@@ -2653,9 +2653,6 @@ public:
                 v1.push_back(2);
                 args = args.recycle_to_shape(v1, rows, cols);
                 err_code = args.get_error_code();
-                // err_code1 = RecycleInPlace(args[1], rows, cols);
-                // err_code2 = RecycleInPlace(args[2], rows, cols);
-                // err_code = err_code1 + err_code2;
                 if (err_code != 0)
                 {
                     SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row, MP2_NEGBIN_DENSITY, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
@@ -2685,9 +2682,6 @@ public:
                     SetError(MP2_NORMAL_DENSITY, "dnorm needs three arguments: matrices with observed values, expected values, and standard deviation parameters", row, MP2_NORMAL_DENSITY, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
-                // err_code1 = RecycleInPlace(args[1], rows, cols);
-                // err_code2 = RecycleInPlace(args[2], rows, cols);
-                // err_code = err_code1 + err_code2;
                 rows = args[0].rows();
                 cols = args[0].cols();
                 v1.push_back(1);

@@ -13,6 +13,9 @@ coverage](https://byob.yarr.is/canmod/macpan2/coverage)](https://github.com/canm
 [![commit
 activity](https://img.shields.io/github/commit-activity/m/canmod/macpan2)](https://github.com/canmod/macpan2/commits)
 [![contributors](https://img.shields.io/github/contributors/canmod/macpan2)](https://github.com/canmod/macpan2/graphs/contributors)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14796217.svg)](https://doi.org/10.5281/zenodo.14796217)
+
+
 
 [McMasterPandemic](https://github.com/mac-theobio/McMasterPandemic) was
 developed to provide forecasts and insights to Canadian public health

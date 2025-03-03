@@ -328,7 +328,7 @@ MockChangeModel = function() {
 }
 
 
-##' State Updates
+##' Change How State Variables are Updated
 ##' 
 ##' These functions return a modified version of a model specification, such 
 ##' that the state variables are updated each time step according to different 
@@ -803,7 +803,7 @@ HazardUpdateMethod = function(change_model) {
 
 # Change Components
 
-#' Flow
+#' Specify Flow Between Compartments
 #' 
 #' Specify different kinds of flows between compartments.
 #' 
@@ -1045,6 +1045,8 @@ to_change_component.formula = function(x) Formula(x)
 #' 
 #' @param model A model object.
 #'
+#' @describeIn mp_expand Synonym of `mp_expand` present only for 
+#' back-compatibility. Please use `mp_expand` in new projects.
 #' @export
 mp_reduce = function(model) UseMethod("mp_reduce")
 

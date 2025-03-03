@@ -21,28 +21,7 @@ valid_binop = oor::ValidityMessager(
   binop_validity_message
 )
 
-#' Binary Operator
-#'
-#' Convert a function that represents an elementwise binary
-#' operator into one that is consistent with the \code{C++}
-#' engine. This function is intended to clarify how \pkg{macpan2}
-#' treats binary operators, which is a little different from
-#' base \proglang{R}. The difference is clarified in
-#' `vignette("elementwise_binary_operators")`, and \code{BinaryOperator} is
-#' primarily used as a resource for that vignette.
-#'
-#' @param operator A binary operator. `r binop_validity_message`
-#' @return A binary operator consistent with the \code{C++} engine.
-#' @examples
-#' set.seed(1L)
-#' A = matrix(abs(rnorm(6)), 3, 2)  # 3 by 2 matrix
-#' x = matrix(abs(rnorm(3)))        # 3 by 1 matrix
-#' y = t(abs(rnorm(2)))             # 1 by 2 matrix
-#' times = BinaryOperator(`*`)
-#' pow = BinaryOperator(`^`)
-#' identical(times(A, x), times(x, A))  ## TRUE
-#' identical(pow(A, y), pow(y, A))  ## FALSE
-#'
+#' @describeIn mp_binary_operator Synonym of `mp_binary_operator`.
 #' @export
 BinaryOperator = function(operator) {
   op = valid_binop$assert(operator)
@@ -79,3 +58,31 @@ BinaryOperator = function(operator) {
     stop("something went dredfully wrong")
   }
 }
+
+
+#' Binary Operator
+#'
+#' Convert a function that represents an elementwise binary
+#' operator into one that is consistent with the \code{C++}
+#' engine. This function is intended to clarify how \pkg{macpan2}
+#' treats binary operators, which is a little different from
+#' base \proglang{R}. The difference is clarified in
+#' `vignette("elementwise_binary_operators")`, and \code{BinaryOperator} is
+#' primarily used as a resource for that vignette.
+#'
+#' @param operator A binary operator. `r binop_validity_message`
+#' @return A binary operator consistent with the \code{C++} engine.
+#' @examples
+#' set.seed(1L)
+#' A = matrix(abs(rnorm(6)), 3, 2)  # 3 by 2 matrix
+#' x = matrix(abs(rnorm(3)))        # 3 by 1 matrix
+#' y = t(abs(rnorm(2)))             # 1 by 2 matrix
+#' times = BinaryOperator(`*`)
+#' pow = BinaryOperator(`^`)
+#' identical(times(A, x), times(x, A))  ## TRUE
+#' identical(pow(A, y), pow(y, A))  ## FALSE
+#'
+#' @export
+mp_binary_operator = BinaryOperator
+
+

@@ -33,6 +33,7 @@
 #'
 #' @family indexes
 #' @family products
+#' @concept population-structure
 #' @export
 mp_cartesian = function(...) Reduce(mp_cartesian_binary, list(...))
 
@@ -62,6 +63,7 @@ mp_cartesian_binary = function(x, y) {
 #' @param suffixes Length-2 character vector giving suffixes that
 #' disambiguate the column names in the output.
 #' @family products
+#' @concept population-structure
 #' @export
 mp_square = function(x, suffixes = c("A", "B")) {
   l1 = sprintf("%s%s", x$labelling_column_names, suffixes[1L])
@@ -88,6 +90,7 @@ mp_square = function(x, suffixes = c("A", "B")) {
 #' output. If \code{FALSE} the result is upper triangular.
 #'
 #' @family products
+#' @concept population-structure
 #' @export
 mp_triangle = function(x, y_labelling_column_names, exclude_diag = TRUE, lower_tri = FALSE) {
   f = x$partition$frame()
@@ -123,6 +126,7 @@ triangle_indices = function(n, exclude_diag = TRUE, lower_tri = FALSE) {
 #'
 #' @inheritParams mp_triangle
 #' @family products
+#' @concept population-structure
 #' @export
 mp_symmetric = function(x, y_labelling_column_names, exclude_diag = TRUE) {
   f = x$partition$frame()
@@ -151,6 +155,7 @@ mp_symmetric = function(x, y_labelling_column_names, exclude_diag = TRUE) {
 #'
 #' @inheritParams mp_triangle
 #' @family products
+#' @concept population-structure
 #' @export
 mp_linear = function(x, y_labelling_column_names) {
   f = x$partition$frame()

@@ -17,3 +17,4 @@ effects.}
 Define the prior distributions for parameters and random effects to be
 passed to \code{par} argument of the \code{\link{mp_tmb_calibrator}} function.
 }
+\concept{create-model-calibrator-args}

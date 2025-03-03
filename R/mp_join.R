@@ -76,6 +76,7 @@
 #' how to specify this argument.
 #'
 #' @family ledgers
+#' @concept population-structure
 #' @export
 mp_join = function(..., by = empty_named_list()) {
   possible_nms = (deparse1(substitute(list(...)))
@@ -205,6 +206,7 @@ mp_join = function(..., by = empty_named_list()) {
 #'   by = list(from.to = "Age")
 #' )
 #' ```
+#' @concept population-structure
 #' @name LedgerDefinition
 NULL
 
@@ -592,11 +594,13 @@ merge_generic_by_util = function(x, y, ...) {
   }
 }
 
+#' @concept population-structure
 #' @export
 as.data.frame.Ledger = function(x, row.names = NULL, optional = FALSE, ...) {
   x$labels_frame()
 }
 
+#' @concept population-structure
 #' @export
 summary.Ledger = function(object, ...) {
   formats = c("name", "combined")
@@ -606,6 +610,7 @@ summary.Ledger = function(object, ...) {
   )
 }
 
+#' @concept population-structure
 #' @export
 print.summary.Ledger = function(x, ...) {
   msg_hline() |> message()
@@ -618,9 +623,11 @@ print.summary.Ledger = function(x, ...) {
   print(x$combined, row.names = FALSE)
 }
 
+#' @concept population-structure
 #' @export
 names.Ledger = function(x) names(x$frame)
 
+#' @concept population-structure
 #' @export
 labelling_column_names.Ledger = function(x) x$labelling_column_names_list
 
@@ -636,6 +643,7 @@ link_format_picker = function(x
   )
 }
 
+#' @concept population-structure
 #' @export
 print.Ledger = function(x
     , format = c("labels", "link", "combined", "separate")
@@ -645,6 +653,7 @@ print.Ledger = function(x
   print(x, row.names = FALSE, ...)
 }
 
+#' @concept population-structure
 #' @importFrom utils head
 #' @export
 head.Ledger = function(x
@@ -660,6 +669,7 @@ head.Ledger = function(x
   }
 }
 
+#' @concept population-structure
 #' @importFrom utils tail
 #' @export
 tail.Ledger = function(x
@@ -675,6 +685,7 @@ tail.Ledger = function(x
   }
 }
 
+#' @concept population-structure
 #' @importFrom utils str
 #' @export
 str.Ledger = function(object

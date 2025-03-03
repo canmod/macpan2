@@ -1,4 +1,4 @@
-#' Simulator
+#' Create a Simulator
 #' 
 #' Construct a simulator from a model specification object.
 #' 
@@ -11,6 +11,7 @@
 #' values defined in the model specification object. Any number of objects
 #' can be updated or not.
 #' 
+#' @concept create-model-simulator
 #' @export
 mp_simulator = function(model
     , time_steps
@@ -66,6 +67,7 @@ mp_simulator.TMBCalibrator = function(model
 mp_simulator.TMBParameterizedModelSpec = function(model
   , time_steps, outputs, default = list()
 ) {
+  ## FIXME: doesn't seem to be used anywhere
   simulator = mp_simulator(model$spec, time_steps, outputs, default)
 }
 
@@ -186,8 +188,8 @@ TMBModel = function(
       random = self$random$vector()
     )
     
-    ## FIXME: need a dummy parameter if the model has not
-    ## yet been parameterized. is there a more TMB-ish
+    ## FIXME: Need a dummy parameter if the model has not
+    ## yet been parameterized. Is there a more TMB-ish
     ## way to do this?
     if (length(p$params) == 0L) p$params = 0
     p
@@ -213,9 +215,8 @@ TMBModel = function(
   self$ad_fun = function(
         tmb_cpp = getOption("macpan2_dll")
       , verbose = getOption("macpan2_verbose")
-      , derivs = getOption("macpan2_tmb_derivs")
     ) {
-    do.call(TMB::MakeADFun, self$make_ad_fun_arg(tmb_cpp))
+    do.call(TMB::MakeADFun, self$make_ad_fun_arg(tmb_cpp, verbose))
   }
 
   self$simulator = function(
@@ -394,7 +395,7 @@ mp_final_list.TMBSimulator = function(model) {
   mp_final(model) |> cast_default_matrix_list()
 }
 
-#' Trajectory
+#' Simulate Dynamical Model Trajectories
 #' 
 #' Return simulations of the trajectory of the output
 #' variables of a dynamical model simulator. To see this functionality 
@@ -480,6 +481,21 @@ mp_trajectory.TMBCalibrator = function(model, include_initial = FALSE) {
   traj$time = model$time_steps_obj$internal_to_external(traj$time)
   return(traj)
 } 
+
+#' @param params List of parameters to update.
+#' @param random List of random effect parameters to update.
+#' @describeIn mp_trajectory Produce a trajectory for alternative parameter
+#' values.
+#' @noRd
+mp_trajectory_par = function(model, params, random, include_initial = FALSE) {
+  UseMethod("mp_trajectory_par")
+}
+
+#' @noRd
+mp_trajectory_par.TMBSimulator = function(model, params, random, include_initial = FALSE) {
+  
+}
+
 
 
 #' @param conf.int Should confidence intervals be produced?

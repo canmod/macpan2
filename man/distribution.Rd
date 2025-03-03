@@ -90,3 +90,4 @@ All distributional parameter arguments can be specified either as
 a numeric value, a character string giving the parameter name, or a
 distributional parameter object (See \code{\link{fit_distr_params}}).
 }
+\concept{distributional-assumptions}

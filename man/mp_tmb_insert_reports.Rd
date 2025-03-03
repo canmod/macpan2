@@ -45,3 +45,4 @@ a convolution of the simulation history of an incidence variable with
 a kernel that is proportional to a Gamma distribution of reporting
 delay times.
 }
+\concept{transform-model-spec}
