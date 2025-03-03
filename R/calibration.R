@@ -114,16 +114,12 @@ TMBCurrentParams = function(simulator) { ## TMBSimulator
   ## matrix_list
   self$update_matrix_list = function(matrix_list) {
     current_frame = rbind(self$params_frame(), self$random_frame())
+    keepers = current_frame$mat %in% names(matrix_list)
+    current_frame = current_frame[keepers, , drop = FALSE]
+    if (nrow(current_frame) == 0L) return(matrix_list)
     for (i in seq_len(nrow(current_frame))) {
       mat = current_frame[i, "mat"]
-      if (!mat %in% names(matrix_list)) {
-        stop(
-          sprintf(
-              "Attempting to update matrix, %s, but there is no matrix with this name in the matrix list with these names:\n    %s"
-            , mat, paste(names(matrix_list), collapse = "\n    ")
-          )
-        )
-      }
+      mat = mat[]
       
       row = current_frame[i, "row"]
       nr = nrow(matrix_list[[mat]])
