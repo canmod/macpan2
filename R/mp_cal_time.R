@@ -30,13 +30,18 @@ mp_sim_bounds = function(sim_start, sim_end, time_scale, time_column = "time") {
   self$time_column = time_column
   self$cal_time_steps = function(data, original_coercer = force) {
     column = data[[self$time_column]]
-    dat_start = min(column)
-    dat_end = max(column)
     ## TODO: check type consistency
     constr = switch(self$time_scale
       , steps = CalTimeStepsInt
       , daily = CalTimeStepsDaily
     )
+    if (length(column) == 0L) {
+      dat_start = self$sim_start
+      dat_end = self$sim_end
+    } else {
+      dat_start = min(column)
+      dat_end = max(column)
+    }
     constr(self$sim_start, self$sim_end, dat_start, dat_end, original_coercer)
   }
   return_object(self, "SimBounds")
@@ -69,17 +74,22 @@ mp_sim_offset = function(sim_start_offset, sim_end_offset, time_scale, time_colu
   self$time_column = time_column
   self$cal_time_steps = function(data, original_coercer = force) {
     column = data[[self$time_column]]
-    if (is.character(column)) column = as.Date(column)
-    if (!inherits(column, "Date")) column = as.integer(column)
-    dat_start = min(column)
-    dat_end = max(column)
-    sim_start = dat_start - self$sim_start_offset
-    sim_end = dat_end + self$sim_end_offset
     ## TODO: check type consistency
     constr = switch(self$time_scale
       , steps = CalTimeStepsInt
       , daily = CalTimeStepsDaily
     )
+    if (length(column) == 0L) {
+      dat_start = 1L
+      dat_end = 1L
+    } else {
+      if (is.character(column)) column = as.Date(column)
+      if (!inherits(column, "Date")) column = as.integer(column)
+      dat_start = min(column)
+      dat_end = max(column)
+    }
+    sim_start = dat_start - self$sim_start_offset
+    sim_end = dat_end + self$sim_end_offset
     constr(sim_start, sim_end, dat_start, dat_end, original_coercer)
   }
   return_object(self, "SimOffset")

@@ -1,3 +1,4 @@
+library(macpan2); library(testthat); library(dplyr); library(tidyr); library(ggplot2)
 test_that("vectors and vector elements cannot have the same name.", {
   spec = mp_tmb_model_spec(default = list(a = 0, b = c(a = 0)))
   expect_error(

@@ -340,7 +340,7 @@ TMBCalDataStruc = function(data, time) {
     original_coercer = force
   }
   if (nrow(data) == 0L) {
-    time = Steps(1, 1)
+    time = mp_sim_bounds(1L, 1L, "steps")
   } else {
     if (is.null(time)) {
       if (infer_time_step(data$time)) {
