@@ -3,7 +3,7 @@
 \name{mp_optimize}
 \alias{mp_optimize}
 \alias{mp_optimize.TMBCalibrator}
-\title{Optimize}
+\title{Optimize Model Specification}
 \usage{
 mp_optimize(model, optimizer, ...)
 
@@ -24,7 +24,7 @@ and saves the history of optimization outputs. These outputs can be
 obtained using \code{\link{mp_optimizer_output}}.
 }
 \description{
-Optimize
+Optimize Model Specification
 }
 \section{Methods (by class)}{
 \itemize{

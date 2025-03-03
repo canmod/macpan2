@@ -9,7 +9,11 @@
 #' Construct an object that can get used to calibrate an object produced by 
 #' \code{\link{mp_tmb_model_spec}} or \code{\link{mp_tmb_library}},
 #' and possibly modified by \code{\link{mp_tmb_insert}} or 
-#' \code{\link{mp_tmb_update}}.
+#' \code{\link{mp_tmb_update}}. Note that the output of this function is
+#' not a model that has been calibrated to data, but rather an object that
+#' contains a model that can be calibrated. To actually attempt a 
+#' calibration one needs the \code{\link{mp_optimize}} function (see 
+#' examples below).
 #' 
 #' @param spec An TMB model spec to fit to data. Such specs can be produced by 
 #' \code{\link{mp_tmb_model_spec}} or \code{\link{mp_tmb_library}},
@@ -192,8 +196,7 @@ mp_tmb_calibrator = function(spec, data
 
 TMBCalibrator = function(orig_spec, new_spec, cal_spec, simulator, cal_args = NULL, time_steps_obj = NULL) {
   self = Base()
-  self$orig_spec = orig_spec  ## original spec for reference
-  self$new_spec = new_spec  ## gets updated as optimization proceeds
+  self$orig_spec = orig_spec  ## original spec for references
   self$cal_spec = cal_spec  ## contaminated with stuff required for calibration
   self$simulator = simulator  ## model simulator object keeping track of optimization attempts
   self$cal_args = cal_args
@@ -220,7 +223,7 @@ print.TMBCalibrator = function(x, ...) {
   }
 }
 
-#' Optimize
+#' Optimize Model Specification
 #'
 #' @param model A model object capable of being optimized. See below
 #' for model types that are supported.
@@ -252,15 +255,19 @@ mp_optimize.TMBSimulator = function(model
 #' @export
 mp_optimize.TMBCalibrator = function(model, optimizer = c("nlminb", "optim"), ...) {
   optimizer_results = mp_optimize(model$simulator, optimizer, ...)
-  
-  old_defaults = mp_default(model$new_spec) |> frame_to_mat_list()
-  new_defaults = (model$simulator
-    |> mp_default()
-    |> filter(matrix %in% names(old_defaults))
-    |> frame_to_mat_list()
-  )
-  model$new_spec = mp_tmb_update(model$new_spec, default = new_defaults)
   return(optimizer_results)
+  
+  ## TODO: remove this commented-out code once it is confirmed that
+  ## mp_optimized_spec can be used to replace new_spec (which was never
+  ## working very well anyways).
+  ## 
+  # old_defaults = mp_default(model$new_spec) |> frame_to_mat_list()
+  # new_defaults = (model$simulator
+  #   |> mp_default()
+  #   |> filter(matrix %in% names(old_defaults))
+  #   |> frame_to_mat_list()
+  # )
+  # model$new_spec = mp_tmb_update(model$new_spec, default = new_defaults)
 }
 
 TMBCalDataStruc = function(data, time) {
@@ -499,6 +506,75 @@ mp_optimizer_output.TMBCalibrator = function(model, what = c("latest", "all")) {
   )
 }
 
+
+#' Optimized Model Specification
+#' 
+#' Create a new model specification using parameter values that have been
+#' optimized.
+#' 
+#' @param model A model object that can be optimized/calibrated. Currently,
+#' only models produced by \code{\link{mp_tmb_calibrator}} are valid.
+#' @param spec_structure A character string identifying the structure of the
+#' returned model specification. Use `"original"` for the specification
+#' originally passed to the \code{\link{mp_tmb_calibrator}} function, and
+#' `"modified"` for the one that was used to fit to data. See the details
+#' below for more information on these modifications.
+#' 
+#' @details
+#' The following is a list of additional model specification structure that was 
+#' or could have been added to the `"modified"` specification by 
+#' \code{\link{mp_tmb_calibrator}} for the purposes of fitting to data.
+#' * Observed data in a format that can be compared with simulated data.
+#' * Expressions preparing simulated data so that they can be compared with the 
+#' observed data.
+#' * Distributional parameters for likelihood and prior components of the 
+#' objective function (e.g., a dispersion parameter for a negatively binomial 
+#' likelihood component, or a prior standard deviation for a transmission rate 
+#' parameter).
+#' * Data, parameters, and expressions for modelling time-variation of 
+#' parameters (e.g., basis functions and weights for a spline determining the 
+#' time-variation of transmission rate).
+#'
+#' @returns A copy of the model specification used to produce the calibrator
+#' model, with calibrated default values.
+#' 
+#' @export
+mp_optimized_spec = function(model
+    , spec_structure = c("original", "modified")
+  ) {
+  UseMethod("mp_optimized_spec")
+}
+
+#' @export
+mp_optimized_spec.TMBSimulator = function(model
+    , spec_structure = c("original", "modified")
+  ) {
+}
+
+#' @export
+mp_optimized_spec.TMBCalibrator = function(model
+    , spec_structure = c("original", "modified")
+  ) {
+  if (!model$simulator$optimization_history$opt_attempted()) {
+    warning(
+        "\nNo optimization of this calibrator has been attempted."
+      , "\nUsing initial parameter values to produce a new specification object."
+      , "\nUse mp_optimize to attempt an optimization."
+    )
+  }
+  simulator = model$simulator
+  spec_field = switch(match.arg(spec_structure)
+      , original = "orig_spec"
+      , modified = "cal_spec"
+  )
+  spec = model[[spec_field]]
+  
+  ## function that knows about attempted optimizations, and therefore
+  ## how to update lists of defaults to their optimized values.
+  update = simulator$current$update_matrix_list
+  
+  mp_tmb_update(spec, default = update(spec$default))
+}
 
 NameHandlerAbstract = function() {
   self = Base()

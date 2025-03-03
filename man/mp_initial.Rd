@@ -3,7 +3,7 @@
 \name{mp_initial}
 \alias{mp_initial}
 \alias{mp_initial_list}
-\title{Initial Values}
+\title{Initial Values of Variables Immediately Before the Simulation Loop}
 \usage{
 mp_initial(model)
 
