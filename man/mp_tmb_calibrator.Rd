@@ -56,7 +56,11 @@ valid choice is \code{NULL}, which takes simulation bounds from the \code{data}.
 Construct an object that can get used to calibrate an object produced by
 \code{\link{mp_tmb_model_spec}} or \code{\link{mp_tmb_library}},
 and possibly modified by \code{\link{mp_tmb_insert}} or
-\code{\link{mp_tmb_update}}.
+\code{\link{mp_tmb_update}}. Note that the output of this function is
+not a model that has been calibrated to data, but rather an object that
+contains a model that can be calibrated. To actually attempt a
+calibration one needs the \code{\link{mp_optimize}} function (see
+examples below).
 }
 \examples{
 spec = mp_tmb_library("starter_models", "sir", package = "macpan2")

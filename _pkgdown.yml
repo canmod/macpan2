@@ -26,6 +26,7 @@ reference:
   - mp_tmb_model_spec
   - mp_per_capita_flow
   - engine_functions
+  - mp_optimized_spec
   
 - subtitle: Find Model Specifications
   desc: >
@@ -107,11 +108,13 @@ reference:
 
 - subtitle: Optimize Calibrator Model
   desc: > 
-    Functions that take a model specification as input and return a modified 
-    version of that specification.
+    Functions that take a model calibrator as input and calibrate model
+    parameters, as well as functions that extract underlying objects
+    used during the opimization/calibration process.
   contents:
   - mp_optimize
   - mp_optimizer_output
+  - mp_optimized_spec
 
 - subtitle: Generate Calibrated Simulations and Parameters
   desc: >
