@@ -51,7 +51,7 @@ VignetteBuilder:
 BugReports: https://github.com/canmod/macpan2/issues
 Additional_repositories: https://canmod.r-universe.dev
 Remotes:
-    canmod/oor
+    canmod/oor,
     canmod/macpan2helpers
 Config/testthat/edition: 3
 Encoding: UTF-8
