@@ -1,9 +1,19 @@
+## temporary source of ideas:
+## https://github.com/canmod/macpan2/commit/022a1e0af9ffd2146ff9496abbc8a3d7996c1760#diff-698a62c40da16725b9c4c0d5a59fbd6d4002d697f1194bd1dd2766b2485af3cb
+## 
+## TODO: delete this line if i forget why it is here
+
+
 #' Make TMB Calibrator
 #' 
 #' Construct an object that can get used to calibrate an object produced by 
 #' \code{\link{mp_tmb_model_spec}} or \code{\link{mp_tmb_library}},
 #' and possibly modified by \code{\link{mp_tmb_insert}} or 
-#' \code{\link{mp_tmb_update}}.
+#' \code{\link{mp_tmb_update}}. Note that the output of this function is
+#' not a model that has been calibrated to data, but rather an object that
+#' contains a model that can be calibrated. To actually attempt a 
+#' calibration one needs the \code{\link{mp_optimize}} function (see 
+#' examples below).
 #' 
 #' @param spec An TMB model spec to fit to data. Such specs can be produced by 
 #' \code{\link{mp_tmb_model_spec}} or \code{\link{mp_tmb_library}},
@@ -55,7 +65,7 @@ mp_tmb_calibrator = function(spec, data
     , tv = character()
     , outputs = traj
     , default = list()
-    , time = NULL ## TODO: implement start-date offset. TODO: implement forecast extension
+    , time = NULL
   ) {
   cal_args = nlist(traj, par, tv, outputs, default, time)
   if (inherits(spec, "TMBSimulator")) {
@@ -118,46 +128,41 @@ mp_tmb_calibrator = function(spec, data
   ## TODO: handle likelihood trajectories
   
   ## add time-varying parameters
-  if (tv$type() == "piecewise") {
-    cal_spec = mp_tmb_insert(cal_spec
-      , phase = "during"
-      , at = 1L
-      , expressions = tv$var_update_exprs()
-      , default = globalize(tv, "time_var")
-      , integers = c(
-          globalize(tv, "change_points")
-        , globalize(tv, "change_pointer")
-      )
-      , must_not_save = names(globalize(tv, "time_var"))
+  cal_spec = mp_tmb_update(cal_spec
+    , default = globalize(tv, "time_var")
+    , integers = c(
+        globalize(tv, "change_points")
+      , globalize(tv, "change_pointer")
     )
-  } else if (tv$type() == "smooth") {
-    cal_spec = mp_tmb_insert(cal_spec
-      , phase = "before"
-      , at = Inf
-      , expressions = tv$before_loop()
-      , default = c(
-          globalize(tv, "time_var")
-        , globalize(tv, "values_var")
-        , globalize(tv, "outputs_var")
-        , globalize(tv, "prior_sd")
-      )
-      , integers = c(
-          globalize(tv, "row_indexes")
-        , globalize(tv, "col_indexes")
-        , globalize(tv, "data_time_indexes")
-      )
-      , must_not_save = c(
-          names(globalize(tv, "time_var"))
-        , names(globalize(tv, "values_var"))
-        , names(globalize(tv, "outputs_var"))
-      )
+    , must_not_save = names(globalize(tv, "time_var"))
+  )
+  cal_spec = mp_tmb_update(cal_spec
+    , default = c(
+        globalize(tv, "values_var")
+      , globalize(tv, "outputs_var")
+      , globalize(tv, "prior_sd")
     )
-    cal_spec = mp_tmb_insert(cal_spec
-      , phase = "during"
-      , at = 1L
-      , expressions = tv$var_update_exprs()
+    , integers = c(
+        globalize(tv, "row_indexes")
+      , globalize(tv, "col_indexes")
+      , globalize(tv, "data_time_indexes")
     )
-  }
+    , must_not_save = c(
+        names(globalize(tv, "time_var"))
+      , names(globalize(tv, "values_var"))
+      , names(globalize(tv, "outputs_var"))
+    )
+  )
+  cal_spec = mp_tmb_insert(cal_spec
+    , phase = "before"
+    , at = Inf
+    , expressions = tv$before_loop()
+  )
+  cal_spec = mp_tmb_insert(cal_spec
+    , phase = "during"
+    , at = 1L
+    , expressions = tv$var_update_exprs()
+  )
   
   ## add parameter transformations
   cal_spec = mp_tmb_insert(cal_spec
@@ -177,7 +182,7 @@ mp_tmb_calibrator = function(spec, data
   
   if (!is.character(outputs)) outputs = traj$outputs()
   cal_sim = cal_spec$simulator_fresh(
-      time_steps = struc$time_steps
+      time_steps = struc$time_steps_obj$sim_len()
     , outputs = outputs
     , initialize_ad_fun = FALSE
   )
@@ -186,16 +191,16 @@ mp_tmb_calibrator = function(spec, data
   cal_sim$replace$params_frame(par$params_frame())
   cal_sim$replace$random_frame(par$random_frame())
   
-  TMBCalibrator(spec, spec$copy(), cal_spec, cal_sim, cal_args)
+  TMBCalibrator(spec, spec$copy(), cal_spec, cal_sim, cal_args, struc$time_steps_obj)
 }
 
-TMBCalibrator = function(orig_spec, new_spec, cal_spec, simulator, cal_args = NULL) {
+TMBCalibrator = function(orig_spec, new_spec, cal_spec, simulator, cal_args = NULL, time_steps_obj = NULL) {
   self = Base()
-  self$orig_spec = orig_spec  ## original spec for reference
-  self$new_spec = new_spec  ## gets updated as optimization proceeds
+  self$orig_spec = orig_spec  ## original spec for references
   self$cal_spec = cal_spec  ## contaminated with stuff required for calibration
   self$simulator = simulator  ## model simulator object keeping track of optimization attempts
   self$cal_args = cal_args
+  self$time_steps_obj = time_steps_obj
   return_object(self, "TMBCalibrator")
 }
 
@@ -218,7 +223,7 @@ print.TMBCalibrator = function(x, ...) {
   }
 }
 
-#' Optimize
+#' Optimize Model Specification
 #'
 #' @param model A model object capable of being optimized. See below
 #' for model types that are supported.
@@ -250,22 +255,26 @@ mp_optimize.TMBSimulator = function(model
 #' @export
 mp_optimize.TMBCalibrator = function(model, optimizer = c("nlminb", "optim"), ...) {
   optimizer_results = mp_optimize(model$simulator, optimizer, ...)
-  
-  old_defaults = mp_default(model$new_spec) |> frame_to_mat_list()
-  new_defaults = (model$simulator
-    |> mp_default()
-    |> filter(matrix %in% names(old_defaults))
-    |> frame_to_mat_list()
-  )
-  model$new_spec = mp_tmb_update(model$new_spec, default = new_defaults)
   return(optimizer_results)
+  
+  ## TODO: remove this commented-out code once it is confirmed that
+  ## mp_optimized_spec can be used to replace new_spec (which was never
+  ## working very well anyways).
+  ## 
+  # old_defaults = mp_default(model$new_spec) |> frame_to_mat_list()
+  # new_defaults = (model$simulator
+  #   |> mp_default()
+  #   |> filter(matrix %in% names(old_defaults))
+  #   |> frame_to_mat_list()
+  # )
+  # model$new_spec = mp_tmb_update(model$new_spec, default = new_defaults)
 }
 
 TMBCalDataStruc = function(data, time) {
   self = Base()
-  
-  ## infer if the time field in the data
-  ## is measured in time-steps
+
+  # ## infer if the time field in the data
+  # ## is measured in time-steps
   infer_time_step = function(x) {
     y = is.numeric(x)
     if (y) return(TRUE)
@@ -276,31 +285,39 @@ TMBCalDataStruc = function(data, time) {
     }
     FALSE
   }
-  if (nrow(data) == 0L) {
-    time = Steps(1, 1)
-  } else {
-    if (is.null(time)) {
-      if (infer_time_step(data$time)) {
-        data$time = as.integer(data$time)
-        time = Steps(min(data$time), max(data$time))
-      } else {
-        ## TODO: I'm guessing this could fail cryptically
-        time = Daily(min(data$time), max(data$time), checker = NoError)
-      }
-    }
-    else {
-      time = assert_cls(time, "CalTime", match.call(), "?mp_cal_time")
-      time$update_data_bounds(data)
-    }
-  }
-  self$time_steps = time$bound_steps()[2L]
-  data$time_ids = time$time_ids(data$time)
-  self$data_time_ids = data$time_ids
-  if (nrow(data) == 0L) {
-    self$data_time_steps = 1L
-  } else {
-    self$data_time_steps = max(data$time_ids)
-  }
+
+  
+  # self$time_steps = time$bound_steps()[2L]
+  # data$time_ids = time$time_ids(data$time)
+  # self$data_time_ids = data$time_ids
+  # self$data_time_steps = max(data$time_ids)
+
+  # if (nrow(data) == 0L) {
+  #   time = Steps(1, 1)
+  # } else {
+  #   if (is.null(time)) {
+  #     if (infer_time_step(data$time)) {
+  #       data$time = as.integer(data$time)
+  #       time = Steps(min(data$time), max(data$time))
+  #     } else {
+  #       ## TODO: I'm guessing this could fail cryptically
+  #       time = Daily(min(data$time), max(data$time), checker = NoError)
+  #     }
+  #   }
+  #   else {
+  #     time = assert_cls(time, "CalTime", match.call(), "?mp_cal_time")
+  #     time$update_data_bounds(data)
+  #   }
+  # }
+  # self$time_steps = time$bound_steps()[2L]
+  # data$time_ids = time$time_ids(data$time)
+  # self$data_time_ids = data$time_ids
+  # if (nrow(data) == 0L) {
+  #   self$data_time_steps = 1L
+  # } else {
+  #   self$data_time_steps = max(data$time_ids)
+  # }
+
   data = rename_synonyms(data
     , time = c(
         "time", "Time", "ID", "time_id", "id", "date", "Date"
@@ -313,6 +330,30 @@ TMBCalDataStruc = function(data, time) {
     , col = c("col", "Col", "column", "Column")
     , value = c("value", "Value", "val", "Val", "default", "Default")
   )
+  if (is.character(data$time)) {
+    original_coercer = as.character
+  } else if (is.integer(data$time)) {
+    original_coercer = as.integer
+  } else if (inherits(data$time, "Date")) {
+    original_coercer = as.Date
+  } else {
+    original_coercer = force
+  }
+  if (nrow(data) == 0L) {
+    time = mp_sim_bounds(1L, 1L, "steps")
+  } else {
+    if (is.null(time)) {
+      if (infer_time_step(data$time)) {
+        data$time = as.integer(data$time)
+        time = mp_sim_bounds(min(data$time), max(data$time), "steps")
+      } else {
+        data$time = as.Date(data$time)
+        time = mp_sim_bounds(min(data$time), max(data$time), "daily")
+      }
+    }
+  }
+  self$time_steps_obj = time$cal_time_steps(data, original_coercer)
+  data$time_ids = self$time_steps_obj$external_to_internal(data$time)
   ## TODO: Still splitting on matrices, which doesn't allow flexibility
   ## in what counts as an 'output'. In general, an output could be
   ## a matrix, row, or column.
@@ -339,6 +380,7 @@ TMBCalDataStruc = function(data, time) {
     NULL
   }
   
+  ## subset of matrix_list
   self$init_list = function(matrices) {
     self$check_matrices(matrices)
     self$matrix_list[matrices]
@@ -347,6 +389,93 @@ TMBCalDataStruc = function(data, time) {
 }
 
 
+CalTimeStepsAbstract = function() {
+  self = Base()
+  self$sim_len = function() integer(1L)
+  self$dat_len = function() integer(1L)
+  self$sim_1st = function() 1L
+  self$dat_1st = function() integer(1L)
+  self$sim_vec = function() integer(0L)
+  self$dat_vec = function() integer(0L)
+  self$internal_to_external = function(internal) internal
+  self$external_to_internal = function(external) external
+  self$consistency = function() {
+    if (self$ext_sim_1st > self$ext_dat_1st) warning("Simulation starts after data begin.")
+    if (self$ext_dat_end > self$ext_sim_end) warning("Data end after simulation ends.")
+  }
+  self$sim_vec = function() seq(from = self$sim_1st(), by = 1L, len = self$sim_len())
+  self$dat_vec = function() seq(from = self$dat_1st(), by = 1L, len = self$dat_len())
+  return_object(self, "CalTimeStepsAbstract")
+}
+CalTimeStepsInt = function(ext_sim_1st, ext_sim_end, ext_dat_1st, ext_dat_end, original_coercer = force) {
+  self = CalTimeStepsAbstract()
+  self$ext_sim_1st = as.integer(ext_sim_1st)
+  self$ext_sim_end = as.integer(ext_sim_end)
+  self$ext_dat_1st = as.integer(ext_dat_1st)
+  self$ext_dat_end = as.integer(ext_dat_end)
+  self$original_coercer = original_coercer
+  self$consistency()
+  self$dat_1st = function() self$ext_dat_1st - self$ext_sim_1st + self$sim_1st()
+  self$sim_len = function() self$ext_sim_end - self$ext_sim_1st + self$sim_1st()
+  self$dat_len = function() self$ext_dat_end - self$ext_dat_1st + 1L
+  self$internal_to_external = function(internal) {
+    external = as.integer(internal) - self$sim_1st() + self$ext_sim_1st
+    self$original_coercer(external)
+  }
+  self$external_to_internal = function(external) external - self$ext_sim_1st + self$sim_1st()
+  return_object(self, "CalTimeStepsInt")
+}
+if (FALSE) {
+  xx = CalTimeStepsInt(-30, 500, 10, 400)
+  xx$dat_vec() |> length()
+  xx$dat_len()
+  xx$dat_1st()
+  xx$sim_vec() |> length()
+  xx$sim_len()
+  xx$sim_1st()
+  xx$external_to_internal(50)
+}
+
+CalTimeStepsDaily = function(ext_sim_1st, ext_sim_end, ext_dat_1st, ext_dat_end, original_coercer = force) {
+  self = CalTimeStepsAbstract()
+  self$ext_sim_1st = as.Date(ext_sim_1st)
+  self$ext_sim_end = as.Date(ext_sim_end)
+  self$ext_dat_1st = as.Date(ext_dat_1st)
+  self$ext_dat_end = as.Date(ext_dat_end)
+  self$original_coercer = original_coercer
+  self$consistency()
+  self$dat_1st = function() {
+    d = difftime(self$ext_dat_1st, self$ext_sim_1st, units = "days")
+    as.integer(d) + self$sim_1st()
+  }
+  self$sim_len = function() {
+    d = difftime(self$ext_sim_end, self$ext_sim_1st, units = "days")
+    as.integer(d) + self$sim_1st()
+  }
+  self$dat_len = function() {
+    d = difftime(self$ext_dat_end, self$ext_dat_1st, units = "days")
+    as.integer(d) + 1L
+  }
+  self$internal_to_external = function(internal) {
+    external = internal + (self$ext_sim_1st - self$sim_1st())
+    self$original_coercer(external)
+  }
+  self$external_to_internal = function(external) {
+    d = difftime(as.Date(external), self$ext_sim_1st, units = "days")
+    as.integer(d) + 1L
+  }
+  return_object(self, "CalTimeStepsLegacy")
+}
+if (FALSE) {
+  xx = CalTimeStepsDaily("2021-01-01", "2022-04-02", "2021-03-05", "2022-02-01")
+  xx$dat_vec() |> length()
+  xx$dat_len()
+  xx$dat_1st()
+  xx$sim_vec() |> length()
+  xx$sim_len()
+  xx$sim_1st()
+  xx$external_to_internal("2022-04-02")
+}
 
 #' Optimizer Output
 #'
@@ -377,6 +506,75 @@ mp_optimizer_output.TMBCalibrator = function(model, what = c("latest", "all")) {
   )
 }
 
+
+#' Optimized Model Specification
+#' 
+#' Create a new model specification using parameter values that have been
+#' optimized.
+#' 
+#' @param model A model object that can be optimized/calibrated. Currently,
+#' only models produced by \code{\link{mp_tmb_calibrator}} are valid.
+#' @param spec_structure A character string identifying the structure of the
+#' returned model specification. Use `"original"` for the specification
+#' originally passed to the \code{\link{mp_tmb_calibrator}} function, and
+#' `"modified"` for the one that was used to fit to data. See the details
+#' below for more information on these modifications.
+#' 
+#' @details
+#' The following is a list of additional model specification structure that was 
+#' or could have been added to the `"modified"` specification by 
+#' \code{\link{mp_tmb_calibrator}} for the purposes of fitting to data.
+#' * Observed data in a format that can be compared with simulated data.
+#' * Expressions preparing simulated data so that they can be compared with the 
+#' observed data.
+#' * Distributional parameters for likelihood and prior components of the 
+#' objective function (e.g., a dispersion parameter for a negatively binomial 
+#' likelihood component, or a prior standard deviation for a transmission rate 
+#' parameter).
+#' * Data, parameters, and expressions for modelling time-variation of 
+#' parameters (e.g., basis functions and weights for a spline determining the 
+#' time-variation of transmission rate).
+#'
+#' @returns A copy of the model specification used to produce the calibrator
+#' model, with calibrated default values.
+#' 
+#' @export
+mp_optimized_spec = function(model
+    , spec_structure = c("original", "modified")
+  ) {
+  UseMethod("mp_optimized_spec")
+}
+
+#' @export
+mp_optimized_spec.TMBSimulator = function(model
+    , spec_structure = c("original", "modified")
+  ) {
+}
+
+#' @export
+mp_optimized_spec.TMBCalibrator = function(model
+    , spec_structure = c("original", "modified")
+  ) {
+  if (!model$simulator$optimization_history$opt_attempted()) {
+    warning(
+        "\nNo optimization of this calibrator has been attempted."
+      , "\nUsing initial parameter values to produce a new specification object."
+      , "\nUse mp_optimize to attempt an optimization."
+    )
+  }
+  simulator = model$simulator
+  spec_field = switch(match.arg(spec_structure)
+      , original = "orig_spec"
+      , modified = "cal_spec"
+  )
+  spec = model[[spec_field]]
+  
+  ## function that knows about attempted optimizations, and therefore
+  ## how to update lists of defaults to their optimized values.
+  update = simulator$current$update_matrix_list
+  
+  mp_tmb_update(spec, default = update(spec$default))
+}
 
 NameHandlerAbstract = function() {
   self = Base()
@@ -468,6 +666,14 @@ TMBTVAbstract = function() {
   ## The names of the list are the time-varying 
   ## matrices in the spec.
   self$change_points = function() list()
+  self$change_pointer = function() list()
+  
+  self$values_var = function() list()
+  self$outputs_var = function() list()
+  self$prior_sd = function() list()
+  self$row_indexes = function() list()
+  self$col_indexes = function() list()
+  self$data_time_indexes = function() list()
   
   ## List of expressions that update parameters that
   ## are time-varying
@@ -486,6 +692,19 @@ TMBTVAbstract = function() {
   ## to time-varying parameters
   self$tv_params_frame = function(tv_pars) self$empty_params_frame
   self$tv_random_frame = function() self$empty_params_frame
+  
+  
+  self$local_names = function() {
+    make_names_list(self
+      , c(
+          "time_var", "values_var", "outputs_var"
+        , "row_indexes", "col_indexes", "data_time_indexes"
+        , "prior_sd"
+        , "change_points", "change_pointer"
+      )
+    )
+  }
+  
   
   return_object(self, "TMBTVAbstract")
 }
@@ -539,7 +758,6 @@ TMBTV.character = function(
   self = TMBTVAbstract()
   self$existing_global_names = existing_global_names
   self$spec = spec
-  self$type = function() "piecewise"
   
   ## internal data structure:
   ## assumes tv is a character vector
@@ -589,7 +807,7 @@ TMBTV.character = function(
     bind_rows(l)
   }
   self$change_pointer = function() {
-    ## Depended upon to return a list if length-one
+    ## Depended upon to return a list of length-one
     ## integer vectors with a single zero. Names of 
     ## the list are the time-varying matrices in the
     ## spec. 
@@ -599,15 +817,6 @@ TMBTV.character = function(
       |> as.integer()
       |> as.list()
       |> setNames(nms)
-    )
-  }
-  
-  ## define local and external names ... to prepare
-  ## for creating expressions, which require global,
-  ## not local names
-  self$local_names = function() {
-    make_names_list(self
-      , c("time_var", "change_points", "change_pointer")
     )
   }
     
@@ -654,7 +863,6 @@ TMBTV.TVArg = function(
   self = TMBTVAbstract()
   self$existing_global_names = existing_global_names
   self$spec = spec
-  self$type = function() "list"
   
   self$before_loop = function() list()
   self$after_loop = function() list()
@@ -671,6 +879,7 @@ TMBTV.TVArg = function(
   ## The names of the list are the time-varying 
   ## matrices in the spec.
   self$change_points = function() list()
+  self$change_pointer = function() list()
   
   ## List of expressions that update parameters that
   ## are time-varying
@@ -694,10 +903,9 @@ TMBTV.RBFArg = function(
   self = TMBTVAbstract()
   self$existing_global_names = existing_global_names
   self$spec = spec
-  self$type = function() "smooth"
   
   self$rbf_data = sparse_rbf_notation(
-      struc$data_time_steps
+      struc$time_steps_obj$dat_len()
     , tv$dimension
     , zero_based = TRUE
     , tol = tv$sparse_tol
@@ -705,7 +913,7 @@ TMBTV.RBFArg = function(
   self$initial_outputs = c(self$rbf_data$M %*% tv$initial_weights)
   self$initial_weights = tv$initial_weights
   self$dimension = tv$dimension
-  self$data_time_ids = struc$data_time_ids
+  self$data_time_ids = struc$time_steps_obj$dat_vec()
   self$par_name = tv$tv
   self$prior_sd_default = tv$prior_sd
   self$fit_prior_sd = tv$fit_prior_sd
@@ -745,15 +953,6 @@ TMBTV.RBFArg = function(
     s = sprintf("%s ~ exp(time_var(%s, %s))", self$par_name, nms$outputs_var, nms$data_time_indexes)
 
     list(as.formula(s))
-  }
-  self$local_names = function() {
-    make_names_list(self
-      , c(
-          "time_var", "values_var", "outputs_var"
-        , "row_indexes", "col_indexes", "data_time_indexes"
-        , "prior_sd"
-      )
-    )
   }
   
   ## character vector of signed expressions that give components

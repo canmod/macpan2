@@ -22,12 +22,79 @@
 #' point in the simulation.
 #' 
 #' @export
-mp_sim_bounds = function(sim_start, sim_end, time_scale) {
-  if (time_scale != "steps") {
-    warning('The only recommended choice for time_scale is "steps", but ', time_scale, ' was chosen.')
+mp_sim_bounds = function(sim_start, sim_end, time_scale, time_column = "time") {
+  self = Base()
+  self$sim_start = sim_start
+  self$sim_end = sim_end
+  self$time_scale = time_scale
+  self$time_column = time_column
+  self$cal_time_steps = function(data, original_coercer = force) {
+    column = data[[self$time_column]]
+    ## TODO: check type consistency
+    constr = switch(self$time_scale
+      , steps = CalTimeStepsInt
+      , daily = CalTimeStepsDaily
+    )
+    if (length(column) == 0L) {
+      dat_start = self$sim_start
+      dat_end = self$sim_end
+    } else {
+      dat_start = min(column)
+      dat_end = max(column)
+    }
+    constr(self$sim_start, self$sim_end, dat_start, dat_end, original_coercer)
   }
-  CalTime(sim_start, sim_end, time_scale)
+  return_object(self, "SimBounds")
 }
+
+#' Simulation Offsets (Experimental)
+#' 
+#' Offset the starting and ending times of the simulation, from the
+#' start and end time of the data used in calibration. This is used to 
+#' override the default offsets of zero taken from the observed data passed to 
+#' \code{\link{mp_tmb_calibrator}}.
+#' 
+#' @param sim_start_offset Number of time steps before the first data point
+#' to start each simulation.
+#' @param sim_end_offset Number of time steps after the last data point to
+#' end each simulation.
+#' @param time_scale Qualitative description of the size of a time step.
+#' currently only `"steps"`, `"daily"`, and `"weekly"` are allowed,
+#' and but `"steps"` is the only recommended version as the other two
+#' are poorly tested and will throw a warning. The recommended `"steps"`
+#' option assumes that positive integers are used to indicate a particular
+#' point in the simulation.
+#' 
+#' @export
+mp_sim_offset = function(sim_start_offset, sim_end_offset, time_scale, time_column = "time") {
+  self = Base()
+  self$sim_start_offset = as.integer(sim_start_offset)
+  self$sim_end_offset = as.integer(sim_end_offset)
+  self$time_scale = time_scale
+  self$time_column = time_column
+  self$cal_time_steps = function(data, original_coercer = force) {
+    column = data[[self$time_column]]
+    ## TODO: check type consistency
+    constr = switch(self$time_scale
+      , steps = CalTimeStepsInt
+      , daily = CalTimeStepsDaily
+    )
+    if (length(column) == 0L) {
+      dat_start = 1L
+      dat_end = 1L
+    } else {
+      if (is.character(column)) column = as.Date(column)
+      if (!inherits(column, "Date")) column = as.integer(column)
+      dat_start = min(column)
+      dat_end = max(column)
+    }
+    sim_start = dat_start - self$sim_start_offset
+    sim_end = dat_end + self$sim_end_offset
+    constr(sim_start, sim_end, dat_start, dat_end, original_coercer)
+  }
+  return_object(self, "SimOffset")
+}
+
 
 CalTime = function(sim_start, sim_end, time_scale) {
   self = mp_time_scale(sim_start, sim_end, time_scale, checker = NoError)
@@ -53,5 +120,3 @@ CalTime = function(sim_start, sim_end, time_scale) {
   
   return_object(self, "CalTime")
 }
-
-

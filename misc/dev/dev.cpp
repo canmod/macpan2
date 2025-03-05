@@ -114,6 +114,7 @@ enum macpan2_func
     , MP2_MEAN = 51 // fwrap,null: mean(x)
     , MP2_SD = 52 // fwrap,null: sd(x)
     , MP2_PROPORTIONS = 53 // fwrap,null: proportions(x)
+    , MP2_LAST = 54 // fwrap,null: last(x)
 };
 
 enum macpan2_meth
@@ -702,6 +703,10 @@ public:
         }
     }
     
+    matrix<Type> get_last_element(int i) {
+        return get_as_mat(i).block(rows(i) - 1, cols(i) - 1, 1, 1);
+    }
+    
     std::vector<int> all_rows() {
         std::vector<int> v(items_.size());
         for (unsigned int i = 0; i < v.size(); i++) {
@@ -1009,13 +1014,10 @@ public:
         // Variables to use locally in 'macpan2 function' and
         // 'macpan2 method' bodies -- these are not real functions and methods 
         // in either the c++ or r sense.
-        matrix<Type> m, m1, m2, m3, m4, mz5;     // return values
+        matrix<Type> m, m1, m2, m3, m4, m5;     // return values
         std::vector<int> v, v1, v2, v3, v4, v5; // integer vectors
         vector<int> u; // FIXME: why not std::vector<int> here??
         matrix<Type> Y, X, A;
-        // Type y, x;
-        // Type a;
-        //int ii, jj, kk;
         std::vector<int> timeIndex; // for rbind_time and rbind_lag
         int doing_lag = 0;
         Type sum, eps, limit, var, by, left_over, remaining_prop, p0; // intermediate scalars
@@ -1024,15 +1026,13 @@ public:
         unsigned int grpIndex;
         int size_in, size_out;
         int sz, start, err_code, curr_meth_id;
-        // size_t numMats;
-        // size_t numIntVecs;
         std::vector<int> curr_meth_mat_id_vec;
         std::vector<int> curr_meth_int_id_vec;
         vector<matrix<Type>> meth_args(meth_mats.size());
         ListOfIntVecs meth_int_args;
 
         // Check if error has already happened at some point
-        // of the recursive call.
+        // of the recursive call of EvalExpr.
         if (GetErrorCode())
             return m;
         switch (table_n[row])
@@ -2038,6 +2038,10 @@ public:
                     return m;
                 }
                 return args[0].block(rowIndex, colIndex, rows, cols);
+            
+            case MP2_LAST: // last(x)
+                return args.get_last_element(0);
+                
 
             // #' ## Accessing Past Values in the Simulation History
             // #'

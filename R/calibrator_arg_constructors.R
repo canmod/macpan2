@@ -5,15 +5,15 @@
 #' Define the prior distributions for parameters and random effects to be
 #' passed to `par` argument of the \code{\link{mp_tmb_calibrator}} function.
 #' 
-#' @param param Named list of distributional specifications for the
+#' @param params Named list of distributional specifications for the
 #' fixed effects.
 #' @param random Named list of distributional specifications for the random
 #' effects.
 #' @concept create-model-calibrator-args
 #' @export
-mp_par = function(param, random) {
+mp_par = function(params, random) {
   arg = list()
-  arg$param = param
+  arg$params = params
   arg$random = random
   structure(arg, class = "ParArg")
 }
@@ -75,6 +75,14 @@ mp_rbf = function(tv, dimension, initial_weights, seed, prior_sd = 1, fit_prior_
 }
 
 
+mp_piecewise = function(tv, data) {
+  arg = list()
+  arg$tv = tv
+  arg$data = data
+  structure(arg, class = "PiecewiseArg")
+}
+
+
 ## construct objects to pass to the traj argument of mp_tmb_calibrator
 
 #' Trajectory Specification
@@ -90,8 +98,8 @@ mp_rbf = function(tv, dimension, initial_weights, seed, prior_sd = 1, fit_prior_
 #' @concept create-model-calibrator-args
 #' @export
 mp_traj = function(
-      likelihood = list()
-    , condensation = list()
+      likelihood = empty_named_list()
+    , condensation = empty_named_list()
   ) {
   arg = list()
   arg$likelihood = likelihood
