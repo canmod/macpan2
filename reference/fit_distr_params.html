@@ -13,7 +13,7 @@ from being fit and mp_fit to fit them."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.15.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.15.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -112,7 +112,7 @@ transformation specified using <code><a href="transform_distr_param.html">mp_log
 <span class="r-in"><span><span class="va">cal</span><span class="op">$</span><span class="va">simulator</span><span class="op">$</span><span class="va">tmb_model</span><span class="op">$</span><span class="va">obj_fn</span><span class="op">$</span><span class="va">obj_fn_expr</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ~-sum(dpois(obs_infection, clamp(sim_infection))) - sum(dnorm(beta, </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     0.35, exp(distr_params_log_sd_beta)))</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55b49e52a340&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55edc38fa398&gt;</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Next we optimize and view the fitted parameters. We can see the </span></span></span>
 <span class="r-in"><span><span class="co"># distributional parameter in the coefficient table with a default value </span></span></span>
@@ -175,7 +175,7 @@ transformation specified using <code><a href="transform_distr_param.html">mp_log
 <span class="r-in"><span><span class="va">cal</span><span class="op">$</span><span class="va">simulator</span><span class="op">$</span><span class="va">tmb_model</span><span class="op">$</span><span class="va">obj_fn</span><span class="op">$</span><span class="va">obj_fn_expr</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ~-sum(dpois(obs_infection, clamp(sim_infection))) - sum(dnorm(beta, </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     0.35, exp(sd_var)))</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55b4a0071bc0&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55edc4649c58&gt;</span>
 <span class="r-in"><span><span class="fu"><a href="mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">cal</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  389.7016 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  258.9379 </span>
