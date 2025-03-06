@@ -44,8 +44,7 @@ agnostic about the underlying computational engine, it currently uses
 [template model builder](https://github.com/kaskr/adcomp) as the sole
 engine. Template model builder (TMB) is an `R` modelling package based
 on a `C++` framework incorporating mature [automatic
-differentiation](https://cppad.readthedocs.io/en/latest/user_guide.html)
-and [matrix
+differentiation](https://cppad.readthedocs.io/latest) and [matrix
 algebra](http://eigen.tuxfamily.org/index.php?title=Main_Page)
 libraries.
 
@@ -67,8 +66,8 @@ Agency of Canada](https://www.canada.ca/en/public-health.html) uses
 
 ## Installation
 
-> \[!IMPORTANT\] The standard recommended way to install `macpan2` is
-> with the following command.
+> \\\[!IMPORTANT\\\] The standard recommended way to install `macpan2`
+> is with the following command.
 
     repos = c('https://canmod.r-universe.dev', 'https://cloud.r-project.org')
     install.packages('macpan2', repos = repos)
