@@ -66,15 +66,8 @@ Agency of Canada](https://www.canada.ca/en/public-health.html) uses
 
 ## Installation
 
-<!-- 
-please to not remove the two spaces at the end of the line that
-starts with > [!IMPORTANT].  Those spaces are important for
-making github markdown alerts and rmarkdown play nicely.
--->
-
-> \[!IMPORTANT\]  
-> The standard recommended way to install `macpan2` is with the
-> following command.
+The standard recommended way to install `macpan2` is with the following
+command.
 
     repos = c('https://canmod.r-universe.dev', 'https://cloud.r-project.org')
     install.packages('macpan2', repos = repos)
