@@ -41,7 +41,13 @@ The [Public Health Risk Sciences Division](https://github.com/phac-nml-phrsd) at
 
 ## Installation
 
-> \\[!IMPORTANT\\]
+<!-- 
+please to not remove the two spaces at the end of the line that
+starts with > [!IMPORTANT].  Those spaces are important for
+making github markdown alerts and rmarkdown play nicely.
+-->
+
+> [!IMPORTANT]  
 > The standard recommended way to install `macpan2` 
 > is with the following command.
 
