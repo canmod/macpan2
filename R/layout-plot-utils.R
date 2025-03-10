@@ -366,7 +366,7 @@ LayoutMatrixGrid = function(spec
       if (length(neighbour) == 1L) layout[min(state_rows), min(state_cols) - 1L] = neighbour
     }
     i = layout != ""
-    return(layout[rowSums(i) > 0L, colSums(i) > 0L])
+    return(layout[rowSums(i) > 0L, colSums(i) > 0L, drop = FALSE])
   }
   
   return_object(self, "LayoutMatrixFactors")
