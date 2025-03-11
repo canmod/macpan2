@@ -3,12 +3,14 @@ template:
   bootstrap: 5
 navbar:
   structure:
-    left:  [intro, reference, articles, tutorials]x
+    left:  [intro, reference, articles, tutorials]
     right: [search, github]
 home:
   sidebar:
     structure: [toc, links, license, community, citation, authors, dev]
   links:
+  - text: Maintainer
+    href: https://github.com/stevencarlislewalker
   - text: Roadmap
     href: https://github.com/orgs/canmod/projects/2
   - text: Presentation slides
