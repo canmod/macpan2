@@ -3,7 +3,7 @@ template:
   bootstrap: 5
 navbar:
   structure:
-    left:  [intro, reference, articles, tutorials, news]
+    left:  [intro, reference, articles, tutorials]x
     right: [search, github]
 home:
   sidebar:
@@ -36,6 +36,7 @@ reference:
   - mp_tmb_library
   - mp_show_models
   - mp_model_starter
+  - mp_model_docs
 
 - subtitle: Transform Model Specifications
   desc: > 

@@ -77,7 +77,7 @@ mp_tmb_coef = function(model, back_transform = TRUE, ...) UseMethod("mp_tmb_coef
 #' @importFrom utils strcapture
 #' @export
 mp_tmb_coef.TMBSimulator = function(model, back_transform = TRUE, ...) {
-  assert_dependency("broom.mixed")
+  assert_dependencies("broom.mixed")
   tab = mp_add_effects_descr(broom.mixed::tidy(mp_tmb(model), ...), model)
   
   if (back_transform){

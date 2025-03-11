@@ -22,8 +22,8 @@ test_that("dotted matrices can be constructed", {
 test_that("dotted vectors can be filtered", {
   x = macpan2:::StringDottedVector(paste(letters, rev(letters), sep = "."))
   y = macpan2:::StringDottedVector(paste(letters[1:6], rev(letters)[1:6], sep = "."))
-  expect_identical(which(x$which_in(y, all_equal)), 1:6)
-  expect_false(any(x$which_not_in(y, all_equal)))
+  expect_identical(which(x$which_in(y, macpan2::all_equal)), 1:6)
+  expect_false(any(x$which_not_in(y, macpan2::all_equal)))
   expect_false(any(x$which_dup()))
   expect_identical(x$unique(), x)
   expect_identical(x$subset(1:3), y$subset(1:3))
@@ -79,12 +79,12 @@ test_that("string data frames can be constructed", {
     dotted$change_coordinates("Epi")$undot()
   )
   expect_identical(
-    undotted$filter(unvax, all_equal),
+    undotted$filter(unvax, macpan2::all_equal),
     unvax_explicit
   )
   expect_identical(
-    undotted$filter(unvax, all_equal),
-    dotted$filter(unvax, all_equal)$undot()
+    undotted$filter(unvax, macpan2::all_equal),
+    dotted$filter(unvax, macpan2::all_equal)$undot()
   )
   expect_identical(
     undotted$filter_out(unvax, all_not_equal),
