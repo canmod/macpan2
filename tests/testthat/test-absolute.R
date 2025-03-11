@@ -5,7 +5,7 @@ test_that("absolute inflow definition", {
             mp_per_capita_outflow("N", "d", "death")
         )
     )
-
-mp_expand(s1)
+    expect_equal(mp_state_vars(s1), "N")
+    expect_equal(mp_flow_vars(s1), c("birth", "death"))
 
 })
