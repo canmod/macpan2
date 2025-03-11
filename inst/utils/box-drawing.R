@@ -15,7 +15,10 @@ plot_flow_diagram = function(layout
     , show_flow_rates = FALSE, show_flow_names = FALSE
     , state_dependence = data.frame()
     , size = 6
-    , state_colour = "#002B5B", box_colour = "#EAF6FF", line_colour = state_colour, flow_colour = state_colour
+    , size_arrow = 3
+    , state_colour = "#002B5B", box_colour = "#EAF6FF"
+    , line_colour = state_colour, flow_colour = state_colour
+    , outline_colour = state_colour
   ) {
   edges = layout$edges_flows()
   nodes = layout$nodes()
@@ -32,11 +35,12 @@ plot_flow_diagram = function(layout
     + geom_segment(
         aes(x = x_from, xend = x_to, y = y_from, yend = y_to)
       , data = edges
-      , arrow = mp_flow_arrow
+      , arrow = mp_flow_arrow(size_arrow)
       , colour = line_colour
     )
     + geom_rect(aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax)
       , fill = box_colour
+      , colour = outline_colour
       , data = nodes
     )
     + geom_text(
@@ -53,6 +57,7 @@ plot_flow_diagram = function(layout
       , data = edges
       , colour = flow_colour
       , parse = TRUE
+      , size = size
     )
   }
   if (show_flow_names) {
@@ -74,6 +79,7 @@ draw_outside = function(plot, edges
     , pattern_replace = ""
     , show_labels = FALSE
     , point_away = TRUE
+    , size_arrow = 3
   ) {
   x_dir = (x_dir == "east" ) - (x_dir == "west" )
   y_dir = (y_dir == "north") - (y_dir == "south")
@@ -103,7 +109,7 @@ draw_outside = function(plot, edges
     + geom_segment(
         aes(x = x, y = y, xend = xend, yend = yend)
       , data = edges
-      , arrow = mp_flow_arrow
+      , arrow = mp_flow_arrow(size_arrow)
       , colour = "blue"
     )
   )
@@ -163,4 +169,4 @@ mp_ggtheme = theme(
   panel.grid = element_blank(),
   plot.background = element_blank()
 )
-mp_flow_arrow = arrow(length = unit(3, 'mm'))
+mp_flow_arrow = function(size_mm) arrow(length = unit(size_mm, 'mm'))
