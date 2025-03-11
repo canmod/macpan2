@@ -100,6 +100,13 @@ mp_show_models <- function(
 #' @export
 show_models = mp_show_models
 
+#' @describeIn mp_show_models Return a character vector containing model
+#' names, instead of a data frame with more information about each model.
+#' @export
+mp_list_models = function(dir = system.file("starter_models", package = "macpan2")) {
+  mp_show_models(dir)$Directory
+}
+
 model_link = function(model_name, macpan_library = "starter_models") {
   sprintf(
       "[%s](https://github.com/canmod/macpan2/tree/main/inst/%s/%s)"
@@ -110,8 +117,8 @@ model_link = function(model_name, macpan_library = "starter_models") {
 
 #' Browse Model Docs
 #' 
-#' Open a browser at the current version of a particular model in a 
-#' `macpan2` model library.
+#' Open a browser at the current version of a particular model in an
+#' online `macpan2` model library.
 #' 
 #' @param model_name Name of a model in the `macpan_library`.
 #' @param macpan_library Name of a library. Currently, the default value of
@@ -132,7 +139,7 @@ mp_model_docs = function(model_name, macpan_library = "starter_models") {
       , "doesn't exist at all (i.e., the URL you visit doesn't exist)"
       , "or because your version of macpan2 is not sufficiently current"
       , "(i.e., you might want to install an update). A list of installed"
-      , "models can be obtained using mp_show_models()."
+      , "models can be obtained using mp_list_models()."
     ) |> warning()
   }
   url = sprintf(

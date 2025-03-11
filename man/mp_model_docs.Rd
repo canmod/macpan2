@@ -18,6 +18,6 @@ purpose is the side-effect of automatically opening a web browser at this
 URL.
 }
 \description{
-Open a browser at the current version of a particular model in a
-\code{macpan2} model library.
+Open a browser at the current version of a particular model in an
+online \code{macpan2} model library.
 }

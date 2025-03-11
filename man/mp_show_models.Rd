@@ -3,6 +3,7 @@
 \name{mp_show_models}
 \alias{mp_show_models}
 \alias{show_models}
+\alias{mp_list_models}
 \title{Print a Table of Existing Models}
 \usage{
 mp_show_models(
@@ -16,6 +17,8 @@ show_models(
   show_missing = FALSE,
   for_markdown = FALSE
 )
+
+mp_list_models(dir = system.file("starter_models", package = "macpan2"))
 }
 \arguments{
 \item{dir}{directory to list}
@@ -36,6 +39,9 @@ model directories and returns the results as a data frame
 \itemize{
 \item \code{show_models()}: Synonym for \code{mp_show_models}, which is
 preferred. Present for back-compatibility.
+
+\item \code{mp_list_models()}: Return a character vector containing model
+names, instead of a data frame with more information about each model.
 
 }}
 \examples{
