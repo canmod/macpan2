@@ -987,7 +987,7 @@ compute_adjacency_matrix <- function(df) {
 ##'                       node = list(shape = "rectangle")))
 ##' }
 ##' @export
-dot_layout <- function(spec, ...) {
+dot_layout <- function(spec) {
     if (!requireNamespace("Rgraphviz")) stop("Rgraphviz is needed for this function; please install it from Bioconductor")
     ff <- mp_flow_frame(spec)
     v <- mp_state_vars(spec)
