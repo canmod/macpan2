@@ -831,7 +831,6 @@ HazardUpdateMethod = function(change_model) {
 #' or stochastic models (see \code{\link{state_updates}}). If a formula is 
 #' passed to `rate` (not recommended for better readability), then this 
 #' `abs_rate` argument will be ignored.
-#' @param rate_name String giving the name for the absolute flow rate.
 #' 
 #' @seealso [mp_absolute_flow()]
 #' 

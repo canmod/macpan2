@@ -33,8 +33,6 @@ be changed to use other approaches such as ordinary differential equations
 or stochastic models (see \code{\link{state_updates}}). If a formula is
 passed to \code{rate} (not recommended for better readability), then this
 \code{abs_rate} argument will be ignored.}
-
-\item{rate_name}{String giving the name for the absolute flow rate.}
 }
 \description{
 Specify different kinds of flows between compartments.
