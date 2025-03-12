@@ -4,7 +4,6 @@
 \alias{mp_per_capita_flow}
 \alias{mp_per_capita_inflow}
 \alias{mp_per_capita_outflow}
-\alias{mp_absolute_flow}
 \title{Specify Flow Between Compartments}
 \usage{
 mp_per_capita_flow(from, to, rate, abs_rate = NULL)
@@ -12,8 +11,6 @@ mp_per_capita_flow(from, to, rate, abs_rate = NULL)
 mp_per_capita_inflow(from, to, rate, abs_rate = NULL)
 
 mp_per_capita_outflow(from, rate, abs_rate = NULL)
-
-mp_absolute_flow(from, to, rate, rate_name = NULL)
 }
 \arguments{
 \item{from}{String giving the name of the compartment from which the flow
@@ -22,19 +19,20 @@ originates.}
 \item{to}{String giving the name of the compartment to which the flow is
 going.}
 
-\item{rate}{String giving the expression for the per-capita or absolute
-flow rate. Alternatively for per-capita flows, and for back compatibility,
+\item{rate}{String giving the expression for the per-capita
+flow rate. Alternatively, and for back compatibility,
 a two-sided formula with the left-hand-side giving the name of the absolute
-flow rate per unit time-stepand the right-hand-side giving an expression for
+flow rate per time-step and the right-hand-side giving an expression for
 the per-capita rate of flow from \code{from} to \code{to}.}
 
-\item{abs_rate}{String giving the name for the absolute flow rate.
-By default, during simulations, the absolute flow rate will be computed as
-\code{from * rate}. This default behaviour will simulate the compartmental model
-as discrete difference equations, but this default can be changed to use
-other approaches (see \code{\link{state_updates}}).
-If a formula is passed to \code{rate} (not recommended for better readability),
-then this \code{abs_rate} argument will be ignored.}
+\item{abs_rate}{String giving the name for the absolute flow rate per
+time-step. By default, during simulations, the absolute flow rate will be
+computed as \code{from * rate}. This default behaviour will simulate the
+compartmental model as discrete difference equations, but this can
+be changed to use other approaches such as ordinary differential equations
+or stochastic models (see \code{\link{state_updates}}). If a formula is
+passed to \code{rate} (not recommended for better readability), then this
+\code{abs_rate} argument will be ignored.}
 
 \item{rate_name}{String giving the name for the absolute flow rate.}
 }
@@ -43,7 +41,7 @@ Specify different kinds of flows between compartments.
 }
 \details{
 The examples below can be mixed and matched in \code{mp_tmb_model_spec()}
-to produce compartmental models. Note that the symbols used below must
+to produce compartmental models. The symbols used below must
 be used in an appropriate context (e.g., if \code{N} is used for total population
 size, then there must be an expression like \code{N ~ S + I + R} somewhere in
 the model or for models with constant population size there must be a
@@ -63,8 +61,6 @@ without going anywhere. This is useful for removing individuals from the
 system (e.g., death). To keep track of the total number of dead individuals
 one can use \code{mp_per_capita_flow} and set \code{to} to be a compartment for
 these individuals (e.g., \code{to = "D"}).
-
-\item \code{mp_absolute_flow()}: Experimental
 
 }}
 \examples{
@@ -99,4 +95,7 @@ mp_per_capita_flow("S", "V", "((a * S)/(b + S))/S",  "vaccination")
 # importation (experimental)
 # mp_absolute_inflow("I", "delta", "importation")
 
+}
+\seealso{
+\code{\link[=mp_absolute_flow]{mp_absolute_flow()}}
 }

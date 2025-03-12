@@ -808,7 +808,7 @@ HazardUpdateMethod = function(change_model) {
 #' Specify different kinds of flows between compartments.
 #' 
 #' The examples below can be mixed and matched in `mp_tmb_model_spec()`
-#' to produce compartmental models. Note that the symbols used below must
+#' to produce compartmental models. The symbols used below must
 #' be used in an appropriate context (e.g., if `N` is used for total population
 #' size, then there must be an expression like `N ~ S + I + R` somewhere in
 #' the model or for models with constant population size there must be a 
@@ -818,19 +818,22 @@ HazardUpdateMethod = function(change_model) {
 #' originates.
 #' @param to String giving the name of the compartment to which the flow is
 #' going.
-#' @param rate String giving the expression for the per-capita or absolute
-#' flow rate. Alternatively for per-capita flows, and for back compatibility, 
+#' @param rate String giving the expression for the per-capita
+#' flow rate. Alternatively, and for back compatibility, 
 #' a two-sided formula with the left-hand-side giving the name of the absolute 
-#' flow rate per unit time-stepand the right-hand-side giving an expression for 
+#' flow rate per time-step and the right-hand-side giving an expression for 
 #' the per-capita rate of flow from `from` to `to`.
-#' @param abs_rate String giving the name for the absolute flow rate. 
-#' By default, during simulations, the absolute flow rate will be computed as
-#' `from * rate`. This default behaviour will simulate the compartmental model
-#' as discrete difference equations, but this default can be changed to use
-#' other approaches (see \code{\link{state_updates}}).
-#' If a formula is passed to `rate` (not recommended for better readability), 
-#' then this `abs_rate` argument will be ignored.
+#' @param abs_rate String giving the name for the absolute flow rate per
+#' time-step. By default, during simulations, the absolute flow rate will be 
+#' computed as `from * rate`. This default behaviour will simulate the 
+#' compartmental model as discrete difference equations, but this can 
+#' be changed to use other approaches such as ordinary differential equations
+#' or stochastic models (see \code{\link{state_updates}}). If a formula is 
+#' passed to `rate` (not recommended for better readability), then this 
+#' `abs_rate` argument will be ignored.
 #' @param rate_name String giving the name for the absolute flow rate.
+#' 
+#' @seealso [mp_absolute_flow()]
 #' 
 #' @examples
 #' 
@@ -896,15 +899,30 @@ mp_per_capita_outflow = function(from, rate, abs_rate = NULL) {
   PerCapitaOutflow(from, rate, call_string)
 }
 
-#' @describeIn mp_per_capita_flow Experimental
+
+#' Specify Absolute Flow Between Compartments (Experimental)
+#' 
+#' An experimental alternative to \code{\link{mp_per_capita_flow}} that 
+#' allows users to specify flows using absolute rates instead of 
+#' per-capita rates.
+#' 
+#' @param from String giving the name of the compartment from which the flow
+#' originates.
+#' @param to String giving the name of the compartment to which the flow is
+#' going.
+#' @param rate String giving the expression for the absolute
+#' flow rate per time-step.
+#' @param rate_name String giving the name for the variable that 
+#' will store the `rate`.
+#' 
+#' @seealso [mp_per_capita_flow()]
+#' 
 #' @export
 mp_absolute_flow = function(from, to, rate, rate_name = NULL) {
   call_string = deparse(match.call())
   rate = handle_abs_rate_args(rate, rate_name)
   AbsoluteFlow(from, to, rate, call_string)
 }
-
-
 
 PerCapitaOutflow = function(from, rate, call_string) {
   self = PerCapitaFlow(from, NULL, rate, call_string)
@@ -1037,16 +1055,9 @@ to_change_component.ChangeComponent = function(x) x
 to_change_component.formula = function(x) Formula(x)
 
 
-#' Reduce Model
-#' 
-#' Reduce a model by removing any model structure 
-#' (e.g. \code{\link{mp_per_capita_flow}}), so that expression lists
-#' are plain R formulas.
-#' 
-#' @param model A model object.
-#'
-#' @describeIn mp_expand Synonym of `mp_expand` present only for 
-#' back-compatibility. Please use `mp_expand` in new projects.
+#' @describeIn mp_expand Confusingly, `mp_reduce` and `mp_expand` are synonyms.
+#' Please use `mp_expand` in new projects, as `mp_reduce` is available for 
+#' back-compatibility only.
 #' @export
 mp_reduce = function(model) UseMethod("mp_reduce")
 
