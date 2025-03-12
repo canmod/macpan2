@@ -70,29 +70,23 @@ function is covered in <code><a href="../articles/quickstart.html">vignette("qui
 
 
 <dl><dt id="arg-before">before<a class="anchor" aria-label="anchor" href="#arg-before"></a></dt>
-<dd><p>List of expressions to be evaluated (in the order provided)
-before the simulation loop begins. Expressions can either be standard
-R <code><a href="https://rdrr.io/r/stats/formula.html" class="external-link">formula</a></code> objects or calls to flow functions (e.g.,
-<code><a href="mp_per_capita_flow.html">mp_per_capita_flow</a></code>). Formulas must have a left hand
-side that gives the name of the matrix being updated, and a right hand side
-giving an expression containing only (1) the names of quantities in the
-model, (2) functions defined in the TMB engine, and (3) numerical literals
-(e.g., <code>3.14</code>). The available functions in the TMB engine  can be
-described in <code><a href="engine_functions.html">engine_functions</a></code>. Names can be provided for the
-components of <code>before</code>, and these names do not have to be unique. These
-names are used by the <code>sim_exprs</code> argument.</p></dd>
+<dd><p>List of formulas to be evaluated (in the order provided)
+before the simulation loop begins. These formulas must be standard
+two-sided R <code><a href="https://rdrr.io/r/stats/formula.html" class="external-link">formula</a></code> objects. See <code>details</code> below for the
+rules for these formulas.</p></dd>
 
 
 <dt id="arg-during">during<a class="anchor" aria-label="anchor" href="#arg-during"></a></dt>
 <dd><p>List of formulas or calls to flow functions (e.g.,
 <code><a href="mp_per_capita_flow.html">mp_per_capita_flow</a></code>) to be evaluated at every iteration of the
-simulation loop, with the same rules as <code>before</code>.</p></dd>
+simulation loop.</p></dd>
 
 
 <dt id="arg-after">after<a class="anchor" aria-label="anchor" href="#arg-after"></a></dt>
-<dd><p>List of formulas or calls to flow functions (e.g.,
-<code><a href="mp_per_capita_flow.html">mp_per_capita_flow</a></code>) to be evaluated after the simulation loop,
-with the same rules as <code>before</code>.</p></dd>
+<dd><p>List of formulas to be evaluated (in the order provided)
+before the simulation loop begins. These formulas must be standard
+two-sided R <code><a href="https://rdrr.io/r/stats/formula.html" class="external-link">formula</a></code> objects. See <code>details</code> below for the
+rules for these formulas.</p></dd>
 
 
 <dt id="arg-default">default<a class="anchor" aria-label="anchor" href="#arg-default"></a></dt>
@@ -109,18 +103,18 @@ provide indexing of matrices and as grouping factors in
 
 
 <dt id="arg-must-save">must_save<a class="anchor" aria-label="anchor" href="#arg-must-save"></a></dt>
-<dd><p>Character vector of the names of matrices that must have
+<dd><p>Character vector of the names of variables that must have
 their values stored at every iteration of the simulation loop. For example,
-a matrix that the user does not want to be returned but that impacts dynamics
-with a time lag must be saved and therefore in this list.</p></dd>
+a variable that you do not want to be returned, but that impacts
+dynamics with a time lag, must be saved and therefore must be in this list.</p></dd>
 
 
 <dt id="arg-must-not-save">must_not_save<a class="anchor" aria-label="anchor" href="#arg-must-not-save"></a></dt>
-<dd><p>Character vector of the names of matrices that must
+<dd><p>Character vector of the names of variables that must
 not have their values stored at every iteration of the simulation loop. For
 example, the user may ask to return a very large matrix that would create
 performance issues if stored at each iteration. The creator of the model
-can mark such matrices making it impossible for the user of the model to
+can mark such variables making it impossible for the user of the model to
 save their full simulation history.</p></dd>
 
 
@@ -134,11 +128,26 @@ continuous.</p></dd>
 
 
 <dt id="arg-state-update">state_update<a class="anchor" aria-label="anchor" href="#arg-state-update"></a></dt>
-<dd><p>(experimental) Optional character vector for how to
-update the state variables when it is relevant. Options include <code>"euler"</code>,
+<dd><p>Optional character vector for how to update the state
+variables when it is relevant. Options include <code>"euler"</code> (the default),
 <code>"rk4"</code>, and <code>"euler_multinomial"</code>.</p></dd>
 
 </dl></div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>Expressions in the <code>before</code>, <code>during</code>, and <code>after</code> lists can be standard
+R <code><a href="https://rdrr.io/r/stats/formula.html" class="external-link">formula</a></code> objects for defining variables in the model. These
+formulas must have a left hand side that gives the name of the (possibly
+matrix-valued) variable being updated, and a right hand side giving an
+expression containing only (1) the names of quantities in the model, (2)
+numerical literals (e.g., <code>3.14</code>), or (3) functions defined in the TMB
+engine (described in <code><a href="engine_functions.html">engine_functions</a></code>). For example, the
+expression <code>N ~ S + I + R</code> updates the value of <code>N</code> to be the sum of the
+variables <code>S</code>, <code>I</code>, and <code>R</code>.</p>
+<p>Names can be provided for the components of the <code>before</code>, <code>during</code>, and
+<code>after</code> lists, and these names do not have to be unique. These names are
+used by the <code>sim_exprs</code> argument.</p>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
@@ -197,8 +206,6 @@ update the state variables when it is relevant. Options include <code>"euler"</c
 <span class="r-out co"><span class="r-pr">#&gt;</span> 3 infection    3   0   0 0.2828290</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 4 infection    4   0   0 0.3376117</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 5 infection    5   0   0 0.4025866</span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

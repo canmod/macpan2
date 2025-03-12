@@ -160,18 +160,18 @@ the model.</p></dd>
 
 
 <dt id="arg-must-save">must_save<a class="anchor" aria-label="anchor" href="#arg-must-save"></a></dt>
-<dd><p>Character vector of the names of matrices that must have
+<dd><p>Character vector of the names of variables that must have
 their values stored at every iteration of the simulation loop. For example,
-a matrix that the user does not want to be returned but that impacts dynamics
-with a time lag must be saved and therefore in this list.</p></dd>
+a variable that you do not want to be returned, but that impacts
+dynamics with a time lag, must be saved and therefore must be in this list.</p></dd>
 
 
 <dt id="arg-must-not-save">must_not_save<a class="anchor" aria-label="anchor" href="#arg-must-not-save"></a></dt>
-<dd><p>Character vector of the names of matrices that must
+<dd><p>Character vector of the names of variables that must
 not have their values stored at every iteration of the simulation loop. For
 example, the user may ask to return a very large matrix that would create
 performance issues if stored at each iteration. The creator of the model
-can mark such matrices making it impossible for the user of the model to
+can mark such variables making it impossible for the user of the model to
 save their full simulation history.</p></dd>
 
 
