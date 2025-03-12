@@ -42,7 +42,8 @@ Suggests:
     numDeriv,
     parallel,
     macpan2helpers,
-    iidda.api
+    iidda.api,
+    Rgraphviz
 LinkingTo:
     TMB,
     RcppEigen
