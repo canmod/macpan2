@@ -718,7 +718,7 @@ layout = function(states, links, init_row = 1L, init_col = 1L) {
 
 
 neighbour_list = function(flows) {
-  if (any(duplicated(flows$from))) stop("more than one neighbour per state")
+  if (any(duplicated(flows$from))) stop("more than one neighbour per state; try specifying east/north/west/south arguments, or a different layout function such as ", sQuote("dot_layout"))
   setNames(as.list(flows$to), flows$from)
 }
 
@@ -975,3 +975,27 @@ compute_adjacency_matrix <- function(df) {
   
   return(adj_matrix)
 }
+
+##' @title Create a graph from a model specification
+##' Converts a model specification into a graph (using the `graph` package) that can be plotted with `Rgraphviz`: see `?Rgraphviz::plot.graphNEL` and https://graphviz.org/doc/info/attrs.html for information on customizing the plot
+##' @param spec a model specification
+##' @examples
+##' if (require(Rgraphviz)) {
+##'   macpan_base = mp_tmb_library("starter_models", "macpan_base", package = "macpan2")
+##'   dot_layout(macpan_base) |>
+##'     plot(attrs = list(graph = list(rankdir = "LR"),
+##'                       node = list(shape = "rectangle")))
+##' }
+##' @export
+dot_layout <- function(spec, ...) {
+    if (!requireNamespace("Rgraphviz")) stop("Rgraphviz is needed for this function; please install it from Bioconductor")
+    ff <- mp_flow_frame(spec)
+    v <- mp_state_vars(spec)
+    AM <- matrix(0, nrow = length(v), ncol = length(v), dimnames = list(v, v))
+    AM[cbind(ff$from, ff$to)] <- 1
+    ## Rgraphviz depends on graph pkg, so this should be available
+    g <- graph::graphAM(AM, edgemode = "directed")
+    return(g)
+}
+
+
