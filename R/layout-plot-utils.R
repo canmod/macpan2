@@ -990,9 +990,11 @@ compute_adjacency_matrix <- function(df) {
 dot_layout <- function(spec) {
     if (!requireNamespace("Rgraphviz")) stop("Rgraphviz is needed for this function; please install it from Bioconductor")
     ff <- mp_flow_frame(spec)
+    ## na.omit to drop inflows and outflows
+    ff <- as.matrix(na.omit(ff[c("from", "to")]))
     v <- mp_state_vars(spec)
     AM <- matrix(0, nrow = length(v), ncol = length(v), dimnames = list(v, v))
-    AM[cbind(ff$from, ff$to)] <- 1
+    AM[ff] <- 1
     ## Rgraphviz depends on graph pkg, so this should be available
     g <- graph::graphAM(AM, edgemode = "directed")
     return(g)
