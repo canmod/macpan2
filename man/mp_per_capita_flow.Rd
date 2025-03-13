@@ -3,12 +3,18 @@
 \name{mp_per_capita_flow}
 \alias{mp_per_capita_flow}
 \alias{mp_per_capita_inflow}
+\alias{mp_inflow}
+\alias{mp_outflow}
 \alias{mp_per_capita_outflow}
 \title{Specify Flow Between Compartments}
 \usage{
 mp_per_capita_flow(from, to, rate, abs_rate = NULL)
 
 mp_per_capita_inflow(from, to, rate, abs_rate = NULL)
+
+mp_inflow(to, rate, rate_name = NULL)
+
+mp_outflow(from, rate, abs_rate = NULL)
 
 mp_per_capita_outflow(from, rate, abs_rate = NULL)
 }
@@ -53,6 +59,12 @@ be a function of a set of compartments, because it will not be updated. A
 common construction is \code{mp_per_capita_inflow("N", "S", "birth_rate", "birth")}
 for adding a birth process, which involves the total population size, \code{N},
 rather than a single compartment.
+
+\item \code{mp_inflow()}: Only flow into the \code{to} compartment
+For adding a birth or immigration process
+
+\item \code{mp_outflow()}: Only flow into the \code{to} compartment
+For adding an absolute removal process that goes to 'nowhere': dangerous!
 
 \item \code{mp_per_capita_outflow()}: Only flow out of the \code{from} compartment,
 without going anywhere. This is useful for removing individuals from the
