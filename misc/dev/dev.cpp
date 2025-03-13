@@ -1498,8 +1498,6 @@ public:
             // #' * `rep(x, times)` -- Replicate a column vector a
             // #' number of times, by repeatedly stacking it on top of
             // #' itself.
-            // #' * `rep_each` -- Not yet developed.
-            // #' * `rep_length` -- Not yet developed.
             // #'
             // #' ### Arguments
             // #'
@@ -1842,6 +1840,10 @@ public:
             // #' determined by the integers in `f` and the order of
             // #' the sums in the output is determined by these
             // #' integers.
+            // #' * `mean(x)` -- Arthmetic average of all elements in matrix
+            // #' `x`.
+            // #' * `sd(x)` -- Sample standard deviation of all elements in
+            // #' matrix `x`.
             // #'
             // #' ### Arguments
             // #'

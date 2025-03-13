@@ -10,7 +10,12 @@
 \usage{
 mp_trajectory(model, include_initial = FALSE)
 
-mp_trajectory_sd(model, conf.int = FALSE, conf.level = 0.95)
+mp_trajectory_sd(
+  model,
+  conf.int = FALSE,
+  conf.level = 0.95,
+  include_initial = FALSE
+)
 
 mp_trajectory_ensemble(model, n, probs = c(0.025, 0.975))
 

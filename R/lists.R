@@ -145,3 +145,11 @@ assert_named_list = function(l) {
 }
 
 self_named_vector = function(...) c(...) |> setNames(c(...))
+
+simplify_row_col_ids = function(data_frame) {
+  ur = unique(as.character(data_frame$row))
+  uc = unique(as.character(data_frame$col))
+  if (identical(ur, "0")) data_frame$row = character(nrow(data_frame))
+  if (identical(uc, "0")) data_frame$col = character(nrow(data_frame))
+  return(data_frame)
+}
