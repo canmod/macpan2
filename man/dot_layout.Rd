@@ -5,7 +5,7 @@
 \title{Create a graph from a model specification
 Converts a model specification into a graph (using the \code{graph} package) that can be plotted with \code{Rgraphviz}: see \code{?Rgraphviz::plot.graphNEL} and https://graphviz.org/doc/info/attrs.html for information on customizing the plot}
 \usage{
-dot_layout(spec, ...)
+dot_layout(spec)
 }
 \arguments{
 \item{spec}{a model specification}

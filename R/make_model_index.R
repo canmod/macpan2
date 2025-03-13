@@ -127,7 +127,8 @@ model_link = function(model_name, macpan_library = "starter_models") {
 #' @return This function returns the URL of the library model, but the main
 #' purpose is the side-effect of automatically opening a web browser at this
 #' URL.
-#' 
+#'
+#' @importFrom utils browseURL
 #' @export
 mp_model_docs = function(model_name, macpan_library = "starter_models") {
   installed_models = mp_show_models()$Dir
