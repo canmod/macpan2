@@ -1,4 +1,4 @@
-#' Transform a TMB Model Spec
+#' Transform a TMB Model Specification
 #' 
 #' Insert, update, or delete elements of a TMB model spec, produced using
 #' \code{\link{mp_tmb_library}} or \code{\link{mp_tmb_model_spec}}. The
@@ -188,7 +188,7 @@ mp_tmb_delete = function(model
   )
 }
 
-#' Insert Reports
+#' Transform a TMB Model Specification to Account for Reporting Bias
 #' 
 #' A version of \code{\link{mp_tmb_insert}} making it more convenient to
 #' transform an incidence variable into a reports variable, which accounts 
