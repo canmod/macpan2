@@ -20,15 +20,12 @@ that have explicit flows
 (e.g. \code{\link{mp_per_capita_flow}}). For such models, \code{mp_expand}
 produces a model with expression lists composed entirely of plain R
 formulas.
-
-Reduce a model by removing any model structure
-(e.g. \code{\link{mp_per_capita_flow}}), so that expression lists
-are plain R formulas.
 }
 \section{Functions}{
 \itemize{
-\item \code{mp_reduce()}: Synonym of \code{mp_expand} present only for
-back-compatibility. Please use \code{mp_expand} in new projects.
+\item \code{mp_reduce()}: Confusingly, \code{mp_reduce} and \code{mp_expand} are synonyms.
+Please use \code{mp_expand} in new projects, as \code{mp_reduce} is available for
+back-compatibility only.
 
 }}
 \examples{

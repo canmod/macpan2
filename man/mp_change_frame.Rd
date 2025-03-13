@@ -2,7 +2,7 @@
 % Please edit documentation in R/flow_frame.R
 \name{mp_change_frame}
 \alias{mp_change_frame}
-\title{Change Frame}
+\title{Data Frame Describing Each Change to Each State Variable}
 \usage{
 mp_change_frame(spec)
 }
@@ -14,5 +14,13 @@ Data frame with two columns: \code{state} and \code{change}. Each row
 describes one change.
 }
 \description{
-Get the changes made to each state variable at each time step.
+Get a data frame with one row for each change made to each state variable
+at each time step.
+}
+\examples{
+("starter_models"
+  |> mp_tmb_library("sir", package = "macpan2") 
+  |> mp_change_frame()
+)
+
 }

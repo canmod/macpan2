@@ -53,7 +53,8 @@
 #' mp_tmb_coef(cal)  ## requires broom.mixed package
 #' @concept create-model-calibrator
 #' @export
-mp_tmb_calibrator = function(spec, data
+mp_tmb_calibrator = function(spec
+    , data = empty_trajectory
     , traj = character()
     , par = character()
     , tv = character()
@@ -1317,3 +1318,5 @@ mp_tmb.TMBSimulator = function(model) {
 
 #' @export
 mp_tmb.TMBCalibrator = function(model) mp_tmb(model$simulator)
+
+

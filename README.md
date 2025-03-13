@@ -13,9 +13,6 @@ coverage](https://byob.yarr.is/canmod/macpan2/coverage)](https://github.com/canm
 [![commit
 activity](https://img.shields.io/github/commit-activity/m/canmod/macpan2)](https://github.com/canmod/macpan2/commits)
 [![contributors](https://img.shields.io/github/contributors/canmod/macpan2)](https://github.com/canmod/macpan2/graphs/contributors)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14796217.svg)](https://doi.org/10.5281/zenodo.14796217)
-
-
 
 [McMasterPandemic](https://github.com/mac-theobio/McMasterPandemic) was
 developed to provide forecasts and insights to Canadian public health
@@ -47,8 +44,7 @@ agnostic about the underlying computational engine, it currently uses
 [template model builder](https://github.com/kaskr/adcomp) as the sole
 engine. Template model builder (TMB) is an `R` modelling package based
 on a `C++` framework incorporating mature [automatic
-differentiation](https://cppad.readthedocs.io/en/latest/user_guide.html)
-and [matrix
+differentiation](https://cppad.readthedocs.io/latest) and [matrix
 algebra](http://eigen.tuxfamily.org/index.php?title=Main_Page)
 libraries.
 
@@ -76,12 +72,10 @@ command.
     repos = c('https://canmod.r-universe.dev', 'https://cloud.r-project.org')
     install.packages('macpan2', repos = repos)
 
-This command will install the current version of `macpan2`. For projects
-in production that need to keep track of specific versions of `macpan2`,
-snapshots and other reproducibility information can be obtained
-[here](https://canmod.r-universe.dev/apis). Please see [this
-article](https://ropensci.org/blog/2022/01/06/runiverse-renv/) for an
-explanation of how to manage reproducibility using `r-universe`.
+Many workflows with `macpan2` also make use of four widely used
+packages, which you can install with the following command.
+
+    install.packages(c("dplyr", "ggplot2", "tidyr", "broom.mixed"))
 
 To get the latest development version of `macpan2`, or if the above
 command fails for some reason, an alternative command to install is the
@@ -92,9 +86,27 @@ following.
 This command requires the `remotes` package and assumes that your `R`
 environment is set up to compile `C++` code contained in packages.
 
-Many workflows with `macpan2` also make use of the following packages.
+## Reproducibility
 
-    install.packages(c("dplyr", "ggplot2", "tidyr", "broom.mixed"))
+The [r-universe](https://r-universe.dev), which we use to distribute
+`macpan2`, suggests two approaches for projects in production that need
+to keep track of specific versions of `macpan2`:
+[snapshots](https://ropensci.org/blog/2023/05/31/runiverse-snapshots/)
+or [`renv`](https://ropensci.org/blog/2022/01/06/runiverse-renv/).
+
+To take the first approach, snapshots of `macpan2` (and its dependency
+`oor`) can be obtained using the following download link.
+
+    https://canmod.r-universe.dev/api/snapshot/zip?packages=macpan2,macpan2helpers,oor
+
+Please see [this documentation](https://canmod.r-universe.dev/apis) for
+instructions on customizing this download link.
+
+The benefit of the first approach is that it doesn’t require users to be
+able to compile C++ code, whereas the second does. The benefit of the
+second approach is that it can be used to manage dependencies on all
+packages in your workflows. It might be possible to combine the two
+approaches to get the best of both worlds, but this isn’t tested.
 
 ## Hello World
 
@@ -119,10 +131,10 @@ print(si)
 
     ## ---------------------
     ## Default values:
+    ##  quantity value
+    ##         I  0.01
+    ##      beta  0.20
     ## ---------------------
-    ##  matrix row col value
-    ##       I          0.01
-    ##    beta          0.20
     ## 
     ## ---------------------
     ## Before the simulation loop (t = 0):

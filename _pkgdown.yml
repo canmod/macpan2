@@ -3,12 +3,14 @@ template:
   bootstrap: 5
 navbar:
   structure:
-    left:  [intro, reference, articles, tutorials, news]
+    left:  [intro, reference, articles, tutorials]
     right: [search, github]
 home:
   sidebar:
     structure: [toc, links, license, community, citation, authors, dev]
   links:
+  - text: Maintainer
+    href: https://github.com/stevencarlislewalker
   - text: Roadmap
     href: https://github.com/orgs/canmod/projects/2
   - text: Presentation slides
@@ -25,6 +27,7 @@ reference:
   contents:
   - mp_tmb_model_spec
   - mp_per_capita_flow
+  - mp_absolute_flow
   - engine_functions
   - mp_optimized_spec
   
@@ -37,6 +40,7 @@ reference:
   - mp_tmb_library
   - mp_show_models
   - mp_model_starter
+  - mp_model_docs
 
 - subtitle: Transform Model Specifications
   desc: > 

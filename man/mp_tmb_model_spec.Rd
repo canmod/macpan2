@@ -17,25 +17,19 @@ mp_tmb_model_spec(
 )
 }
 \arguments{
-\item{before}{List of expressions to be evaluated (in the order provided)
-before the simulation loop begins. Expressions can either be standard
-R \code{\link{formula}} objects or calls to flow functions (e.g.,
-\code{\link{mp_per_capita_flow}}). Formulas must have a left hand
-side that gives the name of the matrix being updated, and a right hand side
-giving an expression containing only (1) the names of quantities in the
-model, (2) functions defined in the TMB engine, and (3) numerical literals
-(e.g., \code{3.14}). The available functions in the TMB engine  can be
-described in \code{\link{engine_functions}}. Names can be provided for the
-components of \code{before}, and these names do not have to be unique. These
-names are used by the \code{sim_exprs} argument.}
+\item{before}{List of formulas to be evaluated (in the order provided)
+before the simulation loop begins. These formulas must be standard
+two-sided R \code{\link{formula}} objects. See \code{details} below for the
+rules for these formulas.}
 
 \item{during}{List of formulas or calls to flow functions (e.g.,
 \code{\link{mp_per_capita_flow}}) to be evaluated at every iteration of the
-simulation loop, with the same rules as \code{before}.}
+simulation loop.}
 
-\item{after}{List of formulas or calls to flow functions (e.g.,
-\code{\link{mp_per_capita_flow}}) to be evaluated after the simulation loop,
-with the same rules as \code{before}.}
+\item{after}{List of formulas to be evaluated (in the order provided)
+before the simulation loop begins. These formulas must be standard
+two-sided R \code{\link{formula}} objects. See \code{details} below for the
+rules for these formulas.}
 
 \item{default}{Named list of objects, each of which can be coerced into
 a \code{\link{numeric}} \code{\link{matrix}}. The names refer to
@@ -46,16 +40,16 @@ vectors. These integer vectors can be used by name in model formulas to
 provide indexing of matrices and as grouping factors in
 \code{\link{group_sums}}.}
 
-\item{must_save}{Character vector of the names of matrices that must have
+\item{must_save}{Character vector of the names of variables that must have
 their values stored at every iteration of the simulation loop. For example,
-a matrix that the user does not want to be returned but that impacts dynamics
-with a time lag must be saved and therefore in this list.}
+a variable that you do not want to be returned, but that impacts
+dynamics with a time lag, must be saved and therefore must be in this list.}
 
-\item{must_not_save}{Character vector of the names of matrices that must
+\item{must_not_save}{Character vector of the names of variables that must
 not have their values stored at every iteration of the simulation loop. For
 example, the user may ask to return a very large matrix that would create
 performance issues if stored at each iteration. The creator of the model
-can mark such matrices making it impossible for the user of the model to
+can mark such variables making it impossible for the user of the model to
 save their full simulation history.}
 
 \item{sim_exprs}{Character vector of the names of \code{before},
@@ -65,13 +59,28 @@ being evaluated. For example, expressions that generate stochasticity should
 be listed in \code{sim_exprs} because TMB objective functions must be
 continuous.}
 
-\item{state_update}{(experimental) Optional character vector for how to
-update the state variables when it is relevant. Options include \code{"euler"},
+\item{state_update}{Optional character vector for how to update the state
+variables when it is relevant. Options include \code{"euler"} (the default),
 \code{"rk4"}, and \code{"euler_multinomial"}.}
 }
 \description{
 Specify a simulation model in the TMB engine. A detailed explanation of this
 function is covered in \code{vignette("quickstart")}.
+}
+\details{
+Expressions in the \code{before}, \code{during}, and \code{after} lists can be standard
+R \code{\link{formula}} objects for defining variables in the model. These
+formulas must have a left hand side that gives the name of the (possibly
+matrix-valued) variable being updated, and a right hand side giving an
+expression containing only (1) the names of quantities in the model, (2)
+numerical literals (e.g., \code{3.14}), or (3) functions defined in the TMB
+engine (described in \code{\link{engine_functions}}). For example, the
+expression \code{N ~ S + I + R} updates the value of \code{N} to be the sum of the
+variables \code{S}, \code{I}, and \code{R}.
+
+Names can be provided for the components of the \code{before}, \code{during}, and
+\code{after} lists, and these names do not have to be unique. These names are
+used by the \code{sim_exprs} argument.
 }
 \examples{
 ## A simple SI model.
@@ -111,8 +120,6 @@ spec3 = mp_tmb_model_spec(
   |> mp_simulator(time_steps = 5L, output = "infection") 
   |> mp_trajectory()
 )
-
-
 
 }
 \concept{create-model-spec}

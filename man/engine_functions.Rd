@@ -225,8 +225,6 @@ Replicate Elements
 \item \code{rep(x, times)} -- Replicate a column vector a
 number of times, by repeatedly stacking it on top of
 itself.
-\item \code{rep_each} -- Not yet developed.
-\item \code{rep_length} -- Not yet developed.
 }
 }
 
@@ -427,6 +425,10 @@ sums of groups of elements in \code{x}. The groups are
 determined by the integers in \code{f} and the order of
 the sums in the output is determined by these
 integers.
+\item \code{mean(x)} -- Arthmetic average of all elements in matrix
+\code{x}.
+\item \code{sd(x)} -- Sample standard deviation of all elements in
+matrix \code{x}.
 }
 }
 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/flow_frame.R
 \name{mp_state_vars}
 \alias{mp_state_vars}
-\title{State Variables}
+\title{State Variable Names}
 \usage{
 mp_state_vars(spec, topological_sort = FALSE, loops = "^$")
 }

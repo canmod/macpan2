@@ -4,7 +4,7 @@
 \alias{mp_tmb_insert}
 \alias{mp_tmb_update}
 \alias{mp_tmb_delete}
-\title{Transform a TMB Model Spec}
+\title{Transform a TMB Model Specification}
 \usage{
 mp_tmb_insert(
   model,
@@ -73,16 +73,16 @@ provide indexing of matrices and as grouping factors in
 For \code{mp_tmb_delete}, a character vector of such objects to delete from
 the model.}
 
-\item{must_save}{Character vector of the names of matrices that must have
+\item{must_save}{Character vector of the names of variables that must have
 their values stored at every iteration of the simulation loop. For example,
-a matrix that the user does not want to be returned but that impacts dynamics
-with a time lag must be saved and therefore in this list.}
+a variable that you do not want to be returned, but that impacts
+dynamics with a time lag, must be saved and therefore must be in this list.}
 
-\item{must_not_save}{Character vector of the names of matrices that must
+\item{must_not_save}{Character vector of the names of variables that must
 not have their values stored at every iteration of the simulation loop. For
 example, the user may ask to return a very large matrix that would create
 performance issues if stored at each iteration. The creator of the model
-can mark such matrices making it impossible for the user of the model to
+can mark such variables making it impossible for the user of the model to
 save their full simulation history.}
 
 \item{sim_exprs}{Character vector of the names of \code{before},
