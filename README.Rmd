@@ -39,7 +39,6 @@ The [Public Health Risk Sciences Division](https://github.com/phac-nml-phrsd) at
 * [Project history and trajectory](https://canmod.net/misc/pyRC) [slides]
 * [Instructional videos](https://drive.google.com/drive/folders/1NEQf2sy6QLxMiiWBN5Yn9U7wiPMs1jiS)
 
-
 ## Installation
 
 The standard recommended way to install `macpan2` is with the following command.
