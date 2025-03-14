@@ -63,6 +63,8 @@ Agency of Canada](https://www.canada.ca/en/public-health.html) uses
     \[specification document\]
 -   [Project history and trajectory](https://canmod.net/misc/pyRC)
     \[slides\]
+-   [Instructional
+    videos](https://drive.google.com/drive/folders/1NEQf2sy6QLxMiiWBN5Yn9U7wiPMs1jiS)
 
 ## Installation
 
