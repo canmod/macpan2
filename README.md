@@ -25,29 +25,6 @@ project is to re-imagine `McMasterPandemic`, building it from the ground
 up with architectural and technological decisions that address the many
 lessons that we learned from COVID-19 about software.
 
-Impactful applied public health modelling requires many
-interdisciplinary steps along the path from epidemiological research
-teams to operational decision makers. Researchers must quickly tailor a
-model to an emerging public-health concern, validate and calibrate it to
-data, work with decision makers to define model outputs useful for
-stakeholders, configure models to generate those outputs, and package up
-those insights in an appropriate format for stakeholders. Unlike
-traditional modelling approaches, `macpan2` tackles this challenge from
-a software-engineering perspective, which allows us to systematically
-address bottlenecks along this path to impact in ways that will make
-future solutions easier to achieve. The goal is to enable researchers to
-focus on their core strengths and fill knowledge gaps efficiently and
-effectively.
-
-Although `macpan2` is designed as a compartmental modelling tool that is
-agnostic about the underlying computational engine, it currently uses
-[template model builder](https://github.com/kaskr/adcomp) as the sole
-engine. Template model builder (TMB) is an `R` modelling package based
-on a `C++` framework incorporating mature [automatic
-differentiation](https://cppad.readthedocs.io/latest) and [matrix
-algebra](http://eigen.tuxfamily.org/index.php?title=Main_Page)
-libraries.
-
 The [Public Health Risk Sciences
 Division](https://github.com/phac-nml-phrsd) at the [Public Health
 Agency of Canada](https://www.canada.ca/en/public-health.html) uses
