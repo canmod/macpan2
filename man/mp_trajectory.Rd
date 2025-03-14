@@ -2,6 +2,7 @@
 % Please edit documentation in R/tmb_model.R
 \name{mp_trajectory}
 \alias{mp_trajectory}
+\alias{mp_trajectory_par}
 \alias{mp_trajectory_sd}
 \alias{mp_trajectory_ensemble}
 \alias{mp_trajectory_sim}
@@ -9,6 +10,13 @@
 \title{Simulate Dynamical Model Trajectories}
 \usage{
 mp_trajectory(model, include_initial = FALSE)
+
+mp_trajectory_par(
+  model,
+  params = list(),
+  random = list(),
+  include_initial = FALSE
+)
 
 mp_trajectory_sd(
   model,
@@ -31,6 +39,10 @@ mp_trajectory_replicate(model, n)
 included in the output? If \code{TRUE} this will include outputs for \code{time == 0}
 associated with the initial values. See \code{\link{mp_initial}} for another
 approach to getting the initial values.}
+
+\item{params}{List of parameters to update.}
+
+\item{random}{List of random effect parameters to update.}
 
 \item{conf.int}{Should confidence intervals be produced?}
 
@@ -94,6 +106,9 @@ in context, please see \code{vignette("quickstart")}.
 }
 \section{Functions}{
 \itemize{
+\item \code{mp_trajectory_par()}: Produce a trajectory for alternative parameter
+values.
+
 \item \code{mp_trajectory_sd()}: Simulate a trajectory that includes uncertainty
 information provided by the \code{sdreport} function in \code{TMB} with default
 settings.

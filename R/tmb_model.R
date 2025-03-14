@@ -445,12 +445,15 @@ sim_initial_util = function(model, simplify_ids = TRUE) {
 mp_final = function(model) UseMethod("mp_final")
 
 #' @describeIn mp_final Final values formatted as a list of matrices.
-#' @export
+#' @exports
 mp_final_list = function(model) UseMethod("mp_final_list")
 
 
 #' @export
 mp_final.TMBSimulator = function(model) model$report(.phases = "after")
+
+#' @export
+mp_final.TMBCalibrator = function(model) mp_final(model$simulator)
 
 #' @export
 mp_final_list.TMBSimulator = function(model) {
@@ -469,6 +472,12 @@ mp_final_list.TMBSimulator = function(model) {
 #' included in the output? If `TRUE` this will include outputs for `time == 0`
 #' associated with the initial values. See \code{\link{mp_initial}} for another 
 #' approach to getting the initial values.
+#' @param include_final Should the final values of the simulation, after the
+#' post-simulation processing steps in the `after` stage of a model, be 
+#' included in the output? If `TRUE` this will include outputs for 
+#' `time == time_steps + 1`, associated with the values of the variables
+#' after the full trajectory has been post-processed in the `after` stage.
+#' See \code{\link{mp_final}} for another approach to getting the final values.
 #' 
 #' @returns A data frame with one row for each simulated value and the following
 #' columns.
@@ -547,21 +556,59 @@ mp_trajectory.TMBCalibrator = function(model, include_initial = FALSE) {
   mp_trajectory(model$simulator, include_initial = include_initial)
 } 
 
-#' @param params List of parameters to update.
-#' @param random List of random effect parameters to update.
-#' @describeIn mp_trajectory Produce a trajectory for alternative parameter
-#' values.
-#' @noRd
-mp_trajectory_par = function(model, params, random, include_initial = FALSE) {
+
+#' @param parameter_updates Named list of a subset of model variables with
+#' the values to use when simulating the trajectory using the 
+#' `mp_trajectory_par` function. In the future we plan
+#' to allow this variable to be a data frame with one row for each scalar value
+#' (which would be useful if only certain elements of a vector
+#' or matrix are parameters) and a string giving the name of a file containing
+#' parameter information. But for now, only a list is allowed.
+#' @param baseline String defining the baseline set of parameters. The options
+#' are `"current
+#' are `"current"` (for the recommended ) `"optimized"` (for the optimal ) `"current"` 
+#' @describeIn mp_trajectory Produce a trajectory, after updating the `baseline`
+#' set of parameters with values in `parameter_updates`.
+#' @export
+mp_trajectory_par = function(model, parameter_updates = list()
+    , include_initial = FALSE
+    , include_final = FALSE
+    , use_defaults = FALSE
+    , baseline = c("current", "default", "optimized")
+  ) {
   UseMethod("mp_trajectory_par")
 }
 
-#' @noRd
-mp_trajectory_par.TMBSimulator = function(model, params, random, include_initial = FALSE) {
-  
+#' @export
+mp_trajectory_par.TMBSimulator = function(model, params = list(), random = list()
+    , include_initial = FALSE, include_final = FALSE
+    , parameter_set = c("current", "default")
+  ) {
+  phases = "during"
+  if (include_initial) phases = c("before", phases)
+  if (include_final) phases = c(phases, "after")
+  value = match.arg(parameter_set)
+  frame = bind_rows(
+      model$current$params_frame()
+    , model$current$random_frame()
+  )
+  vector = updated_param_vector(c(params, random)
+    , frame
+    , matrix = "mat", value = parameter_set
+  )
+  model$simulate(vector, .phases = phases)
 }
 
 
+#' @export
+mp_trajectory_par.TMBCalibrator = function(model, params = list(), random = list()
+    , include_initial = FALSE
+    , include_final = FALSE
+    , use_defaults = FALSE
+    , parameter_set = c("current", "default")
+  ) {
+  mp_trajectory_par(model$simulator, params, random, include_initial)
+}
 
 #' @param conf.int Should confidence intervals be produced?
 #' @param conf.level If `conf.int` is `TRUE`, what confidence level should be
