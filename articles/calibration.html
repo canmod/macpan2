@@ -83,7 +83,7 @@ first look at the <a href="https://canmod.github.io/macpan2/articles/quickstart"
 guide</a> and the article on the <a href="https://canmod.github.io/macpan2/articles/example_models">model
 library</a>.</p>
 <div class="section level2">
-<h2 id="hello-world">Hello World<a class="anchor" aria-label="anchor" href="#hello-world"></a>
+<h2 id="hello-world">Hello, World<a class="anchor" aria-label="anchor" href="#hello-world"></a>
 </h2>
 <p>We’ll do the first thing you should always do when trying out a new
 fitting procedure: simulate clean, nice data from the model and see if
@@ -130,7 +130,8 @@ recover the parameters that we use when simulating.</p>
 <span>  , outputs <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"S"</span>, <span class="st">"I"</span>, <span class="st">"R"</span><span class="op">)</span></span>
 <span>  , default <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>N <span class="op">=</span> <span class="fl">300</span>, R <span class="op">=</span> <span class="fl">100</span>, beta <span class="op">=</span> <span class="fl">0.25</span>, gamma <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">sir_results</span> <span class="op">=</span> <span class="fu"><a href="../reference/mp_trajectory.html">mp_trajectory</a></span><span class="op">(</span><span class="va">sir_simulator</span><span class="op">)</span></span>
+<span><span class="va">sir_results</span> <span class="op">=</span> <span class="fu"><a href="../reference/mp_trajectory.html">mp_trajectory</a></span><span class="op">(</span><span class="va">sir_simulator</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/across.html" class="external-link">across</a></span><span class="op">(</span><span class="va">matrix</span>, <span class="op">~</span><span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">.</span>, levels <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"S"</span>, <span class="st">"I"</span>, <span class="st">"R"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">(</span><span class="va">sir_results</span></span>
 <span>  <span class="op">|&gt;</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">value</span>, colour <span class="op">=</span> <span class="va">matrix</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -169,7 +170,7 @@ recover using optimization.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_calibrator</span> <span class="op">=</span> <span class="fu"><a href="../reference/mp_tmb_calibrator.html">mp_tmb_calibrator</a></span><span class="op">(</span><span class="va">sir_spec</span></span>
 <span>  , data <span class="op">=</span> <span class="va">sir_prevalence</span></span>
-<span>  , traj <span class="op">=</span> <span class="st">"I"</span></span>
+<span>  , traj <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>I <span class="op">=</span> <span class="fu"><a href="../reference/distribution.html">mp_poisson</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  , par <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"beta"</span>, <span class="st">"R"</span><span class="op">)</span></span>
 <span>  , default <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>N <span class="op">=</span> <span class="fl">300</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
@@ -196,11 +197,11 @@ recover using optimization.</p>
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; Objective function:</span></span>
 <span><span class="co">#&gt; ---------------------</span></span>
-<span><span class="co">#&gt; ~-sum(dpois(obs_I, clamp(sim_I)))</span></span></code></pre></div>
-<p>Note that the calibrator has a few new expressions that deal with
-comparisons with data. In particular it is the objective function that
-we will optimize. But before that we can do a sanity check to make sure
-that the default values give a reasonable-looking trajectory.</p>
+<span><span class="co">#&gt; ~-sum(dpois(obs_I, sim_I))</span></span></code></pre></div>
+<p>The calibrator has a few new expressions that deal with comparisons
+with data; in particular, it defines the objective function that we will
+optimize. But before that we can do a sanity check to make sure that the
+default values give a reasonable-looking trajectory.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="op">(</span><span class="va">sir_calibrator</span> </span>
 <span> <span class="op">|&gt;</span> <span class="fu"><a href="../reference/mp_trajectory.html">mp_trajectory</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -212,12 +213,14 @@ that the default values give a reasonable-looking trajectory.</p>
 <div class="section level3">
 <h3 id="step-2-do-the-fit">Step 2: do the fit<a class="anchor" aria-label="anchor" href="#step-2-do-the-fit"></a>
 </h3>
-<p>Doing the fit is straightforward.</p>
+<p>Doing the fit is straightforward; this calls a nonlinear optimizer
+built into base R (<code>nlminb</code> by default), starting from the
+default values specified in the calibrator.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">sir_calibrator</span><span class="op">)</span></span></code></pre></div>
-<p>Note that the <code>mp_optimize</code> function has modified the
-<code>sir_calibrator</code> object, which now contains the new fitted
-parameter values and the results of the optimization.</p>
+<p>The <code>mp_optimize</code> function has <strong>modified</strong>
+the <code>sir_calibrator</code> object in place; it now contains the new
+fitted parameter values and the results of the optimization.</p>
 </div>
 <div class="section level3">
 <h3 id="step-3-check-the-fit">Step 3: check the fit<a class="anchor" aria-label="anchor" href="#step-3-check-the-fit"></a>
@@ -225,7 +228,7 @@ parameter values and the results of the optimization.</p>
 <p>We can print the results of the optimizer (<code>nlminb</code> in
 this case) using the <code>mp_optimizer_output</code> function.
 <strong>Always check the value of the convergence code</strong> (if it’s
-not 0, then something <em>may</em> have gone wrong …).</p>
+not 0, then something may have gone wrong …).</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/mp_optimizer_output.html">mp_optimizer_output</a></span><span class="op">(</span><span class="va">sir_calibrator</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $par</span></span>
@@ -310,22 +313,19 @@ not 0, then something <em>may</em> have gone wrong …).</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; [[2]]$message</span></span>
 <span><span class="co">#&gt; [1] "both X-convergence and relative convergence (5)"</span></span></code></pre></div>
-<p>As mentioned above, the best-fit parameters are stored internally,
-and we can get information about them using the <code>mp_tmb_coef</code>
-function. (Note that if you get a message about the
-<code>broom.mixed</code> package, please install it.
-<code>mp_tmb_coef</code> is a wrapper for this function).</p>
+<p>As mentioned above, the best-fit parameters are stored internally; we
+can get information about them using the <code>mp_tmb_coef</code>
+function. (If you get a message about the <code>broom.mixed</code>
+package, please install it. <code>mp_tmb_coef</code> is a wrapper for
+<code><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">broom.mixed::tidy()</a></code>).</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_estimates</span> <span class="op">=</span> <span class="fu"><a href="../reference/mp_tmb_coef.html">mp_tmb_coef</a></span><span class="op">(</span><span class="va">sir_calibrator</span>, conf.int <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/engine_functions.html">print</a></span><span class="op">(</span><span class="va">sir_estimates</span><span class="op">)</span></span>
-<span><span class="co">#&gt;       term  mat row col default  type   estimate   std.error   conf.low</span></span>
-<span><span class="co">#&gt; 1   params beta   0   0     0.2 fixed  0.2345619 0.008739338  0.2174331</span></span>
-<span><span class="co">#&gt; 2 params.1    R   0   0     0.0 fixed 86.7030872 7.028753743 72.9269830</span></span>
-<span><span class="co">#&gt;     conf.high</span></span>
-<span><span class="co">#&gt; 1   0.2516906</span></span>
-<span><span class="co">#&gt; 2 100.4791914</span></span></code></pre></div>
-<p>These correspond pretty well to the known true values of the
-simulation model.</p>
+<span><span class="fu"><a href="../reference/engine_functions.html">print</a></span><span class="op">(</span><span class="va">sir_estimates</span>, digits <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="co">#&gt;       term  mat row col default  type estimate std.error conf.low conf.high</span></span>
+<span><span class="co">#&gt; 1   params beta   0   0     0.2 fixed    0.235   0.00874    0.217     0.252</span></span>
+<span><span class="co">#&gt; 2 params.1    R   0   0     0.0 fixed   86.703   7.02875   72.927   100.479</span></span></code></pre></div>
+<p>This parameter corresponds pretty well to the known true values we
+used to simulate.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/mp_default.html">mp_default</a></span><span class="op">(</span><span class="va">sir_simulator</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">matrix</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">sir_estimates</span><span class="op">$</span><span class="va">mat</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   matrix row col  value</span></span>
@@ -384,13 +384,13 @@ to maximize the resulting likelihood function, and use functionality
 from the <code>TMB</code> package (and sometimes the
 <code>tmbstan</code>/<code>rstan</code> packages) to do statistical
 inference on the fitted parameters and trajectories.</p>
-<p>We recognize that this statistical model will often be overly
-restrictive. The <code>macpan2</code> package has a developer interface
-that is much more flexible, allowing for more detailed control over
-<code>TMB</code>, <code>tmbstan</code>, and <code>rstan</code>. This
-interface allows for arbitrary likelihood functions, prior
-distributions, parameter transformations, flexible parameter
-time-variation models, random effects and more. See <a href="https://canmod.github.io/macpan2/articles/calibration_advanced.html">here</a>
+<p>This statistical model will often be too simple. The
+<code>macpan2</code> package has an extremely flexible developer
+interface that allows for more detailed control over <code>TMB</code>,
+<code>tmbstan</code>, and <code>rstan</code>. This interface allows for
+arbitrary likelihood functions, prior distributions, parameter
+transformations, flexible parameter time-variation models, random
+effects and more. See <a href="https://canmod.github.io/macpan2/articles/calibration_advanced.html">here</a>
 and <a href="https://canmod.github.io/macpan2/articles/time_varying_parameters.html">here</a>
 for more information, although because these guides describe a developer
 interface the instructions may be unclear to some or many readers. Our
