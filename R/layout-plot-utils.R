@@ -976,28 +976,40 @@ compute_adjacency_matrix <- function(df) {
   return(adj_matrix)
 }
 
-##' @title Create a graph from a model specification
-##' Converts a model specification into a graph (using the `graph` package) that can be plotted with `Rgraphviz`: see `?Rgraphviz::plot.graphNEL` and https://graphviz.org/doc/info/attrs.html for information on customizing the plot
+##' Create a graph from a model specification
+##' 
+##' Convert a model specification into a graph (using the `graph` package) that can be plotted with `Rgraphviz`: see `?Rgraphviz::plot.graphNEL` and https://graphviz.org/doc/info/attrs.html for information on customizing the plot.
+##'
+##' In order to plot the graph, you need to have loaded the `Rgraphviz` package (`library("Rgraphviz")`).
+##' 
 ##' @param spec a model specification
+##' @param include_inout (logical) include nodes defined by \code{\link{mp_per_capita_inflow}} and \code{\link{mp_per_capita_outflow}} ?
 ##' @examples
 ##' if (require(Rgraphviz)) {
 ##'   macpan_base = mp_tmb_library("starter_models", "macpan_base", package = "macpan2")
+##'   ## plot with left-to-right layout, rectangles instead of default circles
 ##'   dot_layout(macpan_base) |>
 ##'     plot(attrs = list(graph = list(rankdir = "LR"),
 ##'                       node = list(shape = "rectangle")))
 ##' }
 ##' @export
-dot_layout <- function(spec) {
+dot_layout <- function(spec, include_inout = FALSE) {
     if (!requireNamespace("Rgraphviz")) stop("Rgraphviz is needed for this function; please install it from Bioconductor")
     ff <- mp_flow_frame(spec)
+    if (nrow(ff) == 0) {
+        stop("mp_flow_frame() is empty: was spec defined with mp_*flow functions?")
+    }
     ## na.omit to drop inflows and outflows
     ff <- as.matrix(na.omit(ff[c("from", "to")]))
     v <- mp_state_vars(spec)
+    if (!include_inout) {
+        ff <- ff[ff[,"from"] %in% v & ff[,"to"] %in% v, , drop = FALSE]
+    } else {
+        v <- union(ff[,"from"], ff[,"to"])
+    }
     AM <- matrix(0, nrow = length(v), ncol = length(v), dimnames = list(v, v))
     AM[ff] <- 1
     ## Rgraphviz depends on graph pkg, so this should be available
     g <- graph::graphAM(AM, edgemode = "directed")
     return(g)
 }
-
-
