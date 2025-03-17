@@ -23,3 +23,5 @@ drat/
 .*\.vscode
 .*/html/.*
 ^vignettes/*[.]Rmd$
+.*.cff
+.macpan

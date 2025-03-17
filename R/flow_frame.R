@@ -29,7 +29,7 @@ topological_sort_engine = function(flows, state_nms, warn_not_dag = TRUE) {
         warning(
          "\nFlow among states contains cycles. This means",
          "\nthat states can be revisited, and therefore",
-         "\ncannot be unambiguouly sorted to respect the",
+         "\ncannot be unambiguously sorted to respect the",
          "\ndirection of all flows.",
          "\nDefaulting to original order where necessary."
         )
