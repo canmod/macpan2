@@ -890,6 +890,7 @@ mp_per_capita_inflow = function(from, to, rate, abs_rate = NULL) {
 
 #' @describeIn mp_per_capita_flow Only flow into the `to` compartment
 #' For adding a birth or immigration process
+#' @param rate_name String giving the name of the rate
 #' @export
 mp_inflow = function(to, rate, rate_name  = NULL) {
   call_string = deparse(match.call())
