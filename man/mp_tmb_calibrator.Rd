@@ -6,7 +6,7 @@
 \usage{
 mp_tmb_calibrator(
   spec,
-  data,
+  data = empty_trajectory,
   traj = character(),
   par = character(),
   tv = character(),
