@@ -2,21 +2,25 @@
 % Please edit documentation in R/layout-plot-utils.R
 \name{dot_layout}
 \alias{dot_layout}
-\title{Create a graph from a model specification
-Converts a model specification into a graph (using the \code{graph} package) that can be plotted with \code{Rgraphviz}: see \code{?Rgraphviz::plot.graphNEL} and https://graphviz.org/doc/info/attrs.html for information on customizing the plot}
+\title{Create a graph from a model specification}
 \usage{
-dot_layout(spec)
+dot_layout(spec, include_inout = FALSE)
 }
 \arguments{
 \item{spec}{a model specification}
+
+\item{include_inout}{(logical) include nodes defined by \code{\link{mp_per_capita_inflow}} and \code{\link{mp_per_capita_outflow}} ?}
 }
 \description{
-Create a graph from a model specification
-Converts a model specification into a graph (using the \code{graph} package) that can be plotted with \code{Rgraphviz}: see \code{?Rgraphviz::plot.graphNEL} and https://graphviz.org/doc/info/attrs.html for information on customizing the plot
+Convert a model specification into a graph (using the \code{graph} package) that can be plotted with \code{Rgraphviz}: see \code{?Rgraphviz::plot.graphNEL} and https://graphviz.org/doc/info/attrs.html for information on customizing the plot.
+}
+\details{
+In order to plot the graph, you need to have loaded the \code{Rgraphviz} package (\code{library("Rgraphviz")}).
 }
 \examples{
 if (require(Rgraphviz)) {
   macpan_base = mp_tmb_library("starter_models", "macpan_base", package = "macpan2")
+  ## plot with left-to-right layout, rectangles instead of default circles
   dot_layout(macpan_base) |>
     plot(attrs = list(graph = list(rankdir = "LR"),
                       node = list(shape = "rectangle")))
