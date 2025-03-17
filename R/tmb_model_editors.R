@@ -507,6 +507,11 @@ TMBSimulatorReplacer = function(simulator) {
     self$simulator$cache$invalidate()
     invisible(self$simulator)
   }
+  self$do_prep_sdreport = function(do_pred_sdreport) {
+    self$model$do_pred_sdreport = do_pred_sdreport
+    self$simulator$cache$invalidate()
+    invisible(self$simulator)
+  }
   return_object(self, "TMBReplacer")
 }
 

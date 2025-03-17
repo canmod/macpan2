@@ -171,6 +171,7 @@ reference:
   - initial_valid_vars
   - make_expr_parser
   - mp_tmb_expr_list
+  - mp_functions_used
   - Reader
   - Transform
 

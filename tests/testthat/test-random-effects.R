@@ -15,13 +15,14 @@ cal = mp_tmb_calibrator(
   , default = list(beta = 0.25, gamma = 0.17)
 )
 mp_optimize(cal)
-mp_tmb_coef(cal, effects = c("fixed", "random"))
-mp_trajectory_par(cal, list(beta = 0.2), list(gamma = 0.1))
-cal$simulator$current$params_frame()
-cal$simulator$current$random_frame()
-ff = cal$simulator$ad_fun()
-ff$report
-ff$env$random
-cal$simulator$report(0.2)
-cal$simulator$.runner(c(0.4, 0.2), .method = "sdreport")$sd
-macpan2:::mp_trajectory_par.TMBSimulator(cal$simulator, list(beta = 0.5), list())
+mp_tmb_coef(cal)
+mp_tmb_coef(sim)
+mp_trajectory_replicate(sim, 10, list(gamma = 0.2))
+mp_trajectory_par(cal, list(gamma = 0.2))
+mp_functions_used(cal)
+mp_functions_used(sim)
+mp_generates_randomness(spec |> mp_euler_multinomial())
+mp_generates_randomness(sim)
+
+el = spec$expr_list()$formula_list()
+el |> lapply(macpan2:::formula_components) |> lapply(getElement, "functions") |> unlist(recursive = TRUE) |> unique()

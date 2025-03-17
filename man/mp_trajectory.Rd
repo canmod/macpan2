@@ -13,9 +13,10 @@ mp_trajectory(model, include_initial = FALSE)
 
 mp_trajectory_par(
   model,
-  params = list(),
-  random = list(),
-  include_initial = FALSE
+  parameter_updates = list(),
+  include_initial = FALSE,
+  include_final = FALSE,
+  baseline = c("recommended", "default", "optimized")
 )
 
 mp_trajectory_sd(
@@ -29,7 +30,14 @@ mp_trajectory_ensemble(model, n, probs = c(0.025, 0.975))
 
 mp_trajectory_sim(model, n, probs = c(0.025, 0.25, 0.5, 0.75, 0.975))
 
-mp_trajectory_replicate(model, n)
+mp_trajectory_replicate(
+  model,
+  n,
+  parameter_updates = list(),
+  include_initial = FALSE,
+  include_final = FALSE,
+  baseline = c("recommended", "default", "optimized")
+)
 }
 \arguments{
 \item{model}{A dynamical model simulator produced by
@@ -40,9 +48,34 @@ included in the output? If \code{TRUE} this will include outputs for \code{time 
 associated with the initial values. See \code{\link{mp_initial}} for another
 approach to getting the initial values.}
 
-\item{params}{List of parameters to update.}
+\item{parameter_updates}{Named list of a subset of model variables with
+the values to use when simulating the trajectory using the
+\code{mp_trajectory_par} function. In the future we plan
+to allow this variable to be a data frame with one row for each scalar value
+(which would be useful if only certain elements of a vector
+or matrix are parameters) and a string giving the name of a file containing
+parameter information. But for now, only a list is allowed.}
 
-\item{random}{List of random effect parameters to update.}
+\item{include_final}{Should the final values of the simulation, after the
+post-simulation processing steps in the \code{after} stage of a model, be
+included in the output? If \code{TRUE} this will include outputs for
+\code{time == time_steps + 1}, associated with the values of the variables
+after the full trajectory has been post-processed in the \code{after} stage.
+See \code{\link{mp_final}} for another approach to getting the final values.}
+
+\item{baseline}{Models can contain several alternative sets of
+parameters, and this \code{baseline} argument is used to choose which of these
+should be updated using the \code{parameter_updates} passed to
+\code{mp_trajectory_par}. The current options are \code{"recommended"}, \code{"optimized"},
+and \code{"default"}. The \code{"recommended"} option will be used if neither of the
+other two options are selected. If \code{model} is capable of being optimized
+(e.g., it was created using \code{\link{mp_tmb_calibrator}}) then
+\code{"recommended"} is equivalent to \code{"optimized"}, which use the best set of
+parameters found by \code{\link{mp_optimize}}. If \code{\link{mp_optimize}}
+has not yet been called on \code{model} then a warning will be issued. If
+\code{model} is not capable of being optimized then \code{"recommended"} is
+equivalent to \code{"default"}, which uses the original set of parameters
+available when \code{model} was created.}
 
 \item{conf.int}{Should confidence intervals be produced?}
 
@@ -106,8 +139,8 @@ in context, please see \code{vignette("quickstart")}.
 }
 \section{Functions}{
 \itemize{
-\item \code{mp_trajectory_par()}: Produce a trajectory for alternative parameter
-values.
+\item \code{mp_trajectory_par()}: Produce a trajectory, after updating the \code{baseline}
+set of parameters with values in \code{parameter_updates}.
 
 \item \code{mp_trajectory_sd()}: Simulate a trajectory that includes uncertainty
 information provided by the \code{sdreport} function in \code{TMB} with default

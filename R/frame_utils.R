@@ -201,6 +201,8 @@ frame_to_mat_list = function(x) {
 updated_param_vector = function(update_object, param_frame, ...) {
   UseMethod("updated_param_vector")
 }
+
+#' @export
 updated_param_vector.list = function(update_object, param_frame, ...) {
   param_frame = rename_synonyms(param_frame, ...)
   for (k in seq_len(nrow(param_frame))) {
@@ -238,6 +240,7 @@ updated_param_vector.list = function(update_object, param_frame, ...) {
   }
   return(param_frame[["value"]])
 }
+#' @export
 updated_param_vector.data.frame = function(update_object, param_frame, ...) {
   param_frame = rename_synonyms(param_frame, ...)
   stop("Not yet able to update parameter values using data frames. Please supply a named list of variables containing the updated value")
