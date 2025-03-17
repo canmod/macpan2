@@ -2,7 +2,7 @@
 % Please edit documentation in R/flow_frame.R
 \name{mp_flow_frame}
 \alias{mp_flow_frame}
-\title{Flow Frame (experimental)}
+\title{Data Frame Describing Compartmental Model Flows}
 \usage{
 mp_flow_frame(spec, topological_sort = TRUE, loops = "^$")
 }
@@ -22,5 +22,5 @@ A data frame that gives information provided in calls to
 \code{\link{mp_per_capita_flow}} and \code{\link{mp_per_capita_inflow}}.
 }
 \description{
-Get a data frame representing the flows in a model specification.
+Get a data frame where each row represents a flow in a model specification.
 }

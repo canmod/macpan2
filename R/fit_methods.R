@@ -68,7 +68,9 @@ mp_add_effects_descr = function(coef_table, model) {
 #' prefix. Back transformation also applies to time varying parameters and 
 #' distributional parameters that get automatic prefixes when used. `back_transform`
 #' defaults to `TRUE`.
-#' @param ... Arguments to pass onto the `broom.mixed::tidy.TMB` method.
+#' @param ... Arguments to pass onto the `broom.mixed::tidy.TMB` method. 
+#' To get confidence intervals, use `conf.int = TRUE`. Note
+#' that there is currently an issue when using `effects = "random`.
 #' @returns A data frame that describes the fitted coefficients.
 #' @export
 mp_tmb_coef = function(model, back_transform = TRUE, ...) UseMethod("mp_tmb_coef")
@@ -77,7 +79,10 @@ mp_tmb_coef = function(model, back_transform = TRUE, ...) UseMethod("mp_tmb_coef
 #' @importFrom utils strcapture
 #' @export
 mp_tmb_coef.TMBSimulator = function(model, back_transform = TRUE, ...) {
-  assert_dependency("broom.mixed")
+  assert_dependencies("broom.mixed")
+  ## FIXME: if user tries effects = "random" without "fixed", throw error
+  ## that this is not implemented in broom.mixed. We could try to fix 
+  ## broom.mixed.
   tab = mp_add_effects_descr(broom.mixed::tidy(mp_tmb(model), ...), model)
   
   if (back_transform & (nrow(tab) > 0L)) {

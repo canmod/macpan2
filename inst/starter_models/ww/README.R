@@ -78,12 +78,7 @@ obs_data = (covid_on
 ## ----time_bounds--------------------------------------------------------------
 burn_in_period  = 15 ## number of days before the data start to begin the simulations
 forecast_period = 30 ## number of days after the data end to make forecasts
-time_bounds = mp_sim_bounds(
-    sim_start = min(obs_data$time) - lubridate::days(burn_in_period)
-  , sim_end   = max(obs_data$time) + lubridate::days(forecast_period)
-  , "daily"
-)
-steps = time_bounds$time_id_engine ## function to convert dates to time-steps
+time_bounds = mp_sim_offset(burn_in_period, forecast_period, "daily")
 
 
 ## ----cal_spec_update----------------------------------------------------------
@@ -144,8 +139,8 @@ focal_model = (
      , expressions = list(
           beta2 ~ time_var(beta_changes, beta_changepoints)
      )
-     , default  = list(beta_changes      = c(1))#, 3))
-     , integers = list(beta_changepoints = c(0))#, steps("2021-03-05")))
+     , default  = list(beta_changes      = c(1))
+     , integers = list(beta_changepoints = c(0))
   )
 )
 

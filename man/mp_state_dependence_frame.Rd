@@ -2,7 +2,7 @@
 % Please edit documentation in R/flow_frame.R
 \name{mp_state_dependence_frame}
 \alias{mp_state_dependence_frame}
-\title{State Dependence Frame}
+\title{Data Frame Describing State Dependent Per-Capita Flow Rates}
 \usage{
 mp_state_dependence_frame(spec)
 }

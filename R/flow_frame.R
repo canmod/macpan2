@@ -75,9 +75,9 @@ is_cyclic = function(flows, states) {
   to <= from
 }
 
-#' Flow Frame (experimental)
+#' Data Frame Describing Compartmental Model Flows
 #' 
-#' Get a data frame representing the flows in a model specification.
+#' Get a data frame where each row represents a flow in a model specification.
 #' 
 #' @param spec A \code{\link{mp_tmb_model_spec}}.
 #' @param topological_sort Should the states be topologically sorted to
@@ -106,9 +106,10 @@ mp_flow_frame = function(spec, topological_sort = TRUE, loops = "^$") {
   )[, c("state.from", "state.to", "change", "rate"), drop = FALSE]
   inflows = merge(to_only, ff, by = "change")[, c("size", "state", "change", "rate"), drop = FALSE]
   outflows = merge(from_only, ff, by = "change")[, c("size", "state", "change", "rate"), drop = FALSE]
-  names(flows) = c("from", "to", "name", "rate")
-  names(inflows) = c("from", "to", "name", "rate")
-  names(outflows) = c("from", "to", "name", "rate")
+  fn = c("from", "to", "name", "rate")
+  names(flows) = fn
+  names(inflows) = fn
+  names(outflows) = fn
   if (nrow(flows) > 0L) {
     flows$type = "flow"
     flows$from_name = flows$from
@@ -135,7 +136,7 @@ mp_flow_frame = function(spec, topological_sort = TRUE, loops = "^$") {
   return(flows)
 }
 
-#' State Dependence Frame
+#' Data Frame Describing State Dependent Per-Capita Flow Rates
 #' 
 #' Data frame giving states that per-capita flow rates directly depend on.
 #' This is intended for plotting diagrams and not for mathematical analysis,
@@ -158,7 +159,7 @@ mp_state_dependence_frame = function(spec) {
   )
 }
 
-#' State Variables
+#' State Variable Names
 #' 
 #' Get the state variables in a model specification.
 #' 
@@ -191,7 +192,7 @@ mp_state_vars = function(spec, topological_sort = FALSE, loops = "^$") {
   return(states)
 }
 
-#' Flow Variables
+#' Flow Variable Names
 #' 
 #' Get names of variables that contain the absolute flow between compartments.
 #' The absolute flow is the magnitude of a flow per time step.
@@ -228,14 +229,21 @@ mp_flow_vars = function(spec, topological_sort = FALSE, loops = "^$") {
   unique(flow_vars)
 }
 
-#' Change Frame
+#' Data Frame Describing Each Change to Each State Variable
 #' 
-#' Get the changes made to each state variable at each time step.
+#' Get a data frame with one row for each change made to each state variable 
+#' at each time step.
 #' 
 #' @param spec Model specification (\code{\link{mp_tmb_model_spec}}).
 #' 
 #' @return Data frame with two columns: `state` and `change`. Each row
 #' describes one change.
+#' 
+#' @examples
+#' ("starter_models"
+#'   |> mp_tmb_library("sir", package = "macpan2") 
+#'   |> mp_change_frame()
+#' )
 #' 
 #' @export
 mp_change_frame = function(spec) spec$change_model$change_frame()

@@ -1,6 +1,6 @@
 Package: macpan2
 Title: Fast and Flexible Compartmental Modelling
-Version: 1.15.1
+Version: 1.16.0
 Authors@R: c(
   person("Steve Walker", email="swalk@mcmaster.ca", role=c("cre", "aut")),
   person("Weiguang Guan", role="aut"),
@@ -35,13 +35,13 @@ Suggests:
     testthat (>= 3.0.0),
     htmltools,
     visNetwork,
-    macpan2helpers,
     kableExtra,
     broom.mixed,
     outbreaks,
     tmbstan,
     numDeriv,
     parallel,
+    macpan2helpers,
     iidda.api
 LinkingTo:
     TMB,
@@ -52,7 +52,8 @@ BugReports: https://github.com/canmod/macpan2/issues
 Additional_repositories: https://canmod.r-universe.dev
 Remotes:
     canmod/oor,
-    canmod/macpan2helpers
+    canmod/macpan2helpers,
+    iidda.api=canmod/iidda-tools/R/iidda.api
 Config/testthat/edition: 3
 Encoding: UTF-8
 LazyData: true

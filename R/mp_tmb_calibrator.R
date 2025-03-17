@@ -59,7 +59,8 @@
 #' mp_tmb_coef(cal)  ## requires broom.mixed package
 #' @concept create-model-calibrator
 #' @export
-mp_tmb_calibrator = function(spec, data
+mp_tmb_calibrator = function(spec
+    , data = empty_trajectory
     , traj = character()
     , par = character()
     , tv = character()
@@ -247,6 +248,7 @@ mp_optimize.TMBSimulator = function(model
   optimizer = match.arg(optimizer)
   opt_args = list(...)
   opt_method = model$optimize[[optimizer]]
+  
   opt_results = do.call(opt_method, opt_args)
   return(opt_results)
 } 
@@ -1440,3 +1442,5 @@ mp_tmb.TMBSimulator = function(model) {
 
 #' @export
 mp_tmb.TMBCalibrator = function(model) mp_tmb(model$simulator)
+
+

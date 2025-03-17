@@ -202,15 +202,18 @@ TMBModel = function(
         tmb_cpp = getOption("macpan2_dll")
       , verbose = getOption("macpan2_verbose")
     ) {
+    tmb_type_option = getOption("macpan2_tmb_type")
     params = self$param_arg()
-    if (getOption("macpan2_tmb_type") == "Fun") params$params = numeric()
-    list(
+    if (identical(tmb_type_option, "Fun")) params$params = numeric()
+    args = list(
         data = self$data_arg()
       , parameters = params
       , random = self$random_arg()
       , DLL = tmb_cpp
       , silent = !verbose
     )
+    if (!is.null(tmb_type_option)) args$type = tmb_type_option
+    return(args)
   }
   self$ad_fun = function(
         tmb_cpp = getOption("macpan2_dll")
@@ -453,6 +456,9 @@ mp_final_list = function(model) UseMethod("mp_final_list")
 mp_final.TMBSimulator = function(model) model$report(.phases = "after")
 
 #' @export
+mp_final.TMBCalibrator = function(model) mp_final(model$simulator)
+
+#' @export
 mp_final_list.TMBSimulator = function(model) {
   mp_final(model) |> cast_default_matrix_list()
 }
@@ -469,6 +475,12 @@ mp_final_list.TMBSimulator = function(model) {
 #' included in the output? If `TRUE` this will include outputs for `time == 0`
 #' associated with the initial values. See \code{\link{mp_initial}} for another 
 #' approach to getting the initial values.
+#' @param include_final Should the final values of the simulation, after the
+#' post-simulation processing steps in the `after` stage of a model, be 
+#' included in the output? If `TRUE` this will include outputs for 
+#' `time == time_steps + 1`, associated with the values of the variables
+#' after the full trajectory has been post-processed in the `after` stage.
+#' See \code{\link{mp_final}} for another approach to getting the final values.
 #' 
 #' @returns A data frame with one row for each simulated value and the following
 #' columns.
@@ -549,21 +561,140 @@ mp_trajectory.TMBCalibrator = function(model, include_initial = FALSE) {
   return(traj)
 } 
 
-#' @param params List of parameters to update.
-#' @param random List of random effect parameters to update.
-#' @describeIn mp_trajectory Produce a trajectory for alternative parameter
-#' values.
-#' @noRd
-mp_trajectory_par = function(model, params, random, include_initial = FALSE) {
+
+#' @param parameter_updates Named list of a subset of model variables with
+#' the values to use when simulating the trajectory using the 
+#' `mp_trajectory_par` function. In the future we plan
+#' to allow this variable to be a data frame with one row for each scalar value
+#' (which would be useful if only certain elements of a vector
+#' or matrix are parameters) and a string giving the name of a file containing
+#' parameter information. But for now, only a list is allowed.
+#' @param baseline Models can contain several alternative sets of 
+#' parameters, and this `baseline` argument is used to choose which of these
+#' should be updated using the `parameter_updates` passed to 
+#' `mp_trajectory_par`. The current options are `"recommended"`, `"optimized"`,
+#' and `"default"`. The `"recommended"` option will be used if neither of the
+#' other two options are selected. If `model` is capable of being optimized
+#' (e.g., it was created using \code{\link{mp_tmb_calibrator}}) then 
+#' `"recommended"` is equivalent to `"optimized"`, which use the best set of 
+#' parameters found by \code{\link{mp_optimize}}. If \code{\link{mp_optimize}} 
+#' has not yet been called on `model` then a warning will be issued. If
+#' `model` is not capable of being optimized then `"recommended"` is
+#' equivalent to `"default"`, which uses the original set of parameters 
+#' available when `model` was created.
+#' @describeIn mp_trajectory Produce a trajectory, after updating the `baseline`
+#' set of parameters with values in `parameter_updates`.
+#' @export
+mp_trajectory_par = function(model, parameter_updates = list()
+    , include_initial = FALSE, include_final = FALSE
+    , baseline = c("recommended", "default", "optimized")
+  ) {
   UseMethod("mp_trajectory_par")
 }
 
-#' @noRd
-mp_trajectory_par.TMBSimulator = function(model, params, random, include_initial = FALSE) {
-  
+#mp_trajectory_apply = function(model, parameter_updates = list())
+
+trajectory_par_util = function(simulator
+    , parameter_updates, value_column_name
+    , include_initial = FALSE, include_final = FALSE
+  ) {
+  phases = trajectory_phases_util(include_initial, include_final)
+  vector = trajectory_vec_util(simulator, parameter_updates, value_column_name)
+  simulator$simulate(vector, .phases = phases)
+}
+
+trajectory_rep_util = function(n, simulator
+    , parameter_updates, value_column_name
+    , include_initial = FALSE, include_final = FALSE
+  ) {
+  phases = trajectory_phases_util(include_initial, include_final)
+  vector = trajectory_vec_util(simulator, parameter_updates, value_column_name)
+  replicates = replicate(n
+    , simulator$simulate(vector, .phases = phases)
+    , simplify = FALSE
+  )
+  return(replicates)
+}
+
+trajectory_vec_util = function(simulator, parameter_updates, value_column_name) {
+  sc = simulator$current
+  frame = bind_rows(sc$params_frame(), sc$random_frame())
+  vector = updated_param_vector(parameter_updates
+    , frame
+    , matrix = "mat", value = value_column_name
+  )
+  return(vector)
+}
+
+trajectory_phases_util = function(include_initial = FALSE, include_final = FALSE) {
+  phases = "during"
+  if (include_initial) phases = c("before", phases)
+  if (include_final) phases = c(phases, "after")
+  return(phases)
+}
+
+value_column_simulator_util = function(baseline) {
+  value_column_name = switch(baseline
+    , recommended = "default"
+    , default = "default"
+    , optimized = "current"
+  )
+  if (value_column_name == "current") {
+    mp_wrap(
+        "The model object being simulated from is intended to be optimized. "
+      , "Please use mp_tmb_calibrator to produce an object that can be"
+      , "calibrated/optimized."
+    ) |> warning()
+  }
+  return(value_column_name)
+}
+
+value_column_calibrator_util = function(baseline, simulator) {
+  value_column_name = switch(baseline
+    , recommended = "current"
+    , default = "default"
+    , optimized = "current"
+  )
+  opt_attempted = simulator$optimization_history$opt_attempted()
+  if ((value_column_name == "current") & !opt_attempted) {
+    mp_wrap(
+        "The model object has not been optimized, and so the default"
+      , "(non-optimized) parameter set will be used as the baseline."
+      , "Please either explicitly choose"
+      , "to use the default set of parameters as the baseline, or optimize"
+      , "the model object using mp_optimize(model, ...)."
+    ) |> warning()
+  }
+  return(value_column_name)
+}
+
+#' @export
+mp_trajectory_par.TMBSimulator = function(model, parameter_updates = list()
+    , include_initial = FALSE, include_final = FALSE
+    , baseline = c("recommended", "default", "optimized")
+  ) {
+  baseline = match.arg(baseline)
+  value_column_name = value_column_simulator_util(baseline)
+  trajectory_par_util(model
+    , parameter_updates, value_column_name
+    , include_initial, include_final
+  )
 }
 
 
+#' @export
+mp_trajectory_par.TMBCalibrator = function(model, parameter_updates = list()
+    , include_initial = FALSE, include_final = FALSE
+    , baseline = c("recommended", "default", "optimized")
+  ) {
+  baseline = match.arg(baseline)
+  model = model$simulator
+  value_column_name = value_column_calibrator_util(baseline, model)
+  trajectory_par_util(model
+    , parameter_updates, value_column_name
+    , include_initial, include_final
+  )
+}
 
 #' @param conf.int Should confidence intervals be produced?
 #' @param conf.level If `conf.int` is `TRUE`, what confidence level should be
@@ -595,7 +726,8 @@ mp_trajectory_ensemble = function(model, n, probs = c(0.025, 0.975)) {
 mp_trajectory_sd.TMBSimulator = function(model, conf.int = FALSE, conf.level = 0.95, include_initial = FALSE) {
   phases = resolve_phases(include_initial)
   alpha = (1 - conf.level) / 2
-  r = model$report_with_sd(.phases = phases)
+  best_pars = get_last_best_par(model$ad_fun())
+  r = model$report_with_sd(best_pars, .phases = phases)
   if (conf.int) {
     r$conf.low = r$value + r$sd * qnorm(alpha)
     r$conf.high = r$value + r$sd * qnorm(1 - alpha)
@@ -612,12 +744,15 @@ mp_trajectory_sd.TMBCalibrator = function(model, conf.int = FALSE, conf.level = 
 
 #' @export
 mp_trajectory_ensemble.TMBSimulator = function(model, n, probs = c(0.025, 0.975)) {
-  model$report_ensemble(.n = n, .probs = probs)
+  best_pars = get_last_best_par(model$ad_fun())
+  traj = model$report_ensemble(best_pars, .n = n, .probs = probs)
+  return(traj)
 }
 
 #' @export
 mp_trajectory_ensemble.TMBCalibrator = function(model, n, probs = c(0.025, 0.975)) {
-  traj = model$report_ensemble(.n = n, .probs = probs)
+  traj = mp_trajectory_ensemble(model$simulator, n, probs)
+  traj$time = model$time_steps_obj$internal_to_external(traj$time)
   return(traj)
 }
 
@@ -642,14 +777,44 @@ mp_trajectory_sim = function(model, n, probs = c(0.025, 0.25, 0.5, 0.75, 0.975))
 
 ##' @describeIn mp_trajectory Generate a list of `n` simulation results.
 ##' @export
-mp_trajectory_replicate = function(model, n) {
+mp_trajectory_replicate = function(model, n
+    , parameter_updates = list()
+    , include_initial = FALSE, include_final = FALSE
+    , baseline = c("recommended", "default", "optimized")
+  ) {
+  if (!mp_generates_randomness(model)) {
+    warning("Model does not include functions that generate randomness, and so replicate trajectories are not informative.")
+  }
   UseMethod("mp_trajectory_replicate")
 }
 
 #' @export
-mp_trajectory_replicate.TMBSimulator = function(model, n) {
-  r = replicate(n, model$simulate(), simplify = FALSE)
-  return(r)
+mp_trajectory_replicate.TMBSimulator = function(model, n
+    , parameter_updates = list()
+    , include_initial = FALSE, include_final = FALSE
+    , baseline = c("recommended", "default", "optimized")
+  ) {
+  baseline = match.arg(baseline)
+  value_column_name = value_column_simulator_util(baseline)
+  trajectory_rep_util(n, model
+    , parameter_updates, value_column_name
+    , include_initial, include_final
+  )
+}
+
+#' @export
+mp_trajectory_replicate.TMBCalibrator = function(model, n
+    , parameter_updates = list()
+    , include_initial = FALSE, include_final = FALSE
+    , baseline = c("recommended", "default", "optimized")
+  ) {
+  baseline = match.arg(baseline)
+  simulator = model$simulator
+  value_column_name = value_column_calibrator_util(baseline, simulator)
+  trajectory_rep_util(n, simulator
+    , parameter_updates, value_column_name
+    , include_initial, include_final
+  )
 }
 
 ##' @export
@@ -941,6 +1106,7 @@ TMBSimulator = function(tmb_model
   self$get = TMBSimulatorGetters(self)
 
   initialize_cache(self, "ad_fun", "sdreport")
+  # initialize_cache(self, "ad_fun")
   if (initialize_ad_fun) {
     if (inherits(self$ad_fun(), "try-error")) {
       stop(

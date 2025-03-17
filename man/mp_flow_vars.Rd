@@ -2,7 +2,7 @@
 % Please edit documentation in R/flow_frame.R
 \name{mp_flow_vars}
 \alias{mp_flow_vars}
-\title{Flow Variables}
+\title{Flow Variable Names}
 \usage{
 mp_flow_vars(spec, topological_sort = FALSE, loops = "^$")
 }

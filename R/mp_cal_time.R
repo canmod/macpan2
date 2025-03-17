@@ -30,11 +30,26 @@ mp_sim_bounds = function(sim_start, sim_end, time_scale, time_column = "time") {
   self$time_column = time_column
   self$cal_time_steps = function(data, original_coercer = force) {
     column = data[[self$time_column]]
-    ## TODO: check type consistency
+    valid_time_scales = c("steps", "daily")
+    if (!self$time_scale %in% valid_time_scales) {
+      msg_space(
+          "The only valid time scales are 'steps' and 'daily'."
+        , "If your data have a date-valued time column and"
+        , "you would like each time step in the model to represent"
+        , "one day, then you should choose 'daily'. Otherwise"
+        , "please choose 'steps' and convert your time column"
+        , "into integer values that represent the time step in the"
+        , "model."
+      ) |> mp_wrap() |> stop()
+    }
+    
     constr = switch(self$time_scale
       , steps = CalTimeStepsInt
       , daily = CalTimeStepsDaily
     )
+    ## TODO: check type consistency
+    
+    
     if (length(column) == 0L) {
       dat_start = self$sim_start
       dat_end = self$sim_end
