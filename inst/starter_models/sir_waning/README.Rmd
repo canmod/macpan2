@@ -67,7 +67,7 @@ p = (layout
     , data = layout$edges_flows_ignored()
     , curvature = -0.2
     , colour = "blue"
-    , arrow = mp_flow_arrow
+    , arrow = mp_flow_arrow(3)
   )
   + ylim(c(0.6, NA))
 )

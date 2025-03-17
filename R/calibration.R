@@ -18,13 +18,6 @@ TMBOptimizer = function(simulator) {
     force(opt_func)
     force(opt_method_nm)
     ## TODO: add package dependencies to assert using assert_dependencies
-    
-    get_last_best_par = function(ad_fun) {
-      best_par = ad_fun$env$last.par.best
-      ranef_indices = ad_fun$env$random
-      fixef_indices = setdiff(seq_along(best_par), ranef_indices)
-      best_par[fixef_indices]
-    }
 
     self[[opt_method_nm]] = function() {
 

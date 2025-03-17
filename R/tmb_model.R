@@ -724,7 +724,8 @@ mp_trajectory_ensemble = function(model, n, probs = c(0.025, 0.975)) {
 mp_trajectory_sd.TMBSimulator = function(model, conf.int = FALSE, conf.level = 0.95, include_initial = FALSE) {
   phases = resolve_phases(include_initial)
   alpha = (1 - conf.level) / 2
-  r = model$report_with_sd(.phases = phases)
+  best_pars = get_last_best_par(model$ad_fun())
+  r = model$report_with_sd(best_pars, .phases = phases)
   if (conf.int) {
     r$conf.low = r$value + r$sd * qnorm(alpha)
     r$conf.high = r$value + r$sd * qnorm(1 - alpha)
@@ -742,7 +743,9 @@ mp_trajectory_sd.TMBCalibrator = function(model, conf.int = FALSE, conf.level = 
 
 #' @export
 mp_trajectory_ensemble.TMBSimulator = function(model, n, probs = c(0.025, 0.975)) {
-  model$report_ensemble(.n = n, .probs = probs)
+  # FIXME: start at the best value
+  best_pars = get_last_best_par(model$ad_fun())
+  model$report_ensemble(best_pars, .n = n, .probs = probs)
 }
 
 #' @export
@@ -1100,6 +1103,7 @@ TMBSimulator = function(tmb_model
   self$get = TMBSimulatorGetters(self)
 
   initialize_cache(self, "ad_fun", "sdreport")
+  # initialize_cache(self, "ad_fun")
   if (initialize_ad_fun) {
     if (inherits(self$ad_fun(), "try-error")) {
       stop(
