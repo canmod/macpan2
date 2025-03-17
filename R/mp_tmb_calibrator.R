@@ -335,9 +335,11 @@ TMBCalDataStruc = function(data, time) {
   if (is.character(data$time)) {
     original_coercer = as.character
   } else if (is.integer(data$time)) {
-    original_coercer = as.integer
-  } else if (inherits(data$time, "Date")) {
-    original_coercer = as.Date
+    if (inherits(data$time, "Date")) {
+      original_coercer = as.Date
+    } else {
+      original_coercer = as.integer
+    }
   } else {
     original_coercer = force
   }
