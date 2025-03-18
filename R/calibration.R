@@ -55,7 +55,7 @@ TMBOptimizer = function(simulator) {
       ## invalidate the now out-of-date sdreport
       self$simulator$cache$sdreport$invalidate() 
       
-      ad_fun$fn(get_last_best_par(ad_fun))
+      self$simulator$objective(get_last_best_par(ad_fun))
       
       opt_obj
     }

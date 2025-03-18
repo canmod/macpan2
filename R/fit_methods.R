@@ -48,10 +48,13 @@ mp_add_effects_descr = function(coef_table, model) {
   if (!"term" %in% names(coef_table)) {
     stop("Cannot merge coefficient table with description")
   }
+  coef_table$term = make.unique(
+    ifelse(coef_table$type == "fixed", "params", "random")
+  )
   bind_rows(
       merge(descr, filter(coef_table, startsWith(term, "params")))
     , merge(descr, filter(coef_table, startsWith(term, "random")))
-    , filter(coef_table, !startsWith(term, "params") & !startsWith(term, "random"))
+    , filter(coef_table, !startsWith(term, "params") & !startsWith(term, "random")) ## what is in this third case?
   )
 }
 
@@ -100,12 +103,12 @@ mp_tmb_coef.TMBSimulator = function(model, back_transform = TRUE, ...) {
     prefix = cap_grp[["transform"]]
     tab <- split(tab, prefix)
     for (ptype in setdiff(names(tab), "")) {
-      link <- make.link(gsub("_","",ptype))
-      tab[[ptype]][["std.error"]] = link$mu.eta(tab[[ptype]][["estimate"]])*tab[[ptype]][["std.error"]]
+      link <- make.link(gsub("_", "", ptype))
+      tab[[ptype]][["std.error"]] = link$mu.eta(tab[[ptype]][["estimate"]]) * tab[[ptype]][["std.error"]]
       tab[[ptype]][vars1] = lapply(tab[[ptype]][vars1],link$linkinv)
       # restore original coefficient name
-      orig_coef_name = gsub(ptype,"",tab[[ptype]][["mat"]])
-      tab[[ptype]][["mat"]] = gsub(ptype,"",tab[[ptype]][["mat"]])
+      orig_coef_name = gsub(ptype, "", tab[[ptype]][["mat"]])
+      tab[[ptype]][["mat"]] = gsub(ptype, "", tab[[ptype]][["mat"]])
     }
     tab = bind_rows(tab)
   }

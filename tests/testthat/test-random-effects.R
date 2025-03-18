@@ -15,7 +15,7 @@ cal = mp_tmb_calibrator(
   , default = list(beta = 0.25, gamma = 0.17)
 )
 mp_optimize(cal)
-mp_tmb_coef(cal)
+mp_tmb_coef(cal, )
 mp_tmb_coef(sim)
 mp_trajectory_replicate(sim, 10, list(gamma = 0.2))
 mp_trajectory_par(cal, list(gamma = 0.2))
