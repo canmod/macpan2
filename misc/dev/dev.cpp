@@ -114,6 +114,7 @@ enum macpan2_func
     , MP2_MEAN = 51 // fwrap,null: mean(x)
     , MP2_SD = 52 // fwrap,null: sd(x)
     , MP2_PROPORTIONS = 53 // fwrap,null: proportions(x)
+    , MP2_BINOM_DENSITY = 54 // fwrap,fail: dbinom(observed, simulated)
 };
 
 enum macpan2_meth
@@ -134,6 +135,7 @@ std::vector<int> mp_math = { // functions that can only take numerical matrices 
   , MP2_SUM, MP2_ROWSUMS, MP2_COLSUMS, MP2_TRANSPOSE
   , MP2_CONVOLUTION, MP2_CBIND, MP2_RBIND, MP2_RECYCLE, MP2_CLAMP
   , MP2_POISSON_DENSITY, MP2_NEGBIN_DENSITY, MP2_NORMAL_DENSITY
+  , MP2_BINOM_DENSITY
   , MP2_POISSON_SIM, MP2_NEGBIN_SIM, MP2_NORMAL_SIM, MP2_KRONECKER
   , MP2_TO_DIAG, MP2_FROM_DIAG, MP2_COS, MP2_BINOM_SIM, MP2_EULER_MULTINOM_SIM
   , MP2_ROUND, MP2_PGAMMA
@@ -2591,6 +2593,9 @@ public:
             // #' * `dnorm(observed, simulated, standard_deviation)` --
             // #' Log of the normal density based on this [dnorm](https://kaskr.github.io/adcomp/dnorm_8hpp.html)
             // #' TMB function.
+            // #' * `dbinom(observed, size, probability)` --
+            // #' Log of the binomial density based on the [dbinom](https://kaskr.github.io/adcomp/group__R__style__distribution.html#gaee11f805f02bc1febc6d7bf0487671be)
+            // #' TMB function.
             // #'
             // #' ### Arguments
             // #'
@@ -2699,6 +2704,33 @@ public:
                     }
                 }
                 return m;
+	    case MP2_BINOM_DENSITY:
+	      if (n < 3)
+                {
+		  SetError(MP2_BINOM_DENSITY, "dbinom needs three arguments: matrices with observed values, numbers of trials, and probabilities", row, MP2_BINOM_DENSITY, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
+		  return m;
+                }
+	      rows = args[0].rows();
+	      cols = args[0].cols();
+	      v1.push_back(1);
+	      v1.push_back(2);
+	      args = args.recycle_to_shape(v1, rows, cols);
+	      err_code = args.get_error_code();
+	      if (err_code != 0)
+                {
+		  SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row, MP2_NEGBIN_DENSITY, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
+		  return m;
+                }
+	      for (int i = 0; i < rows; i++)
+                {
+		  for (int j = 0; j < cols; j++)
+                    {
+		      // https://kaskr.github.io/adcomp/group__R__style__distribution.html#gaee11f805f02bc1febc6d7bf0487671be
+		      m.coeffRef(i, j) = dbinom(args[0].coeff(i, j), args[1].coeff(i, j), args[2].coeff(i, j), 1);
+                    }
+                }
+	      return m;
+
 
             // #' ## Pseudo-Random Number Generators
             // #'
