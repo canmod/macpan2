@@ -115,7 +115,7 @@ enum macpan2_func
     , MP2_MEAN = 51 // fwrap,null: mean(x)
     , MP2_SD = 52 // fwrap,null: sd(x)
     , MP2_PROPORTIONS = 53 // fwrap,null: proportions(x)
-    , MP2_BINOM_DENSITY = 54 // fwrap,fail: dbinom(observed, simulated)
+    , MP2_BINOM_DENSITY = 54 // fwrap,fail: dbinom(observed, size, probability)
 };
 
 enum macpan2_meth

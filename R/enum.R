@@ -53,7 +53,7 @@ valid_func_sigs = c(
       , "fwrap,null: mean(x)"
       , "fwrap,null: sd(x)"
       , "fwrap,null: proportions(x)"
-      , "fwrap,fail: dbinom(observed, simulated)"
+      , "fwrap,fail: dbinom(observed, size, probability)"
 )
 process_enum = function(x) {
   RE = "(null|fail|binop|fwrap|bwrap|pwrap)[ ]*,[ ]*(null|fail|binop|fwrap|bwrap|pwrap)[ ]*:[ ]*\\`?([^`]*)\\`?\\((.*)(\\,.*)*\\)"
