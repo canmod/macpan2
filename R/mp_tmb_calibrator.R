@@ -1,9 +1,3 @@
-## temporary source of ideas:
-## https://github.com/canmod/macpan2/commit/022a1e0af9ffd2146ff9496abbc8a3d7996c1760#diff-698a62c40da16725b9c4c0d5a59fbd6d4002d697f1194bd1dd2766b2485af3cb
-## 
-## TODO: delete this line if i forget why it is here
-
-
 #' Make TMB Calibrator
 #' 
 #' Construct an object that can get used to calibrate an object produced by 
@@ -224,17 +218,147 @@ print.TMBCalibrator = function(x, ...) {
   }
 }
 
-#' Optimize Model Specification
-#'
-#' @param model A model object capable of being optimized. See below
-#' for model types that are supported.
-#' @param optimizer Name of an implemented optimizer. See below for options
-#' for each type of \code{model}.
+#' Optimize Simulation Model
+#' 
+#' Calibrate a model that has been parameterized, typically by using
+#' \code{\link{mp_tmb_calibrator}} to produce such a model. 
+#' 
+#' The \code{\link{mp_tmb_calibrator}} models that get passed to
+#' `mp_optimize` will remember both their original default parameters 
+#' set at the time the model was created, and their currently best 
+#' parameters that get the updated when `mp_optimize` is run. The
+#' optimization is started from the currently best parameter set.
+#' Therefore, if you find yourself in a local minimum you might need
+#' to either recreate the model using \code{\link{mp_tmb_calibrator}}
+#' or use `optimzer = "DEoptim`, which is more robust to objective
+#' functions with multiple optima.
+#' 
+#' @param model A model object capable of being optimized. Typically
+#' this object will be produced using \code{\link{mp_tmb_calibrator}}.
+#' @param optimizer Name of an implemented optimizer. See below for the 
+#' options and details on using each option.
 #' @param ... Arguments to pass to the `optimizer`.
 #' 
 #' @returns The output of the `optimizer`. The `model` object is modified
 #' and saves the history of optimization outputs. These outputs can be 
 #' obtained using \code{\link{mp_optimizer_output}}.
+#' 
+#' # Details on Using Each Type of Optimizer
+#' 
+#' ## `nlminb`
+#' 
+#' The default optimizer is \code{\link{nlminb}}. This optimizer uses
+#' gradients and Hessians computed by the 
+#' [template model builder](https://kaskr.github.io/adcomp/_book/Introduction.html)
+#' engine of `macpan2`. This optimizer is efficient at local optimization
+#' by exploiting the Hessian matrix of second derivatives, which gives
+#' the optimizer information about how far to step during each iteration.
+#' However, this optimzer can struggle if the objective function has 
+#' multiple optima.
+#' 
+#' To set control parameters (e.g., maximum number of iterations), one 
+#' may use the following.
+#' ```
+#' mp_optimize(model, "nlminb", control = list(iter.max = 800))
+#' ```
+#' See the \code{\link{nlminb}} help page for the complete list of 
+#' control parameters and what the output means.
+#' 
+#' ## `optim`
+#' 
+#' The \code{\link{optim}} optimizer does not use second derivatives
+#' (compare with the description of \code{\link{nlminb}}), and so
+#' could be less efficient at taking each step. However, we
+#' find that it can be somewhat better at getting out of local optima,
+#' although the `"DEoptim"` optimizer is designed for objective functions
+#' with multiple optima (see description below).
+#' 
+#' To set control parameters (e.g., maximum number of iterations), one 
+#' may use the following.
+#' ```
+#' mp_optimize(model, "nlminb", control = list(maxit = 800))
+#' ```
+#' See the \code{\link{optim}} help page for the complete list of 
+#' control parameters and what the output means.
+#' 
+#' Note that if your model is parameterized by only a single parameter,
+#' you will get a warning asking you to use "Brent" or `optimize()`
+#' directly. You can ignore this warning if you are happy with your
+#' answer, or can do either of the suggested options as follows.
+#' ```
+#' mp_optimize(model, "optim", method = "Brent", lower = 0, upper = 1.2)
+#' mp_optimize(model, "optimize", c(0, 1.2))
+#' ```
+#' Note that we have to specify the upper and lower values, between
+#' which the optimizer searches for the optimum.
+#' 
+#' ## `DEoptim`
+#' 
+#' The `DEoptim` optimizer is a function in the `DEoptim` package, and
+#' so you will need to have this package installed to use this option.
+#' It is designed for objective functions with multiple optima. Use
+#' this method if you do not believe the fit you get by other methods.
+#' The downsides of this method is that it doesn't use gradient or
+#' Hessian information, and so it is likely to be inefficient when
+#' the default starting values are close to the optimum, and it just
+#' generally will be slower because it utilizes multiple starting points
+#' to try to get out of local optima.
+#' 
+#' Because this optimizer starts from multiple places on the parameter
+#' space, you need to specify upper and lower values for the parameter
+#' vector -- between which different starting values will be chosen.
+#' Here is how that is done.
+#' ```
+#' mp_optimize(model, "DEoptim", lower = c(0, 0), upper = c(1.2, 1.2))
+#' ```
+#' Note that in this example we have two parameters, and therefore need
+#' to specify two `lower` and two `upper` sets of values.
+#' 
+#' ## `optimize` and `optimise`
+#' 
+#' This optimizer can only be used for models parameterized with one
+#' parameter, and it is necessary to specify upper and lower values for
+#' this parameter using the following approach.
+#' ```
+#' mp_optimize(model, "optimize", c(0, 1.2))
+#' ```
+#' 
+#' @examples
+#' spec = ("starter_models"
+#'   |> mp_tmb_library("seir", package = "macpan2")
+#'   |> mp_tmb_update(default = list(beta = 0.6))
+#' )
+#' sim = mp_simulator(spec, 50, "infection")
+#' 
+#' ## simulate data to fit to, but remove the start of the
+#' ## simulated epidemic in order to make it more difficult
+#' ## to fit.
+#' data = (sim
+#'   |> mp_trajectory()
+#'   |> filter(time > 24)
+#'   |> mutate(time = time - 24)
+#' )
+#' 
+#' ## time scale object that accounts for the 24-steps of
+#' ## the epidemic that are not captured in the data.
+#' ## in real life we would need to guess at this number 24.
+#' time = mp_sim_offset(24, 0, "steps")
+#' 
+#' ## model calibrator with one transmission parameter to calibrate
+#' cal = mp_tmb_calibrator(spec
+#'   , data = data
+#'   , traj = "infection"
+#'   , par = "beta"
+#'   , default = list(beta = 1)
+#'   , time = time
+#' )
+#' 
+#' ## this takes us into a local optimum at beta = 0.13,
+#' ## which is far away from the true value of beta = 0.6.
+#' mp_optimize(cal)
+#' 
+#' ## this gets us out of the optimum and to the true value.
+#' mp_optimize(cal, "optimize", c(0, 1.2))
 #' 
 #' @export
 mp_optimize = function(model, optimizer, ...) UseMethod("mp_optimize")
@@ -242,20 +366,42 @@ mp_optimize = function(model, optimizer, ...) UseMethod("mp_optimize")
 
 #' @export
 mp_optimize.TMBSimulator = function(model
-    , optimizer = c("nlminb", "optim")
+    , optimizer = c("nlminb", "optim", "DEoptim", "optimize", "optimise")
     , ...
   ) {
-  optimizer = match.arg(optimizer)
+  optimizer = match.arg(optimizer, several.ok = FALSE)
+  if (optimizer %in% "DEoptim") assert_dependencies("DEoptim")
+  if (optimizer %in% c("optimize", "optimise")) {
+    pp = mp_parameterization(model)
+    if (nrow(pp) != 1L) {
+      mp_wrap(
+        msg_space(
+            "The optimize and optimise optimizers cannot be used" 
+          , "with more than one parameter. But this model has the"
+          , "following parameters (one parameter per row):"
+        ),
+        capture.output(pp)
+      ) |> stop()
+    }
+  }
   opt_args = list(...)
   opt_method = model$optimize[[optimizer]]
   
   opt_results = do.call(opt_method, opt_args)
+  
+  ## run once more to try to keep optimizers from
+  ## mangling the inside of the ADFun object.
+  model$optimize$reset_best(opt_results, optimizer)
+  
   return(opt_results)
-} 
+}
 
 #' @describeIn mp_optimize Optimize a TMB calibrator.
 #' @export
-mp_optimize.TMBCalibrator = function(model, optimizer = c("nlminb", "optim"), ...) {
+mp_optimize.TMBCalibrator = function(model
+    , optimizer = c("nlminb", "optim", "DEoptim", "optimize", "optimise")
+    , ...
+  ) {
   optimizer_results = mp_optimize(model$simulator, optimizer, ...)
   return(optimizer_results)
   
@@ -287,7 +433,6 @@ TMBCalDataStruc = function(data, time) {
     }
     FALSE
   }
-
   
   # self$time_steps = time$bound_steps()[2L]
   # data$time_ids = time$time_ids(data$time)
@@ -332,6 +477,7 @@ TMBCalDataStruc = function(data, time) {
     , col = c("col", "Col", "column", "Column")
     , value = c("value", "Value", "val", "Val", "default", "Default")
   )
+  time_column_test_value = data$time
   if (is.character(data$time)) {
     original_coercer = as.character
   } else if (is.integer(data$time)) {
@@ -357,6 +503,7 @@ TMBCalDataStruc = function(data, time) {
     }
   }
   self$time_steps_obj = time$cal_time_steps(data, original_coercer)
+  self$time_steps_obj$conversion_check(time_column_test_value)
   data$time_ids = self$time_steps_obj$external_to_internal(data$time)
   ## TODO: Still splitting on matrices, which doesn't allow flexibility
   ## in what counts as an 'output'. In general, an output could be
@@ -401,8 +548,30 @@ CalTimeStepsAbstract = function() {
   self$dat_1st = function() integer(1L)
   self$sim_vec = function() integer(0L)
   self$dat_vec = function() integer(0L)
+  
+  ## convert between representations of time. internal measures time as 
+  ## time-steps inside model simulator and external measures time as they are
+  ## represented inside the time column of the data being calibrated to.
   self$internal_to_external = function(internal) internal
   self$external_to_internal = function(external) external
+  self$conversion_check = function(time_column) {
+    ## test value -- could check the whole thing i guess but could take time?
+    value = time_column[!is.na(time_column)]
+    if (length(value) > 0L) {
+      value = value[1L]
+      processed = value |> self$external_to_internal() |> self$internal_to_external()
+      if (!isTRUE(all.equal(value, processed))) {
+        mp_wrap(
+          msg_space(
+              "Cannot perfectly convert between how time is represented in the"
+            , "data and how time is represented in the model, so be careful."
+          )
+          , "The data have values that print like this:", capture.output(value)
+          , "But the model will print it like this:", capture.output(processed)
+        ) |> warning()
+      }
+    }
+  }
   self$consistency = function() {
     if (self$ext_sim_1st > self$ext_dat_1st) warning("Simulation starts after data begin.")
     if (self$ext_dat_end > self$ext_sim_end) warning("Data end after simulation ends.")

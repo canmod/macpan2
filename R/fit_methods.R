@@ -114,7 +114,17 @@ mp_tmb_coef.TMBSimulator = function(model, back_transform = TRUE, ...) {
 
 #' @export
 mp_tmb_coef.TMBCalibrator = function(model, ...) {
-  mp_tmb_coef(model$simulator, ...)
+  simulator = model$simulator
+  opt_attempted = simulator$optimization_history$opt_attempted()
+  if (!opt_attempted) {
+    mp_wrap(
+        "The model object has not been optimized, and so the default"
+      , "(non-optimized) parameter set will be displayed as the current"
+      , "best set of values."
+      , "You can optimize the model object using mp_optimize(model, ...)."
+    ) |> warning()
+  }
+  mp_tmb_coef(simulator, ...)
 }
 
 #' Model Coefficient Table with stan

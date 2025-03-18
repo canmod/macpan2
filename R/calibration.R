@@ -17,7 +17,6 @@ TMBOptimizer = function(simulator) {
     force(arg_mappings)
     force(opt_func)
     force(opt_method_nm)
-    ## TODO: add package dependencies to assert using assert_dependencies
 
     self[[opt_method_nm]] = function() {
 
@@ -56,7 +55,6 @@ TMBOptimizer = function(simulator) {
       ## invalidate the now out-of-date sdreport
       self$simulator$cache$sdreport$invalidate() 
       
-      #ad_fun$fn(opt_obj$par) ## probably this should be last.par.best
       ad_fun$fn(get_last_best_par(ad_fun))
       
       opt_obj
@@ -71,6 +69,32 @@ TMBOptimizer = function(simulator) {
       "nlminb", stats::nlminb
     , par = "start", fn = "objective", gr = "gradient", he = "hessian"
   )
+  wrap(
+      "DEoptim", DEoptim::DEoptim
+    , fn = "fn"
+  )
+  wrap(
+      "optimize", stats::optimize
+    , fn = "f"
+  )
+  wrap(
+      "optimise", stats::optimize
+    , fn = "f"
+  )
+  
+  self$extract_best = list(
+      nlminb = \(obj) obj$par
+    , optim = \(obj) obj$par
+    , optimize = \(obj) obj$minimum
+    , optimise = \(obj) obj$minimum
+    , DEoptim = \(obj) obj$optim$bestmem
+  )
+  self$reset_best = function(opt_obj, optimizer) {
+    ## this is useful to make sure that the names
+    ## of the parameter vector do not get mangled
+    ## by the optimizers
+    self$simulator$objective(self$extract_best[[optimizer]](opt_obj))
+  }
 
   return_object(self, "TMBOptimizer")
 }

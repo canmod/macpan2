@@ -592,8 +592,7 @@ mp_trajectory_par = function(model, parameter_updates = list()
   UseMethod("mp_trajectory_par")
 }
 
-#mp_trajectory_apply = function(model, parameter_updates = list())
-
+# take a simulator and return the trajectory data frame
 trajectory_par_util = function(simulator
     , parameter_updates, value_column_name
     , include_initial = FALSE, include_final = FALSE
@@ -616,6 +615,8 @@ trajectory_rep_util = function(n, simulator
   return(replicates)
 }
 
+# take a simulator and return the parameter vector that can be
+# passed to TMB report and simulate
 trajectory_vec_util = function(simulator, parameter_updates, value_column_name) {
   sc = simulator$current
   frame = bind_rows(sc$params_frame(), sc$random_frame())
@@ -1034,15 +1035,17 @@ TMBSimulator = function(tmb_model
   self$ad_fun = function() self$tmb_model$ad_fun(self$tmb_cpp)
 
   self$objective = function(...) {
-    fixed_params = as.numeric(unlist(list(...)))
+    ## need to pass named vector or sdreport stops identifying
+    ## fixed effects as `params`
+    fixed_params = rep_name(as.numeric(unlist(list(...))), "params")
     self$ad_fun()$fn(fixed_params)
   }
   self$gradient = function(...) {
-    fixed_params = as.numeric(unlist(list(...)))
+    fixed_params = rep_name(as.numeric(unlist(list(...))), "params")
     self$ad_fun()$gr(fixed_params)
   }
   self$hessian = function(...) {
-    fixed_params = as.numeric(unlist(list(...)))
+    fixed_params = rep_name(as.numeric(unlist(list(...))), "params")
     self$ad_fun()$he(fixed_params)
   }
   self$error_code = function(...) self$ad_fun()$report(...)$error
