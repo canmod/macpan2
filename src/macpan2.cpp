@@ -2719,9 +2719,10 @@ public:
 	      err_code = args.get_error_code();
 	      if (err_code != 0)
                 {
-		  SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row, MP2_NEGBIN_DENSITY, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
+		  SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row, MP2_BINOM_DENSITY, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
 		  return m;
                 }
+	      m = matrix<Type>::Zero(rows, cols);
 	      for (int i = 0; i < rows; i++)
                 {
 		  for (int j = 0; j < cols; j++)
