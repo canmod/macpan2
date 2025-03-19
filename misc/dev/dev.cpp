@@ -114,6 +114,8 @@ enum macpan2_func
     , MP2_MEAN = 51 // fwrap,null: mean(x)
     , MP2_SD = 52 // fwrap,null: sd(x)
     , MP2_PROPORTIONS = 53 // fwrap,null: proportions(x)
+    , MP2_LAST = 54 // fwrap,null: last(x)
+    , MP2_CHECK_FINITE = 55 // fwrap,null: check_finite(x)
 };
 
 enum macpan2_meth
@@ -702,6 +704,10 @@ public:
         }
     }
     
+    matrix<Type> get_last_element(int i) {
+        return get_as_mat(i).block(rows(i) - 1, cols(i) - 1, 1, 1);
+    }
+    
     std::vector<int> all_rows() {
         std::vector<int> v(items_.size());
         for (unsigned int i = 0; i < v.size(); i++) {
@@ -730,6 +736,7 @@ public:
         }
         return v;
     }
+    
 
     // for back-compatibility and sanity so you can still 
     // do args[0], args[1], etc ...
@@ -1009,13 +1016,11 @@ public:
         // Variables to use locally in 'macpan2 function' and
         // 'macpan2 method' bodies -- these are not real functions and methods 
         // in either the c++ or r sense.
-        matrix<Type> m, m1, m2, m3, m4, mz5;     // return values
+        matrix<Type> m, m1, m2, m3, m4, m5;     // return values
         std::vector<int> v, v1, v2, v3, v4, v5; // integer vectors
+        bool is_finite_mat;
         vector<int> u; // FIXME: why not std::vector<int> here??
         matrix<Type> Y, X, A;
-        // Type y, x;
-        // Type a;
-        //int ii, jj, kk;
         std::vector<int> timeIndex; // for rbind_time and rbind_lag
         int doing_lag = 0;
         Type sum, eps, limit, var, by, left_over, remaining_prop, p0; // intermediate scalars
@@ -1024,15 +1029,13 @@ public:
         unsigned int grpIndex;
         int size_in, size_out;
         int sz, start, err_code, curr_meth_id;
-        // size_t numMats;
-        // size_t numIntVecs;
         std::vector<int> curr_meth_mat_id_vec;
         std::vector<int> curr_meth_int_id_vec;
         vector<matrix<Type>> meth_args(meth_mats.size());
         ListOfIntVecs meth_int_args;
 
         // Check if error has already happened at some point
-        // of the recursive call.
+        // of the recursive call of EvalExpr.
         if (GetErrorCode())
             return m;
         switch (table_n[row])
@@ -2040,6 +2043,10 @@ public:
                     return m;
                 }
                 return args[0].block(rowIndex, colIndex, rows, cols);
+            
+            case MP2_LAST: // last(x)
+                return args.get_last_element(0);
+                
 
             // #' ## Accessing Past Values in the Simulation History
             // #'
@@ -3151,6 +3158,14 @@ public:
                 std::cout << args[0] << std::endl;
                 return m;
 
+            case MP2_CHECK_FINITE:
+                m = args.get_as_mat(0);
+                is_finite_mat = m.array().isFinite().all();
+                if (!is_finite_mat) {
+                    SetError(123, "Some elements of this matrix are not finite.", row, MP2_CHECK_FINITE, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
+                }
+                return m;
+            
             default:
                 SetError(255, "invalid operator in arithmetic expression", row, -99, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                 return m;
@@ -3159,34 +3174,6 @@ public:
     };
 
 private:
-    // Functor for computing derivatives of expressions.
-    // template <class Type>
-    // struct matrix_functor{
-    //     // define data members
-    //
-    //     // define constructor
-    //     matrix_functor() : // initialization list
-    //     { // the body is empty
-    //     }
-    //     // the function itself
-    //     template <typename T>
-    //     vector<T> operator()(vector<T> input_vector_)
-    //     {
-    //         vector<T> output_vector_ = EvalExpr(
-    //             simulation_history_,
-    //             0,
-    //             mats_save_hist_,
-    //             p_table_x_,
-    //             p_table_n_,
-    //             p_table_i_,
-    //             mats_,
-    //             literals_,
-    //             p_table_row_
-    //         );
-    //         // call exprEval in here to convert input_vector_ into output_vector_
-    //         return (output_vector_);
-    //     }
-    // }
     unsigned char error_code;
     int expr_row;
     int func_int;

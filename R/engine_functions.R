@@ -837,4 +837,6 @@
 #' @aliases mean
 #' @aliases sd
 #' @aliases proportions
+#' @aliases last
+#' @aliases check_finite
 NULL

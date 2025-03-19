@@ -29,6 +29,7 @@ reference:
   - mp_per_capita_flow
   - mp_absolute_flow
   - engine_functions
+  - mp_optimized_spec
   
 - subtitle: Find Model Specifications
   desc: >
@@ -48,6 +49,7 @@ reference:
   contents:
   - mp_tmb_insert
   - mp_tmb_insert_reports
+  - mp_tmb_insert_log_linear
   - mp_euler
   - mp_expand
 
@@ -61,8 +63,7 @@ reference:
   - mp_default
   - mp_flow_frame
   - mp_change_frame
-  - mp_state_vars
-  - mp_flow_vars
+  - mp_vars
   - mp_state_dependence_frame
 
 - title: Simulators
@@ -99,6 +100,7 @@ reference:
   - mp_rbf
   - transform_distr_param
   - mp_sim_bounds
+  - mp_sim_offset
   - mp_time_scale
 
 - subtitle: Specify Distributional Assumptions
@@ -111,11 +113,14 @@ reference:
 
 - subtitle: Optimize Calibrator Model
   desc: > 
-    Functions that take a model specification as input and return a modified 
-    version of that specification.
+    Functions that take a model calibrator as input and calibrate model
+    parameters, as well as functions that extract underlying objects
+    used during the opimization/calibration process.
   contents:
   - mp_optimize
   - mp_optimizer_output
+  - mp_optimized_spec
+  - mp_tmb_objective
 
 - subtitle: Generate Calibrated Simulations and Parameters
   desc: >
@@ -136,6 +141,7 @@ reference:
     model calibrators.
   contents:
   - mp_tmb
+  - mp_parameterization
 
 - title: Utilities
 
@@ -168,6 +174,7 @@ reference:
   - initial_valid_vars
   - make_expr_parser
   - mp_tmb_expr_list
+  - mp_functions_used
   - Reader
   - Transform
 
