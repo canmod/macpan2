@@ -23,7 +23,8 @@ mp_trajectory_sd(
   model,
   conf.int = FALSE,
   conf.level = 0.95,
-  include_initial = FALSE
+  include_initial = FALSE,
+  back_transform = TRUE
 )
 
 mp_trajectory_ensemble(model, n, probs = c(0.025, 0.975))
@@ -82,6 +83,16 @@ available when \code{model} was created.}
 \item{conf.level}{If \code{conf.int} is \code{TRUE}, what confidence level should be
 used?  For example, the default of \code{0.95} corresponds to 95\% confidence
 intervals.}
+
+\item{back_transform}{A boolean to indicate if trajectories, standard
+deviations, and confidence intervals should be back transformed to
+the original scale. Variable names are also stripped of their
+transformation identifier. Currently, this back transformation only
+applies to log transformed coefficients that have been named with "log_"
+prefix or logit transformed coefficients that have been named with "logit_"
+prefix. Back transformation also applies to time varying parameters and
+distributional parameters that get automatic prefixes when used.
+\code{back_transform} defaults to \code{TRUE}.}
 
 \item{n}{Number of random trajectories to simulate.}
 

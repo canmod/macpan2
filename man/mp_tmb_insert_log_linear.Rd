@@ -2,7 +2,7 @@
 % Please edit documentation in R/tmb_model_editors.R
 \name{mp_tmb_insert_log_linear}
 \alias{mp_tmb_insert_log_linear}
-\title{Insert Log Linear Model of Time Variation}
+\title{Insert Log Linear Model of Time Variation (Experimental)}
 \usage{
 mp_tmb_insert_log_linear(
   model,
@@ -68,5 +68,5 @@ parameter changes.}
 when they are below this tolerance.}
 }
 \description{
-Insert Log Linear Model of Time Variation
+Insert Log Linear Model of Time Variation (Experimental)
 }

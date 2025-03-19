@@ -360,6 +360,18 @@ mp_tmb_insert_log_linear = function(model
   return(model)
 }
 
+#' @export
+mp_tmb_insert_trans = function(model
+    , variables = character()
+    , transformation = mp_log
+) {
+  expr_list = sprintf("%s ~ %s"
+    , transformation$nm(variables)
+    , transformation$ref(variables)
+  ) |> lapply(as.formula)
+  mp_tmb_insert(model, "during", Inf, expr_list)
+}
+
 ## model is a spec
 ## new_defaults is a list of raw defaults, each type of which has a `names` S3 method
 check_default_updates = function(model, new_defaults) {

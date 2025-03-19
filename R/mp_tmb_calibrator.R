@@ -1,4 +1,4 @@
-#' Make TMB Calibrator
+#' Make a Calibrator
 #' 
 #' Construct an object that can get used to calibrate an object produced by 
 #' \code{\link{mp_tmb_model_spec}} or \code{\link{mp_tmb_library}},
@@ -37,6 +37,12 @@
 #' @param time Specify the start and end time of the simulated trajectories,
 #' and the time period associated with each time step. Currently the only
 #' valid choice is `NULL`, which takes simulation bounds from the `data`.
+#' @param save_data Save a copy of the data in the calibrator object that is
+#' returned, so that you do not need to pass the data manually to downstream 
+#' functions like \code{\link{mp_forecaster}}. It the resulting calibrator
+#' object is so large that it causes you problems, consider not saving
+#' the data in the calibrator object and manually passing it to the data
+#' argument of \code{\link{mp_forecaster}}.
 #'
 #' @examples
 #' spec = mp_tmb_library("starter_models", "sir", package = "macpan2")
@@ -61,8 +67,10 @@ mp_tmb_calibrator = function(spec
     , outputs = traj
     , default = list()
     , time = NULL
+    , save_data = TRUE
   ) {
   cal_args = nlist(traj, par, tv, outputs, default, time)
+  if (save_data) cal_args$data = data
   if (inherits(spec, "TMBSimulator")) {
     stop(
         "This function creates simulators (capable of being calibrated to "
@@ -238,6 +246,9 @@ print.TMBCalibrator = function(x, ...) {
 #' @param optimizer Name of an implemented optimizer. See below for the 
 #' options and details on using each option.
 #' @param ... Arguments to pass to the `optimizer`.
+#' 
+#' @details
+#' 
 #' 
 #' # Details on Using Each Type of Optimizer
 #' 
@@ -576,6 +587,9 @@ CalTimeStepsAbstract = function() {
   }
   self$sim_vec = function() seq(from = self$sim_1st(), by = 1L, len = self$sim_len())
   self$dat_vec = function() seq(from = self$dat_1st(), by = 1L, len = self$dat_len())
+  self$extended_time_arg = function(extension) {
+    mp_sim_offset(0, as.integer(extension), "steps")
+  }
   return_object(self, "CalTimeStepsAbstract")
 }
 CalTimeStepsInt = function(ext_sim_1st, ext_sim_end, ext_dat_1st, ext_dat_end, original_coercer = force) {
@@ -634,6 +648,9 @@ CalTimeStepsDaily = function(ext_sim_1st, ext_sim_end, ext_dat_1st, ext_dat_end,
   self$external_to_internal = function(external) {
     d = difftime(as.Date(external), self$ext_sim_1st, units = "days")
     as.integer(d) + 1L
+  }
+  self$extended_time_arg = function(extension) {
+    mp_sim_offset(0, as.integer(extension), "daily")
   }
   return_object(self, "CalTimeStepsLegacy")
 }

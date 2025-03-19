@@ -111,7 +111,8 @@ TMBCurrentParams = function(simulator) { ## TMBSimulator
   }
   self$params_vector = function() {
     if (self$n_params() == 0L) return(numeric())
-    self$simulator$ad_fun()$env$parList()$params
+    get_last_best_par(self$simulator$ad_fun())
+    # $env$parList()$params
   }
   self$random_vector = function() {
     if (self$n_random() == 0L) return(numeric())

@@ -2,7 +2,7 @@
 % Please edit documentation in R/mp_tmb_calibrator.R
 \name{mp_tmb_calibrator}
 \alias{mp_tmb_calibrator}
-\title{Make TMB Calibrator}
+\title{Make a Calibrator}
 \usage{
 mp_tmb_calibrator(
   spec,
@@ -12,7 +12,8 @@ mp_tmb_calibrator(
   tv = character(),
   outputs = traj,
   default = list(),
-  time = NULL
+  time = NULL,
+  save_data = TRUE
 )
 }
 \arguments{
@@ -51,6 +52,13 @@ in addition to default updates, need to be added to the spec
 \item{time}{Specify the start and end time of the simulated trajectories,
 and the time period associated with each time step. Currently the only
 valid choice is \code{NULL}, which takes simulation bounds from the \code{data}.}
+
+\item{save_data}{Save a copy of the data in the calibrator object that is
+returned, so that you do not need to pass the data manually to downstream
+functions like \code{\link{mp_forecaster}}. It the resulting calibrator
+object is so large that it causes you problems, consider not saving
+the data in the calibrator object and manually passing it to the data
+argument of \code{\link{mp_forecaster}}.}
 }
 \description{
 Construct an object that can get used to calibrate an object produced by

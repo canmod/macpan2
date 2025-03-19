@@ -159,12 +159,12 @@ mp_state_dependence_frame = function(spec) {
   )
 }
 
-#' State Variable Names
+#' State and Flow Variable Names
 #' 
-#' Get the state variables in a model specification.
+#' Get the state and/or flow variables in a model specification.
 #' 
 #' @param spec Model specification (\code{\link{mp_tmb_model_spec}}).
-#' @param topological_sort Should the states be 
+#' @param topological_sort Should the states and flows be 
 #' [topologically sorted](https://en.wikipedia.org/wiki/Topological_sorting) to
 #' respect the main direction of flow? The default is no topological sorting,
 #' which differs from \code{\link{mp_flow_frame}}.
@@ -172,9 +172,11 @@ mp_state_dependence_frame = function(spec) {
 #' the flow model not a DAG, which is a critical assumption when topologically 
 #' sorting the order of states and flows in the output. This is only relevant if 
 #' `topological_sort` is used.
+#' @param trans Add a prefix to the names for indicating if a transformed
+#' version of the variables is preferred.
 #' 
-#' @return Character vector of names of all state variables that have been
-#' explicitly represented in the model using functions like
+#' @return Character vector of names of all state and/or flow variables that 
+#' have been explicitly represented in the model using functions like
 #' \code{\link{mp_per_capita_flow}}.
 #' 
 #' @examples
@@ -184,49 +186,39 @@ mp_state_dependence_frame = function(spec) {
 #'   |> mp_trajectory()
 #' )
 #' 
+#' @name mp_vars
+NULL
+
+#' @describeIn mp_vars Return character vector of all state variables.
 #' @export
-mp_state_vars = function(spec, topological_sort = FALSE, loops = "^$") {
+mp_state_vars = function(spec, topological_sort = FALSE, loops = "^$", prefix = "") {
   states = vapply(spec$change_model$update_state(), lhs_char, character(1L))
   flows = mp_flow_frame(spec, topological_sort = FALSE)
   if (topological_sort) states = topological_sort_general(flows, loops, states)
-  return(states)
+  return(sprintf("%s_%s", prefix, states))
 }
 
-#' Flow Variable Names
-#' 
-#' Get names of variables that contain the absolute flow between compartments.
+#' @describeIn mp_vars Return the names of all variables that contain
+#' the absolute flow between compartments.
 #' The absolute flow is the magnitude of a flow per time step.
-#' 
-#' @param spec Model specification (\code{\link{mp_tmb_model_spec}}).
-#' @param topological_sort Should the flows be 
-#' [topologically sorted](https://en.wikipedia.org/wiki/Topological_sorting) to
-#' respect the main direction of flow? The default is no topological sorting,
-#' which differs from \code{\link{mp_flow_frame}}.
-#' @param loops Pattern for matching the names of flows that make 
-#' the flow model not a DAG, which is a critical assumption when topologically 
-#' sorting the order of states and flows in the output. This is only relevant if 
-#' `topological_sort` is used.
-#' 
-#' @return Character vector of names of all flow variables that have been
-#' explicitly represented in the model using functions like
-#' \code{\link{mp_per_capita_flow}}.
-#' @examples
-#' 
-#' si = mp_tmb_library("starter_models", "si", package = "macpan2")
-#' (si
-#'   |> mp_simulator(time_steps = 5L, mp_flow_vars(si))
-#'   |> mp_trajectory()
-#' )
-#' 
 #' @export
-mp_flow_vars = function(spec, topological_sort = FALSE, loops = "^$") {
+mp_flow_vars = function(spec, topological_sort = FALSE, loops = "^$", trans = "") {
   if (topological_sort) {
     flows = mp_flow_frame(spec, topological_sort, loops)
     flow_vars = flows$name
   } else {
     flow_vars = spec$change_model$flow_frame()$change
   }
-  unique(flow_vars)
+  unique(sprintf("%s_%s", trans, flow_vars))
+}
+
+#' @describeIn mp_vars Union of `mp_state_vars()` and `mp_flow_vars()`.
+#' @export
+mp_state_flow_vars = function(spec, topological_sort = FALSE, loops = "^$", trans = "") {
+  c(
+      mp_state_vars(spec, topological_sort, loops, trans)
+    , mp_flow_vars(spec, topological_sort, loops, trans)
+  )
 }
 
 #' Data Frame Describing Each Change to Each State Variable

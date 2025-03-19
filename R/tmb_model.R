@@ -701,11 +701,25 @@ mp_trajectory_par.TMBCalibrator = function(model, parameter_updates = list()
 #' @param conf.level If `conf.int` is `TRUE`, what confidence level should be
 #' used?  For example, the default of `0.95` corresponds to 95% confidence
 #' intervals.
+#' @param back_transform A boolean to indicate if trajectories, standard
+#' deviations, and confidence intervals should be back transformed to 
+#' the original scale. Variable names are also stripped of their
+#' transformation identifier. Currently, this back transformation only 
+#' applies to log transformed coefficients that have been named with "log_" 
+#' prefix or logit transformed coefficients that have been named with "logit_" 
+#' prefix. Back transformation also applies to time varying parameters and 
+#' distributional parameters that get automatic prefixes when used. 
+#' `back_transform` defaults to `TRUE`.
 #' @describeIn mp_trajectory Simulate a trajectory that includes uncertainty
 #' information provided by the `sdreport` function in `TMB` with default
 #' settings.
 #' @export
-mp_trajectory_sd = function(model, conf.int = FALSE, conf.level = 0.95, include_initial = FALSE) {
+mp_trajectory_sd = function(model
+    , conf.int = FALSE
+    , conf.level = 0.95
+    , include_initial = FALSE
+    , back_transform = TRUE
+  ) {
   UseMethod("mp_trajectory_sd")
 }
 
@@ -724,7 +738,12 @@ mp_trajectory_ensemble = function(model, n, probs = c(0.025, 0.975)) {
   
 #' @importFrom stats qnorm
 #' @export
-mp_trajectory_sd.TMBSimulator = function(model, conf.int = FALSE, conf.level = 0.95, include_initial = FALSE) {
+mp_trajectory_sd.TMBSimulator = function(model
+    , conf.int = FALSE
+    , conf.level = 0.95
+    , include_initial = FALSE
+    , back_transform = TRUE
+  ) {
   phases = resolve_phases(include_initial)
   alpha = (1 - conf.level) / 2
   best_pars = get_last_best_par(model$ad_fun())
@@ -733,12 +752,21 @@ mp_trajectory_sd.TMBSimulator = function(model, conf.int = FALSE, conf.level = 0
     r$conf.low = r$value + r$sd * qnorm(alpha)
     r$conf.high = r$value + r$sd * qnorm(1 - alpha)
   }
+  if (back_transform) {
+    vars = intersect(c("value", "conf.low", "conf.high"), names(r))
+    r = backtrans(r, vars, "matrix", "sd", "value")
+  }
   r
 } 
 
 #' @export
-mp_trajectory_sd.TMBCalibrator = function(model, conf.int = FALSE, conf.level = 0.95, include_initial = FALSE) {
-  traj = mp_trajectory_sd(model$simulator, conf.int, conf.level, include_initial)
+mp_trajectory_sd.TMBCalibrator = function(model
+    , conf.int = FALSE
+    , conf.level = 0.95
+    , include_initial = FALSE
+    , back_transform = TRUE
+  ) {
+  traj = mp_trajectory_sd(model$simulator, conf.int, conf.level, include_initial, back_transform)
   traj$time = model$time_steps_obj$internal_to_external(traj$time)
   return(traj)
 }
