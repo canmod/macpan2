@@ -247,7 +247,7 @@ One way to address the lack of convergence of the optimizer is to assess the deg
 mp_tmb_fixef_cov(sir_cal) |> cov2cor()
 ```
 
-This diagnosis, if correct, suggests that the data are not sufficiently informative to identify values for both `beta` and `gamma`. Resolving such identifiability issues is often best done by introducing prior information, such as our rough guess that `gamma` is close to `1`. The simplest way to include such prior information is to move `gamma` out of the `pars` argument to `mp_tmb_calibrator` and into the `default` argument, as below.
+This diagnosis suggests that the data are not sufficiently informative to identify values for both `beta` and `gamma`. Resolving such identifiability issues is often best done by introducing prior information, such as our rough guess that `gamma` is close to `1`. The simplest way to include such prior information is to move `gamma` out of the `pars` argument to `mp_tmb_calibrator` and into the `default` argument, as below.
 
 ```{r}
 sir_cal_assume_gamma = mp_tmb_calibrator(
@@ -298,8 +298,7 @@ fitted_data = mp_trajectory_sd(sir_cal_assume_gamma, conf.int = TRUE)
 )
 ```
 
-Caution: Ben, what is that paper that you always recommend about being careful when prior information is included without prior uncertainty?
-This one [@elderdUncertainty2006]
+Caution: Here we use prior information to assume a reasonable value of `gamma = 1`, but ignore prior uncertainty. This can cause underestimates of uncertainty in other parameters that are fitted (see  [@elderdUncertainty2006]). It is better to use a [prior distribution](https://canmod.github.io/macpan2/articles/likelihood_prior_specs.html).
 
 ## Learning the Functional form of Time Variation in Transmission (New!)
 
@@ -353,7 +352,11 @@ make_rbf_calibrator = function(dimension) {
     , tv = mp_rbf("beta", dimension)
     ## -----------------------------
     
-    , par = c("gamma", "I", "report_prob")
+    , par = list(
+        gamma = mp_uniform()
+      , I = mp_uniform()
+      , report_prob = mp_uniform()
+    )
   )
 }
 ```

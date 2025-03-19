@@ -7,7 +7,7 @@
 \alias{mp_log}
 \alias{mp_logit}
 \alias{mp_sqrt}
-\title{Distributional Parameter Transformation}
+\title{Link Functions and Transformation}
 \usage{
 mp_identity
 
@@ -18,8 +18,6 @@ mp_logit
 mp_sqrt
 }
 \description{
-Objects used
-
 \itemize{
 \item \code{mp_identity} - Identity transformation
 }

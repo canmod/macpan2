@@ -20,8 +20,6 @@ library(oor)
 
 [![status](https://img.shields.io/badge/status-stub-red)](https://canmod.github.io/macpan2/articles/vignette-status#stub)
 
-## Prerequisits
-
 ## Introduction
 
 The `macpan2` package uses the standard S3 object-oriented framework for `R`. All objects in `macpan2` are standard `R` `environments`, with standard S3 `class` `attributes`. This approach allows us to integrate with standard generic S3 methods (e.g. `print`, `predict`), while retaining the benefits of programming styles that are common outside of `R` such as data-code bundling and passing by reference. We can get these benefits without dependencies on third-party packages such as `R6` and instead use standard `R` tools, but in an unorthodox yet interesting (to us) way.

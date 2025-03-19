@@ -1,4 +1,44 @@
+#' Value of the Objective Function of a Model
+#' 
+#' @param model A model with an objective function, probably one produced using
+#' \code{\link{mp_tmb_calibrator}}.
+#' @inheritParams mp_trajectory_par
+#' @export
+mp_tmb_objective = function(model
+    , parameter_updates = list()
+    , baseline = c("recommended", "default", "optimized")
+  ) {
+  UseMethod("mp_tmb_objective")
+}
 
+#' @export
+mp_tmb_objective.TMBSimulator = function(model
+    , parameter_updates = list()
+    , baseline = c("recommended", "default", "optimized")
+  ) {
+  baseline = match.arg(baseline)
+  value_column_name = value_column_simulator_util(baseline)
+  vector = objective_vec_util(model, parameter_updates, value_column_name)
+  model$objective(vector)
+}
+
+#' @export
+mp_tmb_objective.TMBCalibrator = function(model
+    , parameter_updates = list()
+    , baseline = c("recommended", "default", "optimized")
+  ) {
+  mp_tmb_objective(model$simulator, parameter_updates, baseline)
+}
+
+# take a simulator and return the parameter vector that can be
+# passed to TMB fn, gr, he
+objective_vec_util = function(simulator, parameter_updates, value_column_name) {
+  vector = updated_param_vector(parameter_updates
+    , simulator$current$params_frame()
+    , matrix = "mat", value = value_column_name
+  )
+  return(vector)
+}
 
 
 TransPrototype = function(formula, trans, input_var = "x", output_var = "y") {

@@ -19,7 +19,9 @@ prefix. Back transformation also applies to time varying parameters and
 distributional parameters that get automatic prefixes when used. \code{back_transform}
 defaults to \code{TRUE}.}
 
-\item{...}{Arguments to pass onto the \code{broom.mixed::tidy.TMB} method.}
+\item{...}{Arguments to pass onto the \code{broom.mixed::tidy.TMB} method.
+To get confidence intervals, use \code{conf.int = TRUE}. Note
+that there is currently an issue when using \verb{effects = "random}.}
 }
 \value{
 A data frame that describes the fitted coefficients.

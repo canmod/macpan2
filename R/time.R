@@ -60,7 +60,7 @@ as_Time.DateTimeSteps = function(x) x$time_obj()
 ## @param checker Function generating objects of class "TimeCheck"
 DateTimeSteps = function(start, end, checker) {
   self = Base()
-  self$unit = "" ## abstract class so nothing meaningful like "Days"
+  self$unit = "" ## abstract class so nothing meaningful like "Day"
   self$acceptable_time_classes = "" ## e.g. "Date"
   self$character_converter = function(x) stop("abstract class")
   self$start = start
