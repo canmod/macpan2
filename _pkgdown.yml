@@ -49,6 +49,7 @@ reference:
   contents:
   - mp_tmb_insert
   - mp_tmb_insert_reports
+  - mp_tmb_insert_log_linear
   - mp_euler
   - mp_expand
 
@@ -100,6 +101,7 @@ reference:
   - mp_rbf
   - transform_distr_param
   - mp_sim_bounds
+  - mp_sim_offset
   - mp_time_scale
 
 - subtitle: Specify Distributional Assumptions
@@ -119,6 +121,7 @@ reference:
   - mp_optimize
   - mp_optimizer_output
   - mp_optimized_spec
+  - mp_tmb_objective
 
 - subtitle: Generate Calibrated Simulations and Parameters
   desc: >
@@ -139,6 +142,7 @@ reference:
     model calibrators.
   contents:
   - mp_tmb
+  - mp_parameterization
 
 - title: Utilities
 

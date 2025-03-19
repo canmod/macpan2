@@ -95,17 +95,7 @@ LinearTimeVar = function(variable_name, matrix_list, time_index_list) {
   return_object(self, "TimeVar")
 }
 
-mats = list(rbf(10, 4), rbf(20, 7), rbf(4, 2))
-inds = list(
-    sort(sample(30, 10, replace = FALSE))
-  , sort(sample(30, 20, replace = FALSE))
-  , sort(sample(30, 4 , replace = FALSE))
-)
-xx = LinearTimeVar("beta", mats, inds)
-xx$matrix()
-xx$check()
 
-xx$
 
 TimeVar = function(par_orig_nm) {
   self = Base()

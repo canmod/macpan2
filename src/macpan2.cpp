@@ -116,6 +116,7 @@ enum macpan2_func
     , MP2_SD = 52 // fwrap,null: sd(x)
     , MP2_PROPORTIONS = 53 // fwrap,null: proportions(x)
     , MP2_LAST = 54 // fwrap,null: last(x)
+    , MP2_CHECK_FINITE = 55 // fwrap,null: check_finite(x)
 };
 
 enum macpan2_meth
@@ -736,6 +737,7 @@ public:
         }
         return v;
     }
+    
 
     // for back-compatibility and sanity so you can still 
     // do args[0], args[1], etc ...
@@ -1017,6 +1019,7 @@ public:
         // in either the c++ or r sense.
         matrix<Type> m, m1, m2, m3, m4, m5;     // return values
         std::vector<int> v, v1, v2, v3, v4, v5; // integer vectors
+        bool is_finite_mat;
         vector<int> u; // FIXME: why not std::vector<int> here??
         matrix<Type> Y, X, A;
         std::vector<int> timeIndex; // for rbind_time and rbind_lag
@@ -3156,6 +3159,14 @@ public:
                 std::cout << args[0] << std::endl;
                 return m;
 
+            case MP2_CHECK_FINITE:
+                m = args.get_as_mat(0);
+                is_finite_mat = m.array().isFinite().all();
+                if (!is_finite_mat) {
+                    SetError(123, "Some elements of this matrix are not finite.", row, MP2_CHECK_FINITE, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
+                }
+                return m;
+            
             default:
                 SetError(255, "invalid operator in arithmetic expression", row, -99, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                 return m;
@@ -3164,34 +3175,6 @@ public:
     };
 
 private:
-    // Functor for computing derivatives of expressions.
-    // template <class Type>
-    // struct matrix_functor{
-    //     // define data members
-    //
-    //     // define constructor
-    //     matrix_functor() : // initialization list
-    //     { // the body is empty
-    //     }
-    //     // the function itself
-    //     template <typename T>
-    //     vector<T> operator()(vector<T> input_vector_)
-    //     {
-    //         vector<T> output_vector_ = EvalExpr(
-    //             simulation_history_,
-    //             0,
-    //             mats_save_hist_,
-    //             p_table_x_,
-    //             p_table_n_,
-    //             p_table_i_,
-    //             mats_,
-    //             literals_,
-    //             p_table_row_
-    //         );
-    //         // call exprEval in here to convert input_vector_ into output_vector_
-    //         return (output_vector_);
-    //     }
-    // }
     unsigned char error_code;
     int expr_row;
     int func_int;

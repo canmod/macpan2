@@ -251,7 +251,7 @@ mp_tmb_insert_reports = function(model
   )
 }
 
-#' Insert Log Linear Model of Time Variation
+#' Insert Log Linear Model of Time Variation (Experimental)
 #' 
 #' @param model A model specification (see \code{\link{mp_tmb_model_spec}}).
 #' @param parameter_name Character string giving the name of the parameter
