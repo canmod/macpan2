@@ -50,6 +50,7 @@ reference:
   - mp_tmb_insert
   - mp_tmb_insert_reports
   - mp_tmb_insert_log_linear
+  - mp_tmb_insert_trans
   - mp_euler
   - mp_expand
 
@@ -122,7 +123,7 @@ reference:
   - mp_optimized_spec
   - mp_tmb_objective
 
-- subtitle: Generate Calibrated Simulations and Parameters
+- subtitle: Generate Calibrated Simulations, Parameters, and Forecasts
   desc: >
     Functions that generate simulations and tables of fitted parameters
     from a calibator object.
@@ -132,6 +133,7 @@ reference:
   - mp_effects_descr
   - mp_tmb_fixef_cov
   - mp_tmbstan_coef
+  - mp_forecaster
 
 - subtitle: Generate Fitted Parameter Tables
 
