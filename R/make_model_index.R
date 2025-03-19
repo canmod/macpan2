@@ -134,14 +134,14 @@ mp_model_docs = function(model_name, macpan_library = "starter_models") {
   installed_models = mp_show_models()$Dir
   is_installed = model_name %in% installed_models
   if (!is_installed) {
-    mp_wrap(
+    msg_space(
         "The model you are attempting to browse is not installed"
       , "in your version of macpan2. This could be because the model"
       , "doesn't exist at all (i.e., the URL you visit doesn't exist)"
       , "or because your version of macpan2 is not sufficiently current"
       , "(i.e., you might want to install an update). A list of installed"
       , "models can be obtained using mp_list_models()."
-    ) |> warning()
+    ) |> mp_wrap() |> warning()
   }
   url = sprintf(
       "https://github.com/canmod/macpan2/tree/main/inst/%s/%s"

@@ -2,23 +2,19 @@ Basic SEIR
 ================
 Steve Walker
 
--   <a href="#packages-used-and-settings"
-    id="toc-packages-used-and-settings">Packages Used and Settings</a>
--   <a href="#model-specification" id="toc-model-specification">Model
-    Specification</a>
--   <a href="#states" id="toc-states">States</a>
--   <a href="#parameters" id="toc-parameters">Parameters</a>
--   <a href="#dynamics" id="toc-dynamics">Dynamics</a>
--   <a href="#calibration" id="toc-calibration">Calibration</a>
-    -   <a href="#simulate-fake-data" id="toc-simulate-fake-data">Simulate fake
-        data</a>
-    -   <a href="#calibrate-the-model" id="toc-calibrate-the-model">Calibrate
-        the model</a>
-    -   <a href="#explore-the-fit" id="toc-explore-the-fit">Explore the fit</a>
+- [Packages Used and Settings](#packages-used-and-settings)
+- [Model Specification](#model-specification)
+- [States](#states)
+- [Parameters](#parameters)
+- [Dynamics](#dynamics)
+- [Calibration](#calibration)
+  - [Simulate fake data](#simulate-fake-data)
+  - [Calibrate the model](#calibrate-the-model)
+  - [Explore the fit](#explore-the-fit)
 
 We introduce the *exposed* compartment, to capture the time period in
-which individuals have been exposed to the disease but are not able to
-infect others yet.
+which individuals have been exposed to the disease but are not yet
+infectious.
 
 # Packages Used and Settings
 
@@ -63,22 +59,22 @@ article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/seir/RE
 
 # States
 
-| variable | description                       |
-|----------|-----------------------------------|
-| S        | Number of susceptible individuals |
-| E        | Number of exposed individuals     |
-| I        | Number of infectious individuals  |
-| R        | Number of recovered individuals   |
+| variable | description |
+|----|----|
+| S | Number of susceptible individuals |
+| E | Number of exposed individuals (i.e., infected individuals that are not yet infectious) |
+| I | Number of infectious individuals |
+| R | Number of recovered individuals |
 
-The size of the total population is, \$ N = S + E + I + R\$.
+The size of the total population is, $N = S + E + I + R$.
 
 # Parameters
 
-| variable | description                                                                   |
-|----------|-------------------------------------------------------------------------------|
-| $\beta$  | per capita transmission rate                                                  |
-| $\alpha$ | per capita infection rate (average time spent in compartment E is $1/\alpha$) |
-| $\gamma$ | per capita recovery rate                                                      |
+| variable | description                  |
+|----------|------------------------------|
+| $\beta$  | per capita transmission rate |
+| $\alpha$ | per capita progression rate  |
+| $\gamma$ | per capita recovery rate     |
 
 # Dynamics
 
@@ -138,23 +134,23 @@ observed_data = (seir
 ![](./figures/simulation-1.png)<!-- -->
 
 Note that the incidence per time-step is called `infection` in the
-model, to indicate that it is the rate at which individuals from from
-`S` to `I` due to infection. Observe the naming convention in the
+model, to indicate that it is the rate at which individuals move from
+`S` to `E` due to infection. Observe the naming convention in the
 expanded specification object.
 
 ``` r
 print(spec |> mp_expand())
 #> ---------------------
 #> Default values:
+#>  quantity value
+#>      beta   0.2
+#>     alpha   0.5
+#>     gamma   0.1
+#>         N 100.0
+#>         I   1.0
+#>         E   0.0
+#>         R   0.0
 #> ---------------------
-#>  matrix row col value
-#>    beta           0.2
-#>   alpha           0.5
-#>   gamma           0.1
-#>       N         100.0
-#>       I           1.0
-#>       E           0.0
-#>       R           0.0
 #> 
 #> ---------------------
 #> Before the simulation loop (t = 0):
@@ -164,12 +160,12 @@ print(spec |> mp_expand())
 #> ---------------------
 #> At every iteration of the simulation loop (t = 1 to T):
 #> ---------------------
-#> 1: exposure ~ S * (I * beta/N)
-#> 2: infection ~ E * (alpha)
+#> 1: infection ~ S * (beta * I/N)
+#> 2: progression ~ E * (alpha)
 #> 3: recovery ~ I * (gamma)
-#> 4: S ~ S - exposure
-#> 5: E ~ E + exposure - infection
-#> 6: I ~ I + infection - recovery
+#> 4: S ~ S - infection
+#> 5: E ~ E + infection - progression
+#> 6: I ~ I + progression - recovery
 #> 7: R ~ R + recovery
 ```
 
@@ -185,20 +181,20 @@ cal = mp_tmb_calibrator(
 mp_optimize(cal)
 #> $par
 #>     params     params     params 
-#> 0.18141589 0.05799761 0.43567598 
+#> 0.14426621 0.01545123 1.08414553 
 #> 
 #> $objective
-#> [1] 109.8502
+#> [1] 98.35556
 #> 
 #> $convergence
 #> [1] 0
 #> 
 #> $iterations
-#> [1] 11
+#> [1] 16
 #> 
 #> $evaluations
 #> function gradient 
-#>       14       12 
+#>       22       17 
 #> 
 #> $message
 #> [1] "relative convergence (4)"
@@ -215,21 +211,21 @@ coef = mp_tmb_coef(cal) |> round_coef_tab()
 coef$true = true[coef$mat]
 print(coef)
 #>     mat row default estimate std.error true
-#> 1  beta   0     0.2   0.1814    0.1613  0.3
-#> 2 gamma   0     0.1   0.0580    0.0841 0.05
-#> 3 alpha   0     0.5   0.4357    0.9622  0.1
+#> 1  beta   0     0.2   0.1443    0.0533  0.3
+#> 2 gamma   0     0.1   0.0155    0.0276 0.05
+#> 3 alpha   0     0.5   1.0841    2.7316  0.1
 ```
 
-The estimate is not very close to the true value, indicate that although
-the optimizer converged it was not able to find the true parameter
-values. This is a strong indication that there is not enough information
-in incidence data to estimate all three model parameters. This case is
-made stronger by the excellent fit to the data, as we should below. A
-good fit that converged, but to incorrect parameter values, is always a
-possibility. One should be cautious about estimating parameters from
-data and check to make sure that the parameters make sense. A more
-realistic exploration of these identifiability issues can be found in or
-description of the [SHIVER
+The estimate is not very close to the true value, indicating that
+although the optimizer converged it was not able to find the true
+parameter values. This is a strong indication that there is not enough
+information in incidence data to estimate all three model parameters.
+This case is made stronger by the excellent fit to the data, as we
+should below. A good fit that converged, but to incorrect parameter
+values, is always a possibility. One should be cautious about estimating
+parameters from data and check to make sure that the parameters make
+sense. A more realistic exploration of these identifiability issues can
+be found in or description of the [SHIVER
 model](https://github.com/canmod/macpan2/tree/main/inst/starter_models/shiver).
 
 ``` r

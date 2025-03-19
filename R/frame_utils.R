@@ -61,7 +61,14 @@ bind_rows <- function(..., .id = NULL) {
   if (!missing(.id) & !all_empty) {
     lsts <- lapply(seq_along(lsts), function(i) {
       nms <- names(lsts)
-      id_df <- data.frame(id = if (is.null(nms)) as.character(i) else nms[i], stringsAsFactors = FALSE)
+      id_col = if (is.null(nms)) {
+        as.character(i)
+      } else if (nrow(lsts[[i]]) == 0L) {
+        character()
+      } else {
+        nms[i]
+      }
+      id_df <- data.frame(id = id_col, stringsAsFactors = FALSE)
       colnames(id_df) <- .id
       y = try(cbind(id_df, lsts[[i]]), silent = TRUE)
       if (inherits(y, "try-error")) return(NULL)
@@ -190,4 +197,59 @@ frame_to_mat_list = function(x) {
     }
   }
   y
+}
+
+# @param update_list List of matrices that are used to replace 
+# parameter values in the param_frame.
+# @param param_frame Data frame representing a parameterization
+# obtained probably by calibrator$simulator$current$params_frame()
+# @param ... Arguments to pass to rename_synonyms to enforce the right
+# version of column names (e.g., convert `matrix` to `mat`).
+# @return Updated parameter vector.
+updated_param_vector = function(update_object, param_frame, ...) {
+  UseMethod("updated_param_vector")
+}
+
+#' @export
+updated_param_vector.list = function(update_object, param_frame, ...) {
+  param_frame = rename_synonyms(param_frame, ...)
+  for (k in seq_len(nrow(param_frame))) {
+    prow = param_frame[k, , drop = FALSE]
+    if (prow[["matrix"]] %in% names(update_object)) {
+      mm = update_object[[prow[["matrix"]]]]
+      rn = rownames(mm); cn = colnames(mm); nms = names(mm)
+      if (!is.null(nms)) rn = nms
+      rr = prow[["row"]]; cc = prow[["col"]]
+      if (grepl("^[0-9]+$", rr)) {
+        i = as.integer(rr) + 1L
+      } else if (nchar(rr) == 0) {
+        i = 1L
+      } else {
+        if (is.null(rn)) stop("Rows in param_frame contains names, but variables in update_object have no row names")
+        i = rr
+      }
+      if (grepl("^[0-9]+$", cc)) {
+        j = as.integer(cc) + 1L
+      } else if (nchar(cc) == 0) {
+        j = 1L
+      } else {
+        if (is.null(cn)) stop("Columns in param_frame contains names, but variables in update_object have no column names")
+        j = cc
+      }
+      if (length(dim(mm)) == 2L) {
+        newval = mm[i, j, drop = TRUE]
+      } else {
+        newval = mm[i]
+      }
+      if (!is.null(newval) & is.numeric(newval)) {
+        param_frame[k, "value"] = newval
+      }
+    }
+  }
+  return(param_frame[["value"]])
+}
+#' @export
+updated_param_vector.data.frame = function(update_object, param_frame, ...) {
+  param_frame = rename_synonyms(param_frame, ...)
+  stop("Not yet able to update parameter values using data frames. Please supply a named list of variables containing the updated value")
 }

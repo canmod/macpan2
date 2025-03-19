@@ -4,7 +4,7 @@
 \alias{mp_tmb_insert}
 \alias{mp_tmb_update}
 \alias{mp_tmb_delete}
-\title{Transform a TMB Model Spec}
+\title{Transform a TMB Model Specification}
 \usage{
 mp_tmb_insert(
   model,
