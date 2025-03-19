@@ -169,10 +169,10 @@ Calibrate the model and check for convergence (convergence = 0 is good).
 mp_optimize(cal)
 #> $par
 #>    params    params 
-#> 0.4096054 0.1002555 
+#> 0.4100232 0.1002795 
 #> 
 #> $objective
-#> [1] 204.8933
+#> [1] 203.0511
 #> 
 #> $convergence
 #> [1] 0
@@ -199,7 +199,7 @@ coef = mp_tmb_coef(cal) |> round_coef_tab()
 coef$true = true[coef$mat]
 print(coef)
 #>    mat row default estimate std.error true
-#> 1 beta   0   0.200   0.4096    0.0144  0.4
+#> 1 beta   0   0.200   0.4100    0.0146  0.4
 #> 2   mu   0   0.095   0.1003    0.0009  0.1
 ```
 

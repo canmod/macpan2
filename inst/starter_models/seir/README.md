@@ -2,15 +2,19 @@ Basic SEIR
 ================
 Steve Walker
 
-- [Packages Used and Settings](#packages-used-and-settings)
-- [Model Specification](#model-specification)
-- [States](#states)
-- [Parameters](#parameters)
-- [Dynamics](#dynamics)
-- [Calibration](#calibration)
-  - [Simulate fake data](#simulate-fake-data)
-  - [Calibrate the model](#calibrate-the-model)
-  - [Explore the fit](#explore-the-fit)
+-   <a href="#packages-used-and-settings"
+    id="toc-packages-used-and-settings">Packages Used and Settings</a>
+-   <a href="#model-specification" id="toc-model-specification">Model
+    Specification</a>
+-   <a href="#states" id="toc-states">States</a>
+-   <a href="#parameters" id="toc-parameters">Parameters</a>
+-   <a href="#dynamics" id="toc-dynamics">Dynamics</a>
+-   <a href="#calibration" id="toc-calibration">Calibration</a>
+    -   <a href="#simulate-fake-data" id="toc-simulate-fake-data">Simulate fake
+        data</a>
+    -   <a href="#calibrate-the-model" id="toc-calibrate-the-model">Calibrate
+        the model</a>
+    -   <a href="#explore-the-fit" id="toc-explore-the-fit">Explore the fit</a>
 
 We introduce the *exposed* compartment, to capture the time period in
 which individuals have been exposed to the disease but are not yet
@@ -59,12 +63,12 @@ article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/seir/RE
 
 # States
 
-| variable | description |
-|----|----|
-| S | Number of susceptible individuals |
-| E | Number of exposed individuals (i.e., infected individuals that are not yet infectious) |
-| I | Number of infectious individuals |
-| R | Number of recovered individuals |
+| variable | description                                                                            |
+|----------|----------------------------------------------------------------------------------------|
+| S        | Number of susceptible individuals                                                      |
+| E        | Number of exposed individuals (i.e., infected individuals that are not yet infectious) |
+| I        | Number of infectious individuals                                                       |
+| R        | Number of recovered individuals                                                        |
 
 The size of the total population is, $N = S + E + I + R$.
 

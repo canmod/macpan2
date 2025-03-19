@@ -352,7 +352,11 @@ make_rbf_calibrator = function(dimension) {
     , tv = mp_rbf("beta", dimension)
     ## -----------------------------
     
-    , par = c("gamma", "I", "report_prob")
+    , par = list(
+        gamma = mp_uniform()
+      , I = mp_uniform()
+      , report_prob = mp_uniform()
+    )
   )
 }
 ```
