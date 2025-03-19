@@ -190,6 +190,7 @@ reference:
   - mp_layout_grid
   - mp_layout_paths
   - find_all_paths
+  - dot_layout
 
 - subtitle: Structured Populations (Not Ready)
   desc: > 
