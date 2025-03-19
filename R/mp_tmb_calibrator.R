@@ -239,10 +239,6 @@ print.TMBCalibrator = function(x, ...) {
 #' options and details on using each option.
 #' @param ... Arguments to pass to the `optimizer`.
 #' 
-#' @returns The output of the `optimizer`. The `model` object is modified
-#' and saves the history of optimization outputs. These outputs can be 
-#' obtained using \code{\link{mp_optimizer_output}}.
-#' 
 #' # Details on Using Each Type of Optimizer
 #' 
 #' ## `nlminb`
@@ -322,6 +318,10 @@ print.TMBCalibrator = function(x, ...) {
 #' ```
 #' mp_optimize(model, "optimize", c(0, 1.2))
 #' ```
+#' 
+#' @returns The output of the `optimizer`. The `model` object is modified
+#' and saves the history of optimization outputs. These outputs can be 
+#' obtained using \code{\link{mp_optimizer_output}}.
 #' 
 #' @examples
 #' spec = ("starter_models"

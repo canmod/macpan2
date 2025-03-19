@@ -20,12 +20,7 @@ this object will be produced using \code{\link{mp_tmb_calibrator}}.}
 \item{optimizer}{Name of an implemented optimizer. See below for the
 options and details on using each option.}
 
-\item{...}{Arguments to pass to the \code{optimizer}.}
-}
-\value{
-The output of the \code{optimizer}. The \code{model} object is modified
-and saves the history of optimization outputs. These outputs can be
-obtained using \code{\link{mp_optimizer_output}}.Details on Using Each Type of Optimizer
+\item{...}{Arguments to pass to the \code{optimizer}.Details on Using Each Type of Optimizer
 \subsection{\code{nlminb}}{
 
 The default optimizer is \code{\link{nlminb}}. This optimizer uses
@@ -110,7 +105,12 @@ this parameter using the following approach.
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{mp_optimize(model, "optimize", c(0, 1.2))
 }\if{html}{\out{</div>}}
+}}
 }
+\value{
+The output of the \code{optimizer}. The \code{model} object is modified
+and saves the history of optimization outputs. These outputs can be
+obtained using \code{\link{mp_optimizer_output}}.
 }
 \description{
 Calibrate a model that has been parameterized, typically by using
