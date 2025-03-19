@@ -35,8 +35,10 @@
 #' in addition to default updates, need to be added to the spec 
 #' (e.g. seasonally varying transmission).
 #' @param time Specify the start and end time of the simulated trajectories,
-#' and the time period associated with each time step. Currently the only
-#' valid choice is `NULL`, which takes simulation bounds from the `data`.
+#' and the time period associated with each time step. The default is `NULL`, 
+#' which takes simulation bounds from the `data`. You can use 
+#' \code{\link{mp_sim_bounds}} and \code{\link{mp_sim_offset}} to be more
+#' specific.
 #' @param save_data Save a copy of the data in the calibrator object that is
 #' returned, so that you do not need to pass the data manually to downstream 
 #' functions like \code{\link{mp_forecaster}}. It the resulting calibrator
