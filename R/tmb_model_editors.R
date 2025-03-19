@@ -251,6 +251,35 @@ mp_tmb_insert_reports = function(model
   )
 }
 
+#' Insert Log Linear Model of Time Variation
+#' 
+#' @param model A model specification (see \code{\link{mp_tmb_model_spec}}).
+#' @param parameter_name Character string giving the name of the parameter
+#' to make time-varying.
+#' @param design_matrices List of matrices, one for each time window, describing
+#' the model of time variation.
+#' @param time_var_parameters Named list of parameter vectors for each window,
+#' with names giving the window names.
+#' @param window_names Names for each window.
+#' @param baseline_functions It is complicated -- this is a joke -- I'm tired.
+#' @param link_functions List of objects representing link functions.
+#' @param full_series_name Name of variable storing the full time series.
+#' @param baseline_names Names of variables containing the baseline in 
+#' each window.
+#' @param matrix_coef_names Names of vectors containing values of the non-zero 
+#' elements of the design matrices.
+#' @param matrix_row_names Names of the vectors containing row indices of
+#' the non-zero elements of the design matrices.
+#' @param matrix_col_names Names of the vectors containing column indices of
+#' the non-zero elements of the design matrices.
+#' @param linear_pred_names Names of the vectors containing the linear 
+#' predictors in each window.
+#' @param time_var_names Names of the time-varying parameter in each window.
+#' @param time_index_name Name of the index at which the time varying
+#' parameter changes.
+#' @param sparsity_tolerance Make design matrix coefficients exactly zero
+#' when they are below this tolerance.
+#' 
 #' @export
 mp_tmb_insert_log_linear = function(model
     , parameter_name

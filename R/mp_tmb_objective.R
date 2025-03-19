@@ -1,3 +1,8 @@
+#' Value of the Objective Function of a Model
+#' 
+#' @param model A model with an objective function, probably one produced using
+#' \code{\link{mp_tmb_calibrator}}.
+#' @inheritParams mp_trajectory_par
 #' @export
 mp_tmb_objective = function(model
     , parameter_updates = list()

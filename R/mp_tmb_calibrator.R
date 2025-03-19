@@ -333,11 +333,9 @@ print.TMBCalibrator = function(x, ...) {
 #' ## simulate data to fit to, but remove the start of the
 #' ## simulated epidemic in order to make it more difficult
 #' ## to fit.
-#' data = (sim
-#'   |> mp_trajectory()
-#'   |> filter(time > 24)
-#'   |> mutate(time = time - 24)
-#' )
+#' data = mp_trajectory(sim)
+#' data = data[data$time > 24, ]
+#' data$time = data$time - 24
 #' 
 #' ## time scale object that accounts for the 24-steps of
 #' ## the epidemic that are not captured in the data.
