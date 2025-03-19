@@ -135,8 +135,10 @@ in addition to default updates, need to be added to the spec
 
 <dt id="arg-time">time<a class="anchor" aria-label="anchor" href="#arg-time"></a></dt>
 <dd><p>Specify the start and end time of the simulated trajectories,
-and the time period associated with each time step. Currently the only
-valid choice is <code>NULL</code>, which takes simulation bounds from the <code>data</code>.</p></dd>
+and the time period associated with each time step. The default is <code>NULL</code>,
+which takes simulation bounds from the <code>data</code>. You can use
+<code><a href="mp_sim_bounds.html">mp_sim_bounds</a></code> and <code><a href="mp_sim_offset.html">mp_sim_offset</a></code> to be more
+specific.</p></dd>
 
 
 <dt id="arg-save-data">save_data<a class="anchor" aria-label="anchor" href="#arg-save-data"></a></dt>
