@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.15.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.16.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -203,23 +203,23 @@ even though the initial values of the state variables were identical in
 all three cases.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/mp_initial.html">mp_initial</a></span><span class="op">(</span><span class="va">si_euler</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   matrix time row col  value</span></span>
-<span><span class="co">#&gt; 1      N    0   0   0 100.00</span></span>
-<span><span class="co">#&gt; 2      I    0   0   0   1.00</span></span>
-<span><span class="co">#&gt; 3   beta    0   0   0   0.25</span></span>
-<span><span class="co">#&gt; 4      S    0   0   0  99.00</span></span>
+<span><span class="co">#&gt;   matrix row col  value</span></span>
+<span><span class="co">#&gt; 1      N         100.00</span></span>
+<span><span class="co">#&gt; 2      I           1.00</span></span>
+<span><span class="co">#&gt; 3   beta           0.25</span></span>
+<span><span class="co">#&gt; 4      S          99.00</span></span>
 <span><span class="fu"><a href="../reference/mp_initial.html">mp_initial</a></span><span class="op">(</span><span class="va">si_euler_multinomial</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   matrix time row col  value</span></span>
-<span><span class="co">#&gt; 1      N    0   0   0 100.00</span></span>
-<span><span class="co">#&gt; 2      I    0   0   0   1.00</span></span>
-<span><span class="co">#&gt; 3   beta    0   0   0   0.25</span></span>
-<span><span class="co">#&gt; 4      S    0   0   0  99.00</span></span>
+<span><span class="co">#&gt;   matrix row col  value</span></span>
+<span><span class="co">#&gt; 1      N         100.00</span></span>
+<span><span class="co">#&gt; 2      I           1.00</span></span>
+<span><span class="co">#&gt; 3   beta           0.25</span></span>
+<span><span class="co">#&gt; 4      S          99.00</span></span>
 <span><span class="fu"><a href="../reference/mp_initial.html">mp_initial</a></span><span class="op">(</span><span class="va">si_rk4</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   matrix time row col  value</span></span>
-<span><span class="co">#&gt; 1      N    0   0   0 100.00</span></span>
-<span><span class="co">#&gt; 2      I    0   0   0   1.00</span></span>
-<span><span class="co">#&gt; 3   beta    0   0   0   0.25</span></span>
-<span><span class="co">#&gt; 4      S    0   0   0  99.00</span></span></code></pre></div>
+<span><span class="co">#&gt;   matrix row col  value</span></span>
+<span><span class="co">#&gt; 1      N         100.00</span></span>
+<span><span class="co">#&gt; 2      I           1.00</span></span>
+<span><span class="co">#&gt; 3   beta           0.25</span></span>
+<span><span class="co">#&gt; 4      S          99.00</span></span></code></pre></div>
 <p>The incidence is different, even during the first time step, because
 each state update method causes different numbers of susceptible
 individuals to become infectious at each time step. Further, incidence
@@ -440,7 +440,7 @@ I     recovery   gamma</code></pre>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">si</span> <span class="op">=</span> <span class="fu"><a href="../reference/mp_tmb_library.html">mp_tmb_library</a></span><span class="op">(</span><span class="st">"starter_models"</span>, <span class="st">"sir"</span>, package <span class="op">=</span> <span class="st">"macpan2"</span><span class="op">)</span></span>
 <span><span class="va">si</span><span class="op">$</span><span class="va">change_model</span></span>
-<span><span class="co">#&gt; Classes 'SimpleChangeModel', 'ChangeModelDefaults', 'ChangeModel', 'Base' &lt;environment: 0x564b7b6b1850&gt; </span></span>
+<span><span class="co">#&gt; Classes 'SimpleChangeModel', 'ChangeModelDefaults', 'ChangeModel', 'Base' &lt;environment: 0x55d60a6d13b0&gt; </span></span>
 <span><span class="co">#&gt; after_loop : function ()  </span></span>
 <span><span class="co">#&gt; after_state : function ()  </span></span>
 <span><span class="co">#&gt; all_user_aware_names : function ()  </span></span>
@@ -472,26 +472,26 @@ I     recovery   gamma</code></pre>
 <span><span class="va">si</span><span class="op">$</span><span class="va">change_model</span><span class="op">$</span><span class="fu">update_state</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [[1]]</span></span>
 <span><span class="co">#&gt; S ~ -infection</span></span>
-<span><span class="co">#&gt; &lt;environment: 0x564b7bb5b200&gt;</span></span>
+<span><span class="co">#&gt; &lt;environment: 0x55d60ab97568&gt;</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; [[2]]</span></span>
 <span><span class="co">#&gt; I ~ +infection - recovery</span></span>
-<span><span class="co">#&gt; &lt;environment: 0x564b7bb5b200&gt;</span></span>
+<span><span class="co">#&gt; &lt;environment: 0x55d60ab97568&gt;</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; [[3]]</span></span>
 <span><span class="co">#&gt; R ~ +recovery</span></span>
-<span><span class="co">#&gt; &lt;environment: 0x564b7bb5b200&gt;</span></span>
+<span><span class="co">#&gt; &lt;environment: 0x55d60ab97568&gt;</span></span>
 <span><span class="va">si</span><span class="op">$</span><span class="va">change_model</span><span class="op">$</span><span class="fu">update_flows</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $S</span></span>
 <span><span class="co">#&gt; $S[[1]]</span></span>
 <span><span class="co">#&gt; infection ~ beta * I/N</span></span>
-<span><span class="co">#&gt; &lt;environment: 0x564b7bc1b028&gt;</span></span>
+<span><span class="co">#&gt; &lt;environment: 0x55d60ac43f70&gt;</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $I</span></span>
 <span><span class="co">#&gt; $I[[1]]</span></span>
 <span><span class="co">#&gt; recovery ~ gamma</span></span>
-<span><span class="co">#&gt; &lt;environment: 0x564b7bc1b028&gt;</span></span></code></pre></div>
+<span><span class="co">#&gt; &lt;environment: 0x55d60ac43f70&gt;</span></span></code></pre></div>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">=</span> <span class="fu"><a href="../reference/mp_tmb_model_spec.html">mp_tmb_model_spec</a></span><span class="op">(</span></span>
 <span>  during <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
@@ -503,13 +503,13 @@ I     recovery   gamma</code></pre>
 <span><span class="co">#&gt; $A</span></span>
 <span><span class="co">#&gt; $A[[1]]</span></span>
 <span><span class="co">#&gt; r ~ a</span></span>
-<span><span class="co">#&gt; &lt;environment: 0x564b74b41d68&gt;</span></span>
+<span><span class="co">#&gt; &lt;environment: 0x55d6047622d8&gt;</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $B</span></span>
 <span><span class="co">#&gt; $B[[1]]</span></span>
 <span><span class="co">#&gt; rr ~ b</span></span>
-<span><span class="co">#&gt; &lt;environment: 0x564b74b41d68&gt;</span></span></code></pre></div>
+<span><span class="co">#&gt; &lt;environment: 0x55d6047622d8&gt;</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="updatemethod-classes">

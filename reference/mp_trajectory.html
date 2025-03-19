@@ -11,7 +11,7 @@ in context, please see vignette("quickstart").'></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.15.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.16.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -57,13 +57,34 @@ in context, please see <code><a href="../articles/quickstart.html">vignette("qui
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">mp_trajectory</span><span class="op">(</span><span class="va">model</span>, include_initial <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">mp_trajectory_sd</span><span class="op">(</span><span class="va">model</span>, conf.int <span class="op">=</span> <span class="cn">FALSE</span>, conf.level <span class="op">=</span> <span class="fl">0.95</span><span class="op">)</span></span>
+<span><span class="fu">mp_trajectory_par</span><span class="op">(</span></span>
+<span>  <span class="va">model</span>,</span>
+<span>  parameter_updates <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  include_initial <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  include_final <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  baseline <span class="op">=</span> <span class="fu"><a href="engine_functions.html">c</a></span><span class="op">(</span><span class="st">"recommended"</span>, <span class="st">"default"</span>, <span class="st">"optimized"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">mp_trajectory_sd</span><span class="op">(</span></span>
+<span>  <span class="va">model</span>,</span>
+<span>  conf.int <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  conf.level <span class="op">=</span> <span class="fl">0.95</span>,</span>
+<span>  include_initial <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  back_transform <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">mp_trajectory_ensemble</span><span class="op">(</span><span class="va">model</span>, <span class="va">n</span>, probs <span class="op">=</span> <span class="fu"><a href="engine_functions.html">c</a></span><span class="op">(</span><span class="fl">0.025</span>, <span class="fl">0.975</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">mp_trajectory_sim</span><span class="op">(</span><span class="va">model</span>, <span class="va">n</span>, probs <span class="op">=</span> <span class="fu"><a href="engine_functions.html">c</a></span><span class="op">(</span><span class="fl">0.025</span>, <span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>, <span class="fl">0.975</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">mp_trajectory_replicate</span><span class="op">(</span><span class="va">model</span>, <span class="va">n</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">mp_trajectory_replicate</span><span class="op">(</span></span>
+<span>  <span class="va">model</span>,</span>
+<span>  <span class="va">n</span>,</span>
+<span>  parameter_updates <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  include_initial <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  include_final <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  baseline <span class="op">=</span> <span class="fu"><a href="engine_functions.html">c</a></span><span class="op">(</span><span class="st">"recommended"</span>, <span class="st">"default"</span>, <span class="st">"optimized"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -82,6 +103,41 @@ associated with the initial values. See <code><a href="mp_initial.html">mp_initi
 approach to getting the initial values.</p></dd>
 
 
+<dt id="arg-parameter-updates">parameter_updates<a class="anchor" aria-label="anchor" href="#arg-parameter-updates"></a></dt>
+<dd><p>Named list of a subset of model variables with
+the values to use when simulating the trajectory using the
+<code>mp_trajectory_par</code> function. In the future we plan
+to allow this variable to be a data frame with one row for each scalar value
+(which would be useful if only certain elements of a vector
+or matrix are parameters) and a string giving the name of a file containing
+parameter information. But for now, only a list is allowed.</p></dd>
+
+
+<dt id="arg-include-final">include_final<a class="anchor" aria-label="anchor" href="#arg-include-final"></a></dt>
+<dd><p>Should the final values of the simulation, after the
+post-simulation processing steps in the <code>after</code> stage of a model, be
+included in the output? If <code>TRUE</code> this will include outputs for
+<code>time == time_steps + 1</code>, associated with the values of the variables
+after the full trajectory has been post-processed in the <code>after</code> stage.
+See <code><a href="mp_final.html">mp_final</a></code> for another approach to getting the final values.</p></dd>
+
+
+<dt id="arg-baseline">baseline<a class="anchor" aria-label="anchor" href="#arg-baseline"></a></dt>
+<dd><p>Models can contain several alternative sets of
+parameters, and this <code>baseline</code> argument is used to choose which of these
+should be updated using the <code>parameter_updates</code> passed to
+<code>mp_trajectory_par</code>. The current options are <code>"recommended"</code>, <code>"optimized"</code>,
+and <code>"default"</code>. The <code>"recommended"</code> option will be used if neither of the
+other two options are selected. If <code>model</code> is capable of being optimized
+(e.g., it was created using <code><a href="mp_tmb_calibrator.html">mp_tmb_calibrator</a></code>) then
+<code>"recommended"</code> is equivalent to <code>"optimized"</code>, which use the best set of
+parameters found by <code><a href="mp_optimize.html">mp_optimize</a></code>. If <code><a href="mp_optimize.html">mp_optimize</a></code>
+has not yet been called on <code>model</code> then a warning will be issued. If
+<code>model</code> is not capable of being optimized then <code>"recommended"</code> is
+equivalent to <code>"default"</code>, which uses the original set of parameters
+available when <code>model</code> was created.</p></dd>
+
+
 <dt id="arg-conf-int">conf.int<a class="anchor" aria-label="anchor" href="#arg-conf-int"></a></dt>
 <dd><p>Should confidence intervals be produced?</p></dd>
 
@@ -90,6 +146,18 @@ approach to getting the initial values.</p></dd>
 <dd><p>If <code>conf.int</code> is <code>TRUE</code>, what confidence level should be
 used?  For example, the default of <code>0.95</code> corresponds to 95% confidence
 intervals.</p></dd>
+
+
+<dt id="arg-back-transform">back_transform<a class="anchor" aria-label="anchor" href="#arg-back-transform"></a></dt>
+<dd><p>A boolean to indicate if trajectories, standard
+deviations, and confidence intervals should be back transformed to
+the original scale. Variable names are also stripped of their
+transformation identifier. Currently, this back transformation only
+applies to log transformed coefficients that have been named with "log_"
+prefix or logit transformed coefficients that have been named with "logit_"
+prefix. Back transformation also applies to time varying parameters and
+distributional parameters that get automatic prefixes when used.
+<code>back_transform</code> defaults to <code>TRUE</code>.</p></dd>
 
 
 <dt id="arg-n">n<a class="anchor" aria-label="anchor" href="#arg-n"></a></dt>
@@ -149,7 +217,9 @@ The n-th quantiles of the simulation values over repeated simulations.</p></dd>
     <div class="section level2">
     <h2 id="functions">Functions<a class="anchor" aria-label="anchor" href="#functions"></a></h2>
 
-<ul><li><p><code>mp_trajectory_sd()</code>: Simulate a trajectory that includes uncertainty
+<ul><li><p><code>mp_trajectory_par()</code>: Produce a trajectory, after updating the <code>baseline</code>
+set of parameters with values in <code>parameter_updates</code>.</p></li>
+<li><p><code>mp_trajectory_sd()</code>: Simulate a trajectory that includes uncertainty
 information provided by the <code>sdreport</code> function in <code>TMB</code> with default
 settings.</p></li>
 <li><p><code>mp_trajectory_ensemble()</code>: Simulate a trajectory that includes uncertainty

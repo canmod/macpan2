@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.15.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.16.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -1088,7 +1088,7 @@ points where each optimization attempt stopped?</p>
 <div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/ArdiaD/DEoptim" class="external-link">DEoptim</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">101</span><span class="op">)</span></span>
-<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu">DEoptim</span><span class="op">(</span><span class="va">simulator</span><span class="op">$</span><span class="va">objective</span>, lower <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">rep</a></span><span class="op">(</span><span class="op">-</span><span class="fl">10</span>, <span class="fl">2</span><span class="op">)</span>, upper <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">rep</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/DEoptim/man/DEoptim.html" class="external-link">DEoptim</a></span><span class="op">(</span><span class="va">simulator</span><span class="op">$</span><span class="va">objective</span>, lower <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">rep</a></span><span class="op">(</span><span class="op">-</span><span class="fl">10</span>, <span class="fl">2</span><span class="op">)</span>, upper <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">rep</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">fitted_incidence</span> <span class="op">=</span> <span class="op">(</span><span class="va">simulator</span><span class="op">$</span><span class="fu">ad_fun</span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="va">env</span><span class="op">$</span><span class="va">last.par.best</span></span>
 <span>    <span class="op">|&gt;</span> <span class="va">simulator</span><span class="op">$</span><span class="fu">report</span><span class="op">(</span><span class="op">)</span></span>
 <span>    <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">matrix</span> <span class="op">==</span> <span class="st">"infection"</span><span class="op">)</span></span>

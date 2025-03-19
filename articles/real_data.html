@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.15.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.16.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -455,10 +455,10 @@ magnitude.</p>
 <span><span class="co">#&gt; gamma        1.0000000  1.0000000 -0.9998553   0.9996870</span></span>
 <span><span class="co">#&gt; I           -0.9998561 -0.9998553  1.0000000  -0.9993009</span></span>
 <span><span class="co">#&gt; report_prob  0.9996857  0.9996870 -0.9993009   1.0000000</span></span></code></pre></div>
-<p>This diagnosis, if correct, suggests that the data are not
-sufficiently informative to identify values for both <code>beta</code>
-and <code>gamma</code>. Resolving such identifiability issues is often
-best done by introducing prior information, such as our rough guess that
+<p>This diagnosis suggests that the data are not sufficiently
+informative to identify values for both <code>beta</code> and
+<code>gamma</code>. Resolving such identifiability issues is often best
+done by introducing prior information, such as our rough guess that
 <code>gamma</code> is close to <code>1</code>. The simplest way to
 include such prior information is to move <code>gamma</code> out of the
 <code>pars</code> argument to <code>mp_tmb_calibrator</code> and into
@@ -538,10 +538,12 @@ consistent with our diagnosis of non-identifiability.</p>
 <span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">matrix</span>, ncol <span class="op">=</span> <span class="fl">1</span>, scales <span class="op">=</span> <span class="st">"free"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="real_data_files/figure-html/unnamed-chunk-18-1.png" width="672"></p>
-<p>Caution: Ben, what is that paper that you always recommend about
-being careful when prior information is included without prior
-uncertainty? This one <span class="citation">(<a href="#ref-elderdUncertainty2006">Elderd, Dukic, and Dwyer
-2006</a>)</span></p>
+<p>Caution: Here we use prior information to assume a reasonable value
+of <code>gamma = 1</code>, but ignore prior uncertainty. This can cause
+underestimates of uncertainty in other parameters that are fitted (see
+<span class="citation">(<a href="#ref-elderdUncertainty2006">Elderd,
+Dukic, and Dwyer 2006</a>)</span>). It is better to use a <a href="https://canmod.github.io/macpan2/articles/likelihood_prior_specs.html">prior
+distribution</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="learning-the-functional-form-of-time-variation-in-transmission-new">Learning the Functional form of Time Variation in Transmission

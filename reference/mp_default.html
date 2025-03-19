@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.15.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.16.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -49,9 +49,9 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">mp_default</span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">mp_default</span><span class="op">(</span><span class="va">model</span>, include_all <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">mp_default_list</span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">mp_default_list</span><span class="op">(</span><span class="va">model</span>, include_all <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -59,7 +59,20 @@
 
 
 <dl><dt id="arg-model">model<a class="anchor" aria-label="anchor" href="#arg-model"></a></dt>
-<dd><p>A model object from which to extract default values.</p></dd>
+<dd><p>A model object from which to extract default values. If
+<code>model</code> is a calibrator object (see <code><a href="mp_tmb_calibrator.html">mp_tmb_calibrator</a></code>)
+that has been optimized (using <code><a href="mp_optimize.html">mp_optimize</a></code>), then the values
+returned by <code>mp_default</code> and <code>mp_default_list</code> are updated to reflect this
+calibration/optimization process.</p></dd>
+
+
+<dt id="arg-include-all">include_all<a class="anchor" aria-label="anchor" href="#arg-include-all"></a></dt>
+<dd><p>Include all default variables, even those that are not
+used in the <code>before</code>, <code>during</code>, or <code>after</code> phase of the simulations.
+When <code>include_all</code> is <code>FALSE</code>, examples of excluded variables are
+those used by an objective function only or those intended to be used in an
+extended model specification produced using functions like
+<code><a href="mp_tmb_insert.html">mp_tmb_insert</a></code> and <code><a href="mp_tmb_insert.html">mp_tmb_update</a></code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
