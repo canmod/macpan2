@@ -7,7 +7,7 @@
 \alias{mp_state_flow_vars}
 \title{State and Flow Variable Names}
 \usage{
-mp_state_vars(spec, topological_sort = FALSE, loops = "^$", prefix = "")
+mp_state_vars(spec, topological_sort = FALSE, loops = "^$", trans = "")
 
 mp_flow_vars(spec, topological_sort = FALSE, loops = "^$", trans = "")
 

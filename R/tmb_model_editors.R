@@ -360,6 +360,19 @@ mp_tmb_insert_log_linear = function(model
   return(model)
 }
 
+#' Insert Basic Transformations of Model Variables
+#' 
+#' @inheritParams mp_tmb_insert
+#' @param variables Character vector of variables to transform.
+#' @param transformation A transformation object such as \code{\link{mp_log}},
+#' which is the default. See the help page for \code{\link{mp_log}} for 
+#' available options.
+#' 
+#' @return A new model spec object with expressions for the transformed 
+#' variables at the end of the simulation loop. The transformed variables
+#' are identified with a prefixed name (e.g., `log_incidence` if `incidence`
+#' is log transformed).
+#' 
 #' @export
 mp_tmb_insert_trans = function(model
     , variables = character()

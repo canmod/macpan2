@@ -191,11 +191,11 @@ NULL
 
 #' @describeIn mp_vars Return character vector of all state variables.
 #' @export
-mp_state_vars = function(spec, topological_sort = FALSE, loops = "^$", prefix = "") {
+mp_state_vars = function(spec, topological_sort = FALSE, loops = "^$", trans = "") {
   states = vapply(spec$change_model$update_state(), lhs_char, character(1L))
   flows = mp_flow_frame(spec, topological_sort = FALSE)
   if (topological_sort) states = topological_sort_general(flows, loops, states)
-  return(sprintf("%s_%s", prefix, states))
+  return(sprintf("%s_%s", trans, states))
 }
 
 #' @describeIn mp_vars Return the names of all variables that contain
