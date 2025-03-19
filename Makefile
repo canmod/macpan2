@@ -170,7 +170,7 @@ compile-dev: misc/dev/dev.cpp
 	cd misc/dev; echo "TMB::compile(\"dev.cpp\")" | R --slave
 
 
-inst/starter_models/%/README.md: inst/starter_models/%/README.Rmd DESCRIPTION
+inst/starter_models/%/README.md: inst/starter_models/%/README.Rmd DESCRIPTION R/*.R
 	echo "rmarkdown::render(\"$<\")" | R --slave
 
 inst/starter_models/%/README.push: inst/starter_models/%/README.md
