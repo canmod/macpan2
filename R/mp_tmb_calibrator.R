@@ -38,7 +38,8 @@
 #' and the time period associated with each time step. The default is `NULL`, 
 #' which takes simulation bounds from the `data`. You can use 
 #' \code{\link{mp_sim_bounds}} and \code{\link{mp_sim_offset}} to be more
-#' specific.
+#' specific. See the example on the \code{\link{mp_optimize}} help file for
+#' an illustration the use of \code{\link{mp_sim_offset}}.
 #' @param save_data Save a copy of the data in the calibrator object that is
 #' returned, so that you do not need to pass the data manually to downstream 
 #' functions like \code{\link{mp_forecaster}}. It the resulting calibrator

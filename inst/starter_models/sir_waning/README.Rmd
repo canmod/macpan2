@@ -1,5 +1,5 @@
 ---
-title: "SIR with Waning Immunity"
+title: "SIR with Waning Immunity (SIRS)"
 index_entry: "A basic SIR model with a flow from R back to S"
 bibliography: ../../references.bib
 link-citations: TRUE
@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
 system.file("utils", "round-coef.R", package = "macpan2") |> source()
 ```
 
-Endemic pathogens can sometimes be modelled by sending R back to S, thereby controlling susceptible depletion such that new infections keep arising indefinitely. This is an extension of the [sir](https://github.com/canmod/macpan2/tree/main/inst/starter_models/sir) model to include such immunity waning.
+Endemic pathogens can sometimes be modelled by sending R back to S, thereby controlling susceptible depletion such that new infections keep arising indefinitely. This is an extension of the [sir](https://github.com/canmod/macpan2/tree/main/inst/starter_models/sir) model to include immunity waning. This model is commonly called the SIRS model.
 
 # Packages Used and Settings
 
