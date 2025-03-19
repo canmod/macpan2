@@ -195,7 +195,8 @@ mp_state_vars = function(spec, topological_sort = FALSE, loops = "^$", trans = "
   states = vapply(spec$change_model$update_state(), lhs_char, character(1L))
   flows = mp_flow_frame(spec, topological_sort = FALSE)
   if (topological_sort) states = topological_sort_general(flows, loops, states)
-  return(sprintf("%s_%s", trans, states))
+  if (nchar(trans) > 0) states = sprintf("%s_%s", trans, states)
+  return(states)
 }
 
 #' @describeIn mp_vars Return the names of all variables that contain
@@ -209,7 +210,8 @@ mp_flow_vars = function(spec, topological_sort = FALSE, loops = "^$", trans = ""
   } else {
     flow_vars = spec$change_model$flow_frame()$change
   }
-  unique(sprintf("%s_%s", trans, flow_vars))
+  if (nchar(trans) > 0) flow_vars = sprintf("%s_%s", trans, flow_vars)
+  return(flow_vars)
 }
 
 #' @describeIn mp_vars Union of `mp_state_vars()` and `mp_flow_vars()`.
