@@ -38,7 +38,8 @@
 #' and the time period associated with each time step. The default is `NULL`, 
 #' which takes simulation bounds from the `data`. You can use 
 #' \code{\link{mp_sim_bounds}} and \code{\link{mp_sim_offset}} to be more
-#' specific.
+#' specific. See the example on the \code{\link{mp_optimize}} help file for
+#' an illustration the use of \code{\link{mp_sim_offset}}.
 #' @param save_data Save a copy of the data in the calibrator object that is
 #' returned, so that you do not need to pass the data manually to downstream 
 #' functions like \code{\link{mp_forecaster}}. It the resulting calibrator
@@ -445,37 +446,6 @@ TMBCalDataStruc = function(data, time) {
     FALSE
   }
   
-  # self$time_steps = time$bound_steps()[2L]
-  # data$time_ids = time$time_ids(data$time)
-  # self$data_time_ids = data$time_ids
-  # self$data_time_steps = max(data$time_ids)
-
-  # if (nrow(data) == 0L) {
-  #   time = Steps(1, 1)
-  # } else {
-  #   if (is.null(time)) {
-  #     if (infer_time_step(data$time)) {
-  #       data$time = as.integer(data$time)
-  #       time = Steps(min(data$time), max(data$time))
-  #     } else {
-  #       ## TODO: I'm guessing this could fail cryptically
-  #       time = Daily(min(data$time), max(data$time), checker = NoError)
-  #     }
-  #   }
-  #   else {
-  #     time = assert_cls(time, "CalTime", match.call(), "?mp_cal_time")
-  #     time$update_data_bounds(data)
-  #   }
-  # }
-  # self$time_steps = time$bound_steps()[2L]
-  # data$time_ids = time$time_ids(data$time)
-  # self$data_time_ids = data$time_ids
-  # if (nrow(data) == 0L) {
-  #   self$data_time_steps = 1L
-  # } else {
-  #   self$data_time_steps = max(data$time_ids)
-  # }
-
   data = rename_synonyms(data
     , time = c(
         "time", "Time", "ID", "time_id", "id", "date", "Date"
@@ -501,7 +471,9 @@ TMBCalDataStruc = function(data, time) {
     original_coercer = force
   }
   if (nrow(data) == 0L) {
-    time = mp_sim_bounds(1L, 1L, "steps")
+    if (is.null(time)) {
+      time = mp_sim_bounds(1L, 1L, "steps")
+    }
   } else {
     if (is.null(time)) {
       if (infer_time_step(data$time)) {
@@ -589,9 +561,6 @@ CalTimeStepsAbstract = function() {
   }
   self$sim_vec = function() seq(from = self$sim_1st(), by = 1L, len = self$sim_len())
   self$dat_vec = function() seq(from = self$dat_1st(), by = 1L, len = self$dat_len())
-  self$extended_time_arg = function(extension) {
-    mp_sim_offset(0, as.integer(extension), "steps")
-  }
   return_object(self, "CalTimeStepsAbstract")
 }
 CalTimeStepsInt = function(ext_sim_1st, ext_sim_end, ext_dat_1st, ext_dat_end, original_coercer = force) {
@@ -610,6 +579,9 @@ CalTimeStepsInt = function(ext_sim_1st, ext_sim_end, ext_dat_1st, ext_dat_end, o
     self$original_coercer(external)
   }
   self$external_to_internal = function(external) external - self$ext_sim_1st + self$sim_1st()
+  self$extended_time_arg = function(extension) {
+    mp_sim_offset(0, as.integer(extension), "steps")
+  }
   return_object(self, "CalTimeStepsInt")
 }
 if (FALSE) {
