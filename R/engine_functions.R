@@ -622,6 +622,9 @@
 #' * `dnorm(observed, simulated, standard_deviation)` --
 #' Log of the normal density based on this [dnorm](https://kaskr.github.io/adcomp/dnorm_8hpp.html)
 #' TMB function.
+#' * `dbinom(observed, size, probability)` --
+#' Log of the binomial density based on the [dbinom](https://kaskr.github.io/adcomp/group__R__style__distribution.html#gaee11f805f02bc1febc6d7bf0487671be)
+#' TMB function.
 #'
 #' ### Arguments
 #'
@@ -839,4 +842,5 @@
 #' @aliases proportions
 #' @aliases last
 #' @aliases check_finite
+#' @aliases dbinom
 NULL

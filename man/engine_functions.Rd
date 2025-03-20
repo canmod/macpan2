@@ -57,6 +57,7 @@
 \alias{proportions}
 \alias{last}
 \alias{check_finite}
+\alias{dbinom}
 \title{Functions Available in the Simulation Engine}
 \description{
 Functions currently supported by the C++ TMB engine
@@ -768,6 +769,9 @@ requires we use this expression, \code{simulated + simulated^2/over_dispersion},
 following p.165 in this \href{https://ms.mcmaster.ca/~bolker/emdbook/book.pdf}{book}
 \item \code{dnorm(observed, simulated, standard_deviation)} --
 Log of the normal density based on this \href{https://kaskr.github.io/adcomp/dnorm_8hpp.html}{dnorm}
+TMB function.
+\item \code{dbinom(observed, size, probability)} --
+Log of the binomial density based on the \href{https://kaskr.github.io/adcomp/group__R__style__distribution.html#gaee11f805f02bc1febc6d7bf0487671be}{dbinom}
 TMB function.
 }
 }
