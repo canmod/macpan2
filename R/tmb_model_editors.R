@@ -368,10 +368,12 @@ mp_tmb_insert_log_linear = function(model
 #' which is the default. See the help page for \code{\link{mp_log}} for 
 #' available options.
 #' 
-#' @return A new model spec object with expressions for the transformed 
+#' @return A new model specification object with expressions for the transformed 
 #' variables at the end of the simulation loop. The transformed variables
 #' are identified with a prefixed name (e.g., `log_incidence` if `incidence`
 #' is log transformed).
+#' 
+#' @seealso [mp_tmb_insert_backtrans()]
 #' 
 #' @export
 mp_tmb_insert_trans = function(model
@@ -383,6 +385,35 @@ mp_tmb_insert_trans = function(model
     , transformation$ref(variables)
   ) |> lapply(as.formula)
   mp_tmb_insert(model, "during", Inf, expr_list)
+}
+
+#' Insert Back Transformations of Model Parameters
+#' 
+#' @inheritParams mp_tmb_insert_trans
+#' @param variable Character vector of parameters to back transform.
+#' 
+#' @return A new model specification object with expressions for the 
+#' untransformed (or back transformed) parameters at the beginning of the
+#' `before` phase. The transformed version of the parameter is also
+#' added to the defaults and are identified with a prefixed name (e.g., 
+#' `log_beta` if `beta` is log transformed).
+#' 
+#' @seealso [mp_tmb_insert_backtrans()]
+#' 
+#' @export
+mp_tmb_insert_backtrans = function(model
+    , variables = character()
+    , transformation = mp_log
+) {
+  default = (model$default(model)[variables] 
+    |> lapply(mp_log$val_inv) 
+    |> setNames(transformation$nm(variables))
+  )
+  expr_list = sprintf("%s ~ %s"
+    , variables
+    , transformation$ref_inv("x")
+  )
+  mp_tmb_insert(model, "before", 1L, expr_list, default)
 }
 
 ## model is a spec
