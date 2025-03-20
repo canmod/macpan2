@@ -3,7 +3,7 @@ title: "SIR with Age-based Transmission"
 index_entry: "An SIR model with age-based transmission"
 bibliography: ../../references.bib
 link-citations: TRUE
-author: Irena papst, Steve Walker
+author: Irena Papst, Steve Walker
 output: 
   github_document:
     toc: true
