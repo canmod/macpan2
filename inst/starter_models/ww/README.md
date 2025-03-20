@@ -2,18 +2,23 @@ Wastewater Model
 ================
 Jennifer Freeman, Steve Walker
 
-- [Packages and Settings Used](#packages-and-settings-used)
-- [Model Specification](#model-specification)
-- [States](#states)
-- [Parameters](#parameters)
-- [Dynamics](#dynamics)
-- [Calibration](#calibration)
-  - [Observed Data Prep](#observed-data-prep)
-  - [Time Bounds](#time-bounds)
-  - [Calibration Model Specification](#calibration-model-specification)
-  - [Calibrate to Data](#calibrate-to-data)
-  - [Explore Fits](#explore-fits)
-- [References](#references)
+-   <a href="#packages-and-settings-used"
+    id="toc-packages-and-settings-used">Packages and Settings Used</a>
+-   <a href="#model-specification" id="toc-model-specification">Model
+    Specification</a>
+-   <a href="#states" id="toc-states">States</a>
+-   <a href="#parameters" id="toc-parameters">Parameters</a>
+-   <a href="#dynamics" id="toc-dynamics">Dynamics</a>
+-   <a href="#calibration" id="toc-calibration">Calibration</a>
+    -   <a href="#observed-data-prep" id="toc-observed-data-prep">Observed Data
+        Prep</a>
+    -   <a href="#calibration-model-specification"
+        id="toc-calibration-model-specification">Calibration Model
+        Specification</a>
+    -   <a href="#calibrate-to-data" id="toc-calibrate-to-data">Calibrate to
+        Data</a>
+    -   <a href="#explore-fits" id="toc-explore-fits">Explore Fits</a>
+-   <a href="#references" id="toc-references">References</a>
 
 The McMasterPandemic model ([Bolker et al. 2024](#ref-macpan)) modified
 to include a wastewater component.
@@ -70,51 +75,51 @@ virus into wastewater with the following sub-model.
 
 # States
 
-| variable | description |
-|----|----|
-| $S$ | Number of susceptible individuals |
-| $E$ | Number of exposed individuals |
-| $I_a$ | Number of asymptomatic infectious individuals |
-| $I_p$ | Number of pre-symptomatic infectious individuals |
-| $I_m$ | Number of mildly infectious individuals |
-| $I_s$ | Number of severely infectious individuals |
-| $H$ | Number of hospitalized individuals (acute care) |
-| $ICU_s$ | Number of individuals admitted to the ICU with a survival prognosis |
-| $ICU_d$ | Number of individuals admitted to the ICU with a death prognosis |
-| $H_2$ | Number of hospitalized individuals (acute care) after ICU stay |
-| $D$ | Number of dead individuals |
-| $R$ | Number of recovered individuals |
-| $W$ | Concentration of viral particles in wastewater |
-| $A$ | Total accumulated concentration of virus in wastewater over time |
+| variable | description                                                         |
+|----------|---------------------------------------------------------------------|
+| $S$      | Number of susceptible individuals                                   |
+| $E$      | Number of exposed individuals                                       |
+| $I_a$    | Number of asymptomatic infectious individuals                       |
+| $I_p$    | Number of pre-symptomatic infectious individuals                    |
+| $I_m$    | Number of mildly infectious individuals                             |
+| $I_s$    | Number of severely infectious individuals                           |
+| $H$      | Number of hospitalized individuals (acute care)                     |
+| $ICU_s$  | Number of individuals admitted to the ICU with a survival prognosis |
+| $ICU_d$  | Number of individuals admitted to the ICU with a death prognosis    |
+| $H_2$    | Number of hospitalized individuals (acute care) after ICU stay      |
+| $D$      | Number of dead individuals                                          |
+| $R$      | Number of recovered individuals                                     |
+| $W$      | Concentration of viral particles in wastewater                      |
+| $A$      | Total accumulated concentration of virus in wastewater over time    |
 
 The size of the total population is,
-$N = S + E + I_a + I_p + I_m + I_s + H +  ICU_s + ICU_d + H_2 + D + R$.
+$N = S + E + I_a + I_p + I_m + I_s + H + ICU_s + ICU_d + H_2 + D + R$.
 
 # Parameters
 
-| variable | description |
-|----|----|
-| $\beta_0$ | baseline (non-intervention) transmission across categories |
-| $C_a$ | relative asymptomatic transmission (or contact) proportion |
-| $C_p$ | relative presymptomatic transmission (or contact) proportion |
-| $C_m$ | relative mildly transmission (or contact) proportion |
-| $C_s$ | relative severly transmission (or contact) proportion |
-| $\alpha$ | fraction of infections that are asymptomatic |
-| $\mu$ | fraction of symptomatic infections that are mild |
-| $\sigma$ | 1/time in exposed class |
-| $\gamma_a$ | 1/time to recovery for asymptomatic infections |
-| $\gamma_p$ | 1/time in pre-symptomatic state |
-| $\gamma_m$ | 1/time to recovery for mildly symptomatic infections |
-| $\gamma_s$ | 1/time spent in severely symptomatic state before either hospitalization or death |
-| $\rho$ | 1/time in hospital (initial acute care admission) |
-| $\delta_{nh}$ | probability of mortality without hospitalization |
-| $\phi_1$ | fraction of hospitalized infections that only require acute care (no ICU admission) |
-| $\phi_2$ | fraction of ICU infections that are fatal |
-| $\psi_1$ | 1/time spent in ICU before returning to acute care |
-| $\psi_2$ | 1/time spent in ICU before dying |
-| $\psi_3$ | 1/time in post-ICU acute care before hospital discharge |
-| $\nu$ | viral shedding rate to wastewater |
-| $\xi$ | rate at which virus is denaturing/removed from wastewater |
+| variable      | description                                                                         |
+|---------------|-------------------------------------------------------------------------------------|
+| $\beta_0$     | baseline (non-intervention) transmission across categories                          |
+| $C_a$         | relative asymptomatic transmission (or contact) proportion                          |
+| $C_p$         | relative presymptomatic transmission (or contact) proportion                        |
+| $C_m$         | relative mildly transmission (or contact) proportion                                |
+| $C_s$         | relative severly transmission (or contact) proportion                               |
+| $\alpha$      | fraction of infections that are asymptomatic                                        |
+| $\mu$         | fraction of symptomatic infections that are mild                                    |
+| $\sigma$      | 1/time in exposed class                                                             |
+| $\gamma_a$    | 1/time to recovery for asymptomatic infections                                      |
+| $\gamma_p$    | 1/time in pre-symptomatic state                                                     |
+| $\gamma_m$    | 1/time to recovery for mildly symptomatic infections                                |
+| $\gamma_s$    | 1/time spent in severely symptomatic state before either hospitalization or death   |
+| $\rho$        | 1/time in hospital (initial acute care admission)                                   |
+| $\delta_{nh}$ | probability of mortality without hospitalization                                    |
+| $\phi_1$      | fraction of hospitalized infections that only require acute care (no ICU admission) |
+| $\phi_2$      | fraction of ICU infections that are fatal                                           |
+| $\psi_1$      | 1/time spent in ICU before returning to acute care                                  |
+| $\psi_2$      | 1/time spent in ICU before dying                                                    |
+| $\psi_3$      | 1/time in post-ICU acute care before hospital discharge                             |
+| $\nu$         | viral shedding rate to wastewater                                                   |
+| $\xi$         | rate at which virus is denaturing/removed from wastewater                           |
 
 # Dynamics
 
@@ -177,14 +182,6 @@ obs_data = (covid_on
 )
 ```
 
-## Time Bounds
-
-``` r
-burn_in_period  = 15 ## number of days before the data start to begin the simulations
-forecast_period = 30 ## number of days after the data end to make forecasts
-time_bounds = mp_sim_offset(burn_in_period, forecast_period, "daily")
-```
-
 ## Calibration Model Specification
 
 Update model specification to include additional components required for
@@ -237,7 +234,7 @@ focal_model = (
      , report_prob_name = "report_prob"
   )
 
-  # add time-varying transmission
+  # decompose beta for time-varying transmission
   |> mp_tmb_insert(phase = "during"
      , at = 1L
      , expressions = list(beta ~ beta0 * beta1 * beta2)
@@ -251,6 +248,9 @@ focal_model = (
      , default  = list(beta_changes      = c(1))
      , integers = list(beta_changepoints = c(0))
   )
+  
+  # log transform W
+  |> mp_tmb_insert_trans("W", mp_log)
 )
 ```
 
@@ -292,14 +292,14 @@ focal_calib = mp_tmb_calibrator(
     # return these trajectories so that they can be
     # explored after fitting
   , outputs = c(
-        "reported_incidence", "W", "beta"
-      , "prevalence", "incidence", "S"
+        "reported_incidence", "beta"
+      , "prevalence", "incidence", "S", "log_W"
     )
   
     # update defaults with macpan1.5 wastewater model defaults
   , default = macpan1.5_defaults
   
-  , time = time_bounds
+  , time = mp_sim_offset(15, 0, "daily")
 )
 # converges
 mp_optimize(focal_calib)
@@ -307,7 +307,7 @@ mp_optimize(focal_calib)
 #> NA/NaN function evaluation
 #> $par
 #>      params      params      params      params      params      params 
-#>  -8.6647123 -12.6963648   2.3858522   7.2248134   1.3915078   3.4112490 
+#>  -8.6647123 -12.6963672   2.4372369   7.2248134   1.3915078   3.4112490 
 #>      params      params      params      params      params 
 #>   2.8777186   3.8903473   2.3726918   4.6262171   0.5130978 
 #> 
@@ -322,7 +322,7 @@ mp_optimize(focal_calib)
 #> 
 #> $evaluations
 #> function gradient 
-#>       98       50 
+#>       92       50 
 #> 
 #> $message
 #> [1] "relative convergence (4)"
@@ -330,7 +330,7 @@ mp_optimize(focal_calib)
 
 ## Explore Fits
 
-Get fitted data and coefficients.
+The fitted model parameters, fitted values, and confidence intervals.
 
 ``` r
 macpan2_fit = mp_trajectory_sd(focal_calib, conf.int = TRUE)
@@ -339,45 +339,32 @@ print(fitted_coefs)
 #>         term            mat row col default  type     estimate    std.error
 #> 3  params.10 prior_sd_beta1   0   0    1.00 fixed 5.130978e-01 7.974368e-03
 #> 5   params.3 time_var_beta1   0   0    0.00 fixed 7.224813e+00 2.382914e+00
-#> 6   params.4 time_var_beta1   1   0    0.00 fixed 1.391508e+00 7.159840e-01
-#> 7   params.5 time_var_beta1   2   0    0.00 fixed 3.411249e+00 1.890247e+00
-#> 8   params.6 time_var_beta1   3   0    0.00 fixed 2.877719e+00 9.751478e-01
+#> 6   params.4 time_var_beta1   1   0    0.00 fixed 1.391508e+00 7.159842e-01
+#> 7   params.5 time_var_beta1   2   0    0.00 fixed 3.411249e+00 1.890248e+00
+#> 8   params.6 time_var_beta1   3   0    0.00 fixed 2.877719e+00 9.751480e-01
 #> 9   params.7 time_var_beta1   4   0    0.00 fixed 3.890347e+00 1.834456e+00
-#> 10  params.8 time_var_beta1   5   0    0.00 fixed 2.372692e+00 8.529387e-01
-#> 11  params.9 time_var_beta1   6   0    0.00 fixed 4.626217e+00 2.269486e+00
-#> 1     params          beta0   0   0    0.25 fixed 1.725692e-04 5.055458e-04
-#> 2   params.1             nu   0   0    0.03 fixed 3.062237e-06 1.915017e-06
-#> 4   params.2             xi   0   0    1.00 fixed 1.086832e+01 2.400334e+03
+#> 10  params.8 time_var_beta1   5   0    0.00 fixed 2.372692e+00 8.529388e-01
+#> 11  params.9 time_var_beta1   6   0    0.00 fixed 4.626217e+00 2.269487e+00
+#> 1     params          beta0   0   0    0.25 fixed 1.725692e-04 5.055459e-04
+#> 2   params.1             nu   0   0    0.03 fixed 3.062230e-06 1.912782e-06
+#> 4   params.2             xi   0   0    1.00 fixed 1.144138e+01 3.193284e+03
 #>         conf.low     conf.high
 #> 3   4.974683e-01  5.287272e-01
-#> 5   2.554388e+00  1.189524e+01
-#> 6  -1.179513e-02  2.794811e+00
-#> 7  -2.935677e-01  7.116066e+00
-#> 8   9.664641e-01  4.788973e+00
-#> 9   2.948800e-01  7.485815e+00
-#> 10  7.009628e-01  4.044421e+00
-#> 11  1.781058e-01  9.074328e+00
-#> 1   5.537921e-07  5.377492e-02
-#> 2   8.989322e-07  1.043159e-05
-#> 4   2.220446e-16 1.069341e+189
+#> 5   2.554387e+00  1.189524e+01
+#> 6  -1.179551e-02  2.794811e+00
+#> 7  -2.935683e-01  7.116066e+00
+#> 8   9.664636e-01  4.788974e+00
+#> 9   2.948793e-01  7.485815e+00
+#> 10  7.009624e-01  4.044421e+00
+#> 11  1.781049e-01  9.074329e+00
+#> 1   5.537914e-07  5.377498e-02
+#> 2   9.002138e-07  1.041669e-05
+#> 4   2.220446e-16 4.249537e+238
 ```
 
 Plot the fitted values.
 
 ``` r
-macpan1.5_fit = (macpan1.5$sim
-  |> group_by(Date, state)
-  # summarize to ignore vaccination status
-  |> summarise(value = sum(value))
-  |> ungroup()
-  |> rename(time = Date, matrix = state)
-  |> filter(matrix %in% c("conv", "W"))
-  |> filter(!is.na(value))
-  |> mutate(matrix = ifelse(matrix == "conv", "reported_incidence", matrix))
-)
-#> `summarise()` has grouped output by 'Date'. You can override using the
-#> `.groups` argument.
-
 plot_fit = function(obs_data, sim_data, ncol = 1L) {
   (ggplot(obs_data, aes(time, value))
    + geom_point()
@@ -412,8 +399,7 @@ plot_fit(obs_data, mutate(macpan2_fit, source = "macpan2_fit"), ncol = 2L)
 
 # References
 
-<div id="refs" class="references csl-bib-body hanging-indent"
-entry-spacing="0">
+<div id="refs" class="references csl-bib-body hanging-indent">
 
 <div id="ref-macpan" class="csl-entry">
 

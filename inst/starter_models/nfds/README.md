@@ -1,21 +1,26 @@
-NFDS and vaccine design
+NFDS and Vaccine Design
 ================
 Jennifer Freeman
 
-- [States](#states)
-- [Parameters](#parameters)
-  - [Fixed](#fixed)
-  - [Time Varying](#time-varying)
-- [Dynamics](#dynamics)
-- [Model Specification](#model-specification)
-- [Model Validation](#model-validation)
-  - [Simulating Data](#simulating-data)
-    - [A quick note on run-time when constructing
-      simulators](#a-quick-note-on-run-time-when-constructing-simulators)
-  - [Comparing Model Implementations](#comparing-model-implementations)
-  - [Summary](#summary)
-- [Optimization](#optimization)
-- [References](#references)
+-   <a href="#states" id="toc-states">States</a>
+-   <a href="#parameters" id="toc-parameters">Parameters</a>
+    -   <a href="#fixed" id="toc-fixed">Fixed</a>
+    -   <a href="#time-varying" id="toc-time-varying">Time Varying</a>
+-   <a href="#dynamics" id="toc-dynamics">Dynamics</a>
+-   <a href="#model-specification" id="toc-model-specification">Model
+    Specification</a>
+-   <a href="#model-validation" id="toc-model-validation">Model
+    Validation</a>
+    -   <a href="#simulating-data" id="toc-simulating-data">Simulating Data</a>
+        -   <a href="#a-quick-note-on-run-time-when-constructing-simulators"
+            id="toc-a-quick-note-on-run-time-when-constructing-simulators">A quick
+            note on run-time when constructing simulators</a>
+    -   <a href="#comparing-model-implementations"
+        id="toc-comparing-model-implementations">Comparing Model
+        Implementations</a>
+    -   <a href="#summary" id="toc-summary">Summary</a>
+-   <a href="#optimization" id="toc-optimization">Optimization</a>
+-   <a href="#references" id="toc-references">References</a>
 
 <!-- population-->
 
@@ -152,6 +157,14 @@ nfds = mp_simulator(
   , time_steps = time_steps
   , outputs = c("Y","vax_strain","vax_serotypes")
 ) 
+#> Warning in unique(as.numeric(parse_table$x[is_var_or_lit & is_lit])): NAs
+#> introduced by coercion
+#> Warning in unique(as.numeric(parse_table$x[is_var_or_lit & is_lit])): NAs
+#> introduced by coercion
+#> Warning in unique(as.numeric(parse_table$x[is_var_or_lit & is_lit])): NAs
+#> introduced by coercion
+#> Warning in unique(as.numeric(parse_table$x[is_var_or_lit & is_lit])): NAs
+#> introduced by coercion
 
 # simulate Y (genotype prevalence state vector) and plot
 (nfds
@@ -342,14 +355,14 @@ start_time <- Sys.time()
 old_sim = mp_simulator(old_spec,time_steps = 1L,outputs = "Y")
 end_time <- Sys.time()
 end_time - start_time
-#> Time difference of 0.381633 secs
+#> Time difference of 0.352828 secs
 
 # new spec
 start_time <- Sys.time()
 new_sim = mp_simulator(new_spec,time_steps = 1L,outputs = "Y")
 end_time <- Sys.time()
 end_time - start_time
-#> Time difference of 0.1868429 secs
+#> Time difference of 0.318486 secs
 ```
 
 Creating a simulator with one time step results in the new model

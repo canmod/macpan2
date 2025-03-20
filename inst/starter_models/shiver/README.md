@@ -277,21 +277,21 @@ updating.
 # changes
 mp_default(spec)
 #>     matrix row col value
-#> 1        a         1e+01
-#> 2        b         1e+01
-#> 3      rho         5e-02
-#> 4   beta_s         2e-01
-#> 5   beta_v         5e-02
-#> 6    alpha         5e-01
-#> 7  gamma_i         1e-01
-#> 8  gamma_h         7e-02
-#> 9    sigma         5e-02
-#> 10       N         1e+02
-#> 11       I         1e+00
-#> 12       V         0e+00
-#> 13       E         0e+00
-#> 14       H         0e+00
-#> 15       R         0e+00
+#> 1        R         0e+00
+#> 2        H         0e+00
+#> 3        I         1e+00
+#> 4        E         0e+00
+#> 5        N         1e+02
+#> 6        V         0e+00
+#> 7        a         1e+01
+#> 8        b         1e+01
+#> 9      rho         5e-02
+#> 10  beta_s         2e-01
+#> 11  beta_v         5e-02
+#> 12   alpha         5e-01
+#> 13 gamma_i         1e-01
+#> 14   sigma         5e-02
+#> 15 gamma_h         7e-02
 ```
 
 We need to update the population size $N$ to the population of Ontario
@@ -628,26 +628,26 @@ reparameterized_spec = mp_tmb_update(reparameterized_spec
 print(reparameterized_spec)
 #> ---------------------
 #> Default values:
+#>       quantity         value
+#>              a  1.684889e+04
+#>              b  1.684889e+04
+#>            rho  5.555556e-03
+#>         beta_s  2.000000e-01
+#>         beta_v  5.000000e-02
+#>          alpha  3.030303e-01
+#>        gamma_i  1.000000e-01
+#>        gamma_h  7.000000e-02
+#>          sigma  1.000000e-01
+#>              N  1.480000e+08
+#>              I  2.718571e+03
+#>              V  1.015657e+04
+#>              E  0.000000e+00
+#>              H  6.300000e+01
+#>              R  0.000000e+00
+#>        logit_p -4.595120e+00
+#>       log_beta -4.605170e+00
+#>  log_E_I_ratio -4.605170e+00
 #> ---------------------
-#>         matrix row col         value
-#>              a          1.684889e+04
-#>              b          1.684889e+04
-#>            rho          5.555556e-03
-#>         beta_s          2.000000e-01
-#>         beta_v          5.000000e-02
-#>          alpha          3.030303e-01
-#>        gamma_i          1.000000e-01
-#>        gamma_h          7.000000e-02
-#>          sigma          1.000000e-01
-#>              N          1.480000e+08
-#>              I          2.718571e+03
-#>              V          1.015657e+04
-#>              E          0.000000e+00
-#>              H          6.300000e+01
-#>              R          0.000000e+00
-#>        logit_p         -4.595120e+00
-#>       log_beta         -4.605170e+00
-#>  log_E_I_ratio         -4.605170e+00
 #> 
 #> ---------------------
 #> Before the simulation loop (t = 0):
@@ -923,44 +923,44 @@ shiver_calibrator = mp_tmb_calibrator(
 Next we optimize, and look at our estimates.
 
     #>                                   mat row   default  estimate std.error
-    #> 1                   time_var_rbf_beta   1    0.0000   -0.0300    0.0487
-    #> 2                   time_var_rbf_beta   2    0.0000    0.0485    0.0541
-    #> 3                   time_var_rbf_beta   3    0.0000   -0.0695    0.0679
-    #> 4                   time_var_rbf_beta   4    0.0000    0.1091    0.0907
+    #> 1                   time_var_rbf_beta   1    0.0000   -0.0236    0.0262
+    #> 2                   time_var_rbf_beta   2    0.0000    0.0292    0.0250
+    #> 3                   time_var_rbf_beta   3    0.0000   -0.0283    0.0249
+    #> 4                   time_var_rbf_beta   4    0.0000    0.0286    0.0247
     #> 5                   prior_sd_rbf_beta   0    1.0000    0.5297    0.0177
-    #> 6                   distr_params_sd_H   0    1.0000    0.0752    0.0157
-    #> 7  distr_params_sd_reported_incidence   0    1.0000    0.2209    0.0187
-    #> 8                   time_var_rbf_beta   0    0.0000   -0.0270    0.0431
-    #> 9                                beta   0    0.0100    0.3099    0.0443
-    #> 10                              sigma   0    0.0498    0.0336    0.0113
-    #> 11                            gamma_h   0    0.0498    0.9811    0.1856
-    #> 12                          E_I_ratio   0    0.0100    0.0851    0.1017
-    #> 13                                  I   0 2718.5714 2986.9423  943.6758
-    #> 14                                  H   0   63.0000    0.1453    2.9807
-    #> 15                                  R   0    1.0000    1.0000   54.5981
-    #> 16                        report_prob   0    0.5000    0.8292    0.2194
-    #> 17                                  p   0    0.0100    0.2197    9.1710
+    #> 6                   distr_params_sd_H   0    1.0000    0.0757    0.0089
+    #> 7  distr_params_sd_reported_incidence   0    1.0000    0.2221    0.0185
+    #> 8                   time_var_rbf_beta   0    0.0000   -0.0305    0.0257
+    #> 9                                beta   0    0.0100    0.3136    0.0362
+    #> 10                              sigma   0    0.0498    0.0341    0.0104
+    #> 11                            gamma_h   0    0.0498    0.9937    0.1872
+    #> 12                          E_I_ratio   0    0.0100    0.0880    0.1034
+    #> 13                                  I   0 2718.5714 2948.4429  839.7054
+    #> 14                                  H   0   63.0000    0.1378    2.8151
+    #> 15                                  R   0    1.0000    1.0000   54.5980
+    #> 16                        report_prob   0    0.5000    0.8340    0.1891
+    #> 17                                  p   0    0.0100    0.2354    9.6937
     #>     conf.low    conf.high
-    #> 1    -0.1255 6.550000e-02
-    #> 2    -0.0576 1.546000e-01
-    #> 3    -0.2026 6.360000e-02
-    #> 4    -0.0687 2.869000e-01
+    #> 1    -0.0750 2.780000e-02
+    #> 2    -0.0197 7.810000e-02
+    #> 3    -0.0771 2.060000e-02
+    #> 4    -0.0198 7.710000e-02
     #> 5     0.4951 5.643000e-01
-    #> 6     0.0445 1.060000e-01
-    #> 7     0.1843 2.574000e-01
-    #> 8    -0.1116 5.750000e-02
-    #> 9     0.2342 4.102000e-01
-    #> 10    0.0174 6.490000e-02
-    #> 11    0.6772 1.421400e+00
-    #> 12    0.0082 8.853000e-01
-    #> 13 1608.0649 5.548174e+03
-    #> 14    0.0000 4.193101e+16
-    #> 15    0.0000 2.978526e+46
-    #> 16    0.1891 9.902000e-01
+    #> 6     0.0582 9.330000e-02
+    #> 7     0.1859 2.584000e-01
+    #> 8    -0.0808 1.980000e-02
+    #> 9     0.2500 3.933000e-01
+    #> 10    0.0188 6.200000e-02
+    #> 11    0.6870 1.437400e+00
+    #> 12    0.0088 8.801000e-01
+    #> 13 1687.2279 5.152425e+03
+    #> 14    0.0000 3.347001e+16
+    #> 15    0.0000 2.978521e+46
+    #> 16    0.2568 9.865000e-01
     #> 17    0.0000 1.000000e+00
 
 Our prior for `sigma` is similar to the posterior, but `gamma_h` seems
-to have been pushed up by the data from about `0.05` to about 0.98. We
+to have been pushed up by the data from about `0.05` to about 0.99. We
 still do not have confidence in our estimate of `p`. We now have five
 other parameters controlling transmission, and so to interpret them we
 really need a plot of how transmission varies over time in the model. We
