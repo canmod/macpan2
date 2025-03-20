@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
 system.file("utils", "round-coef.R", package = "macpan2") |> source()
 ```
 
-We introduce the *exposed* compartment, to capture the time period in which individuals have been exposed to the disease but are not able to infect others yet.
+We introduce the *exposed* compartment, to capture the time period in which individuals have been exposed to the disease but are not yet infectious.
 
 # Packages Used and Settings
 
@@ -55,7 +55,7 @@ spec = mp_tmb_library(
 
 This specification can be used to draw the following flow diagram using code found in the [source for this article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/seir/README.Rmd).
 
-```{r diagram, echo = FALSE, fig.height = 1.5, fig.width = 7}
+```{r diagram, echo = FALSE, fig.height = 1, fig.width = 7}
 system.file("utils", "box-drawing.R", package = "macpan2") |> source()
 layout = mp_layout_paths(spec)
 p = plot_flow_diagram(layout, show_flow_rates = TRUE)
@@ -67,18 +67,18 @@ print(p)
 | variable | description                       |
 | -------- | --------------------------------- |
 | S        | Number of susceptible individuals |
-| E        | Number of exposed individuals     |
+| E        | Number of exposed individuals (i.e., infected individuals that are not yet infectious)     |
 | I        | Number of infectious individuals  |
 | R        | Number of recovered individuals   |
 
-The size of the total population is,  $ N = S + E + I + R$.
+The size of the total population is,  $N = S + E + I + R$.
 
 # Parameters
 
 | variable | description                                                                   |
 | -------- | ----------------------------------------------------------------------------- |
 | $\beta$  | per capita transmission rate                                                  |
-| $\alpha$ | per capita infection rate (average time spent in compartment E is $1/\alpha$) |
+| $\alpha$ | per capita progression rate |
 | $\gamma$ | per capita recovery rate                                                      |
 
 # Dynamics 
@@ -129,7 +129,7 @@ observed_data = (seir
 )
 ```
 
-Note that the incidence per time-step is called `infection` in the model, to indicate that it is the rate at which individuals from from `S` to `I` due to infection. Observe the naming convention in the expanded specification object.
+Note that the incidence per time-step is called `infection` in the model, to indicate that it is the rate at which individuals move from `S` to `E` due to infection. Observe the naming convention in the expanded specification object.
 ```{r}
 print(spec |> mp_expand())
 ```
@@ -154,7 +154,7 @@ coef = mp_tmb_coef(cal) |> round_coef_tab()
 coef$true = true[coef$mat]
 print(coef)
 ```
-The estimate is not very close to the true value, indicate that although the optimizer converged it was not able to find the true parameter values. This is a strong indication that there is not enough information in incidence data to estimate all three model parameters. This case is made stronger by the excellent fit to the data, as we should below. A good fit that converged, but to incorrect parameter values, is always a possibility. One should be cautious about estimating parameters from data and check to make sure that the parameters make sense. A more realistic exploration of these identifiability issues can be found in or description of the [SHIVER model](https://github.com/canmod/macpan2/tree/main/inst/starter_models/shiver).
+The estimate is not very close to the true value, indicating that although the optimizer converged it was not able to find the true parameter values. This is a strong indication that there is not enough information in incidence data to estimate all three model parameters. This case is made stronger by the excellent fit to the data, as we should below. A good fit that converged, but to incorrect parameter values, is always a possibility. One should be cautious about estimating parameters from data and check to make sure that the parameters make sense. A more realistic exploration of these identifiability issues can be found in or description of the [SHIVER model](https://github.com/canmod/macpan2/tree/main/inst/starter_models/shiver).
 
 ```{r traj_fit} 
 comparison_data = list(

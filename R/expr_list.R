@@ -336,3 +336,54 @@ mp_tmb_expr_list = ExprList
 
 #' @export
 print.ExprList = function(x, ...) x$print_exprs()
+
+
+#' Functions Used by an Object for Communicating with a Computational Engine
+#' 
+#' @param object An object for communicating with a computational engine.
+#' @return Character vector of names of functions that are used by `object`.
+#' @export
+mp_functions_used = function(object) {
+  UseMethod("mp_functions_used")
+}
+
+#' @export
+mp_functions_used.ExprList = function(object) {
+  (object$formula_list()
+    |> lapply(formula_components) 
+    |> lapply(getElement, "functions") 
+    |> unlist(recursive = TRUE) 
+    |> unique()
+    |> setdiff("~")
+  )
+}
+
+#' @export
+mp_functions_used.TMBModelSpec = function(object) {
+  mp_functions_used(object$expr_list())
+}
+
+#' @export
+mp_functions_used.TMBSimulator = function(object) {
+  mp_functions_used(object$tmb_model$expr_list)
+}
+
+#' @export
+mp_functions_used.TMBCalibrator = function(object) {
+  mp_functions_used(object$simulator)
+}
+
+#' @describeIn mp_functions_used Does the object use functions that generate
+#' randomness?
+#' @export
+mp_generates_randomness = function(object) {
+  # FIXME: fragile to hard-code
+  rfuncs = c(
+      "rbinom"
+    , "rpois"
+    , "rnorm"
+    , "rnbinom"
+    , "reulermultinom"
+  )
+  any(mp_functions_used(object) %in% rfuncs)
+}

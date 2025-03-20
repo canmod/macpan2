@@ -53,6 +53,8 @@ valid_func_sigs = c(
       , "fwrap,null: mean(x)"
       , "fwrap,null: sd(x)"
       , "fwrap,null: proportions(x)"
+      , "fwrap,null: last(x)"
+      , "fwrap,null: check_finite(x)"
       , "fwrap,fail: dbinom(observed, size, probability)"
 )
 process_enum = function(x) {

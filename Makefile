@@ -53,6 +53,7 @@ quick-test-all:
 	make run-vignette-code
 	make run-tests
 	make run-examples
+	make run-starter-readme-code
 
 quick-test:
 	make quick-doc-install
@@ -169,8 +170,8 @@ compile-dev: misc/dev/dev.cpp
 	cd misc/dev; echo "TMB::compile(\"dev.cpp\")" | R --slave
 
 
-inst/starter_models/%/README.md: inst/starter_models/%/README.Rmd
-	echo "rmarkdown::render(\"$^\")" | R --slave
+inst/starter_models/%/README.md: inst/starter_models/%/README.Rmd DESCRIPTION R/*.R
+	echo "rmarkdown::render(\"$<\")" | R --slave
 
 inst/starter_models/%/README.push: inst/starter_models/%/README.md
 	@echo Pushing directory: $(dir $^)
@@ -179,7 +180,7 @@ inst/starter_models/%/README.push: inst/starter_models/%/README.md
 	git push
 	touch $@
 
-all-starters: inst/starter_models/*/README.push
+all-starters: inst/starter_models/*/README.md
 
 pkgdown: 
 	Rscript -e "pkgdown::build_site()"

@@ -55,6 +55,8 @@
 \alias{mean}
 \alias{sd}
 \alias{proportions}
+\alias{last}
+\alias{check_finite}
 \alias{dbinom}
 \title{Functions Available in the Simulation Engine}
 \description{

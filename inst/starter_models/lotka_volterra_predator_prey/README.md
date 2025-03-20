@@ -111,17 +111,17 @@ The model specification for this model is as follows.
 specs$holling_1
 #> ---------------------
 #> Default values:
+#>   quantity value
+#>      alpha 2e-01
+#>      gamma 2e-02
+#>      delta 1e-01
+#>  K_inverse 2e-03
+#>          a 2e-03
+#>          h 1e+00
+#>          k 2e+00
+#>          X 1e+02
+#>          Y 1e+02
 #> ---------------------
-#>     matrix row col value
-#>      alpha         2e-01
-#>      gamma         2e-02
-#>      delta         1e-01
-#>  K_inverse         2e-03
-#>          a         2e-03
-#>          h         1e+00
-#>          k         2e+00
-#>          X         1e+02
-#>          Y         1e+02
 #> 
 #> ---------------------
 #> At every iteration of the simulation loop (t = 1 to T):
@@ -153,17 +153,17 @@ The model specification for this model is as follows.
 specs$holling_2
 #> ---------------------
 #> Default values:
+#>   quantity value
+#>      alpha 2e-01
+#>      gamma 2e-02
+#>      delta 1e-01
+#>  K_inverse 2e-03
+#>          a 2e-03
+#>          h 1e+00
+#>          k 2e+00
+#>          X 1e+02
+#>          Y 1e+02
 #> ---------------------
-#>     matrix row col value
-#>      alpha         2e-01
-#>      gamma         2e-02
-#>      delta         1e-01
-#>  K_inverse         2e-03
-#>          a         2e-03
-#>          h         1e+00
-#>          k         2e+00
-#>          X         1e+02
-#>          Y         1e+02
 #> 
 #> ---------------------
 #> At every iteration of the simulation loop (t = 1 to T):
@@ -228,17 +228,17 @@ The model specification for this model is as follows.
 specs$holling_3
 #> ---------------------
 #> Default values:
+#>   quantity value
+#>      alpha 2e-01
+#>      gamma 2e-02
+#>      delta 1e-01
+#>  K_inverse 2e-03
+#>          a 2e-03
+#>          h 1e+00
+#>          k 2e+00
+#>          X 1e+02
+#>          Y 1e+02
 #> ---------------------
-#>     matrix row col value
-#>      alpha         2e-01
-#>      gamma         2e-02
-#>      delta         1e-01
-#>  K_inverse         2e-03
-#>          a         2e-03
-#>          h         1e+00
-#>          k         2e+00
-#>          X         1e+02
-#>          Y         1e+02
 #> 
 #> ---------------------
 #> At every iteration of the simulation loop (t = 1 to T):

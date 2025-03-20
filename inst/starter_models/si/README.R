@@ -12,7 +12,7 @@ library(ggplot2)
 system.file("utils", "box-drawing.R", package = "macpan2") |> source()
 si = mp_tmb_library("starter_models", "si", package = "macpan2")
 (si 
-  |> mp_layout_paths() 
+  |> mp_layout_paths()
   |> plot_flow_diagram(show_flow_rates = TRUE)
 )
 
@@ -33,9 +33,9 @@ specs = mp_tmb_library("starter_models"
   |> lapply(mp_simulator, 50L, "I")
   |> lapply(mp_trajectory)
   |> bind_rows(.id = "integrator")
-  |> rename(prevalance = value)
+  |> rename(prevalence = value)
   |> ggplot()
-  + geom_line(aes(time, prevalance, colour = integrator))
+  + geom_line(aes(time, prevalence, colour = integrator))
   + theme_bw()
 )
 
