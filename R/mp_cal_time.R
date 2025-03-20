@@ -14,8 +14,8 @@
 #' time using a (1) \code{\link{Date}} vector, (2) \code{\link{character}}
 #' vector in YYYY-MM-DD format, or (3) \code{\link{integer}} vector that 
 #' counts the number of days since some reference. Otherwise please choose 
-#' 'steps' and convert your time column into integer values that represent 
-#' the time step that you would like in the model.
+#' 'steps', the default, and convert your time column into integer values that
+#' represent the time step that you would like in the model.
 #' @param time_column Name of the column that will identify the time at which
 #' particular values were observed.
 #' 
@@ -24,12 +24,21 @@
 #' @seealso [mp_sim_offset()]
 #' 
 #' @export
-mp_sim_bounds = function(sim_start, sim_end, time_scale, time_column = "time") {
+mp_sim_bounds = function(sim_start, sim_end, time_scale = "steps", time_column = "time") {
   self = Base()
   self$sim_start = sim_start
   self$sim_end = sim_end
   self$time_scale = time_scale
   self$time_column = time_column
+  self$extend = function(steps_to_extend) {
+    new_obj = mp_sim_offset(
+        self$sim_start_offset
+      , self$sim_end_offset + steps_to_extend
+      , self$time_scale
+      , self$time_column
+    )
+    return(new_obj)
+  }
   self$cal_time_steps = function(data, original_coercer = force) {
     column = data[[self$time_column]]
     check_valid_time_scales(self$time_scale)
@@ -63,12 +72,21 @@ mp_sim_bounds = function(sim_start, sim_end, time_scale, time_column = "time") {
 #' @seealso [mp_sim_bounds()]
 #' 
 #' @export
-mp_sim_offset = function(sim_start_offset, sim_end_offset, time_scale, time_column = "time") {
+mp_sim_offset = function(sim_start_offset, sim_end_offset, time_scale = "steps", time_column = "time") {
   self = Base()
   self$sim_start_offset = as.integer(sim_start_offset)
   self$sim_end_offset = as.integer(sim_end_offset)
   self$time_scale = time_scale
   self$time_column = time_column
+  self$extend = function(steps_to_extend) {
+    new_obj = mp_sim_offset(
+        self$sim_start_offset
+      , self$sim_end_offset + steps_to_extend
+      , self$time_scale
+      , self$time_column
+    )
+    return(new_obj)
+  }
   self$cal_time_steps = function(data, original_coercer = force) {
     column = data[[self$time_column]]
     check_valid_time_scales(self$time_scale)

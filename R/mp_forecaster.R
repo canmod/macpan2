@@ -72,7 +72,11 @@ mp_forecaster = function(calibrator, forecast_period_time_steps
   args$spec = spec
   if (!is.null(data)) args$data = data
   if (!is.null(outputs)) args$outputs = outputs
-  args$time = cal$time_steps_obj$extended_time_arg(forecast_period_time_steps)
+  if (is.null(args$time)) {
+    args$time = calibrator$time_steps_obj$extended_time_arg(forecast_period_time_steps)
+  } else {
+    args$time = args$time$extend(forecast_period_time_steps)
+  }
   do.call(mp_tmb_calibrator, args)
 }
 

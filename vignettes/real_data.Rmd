@@ -122,7 +122,7 @@ sf_sir = mp_tmb_insert(sf_sir
     
     ## at the end (i.e. Infinity) of the expressions evaluated
     ## 'during' each iteration of the simulation loop ...
-  , at = Inf  
+  , at = Inf
   , phase = "during"
   
     ## add a new default value for the reporting probability
