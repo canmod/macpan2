@@ -19,7 +19,7 @@ forecasts using the mp_trajectory family of functions."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.16.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.16.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -72,6 +72,7 @@ forecasts using the <code><a href="mp_trajectory.html">mp_trajectory</a></code> 
 <span>  <span class="va">forecast_period_time_steps</span>,</span>
 <span>  outputs <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  data <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  tv <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  default <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -106,6 +107,11 @@ intervals of negative state variables).</p></dd>
 Typically this argument will be unused, because by default the data are
 stored in the <code>calibrator</code> unless you want to avoid making too many copies
 of the data.</p></dd>
+
+
+<dt id="arg-tv">tv<a class="anchor" aria-label="anchor" href="#arg-tv"></a></dt>
+<dd><p>An optional replacement for the <code>tv</code> parameter in the
+<code><a href="mp_tmb_calibrator.html">mp_tmb_calibrator</a></code> function.</p></dd>
 
 
 <dt id="arg-default">default<a class="anchor" aria-label="anchor" href="#arg-default"></a></dt>
