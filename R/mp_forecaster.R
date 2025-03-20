@@ -30,12 +30,14 @@ mp_more_steps = function(model, steps_to_add) {
 #' Typically this argument will be unused, because by default the data are
 #' stored in the `calibrator` unless you want to avoid making too many copies 
 #' of the data.
+#' @param tv An optional replacement for the `tv` parameter in the 
+#' \code{\link{mp_tmb_calibrator}} function.
 #' @param default An optional list of default model variables (e.g., parameters
 #' initial values of state variables) to override calibrated values.
 #' 
 #' @export
 mp_forecaster = function(calibrator, forecast_period_time_steps
-    , outputs = NULL, data = NULL, default = list()
+    , outputs = NULL, data = NULL, tv = NULL, default = list()
   ) {
   spec = mp_optimized_spec(calibrator, "original")
   
@@ -72,6 +74,7 @@ mp_forecaster = function(calibrator, forecast_period_time_steps
   args$spec = spec
   if (!is.null(data)) args$data = data
   if (!is.null(outputs)) args$outputs = outputs
+  if (!is.null(tv)) args$tv = tv
   if (is.null(args$time)) {
     args$time = calibrator$time_steps_obj$extended_time_arg(forecast_period_time_steps)
   } else {
@@ -79,4 +82,3 @@ mp_forecaster = function(calibrator, forecast_period_time_steps
   }
   do.call(mp_tmb_calibrator, args)
 }
-
