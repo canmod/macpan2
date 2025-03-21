@@ -56,7 +56,6 @@ CSVReader = function(...) {
 }
 
 #' @describeIn Reader Read JSON files.
-#' @importFrom jsonlite fromJSON
 #' @export
 JSONReader = function(...) {
   assert_dependencies("jsonlite")
