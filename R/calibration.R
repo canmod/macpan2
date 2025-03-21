@@ -13,53 +13,56 @@ TMBOptimizer = function(simulator) {
     formals(self[[opt_method_nm]]) = args[!(names(args) %in% arg_nms_from_object)]
   }
   wrap = function(opt_method_nm, opt_func, ...) {
+    missing_opt_func = opt_func |> try(silent = TRUE) |> inherits("try-error")
+    
     arg_mappings = list(...)
     force(arg_mappings)
-    force(opt_func)
     force(opt_method_nm)
 
-    self[[opt_method_nm]] = function() {
-
-      ## TMB doesn't compute hessians for models with random effects
-      random_effects_in_model = !is.null(self$simulator$tmb_model$random_arg())
-      hessian_in_args = !is.null(arg_mappings[["he"]])
-      if (hessian_in_args & random_effects_in_model) {
-        arg_mappings = arg_mappings[!names(arg_mappings) %in% "he"]
-      }
-
-      ad_fun = self$simulator$ad_fun()
-      ad_fun$fn()  ## work out certain starting value issues -- is this necessary?
-      args = list()
-      mc = match.call()
-      if (length(mc) != 1L) {
-        args = setNames(
-          lapply(2L:length(mc), function(i) mc[[i]]),
-          names(mc)[-1L]
+    if (!missing_opt_func) {
+      self[[opt_method_nm]] = function() {
+  
+        ## TMB doesn't compute hessians for models with random effects
+        random_effects_in_model = !is.null(self$simulator$tmb_model$random_arg())
+        hessian_in_args = !is.null(arg_mappings[["he"]])
+        if (hessian_in_args & random_effects_in_model) {
+          arg_mappings = arg_mappings[!names(arg_mappings) %in% "he"]
+        }
+  
+        ad_fun = self$simulator$ad_fun()
+        ad_fun$fn()  ## work out certain starting value issues -- is this necessary?
+        args = list()
+        mc = match.call()
+        if (length(mc) != 1L) {
+          args = setNames(
+            lapply(2L:length(mc), function(i) mc[[i]]),
+            names(mc)[-1L]
+          )
+        }
+        reduced_object = list(
+            ## start from the last best parameter (should be an option?)
+            par = get_last_best_par(ad_fun) # ad_fun$par is the alternative
+          , fn = ad_fun$fn
+          , gr = ad_fun$gr
+          , he = ad_fun$he
         )
+        args_from_object = setNames(
+          reduced_object[names(arg_mappings)],
+          unname(arg_mappings)
+        )
+        opt_obj = do.call(opt_func, c(args_from_object, args))
+        self$simulator$optimization_history$save(opt_obj)
+        
+        ## now that we have optimized again, we need to 
+        ## invalidate the now out-of-date sdreport
+        self$simulator$cache$sdreport$invalidate() 
+        
+        self$simulator$objective(get_last_best_par(ad_fun))
+        
+        opt_obj
       }
-      reduced_object = list(
-          ## start from the last best parameter (should be an option?)
-          par = get_last_best_par(ad_fun) # ad_fun$par is the alternative
-        , fn = ad_fun$fn
-        , gr = ad_fun$gr
-        , he = ad_fun$he
-      )
-      args_from_object = setNames(
-        reduced_object[names(arg_mappings)],
-        unname(arg_mappings)
-      )
-      opt_obj = do.call(opt_func, c(args_from_object, args))
-      self$simulator$optimization_history$save(opt_obj)
-      
-      ## now that we have optimized again, we need to 
-      ## invalidate the now out-of-date sdreport
-      self$simulator$cache$sdreport$invalidate() 
-      
-      self$simulator$objective(get_last_best_par(ad_fun))
-      
-      opt_obj
+      arg_updater(opt_method_nm, opt_func, unname(arg_mappings))
     }
-    arg_updater(opt_method_nm, opt_func, unname(arg_mappings))
   }
   wrap(
       "optim", stats::optim

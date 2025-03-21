@@ -394,6 +394,16 @@ mp_optimize.TMBSimulator = function(model
       ) |> stop()
     }
   }
+  if (!exists(optimizer, sim$optimize)) {
+    mp_wrap(
+      msg_paste(
+          "The optimizer, ", optimizer, ", did not get initialized. "
+        , "Perhaps you just installed the package containing ", optimizer
+        , "? If so you should try optimizing again after recreating the "
+        , "calibrator that you are trying to optimize."
+      )
+    ) |> stop()
+  }
   opt_args = list(...)
   opt_method = model$optimize[[optimizer]]
   
@@ -1476,7 +1486,7 @@ TMBPar.list = function(par
       , existing_global_names = character()
     ) {
   TMBPar(
-      mp_par(param = par, random = list())
+      mp_par(params = par, random = list())
     , tv, traj, spec
     , existing_global_names
   )
