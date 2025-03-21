@@ -9,7 +9,7 @@ mp_tmb_calibrator to produce such a model."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.16.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.16.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -95,7 +95,7 @@ parameters that get the updated when <code>mp_optimize</code> is run. The
 optimization is started from the currently best parameter set.
 Therefore, if you find yourself in a local minimum you might need
 to either recreate the model using <code><a href="mp_tmb_calibrator.html">mp_tmb_calibrator</a></code>
-or use <code>optimzer = "DEoptim</code>, which is more robust to objective
+or use <code>optimizer = "DEoptim"</code>, which is more robust to objective
 functions with multiple optima.</p>
     </div>
     <div class="section level2">
@@ -111,15 +111,13 @@ functions with multiple optima.</p>
 
 
 <p>The default optimizer is <code><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></code>. This optimizer uses
-gradients and Hessians computed by the
-<a href="https://kaskr.github.io/adcomp/_book/Introduction.html" class="external-link">template model builder</a>
+gradients computed by the
+<a href="https://kaskr.github.io/adcomp/_book/Introduction.html" class="external-link">Template Model Builder</a>
 engine of <code>macpan2</code>. This optimizer is efficient at local optimization
-by exploiting the Hessian matrix of second derivatives, which gives
-the optimizer information about how far to step during each iteration.
-However, this optimzer can struggle if the objective function has
-multiple optima.</p>
-<p>To set control parameters (e.g., maximum number of iterations), one
-may use the following.</p>
+by exploiting the gradient information computed by automatic differentiation.
+However, like many nonlinear optimizers, it can struggle if the objective function has multiple optima.</p>
+<p>To set control parameters (e.g., maximum number of iterations), you
+can use the <code>control</code> argument:</p>
 <p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">mp_optimize</span>(model, <span class="st">"nlminb"</span>, <span class="at">control =</span> <span class="fu">list</span>(<span class="at">iter.max =</span> <span class="dv">800</span>))</span></code></pre><p></p></div>
 <p>See the <code><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></code> help page for the complete list of
 control parameters and what the output means.</p>
@@ -129,7 +127,9 @@ control parameters and what the output means.</p>
 <h3 id="optim"><code>optim</code><a class="anchor" aria-label="anchor" href="#optim"></a></h3>
 
 
-<p>The <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">optim</a></code> optimizer does not use second derivatives
+<p>The <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">optim</a></code> optimizer lets you choose from a variety
+of optimization algorithms. The default, <code>method = "Nelder-Mead"</code>,
+does not use second derivatives
 (compare with the description of <code><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></code>), and so
 could be less efficient at taking each step. However, we
 find that it can be somewhat better at getting out of local optima,
@@ -140,45 +140,41 @@ may use the following.</p>
 <p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">mp_optimize</span>(model, <span class="st">"nlminb"</span>, <span class="at">control =</span> <span class="fu">list</span>(<span class="at">maxit =</span> <span class="dv">800</span>))</span></code></pre><p></p></div>
 <p>See the <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">optim</a></code> help page for the complete list of
 control parameters and what the output means.</p>
-<p>Note that if your model is parameterized by only a single parameter,
-you will get a warning asking you to use "Brent" or <code><a href="https://rdrr.io/r/stats/optimize.html" class="external-link">optimize()</a></code>
-directly. You can ignore this warning if you are happy with your
+<p>If your model is parameterized by only a single parameter,
+you'll get a warning asking you to use 'method = "Brent"' or optimizer = 'optimize()'.
+You can ignore this warning if you are happy with your
 answer, or can do either of the suggested options as follows.</p>
 <p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">mp_optimize</span>(model, <span class="st">"optim"</span>, <span class="at">method =</span> <span class="st">"Brent"</span>, <span class="at">lower =</span> <span class="dv">0</span>, <span class="at">upper =</span> <span class="fl">1.2</span>)</span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">mp_optimize</span>(model, <span class="st">"optimize"</span>, <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">1.2</span>))</span></code></pre><p></p></div>
-<p>Note that we have to specify the upper and lower values, between
-which the optimizer searches for the optimum.</p>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">mp_optimize</span>(model, <span class="st">"optimize"</span>, <span class="at">interval =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">1.2</span>))</span></code></pre><p></p></div>
+<p>In this case you have to specify lower and upper bounds for the optimization.</p>
 </div>
 
 <div class="section">
 <h3 id="deoptim"><code>DEoptim</code><a class="anchor" aria-label="anchor" href="#deoptim"></a></h3>
 
 
-<p>The <code>DEoptim</code> optimizer is a function in the <code>DEoptim</code> package, and
-so you will need to have this package installed to use this option.
+<p>The <code>DEoptim</code> optimizer comes from the <code>DEoptim</code> package;
+you'll need to have that package installed to use this option.
 It is designed for objective functions with multiple optima. Use
 this method if you do not believe the fit you get by other methods.
-The downsides of this method is that it doesn't use gradient or
-Hessian information, and so it is likely to be inefficient when
-the default starting values are close to the optimum, and it just
-generally will be slower because it utilizes multiple starting points
-to try to get out of local optima.</p>
-<p>Because this optimizer starts from multiple places on the parameter
-space, you need to specify upper and lower values for the parameter
-vector – between which different starting values will be chosen.
-Here is how that is done.</p>
+The downsides of this method are that it doesn't use gradient
+information and evaluates the objective function at many different
+points, so is likely to be much slower than gradient-based optimizers
+such as the default <code>nlminb</code> optimizer, or <code>optim</code> with <code>method = "BFGS"</code>.</p>
+<p>Because this optimizer starts from multiple points in the parameter
+space, you need to specify lower and upper bounds for each parameter
+in the parameter vector.</p>
 <p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">mp_optimize</span>(model, <span class="st">"DEoptim"</span>, <span class="at">lower =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>), <span class="at">upper =</span> <span class="fu">c</span>(<span class="fl">1.2</span>, <span class="fl">1.2</span>))</span></code></pre><p></p></div>
-<p>Note that in this example we have two parameters, and therefore need
-to specify two <code>lower</code> and two <code>upper</code> sets of values.</p>
+<p>In this example we have two parameters, and therefore need
+to specify two values each for <code>lower</code> and <code>upper</code></p>
 </div>
 
 <div class="section">
 <h3 id="optimize-and-optimise"><code>optimize</code> and <code>optimise</code><a class="anchor" aria-label="anchor" href="#optimize-and-optimise"></a></h3>
 
 
-<p>This optimizer can only be used for models parameterized with one
-parameter, and it is necessary to specify upper and lower values for
-this parameter using the following approach.</p>
+<p>This optimizer can only be used for models parameterized with a single
+parameter. You need to specify lower and upper bounds, e.g.</p>
 <p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">mp_optimize</span>(model, <span class="st">"optimize"</span>, <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">1.2</span>))</span></code></pre><p></p></div>
 </div>
 
@@ -199,12 +195,13 @@ this parameter using the following approach.</p>
 <span class="r-in"><span><span class="va">data</span> <span class="op">=</span> <span class="va">data</span><span class="op">[</span><span class="va">data</span><span class="op">$</span><span class="va">time</span> <span class="op">&gt;</span> <span class="fl">24</span>, <span class="op">]</span></span></span>
 <span class="r-in"><span><span class="va">data</span><span class="op">$</span><span class="va">time</span> <span class="op">=</span> <span class="va">data</span><span class="op">$</span><span class="va">time</span> <span class="op">-</span> <span class="fl">24</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co">## time scale object that accounts for the 24-steps of</span></span></span>
-<span class="r-in"><span><span class="co">## the epidemic that are not captured in the data.</span></span></span>
-<span class="r-in"><span><span class="co">## in real life we would need to guess at this number 24.</span></span></span>
+<span class="r-in"><span><span class="co">## time scale object that accounts for the true starting time</span></span></span>
+<span class="r-in"><span><span class="co">## of the epidemic (in this example we are not trying to estimate</span></span></span>
+<span class="r-in"><span><span class="co">## the initial number infected, so the starting time strongly</span></span></span>
+<span class="r-in"><span><span class="co">## affects the fitting procedure)</span></span></span>
 <span class="r-in"><span><span class="va">time</span> <span class="op">=</span> <span class="fu"><a href="mp_sim_offset.html">mp_sim_offset</a></span><span class="op">(</span><span class="fl">24</span>, <span class="fl">0</span>, <span class="st">"steps"</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co">## model calibrator with one transmission parameter to calibrate</span></span></span>
+<span class="r-in"><span><span class="co">## model calibrator, estimating only the transmission parameter</span></span></span>
 <span class="r-in"><span><span class="va">cal</span> <span class="op">=</span> <span class="fu"><a href="mp_tmb_calibrator.html">mp_tmb_calibrator</a></span><span class="op">(</span><span class="va">spec</span></span></span>
 <span class="r-in"><span>  , data <span class="op">=</span> <span class="va">data</span></span></span>
 <span class="r-in"><span>  , traj <span class="op">=</span> <span class="st">"infection"</span></span></span>
@@ -213,8 +210,8 @@ this parameter using the following approach.</p>
 <span class="r-in"><span>  , time <span class="op">=</span> <span class="va">time</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co">## this takes us into a local optimum at beta = 0.13,</span></span></span>
-<span class="r-in"><span><span class="co">## which is far away from the true value of beta = 0.6.</span></span></span>
+<span class="r-in"><span><span class="co">## From the starting point at beta = 1 this takes us into a</span></span></span>
+<span class="r-in"><span><span class="co">## local optimum at beta = 0.13, far from the true value of beta = 0.6.</span></span></span>
 <span class="r-in"><span><span class="fu">mp_optimize</span><span class="op">(</span><span class="va">cal</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  107.7808 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  144.4986 </span>
@@ -244,7 +241,7 @@ this parameter using the following approach.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "both X-convergence and relative convergence (5)"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co">## this gets us out of the optimum and to the true value.</span></span></span>
+<span class="r-in"><span><span class="co">## In this case, one-dimensional optimization finds the true value.</span></span></span>
 <span class="r-in"><span><span class="fu">mp_optimize</span><span class="op">(</span><span class="va">cal</span>, <span class="st">"optimize"</span>, <span class="fu"><a href="engine_functions.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1.2</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $minimum</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.5999964</span>
