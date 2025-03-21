@@ -46,17 +46,6 @@ spec = mp_tmb_library(
 )
 ```
 
-This specification can be used to draw the following flow diagram using code found in the [source for this article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/sir_age/README.Rmd).
-
-```{r diagram, echo = FALSE, eval = FALSE, fig.height = 2, fig.width = 8}
-system.file("utilss", "box-drawing.R", package = "macpan2") |> source()
-layout = mp_layout_paths(spec)
-(layout
-  |> plot_flow_diagram(show_flow_names = TRUE)
-  |> draw_inflows(layout, show_labels = TRUE)
-  |> draw_outflows(layout, show_labels = TRUE, pattern_mutate = "^([a-z]*)(_.*)", pattern_replace = "\\1")
-)
-```
 
 
 # States
@@ -96,22 +85,6 @@ Here $\lambda = \tau M \frac{I}{N}$.
 # Simulation Example
 
 ```{r plot_sim}
-# set numerical values
-N <- rep(1e5, 3) # total population by age
-I0 <- 100 # initial infecteds
-
-M <- matrix(c(
-  10, 1, 1, 
-  1, 5, 1, 
-  1, 1, 2
-  ), nrow = 3) # contact matrix in units of avg number of contacts/person/day (symmetric contact rates because we will pick two age groups of the same size)
-gamma <- 1/5 # 5 days avg infectious period; same gamma across age groups
-
-R0 <- 2
-# spectral radius of contact matrix for transmissibility calculation
-rho <- max(abs(eigen(M)$values))
-# calculate transmissibility given R0, gamma, M
-tau <- R0*gamma/rho # transmissibility (proportion of contacts with infectious individuals that yield infection)
 
 # variable labellers
 matrix_labeller <-  c(
@@ -124,6 +97,9 @@ row_labeller <- c(
   "1" = "Adults (ages 18-64)",
   "2" = "Seniors (ages 65+)"
 )
+
+I0 = mp_default_list(spec)$I[1]
+N = mp_default_list(spec)$N
 
 # simulate & visualize
 (spec
@@ -142,7 +118,7 @@ row_labeller <- c(
   |> ggplot2::ggplot(
     mapping = ggplot2::aes(x = time, y = value, colour = row)
   ) 
-  + ggplot2::geom_line() +
+  + ggplot2::geom_line()
   + ggplot2::facet_wrap(
       ~ matrix, 
       labeller = ggplot2::labeller(
@@ -163,6 +139,14 @@ row_labeller <- c(
     , legend.title = ggplot2::element_blank()
     )
 )
+```
+
+# Limitations
+
+Models with vector-valued state variables cannot be simulated with the [mp_euler_multinomial](https://canmod.github.io/macpan2/reference/state_updates) state update method. If you try you will get the following error.
+```{r error, echo = FALSE}
+x = mp_euler_multinomial(spec)
+try(mp_simulator(x, 1, "S") |> mp_trajectory())
 ```
 
 # References
