@@ -1,6 +1,6 @@
 ---
-title: "SIR with Age-based Transmission"
-index_entry: "An SIR model with age-based transmission"
+title: "Age-stratified SIR"
+index_entry: "An age-stratified SIR model"
 bibliography: ../../references.bib
 link-citations: TRUE
 author: Irena Papst, Steve Walker
@@ -21,7 +21,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-This is an extension of the [sir](https://github.com/canmod/macpan2/tree/main/inst/starter_models/sir) model that includes age-based transmission, based off of the model presented in [@Mistry2021].
+This is an expansion of the [sir](https://github.com/canmod/macpan2/tree/main/inst/starter_models/sir) model to include age-stratification; each state variable is subdivided by age, and transmission is governed by a age-based contact matrix, as described in [@Mistry2021].
 
 # Packages Used and Settings
 
@@ -30,7 +30,8 @@ The code in this article uses the following packages.
 ```{r packages, message=FALSE, warning=FALSE}
 library(ggplot2)
 library(dplyr)
-library(tidyr)
+library(forcats)
+library(scales)
 library(macpan2)
 ```
 
@@ -45,7 +46,7 @@ spec = mp_tmb_library(
 )
 ```
 
-This specification can be used to draw the following flow diagram using code found in the [source for this article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/sir_demog/README.Rmd).
+This specification can be used to draw the following flow diagram using code found in the [source for this article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/sir_age/README.Rmd).
 
 ```{r diagram, echo = FALSE, eval = FALSE, fig.height = 2, fig.width = 8}
 system.file("utilss", "box-drawing.R", package = "macpan2") |> source()
@@ -66,21 +67,21 @@ layout = mp_layout_paths(spec)
 | I        | Number of infectious individuals  |
 | R        | Number of recovered individuals   |
 
-In this age structured model, each state is a vector with one entry per age group. 
+Each state variable is a vector with one entry per age group. 
 
-The size of the population in each age groups is $N = S + I + R$.
+The size of the population in each age groups is given by the components of $N = S + I + R$.
 
 # Parameters
 
 | variable | description                  |
 | -------- | ---------------------------- |
-| $\tau$  | transmissibility (proportion of contacts with infecteds that yield infection) |
+| $\tau$  | transmissibility, _i.e._, the proportion of contacts with infecteds that yield infection |
 | $\gamma$ | per capita recovery rate     |
 | $M$    | matrix of contact rates between age groups, _e.g._ $M_{ij}$ is the rate of contact between susceptibles of age $i$ and infecteds of age $j$        |
 
-# Dynamics 
+$\tau$ and $\gamma$ can be specified by age (as vectors), though in the example below we use a scalar value that applies to all age groups.
 
-We assume new individuals (births) join the susceptible compartment, and individuals can leave the population (die) from any compartment.
+# Dynamics 
 
 $$
 \begin{align*}
@@ -94,8 +95,25 @@ Here $\lambda = \tau M \frac{I}{N}$.
 
 # Simulation Example
 
-```{r plot_setup}
-# variable labeller
+```{r plot_sim}
+# set numerical values
+N <- rep(1e5, 3) # total population by age
+I0 <- 100 # initial infecteds
+
+M <- matrix(c(
+  10, 1, 1, 
+  1, 5, 1, 
+  1, 1, 2
+  ), nrow = 3) # contact matrix in units of avg number of contacts/person/day (symmetric contact rates because we will pick two age groups of the same size)
+gamma <- 1/5 # 5 days avg infectious period; same gamma across age groups
+
+R0 <- 2
+# spectral radius of contact matrix for transmissibility calculation
+rho <- max(abs(eigen(M)$values))
+# calculate transmissibility given R0, gamma, M
+tau <- R0*gamma/rho # transmissibility (proportion of contacts with infectious individuals that yield infection)
+
+# variable labellers
 matrix_labeller <-  c(
   "S" = "Susceptible",
   "I" = "Infectious",
@@ -107,69 +125,43 @@ row_labeller <- c(
   "2" = "Seniors (ages 65+)"
 )
 
-plot_sim_age <- function(sim, matrix_labeller, row_labeller, title, subtitle){
-  ggplot2::ggplot(
-    data = sim,
+# simulate & visualize
+(spec
+  # simulate
+  |> mp_simulator(
+    time_steps = 150
+  , outputs = mp_state_vars(spec)
+  )
+  |> mp_trajectory()
+  # enforce natural order of variables for plotting
+  |> dplyr::mutate(
+    matrix = factor(matrix, levels = mp_state_vars(spec))
+   , row = forcats::as_factor(row)
+   )
+  # visualize trajectory
+  |> ggplot2::ggplot(
     mapping = ggplot2::aes(x = time, y = value, colour = row)
-  ) +
-    ggplot2::geom_line() +
-    ggplot2::facet_wrap(
+  ) 
+  + ggplot2::geom_line() +
+  + ggplot2::facet_wrap(
       ~ matrix, 
       labeller = ggplot2::labeller(
         matrix = matrix_labeller
       ),
-      scales = "free_y") + 
-    ggplot2::scale_colour_discrete(
+      scales = "free_y")
+  + ggplot2::scale_colour_discrete(
       labels = row_labeller
-    ) +
-    ggplot2::labs(
-      title = title,
-      subtitle = subtitle,
+    )
+  + ggplot2::labs(
+      title = "Simulation of the age-structured SIR model with two age groups",
+      subtitle = paste("Infection is seeded with", I0, "infectious children in a total population of", scales::label_number(scale_cut = scales::cut_short_scale())(sum(N))),
       x = "Days from beginning of outbreak",
       y = "Number of individuals"
-    ) +
-    ggplot2::theme(
+    )
+  + ggplot2::theme(
       legend.position = "bottom"
     , legend.title = ggplot2::element_blank()
     )
-}
-```
-
-```{r plot_sim}
-# set parameters
-N <- rep(1e5, 3) # total population by age
-I0 <- 100 # initial infecteds
-
-M <- matrix(c(10, 1, 1, 1, 5, 1, 1, 1, 2), nrow = 3) # contact matrix in units of avg number of contacts/day (symmetric contact rates because we will pick two age groups of the same size)
-gamma <- 1/5 # 5 days avg infectious period; same gamma across age groups
-
-R0 <- 2
-# spectral radius of contact matrix for transmissibility calculation
-rho <- max(abs(eigen(M)$values))
-# calculate transmissibility given R0, gamma, M
-tau <- R0*gamma/rho # transmissibility (proportion of contacts with infectious individuals that yield infection)
-
-# create simulator
-simulator <- mp_simulator(
-  model = spec,
-  time_steps = 150
-  , outputs = mp_state_vars(spec)
-)
-
-# generate trajectory
-sim <- mp_trajectory(simulator) |> 
-  dplyr::mutate(
-    matrix = factor(matrix, levels = mp_state_vars(spec))
-   , row = forcats::as_factor(row)) # natural order of state variables
-
-# visualize trajectory
-plot_sim_age(
-  sim, 
-  matrix_labeller, 
-  row_labeller,
-  title = "Simulation of the age-structured SIR model with two age groups",
-  
-  subtitle = paste("Infection is seeded with", I0, "infectious children in a total population of", scales::label_number(scale_cut = scales::cut_short_scale())(sum(N)))
 )
 ```
 
