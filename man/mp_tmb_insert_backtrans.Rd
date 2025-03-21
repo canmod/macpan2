@@ -14,13 +14,11 @@ mp_tmb_insert_backtrans(
 \item{model}{TMB model spec object produced using
 \code{\link{mp_tmb_library}} or \code{\link{mp_tmb_model_spec}}.}
 
-\item{variables}{Character vector of variables to transform.}
+\item{variables}{Character vector of parameters to back transform.}
 
 \item{transformation}{A transformation object such as \code{\link{mp_log}},
 which is the default. See the help page for \code{\link{mp_log}} for
 available options.}
-
-\item{variable}{Character vector of parameters to back transform.}
 }
 \value{
 A new model specification object with expressions for the

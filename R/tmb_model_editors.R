@@ -390,7 +390,7 @@ mp_tmb_insert_trans = function(model
 #' Insert Back Transformations of Model Parameters
 #' 
 #' @inheritParams mp_tmb_insert_trans
-#' @param variable Character vector of parameters to back transform.
+#' @param variables Character vector of parameters to back transform.
 #' 
 #' @return A new model specification object with expressions for the 
 #' untransformed (or back transformed) parameters at the beginning of the
