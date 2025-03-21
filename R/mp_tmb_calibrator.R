@@ -241,7 +241,7 @@ print.TMBCalibrator = function(x, ...) {
 #' optimization is started from the currently best parameter set.
 #' Therefore, if you find yourself in a local minimum you might need
 #' to either recreate the model using \code{\link{mp_tmb_calibrator}}
-#' or use `optimzer = "DEoptim`, which is more robust to objective
+#' or use `optimizer = "DEoptim"`, which is more robust to objective
 #' functions with multiple optima.
 #' 
 #' @param model A model object capable of being optimized. Typically
@@ -258,16 +258,14 @@ print.TMBCalibrator = function(x, ...) {
 #' ## `nlminb`
 #' 
 #' The default optimizer is \code{\link{nlminb}}. This optimizer uses
-#' gradients and Hessians computed by the 
-#' [template model builder](https://kaskr.github.io/adcomp/_book/Introduction.html)
+#' gradients computed by the 
+#' [Template Model Builder](https://kaskr.github.io/adcomp/_book/Introduction.html)
 #' engine of `macpan2`. This optimizer is efficient at local optimization
-#' by exploiting the Hessian matrix of second derivatives, which gives
-#' the optimizer information about how far to step during each iteration.
-#' However, this optimzer can struggle if the objective function has 
-#' multiple optima.
+#' by exploiting the gradient information computed by automatic differentiation.
+#' However, like many nonlinear optimizers, it can struggle if the objective function has multiple optima.
 #' 
-#' To set control parameters (e.g., maximum number of iterations), one 
-#' may use the following.
+#' To set control parameters (e.g., maximum number of iterations), you
+#' can use the `control` argument:
 #' ```
 #' mp_optimize(model, "nlminb", control = list(iter.max = 800))
 #' ```
@@ -276,7 +274,9 @@ print.TMBCalibrator = function(x, ...) {
 #' 
 #' ## `optim`
 #' 
-#' The \code{\link{optim}} optimizer does not use second derivatives
+#' The \code{\link{optim}} optimizer lets you choose from a variety
+#' of optimization algorithms. The default, `method = "Nelder-Mead"`,
+#' does not use second derivatives
 #' (compare with the description of \code{\link{nlminb}}), and so
 #' could be less efficient at taking each step. However, we
 #' find that it can be somewhat better at getting out of local optima,
@@ -291,44 +291,41 @@ print.TMBCalibrator = function(x, ...) {
 #' See the \code{\link{optim}} help page for the complete list of 
 #' control parameters and what the output means.
 #' 
-#' Note that if your model is parameterized by only a single parameter,
-#' you will get a warning asking you to use "Brent" or `optimize()`
-#' directly. You can ignore this warning if you are happy with your
+#' If your model is parameterized by only a single parameter,
+#' you'll get a warning asking you to use 'method = "Brent"' or optimizer = 'optimize()'.
+#' You can ignore this warning if you are happy with your
 #' answer, or can do either of the suggested options as follows.
 #' ```
 #' mp_optimize(model, "optim", method = "Brent", lower = 0, upper = 1.2)
-#' mp_optimize(model, "optimize", c(0, 1.2))
+#' mp_optimize(model, "optimize", interval = c(0, 1.2))
 #' ```
-#' Note that we have to specify the upper and lower values, between
-#' which the optimizer searches for the optimum.
+#' In this case you have to specify lower and upper bounds for the optimization.
 #' 
 #' ## `DEoptim`
 #' 
-#' The `DEoptim` optimizer is a function in the `DEoptim` package, and
-#' so you will need to have this package installed to use this option.
+#' The `DEoptim` optimizer comes from the `DEoptim` package;
+#' you'll need to have that package installed to use this option.
 #' It is designed for objective functions with multiple optima. Use
 #' this method if you do not believe the fit you get by other methods.
-#' The downsides of this method is that it doesn't use gradient or
-#' Hessian information, and so it is likely to be inefficient when
-#' the default starting values are close to the optimum, and it just
-#' generally will be slower because it utilizes multiple starting points
-#' to try to get out of local optima.
+#' The downsides of this method are that it doesn't use gradient
+#' information and evaluates the objective function at many different
+#' points, so is likely to be much slower than gradient-based optimizers
+#' such as the default `nlminb` optimizer, or `optim` with `method = "BFGS"`.
 #' 
-#' Because this optimizer starts from multiple places on the parameter
-#' space, you need to specify upper and lower values for the parameter
-#' vector -- between which different starting values will be chosen.
-#' Here is how that is done.
+#' Because this optimizer starts from multiple points in the parameter
+#' space, you need to specify lower and upper bounds for each parameter
+#' in the parameter vector.
+#' 
 #' ```
 #' mp_optimize(model, "DEoptim", lower = c(0, 0), upper = c(1.2, 1.2))
 #' ```
-#' Note that in this example we have two parameters, and therefore need
-#' to specify two `lower` and two `upper` sets of values.
+#' In this example we have two parameters, and therefore need
+#' to specify two values each for `lower` and `upper`
 #' 
 #' ## `optimize` and `optimise`
 #' 
-#' This optimizer can only be used for models parameterized with one
-#' parameter, and it is necessary to specify upper and lower values for
-#' this parameter using the following approach.
+#' This optimizer can only be used for models parameterized with a single
+#' parameter. You need to specify lower and upper bounds, e.g.
 #' ```
 #' mp_optimize(model, "optimize", c(0, 1.2))
 #' ```
@@ -351,12 +348,13 @@ print.TMBCalibrator = function(x, ...) {
 #' data = data[data$time > 24, ]
 #' data$time = data$time - 24
 #' 
-#' ## time scale object that accounts for the 24-steps of
-#' ## the epidemic that are not captured in the data.
-#' ## in real life we would need to guess at this number 24.
+#' ## time scale object that accounts for the true starting time
+#' ## of the epidemic (in this example we are not trying to estimate
+#' ## the initial number infected, so the starting time strongly
+#' ## affects the fitting procedure)
 #' time = mp_sim_offset(24, 0, "steps")
 #' 
-#' ## model calibrator with one transmission parameter to calibrate
+#' ## model calibrator, estimating only the transmission parameter
 #' cal = mp_tmb_calibrator(spec
 #'   , data = data
 #'   , traj = "infection"
@@ -365,13 +363,13 @@ print.TMBCalibrator = function(x, ...) {
 #'   , time = time
 #' )
 #' 
-#' ## this takes us into a local optimum at beta = 0.13,
-#' ## which is far away from the true value of beta = 0.6.
+#' ## From the starting point at beta = 1 this takes us into a
+#' ## local optimum at beta = 0.13, far from the true value of beta = 0.6.
 #' mp_optimize(cal)
 #' 
-#' ## this gets us out of the optimum and to the true value.
+#' ## In this case, one-dimensional optimization finds the true value.
 #' mp_optimize(cal, "optimize", c(0, 1.2))
-#' 
+#'
 #' @export
 mp_optimize = function(model, optimizer, ...) UseMethod("mp_optimize")
 
