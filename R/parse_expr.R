@@ -440,4 +440,4 @@ parse_expr_list = function(expr_list
     num_p_table_rows = vapply(p_tables, nrow, integer(1L))
   )
 }
-#parse_expr_list = memoise(parse_expr_list)
+parse_expr_list = memoise(parse_expr_list)
