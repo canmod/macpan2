@@ -394,7 +394,7 @@ mp_optimize.TMBSimulator = function(model
       ) |> stop()
     }
   }
-  if (!exists(optimizer, sim$optimize)) {
+  if (!exists(optimizer, model$optimize)) {
     mp_wrap(
       msg_paste(
           "The optimizer, ", optimizer, ", did not get initialized. "
