@@ -7,10 +7,11 @@ test_that("dot layouts produce appropriate errors and output classes", {
       for (s in no_mpflows) {
           expect_error(dot_layout(specs[[s]]), "was spec defined")
       }
+      plts = list()
       for (s in setdiff(names(specs), no_mpflows)) {
-          d <- dot_layout(specs[[s]])
-          expect_s4_class(d, "graphAM")
-          suppressWarnings(plot(d))
+          plts[[s]] <- dot_layout(specs[[s]])
+          expect_s4_class(plts[[s]], "graphAM")
       }
+      if (interactive()) lapply(plts, plot)
   }
 })
