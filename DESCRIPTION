@@ -1,6 +1,6 @@
 Package: macpan2
 Title: Fast and Flexible Compartmental Modelling
-Version: 1.16.5
+Version: 1.16.6
 Authors@R: c(
   person("Steve Walker", email="swalk@mcmaster.ca", role=c("cre", "aut")),
   person("Weiguang Guan", role="aut"),
@@ -16,7 +16,6 @@ Depends:
     R (>= 4.1.0)
 Imports: 
     TMB (>= 1.9.0),
-    Matrix,
     oor,
     MASS,
     memoise,
@@ -43,7 +42,9 @@ Suggests:
     numDeriv,
     parallel,
     macpan2helpers,
-    iidda.api
+    iidda.api,
+    graph,
+    Rgraphviz
 LinkingTo:
     TMB,
     RcppEigen
