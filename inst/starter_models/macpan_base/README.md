@@ -202,7 +202,7 @@ Mobility breakpoints identified for piecewise varying transmission.
 
 ``` r
 mobility_breaks = (prepped_ts_data
-  |> filter(date %in% c("2020-04-01", "2020-08-07"), matrix=="report")
+  |> filter(date %in% c("2020-04-01", "2020-08-07"), matrix == "report")
   |> pull(time)
 )
 ```
@@ -271,7 +271,7 @@ focal_model = (spec
    
    # add phenomenological heterogeneity:
    |> mp_tmb_update(phase = "during"
-      , at =1L
+      , at = 1L
       , expressions = list(
         mp_per_capita_flow(
             "S", "E"
@@ -282,22 +282,11 @@ focal_model = (spec
    )
    
    # compute gamma-density delay kernel for convolution:
-   |> mp_tmb_insert(phase = "before"
-      , at = Inf
-      , expressions = list(
-          gamma_shape ~ 1 / (c_delay_cv^2)
-        , gamma_scale ~ c_delay_mean * c_delay_cv^2
-        , gamma ~ pgamma(1:(qmax+1), gamma_shape, gamma_scale)
-        , delta ~ gamma[1:(qmax)] - gamma[0:(qmax - 1)]
-        , kappa ~ c_prop * delta / sum(delta)
-      )
-      , default = list(qmax = empty_matrix)
-   )
-   
-   # add convolution to compute case reports from incidence:
-   |> mp_tmb_insert(phase = "during"
-      , at = Inf
-      , expressions = list(report ~ convolution(S.E, kappa))
+   |> mp_tmb_insert_reports("S.E"
+      , report_prob = 0.1
+      , mean_delay = 11
+      , cv_delay = 0.25
+      , reports_name = "report"
    )
    
    # add time-varying transmission with mobility data:
@@ -356,15 +345,9 @@ focal_calib = mp_tmb_calibrator(
     
     # set initial parameter values for optimizer
     
-    # width of convolution kernel computed according to:
-    # https://canmod.net/misc/flex_specs#computing-convolutions
-    # shape = 1/(mp_default_list(focal_model)$c_delay_cv^2)
-    # scale = mp_default_list(focal_model)$c_delay_mean * mp_default_list(focal_model)$c_delay_cv^2
-    # qmax = ceiling(qgamma(0.95, shape, scale))
-    , qmax = 34
-    , log_beta0=log(5)
+    , log_beta0 = log(5)
     , logit_nonhosp_mort = -0.5
-    , log_mobility_coefficients = rep(0,5)
+    , log_mobility_coefficients = rep(0, 5)
     , log_zeta = 1
     
   )
@@ -373,22 +356,22 @@ focal_calib = mp_tmb_calibrator(
 mp_optimize(focal_calib)
 #> $par
 #>      params      params      params      params      params      params 
-#> -11.8661427  -1.6061443  -1.3693963  -8.9894233   1.5250569   0.4485781 
+#>   4.4042951   0.6842091  -1.3224779 -15.1809756  -0.9490377  -2.1947153 
 #>      params      params      params 
-#>  -0.5637307   8.6786877   4.9272458 
+#>  -0.6351558  16.6501807   4.3367893 
 #> 
 #> $objective
-#> [1] 2527.996
+#> [1] 2511.469
 #> 
 #> $convergence
 #> [1] 0
 #> 
 #> $iterations
-#> [1] 137
+#> [1] 29
 #> 
 #> $evaluations
 #> function gradient 
-#>      166      138 
+#>       44       30 
 #> 
 #> $message
 #> [1] "relative convergence (4)"
@@ -406,16 +389,26 @@ View estimates and their confidence intervals.
 
 ``` r
 mp_tmb_coef(focal_calib, conf.int = TRUE) |> round_coef_tab()
-#>                     mat row default  estimate  std.error conf.low    conf.high
-#> 1                  zeta   0  2.7183    0.0000     0.0165   0.0000          Inf
-#> 2                 beta0   0  5.0000    0.2007     0.0046   0.1919       0.2099
-#> 3 mobility_coefficients   0  1.0000    0.0001     0.0004   0.0000       0.0727
-#> 4 mobility_coefficients   1  1.0000    4.5954     0.2191   4.1854       5.0456
-#> 5 mobility_coefficients   2  1.0000    1.5661     0.1134   1.3588       1.8050
-#> 6 mobility_coefficients   3  1.0000    0.5691     0.0150   0.5405       0.5992
-#> 7 mobility_coefficients   4  1.0000 5876.3299 19071.1531  10.1531 3401041.1989
-#> 8                     E   0  5.0000  137.9989    26.2596  95.0390     200.3777
-#> 9          nonhosp_mort   0  0.3775    0.2027     0.0052   0.1927       0.2132
+#>                     mat row default     estimate    std.error    conf.low
+#> 1                  zeta   0  2.7183 8.180150e+01 3.706900e+00     74.8494
+#> 2                 beta0   0  5.0000 1.982200e+00 2.147000e-01      1.6030
+#> 3 mobility_coefficients   0  1.0000 0.000000e+00 0.000000e+00      0.0000
+#> 4 mobility_coefficients   1  1.0000 3.871000e-01 4.840000e-02      0.3030
+#> 5 mobility_coefficients   2  1.0000 1.114000e-01 1.520000e-02      0.0852
+#> 6 mobility_coefficients   3  1.0000 5.299000e-01 8.700000e-03      0.5130
+#> 7 mobility_coefficients   4  1.0000 1.702478e+07 4.289088e+07 122076.6139
+#> 8                     E   0  5.0000 7.646170e+01 2.506630e+01     40.2157
+#> 9          nonhosp_mort   0  0.3775 2.104000e-01 5.300000e-03      0.2002
+#>      conf.high
+#> 1 8.939920e+01
+#> 2 2.451000e+00
+#> 3 0.000000e+00
+#> 4 4.945000e-01
+#> 5 1.456000e-01
+#> 6 5.473000e-01
+#> 7 2.374273e+09
+#> 8 1.453758e+02
+#> 9 2.210000e-01
 ```
 
 ``` r

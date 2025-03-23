@@ -44,7 +44,7 @@ DistrParam = function(generic_name, trans = DistrParamTransDefault()) {
   self$generic_name = generic_name
   
   # Name of the variable being modelled by the distribution containing this
-  # distributional parmaeter (e.g., beta has this prior)
+  # distributional parameter (e.g., beta has this prior)
   self$variable_name = character(1L)
   
   # Name of the instance of this distributional parameter (e.g., sd_beta)
@@ -92,11 +92,11 @@ DistrParam = function(generic_name, trans = DistrParamTransDefault()) {
   ## length 0 (if this distributional parameter does not have to be added
   ## to the model spec) or length 1 (if it does). any other length is
   ## invalid
-  self$default = function() list()
+  self$default = function() empty_named_list()
   
   ## section 1b: list parallel to self$default() containing the objects
   ## that represent each distributional parameter
-  self$default_objs = function() list()
+  self$default_objs = function() empty_named_list()
   
   
   ## section 3: how should each distributional parameter be represented in
@@ -196,14 +196,14 @@ DistrSpec = function(distr_param_objs = list(), trans_distr_param = list()) {
   
   self$default = function() {
     dpo = self$distr_param_objs
-    dp = list()
+    dp = empty_named_list()
     for (o in dpo) dp = append(dp, o$default())
     dp
   }
   
   self$default_objs = function() {
     dpo = self$distr_param_objs
-    dp = list()
+    dp = empty_named_list()
     for (o in dpo) dp = append(dp, o$default_objs())
     dp
   }
@@ -331,6 +331,11 @@ DistrList = function(distr_list = list(), model_spec = mp_tmb_model_spec()) {
     for (i in seq_along(nms)) default_objs[[i]]$update_global_name(nms[i])
   }
   
+  self$update_variable_names = function(obj, mth = "time_var") {
+    tv_nms = names(globalize(obj, mth))
+    nms = names(obj[[mth]]())
+    for (i in seq_along(nms)) self$distr_list[[nms[i]]]$update_variable_name(tv_nms[i])
+  }
   
   # section 2: distributional parameters that need to be added as 
   ## _new_ defaults to model spec to be updated by calibration machinery
@@ -344,6 +349,9 @@ DistrList = function(distr_list = list(), model_spec = mp_tmb_model_spec()) {
   ## calibration machinery?
 
   self$distr_params_frame = function() {
+    if (length(self$distr_list) == 0L) {
+      return(empty_frame(c("mat", "row", "col", "default")))
+    }
     (self$distr_list
       |> method_apply("distr_params_frame")
       |> bind_rows()
@@ -367,22 +375,6 @@ DistrList = function(distr_list = list(), model_spec = mp_tmb_model_spec()) {
 mp_distr_param_null = function(generic_name) DistrParamNull(generic_name)
 DistrParamNull = function(generic_name) {
   self = DistrParam(generic_name, DistrParamTrans())
-  # self$err = function() {
-  #   if (self$variable_name == "") {
-  #     msg = sprintf("A %s parameter for some distribution is not provided"
-  #       , self$generic_name
-  #     )
-  #   } else {
-  #     msg = sprintf("A %s parameter for a distribution on %s is not provided"
-  #       , self$generic_name
-  #       , self$variable_name
-  #     )
-  #   }
-  #   msg
-  # }
-  # self$default = function() stop(self$err())
-  # self$default_objs = function() stop(self$err())
-  # self$expr_ref = function() stop(self$err())
   return_object(self, "DistrParamNull")
 }
 DistrParamNum = function(generic_name, value, trans = DistrParamTrans()) {
@@ -395,7 +387,7 @@ DistrParamNum = function(generic_name, value, trans = DistrParamTrans()) {
 }
 DistrParamNumNoFit = function(name, value, trans = DistrParamTrans()) {
   self = DistrParamNum(name, value, trans)
-  self$expr_ref = function() self$trans$ref(as.character(self$.value))
+  self$expr_ref = function() self$trans$ref_inv(as.character(self$.value))
   self$update_names = function(name) {
     self$variable_name = name
     self
@@ -410,7 +402,7 @@ DistrParamNumFit = function(name, value, trans = DistrParamTrans()) {
     list(self$trans$val(self$.value)) |> setNames(self$instance_name)
   }
   self$default_objs = function() list(self) |> setNames(self$instance_name)
-  self$expr_ref = function() self$trans$ref(self$global_name)
+  self$expr_ref = function() self$trans$ref_inv(self$global_name)
   self$distr_params_frame = function() {
     if (length(self$global_name) != 1L | length(self$default()) != 1L) {
       return(empty_frame(c("mat", "row", "col", "default")))
@@ -436,7 +428,7 @@ DistrParamChar = function(name, instance_name, trans = DistrParamTrans()) {
     self$variable_name = name
     self
   }
-  self$expr_ref = function() self$trans$ref(self$global_name)
+  self$expr_ref = function() self$trans$ref_inv(self$global_name)
   self$check_in_spec = function() {
     if (!self$global_name %in% names(self$model_spec$default)) {
       stop(self$global_name, " is not in the model spec")
@@ -448,7 +440,7 @@ DistrParamCharFit = function(name, instance_name, trans = DistrParamTrans()) {
   self = DistrParamChar(name, instance_name, trans)
   # Need to update default value with trans(default val)
   # self$default = function() {
-  #   list(self$trans$ref(self$check_in_spec()))  |> setNames(self$instance_name)
+  #   list(self$trans$ref_inv(self$check_in_spec()))  |> setNames(self$instance_name)
   # }
   self$distr_params_frame = function() {
     self$check_in_spec()
@@ -465,7 +457,7 @@ DistrParamCharNoFit = function(name, instance_name, trans = DistrParamTrans()) {
   self = DistrParamChar(name, instance_name, trans)
   self$default = function() {
     self$check_in_spec()
-    list()
+    empty_named_list()
   }
   return_object(self, "DistrParamCharNoFit")
 }
@@ -474,8 +466,10 @@ DistrParamCharNoFit = function(name, instance_name, trans = DistrParamTrans()) {
 DistrParamTrans = function() {
   self = Base()
   self$ref = function(x) x
+  self$ref_inv = function(x) x
   self$nm  = function(x) x
   self$val = function(x) x
+  self$val_inv = function(x) x
   self$resolve_default = function(default) self
   return_object(self, "DistrParamTrans")
 }
@@ -493,32 +487,36 @@ DistrParamIdentity = function() {
 
 DistrParamLog = function() {
   self = DistrParamTrans()
-  self$ref = function(x) sprintf("exp(%s)", x)
+  self$ref = function(x) sprintf("log(%s)", x)
+  self$ref_inv = function(x) sprintf("exp(%s)", x)
   self$nm  = function(x) sprintf("log_%s", x)
   self$val = function(x) log(x)
+  self$val_inv = function(x) exp(x)
   return_object(self, "DistrParamLog")
 }
 
-#' @importFrom stats qlogis
+#' @importFrom stats qlogis plogis
 DistrParamLogit = function() {
   self = DistrParamTrans()
-  self$ref = function(x) sprintf("(1 / (1 + exp(-%s)))", x)
+  self$ref = function(x) sprintf("(log(%s) - log(1-%s))", x, x)
+  self$ref_inv = function(x) sprintf("(1 / (1 + exp(-%s)))", x)
   self$nm  = function(x) sprintf("logit_%s", x)
   self$val = function(x) qlogis(x)
+  self$val_inv = function(x) plogis(x)
   return_object(self, "DistrParamLogit")
 }
 
 DistrParamSqrt = function() {
   self = DistrParamTrans()
-  self$ref = function(x) sprintf("(%s^2)", x)
+  self$ref = function(x) sprintf("(%s^0.5)", x)
+  self$ref_inv = function(x) sprintf("(%s^2)", x)
   self$nm  = function(x) sprintf("sqrt_%s", x)
   self$val = function(x) sqrt(x)
+  self$val_inv = function(x) x^2
   return_object(self, "DistrParamSqrt")
 }
 
-#' Distributional Parameter Transformation
-#' 
-#' Objects used
+#' Link Functions and Transformation 
 #'
 #' @name transform_distr_param
 NULL
@@ -609,7 +607,7 @@ NULL
 #' @export
 mp_uniform = function(trans_distr_param = list()) { 
   self = DistrSpec(
-    distr_param_objs = nlist()
+    distr_param_objs = empty_named_list()
     , trans_distr_param = trans_distr_param
   )
   self$prior = \(par) {

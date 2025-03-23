@@ -48,10 +48,13 @@ mp_add_effects_descr = function(coef_table, model) {
   if (!"term" %in% names(coef_table)) {
     stop("Cannot merge coefficient table with description")
   }
+  coef_table$term = make.unique(
+    ifelse(coef_table$type == "fixed", "params", "random")
+  )
   bind_rows(
       merge(descr, filter(coef_table, startsWith(term, "params")))
     , merge(descr, filter(coef_table, startsWith(term, "random")))
-    , filter(coef_table, !startsWith(term, "params") & !startsWith(term, "random"))
+    , filter(coef_table, !startsWith(term, "params") & !startsWith(term, "random")) ## what is in this third case?
   )
 }
 
@@ -68,7 +71,9 @@ mp_add_effects_descr = function(coef_table, model) {
 #' prefix. Back transformation also applies to time varying parameters and 
 #' distributional parameters that get automatic prefixes when used. `back_transform`
 #' defaults to `TRUE`.
-#' @param ... Arguments to pass onto the `broom.mixed::tidy.TMB` method.
+#' @param ... Arguments to pass onto the `broom.mixed::tidy.TMB` method. 
+#' To get confidence intervals, use `conf.int = TRUE`. Note
+#' that there is currently an issue when using `effects = "random`.
 #' @returns A data frame that describes the fitted coefficients.
 #' @export
 mp_tmb_coef = function(model, back_transform = TRUE, ...) UseMethod("mp_tmb_coef")
@@ -78,9 +83,12 @@ mp_tmb_coef = function(model, back_transform = TRUE, ...) UseMethod("mp_tmb_coef
 #' @export
 mp_tmb_coef.TMBSimulator = function(model, back_transform = TRUE, ...) {
   assert_dependencies("broom.mixed")
+  ## FIXME: if user tries effects = "random" without "fixed", throw error
+  ## that this is not implemented in broom.mixed. We could try to fix 
+  ## broom.mixed.
   tab = mp_add_effects_descr(broom.mixed::tidy(mp_tmb(model), ...), model)
   
-  if (back_transform){
+  if (back_transform & (nrow(tab) > 0L)) {
     vars1 <- intersect(c("default", "estimate", "conf.low", "conf.high"), names(tab))
     # regex matching log or logit transformed model coefficient/parameter names 
     # including time varying parameters and distributional parameters
@@ -95,12 +103,12 @@ mp_tmb_coef.TMBSimulator = function(model, back_transform = TRUE, ...) {
     prefix = cap_grp[["transform"]]
     tab <- split(tab, prefix)
     for (ptype in setdiff(names(tab), "")) {
-      link <- make.link(gsub("_","",ptype))
-      tab[[ptype]][["std.error"]] = link$mu.eta(tab[[ptype]][["estimate"]])*tab[[ptype]][["std.error"]]
+      link <- make.link(gsub("_", "", ptype))
+      tab[[ptype]][["std.error"]] = link$mu.eta(tab[[ptype]][["estimate"]]) * tab[[ptype]][["std.error"]]
       tab[[ptype]][vars1] = lapply(tab[[ptype]][vars1],link$linkinv)
       # restore original coefficient name
-      orig_coef_name = gsub(ptype,"",tab[[ptype]][["mat"]])
-      tab[[ptype]][["mat"]] = gsub(ptype,"",tab[[ptype]][["mat"]])
+      orig_coef_name = gsub(ptype, "", tab[[ptype]][["mat"]])
+      tab[[ptype]][["mat"]] = gsub(ptype, "", tab[[ptype]][["mat"]])
     }
     tab = bind_rows(tab)
   }
@@ -109,7 +117,17 @@ mp_tmb_coef.TMBSimulator = function(model, back_transform = TRUE, ...) {
 
 #' @export
 mp_tmb_coef.TMBCalibrator = function(model, ...) {
-  mp_tmb_coef(model$simulator, ...)
+  simulator = model$simulator
+  opt_attempted = simulator$optimization_history$opt_attempted()
+  if (!opt_attempted) {
+    mp_wrap(
+        "The model object has not been optimized, and so the default"
+      , "(non-optimized) parameter set will be displayed as the current"
+      , "best set of values."
+      , "You can optimize the model object using mp_optimize(model, ...)."
+    ) |> warning()
+  }
+  mp_tmb_coef(simulator, ...)
 }
 
 #' Model Coefficient Table with stan

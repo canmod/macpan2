@@ -1,4 +1,4 @@
-## ----include = FALSE----------------------------------------------------------
+## ----include = FALSE-------------------------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
   warning = FALSE,
@@ -9,18 +9,18 @@ knitr::opts_chunk$set(
 system.file("utils", "round-coef.R", package = "macpan2") |> source()
 
 
-## ----packages, message=FALSE, warning=FALSE-----------------------------------
+## ----packages, message=FALSE, warning=FALSE--------------------------------------
 library(ggplot2)
 library(dplyr)
 library(tidyr)
 library(macpan2)
 
 
-## ----options------------------------------------------------------------------
+## ----options---------------------------------------------------------------------
 options(macpan2_verbose = FALSE)
 
 
-## ----model_spec---------------------------------------------------------------
+## ----model_spec------------------------------------------------------------------
 spec = mp_tmb_library(
     "starter_models"
   , "shiver"
@@ -28,7 +28,7 @@ spec = mp_tmb_library(
 )
 
 
-## ----diagram, echo = FALSE, fig.height = 2, fig.width = 5---------------------
+## ----diagram, echo = FALSE, fig.height = 2, fig.width = 5------------------------
 system.file("utils", "box-drawing.R", package = "macpan2") |> source()
 layout = mp_layout_grid(spec
   , east = "(infection|progression|recovery)$"
@@ -38,14 +38,14 @@ layout = mp_layout_grid(spec
 plot_flow_diagram(layout)
 
 
-## ----Michaelis-Menten_param---------------------------------------------------
+## ----Michaelis-Menten_param------------------------------------------------------
 # asymptote
 a = 1000
 # force slope to be one at the origin
 b = a
 
 
-## ----Michaelis-Menten_fn, echo=FALSE------------------------------------------
+## ----Michaelis-Menten_fn, echo=FALSE---------------------------------------------
 
 # specify a sequence of S
 S = seq(0,3*a,length.out=300)
@@ -80,12 +80,13 @@ varvax = simple_sims(
    + ggtitle("Michaelis-Menten function")
    + ylab(expression(f(S(t))))
    + xlab(expression(S(t)))
+   + theme_bw()
 )
 
 
 
 
-## ----var_vax, echo=FALSE, warning=FALSE---------------------------------------
+## ----var_vax, echo=FALSE, warning=FALSE------------------------------------------
 # vaccination rate phi(S(t))
 (varvax 
    |> filter(matrix %in% c("vaccination"))
@@ -98,17 +99,18 @@ varvax = simple_sims(
    + ggtitle("Vaccination Rate")
    + ylab(expression(phi(S(t))))
    + xlab(expression(S(t)))
+   + theme_bw()
 )
 
 
 
-## ----calibration_scenario-----------------------------------------------------
+## ----calibration_scenario--------------------------------------------------------
 expected_daily_reports = 90 # days
 missed_reports = 10
 actual_daily_reports = expected_daily_reports - missed_reports
 
 
-## ----observed_data------------------------------------------------------------
+## ----observed_data---------------------------------------------------------------
 set.seed(expected_daily_reports)
 # Obtained from here:
 # https://data.ontario.ca/dataset/covid-19-vaccine-data-in-ontario/resource/274b819c-5d69-4539-a4db-f2950794138c
@@ -146,20 +148,20 @@ reported_hospitalizations = (daily_hospitalizations
 
 
 
-## ----mp_default---------------------------------------------------------------
+## ----mp_default------------------------------------------------------------------
 # We can view model spec default values here to see if we need to make any
 # changes
 mp_default(spec)
 
 
 
-## ----N------------------------------------------------------------------------
+## ----N---------------------------------------------------------------------------
 # N = population size
 # ---------------------
 N = 14.8e7
 
 
-## ----phi----------------------------------------------------------------------
+## ----phi-------------------------------------------------------------------------
 # phi = vaccination rate
 # ---------------------
 # for the month of July 2021, number of individuals vaccinated per week in ontario
@@ -174,7 +176,7 @@ july_vax = c(
 a = sum(july_vax)/28 # seems plausible
 
 
-## ----other_defaults-----------------------------------------------------------
+## ----other_defaults--------------------------------------------------------------
 # rho = waning vaccination
 # ---------------------
 rho = 1/180 # average protection lasts 180 days 
@@ -189,7 +191,7 @@ alpha = 1/3.3 #3.3 days in exposed class
 sigma = 1/10
 
 
-## ----initial_conditions-------------------------------------------------------
+## ----initial_conditions----------------------------------------------------------
 ## Initial Conditions
 # ---------------------
 
@@ -215,7 +217,7 @@ I0 = 10 * 1903/7
 H0 = daily_hospitalizations |> filter(row_number() == 1) |> select(value) |> pull()
 
 
-## ----defaults-----------------------------------------------------------------
+## ----defaults--------------------------------------------------------------------
 spec = mp_tmb_update(spec
   , default = list(
       N = N
@@ -231,7 +233,7 @@ spec = mp_tmb_update(spec
 )
 
 
-## ----simulating_dynamics------------------------------------------------------
+## ----simulating_dynamics---------------------------------------------------------
 
 # state variables
 states = c("S","H","I","V","E","R")
@@ -276,7 +278,7 @@ nrow(shiver_calibrator
 )
 
 
-## ----estimates----------------------------------------------------------------
+## ----estimates-------------------------------------------------------------------
 # optimize to estimate parameters
 # this converges!
 mp_optimize(shiver_calibrator)
@@ -286,7 +288,7 @@ est_coef = mp_tmb_coef(shiver_calibrator, conf.int=TRUE) |> round_coef_tab()
 est_coef
 
 
-## ----fit, echo=FALSE----------------------------------------------------------
+## ----fit, echo=FALSE-------------------------------------------------------------
 # how does the fit compare with observed data?
 (shiver_calibrator 
   |> mp_trajectory_sd(conf.int = TRUE)
@@ -296,10 +298,11 @@ est_coef
   + geom_ribbon(aes(ymin = conf.low, ymax = conf.high), fill = "red", alpha = 0.3)
   + geom_point(data = reported_hospitalizations, aes(time, value))
   + ylim(c(0, NA))
+  + theme_bw()
 )
 
 
-## ----reparameterization-------------------------------------------------------
+## ----reparameterization----------------------------------------------------------
 # Create a new model specification with these changes:
 #
 # - update the before step to transform "new" parameters
@@ -334,7 +337,7 @@ reparameterized_spec = mp_tmb_update(reparameterized_spec
 print(reparameterized_spec)
 
 
-## ----reparam_calib------------------------------------------------------------
+## ----reparam_calib---------------------------------------------------------------
 prior_distributions = list(
       log_beta = mp_uniform()
     , log_E_I_ratio = mp_uniform()
@@ -355,14 +358,14 @@ shiver_calibrator = mp_tmb_calibrator(
 mp_optimize(shiver_calibrator)
 
 
-## ----reparam_estimates, echo=FALSE--------------------------------------------
+## ----reparam_estimates, echo=FALSE-----------------------------------------------
 # looking at coefficients and CIs
 # we need to back transform to interpret
 cc <- mp_tmb_coef(shiver_calibrator, conf.int = TRUE) |> round_coef_tab()
 print(cc)
 
 
-## ----repar_fit----------------------------------------------------------------
+## ----repar_fit-------------------------------------------------------------------
 (shiver_calibrator 
   |> mp_trajectory_sd(conf.int = TRUE)
   |> ggplot(aes(time, value))
@@ -371,10 +374,11 @@ print(cc)
   + geom_ribbon(aes(ymin = conf.low, ymax = conf.high), fill = "red", alpha = 0.3)
   + geom_point(data = reported_hospitalizations, aes(time, value))
   + ylim(c(0, NA))
+  + theme_bw()
 )
 
 
-## ----rk4----------------------------------------------------------------------
+## ----rk4-------------------------------------------------------------------------
 # let's calibrate
 shiver_calibrator_rk4 = mp_tmb_calibrator(
     spec = reparameterized_spec |> mp_rk4()
@@ -397,7 +401,7 @@ print(rk4_coef)
 
 
 
-## ----multiple_traj_data, include=FALSE----------------------------------------
+## ----multiple_traj_data, include=FALSE-------------------------------------------
 # COVID19 case data for Ontario
 # It makes sense to assume these case counts are incidence (# number of new 
 # cases each day) instead of prevalence (# all active cases each day)
@@ -436,7 +440,7 @@ I0_new = I0_new * 10  ## account for under-reporting a bit
 mp_default(reparameterized_spec)
 
 
-## ----incidence_in_model-------------------------------------------------------
+## ----incidence_in_model----------------------------------------------------------
 multi_traj_spec = (reparameterized_spec
   |> mp_tmb_insert(
       phase = "during"
@@ -481,10 +485,10 @@ multi_traj_spec = (reparameterized_spec
 )
 
 
-## ----multiple_traj_calib------------------------------------------------------
+## ----multiple_traj_calib---------------------------------------------------------
 ## we need a more elaborate prior distribution
 sd_par = 1 ## for convenience we give all parameters the same prior sd, for now
-sd_state = 8 ## extremely vague priors on state variables
+sd_state = 4 ## extremely vague priors on state variables
 prior_distributions = list(
     log_beta = mp_normal(log(0.2), sd_par)
   , log_sigma = mp_normal(log(sigma), sd_par)
@@ -502,35 +506,38 @@ dd = rbind(reported_hospitalizations, reported_cases)
 
 # calibrate
 shiver_calibrator = mp_tmb_calibrator(
-    spec = multi_traj_spec |> mp_hazard()
+    spec = (multi_traj_spec 
+      |> mp_hazard()
+    )
     # row bind both observed data
   , data = dd
-    # fit both trajectories with negative binomial distributions
-  , traj = list(H = mp_neg_bin(disp = mp_fit(1))
-    , reported_incidence = mp_neg_bin(disp = mp_fit(1))
+    # fit both trajectories with log-normal distributions
+    # (changed from negative binomial because apparently it is easier
+    # to fit standard deviations than dispersion parameters)
+  , traj = list(H = mp_log_normal(sd = mp_fit(1))
+    , reported_incidence = mp_log_normal(sd = mp_fit(1))
   )
   , par = prior_distributions
-    # fit the transmission rate using four radial basis functions for
+    # fit the transmission rate using five radial basis functions for
     # a flexible model of time variation.
-  , tv = mp_rbf("rbf_beta", 4, sparse_tol = 1e-8)
+  , tv = mp_rbf("rbf_beta", 5, sparse_tol = 1e-8)
   , outputs = c(states, "reported_incidence", "beta")
 )
 
 
-## ----mult_traj_optim, include=FALSE-------------------------------------------
+## ----mult_traj_optim, include=FALSE----------------------------------------------
 # optimize to estimate transmission parameters
 # converges with warnings
 mp_optimize(shiver_calibrator)
 
 
-## ----mult_traj_estimates, echo=FALSE------------------------------------------
+## ----mult_traj_estimates, echo=FALSE---------------------------------------------
 #check estimates
-mp_tmb_coef(shiver_calibrator, conf.int = TRUE) |> round_coef_tab()
+cc = mp_tmb_coef(shiver_calibrator, conf.int = TRUE)
+round_coef_tab(cc)
 
 
-## ----mult_traj_fit, echo=FALSE------------------------------------------------
-# how does data look with these parameters
-# not good!
+## ----mult_traj_fit, echo=FALSE---------------------------------------------------
 (shiver_calibrator
    |> mp_trajectory_sd(conf.int = TRUE)
    |> ggplot(aes(time, value))
@@ -542,17 +549,17 @@ mp_tmb_coef(shiver_calibrator, conf.int = TRUE) |> round_coef_tab()
     )
    + geom_point(data = dd, aes(time, value))
    + facet_wrap(vars(matrix), scales = 'free')
-   #+ ylim(c(0, NA))
+   + theme_bw()
 )
 
 
-## ----ground_truth-------------------------------------------------------------
+## ----ground_truth----------------------------------------------------------------
 # set true values
 true_p = 0.2
 true_beta = 0.3 
 
 
-## ----identifiability----------------------------------------------------------
+## ----identifiability-------------------------------------------------------------
 # simulate fake data
 simulated_data = (reparameterized_spec
   |> mp_simulator(

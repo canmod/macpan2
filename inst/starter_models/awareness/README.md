@@ -2,15 +2,20 @@ Awareness Models
 ================
 Steve Walker
 
-- [Packages Used](#packages-used)
-- [Model Specification](#model-specification)
-- [States](#states)
-- [Parameters](#parameters)
-- [Base Awareness Model](#base-awareness-model)
-- [Delayed Death Awareness Model](#delayed-death-awareness-model)
-- [Longer Memory Awareness Model](#longer-memory-awareness-model)
-- [Importation Awareness Model](#importation-awareness-model)
-- [References](#references)
+-   <a href="#packages-used" id="toc-packages-used">Packages Used</a>
+-   <a href="#model-specification" id="toc-model-specification">Model
+    Specification</a>
+-   <a href="#states" id="toc-states">States</a>
+-   <a href="#parameters" id="toc-parameters">Parameters</a>
+-   <a href="#base-awareness-model" id="toc-base-awareness-model">Base
+    Awareness Model</a>
+-   <a href="#delayed-death-awareness-model"
+    id="toc-delayed-death-awareness-model">Delayed Death Awareness Model</a>
+-   <a href="#longer-memory-awareness-model"
+    id="toc-longer-memory-awareness-model">Longer Memory Awareness Model</a>
+-   <a href="#importation-awareness-model"
+    id="toc-importation-awareness-model">Importation Awareness Model</a>
+-   <a href="#references" id="toc-references">References</a>
 
 SEIR-type models with awareness-driven behaviour, inspired by ([Weitz et
 al. 2020](#ref-weitz2020awareness)) and ([Hurford et al.

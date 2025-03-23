@@ -30,3 +30,5 @@ mp_zero_vector.Index = function(x, labelling_column_names, ...) {
 }
 
 zero_vector = function(labels) setNames(rep(0, length(labels)), labels)
+
+rep_name = function(x, name) setNames(x, rep(name, length(x)))

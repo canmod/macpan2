@@ -1,4 +1,4 @@
-#' Transform a TMB Model Spec
+#' Transform a TMB Model Specification
 #' 
 #' Insert, update, or delete elements of a TMB model spec, produced using
 #' \code{\link{mp_tmb_library}} or \code{\link{mp_tmb_model_spec}}. The
@@ -188,7 +188,7 @@ mp_tmb_delete = function(model
   )
 }
 
-#' Insert Reports
+#' Transform a TMB Model Specification to Account for Reporting Bias
 #' 
 #' A version of \code{\link{mp_tmb_insert}} making it more convenient to
 #' transform an incidence variable into a reports variable, which accounts 
@@ -251,6 +251,170 @@ mp_tmb_insert_reports = function(model
   )
 }
 
+#' Insert Log Linear Model of Time Variation (Experimental)
+#' 
+#' @param model A model specification (see \code{\link{mp_tmb_model_spec}}).
+#' @param parameter_name Character string giving the name of the parameter
+#' to make time-varying.
+#' @param design_matrices List of matrices, one for each time window, describing
+#' the model of time variation.
+#' @param time_var_parameters Named list of parameter vectors for each window,
+#' with names giving the window names.
+#' @param window_names Names for each window.
+#' @param baseline_functions It is complicated -- this is a joke -- I'm tired.
+#' @param link_functions List of objects representing link functions.
+#' @param full_series_name Name of variable storing the full time series.
+#' @param baseline_names Names of variables containing the baseline in 
+#' each window.
+#' @param matrix_coef_names Names of vectors containing values of the non-zero 
+#' elements of the design matrices.
+#' @param matrix_row_names Names of the vectors containing row indices of
+#' the non-zero elements of the design matrices.
+#' @param matrix_col_names Names of the vectors containing column indices of
+#' the non-zero elements of the design matrices.
+#' @param linear_pred_names Names of the vectors containing the linear 
+#' predictors in each window.
+#' @param time_var_names Names of the time-varying parameter in each window.
+#' @param time_index_name Name of the index at which the time varying
+#' parameter changes.
+#' @param sparsity_tolerance Make design matrix coefficients exactly zero
+#' when they are below this tolerance.
+#' 
+#' @export
+mp_tmb_insert_log_linear = function(model
+    , parameter_name
+    , design_matrices ## list of matrices -- one for each window
+    , time_var_parameters ## named list of parameter vectors for each window (names give window names)
+    , window_names = names(time_var_parameters)
+    #, change_points ## list of change-point integer vectors
+    #, offset_references ## list of character vectors
+    , baseline_functions = c(
+          list(macpan2:::TimeVarBaselineParameter())
+        , rep(list(macpan2:::TimeVarBaselineNumeric(0)), length(design_matrices) - 1)
+      )
+    , link_functions = rep(list(mp_identity), length(design_matrices)) ## list of DistrParamTrans objects
+    , full_series_name = sprintf("time_var_output_%s", parameter_name)
+    , baseline_names = sprintf("baseline_%s", window_names)
+    , matrix_coef_names = sprintf("matrix_coef_%s", window_names)
+    , matrix_row_names = sprintf("matrix_row_%s", window_names)
+    , matrix_col_names = sprintf("matrix_col_%s", window_names)
+    , linear_pred_names = sprintf("linear_pred_%s", window_names)
+    , time_var_names = sprintf("time_var_%s", window_names)
+    , time_index_name = sprintf("time_index_%s", parameter_name)
+    , sparsity_tolerance = 0
+  ) {
+  sparse_matrices = lapply(design_matrices, macpan2:::sparse_matrix_notation, tol = sparsity_tolerance)
+  
+  matrix_coefs = lapply(sparse_matrices, getElement, "values") |> setNames(matrix_coef_names)
+  matrix_row = lapply(sparse_matrices, getElement, "row_index") |> setNames(matrix_row_names)
+  matrix_col = lapply(sparse_matrices, getElement, "col_index") |> setNames(matrix_col_names)
+  linear_pred = lapply(design_matrices, \(x) numeric(nrow(x))) |> setNames(linear_pred_names)
+  
+  inv_links = character()
+  before = character()
+  if (baseline_functions[[1]]$not_for_first_window()) stop("Invalid baseline specification.")
+  eta = ""
+  for (i in seq_along(design_matrices)) {
+    if (i > 1L) eta = linear_pred_names[i - 1L]
+    before = append(before, baseline_functions[[i]]$calc(
+        baseline_names[i]
+      , eta
+      , link_functions[[i]]
+      , parameter_name
+    ))
+    before = append(before, sprintf("%s ~ %s + group_sums(%s * %s[%s], %s, %s)"
+      , linear_pred_names[i], baseline_names[i]
+      , matrix_coef_names[i], time_var_names[i]
+      , matrix_col_names[i], matrix_row_names[i], linear_pred_names[i]
+    ))
+    inv_links = append(inv_links, link_functions[[i]]$ref_inv(linear_pred_names[i]))
+  }
+  series = paste(inv_links, collapse = ", ")
+  before = append(before
+    , sprintf("%s ~ c(%s)", full_series_name, series)
+  ) |> lapply(as.formula)
+  
+  during = sprintf("%s ~ time_var(%s, %s)"
+    , parameter_name
+    , full_series_name
+    , time_index_name
+  ) |> lapply(as.formula)
+  
+  
+  time_index = list(seq_len(length(unlist(linear_pred)))) |> setNames(time_index_name)
+  time_var = time_var_parameters |> setNames(time_var_names)
+  
+  
+  model = mp_tmb_insert(model
+    , phase = "before"
+    , at = 1L
+    , expressions = before
+    , default = c(matrix_coefs, linear_pred, time_var)
+    , integers = c(matrix_row, matrix_col, time_index)
+  )
+  model = mp_tmb_insert(model
+    , phase = "during"
+    , at = 1L
+    , expressions = during
+  )
+  return(model)
+}
+
+#' Insert Basic Transformations of Model Variables
+#' 
+#' @inheritParams mp_tmb_insert
+#' @param variables Character vector of variables to transform.
+#' @param transformation A transformation object such as \code{\link{mp_log}},
+#' which is the default. See the help page for \code{\link{mp_log}} for 
+#' available options.
+#' 
+#' @return A new model specification object with expressions for the transformed 
+#' variables at the end of the simulation loop. The transformed variables
+#' are identified with a prefixed name (e.g., `log_incidence` if `incidence`
+#' is log transformed).
+#' 
+#' @seealso [mp_tmb_insert_backtrans()]
+#' 
+#' @export
+mp_tmb_insert_trans = function(model
+    , variables = character()
+    , transformation = mp_log
+) {
+  expr_list = sprintf("%s ~ %s"
+    , transformation$nm(variables)
+    , transformation$ref(variables)
+  ) |> lapply(as.formula)
+  mp_tmb_insert(model, "during", Inf, expr_list)
+}
+
+#' Insert Back Transformations of Model Parameters
+#' 
+#' @inheritParams mp_tmb_insert_trans
+#' @param variables Character vector of parameters to back transform.
+#' 
+#' @return A new model specification object with expressions for the 
+#' untransformed (or back transformed) parameters at the beginning of the
+#' `before` phase. The transformed version of the parameter is also
+#' added to the defaults and are identified with a prefixed name (e.g., 
+#' `log_beta` if `beta` is log transformed).
+#' 
+#' @seealso [mp_tmb_insert_backtrans()]
+#' 
+#' @export
+mp_tmb_insert_backtrans = function(model
+    , variables = character()
+    , transformation = mp_log
+) {
+  default = (model$default(model)[variables] 
+    |> lapply(mp_log$val_inv) 
+    |> setNames(transformation$nm(variables))
+  )
+  expr_list = sprintf("%s ~ %s"
+    , variables
+    , transformation$ref_inv("x")
+  )
+  mp_tmb_insert(model, "before", 1L, expr_list, default)
+}
 
 ## model is a spec
 ## new_defaults is a list of raw defaults, each type of which has a `names` S3 method
@@ -504,6 +668,11 @@ TMBSimulatorReplacer = function(simulator) {
   }
   self$time_steps = function(time_steps) {
     self$model$time_steps = Time(time_steps)
+    self$simulator$cache$invalidate()
+    invisible(self$simulator)
+  }
+  self$do_prep_sdreport = function(do_pred_sdreport) {
+    self$model$do_pred_sdreport = do_pred_sdreport
     self$simulator$cache$invalidate()
     invisible(self$simulator)
   }
