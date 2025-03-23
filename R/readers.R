@@ -56,9 +56,9 @@ CSVReader = function(...) {
 }
 
 #' @describeIn Reader Read JSON files.
-#' @importFrom jsonlite fromJSON
 #' @export
 JSONReader = function(...) {
+  assert_dependencies("jsonlite")
   self = Reader(...)
   self$read_base = function() {
     l = jsonlite::fromJSON(self$file

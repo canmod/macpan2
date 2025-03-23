@@ -1,6 +1,6 @@
 Package: macpan2
 Title: Fast and Flexible Compartmental Modelling
-Version: 1.16.3
+Version: 1.16.5
 Authors@R: c(
   person("Steve Walker", email="swalk@mcmaster.ca", role=c("cre", "aut")),
   person("Weiguang Guan", role="aut"),
@@ -18,12 +18,12 @@ Imports:
     TMB (>= 1.9.0),
     Matrix,
     oor,
-    jsonlite,
     MASS,
     memoise,
     stats,
     utils
 Suggests: 
+    jsonlite,
     covr,
     knitr,
     rmarkdown,
