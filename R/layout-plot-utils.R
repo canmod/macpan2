@@ -995,7 +995,7 @@ compute_adjacency_matrix <- function(df) {
 ##' @export
 dot_layout <- function(spec, include_inout = FALSE) {
     if (!requireNamespace("Rgraphviz")) stop("Rgraphviz is needed for this function; please install it from Bioconductor")
-    ff <- mp_flow_frame(spec)
+    ff <- mp_flow_frame(spec, topological_sort = FALSE)
     if (nrow(ff) == 0) {
         stop("mp_flow_frame() is empty: was spec defined with mp_*flow functions?")
     }
