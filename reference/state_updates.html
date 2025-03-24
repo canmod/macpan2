@@ -125,7 +125,12 @@ incidence over a time scale.</p></li>
 <code>mp_discrete_stoch</code>. In all new projects please use <code>mp_discrete_stoch</code>.</p></li>
 <li><p><code>mp_discrete_stoch()</code>: Update state such that the probability of moving
 from box <code>i</code> to box <code>j</code> in one time step is given by
-<code>(1 - exp(-sum(r_i))) * (r_ij / r_i), where </code>r_ij<code>is the per-capita rate of flow from box</code>i<code>to box</code>j<code>, and </code>r_i<code>is the sum of all</code>r_ij<code>for a particular</code>i<code>. These probabilities from box </code>i<code>are used together in a multinomial  distribution that determines how many individuals go to each</code>j<code>box and  how many stay in </code>i`.</p></li>
+<code>(1 - exp(-sum(r_i))) * (r_ij / r_i)</code>,
+where <code>r_ij</code> is the per-capita rate of flow from box <code>i</code> to box <code>j</code>, and
+<code>r_i</code> is the sum of all <code>r_ij</code> for a particular <code>i</code>.
+These probabilities from box <code>i</code> are used together in a multinomial
+distribution that determines how many individuals go to each <code>j</code> box and
+how many stay in  <code>i</code>.</p></li>
 <li><p><code>mp_hazard()</code>: Update state with hazard steps, which is equivalent
 to taking the step given by the expected value of the Euler-multinomial
 distribution.</p></li>
@@ -157,7 +162,7 @@ distribution.</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      abs_rate = "infection")</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2: mp_per_capita_flow(from = "I", to = "R", rate = "gamma", abs_rate = "recovery")</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-in"><span><span class="va">sir</span> <span class="op">|&gt;</span> <span class="fu">mp_euler</span><span class="op">(</span><span class="op">)</span>          <span class="op">|&gt;</span> <span class="fu"><a href="mp_expand.html">mp_expand</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">sir</span> <span class="op">|&gt;</span> <span class="fu">mp_euler</span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="mp_expand.html">mp_expand</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---------------------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Default values:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  quantity value</span>
@@ -182,7 +187,7 @@ distribution.</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 4: I ~ I + infection - recovery</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 5: R ~ R + recovery</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-in"><span><span class="va">sir</span> <span class="op">|&gt;</span> <span class="fu">mp_rk4</span><span class="op">(</span><span class="op">)</span>            <span class="op">|&gt;</span> <span class="fu"><a href="mp_expand.html">mp_expand</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">sir</span> <span class="op">|&gt;</span> <span class="fu">mp_rk4</span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="mp_expand.html">mp_expand</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---------------------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Default values:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  quantity value</span>
