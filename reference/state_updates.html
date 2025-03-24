@@ -11,7 +11,7 @@ numerical methods."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.16.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.16.7</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -62,6 +62,8 @@ numerical methods.</p>
 <span><span class="fu">mp_rk4_old</span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">mp_euler_multinomial</span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">mp_discrete_stoch</span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">mp_hazard</span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -119,8 +121,11 @@ explicitly (e.g., with <code><a href="mp_per_capita_flow.html">mp_per_capita_flo
 of absolute flows through each time-step. As a result this version is
 more efficient but makes it more difficult to compute things like
 incidence over a time scale.</p></li>
-<li><p><code>mp_euler_multinomial()</code>: Update state with process error given by the
-Euler-multinomial distribution.</p></li>
+<li><p><code>mp_euler_multinomial()</code>: Original and deprecated name for
+<code>mp_discrete_stoch</code>. In all new projects please use <code>mp_discrete_stoch</code>.</p></li>
+<li><p><code>mp_discrete_stoch()</code>: Update state such that the probability of moving
+from box <code>i</code> to box <code>j</code> in one time step is given by
+<code>(1 - exp(-sum(r_i))) * (r_ij / r_i), where </code>r_ij<code>is the per-capita rate of flow from box</code>i<code>to box</code>j<code>, and </code>r_i<code>is the sum of all</code>r_ij<code>for a particular</code>i<code>. These probabilities from box </code>i<code>are used together in a multinomial  distribution that determines how many individuals go to each</code>j<code>box and  how many stay in </code>i`.</p></li>
 <li><p><code>mp_hazard()</code>: Update state with hazard steps, which is equivalent
 to taking the step given by the expected value of the Euler-multinomial
 distribution.</p></li>
@@ -152,7 +157,7 @@ distribution.</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      abs_rate = "infection")</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2: mp_per_capita_flow(from = "I", to = "R", rate = "gamma", abs_rate = "recovery")</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-in"><span><span class="va">sir</span> <span class="op">|&gt;</span> <span class="fu">mp_euler</span><span class="op">(</span><span class="op">)</span>             <span class="op">|&gt;</span> <span class="fu"><a href="mp_expand.html">mp_expand</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">sir</span> <span class="op">|&gt;</span> <span class="fu">mp_euler</span><span class="op">(</span><span class="op">)</span>          <span class="op">|&gt;</span> <span class="fu"><a href="mp_expand.html">mp_expand</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---------------------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Default values:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  quantity value</span>
@@ -177,7 +182,7 @@ distribution.</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 4: I ~ I + infection - recovery</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 5: R ~ R + recovery</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-in"><span><span class="va">sir</span> <span class="op">|&gt;</span> <span class="fu">mp_rk4</span><span class="op">(</span><span class="op">)</span>               <span class="op">|&gt;</span> <span class="fu"><a href="mp_expand.html">mp_expand</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">sir</span> <span class="op">|&gt;</span> <span class="fu">mp_rk4</span><span class="op">(</span><span class="op">)</span>            <span class="op">|&gt;</span> <span class="fu"><a href="mp_expand.html">mp_expand</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---------------------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Default values:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  quantity value</span>
@@ -222,7 +227,7 @@ distribution.</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 24: I ~ I + infection - recovery</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 25: R ~ R + recovery</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-in"><span><span class="va">sir</span> <span class="op">|&gt;</span> <span class="fu">mp_euler_multinomial</span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="mp_expand.html">mp_expand</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">sir</span> <span class="op">|&gt;</span> <span class="fu">mp_discrete_stoch</span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="mp_expand.html">mp_expand</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---------------------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Default values:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  quantity value</span>

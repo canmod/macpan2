@@ -9,7 +9,7 @@ function is covered in vignette("quickstart").'></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.16.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.16.7</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -61,7 +61,8 @@ function is covered in <code><a href="../articles/quickstart.html">vignette("qui
 <span>  must_save <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  must_not_save <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  sim_exprs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  state_update <span class="op">=</span> <span class="fu"><a href="engine_functions.html">c</a></span><span class="op">(</span><span class="st">"euler"</span>, <span class="st">"rk4"</span>, <span class="st">"euler_multinomial"</span>, <span class="st">"hazard"</span>, <span class="st">"rk4_old"</span><span class="op">)</span></span>
+<span>  state_update <span class="op">=</span> <span class="fu"><a href="engine_functions.html">c</a></span><span class="op">(</span><span class="st">"euler"</span>, <span class="st">"rk4"</span>, <span class="st">"discrete_stoch"</span>, <span class="st">"hazard"</span>, <span class="st">"rk4_old"</span>,</span>
+<span>    <span class="st">"euler_multinomial"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -130,7 +131,7 @@ continuous.</p></dd>
 <dt id="arg-state-update">state_update<a class="anchor" aria-label="anchor" href="#arg-state-update"></a></dt>
 <dd><p>Optional character vector for how to update the state
 variables when it is relevant. Options include <code>"euler"</code> (the default),
-<code>"rk4"</code>, and <code>"euler_multinomial"</code>.</p></dd>
+<code>"rk4"</code>, and <code>"discrete_stoch"</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
