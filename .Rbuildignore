@@ -24,4 +24,4 @@ drat/
 .*/html/.*
 ^vignettes/*[.]Rmd$
 .*.cff
-.macpan
+^.macpan$
