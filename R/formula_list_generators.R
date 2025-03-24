@@ -352,8 +352,8 @@ MockChangeModel = function() {
 ##' @examples
 ##' sir = mp_tmb_library("starter_models", "sir", package = "macpan2")
 ##' sir
-##' sir |> mp_euler()          |> mp_expand()
-##' sir |> mp_rk4()            |> mp_expand()
+##' sir |> mp_euler() |> mp_expand()
+##' sir |> mp_rk4() |> mp_expand()
 ##' sir |> mp_discrete_stoch() |> mp_expand()
 ##' 
 ##' @name state_updates
@@ -404,7 +404,7 @@ mp_euler_multinomial = function(model) UseMethod("mp_euler_multinomial")
 
 ##' @describeIn state_updates Update state such that the probability of moving
 ##' from box `i` to box `j` in one time step is given by
-##' `(1 - exp(-sum(r_i))) * (r_ij / r_i),
+##' `(1 - exp(-sum(r_i))) * (r_ij / r_i)`,
 ##' where `r_ij` is the per-capita rate of flow from box `i` to box `j`, and
 ##' `r_i` is the sum of all `r_ij` for a particular `i`.
 ##' These probabilities from box `i` are used together in a multinomial 
