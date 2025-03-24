@@ -405,14 +405,14 @@ mp_tmb_insert_backtrans = function(model
     , variables = character()
     , transformation = mp_log
 ) {
-  default = (model$default(model)[variables] 
-    |> lapply(mp_log$val_inv) 
+  default = (model$default[variables] 
+    |> lapply(mp_log$val) 
     |> setNames(transformation$nm(variables))
   )
   expr_list = sprintf("%s ~ %s"
     , variables
-    , transformation$ref_inv("x")
-  )
+    , transformation$ref_inv(transformation$nm(variables))
+  ) |> lapply(as.formula)
   mp_tmb_insert(model, "before", 1L, expr_list, default)
 }
 
