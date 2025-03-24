@@ -83,11 +83,7 @@ incidence over a time scale.
 
 \item \code{mp_discrete_stoch()}: Update state such that the probability of moving
 from box \code{i} to box \code{j} in one time step is given by
-\verb{(1 - exp(-sum(r_i))) * (r_ij / r_i), where }r_ij\verb{is the per-capita rate of flow from box}i\verb{to box}j, and
-\code{r_i} is the sum of all \code{r_ij} for a particular \code{i}.
-These probabilities from box \code{i} are used together in a multinomial
-distribution that determines how many individuals go to each \code{j} box and
-how many stay in \code{i}.
+\verb{(1 - exp(-sum(r_i))) * (r_ij / r_i), where }r_ij\verb{is the per-capita rate of flow from box}i\verb{to box}j\verb{, and }r_i\verb{is the sum of all}r_ij\verb{for a particular}i\verb{. These probabilities from box }i\verb{are used together in a multinomial  distribution that determines how many individuals go to each}j\verb{box and  how many stay in }i`.
 
 \item \code{mp_hazard()}: Update state with hazard steps, which is equivalent
 to taking the step given by the expected value of the Euler-multinomial
@@ -97,8 +93,8 @@ distribution.
 \examples{
 sir = mp_tmb_library("starter_models", "sir", package = "macpan2")
 sir
-sir |> mp_euler()             |> mp_expand()
-sir |> mp_rk4()               |> mp_expand()
-sir |> mp_euler_multinomial() |> mp_expand()
+sir |> mp_euler()          |> mp_expand()
+sir |> mp_rk4()            |> mp_expand()
+sir |> mp_discrete_stoch() |> mp_expand()
 
 }

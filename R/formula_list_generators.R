@@ -352,9 +352,9 @@ MockChangeModel = function() {
 ##' @examples
 ##' sir = mp_tmb_library("starter_models", "sir", package = "macpan2")
 ##' sir
-##' sir |> mp_euler()             |> mp_expand()
-##' sir |> mp_rk4()               |> mp_expand()
-##' sir |> mp_euler_multinomial() |> mp_expand()
+##' sir |> mp_euler()          |> mp_expand()
+##' sir |> mp_rk4()            |> mp_expand()
+##' sir |> mp_discrete_stoch() |> mp_expand()
 ##' 
 ##' @name state_updates
 NULL
@@ -405,12 +405,13 @@ mp_euler_multinomial = function(model) UseMethod("mp_euler_multinomial")
 ##' @describeIn state_updates Update state such that the probability of moving
 ##' from box `i` to box `j` in one time step is given by
 ##' `(1 - exp(-sum(r_i))) * (r_ij / r_i),
-##' where `r_ij` is the per-capita rate of flow from box `i` to box `j, and
+##' where `r_ij` is the per-capita rate of flow from box `i` to box `j`, and
 ##' `r_i` is the sum of all `r_ij` for a particular `i`.
 ##' These probabilities from box `i` are used together in a multinomial 
 ##' distribution that determines how many individuals go to each `j` box and 
-##' how many stay in `i`.
-mp_discrete_stoch = mp_euler_multinomial
+##' how many stay in  `i`.
+##' @export
+mp_discrete_stoch = function(model) UseMethod("mp_discrete_stoch")
 
 ##' @describeIn state_updates Update state with hazard steps, which is equivalent
 ##' to taking the step given by the expected value of the Euler-multinomial
@@ -430,6 +431,10 @@ mp_rk4_old.TMBModelSpec = function(model) model$change_update_method("rk4_old")
 
 ##' @export
 mp_euler_multinomial.TMBModelSpec = function(model) model$change_update_method("euler_multinomial")
+
+##' @export
+mp_discrete_stoch.TMBModelSpec = function(model) model$change_update_method("discrete_stoch")
+
 
 ##' @export
 mp_hazard.TMBModelSpec = function(model) model$change_update_method("hazard")
@@ -721,6 +726,11 @@ RK4UpdateMethod = function(change_model) {
   }
   self$after = function() self$change_model$after_loop()
   return_object(self, "EulerUpdateMethod")
+}
+
+DiscreteStochUpdateMethod = function(change_model) {
+  self = EulerMultinomialUpdateMethod(change_model)
+  return_object(self, "DiscreteStochUpdateMethod")
 }
 
 EulerMultinomialUpdateMethod = function(change_model) {
