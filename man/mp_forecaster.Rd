@@ -9,6 +9,7 @@ mp_forecaster(
   forecast_period_time_steps,
   outputs = NULL,
   data = NULL,
+  tv = NULL,
   default = list()
 )
 }
@@ -32,6 +33,9 @@ intervals of negative state variables).}
 Typically this argument will be unused, because by default the data are
 stored in the \code{calibrator} unless you want to avoid making too many copies
 of the data.}
+
+\item{tv}{An optional replacement for the \code{tv} parameter in the
+\code{\link{mp_tmb_calibrator}} function.}
 
 \item{default}{An optional list of default model variables (e.g., parameters
 initial values of state variables) to override calibrated values.}

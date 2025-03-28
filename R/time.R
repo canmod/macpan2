@@ -17,7 +17,6 @@ mp_time_scale = function(start, end
   )
   time_cls(start, end, ...)
 }
-# mp_time_scale("2000-01-01", "2000-01-08", "weekly")
 
 
 

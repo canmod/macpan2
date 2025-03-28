@@ -7,7 +7,7 @@
 mp_sim_offset(
   sim_start_offset,
   sim_end_offset,
-  time_scale,
+  time_scale = "steps",
   time_column = "time"
 )
 }
@@ -25,8 +25,8 @@ step in the model to represent one day, then you should consider using
 time using a (1) \code{\link{Date}} vector, (2) \code{\link{character}}
 vector in YYYY-MM-DD format, or (3) \code{\link{integer}} vector that
 counts the number of days since some reference. Otherwise please choose
-'steps' and convert your time column into integer values that represent
-the time step that you would like in the model.}
+'steps', the default, and convert your time column into integer values that
+represent the time step that you would like in the model.}
 
 \item{time_column}{Name of the column that will identify the time at which
 particular values were observed.}

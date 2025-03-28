@@ -6,6 +6,7 @@
 \alias{mp_rk4}
 \alias{mp_rk4_old}
 \alias{mp_euler_multinomial}
+\alias{mp_discrete_stoch}
 \alias{mp_hazard}
 \title{Change How State Variables are Updated}
 \usage{
@@ -16,6 +17,8 @@ mp_rk4(model)
 mp_rk4_old(model)
 
 mp_euler_multinomial(model)
+
+mp_discrete_stoch(model)
 
 mp_hazard(model)
 }
@@ -75,8 +78,17 @@ of absolute flows through each time-step. As a result this version is
 more efficient but makes it more difficult to compute things like
 incidence over a time scale.
 
-\item \code{mp_euler_multinomial()}: Update state with process error given by the
-Euler-multinomial distribution.
+\item \code{mp_euler_multinomial()}: Original and deprecated name for
+\code{mp_discrete_stoch}. In all new projects please use \code{mp_discrete_stoch}.
+
+\item \code{mp_discrete_stoch()}: Update state such that the probability of moving
+from box \code{i} to box \code{j} in one time step is given by
+\code{(1 - exp(-sum(r_i))) * (r_ij / r_i)},
+where \code{r_ij} is the per-capita rate of flow from box \code{i} to box \code{j}, and
+\code{r_i} is the sum of all \code{r_ij} for a particular \code{i}.
+These probabilities from box \code{i} are used together in a multinomial
+distribution that determines how many individuals go to each \code{j} box and
+how many stay in  \code{i}.
 
 \item \code{mp_hazard()}: Update state with hazard steps, which is equivalent
 to taking the step given by the expected value of the Euler-multinomial
@@ -86,8 +98,8 @@ distribution.
 \examples{
 sir = mp_tmb_library("starter_models", "sir", package = "macpan2")
 sir
-sir |> mp_euler()             |> mp_expand()
-sir |> mp_rk4()               |> mp_expand()
-sir |> mp_euler_multinomial() |> mp_expand()
+sir |> mp_euler() |> mp_expand()
+sir |> mp_rk4() |> mp_expand()
+sir |> mp_discrete_stoch() |> mp_expand()
 
 }

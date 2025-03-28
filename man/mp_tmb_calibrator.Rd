@@ -53,7 +53,8 @@ in addition to default updates, need to be added to the spec
 and the time period associated with each time step. The default is \code{NULL},
 which takes simulation bounds from the \code{data}. You can use
 \code{\link{mp_sim_bounds}} and \code{\link{mp_sim_offset}} to be more
-specific.}
+specific. See the example on the \code{\link{mp_optimize}} help file for
+an illustration the use of \code{\link{mp_sim_offset}}.}
 
 \item{save_data}{Save a copy of the data in the calibrator object that is
 returned, so that you do not need to pass the data manually to downstream

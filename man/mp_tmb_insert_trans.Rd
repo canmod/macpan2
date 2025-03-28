@@ -17,11 +17,14 @@ which is the default. See the help page for \code{\link{mp_log}} for
 available options.}
 }
 \value{
-A new model spec object with expressions for the transformed
+A new model specification object with expressions for the transformed
 variables at the end of the simulation loop. The transformed variables
 are identified with a prefixed name (e.g., \code{log_incidence} if \code{incidence}
 is log transformed).
 }
 \description{
 Insert Basic Transformations of Model Variables
+}
+\seealso{
+\code{\link[=mp_tmb_insert_backtrans]{mp_tmb_insert_backtrans()}}
 }

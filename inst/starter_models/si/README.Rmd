@@ -78,6 +78,7 @@ specs = mp_tmb_library("starter_models"
   , package = "macpan2"
   , alternative_specs = TRUE
 )
+set.seed(1)
 (specs
   |> lapply(mp_simulator, 50L, "I")
   |> lapply(mp_trajectory)

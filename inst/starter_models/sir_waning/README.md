@@ -1,4 +1,4 @@
-SIR with Waning Immunity
+SIR with Waning Immunity (SIRS)
 ================
 Jen Freeman, Steve Walker
 
@@ -21,7 +21,8 @@ Endemic pathogens can sometimes be modelled by sending R back to S,
 thereby controlling susceptible depletion such that new infections keep
 arising indefinitely. This is an extension of the
 [sir](https://github.com/canmod/macpan2/tree/main/inst/starter_models/sir)
-model to include such immunity waning.
+model to include immunity waning. This model is commonly called the SIRS
+model.
 
 # Packages Used and Settings
 

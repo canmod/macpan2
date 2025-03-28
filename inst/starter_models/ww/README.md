@@ -12,7 +12,6 @@ Jennifer Freeman, Steve Walker
 -   <a href="#calibration" id="toc-calibration">Calibration</a>
     -   <a href="#observed-data-prep" id="toc-observed-data-prep">Observed Data
         Prep</a>
-    -   <a href="#time-bounds" id="toc-time-bounds">Time Bounds</a>
     -   <a href="#calibration-model-specification"
         id="toc-calibration-model-specification">Calibration Model
         Specification</a>
@@ -183,14 +182,6 @@ obs_data = (covid_on
 )
 ```
 
-## Time Bounds
-
-``` r
-burn_in_period  = 15 ## number of days before the data start to begin the simulations
-forecast_period = 30 ## number of days after the data end to make forecasts
-time_bounds = mp_sim_offset(burn_in_period, forecast_period, "daily")
-```
-
 ## Calibration Model Specification
 
 Update model specification to include additional components required for
@@ -243,7 +234,7 @@ focal_model = (
      , report_prob_name = "report_prob"
   )
 
-  # add time-varying transmission
+  # decompose beta for time-varying transmission
   |> mp_tmb_insert(phase = "during"
      , at = 1L
      , expressions = list(beta ~ beta0 * beta1 * beta2)
@@ -257,6 +248,9 @@ focal_model = (
      , default  = list(beta_changes      = c(1))
      , integers = list(beta_changepoints = c(0))
   )
+  
+  # log transform W
+  |> mp_tmb_insert_trans("W", mp_log)
 )
 ```
 
@@ -298,14 +292,14 @@ focal_calib = mp_tmb_calibrator(
     # return these trajectories so that they can be
     # explored after fitting
   , outputs = c(
-        "reported_incidence", "W", "beta"
-      , "prevalence", "incidence", "S"
+        "reported_incidence", "beta"
+      , "prevalence", "incidence", "S", "log_W"
     )
   
     # update defaults with macpan1.5 wastewater model defaults
   , default = macpan1.5_defaults
   
-  , time = time_bounds
+  , time = mp_sim_offset(15, 0, "daily")
 )
 # converges
 mp_optimize(focal_calib)
@@ -336,7 +330,7 @@ mp_optimize(focal_calib)
 
 ## Explore Fits
 
-Get fitted data and coefficients.
+The fitted model parameters, fitted values, and confidence intervals.
 
 ``` r
 macpan2_fit = mp_trajectory_sd(focal_calib, conf.int = TRUE)
@@ -371,19 +365,6 @@ print(fitted_coefs)
 Plot the fitted values.
 
 ``` r
-macpan1.5_fit = (macpan1.5$sim
-  |> group_by(Date, state)
-  # summarize to ignore vaccination status
-  |> summarise(value = sum(value))
-  |> ungroup()
-  |> rename(time = Date, matrix = state)
-  |> filter(matrix %in% c("conv", "W"))
-  |> filter(!is.na(value))
-  |> mutate(matrix = ifelse(matrix == "conv", "reported_incidence", matrix))
-)
-#> `summarise()` has grouped output by 'Date'. You can override using the `.groups`
-#> argument.
-
 plot_fit = function(obs_data, sim_data, ncol = 1L) {
   (ggplot(obs_data, aes(time, value))
    + geom_point()

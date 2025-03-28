@@ -656,16 +656,16 @@ value_column_calibrator_util = function(baseline, simulator) {
     , default = "default"
     , optimized = "current"
   )
-  opt_attempted = simulator$optimization_history$opt_attempted()
-  if ((value_column_name == "current") & !opt_attempted) {
-    mp_wrap(
-        "The model object has not been optimized, and so the default"
-      , "(non-optimized) parameter set will be used as the baseline."
-      , "Please either explicitly choose"
-      , "to use the default set of parameters as the baseline, or optimize"
-      , "the model object using mp_optimize(model, ...)."
-    ) |> warning()
-  }
+  # opt_attempted = simulator$optimization_history$opt_attempted()
+  # if ((value_column_name == "current") & !opt_attempted) {
+  #   mp_wrap(
+  #       "The model object has not been optimized, and so the default"
+  #     , "(non-optimized) parameter set will be used as the baseline."
+  #     , "Please either explicitly choose"
+  #     , "to use the default set of parameters as the baseline, or optimize"
+  #     , "the model object using mp_optimize(model, ...)."
+  #   ) |> warning()
+  # }
   return(value_column_name)
 }
 
@@ -689,12 +689,14 @@ mp_trajectory_par.TMBCalibrator = function(model, parameter_updates = list()
     , baseline = c("recommended", "default", "optimized")
   ) {
   baseline = match.arg(baseline)
-  model = model$simulator
-  value_column_name = value_column_calibrator_util(baseline, model)
-  trajectory_par_util(model
+  simulator = model$simulator
+  value_column_name = value_column_calibrator_util(baseline, simulator)
+  traj = trajectory_par_util(simulator
     , parameter_updates, value_column_name
     , include_initial, include_final
   )
+  traj$time = model$time_steps_obj$internal_to_external(traj$time)
+  return(traj)
 }
 
 #' @param conf.int Should confidence intervals be produced?

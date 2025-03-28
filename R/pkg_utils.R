@@ -1,19 +1,23 @@
 ## from broom
-assert_dependency <- function(library_name) {
-  if (!requireNamespace(library_name, quietly = TRUE)) {
-    stop(sprintf("Please install the %s package.", library_name))
+assert_dependency <- function(package_name) {
+  if (!requireNamespace(package_name, quietly = TRUE)) {
+    stop(sprintf("Please install the %s package.", package_name))
   }
 }
 
 assert_dependencies = function(...) {
-  library_names = list(...) |> unlist() |> as.character()
-  exist = vapply(library_names, requireNamespace, logical(1L), quietly = TRUE)
+  package_names = list(...) |> unlist() |> as.character()
+  exist = vapply(package_names, requireNamespace, logical(1L), quietly = TRUE)
   if (!all(exist)) {
     stop(
       sprintf(
         "Please install the following packages:\n%s",
-        paste0(library_names[!exist], collapse = ", ")
+        paste0(package_names[!exist], collapse = ", ")
       )
     )
   }
+}
+
+assert_function_dependency = function(function_object) {
+  function_object |> is.function() |> try() |> isTRUE()
 }

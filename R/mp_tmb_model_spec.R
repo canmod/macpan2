@@ -10,9 +10,10 @@ TMBModelSpec = function(
     , state_update = c(
           "euler"
         , "rk4"
-        , "euler_multinomial"
+        , "discrete_stoch"
         , "hazard"
         , "rk4_old"
+        , "euler_multinomial"
       )
   ) {
   must_not_save = handle_saving_conflicts(must_save, must_not_save)
@@ -117,11 +118,16 @@ TMBModelSpec = function(
     )
   }
   self$change_update_method = function(
-      state_update = c("euler", "rk4", "euler_multinomial", "hazard", "rk4_old")
+      state_update = c("euler", "rk4", "discrete_stoch", "hazard", "rk4_old", "euler_multinomial")
     ) {
     
     if (self$state_update == "no") {
-      warning("This model has not formalized the notion of a state variable, and so changing how the state variables are updated has no effect. Models with formalized state variables are specified with state flows using functions such as mp_per_capita_flow.")
+      msg_space(
+          "This model has not formalized the notion of a state variable,"
+        , "and so changing how the state variables are updated has no effect.",
+        , "Models with formalized state variables are specified with state"
+        , "flows using functions such as mp_per_capita_flow."
+      ) |> warning()
     }
     mp_tmb_model_spec(
         self$before, self$during, self$after
@@ -304,7 +310,7 @@ must_save_time_args = function(formulas) {
 #' continuous.
 #' @param state_update Optional character vector for how to update the state 
 #' variables when it is relevant. Options include `"euler"` (the default), 
-#' `"rk4"`, and `"euler_multinomial"`.
+#' `"rk4"`, and `"discrete_stoch"`.
 #' 
 #' @details
 #' Expressions in the `before`, `during`, and `after` lists can be standard 
