@@ -406,7 +406,7 @@ mp_tmb_insert_backtrans = function(model
     , transformation = mp_log
 ) {
   default = (model$default[variables] 
-    |> lapply(mp_log$val) 
+    |> lapply(transformation$val) 
     |> setNames(transformation$nm(variables))
   )
   expr_list = sprintf("%s ~ %s"
