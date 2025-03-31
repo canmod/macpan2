@@ -83,6 +83,7 @@ ConvolutedScaler = function(var, var_scaled) {
   return_object(self, "ConvolutedScaler")
 }
 
+#' @importFrom stats pgamma qgamma
 GammaConvolution = function(variable, length, height, mean, cv) {
   self = ChangeComponent()
   self$variable = variable
