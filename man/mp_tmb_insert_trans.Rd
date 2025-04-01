@@ -2,9 +2,12 @@
 % Please edit documentation in R/tmb_model_editors.R
 \name{mp_tmb_insert_trans}
 \alias{mp_tmb_insert_trans}
+\alias{mp_tmb_implicit_trans}
 \title{Insert Basic Transformations of Model Variables}
 \usage{
 mp_tmb_insert_trans(model, variables = character(), transformation = mp_log)
+
+mp_tmb_implicit_trans(model, variables = character())
 }
 \arguments{
 \item{model}{TMB model spec object produced using
@@ -25,6 +28,15 @@ is log transformed).
 \description{
 Insert Basic Transformations of Model Variables
 }
+\section{Functions}{
+\itemize{
+\item \code{mp_tmb_implicit_trans()}: Insert variable transformations implicitly
+by pre-pending the name of the transformations in front of the names of the
+\code{variables} that you ask for (e.g., \code{"log_case_reports"}) even if this
+variable is not in the model as long as the base name
+(e.g., \code{"case_reports"}) is.
+
+}}
 \seealso{
 \code{\link[=mp_tmb_insert_backtrans]{mp_tmb_insert_backtrans()}}
 }

@@ -2,6 +2,7 @@
 % Please edit documentation in R/tmb_model_editors.R
 \name{mp_tmb_insert_backtrans}
 \alias{mp_tmb_insert_backtrans}
+\alias{mp_tmb_implicit_backtrans}
 \title{Insert Back Transformations of Model Parameters}
 \usage{
 mp_tmb_insert_backtrans(
@@ -9,6 +10,8 @@ mp_tmb_insert_backtrans(
   variables = character(),
   transformation = mp_log
 )
+
+mp_tmb_implicit_backtrans(model, variables = character())
 }
 \arguments{
 \item{model}{TMB model spec object produced using
@@ -30,6 +33,15 @@ added to the defaults and are identified with a prefixed name (e.g.,
 \description{
 Insert Back Transformations of Model Parameters
 }
+\section{Functions}{
+\itemize{
+\item \code{mp_tmb_implicit_backtrans()}: Insert parameter transformations
+implicitly by pre-pending the name of the transformations in front of the
+names of the \code{variables} that you ask for (e.g., \code{"log_case_reports"}) even
+if this variable is not in the model as long as the base name (e.g.,
+\code{"case_reports"}) is.
+
+}}
 \seealso{
-\code{\link[=mp_tmb_insert_backtrans]{mp_tmb_insert_backtrans()}}
+\code{\link[=mp_tmb_insert_trans]{mp_tmb_insert_trans()}}
 }

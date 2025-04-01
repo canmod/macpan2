@@ -40,34 +40,7 @@ mp_forecaster = function(calibrator, forecast_period_time_steps
     , outputs = NULL, data = NULL, tv = NULL, default = list()
   ) {
   spec = mp_optimized_spec(calibrator, "original")
-  
-  if (!is.null(outputs)) {
-    all_possible = spec$all_formula_vars()
-    
-    simple_outputs = intersect(outputs, all_possible)
-    complex_outputs = setdiff(outputs, all_possible)
-    trans_outputs = grep("^(log|logit|sqrt)_", complex_outputs, value = TRUE)
-    
-    log_outputs = sub("^log_", "", complex_outputs) |> intersect(all_possible)
-    logit_outputs = sub("^logit_", "", complex_outputs) |> intersect(all_possible)
-    sqrt_outputs = sub("^sqrt_", "", complex_outputs) |> intersect(all_possible)
-    
-    good_outputs = c(simple_outputs, trans_outputs)
-    bad_outputs = setdiff(outputs, good_outputs)
-    if (length(bad_outputs) > 0L) {
-      mp_wrap(
-        "The following outputs were required but not available in the model"
-      , bad_outputs
-      )
-    }
-    if (length(log_outputs) > 0L) {
-      spec = (spec
-        |> mp_tmb_insert_trans(log_outputs, mp_log)
-        |> mp_tmb_insert_trans(logit_outputs, mp_logit)
-        |> mp_tmb_insert_trans(sqrt_outputs, mp_sqrt)
-      )
-    }
-  }
+  if (!is.null(outputs)) spec = mp_tmb_implicit_trans(spec, outputs)
   
   args = calibrator$cal_args
   args$default = default
