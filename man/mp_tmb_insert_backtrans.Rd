@@ -42,6 +42,16 @@ if this variable is not in the model as long as the base name (e.g.,
 \code{"case_reports"}) is.
 
 }}
+\examples{
+init_si = ("starter_models"
+  |> mp_tmb_library("si", package = "macpan2")
+  |> mp_tmb_insert_backtrans("beta", mp_log)
+  |> mp_initial_list()
+)
+print(init_si$log_beta)
+print(log(init_si$beta))
+
+}
 \seealso{
 \code{\link[=mp_tmb_insert_trans]{mp_tmb_insert_trans()}}
 }

@@ -37,6 +37,15 @@ variable is not in the model as long as the base name
 (e.g., \code{"case_reports"}) is.
 
 }}
+\examples{
+("starter_models"
+  |> mp_tmb_library("si", package = "macpan2")
+  |> mp_tmb_insert_trans("infection", mp_log)
+  |> mp_simulator(time_steps = 5L, outputs = "log_infection")
+  |> mp_trajectory()
+)
+
+}
 \seealso{
 \code{\link[=mp_tmb_insert_backtrans]{mp_tmb_insert_backtrans()}}
 }

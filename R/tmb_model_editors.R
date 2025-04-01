@@ -375,6 +375,14 @@ mp_tmb_insert_log_linear = function(model
 #' 
 #' @seealso [mp_tmb_insert_backtrans()]
 #' 
+#' @examples
+#' ("starter_models"
+#'   |> mp_tmb_library("si", package = "macpan2")
+#'   |> mp_tmb_insert_trans("infection", mp_log)
+#'   |> mp_simulator(time_steps = 5L, outputs = "log_infection")
+#'   |> mp_trajectory()
+#' )
+#' 
 #' @export
 mp_tmb_insert_trans = function(model
     , variables = character()
@@ -399,6 +407,15 @@ mp_tmb_insert_trans = function(model
 #' `log_beta` if `beta` is log transformed).
 #' 
 #' @seealso [mp_tmb_insert_trans()]
+#' 
+#' @examples
+#' init_si = ("starter_models"
+#'   |> mp_tmb_library("si", package = "macpan2")
+#'   |> mp_tmb_insert_backtrans("beta", mp_log)
+#'   |> mp_initial_list()
+#' )
+#' print(init_si$log_beta)
+#' print(log(init_si$beta))
 #' 
 #' @export
 mp_tmb_insert_backtrans = function(model
