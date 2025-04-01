@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.16.7</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.16.8</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -53,7 +53,9 @@
 <span>  <span class="va">model</span>,</span>
 <span>  variables <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  transformation <span class="op">=</span> <span class="va">mp_log</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">mp_tmb_implicit_backtrans</span><span class="op">(</span><span class="va">model</span>, variables <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -84,8 +86,17 @@ added to the defaults and are identified with a prefixed name (e.g.,
 <code>log_beta</code> if <code>beta</code> is log transformed).</p>
     </div>
     <div class="section level2">
+    <h2 id="functions">Functions<a class="anchor" aria-label="anchor" href="#functions"></a></h2>
+
+<ul><li><p><code>mp_tmb_implicit_backtrans()</code>: Insert parameter transformations
+implicitly by pre-pending the name of the transformations in front of the
+names of the <code>variables</code> that you ask for (e.g., <code>"log_case_reports"</code>) even
+if this variable is not in the model as long as the base name (e.g.,
+<code>"case_reports"</code>) is.</p></li>
+</ul></div>
+    <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><code>mp_tmb_insert_backtrans()</code></p></div>
+    <div class="dont-index"><p><code><a href="mp_tmb_insert_trans.html">mp_tmb_insert_trans()</a></code></p></div>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
