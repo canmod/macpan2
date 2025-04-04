@@ -41,7 +41,6 @@ mp_optimize(cal)
 simulator = (spec
   |> mp_hazard()
   |> mp_simulator(10, "infection")
-  #|> mp_trajectory()
 )
 
 args = simulator$tmb_model$make_ad_fun_arg()
