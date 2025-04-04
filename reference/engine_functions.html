@@ -11,7 +11,7 @@ simulations."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.16.9</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.16.10</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -801,6 +801,9 @@ requires we use this expression, <code>simulated + simulated^2/over_dispersion</
 following p.165 in this <a href="https://ms.mcmaster.ca/~bolker/emdbook/book.pdf" class="external-link">book</a></p></li>
 <li><p><code>dnorm(observed, simulated, standard_deviation)</code> –
 Log of the normal density based on this <a href="https://kaskr.github.io/adcomp/dnorm_8hpp.html" class="external-link">dnorm</a>
+TMB function.</p></li>
+<li><p><code>dbinom(observed, size, probability)</code> –
+Log of the binomial density based on the <a href="https://kaskr.github.io/adcomp/group__R__style__distribution.html#gaee11f805f02bc1febc6d7bf0487671be" class="external-link">dbinom</a>
 TMB function.</p></li>
 </ul></div>
 
