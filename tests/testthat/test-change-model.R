@@ -5,7 +5,7 @@ spec = mp_tmb_model_spec(
     , mp_per_capita_flow("S", "I", "beta * I", "incidence")
   )
 )
-spec |> mp_rk4() |> mp_expand()
+spec_expanded = spec |> mp_rk4() |> mp_expand()
 
 spec = mp_tmb_model_spec(
   during = list(a ~ aakjhsadfkjlhasdflkjhasdflkjhasdfkjlhadsfkjhasdjhfgasdhgfasdhgfhasdgfjhagsdf + jsdhfajhksdgfjakhsdgfkjahsdgfkjhasdfjhkagsdfkhjas + asdjhfbaksdjhfaksjdhfaskdjhf, b ~ d),
@@ -35,13 +35,12 @@ cal = (spec
 cal = (mp_rk4(spec)$expand()
   |> mp_tmb_calibrator(data, "infection", "beta")
 )
-print(cal)
-mp_optimize(cal)
+
+opt_results = mp_optimize(cal)
 
 simulator = (spec
   |> mp_hazard()
   |> mp_simulator(10, "infection")
-  #|> mp_trajectory()
 )
 
 args = simulator$tmb_model$make_ad_fun_arg()

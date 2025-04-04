@@ -1,6 +1,6 @@
 # Contributing to `macpan2`
 
-Thank you for contributing to `macpan2`.  Pull requests and issues are welcome!
+Thank you for contributing to `macpan2`.  Pull requests and issues are welcome.
 
 Developers can see [here](https://canmod.github.io/macpan2/articles/index.html#developer) for documentation useful those who will contribute code.
 
@@ -40,7 +40,7 @@ To update `src/macpan2` to the state of `misc/dev/dev.cpp` one may run `make src
 
 Running with `misc/dev/dev.cpp` will print out debugging information in a verbose manner, whereas `src/macpan2.cpp` will not. The `src-update` make rule removes the `#define MP_VERBOSE` flag at the top of the file. 
 
-## Make in Windows
+## Developer Installation on Windows
 
 Developers using `make` on Windows, could encounter the following compilation error.
 
@@ -57,3 +57,37 @@ Append the `-Wa,-mbig-obj` flag to the end of this line and save the file. You w
 `CXXFLAGS = -O2 -Wall $(DEBUGFLAG) -mfpmath=sse -msse2 -mstackrealign $(LTO) -Wa,-mbig-obj`
 
 You should now be able to use `make` as described. Note this change might increase the compilation time (~2 min) as described [here](https://github.com/google/googletest/issues/1841#issuecomment-422342176). It would be nice to be able to set this flag globally for all Windows developers. An attempt was made to update the [Makefile](https://github.com/canmod/macpan2/blob/main/Makefile) with this additional line, `CXXFLAGS := $(CXXFLAGS) -Wa,-mbig-obj`, as suggested [here](https://stackoverflow.com/questions/7543978/how-to-pass-g3-flag-to-gcc-via-make-command-line), but it was not successful.
+
+
+## Test Suite
+
+We use the [testthat](https://testthat.r-lib.org/) package. Tests are located [here](https://github.com/canmod/macpan2/tree/main/tests/testthat).
+
+To run tests interactively (e.g., in RStudio), please run the following code once in your R session.
+```
+source("tests/testthat/setup.R")
+```
+
+This will:
+* Load packages that are assumed throughout the test suite
+* Set `options(macpan2_verbose = FALSE)`
+* Generate a cache of objects that can be (and are) reused in different tests
+
+
+
+After running the setup, can also get access to a few useful functions for managing the testing cache. Three examples of usage follows.
+
+You can check where the cache got placed by running the following.
+```
+test_cache_dir()
+```
+
+Here is an example of reading in a simulated trajectory of the `infection` variable over five time steps from the library SIR model.
+```
+test_cache_read("TRAJ-sir_5_infection.rds")
+```
+
+To get a list of all objects in the cache.
+```
+test_cache_list()
+```
