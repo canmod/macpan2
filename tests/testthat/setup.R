@@ -1,4 +1,4 @@
-library(macpan2)
+library(macpan2); library(testthat); library(dplyr); library(tidyr); library(ggplot2)
 system.file("utils", "test-cache.R", package = "macpan2") |> source()
 test_cache = test_cache_wipe()
 all_specs = mp_tmb_entire_library()

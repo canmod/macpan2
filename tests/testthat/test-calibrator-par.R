@@ -1,7 +1,7 @@
 library(macpan2); library(testthat); library(dplyr); library(tidyr); library(ggplot2)
 test_that("bad parameterizations give errors", {
   sir = mp_tmb_library("starter_models", "sir", package = "macpan2")
-  sir_sim = "TRAJ-sir_5_infection.rds" |> test_cache_read()
+  sir_sim = test_cache_read("TRAJ-sir_5_infection.rds")
   
   expect_error(
     mp_tmb_calibrator(sir
