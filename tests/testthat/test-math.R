@@ -12,5 +12,5 @@ test_that("multiplication works", {
     f$numeric$evaluate(2, 3, 4)
   )
   g = macpan2:::MathExpressionFromFunc(function(x) x^2) ## exercise alternative constructor
-  print(f) ## to exercise print method
+  ## print(f) ## to exercise print method -- not doing this anymore #273
 })

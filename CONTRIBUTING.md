@@ -68,7 +68,12 @@ To run tests interactively (e.g., in RStudio), please run the following code onc
 source("tests/testthat/setup.R")
 ```
 
-This will load packages that are assumed throughout the test suite and generate a cache of objects that can be (and are) reused in different tests. After running the setup, you can check where the cache got placed by running the following.
+This will:
+* Load packages that are assumed throughout the test suite
+* Set `options(macpan2_verbose = FALSE)`
+* Generate a cache of objects that can be (and are) reused in different tests
+
+After running the setup, you can check where the cache got placed by running the following.
 ```
 test_cache_dir()
 ```

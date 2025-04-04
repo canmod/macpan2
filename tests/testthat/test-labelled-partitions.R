@@ -44,7 +44,6 @@ test_that("model files can be read in and used", {
 test_that("labels, name, and names conversion is correct", {
 
   p = macpan2:::Partition(data.frame(A = letters[1:4], B = letters[26:23]))
-  print(p)
   dotted_scalar = macpan2:::StringDottedScalar("a.z")
   dotted_vector = macpan2:::StringDottedVector("a.z", "b.y")
   undotted_vector = dotted_scalar$undot()
