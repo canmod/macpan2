@@ -12,13 +12,28 @@ dot_layout(spec, include_inout = FALSE)
 \item{include_inout}{(logical) include nodes defined by \code{\link{mp_per_capita_inflow}} and \code{\link{mp_per_capita_outflow}} ?}
 }
 \description{
-Convert a model specification into a graph (using the \code{graph} package) that can be plotted with \code{Rgraphviz}: see \code{?Rgraphviz::plot.graphNEL} and https://graphviz.org/doc/info/attrs.html for information on customizing the plot.
+Convert a model specification into a graph (using the \code{graph} package) that
+can be plotted with \code{Rgraphviz}: see \code{?Rgraphviz::plot.graphNEL} and
+https://graphviz.org/doc/info/attrs.html for information on customizing the
+plot.
 }
 \details{
-In order to plot the graph, you need to have loaded the \code{Rgraphviz} package (\code{library("Rgraphviz")}).
+In order to plot the graph, you need to have loaded the \code{Rgraphviz} package
+(\code{library("Rgraphviz")}). We suppress package startup messages when loading
+\code{Rgraphviz} in the examples below, because
+\href{https://www.bioconductor.org/}{bioconductor} (which is the R ecosystem for
+which \code{Rgraphviz} is developed) and
+\href{https://www.tidyverse.org/}{tidyverse} (which is an R ecosystem heavily
+used in \code{macpan2} examples and workflows) use the same names for different
+functions. This naming clash gets reported when we load \code{Rgraphviz}, and
+we prefer to suppress these distracting messages. Please be aware of this
+in your workflows that use both \code{tidyverse} and \code{dot_layout}
+(and therefore \code{bioconductor}), and take
+\href{https://stackoverflow.com/questions/39137110/what-does-the-following-object-is-masked-from-packagexxx-mean}{appropriate action}.
 }
 \examples{
-if (require(Rgraphviz)) {
+## Note: See above for an explanation of `suppressPackageStartupMessages`
+if (suppressPackageStartupMessages(require(Rgraphviz))) {
   macpan_base = mp_tmb_library("starter_models", "macpan_base", package = "macpan2")
   ## plot with left-to-right layout, rectangles instead of default circles
   dot_layout(macpan_base) |>

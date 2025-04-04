@@ -49,7 +49,7 @@ test_that("time-varying parameters values on input are consistent with calibrato
 
 test_that("the default value can be changed for the prior standard deviation of rbf coefficients", {
   sir = mp_tmb_library("starter_models", "sir", package = "macpan2")
-  sim = mp_simulator(sir, 10, "I") |> mp_trajectory()
+  sim = "TRAJ-sir_10_I.rds" |> test_cache_read()
   prior_sd_default = 2
   
   cal = mp_tmb_calibrator(sir

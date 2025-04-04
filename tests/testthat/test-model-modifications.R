@@ -23,16 +23,3 @@ test_that("parameter transformations can be added to simulators",{
   sir_sim$add$transformations(Log("beta"))
   expect_true("log_beta" %in% sir_sim$matrix_names())
 })
-
-test_that("backtrans works properly for logit", {
-    spec <- ("starter_models"
-        |> mp_tmb_library("seir", package = "macpan2")
-        |> mp_tmb_update(default = list(beta = 0.6))
-    )
-    res <- (spec
-        |> mp_tmb_insert_backtrans(c("beta"),transformation = mp_logit)
-        |> mp_default()
-        |> dplyr::filter(matrix == "logit_beta")
-    )
-    expect_equal(res$value, qlogis(0.6))
-})

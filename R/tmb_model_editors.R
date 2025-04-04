@@ -375,6 +375,14 @@ mp_tmb_insert_log_linear = function(model
 #' 
 #' @seealso [mp_tmb_insert_backtrans()]
 #' 
+#' @examples
+#' ("starter_models"
+#'   |> mp_tmb_library("si", package = "macpan2")
+#'   |> mp_tmb_insert_trans("infection", mp_log)
+#'   |> mp_simulator(time_steps = 5L, outputs = "log_infection")
+#'   |> mp_trajectory()
+#' )
+#' 
 #' @export
 mp_tmb_insert_trans = function(model
     , variables = character()
@@ -398,7 +406,16 @@ mp_tmb_insert_trans = function(model
 #' added to the defaults and are identified with a prefixed name (e.g., 
 #' `log_beta` if `beta` is log transformed).
 #' 
-#' @seealso [mp_tmb_insert_backtrans()]
+#' @seealso [mp_tmb_insert_trans()]
+#' 
+#' @examples
+#' init_si = ("starter_models"
+#'   |> mp_tmb_library("si", package = "macpan2")
+#'   |> mp_tmb_insert_backtrans("beta", mp_log)
+#'   |> mp_initial_list()
+#' )
+#' print(init_si$log_beta)
+#' print(log(init_si$beta))
 #' 
 #' @export
 mp_tmb_insert_backtrans = function(model
@@ -414,6 +431,70 @@ mp_tmb_insert_backtrans = function(model
     , transformation$ref_inv(transformation$nm(variables))
   ) |> lapply(as.formula)
   mp_tmb_insert(model, "before", 1L, expr_list, default)
+}
+
+#' @describeIn mp_tmb_insert_trans Insert variable transformations implicitly
+#' by pre-pending the name of the transformations in front of the names of the
+#' `variables` that you ask for (e.g., `"log_case_reports"`) even if this
+#' variable is not in the model as long as the base name
+#' (e.g., `"case_reports"`) is.
+#' @export
+mp_tmb_implicit_trans = function(model, variables = character()) {
+  vars_to_trans = get_vars_to_trans(variables, model$all_formula_vars())
+  for (trans_nm in names(vars_to_trans)) {
+    vars = vars_to_trans[[trans_nm]]
+    trans_obj = get(sprintf("mp_%s", trans_nm))
+    if (length(vars) > 0L) {
+      model = mp_tmb_insert_trans(model, vars, trans_obj)
+    }
+  }
+  return(model)
+}
+
+#' @describeIn mp_tmb_insert_backtrans Insert parameter transformations 
+#' implicitly by pre-pending the name of the transformations in front of the 
+#' names of the `variables` that you ask for (e.g., `"log_case_reports"`) even 
+#' if this variable is not in the model as long as the base name (e.g., 
+#' `"case_reports"`) is.
+#' @export
+mp_tmb_implicit_backtrans = function(model, variables = character()) {
+  
+  ## list with names of variables to transform for
+  ## each type of transformation
+  vars_to_trans = get_vars_to_trans(variables, model$all_formula_vars())
+  
+  ## loop over types of transformations (log, logit, sqrt)
+  for (trans_nm in names(vars_to_trans)) {
+    vars = vars_to_trans[[trans_nm]]
+    trans_obj = get(sprintf("mp_%s", trans_nm))
+    if (length(vars) > 0L) {
+      model = mp_tmb_insert_backtrans(model, vars, trans_obj)
+    }
+  }
+  return(model)
+}
+
+
+get_vars_to_trans = function(variables, all_variables) {
+  
+  simple_variables = intersect(variables, all_variables)
+  complex_variables = setdiff(variables, all_variables)
+  trans_variables = grep("^(log|logit|sqrt)_", complex_variables, value = TRUE)
+  
+  good_variables = c(simple_variables, trans_variables)
+  bad_variables = setdiff(variables, good_variables)
+  if (length(bad_variables) > 0L) {
+    mp_wrap(
+      "The following variables were required but not available in the model"
+    , bad_variables
+    )
+  }
+  
+  list(
+      log = sub("^log_", "", complex_variables) |> intersect(all_variables)
+    , logit = sub("^logit_", "", complex_variables) |> intersect(all_variables)
+    , sqrt = sub("^sqrt_", "", complex_variables) |> intersect(all_variables)
+  )
 }
 
 ## model is a spec
