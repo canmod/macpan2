@@ -91,23 +91,22 @@ mp_tmb_calibrator = function(spec
     )
   }
   
-  ## gather defaults before they are updated
-  force(outputs)
   
   ## copy the spec, reducing to apply state update methods
   ## (e.g. euler, rk4, euler_multinomial), and update defaults
-  cal_spec = mp_expand(spec)
-  check_default_updates(cal_spec, default)
-  cal_spec = mp_tmb_update(cal_spec, default = default)
   
+  check_default_updates(spec, default)
+  trans_spec = mp_cal_implicit_trans(spec, nlist(cal_args))
+  
+  cal_spec = mp_expand(trans_spec)
   struc = TMBCalDataStruc(data, time)
   traj = TMBTraj(traj, struc, cal_spec, cal_spec$all_formula_vars())
   tv = TMBTV(tv, struc, cal_spec, traj$global_names_vector())
   par = TMBPar(par, tv, traj, cal_spec, tv$global_names_vector())
   
-  traj$check_assumptions(spec, struc)
-  tv$check_assumptions(spec, struc)
-  par$check_assumptions(spec, struc)
+  traj$check_assumptions(trans_spec, struc)
+  tv$check_assumptions(trans_spec, struc)
+  par$check_assumptions(trans_spec, struc)
   
   
   ## add observed trajectories 
@@ -424,18 +423,6 @@ mp_optimize.TMBCalibrator = function(model
   ) {
   optimizer_results = mp_optimize(model$simulator, optimizer, ...)
   return(optimizer_results)
-  
-  ## TODO: remove this commented-out code once it is confirmed that
-  ## mp_optimized_spec can be used to replace new_spec (which was never
-  ## working very well anyways).
-  ## 
-  # old_defaults = mp_default(model$new_spec) |> frame_to_mat_list()
-  # new_defaults = (model$simulator
-  #   |> mp_default()
-  #   |> filter(matrix %in% names(old_defaults))
-  #   |> frame_to_mat_list()
-  # )
-  # model$new_spec = mp_tmb_update(model$new_spec, default = new_defaults)
 }
 
 TMBCalDataStruc = function(data, time) {
@@ -738,6 +725,8 @@ mp_optimized_spec.TMBCalibrator = function(model
       , modified = "cal_spec"
   )
   spec = model[[spec_field]]
+  
+  if (spec_field == "orig_spec") spec = mp_cal_implicit_trans(spec, model)
   
   ## function that knows about attempted optimizations, and therefore
   ## how to update lists of defaults to their optimized values.

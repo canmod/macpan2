@@ -422,9 +422,12 @@ mp_tmb_insert_backtrans = function(model
     , variables = character()
     , transformation = mp_log
 ) {
-  default = (model$default[variables] 
+  
+  trans_variables = transformation$nm(variables)
+  i = !trans_variables %in% names(model$default)
+  default = (model$default[variables[i]] 
     |> lapply(transformation$val) 
-    |> setNames(transformation$nm(variables))
+    |> setNames(trans_variables[i])
   )
   expr_list = sprintf("%s ~ %s"
     , variables
@@ -440,6 +443,7 @@ mp_tmb_insert_backtrans = function(model
 #' (e.g., `"case_reports"`) is.
 #' @export
 mp_tmb_implicit_trans = function(model, variables = character()) {
+  if (is.null(variables)) return(model)
   vars_to_trans = get_vars_to_trans(variables, model$all_formula_vars())
   for (trans_nm in names(vars_to_trans)) {
     vars = vars_to_trans[[trans_nm]]
@@ -472,6 +476,21 @@ mp_tmb_implicit_backtrans = function(model, variables = character()) {
     }
   }
   return(model)
+}
+
+get_parameter_names = function(obj) {
+  ## take that S3 dispatch
+  if (is.character(obj)) return(obj)
+  if (inherits(obj, "ParArg")) return(c(names(obj$params), names(obj$random)))
+  if (is.list(obj)) return(names(obj))
+  stop("Not a recognized object for representing parameters")
+}
+mp_cal_implicit_trans = function(spec, cal) {
+  (spec
+    |> mp_tmb_update(default = cal$cal_args$default)
+    |> mp_tmb_implicit_trans(cal$cal_args$outputs)
+    |> mp_tmb_implicit_backtrans(get_parameter_names(cal$cal_args$par))
+  )
 }
 
 
