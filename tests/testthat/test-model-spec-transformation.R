@@ -97,3 +97,11 @@ test_that("mix of transformations works", {
     , implicit_spec$during
   )
 })
+
+test_that("implicit backtransformation in calibration is consistent", {
+  cal = test_cache_read("CAL-sir_50_beta_infection.rds")
+  cal_log = test_cache_read("CAL-sir_50_log_beta_infection.rds")
+  mp_optimize(cal)
+  mp_optimize(cal_log)
+  expect_equal(mp_tmb_coef(cal), mp_tmb_coef(cal_log), tolerance = 1e-4)
+})
