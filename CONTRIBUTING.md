@@ -1,6 +1,6 @@
 # Contributing to `macpan2`
 
-Thank you for contributing to `macpan2`.  Pull requests and issues are welcome!
+Thank you for contributing to `macpan2`.  Pull requests and issues are welcome.
 
 Developers can see [here](https://canmod.github.io/macpan2/articles/index.html#developer) for documentation useful those who will contribute code.
 
@@ -61,7 +61,7 @@ You should now be able to use `make` as described. Note this change might increa
 
 ## Test Suite
 
-We use the [testthat](https://testthat.r-lib.org/) package. Tests are located [here](tests/testthat/).
+We use the [testthat](https://testthat.r-lib.org/) package. Tests are located [here](https://github.com/canmod/macpan2/tree/main/tests/testthat).
 
 To run tests interactively (e.g., in RStudio), please run the following code once in your R session.
 ```
@@ -73,7 +73,11 @@ This will:
 * Set `options(macpan2_verbose = FALSE)`
 * Generate a cache of objects that can be (and are) reused in different tests
 
-After running the setup, you can check where the cache got placed by running the following.
+
+
+After running the setup, can also get access to a few useful functions for managing the testing cache. Three examples of usage follows.
+
+You can check where the cache got placed by running the following.
 ```
 test_cache_dir()
 ```
