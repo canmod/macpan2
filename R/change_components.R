@@ -33,9 +33,30 @@ print.AbsoluteFlow = function(x, ...) {
   c(
       From = x$from
     , To = x$to
-    , `Absolute flow expression` = x$abs_rate
+    , `Absolute rate expression` = rhs_char(x$rate)
+    , `Absolute rate symbol` = lhs_char(x$rate)
   ) |> print_flow_vec()
 }
+
+
+#' @export
+print.AbsoluteInFlow = function(x, ...) {
+  c(
+      To = x$to
+    , `Absolute rate expression` = rhs_char(x$rate)
+    , `Absolute rate symbol` = lhs_char(x$rate)
+  ) |> print_flow_vec()
+}
+
+#' @export
+print.AbsoluteOutFlow = function(x, ...) {
+  c(
+      From = x$from
+    , `Absolute rate expression` = rhs_char(x$rate)
+    , `Absolute rate symbol` = lhs_char(x$rate)
+  ) |> print_flow_vec()
+}
+
 
 #' @export
 print.Formula = function(x, ...) print(x$formula, showEnv = FALSE)
