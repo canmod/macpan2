@@ -42,3 +42,15 @@ test_that("missing standard deviation is flagged in error message", {
       regexp = "dnorm needs three arguments"
   )
 })
+
+test_that("basic dbinom engine tests", {
+  set.seed(1L)
+  sizevec = rep(1:5, each = 20)
+  probvec = rep(1:5 / 10, each = 20)
+  z = rbinom(100, size = sizevec, prob = probvec)
+  x = sum(dbinom(z, prob = probvec, size = sizevec, log = TRUE))
+  y = sum(engine_eval(~dbinom(z, sizevec, probvec),
+                      z = z, sizevec = sizevec, probvec = probvec))
+  expect_equal(x, y)
+
+})
