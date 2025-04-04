@@ -978,14 +978,29 @@ compute_adjacency_matrix <- function(df) {
 
 ##' Create a graph from a model specification
 ##' 
-##' Convert a model specification into a graph (using the `graph` package) that can be plotted with `Rgraphviz`: see `?Rgraphviz::plot.graphNEL` and https://graphviz.org/doc/info/attrs.html for information on customizing the plot.
+##' Convert a model specification into a graph (using the `graph` package) that
+##' can be plotted with `Rgraphviz`: see `?Rgraphviz::plot.graphNEL` and
+##' https://graphviz.org/doc/info/attrs.html for information on customizing the 
+##' plot.
 ##'
-##' In order to plot the graph, you need to have loaded the `Rgraphviz` package (`library("Rgraphviz")`).
+##' In order to plot the graph, you need to have loaded the `Rgraphviz` package 
+##' (`library("Rgraphviz")`). We suppress package startup messages when loading 
+##' `Rgraphviz` in the examples below, because
+##' [bioconductor](https://www.bioconductor.org/) (which is the R ecosystem for 
+##' which `Rgraphviz` is developed) and 
+##' [tidyverse](https://www.tidyverse.org/) (which is an R ecosystem heavily 
+##' used in `macpan2` examples and workflows) use the same names for different
+##' functions. This naming clash gets reported when we load `Rgraphviz`, and
+##' we prefer to suppress these distracting messages. Please be aware of this 
+##' in your workflows that use both `tidyverse` and `dot_layout` 
+##' (and therefore `bioconductor`), and take 
+##' [appropriate action](https://stackoverflow.com/questions/39137110/what-does-the-following-object-is-masked-from-packagexxx-mean).
 ##' 
 ##' @param spec a model specification
 ##' @param include_inout (logical) include nodes defined by \code{\link{mp_per_capita_inflow}} and \code{\link{mp_per_capita_outflow}} ?
 ##' @examples
-##' if (require(Rgraphviz)) {
+##' ## Note: See above for an explanation of `suppressPackageStartupMessages`
+##' if (suppressPackageStartupMessages(require(Rgraphviz))) {
 ##'   macpan_base = mp_tmb_library("starter_models", "macpan_base", package = "macpan2")
 ##'   ## plot with left-to-right layout, rectangles instead of default circles
 ##'   dot_layout(macpan_base) |>
