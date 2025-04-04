@@ -158,7 +158,7 @@ ChangeComponent = function() {
   ## state variables) that gives the size of the population being drawn
   ## from in a flow (e.g. S is the size of an infection flow).
   ## column - change: unsigned absolute flow rate name.
-  ## column - rate: per-capita flow rates (variables or expresions that 
+  ## column - rate: per-capita flow rates (variables or expressions that 
   ## sometimes involve state variables).
   ## column - abs_rate: absolute flow rate expression
   ## example:
@@ -170,8 +170,8 @@ ChangeComponent = function() {
   ## one may wonder, as i have, why we need to separate the change column
   ## and the abs_rate column. because we sometimes need a symbol name that 
   ## can appear on the lhs of an expression for the absolute rate, and we
-  ## sometimes directly specify the absolute rate through an expression (
-  ## although this is not the most comment case, it does come up with things
+  ## sometimes directly specify the absolute rate through an expression 
+  ## (although this is not the most comment case, it does come up with things
   ## like specifying absolute numbers of vaccines).
   self$flow_frame = function() empty_frame("size", "change", "rate", "abs_rate")
   
@@ -258,7 +258,7 @@ SimpleChangeModel = function(before = list(), during = list(), after = list()) {
     flow_list = list()
     formulas = sprintf("%s ~ %s", frame$change, frame$rate) |> lapply(as.formula)
     for (var in size_vars) flow_list[[var]] = formulas[frame$size == var]
-    flow_list
+    return(flow_list)
   }
   self$update_state = function() {
     frame = self$change_frame()
@@ -651,7 +651,7 @@ RK4UpdateMethod = function(change_model) {
     components = flow_frame_to_absolute_flows(flow_frame)
     before_state = self$change_model$before_state()
     update_state = self$change_model$update_state()
-    update_flows = self$change_model$update_flows() |> unlst()
+    update_flows = self$change_model$update_flows() |> unlst()  ## line can be removed?
     
     new_update = list()
     new_before = list()
