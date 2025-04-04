@@ -59,7 +59,7 @@ test_that("distributions give appropriate variable assumption warnings", {
     , regexp = "contains zeros at the beginning of the simulation"
   )
   
-  data = mp_simulator(sir_spec, 50, "infection") |> mp_trajectory()
+  data = "TRAJ-sir_50_infection.rds" |> test_cache_read()
   expect_error(
     mp_tmb_calibrator(
         sir_spec
@@ -78,7 +78,7 @@ test_that("you can specify uniform priors but not uniform likelihoods", {
     , "sir"
     , package = "macpan2"
   )
-  sir_sim = mp_simulator(sir_spec, 10, "I") |> mp_trajectory()
+  sir_sim = "TRAJ-sir_50_I.rds" |> test_cache_read()
   
   # uniform likelihood
   expect_error(mp_tmb_calibrator(sir_spec

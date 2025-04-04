@@ -5,7 +5,7 @@ test_that("bad outputs give warnings", {
     mp_simulator(sir, time_steps = 5, outputs = c("Infection")),
     regexp = "The following outputs were requested but not available in the model"
   )
-  sir_sims = mp_simulator(sir, time_steps = 5, outputs = c("I")) |> mp_trajectory()
+  sir_sims = "TRAJ-sir_5_I.rds" |> test_cache_read()
   expect_warning(
     mp_tmb_calibrator(sir
       , data = sir_sims
@@ -16,7 +16,7 @@ test_that("bad outputs give warnings", {
     regexp = "The following outputs were requested but not available in the model"
   )
   
-  sir_sim = mp_simulator(sir, time_steps = 5, outputs = c("infection")) |> mp_trajectory()
+  sir_sim = "TRAJ-sir_5_infection.rds" |> test_cache_read()
 
   # doesn't match sir_sim trajectory name
   expect_error(
@@ -41,7 +41,7 @@ test_that("bad outputs give warnings", {
 })
 test_that("trajectories specified with likelihood distributions end up in calibrator outputs", {
   sir = mp_tmb_library("starter_models", "sir", package = "macpan2")
-  sir_sims = mp_simulator(sir, time_steps = 5, outputs = c("S","I","R")) |> mp_trajectory()
+  sir_sims = "TRAJ-sir_5_state.rds" |> test_cache_read()
   
   sir_cal = mp_tmb_calibrator(sir
     , data = sir_sims

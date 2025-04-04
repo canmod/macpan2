@@ -1,6 +1,5 @@
 test_that("undotted scalars can be constructed", {
   x = macpan2:::StringUndottedScalar("TestScalar")
-  print(x)
   expect_warning(x$dot(), "Undotted scalars cannot be dotted")
   expect_identical(
     x$regenerate("AnotherTestScalar"),
