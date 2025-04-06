@@ -76,20 +76,17 @@
 #' engine_eval(~ 1 / (1 - y), y = 1/4)
 #' ```
 #'
-#' ## Unary Elementwise Math
+#' ## Elementwise Math
 #'
 #' ### Functions
 #'
 #' * `log(x)` -- Natural logarithm
 #' * `exp(x)` -- Exponential function
 #' * `cos(x)` -- Cosine function
-#' * `proportions(x, limit, eps)` -- matrix of `x / sum(x)` or `rep(limit, length(x))` if `sum(x) < eps`
 #'
 #' ### Arguments
 #'
 #' * `x` -- Any matrix
-#' * `limit` -- numeric value to return elementwise from `proportions` if `sum(x) < eps`
-#' * `eps` -- numeric tolerance for `sum(x)`
 #'
 #' ### Return
 #'
@@ -102,6 +99,27 @@
 #' engine_eval(~ log(y), y = c(2, 0.5))
 #' ```
 #'
+#' ## Proportions
+#'
+#' ### Functions
+#'
+#' * `proportions(x, limit, eps)` -- 
+#'
+#' ### Arguments
+#'
+#' * `x` -- Any matrix
+#' * `limit` -- numeric value to return elementwise from `proportions` if `sum(x) < eps`
+#' * `eps` -- numeric tolerance for `sum(x)`
+#'
+#' ### Return
+#'
+#' * matrix of `x / sum(x)` or `rep(limit, length(x))` if `sum(x) < eps`
+#'
+#' ### Examples
+#'
+#' ```
+#' engine_eval(~ proportions(y, 0.5, 1e-8), y = c(2, 0.5))
+#' ```
 #' ## Integer Sequences
 #'
 #' ### Functions
@@ -376,7 +394,9 @@
 #' of the rows and columns of `x`.
 #' * `block(x,i,j,n,m)` -- Matrix containing a
 #' contiguous subset of rows and columns of `x`
-#' \url{https://eigen.tuxfamily.org/dox/group__TutorialBlockOperations.html}
+#' \url{https://eigen.tuxfamily.org/dox/group__TutorialBlockOperations.html}.
+#' * `last(x)` -- The last element of a matrix (i.e., the
+#' lower-right element).
 #'
 #' ### Arguments
 #'
@@ -400,13 +420,16 @@
 #' ### Details
 #'
 #' Note that zero-based indexing is used
-#' so the first row/column gets index, `0`, etc.
+#' so the first row/column gets index, `0`, etc. The `block`
+#' function is expected to be more efficient than `[` when
+#' the elements to be extracted are contiguous.
 #'
 #' ### Examples
 #'
 #' ```
 #' engine_eval(~ A[c(3, 1, 2), 2], A = matrix(1:12, 4, 3))
 #' engine_eval(~ block(x,i,j,n,m), x = matrix(1:12, 4, 3), i=1, j=1, n=2, m=2)
+#' engine_eval(~ last(A), A = matrix(1:12, 4, 3))
 #' ```
 #'
 #' ## Accessing Past Values in the Simulation History
@@ -550,9 +573,14 @@
 #' \eqn{x_{ij}}. The value of \eqn{y_{ij}} at time 
 #' \eqn{t = 1, ..., T} is given by the following.
 #'
-#' \deqn{y_{ij} = \sum_{\tau = 0}^{min(t,m)-1} x_{ij}(t-\tau) k[\tau]}
+#' \deqn{y_{ij}(t) = \sum_{\tau = 0}^{min(t,m)-1} x_{ij}(t-\tau) k_\tau}
 #' 
-#' Where \eqn{\tau = 0, ..., m - 1} is the index of the 
+#' Where:
+#' 
+#' * \eqn{x_{ij}(t)} : value of \eqn{x_{ij}} at time step \eqn{t}
+#' * \eqn{y_{ij}(t)} : value of \eqn{y_{ij}} at time step \eqn{t}
+#' * \eqn{t = 1, ..., T} : the time step
+#' * \eqn{\tau = 0, ..., m - 1} : index of the 
 #' time lag for a kernel of length \eqn{m}.
 #'
 #' ### Details

@@ -1350,20 +1350,17 @@ public:
                 #endif
                 return pow(args.get_as_mat(0).array(), args.get_as_mat(1).array()).matrix();
 
-            // #' ## Unary Elementwise Math
+            // #' ## Elementwise Math
             // #'
             // #' ### Functions
             // #'
             // #' * `log(x)` -- Natural logarithm
             // #' * `exp(x)` -- Exponential function
             // #' * `cos(x)` -- Cosine function
-            // #' * `proportions(x, limit, eps)` -- matrix of `x / sum(x)` or `rep(limit, length(x))` if `sum(x) < eps`
             // #'
             // #' ### Arguments
             // #'
             // #' * `x` -- Any matrix
-            // #' * `limit` -- numeric value to return elementwise from `proportions` if `sum(x) < eps`
-            // #' * `eps` -- numeric tolerance for `sum(x)`
             // #'
             // #' ### Return
             // #'
@@ -1384,7 +1381,38 @@ public:
 
             case MP2_COS:
                 return args[0].array().cos().matrix();
+
+            // case MP2_LOGISTIC:
+            //     return (
+            //         1 / (1 + (-args[0].array()).exp())
+            //     ).matrix();
+            //
+            // case MP2_LOGIT:
+            //     return (
+            //         -(1 / args[0].array() - 1).log()
+            //     ).matrix();
                   
+            // #' ## Proportions
+            // #'
+            // #' ### Functions
+            // #'
+            // #' * `proportions(x, limit, eps)` -- 
+            // #'
+            // #' ### Arguments
+            // #'
+            // #' * `x` -- Any matrix
+            // #' * `limit` -- numeric value to return elementwise from `proportions` if `sum(x) < eps`
+            // #' * `eps` -- numeric tolerance for `sum(x)`
+            // #'
+            // #' ### Return
+            // #'
+            // #' * matrix of `x / sum(x)` or `rep(limit, length(x))` if `sum(x) < eps`
+            // #'
+            // #' ### Examples
+            // #'
+            // #' ```
+            // #' engine_eval(~ proportions(y, 0.5, 1e-8), y = c(2, 0.5))
+            // #' ```
             case MP2_PROPORTIONS:
                 m = args.get_as_mat(0);
                 m1 = matrix<Type>::Zero(1, 1);
@@ -1402,15 +1430,6 @@ public:
                 return m2;
               
 
-            // case MP2_LOGISTIC:
-            //     return (
-            //         1 / (1 + (-args[0].array()).exp())
-            //     ).matrix();
-            //
-            // case MP2_LOGIT:
-            //     return (
-            //         -(1 / args[0].array() - 1).log()
-            //     ).matrix();
 
             // #' ## Integer Sequences
             // #'
@@ -1529,56 +1548,51 @@ public:
                 return mp2_rep(X, times);
                 
 
+            // #' ## Matrix Multiplication
+            // #'
+            // #' ### Functions
+            // #'
+            // #' * `x %*% y` -- Standard matrix multiplication.
+            // #' * `x %x% y` -- Kronecker product
+            // #'
+            // #' ### Arguments
+            // #'
+            // #' * `x` -- A matrix. For the standard product, `x`
+            // #' must have as many columns as `y` has rows.
+            // #' * `y` -- A matrix. For standard product, `y`
+            // #' must have as many rows as `x` has columns.
+            // #'
+            // #' ### Return
+            // #'
+            // #' * The matrix product of `x` and `y`.
+            // #'
+            // #' ### Examples
+            // #'
+            // #' ```
+            // #' engine_eval(~ (1:10) %*% t(1:10))
+            // #' engine_eval(~ (1:10) %x% t(1:10))
+            // #' ```
+            // #'
             case MP2_MATRIX_MULTIPLY: // %*%
-
-                // #' ## Matrix Multiplication
-                // #'
-                // #' ### Functions
-                // #'
-                // #' * `x %*% y` -- Standard matrix multiplication.
-                // #' * `x %x% y` -- Kronecker product
-                // #'
-                // #' ### Arguments
-                // #'
-                // #' * `x` -- A matrix. For the standard product, `x`
-                // #' must have as many columns as `y` has rows.
-                // #' * `y` -- A matrix. For standard product, `y`
-                // #' must have as many rows as `x` has columns.
-                // #'
-                // #' ### Return
-                // #'
-                // #' * The matrix product of `x` and `y`.
-                // #'
-                // #' ### Examples
-                // #'
-                // #' ```
-                // #' engine_eval(~ (1:10) %*% t(1:10))
-                // #' engine_eval(~ (1:10) %x% t(1:10))
-                // #' ```
-                // #'
                 return args[0] * args[1];
 
             case MP2_KRONECKER: // %x%
-
                 rows = args[0].rows() * args[1].rows();
                 cols = args[0].cols() * args[1].cols();
                 m = matrix<Type>::Zero(rows, cols);
-                for (int i = 0; i < args[0].rows(); i++)
-                {
-                    for (int j = 0; j < args[0].cols(); j++)
-                    {
+                for (int i = 0; i < args[0].rows(); i++) {
+                    for (int j = 0; j < args[0].cols(); j++) {
                         m.block(i * args[1].rows(), j * args[1].cols(), args[1].rows(), args[1].cols()) = args[0].coeff(i, j) * args[1];
                     }
                 }
                 return m;
 
+            // #' ## Parenthesis
+            // #'
+            // #' The order of operations can be enforced in the usual
+            // #' way with round parentheses, \code{\link{(}}.
+            // #'
             case MP2_ROUND_BRACKET: // (
-
-                // #' ## Parenthesis
-                // #'
-                // #' The order of operations can be enforced in the usual
-                // #' way with round parentheses, \code{\link{(}}.
-                // #'
                 return args[0];
 
             // #' ## Reshaping and Combining Matrices
@@ -1656,7 +1670,6 @@ public:
             // #' \code{\link{rbind}} functions respectively
             // #'
             case MP2_CBIND:
-            {
                 rows = args[0].rows();
                 // std::cout << "rows: " << rows << std::endl;
                 // std::cout << "n: " << n << std::endl;
@@ -1664,33 +1677,27 @@ public:
                 int totcols, colmarker;
                 totcols = 0;
                 colmarker = 0;
-                for (int j = 0; j < n; j++)
-                {
+                for (int j = 0; j < n; j++) {
                     totcols += args[j].cols();
                 }
                 m = matrix<Type>::Zero(rows, totcols);
-                for (int i = 0; i < n; i++)
-                {
-                    if (args[i].rows() == rows)
-                    {
+                for (int i = 0; i < n; i++) {
+                    if (args[i].rows() == rows) {
                         cols_per_arg = args[i].cols();
-                        for (int k = 0; k < cols_per_arg; k++)
-                        {
+                        for (int k = 0; k < cols_per_arg; k++) {
                             m.col(colmarker + k) = args[i].col(k);
                         }
                         colmarker += cols_per_arg;
                     }
-                    else
-                    {
+                    else {
                         SetError(MP2_CBIND, "Inconsistent size in cbind function", row, MP2_CBIND, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                         return m;
                     }
                 }
-            }
-                // m = matrix<Type>::Zero(rows, 1);
                 return m;
+                
+                
             case MP2_RBIND:
-            {
                 cols = args[0].cols();
                 // std::cout << "cols: " << cols << std::endl;
                 // std::cout << "n: " << n << std::endl;
@@ -1720,25 +1727,20 @@ public:
                         return m;
                     }
                 }
-            }
-                // m = matrix<Type>::Zero(1, cols);
                 return m;
+                
+                
+            // #' The `matrix` function can be used to redefine the
+            // #' numbers of rows and columns to use for arranging
+            // #' the values of a matrix. It works similarly to
+            // #' the base R \code{\link[base]{matrix}} function in that it
+            // #' takes the same arguments.
+            // #' On the other hand, this function differs substantially
+            // #' from the base R version in that it must be filled
+            // #' by column and there is no `byrow` option.
+            // #'
             case MP2_MATRIX: // matrix
-
-                // #' The `matrix` function can be used to redefine the
-                // #' numbers of rows and columns to use for arranging
-                // #' the values of a matrix. It works similarly to
-                // #' the base R \code{\link[base]{matrix}} function in that it
-                // #' takes the same arguments.
-                // #' On the other hand, this function differs substantially
-                // #' from the base R version in that it must be filled
-                // #' by column and there is no `byrow` option.
-                // #'
-                // std::cout << "n: " << n << std::endl;
-                // std::cout << "index2what: " << index2what.size() << std::endl;
-                // std::cout << "index2mats: " << index2mats.size() << std::endl;
-                // std::cout << "args: " << args.size() << std::endl;
-                if (n > 3){
+                if (n > 3) {
                     SetError(MP2_MATRIX, "Too many arguments provided to function. Note this function differs from the base R version in the arguments it accepts.", row, MP2_MATRIX, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                 }
                 rows = args.get_as_int(1);
@@ -1912,7 +1914,6 @@ public:
                     SetError(MP2_GROUPSUMS, "Number of rows in x must equal the number of indices in f in group_sums(x, f, n).", row, MP2_GROUPSUMS, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
-
                 for (int i = 0; i < m.rows(); i++) {
                     m1.coeffRef(v1[i], 0) += m.coeff(i, 0);
                 }
@@ -1961,7 +1962,9 @@ public:
             // #' of the rows and columns of `x`.
             // #' * `block(x,i,j,n,m)` -- Matrix containing a
             // #' contiguous subset of rows and columns of `x`
-            // #' \url{https://eigen.tuxfamily.org/dox/group__TutorialBlockOperations.html}
+            // #' \url{https://eigen.tuxfamily.org/dox/group__TutorialBlockOperations.html}.
+            // #' * `last(x)` -- The last element of a matrix (i.e., the
+            // #' lower-right element).
             // #'
             // #' ### Arguments
             // #'
@@ -1985,13 +1988,16 @@ public:
             // #' ### Details
             // #'
             // #' Note that zero-based indexing is used
-            // #' so the first row/column gets index, `0`, etc.
+            // #' so the first row/column gets index, `0`, etc. The `block`
+            // #' function is expected to be more efficient than `[` when
+            // #' the elements to be extracted are contiguous.
             // #'
             // #' ### Examples
             // #'
             // #' ```
             // #' engine_eval(~ A[c(3, 1, 2), 2], A = matrix(1:12, 4, 3))
             // #' engine_eval(~ block(x,i,j,n,m), x = matrix(1:12, 4, 3), i=1, j=1, n=2, m=2)
+            // #' engine_eval(~ last(A), A = matrix(1:12, 4, 3))
             // #' ```
             // #'
             case MP2_SQUARE_BRACKET: // [
@@ -2454,9 +2460,14 @@ public:
                 // #' \eqn{x_{ij}}. The value of \eqn{y_{ij}} at time 
                 // #' \eqn{t = 1, ..., T} is given by the following.
                 // #'
-                // #' \deqn{y_{ij} = \sum_{\tau = 0}^{min(t,m)-1} x_{ij}(t-\tau) k[\tau]}
+                // #' \deqn{y_{ij}(t) = \sum_{\tau = 0}^{min(t,m)-1} x_{ij}(t-\tau) k_\tau}
                 // #' 
-                // #' Where \eqn{\tau = 0, ..., m - 1} is the index of the 
+                // #' Where:
+                // #' 
+                // #' * \eqn{x_{ij}(t)} : value of \eqn{x_{ij}} at time step \eqn{t}
+                // #' * \eqn{y_{ij}(t)} : value of \eqn{y_{ij}} at time step \eqn{t}
+                // #' * \eqn{t = 1, ..., T} : the time step
+                // #' * \eqn{\tau = 0, ..., m - 1} : index of the 
                 // #' time lag for a kernel of length \eqn{m}.
                 // #'
                 // #' ### Details

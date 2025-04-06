@@ -137,21 +137,18 @@ engine_eval(~ 1 / (1 - y), y = 1/4)
 
 }
 
-\subsection{Unary Elementwise Math}{
+\subsection{Elementwise Math}{
 \subsection{Functions}{
 \itemize{
 \item \code{log(x)} -- Natural logarithm
 \item \code{exp(x)} -- Exponential function
 \item \code{cos(x)} -- Cosine function
-\item \code{proportions(x, limit, eps)} -- matrix of \code{x / sum(x)} or \code{rep(limit, length(x))} if \code{sum(x) < eps}
 }
 }
 
 \subsection{Arguments}{
 \itemize{
 \item \code{x} -- Any matrix
-\item \code{limit} -- numeric value to return elementwise from \code{proportions} if \code{sum(x) < eps}
-\item \code{eps} -- numeric tolerance for \code{sum(x)}
 }
 }
 
@@ -165,6 +162,35 @@ unary function applied elementwise.
 \subsection{Examples}{
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{engine_eval(~ log(y), y = c(2, 0.5))
+}\if{html}{\out{</div>}}
+}
+
+}
+
+\subsection{Proportions}{
+\subsection{Functions}{
+\itemize{
+\item \code{proportions(x, limit, eps)} --
+}
+}
+
+\subsection{Arguments}{
+\itemize{
+\item \code{x} -- Any matrix
+\item \code{limit} -- numeric value to return elementwise from \code{proportions} if \code{sum(x) < eps}
+\item \code{eps} -- numeric tolerance for \code{sum(x)}
+}
+}
+
+\subsection{Return}{
+\itemize{
+\item matrix of \code{x / sum(x)} or \code{rep(limit, length(x))} if \code{sum(x) < eps}
+}
+}
+
+\subsection{Examples}{
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{engine_eval(~ proportions(y, 0.5, 1e-8), y = c(2, 0.5))
 }\if{html}{\out{</div>}}
 }
 
@@ -489,7 +515,9 @@ engine_eval(~ group_sums(x, f, n), x = 1:10, f = rep(0:3, 1:4), n = c(1:4))
 of the rows and columns of \code{x}.
 \item \code{block(x,i,j,n,m)} -- Matrix containing a
 contiguous subset of rows and columns of \code{x}
-\url{https://eigen.tuxfamily.org/dox/group__TutorialBlockOperations.html}
+\url{https://eigen.tuxfamily.org/dox/group__TutorialBlockOperations.html}.
+\item \code{last(x)} -- The last element of a matrix (i.e., the
+lower-right element).
 }
 }
 
@@ -519,13 +547,16 @@ in \code{x}.
 \subsection{Details}{
 
 Note that zero-based indexing is used
-so the first row/column gets index, \code{0}, etc.
+so the first row/column gets index, \code{0}, etc. The \code{block}
+function is expected to be more efficient than \code{[} when
+the elements to be extracted are contiguous.
 }
 
 \subsection{Examples}{
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{engine_eval(~ A[c(3, 1, 2), 2], A = matrix(1:12, 4, 3))
 engine_eval(~ block(x,i,j,n,m), x = matrix(1:12, 4, 3), i=1, j=1, n=2, m=2)
+engine_eval(~ last(A), A = matrix(1:12, 4, 3))
 }\if{html}{\out{</div>}}
 }
 
@@ -688,10 +719,16 @@ convolutions, \eqn{y_{ij}}, of each element,
 \eqn{x_{ij}}. The value of \eqn{y_{ij}} at time
 \eqn{t = 1, ..., T} is given by the following.
 
-\deqn{y_{ij} = \sum_{\tau = 0}^{min(t,m)-1} x_{ij}(t-\tau) k[\tau]}
+\deqn{y_{ij}(t) = \sum_{\tau = 0}^{min(t,m)-1} x_{ij}(t-\tau) k_\tau}
 
-Where \eqn{\tau = 0, ..., m - 1} is the index of the
+Where:
+\itemize{
+\item \eqn{x_{ij}(t)} : value of \eqn{x_{ij}} at time step \eqn{t}
+\item \eqn{y_{ij}(t)} : value of \eqn{y_{ij}} at time step \eqn{t}
+\item \eqn{t = 1, ..., T} : the time step
+\item \eqn{\tau = 0, ..., m - 1} : index of the
 time lag for a kernel of length \eqn{m}.
+}
 }
 
 \subsection{Details}{

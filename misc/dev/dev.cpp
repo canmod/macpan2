@@ -2459,9 +2459,14 @@ public:
                 // #' \eqn{x_{ij}}. The value of \eqn{y_{ij}} at time 
                 // #' \eqn{t = 1, ..., T} is given by the following.
                 // #'
-                // #' \deqn{y_{ij} = \sum_{\tau = 0}^{min(t,m)-1} x_{ij}(t-\tau) k[\tau]}
+                // #' \deqn{y_{ij}(t) = \sum_{\tau = 0}^{min(t,m)-1} x_{ij}(t-\tau) k_\tau}
                 // #' 
-                // #' Where \eqn{\tau = 0, ..., m - 1} is the index of the 
+                // #' Where:
+                // #' 
+                // #' * \eqn{x_{ij}(t)} : value of \eqn{x_{ij}} at time step \eqn{t}
+                // #' * \eqn{y_{ij}(t)} : value of \eqn{y_{ij}} at time step \eqn{t}
+                // #' * \eqn{t = 1, ..., T} : the time step
+                // #' * \eqn{\tau = 0, ..., m - 1} : index of the 
                 // #' time lag for a kernel of length \eqn{m}.
                 // #'
                 // #' ### Details
