@@ -547,25 +547,24 @@
 #'
 #' A matrix the same size as `x` but with the
 #' convolutions, \eqn{y_{ij}}, of each element,
-#' \eqn{x_{ij}}, given by the following.
+#' \eqn{x_{ij}}. The value of \eqn{y_{ij}} at time 
+#' \eqn{t = 1, ..., T} is given by the following.
 #'
-#' \deqn{y_{ij} = \sum_{\tau = 0} x_{ij}(t-\tau) k(\tau)}
-#'
-#' unless \eqn{t < \tau}, in which case,
-#'
-#' \deqn{y_{ij} = }
-#'
-#' where \eqn{y_{ij}} is the convolution,
-#' \eqn{x_{ij}(t)} is the value of \eqn{x_{ij}} at time step, \eqn{t},
-#' \eqn{k(\tau)} is the value of the kernel at lag, \eqn{\tau},
-#' and \eqn{\lambda} is the length of the kernel.
+#' \deqn{y_{ij} = \sum_{\tau = 0}^{min(t,m)-1} x_{ij}(t-\tau) k[\tau]}
+#' 
+#' Where \eqn{\tau = 0, ..., m - 1} is the index of the 
+#' time lag for a kernel of length \eqn{m}.
 #'
 #' ### Details
 #'
 #' If any empty matrices are encountered when looking
 #' back in time, they are treated as matrices with all
-#' zeros. Similarly, any matrices encounte
-#' of `x`
+#' zeros. The convolution of a matrix of all positive
+#' values will be biased low for all time steps less than
+#' the length of the kernel (i.e., for all time steps 
+#' such that \eqn{t < m}), and therefore one should only
+#' compare observed data with a convolution (e.g., when
+#' calibrating) for time steps less than \eqn{m}.
 #'
 #' ## Clamp
 #'

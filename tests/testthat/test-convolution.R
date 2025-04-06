@@ -1,10 +1,6 @@
 ## not done by any stretch
-library(macpan2)
+library(macpan2); library(testthat); library(dplyr); library(tidyr); library(ggplot2)
 kernel = c(0.5, 0.25, 0.25)
-1 %*% kernel[1]
-1:2 %*% kernel[1:2]
-1:3 %*% kernel
-2:4 %*% kernel
 simple_sims(
   list(
     x ~ x + 1,
@@ -14,8 +10,6 @@ simple_sims(
   mats = list(x = 0, y = empty_matrix, kernel = kernel)
 ) |> macpan2:::filter(time != 0, time != 11, matrix == "y")
 
-library(macpan2)
-library(dplyr)
 # kernel
 k = c(0.5, 0.25, 0.25)
 X = 1
@@ -32,14 +26,23 @@ sim_data = simple_sims(
 # manual computation
 # i = 1 to 3 (up to 3 lags)
 X_sim = (sim_data 
-         %>% filter(matrix=="X")
-         %>% mutate(
-            lag_1 = lag(value,default = 0)
-          , lag_2 = lag(value,2,default = 0)
-          , lag_3 = lag(value,3,default = 0))
+   %>% filter(matrix == "X")
+   %>% mutate(
+      lag_1 = lag(value, 1, default = 0)
+    , lag_2 = lag(value, 2, default = 0)
+  )
 )
 manual_convolution = k[1] * X_sim$value + k[2] * X_sim$lag_1 + k[3] * X_sim$lag_2
-macpan2_convolution = sim_data %>% filter(matrix=="Y") %>% pull(value)
+macpan2_convolution = sim_data %>% filter(matrix == "Y") %>% pull(value)
+
+# TODO: add this formula to engine docs
+#   - `l` : index for the time lag, starting with `l = 0`
+#   - `t` : index for time, starting at `t = 1`
+#   - `k_l` : `l`th value of the kernel
+#   - `x_t` : value of the variable at time `t`
+# k_0 * x_t + k_1 * x_{t-1} + k_2 * x_{t-2}
+# \sum_{l = 0}^{min(m,t)-1} k_l x_{t-l}
+
 ## view differences
 cbind(manual_convolution, macpan2_convolution)
 plot(manual_convolution, macpan2_convolution)
@@ -87,11 +90,16 @@ sim_data = simple_sims(
 x = sim_data %>% filter(matrix=="X") %>% select(value) %>% pull()
 
 macpan2_convolution = sim_data %>% filter(matrix == "Y" & time %in% c(4,5,6)) %>% pull(value)
+
 # z calculation from https://canmod.net/misc/flex_specs#computing-convolutions
+# ----
+# 
 manual_convolution = c(kappa[4]*x[1]+kappa[3]*x[2]+kappa[2]*x[3]+kappa[1]*x[4]
                        , kappa[4]*x[2]+kappa[3]*x[3]+kappa[2]*x[4]+kappa[1]*x[5]
                        , kappa[4]*x[3]+kappa[3]*x[4]+kappa[2]*x[5]+kappa[1]*x[6])
+
 filter_convolution = c(na.omit(stats::filter(x, kappa, sides = 1)))
+
 cbind(manual_convolution, macpan2_convolution, filter_convolution)
 
 engine_eval(~pgamma(3, 16, 0.6875))
