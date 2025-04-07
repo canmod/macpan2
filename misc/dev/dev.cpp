@@ -2552,6 +2552,11 @@ public:
             // #' do not get closer to 0 than a tolerance, `eps`, with
             // #' a default of 1e-12. The output of the `clamp`
             // #' function is as follows.
+            // #' 
+            // #' This function works fine as long as `x` does not go 
+            // #' negative. We will improve this behaviour when we 
+            // #' release a new major version
+            // #' [see issue #93](https://github.com/canmod/macpan2/issues/93).
             // #'
             // #' ### Functions
             // #'
@@ -2563,6 +2568,7 @@ public:
             // #' * `eps` : A small positive number giving the
             // #' theoretical minimum of the elements in the returned
             // #' matrix.
+            // #' 
             case MP2_CLAMP:
                 eps = 1e-12; // default
                 if (n == 2)
@@ -2577,12 +2583,21 @@ public:
                 //   pen += CppAD::CondExpLt(x, eps, Type(0.01) * pow(x-eps,2), Type(0));
                 //   return CppAD::CondExpGe(x, eps, x, eps/(Type(2)-x/eps));
                 // }
-                for (int i = 0; i < rows; i++)
-                {
-                    for (int j = 0; j < cols; j++)
-                    {
-                        m.coeffRef(i, j) = args[0].coeff(i, j) +
-                                           eps * (1.0 / (1.0 - (args[0].coeff(i, j) - eps) / eps + ((args[0].coeff(i, j) - eps) * (args[0].coeff(i, j) - eps)) / (eps * eps)));
+                // 
+                // needs to be fixed for negative x 
+                // https://github.com/canmod/macpan2/issues/93
+                for (int i = 0; i < rows; i++) {
+                    for (int j = 0; j < cols; j++) {
+                        // y = x + eps * (1 / (1 - (x - eps) / eps + ((x - eps)^2)/(eps^2)))
+                        m.coeffRef(i, j) = args[0].coeff(i, j) + eps * (
+                            1.0 / (
+                                1.0 - (args[0].coeff(i, j) - eps) / 
+                                eps + (
+                                    (args[0].coeff(i, j) - eps) * 
+                                    (args[0].coeff(i, j) - eps)
+                                ) / (eps * eps)
+                            )
+                        );
                     }
                 }
                 return m;
