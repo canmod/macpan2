@@ -552,9 +552,8 @@
 #'
 #' ## Convolution
 #'
-#' One may take the convolution of each element in a
+#' You can take the convolution of each element in a
 #' matrix, x, over simulation time using a kernel, k.
-#' There are two arguments of this function.
 #'
 #' ### Functions
 #'
@@ -577,11 +576,13 @@
 #' 
 #' Where:
 #' 
-#' * \eqn{x_{ij}(t)} : value of \eqn{x_{ij}} at time step \eqn{t}
-#' * \eqn{y_{ij}(t)} : value of \eqn{y_{ij}} at time step \eqn{t}
-#' * \eqn{t = 1, ..., T} : the time step
+#' * \eqn{x_{ij}(t)} : value of \eqn{x_{ij}} at time step \eqn{t}.
+#' * \eqn{y_{ij}(t)} : value of \eqn{y_{ij}} at time step \eqn{t}.
+#' * \eqn{t = 1, ..., T} : the time step.
 #' * \eqn{\tau = 0, ..., m - 1} : index of the 
 #' time lag for a kernel of length \eqn{m}.
+#' * \eqn{k_\tau} : value of the kernel associated with lag
+#' \eqn{\tau}.
 #'
 #' ### Details
 #'
@@ -594,6 +595,17 @@
 #' compare observed data with a convolution (e.g., when
 #' calibrating) for time steps less than \eqn{m}.
 #'
+#' ### Examples
+#' 
+#' simple_sims(
+#'   list(
+#'     x ~ 3 * x * (1 - x),
+#'     y ~ convolution(x, rep(1/10, 10))
+#'   ),
+#'   time_steps = 50,
+#'   mats = list(x = 0.5, y = empty_matrix)
+#' )
+#' 
 #' ## Clamp
 #'
 #' Smoothly clamp the elements of a matrix so that they
@@ -663,6 +675,8 @@
 #' * `over_dispersion` -- Over-dispersion parameter
 #' given by \code{(simulated/standard_deviation)^2 - simulated)}.
 #' * `standard_deviation` -- Standard deviation parameter.
+#' * `size` -- Number of Bernoulli trials.
+#' * `probability` -- Probability of a successful Bernoulli trial.
 #'
 #' ## Pseudo-Random Number Generators
 #'

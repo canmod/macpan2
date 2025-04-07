@@ -1,14 +1,15 @@
 ## not done by any stretch
-library(macpan2); library(testthat); library(dplyr); library(tidyr); library(ggplot2)
-kernel = c(0.5, 0.25, 0.25)
-simple_sims(
+library(macpan2)
+
+r = simple_sims(
   list(
-    x ~ x + 1,
-    y ~ convolution(x, kernel)
+    x ~ 3 * x * (1 - x),
+    y ~ convolution(x, rep(1/10, 10))
   ),
-  time_steps = 10,
-  mats = list(x = 0, y = empty_matrix, kernel = kernel)
-) |> macpan2:::filter(time != 0, time != 11, matrix == "y")
+  time_steps = 50,
+  mats = list(x = 0.5, y = empty_matrix)
+)
+# ggplot(r) + geom_line(aes(time, value, colour = matrix))
 
 # kernel
 k = c(0.5, 0.25, 0.25)

@@ -695,9 +695,8 @@ simple_sims(
 
 \subsection{Convolution}{
 
-One may take the convolution of each element in a
+You can take the convolution of each element in a
 matrix, x, over simulation time using a kernel, k.
-There are two arguments of this function.
 \subsection{Functions}{
 \itemize{
 \item \code{convolution(x, k)}
@@ -723,11 +722,13 @@ convolutions, \eqn{y_{ij}}, of each element,
 
 Where:
 \itemize{
-\item \eqn{x_{ij}(t)} : value of \eqn{x_{ij}} at time step \eqn{t}
-\item \eqn{y_{ij}(t)} : value of \eqn{y_{ij}} at time step \eqn{t}
-\item \eqn{t = 1, ..., T} : the time step
+\item \eqn{x_{ij}(t)} : value of \eqn{x_{ij}} at time step \eqn{t}.
+\item \eqn{y_{ij}(t)} : value of \eqn{y_{ij}} at time step \eqn{t}.
+\item \eqn{t = 1, ..., T} : the time step.
 \item \eqn{\tau = 0, ..., m - 1} : index of the
 time lag for a kernel of length \eqn{m}.
+\item \eqn{k_\tau} : value of the kernel associated with lag
+\eqn{\tau}.
 }
 }
 
@@ -741,6 +742,18 @@ the length of the kernel (i.e., for all time steps
 such that \eqn{t < m}), and therefore one should only
 compare observed data with a convolution (e.g., when
 calibrating) for time steps less than \eqn{m}.
+}
+
+\subsection{Examples}{
+
+simple_sims(
+list(
+x ~ 3 * x * (1 - x),
+y ~ convolution(x, rep(1/10, 10))
+),
+time_steps = 50,
+mats = list(x = 0.5, y = empty_matrix)
+)
 }
 
 }
@@ -822,6 +835,8 @@ the numbers of rows and columns in \code{observed}.
 \item \code{over_dispersion} -- Over-dispersion parameter
 given by \code{(simulated/standard_deviation)^2 - simulated)}.
 \item \code{standard_deviation} -- Standard deviation parameter.
+\item \code{size} -- Number of Bernoulli trials.
+\item \code{probability} -- Probability of a successful Bernoulli trial.
 }
 }
 

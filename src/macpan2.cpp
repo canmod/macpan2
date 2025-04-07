@@ -2439,9 +2439,8 @@ public:
 
                 // #' ## Convolution
                 // #'
-                // #' One may take the convolution of each element in a
+                // #' You can take the convolution of each element in a
                 // #' matrix, x, over simulation time using a kernel, k.
-                // #' There are two arguments of this function.
                 // #'
                 // #' ### Functions
                 // #'
@@ -2464,11 +2463,13 @@ public:
                 // #' 
                 // #' Where:
                 // #' 
-                // #' * \eqn{x_{ij}(t)} : value of \eqn{x_{ij}} at time step \eqn{t}
-                // #' * \eqn{y_{ij}(t)} : value of \eqn{y_{ij}} at time step \eqn{t}
-                // #' * \eqn{t = 1, ..., T} : the time step
+                // #' * \eqn{x_{ij}(t)} : value of \eqn{x_{ij}} at time step \eqn{t}.
+                // #' * \eqn{y_{ij}(t)} : value of \eqn{y_{ij}} at time step \eqn{t}.
+                // #' * \eqn{t = 1, ..., T} : the time step.
                 // #' * \eqn{\tau = 0, ..., m - 1} : index of the 
                 // #' time lag for a kernel of length \eqn{m}.
+                // #' * \eqn{k_\tau} : value of the kernel associated with lag
+                // #' \eqn{\tau}.
                 // #'
                 // #' ### Details
                 // #'
@@ -2481,6 +2482,17 @@ public:
                 // #' compare observed data with a convolution (e.g., when
                 // #' calibrating) for time steps less than \eqn{m}.
                 // #'
+                // #' ### Examples
+                // #' 
+                // #' simple_sims(
+                // #'   list(
+                // #'     x ~ 3 * x * (1 - x),
+                // #'     y ~ convolution(x, rep(1/10, 10))
+                // #'   ),
+                // #'   time_steps = 50,
+                // #'   mats = list(x = 0.5, y = empty_matrix)
+                // #' )
+                // #' 
                 matIndex = index2mats[0]; // m
                 if (matIndex == -1) {
                     SetError(MP2_CONVOLUTION, "Can only convolve named matrices not expressions of matrices", row, MP2_CONVOLUTION, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
@@ -2626,6 +2638,8 @@ public:
             // #' * `over_dispersion` -- Over-dispersion parameter
             // #' given by \code{(simulated/standard_deviation)^2 - simulated)}.
             // #' * `standard_deviation` -- Standard deviation parameter.
+            // #' * `size` -- Number of Bernoulli trials.
+            // #' * `probability` -- Probability of a successful Bernoulli trial.
             // #'
             case MP2_POISSON_DENSITY:
                 // std::cout << "step 0" << std::endl;
@@ -2698,8 +2712,7 @@ public:
                 return m;
 
             case MP2_NORMAL_DENSITY:
-                if (n < 3)
-                {
+                if (n < 3) {
                     SetError(MP2_NORMAL_DENSITY, "dnorm needs three arguments: matrices with observed values, expected values, and standard deviation parameters", row, MP2_NORMAL_DENSITY, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
@@ -2709,47 +2722,41 @@ public:
                 v1.push_back(2);
                 args = args.recycle_to_shape(v1, rows, cols);
                 err_code = args.get_error_code();
-                if (err_code != 0)
-                {
+                if (err_code != 0) {
                     SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row, MP2_NORMAL_DENSITY, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
                 m = matrix<Type>::Zero(rows, cols);
-                for (int i = 0; i < rows; i++)
-                {
-                    for (int j = 0; j < cols; j++)
-                    {
+                for (int i = 0; i < rows; i++) {
+                    for (int j = 0; j < cols; j++) {
                         m.coeffRef(i, j) = dnorm(args[0].coeff(i, j), args[1].coeff(i, j), args[2].coeff(i, j), 1);
                     }
                 }
                 return m;
-	    case MP2_BINOM_DENSITY:
-	      if (n < 3)
-                {
-		  SetError(MP2_BINOM_DENSITY, "dbinom needs three arguments: matrices with observed values, numbers of trials, and probabilities", row, MP2_BINOM_DENSITY, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
-		  return m;
+                
+      	    case MP2_BINOM_DENSITY:
+        	      if (n < 3) {
+            		    SetError(MP2_BINOM_DENSITY, "dbinom needs three arguments: matrices with observed values, numbers of trials, and probabilities", row, MP2_BINOM_DENSITY, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
+            		    return m;
                 }
-	      rows = args[0].rows();
-	      cols = args[0].cols();
-	      v1.push_back(1);
-	      v1.push_back(2);
-	      args = args.recycle_to_shape(v1, rows, cols);
-	      err_code = args.get_error_code();
-	      if (err_code != 0)
-                {
-		  SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row, MP2_BINOM_DENSITY, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
-		  return m;
+          	    rows = args[0].rows();
+          	    cols = args[0].cols();
+          	    v1.push_back(1);
+          	    v1.push_back(2);
+          	    args = args.recycle_to_shape(v1, rows, cols);
+          	    err_code = args.get_error_code();
+          	    if (err_code != 0) {
+          		      SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row, MP2_BINOM_DENSITY, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
+          		      return m;
                 }
-	      m = matrix<Type>::Zero(rows, cols);
-	      for (int i = 0; i < rows; i++)
-                {
-		  for (int j = 0; j < cols; j++)
-                    {
-		      // https://kaskr.github.io/adcomp/group__R__style__distribution.html#gaee11f805f02bc1febc6d7bf0487671be
-		      m.coeffRef(i, j) = dbinom(args[0].coeff(i, j), args[1].coeff(i, j), args[2].coeff(i, j), 1);
+          	    m = matrix<Type>::Zero(rows, cols);
+          	    for (int i = 0; i < rows; i++) {
+          		      for (int j = 0; j < cols; j++) {
+          		            // https://kaskr.github.io/adcomp/group__R__style__distribution.html#gaee11f805f02bc1febc6d7bf0487671be
+          		            m.coeffRef(i, j) = dbinom(args[0].coeff(i, j), args[1].coeff(i, j), args[2].coeff(i, j), 1);
                     }
                 }
-	      return m;
+          	    return m;
 
 
             // #' ## Pseudo-Random Number Generators
