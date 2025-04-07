@@ -3,7 +3,7 @@
 for constructing expressions for defining model
 simulations."><meta property="og:description" content="Functions currently supported by the C++ TMB engine
 for constructing expressions for defining model
-simulations."></head><body>
+simulations."><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous"><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -783,14 +783,14 @@ calibrating) for time steps less than \(m\).</p>
 <h4 id="examples-11">Examples<a class="anchor" aria-label="anchor" href="#examples-11"></a></h4>
 
 
-<p>simple_sims(
-list(
-x ~ 3 * x * (1 - x),
-y ~ convolution(x, rep(1/10, 10))
-),
-time_steps = 50,
-mats = list(x = 0.5, y = empty_matrix)
-)</p>
+<p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">simple_sims</span>(</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>  <span class="fu">list</span>(</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>    x <span class="sc">~</span> <span class="dv">3</span> <span class="sc">*</span> x <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> x),</span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>    y <span class="sc">~</span> <span class="fu">convolution</span>(x, <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">/</span><span class="dv">10</span>, <span class="dv">10</span>))</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>  ),</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>  <span class="at">time_steps =</span> <span class="dv">50</span>,</span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>  <span class="at">mats =</span> <span class="fu">list</span>(<span class="at">x =</span> <span class="fl">0.5</span>, <span class="at">y =</span> empty_matrix)</span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a>)</span></code></pre><p></p></div>
 </div>
 
 
