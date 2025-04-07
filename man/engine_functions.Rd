@@ -746,14 +746,15 @@ calibrating) for time steps less than \eqn{m}.
 
 \subsection{Examples}{
 
-simple_sims(
-list(
-x ~ 3 * x * (1 - x),
-y ~ convolution(x, rep(1/10, 10))
-),
-time_steps = 50,
-mats = list(x = 0.5, y = empty_matrix)
+\if{html}{\out{<div class="sourceCode">}}\preformatted{simple_sims(
+  list(
+    x ~ 3 * x * (1 - x),
+    y ~ convolution(x, rep(1/10, 10))
+  ),
+  time_steps = 50,
+  mats = list(x = 0.5, y = empty_matrix)
 )
+}\if{html}{\out{</div>}}
 }
 
 }

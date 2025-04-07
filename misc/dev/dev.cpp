@@ -2483,6 +2483,7 @@ public:
                 // #'
                 // #' ### Examples
                 // #' 
+                // #' ```
                 // #' simple_sims(
                 // #'   list(
                 // #'     x ~ 3 * x * (1 - x),
@@ -2491,6 +2492,7 @@ public:
                 // #'   time_steps = 50,
                 // #'   mats = list(x = 0.5, y = empty_matrix)
                 // #' )
+                // #' ```
                 // #' 
                 matIndex = index2mats[0]; // m
                 if (matIndex == -1) {
