@@ -614,6 +614,11 @@
 #' do not get closer to 0 than a tolerance, `eps`, with
 #' a default of 1e-12. The output of the `clamp`
 #' function is as follows.
+#' 
+#' This function works fine as long as `x` does not go 
+#' negative. We will improve this behaviour when we 
+#' release a new major version
+#' [see issue #93](https://github.com/canmod/macpan2/issues/93).
 #'
 #' ### Functions
 #'
@@ -625,6 +630,7 @@
 #' * `eps` : A small positive number giving the
 #' theoretical minimum of the elements in the returned
 #' matrix.
+#' 
 #' ## Probability Densities
 #'
 #' All probability densities have the same first two

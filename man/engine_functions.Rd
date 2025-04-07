@@ -765,6 +765,11 @@ Smoothly clamp the elements of a matrix so that they
 do not get closer to 0 than a tolerance, \code{eps}, with
 a default of 1e-12. The output of the \code{clamp}
 function is as follows.
+
+This function works fine as long as \code{x} does not go
+negative. We will improve this behaviour when we
+release a new major version
+\href{https://github.com/canmod/macpan2/issues/93}{see issue #93}.
 \subsection{Functions}{
 \itemize{
 \item \code{clamp(x, eps)}
