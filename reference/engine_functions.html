@@ -139,7 +139,7 @@ after any necessary recycling of rows and/or columns.</p></li>
 <div class="section">
 <h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
 
-<ul><li><p><code>x</code> – Any matrix</p></li>
+<ul><li><p><code>x</code> : Any matrix</p></li>
 </ul></div>
 
 <div class="section">
@@ -165,15 +165,15 @@ unary function applied elementwise.</p></li>
 <div class="section">
 <h4 id="functions-2">Functions<a class="anchor" aria-label="anchor" href="#functions-2"></a></h4>
 
-<ul><li><p><code>proportions(x, limit, eps)</code> –</p></li>
+<ul><li><p><code>proportions(x, limit, eps)</code></p></li>
 </ul></div>
 
 <div class="section">
 <h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
 
-<ul><li><p><code>x</code> – Any matrix</p></li>
-<li><p><code>limit</code> – numeric value to return elementwise from <code>proportions</code> if <code>sum(x) &lt; eps</code></p></li>
-<li><p><code>eps</code> – numeric tolerance for <code>sum(x)</code></p></li>
+<ul><li><p><code>x</code> : Any matrix</p></li>
+<li><p><code>limit</code> : numeric value to return elementwise from <code>proportions</code> if <code>sum(x) &lt; eps</code></p></li>
+<li><p><code>eps</code> : numeric tolerance for <code>sum(x)</code></p></li>
 </ul></div>
 
 <div class="section">
@@ -198,9 +198,9 @@ unary function applied elementwise.</p></li>
 <div class="section">
 <h4 id="functions-3">Functions<a class="anchor" aria-label="anchor" href="#functions-3"></a></h4>
 
-<ul><li><p><code>from:to</code> – Inclusive and ordered sequence of
+<ul><li><p><code>from:to</code> : Inclusive and ordered sequence of
 integers between two bounds.</p></li>
-<li><p><code>seq(from, length, by)</code> – Ordered sequence of
+<li><p><code>seq(from, length, by)</code> : Ordered sequence of
 integers with equal spacing between adjacent
 values.</p></li>
 </ul></div>
@@ -208,12 +208,12 @@ values.</p></li>
 <div class="section">
 <h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
 
-<ul><li><p><code>from</code> – Scalar integer giving the first integer
+<ul><li><p><code>from</code> : Scalar integer giving the first integer
 in the sequence.</p></li>
-<li><p><code>to</code> – Scalar integer giving the last integer in
+<li><p><code>to</code> : Scalar integer giving the last integer in
 the sequence.</p></li>
-<li><p><code>length</code> – Number of integers in the sequence.</p></li>
-<li><p><code>by</code> – Scalar giving the difference
+<li><p><code>length</code> : Number of integers in the sequence.</p></li>
+<li><p><code>by</code> : Scalar giving the difference
 between adjacent values in the sequence.</p></li>
 </ul></div>
 
@@ -251,17 +251,21 @@ as the default.</p>
 <div class="section">
 <h4 id="functions-4">Functions<a class="anchor" aria-label="anchor" href="#functions-4"></a></h4>
 
-<ul><li><p><code>rep(x, times)</code> – Replicate a column vector a
+<ul><li><p><code>rep(x, times)</code> : Replicate a column vector a
 number of times, by repeatedly stacking it on top of
 itself.</p></li>
+<li><p><code>recycle(x, rows, cols)</code> : Recycle rows and columns of
+<code>x</code> to produce a matrix with <code>rows</code> rows and <code>cols</code> columns.</p></li>
 </ul></div>
 
 <div class="section">
 <h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
 
-<ul><li><p><code>x</code> – A scalar-valued variable to repeat.</p></li>
-<li><p><code>times</code> – A scalar-valued integer variable giving
+<ul><li><p><code>x</code> : A scalar-valued variable to repeat.</p></li>
+<li><p><code>times</code> : A scalar-valued integer variable giving
 the number of times to repeat <code>x</code>.</p></li>
+<li><p><code>rows</code> : Number of rows in the output of <code>recycle</code>.</p></li>
+<li><p><code>cols</code> : Number of columns in the output of <code>recycle</code>.</p></li>
 </ul></div>
 
 <div class="section">
@@ -275,7 +279,9 @@ on top of each other.</p></li>
 <h4 id="examples-4">Examples<a class="anchor" aria-label="anchor" href="#examples-4"></a></h4>
 
 
-<p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span> <span class="fu">rep</span>(<span class="dv">1</span>, <span class="dv">10</span>))</span></code></pre><p></p></div>
+<p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span> <span class="fu">rep</span>(<span class="dv">1</span>, <span class="dv">10</span>))</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span> <span class="fu">recycle</span>(  <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>,  <span class="dv">3</span>, <span class="dv">4</span>))</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span> <span class="fu">recycle</span>(<span class="fu">t</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>), <span class="dv">3</span>, <span class="dv">4</span>))</span></code></pre><p></p></div>
 </div>
 
 
@@ -287,16 +293,16 @@ on top of each other.</p></li>
 <div class="section">
 <h4 id="functions-5">Functions<a class="anchor" aria-label="anchor" href="#functions-5"></a></h4>
 
-<ul><li><p><code>x %*% y</code> – Standard matrix multiplication.</p></li>
-<li><p><code>x %x% y</code> – Kronecker product</p></li>
+<ul><li><p><code>x %*% y</code> : Standard matrix multiplication.</p></li>
+<li><p><code>x %x% y</code> : Kronecker product</p></li>
 </ul></div>
 
 <div class="section">
 <h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
 
-<ul><li><p><code>x</code> – A matrix. For the standard product, <code>x</code>
+<ul><li><p><code>x</code> : A matrix. For the standard product, <code>x</code>
 must have as many columns as <code>y</code> has rows.</p></li>
-<li><p><code>y</code> – A matrix. For standard product, <code>y</code>
+<li><p><code>y</code> : A matrix. For standard product, <code>y</code>
 must have as many rows as <code>x</code> has columns.</p></li>
 </ul></div>
 
@@ -331,31 +337,31 @@ way with round parentheses, <code><a href="https://rdrr.io/r/base/Paren.html" cl
 <div class="section">
 <h4 id="functions-6">Functions<a class="anchor" aria-label="anchor" href="#functions-6"></a></h4>
 
-<ul><li><p><code>c(...)</code> – Stack columns of arguments into a
+<ul><li><p><code>c(...)</code> : Stack columns of arguments into a
 single column vector.</p></li>
-<li><p><code>cbind(...)</code> – Create a matrix containing all of
+<li><p><code>cbind(...)</code> : Create a matrix containing all of
 the columns of a group of matrices with the same
 number of rows.</p></li>
-<li><p><code>rbind(...)</code> – Create a matrix containing all of
+<li><p><code>rbind(...)</code> : Create a matrix containing all of
 the rows of a group of matrices with the same number
 of columns.</p></li>
-<li><p><code>matrix(x, rows, cols)</code> – Reshape a matrix to have
+<li><p><code>matrix(x, rows, cols)</code> : Reshape a matrix to have
 <code>rows</code> rows and <code>cols</code> columns. The input <code>x</code> must
 have <code>rows * cols</code> elements.</p></li>
-<li><p><code>t(x)</code> – Standard matrix transpose.</p></li>
+<li><p><code>t(x)</code> : Standard matrix transpose.</p></li>
 </ul></div>
 
 <div class="section">
 <h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
 
-<ul><li><p><code>...</code> – Any number of dimensionally consistent
+<ul><li><p><code>...</code> : Any number of dimensionally consistent
 matrices. The definition of dimensionally consistent
 depends on the function.</p></li>
-<li><p><code>x</code> – Can be any matrix for <code>t</code>, but for <code>matrix</code>
+<li><p><code>x</code> : Can be any matrix for <code>t</code>, but for <code>matrix</code>
 it must have <code>rows * cols</code> elements.</p></li>
-<li><p><code>rows</code> – Scalar integer giving the number of
+<li><p><code>rows</code> : Scalar integer giving the number of
 rows in the output.</p></li>
-<li><p><code>cols</code> – Scalar integer giving the number of
+<li><p><code>cols</code> : Scalar integer giving the number of
 columns in the output.</p></li>
 </ul></div>
 
@@ -406,9 +412,9 @@ function, <code>t</code>.</p>
 <div class="section">
 <h4 id="functions-7">Functions<a class="anchor" aria-label="anchor" href="#functions-7"></a></h4>
 
-<ul><li><p><code>to_diag(x)</code> – Create a diagonal matrix by setting
+<ul><li><p><code>to_diag(x)</code> : Create a diagonal matrix by setting
 the diagonal to a column vector, <code>x</code>.</p></li>
-<li><p><code>from_diag(x)</code> – Extract the diagonal from a
+<li><p><code>from_diag(x)</code> : Extract the diagonal from a
 matrix, <code>x</code>, and return the diagonal as a column
 vector.</p></li>
 </ul></div>
@@ -416,7 +422,7 @@ vector.</p></li>
 <div class="section">
 <h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
 
-<ul><li><p><code>x</code> – Any matrix (for <code>from_diag</code>) or a
+<ul><li><p><code>x</code> : Any matrix (for <code>from_diag</code>) or a
 column vector (for <code>to_diag</code>). It is common to assume
 that <code>x</code> is square for <code>from_diag</code> but this is
 not required.</p></li>
@@ -425,9 +431,9 @@ not required.</p></li>
 <div class="section">
 <h4 id="return-7">Return<a class="anchor" aria-label="anchor" href="#return-7"></a></h4>
 
-<ul><li><p><code>to_diag(x)</code> – Diagonal matrix with <code>x</code> on the
+<ul><li><p><code>to_diag(x)</code> : Diagonal matrix with <code>x</code> on the
 diagonal.</p></li>
-<li><p><code>from_diag(x)</code> – Column vector containing the
+<li><p><code>from_diag(x)</code> : Column vector containing the
 diagonal of <code>x</code>. A value is considered to be on
 the diagonal if it has a row index equal to
 the column index.</p></li>
@@ -462,34 +468,34 @@ containing the diagonal of an existing matrix.</p>
 <div class="section">
 <h4 id="functions-8">Functions<a class="anchor" aria-label="anchor" href="#functions-8"></a></h4>
 
-<ul><li><p><code>sum(...)</code> – Sum all of the elements of all of the
+<ul><li><p><code>sum(...)</code> : Sum all of the elements of all of the
 matrices passed to <code>...</code>.</p></li>
-<li><p><code>col_sums(x)</code> – Row vector containing the sums
+<li><p><code>col_sums(x)</code> : Row vector containing the sums
 of each column.</p></li>
-<li><p><code>row_sums(x)</code> – Column vector containing the sums
+<li><p><code>row_sums(x)</code> : Column vector containing the sums
 of each row.</p></li>
-<li><p><code>group_sums(x, f, n)</code> – Column vector containing the
+<li><p><code>group_sums(x, f, n)</code> : Column vector containing the
 sums of groups of elements in <code>x</code>. The groups are
 determined by the integers in <code>f</code> and the order of
 the sums in the output is determined by these
 integers.</p></li>
-<li><p><code>mean(x)</code> – Arthmetic average of all elements in matrix
+<li><p><code>mean(x)</code> : Arthmetic average of all elements in matrix
 <code>x</code>.</p></li>
-<li><p><code>sd(x)</code> – Sample standard deviation of all elements in
+<li><p><code>sd(x)</code> : Sample standard deviation of all elements in
 matrix <code>x</code>.</p></li>
 </ul></div>
 
 <div class="section">
 <h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
 
-<ul><li><p><code>...</code> – Any number of matrices of any shape.</p></li>
-<li><p><code>x</code> – A matrix of any dimensions, except for
+<ul><li><p><code>...</code> : Any number of matrices of any shape.</p></li>
+<li><p><code>x</code> : A matrix of any dimensions, except for
 <code>group_sums</code> that expects <code>x</code> to be a column vector.</p></li>
-<li><p><code>f</code> – A column vector the same length as <code>x</code>
+<li><p><code>f</code> : A column vector the same length as <code>x</code>
 containing integers between <code>0</code> and <code>m-1</code>, given <code>m</code>
 unique groups. Elements of <code>f</code> refer to the indices
 of <code>x</code> that will be grouped and summed.</p></li>
-<li><p><code>n</code> – A column vector of length <code>m</code>. If <code>f</code> does
+<li><p><code>n</code> : A column vector of length <code>m</code>. If <code>f</code> does
 not contain group <code>k</code> in <code>[0, m-1]</code>, <code>group_sums</code> skips
 this group and the output at index <code>k+1</code> is <code>n[k+1]</code>.</p></li>
 </ul></div>
@@ -536,29 +542,29 @@ be explicitly used.</p>
 <div class="section">
 <h4 id="functions-9">Functions<a class="anchor" aria-label="anchor" href="#functions-9"></a></h4>
 
-<ul><li><p><code>x[i,j]</code> – Matrix containing a subset
+<ul><li><p><code>x[i,j]</code> : Matrix containing a subset
 of the rows and columns of <code>x</code>.</p></li>
-<li><p><code>block(x,i,j,n,m)</code> – Matrix containing a
+<li><p><code>block(x,i,j,n,m)</code> : Matrix containing a
 contiguous subset of rows and columns of <code>x</code>
 <a href="https://eigen.tuxfamily.org/dox/group__TutorialBlockOperations.html" class="external-link">https://eigen.tuxfamily.org/dox/group__TutorialBlockOperations.html</a>.</p></li>
-<li><p><code>last(x)</code> – The last element of a matrix (i.e., the
+<li><p><code>last(x)</code> : The last element of a matrix (i.e., the
 lower-right element).</p></li>
 </ul></div>
 
 <div class="section">
 <h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
 
-<ul><li><p><code>x</code> – Any matrix.</p></li>
-<li><p><code>i</code> – An integer column vector (for <code>[</code>) or
+<ul><li><p><code>x</code> : Any matrix.</p></li>
+<li><p><code>i</code> : An integer column vector (for <code>[</code>) or
 integer scalar (for <code>block</code>) containing the indices
 of the rows to extract (for <code>[</code>) or the index of the
 first row to extract (for <code>block</code>).</p></li>
-<li><p><code>j</code> – An integer column vector (for <code>[</code>) or
+<li><p><code>j</code> : An integer column vector (for <code>[</code>) or
 integer scalar (for <code>block</code>) containing the indices
 of the columns to extract (for <code>[</code>) or the index of
 the first column to extract (for <code>block</code>).</p></li>
-<li><p><code>n</code> – Number of rows in the block to return.</p></li>
-<li><p><code>m</code> – Number of columns in the block to return.</p></li>
+<li><p><code>n</code> : Number of rows in the block to return.</p></li>
+<li><p><code>m</code> : Number of columns in the block to return.</p></li>
 </ul></div>
 
 <div class="section">
@@ -599,19 +605,19 @@ it is possible to bind the rows or columns of past
 versions of such matrices into a single matrix.</p><div class="section">
 <h4 id="functions-10">Functions<a class="anchor" aria-label="anchor" href="#functions-10"></a></h4>
 
-<ul><li><p><code>rbind_lag(x, lag, t_min)</code> – Bind the rows of versions of
+<ul><li><p><code>rbind_lag(x, lag, t_min)</code> : Bind the rows of versions of
 <code>x</code> that were recorded at the end of all
 simulation iterations corresponding to time lags given
 by integers in <code>lag</code>.</p></li>
-<li><p><code>rbind_time(x, t, t_min)</code> – Bind the rows of versions of
+<li><p><code>rbind_time(x, t, t_min)</code> : Bind the rows of versions of
 <code>x</code> that were recorded at the end of all
 simulation iterations corresponding to integers in
 <code>t</code>.</p></li>
-<li><p><code>cbind_lag(x, lag, t_min)</code> – Bind the columns of versions of
+<li><p><code>cbind_lag(x, lag, t_min)</code> : Bind the columns of versions of
 <code>x</code> that were recorded at the end of all
 simulation iterations corresponding to time lags given
 by integers in <code>lag</code>. (TODO – cbind_lag is not developed yet)</p></li>
-<li><p><code>cbind_time(x, t, t_min)</code> – Bind the columns of versions of
+<li><p><code>cbind_time(x, t, t_min)</code> : Bind the columns of versions of
 <code>x</code> that were recorded at the end of all
 simulation iterations corresponding to integers in
 <code>t</code>. (TODO – cbind_lag is not developed yet)</p></li>
@@ -620,15 +626,15 @@ simulation iterations corresponding to integers in
 <div class="section">
 <h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
 
-<ul><li><p><code>x</code> – Any matrix with saved history such that the
+<ul><li><p><code>x</code> : Any matrix with saved history such that the
 number of columns (for <code>rbind_*</code>) or rows (for
 <code>cbind_*</code>) does not change throughout the simulation.</p></li>
-<li><p><code>lag</code> – Integer vector giving numbers
+<li><p><code>lag</code> : Integer vector giving numbers
 of time steps before the current step to obtain
 past values of <code>x</code>.</p></li>
-<li><p><code>t</code> – Integer vector giving time steps
+<li><p><code>t</code> : Integer vector giving time steps
 at which to obtain past values of <code>x</code>.</p></li>
-<li><p><code>t_min</code> – Integer giving the minimum time step
+<li><p><code>t_min</code> : Integer giving the minimum time step
 that is allowed to be accessed. All time-steps in <code>t</code>
 or implied by <code>lag</code> that are before <code>t_min</code> are ignored.</p></li>
 </ul></div>
@@ -742,9 +748,9 @@ matrix, x, over simulation time using a kernel, k.</p><div class="section">
 <div class="section">
 <h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
 
-<ul><li><p><code>x</code> – The matrix containing elements to be
+<ul><li><p><code>x</code> : The matrix containing elements to be
 convolved.</p></li>
-<li><p><code>k</code> – A column vector giving the convolution kernel.</p></li>
+<li><p><code>k</code> : A column vector giving the convolution kernel.</p></li>
 </ul></div>
 
 <div class="section">
@@ -849,18 +855,18 @@ to do things like specify a single common mean for
 several values.</p><div class="section">
 <h4 id="functions-14">Functions<a class="anchor" aria-label="anchor" href="#functions-14"></a></h4>
 
-<ul><li><p><code>dpois(observed, simulated)</code> – Log of the Poisson density
+<ul><li><p><code>dpois(observed, simulated)</code> : Log of the Poisson density
 based on this <a href="https://kaskr.github.io/adcomp/group__R__style__distribution.html#gaa1ed15503e1441a381102a8c4c9baaf1" class="external-link">dpois</a>
 TMB function.</p></li>
-<li><p><code>dnbinom(observed, simulated, over_dispersion)</code> –
+<li><p><code>dnbinom(observed, simulated, over_dispersion)</code> :
 Log of the negative binomial density based on this <a href="https://kaskr.github.io/adcomp/group__R__style__distribution.html#ga76266c19046e04b651fce93aa0810351" class="external-link">dnbinom</a>
 TMB function. To get the variance that this function
 requires we use this expression, <code>simulated + simulated^2/over_dispersion</code>,
 following p.165 in this <a href="https://ms.mcmaster.ca/~bolker/emdbook/book.pdf" class="external-link">book</a></p></li>
-<li><p><code>dnorm(observed, simulated, standard_deviation)</code> –
+<li><p><code>dnorm(observed, simulated, standard_deviation)</code> :
 Log of the normal density based on this <a href="https://kaskr.github.io/adcomp/dnorm_8hpp.html" class="external-link">dnorm</a>
 TMB function.</p></li>
-<li><p><code>dbinom(observed, size, probability)</code> –
+<li><p><code>dbinom(observed, size, probability)</code> :
 Log of the binomial density based on the <a href="https://kaskr.github.io/adcomp/group__R__style__distribution.html#gaee11f805f02bc1febc6d7bf0487671be" class="external-link">dbinom</a>
 TMB function.</p></li>
 </ul></div>
@@ -868,16 +874,16 @@ TMB function.</p></li>
 <div class="section">
 <h4 id="arguments-14">Arguments<a class="anchor" aria-label="anchor" href="#arguments-14"></a></h4>
 
-<ul><li><p><code>observed</code> – Matrix of observed values
+<ul><li><p><code>observed</code> : Matrix of observed values
 at which the density is being evaluated.</p></li>
-<li><p><code>simulated</code> – Matrix of distributional means,
+<li><p><code>simulated</code> : Matrix of distributional means,
 with singleton rows and columns recycled to match
 the numbers of rows and columns in <code>observed</code>.</p></li>
-<li><p><code>over_dispersion</code> – Over-dispersion parameter
+<li><p><code>over_dispersion</code> : Over-dispersion parameter
 given by <code>(simulated/standard_deviation)^2 - simulated)</code>.</p></li>
-<li><p><code>standard_deviation</code> – Standard deviation parameter.</p></li>
-<li><p><code>size</code> – Number of Bernoulli trials.</p></li>
-<li><p><code>probability</code> – Probability of a successful Bernoulli trial.</p></li>
+<li><p><code>standard_deviation</code> : Standard deviation parameter.</p></li>
+<li><p><code>size</code> : Number of Bernoulli trials.</p></li>
+<li><p><code>probability</code> : Probability of a successful Bernoulli trial.</p></li>
 </ul></div>
 
 
@@ -898,62 +904,187 @@ shape as <code>mean</code> but with pseudo-random numbers
 deviating from each mean in the <code>mean</code> matrix.</p><div class="section">
 <h4 id="functions-15">Functions<a class="anchor" aria-label="anchor" href="#functions-15"></a></h4>
 
-<ul><li><p><code>rpois(mean)</code> – Pseudo-random Poisson distributed
+<ul><li><p><code>rpois(mean)</code> : Pseudo-random Poisson distributed
 values.</p></li>
-<li><p><code>rnbinom(mean, over_dispersion)</code> – Pseudo-random
+<li><p><code>rnbinom(mean, over_dispersion)</code> : Pseudo-random
 negative binomially distributed values.</p></li>
-<li><p><code>rnorm(mean, standard_deviation)</code> – Pseudo-random
+<li><p><code>rnorm(mean, standard_deviation)</code> : Pseudo-random
 normal values.</p></li>
+<li><p><code>rbinom(size, prob)</code> : Pseudo-random binomial values.</p></li>
+<li><p><code>reulermultinom(size, rate, dt)</code> : Pseudo-random
+<a href="https://kingaa.github.io/manuals/pomp/html/eulermultinom.html" class="external-link">Euler-multinomial</a>
+values.</p></li>
 </ul></div>
 
 <div class="section">
 <h4 id="arguments-15">Arguments<a class="anchor" aria-label="anchor" href="#arguments-15"></a></h4>
 
-<ul><li><p><code>mean</code> – Matrix of means about which to simulate
+<ul><li><p><code>mean</code> : Matrix of means about which to simulate
 pseudo-random variation.</p></li>
-<li><p><code>over_dispersion</code> – Matrix of over-dispersion parameters
+<li><p><code>over_dispersion</code> : Matrix of over-dispersion parameters
 given by <code>(simulated/standard_deviation)^2 - simulated)</code>.</p></li>
-<li><p><code>standard_deviation</code> – Matrix of standard deviation parameters.</p></li>
+<li><p><code>standard_deviation</code> : Matrix of standard deviation
+parameters.</p></li>
+<li><p><code>size</code> : Matrix of numbers of trials.</p></li>
+<li><p><code>prob</code> : Matrix of probabilities of success.</p></li>
+<li><p><code>rate</code> : Matrix of rates, used to compute the probabilities
+in a multinomial distribution. The probability associated with
+the <code>i</code>th rate, <code>r_i</code>, is (1 - exp(-sum(r * dt))) * (r_i / r),
+where <code>r</code> is the sum of the rates. This is not a typical
+multinomial distribution in that if you sum these
+probabilities up you do not get <code>1</code> but rather
+<code>(1 - exp(-sum(r * dt)))</code>. See details below for more
+on the Euler-multinomial distribution</p></li>
+<li><p><code>dt</code> : Optional parameter specifying the length of the time
+step. See details below for more on the Euler-multinomial
+distribution.</p></li>
+</ul></div>
+
+<div class="section">
+<h4 id="details-7">Details<a class="anchor" aria-label="anchor" href="#details-7"></a></h4>
+
+
+<p>The Euler-multinomial distribution is used to model how
+many individuals move from one compartment to a set of other
+compartments in a single time step of length <code>dt</code>. The rate of
+moving to each of these compartments is characterized by the
+associated element in the <code>rate</code> matrix. The reason why the
+probabilities do not sum to <code>1</code>, is that not all individuals
+have to change compartments in a time step.</p>
+</div>
+
+
+</div>
+
+<div class="section">
+<h3 id="cumulative-distribution-functions">Cumulative Distribution Functions<a class="anchor" aria-label="anchor" href="#cumulative-distribution-functions"></a></h3>
+
+<div class="section">
+<h4 id="functions-16">Functions<a class="anchor" aria-label="anchor" href="#functions-16"></a></h4>
+
+<ul><li><p><code>pgamma(q, shape, scale)</code> : Cumulative distribution function
+of the Gamma distribution. This is a light wrapper for the
+<a href="https://kaskr.github.io/adcomp/group__R__style__distribution.html#ga3bd06a324f89b21694aac26bfe1aef45" class="external-link">pgamma function in TMB</a>.</p></li>
+</ul></div>
+
+<div class="section">
+<h4 id="arguments-16">Arguments<a class="anchor" aria-label="anchor" href="#arguments-16"></a></h4>
+
+<ul><li><p><code>q</code> : Matrix of Quantiles.</p></li>
+<li><p><code>shape</code> : Matrix of shape parameters of the Gamma distribution.</p></li>
+<li><p><code>scale</code> : Matrix of scale parameters of the Gamma distribution.</p></li>
 </ul></div>
 
 
 </div>
 
 <div class="section">
-<h3 id="assign">Assign<a class="anchor" aria-label="anchor" href="#assign"></a></h3>
+<h3 id="rounding">Rounding<a class="anchor" aria-label="anchor" href="#rounding"></a></h3>
+
+<div class="section">
+<h4 id="functions-17">Functions<a class="anchor" aria-label="anchor" href="#functions-17"></a></h4>
+
+
+<p>round(x) : Round elements of a matrix to the nearest integer.</p>
+</div>
+
+<div class="section">
+<h4 id="arguments-17">Arguments<a class="anchor" aria-label="anchor" href="#arguments-17"></a></h4>
+
+<ul><li><p><code>x</code> : Matrix to be rounded.</p></li>
+</ul></div>
+
+<div class="section">
+<h4 id="details-8">Details<a class="anchor" aria-label="anchor" href="#details-8"></a></h4>
+
+
+<p>Be careful if you are using rounding in a model to be calibrated.
+Rounding will break differentiability of the objective function
+if <code>x</code> depends, either directly or indirectly, on parameters
+being calibrated. This will lead to incorrect gradients
+potentially being passed to an optimizer. To be safe, do
+not round in models being calibrated.</p>
+</div>
+
+
+</div>
+
+<div class="section">
+<h3 id="debugging-instrumentation">Debugging Instrumentation<a class="anchor" aria-label="anchor" href="#debugging-instrumentation"></a></h3>
+
+
+<p>Functions to use when you are trying to figure stuff out.</p><div class="section">
+<h4 id="functions-18">Functions<a class="anchor" aria-label="anchor" href="#functions-18"></a></h4>
+
+<ul><li><p><code>print(x)</code> : Print out the value of a matrix.</p></li>
+<li><p><code>check_finite(x)</code> : Stop the simulations and return an
+error if <code>x</code> has any non-finite values.</p></li>
+</ul></div>
+
+<div class="section">
+<h4 id="arguments-18">Arguments<a class="anchor" aria-label="anchor" href="#arguments-18"></a></h4>
+
+<ul><li><p><code>x</code> : Name of a matrix in the model.</p></li>
+</ul></div>
+
+<div class="section">
+<h4 id="return-13">Return<a class="anchor" aria-label="anchor" href="#return-13"></a></h4>
+
+
+<p>An <code><a href="empty_matrix.html">empty_matrix</a></code>.</p>
+</div>
+
+<div class="section">
+<h4 id="examples-12">Examples<a class="anchor" aria-label="anchor" href="#examples-12"></a></h4>
+
+
+<p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">simple_sims</span>(</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>     <span class="fu">list</span>(dummy <span class="sc">~</span> <span class="fu">print</span>(x), x <span class="sc">~</span> x <span class="sc">/</span> <span class="dv">2</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>   , <span class="at">time_steps =</span> <span class="dv">10</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>   , <span class="at">mats =</span> <span class="fu">list</span>(<span class="at">x =</span> <span class="dv">2</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>)</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span> <span class="dv">1</span><span class="sc">/</span><span class="dv">0</span>) <span class="do">## returns Inf</span></span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span> <span class="fu">check_finite</span>(<span class="dv">1</span><span class="sc">/</span><span class="dv">0</span>)) <span class="do">## returns nothing and throws an error</span></span></code></pre><p></p></div>
+</div>
+
+
+</div>
+
+<div class="section">
+<h3 id="assign-deprecated-">Assign (deprecated)<a class="anchor" aria-label="anchor" href="#assign-deprecated-"></a></h3>
 
 
 <p>Assign values to a subset of the elements in a matrix.</p><div class="section">
-<h4 id="functions-16">Functions<a class="anchor" aria-label="anchor" href="#functions-16"></a></h4>
+<h4 id="functions-19">Functions<a class="anchor" aria-label="anchor" href="#functions-19"></a></h4>
 
 <ul><li><p><code>assign(x, i, j, v)</code></p></li>
 </ul></div>
 
 <div class="section">
-<h4 id="arguments-16">Arguments<a class="anchor" aria-label="anchor" href="#arguments-16"></a></h4>
+<h4 id="arguments-19">Arguments<a class="anchor" aria-label="anchor" href="#arguments-19"></a></h4>
 
-<ul><li><p><code>x</code> – Matrix with elements that are to be updated
+<ul><li><p><code>x</code> : Matrix with elements that are to be updated
 by the values in <code>v</code>.</p></li>
-<li><p><code>i</code> – Column vector of row indices pointing to
+<li><p><code>i</code> : Column vector of row indices pointing to
 the elements of <code>x</code> to be updated. These indices are
 paired with those in <code>v</code>. If the length of
 <code>i</code> does not equal that of <code>v</code>, then it must have a
 single index that gets paired with every element of
 <code>v</code>. Indices are zero-based, <code>i=0</code> corresponds to
 the first row.</p></li>
-<li><p><code>j</code> – Column vector of column indices pointing to
+<li><p><code>j</code> : Column vector of column indices pointing to
 the elements of <code>x</code> to be updated. These indices are
 paired with those in <code>v</code>. If the length of
 <code>j</code> does not equal that of <code>v</code>, then it must have a
 single index that gets paired with every element of
 <code>v</code>. Indices are zero-based, <code>j=0</code> corresponds to
 the first column.</p></li>
-<li><p><code>v</code> – Column vector of values to replace elements
+<li><p><code>v</code> : Column vector of values to replace elements
 of <code>x</code> at locations given by <code>i</code> and <code>j</code>.</p></li>
 </ul></div>
 
 <div class="section">
-<h4 id="return-13">Return<a class="anchor" aria-label="anchor" href="#return-13"></a></h4>
+<h4 id="return-14">Return<a class="anchor" aria-label="anchor" href="#return-14"></a></h4>
 
 
 <p>The <code>assign</code> function is not called for its return
@@ -963,7 +1094,7 @@ components with those in <code>v</code>.</p>
 </div>
 
 <div class="section">
-<h4 id="examples-12">Examples<a class="anchor" aria-label="anchor" href="#examples-12"></a></h4>
+<h4 id="examples-13">Examples<a class="anchor" aria-label="anchor" href="#examples-13"></a></h4>
 
 
 <p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>x <span class="ot">=</span> <span class="fu">matrix</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">12</span>, <span class="dv">3</span>, <span class="dv">4</span>)</span>
@@ -982,21 +1113,21 @@ components with those in <code>v</code>.</p>
 </div>
 
 <div class="section">
-<h3 id="unpack">Unpack<a class="anchor" aria-label="anchor" href="#unpack"></a></h3>
+<h3 id="unpack-deprecated-">Unpack (deprecated)<a class="anchor" aria-label="anchor" href="#unpack-deprecated-"></a></h3>
 
 
 <p>Unpack elements of a matrix into smaller matrices.</p><div class="section">
-<h4 id="functions-17">Functions<a class="anchor" aria-label="anchor" href="#functions-17"></a></h4>
+<h4 id="functions-20">Functions<a class="anchor" aria-label="anchor" href="#functions-20"></a></h4>
 
 <ul><li><p><code>unpack(x, ...)</code></p></li>
 </ul></div>
 
 <div class="section">
-<h4 id="arguments-17">Arguments<a class="anchor" aria-label="anchor" href="#arguments-17"></a></h4>
+<h4 id="arguments-20">Arguments<a class="anchor" aria-label="anchor" href="#arguments-20"></a></h4>
 
-<ul><li><p><code>x</code> – Matrix with elements to be distributed to
+<ul><li><p><code>x</code> : Matrix with elements to be distributed to
 the matrices passed through <code>...</code>.</p></li>
-<li><p><code>...</code> – Matrices with elements to be replaced by
+<li><p><code>...</code> : Matrices with elements to be replaced by
 the values of elements in <code>x</code> in column-major order.
 These matrices must be named matrices and not
 computed on the fly using expressions. Note that even
@@ -1007,7 +1138,7 @@ an expression. This use-case would require the
 </ul></div>
 
 <div class="section">
-<h4 id="return-14">Return<a class="anchor" aria-label="anchor" href="#return-14"></a></h4>
+<h4 id="return-15">Return<a class="anchor" aria-label="anchor" href="#return-15"></a></h4>
 
 
 <p>The <code>unpack</code> function is not called for its return
@@ -1017,7 +1148,7 @@ at least some of its components with those in <code>x</code>.</p>
 </div>
 
 <div class="section">
-<h4 id="examples-13">Examples<a class="anchor" aria-label="anchor" href="#examples-13"></a></h4>
+<h4 id="examples-14">Examples<a class="anchor" aria-label="anchor" href="#examples-14"></a></h4>
 
 
 <p>Here we fill a matrix with integers from <code>1</code> to <code>12</code>
@@ -1029,43 +1160,6 @@ used up by <code>x</code>.</p>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>  , <span class="at">x =</span> <span class="fu">rep</span>(<span class="dv">0</span>, <span class="dv">3</span>)</span>
 <span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>  , <span class="at">y =</span> <span class="fu">rep</span>(<span class="dv">1</span>, <span class="dv">5</span>)</span>
 <span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>  , <span class="at">.matrix_to_return =</span> <span class="st">"y"</span></span>
-<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>)</span></code></pre><p></p></div>
-</div>
-
-
-</div>
-
-<div class="section">
-<h3 id="print-matrix">Print Matrix<a class="anchor" aria-label="anchor" href="#print-matrix"></a></h3>
-
-
-<p>Print out the value of a matrix.</p><div class="section">
-<h4 id="functions-18">Functions<a class="anchor" aria-label="anchor" href="#functions-18"></a></h4>
-
-<ul><li><p><code>print(x)</code></p></li>
-</ul></div>
-
-<div class="section">
-<h4 id="arguments-18">Arguments<a class="anchor" aria-label="anchor" href="#arguments-18"></a></h4>
-
-<ul><li><p><code>x</code> – Name of a matrix in the model.</p></li>
-</ul></div>
-
-<div class="section">
-<h4 id="return-15">Return<a class="anchor" aria-label="anchor" href="#return-15"></a></h4>
-
-
-<p>An <code><a href="empty_matrix.html">empty_matrix</a></code>.</p>
-</div>
-
-<div class="section">
-<h4 id="examples-14">Examples<a class="anchor" aria-label="anchor" href="#examples-14"></a></h4>
-
-
-<p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">simple_sims</span>(</span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>     <span class="fu">list</span>(dummy <span class="sc">~</span> <span class="fu">print</span>(x), x <span class="sc">~</span> x <span class="sc">/</span> <span class="dv">2</span>)</span>
-<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>   , <span class="at">time_steps =</span> <span class="dv">10</span></span>
-<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>   , <span class="at">mats =</span> <span class="fu">list</span>(<span class="at">x =</span> <span class="dv">2</span>)</span>
 <span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>)</span></code></pre><p></p></div>
 </div>
 
