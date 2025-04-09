@@ -58,6 +58,9 @@
 \alias{last}
 \alias{check_finite}
 \alias{dbinom}
+\alias{sin}
+\alias{sqrt}
+\alias{pnorm}
 \title{Functions Available in the Simulation Engine}
 \description{
 Functions currently supported by the C++ TMB engine
@@ -143,6 +146,8 @@ engine_eval(~ 1 / (1 - y), y = 1/4)
 \item \code{log(x)} -- Natural logarithm
 \item \code{exp(x)} -- Exponential function
 \item \code{cos(x)} -- Cosine function
+\item \code{sin(x)} -- Sine function
+\item \code{sqrt(x)} -- Squareroot function
 }
 }
 
@@ -918,11 +923,16 @@ have to change compartments in a time step.
 }
 
 \subsection{Cumulative Distribution Functions}{
+
+Lower-tail cumulative distribution functions.
 \subsection{Functions}{
 \itemize{
 \item \code{pgamma(q, shape, scale)} : Cumulative distribution function
-of the Gamma distribution. This is a light wrapper for the
+of the Gamma distribution. This is a lite wrapper for the
 \href{https://kaskr.github.io/adcomp/group__R__style__distribution.html#ga3bd06a324f89b21694aac26bfe1aef45}{pgamma function in TMB}.
+\item \code{pnorm(q, mean, sd)} : Cumulative distribution function of
+the normal distribution. This is a lite wrapper for the
+\href{https://kaskr.github.io/adcomp/group__R__style__distribution.html#ga2a3cc5a06500670aeaf6eb911a1094d9}{pnorm function in TMB}.
 }
 }
 
@@ -931,6 +941,8 @@ of the Gamma distribution. This is a light wrapper for the
 \item \code{q} : Matrix of Quantiles.
 \item \code{shape} : Matrix of shape parameters of the Gamma distribution.
 \item \code{scale} : Matrix of scale parameters of the Gamma distribution.
+\item \code{mean} : Matrix of mean parameters of the normal distribution.
+\item \code{sd} : Matrix of standard deviation parameters of the normal distribution.
 }
 }
 

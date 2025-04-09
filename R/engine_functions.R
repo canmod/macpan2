@@ -83,6 +83,8 @@
 #' * `log(x)` -- Natural logarithm
 #' * `exp(x)` -- Exponential function
 #' * `cos(x)` -- Cosine function
+#' * `sin(x)` -- Sine function
+#' * `sqrt(x)` -- Squareroot function
 #'
 #' ### Arguments
 #'
@@ -751,17 +753,24 @@
 #' 
 #' ## Cumulative Distribution Functions
 #'
+#' Lower-tail cumulative distribution functions.
+#' 
 #' ### Functions
 #'
 #' * `pgamma(q, shape, scale)` : Cumulative distribution function
-#' of the Gamma distribution. This is a light wrapper for the
+#' of the Gamma distribution. This is a lite wrapper for the
 #' [pgamma function in TMB](https://kaskr.github.io/adcomp/group__R__style__distribution.html#ga3bd06a324f89b21694aac26bfe1aef45).
-#'
+#' * `pnorm(q, mean, sd)` : Cumulative distribution function of
+#' the normal distribution. This is a lite wrapper for the 
+#' [pnorm function in TMB](https://kaskr.github.io/adcomp/group__R__style__distribution.html#ga2a3cc5a06500670aeaf6eb911a1094d9).
+#' 
 #' ### Arguments
 #'
 #' * `q` : Matrix of Quantiles.
 #' * `shape` : Matrix of shape parameters of the Gamma distribution.
 #' * `scale` : Matrix of scale parameters of the Gamma distribution.
+#' * `mean` : Matrix of mean parameters of the normal distribution.
+#' * `sd` : Matrix of standard deviation parameters of the normal distribution.
 #'
 #' ## Rounding
 #' 
@@ -963,4 +972,7 @@
 #' @aliases last
 #' @aliases check_finite
 #' @aliases dbinom
+#' @aliases sin
+#' @aliases sqrt
+#' @aliases pnorm
 NULL

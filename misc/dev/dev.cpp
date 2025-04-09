@@ -117,7 +117,9 @@ enum macpan2_func
     , MP2_LAST = 54 // fwrap,null: last(x)
     , MP2_CHECK_FINITE = 55 // fwrap,null: check_finite(x)
     , MP2_BINOM_DENSITY = 56 // fwrap,fail: dbinom(observed, size, probability)
-
+    , MP2_SIN = 57 // fwrap,null: sin(x)
+    , MP2_SQRT = 58 // fwrap,null: sqrt(x)
+    , MP2_PNORM = 59 // fwrap,fail: pnorm(q, mean, sd)
 };
 
 enum macpan2_meth
@@ -140,8 +142,9 @@ std::vector<int> mp_math = { // functions that can only take numerical matrices 
   , MP2_POISSON_DENSITY, MP2_NEGBIN_DENSITY, MP2_NORMAL_DENSITY
   , MP2_BINOM_DENSITY
   , MP2_POISSON_SIM, MP2_NEGBIN_SIM, MP2_NORMAL_SIM, MP2_KRONECKER
-  , MP2_TO_DIAG, MP2_FROM_DIAG, MP2_COS, MP2_BINOM_SIM, MP2_EULER_MULTINOM_SIM
-  , MP2_ROUND, MP2_PGAMMA
+  , MP2_TO_DIAG, MP2_FROM_DIAG, MP2_COS, MP2_SIN, MP2_COS
+  , MP2_BINOM_SIM, MP2_EULER_MULTINOM_SIM
+  , MP2_ROUND, MP2_PGAMMA, MP2_PNORM
   , MP2_MEAN, MP2_SD
 };
 
@@ -1356,6 +1359,8 @@ public:
             // #' * `log(x)` -- Natural logarithm
             // #' * `exp(x)` -- Exponential function
             // #' * `cos(x)` -- Cosine function
+            // #' * `sin(x)` -- Sine function
+            // #' * `sqrt(x)` -- Squareroot function
             // #'
             // #' ### Arguments
             // #'
@@ -1381,6 +1386,12 @@ public:
             case MP2_COS:
                 return args[0].array().cos().matrix();
 
+            case MP2_SIN:
+                return args[0].array().cos().matrix();
+              
+            case MP2_SQRT:
+                return sqrt(args[0].array()).matrix();
+              
             // case MP2_LOGISTIC:
             //     return (
             //         1 / (1 + (-args[0].array()).exp())
@@ -3003,17 +3014,24 @@ public:
             
             // #' ## Cumulative Distribution Functions
             // #'
+            // #' Lower-tail cumulative distribution functions.
+            // #' 
             // #' ### Functions
             // #'
             // #' * `pgamma(q, shape, scale)` : Cumulative distribution function
-            // #' of the Gamma distribution. This is a light wrapper for the
+            // #' of the Gamma distribution. This is a lite wrapper for the
             // #' [pgamma function in TMB](https://kaskr.github.io/adcomp/group__R__style__distribution.html#ga3bd06a324f89b21694aac26bfe1aef45).
-            // #'
+            // #' * `pnorm(q, mean, sd)` : Cumulative distribution function of
+            // #' the normal distribution. This is a lite wrapper for the 
+            // #' [pnorm function in TMB](https://kaskr.github.io/adcomp/group__R__style__distribution.html#ga2a3cc5a06500670aeaf6eb911a1094d9).
+            // #' 
             // #' ### Arguments
             // #'
             // #' * `q` : Matrix of Quantiles.
             // #' * `shape` : Matrix of shape parameters of the Gamma distribution.
             // #' * `scale` : Matrix of scale parameters of the Gamma distribution.
+            // #' * `mean` : Matrix of mean parameters of the normal distribution.
+            // #' * `sd` : Matrix of standard deviation parameters of the normal distribution.
             // #'
             case MP2_PGAMMA:
                 rows = args[0].rows();
@@ -3033,6 +3051,28 @@ public:
                 for (int i = 0; i < rows; i++) {
                     for (int j = 0; j < cols; j++) {
                         m.coeffRef(i, j) = pgamma(m1.coeff(i, j), m2.coeff(i, j), m3.coeff(i, j));
+                    }
+                }
+                return m;
+            
+            case MP2_PNORM:
+                rows = args[0].rows();
+                cols = args[0].cols();
+                v1.push_back(1);
+                v1.push_back(2);
+                args = args.recycle_to_shape(v1, rows, cols);
+                err_code = args.get_error_code();
+                if (err_code != 0) {
+                    SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row, MP2_PGAMMA, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
+                    return m;
+                }
+                m1 = args.get_as_mat(0); // q
+                m2 = args.get_as_mat(1); // mean
+                m3 = args.get_as_mat(2); // sd
+                m = matrix<Type>::Zero(rows, cols);
+                for (int i = 0; i < rows; i++) {
+                    for (int j = 0; j < cols; j++) {
+                        m.coeffRef(i, j) = pnorm(m1.coeff(i, j), m2.coeff(i, j), m3.coeff(i, j));
                     }
                 }
                 return m;

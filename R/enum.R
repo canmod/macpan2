@@ -56,6 +56,9 @@ valid_func_sigs = c(
       , "fwrap,null: last(x)"
       , "fwrap,null: check_finite(x)"
       , "fwrap,fail: dbinom(observed, size, probability)"
+      , "fwrap,null: sin(x)"
+      , "fwrap,null: sqrt(x)"
+      , "fwrap,fail: pnorm(q, mean, sd)"
 )
 process_enum = function(x) {
   RE = "(null|fail|binop|fwrap|bwrap|pwrap)[ ]*,[ ]*(null|fail|binop|fwrap|bwrap|pwrap)[ ]*:[ ]*\\`?([^`]*)\\`?\\((.*)(\\,.*)*\\)"
