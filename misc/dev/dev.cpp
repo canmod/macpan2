@@ -1359,7 +1359,7 @@ public:
             // #'
             // #' ### Arguments
             // #'
-            // #' * `x` -- Any matrix
+            // #' * `x` : Any matrix
             // #'
             // #' ### Return
             // #'
@@ -1395,13 +1395,13 @@ public:
             // #'
             // #' ### Functions
             // #'
-            // #' * `proportions(x, limit, eps)` -- 
+            // #' * `proportions(x, limit, eps)`
             // #'
             // #' ### Arguments
             // #'
-            // #' * `x` -- Any matrix
-            // #' * `limit` -- numeric value to return elementwise from `proportions` if `sum(x) < eps`
-            // #' * `eps` -- numeric tolerance for `sum(x)`
+            // #' * `x` : Any matrix
+            // #' * `limit` : numeric value to return elementwise from `proportions` if `sum(x) < eps`
+            // #' * `eps` : numeric tolerance for `sum(x)`
             // #'
             // #' ### Return
             // #'
@@ -1434,20 +1434,20 @@ public:
             // #'
             // #' ### Functions
             // #'
-            // #' * `from:to` -- Inclusive and ordered sequence of
+            // #' * `from:to` : Inclusive and ordered sequence of
             // #' integers between two bounds.
-            // #' * `seq(from, length, by)` -- Ordered sequence of
+            // #' * `seq(from, length, by)` : Ordered sequence of
             // #' integers with equal spacing between adjacent
             // #' values.
             // #'
             // #' ### Arguments
             // #'
-            // #' * `from` -- Scalar integer giving the first integer
+            // #' * `from` : Scalar integer giving the first integer
             // #' in the sequence.
-            // #' * `to` -- Scalar integer giving the last integer in
+            // #' * `to` : Scalar integer giving the last integer in
             // #' the sequence.
-            // #' * `length` -- Number of integers in the sequence.
-            // #' * `by` -- Scalar giving the difference
+            // #' * `length` : Number of integers in the sequence.
+            // #' * `by` : Scalar giving the difference
             // #' between adjacent values in the sequence.
             // #'
             // #' ### Return
@@ -1520,15 +1520,19 @@ public:
             // #'
             // #' ### Functions
             // #'
-            // #' * `rep(x, times)` -- Replicate a column vector a
+            // #' * `rep(x, times)` : Replicate a column vector a
             // #' number of times, by repeatedly stacking it on top of
             // #' itself.
+            // #' * `recycle(x, rows, cols)` : Recycle rows and columns of
+            // #' `x` to produce a matrix with `rows` rows and `cols` columns.
             // #'
             // #' ### Arguments
             // #'
-            // #' * `x` -- A scalar-valued variable to repeat.
-            // #' * `times` -- A scalar-valued integer variable giving
+            // #' * `x` : A scalar-valued variable to repeat.
+            // #' * `times` : A scalar-valued integer variable giving
             // #' the number of times to repeat `x`.
+            // #' * `rows` : Number of rows in the output of `recycle`.
+            // #' * `cols` : Number of columns in the output of `recycle`.
             // #'
             // #' ### Return
             // #'
@@ -1539,26 +1543,42 @@ public:
             // #'
             // #' ```
             // #' engine_eval(~ rep(1, 10))
+            // #' engine_eval(~ recycle(  1:3,  3, 4))
+            // #' engine_eval(~ recycle(t(1:4), 3, 4))
             // #' ```
             // #'
             case MP2_REPLICATE: // rep
                 X = args[0];
                 times = args.get_as_int(1);
                 return mp2_rep(X, times);
-                
+            
+            case MP2_RECYCLE:
+                // rows = CppAD::Integer(args[1].coeff(0,0));
+                // cols = CppAD::Integer(args[2].coeff(0,0));
+                rows = args.get_as_int(1);
+                cols = args.get_as_int(2);
+                v1.push_back(0);
+                args = args.recycle_to_shape(v1, rows, cols);
+                err_code = args.get_error_code();
+                m = args[0];
+                if (err_code != 0) {
+                    SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row, MP2_RECYCLE, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
+                    return m;
+                }
+                return m;
 
             // #' ## Matrix Multiplication
             // #'
             // #' ### Functions
             // #'
-            // #' * `x %*% y` -- Standard matrix multiplication.
-            // #' * `x %x% y` -- Kronecker product
+            // #' * `x %*% y` : Standard matrix multiplication.
+            // #' * `x %x% y` : Kronecker product
             // #'
             // #' ### Arguments
             // #'
-            // #' * `x` -- A matrix. For the standard product, `x`
+            // #' * `x` : A matrix. For the standard product, `x`
             // #' must have as many columns as `y` has rows.
-            // #' * `y` -- A matrix. For standard product, `y`
+            // #' * `y` : A matrix. For standard product, `y`
             // #' must have as many rows as `x` has columns.
             // #'
             // #' ### Return
@@ -1598,29 +1618,29 @@ public:
             // #'
             // #' ### Functions
             // #'
-            // #' * `c(...)` -- Stack columns of arguments into a
+            // #' * `c(...)` : Stack columns of arguments into a
             // #' single column vector.
-            // #' * `cbind(...)` -- Create a matrix containing all of
+            // #' * `cbind(...)` : Create a matrix containing all of
             // #' the columns of a group of matrices with the same
             // #' number of rows.
-            // #' * `rbind(...)` -- Create a matrix containing all of
+            // #' * `rbind(...)` : Create a matrix containing all of
             // #' the rows of a group of matrices with the same number
             // #' of columns.
-            // #' * `matrix(x, rows, cols)` -- Reshape a matrix to have
+            // #' * `matrix(x, rows, cols)` : Reshape a matrix to have
             // #' `rows` rows and `cols` columns. The input `x` must
             // #' have `rows * cols` elements.
-            // #' * `t(x)` -- Standard matrix transpose.
+            // #' * `t(x)` : Standard matrix transpose.
             // #'
             // #' ### Arguments
             // #'
-            // #' * `...` -- Any number of dimensionally consistent
+            // #' * `...` : Any number of dimensionally consistent
             // #' matrices. The definition of dimensionally consistent
             // #' depends on the function.
-            // #' * `x` -- Can be any matrix for `t`, but for `matrix`
+            // #' * `x` : Can be any matrix for `t`, but for `matrix`
             // #' it must have `rows * cols` elements.
-            // #' * `rows` -- Scalar integer giving the number of
+            // #' * `rows` : Scalar integer giving the number of
             // #' rows in the output.
-            // #' * `cols` -- Scalar integer giving the number of
+            // #' * `cols` : Scalar integer giving the number of
             // #' columns in the output.
             // #'
             // #' ### Return
@@ -1783,24 +1803,24 @@ public:
             // #'
             // #' ### Functions
             // #'
-            // #' * `to_diag(x)` -- Create a diagonal matrix by setting
+            // #' * `to_diag(x)` : Create a diagonal matrix by setting
             // #' the diagonal to a column vector, `x`.
-            // #' * `from_diag(x)` -- Extract the diagonal from a
+            // #' * `from_diag(x)` : Extract the diagonal from a
             // #' matrix, `x`, and return the diagonal as a column
             // #' vector.
             // #'
             // #' ### Arguments
             // #'
-            // #' * `x` -- Any matrix (for `from_diag`) or a
+            // #' * `x` : Any matrix (for `from_diag`) or a
             // #' column vector (for `to_diag`). It is common to assume
             // #' that `x` is square for `from_diag` but this is
             // #' not required.
             // #'
             // #' ### Return
             // #'
-            // #' * `to_diag(x)` -- Diagonal matrix with `x` on the
+            // #' * `to_diag(x)` : Diagonal matrix with `x` on the
             // #' diagonal.
-            // #' * `from_diag(x)` -- Column vector containing the
+            // #' * `from_diag(x)` : Column vector containing the
             // #' diagonal of `x`. A value is considered to be on
             // #' the diagonal if it has a row index equal to
             // #' the column index.
@@ -1837,32 +1857,32 @@ public:
             // #'
             // #' ### Functions
             // #'
-            // #' * `sum(...)` -- Sum all of the elements of all of the
+            // #' * `sum(...)` : Sum all of the elements of all of the
             // #' matrices passed to `...`.
-            // #' * `col_sums(x)` -- Row vector containing the sums
+            // #' * `col_sums(x)` : Row vector containing the sums
             // #' of each column.
-            // #' * `row_sums(x)` -- Column vector containing the sums
+            // #' * `row_sums(x)` : Column vector containing the sums
             // #' of each row.
-            // #' * `group_sums(x, f, n)` -- Column vector containing the
+            // #' * `group_sums(x, f, n)` : Column vector containing the
             // #' sums of groups of elements in `x`. The groups are
             // #' determined by the integers in `f` and the order of
             // #' the sums in the output is determined by these
             // #' integers.
-            // #' * `mean(x)` -- Arthmetic average of all elements in matrix
+            // #' * `mean(x)` : Arthmetic average of all elements in matrix
             // #' `x`.
-            // #' * `sd(x)` -- Sample standard deviation of all elements in
+            // #' * `sd(x)` : Sample standard deviation of all elements in
             // #' matrix `x`.
             // #'
             // #' ### Arguments
             // #'
-            // #' * `...` -- Any number of matrices of any shape.
-            // #' * `x` -- A matrix of any dimensions, except for
+            // #' * `...` : Any number of matrices of any shape.
+            // #' * `x` : A matrix of any dimensions, except for
             // #' `group_sums` that expects `x` to be a column vector.
-            // #' * `f` -- A column vector the same length as `x`
+            // #' * `f` : A column vector the same length as `x`
             // #' containing integers between `0` and `m-1`, given `m`
             // #' unique groups. Elements of `f` refer to the indices
             // #' of `x` that will be grouped and summed.
-            // #' * `n` -- A column vector of length `m`. If `f` does
+            // #' * `n` : A column vector of length `m`. If `f` does
             // #' not contain group `k` in `[0, m-1]`, `group_sums` skips
             // #' this group and the output at index `k+1` is `n[k+1]`.
             // #'
@@ -1957,27 +1977,27 @@ public:
             // #'
             // #' ### Functions
             // #'
-            // #' * `x[i,j]` -- Matrix containing a subset
+            // #' * `x[i,j]` : Matrix containing a subset
             // #' of the rows and columns of `x`.
-            // #' * `block(x,i,j,n,m)` -- Matrix containing a
+            // #' * `block(x,i,j,n,m)` : Matrix containing a
             // #' contiguous subset of rows and columns of `x`
             // #' \url{https://eigen.tuxfamily.org/dox/group__TutorialBlockOperations.html}.
-            // #' * `last(x)` -- The last element of a matrix (i.e., the
+            // #' * `last(x)` : The last element of a matrix (i.e., the
             // #' lower-right element).
             // #'
             // #' ### Arguments
             // #'
-            // #' * `x` -- Any matrix.
-            // #' * `i` -- An integer column vector (for `[`) or
+            // #' * `x` : Any matrix.
+            // #' * `i` : An integer column vector (for `[`) or
             // #' integer scalar (for `block`) containing the indices
             // #' of the rows to extract (for `[`) or the index of the
             // #' first row to extract (for `block`).
-            // #' * `j` -- An integer column vector (for `[`) or
+            // #' * `j` : An integer column vector (for `[`) or
             // #' integer scalar (for `block`) containing the indices
             // #' of the columns to extract (for `[`) or the index of
             // #' the first column to extract (for `block`). 
-            // #' * `n` -- Number of rows in the block to return.
-            // #' * `m` -- Number of columns in the block to return.
+            // #' * `n` : Number of rows in the block to return.
+            // #' * `m` : Number of columns in the block to return.
             // #'
             // #' ### Return
             // #'
@@ -2065,34 +2085,34 @@ public:
             // #'
             // #' ### Functions
             // #'
-            // #' * `rbind_lag(x, lag, t_min)` -- Bind the rows of versions of
+            // #' * `rbind_lag(x, lag, t_min)` : Bind the rows of versions of
             // #' `x` that were recorded at the end of all
             // #' simulation iterations corresponding to time lags given
             // #' by integers in `lag`.
-            // #' * `rbind_time(x, t, t_min)` -- Bind the rows of versions of
+            // #' * `rbind_time(x, t, t_min)` : Bind the rows of versions of
             // #' `x` that were recorded at the end of all
             // #' simulation iterations corresponding to integers in
             // #' `t`.
-            // #' * `cbind_lag(x, lag, t_min)` -- Bind the columns of versions of
+            // #' * `cbind_lag(x, lag, t_min)` : Bind the columns of versions of
             // #' `x` that were recorded at the end of all
             // #' simulation iterations corresponding to time lags given
             // #' by integers in `lag`. (TODO -- cbind_lag is not developed yet)
-            // #' * `cbind_time(x, t, t_min)` -- Bind the columns of versions of
+            // #' * `cbind_time(x, t, t_min)` : Bind the columns of versions of
             // #' `x` that were recorded at the end of all
             // #' simulation iterations corresponding to integers in
             // #' `t`. (TODO -- cbind_lag is not developed yet)
             // #'
             // #' ### Arguments
             // #'
-            // #' * `x` -- Any matrix with saved history such that the
+            // #' * `x` : Any matrix with saved history such that the
             // #' number of columns (for `rbind_*`) or rows (for
             // #' `cbind_*`) does not change throughout the simulation.
-            // #' * `lag` -- Integer vector giving numbers
+            // #' * `lag` : Integer vector giving numbers
             // #' of time steps before the current step to obtain
             // #' past values of `x`.
-            // #' * `t` -- Integer vector giving time steps
+            // #' * `t` : Integer vector giving time steps
             // #' at which to obtain past values of `x`.
-            // #' * `t_min` -- Integer giving the minimum time step
+            // #' * `t_min` : Integer giving the minimum time step
             // #' that is allowed to be accessed. All time-steps in `t`
             // #' or implied by `lag` that are before `t_min` are ignored.
             // #'
@@ -2447,9 +2467,9 @@ public:
                 // #'
                 // #' ### Arguments
                 // #'
-                // #' * `x` -- The matrix containing elements to be
+                // #' * `x` : The matrix containing elements to be
                 // #' convolved.
-                // #' * `k` -- A column vector giving the convolution kernel.
+                // #' * `k` : A column vector giving the convolution kernel.
                 // #'
                 // #' ### Return
                 // #'
@@ -2629,33 +2649,33 @@ public:
             // #'
             // #' ### Functions
             // #'
-            // #' * `dpois(observed, simulated)` -- Log of the Poisson density
+            // #' * `dpois(observed, simulated)` : Log of the Poisson density
             // #' based on this [dpois](https://kaskr.github.io/adcomp/group__R__style__distribution.html#gaa1ed15503e1441a381102a8c4c9baaf1)
             // #' TMB function.
-            // #' * `dnbinom(observed, simulated, over_dispersion)` --
+            // #' * `dnbinom(observed, simulated, over_dispersion)` :
             // #' Log of the negative binomial density based on this [dnbinom](https://kaskr.github.io/adcomp/group__R__style__distribution.html#ga76266c19046e04b651fce93aa0810351)
             // #' TMB function. To get the variance that this function
             // #' requires we use this expression, \code{simulated + simulated^2/over_dispersion},
             // #' following p.165 in this [book](https://ms.mcmaster.ca/~bolker/emdbook/book.pdf)
-            // #' * `dnorm(observed, simulated, standard_deviation)` --
+            // #' * `dnorm(observed, simulated, standard_deviation)` :
             // #' Log of the normal density based on this [dnorm](https://kaskr.github.io/adcomp/dnorm_8hpp.html)
             // #' TMB function.
-            // #' * `dbinom(observed, size, probability)` --
+            // #' * `dbinom(observed, size, probability)` :
             // #' Log of the binomial density based on the [dbinom](https://kaskr.github.io/adcomp/group__R__style__distribution.html#gaee11f805f02bc1febc6d7bf0487671be)
             // #' TMB function.
             // #'
             // #' ### Arguments
             // #'
-            // #' * `observed` -- Matrix of observed values
+            // #' * `observed` : Matrix of observed values
             // #' at which the density is being evaluated.
-            // #' * `simulated` -- Matrix of distributional means,
+            // #' * `simulated` : Matrix of distributional means,
             // #' with singleton rows and columns recycled to match
             // #' the numbers of rows and columns in `observed`.
-            // #' * `over_dispersion` -- Over-dispersion parameter
+            // #' * `over_dispersion` : Over-dispersion parameter
             // #' given by \code{(simulated/standard_deviation)^2 - simulated)}.
-            // #' * `standard_deviation` -- Standard deviation parameter.
-            // #' * `size` -- Number of Bernoulli trials.
-            // #' * `probability` -- Probability of a successful Bernoulli trial.
+            // #' * `standard_deviation` : Standard deviation parameter.
+            // #' * `size` : Number of Bernoulli trials.
+            // #' * `probability` : Probability of a successful Bernoulli trial.
             // #'
             case MP2_POISSON_DENSITY:
                 // std::cout << "step 0" << std::endl;
@@ -2789,21 +2809,49 @@ public:
             // #'
             // #' ### Functions
             // #'
-            // #' * `rpois(mean)` -- Pseudo-random Poisson distributed
+            // #' * `rpois(mean)` : Pseudo-random Poisson distributed
             // #' values.
-            // #' * `rnbinom(mean, over_dispersion)` -- Pseudo-random
+            // #' * `rnbinom(mean, over_dispersion)` : Pseudo-random
             // #' negative binomially distributed values.
-            // #' * `rnorm(mean, standard_deviation)` -- Pseudo-random
+            // #' * `rnorm(mean, standard_deviation)` : Pseudo-random
             // #' normal values.
+            // #' * `rbinom(size, prob)` : Pseudo-random binomial values.
+            // #' * `reulermultinom(size, rate, dt)` : Pseudo-random
+            // #' [Euler-multinomial](https://kingaa.github.io/manuals/pomp/html/eulermultinom.html)
+            // #' values.
             // #'
             // #' ### Arguments
             // #'
-            // #' * `mean` -- Matrix of means about which to simulate
+            // #' * `mean` : Matrix of means about which to simulate
             // #' pseudo-random variation.
-            // #' * `over_dispersion` -- Matrix of over-dispersion parameters
+            // #' * `over_dispersion` : Matrix of over-dispersion parameters
             // #' given by \code{(simulated/standard_deviation)^2 - simulated)}.
-            // #' * `standard_deviation` -- Matrix of standard deviation parameters.
+            // #' * `standard_deviation` : Matrix of standard deviation
+            // #' parameters.
+            // #' * `size` : Matrix of numbers of trials.
+            // #' * `prob` : Matrix of probabilities of success.
+            // #' * `rate` : Matrix of rates, used to compute the probabilities
+            // #' in a multinomial distribution. The probability associated with
+            // #' the `i`th rate, `r_i`, is (1 - exp(-sum(r * dt))) * (r_i / r),
+            // #' where `r` is the sum of the rates. This is not a typical
+            // #' multinomial distribution in that if you sum these
+            // #' probabilities up you do not get `1` but rather 
+            // #' `(1 - exp(-sum(r * dt)))`. See details below for more
+            // #' on the Euler-multinomial distribution
+            // #' * `dt` : Optional parameter specifying the length of the time
+            // #' step. See details below for more on the Euler-multinomial
+            // #' distribution.
             // #'
+            // #' ### Details
+            // #' 
+            // #' The Euler-multinomial distribution is used to model how
+            // #' many individuals move from one compartment to a set of other
+            // #' compartments in a single time step of length `dt`. The rate of 
+            // #' moving to each of these compartments is characterized by the 
+            // #' associated element in the `rate` matrix. The reason why the
+            // #' probabilities do not sum to `1`, is that not all individuals
+            // #' have to change compartments in a time step.
+            // #' 
             case MP2_POISSON_SIM:
                 rows = args[0].rows();
                 cols = args[0].cols();
@@ -2951,74 +2999,164 @@ public:
                 }
                 // m1.coeffRef(m1.rows() - 1, 0) = left_over;
                 return m1;
-                
+            
+            
+            // #' ## Cumulative Distribution Functions
+            // #'
+            // #' ### Functions
+            // #'
+            // #' * `pgamma(q, shape, scale)` : Cumulative distribution function
+            // #' of the Gamma distribution. This is a light wrapper for the
+            // #' [pgamma function in TMB](https://kaskr.github.io/adcomp/group__R__style__distribution.html#ga3bd06a324f89b21694aac26bfe1aef45).
+            // #'
+            // #' ### Arguments
+            // #'
+            // #' * `q` : Matrix of Quantiles.
+            // #' * `shape` : Matrix of shape parameters of the Gamma distribution.
+            // #' * `scale` : Matrix of scale parameters of the Gamma distribution.
+            // #'
+            case MP2_PGAMMA:
+                rows = args[0].rows();
+                cols = args[0].cols();
+                v1.push_back(1);
+                v1.push_back(2);
+                args = args.recycle_to_shape(v1, rows, cols);
+                err_code = args.get_error_code();
+                if (err_code != 0) {
+                    SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row, MP2_PGAMMA, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
+                    return m;
+                }
+                m1 = args.get_as_mat(0); // q
+                m2 = args.get_as_mat(1); // shape
+                m3 = args.get_as_mat(2); // scale
+                m = matrix<Type>::Zero(rows, cols);
+                for (int i = 0; i < rows; i++) {
+                    for (int j = 0; j < cols; j++) {
+                        m.coeffRef(i, j) = pgamma(m1.coeff(i, j), m2.coeff(i, j), m3.coeff(i, j));
+                    }
+                }
+                return m;
+            
+            // #' ## Rounding
+            // #' 
+            // #' ### Functions
+            // #' 
+            // #' round(x) : Round elements of a matrix to the nearest integer.
+            // #' 
+            // #' ### Arguments
+            // #' 
+            // #' * `x` : Matrix to be rounded.
+            // #'
+            // #' ### Details
+            // #'
+            // #' Be careful if you are using rounding in a model to be calibrated.
+            // #' Rounding will break differentiability of the objective function
+            // #' if `x` depends, either directly or indirectly, on parameters 
+            // #' being calibrated. This will lead to incorrect gradients
+            // #' potentially being passed to an optimizer. To be safe, do
+            // #' not round in models being calibrated.
+            // #' 
             case MP2_ROUND:
                 m = mp2_round(args[0]);
                 return m;
-                // rows = args[0].rows();
-                // cols = args[0].cols();
-                // m = matrix<Type>::Zero(rows, cols);
-                // for (int i = 0; i < rows; i++) {
-                //     for (int j = 0; j < cols; j++) {
-                //         x = args[0].coeff(i, j);
-                //         y = x < 0 ? x - 0.5f : x + 0.5f;
-                //         m.coeffRef(i, j) = Type(CppAD::Integer(y));
-                //     }
-                // }
-                // return m;
             
+            // #' ## Debugging Instrumentation
+            // #' 
+            // #' Functions to use when you are trying to figure stuff out.
+            // #' 
+            // #' ### Functions
+            // #'
+            // #' * `print(x)` : Print out the value of a matrix.
+            // #' * `check_finite(x)` : Stop the simulations and return an
+            // #' error if `x` has any non-finite values.
+            // #'
+            // #' ### Arguments
+            // #'
+            // #' * `x` : Name of a matrix in the model.
+            // #'
+            // #' ### Return
+            // #'
+            // #' An \code{\link{empty_matrix}}.
+            // #'
+            // #' ### Examples
+            // #'
+            // #' ```
+            // #' simple_sims(
+            // #'      list(dummy ~ print(x), x ~ x / 2)
+            // #'    , time_steps = 10
+            // #'    , mats = list(x = 2)
+            // #' )
+            // #' engine_eval(~ 1/0) ## returns Inf
+            // #' engine_eval(~ check_finite(1/0)) ## returns nothing and throws an error
+            // #' ```
+            // #' 
+            case MP2_PRINT:
+                std::cout << "printing matrix number " << index2mats[0] << " at time step " << t << " :" << std::endl;
+                std::cout << args[0] << std::endl;
+                return m;
+
+            case MP2_CHECK_FINITE:
+                m = args.get_as_mat(0);
+                is_finite_mat = m.array().isFinite().all();
+                if (!is_finite_mat) {
+                    SetError(123, "Some elements of this matrix are not finite.", row, MP2_CHECK_FINITE, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
+                }
+                return m;
+            
+            
+            
+            // #' ## Assign (deprecated)
+            // #'
+            // #' Assign values to a subset of the elements in a matrix.
+            // #'
+            // #' ### Functions
+            // #'
+            // #' * `assign(x, i, j, v)`
+            // #'
+            // #' ### Arguments
+            // #'
+            // #' * `x` : Matrix with elements that are to be updated
+            // #' by the values in `v`.
+            // #' * `i` : Column vector of row indices pointing to
+            // #' the elements of `x` to be updated. These indices are
+            // #' paired with those in `v`. If the length of
+            // #' `i` does not equal that of `v`, then it must have a
+            // #' single index that gets paired with every element of
+            // #' `v`. Indices are zero-based, `i=0` corresponds to 
+            // #' the first row.
+            // #' * `j` : Column vector of column indices pointing to
+            // #' the elements of `x` to be updated. These indices are
+            // #' paired with those in `v`. If the length of
+            // #' `j` does not equal that of `v`, then it must have a
+            // #' single index that gets paired with every element of
+            // #' `v`. Indices are zero-based, `j=0` corresponds to
+            // #' the first column.
+            // #' * `v` : Column vector of values to replace elements
+            // #' of `x` at locations given by `i` and `j`.
+            // #'
+            // #' ### Return
+            // #'
+            // #' The `assign` function is not called for its return
+            // #' value, which is an \code{\link{empty_matrix}}, but
+            // #' rather to modify `x` but replacing some of its
+            // #' components with those in `v`.
+            // #'
+            // #' ### Examples
+            // #'
+            // #' ```
+            // #' x = matrix(1:12, 3, 4)
+            // #' engine_eval(~ x + 1, x = x)
+            // #' engine_eval(~ x + 1, x = x, .matrix_to_return = "x")
+            // #' engine_eval(~ assign(x, 2, 1, 100), x = x, .matrix_to_return = "x")
+            // #' engine_eval(~ assign(x
+            // #'   , c(2, 1, 0)
+            // #'   , 0
+            // #'   , c(100, 1000, 10000)
+            // #' ), x = x, .matrix_to_return = "x")
+            // #'
+            // #' ```
+            // #'
             case MP2_ASSIGN:
-                // #' ## Assign
-                // #'
-                // #' Assign values to a subset of the elements in a matrix.
-                // #'
-                // #' ### Functions
-                // #'
-                // #' * `assign(x, i, j, v)`
-                // #'
-                // #' ### Arguments
-                // #'
-                // #' * `x` -- Matrix with elements that are to be updated
-                // #' by the values in `v`.
-                // #' * `i` -- Column vector of row indices pointing to
-                // #' the elements of `x` to be updated. These indices are
-                // #' paired with those in `v`. If the length of
-                // #' `i` does not equal that of `v`, then it must have a
-                // #' single index that gets paired with every element of
-                // #' `v`. Indices are zero-based, `i=0` corresponds to 
-                // #' the first row.
-                // #' * `j` -- Column vector of column indices pointing to
-                // #' the elements of `x` to be updated. These indices are
-                // #' paired with those in `v`. If the length of
-                // #' `j` does not equal that of `v`, then it must have a
-                // #' single index that gets paired with every element of
-                // #' `v`. Indices are zero-based, `j=0` corresponds to
-                // #' the first column.
-                // #' * `v` -- Column vector of values to replace elements
-                // #' of `x` at locations given by `i` and `j`.
-                // #'
-                // #' ### Return
-                // #'
-                // #' The `assign` function is not called for its return
-                // #' value, which is an \code{\link{empty_matrix}}, but
-                // #' rather to modify `x` but replacing some of its
-                // #' components with those in `v`.
-                // #'
-                // #' ### Examples
-                // #'
-                // #' ```
-                // #' x = matrix(1:12, 3, 4)
-                // #' engine_eval(~ x + 1, x = x)
-                // #' engine_eval(~ x + 1, x = x, .matrix_to_return = "x")
-                // #' engine_eval(~ assign(x, 2, 1, 100), x = x, .matrix_to_return = "x")
-                // #' engine_eval(~ assign(x
-                // #'   , c(2, 1, 0)
-                // #'   , 0
-                // #'   , c(100, 1000, 10000)
-                // #' ), x = x, .matrix_to_return = "x")
-                // #'
-                // #' ```
-                // #'
 
                 cols = args[1].cols();
                 if (cols != 1)
@@ -3080,50 +3218,50 @@ public:
                 }
                 return m2; // empty matrix
 
+            // #' ## Unpack (deprecated)
+            // #'
+            // #' Unpack elements of a matrix into smaller matrices.
+            // #'
+            // #' ### Functions
+            // #'
+            // #' * `unpack(x, ...)`
+            // #'
+            // #' ### Arguments
+            // #'
+            // #' * `x` : Matrix with elements to be distributed to
+            // #' the matrices passed through `...`.
+            // #' * `...` : Matrices with elements to be replaced by
+            // #' the values of elements in `x` in column-major order.
+            // #' These matrices must be named matrices and not
+            // #' computed on the fly using expressions. Note that even
+            // #' subsetting (e.g. `unpack(x, y[0], y[3])`) counts as
+            // #' an expression. This use-case would require the
+            // #' \code{\link{assign}} function
+            // #' `assign(y, c(0, 3), 0, x)`.
+            // #'
+            // #' ### Return
+            // #'
+            // #' The `unpack` function is not called for its return
+            // #' value, which is an \code{\link{empty_matrix}}, but
+            // #' rather to modify the matrices in `...` by replacing
+            // #' at least some of its components with those in `x`.
+            // #'
+            // #' ### Examples
+            // #'
+            // #' Here we fill a matrix with integers from `1` to `12`
+            // #' and then unpack them one-at-a-time into two
+            // #' column vectors, `x` and `y`. By returning `y`
+            // #' we see the integers after the first three were
+            // #' used up by `x`.
+            // #' ```
+            // #' engine_eval(~unpack(matrix(1:12, 3, 4), x, y)
+            // #'   , x = rep(0, 3)
+            // #'   , y = rep(1, 5)
+            // #'   , .matrix_to_return = "y"
+            // #' )
+            // #' ```
+            // #'
             case MP2_UNPACK:
-                // #' ## Unpack
-                // #'
-                // #' Unpack elements of a matrix into smaller matrices.
-                // #'
-                // #' ### Functions
-                // #'
-                // #' * `unpack(x, ...)`
-                // #'
-                // #' ### Arguments
-                // #'
-                // #' * `x` -- Matrix with elements to be distributed to
-                // #' the matrices passed through `...`.
-                // #' * `...` -- Matrices with elements to be replaced by
-                // #' the values of elements in `x` in column-major order.
-                // #' These matrices must be named matrices and not
-                // #' computed on the fly using expressions. Note that even
-                // #' subsetting (e.g. `unpack(x, y[0], y[3])`) counts as
-                // #' an expression. This use-case would require the
-                // #' \code{\link{assign}} function
-                // #' `assign(y, c(0, 3), 0, x)`.
-                // #'
-                // #' ### Return
-                // #'
-                // #' The `unpack` function is not called for its return
-                // #' value, which is an \code{\link{empty_matrix}}, but
-                // #' rather to modify the matrices in `...` by replacing
-                // #' at least some of its components with those in `x`.
-                // #'
-                // #' ### Examples
-                // #'
-                // #' Here we fill a matrix with integers from `1` to `12`
-                // #' and then unpack them one-at-a-time into two
-                // #' column vectors, `x` and `y`. By returning `y`
-                // #' we see the integers after the first three were
-                // #' used up by `x`.
-                // #' ```
-                // #' engine_eval(~unpack(matrix(1:12, 3, 4), x, y)
-                // #'   , x = rep(0, 3)
-                // #'   , y = rep(1, 5)
-                // #'   , .matrix_to_return = "y"
-                // #' )
-                // #' ```
-                // #'
 
                 // matIndex = index2mats[0]; // m
                 // valid_vars.m_matrices[matIndex]
@@ -3157,83 +3295,6 @@ public:
                 }
                 return m2; // empty matrix
 
-            case MP2_RECYCLE:
-                // rows = CppAD::Integer(args[1].coeff(0,0));
-                // cols = CppAD::Integer(args[2].coeff(0,0));
-                rows = args.get_as_int(1);
-                cols = args.get_as_int(2);
-                v1.push_back(0);
-                args = args.recycle_to_shape(v1, rows, cols);
-                err_code = args.get_error_code();
-                // err_code = RecycleInPlace(m, rows, cols);
-                m = args[0];
-                if (err_code != 0) {
-                    SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row, MP2_RECYCLE, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
-                    return m;
-                }
-                return m;
-            
-            case MP2_PGAMMA:
-                rows = args[0].rows();
-                cols = args[0].cols();
-                v1.push_back(1);
-                v1.push_back(2);
-                args = args.recycle_to_shape(v1, rows, cols);
-                err_code = args.get_error_code();
-                if (err_code != 0) {
-                    SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row, MP2_PGAMMA, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
-                    return m;
-                }
-                m1 = args.get_as_mat(0); // q
-                m2 = args.get_as_mat(1); // shape
-                m3 = args.get_as_mat(2); // scale
-                m = matrix<Type>::Zero(rows, cols);
-                for (int i = 0; i < rows; i++) {
-                    for (int j = 0; j < cols; j++) {
-                        m.coeffRef(i, j) = pgamma(m1.coeff(i, j), m2.coeff(i, j), m3.coeff(i, j));
-                    }
-                }
-                return m;
-
-            // #' ## Print Matrix
-            // #' 
-            // #' Print out the value of a matrix.
-            // #' 
-            // #' ### Functions
-            // #'
-            // #' * `print(x)`
-            // #'
-            // #' ### Arguments
-            // #'
-            // #' * `x` -- Name of a matrix in the model.
-            // #'
-            // #' ### Return
-            // #'
-            // #' An \code{\link{empty_matrix}}.
-            // #'
-            // #' ### Examples
-            // #'
-            // #' ```
-            // #' simple_sims(
-            // #'      list(dummy ~ print(x), x ~ x / 2)
-            // #'    , time_steps = 10
-            // #'    , mats = list(x = 2)
-            // #' )
-            // #' ```
-            // #' 
-            case MP2_PRINT:
-                std::cout << "printing matrix number " << index2mats[0] << " at time step " << t << " :" << std::endl;
-                std::cout << args[0] << std::endl;
-                return m;
-
-            case MP2_CHECK_FINITE:
-                m = args.get_as_mat(0);
-                is_finite_mat = m.array().isFinite().all();
-                if (!is_finite_mat) {
-                    SetError(123, "Some elements of this matrix are not finite.", row, MP2_CHECK_FINITE, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
-                }
-                return m;
-            
             default:
                 SetError(255, "invalid operator in arithmetic expression", row, -99, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                 return m;
