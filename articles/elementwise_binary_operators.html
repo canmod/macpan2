@@ -126,24 +126,28 @@ and return a third matrix,
 z = x \otimes y
 </annotation></semantics></math> The elements of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>
-are given by the following expression. <span class="math display">$$
-z_{i,j} = \cases{ \begin{array}{lll}
-  x_{i,j} \otimes y_{i,j} &amp; \text{if } n(x) = n(y) &amp; \text{and }
-m(x) = m(y) &amp; \text{Standard Hadamard product} \\
-  x_{i,j} \otimes y_{i,1} &amp; \text{if } n(x) = n(y) &amp; \text{and }
-m(y) = 1 &amp; \text{Each matrix column times a column vector} \\
-  x_{i,j} \otimes y_{1,j} &amp; \text{if } n(y) = 1 &amp; \text{and }
-m(x) = m(y) &amp; \text{Each matrix row times a row vector} \\
-  x_{i,1} \otimes y_{i,j} &amp; \text{if } n(x) = n(y) &amp; \text{and }
-m(x) = 1 &amp; \text{Column vector times each matrix column} \\
-  x_{1,j} \otimes y_{i,j} &amp; \text{if } n(x) = 1 &amp; \text{and }
-m(x) = m(y) &amp; \text{Row vector times each matrix row} \\
-  x_{1,1} \otimes y_{i,j} &amp; \text{if } n(x) = m(x) = 1  &amp; &amp;
-\text{Scalar times a matrix, vector or scalar} \\
-  x_{i,j} \otimes y_{1,1} &amp; \text{if } n(y) = m(y) = 1 &amp; &amp;
-\text{Matrix, vector or scalar times a scalar} \\
-\end{array}}
-$$</span> Where the functions
+are given by the following expression.</p>
+<p><span class="math display">$$
+z_{i,j} = \cases{
+  \begin{array}{lll}
+    x_{i,j} \otimes y_{i,j} &amp;\text{if } n(x) = n(y) &amp;\text{and }
+m(x) = m(y) &amp;\text{Standard Hadamard product} \\
+    x_{i,j} \otimes y_{i,1} &amp;\text{if } n(x) = n(y) &amp;\text{and }
+m(y) = 1 &amp;\text{Each matrix column times a column vector} \\
+    x_{i,j} \otimes y_{1,j} &amp;\text{if } n(y) = 1 &amp;\text{and }
+m(x) = m(y) &amp;\text{Each matrix row times a row vector} \\
+    x_{i,1} \otimes y_{i,j} &amp;\text{if } n(x) = n(y) &amp;\text{and }
+m(x) = 1 &amp;\text{Column vector times each matrix column} \\
+    x_{1,j} \otimes y_{i,j} &amp;\text{if } n(x) = 1 &amp;\text{and }
+m(x) = m(y) &amp;\text{Row vector times each matrix row} \\
+    x_{1,1} \otimes y_{i,j} &amp;\text{if } n(x) = m(x) = 1  &amp;
+&amp;\text{Scalar times a matrix, vector or scalar} \\
+    x_{i,j} \otimes y_{1,1} &amp;\text{if } n(y) = m(y) = 1 &amp;
+&amp;\text{Matrix, vector or scalar times a scalar} \\
+  \end{array}
+}
+$$</span></p>
+<p>Where the functions
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mrow><mo stretchy="true" form="prefix">(</mo><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">n()</annotation></semantics></math>
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi><mrow><mo stretchy="true" form="prefix">(</mo><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">m()</annotation></semantics></math>
