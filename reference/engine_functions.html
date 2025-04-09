@@ -134,6 +134,8 @@ after any necessary recycling of rows and/or columns.</p></li>
 <ul><li><p><code>log(x)</code> – Natural logarithm</p></li>
 <li><p><code>exp(x)</code> – Exponential function</p></li>
 <li><p><code>cos(x)</code> – Cosine function</p></li>
+<li><p><code>sin(x)</code> – Sine function</p></li>
+<li><p><code>sqrt(x)</code> – Squareroot function</p></li>
 </ul></div>
 
 <div class="section">
@@ -959,12 +961,16 @@ have to change compartments in a time step.</p>
 <div class="section">
 <h3 id="cumulative-distribution-functions">Cumulative Distribution Functions<a class="anchor" aria-label="anchor" href="#cumulative-distribution-functions"></a></h3>
 
-<div class="section">
+
+<p>Lower-tail cumulative distribution functions.</p><div class="section">
 <h4 id="functions-16">Functions<a class="anchor" aria-label="anchor" href="#functions-16"></a></h4>
 
 <ul><li><p><code>pgamma(q, shape, scale)</code> : Cumulative distribution function
-of the Gamma distribution. This is a light wrapper for the
+of the Gamma distribution. This is a lite wrapper for the
 <a href="https://kaskr.github.io/adcomp/group__R__style__distribution.html#ga3bd06a324f89b21694aac26bfe1aef45" class="external-link">pgamma function in TMB</a>.</p></li>
+<li><p><code>pnorm(q, mean, sd)</code> : Cumulative distribution function of
+the normal distribution. This is a lite wrapper for the
+<a href="https://kaskr.github.io/adcomp/group__R__style__distribution.html#ga2a3cc5a06500670aeaf6eb911a1094d9" class="external-link">pnorm function in TMB</a>.</p></li>
 </ul></div>
 
 <div class="section">
@@ -973,6 +979,8 @@ of the Gamma distribution. This is a light wrapper for the
 <ul><li><p><code>q</code> : Matrix of Quantiles.</p></li>
 <li><p><code>shape</code> : Matrix of shape parameters of the Gamma distribution.</p></li>
 <li><p><code>scale</code> : Matrix of scale parameters of the Gamma distribution.</p></li>
+<li><p><code>mean</code> : Matrix of mean parameters of the normal distribution.</p></li>
+<li><p><code>sd</code> : Matrix of standard deviation parameters of the normal distribution.</p></li>
 </ul></div>
 
 
