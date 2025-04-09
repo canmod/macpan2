@@ -803,7 +803,11 @@ calibrating) for time steps less than \(m\).</p>
 <p>Smoothly clamp the elements of a matrix so that they
 do not get closer to 0 than a tolerance, <code>eps</code>, with
 a default of 1e-12. The output of the <code>clamp</code>
-function is as follows.</p><div class="section">
+function is as follows.</p>
+<p>This function works fine as long as <code>x</code> does not go
+negative. We will improve this behaviour when we
+release a new major version
+<a href="https://github.com/canmod/macpan2/issues/93" class="external-link">see issue #93</a>.</p><div class="section">
 <h4 id="functions-13">Functions<a class="anchor" aria-label="anchor" href="#functions-13"></a></h4>
 
 <ul><li><p><code>clamp(x, eps)</code></p></li>
