@@ -57,6 +57,7 @@ Remotes:
     canmod/macpan2helpers,
     iidda.api=canmod/iidda-tools/R/iidda.api
 Config/testthat/edition: 3
+Config/Needs/website: canmod/macpan2
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
