@@ -120,6 +120,8 @@ enum macpan2_func
     , MP2_SIN = 57 // fwrap,null: sin(x)
     , MP2_SQRT = 58 // fwrap,null: sqrt(x)
     , MP2_PNORM = 59 // fwrap,fail: pnorm(q, mean, sd)
+    , MP2_INVLOGIT = 60 // fwrap,null: invlogit(x)
+    , MP2_LOGIT = 61 // fwrap,null: logit(x)
 };
 
 enum macpan2_meth
@@ -145,7 +147,7 @@ std::vector<int> mp_math = { // functions that can only take numerical matrices 
   , MP2_TO_DIAG, MP2_FROM_DIAG, MP2_COS, MP2_SIN, MP2_COS
   , MP2_BINOM_SIM, MP2_EULER_MULTINOM_SIM
   , MP2_ROUND, MP2_PGAMMA, MP2_PNORM
-  , MP2_MEAN, MP2_SD
+  , MP2_MEAN, MP2_SD, MP2_INVLOGIT, MP2_LOGIT
 };
 
 std::vector<int> mp_bin_op = {
@@ -1387,20 +1389,16 @@ public:
                 return args[0].array().cos().matrix();
 
             case MP2_SIN:
-                return args[0].array().cos().matrix();
+                return args[0].array().sin().matrix();
               
             case MP2_SQRT:
                 return sqrt(args[0].array()).matrix();
               
-            // case MP2_LOGISTIC:
-            //     return (
-            //         1 / (1 + (-args[0].array()).exp())
-            //     ).matrix();
-            //
-            // case MP2_LOGIT:
-            //     return (
-            //         -(1 / args[0].array() - 1).log()
-            //     ).matrix();
+            case MP2_INVLOGIT:
+                return (1 / (1 + (-args[0].array()).exp())).matrix();
+
+            case MP2_LOGIT:
+                return (-(1 / args[0].array() - 1).log()).matrix();
                   
             // #' ## Proportions
             // #'

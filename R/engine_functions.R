@@ -975,4 +975,6 @@
 #' @aliases sin
 #' @aliases sqrt
 #' @aliases pnorm
+#' @aliases invlogit
+#' @aliases logit
 NULL

@@ -61,6 +61,8 @@
 \alias{sin}
 \alias{sqrt}
 \alias{pnorm}
+\alias{invlogit}
+\alias{logit}
 \title{Functions Available in the Simulation Engine}
 \description{
 Functions currently supported by the C++ TMB engine

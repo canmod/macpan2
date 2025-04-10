@@ -59,6 +59,8 @@ valid_func_sigs = c(
       , "fwrap,null: sin(x)"
       , "fwrap,null: sqrt(x)"
       , "fwrap,fail: pnorm(q, mean, sd)"
+      , "fwrap,null: invlogit(x)"
+      , "fwrap,null: logit(x)"
 )
 process_enum = function(x) {
   RE = "(null|fail|binop|fwrap|bwrap|pwrap)[ ]*,[ ]*(null|fail|binop|fwrap|bwrap|pwrap)[ ]*:[ ]*\\`?([^`]*)\\`?\\((.*)(\\,.*)*\\)"
