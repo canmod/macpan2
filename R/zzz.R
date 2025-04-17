@@ -10,8 +10,9 @@
     ## FIXME: macpan2_vec_by is old and not relevant i think
     , macpan2_vec_by = c("state", "flow_rates", "trans_rates") |> self_named_vector()
     
-    # where the log files go (e.g. `.macpan2/default`)
+    # where the log files go (e.g. `{macpan2_log_dir}/{macpan2_session_name}/log.txt`)
     , macpan2_session_name = "default"
+    , macpan2_log_dir = tempdir()
     
     # tolerances
     , macpan2_tol_hazard_div = 1e-8

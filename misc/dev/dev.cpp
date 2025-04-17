@@ -18,8 +18,6 @@
 // Rcpp.h includes dnorm, but we want to use TMB's dnorm,
 // which we include below.
 // https://stackoverflow.com/a/64138126
-// 
-// TODO: add to CONTRIBUTING.md
 #ifdef dnorm
 #undef dnorm
 #endif
@@ -73,7 +71,7 @@
 // associated integers, and the integers must increase from 1 with no
 // gaps. Therefore, you should add any new functions at the end,
 // although it is possible to change the order of the functions as
-// long as the integers increase from 1 without gaps as long as the
+// long as the integers increase from 1 without gaps and the
 // R/enum.R file is regenerated.
 enum macpan2_func
 {

@@ -30,8 +30,9 @@ LogFile = function(directory = NULL) {
 
 mp_session_dir = function() {
   session_name = getOption("macpan2_session_name")
-  wd = getwd()
-  ld = file.path(wd, ".macpan", session_name)
+  pdir = getOption("macpan2_log_dir")
+  if (nchar(pdir) == 0L) pdir = getwd()
+  ld = file.path(pdir, ".macpan", session_name)
   if (!dir.exists(ld)) dir.create(ld, recursive = TRUE)
   return(ld)
 }

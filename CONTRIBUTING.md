@@ -38,7 +38,19 @@ mp_simulator(sir, time_steps = 100, outputs = "I")
 
 To update `src/macpan2` to the state of `misc/dev/dev.cpp` one may run `make src-update`.
 
-Running with `misc/dev/dev.cpp` will print out debugging information in a verbose manner, whereas `src/macpan2.cpp` will not. The `src-update` make rule removes the `#define MP_VERBOSE` flag at the top of the file. 
+Running with `misc/dev/dev.cpp` will print out debugging information in a verbose manner, whereas `src/macpan2.cpp` will not. The `src-update` make rule removes the `#define MP_VERBOSE` flag at the top of the file.
+
+We `#include` both `Rcpp.h` and `TMB.hpp`, which increases the possibility of namespace clashes. Our approach to addressing this is with [include-guarding](https://en.wikipedia.org/wiki/Include_guard). We assume that `TMB` takes precedence and so we include `Rcpp` first and then un-define any names in `Rcpp` that we want to use from `TMB` instead.  Here is the example of the `dnorm` function.
+
+```
+#include <Rcpp.h>
+#ifdef dnorm
+#undef dnorm
+#endif
+#include <TMB.hpp>
+```
+
+When you attempt to use functions from `TMB` when adding an engine function, you should be aware that you might need to do some include-guarding. You will find out via compilation errors.
 
 ## Developer Installation on Windows
 
