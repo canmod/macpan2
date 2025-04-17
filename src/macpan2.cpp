@@ -76,67 +76,67 @@
 // R/enum.R file is regenerated.
 enum macpan2_func
 {
-      MP2_ADD = 1 // binop,null: `+`(x, y)
-    , MP2_SUBTRACT = 2 // binop,null: `-`(x, y)
-    , MP2_MULTIPLY = 3 // binop,null: `*`(x, y)
-    , MP2_DIVIDE = 4 // binop,null: `/`(x, y)
-    , MP2_POWER = 5 // binop,null: `^`(x, y)
-    , MP2_EXP = 6 // fwrap,null: exp(x)
-    , MP2_LOG = 7 // fwrap,null: log(x)
-    , MP2_ROUND_BRACKET = 8 // null,null: `(`(...)
-    , MP2_COMBINE = 9 // null,null: c(...)
-    , MP2_MATRIX = 10 // fwrap,null: matrix(x, i, j)
-    , MP2_MATRIX_MULTIPLY = 11 // binop,null: `%*%`(x, y)
-    , MP2_SUM = 12 // null,null: sum(...)
-    , MP2_REPLICATE = 13 // fwrap,null: rep(x, times)
-    , MP2_ROWSUMS = 14 // fwrap,null: row_sums(x)
-    , MP2_COLSUMS = 15 // fwrap,null: col_sums(x)
-    , MP2_GROUPSUMS = 16 // fwrap,null: group_sums(x, f, n)
-    , MP2_SQUARE_BRACKET = 17 // null,null: `[`(x, i, j)
-    , MP2_BLOCK = 18 // fwrap,fail: block(x, i, j, n, m)
-    , MP2_TRANSPOSE = 19 // fwrap,null: t(x)
-    , MP2_RBIND_TIME = 20 // fwrap,fail: rbind_time(x, t, t_min)
-    , MP2_RBIND_LAG = 21 // fwrap,fail: rbind_lag(x, lag, t_min)
-    , MP2_CBIND_TIME = 22 // fwrap,fail: cbind_time(x, t, t_min)
-    , MP2_CBIND_LAG = 23 // fwrap,fail: cbind_lag(x, lag, t_min)
-    , MP2_COLON = 24 // null,null: `:`(from, to)
-    , MP2_SEQUENCE = 25 // fwrap,fail: seq(from, length, by)
-    , MP2_CONVOLUTION = 26 // fwrap,fail: convolution(x, k)
-    , MP2_CBIND = 27 // fwrap,null: cbind(...)
-    , MP2_RBIND = 28 // fwrap,null: rbind(...)
-    , MP2_TIME_STEP = 29 // fwrap,fail: time_step(lag)
-    , MP2_ASSIGN = 30 // fwrap,null: assign(x, i, j, v)
-    , MP2_UNPACK = 31 // fwrap,fail: unpack(x, ...)
-    , MP2_RECYCLE = 32 // fwrap,null: recycle(x, rows, cols)
-    , MP2_CLAMP = 33 // fwrap,null: clamp(x, eps)
-    , MP2_POISSON_DENSITY = 34 // fwrap,fail: dpois(observed, simulated)
-    , MP2_NEGBIN_DENSITY = 35 // fwrap,fail: dnbinom(observed, simulated, over_dispersion)
-    , MP2_NORMAL_DENSITY = 36 // fwrap,fail: dnorm(observed, simulated, standard_deviation)
-    , MP2_POISSON_SIM = 37 // fwrap,fail: rpois(mean)
-    , MP2_NEGBIN_SIM = 38 // fwrap,fail: rnbinom(mean, over_dispersion)
-    , MP2_NORMAL_SIM = 39 // fwrap,fail: rnorm(mean, standard_deviation)
-    , MP2_KRONECKER = 40 // binop,null: `%x%`(x, y)
-    , MP2_TO_DIAG = 41 // fwrap,fail: to_diag(x)
-    , MP2_FROM_DIAG = 42 // fwrap,fail: from_diag(x)
-    , MP2_TIME_GROUP = 43 // fwrap,fail: time_group(i, change_points)
-    , MP2_COS = 44 // fwrap,null: cos(x)
-    , MP2_PRINT = 45 // fwrap,null: print(x)
-    , MP2_TIME_VAR = 46 // fwrap,fail: time_var(x, change_points)
-    , MP2_BINOM_SIM = 47 // fwrap,fail: rbinom(size, probability)
-    , MP2_EULER_MULTINOM_SIM = 48 // fwrap,fail: reulermultinom(size, rate, delta_t)
-    , MP2_ROUND = 49 // fwrap,null: round(x)
-    , MP2_PGAMMA = 50 // fwrap,fail: pgamma(q, shape, scale)
-    , MP2_MEAN = 51 // fwrap,null: mean(x)
-    , MP2_SD = 52 // fwrap,null: sd(x)
-    , MP2_PROPORTIONS = 53 // fwrap,null: proportions(x)
-    , MP2_LAST = 54 // fwrap,null: last(x)
-    , MP2_CHECK_FINITE = 55 // fwrap,null: check_finite(x)
-    , MP2_BINOM_DENSITY = 56 // fwrap,fail: dbinom(observed, size, probability)
-    , MP2_SIN = 57 // fwrap,null: sin(x)
-    , MP2_SQRT = 58 // fwrap,null: sqrt(x)
-    , MP2_PNORM = 59 // fwrap,fail: pnorm(q, mean, sd)
-    , MP2_INVLOGIT = 60 // fwrap,null: invlogit(x)
-    , MP2_LOGIT = 61 // fwrap,null: logit(x)
+      MP2_ADD = 1 // binop: `+`(x, y)
+    , MP2_SUBTRACT = 2 // binop: `-`(x, y)
+    , MP2_MULTIPLY = 3 // binop: `*`(x, y)
+    , MP2_DIVIDE = 4 // binop: `/`(x, y)
+    , MP2_POWER = 5 // binop: `^`(x, y)
+    , MP2_EXP = 6 // fwrap: exp(x)
+    , MP2_LOG = 7 // fwrap: log(x)
+    , MP2_ROUND_BRACKET = 8 // paren: `(`(...)
+    , MP2_COMBINE = 9 // fwrap: c(...)
+    , MP2_MATRIX = 10 // fwrap: matrix(x, i, j)
+    , MP2_MATRIX_MULTIPLY = 11 // binop: `%*%`(x, y)
+    , MP2_SUM = 12 // fwrap: sum(...)
+    , MP2_REPLICATE = 13 // fwrap: rep(x, times)
+    , MP2_ROWSUMS = 14 // fwrap: row_sums(x)
+    , MP2_COLSUMS = 15 // fwrap: col_sums(x)
+    , MP2_GROUPSUMS = 16 // fwrap: group_sums(x, f, n)
+    , MP2_SQUARE_BRACKET = 17 // paren: `[`(x, i, j)
+    , MP2_BLOCK = 18 // fwrap: block(x, i, j, n, m)
+    , MP2_TRANSPOSE = 19 // fwrap: t(x)
+    , MP2_RBIND_TIME = 20 // fwrap: rbind_time(x, t, t_min)
+    , MP2_RBIND_LAG = 21 // fwrap: rbind_lag(x, lag, t_min)
+    , MP2_CBIND_TIME = 22 // fwrap: cbind_time(x, t, t_min)
+    , MP2_CBIND_LAG = 23 // fwrap: cbind_lag(x, lag, t_min)
+    , MP2_COLON = 24 // binop: `:`(from, to)
+    , MP2_SEQUENCE = 25 // fwrap: seq(from, length, by)
+    , MP2_CONVOLUTION = 26 // fwrap: convolution(x, k)
+    , MP2_CBIND = 27 // fwrap: cbind(...)
+    , MP2_RBIND = 28 // fwrap: rbind(...)
+    , MP2_TIME_STEP = 29 // fwrap: time_step(lag)
+    , MP2_ASSIGN = 30 // fwrap: assign(x, i, j, v)
+    , MP2_UNPACK = 31 // fwrap: unpack(x, ...)
+    , MP2_RECYCLE = 32 // fwrap: recycle(x, rows, cols)
+    , MP2_CLAMP = 33 // fwrap: clamp(x, eps)
+    , MP2_POISSON_DENSITY = 34 // fwrap: dpois(observed, simulated)
+    , MP2_NEGBIN_DENSITY = 35 // fwrap: dnbinom(observed, simulated, over_dispersion)
+    , MP2_NORMAL_DENSITY = 36 // fwrap: dnorm(observed, simulated, standard_deviation)
+    , MP2_POISSON_SIM = 37 // fwrap: rpois(mean)
+    , MP2_NEGBIN_SIM = 38 // fwrap: rnbinom(mean, over_dispersion)
+    , MP2_NORMAL_SIM = 39 // fwrap: rnorm(mean, standard_deviation)
+    , MP2_KRONECKER = 40 // binop: `%x%`(x, y)
+    , MP2_TO_DIAG = 41 // fwrap: to_diag(x)
+    , MP2_FROM_DIAG = 42 // fwrap: from_diag(x)
+    , MP2_TIME_GROUP = 43 // fwrap: time_group(i, change_points)
+    , MP2_COS = 44 // fwrap: cos(x)
+    , MP2_PRINT = 45 // fwrap: print(x)
+    , MP2_TIME_VAR = 46 // fwrap: time_var(x, change_points)
+    , MP2_BINOM_SIM = 47 // fwrap: rbinom(size, probability)
+    , MP2_EULER_MULTINOM_SIM = 48 // fwrap: reulermultinom(size, rate, delta_t)
+    , MP2_ROUND = 49 // fwrap: round(x)
+    , MP2_PGAMMA = 50 // fwrap: pgamma(q, shape, scale)
+    , MP2_MEAN = 51 // fwrap: mean(x)
+    , MP2_SD = 52 // fwrap: sd(x)
+    , MP2_PROPORTIONS = 53 // fwrap: proportions(x)
+    , MP2_LAST = 54 // fwrap: last(x)
+    , MP2_CHECK_FINITE = 55 // fwrap: check_finite(x)
+    , MP2_BINOM_DENSITY = 56 // fwrap: dbinom(observed, size, probability)
+    , MP2_SIN = 57 // fwrap: sin(x)
+    , MP2_SQRT = 58 // fwrap: sqrt(x)
+    , MP2_PNORM = 59 // fwrap: pnorm(q, mean, sd)
+    , MP2_INVLOGIT = 60 // fwrap: invlogit(x)
+    , MP2_LOGIT = 61 // fwrap: logit(x)
 };
 
 enum macpan2_meth
@@ -151,7 +151,8 @@ enum macpan2_meth
     , METH_ROWS_TIMES_ROWS = 8 // ~ A[i] * X[j], c("A", "X"), c("i", "j")
 };
 
-std::vector<int> mp_math = { // functions that can only take numerical matrices -- no integer vectors
+// functions that can only take numerical matrices -- no integer vectors
+std::vector<int> mp_math = {
     MP2_ADD, MP2_SUBTRACT, MP2_MULTIPLY, MP2_DIVIDE, MP2_POWER, MP2_EXP, MP2_LOG
   , MP2_MATRIX, MP2_MATRIX_MULTIPLY
   , MP2_SUM, MP2_ROWSUMS, MP2_COLSUMS, MP2_TRANSPOSE
@@ -165,23 +166,17 @@ std::vector<int> mp_math = { // functions that can only take numerical matrices 
   , MP2_MEAN, MP2_SD, MP2_INVLOGIT, MP2_LOGIT
 };
 
-std::vector<int> mp_bin_op = {
+// functions that are elementwise binary operators
+std::vector<int> mp_elementwise_binop = {
   MP2_ADD, MP2_SUBTRACT, MP2_MULTIPLY, MP2_DIVIDE, MP2_POWER
 };
 
-std::vector<int> mp_hist = { // functions that depend on having a first argument being a matrix with saved history
+// functions that depend on having a first argument being a matrix with saved history
+std::vector<int> mp_history = {
     MP2_CBIND_TIME, MP2_CBIND_LAG, MP2_RBIND_TIME, MP2_RBIND_LAG
   , MP2_CONVOLUTION
 };
 
-std::vector<int> mp_by_index_arg_0 = { // functions that access matrices by index
-    MP2_CBIND_TIME, MP2_CBIND_LAG, MP2_RBIND_TIME, MP2_RBIND_LAG
-  , MP2_CONVOLUTION, MP2_ASSIGN, MP2_UNPACK
-};
-
-std::vector<int> mp_by_index_arg_1 = { // functions that access matrices by index
-    MP2_TIME_VAR
-};
 
 // MACROS
 
@@ -1030,7 +1025,9 @@ public:
         // total number of time steps in the simulation loop
         int t_max = hist.size() - 2;
         
-        // ---- Available Local Variables ----
+        // ===================================
+        // ---- {Available Local Variables} ----
+        // ===================================
         // Variables to use locally in 'macpan2 function' and
         // 'macpan2 method' bodies -- these are not real functions and methods 
         // in either the c++ or r sense.
@@ -1207,7 +1204,7 @@ public:
                     return m;
                 }
             }
-            if (is_int_in(table_x[row] + 1, mp_hist)) {
+            if (is_int_in(table_x[row] + 1, mp_history)) {
                 if (!mats_save_hist[index2mats[0]]) {
                     SetError(205, "All arguments to functions that act on the simulation history must have a first argument that is a non-empty matrix with saved history", row, table_x[row] + 1, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
@@ -1218,7 +1215,7 @@ public:
             // Check dimensions compatibility. If needed, 
             // expand one operand to make its dimensions 
             // compatible with the other
-            if (is_int_in(table_x[row] + 1, mp_bin_op) && table_n[row] == 2) {
+            if (is_int_in(table_x[row] + 1, mp_elementwise_binop) && table_n[row] == 2) {
                 args = args.recycle_for_bin_op();
                 err_code = args.get_error_code();
                 switch (err_code) {

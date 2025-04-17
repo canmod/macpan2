@@ -52,6 +52,61 @@ We `#include` both `Rcpp.h` and `TMB.hpp`, which increases the possibility of na
 
 When you attempt to use functions from `TMB` when adding an engine function, you should be aware that you might need to do some include-guarding. You will find out via compilation errors.
 
+## Adding Engine Functions
+
+If you need a function for defining model simulations that is not [currently supported by the C++ TMB engine](https://canmod.github.io/macpan2/reference/engine_functions), here is how you can add one.
+
+This is a reasonably advanced topic in that in involves using the [TMB](https://github.com/kaskr/adcomp) `C++` framework. However, you just might find that for simple functions you can just work by analogy with existing functions.
+
+Declare a new function by adding it to the [macpan2_func](https://github.com/canmod/macpan2/blob/main/misc/dev/dev.cpp#L76) `enum` in [dev.cpp](https://github.com/canmod/macpan2/blob/main/misc/dev/dev.cpp). These declarations must be of the following form:
+
+```
+MP2_{UPPERCASE-FUNCTION-LABEL} = {UNIQUE-INTEGER} // {FUNCTION-TYPE}: {R-SIDE-FUNCTION-NAME}({ARG-1, ARG-2, ...})
+```
+
+Here are some examples:
+
+```
+MP2_MULTIPLY = 3 // binop: `*`(x, y)
+MP2_LOG = 7 // fwrap: log(x)
+MP2_ROUND_BRACKET = 8 // paren: `(`(...)
+MP2_SUM = 12 // fwrap: sum(...)
+```
+
+These examples illustrate the three `FUNCTION-TYPE`s:
+
+* `binop` : Functions that will be used as binary operators
+* `fwrap` : Function with arguments wrapped in round brackets
+* `paren` : Functions that will be used as parentheses
+
+Check to see if your function should be added to one or more of several lists of functions that get treated in similar ways:
+
+* `mp_math` : Add if your function can only take numerical matrices as arguments, and cannot take integer vectors.
+* `mp_elementwise_binop` : Add if your function is an [elementwise binary operator](https://canmod.github.io/macpan2/articles/elementwise_binary_operators).
+* `mp_history` : Add if your function depends on having a first argument being a matrix with saved history (e.g., a lag function).
+
+Add the function body as an item in the following switch structure:
+
+```
+switch (table_x[row] + 1) {...}
+```
+
+Here is a very simple example of a function that extracts and returns the diagonal of the argument.
+```
+case MP2_FROM_DIAG: // from_diag
+  m = args[0].diagonal();
+  return m;
+```
+
+The arguments to your function are contained in the `args` object. The first argument is `args[0]`, the second is `args[1]`, etc. The number of arguments that are passed is given by `n`. Each of these arguments, if it is a matrix (or integer vector), has an index giving its position within the complete list, `valid_vars` (or `valid_int_vecs`), of matrices (or integer vectors) in the model. The `index2mats` vector gives you these indexes, with `index2mats[0]` giving the position for the first matrix, etc. The `index2what` vector gives you information about the type of argument. Argument `i` is a matrix if `index2what[i] = 0`, an integer vector if `index2what[i] = 1`, or invalid if `index2what[i] = -1`. Sometimes you will want to assert that an argument is a matrix or an integer vector, depending on the context. The method `args.get_as_mat(i)` will return the `i`th argument if it is a matrix, and throw an error otherwise. The `args.get_as_int(i)` will return the `i`th argument as an integer vector, converting to an integer vector if necessary. Checkout the `ArgList` class for other methods that might be useful.
+
+Names for intermediate matrices and integer vectors are defined way above in the section marked `Available Local Variables`. There you will find names like `m` and `m1` for matrices, `v` and `v1` for integer vectors, and more including other types like `bool`, `int`, and `Type`.  The [`Type` type](https://kaskr.github.io/adcomp/_book/Tutorial.html) is particularly important for making the automatic differentiation provided by TMB work properly.
+
+Your function can also make use of the current time index, `t`, which increments as the simulation loop iterates.
+
+Every function must return a matrix. Integer vectors are not allowed to be returned (although they can be modified, but that is another story). If your function is called for its side effect (e.g., `MP2_PRINT`), you should return an empty matrix.
+
+
 ## Developer Installation on Windows
 
 Developers using `make` on Windows, could encounter the following compilation error.
