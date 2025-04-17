@@ -83,6 +83,42 @@ make pkg-check         # R package checks</code></pre>
 <p>When you attempt to use functions from <code>TMB</code> when adding an engine function, you should be aware that you might need to do some include-guarding. You will find out via compilation errors.</p>
 </div>
 <div class="section level2">
+<h2 id="adding-engine-functions">Adding Engine Functions<a class="anchor" aria-label="anchor" href="#adding-engine-functions"></a></h2>
+<p>If you need a function for defining model simulations that is not <a href="https://canmod.github.io/macpan2/reference/engine_functions">currently supported by the C++ TMB engine</a>, here is how you can add one.</p>
+<p>This is a reasonably advanced topic in that in involves using the <a href="https://github.com/kaskr/adcomp" class="external-link">TMB</a> <code>C++</code> framework. However, you just might find that for simple functions you can just work by analogy with existing functions.</p>
+<p>Declare a new function by adding it to the <a href="https://github.com/canmod/macpan2/blob/main/misc/dev/dev.cpp#L76" class="external-link">macpan2_func</a> <code>enum</code> in <a href="https://github.com/canmod/macpan2/blob/main/misc/dev/dev.cpp" class="external-link">dev.cpp</a>. These declarations must be of the following form:</p>
+<pre><code>MP2_{UPPERCASE-FUNCTION-LABEL} = {UNIQUE-INTEGER} // {FUNCTION-TYPE}: {R-SIDE-FUNCTION-NAME}({ARG-1, ARG-2, ...})</code></pre>
+<p>Here are some examples:</p>
+<pre><code>MP2_MULTIPLY = 3 // binop: `*`(x, y)
+MP2_LOG = 7 // fwrap: log(x)
+MP2_ROUND_BRACKET = 8 // paren: `(`(...)
+MP2_SUM = 12 // fwrap: sum(...)</code></pre>
+<p>These examples illustrate the three <code>FUNCTION-TYPE</code>s:</p>
+<ul><li>
+<code>binop</code> : Functions that will be used as binary operators</li>
+<li>
+<code>fwrap</code> : Function with arguments wrapped in round brackets</li>
+<li>
+<code>paren</code> : Functions that will be used as parentheses</li>
+</ul><p>Check to see if your function should be added to one or more of several lists of functions that get treated in similar ways:</p>
+<ul><li>
+<code>mp_math</code> : Add if your function can only take numerical matrices as arguments, and cannot take integer vectors.</li>
+<li>
+<code>mp_elementwise_binop</code> : Add if your function is an <a href="https://canmod.github.io/macpan2/articles/elementwise_binary_operators">elementwise binary operator</a>.</li>
+<li>
+<code>mp_history</code> : Add if your function depends on having a first argument being a matrix with saved history (e.g., a lag function).</li>
+</ul><p>Add the function body as an item in the following switch structure:</p>
+<pre><code>switch (table_x[row] + 1) {...}</code></pre>
+<p>Here is a very simple example of a function that extracts and returns the diagonal of the argument.</p>
+<pre><code>case MP2_FROM_DIAG: // from_diag
+  m = args[0].diagonal();
+  return m;</code></pre>
+<p>The arguments to your function are contained in the <code>args</code> object. The first argument is <code>args[0]</code>, the second is <code>args[1]</code>, etc. The number of arguments that are passed is given by <code>n</code>. Each of these arguments, if it is a matrix (or integer vector), has an index giving its position within the complete list, <code>valid_vars</code> (or <code>valid_int_vecs</code>), of matrices (or integer vectors) in the model. The <code>index2mats</code> vector gives you these indexes, with <code>index2mats[0]</code> giving the position for the first matrix, etc. The <code>index2what</code> vector gives you information about the type of argument. Argument <code>i</code> is a matrix if <code>index2what[i] = 0</code>, an integer vector if <code>index2what[i] = 1</code>, or invalid if <code>index2what[i] = -1</code>. Sometimes you will want to assert that an argument is a matrix or an integer vector, depending on the context. The method <code>args.get_as_mat(i)</code> will return the <code>i</code>th argument if it is a matrix, and throw an error otherwise. The <code>args.get_as_int(i)</code> will return the <code>i</code>th argument as an integer vector, converting to an integer vector if necessary. Checkout the <code>ArgList</code> class for other methods that might be useful.</p>
+<p>Names for intermediate matrices and integer vectors are defined way above in the section marked <code>Available Local Variables</code>. There you will find names like <code>m</code> and <code>m1</code> for matrices, <code>v</code> and <code>v1</code> for integer vectors, and more including other types like <code>bool</code>, <code>int</code>, and <code>Type</code>. The <a href="https://kaskr.github.io/adcomp/_book/Tutorial.html" class="external-link"><code>Type</code> type</a> is particularly important for making the automatic differentiation provided by TMB work properly.</p>
+<p>Your function can also make use of the current time index, <code>t</code>, which increments as the simulation loop iterates.</p>
+<p>Every function must return a matrix. Integer vectors are not allowed to be returned (although they can be modified, but that is another story). If your function is called for its side effect (e.g., <code>MP2_PRINT</code>), you should return an empty matrix.</p>
+</div>
+<div class="section level2">
 <h2 id="developer-installation-on-windows">Developer Installation on Windows<a class="anchor" aria-label="anchor" href="#developer-installation-on-windows"></a></h2>
 <p>Developers using <code>make</code> on Windows, could encounter the following compilation error.</p>
 <pre><code>Fatal error: can't write xxx bytes to section .text of macpan2.o: 'file too big' as: macpan2.o: too many sections</code></pre>
