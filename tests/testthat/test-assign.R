@@ -17,3 +17,11 @@ test_that("assignment indices are checked", {
     "The following error was thrown by the TMB engine"
   )
 })
+
+simple_sims(
+    list(
+        c(x, y) ~ c(a, b)
+    )
+  , time_steps = 1L
+  , mats = list(a = 1:3, b = 5:6, x = empty_matrix, y = empty_matrix)
+)

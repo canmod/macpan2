@@ -101,14 +101,14 @@ A simulation is the sequential evaluation of these expressions in a user-specifi
 
 Each mathematical expression can be used by C++ in several ways. Information on how each expression should be used is passed to C++ using a set of vectors. Each of these vectors is the same length, with one element per expression.
 
-* `DATA_IVECTOR(expr_output_id)`
-    * Index into `mats` identifying the matrix produced by the expression
 * `DATA_IVECTOR(expr_sim_block)`
     * Identifies whether or not the expression should be evaluated inside a `SIMULATE` macro within TMB
     * A value of `0` indicates that the expression is to be evaluated without the `SIMULATE` macro (we expect this to be the standard case), whereas a value of `1` indicates evaluation inside a `SIMULATE` macro
     * Note that if an expression is evaluated in a `SIMULATE` macro and is returned to the user through `mats_return == 1`, then it must also be returned within the `SIMULATE` macro
 * `DATA_IVECTOR(expr_num_p_table_rows)`
     * Number of rows associated with each expression in the parse table (see section on [Parse Tables])
+* `DATA_IVECTOR(assign_num_a_table_rows)`
+    * Number of rows associated with each expression in the assignment parse table (see section on [Assignment Parse Tables])
 
 Each expression is evaluated in the order in which it appears in these vectors.
 
@@ -144,6 +144,17 @@ The first three vectors correspond to `n`, `x`, and `i` as discussed in this sec
 
 The `expr_num_p_table_rows` vector (defined above in the section on [Expressions]) is used to relate each expression to a set of rows in this concatenated parse table. The elements of this vector contain the number of parse table rows associated with each expression. The ordering of the elements is consistent with the ordering of the concatenation of the individual parse tables, and so row indices are not necessary.
 
+## Assignment
+
+The resulting matrices produced by evaluating [Expressions] is assigned to another matrix or a subset of another matrix. 
+
+## Assignment Parse Tables
+
+
+
+* `DATA_IVECTOR(a_table_n)`
+* `DATA_IVECTOR(a_table_x)`
+* `DATA_IVECTOR(a_table_i)`
 
 ## Literals
 

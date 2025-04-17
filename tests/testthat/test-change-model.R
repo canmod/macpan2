@@ -55,10 +55,20 @@ opt = nlminb(ad_fun$par
   , control = list(eval.max = 1000000, iter.max = 1000000)
 )
 
-# library(ggplot2)
-# (ggplot(sim)
-#   + geom_line(aes(time, `50%`))
-#   + geom_ribbon(aes(time, ymin = `2.5%`, ymax = `97.5%`), alpha = 0.2)
-# )
-#plot(sim$value, type = "l")
-#lines(sim$value, col = "red")
+
+
+
+macpan_base = mp_tmb_library(
+    "starter_models"
+  , "macpan_base"
+  , package = "macpan2"
+)
+em = (macpan_base
+  |> mp_euler_multinomial()
+  |> mp_expand()
+  |> mp_simulator(20L, "S.E")
+  |> mp_trajectory()
+)
+el = mp_simulator(macpan_base, 20L, "S.E") |> mp_trajectory()
+
+
