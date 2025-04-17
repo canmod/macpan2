@@ -12,8 +12,7 @@ dotdotdot <- function(..., .impute_names = FALSE) {
 }
 
 is_nested <- function(lst) vapply(lst, function(x) inherits(x[1L], "list"), FALSE)
-
-## BMB includes  a call to an (apparently) nonexistent function `names_are_invalid` ... ??
+names_are_invalid = function(nms) make.names(nms) != nms
 have_name <- function(x) {
    nms <- names(x)
    if (is.null(nms)) rep(FALSE, length(x)) else !names_are_invalid(nms)

@@ -31,6 +31,7 @@ Suggests:
     ggplot2,
     cowplot,
     lubridate,
+    stringr,
     testthat (>= 3.0.0),
     htmltools,
     visNetwork,
@@ -47,7 +48,8 @@ Suggests:
     Rgraphviz
 LinkingTo:
     TMB,
-    RcppEigen
+    RcppEigen,
+    Rcpp
 VignetteBuilder: 
     knitr
 BugReports: https://github.com/canmod/macpan2/issues

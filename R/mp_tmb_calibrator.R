@@ -372,7 +372,7 @@ print.TMBCalibrator = function(x, ...) {
 #' @export
 mp_optimize = function(model, optimizer, ...) UseMethod("mp_optimize")
 
-
+#' @importFrom utils capture.output
 #' @export
 mp_optimize.TMBSimulator = function(model
     , optimizer = c("nlminb", "optim", "DEoptim", "optimize", "optimise")

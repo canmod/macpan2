@@ -14,7 +14,7 @@ mp_parameterization = function(model, types = c("fixed", "random")) {
 #' @export
 mp_parameterization.TMBSimulator = function(model, types = c("fixed", "random")) {
   types = match.arg(types, several.ok = TRUE)
-  frame_list = list(empty = macpan2:::empty_frame(c("par_id", "mat", "row", "col", "default", "current", "type")))
+  frame_list = list(empty = empty_frame(c("par_id", "mat", "row", "col", "default", "current", "type")))
   if ("fixed" %in% types) frame_list$fixed = model$current$params_frame()
   if ("random" %in% types) frame_list$random = model$current$random_frame()
   bind_rows(frame_list, .id = "type")

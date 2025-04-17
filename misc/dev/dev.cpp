@@ -10,8 +10,24 @@
 #include <math.h> // isnan() is defined
 #include <sys/time.h>
 // https://github.com/kaskr/adcomp/wiki/Development#distributing-code
+
+#include <Rcpp.h>
+// include guarding
+// (https://en.wikipedia.org/wiki/Include_guard)
+// 
+// Rcpp.h includes dnorm, but we want to use TMB's dnorm,
+// which we include below.
+// https://stackoverflow.com/a/64138126
+// 
+// TODO: add to CONTRIBUTING.md
+#ifdef dnorm
+#undef dnorm
+#endif
+
 #include <TMB.hpp>
 #include <cppad/local/cond_exp.hpp>
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Macpan2 is redesigned architecture. The spec is
@@ -207,37 +223,37 @@ matrix<Type> RecycleToShape(matrix<Type> x, const int &rows, const int &cols) {
     matrix<Type> y(rows, cols);
 
     if (x.rows() == 1 && x.cols() == 1) {
-        // std::cout << "scalar in" << std::endl;
+        // Rcpp::Rcout << "scalar in" << std::endl;
         y = matrix<Type>::Constant(rows, cols, x.coeff(0, 0));
     }
     else if (x.rows() == rows) {
         if (x.cols() == 1) {
-            // std::cout << "good column vector" << std::endl;
+            // Rcpp::Rcout << "good column vector" << std::endl;
             for (int i = 0; i < cols; i++) {
                 y.col(i) = x.col(0);
             }
         }
         else {
-            // std::cout << "bad column vector" << std::endl;
+            // Rcpp::Rcout << "bad column vector" << std::endl;
             Rf_error("Bad column vector");
             // break; // Exit the loop on error
         }
     }
     else if (x.cols() == cols) {
         if (x.rows() == 1) {
-            // std::cout << "good row vector" << std::endl;
+            // Rcpp::Rcout << "good row vector" << std::endl;
             for (int i = 0; i < rows; i++) {
                 y.row(i) = x.row(0);
             }
         }
         else {
-            // std::cout << "bad row vector" << std::endl;
+            // Rcpp::Rcout << "bad row vector" << std::endl;
             Rf_error("Bad row vector");
             // break; // Exit the loop on error
         }
     }
     else {
-        // std::cout << "really bad" << std::endl;
+        // Rcpp::Rcout << "really bad" << std::endl;
         Rf_error("Bad matrix shape");
         // break; // Exit the loop on error
     }
@@ -288,29 +304,24 @@ Type mp2_rbinom(const Type size, const Type prob) {
 void printIntVector(const std::vector<int> &intVector) {
     for (int element : intVector)
     {
-        std::cout << element << ' ';
+        Rcpp::Rcout << element << ' ';
     }
-    std::cout << std::endl;
+    Rcpp::Rcout << std::endl;
 }
 
 void printIntVectorWithLabel(const std::vector<int> &intVector, const std::string &label) {
-    std::cout << label << ": ";
+    Rcpp::Rcout << label << ": ";
     printIntVector(intVector);
 }
 
-// Define the function to print a single matrix here
+
 template <class Type>
-void printMatrix(const matrix<Type> &mat)
-{
-    // Implement the logic to print a matrix here
-    // You can use a loop to iterate through rows and columns
-    // and print each element.
-    // Example:
+void printMatrix(const matrix<Type> &mat) {
     for (int i = 0; i < mat.rows(); ++i) {
         for (int j = 0; j < mat.cols(); ++j) {
-            std::cout << mat.coeff(i, j) << ' ';
+            Rcpp::Rcout << mat.coeff(i, j) << ' ';
         }
-        std::cout << std::endl;
+        Rcpp::Rcout << std::endl;
     }
 }
 
@@ -372,11 +383,11 @@ struct ListOfMatrices
     // Method to print specific matrices in the list
     void printMatrices(const std::vector<int> &indices, const std::string &label) const
     {
-        std::cout << label << ": " << std::endl;
+        Rcpp::Rcout << label << ": " << std::endl;
         for (int index : indices)
         {
             const matrix<Type> &mat = m_matrices[index];
-            std::cout << "  inner matrix:" << std::endl;
+            Rcpp::Rcout << "  inner matrix:" << std::endl;
             printMatrix(mat);
         }
     }
@@ -470,15 +481,15 @@ public:
     // Method to print each vector in the list
     void printVectors(const std::string &label) const
     {
-        std::cout << label << ": " << std::endl;
+        Rcpp::Rcout << label << ": " << std::endl;
         for (const std::vector<int> &innerVector : nestedVector)
         {
-            std::cout << "  inner vector: ";
+            Rcpp::Rcout << "  inner vector: ";
             for (int element : innerVector)
             {
-                std::cout << " " << element;
+                Rcpp::Rcout << " " << element;
             }
-            std::cout << std::endl;
+            Rcpp::Rcout << std::endl;
         }
     }
 
@@ -514,8 +525,8 @@ public:
 
 int is_int_in(int i, std::vector<int> vec) {
     for (unsigned int j = 0; j < vec.size(); j++) {
-        //std::cout << "i=" << i << std::endl;
-        //std::cout << "vec[j]=" << vec[j] << std::endl;
+        //Rcpp::Rcout << "i=" << i << std::endl;
+        //Rcpp::Rcout << "vec[j]=" << vec[j] << std::endl;
         if (i == vec[j]) return 1;
     }
     return 0;
@@ -828,63 +839,63 @@ public:
     {
         ArgList<Type> result = *this; // Create a new ArgList as a copy of the current instance
 
-        // std::cout << "step a: " << rows << " and " << cols << std::endl;
+        // Rcpp::Rcout << "step a: " << rows << " and " << cols << std::endl;
         int error_code = 0; // Initialize the error code
-        // std::cout << "step b" << std::endl;
+        // Rcpp::Rcout << "step b" << std::endl;
         for (int index : indices) {
             matrix<Type> mat = result.get_as_mat(index);
-            // std::cout << "step c" << std::endl;
+            // Rcpp::Rcout << "step c" << std::endl;
             if (mat.rows() == rows && mat.cols() == cols) {
-                // std::cout << "no action" << std::endl;
+                // Rcpp::Rcout << "no action" << std::endl;
                 // No further action needed for this matrix
                 continue;
             }
-            // std::cout << "step d" << std::endl;
+            // Rcpp::Rcout << "step d" << std::endl;
             matrix<Type> m(rows, cols);
-            // std::cout << "step e" << std::endl;
+            // Rcpp::Rcout << "step e" << std::endl;
             if (mat.rows() == 1 && mat.cols() == 1) {
-                // std::cout << "scalar in" << std::endl;
+                // Rcpp::Rcout << "scalar in" << std::endl;
                 m = matrix<Type>::Constant(rows, cols, mat.coeff(0, 0));
             }
             else if (mat.rows() == rows) {
                 if (mat.cols() == 1) {
-                    // std::cout << "good column vector" << std::endl;
+                    // Rcpp::Rcout << "good column vector" << std::endl;
                     for (int i = 0; i < cols; i++) {
                         m.col(i) = mat.col(0);
                     }
                 }
                 else {
-                    // std::cout << "step f" << std::endl;
-                    // std::cout << "bad column vector" << std::endl;
+                    // Rcpp::Rcout << "step f" << std::endl;
+                    // Rcpp::Rcout << "bad column vector" << std::endl;
                     error_code = 501;
                     // break; // Exit the loop on error
                 }
             }
             else if (mat.cols() == cols) {
                 if (mat.rows() == 1) {
-                    // std::cout << "good row vector" << std::endl;
+                    // Rcpp::Rcout << "good row vector" << std::endl;
                     for (int i = 0; i < rows; i++) {
                         m.row(i) = mat.row(0);
                     }
                 }
                 else
                 {
-                    // std::cout << "bad row vector" << std::endl;
+                    // Rcpp::Rcout << "bad row vector" << std::endl;
                     error_code = 501;
                     // break; // Exit the loop on error
                 }
             }
             else
             {
-                // std::cout << "really bad" << std::endl;
-                // std::cout << "step g" << std::endl;
+                // Rcpp::Rcout << "really bad" << std::endl;
+                // Rcpp::Rcout << "step g" << std::endl;
                 error_code = 501;
                 // break; // Exit the loop on error
             }
 
             if (error_code != 0)
             {
-                // std::cout << "step h" << std::endl;
+                // Rcpp::Rcout << "step h" << std::endl;
                 result.set_error_code(error_code);
                 break; // Exit the loop on error
             }
@@ -1313,7 +1324,7 @@ public:
             // #'
             case MP2_ADD: // +
                 #ifdef MP_VERBOSE
-                std::cout << args.get_as_mat(0) << " + " << args.get_as_mat(1) << " = " << args.get_as_mat(0) + args.get_as_mat(1) << std::endl
+                Rcpp::Rcout << args.get_as_mat(0) << " + " << args.get_as_mat(1) << " = " << args.get_as_mat(0) + args.get_as_mat(1) << std::endl
                           << std::endl;
                 #endif
                 if (table_n[row] == 1) {
@@ -1324,10 +1335,10 @@ public:
             case MP2_SUBTRACT: // -
                 #ifdef MP_VERBOSE
                 if (table_n[row] == 1)
-                    std::cout << "Unary - " << args.get_as_mat(0) << std::endl
+                    Rcpp::Rcout << "Unary - " << args.get_as_mat(0) << std::endl
                               << std::endl;
                 else
-                    std::cout << args.get_as_mat(0) << " - " << args.get_as_mat(1) << " = " << args.get_as_mat(0) - args.get_as_mat(1) << std::endl
+                    Rcpp::Rcout << args.get_as_mat(0) << " - " << args.get_as_mat(1) << " = " << args.get_as_mat(0) - args.get_as_mat(1) << std::endl
                               << std::endl;
                 #endif
                 if (table_n[row] == 1) {
@@ -1337,19 +1348,19 @@ public:
                 }
             case MP2_MULTIPLY: // *
                 #ifdef MP_VERBOSE
-                std::cout << args.get_as_mat(0) << " .* " << args.get_as_mat(1) << " = " << args.get_as_mat(0).cwiseProduct(args.get_as_mat(1)) << std::endl
+                Rcpp::Rcout << args.get_as_mat(0) << " .* " << args.get_as_mat(1) << " = " << args.get_as_mat(0).cwiseProduct(args.get_as_mat(1)) << std::endl
                           << std::endl;
                 #endif
                 return args.get_as_mat(0).cwiseProduct(args.get_as_mat(1));
             case MP2_DIVIDE: // /
                 #ifdef MP_VERBOSE
-                std::cout << args.get_as_mat(0) << " ./ " << args.get_as_mat(1) << " = " << args.get_as_mat(0).array() / args.get_as_mat(1).array() << std::endl
+                Rcpp::Rcout << args.get_as_mat(0) << " ./ " << args.get_as_mat(1) << " = " << args.get_as_mat(0).array() / args.get_as_mat(1).array() << std::endl
                           << std::endl;
                 #endif
                 return args.get_as_mat(0).cwiseQuotient(args.get_as_mat(1));
             case MP2_POWER: // ^
                 #ifdef MP_VERBOSE
-                std::cout << args.get_as_mat(0) << " ^ " << args.get_as_mat(1) << " = " << pow(args.get_as_mat(0).array(), args.get_as_mat(1).coeff(0, 0)).matrix() << std::endl
+                Rcpp::Rcout << args.get_as_mat(0) << " ^ " << args.get_as_mat(1) << " = " << pow(args.get_as_mat(0).array(), args.get_as_mat(1).coeff(0, 0)).matrix() << std::endl
                           << std::endl;
                 #endif
                 return pow(args.get_as_mat(0).array(), args.get_as_mat(1).array()).matrix();
@@ -1484,7 +1495,7 @@ public:
                 for (int i = from; i <= to; i++)
                     m.coeffRef(i - from, 0) = i;
                 #ifdef MP_VERBOSE
-                std::cout << from << ":" << to << " = " << m << std::endl
+                Rcpp::Rcout << from << ":" << to << " = " << m << std::endl
                           << std::endl;
                 #endif
                 return m;
@@ -1511,7 +1522,7 @@ public:
                 for (int i = 0; i < length; i++)
                     m.coeffRef(i, 0) = from + i * by;
                 #ifdef MP_VERBOSE
-                std::cout << "seq(" << from << ", " << length << ", " << by << ") = "
+                Rcpp::Rcout << "seq(" << from << ", " << length << ", " << by << ") = "
                           << m << std::endl
                           << std::endl;
                 #endif
@@ -1663,7 +1674,7 @@ public:
                 // #' Any number of column vectors can be combined into a
                 // #' bigger column vector.
                 // #'
-                // std::cout << "in c(...)" << std::endl;
+                // Rcpp::Rcout << "in c(...)" << std::endl;
                 size = 0;
                 for (int i = 0; i < n; i++)
                 {
@@ -1677,10 +1688,10 @@ public:
                     for (int j = 0; j < cols; j++)
                     {
                         rows = args[i].rows();
-                        // std::cout << "number of rows in c(...): " << rows << std::endl;
+                        // Rcpp::Rcout << "number of rows in c(...): " << rows << std::endl;
                         if (rows != 0)
                         { // avoid adding empty matrices
-                            // std::cout << "adding rows" << std::endl;
+                            // Rcpp::Rcout << "adding rows" << std::endl;
                             m.block(off, 0, rows, 1) = args[i].col(j);
                             off += rows;
                         }
@@ -1688,7 +1699,7 @@ public:
                 }
 
                 #ifdef MP_VERBOSE
-                std::cout << "c(" << args[0] << ", ...," << args[n - 1] << ") = " << m << std::endl
+                Rcpp::Rcout << "c(" << args[0] << ", ...," << args[n - 1] << ") = " << m << std::endl
                           << std::endl;
                 #endif
                 return m;
@@ -1699,8 +1710,8 @@ public:
             // #'
             case MP2_CBIND:
                 rows = args[0].rows();
-                // std::cout << "rows: " << rows << std::endl;
-                // std::cout << "n: " << n << std::endl;
+                // Rcpp::Rcout << "rows: " << rows << std::endl;
+                // Rcpp::Rcout << "n: " << n << std::endl;
                 int cols_per_arg;
                 int totcols, colmarker;
                 totcols = 0;
@@ -1727,8 +1738,8 @@ public:
                 
             case MP2_RBIND:
                 cols = args[0].cols();
-                // std::cout << "cols: " << cols << std::endl;
-                // std::cout << "n: " << n << std::endl;
+                // Rcpp::Rcout << "cols: " << cols << std::endl;
+                // Rcpp::Rcout << "n: " << n << std::endl;
                 int rows_per_arg;
                 int totrows, rowmarker;
                 totrows = 0;
@@ -2030,7 +2041,7 @@ public:
             // #'
             case MP2_SQUARE_BRACKET: // [
                 #ifdef MP_VERBOSE
-                std::cout << "square bracket" << std::endl
+                Rcpp::Rcout << "square bracket" << std::endl
                           << std::endl;
                 #endif
 
@@ -2142,7 +2153,7 @@ public:
                     return m; // have not built up any previous iterations yet, so returning empty matrix
                 if (t == 0) {
                     SetError(154, "The simulation loop has not yet begun and so rbind_time (or rbind_lag) cannot be used", row, int_func, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
-                    // std::cout << "return 1 " << std::endl;
+                    // Rcpp::Rcout << "return 1 " << std::endl;
                     return m;
                 }
                 matIndex = index2mats[0]; // m
@@ -2153,7 +2164,7 @@ public:
 
                 if ((matIndex < 0) | (index2what[0] != 0)) {
                     SetError(MP2_RBIND_TIME, "Can only rbind_time (or rbind_lag) named matrices not expressions of matrices and not integer vectors", row, int_func, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
-                    // std::cout << "return 2 " << std::endl;
+                    // Rcpp::Rcout << "return 2 " << std::endl;
                     return m;
                 }
 
@@ -2162,7 +2173,7 @@ public:
                     for (int i = 1; i < t_max + 1; i++) {
                         timeIndex.push_back(i);
                     }
-                    // std::cout << "t: " << t << std::endl;
+                    // Rcpp::Rcout << "t: " << t << std::endl;
                     // printIntVectorWithLabel(timeIndex, "default time index vector");
                 }
                 else if ((n == 1) & (doing_lag)) {
@@ -2170,8 +2181,8 @@ public:
                 }
                 else {
                     timeIndex = args.get_as_int_vec(1);
-                    //std::cout << "t: " << t << std::endl;
-                    //std::cout << "timeIndex.size: " << timeIndex.size() << std::endl;
+                    //Rcpp::Rcout << "t: " << t << std::endl;
+                    //Rcpp::Rcout << "timeIndex.size: " << timeIndex.size() << std::endl;
                     //printIntVectorWithLabel(timeIndex, "default time index vector");
                     if (doing_lag) {
                         for (unsigned int i = 0; i < timeIndex.size(); i++) {
@@ -2189,9 +2200,9 @@ public:
                         // timeIndex += t;
                     }
                 }
-                // std::cout << "time_index = " << timeIndex.size() << std::endl;
+                // Rcpp::Rcout << "time_index = " << timeIndex.size() << std::endl;
                 if (timeIndex.size() == 0) {
-                    // std::cout << "return 3 " << std::endl;
+                    // Rcpp::Rcout << "return 3 " << std::endl;
                     return m; // return empty matrix if no time indices are provided
                 }
 
@@ -2220,7 +2231,7 @@ public:
                 //    the correct values otherwise.
                 int rbind_length, nRows, nCols;
                 rbind_length = 0; // count of legitimate time steps to select
-                //std::cout << "lowerTimeBound " << lowerTimeBound << std::endl
+                //Rcpp::Rcout << "lowerTimeBound " << lowerTimeBound << std::endl
                 for (unsigned int i = 0; i < timeIndex.size(); i++)
                 {
                     rowIndex = timeIndex[i];
@@ -2250,14 +2261,14 @@ public:
                         if (rows != nRows || cols != nCols)
                         { // Shall we allow inconsistent rows?
                             SetError(MP2_RBIND_TIME, "Inconsistent rows or columns in rbind_time (or rbind_lag)", row, int_func, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
-                            // std::cout << "return 5 " << std::endl;
+                            // Rcpp::Rcout << "return 5 " << std::endl;
                             return args[0];
                         }
                     }
 
                     rbind_length++;
                 }
-                // std::cout << "rbind length: " << rbind_length << std::endl;
+                // Rcpp::Rcout << "rbind length: " << rbind_length << std::endl;
 
                 if (rbind_length > 0)
                 {
@@ -2289,8 +2300,8 @@ public:
                     }
                 }
 
-                // std::cout << "return 6" << std::endl;
-                // std::cout << "m: " << m << std::endl;
+                // Rcpp::Rcout << "return 6" << std::endl;
+                // Rcpp::Rcout << "m: " << m << std::endl;
                 return m; // empty matrix (if colIndex==0) or non-empty one (otherwise)
 
             // #' ## Time Indexing
@@ -2530,17 +2541,17 @@ public:
                 }
 
                 #ifdef MP_VERBOSE
-                std::cout << "matIndex: " << matIndex << std::endl
+                Rcpp::Rcout << "matIndex: " << matIndex << std::endl
                           << std::endl;
                 #endif
                 length = args[1].rows(); // size of the kernel
                 #ifdef MP_VERBOSE
-                std::cout << "length: " << length << std::endl
+                Rcpp::Rcout << "length: " << length << std::endl
                           << std::endl;
                 #endif
                 if (length > 0 && args[1].cols() == 1) {
                     #ifdef MP_VERBOSE
-                    std::cout << "kernel 1: " << args[1] << std::endl
+                    Rcpp::Rcout << "kernel 1: " << args[1] << std::endl
                               << std::endl;
                     #endif
                     if (t + 1 < length) {
@@ -2548,7 +2559,7 @@ public:
                         args[1] = args[1].block(0, 0, length, 1);
                     }
                     #ifdef MP_VERBOSE
-                    std::cout << "kernel 2: " << args[1] << std::endl
+                    Rcpp::Rcout << "kernel 2: " << args[1] << std::endl
                               << std::endl;
                     #endif
 
@@ -2687,27 +2698,27 @@ public:
             // #' * `probability` : Probability of a successful Bernoulli trial.
             // #'
             case MP2_POISSON_DENSITY:
-                // std::cout << "step 0" << std::endl;
+                // Rcpp::Rcout << "step 0" << std::endl;
                 if (n < 2)
                 {
                     SetError(MP2_POISSON_DENSITY, "dpois needs two arguments: matrices with observed and expected values", row, MP2_POISSON_DENSITY, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
-                // std::cout << "step 1" << std::endl;
+                // Rcpp::Rcout << "step 1" << std::endl;
                 rows = args[0].rows();
                 cols = args[0].cols();
-                // std::cout << "step 2" << std::endl;
+                // Rcpp::Rcout << "step 2" << std::endl;
                 v1.push_back(1);
                 args = args.recycle_to_shape(v1, rows, cols);
-                // std::cout << "step 3" << std::endl;
+                // Rcpp::Rcout << "step 3" << std::endl;
                 err_code = args.get_error_code();
-                // std::cout << "step 4: " << err_code << std::endl;
+                // Rcpp::Rcout << "step 4: " << err_code << std::endl;
                 // err_code = RecycleInPlace(args[1], rows, cols);
                 if (err_code != 0)
                 {
-                    // std::cout << "step 5" << std::endl;
+                    // Rcpp::Rcout << "step 5" << std::endl;
                     SetError(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", row, MP2_POISSON_DENSITY, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
-                    // std::cout << "step 6" << std::endl;
+                    // Rcpp::Rcout << "step 6" << std::endl;
                     return m;
                 }
                 m = matrix<Type>::Zero(rows, cols);
@@ -2718,7 +2729,7 @@ public:
                         m.coeffRef(i, j) = dpois(args[0].coeff(i, j), args[1].coeff(i, j), 1);
                     }
                 }
-                // std::cout << "step 6" << std::endl;
+                // Rcpp::Rcout << "step 6" << std::endl;
                 return m;
 
             case MP2_NEGBIN_DENSITY:
@@ -2967,30 +2978,30 @@ public:
                     delta_t = 1.0;
                 }
                 if ((args[0].rows() != 1) || (args[0].cols() != 1)) {
-                    //std::cout << "++++++" << std::endl;
-                    //std::cout << args[0] << std::endl;
+                    //Rcpp::Rcout << "++++++" << std::endl;
+                    //Rcpp::Rcout << args[0] << std::endl;
                     SetError(MP2_EULER_MULTINOM_SIM, "The first 'size' argument must be scalar.", row, MP2_EULER_MULTINOM_SIM, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                     return m;
                 }
                 if (args[1].cols() != 1) {
-                    //std::cout << "------" << std::endl;
-                    //std::cout << args[1] << std::endl;
+                    //Rcpp::Rcout << "------" << std::endl;
+                    //Rcpp::Rcout << args[1] << std::endl;
                     SetError(MP2_EULER_MULTINOM_SIM, "The second 'rate' argument must be a column vector.", row, MP2_EULER_MULTINOM_SIM, args.all_rows(), args.all_cols(), args.all_type_ints(), t);
                 }
                 sum = args[1].sum();
-                //std::cout << "sum of rates: " << sum << std::endl;
+                //Rcpp::Rcout << "sum of rates: " << sum << std::endl;
                 m = matrix<Type>::Zero(args[1].rows(), 1);  // multinomial probabilities
                 for (int i = 0; i < args[1].rows(); i++) {
                     m.coeffRef(i, 0) = args[1].coeff(i, 0) * delta_t; // not yet multinomial probabilities in m, but there will be
                 }
                 p0 = exp(-m.sum()); // probability of staying
-                //std::cout << "prob(staying): " << p0 << std::endl;
+                //Rcpp::Rcout << "prob(staying): " << p0 << std::endl;
                 p0 = (1 - p0) / sum; // transform the prob(staying) into the 'rate multiplier'
-                //std::cout << "rate multiplier: " << p0 << std::endl;
+                //Rcpp::Rcout << "rate multiplier: " << p0 << std::endl;
                 for (int i = 0; i < args[1].rows(); i++) {
                     m.coeffRef(i, 0) = p0 * args[1].coeff(i, 0); // now we actually fill m with multinomial probabilities
                 }
-                //std::cout << "multinomial probabilities: " << m << std::endl;
+                //Rcpp::Rcout << "multinomial probabilities: " << m << std::endl;
                 
                 m1 = matrix<Type>::Zero(args[1].rows(), 1);  // multinomial outcomes
                 
@@ -3129,8 +3140,8 @@ public:
             // #' ```
             // #' 
             case MP2_PRINT:
-                std::cout << "printing matrix number " << index2mats[0] << " at time step " << t << " :" << std::endl;
-                std::cout << args[0] << std::endl;
+                Rcpp::Rcout << "printing matrix number " << index2mats[0] << " at time step " << t << " :" << std::endl;
+                Rcpp::Rcout << args[0] << std::endl;
                 return m;
 
             case MP2_CHECK_FINITE:
@@ -3316,7 +3327,7 @@ public:
                     {
                         m1 = m.block(start, 0, sz, 1);
                         m1.resize(args[i].rows(), args[i].cols());
-                        // std::cout << "MATRIX " << valid_vars.m_matrices[index2mats[i]] << std::endl << std::endl;
+                        // Rcpp::Rcout << "MATRIX " << valid_vars.m_matrices[index2mats[i]] << std::endl << std::endl;
                         matIndex = index2mats[i];
                         if (matIndex == -1)
                         {
@@ -3393,9 +3404,9 @@ public:
         std::vector<int> v1;
         std::vector<int> v2;
         int err_code;
-        // std::cout << "---- assignment ----" << std::endl;
-        // std::cout << "n: " << n << std::endl;
-        // std::cout << "x: " << n << std::endl;
+        // Rcpp::Rcout << "---- assignment ----" << std::endl;
+        // Rcpp::Rcout << "n: " << n << std::endl;
+        // Rcpp::Rcout << "x: " << n << std::endl;
         switch (n) {
         case 0:
             valid_vars.m_matrices[x] = assignment_value;
@@ -3463,17 +3474,17 @@ public:
                 m = assignment_value;
                 size = m.rows() * m.cols();
                 m.resize(size, 1);
-                //std::cout << "assignment: " << m << std::endl;
+                //Rcpp::Rcout << "assignment: " << m << std::endl;
               
                 start = 0;
                 for (int i = 0; i < n; i++) {
                     x2 = table_x[table_i[row]+i]; // index (in valid_vars) to ith argument of `c`
-                    //std::cout << "recipient: " << valid_vars.m_matrices[x2] << std::endl;
+                    //Rcpp::Rcout << "recipient: " << valid_vars.m_matrices[x2] << std::endl;
                     sz = valid_vars.m_matrices[x2].rows() * valid_vars.m_matrices[x2].cols();
                     if (sz == 0) sz = size / (n - i);  // heuristic
-                    //std::cout << "sz: " << sz << std::endl;
-                    //std::cout << "size: " << size << std::endl;
-                    //std::cout << "start: " << start << std::endl;
+                    //Rcpp::Rcout << "sz: " << sz << std::endl;
+                    //Rcpp::Rcout << "size: " << size << std::endl;
+                    //Rcpp::Rcout << "start: " << start << std::endl;
                     if (size >= sz) {
                         m1 = m.block(start, 0, sz, 1);
                         nr = valid_vars.m_matrices[x2].rows();
@@ -3481,17 +3492,17 @@ public:
                         if (nr == 0) nr = sz;
                         if (nc == 0) nc = 1;
                         m1.resize(nr, nc);
-                        //std::cout << "this replacement block: " << m1 << std::endl;
+                        //Rcpp::Rcout << "this replacement block: " << m1 << std::endl;
                         valid_vars.m_matrices[x2] = m1;
-                        //std::cout << "recipient after: " << valid_vars.m_matrices[x2] << std::endl;
+                        //Rcpp::Rcout << "recipient after: " << valid_vars.m_matrices[x2] << std::endl;
                         size -= sz;
                         start += sz;
                     }
                     else
                         break;
                 }
-                // std::cout << "size at end: " << size << std::endl;
-                // std::cout << "size at end: " << size << std::endl;
+                // Rcpp::Rcout << "size at end: " << size << std::endl;
+                // Rcpp::Rcout << "size at end: " << size << std::endl;
                 return;
         } // switch (x + 1)
         
@@ -3536,7 +3547,7 @@ vector<ListOfMatrices<Type>> MakeSimulationHistory(
     vector<ListOfMatrices<Type>> simulation_history(time_steps + 2);
     matrix<Type> empty_matrix;
     for (unsigned int i = 0; i < mats_save_hist.size(); i++)
-        //std::cout << "matrix: " << size << std::endl;
+        //Rcpp::Rcout << "matrix: " << size << std::endl;
         if (mats_save_hist[i] == 0)
             hist_shape_template.m_matrices[i] = empty_matrix;
 
@@ -3570,7 +3581,7 @@ template <class Type>
 Type objective_function<Type>::operator()()
 {
 #ifdef MP_VERBOSE
-    std::cout << "============== objective_function =============" << std::endl;
+    Rcpp::Rcout << "============== objective_function =============" << std::endl;
 #endif
 
     // Log file path
@@ -3582,7 +3593,7 @@ Type objective_function<Type>::operator()()
     logfile << "======== macpan2 log file ========\n";
     logfile.close();
 
-    std::setprecision(9); // Set the precision of std::cout
+    std::setprecision(9); // Set the precision of Rcpp::Rcout
 
     // 1 Get all data and parameters from the R side
     // Parameters themselves
@@ -3649,47 +3660,47 @@ Type objective_function<Type>::operator()()
     // Flags
     DATA_INTEGER(values_adreport);
 
-    // std::cout << "=======================" << std::endl;
+    // Rcpp::Rcout << "=======================" << std::endl;
 
 #ifdef MP_VERBOSE
-    std::cout << "params = " << params << std::endl;
+    Rcpp::Rcout << "params = " << params << std::endl;
 
-    std::cout << "random = " << random << std::endl;
+    Rcpp::Rcout << "random = " << random << std::endl;
 
     n = mats.m_matrices.size();
     for (int i = 0; i < n; i++)
-        std::cout << "mats = " << mats.m_matrices[i] << std::endl;
+        Rcpp::Rcout << "mats = " << mats.m_matrices[i] << std::endl;
 
-    std::cout << "p_par_id = " << p_par_id << std::endl;
-    std::cout << "p_mat_id = " << p_mat_id << std::endl;
-    std::cout << "p_row_id = " << p_row_id << std::endl;
-    std::cout << "p_col_id = " << p_col_id << std::endl;
+    Rcpp::Rcout << "p_par_id = " << p_par_id << std::endl;
+    Rcpp::Rcout << "p_mat_id = " << p_mat_id << std::endl;
+    Rcpp::Rcout << "p_row_id = " << p_row_id << std::endl;
+    Rcpp::Rcout << "p_col_id = " << p_col_id << std::endl;
 
-    std::cout << "r_par_id = " << r_par_id << std::endl;
-    std::cout << "r_mat_id = " << r_mat_id << std::endl;
-    std::cout << "r_row_id = " << r_row_id << std::endl;
-    std::cout << "r_col_id = " << r_col_id << std::endl;
+    Rcpp::Rcout << "r_par_id = " << r_par_id << std::endl;
+    Rcpp::Rcout << "r_mat_id = " << r_mat_id << std::endl;
+    Rcpp::Rcout << "r_row_id = " << r_row_id << std::endl;
+    Rcpp::Rcout << "r_col_id = " << r_col_id << std::endl;
 
-    std::cout << "time_steps = " << time_steps << std::endl;
+    Rcpp::Rcout << "time_steps = " << time_steps << std::endl;
 
-    std::cout << "mats_save_hist = " << mats_save_hist << std::endl;
-    std::cout << "mats_return = " << mats_return << std::endl;
+    Rcpp::Rcout << "mats_save_hist = " << mats_save_hist << std::endl;
+    Rcpp::Rcout << "mats_return = " << mats_return << std::endl;
 
-    std::cout << "eval_schedule = " << eval_schedule << std::endl;
+    Rcpp::Rcout << "eval_schedule = " << eval_schedule << std::endl;
 
-    // std::cout << "expr_output_id = " << expr_output_id << std::endl;
-    std::cout << "expr_sim_block = " << expr_sim_block << std::endl;
-    std::cout << "expr_num_p_table_rows = " << expr_num_p_table_rows << std::endl;
+    // Rcpp::Rcout << "expr_output_id = " << expr_output_id << std::endl;
+    Rcpp::Rcout << "expr_sim_block = " << expr_sim_block << std::endl;
+    Rcpp::Rcout << "expr_num_p_table_rows = " << expr_num_p_table_rows << std::endl;
 
-    std::cout << "p_table_x = " << p_table_x << std::endl;
-    std::cout << "p_table_n = " << p_table_n << std::endl;
-    std::cout << "p_table_i = " << p_table_i << std::endl;
+    Rcpp::Rcout << "p_table_x = " << p_table_x << std::endl;
+    Rcpp::Rcout << "p_table_n = " << p_table_n << std::endl;
+    Rcpp::Rcout << "p_table_i = " << p_table_i << std::endl;
 
-    std::cout << "literals = " << literals << std::endl;
+    Rcpp::Rcout << "literals = " << literals << std::endl;
 
-    std::cout << "o_table_x = " << o_table_x << std::endl;
-    std::cout << "o_table_n = " << o_table_n << std::endl;
-    std::cout << "o_table_i = " << o_table_i << std::endl;
+    Rcpp::Rcout << "o_table_x = " << o_table_x << std::endl;
+    Rcpp::Rcout << "o_table_n = " << o_table_n << std::endl;
+    Rcpp::Rcout << "o_table_i = " << o_table_i << std::endl;
 #endif
 
     // 2 Replace some of elements of some matrices with parameters
@@ -3748,8 +3759,8 @@ Type objective_function<Type>::operator()()
 
     for (int i = 0; i < eval_schedule[0]; i++) { // loop over expressions in the before step
 #ifdef MP_VERBOSE
-        std::cout << "in pre-simulation --- " << i << std::endl;
-        std::cout << "expr_num_p_table_rows[i] " << expr_num_p_table_rows[i] << std::endl;
+        Rcpp::Rcout << "in pre-simulation --- " << i << std::endl;
+        Rcpp::Rcout << "expr_num_p_table_rows[i] " << expr_num_p_table_rows[i] << std::endl;
 #endif
         matrix<Type> result;
         if (expr_sim_block[i] == 1) {
@@ -3796,12 +3807,12 @@ Type objective_function<Type>::operator()()
         p_table_row2 = p_table_row;
         a_table_row2 = a_table_row;
 #ifdef MP_VERBOSE
-        std::cout << "simulation step --- " << k << std::endl;
+        Rcpp::Rcout << "simulation step --- " << k << std::endl;
 #endif
         for (int i = 0; i < eval_schedule[1]; i++) { // for each expression in the 'during' list
 #ifdef MP_VERBOSE
-            std::cout << "Eval expression --- " << i << std::endl;
-            std::cout << "expr_num_p_table_rows[i] " << expr_num_p_table_rows[expr_index + i] << std::endl;
+            Rcpp::Rcout << "Eval expression --- " << i << std::endl;
+            Rcpp::Rcout << "expr_num_p_table_rows[i] " << expr_num_p_table_rows[expr_index + i] << std::endl;
 #endif
             matrix<Type> result;
             if (expr_sim_block[i] == 1) {
@@ -3827,7 +3838,7 @@ Type objective_function<Type>::operator()()
 #ifdef MP_VERBOSE
             int n = mats.m_matrices.size();
             for (int ii = 0; ii < n; ii++)
-                std::cout << "mats = " << mats.m_matrices[ii] << std::endl;
+                Rcpp::Rcout << "mats = " << mats.m_matrices[ii] << std::endl;
 #endif
         }
         // simulation_history[k+1] = mats;
@@ -3846,8 +3857,8 @@ Type objective_function<Type>::operator()()
 
     for (int i = 0; i < eval_schedule[2]; i++) { // loop over the 'after' expressions
 #ifdef MP_VERBOSE
-        std::cout << "in post-simulation --- " << i << std::endl;
-        std::cout << "expr_num_p_table_rows[i] " << expr_num_p_table_rows[expr_index + i] << std::endl;
+        Rcpp::Rcout << "in post-simulation --- " << i << std::endl;
+        Rcpp::Rcout << "expr_num_p_table_rows[i] " << expr_num_p_table_rows[expr_index + i] << std::endl;
 #endif
         matrix<Type> result;
         if (expr_sim_block[i] == 1) {
@@ -3882,14 +3893,14 @@ Type objective_function<Type>::operator()()
         hist_shape_template);
 
 #ifdef MP_VERBOSE
-    std::cout << "Simulation history ..." << std::endl;
+    Rcpp::Rcout << "Simulation history ..." << std::endl;
     int m = simulation_history.size();
     for (int t = 0; t < m; t++) {
-        std::cout << "----- t = " << t << std::endl;
+        Rcpp::Rcout << "----- t = " << t << std::endl;
         ListOfMatrices<Type> mats = simulation_history[t];
         int n = mats.m_matrices.size();
         for (int i = 0; i < n; i++)
-            std::cout << "mats = " << mats.m_matrices[i] << std::endl;
+            Rcpp::Rcout << "mats = " << mats.m_matrices[i] << std::endl;
     }
 #endif
 
@@ -3965,7 +3976,7 @@ Type objective_function<Type>::operator()()
     REPORT_ERROR
 
 #ifdef MP_VERBOSE
-    std::cout << "======== end of objective function ========" << std::endl;
+    Rcpp::Rcout << "======== end of objective function ========" << std::endl;
 #endif
     return ret.coeff(0, 0);
 }
