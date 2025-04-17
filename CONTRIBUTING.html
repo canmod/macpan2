@@ -74,6 +74,13 @@ make pkg-check         # R package checks</code></pre>
 <span><span class="fu"><a href="reference/mp_simulator.html">mp_simulator</a></span><span class="op">(</span><span class="va">sir</span>, time_steps <span class="op">=</span> <span class="fl">100</span>, outputs <span class="op">=</span> <span class="st">"I"</span><span class="op">)</span></span></code></pre>
 <p>To update <code>src/macpan2</code> to the state of <code>misc/dev/dev.cpp</code> one may run <code>make src-update</code>.</p>
 <p>Running with <code>misc/dev/dev.cpp</code> will print out debugging information in a verbose manner, whereas <code>src/macpan2.cpp</code> will not. The <code>src-update</code> make rule removes the <code>#define MP_VERBOSE</code> flag at the top of the file.</p>
+<p>We <code>#include</code> both <code>Rcpp.h</code> and <code>TMB.hpp</code>, which increases the possibility of namespace clashes. Our approach to addressing this is with <a href="https://en.wikipedia.org/wiki/Include_guard" class="external-link">include-guarding</a>. We assume that <code>TMB</code> takes precedence and so we include <code>Rcpp</code> first and then un-define any names in <code>Rcpp</code> that we want to use from <code>TMB</code> instead. Here is the example of the <code>dnorm</code> function.</p>
+<pre><code><span><span class="co">#include &lt;Rcpp.h&gt;</span></span>
+<span><span class="co">#ifdef dnorm</span></span>
+<span><span class="co">#undef dnorm</span></span>
+<span><span class="co">#endif</span></span>
+<span><span class="co">#include &lt;TMB.hpp&gt;</span></span></code></pre>
+<p>When you attempt to use functions from <code>TMB</code> when adding an engine function, you should be aware that you might need to do some include-guarding. You will find out via compilation errors.</p>
 </div>
 <div class="section level2">
 <h2 id="developer-installation-on-windows">Developer Installation on Windows<a class="anchor" aria-label="anchor" href="#developer-installation-on-windows"></a></h2>
