@@ -11,7 +11,7 @@ Makefile
 ^macpan2/\.[a-z]+$
 ^macpan2_[a-z0-9]+\.tar\.gz$
 ^src/macpan2-[a-z0-9]+\.o\.tmp$
-\.macpan$
+^\.macpan$
 .codegpt
 .*\.o$
 .*\.so$
@@ -29,3 +29,4 @@ drat/
 .*/html/.*
 ^vignettes/[a-zA-Z0-9]+\.Rmd$
 .*.cff
+^CONTRIBUTING\.md$
