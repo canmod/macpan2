@@ -235,13 +235,6 @@ a set of vectors. Each of these vectors is the same length, with one
 element per expression.</p>
 <ul>
 <li>
-<code>DATA_IVECTOR(expr_output_id)</code>
-<ul>
-<li>Index into <code>mats</code> identifying the matrix produced by the
-expression</li>
-</ul>
-</li>
-<li>
 <code>DATA_IVECTOR(expr_sim_block)</code>
 <ul>
 <li>Identifies whether or not the expression should be evaluated inside
@@ -261,6 +254,13 @@ macro</li>
 <ul>
 <li>Number of rows associated with each expression in the parse table
 (see section on <a href="#parse-tables">Parse Tables</a>)</li>
+</ul>
+</li>
+<li>
+<code>DATA_IVECTOR(assign_num_a_table_rows)</code>
+<ul>
+<li>Number of rows associated with each expression in the assignment
+parse table (see section on <a href="#assignment-parse-tables">Assignment Parse Tables</a>)</li>
 </ul>
 </li>
 </ul>
@@ -333,6 +333,21 @@ elements of this vector contain the number of parse table rows
 associated with each expression. The ordering of the elements is
 consistent with the ordering of the concatenation of the individual
 parse tables, and so row indices are not necessary.</p>
+</div>
+<div class="section level2">
+<h2 id="assignment">Assignment<a class="anchor" aria-label="anchor" href="#assignment"></a>
+</h2>
+<p>The resulting matrices produced by evaluating <a href="#expressions">Expressions</a> is assigned to another matrix or a
+subset of another matrix.</p>
+</div>
+<div class="section level2">
+<h2 id="assignment-parse-tables">Assignment Parse Tables<a class="anchor" aria-label="anchor" href="#assignment-parse-tables"></a>
+</h2>
+<ul>
+<li><code>DATA_IVECTOR(a_table_n)</code></li>
+<li><code>DATA_IVECTOR(a_table_x)</code></li>
+<li><code>DATA_IVECTOR(a_table_i)</code></li>
+</ul>
 </div>
 <div class="section level2">
 <h2 id="literals">Literals<a class="anchor" aria-label="anchor" href="#literals"></a>
