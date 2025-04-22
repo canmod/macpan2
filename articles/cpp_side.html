@@ -338,7 +338,14 @@ parse tables, and so row indices are not necessary.</p>
 <h2 id="assignment">Assignment<a class="anchor" aria-label="anchor" href="#assignment"></a>
 </h2>
 <p>The resulting matrices produced by evaluating <a href="#expressions">Expressions</a> is assigned to another matrix or a
-subset of another matrix.</p>
+subset of another matrix. Assignment is specified as the left-hand-side
+of an R formula. These assignment specifications can take the form of a
+single function call. The current list of functions that are available
+for assignment are described <a href="https://canmod.github.io/macpan2/reference/engine_functions.html#assignment">here</a>.
+Developers can add to this list in a manner similar to that for adding
+<a href="#function-definitions">Function Definitions</a>. Each function
+in this list must have a corresponding function with the same name that
+can be used on the right hand side.</p>
 </div>
 <div class="section level2">
 <h2 id="assignment-parse-tables">Assignment Parse Tables<a class="anchor" aria-label="anchor" href="#assignment-parse-tables"></a>
@@ -366,34 +373,8 @@ to reason about their expressions.</p>
 single matrix. The number of arguments does not need to be known when
 the model is defined, but some functions may optionally require a
 predefined number of arguments.</p>
-<p>Extending functionality of the engine will typically involve simply
-adding function definitions to the list of valid functions. All function
-definitions have the following objects available to them.</p>
-<ul>
-<li>
-<code>r</code> – A list of matrices giving the arguments to the
-function (e.g. <code>r[0]</code> returns the first matrix).</li>
-<li>
-<code>index2mats</code> – A list of integers giving the indices for
-identifying the matrices in the <code>mats</code> list
-(e.g. <code>index2mats[0]</code> returns the index of the first
-argument).</li>
-<li>
-<code>t</code> – Time step</li>
-<li>
-<code>hist</code> – A list of lists of matrices giving the history
-of the simulation (e.g. <code>hist[4][0]</code> returns the value of the
-first matrix at time step <code>4</code>).</li>
-<li>
-<code>n</code> – The number of arguments.</li>
-</ul>
-<p>Function definitions should be grouped into types if several
-functions require similar processing. The main example that we have is
-element-wise binary operators, including <code>+</code>, <code>*</code>,
-<code>-</code>, <code>/</code>, <code>^</code>. These functions all
-require the same pre-processing to make sure that the matrix dimensions
-of the two operands are compatible and that compatibility is
-conveniently defined for the user.</p>
+<p>Extending functionality of the engine will typically involve <a href="https://canmod.github.io/macpan2/CONTRIBUTING.html#adding-engine-functions">adding
+function definitions</a> to the list of valid functions.</p>
 </div>
 <div class="section level2">
 <h2 id="objective-function">Objective Function<a class="anchor" aria-label="anchor" href="#objective-function"></a>

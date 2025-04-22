@@ -64,13 +64,23 @@ following example that calculates a force of infection.</p>
 <span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>  , <span class="at">I =</span> <span class="fl">1e3</span></span>
 <span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>  , <span class="at">N =</span> <span class="fl">1e7</span></span>
 <span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>)</span></code></pre><p></p></div>
-<p>To produce a simulation using these engine functions, one may
-use <code><a href="simple_sims.html">simple_sims</a></code>.</p>
+<p>To produce a dynamical simulation that iteratively evaluates
+expression involving these functions, use
+<code><a href="simple_sims.html">simple_sims</a></code>.</p>
 <p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">simple_sims</span>(</span>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>  <span class="at">iteration_exprs =</span> <span class="fu">list</span>(x <span class="sc">~</span> x <span class="sc">-</span> <span class="fl">0.9</span> <span class="sc">*</span> x),</span>
 <span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>  <span class="at">time_steps =</span> <span class="dv">5</span>,</span>
 <span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>  <span class="at">mats =</span> <span class="fu">list</span>(<span class="at">x =</span> <span class="dv">1</span>)</span>
-<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>)</span></code></pre><p></p></div><div class="section">
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>)</span></code></pre><p></p></div>
+<p>Here, <code>x - 0.9 * x</code> is assigned to <code>x</code> at each of five
+iterations of a simulation loop.</p>
+<p>If these expressions involve matrices with more than one
+element, You can control which elements in the evaluation
+of the right hand side go to which elements on the left
+hand side. This technique involves using either square
+brackets or the <code>c</code> function on the left hand side. For
+more information on assignment, please see the section
+on Assignment below.</p><div class="section">
 <h3 id="elementwise-binary-operators">Elementwise Binary Operators<a class="anchor" aria-label="anchor" href="#elementwise-binary-operators"></a></h3>
 
 
@@ -102,8 +112,8 @@ is thrown and the matrices are said to be incompatible.</p><div class="section">
 <div class="section">
 <h4 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h4>
 
-<ul><li><p><code>x</code> – Any matrix with dimensions compatible with <code>y</code>.</p></li>
-<li><p><code>y</code> – Any matrix with dimensions compatible with <code>x</code>.</p></li>
+<ul><li><p><code>x</code> : Any matrix with dimensions compatible with <code>y</code>.</p></li>
+<li><p><code>y</code> : Any matrix with dimensions compatible with <code>x</code>.</p></li>
 </ul></div>
 
 <div class="section">
@@ -131,24 +141,27 @@ after any necessary recycling of rows and/or columns.</p></li>
 <div class="section">
 <h4 id="functions-1">Functions<a class="anchor" aria-label="anchor" href="#functions-1"></a></h4>
 
-<ul><li><p><code>log(x)</code> – Natural logarithm</p></li>
-<li><p><code>exp(x)</code> – Exponential function</p></li>
-<li><p><code>cos(x)</code> – Cosine function</p></li>
-<li><p><code>sin(x)</code> – Sine function</p></li>
-<li><p><code>sqrt(x)</code> – Squareroot function</p></li>
+<ul><li><p><code>log(x)</code> : Natural logarithm.</p></li>
+<li><p><code>exp(x)</code> : Exponential function.</p></li>
+<li><p><code>cos(x)</code> : Cosine function.</p></li>
+<li><p><code>sin(x)</code> : Sine function.</p></li>
+<li><p><code>sqrt(x)</code> : Squareroot function.</p></li>
+<li><p><code>invlogit(x)</code> : Inverse logit function,
+<code>1/(1 + exp(-x))</code>.</p></li>
+<li><p><code>logit(x)</code> : Logit function, <code>log(x/(1-x))</code>.</p></li>
 </ul></div>
 
 <div class="section">
 <h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
 
-<ul><li><p><code>x</code> : Any matrix</p></li>
+<ul><li><p><code>x</code> : Any numeric matrix.</p></li>
 </ul></div>
 
 <div class="section">
 <h4 id="return-1">Return<a class="anchor" aria-label="anchor" href="#return-1"></a></h4>
 
-<ul><li><p>A matrix with the same dimensions as <code>x</code>, with the
-unary function applied elementwise.</p></li>
+<ul><li><p>A matrix with the same dimensions as <code>x</code>, containing
+the results of applying the function to each element of <code>x</code>.</p></li>
 </ul></div>
 
 <div class="section">
@@ -181,7 +194,8 @@ unary function applied elementwise.</p></li>
 <div class="section">
 <h4 id="return-2">Return<a class="anchor" aria-label="anchor" href="#return-2"></a></h4>
 
-<ul><li><p>matrix of <code>x / sum(x)</code> or <code>rep(limit, length(x))</code> if <code>sum(x) &lt; eps</code></p></li>
+<ul><li><p>matrix of <code>x / sum(x)</code> or <code>rep(limit, length(x))</code> if
+<code>sum(x) &lt; eps</code>.</p></li>
 </ul></div>
 
 <div class="section">
@@ -564,7 +578,10 @@ first row to extract (for <code>block</code>).</p></li>
 <li><p><code>j</code> : An integer column vector (for <code>[</code>) or
 integer scalar (for <code>block</code>) containing the indices
 of the columns to extract (for <code>[</code>) or the index of
-the first column to extract (for <code>block</code>).</p></li>
+the first column to extract (for <code>block</code>). If <code>j</code> is missing
+in a call to <code>[</code>, it is assumed to be <code>j = 0</code> although
+we might change this default to be the vector of all column
+indices.</p></li>
 <li><p><code>n</code> : Number of rows in the block to return.</p></li>
 <li><p><code>m</code> : Number of columns in the block to return.</p></li>
 </ul></div>
@@ -1170,6 +1187,41 @@ used up by <code>x</code>.</p>
 <span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>  , <span class="at">.matrix_to_return =</span> <span class="st">"y"</span></span>
 <span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>)</span></code></pre><p></p></div>
 </div>
+
+
+</div>
+
+<div class="section">
+<h3 id="assignment">Assignment<a class="anchor" aria-label="anchor" href="#assignment"></a></h3>
+
+
+<p>The left-hand-side of formulas sent to the simulation engine
+determine assignment works.</p><div class="section">
+<h4 id="functions-21">Functions<a class="anchor" aria-label="anchor" href="#functions-21"></a></h4>
+
+<ul><li><p><code>y ~ x</code> : Assign <code>x</code> to <code>y</code>.</p></li>
+<li><p><code>y[i] ~ x</code> : Assign the first column of <code>x</code> to those rows
+in the first column of <code>y</code> that are indexed by <code>i</code>.</p></li>
+<li><p><code>y[i, j] ~ x</code> : Assign each element, <code>x[k, l]</code>, in <code>x</code>,
+to element, <code>y[i[k], j[l]]</code>, in <code>y</code>.</p></li>
+<li><p><code>c(...) ~ x</code> : Assign the elements of the columns of <code>x</code>
+(stacked on top of each other) to the matrices in <code>...</code> in the
+order in which they appear. If the number of columns is <code>x</code>
+equals the number of matrices in <code>...</code>, and if these matrices
+are vectors (i.e., have only a single column or a single row),
+then the columns of <code>x</code> become assigned to the vectors in <code>...</code>.</p></li>
+</ul></div>
+
+<div class="section">
+<h4 id="arguments-21">Arguments<a class="anchor" aria-label="anchor" href="#arguments-21"></a></h4>
+
+<ul><li><p><code>x</code> : Matrix containing the result of the expression on the
+right-hand-side.</p></li>
+<li><p><code>y</code> : Matrix with elements that will be assigned the elements
+of <code>x</code>.</p></li>
+<li><p><code>i</code> : Integer vector giving zero-based row indexes describing
+the rows in <code>x</code> that get the</p></li>
+</ul></div>
 
 
 </div>
