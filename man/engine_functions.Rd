@@ -31,8 +31,6 @@
 \alias{cbind}
 \alias{rbind}
 \alias{time_step}
-\alias{assign}
-\alias{unpack}
 \alias{recycle}
 \alias{clamp}
 \alias{dpois}
@@ -63,6 +61,8 @@
 \alias{pnorm}
 \alias{invlogit}
 \alias{logit}
+\alias{assign}
+\alias{unpack}
 \title{Functions Available in the Simulation Engine}
 \description{
 Functions currently supported by the C++ TMB engine
@@ -81,8 +81,9 @@ following example that calculates a force of infection.
 )
 }\if{html}{\out{</div>}}
 
-To produce a simulation using these engine functions, one may
-use \code{\link{simple_sims}}.
+To produce a dynamical simulation that iteratively evaluates
+expression involving these functions, use
+\code{\link{simple_sims}}.
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{simple_sims(
   iteration_exprs = list(x ~ x - 0.9 * x),
@@ -90,6 +91,17 @@ use \code{\link{simple_sims}}.
   mats = list(x = 1)
 )
 }\if{html}{\out{</div>}}
+
+Here, \code{x - 0.9 * x} is assigned to \code{x} at each of five
+iterations of a simulation loop.
+
+If these expressions involve matrices with more than one
+element, You can control which elements in the evaluation
+of the right hand side go to which elements on the left
+hand side. This technique involves using either square
+brackets or the \code{c} function on the left hand side. For
+more information on assignment, please see the section
+on Assignment below.
 \subsection{Elementwise Binary Operators}{
 
 Elementwise binary operators take two matrix-valued
@@ -120,8 +132,8 @@ is thrown and the matrices are said to be incompatible.
 
 \subsection{Arguments}{
 \itemize{
-\item \code{x} -- Any matrix with dimensions compatible with \code{y}.
-\item \code{y} -- Any matrix with dimensions compatible with \code{x}.
+\item \code{x} : Any matrix with dimensions compatible with \code{y}.
+\item \code{y} : Any matrix with dimensions compatible with \code{x}.
 }
 }
 
@@ -145,24 +157,27 @@ engine_eval(~ 1 / (1 - y), y = 1/4)
 \subsection{Elementwise Math}{
 \subsection{Functions}{
 \itemize{
-\item \code{log(x)} -- Natural logarithm
-\item \code{exp(x)} -- Exponential function
-\item \code{cos(x)} -- Cosine function
-\item \code{sin(x)} -- Sine function
-\item \code{sqrt(x)} -- Squareroot function
+\item \code{log(x)} : Natural logarithm.
+\item \code{exp(x)} : Exponential function.
+\item \code{cos(x)} : Cosine function.
+\item \code{sin(x)} : Sine function.
+\item \code{sqrt(x)} : Squareroot function.
+\item \code{invlogit(x)} : Inverse logit function,
+\code{1/(1 + exp(-x))}.
+\item \code{logit(x)} : Logit function, \code{log(x/(1-x))}.
 }
 }
 
 \subsection{Arguments}{
 \itemize{
-\item \code{x} : Any matrix
+\item \code{x} : Any numeric matrix.
 }
 }
 
 \subsection{Return}{
 \itemize{
-\item A matrix with the same dimensions as \code{x}, with the
-unary function applied elementwise.
+\item A matrix with the same dimensions as \code{x}, containing
+the results of applying the function to each element of \code{x}.
 }
 }
 
@@ -191,7 +206,8 @@ unary function applied elementwise.
 
 \subsection{Return}{
 \itemize{
-\item matrix of \code{x / sum(x)} or \code{rep(limit, length(x))} if \code{sum(x) < eps}
+\item matrix of \code{x / sum(x)} or \code{rep(limit, length(x))} if
+\code{sum(x) < eps}.
 }
 }
 
@@ -544,7 +560,10 @@ first row to extract (for \code{block}).
 \item \code{j} : An integer column vector (for \code{[}) or
 integer scalar (for \code{block}) containing the indices
 of the columns to extract (for \code{[}) or the index of
-the first column to extract (for \code{block}).
+the first column to extract (for \code{block}). If \code{j} is missing
+in a call to \code{[}, it is assumed to be \code{j = 0} although
+we might change this default to be the vector of all column
+indices.
 \item \code{n} : Number of rows in the block to return.
 \item \code{m} : Number of columns in the block to return.
 }
@@ -1113,6 +1132,39 @@ used up by \code{x}.
   , .matrix_to_return = "y"
 )
 }\if{html}{\out{</div>}}
+}
+
+}
+
+\subsection{Assignment}{
+
+The left-hand-side of formulas sent to the simulation engine
+determine assignment works.
+\subsection{Functions}{
+\itemize{
+\item \code{y ~ x} : Assign \code{x} to \code{y}.
+\item \code{y[i] ~ x} : Assign the first column of \code{x} to those rows
+in the first column of \code{y} that are indexed by \code{i}.
+\item \code{y[i, j] ~ x} : Assign each element, \code{x[k, l]}, in \code{x},
+to element, \code{y[i[k], j[l]]}, in \code{y}.
+\item \code{c(...) ~ x} : Assign the elements of the columns of \code{x}
+(stacked on top of each other) to the matrices in \code{...} in the
+order in which they appear. If the number of columns is \code{x}
+equals the number of matrices in \code{...}, and if these matrices
+are vectors (i.e., have only a single column or a single row),
+then the columns of \code{x} become assigned to the vectors in \code{...}.
+}
+}
+
+\subsection{Arguments}{
+\itemize{
+\item \code{x} : Matrix containing the result of the expression on the
+right-hand-side.
+\item \code{y} : Matrix with elements that will be assigned the elements
+of \code{x}.
+\item \code{i} : Integer vector giving zero-based row indexes describing
+the rows in \code{x} that get the
+}
 }
 
 }

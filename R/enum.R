@@ -29,8 +29,6 @@ valid_func_sigs = c(
       , "fwrap: cbind(...)"
       , "fwrap: rbind(...)"
       , "fwrap: time_step(lag)"
-      , "fwrap: assign(x, i, j, v)"
-      , "fwrap: unpack(x, ...)"
       , "fwrap: recycle(x, rows, cols)"
       , "fwrap: clamp(x, eps)"
       , "fwrap: dpois(observed, simulated)"
@@ -61,6 +59,8 @@ valid_func_sigs = c(
       , "fwrap: pnorm(q, mean, sd)"
       , "fwrap: invlogit(x)"
       , "fwrap: logit(x)"
+      , "fwrap: assign(x, i, j, v)"
+      , "fwrap: unpack(x, ...)"
 )
 process_enum = function(x) {
   RE = "(paren|binop|fwrap)[ ]*:[ ]*\\`?([^`]*)\\`?\\((.*)(\\,.*)*\\)"

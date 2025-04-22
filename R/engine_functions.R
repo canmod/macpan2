@@ -18,8 +18,9 @@
 #' )
 #' ```
 #'
-#' To produce a simulation using these engine functions, one may
-#' use \code{\link{simple_sims}}.
+#' To produce a dynamical simulation that iteratively evaluates
+#' expression involving these functions, use 
+#' \code{\link{simple_sims}}.
 #'
 #' ```
 #' simple_sims(
@@ -29,6 +30,16 @@
 #' )
 #' ```
 #'
+#' Here, `x - 0.9 * x` is assigned to `x` at each of five 
+#' iterations of a simulation loop.
+#' 
+#' If these expressions involve matrices with more than one 
+#' element, You can control which elements in the evaluation 
+#' of the right hand side go to which elements on the left 
+#' hand side. This technique involves using either square
+#' brackets or the `c` function on the left hand side. For 
+#' more information on assignment, please see the section
+#' on Assignment below.
 #'
 #' ## Elementwise Binary Operators
 #'
@@ -60,8 +71,8 @@
 #'
 #' ### Arguments
 #'
-#' * `x` -- Any matrix with dimensions compatible with `y`.
-#' * `y` -- Any matrix with dimensions compatible with `x`.
+#' * `x` : Any matrix with dimensions compatible with `y`.
+#' * `y` : Any matrix with dimensions compatible with `x`.
 #'
 #' ### Return
 #'
@@ -80,20 +91,23 @@
 #'
 #' ### Functions
 #'
-#' * `log(x)` -- Natural logarithm
-#' * `exp(x)` -- Exponential function
-#' * `cos(x)` -- Cosine function
-#' * `sin(x)` -- Sine function
-#' * `sqrt(x)` -- Squareroot function
+#' * `log(x)` : Natural logarithm.
+#' * `exp(x)` : Exponential function.
+#' * `cos(x)` : Cosine function.
+#' * `sin(x)` : Sine function.
+#' * `sqrt(x)` : Squareroot function.
+#' * `invlogit(x)` : Inverse logit function, 
+#' `1/(1 + exp(-x))`.
+#' * `logit(x)` : Logit function, `log(x/(1-x))`.
 #'
 #' ### Arguments
 #'
-#' * `x` : Any matrix
+#' * `x` : Any numeric matrix.
 #'
 #' ### Return
 #'
-#' * A matrix with the same dimensions as `x`, with the
-#' unary function applied elementwise.
+#' * A matrix with the same dimensions as `x`, containing
+#' the results of applying the function to each element of `x`.
 #'
 #' ### Examples
 #'
@@ -115,13 +129,15 @@
 #'
 #' ### Return
 #'
-#' * matrix of `x / sum(x)` or `rep(limit, length(x))` if `sum(x) < eps`
+#' * matrix of `x / sum(x)` or `rep(limit, length(x))` if 
+#' `sum(x) < eps`.
 #'
 #' ### Examples
 #'
 #' ```
 #' engine_eval(~ proportions(y, 0.5, 1e-8), y = c(2, 0.5))
 #' ```
+#' 
 #' ## Integer Sequences
 #'
 #' ### Functions
@@ -416,7 +432,10 @@
 #' * `j` : An integer column vector (for `[`) or
 #' integer scalar (for `block`) containing the indices
 #' of the columns to extract (for `[`) or the index of
-#' the first column to extract (for `block`). 
+#' the first column to extract (for `block`). If `j` is missing
+#' in a call to `[`, it is assumed to be `j = 0` although
+#' we might change this default to be the vector of all column
+#' indices.
 #' * `n` : Number of rows in the block to return.
 #' * `m` : Number of columns in the block to return.
 #'
@@ -915,6 +934,34 @@
 #' )
 #' ```
 #'
+#' ## Assignment
+#'
+#' The left-hand-side of formulas sent to the simulation engine
+#' determine assignment works.
+#' 
+#' ### Functions
+#'
+#' * `y ~ x` : Assign `x` to `y`.
+#' * `y[i] ~ x` : Assign the first column of `x` to those rows
+#' in the first column of `y` that are indexed by `i`.
+#' * `y[i, j] ~ x` : Assign each element, `x[k, l]`, in `x`,
+#' to element, `y[i[k], j[l]]`, in `y`.
+#' * `c(...) ~ x` : Assign the elements of the columns of `x`
+#' (stacked on top of each other) to the matrices in `...` in the 
+#' order in which they appear. If the number of columns is `x` 
+#' equals the number of matrices in `...`, and if these matrices
+#' are vectors (i.e., have only a single column or a single row),
+#' then the columns of `x` become assigned to the vectors in `...`.
+#' 
+#' ### Arguments
+#' 
+#' * `x` : Matrix containing the result of the expression on the
+#' right-hand-side.
+#' * `y` : Matrix with elements that will be assigned the elements
+#' of `x`.
+#' * `i` : Integer vector giving zero-based row indexes describing
+#' the rows in `x` that get the 
+#' 
 #' @name engine_functions
 #' @aliases `+`
 #' @aliases `-`
@@ -945,8 +992,6 @@
 #' @aliases cbind
 #' @aliases rbind
 #' @aliases time_step
-#' @aliases assign
-#' @aliases unpack
 #' @aliases recycle
 #' @aliases clamp
 #' @aliases dpois
@@ -977,4 +1022,6 @@
 #' @aliases pnorm
 #' @aliases invlogit
 #' @aliases logit
+#' @aliases assign
+#' @aliases unpack
 NULL
