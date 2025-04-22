@@ -289,8 +289,8 @@ mp_tmb_insert_log_linear = function(model
     #, change_points ## list of change-point integer vectors
     #, offset_references ## list of character vectors
     , baseline_functions = c(
-          list(macpan2:::TimeVarBaselineParameter())
-        , rep(list(macpan2:::TimeVarBaselineNumeric(0)), length(design_matrices) - 1)
+          list(TimeVarBaselineParameter())
+        , rep(list(TimeVarBaselineNumeric(0)), length(design_matrices) - 1)
       )
     , link_functions = rep(list(mp_identity), length(design_matrices)) ## list of DistrParamTrans objects
     , full_series_name = sprintf("time_var_output_%s", parameter_name)
@@ -303,7 +303,7 @@ mp_tmb_insert_log_linear = function(model
     , time_index_name = sprintf("time_index_%s", parameter_name)
     , sparsity_tolerance = 0
   ) {
-  sparse_matrices = lapply(design_matrices, macpan2:::sparse_matrix_notation, tol = sparsity_tolerance)
+  sparse_matrices = lapply(design_matrices, sparse_matrix_notation, tol = sparsity_tolerance)
   
   matrix_coefs = lapply(sparse_matrices, getElement, "values") |> setNames(matrix_coef_names)
   matrix_row = lapply(sparse_matrices, getElement, "row_index") |> setNames(matrix_row_names)

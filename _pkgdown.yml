@@ -1,6 +1,7 @@
 url: https://canmod.github.io/macpan2/
 template:
   bootstrap: 5
+  package: macpan2
   includes:
 # math that renders properly in the offline helpful with (\eqn and \deqn)
 # is not rendering on pkgdown. this magic seems to work for now.

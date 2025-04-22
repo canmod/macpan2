@@ -31,8 +31,6 @@
 \alias{cbind}
 \alias{rbind}
 \alias{time_step}
-\alias{assign}
-\alias{unpack}
 \alias{recycle}
 \alias{clamp}
 \alias{dpois}
@@ -58,6 +56,13 @@
 \alias{last}
 \alias{check_finite}
 \alias{dbinom}
+\alias{sin}
+\alias{sqrt}
+\alias{pnorm}
+\alias{invlogit}
+\alias{logit}
+\alias{assign}
+\alias{unpack}
 \title{Functions Available in the Simulation Engine}
 \description{
 Functions currently supported by the C++ TMB engine
@@ -76,8 +81,9 @@ following example that calculates a force of infection.
 )
 }\if{html}{\out{</div>}}
 
-To produce a simulation using these engine functions, one may
-use \code{\link{simple_sims}}.
+To produce a dynamical simulation that iteratively evaluates
+expression involving these functions, use
+\code{\link{simple_sims}}.
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{simple_sims(
   iteration_exprs = list(x ~ x - 0.9 * x),
@@ -85,6 +91,17 @@ use \code{\link{simple_sims}}.
   mats = list(x = 1)
 )
 }\if{html}{\out{</div>}}
+
+Here, \code{x - 0.9 * x} is assigned to \code{x} at each of five
+iterations of a simulation loop.
+
+If these expressions involve matrices with more than one
+element, You can control which elements in the evaluation
+of the right hand side go to which elements on the left
+hand side. This technique involves using either square
+brackets or the \code{c} function on the left hand side. For
+more information on assignment, please see the section
+on Assignment below.
 \subsection{Elementwise Binary Operators}{
 
 Elementwise binary operators take two matrix-valued
@@ -115,8 +132,8 @@ is thrown and the matrices are said to be incompatible.
 
 \subsection{Arguments}{
 \itemize{
-\item \code{x} -- Any matrix with dimensions compatible with \code{y}.
-\item \code{y} -- Any matrix with dimensions compatible with \code{x}.
+\item \code{x} : Any matrix with dimensions compatible with \code{y}.
+\item \code{y} : Any matrix with dimensions compatible with \code{x}.
 }
 }
 
@@ -140,22 +157,27 @@ engine_eval(~ 1 / (1 - y), y = 1/4)
 \subsection{Elementwise Math}{
 \subsection{Functions}{
 \itemize{
-\item \code{log(x)} -- Natural logarithm
-\item \code{exp(x)} -- Exponential function
-\item \code{cos(x)} -- Cosine function
+\item \code{log(x)} : Natural logarithm.
+\item \code{exp(x)} : Exponential function.
+\item \code{cos(x)} : Cosine function.
+\item \code{sin(x)} : Sine function.
+\item \code{sqrt(x)} : Squareroot function.
+\item \code{invlogit(x)} : Inverse logit function,
+\code{1/(1 + exp(-x))}.
+\item \code{logit(x)} : Logit function, \code{log(x/(1-x))}.
 }
 }
 
 \subsection{Arguments}{
 \itemize{
-\item \code{x} -- Any matrix
+\item \code{x} : Any numeric matrix.
 }
 }
 
 \subsection{Return}{
 \itemize{
-\item A matrix with the same dimensions as \code{x}, with the
-unary function applied elementwise.
+\item A matrix with the same dimensions as \code{x}, containing
+the results of applying the function to each element of \code{x}.
 }
 }
 
@@ -170,21 +192,22 @@ unary function applied elementwise.
 \subsection{Proportions}{
 \subsection{Functions}{
 \itemize{
-\item \code{proportions(x, limit, eps)} --
+\item \code{proportions(x, limit, eps)}
 }
 }
 
 \subsection{Arguments}{
 \itemize{
-\item \code{x} -- Any matrix
-\item \code{limit} -- numeric value to return elementwise from \code{proportions} if \code{sum(x) < eps}
-\item \code{eps} -- numeric tolerance for \code{sum(x)}
+\item \code{x} : Any matrix
+\item \code{limit} : numeric value to return elementwise from \code{proportions} if \code{sum(x) < eps}
+\item \code{eps} : numeric tolerance for \code{sum(x)}
 }
 }
 
 \subsection{Return}{
 \itemize{
-\item matrix of \code{x / sum(x)} or \code{rep(limit, length(x))} if \code{sum(x) < eps}
+\item matrix of \code{x / sum(x)} or \code{rep(limit, length(x))} if
+\code{sum(x) < eps}.
 }
 }
 
@@ -199,9 +222,9 @@ unary function applied elementwise.
 \subsection{Integer Sequences}{
 \subsection{Functions}{
 \itemize{
-\item \code{from:to} -- Inclusive and ordered sequence of
+\item \code{from:to} : Inclusive and ordered sequence of
 integers between two bounds.
-\item \code{seq(from, length, by)} -- Ordered sequence of
+\item \code{seq(from, length, by)} : Ordered sequence of
 integers with equal spacing between adjacent
 values.
 }
@@ -209,12 +232,12 @@ values.
 
 \subsection{Arguments}{
 \itemize{
-\item \code{from} -- Scalar integer giving the first integer
+\item \code{from} : Scalar integer giving the first integer
 in the sequence.
-\item \code{to} -- Scalar integer giving the last integer in
+\item \code{to} : Scalar integer giving the last integer in
 the sequence.
-\item \code{length} -- Number of integers in the sequence.
-\item \code{by} -- Scalar giving the difference
+\item \code{length} : Number of integers in the sequence.
+\item \code{by} : Scalar giving the difference
 between adjacent values in the sequence.
 }
 }
@@ -251,17 +274,21 @@ Replicate Elements
 
 \subsection{Functions}{
 \itemize{
-\item \code{rep(x, times)} -- Replicate a column vector a
+\item \code{rep(x, times)} : Replicate a column vector a
 number of times, by repeatedly stacking it on top of
 itself.
+\item \code{recycle(x, rows, cols)} : Recycle rows and columns of
+\code{x} to produce a matrix with \code{rows} rows and \code{cols} columns.
 }
 }
 
 \subsection{Arguments}{
 \itemize{
-\item \code{x} -- A scalar-valued variable to repeat.
-\item \code{times} -- A scalar-valued integer variable giving
+\item \code{x} : A scalar-valued variable to repeat.
+\item \code{times} : A scalar-valued integer variable giving
 the number of times to repeat \code{x}.
+\item \code{rows} : Number of rows in the output of \code{recycle}.
+\item \code{cols} : Number of columns in the output of \code{recycle}.
 }
 }
 
@@ -275,6 +302,8 @@ on top of each other.
 \subsection{Examples}{
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{engine_eval(~ rep(1, 10))
+engine_eval(~ recycle(  1:3,  3, 4))
+engine_eval(~ recycle(t(1:4), 3, 4))
 }\if{html}{\out{</div>}}
 }
 
@@ -283,16 +312,16 @@ on top of each other.
 \subsection{Matrix Multiplication}{
 \subsection{Functions}{
 \itemize{
-\item \code{x \%*\% y} -- Standard matrix multiplication.
-\item \code{x \%x\% y} -- Kronecker product
+\item \code{x \%*\% y} : Standard matrix multiplication.
+\item \code{x \%x\% y} : Kronecker product
 }
 }
 
 \subsection{Arguments}{
 \itemize{
-\item \code{x} -- A matrix. For the standard product, \code{x}
+\item \code{x} : A matrix. For the standard product, \code{x}
 must have as many columns as \code{y} has rows.
-\item \code{y} -- A matrix. For standard product, \code{y}
+\item \code{y} : A matrix. For standard product, \code{y}
 must have as many rows as \code{x} has columns.
 }
 }
@@ -321,31 +350,31 @@ way with round parentheses, \code{\link{(}}.
 \subsection{Reshaping and Combining Matrices}{
 \subsection{Functions}{
 \itemize{
-\item \code{c(...)} -- Stack columns of arguments into a
+\item \code{c(...)} : Stack columns of arguments into a
 single column vector.
-\item \code{cbind(...)} -- Create a matrix containing all of
+\item \code{cbind(...)} : Create a matrix containing all of
 the columns of a group of matrices with the same
 number of rows.
-\item \code{rbind(...)} -- Create a matrix containing all of
+\item \code{rbind(...)} : Create a matrix containing all of
 the rows of a group of matrices with the same number
 of columns.
-\item \code{matrix(x, rows, cols)} -- Reshape a matrix to have
+\item \code{matrix(x, rows, cols)} : Reshape a matrix to have
 \code{rows} rows and \code{cols} columns. The input \code{x} must
 have \code{rows * cols} elements.
-\item \code{t(x)} -- Standard matrix transpose.
+\item \code{t(x)} : Standard matrix transpose.
 }
 }
 
 \subsection{Arguments}{
 \itemize{
-\item \code{...} -- Any number of dimensionally consistent
+\item \code{...} : Any number of dimensionally consistent
 matrices. The definition of dimensionally consistent
 depends on the function.
-\item \code{x} -- Can be any matrix for \code{t}, but for \code{matrix}
+\item \code{x} : Can be any matrix for \code{t}, but for \code{matrix}
 it must have \code{rows * cols} elements.
-\item \code{rows} -- Scalar integer giving the number of
+\item \code{rows} : Scalar integer giving the number of
 rows in the output.
-\item \code{cols} -- Scalar integer giving the number of
+\item \code{cols} : Scalar integer giving the number of
 columns in the output.
 }
 }
@@ -393,9 +422,9 @@ engine_eval(~ t(1:3))
 \subsection{Matrix Diagonals}{
 \subsection{Functions}{
 \itemize{
-\item \code{to_diag(x)} -- Create a diagonal matrix by setting
+\item \code{to_diag(x)} : Create a diagonal matrix by setting
 the diagonal to a column vector, \code{x}.
-\item \code{from_diag(x)} -- Extract the diagonal from a
+\item \code{from_diag(x)} : Extract the diagonal from a
 matrix, \code{x}, and return the diagonal as a column
 vector.
 }
@@ -403,7 +432,7 @@ vector.
 
 \subsection{Arguments}{
 \itemize{
-\item \code{x} -- Any matrix (for \code{from_diag}) or a
+\item \code{x} : Any matrix (for \code{from_diag}) or a
 column vector (for \code{to_diag}). It is common to assume
 that \code{x} is square for \code{from_diag} but this is
 not required.
@@ -412,9 +441,9 @@ not required.
 
 \subsection{Return}{
 \itemize{
-\item \code{to_diag(x)} -- Diagonal matrix with \code{x} on the
+\item \code{to_diag(x)} : Diagonal matrix with \code{x} on the
 diagonal.
-\item \code{from_diag(x)} -- Column vector containing the
+\item \code{from_diag(x)} : Column vector containing the
 diagonal of \code{x}. A value is considered to be on
 the diagonal if it has a row index equal to
 the column index.
@@ -443,34 +472,34 @@ engine_eval(~from_diag(to_diag(from_diag(matrix(1:9, 3, 3)))))
 \subsection{Summarizing Matrix Values}{
 \subsection{Functions}{
 \itemize{
-\item \code{sum(...)} -- Sum all of the elements of all of the
+\item \code{sum(...)} : Sum all of the elements of all of the
 matrices passed to \code{...}.
-\item \code{col_sums(x)} -- Row vector containing the sums
+\item \code{col_sums(x)} : Row vector containing the sums
 of each column.
-\item \code{row_sums(x)} -- Column vector containing the sums
+\item \code{row_sums(x)} : Column vector containing the sums
 of each row.
-\item \code{group_sums(x, f, n)} -- Column vector containing the
+\item \code{group_sums(x, f, n)} : Column vector containing the
 sums of groups of elements in \code{x}. The groups are
 determined by the integers in \code{f} and the order of
 the sums in the output is determined by these
 integers.
-\item \code{mean(x)} -- Arthmetic average of all elements in matrix
+\item \code{mean(x)} : Arthmetic average of all elements in matrix
 \code{x}.
-\item \code{sd(x)} -- Sample standard deviation of all elements in
+\item \code{sd(x)} : Sample standard deviation of all elements in
 matrix \code{x}.
 }
 }
 
 \subsection{Arguments}{
 \itemize{
-\item \code{...} -- Any number of matrices of any shape.
-\item \code{x} -- A matrix of any dimensions, except for
+\item \code{...} : Any number of matrices of any shape.
+\item \code{x} : A matrix of any dimensions, except for
 \code{group_sums} that expects \code{x} to be a column vector.
-\item \code{f} -- A column vector the same length as \code{x}
+\item \code{f} : A column vector the same length as \code{x}
 containing integers between \code{0} and \code{m-1}, given \code{m}
 unique groups. Elements of \code{f} refer to the indices
 of \code{x} that will be grouped and summed.
-\item \code{n} -- A column vector of length \code{m}. If \code{f} does
+\item \code{n} : A column vector of length \code{m}. If \code{f} does
 not contain group \code{k} in \verb{[0, m-1]}, \code{group_sums} skips
 this group and the output at index \code{k+1} is \code{n[k+1]}.
 }
@@ -511,29 +540,32 @@ engine_eval(~ group_sums(x, f, n), x = 1:10, f = rep(0:3, 1:4), n = c(1:4))
 \subsection{Extracting Matrix Elements}{
 \subsection{Functions}{
 \itemize{
-\item \code{x[i,j]} -- Matrix containing a subset
+\item \code{x[i,j]} : Matrix containing a subset
 of the rows and columns of \code{x}.
-\item \code{block(x,i,j,n,m)} -- Matrix containing a
+\item \code{block(x,i,j,n,m)} : Matrix containing a
 contiguous subset of rows and columns of \code{x}
 \url{https://eigen.tuxfamily.org/dox/group__TutorialBlockOperations.html}.
-\item \code{last(x)} -- The last element of a matrix (i.e., the
+\item \code{last(x)} : The last element of a matrix (i.e., the
 lower-right element).
 }
 }
 
 \subsection{Arguments}{
 \itemize{
-\item \code{x} -- Any matrix.
-\item \code{i} -- An integer column vector (for \code{[}) or
+\item \code{x} : Any matrix.
+\item \code{i} : An integer column vector (for \code{[}) or
 integer scalar (for \code{block}) containing the indices
 of the rows to extract (for \code{[}) or the index of the
 first row to extract (for \code{block}).
-\item \code{j} -- An integer column vector (for \code{[}) or
+\item \code{j} : An integer column vector (for \code{[}) or
 integer scalar (for \code{block}) containing the indices
 of the columns to extract (for \code{[}) or the index of
-the first column to extract (for \code{block}).
-\item \code{n} -- Number of rows in the block to return.
-\item \code{m} -- Number of columns in the block to return.
+the first column to extract (for \code{block}). If \code{j} is missing
+in a call to \code{[}, it is assumed to be \code{j = 0} although
+we might change this default to be the vector of all column
+indices.
+\item \code{n} : Number of rows in the block to return.
+\item \code{m} : Number of columns in the block to return.
 }
 }
 
@@ -569,19 +601,19 @@ it is possible to bind the rows or columns of past
 versions of such matrices into a single matrix.
 \subsection{Functions}{
 \itemize{
-\item \code{rbind_lag(x, lag, t_min)} -- Bind the rows of versions of
+\item \code{rbind_lag(x, lag, t_min)} : Bind the rows of versions of
 \code{x} that were recorded at the end of all
 simulation iterations corresponding to time lags given
 by integers in \code{lag}.
-\item \code{rbind_time(x, t, t_min)} -- Bind the rows of versions of
+\item \code{rbind_time(x, t, t_min)} : Bind the rows of versions of
 \code{x} that were recorded at the end of all
 simulation iterations corresponding to integers in
 \code{t}.
-\item \code{cbind_lag(x, lag, t_min)} -- Bind the columns of versions of
+\item \code{cbind_lag(x, lag, t_min)} : Bind the columns of versions of
 \code{x} that were recorded at the end of all
 simulation iterations corresponding to time lags given
 by integers in \code{lag}. (TODO -- cbind_lag is not developed yet)
-\item \code{cbind_time(x, t, t_min)} -- Bind the columns of versions of
+\item \code{cbind_time(x, t, t_min)} : Bind the columns of versions of
 \code{x} that were recorded at the end of all
 simulation iterations corresponding to integers in
 \code{t}. (TODO -- cbind_lag is not developed yet)
@@ -590,15 +622,15 @@ simulation iterations corresponding to integers in
 
 \subsection{Arguments}{
 \itemize{
-\item \code{x} -- Any matrix with saved history such that the
+\item \code{x} : Any matrix with saved history such that the
 number of columns (for \verb{rbind_*}) or rows (for
 \verb{cbind_*}) does not change throughout the simulation.
-\item \code{lag} -- Integer vector giving numbers
+\item \code{lag} : Integer vector giving numbers
 of time steps before the current step to obtain
 past values of \code{x}.
-\item \code{t} -- Integer vector giving time steps
+\item \code{t} : Integer vector giving time steps
 at which to obtain past values of \code{x}.
-\item \code{t_min} -- Integer giving the minimum time step
+\item \code{t_min} : Integer giving the minimum time step
 that is allowed to be accessed. All time-steps in \code{t}
 or implied by \code{lag} that are before \code{t_min} are ignored.
 }
@@ -705,9 +737,9 @@ matrix, x, over simulation time using a kernel, k.
 
 \subsection{Arguments}{
 \itemize{
-\item \code{x} -- The matrix containing elements to be
+\item \code{x} : The matrix containing elements to be
 convolved.
-\item \code{k} -- A column vector giving the convolution kernel.
+\item \code{k} : A column vector giving the convolution kernel.
 }
 }
 
@@ -830,18 +862,18 @@ to do things like specify a single common mean for
 several values.
 \subsection{Functions}{
 \itemize{
-\item \code{dpois(observed, simulated)} -- Log of the Poisson density
+\item \code{dpois(observed, simulated)} : Log of the Poisson density
 based on this \href{https://kaskr.github.io/adcomp/group__R__style__distribution.html#gaa1ed15503e1441a381102a8c4c9baaf1}{dpois}
 TMB function.
-\item \code{dnbinom(observed, simulated, over_dispersion)} --
+\item \code{dnbinom(observed, simulated, over_dispersion)} :
 Log of the negative binomial density based on this \href{https://kaskr.github.io/adcomp/group__R__style__distribution.html#ga76266c19046e04b651fce93aa0810351}{dnbinom}
 TMB function. To get the variance that this function
 requires we use this expression, \code{simulated + simulated^2/over_dispersion},
 following p.165 in this \href{https://ms.mcmaster.ca/~bolker/emdbook/book.pdf}{book}
-\item \code{dnorm(observed, simulated, standard_deviation)} --
+\item \code{dnorm(observed, simulated, standard_deviation)} :
 Log of the normal density based on this \href{https://kaskr.github.io/adcomp/dnorm_8hpp.html}{dnorm}
 TMB function.
-\item \code{dbinom(observed, size, probability)} --
+\item \code{dbinom(observed, size, probability)} :
 Log of the binomial density based on the \href{https://kaskr.github.io/adcomp/group__R__style__distribution.html#gaee11f805f02bc1febc6d7bf0487671be}{dbinom}
 TMB function.
 }
@@ -849,16 +881,16 @@ TMB function.
 
 \subsection{Arguments}{
 \itemize{
-\item \code{observed} -- Matrix of observed values
+\item \code{observed} : Matrix of observed values
 at which the density is being evaluated.
-\item \code{simulated} -- Matrix of distributional means,
+\item \code{simulated} : Matrix of distributional means,
 with singleton rows and columns recycled to match
 the numbers of rows and columns in \code{observed}.
-\item \code{over_dispersion} -- Over-dispersion parameter
+\item \code{over_dispersion} : Over-dispersion parameter
 given by \code{(simulated/standard_deviation)^2 - simulated)}.
-\item \code{standard_deviation} -- Standard deviation parameter.
-\item \code{size} -- Number of Bernoulli trials.
-\item \code{probability} -- Probability of a successful Bernoulli trial.
+\item \code{standard_deviation} : Standard deviation parameter.
+\item \code{size} : Number of Bernoulli trials.
+\item \code{probability} : Probability of a successful Bernoulli trial.
 }
 }
 
@@ -877,28 +909,143 @@ shape as \code{mean} but with pseudo-random numbers
 deviating from each mean in the \code{mean} matrix.
 \subsection{Functions}{
 \itemize{
-\item \code{rpois(mean)} -- Pseudo-random Poisson distributed
+\item \code{rpois(mean)} : Pseudo-random Poisson distributed
 values.
-\item \code{rnbinom(mean, over_dispersion)} -- Pseudo-random
+\item \code{rnbinom(mean, over_dispersion)} : Pseudo-random
 negative binomially distributed values.
-\item \code{rnorm(mean, standard_deviation)} -- Pseudo-random
+\item \code{rnorm(mean, standard_deviation)} : Pseudo-random
 normal values.
+\item \code{rbinom(size, prob)} : Pseudo-random binomial values.
+\item \code{reulermultinom(size, rate, dt)} : Pseudo-random
+\href{https://kingaa.github.io/manuals/pomp/html/eulermultinom.html}{Euler-multinomial}
+values.
 }
 }
 
 \subsection{Arguments}{
 \itemize{
-\item \code{mean} -- Matrix of means about which to simulate
+\item \code{mean} : Matrix of means about which to simulate
 pseudo-random variation.
-\item \code{over_dispersion} -- Matrix of over-dispersion parameters
+\item \code{over_dispersion} : Matrix of over-dispersion parameters
 given by \code{(simulated/standard_deviation)^2 - simulated)}.
-\item \code{standard_deviation} -- Matrix of standard deviation parameters.
+\item \code{standard_deviation} : Matrix of standard deviation
+parameters.
+\item \code{size} : Matrix of numbers of trials.
+\item \code{prob} : Matrix of probabilities of success.
+\item \code{rate} : Matrix of rates, used to compute the probabilities
+in a multinomial distribution. The probability associated with
+the \code{i}th rate, \code{r_i}, is (1 - exp(-sum(r * dt))) * (r_i / r),
+where \code{r} is the sum of the rates. This is not a typical
+multinomial distribution in that if you sum these
+probabilities up you do not get \code{1} but rather
+\code{(1 - exp(-sum(r * dt)))}. See details below for more
+on the Euler-multinomial distribution
+\item \code{dt} : Optional parameter specifying the length of the time
+step. See details below for more on the Euler-multinomial
+distribution.
+}
+}
+
+\subsection{Details}{
+
+The Euler-multinomial distribution is used to model how
+many individuals move from one compartment to a set of other
+compartments in a single time step of length \code{dt}. The rate of
+moving to each of these compartments is characterized by the
+associated element in the \code{rate} matrix. The reason why the
+probabilities do not sum to \code{1}, is that not all individuals
+have to change compartments in a time step.
+}
+
+}
+
+\subsection{Cumulative Distribution Functions}{
+
+Lower-tail cumulative distribution functions.
+\subsection{Functions}{
+\itemize{
+\item \code{pgamma(q, shape, scale)} : Cumulative distribution function
+of the Gamma distribution. This is a lite wrapper for the
+\href{https://kaskr.github.io/adcomp/group__R__style__distribution.html#ga3bd06a324f89b21694aac26bfe1aef45}{pgamma function in TMB}.
+\item \code{pnorm(q, mean, sd)} : Cumulative distribution function of
+the normal distribution. This is a lite wrapper for the
+\href{https://kaskr.github.io/adcomp/group__R__style__distribution.html#ga2a3cc5a06500670aeaf6eb911a1094d9}{pnorm function in TMB}.
+}
+}
+
+\subsection{Arguments}{
+\itemize{
+\item \code{q} : Matrix of Quantiles.
+\item \code{shape} : Matrix of shape parameters of the Gamma distribution.
+\item \code{scale} : Matrix of scale parameters of the Gamma distribution.
+\item \code{mean} : Matrix of mean parameters of the normal distribution.
+\item \code{sd} : Matrix of standard deviation parameters of the normal distribution.
 }
 }
 
 }
 
-\subsection{Assign}{
+\subsection{Rounding}{
+\subsection{Functions}{
+
+round(x) : Round elements of a matrix to the nearest integer.
+}
+
+\subsection{Arguments}{
+\itemize{
+\item \code{x} : Matrix to be rounded.
+}
+}
+
+\subsection{Details}{
+
+Be careful if you are using rounding in a model to be calibrated.
+Rounding will break differentiability of the objective function
+if \code{x} depends, either directly or indirectly, on parameters
+being calibrated. This will lead to incorrect gradients
+potentially being passed to an optimizer. To be safe, do
+not round in models being calibrated.
+}
+
+}
+
+\subsection{Debugging Instrumentation}{
+
+Functions to use when you are trying to figure stuff out.
+\subsection{Functions}{
+\itemize{
+\item \code{print(x)} : Print out the value of a matrix.
+\item \code{check_finite(x)} : Stop the simulations and return an
+error if \code{x} has any non-finite values.
+}
+}
+
+\subsection{Arguments}{
+\itemize{
+\item \code{x} : Name of a matrix in the model.
+}
+}
+
+\subsection{Return}{
+
+An \code{\link{empty_matrix}}.
+}
+
+\subsection{Examples}{
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{simple_sims(
+     list(dummy ~ print(x), x ~ x / 2)
+   , time_steps = 10
+   , mats = list(x = 2)
+)
+engine_eval(~ 1/0) ## returns Inf
+engine_eval(~ check_finite(1/0)) ## returns nothing and throws an error
+}\if{html}{\out{</div>}}
+}
+
+}
+
+\subsection{Assign (deprecated)}{
 
 Assign values to a subset of the elements in a matrix.
 \subsection{Functions}{
@@ -909,23 +1056,23 @@ Assign values to a subset of the elements in a matrix.
 
 \subsection{Arguments}{
 \itemize{
-\item \code{x} -- Matrix with elements that are to be updated
+\item \code{x} : Matrix with elements that are to be updated
 by the values in \code{v}.
-\item \code{i} -- Column vector of row indices pointing to
+\item \code{i} : Column vector of row indices pointing to
 the elements of \code{x} to be updated. These indices are
 paired with those in \code{v}. If the length of
 \code{i} does not equal that of \code{v}, then it must have a
 single index that gets paired with every element of
 \code{v}. Indices are zero-based, \code{i=0} corresponds to
 the first row.
-\item \code{j} -- Column vector of column indices pointing to
+\item \code{j} : Column vector of column indices pointing to
 the elements of \code{x} to be updated. These indices are
 paired with those in \code{v}. If the length of
 \code{j} does not equal that of \code{v}, then it must have a
 single index that gets paired with every element of
 \code{v}. Indices are zero-based, \code{j=0} corresponds to
 the first column.
-\item \code{v} -- Column vector of values to replace elements
+\item \code{v} : Column vector of values to replace elements
 of \code{x} at locations given by \code{i} and \code{j}.
 }
 }
@@ -955,7 +1102,7 @@ engine_eval(~ assign(x
 
 }
 
-\subsection{Unpack}{
+\subsection{Unpack (deprecated)}{
 
 Unpack elements of a matrix into smaller matrices.
 \subsection{Functions}{
@@ -966,9 +1113,9 @@ Unpack elements of a matrix into smaller matrices.
 
 \subsection{Arguments}{
 \itemize{
-\item \code{x} -- Matrix with elements to be distributed to
+\item \code{x} : Matrix with elements to be distributed to
 the matrices passed through \code{...}.
-\item \code{...} -- Matrices with elements to be replaced by
+\item \code{...} : Matrices with elements to be replaced by
 the values of elements in \code{x} in column-major order.
 These matrices must be named matrices and not
 computed on the fly using expressions. Note that even
@@ -1005,34 +1152,35 @@ used up by \code{x}.
 
 }
 
-\subsection{Print Matrix}{
+\subsection{Assignment}{
 
-Print out the value of a matrix.
+The left-hand-side of formulas sent to the simulation engine
+determine assignment works.
 \subsection{Functions}{
 \itemize{
-\item \code{print(x)}
+\item \code{y ~ x} : Assign \code{x} to \code{y}.
+\item \code{y[i] ~ x} : Assign the first column of \code{x} to those rows
+in the first column of \code{y} that are indexed by \code{i}.
+\item \code{y[i, j] ~ x} : Assign each element, \code{x[k, l]}, in \code{x},
+to element, \code{y[i[k], j[l]]}, in \code{y}.
+\item \code{c(...) ~ x} : Assign the elements of the columns of \code{x}
+(stacked on top of each other) to the matrices in \code{...} in the
+order in which they appear. If the number of columns is \code{x}
+equals the number of matrices in \code{...}, and if these matrices
+are vectors (i.e., have only a single column or a single row),
+then the columns of \code{x} become assigned to the vectors in \code{...}.
 }
 }
 
 \subsection{Arguments}{
 \itemize{
-\item \code{x} -- Name of a matrix in the model.
+\item \code{x} : Matrix containing the result of the expression on the
+right-hand-side.
+\item \code{y} : Matrix with elements that will be assigned the elements
+of \code{x}.
+\item \code{i} : Integer vector giving zero-based row indexes describing
+the rows in \code{x} that get the
 }
-}
-
-\subsection{Return}{
-
-An \code{\link{empty_matrix}}.
-}
-
-\subsection{Examples}{
-
-\if{html}{\out{<div class="sourceCode">}}\preformatted{simple_sims(
-     list(dummy ~ print(x), x ~ x / 2)
-   , time_steps = 10
-   , mats = list(x = 2)
-)
-}\if{html}{\out{</div>}}
 }
 
 }

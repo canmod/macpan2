@@ -36,7 +36,7 @@ if (file.exists(p)) knitr::include_graphics(p)
 
 ### Information Processing
 
-Like other statistical modelling software, the high-level purpose of `macpan2` is to process data sources (top-left) into results (bottom-left). In the case of `macpan2`, this processing is done using compartmental modelling (right). The major steps of this information processing are numbered in the diagram, and we describe each of these.
+Like other statistical modelling software, the high-level purpose of `macpan2` is to process data sources (top-left) into results (bottom-left). In the case of `macpan2`, this processing is done using compartmental modelling (right). The major steps of information processing are numbered in the diagram, and we describe each of these.
 
 1. Information processing begins with accessing and preparing numerical information from various data sources, with the output being standard numerical R objects. Depending on the nature of the analysis to follow, this information could include default values for parameters (e.g. transmission rate), initial values for the state variables (e.g. initial number of infectious individuals), operational schedules (e.g. timing of lockdown events or vaccine roll-out schedules), and data for model fitting (e.g. time series of hospital utilization). This step could involve connecting to real-time surveillance platforms or reading in static data files. There is not any functionality within `macpan2` for conducting this step -- [`macpan2` does not try to reinvent the wheel in data access and preparation](#modularity).
 2. The structure of a compartmental model is defined in one of three ways. In all cases the output is ultimately a [model simulator](#model-simulator).
