@@ -190,3 +190,6 @@ pkgdown-reference-index:
 	make quick-doc-install
 	Rscript -e "pkgdown::build_reference_index()"
 	Rscript -e "pkgdown::preview_site()"
+
+NEWS.md : news-narratives.md misc/build/gen-news.R
+	Rscript misc/build/gen-news.R

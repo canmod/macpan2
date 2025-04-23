@@ -20,7 +20,6 @@ vector
 
 ### Breaking Changes
 
-* No longer exporting `nlist`.
 * Removing in-place modifications to model specification objects in `mp_tmb_insert` and `mp_tmb_update`.
 
 ### New Features
@@ -37,7 +36,7 @@ process error.
 
 ### Bug Fixes
 
-* Several bugs related to input handling in `mp_tmb_calibrator` (#176)
+* Several bugs related to input handling in `mp_tmb_calibrator` (#176).
 
 ### Doc Fixes and Updates
 
