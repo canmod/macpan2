@@ -153,17 +153,17 @@ enum macpan2_meth
 
 // functions that can only take numerical matrices -- no integer vectors
 std::vector<int> mp_math = {
-    MP2_ADD, MP2_SUBTRACT, MP2_MULTIPLY, MP2_DIVIDE, MP2_POWER, MP2_EXP, MP2_LOG
-  , MP2_MATRIX, MP2_MATRIX_MULTIPLY
-  , MP2_SUM, MP2_ROWSUMS, MP2_COLSUMS, MP2_TRANSPOSE
-  , MP2_CONVOLUTION, MP2_CBIND, MP2_RBIND, MP2_RECYCLE, MP2_CLAMP
-  , MP2_POISSON_DENSITY, MP2_NEGBIN_DENSITY, MP2_NORMAL_DENSITY
-  , MP2_BINOM_DENSITY
-  , MP2_POISSON_SIM, MP2_NEGBIN_SIM, MP2_NORMAL_SIM, MP2_KRONECKER
-  , MP2_TO_DIAG, MP2_FROM_DIAG, MP2_COS, MP2_SIN, MP2_COS
-  , MP2_BINOM_SIM, MP2_EULER_MULTINOM_SIM
-  , MP2_ROUND, MP2_PGAMMA, MP2_PNORM
-  , MP2_MEAN, MP2_SD, MP2_INVLOGIT, MP2_LOGIT
+      MP2_ADD, MP2_SUBTRACT, MP2_MULTIPLY, MP2_DIVIDE, MP2_POWER, MP2_EXP, MP2_LOG
+    , MP2_MATRIX, MP2_MATRIX_MULTIPLY
+    , MP2_SUM, MP2_ROWSUMS, MP2_COLSUMS, MP2_TRANSPOSE
+    , MP2_CONVOLUTION, MP2_CBIND, MP2_RBIND, MP2_RECYCLE, MP2_CLAMP
+    , MP2_POISSON_DENSITY, MP2_NEGBIN_DENSITY, MP2_NORMAL_DENSITY
+    , MP2_BINOM_DENSITY
+    , MP2_POISSON_SIM, MP2_NEGBIN_SIM, MP2_NORMAL_SIM, MP2_KRONECKER
+    , MP2_TO_DIAG, MP2_FROM_DIAG, MP2_COS, MP2_SIN, MP2_COS
+    , MP2_BINOM_SIM, MP2_EULER_MULTINOM_SIM
+    , MP2_ROUND, MP2_PGAMMA, MP2_PNORM
+    , MP2_MEAN, MP2_SD, MP2_INVLOGIT, MP2_LOGIT
 };
 
 // functions that are elementwise binary operators
@@ -214,10 +214,7 @@ Type FUN(const Type x, const int &index) {                     \
 
 #define MP2_ERR(CODE, MSG, FUN) SetError(CODE, MSG, row, FUN, args.all_rows(), args.all_cols(), args.all_type_ints(), t); \
 
-
-#define MP2_REPORT_ERROR(evaluator)                                             \
-    {                                                            \
-      if (evaluator.GetErrorCode()) {                    \
+#define MP2_REPORT_ERROR_FINAL(evaluator) {                     \
         int error = evaluator.GetErrorCode();                \
         int expr_row = evaluator.GetExprRow();               \
         vector<int> arg_rows = evaluator.GetArgRows();       \
@@ -242,6 +239,12 @@ Type FUN(const Type x, const int &index) {                     \
         logfile << "Time step = " << time_int << std::endl;      \
         logfile.close();                                         \
         return 0.0;                                               \
+}                                                              \
+
+#define MP2_REPORT_ERROR(evaluator)                                             \
+    {                                                            \
+      if (evaluator.GetErrorCode()) {                    \     
+        MP2_REPORT_ERROR_FINAL(evaluator)                      \
       }                                                           \
     }                                                           \
 
@@ -384,9 +387,8 @@ struct ListOfMatrices
 // containing the concatenation of the vectors and
 // another containing the lengths of each concatenated
 // vector
-class ListOfIntVecs
-{
-public:
+class ListOfIntVecs {
+public: // ListOfIntVecs
     // this nestedVector will contain examples of unflattened
     // integer vectors
     std::vector<std::vector<int>> nestedVector;
@@ -592,9 +594,8 @@ matrix<Type> getNthMat(
 }
 
 template <typename Type>
-class ArgList
-{
-public:
+class ArgList {
+public: // ArgList
     enum class ItemType {
         Matrix,
         IntVector
@@ -912,17 +913,16 @@ public:
         return error_code_;
     }
 
-private: // 
+private: // ArgList
     struct Item {
         ItemType type;
         matrix<Type> mat;
         std::vector<int> intVec;
     };
-
     std::vector<Item> items_;
     int size_;
     int error_code_ = 0; // Initialize the error code to 0 (no error) by default
-};
+}; // end ArgList
 
 template <class Type>
 class ExprEvaluator {
@@ -1030,8 +1030,7 @@ public: // ExprEvaluator
 
         // Check if error has already happened at some point
         // of the recursive call of EvalExpr.
-        if (GetErrorCode())
-            return m;
+        if (GetErrorCode()) return m;
         switch (table_n[row])
         {
         case -2: // methods (pre-processed matrices)
@@ -1130,14 +1129,12 @@ public: // ExprEvaluator
             vector<int> index2mats(n);
             vector<int> index2what(n);
             for (int i = 0; i < n; i++) {
-                if (table_n[table_i[row] + i] == -3)
-                {
+                if (table_n[table_i[row] + i] == -3) {
                     // -3 in the 'number of arguments' column of the
                     // parse table means 'integer vector'
                     args.set(i, valid_int_vecs[table_x[table_i[row] + i]]);
                 }
-                else
-                {
+                else {
                     // otherwise, recursively descend into the parse tree
                     // to pick out the arguments
                     args.set(i, EvalExpr(hist, t, valid_vars, table_i[row] + i));
@@ -1152,23 +1149,19 @@ public: // ExprEvaluator
                 // or something.
                 //
                 // index2what = 0 (for a matrix), 1 (for an int vec), -1 (for something else)
-                if (table_n[table_i[row] + i] == 0)
-                {
+                if (table_n[table_i[row] + i] == 0) {
                     index2mats[i] = table_x[table_i[row] + i];
                     index2what[i] = 0; // pointing at matrix
                 }
-                else if (table_n[table_i[row] + i] == -3)
-                {
+                else if (table_n[table_i[row] + i] == -3) {
                     index2mats[i] = table_x[table_i[row] + i];
                     index2what[i] = 1; // pointing at integer vector
                 }
-                else
-                {
+                else {
                     index2mats[i] = -1;
                     index2what[i] = -1;
                 }
-                if (GetErrorCode())
-                    return m;
+                if (GetErrorCode()) return m;
             }
 
             if (is_int_in(table_x[row] + 1, mp_math)) {
@@ -3296,6 +3289,8 @@ private: // ExprEvaluator
     char error_message[256];
 }; // end ExprEvaluator
 
+
+
 template <class Type>
 class MatAssigner {
 private: // MatAssigner
@@ -3313,22 +3308,47 @@ public: // MatAssigner
         ListOfIntVecs &valid_int_vecs_,
         vector<Type> &valid_literals_
     ) {
-        //error_code = 0; // non-zero means error has occurred; otherwise, no error
-        //expr_row = 0;
-        //func_int = -99; // assume no function information is available
-        //time_int = 0;
-        //arg_rows = {0};
-        //arg_cols = {0};
-        //arg_type_ints = {0};
+        error_code = 0; // non-zero means error has occurred; otherwise, no error
+        expr_row = 0;
+        func_int = -99; // assume no function information is available
+        time_int = 0;
+        arg_rows = {0};
+        arg_cols = {0};
+        arg_type_ints = {0};
         table_x = table_x_;
         table_n = table_n_;
         table_i = table_i_;
         valid_int_vecs = valid_int_vecs_;
         valid_literals = valid_literals_;
+  
+        strcpy(error_message, "OK");
+    };
+
+    // getters
+    unsigned char GetErrorCode() { return error_code; };
+    const char *GetErrorMessage() { return error_message; };
+    int GetExprRow() { return expr_row; };
+    int GetFuncInt() { return func_int; };
+    int GetTimeInt() { return time_int; };
+    std::vector<int> GetArgRows() { return arg_rows; };
+    std::vector<int> GetArgCols() { return arg_cols; };
+    std::vector<int> GetArgTypeInts() { return arg_type_ints; };
+
+    // setters
+    void SetError(unsigned char code, const char *message, int e_row, int f_int, std::vector<int> a_rows, std::vector<int> a_cols, std::vector<int> a_type_ints, int t_int) {
+        error_code = code;
+        expr_row = e_row;
+        func_int = f_int;
+        time_int = t_int;
+        arg_rows = a_rows;
+        arg_cols = a_cols;
+        arg_type_ints = a_type_ints;
+        strcpy(error_message, message);
     };
 
     void matAssign(
         matrix<Type> assignment_value,
+        int t,                            // current time step
         ListOfMatrices<Type> &valid_vars, // current list of values of each matrix
         int row = 0                       // current expression parse table row being evaluated
     ) {
@@ -3346,9 +3366,13 @@ public: // MatAssigner
         std::vector<int> v1;
         std::vector<int> v2;
         int err_code;
+        matrix<Type> for_literals;
+        for_literals = matrix<Type>::Zero(1, 1);
         // Rcpp::Rcout << "---- assignment ----" << std::endl;
         // Rcpp::Rcout << "n: " << n << std::endl;
         // Rcpp::Rcout << "x: " << n << std::endl;
+        
+        if (GetErrorCode()) return;
         switch (n) {
             case 0:
                 valid_vars.m_matrices[x] = assignment_value;
@@ -3366,6 +3390,24 @@ public: // MatAssigner
         // to switch on the particular function being used. at most one 
         // function can be used on the left-hand-side, and only particular ones 
         // can be used as the switch statement shows
+        //
+        
+        ArgList<Type> args(n);
+        for (int i = 0; i < n; i++) {
+            if (table_n[table_i[row] + i] == -3) {
+                // -3 in the 'number of arguments' column of the
+                // parse table means 'integer vector'
+                args.set(i, valid_int_vecs[table_x[table_i[row] + i]]);
+            } else if (table_n[table_i[row] + i] == -1) {
+                // -1 in the 'number of arguments' column of the
+                // parse table means 'literal'
+                for_literals.coeffRef(0, 0) = valid_literals[table_x[table_i[row] + i]];
+                args.set(i, for_literals);
+            } else if (table_n[table_i[row] + i] == 0) {
+                args.set(i, valid_vars.m_matrices[table_x[table_i[row] + i]]);
+            }
+        }
+        
         // 
         // #' ## Assignment
         // #'
@@ -3400,9 +3442,9 @@ public: // MatAssigner
                 if (n == 3) { // two index vectors
                     if (table_n[table_i[row] + 2] == -1) { // second index vector is a literal
                         v2.push_back(CppAD::Integer(valid_literals[table_x[table_i[row] + 2]]));
-                        //Rf_error("indexing on the left-hand-side cannot be done using literals");
                     } else if (table_n[table_i[row] + 2] != -3) { // second index vector is not an integer vector
-                        Rf_error("indexing on the left-hand-side needs to be done using integer vectors or literals");
+                        MP2_ERR(MP2_SQUARE_BRACKET, "indexing on the left-hand-side needs to be done using integer vectors or literals", MP2_SQUARE_BRACKET);
+                        return;
                     }
                 } else if (n == 2){ // one index vector
                     v2.push_back(0);  // assume the second index vector is length-1 with a 0 (i.e. points to the first column)
@@ -3412,7 +3454,8 @@ public: // MatAssigner
                 if (table_n[table_i[row] + 1] == -1) { // first index vector is a literal
                     v1.push_back(CppAD::Integer(valid_literals[table_x[table_i[row] + 1]]));
                 } else if (table_n[table_i[row] + 1] != -3) { // first index vector is not an integer vector or literal
-                    Rf_error("indexing on the left-hand-side needs to be done using integer vectors or literals");
+                    MP2_ERR(MP2_SQUARE_BRACKET, "indexing on the left-hand-side needs to be done using integer vectors or literals", MP2_SQUARE_BRACKET);
+                    return;
                 } else { // first index is an integer vector
                     v1 = valid_int_vecs[table_x[table_i[row] + 1]];
                 }
@@ -3724,7 +3767,7 @@ Type objective_function<Type>::operator()()
 
         MP2_REPORT_ERROR(exprEvaluator)
 
-        matAssigner.matAssign(result, mats, a_table_row);
+        matAssigner.matAssign(result, 0, mats, a_table_row);
 
         p_table_row += expr_num_p_table_rows[i];
         a_table_row += assign_num_a_table_rows[i];
@@ -3762,15 +3805,19 @@ Type objective_function<Type>::operator()()
             if (expr_sim_block[i] == 1) {
                 SIMULATE {
                     result = exprEvaluator.EvalExpr(
-                        simulation_history, k + 1, mats, p_table_row2);
+                        simulation_history, k + 1, mats, p_table_row2
+                    );
                 }
             }
             else
                 result = exprEvaluator.EvalExpr(
-                    simulation_history, k + 1, mats, p_table_row2);
+                    simulation_history, k + 1, mats, p_table_row2
+                );
 
             MP2_REPORT_ERROR(exprEvaluator)
-            matAssigner.matAssign(result, mats, a_table_row2);
+            matAssigner.matAssign(result, k + 1, mats, a_table_row2);
+            Rcpp::Rcout << matAssigner.GetErrorCode() << std::endl;
+            MP2_REPORT_ERROR(matAssigner)
 
             p_table_row2 += expr_num_p_table_rows[expr_index + i];
             a_table_row2 += assign_num_a_table_rows[expr_index + i];
@@ -3812,7 +3859,7 @@ Type objective_function<Type>::operator()()
         }
 
         MP2_REPORT_ERROR(exprEvaluator)
-        matAssigner.matAssign(result, mats, a_table_row);
+        matAssigner.matAssign(result, time_steps + 1, mats, a_table_row);
 
         p_table_row += expr_num_p_table_rows[expr_index + i];
         a_table_row += assign_num_a_table_rows[expr_index + i];
@@ -3909,6 +3956,8 @@ Type objective_function<Type>::operator()()
     MP2_REPORT_ERROR(exprEvaluator);
     MP2_REPORT_ERROR(objFunEvaluator);
     if (ret.size() != 1) Rf_error("Objective function did not return a scalar.");
+    
+    MP2_REPORT_ERROR_FINAL(exprEvaluator);
 
 #ifdef MP_VERBOSE
     Rcpp::Rcout << "======== end of objective function ========" << std::endl;
