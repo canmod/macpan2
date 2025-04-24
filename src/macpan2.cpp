@@ -215,6 +215,37 @@ Type FUN(const Type x, const int &index) {                     \
 #define MP2_ERR(CODE, MSG, FUN) SetError(CODE, MSG, row, FUN, args.all_rows(), args.all_cols(), args.all_type_ints(), t); \
 
 
+#define MP2_REPORT_ERROR(evaluator)                                             \
+    {                                                            \
+      if (evaluator.GetErrorCode()) {                    \
+        int error = evaluator.GetErrorCode();                \
+        int expr_row = evaluator.GetExprRow();               \
+        vector<int> arg_rows = evaluator.GetArgRows();       \
+        vector<int> arg_cols = evaluator.GetArgCols();       \
+        vector<int> arg_type_ints = evaluator.GetArgTypeInts(); \
+        int func_int = evaluator.GetFuncInt();               \
+        int time_int = evaluator.GetTimeInt();               \
+        const char *err_msg = evaluator.GetErrorMessage();   \
+        REPORT(error);                                           \
+        REPORT(expr_row);                                        \
+        REPORT(func_int);                                        \
+        REPORT(time_int);                                        \
+        REPORT(arg_rows);                                        \
+        REPORT(arg_cols);                                        \
+        REPORT(arg_type_ints);                                   \
+                                                                 \
+        logfile.open(log_file, std::ios_base::app);              \
+        logfile << "Error code = " << error << std::endl;        \
+        logfile << "Error message = " << err_msg << std::endl;   \
+        logfile << "Expression row = " << expr_row << std::endl; \
+        logfile << "Function code = " << func_int << std::endl;  \
+        logfile << "Time step = " << time_int << std::endl;      \
+        logfile.close();                                         \
+        return 0.0;                                               \
+      }                                                           \
+    }                                                           \
+
+
 // ENGINE FUNCTIONS USED BY OTHER ENGINE FUNCTIONS
 
 
@@ -881,9 +912,8 @@ public:
         return error_code_;
     }
 
-private:
-    struct Item
-    {
+private: // 
+    struct Item {
         ItemType type;
         matrix<Type> mat;
         std::vector<int> intVec;
@@ -893,16 +923,10 @@ private:
     int size_;
     int error_code_ = 0; // Initialize the error code to 0 (no error) by default
 };
-// private:
-//     std::vector<ItemType> items_;
-//     int size_;
-//     int error_code_ = 0; // Initialize the error code to 0 (no error) by default
-// };
 
 template <class Type>
-class ExprEvaluator
-{
-private:
+class ExprEvaluator {
+private: // ExprEvaluator
     vector<int> mats_save_hist;
     vector<int> table_x;
     vector<int> table_n;
@@ -913,7 +937,7 @@ private:
     ListOfIntVecs valid_int_vecs;
     vector<Type> valid_literals;
 
-public:
+public: // ExprEvaluator
     // constructor
     ExprEvaluator(
         vector<int> &mats_save_hist_,
@@ -3261,7 +3285,7 @@ public:
         } // switch (table_n[row])
     };
 
-private:
+private: // ExprEvaluator
     unsigned char error_code;
     int expr_row;
     int func_int;
@@ -3270,24 +3294,32 @@ private:
     std::vector<int> arg_cols;
     std::vector<int> arg_type_ints;
     char error_message[256];
-};
+}; // end ExprEvaluator
 
 template <class Type>
 class MatAssigner {
-private:
+private: // MatAssigner
     vector<int> table_x;
     vector<int> table_n;
     vector<int> table_i;
     ListOfIntVecs valid_int_vecs;
     vector<Type> valid_literals;
 
-public:
+public: // MatAssigner
     MatAssigner(
         vector<int> &table_x_,
         vector<int> &table_n_,
         vector<int> &table_i_,
         ListOfIntVecs &valid_int_vecs_,
-        vector<Type> &valid_literals_) {
+        vector<Type> &valid_literals_
+    ) {
+        //error_code = 0; // non-zero means error has occurred; otherwise, no error
+        //expr_row = 0;
+        //func_int = -99; // assume no function information is available
+        //time_int = 0;
+        //arg_rows = {0};
+        //arg_cols = {0};
+        //arg_type_ints = {0};
         table_x = table_x_;
         table_n = table_n_;
         table_i = table_i_;
@@ -3443,34 +3475,17 @@ public:
         
         Rf_error("square bracket (e.g. x[i, j]) and concatenation (e.g. c(x, y, z)) are the only functions allowed on the left-hand-side");
     };
-};
+private: // MatAssigner
+    unsigned char error_code;
+    int expr_row;
+    int func_int;
+    int time_int;
+    std::vector<int> arg_rows;
+    std::vector<int> arg_cols;
+    std::vector<int> arg_type_ints;
+    char error_message[256];
+}; // end MatAssigner
 
-#define REPORT_ERROR                                             \
-    {                                                            \
-        int error = exprEvaluator.GetErrorCode();                \
-        int expr_row = exprEvaluator.GetExprRow();               \
-        vector<int> arg_rows = exprEvaluator.GetArgRows();       \
-        vector<int> arg_cols = exprEvaluator.GetArgCols();       \
-        vector<int> arg_type_ints = exprEvaluator.GetArgTypeInts(); \
-        int func_int = exprEvaluator.GetFuncInt();               \
-        int time_int = exprEvaluator.GetTimeInt();               \
-        const char *err_msg = exprEvaluator.GetErrorMessage();   \
-        REPORT(error);                                           \
-        REPORT(expr_row);                                        \
-        REPORT(func_int);                                        \
-        REPORT(time_int);                                        \
-        REPORT(arg_rows);                                        \
-        REPORT(arg_cols);                                        \
-        REPORT(arg_type_ints);                                   \
-                                                                 \
-        logfile.open(log_file, std::ios_base::app);              \
-        logfile << "Error code = " << error << std::endl;        \
-        logfile << "Error message = " << err_msg << std::endl;   \
-        logfile << "Expression row = " << expr_row << std::endl; \
-        logfile << "Function code = " << func_int << std::endl;  \
-        logfile << "Time step = " << time_int << std::endl;      \
-        logfile.close();                                         \
-    }
 
 template <class Type>
 vector<ListOfMatrices<Type>> MakeSimulationHistory(
@@ -3482,7 +3497,6 @@ vector<ListOfMatrices<Type>> MakeSimulationHistory(
     vector<ListOfMatrices<Type>> simulation_history(time_steps + 2);
     matrix<Type> empty_matrix;
     for (unsigned int i = 0; i < mats_save_hist.size(); i++)
-        //Rcpp::Rcout << "matrix: " << size << std::endl;
         if (mats_save_hist[i] == 0)
             hist_shape_template.m_matrices[i] = empty_matrix;
 
@@ -3498,8 +3512,6 @@ void UpdateSimulationHistory(
     const vector<int> &mats_save_hist,
     ListOfMatrices<Type> &hist_shape_template)
 {
-    // matrix<Type> emptyMat;
-    // ListOfMatrices<Type> ms(mats);
     // if the history of the matrix is not to be saved,
     // just save a 1-by-1 with a zero instead to save space
     for (unsigned int i = 0; i < mats_save_hist.size(); i++)
@@ -3561,7 +3573,6 @@ Type objective_function<Type>::operator()()
     DATA_INTEGER(time_steps)
 
     // Expressions and parse table
-    // DATA_IVECTOR(expr_output_id);
     DATA_IVECTOR(a_table_x);
     DATA_IVECTOR(a_table_n);
     DATA_IVECTOR(a_table_i);
@@ -3669,7 +3680,8 @@ Type objective_function<Type>::operator()()
         meth_mats,
         meth_int_vecs,
         const_int_vecs,
-        literals);
+        literals
+    );
     ExprEvaluator<Type> objFunEvaluator(
         mats_save_hist, // this seems odd given that objective functions can't access history
         o_table_x,
@@ -3679,13 +3691,15 @@ Type objective_function<Type>::operator()()
         meth_mats,
         meth_int_vecs,
         const_int_vecs,
-        literals);
+        literals
+    );
     MatAssigner<Type> matAssigner(
         a_table_x,
         a_table_n,
         a_table_i,
         const_int_vecs,
-        literals);
+        literals
+    );
 
     // 3 Pre-simulation (the 'before' step)
     int expr_index = 0;
@@ -3708,12 +3722,8 @@ Type objective_function<Type>::operator()()
             result = exprEvaluator.EvalExpr(
                 simulation_history, 0, mats, p_table_row);
 
-        if (exprEvaluator.GetErrorCode()) {
-            REPORT_ERROR
-            return 0.0;
-        }
+        MP2_REPORT_ERROR(exprEvaluator)
 
-        // mats.m_matrices[expr_output_id[expr_index+i]] = result;
         matAssigner.matAssign(result, mats, a_table_row);
 
         p_table_row += expr_num_p_table_rows[i];
@@ -3723,7 +3733,6 @@ Type objective_function<Type>::operator()()
         // to the start of that loop
     } // p_table_row is fine here
 
-    // simulation_history[0] = mats;
     UpdateSimulationHistory(
         simulation_history,
         0,
@@ -3760,11 +3769,7 @@ Type objective_function<Type>::operator()()
                 result = exprEvaluator.EvalExpr(
                     simulation_history, k + 1, mats, p_table_row2);
 
-            if (exprEvaluator.GetErrorCode()) {
-                REPORT_ERROR
-                return 0.0;
-            }
-            // mats.m_matrices[expr_output_id[expr_index+i]] = result;
+            MP2_REPORT_ERROR(exprEvaluator)
             matAssigner.matAssign(result, mats, a_table_row2);
 
             p_table_row2 += expr_num_p_table_rows[expr_index + i];
@@ -3776,7 +3781,6 @@ Type objective_function<Type>::operator()()
                 Rcpp::Rcout << "mats = " << mats.m_matrices[ii] << std::endl;
 #endif
         }
-        // simulation_history[k+1] = mats;
         UpdateSimulationHistory(
             simulation_history,
             k + 1,
@@ -3807,19 +3811,13 @@ Type objective_function<Type>::operator()()
                 simulation_history, time_steps + 1, mats, p_table_row);
         }
 
-        if (exprEvaluator.GetErrorCode()) {
-            REPORT_ERROR
-            return 0.0;
-        }
-
-        // mats.m_matrices[expr_output_id[expr_index+i]] = result;
+        MP2_REPORT_ERROR(exprEvaluator)
         matAssigner.matAssign(result, mats, a_table_row);
 
         p_table_row += expr_num_p_table_rows[expr_index + i];
         a_table_row += assign_num_a_table_rows[expr_index + i];
     }
 
-    // simulation_history[time_steps+1] = mats;
     UpdateSimulationHistory(
         simulation_history,
         time_steps + 1,
@@ -3865,7 +3863,10 @@ Type objective_function<Type>::operator()()
     int cur = 0;
     for (unsigned int i = 0; i < mats_return.size(); i++) {
         if (mats_return[i] == 1) {
-            if (mats_save_hist[i] == 0) { // Report the last one
+            
+            // Report the last one 
+            // (just 'after' phases)
+            if (mats_save_hist[i] == 0) { 
                 for (int jj = 0; jj < mats.m_matrices[i].cols(); jj++)
                     for (int ii = 0; ii < mats.m_matrices[i].rows(); ii++) {
                         values(cur, 0) = i;
@@ -3876,7 +3877,10 @@ Type objective_function<Type>::operator()()
                         cur++;
                     }
             }
-            else { // Report the whole simulation history
+            
+            // Report the whole simulation history
+            // (including 'before', 'during' and 'after', phasese)
+            else { 
                 int hist_len = time_steps + 2;
                 for (int k = 0; k < hist_len; k++)
                     for (int jj = 0; jj < simulation_history[k].m_matrices[i].cols(); jj++)
@@ -3901,14 +3905,10 @@ Type objective_function<Type>::operator()()
     // 7 Calc the return of the objective function
     matrix<Type> ret;
     ret = objFunEvaluator.EvalExpr(simulation_history, time_steps + 2, mats, 0);
+
+    MP2_REPORT_ERROR(exprEvaluator);
+    MP2_REPORT_ERROR(objFunEvaluator);
     if (ret.size() != 1) Rf_error("Objective function did not return a scalar.");
-
-    if (exprEvaluator.GetErrorCode()) {
-        REPORT_ERROR;
-        return 0.0;
-    }
-
-    REPORT_ERROR
 
 #ifdef MP_VERBOSE
     Rcpp::Rcout << "======== end of objective function ========" << std::endl;

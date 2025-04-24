@@ -36,14 +36,6 @@ X_sim = (sim_data
 manual_convolution = k[1] * X_sim$value + k[2] * X_sim$lag_1 + k[3] * X_sim$lag_2
 macpan2_convolution = sim_data %>% filter(matrix == "Y") %>% pull(value)
 
-# TODO: add this formula to engine docs
-#   - `l` : index for the time lag, starting with `l = 0`
-#   - `t` : index for time, starting at `t = 1`
-#   - `k_l` : `l`th value of the kernel
-#   - `x_t` : value of the variable at time `t`
-# k_0 * x_t + k_1 * x_{t-1} + k_2 * x_{t-2}
-# \sum_{l = 0}^{min(m,t)-1} k_l x_{t-l}
-
 ## view differences
 cbind(manual_convolution, macpan2_convolution)
 plot(manual_convolution, macpan2_convolution)
