@@ -48,6 +48,60 @@ spec = mp_tmb_library(
   , "hiv"
   , package = "macpan2"
 )
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
 ```
 
 This specification can be used to draw the following flow diagram using

@@ -56,6 +56,46 @@ spec = mp_tmb_library(
   , "ww"
   , package = "macpan2"
 )
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
 ```
 
 This specification can be used to draw the following flow diagrams using
@@ -252,6 +292,8 @@ focal_model = (
   # log transform W
   |> mp_tmb_insert_trans("W", mp_log)
 )
+#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
+#> is deprecated; please use 'flow_name' instead
 ```
 
 ## Calibrate to Data
@@ -307,7 +349,7 @@ mp_optimize(focal_calib)
 #> NA/NaN function evaluation
 #> $par
 #>      params      params      params      params      params      params 
-#>  -8.6647123 -12.6963672   2.4372369   7.2248134   1.3915078   3.4112490 
+#>  -8.6647123 -12.6963677   2.4502967   7.2248134   1.3915078   3.4112490 
 #>      params      params      params      params      params 
 #>   2.8777186   3.8903473   2.3726918   4.6262171   0.5130978 
 #> 
@@ -318,11 +360,11 @@ mp_optimize(focal_calib)
 #> [1] 0
 #> 
 #> $iterations
-#> [1] 49
+#> [1] 47
 #> 
 #> $evaluations
 #> function gradient 
-#>       92       50 
+#>       90       48 
 #> 
 #> $message
 #> [1] "relative convergence (4)"
@@ -346,20 +388,20 @@ print(fitted_coefs)
 #> 10  params.8 time_var_beta1   5   0    0.00 fixed 2.372692e+00 8.529388e-01
 #> 11  params.9 time_var_beta1   6   0    0.00 fixed 4.626217e+00 2.269487e+00
 #> 1     params          beta0   0   0    0.25 fixed 1.725692e-04 5.055459e-04
-#> 2   params.1             nu   0   0    0.03 fixed 3.062230e-06 1.912782e-06
-#> 4   params.2             xi   0   0    1.00 fixed 1.144138e+01 3.193284e+03
+#> 2   params.1             nu   0   0    0.03 fixed 3.062228e-06 1.912379e-06
+#> 4   params.2             xi   0   0    1.00 fixed 1.159179e+01 3.441451e+03
 #>         conf.low     conf.high
 #> 3   4.974683e-01  5.287272e-01
 #> 5   2.554387e+00  1.189524e+01
-#> 6  -1.179551e-02  2.794811e+00
+#> 6  -1.179552e-02  2.794811e+00
 #> 7  -2.935683e-01  7.116066e+00
 #> 8   9.664636e-01  4.788974e+00
 #> 9   2.948793e-01  7.485815e+00
 #> 10  7.009624e-01  4.044421e+00
 #> 11  1.781049e-01  9.074329e+00
 #> 1   5.537914e-07  5.377498e-02
-#> 2   9.002138e-07  1.041669e-05
-#> 4   2.220446e-16 4.249537e+238
+#> 2   9.004453e-07  1.041401e-05
+#> 4   2.220446e-16 5.954573e+253
 ```
 
 Plot the fitted values.

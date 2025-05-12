@@ -124,7 +124,7 @@ TMBModelSpec = function(
     if (self$state_update == "no") {
       msg_space(
           "This model has not formalized the notion of a state variable,"
-        , "and so changing how the state variables are updated has no effect.",
+        , "and so changing how the state variables are updated has no effect."
         , "Models with formalized state variables are specified with state"
         , "flows using functions such as mp_per_capita_flow."
       ) |> warning()

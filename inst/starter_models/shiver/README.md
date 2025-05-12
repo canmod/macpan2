@@ -539,11 +539,11 @@ mp_optimize(shiver_calibrator)
 #> [1] 0
 #> 
 #> $iterations
-#> [1] 47
+#> [1] 51
 #> 
 #> $evaluations
 #> function gradient 
-#>      126       48 
+#>      111       52 
 #> 
 #> $message
 #> [1] "relative convergence (4)"
@@ -554,7 +554,7 @@ est_coef
 #>       mat row default  estimate std.error  conf.low conf.high
 #> 1  beta_v   0    0.05    6.5859    1.9745    2.7159   10.4559
 #> 2  beta_s   0    0.20    0.0641    0.0102    0.0442    0.0840
-#> 3       E   0    0.00 2381.3062  357.0389 1681.5228 3081.0895
+#> 3       E   0    0.00 2381.3062  357.0389 1681.5228 3081.0896
 #> 4   sigma   0    0.10    0.0064    0.0003    0.0058    0.0069
 #> 5 gamma_h   0    0.07    0.0404    0.0083    0.0241    0.0567
 ```
@@ -677,7 +677,7 @@ shiver_calibrator = mp_tmb_calibrator(
 mp_optimize(shiver_calibrator)
 #> $par
 #>       params       params       params       params       params 
-#> -4.157752739 -0.207593565 -8.769173070  0.005611944  0.006871819 
+#> -4.157752739 -0.207593565 -8.769173073  0.005611944  0.006871819 
 #> 
 #> $objective
 #> [1] 383.1069

@@ -98,10 +98,10 @@ library(macpan2)
 si = mp_tmb_model_spec(
     before = S ~ 1 - I
   , during = mp_per_capita_flow(
-        from     = "S"         ## compartment from which individuals flow
-      , to       = "I"         ## compartment to which individuals flow
-      , rate     = "beta * I"  ## expression giving _per-capita_ flow rate
-      , abs_rate = "infection" ## name for _absolute_ flow rate = beta * I * S
+        from      = "S"         ## compartment from which individuals flow
+      , to        = "I"         ## compartment to which individuals flow
+      , rate      = "beta * I"  ## expression giving _per-capita_ flow rate
+      , flow_name = "infection" ## name for _absolute_ flow rate = beta * I * S
     )
   , default = list(I = 0.01, beta = 0.2)
 )
@@ -123,7 +123,7 @@ print(si)
     ## ---------------------
     ## At every iteration of the simulation loop (t = 1 to T):
     ## ---------------------
-    ## 1: mp_per_capita_flow(from = "S", to = "I", rate = "beta * I", abs_rate = "infection")
+    ## 1: mp_per_capita_flow(from = "S", to = "I", rate = "beta * I", flow_name = "infection")
 
 See [this
 article](https://canmod.github.io/macpan2/articles/example_models.html)
