@@ -1,188 +1,10 @@
-## Changes in 1.16.13
-
-[change list](https://github.com/canmod/macpan2/compare/4cf3617..e51ec8a1)
-
-## Changes in 1.16.12
-
-[change list](https://github.com/canmod/macpan2/compare/1b60500..4cf3617)
-
-## Changes in 1.16.11
-
-[change list](https://github.com/canmod/macpan2/compare/f7151b3..1b60500)
-
-## Changes in 1.16.10
-
-[change list](https://github.com/canmod/macpan2/compare/732affd..f7151b3)
-
-## Changes in 1.16.9
-
-[change list](https://github.com/canmod/macpan2/compare/0981955..732affd)
-
-## Changes in 1.16.8
-
-[change list](https://github.com/canmod/macpan2/compare/0838e7e..0981955)
-
-## Changes in 1.16.7
-
-[change list](https://github.com/canmod/macpan2/compare/93ba2f9..0838e7e)
-
-## Changes in 1.16.6
-
-[change list](https://github.com/canmod/macpan2/compare/ee7d473..93ba2f9)
-
-## Changes in 1.16.5
-
-[change list](https://github.com/canmod/macpan2/compare/d8e83a0..ee7d473)
-
-## Changes in 1.16.4
-
-[change list](https://github.com/canmod/macpan2/compare/78afd3d..d8e83a0)
-
-## Changes in 1.16.3
-
-[change list](https://github.com/canmod/macpan2/compare/79fa954..78afd3d)
-
-## Changes in 1.16.2
-
-[change list](https://github.com/canmod/macpan2/compare/a539c47..79fa954)
-
-## Changes in 1.16.1
-
-[change list](https://github.com/canmod/macpan2/compare/ae43d12..a539c47)
-
-## Changes in 1.16.0
-
-[change list](https://github.com/canmod/macpan2/compare/530d78b..ae43d12)
-
-## Changes in 1.15.3
-
-[change list](https://github.com/canmod/macpan2/compare/bbf60fc..530d78b)
-
-## Changes in 1.15.2
-
-[change list](https://github.com/canmod/macpan2/compare/192e19f..bbf60fc)
-
-## Changes in 1.15.1
-
-[change list](https://github.com/canmod/macpan2/compare/4a2cb70..192e19f)
-
-## Changes in 1.15.0
-
-[change list](https://github.com/canmod/macpan2/compare/9df61ac..4a2cb70)
-
-## Changes in 1.14.4
-
-[change list](https://github.com/canmod/macpan2/compare/1e3eab0..9df61ac)
-
-## Changes in 1.14.3
-
-[change list](https://github.com/canmod/macpan2/compare/811d681..1e3eab0)
-
-## Changes in 1.14.2
-
-[change list](https://github.com/canmod/macpan2/compare/26a5d80..811d681)
-
-## Changes in 1.14.1
-
-[change list](https://github.com/canmod/macpan2/compare/cd0ce1c..26a5d80)
-
-## Changes in 1.14.0
-
-[change list](https://github.com/canmod/macpan2/compare/3e527d5..cd0ce1c)
-
-## Changes in 1.13.0
-
-[change list](https://github.com/canmod/macpan2/compare/c9e4edf..3e527d5)
-
-## Changes in 1.12.0
-
-[change list](https://github.com/canmod/macpan2/compare/22a5583..c9e4edf)
-
-## Changes in 1.11.1
-
-[change list](https://github.com/canmod/macpan2/compare/3b5cea9..22a5583)
-
-## Changes in 1.11.0
-
-[change list](https://github.com/canmod/macpan2/compare/2479418..3b5cea9)
-
-## Changes in 1.10.0
-
-[change list](https://github.com/canmod/macpan2/compare/e3a400c..2479418)
-
-## Changes in 1.9.1
-
-[change list](https://github.com/canmod/macpan2/compare/e35c139..e3a400c)
-
-## Changes in 1.9.0
-
-[change list](https://github.com/canmod/macpan2/compare/2c6325d..e35c139)
-
-## Changes in 1.8.1
-
-[change list](https://github.com/canmod/macpan2/compare/36e08b5..2c6325d)
-
-## Changes in 1.8.0
-
-[change list](https://github.com/canmod/macpan2/compare/8e72725..36e08b5)
-
-## Changes in 1.7.2
-
-[change list](https://github.com/canmod/macpan2/compare/544eada..8e72725)
-
-## Changes in 1.6.1
-
-[change list](https://github.com/canmod/macpan2/compare/220a0fd..544eada)
-
-## Changes in 1.7.0
-
-[change list](https://github.com/canmod/macpan2/compare/14da8f1..220a0fd)
-
-## Changes in 1.6.0
-
-[change list](https://github.com/canmod/macpan2/compare/b52d387..14da8f1)
-
-## Changes in 1.5.6
-
-[change list](https://github.com/canmod/macpan2/compare/e780f91..b52d387)
-
-## Changes in 1.5.5
-
-[change list](https://github.com/canmod/macpan2/compare/ab997b5..e780f91)
-
-## Changes in 1.5.4
-
-[change list](https://github.com/canmod/macpan2/compare/427412d..ab997b5)
-
-## Changes in 1.5.3
-
-[change list](https://github.com/canmod/macpan2/compare/61402b3..427412d)
-
-## Changes in 1.5.2
-
-[change list](https://github.com/canmod/macpan2/compare/819a504..61402b3)
-
-## Changes in 1.5.1
-
-[change list](https://github.com/canmod/macpan2/compare/b9d5858..819a504)
-
-## Changes in 1.5.0
-
-[change list](https://github.com/canmod/macpan2/compare/05554e3..b9d5858)
-
+## 1.5.0
 
 ### New Features
 
 * Delete elements from model specifications with `mp_tmb_delete`.
 
-## Changes in 1.4.1
-
-[change list](https://github.com/canmod/macpan2/compare/e3c5606..05554e3)
-
-## Changes in 1.4.0
-
-[change list](https://github.com/canmod/macpan2/compare/c11a596..e3c5606)
-
+## 1.4.0
 
 ### Breaking Changes
 
@@ -194,18 +16,7 @@ vector
 
 * Row vectors with names no longer break spec print methods
 
-## Changes in 1.3.3
-
-[change list](https://github.com/canmod/macpan2/compare/284485d..c11a596)
-
-## Changes in 1.3.2
-
-[change list](https://github.com/canmod/macpan2/compare/ba7c10a..284485d)
-
-## Changes in 1.3.1
-
-[change list](https://github.com/canmod/macpan2/compare/b8c918a..ba7c10a)
-
+## 1.3.1
 
 ### Breaking Changes
 
@@ -237,34 +48,7 @@ process error.
 * Help file examples for `mp_tmb_insert` and `mp_tmb_update`.
 * Readme/vignette examples better expose calls to `library` for the user.
 
-## Changes in 1.2.1
-
-[change list](https://github.com/canmod/macpan2/compare/d9334c1..b8c918a)
-
-## Changes in 1.2.0
-
-[change list](https://github.com/canmod/macpan2/compare/5eac914..d9334c1)
-
-## Changes in 1.1.3
-
-[change list](https://github.com/canmod/macpan2/compare/a10f98b..5eac914)
-
-## Changes in 1.1.2
-
-[change list](https://github.com/canmod/macpan2/compare/bb27d2c..a10f98b)
-
-## Changes in 1.1.1
-
-[change list](https://github.com/canmod/macpan2/compare/6664f4c..bb27d2c)
-
-## Changes in 1.0.1
-
-[change list](https://github.com/canmod/macpan2/compare/c876f7a..6664f4c)
-
-## Changes in 1.1.0
-
-[change list](https://github.com/canmod/macpan2/compare/6884145..c876f7a)
-
+## 1.1.0
 
 ### Breaking Changes
 
@@ -298,10 +82,7 @@ process error.
 * `mp_tmb_model_spec` documentation is filled out.
 * `group_sums` TMB engine function third argument updated from old pre-1.0.0 behaviour.
 
-## Changes in 1.0.0
-
-[change list](https://github.com/canmod/macpan2/compare/f5362d3..6884145)
-
+## 1.0.0
 
 ### Breaking Changes
 
@@ -325,14 +106,7 @@ process error.
 * Model structure grammar (`mp_index()`, `mp_join()`, etc.)
 * Log files
 
-## Changes in 0.0.4
-
-[change list](https://github.com/canmod/macpan2/compare/5f72d45..f5362d3)
-
-## Changes in 0.0.3
-
-[change list](https://github.com/canmod/macpan2/compare/d11a813..06c656b)
-
+## 0.0.3
 
 * Optimize C++ simulation history storage by avoiding unnecessary allocations
 * Use state and flow names in expression inserters
@@ -347,10 +121,7 @@ process error.
 * Package reference organization cleanup (thanks @bbolker )
 * Time-varying parameters vignette
 
-## Changes in 0.0.2
-
-[change list](https://github.com/canmod/macpan2/compare/aac0442..d11a813)
-
+## 0.0.2
 
 * Interface for optimization of TMB simulation objects
 * TMB simulation model updating with caching
@@ -363,9 +134,6 @@ process error.
 * Fix bugs in symbolic R-side manipulation of expressions
 * Fix previously broken argument_dots option in model definition files (thank you @Flynn-Primrose )
 
-## Changes in 0.0.1
-
-[change list](https://github.com/canmod/macpan2/compare/92df5b3..aac0442)
-
+## 0.0.1
 
 * Initial release.

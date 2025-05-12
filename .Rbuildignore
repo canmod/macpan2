@@ -30,3 +30,4 @@ drat/
 ^vignettes/[a-zA-Z0-9]+\.Rmd$
 .*.cff
 ^CONTRIBUTING\.md$
+^news-narratives\.md$
