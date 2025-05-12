@@ -1,5 +1,5 @@
 pandoc: 3.1.11
-pkgdown: 2.1.1
+pkgdown: 2.1.2
 pkgdown_sha: ~
 articles:
   calibration_advanced: calibration_advanced.html
@@ -22,7 +22,7 @@ articles:
   time_varying_parameters_advanced: time_varying_parameters_advanced.html
   time_varying_parameters: time_varying_parameters.html
   vignette_status: vignette_status.html
-last_built: 2025-04-23T19:42Z
+last_built: 2025-05-12T18:38Z
 urls:
   reference: https://canmod.github.io/macpan2/reference
   article: https://canmod.github.io/macpan2/articles
