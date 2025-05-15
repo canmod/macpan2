@@ -46,7 +46,17 @@
 <div id="contributing-to-macpan2" class="section level1">
 
 <p>Thank you for contributing to <code>macpan2</code>. Pull requests and issues are welcome.</p>
-<p>Developers can see <a href="https://canmod.github.io/macpan2/articles/index.html#developer">here</a> for documentation useful those who will contribute code.</p>
+<p>Developers can see <a href="https://canmod.github.io/macpan2/articles/index.html#developer-guides">here</a> for documentation useful those who will contribute code.</p>
+<!-- omit from toc -->
+<div class="section level2">
+<h2 id="table-of-contents">Table of Contents<a class="anchor" aria-label="anchor" href="#table-of-contents"></a></h2>
+<ul><li><a href="#developer-installation">Developer Installation</a></li>
+<li><a href="#c-development"><code>C++</code> Development</a></li>
+<li><a href="#c-standards"><code>C++</code> Standards</a></li>
+<li><a href="#adding-engine-functions">Adding Engine Functions</a></li>
+<li><a href="#developer-installation-on-windows">Developer Installation on Windows</a></li>
+<li><a href="#test-suite">Test Suite</a></li>
+</ul></div>
 <div class="section level2">
 <h2 id="developer-installation">Developer Installation<a class="anchor" aria-label="anchor" href="#developer-installation"></a></h2>
 <p>Developers and contributors should clone this repository and call <code>make</code> at the command-line in the top level directory. The following <code>make</code> rules are available for getting more control over the build process.</p>
@@ -82,6 +92,11 @@ make pkg-check         # R package checks</code></pre>
 <span><span class="co">#endif</span></span>
 <span><span class="co">#include &lt;TMB.hpp&gt;</span></span></code></pre>
 <p>When you attempt to use functions from <code>TMB</code> when adding an engine function, you should be aware that you might need to do some include-guarding. You will find out via compilation errors.</p>
+</div>
+<div class="section level2">
+<h2 id="c-standards">
+<code>C++</code> Standards<a class="anchor" aria-label="anchor" href="#c-standards"></a></h2>
+<p>We are <a href="https://github.com/canmod/macpan2/issues/125#issuecomment-1789434800" class="external-link">targeting support</a> for both <code>C++14</code> and <code>C++17</code>. This means, for example, that we cannot use <a href="https://en.cppreference.com/w/cpp/utility/variant" class="external-link">variants</a> because they were introduced in <code>C++17</code>.</p>
 </div>
 <div class="section level2">
 <h2 id="adding-engine-functions">Adding Engine Functions<a class="anchor" aria-label="anchor" href="#adding-engine-functions"></a></h2>
