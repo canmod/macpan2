@@ -443,7 +443,7 @@ I     recovery   gamma</code></pre>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">si</span> <span class="op">=</span> <span class="fu"><a href="../reference/mp_tmb_library.html">mp_tmb_library</a></span><span class="op">(</span><span class="st">"starter_models"</span>, <span class="st">"sir"</span>, package <span class="op">=</span> <span class="st">"macpan2"</span><span class="op">)</span></span>
 <span><span class="va">si</span><span class="op">$</span><span class="va">change_model</span></span>
-<span><span class="co">#&gt; Classes 'SimpleChangeModel', 'ChangeModelDefaults', 'ChangeModel', 'Base' &lt;environment: 0x561e3d26b770&gt; </span></span>
+<span><span class="co">#&gt; Classes 'SimpleChangeModel', 'ChangeModelDefaults', 'ChangeModel', 'Base' &lt;environment: 0x5631164bde90&gt; </span></span>
 <span><span class="co">#&gt; after_loop : function ()  </span></span>
 <span><span class="co">#&gt; after_state : function ()  </span></span>
 <span><span class="co">#&gt; all_user_aware_names : function ()  </span></span>
@@ -475,26 +475,26 @@ I     recovery   gamma</code></pre>
 <span><span class="va">si</span><span class="op">$</span><span class="va">change_model</span><span class="op">$</span><span class="fu">update_state</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [[1]]</span></span>
 <span><span class="co">#&gt; S ~ -infection</span></span>
-<span><span class="co">#&gt; &lt;environment: 0x561e3dd43b68&gt;</span></span>
+<span><span class="co">#&gt; &lt;environment: 0x56310a6494f8&gt;</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; [[2]]</span></span>
 <span><span class="co">#&gt; I ~ +infection - recovery</span></span>
-<span><span class="co">#&gt; &lt;environment: 0x561e3dd43b68&gt;</span></span>
+<span><span class="co">#&gt; &lt;environment: 0x56310a6494f8&gt;</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; [[3]]</span></span>
 <span><span class="co">#&gt; R ~ +recovery</span></span>
-<span><span class="co">#&gt; &lt;environment: 0x561e3dd43b68&gt;</span></span>
+<span><span class="co">#&gt; &lt;environment: 0x56310a6494f8&gt;</span></span>
 <span><span class="va">si</span><span class="op">$</span><span class="va">change_model</span><span class="op">$</span><span class="fu">update_flows</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $S</span></span>
 <span><span class="co">#&gt; $S[[1]]</span></span>
 <span><span class="co">#&gt; infection ~ beta * I/N</span></span>
-<span><span class="co">#&gt; &lt;environment: 0x561e3de0c8c0&gt;</span></span>
+<span><span class="co">#&gt; &lt;environment: 0x56311184d388&gt;</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $I</span></span>
 <span><span class="co">#&gt; $I[[1]]</span></span>
 <span><span class="co">#&gt; recovery ~ gamma</span></span>
-<span><span class="co">#&gt; &lt;environment: 0x561e3de0c8c0&gt;</span></span></code></pre></div>
+<span><span class="co">#&gt; &lt;environment: 0x56311184d388&gt;</span></span></code></pre></div>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">=</span> <span class="fu"><a href="../reference/mp_tmb_model_spec.html">mp_tmb_model_spec</a></span><span class="op">(</span></span>
 <span>  during <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
@@ -506,13 +506,13 @@ I     recovery   gamma</code></pre>
 <span><span class="co">#&gt; $A</span></span>
 <span><span class="co">#&gt; $A[[1]]</span></span>
 <span><span class="co">#&gt; r ~ a</span></span>
-<span><span class="co">#&gt; &lt;environment: 0x561e3e52efc0&gt;</span></span>
+<span><span class="co">#&gt; &lt;environment: 0x563112940fb8&gt;</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $B</span></span>
 <span><span class="co">#&gt; $B[[1]]</span></span>
 <span><span class="co">#&gt; rr ~ b</span></span>
-<span><span class="co">#&gt; &lt;environment: 0x561e3e52efc0&gt;</span></span></code></pre></div>
+<span><span class="co">#&gt; &lt;environment: 0x563112940fb8&gt;</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="updatemethod-classes">
