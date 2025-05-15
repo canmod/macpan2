@@ -2,7 +2,15 @@
 
 Thank you for contributing to `macpan2`.  Pull requests and issues are welcome.
 
-Developers can see [here](https://canmod.github.io/macpan2/articles/index.html#developer) for documentation useful those who will contribute code.
+Developers can see [here](https://canmod.github.io/macpan2/articles/index.html#developer-guides) for documentation useful those who will contribute code.
+
+- [Contributing to `macpan2`](#contributing-to-macpan2)
+  - [Developer Installation](#developer-installation)
+  - [`C++` Development](#c-development)
+  - [Adding Engine Functions](#adding-engine-functions)
+  - [Developer Installation on Windows](#developer-installation-on-windows)
+  - [Test Suite](#test-suite)
+
 
 ## Developer Installation
 
