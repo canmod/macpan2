@@ -170,7 +170,7 @@ legend("topleft"
 ## Testing Mermaid
 
 ```mermaid
-flowchart LR
-S --> I
-I --> R
+flowchart LR;
+  S -> I;
+  I -> R;
 ```
