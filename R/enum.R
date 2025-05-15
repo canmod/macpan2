@@ -62,6 +62,7 @@ valid_func_sigs = c(
       , "fwrap: assign(x, i, j, v)"
       , "fwrap: unpack(x, ...)"
 )
+bail_out_log_file = ".macpan2/bail-out/log.txt"
 process_enum = function(x) {
   RE = "(paren|binop|fwrap)[ ]*:[ ]*\\`?([^`]*)\\`?\\((.*)(\\,.*)*\\)"
   valid_ids = grepl(RE, x)

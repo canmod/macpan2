@@ -9,6 +9,7 @@
 #include <map>
 #include <math.h> // isnan() is defined
 #include <sys/time.h>
+#include <sys/stat.h>
 // https://github.com/kaskr/adcomp/wiki/Development#distributing-code
 
 #include <Rcpp.h>
@@ -165,6 +166,9 @@ std::vector<int> mp_math = {
   , MP2_MEAN, MP2_SD, MP2_INVLOGIT, MP2_LOGIT
 };
 
+std::string bail_out_log_file = ".macpan2/bail-out/log.txt";
+
+
 // functions that are elementwise binary operators
 std::vector<int> mp_elementwise_binop = {
   MP2_ADD, MP2_SUBTRACT, MP2_MULTIPLY, MP2_DIVIDE, MP2_POWER
@@ -254,6 +258,11 @@ Type mp2_rbinom(const Type size, const Type prob) {
 
 
 // UTILITY FUNCTIONS ---------------------------
+
+bool fileExists(const std::string& filename) {
+    struct stat buf;
+    return stat(filename.c_str(), &buf) != -1;
+}
 
 void printIntVector(const std::vector<int> &intVector) {
     for (int element : intVector)
@@ -1168,13 +1177,13 @@ public:
                 err_code = args.get_error_code();
                 switch (err_code) {
                 case 201:
-                    MP2_ERR(err_code, "The two operands do not have the same number of columns", table_x[row] + 1);
+                    MP2_ERR(201, "The two operands do not have the same number of columns", table_x[row] + 1);
                     return m;
                 case 202:
-                    MP2_ERR(err_code, "The two operands do not have the same number of rows", table_x[row] + 1);
+                    MP2_ERR(202, "The two operands do not have the same number of rows", table_x[row] + 1);
                     return m;
                 case 203:
-                    MP2_ERR(err_code, "The two operands do not have the same number of columns or rows", table_x[row] + 1);
+                    MP2_ERR(203, "The two operands do not have the same number of columns or rows", table_x[row] + 1);
                     return m;
                 }
             }
@@ -3508,7 +3517,6 @@ void UpdateSimulationHistory(
     hist[t] = hist_shape_template;
 }
 
-// const char LOG_FILE_NAME[] = "macpan2.log";
 
 // "main" function
 template <class Type>
@@ -3520,12 +3528,12 @@ Type objective_function<Type>::operator()()
 
     // Log file path
     DATA_STRING(log_file);
-
+    if (!fileExists(log_file)) log_file = bail_out_log_file;
     std::ofstream logfile;
     logfile.open(log_file);
-    // logfile.open (LOG_FILE_NAME);
     logfile << "======== macpan2 log file ========\n";
     logfile.close();
+    
 
     std::setprecision(9); // Set the precision of Rcpp::Rcout
 
