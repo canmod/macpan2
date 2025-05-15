@@ -166,11 +166,3 @@ legend("topleft"
   , legend = c("Prevalence", "Incidence")
 )
 ```
-
-## Testing Mermaid
-
-```mermaid
-flowchart LR;
-  S -> I;
-  I -> R;
-```
