@@ -9,6 +9,7 @@ Developers can see [here](https://canmod.github.io/macpan2/articles/index.html#d
 ## Table of Contents
 - [Developer Installation](#developer-installation)
 - [`C++` Development](#c-development)
+- [`C++` Standards](#c-standards)
 - [Adding Engine Functions](#adding-engine-functions)
 - [Developer Installation on Windows](#developer-installation-on-windows)
 - [Test Suite](#test-suite)
@@ -61,6 +62,10 @@ We `#include` both `Rcpp.h` and `TMB.hpp`, which increases the possibility of na
 ```
 
 When you attempt to use functions from `TMB` when adding an engine function, you should be aware that you might need to do some include-guarding. You will find out via compilation errors.
+
+## `C++` Standards
+
+We are [targeting support](https://github.com/canmod/macpan2/issues/125#issuecomment-1789434800) for both `C++14` and `C++17`. This means, for example, that we cannot use [variants](https://en.cppreference.com/w/cpp/utility/variant) because they were introduced in `C++17`.
 
 ## Adding Engine Functions
 
