@@ -9,7 +9,7 @@ function is covered in vignette("quickstart").'><link rel="stylesheet" href="htt
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.17.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -58,6 +58,7 @@ function is covered in <code><a href="../articles/quickstart.html">vignette("qui
 <span>  during <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  after <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  default <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  inits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  integers <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  must_save <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  must_not_save <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="op">)</span>,</span>
@@ -94,7 +95,17 @@ rules for these formulas.</p></dd>
 <dt id="arg-default">default<a class="anchor" aria-label="anchor" href="#arg-default"></a></dt>
 <dd><p>Named list of objects, each of which can be coerced into
 a <code><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></code> <code><a href="engine_functions.html">matrix</a></code>. The names refer to
-variables that appear in <code>before</code>, <code>during</code>, and <code>after</code>.</p></dd>
+quantities that appear in <code>before</code>, <code>during</code>, and <code>after</code>.
+Each quantity that is used in <code>before</code>, <code>during</code>, or <code>after</code>
+before it is defined must be given a numerical value in this <code>default</code>
+list.</p></dd>
+
+
+<dt id="arg-inits">inits<a class="anchor" aria-label="anchor" href="#arg-inits"></a></dt>
+<dd><p>Named list of initial values of state variables.  These
+initial values can be added to the <code>default</code> list with identical results,
+but adding them to <code>inits</code> is better practice because it makes it clear
+that they are initial values that will change as the state updates.</p></dd>
 
 
 <dt id="arg-integers">integers<a class="anchor" aria-label="anchor" href="#arg-integers"></a></dt>

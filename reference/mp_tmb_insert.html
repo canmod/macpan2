@@ -25,7 +25,7 @@ of deletion."><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.17.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -83,6 +83,7 @@ of deletion.</p>
 <span>  at <span class="op">=</span> <span class="fl">1L</span>,</span>
 <span>  expressions <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  default <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  inits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  integers <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  must_save <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  must_not_save <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="op">)</span>,</span>
@@ -95,6 +96,7 @@ of deletion.</p>
 <span>  at <span class="op">=</span> <span class="fl">1L</span>,</span>
 <span>  expressions <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  default <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  inits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  integers <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  must_save <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  must_not_save <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="op">)</span>,</span>
@@ -149,6 +151,13 @@ a <code><a href="https://rdrr.io/r/base/numeric.html" class="external-link">nume
 variables that appear in <code>before</code>, <code>during</code>, and <code>after</code>.
 For <code>mp_tmb_delete</code>, a character vector of such objects to delete from
 the model.</p></dd>
+
+
+<dt id="arg-inits">inits<a class="anchor" aria-label="anchor" href="#arg-inits"></a></dt>
+<dd><p>An optional list of initial values for the state variables.
+These initial values can be added to the <code>default</code> list with identical
+results, but adding them to <code>inits</code> is better practice because it makes it
+clear that they are initial values that will change as the state updates.</p></dd>
 
 
 <dt id="arg-integers">integers<a class="anchor" aria-label="anchor" href="#arg-integers"></a></dt>
@@ -218,7 +227,7 @@ model (e.g., <code>new_model = mp_tmb_insert(model, ...)</code>).</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> At every iteration of the simulation loop (t = 1 to T):</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---------------------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1: mp_per_capita_flow(from = "S", to = "I", rate = "beta * I / N", </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      abs_rate = "infection")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      flow_name = "infection")</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## Update the mixing process to include </span></span></span>
@@ -280,7 +289,7 @@ model (e.g., <code>new_model = mp_tmb_insert(model, ...)</code>).</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> At every iteration of the simulation loop (t = 1 to T):</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---------------------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1: mp_per_capita_flow(from = "S", to = "I", rate = "beta * I / N", </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      abs_rate = "infection")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      flow_name = "infection")</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

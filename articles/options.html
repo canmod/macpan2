@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.17.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -127,6 +127,12 @@ To use this feature you need to produce an alternative to
 the alternative C++ file without the extension. After this, simulation
 code will utilize this alternative engine as opposed to the built in
 <code>src/macpan2.cpp</code> engine.</li>
+<li>
+<code>macpan2_saving_conflict_msg_fn = base::message</code> :
+Function to use for reporting messages when conflicting information
+about saving or not saving a particular variable is received. This
+relates to <code>must_save</code> and <code>must_not_save</code>
+arguments in functions like <code>mp_tmb_model_spec</code>.</li>
 </ul>
 </div>
 <div class="section level2">

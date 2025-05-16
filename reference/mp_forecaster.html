@@ -19,7 +19,7 @@ forecasts using the mp_trajectory family of functions."><link rel="stylesheet" h
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.17.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -74,7 +74,8 @@ forecasts using the <code><a href="mp_trajectory.html">mp_trajectory</a></code> 
 <span>  outputs <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  tv <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  default <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  default <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  inits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -118,6 +119,13 @@ of the data.</p></dd>
 <dt id="arg-default">default<a class="anchor" aria-label="anchor" href="#arg-default"></a></dt>
 <dd><p>An optional list of default model variables (e.g., parameters
 initial values of state variables) to override calibrated values.</p></dd>
+
+
+<dt id="arg-inits">inits<a class="anchor" aria-label="anchor" href="#arg-inits"></a></dt>
+<dd><p>An optional list of initial values for the state variables.
+These initial values can be added to the <code>default</code> list with identical
+results, but adding them to <code>inits</code> is better practice because it makes it
+clear that they are initial values that will change as the state updates.</p></dd>
 
 </dl></div>
 

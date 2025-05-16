@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.17.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -122,8 +122,8 @@ library.</p>
 <span><span class="co">#&gt; At every iteration of the simulation loop (t = 1 to T):</span></span>
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; 1: mp_per_capita_flow(from = "S", to = "I", rate = "beta * I / N", </span></span>
-<span><span class="co">#&gt;      abs_rate = "infection")</span></span>
-<span><span class="co">#&gt; 2: mp_per_capita_flow(from = "I", to = "R", rate = "gamma", abs_rate = "recovery")</span></span></code></pre></div>
+<span><span class="co">#&gt;      flow_name = "infection")</span></span>
+<span><span class="co">#&gt; 2: mp_per_capita_flow(from = "I", to = "R", rate = "gamma", flow_name = "recovery")</span></span></code></pre></div>
 <p>From this specification we derive our first version of the model,
 which we use to generate synthetic data to see if optimization can
 recover the parameters that we use when simulating.</p>

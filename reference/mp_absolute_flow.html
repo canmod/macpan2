@@ -11,7 +11,7 @@ per-capita rates."><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/kat
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.17.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -56,7 +56,7 @@ per-capita rates.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">mp_absolute_flow</span><span class="op">(</span><span class="va">from</span>, <span class="va">to</span>, <span class="va">rate</span>, rate_name <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">mp_absolute_flow</span><span class="op">(</span><span class="va">from</span>, <span class="va">to</span>, <span class="va">rate</span>, flow_name <span class="op">=</span> <span class="cn">NULL</span>, rate_name <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -78,9 +78,14 @@ going.</p></dd>
 flow rate per time-step.</p></dd>
 
 
-<dt id="arg-rate-name">rate_name<a class="anchor" aria-label="anchor" href="#arg-rate-name"></a></dt>
+<dt id="arg-flow-name">flow_name<a class="anchor" aria-label="anchor" href="#arg-flow-name"></a></dt>
 <dd><p>String giving the name for the variable that
 will store the <code>rate</code>.</p></dd>
+
+
+<dt id="arg-rate-name">rate_name<a class="anchor" aria-label="anchor" href="#arg-rate-name"></a></dt>
+<dd><p>Deprecated synonym for <code>flow_name</code>. Please use <code>flow_name</code>
+in all future work.</p></dd>
 
 </dl></div>
     <div class="section level2">

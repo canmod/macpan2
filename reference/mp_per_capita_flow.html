@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.17.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -50,11 +50,11 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">mp_per_capita_flow</span><span class="op">(</span><span class="va">from</span>, <span class="va">to</span>, <span class="va">rate</span>, abs_rate <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">mp_per_capita_flow</span><span class="op">(</span><span class="va">from</span>, <span class="va">to</span>, <span class="va">rate</span>, flow_name <span class="op">=</span> <span class="cn">NULL</span>, abs_rate <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">mp_per_capita_inflow</span><span class="op">(</span><span class="va">from</span>, <span class="va">to</span>, <span class="va">rate</span>, abs_rate <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
+<span><span class="fu">mp_per_capita_inflow</span><span class="op">(</span><span class="va">from</span>, <span class="va">to</span>, <span class="va">rate</span>, flow_name <span class="op">=</span> <span class="cn">NULL</span>, abs_rate <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">mp_per_capita_outflow</span><span class="op">(</span><span class="va">from</span>, <span class="va">rate</span>, abs_rate <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">mp_per_capita_outflow</span><span class="op">(</span><span class="va">from</span>, <span class="va">rate</span>, flow_name <span class="op">=</span> <span class="cn">NULL</span>, abs_rate <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -79,7 +79,7 @@ flow rate per time-step and the right-hand-side giving an expression for
 the per-capita rate of flow from <code>from</code> to <code>to</code>.</p></dd>
 
 
-<dt id="arg-abs-rate">abs_rate<a class="anchor" aria-label="anchor" href="#arg-abs-rate"></a></dt>
+<dt id="arg-flow-name">flow_name<a class="anchor" aria-label="anchor" href="#arg-flow-name"></a></dt>
 <dd><p>String giving the name for the absolute flow rate per
 time-step. By default, during simulations, the absolute flow rate will be
 computed as <code>from * rate</code>. This default behaviour will simulate the
@@ -87,7 +87,12 @@ compartmental model as discrete difference equations, but this can
 be changed to use other approaches such as ordinary differential equations
 or stochastic models (see <code><a href="state_updates.html">state_updates</a></code>). If a formula is
 passed to <code>rate</code> (not recommended for better readability), then this
-<code>abs_rate</code> argument will be ignored.</p></dd>
+<code>flow_rate</code> argument will be ignored.</p></dd>
+
+
+<dt id="arg-abs-rate">abs_rate<a class="anchor" aria-label="anchor" href="#arg-abs-rate"></a></dt>
+<dd><p>Deprecated synonym for <code>flow_name</code>. Please use <code>flow_name</code>
+in all future work.</p></dd>
 
 </dl></div>
     <div class="section level2">

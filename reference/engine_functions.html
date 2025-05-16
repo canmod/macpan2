@@ -11,7 +11,7 @@ simulations."><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.17.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -828,24 +828,36 @@ calibrating) for time steps less than \(m\).</p>
 
 <p>Smoothly clamp the elements of a matrix so that they
 do not get closer to 0 than a tolerance, <code>eps</code>, with
-a default of 1e-12. The output of the <code>clamp</code>
-function is as follows.</p>
-<p>This function works fine as long as <code>x</code> does not go
-negative. We will improve this behaviour when we
-release a new major version
-<a href="https://github.com/canmod/macpan2/issues/93" class="external-link">see issue #93</a>.</p><div class="section">
+a default of 1e-12. This <code>clamp</code> function is the following
+modification of the
+<a href="https://arxiv.org/abs/2112.11687" class="external-link">squareplus function</a>.</p>
+<p>$$f(x) = \epsilon_- + \frac{(x - \epsilon_-) + \sqrt{(x - \epsilon_-)^2 + (2\epsilon_0 - \epsilon_-)^2 - \epsilon_-^2}}{2}$$</p>
+<p>Where the two parameters are defined as follows.</p>
+<p>$$\epsilon_0 = f(0)$$</p>
+<p>$$\epsilon_- = \lim_{x \to  -\infty}f(x)$$</p>
+<p>This function is differentiable everywhere, monotonically
+increasing, and \(f(x) \approx x\) if \(x\) is positive
+and not too close to zero. By modifying the parameters, you
+can control the distance between \(f(x)\) and the
+horizontal axis at two 'places' – \(0\) and \(-\infty\).
+<a href="https://github.com/canmod/macpan2/issues/93" class="external-link">See issue #93</a>.
+for more information.</p><div class="section">
 <h4 id="functions-13">Functions<a class="anchor" aria-label="anchor" href="#functions-13"></a></h4>
 
-<ul><li><p><code>clamp(x, eps)</code></p></li>
+<ul><li><p><code>clamp(x, eps, limit)</code></p></li>
 </ul></div>
 
 <div class="section">
 <h4 id="arguments-13">Arguments<a class="anchor" aria-label="anchor" href="#arguments-13"></a></h4>
 
 <ul><li><p><code>x</code> : A matrix with elements that should remain positive.</p></li>
-<li><p><code>eps</code> : A small positive number giving the
-theoretical minimum of the elements in the returned
-matrix.</p></li>
+<li><p><code>eps</code> : A small positive number, \(\epsilon_0 = f(0)\),
+giving the value of the function when the input is zero.
+The default value is 1e-12</p></li>
+<li><p><code>limit</code> : A small positive number,
+$$\epsilon_- = \lim_{x \to  -\infty}f(x)$$, giving the
+value of the function as the input goes to negative
+infinity. The default is <code>limit = eps</code>.</p></li>
 </ul></div>
 
 

@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.17.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -217,8 +217,8 @@ transmission rate.</p>
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; 1: beta ~ time_var(beta_values, beta_changepoints)</span></span>
 <span><span class="co">#&gt; 2: mp_per_capita_flow(from = "S", to = "I", rate = "beta * I / N", </span></span>
-<span><span class="co">#&gt;      abs_rate = "infection")</span></span>
-<span><span class="co">#&gt; 3: mp_per_capita_flow(from = "I", to = "R", rate = "gamma", abs_rate = "recovery")</span></span>
+<span><span class="co">#&gt;      flow_name = "infection")</span></span>
+<span><span class="co">#&gt; 3: mp_per_capita_flow(from = "I", to = "R", rate = "gamma", flow_name = "recovery")</span></span>
 <span></span>
 <span><span class="co"># create simulator object</span></span>
 <span><span class="va">piecewise_simulator</span> <span class="op">=</span> <span class="op">(</span><span class="va">piecewise_spec</span></span>
@@ -303,8 +303,8 @@ must be positive and the domain of the logarithm is
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; 1: beta ~ time_var(beta_values, beta_changepoints)</span></span>
 <span><span class="co">#&gt; 2: mp_per_capita_flow(from = "S", to = "I", rate = "beta * I / N", </span></span>
-<span><span class="co">#&gt;      abs_rate = "infection")</span></span>
-<span><span class="co">#&gt; 3: mp_per_capita_flow(from = "I", to = "R", rate = "gamma", abs_rate = "recovery")</span></span></code></pre></div>
+<span><span class="co">#&gt;      flow_name = "infection")</span></span>
+<span><span class="co">#&gt; 3: mp_per_capita_flow(from = "I", to = "R", rate = "gamma", flow_name = "recovery")</span></span></code></pre></div>
 <p>Next we create the calibrator object and specify that we want to
 estimate the vector of time varying transmission rates,
 <code>log_beta_values</code>, by passing this parameter name to the
@@ -334,7 +334,7 @@ estimate the vector of time varying transmission rates,
 <span><span class="co">#&gt; outer mgc:  0.5353311 </span></span>
 <span><span class="co">#&gt; outer mgc:  0.01025667 </span></span>
 <span><span class="co">#&gt; outer mgc:  1.863369e-05 </span></span>
-<span><span class="co">#&gt; outer mgc:  3.959838e-11</span></span>
+<span><span class="co">#&gt; outer mgc:  4.02139e-11</span></span>
 <span><span class="co">#&gt; $par</span></span>
 <span><span class="co">#&gt;     params     params     params </span></span>
 <span><span class="co">#&gt; -0.2144229 -2.8405257 -0.8566479 </span></span>
@@ -561,140 +561,140 @@ calibration.</p>
 <span>  </span>
 <span><span class="op">)</span>   </span>
 <span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">calib_rbf</span><span class="op">)</span></span>
-<span><span class="co">#&gt; outer mgc:  260404.5 </span></span>
-<span><span class="co">#&gt; outer mgc:  516278.6 </span></span>
-<span><span class="co">#&gt; outer mgc:  587174.9 </span></span>
-<span><span class="co">#&gt; outer mgc:  650089 </span></span>
-<span><span class="co">#&gt; outer mgc:  551580.4 </span></span>
-<span><span class="co">#&gt; outer mgc:  577141 </span></span>
-<span><span class="co">#&gt; outer mgc:  544591 </span></span>
-<span><span class="co">#&gt; outer mgc:  343582.7 </span></span>
-<span><span class="co">#&gt; outer mgc:  219354.8 </span></span>
-<span><span class="co">#&gt; outer mgc:  474385.6 </span></span>
-<span><span class="co">#&gt; outer mgc:  759175.8 </span></span>
-<span><span class="co">#&gt; outer mgc:  1981896 </span></span>
-<span><span class="co">#&gt; outer mgc:  572674.8 </span></span>
-<span><span class="co">#&gt; outer mgc:  130718.1 </span></span>
-<span><span class="co">#&gt; outer mgc:  11623.46 </span></span>
-<span><span class="co">#&gt; outer mgc:  2573.963 </span></span>
-<span><span class="co">#&gt; outer mgc:  250.8778 </span></span>
-<span><span class="co">#&gt; outer mgc:  3.075834 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.0004771355</span></span>
+<span><span class="co">#&gt; outer mgc:  260401.3 </span></span>
+<span><span class="co">#&gt; outer mgc:  516402.6 </span></span>
+<span><span class="co">#&gt; outer mgc:  587311.1 </span></span>
+<span><span class="co">#&gt; outer mgc:  649783.3 </span></span>
+<span><span class="co">#&gt; outer mgc:  550833.4 </span></span>
+<span><span class="co">#&gt; outer mgc:  576796.1 </span></span>
+<span><span class="co">#&gt; outer mgc:  544003.3 </span></span>
+<span><span class="co">#&gt; outer mgc:  343021 </span></span>
+<span><span class="co">#&gt; outer mgc:  236018.4 </span></span>
+<span><span class="co">#&gt; outer mgc:  1728831 </span></span>
+<span><span class="co">#&gt; outer mgc:  1432448 </span></span>
+<span><span class="co">#&gt; outer mgc:  327900.7 </span></span>
+<span><span class="co">#&gt; outer mgc:  131123.7 </span></span>
+<span><span class="co">#&gt; outer mgc:  27381.8 </span></span>
+<span><span class="co">#&gt; outer mgc:  8420.439 </span></span>
+<span><span class="co">#&gt; outer mgc:  1716.156 </span></span>
+<span><span class="co">#&gt; outer mgc:  121.6333 </span></span>
+<span><span class="co">#&gt; outer mgc:  0.7348919 </span></span>
+<span><span class="co">#&gt; outer mgc:  2.724533e-05</span></span>
 <span><span class="co">#&gt; $par</span></span>
 <span><span class="co">#&gt;      params      params      params      params      params      params </span></span>
-<span><span class="co">#&gt; -1.27641280 -0.23972069 -0.88918700 -0.48246900 -0.71662892 -0.54489211 </span></span>
+<span><span class="co">#&gt; -1.27636525 -0.23980197 -0.88907139 -0.48260238 -0.71647384 -0.54501114 </span></span>
 <span><span class="co">#&gt;      params      params      params      params      params      params </span></span>
-<span><span class="co">#&gt; -0.66403205 -0.55987089 -0.60953016 -0.48826067 -0.53743851 -0.35883656 </span></span>
+<span><span class="co">#&gt; -0.66388945 -0.55999223 -0.60936910 -0.48835510 -0.53694453 -0.35922610 </span></span>
 <span><span class="co">#&gt;      params      params      params      params      params      params </span></span>
-<span><span class="co">#&gt;  0.01438706 -0.51734442 -0.50528656 -0.51390784 -0.56715449 -0.36571049 </span></span>
+<span><span class="co">#&gt;  0.01511029 -0.51623058 -0.50539544 -0.51315850 -0.56742283 -0.36387945 </span></span>
 <span><span class="co">#&gt;      params      params      params </span></span>
-<span><span class="co">#&gt; -0.67953264  0.38050808  0.55256296 </span></span>
+<span><span class="co">#&gt; -0.68221385  0.38837777  0.55256297 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $objective</span></span>
-<span><span class="co">#&gt; [1] 30057.53</span></span>
+<span><span class="co">#&gt; [1] 30165.3</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $convergence</span></span>
 <span><span class="co">#&gt; [1] 0</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $iterations</span></span>
-<span><span class="co">#&gt; [1] 19</span></span>
+<span><span class="co">#&gt; [1] 18</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $evaluations</span></span>
 <span><span class="co">#&gt; function gradient </span></span>
 <span><span class="co">#&gt;       32       19 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $message</span></span>
-<span><span class="co">#&gt; [1] "both X-convergence and relative convergence (5)"</span></span>
+<span><span class="co">#&gt; [1] "relative convergence (4)"</span></span>
 <span><span class="co">## check estimates</span></span>
 <span><span class="fu"><a href="../reference/mp_tmb_coef.html">mp_tmb_coef</a></span><span class="op">(</span><span class="va">calib_rbf</span>,conf.int <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; outer mgc:  0.0004771355 </span></span>
-<span><span class="co">#&gt; outer mgc:  10106.35 </span></span>
-<span><span class="co">#&gt; outer mgc:  10244.65 </span></span>
-<span><span class="co">#&gt; outer mgc:  18039.69 </span></span>
-<span><span class="co">#&gt; outer mgc:  18377.17 </span></span>
-<span><span class="co">#&gt; outer mgc:  17661.5 </span></span>
-<span><span class="co">#&gt; outer mgc:  18052.09 </span></span>
-<span><span class="co">#&gt; outer mgc:  17007.5 </span></span>
-<span><span class="co">#&gt; outer mgc:  17390.3 </span></span>
-<span><span class="co">#&gt; outer mgc:  12227.71 </span></span>
-<span><span class="co">#&gt; outer mgc:  12481.76 </span></span>
-<span><span class="co">#&gt; outer mgc:  9350.09 </span></span>
-<span><span class="co">#&gt; outer mgc:  9523.219 </span></span>
-<span><span class="co">#&gt; outer mgc:  8689.409 </span></span>
-<span><span class="co">#&gt; outer mgc:  8849.081 </span></span>
-<span><span class="co">#&gt; outer mgc:  7212.485 </span></span>
-<span><span class="co">#&gt; outer mgc:  7337.635 </span></span>
-<span><span class="co">#&gt; outer mgc:  4499.09 </span></span>
-<span><span class="co">#&gt; outer mgc:  4557.787 </span></span>
-<span><span class="co">#&gt; outer mgc:  2639.332 </span></span>
-<span><span class="co">#&gt; outer mgc:  2663.877 </span></span>
-<span><span class="co">#&gt; outer mgc:  1474.115 </span></span>
-<span><span class="co">#&gt; outer mgc:  1484.504 </span></span>
-<span><span class="co">#&gt; outer mgc:  630.3664 </span></span>
-<span><span class="co">#&gt; outer mgc:  632.9975 </span></span>
-<span><span class="co">#&gt; outer mgc:  367.2692 </span></span>
-<span><span class="co">#&gt; outer mgc:  368.5147 </span></span>
-<span><span class="co">#&gt; outer mgc:  926.993 </span></span>
-<span><span class="co">#&gt; outer mgc:  932.217 </span></span>
-<span><span class="co">#&gt; outer mgc:  2072.398 </span></span>
-<span><span class="co">#&gt; outer mgc:  2092.068 </span></span>
-<span><span class="co">#&gt; outer mgc:  2411.296 </span></span>
-<span><span class="co">#&gt; outer mgc:  2433.905 </span></span>
-<span><span class="co">#&gt; outer mgc:  2161.669 </span></span>
-<span><span class="co">#&gt; outer mgc:  2180.24 </span></span>
-<span><span class="co">#&gt; outer mgc:  1396.096 </span></span>
-<span><span class="co">#&gt; outer mgc:  1405.354 </span></span>
-<span><span class="co">#&gt; outer mgc:  696.5062 </span></span>
-<span><span class="co">#&gt; outer mgc:  699.8151 </span></span>
-<span><span class="co">#&gt; outer mgc:  211.0486 </span></span>
-<span><span class="co">#&gt; outer mgc:  211.5534 </span></span>
-<span><span class="co">#&gt; outer mgc:  89.26982 </span></span>
-<span><span class="co">#&gt; outer mgc:  90.08222 </span></span>
-<span><span class="co">#&gt; outer mgc:  7442.986</span></span>
+<span><span class="co">#&gt; outer mgc:  2.724533e-05 </span></span>
+<span><span class="co">#&gt; outer mgc:  10106.05 </span></span>
+<span><span class="co">#&gt; outer mgc:  10244.36 </span></span>
+<span><span class="co">#&gt; outer mgc:  18039.78 </span></span>
+<span><span class="co">#&gt; outer mgc:  18377.29 </span></span>
+<span><span class="co">#&gt; outer mgc:  17660.58 </span></span>
+<span><span class="co">#&gt; outer mgc:  18051.13 </span></span>
+<span><span class="co">#&gt; outer mgc:  17005.43 </span></span>
+<span><span class="co">#&gt; outer mgc:  17388.19 </span></span>
+<span><span class="co">#&gt; outer mgc:  12226.33 </span></span>
+<span><span class="co">#&gt; outer mgc:  12480.35 </span></span>
+<span><span class="co">#&gt; outer mgc:  9346.008 </span></span>
+<span><span class="co">#&gt; outer mgc:  9519.02 </span></span>
+<span><span class="co">#&gt; outer mgc:  8687.586 </span></span>
+<span><span class="co">#&gt; outer mgc:  8847.219 </span></span>
+<span><span class="co">#&gt; outer mgc:  7210.383 </span></span>
+<span><span class="co">#&gt; outer mgc:  7335.469 </span></span>
+<span><span class="co">#&gt; outer mgc:  4496.891 </span></span>
+<span><span class="co">#&gt; outer mgc:  4555.557 </span></span>
+<span><span class="co">#&gt; outer mgc:  2636.753 </span></span>
+<span><span class="co">#&gt; outer mgc:  2661.251 </span></span>
+<span><span class="co">#&gt; outer mgc:  1472.196 </span></span>
+<span><span class="co">#&gt; outer mgc:  1482.565 </span></span>
+<span><span class="co">#&gt; outer mgc:  629.7297 </span></span>
+<span><span class="co">#&gt; outer mgc:  632.3563 </span></span>
+<span><span class="co">#&gt; outer mgc:  366.1229 </span></span>
+<span><span class="co">#&gt; outer mgc:  367.364 </span></span>
+<span><span class="co">#&gt; outer mgc:  922.6963 </span></span>
+<span><span class="co">#&gt; outer mgc:  927.8849 </span></span>
+<span><span class="co">#&gt; outer mgc:  2063.67 </span></span>
+<span><span class="co">#&gt; outer mgc:  2083.219 </span></span>
+<span><span class="co">#&gt; outer mgc:  2401.771 </span></span>
+<span><span class="co">#&gt; outer mgc:  2424.226 </span></span>
+<span><span class="co">#&gt; outer mgc:  2154.056 </span></span>
+<span><span class="co">#&gt; outer mgc:  2172.53 </span></span>
+<span><span class="co">#&gt; outer mgc:  1390.078 </span></span>
+<span><span class="co">#&gt; outer mgc:  1399.263 </span></span>
+<span><span class="co">#&gt; outer mgc:  694.2349 </span></span>
+<span><span class="co">#&gt; outer mgc:  697.5311 </span></span>
+<span><span class="co">#&gt; outer mgc:  209.6152 </span></span>
+<span><span class="co">#&gt; outer mgc:  210.1136 </span></span>
+<span><span class="co">#&gt; outer mgc:  89.27026 </span></span>
+<span><span class="co">#&gt; outer mgc:  90.08177 </span></span>
+<span><span class="co">#&gt; outer mgc:  7442.375</span></span>
 <span><span class="co">#&gt;         term           mat row col       default  type    estimate   std.error</span></span>
-<span><span class="co">#&gt; 1     params time_var_beta   0   0 -0.0062645381 fixed -1.27641280 0.001463832</span></span>
-<span><span class="co">#&gt; 2   params.1 time_var_beta   1   0  0.0018364332 fixed -0.23972069 0.001977560</span></span>
-<span><span class="co">#&gt; 3  params.10 time_var_beta  10   0  0.0151178117 fixed -0.53743851 0.002792037</span></span>
-<span><span class="co">#&gt; 4  params.11 time_var_beta  11   0  0.0038984324 fixed -0.35883656 0.003704611</span></span>
-<span><span class="co">#&gt; 5  params.12 time_var_beta  12   0 -0.0062124058 fixed  0.01438706 0.004098547</span></span>
-<span><span class="co">#&gt; 6  params.13 time_var_beta  13   0 -0.0221469989 fixed -0.51734442 0.003224495</span></span>
-<span><span class="co">#&gt; 7  params.14 time_var_beta  14   0  0.0112493092 fixed -0.50528656 0.002548279</span></span>
-<span><span class="co">#&gt; 8  params.15 time_var_beta  15   0 -0.0004493361 fixed -0.51390784 0.002403806</span></span>
-<span><span class="co">#&gt; 9  params.16 time_var_beta  16   0 -0.0001619026 fixed -0.56715449 0.002599612</span></span>
-<span><span class="co">#&gt; 10 params.17 time_var_beta  17   0  0.0094383621 fixed -0.36571049 0.003240611</span></span>
-<span><span class="co">#&gt; 11 params.18 time_var_beta  18   0  0.0082122120 fixed -0.67953264 0.004104058</span></span>
-<span><span class="co">#&gt; 12 params.19 time_var_beta  19   0  0.0059390132 fixed  0.38050808 0.004919260</span></span>
-<span><span class="co">#&gt; 13  params.2 time_var_beta   2   0 -0.0083562861 fixed -0.88918700 0.002074339</span></span>
-<span><span class="co">#&gt; 14 params.20 prior_sd_beta   0   0  1.0000000000 fixed  0.55256296 0.003339349</span></span>
-<span><span class="co">#&gt; 15  params.3 time_var_beta   3   0  0.0159528080 fixed -0.48246900 0.001927518</span></span>
-<span><span class="co">#&gt; 16  params.4 time_var_beta   4   0  0.0032950777 fixed -0.71662892 0.001755581</span></span>
-<span><span class="co">#&gt; 17  params.5 time_var_beta   5   0 -0.0082046838 fixed -0.54489211 0.001597672</span></span>
-<span><span class="co">#&gt; 18  params.6 time_var_beta   6   0  0.0048742905 fixed -0.66403205 0.001506794</span></span>
-<span><span class="co">#&gt; 19  params.7 time_var_beta   7   0  0.0073832471 fixed -0.55987089 0.001518645</span></span>
-<span><span class="co">#&gt; 20  params.8 time_var_beta   8   0  0.0057578135 fixed -0.60953016 0.001727385</span></span>
-<span><span class="co">#&gt; 21  params.9 time_var_beta   9   0 -0.0030538839 fixed -0.48826067 0.002143931</span></span>
+<span><span class="co">#&gt; 1     params time_var_beta   0   0 -0.0062645381 fixed -1.27636525 0.001463737</span></span>
+<span><span class="co">#&gt; 2   params.1 time_var_beta   1   0  0.0018364332 fixed -0.23980197 0.001977408</span></span>
+<span><span class="co">#&gt; 3  params.10 time_var_beta  10   0  0.0151178117 fixed -0.53694453 0.002794362</span></span>
+<span><span class="co">#&gt; 4  params.11 time_var_beta  11   0  0.0038984324 fixed -0.35922610 0.003709266</span></span>
+<span><span class="co">#&gt; 5  params.12 time_var_beta  12   0 -0.0062124058 fixed  0.01511029 0.004106470</span></span>
+<span><span class="co">#&gt; 6  params.13 time_var_beta  13   0 -0.0221469989 fixed -0.51623058 0.003232320</span></span>
+<span><span class="co">#&gt; 7  params.14 time_var_beta  14   0  0.0112493092 fixed -0.50539544 0.002555363</span></span>
+<span><span class="co">#&gt; 8  params.15 time_var_beta  15   0 -0.0004493361 fixed -0.51315850 0.002411168</span></span>
+<span><span class="co">#&gt; 9  params.16 time_var_beta  16   0 -0.0001619026 fixed -0.56742283 0.002607561</span></span>
+<span><span class="co">#&gt; 10 params.17 time_var_beta  17   0  0.0094383621 fixed -0.36387945 0.003253562</span></span>
+<span><span class="co">#&gt; 11 params.18 time_var_beta  18   0  0.0082122120 fixed -0.68221385 0.004118925</span></span>
+<span><span class="co">#&gt; 12 params.19 time_var_beta  19   0  0.0059390132 fixed  0.38837777 0.004943580</span></span>
+<span><span class="co">#&gt; 13  params.2 time_var_beta   2   0 -0.0083562861 fixed -0.88907139 0.002074149</span></span>
+<span><span class="co">#&gt; 14 params.20 prior_sd_beta   0   0  1.0000000000 fixed  0.55256297 0.003339349</span></span>
+<span><span class="co">#&gt; 15  params.3 time_var_beta   3   0  0.0159528080 fixed -0.48260238 0.001927317</span></span>
+<span><span class="co">#&gt; 16  params.4 time_var_beta   4   0  0.0032950777 fixed -0.71647384 0.001755407</span></span>
+<span><span class="co">#&gt; 17  params.5 time_var_beta   5   0 -0.0082046838 fixed -0.54501114 0.001597609</span></span>
+<span><span class="co">#&gt; 18  params.6 time_var_beta   6   0  0.0048742905 fixed -0.66388945 0.001506839</span></span>
+<span><span class="co">#&gt; 19  params.7 time_var_beta   7   0  0.0073832471 fixed -0.55999223 0.001518973</span></span>
+<span><span class="co">#&gt; 20  params.8 time_var_beta   8   0  0.0057578135 fixed -0.60936910 0.001728154</span></span>
+<span><span class="co">#&gt; 21  params.9 time_var_beta   9   0 -0.0030538839 fixed -0.48835510 0.002145397</span></span>
 <span><span class="co">#&gt;        conf.low   conf.high</span></span>
-<span><span class="co">#&gt; 1  -1.279281858 -1.27354374</span></span>
-<span><span class="co">#&gt; 2  -0.243596641 -0.23584475</span></span>
-<span><span class="co">#&gt; 3  -0.542910801 -0.53196622</span></span>
-<span><span class="co">#&gt; 4  -0.366097459 -0.35157565</span></span>
-<span><span class="co">#&gt; 5   0.006354052  0.02242006</span></span>
-<span><span class="co">#&gt; 6  -0.523664313 -0.51102453</span></span>
-<span><span class="co">#&gt; 7  -0.510281099 -0.50029203</span></span>
-<span><span class="co">#&gt; 8  -0.518619216 -0.50919647</span></span>
-<span><span class="co">#&gt; 9  -0.572249636 -0.56205934</span></span>
-<span><span class="co">#&gt; 10 -0.372061971 -0.35935901</span></span>
-<span><span class="co">#&gt; 11 -0.687576449 -0.67148884</span></span>
-<span><span class="co">#&gt; 12  0.370866505  0.39014965</span></span>
-<span><span class="co">#&gt; 13 -0.893252629 -0.88512137</span></span>
-<span><span class="co">#&gt; 14  0.546017957  0.55910797</span></span>
-<span><span class="co">#&gt; 15 -0.486246869 -0.47869114</span></span>
-<span><span class="co">#&gt; 16 -0.720069797 -0.71318804</span></span>
-<span><span class="co">#&gt; 17 -0.548023491 -0.54176073</span></span>
-<span><span class="co">#&gt; 18 -0.666985316 -0.66107879</span></span>
-<span><span class="co">#&gt; 19 -0.562847379 -0.55689440</span></span>
-<span><span class="co">#&gt; 20 -0.612915777 -0.60614455</span></span>
-<span><span class="co">#&gt; 21 -0.492462697 -0.48405864</span></span></code></pre></div>
+<span><span class="co">#&gt; 1  -1.279234124 -1.27349638</span></span>
+<span><span class="co">#&gt; 2  -0.243677617 -0.23592632</span></span>
+<span><span class="co">#&gt; 3  -0.542421380 -0.53146768</span></span>
+<span><span class="co">#&gt; 4  -0.366496126 -0.35195607</span></span>
+<span><span class="co">#&gt; 5   0.007061759  0.02315883</span></span>
+<span><span class="co">#&gt; 6  -0.522565813 -0.50989535</span></span>
+<span><span class="co">#&gt; 7  -0.510403862 -0.50038702</span></span>
+<span><span class="co">#&gt; 8  -0.517884305 -0.50843270</span></span>
+<span><span class="co">#&gt; 9  -0.572533557 -0.56231211</span></span>
+<span><span class="co">#&gt; 10 -0.370256315 -0.35750259</span></span>
+<span><span class="co">#&gt; 11 -0.690286800 -0.67414091</span></span>
+<span><span class="co">#&gt; 12  0.378688526  0.39806700</span></span>
+<span><span class="co">#&gt; 13 -0.893136648 -0.88500613</span></span>
+<span><span class="co">#&gt; 14  0.546017962  0.55910797</span></span>
+<span><span class="co">#&gt; 15 -0.486379855 -0.47882491</span></span>
+<span><span class="co">#&gt; 16 -0.719914372 -0.71303330</span></span>
+<span><span class="co">#&gt; 17 -0.548142397 -0.54187989</span></span>
+<span><span class="co">#&gt; 18 -0.666842804 -0.66093610</span></span>
+<span><span class="co">#&gt; 19 -0.562969359 -0.55701510</span></span>
+<span><span class="co">#&gt; 20 -0.612756219 -0.60598198</span></span>
+<span><span class="co">#&gt; 21 -0.492559999 -0.48415020</span></span></code></pre></div>
 <p>3. Review results.</p>
 <p>The fit to the observed data looks reasonable, however there are some
 obvious wiggly deviations.</p>

@@ -21,7 +21,7 @@ examples below)."><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/kate
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.17.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -79,6 +79,7 @@ examples below).</p>
 <span>  tv <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  outputs <span class="op">=</span> <span class="va">traj</span>,</span>
 <span>  default <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  inits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  time <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  save_data <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -132,6 +133,13 @@ use <code><a href="mp_tmb_insert.html">mp_tmb_update</a></code> to update the sp
 function. Indeed such an approach is necessary if new expressions,
 in addition to default updates, need to be added to the spec
 (e.g. seasonally varying transmission).</p></dd>
+
+
+<dt id="arg-inits">inits<a class="anchor" aria-label="anchor" href="#arg-inits"></a></dt>
+<dd><p>An optional list of initial values for the state variables.
+These initial values can be added to the <code>default</code> list with identical
+results, but adding them to <code>inits</code> is better practice because it makes it
+clear that they are initial values that will change as the state updates.</p></dd>
 
 
 <dt id="arg-time">time<a class="anchor" aria-label="anchor" href="#arg-time"></a></dt>

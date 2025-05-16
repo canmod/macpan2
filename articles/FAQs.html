@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.17.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -89,10 +89,10 @@
 <span><span class="va">si</span> <span class="op">=</span> <span class="fu"><a href="../reference/mp_tmb_model_spec.html">mp_tmb_model_spec</a></span><span class="op">(</span></span>
 <span>    before <span class="op">=</span> <span class="va">S</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">-</span> <span class="va">I</span></span>
 <span>  , during <span class="op">=</span> <span class="fu"><a href="../reference/mp_per_capita_flow.html">mp_per_capita_flow</a></span><span class="op">(</span></span>
-<span>        from     <span class="op">=</span> <span class="st">"S"</span>         <span class="co">## compartment from which individuals flow</span></span>
-<span>      , to       <span class="op">=</span> <span class="st">"I"</span>         <span class="co">## compartment to which individuals flow</span></span>
-<span>      , rate     <span class="op">=</span> <span class="st">"beta * I"</span>  <span class="co">## expression giving _per-capita_ flow rate</span></span>
-<span>      , abs_rate <span class="op">=</span> <span class="st">"infection"</span> <span class="co">## name for _absolute_ flow rate = beta * I * S</span></span>
+<span>        from      <span class="op">=</span> <span class="st">"S"</span>         <span class="co">## compartment from which individuals flow</span></span>
+<span>      , to        <span class="op">=</span> <span class="st">"I"</span>         <span class="co">## compartment to which individuals flow</span></span>
+<span>      , rate      <span class="op">=</span> <span class="st">"beta * I"</span>  <span class="co">## expression giving _per-capita_ flow rate</span></span>
+<span>      , flow_name <span class="op">=</span> <span class="st">"infection"</span> <span class="co">## name for _absolute_ flow rate = beta * I * S</span></span>
 <span>    <span class="op">)</span></span>
 <span>  , default <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>I <span class="op">=</span> <span class="fl">0.01</span>, beta <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
@@ -112,7 +112,7 @@
 <span><span class="co">#&gt; ---------------------</span></span>
 <span><span class="co">#&gt; At every iteration of the simulation loop (t = 1 to T):</span></span>
 <span><span class="co">#&gt; ---------------------</span></span>
-<span><span class="co">#&gt; 1: mp_per_capita_flow(from = "S", to = "I", rate = "beta * I", abs_rate = "infection")</span></span>
+<span><span class="co">#&gt; 1: mp_per_capita_flow(from = "S", to = "I", rate = "beta * I", flow_name = "infection")</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
 <span><span class="va">example_data</span> <span class="op">=</span> <span class="op">(</span><span class="va">si</span></span>
@@ -433,8 +433,6 @@ first time step is <code>1</code> and the last time step is
 <span> <span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">calibrator</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
-<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
 <span><span class="co">#&gt; $par</span></span>
 <span><span class="co">#&gt;     params     params </span></span>
 <span><span class="co">#&gt; 0.09910844 0.55847313 </span></span>
@@ -450,7 +448,7 @@ first time step is <code>1</code> and the last time step is
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $evaluations</span></span>
 <span><span class="co">#&gt; function gradient </span></span>
-<span><span class="co">#&gt;       14       10 </span></span>
+<span><span class="co">#&gt;       13       10 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $message</span></span>
 <span><span class="co">#&gt; [1] "relative convergence (4)"</span></span>
@@ -458,7 +456,7 @@ first time step is <code>1</code> and the last time step is
 <span><span class="fu"><a href="../reference/engine_functions.html">print</a></span><span class="op">(</span><span class="va">cc</span><span class="op">)</span></span>
 <span><span class="co">#&gt;       term    mat row col default  type   estimate  std.error   conf.low</span></span>
 <span><span class="co">#&gt; 1   params   beta   0   0     0.2 fixed 0.09910844 0.04234644 0.01611094</span></span>
-<span><span class="co">#&gt; 2 params.1 prop_I   0   0     0.5 fixed 0.63609918 0.42942417 0.04404283</span></span>
+<span><span class="co">#&gt; 2 params.1 prop_I   0   0     0.5 fixed 0.63609918 0.42942418 0.04404282</span></span>
 <span><span class="co">#&gt;   conf.high</span></span>
 <span><span class="co">#&gt; 1 0.1821059</span></span>
 <span><span class="co">#&gt; 2 0.9851457</span></span></code></pre></div>
