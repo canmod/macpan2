@@ -34,11 +34,17 @@ mp_more_steps = function(model, steps_to_add) {
 #' \code{\link{mp_tmb_calibrator}} function.
 #' @param default An optional list of default model variables (e.g., parameters
 #' initial values of state variables) to override calibrated values.
+#' @param inits An optional list of initial values for the state variables.
+#' These initial values can be added to the `default` list with identical 
+#' results, but adding them to `inits` is better practice because it makes it 
+#' clear that they are initial values that will change as the state updates.
 #' 
 #' @export
 mp_forecaster = function(calibrator, forecast_period_time_steps
-    , outputs = NULL, data = NULL, tv = NULL, default = list()
+    , outputs = NULL, data = NULL, tv = NULL
+    , default = list(), inits = list()
   ) {
+  default = c(default, inits)
   spec = mp_optimized_spec(calibrator, "original")
   if (!is.null(outputs)) spec = mp_tmb_implicit_trans(spec, outputs)
   

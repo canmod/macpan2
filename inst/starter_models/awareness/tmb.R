@@ -64,7 +64,7 @@ longer_memory_awareness_model = (delayed_death_awareness_model
             from = "S"
           , to = "E"
           , rate = "beta * I / (1 + (convolution(death, kernel)/delta_c)^k) / N"
-          , abs_rate = "infection"
+          , flow_name = "infection"
         )
       )
      , default = list(

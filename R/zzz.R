@@ -13,6 +13,7 @@
     , macpan2_default_loss = c("clamped_poisson", "poisson", "sum_of_squares", "neg_bin")
     , macpan2_tmb_type = NULL
     , macpan2_tmb_check = TRUE
+    , macpan2_saving_conflict_msg_fn = base::message
       
     ## FIXME: macpan2_vec_by is old and not relevant i think
     , macpan2_vec_by = c("state", "flow_rates", "trans_rates") |> self_named_vector()

@@ -639,24 +639,40 @@
 #'
 #' Smoothly clamp the elements of a matrix so that they
 #' do not get closer to 0 than a tolerance, `eps`, with
-#' a default of 1e-12. The output of the `clamp`
-#' function is as follows.
+#' a default of 1e-12. This `clamp` function is the following 
+#' modification of the 
+#' [squareplus function](https://arxiv.org/abs/2112.11687).
+#'
+#' \deqn{f(x) = \epsilon_- + \frac{(x - \epsilon_-) + \sqrt{(x - \epsilon_-)^2 + (2\epsilon_0 - \epsilon_-)^2 - \epsilon_-^2}}{2}}
 #' 
-#' This function works fine as long as `x` does not go 
-#' negative. We will improve this behaviour when we 
-#' release a new major version
-#' [see issue #93](https://github.com/canmod/macpan2/issues/93).
+#' Where the two parameters are defined as follows.
+#'
+#' \deqn{\epsilon_0 = f(0)}
+#' 
+#' \deqn{\epsilon_- = \lim_{x \to  -\infty}f(x)}
+#' 
+#' This function is differentiable everywhere, monotonically
+#' increasing, and \eqn{f(x) \approx x} if \eqn{x} is positive
+#' and not too close to zero. By modifying the parameters, you 
+#' can control the distance between \eqn{f(x)} and the
+#' horizontal axis at two 'places' -- \eqn{0} and \eqn{-\infty}.
+#' [See issue #93](https://github.com/canmod/macpan2/issues/93).
+#' for more information.
 #'
 #' ### Functions
 #'
-#' * `clamp(x, eps)`
+#' * `clamp(x, eps, limit)`
 #'
 #' ### Arguments
 #'
 #' * `x` : A matrix with elements that should remain positive.
-#' * `eps` : A small positive number giving the
-#' theoretical minimum of the elements in the returned
-#' matrix.
+#' * `eps` : A small positive number, \eqn{\epsilon_0 = f(0)},
+#' giving the value of the function when the input is zero.
+#' The default value is 1e-12
+#' * `limit` : A small positive number, 
+#' \deqn{\epsilon_- = \lim_{x \to  -\infty}f(x)}, giving the
+#' value of the function as the input goes to negative
+#' infinity. The default is `limit = eps`.
 #' 
 #' ## Probability Densities
 #'

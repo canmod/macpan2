@@ -38,10 +38,10 @@ library(macpan2)
 si = mp_tmb_model_spec(
     before = S ~ 1 - I
   , during = mp_per_capita_flow(
-        from     = "S"         ## compartment from which individuals flow
-      , to       = "I"         ## compartment to which individuals flow
-      , rate     = "beta * I"  ## expression giving _per-capita_ flow rate
-      , abs_rate = "infection" ## name for _absolute_ flow rate = beta * I * S
+        from      = "S"         ## compartment from which individuals flow
+      , to        = "I"         ## compartment to which individuals flow
+      , rate      = "beta * I"  ## expression giving _per-capita_ flow rate
+      , flow_name = "infection" ## name for _absolute_ flow rate = beta * I * S
     )
   , default = list(I = 0.01, beta = 0.2)
 )

@@ -2535,53 +2535,67 @@ public:
             // #'
             // #' Smoothly clamp the elements of a matrix so that they
             // #' do not get closer to 0 than a tolerance, `eps`, with
-            // #' a default of 1e-12. The output of the `clamp`
-            // #' function is as follows.
+            // #' a default of 1e-12. This `clamp` function is the following 
+            // #' modification of the 
+            // #' [squareplus function](https://arxiv.org/abs/2112.11687).
+            // #'
+            // #' \deqn{f(x) = \epsilon_- + \frac{(x - \epsilon_-) + \sqrt{(x - \epsilon_-)^2 + (2\epsilon_0 - \epsilon_-)^2 - \epsilon_-^2}}{2}}
             // #' 
-            // #' This function works fine as long as `x` does not go 
-            // #' negative. We will improve this behaviour when we 
-            // #' release a new major version
-            // #' [see issue #93](https://github.com/canmod/macpan2/issues/93).
+            // #' Where the two parameters are defined as follows.
+            // #'
+            // #' \deqn{\epsilon_0 = f(0)}
+            // #' 
+            // #' \deqn{\epsilon_- = \lim_{x \to  -\infty}f(x)}
+            // #' 
+            // #' This function is differentiable everywhere, monotonically
+            // #' increasing, and \eqn{f(x) \approx x} if \eqn{x} is positive
+            // #' and not too close to zero. By modifying the parameters, you 
+            // #' can control the distance between \eqn{f(x)} and the
+            // #' horizontal axis at two 'places' -- \eqn{0} and \eqn{-\infty}.
+            // #' [See issue #93](https://github.com/canmod/macpan2/issues/93).
+            // #' for more information.
             // #'
             // #' ### Functions
             // #'
-            // #' * `clamp(x, eps)`
+            // #' * `clamp(x, eps, limit)`
             // #'
             // #' ### Arguments
             // #'
             // #' * `x` : A matrix with elements that should remain positive.
-            // #' * `eps` : A small positive number giving the
-            // #' theoretical minimum of the elements in the returned
-            // #' matrix.
+            // #' * `eps` : A small positive number, \eqn{\epsilon_0 = f(0)},
+            // #' giving the value of the function when the input is zero.
+            // #' The default value is 1e-12
+            // #' * `limit` : A small positive number, 
+            // #' \deqn{\epsilon_- = \lim_{x \to  -\infty}f(x)}, giving the
+            // #' value of the function as the input goes to negative
+            // #' infinity. The default is `limit = eps`.
             // #' 
             case MP2_CLAMP:
                 eps = 1e-12; // default
-                if (n == 2)
+                if (n > 1)
                     eps = args[1].coeff(0, 0);
-                rows = args[0].rows();
-                cols = args[0].cols();
+                if (n == 3) {
+                    limit = args[2].coeff(0, 0);
+                } else {
+                    limit = eps; // default
+                }
+                X = args[0];
+                rows = X.rows();
+                cols = X.cols();
                 m = matrix<Type>::Zero(rows, cols);
-                // might this be better?
-                // https://github.com/kaskr/adcomp/wiki/Code--snippets
-                // template<class Type>
-                // Type posfun(Type x, Type eps, Type &pen){
-                //   pen += CppAD::CondExpLt(x, eps, Type(0.01) * pow(x-eps,2), Type(0));
-                //   return CppAD::CondExpGe(x, eps, x, eps/(Type(2)-x/eps));
-                // }
-                // 
-                // needs to be fixed for negative x 
+                
                 // https://github.com/canmod/macpan2/issues/93
                 for (int i = 0; i < rows; i++) {
                     for (int j = 0; j < cols; j++) {
-                        // y = x + eps * (1 / (1 - (x - eps) / eps + ((x - eps)^2)/(eps^2)))
-                        m.coeffRef(i, j) = args[0].coeff(i, j) + eps * (
-                            1.0 / (
-                                1.0 - (args[0].coeff(i, j) - eps) / 
-                                eps + (
-                                    (args[0].coeff(i, j) - eps) * 
-                                    (args[0].coeff(i, j) - eps)
-                                ) / (eps * eps)
-                            )
+                        m.coeffRef(i, j) = limit + (
+                            (
+                                X.coeff(i, j) - limit + 
+                                sqrt(
+                                    pow(X.coeff(i, j) - limit, 2.0) + 
+                                    pow(2.0 * eps - limit, 2.0) - 
+                                    pow(limit, 2.0)
+                                )
+                            ) / 2.0
                         );
                     }
                 }

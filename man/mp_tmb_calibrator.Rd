@@ -12,6 +12,7 @@ mp_tmb_calibrator(
   tv = character(),
   outputs = traj,
   default = list(),
+  inits = list(),
   time = NULL,
   save_data = TRUE
 )
@@ -48,6 +49,11 @@ use \code{\link{mp_tmb_update}} to update the spec outside of the
 function. Indeed such an approach is necessary if new expressions,
 in addition to default updates, need to be added to the spec
 (e.g. seasonally varying transmission).}
+
+\item{inits}{An optional list of initial values for the state variables.
+These initial values can be added to the \code{default} list with identical
+results, but adding them to \code{inits} is better practice because it makes it
+clear that they are initial values that will change as the state updates.}
 
 \item{time}{Specify the start and end time of the simulated trajectories,
 and the time period associated with each time step. The default is \code{NULL},

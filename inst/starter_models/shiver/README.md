@@ -539,11 +539,11 @@ mp_optimize(shiver_calibrator)
 #> [1] 0
 #> 
 #> $iterations
-#> [1] 47
+#> [1] 51
 #> 
 #> $evaluations
 #> function gradient 
-#>      126       48 
+#>      111       52 
 #> 
 #> $message
 #> [1] "relative convergence (4)"
@@ -554,7 +554,7 @@ est_coef
 #>       mat row default  estimate std.error  conf.low conf.high
 #> 1  beta_v   0    0.05    6.5859    1.9745    2.7159   10.4559
 #> 2  beta_s   0    0.20    0.0641    0.0102    0.0442    0.0840
-#> 3       E   0    0.00 2381.3062  357.0389 1681.5228 3081.0895
+#> 3       E   0    0.00 2381.3062  357.0389 1681.5228 3081.0896
 #> 4   sigma   0    0.10    0.0064    0.0003    0.0058    0.0069
 #> 5 gamma_h   0    0.07    0.0404    0.0083    0.0241    0.0567
 ```
@@ -640,16 +640,16 @@ print(reparameterized_spec)
 #> ---------------------
 #> 1: N_mix ~ N - H
 #> 2: mp_per_capita_flow(from = "S", to = "V", rate = "((a * S)/(b + S))/S", 
-#>      abs_rate = "vaccination")
-#> 3: mp_per_capita_flow(from = "V", to = "S", rate = "rho", abs_rate = "vaccine_waning")
+#>      flow_name = "vaccination")
+#> 3: mp_per_capita_flow(from = "V", to = "S", rate = "rho", flow_name = "vaccine_waning")
 #> 4: mp_per_capita_flow(from = "S", to = "E", rate = unvaccinated_infection ~ 
 #>      I * beta/N_mix)
 #> 5: mp_per_capita_flow(from = "V", to = "E", rate = vaccinated_infection ~ 
 #>      I * beta * p/N_mix)
-#> 6: mp_per_capita_flow(from = "E", to = "I", rate = "alpha", abs_rate = "progression")
-#> 7: mp_per_capita_flow(from = "I", to = "R", rate = "gamma_i", abs_rate = "infectious_recovery")
-#> 8: mp_per_capita_flow(from = "I", to = "H", rate = "sigma", abs_rate = "hospitalizations")
-#> 9: mp_per_capita_flow(from = "H", to = "R", rate = "gamma_h", abs_rate = "hospital_recovery")
+#> 6: mp_per_capita_flow(from = "E", to = "I", rate = "alpha", flow_name = "progression")
+#> 7: mp_per_capita_flow(from = "I", to = "R", rate = "gamma_i", flow_name = "infectious_recovery")
+#> 8: mp_per_capita_flow(from = "I", to = "H", rate = "sigma", flow_name = "hospitalizations")
+#> 9: mp_per_capita_flow(from = "H", to = "R", rate = "gamma_h", flow_name = "hospital_recovery")
 ```
 
 Next we calibrate and specify the parameters to estimate. Note that by
@@ -677,7 +677,7 @@ shiver_calibrator = mp_tmb_calibrator(
 mp_optimize(shiver_calibrator)
 #> $par
 #>       params       params       params       params       params 
-#> -4.157752739 -0.207593565 -8.769173070  0.005611944  0.006871819 
+#> -4.157752739 -0.207593565 -8.769173073  0.005611944  0.006871819 
 #> 
 #> $objective
 #> [1] 383.1069

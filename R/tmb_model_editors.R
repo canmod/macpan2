@@ -35,6 +35,10 @@
 #' variables that appear in \code{before}, \code{during}, and \code{after}.
 #' For `mp_tmb_delete`, a character vector of such objects to delete from
 #' the model.
+#' @param inits An optional list of initial values for the state variables.
+#' These initial values can be added to the `default` list with identical 
+#' results, but adding them to `inits` is better practice because it makes it 
+#' clear that they are initial values that will change as the state updates.
 #' @param integers Named list of vectors that can be coerced to integer
 #' vectors. These integer vectors can be used by name in model formulas to
 #' provide indexing of matrices and as grouping factors in 
@@ -78,11 +82,13 @@ mp_tmb_insert = function(model
     , at = 1L
     , expressions = list()
     , default = list()
+    , inits = list()
     , integers = list()
     , must_save = character()
     , must_not_save = character()
     , sim_exprs = character()
   ) {
+  default = c(default, inits)
   model = assert_cls(model, "TMBModelSpec", match.call(), "?mp_tmb_model_spec")
   valid$char1$check(phase)
   at = valid$num1$assert(at)
@@ -118,11 +124,13 @@ mp_tmb_update = function(model
     , at = 1L
     , expressions = list()
     , default = list()
+    , inits = list()
     , integers = list()
     , must_save = character()
     , must_not_save = character()
     , sim_exprs = character()
   ) {
+  default = c(default, inits)
   model = assert_cls(model, "TMBModelSpec", match.call(), "?mp_tmb_model_spec")
   valid$char1$check(phase)
   at = valid$num1$assert(at)

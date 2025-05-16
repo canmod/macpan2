@@ -34,6 +34,10 @@
 #' function. Indeed such an approach is necessary if new expressions, 
 #' in addition to default updates, need to be added to the spec 
 #' (e.g. seasonally varying transmission).
+#' @param inits An optional list of initial values for the state variables.
+#' These initial values can be added to the `default` list with identical 
+#' results, but adding them to `inits` is better practice because it makes it 
+#' clear that they are initial values that will change as the state updates.
 #' @param time Specify the start and end time of the simulated trajectories,
 #' and the time period associated with each time step. The default is `NULL`, 
 #' which takes simulation bounds from the `data`. You can use 
@@ -69,6 +73,7 @@ mp_tmb_calibrator = function(spec
     , tv = character()
     , outputs = traj
     , default = list()
+    , inits = list()
     , time = NULL
     , save_data = TRUE
   ) {
