@@ -20,6 +20,7 @@ TMBModelSpec = function(
   default = c(default, inits)
   must_not_save = handle_saving_conflicts(must_save, must_not_save)
   self = Base()
+  self$macpan2_version = packageVersion("macpan2")
   before = force_expr_list(before)
   during = force_expr_list(during)
   after = force_expr_list(after)

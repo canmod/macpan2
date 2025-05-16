@@ -164,9 +164,10 @@ TMBModel = function(
     , log_file = LogFile()
     , do_pred_sdreport = TRUE
   ) {
-  ## Inheritance
+  
   self = Base()
-
+  self$macpan2_version = packageVersion("macpan2")
+  
   ## Args
   self$expr_list = expr_list
   self$init_mats = init_mats
@@ -916,6 +917,8 @@ labels.LabelsScripts = function(object, ...) {
 
 TMBSimulationUtils = function() {
   self = Base()
+  self$macpan2_version = packageVersion("macpan2")
+  
   self$.simulation_formatter = function(r, .phases) {
     ## get raw simulation output from TMB and supply 
     ## column names (which don't exist on the TMB side)
