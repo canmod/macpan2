@@ -1,6 +1,10 @@
+## Changes in 1.17.0
+
+[change list](https://github.com/canmod/macpan2/compare/1165dab..601f37f8)
+
 ## Changes in 1.16.13
 
-[change list](https://github.com/canmod/macpan2/compare/4cf3617..e51ec8a1)
+[change list](https://github.com/canmod/macpan2/compare/4cf3617..1165dab)
 
 ## Changes in 1.16.12
 

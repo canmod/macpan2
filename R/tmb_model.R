@@ -992,6 +992,7 @@ TMBSimulationUtils = function() {
         , Cols = r$arg_cols
         , Types = c("double", "integer")[r$arg_type_ints + 1L]
       )) |> frame_formatter()
+      
       stop(
         "\nThe following error was thrown by the TMB engine:\n  ",
         self$tmb_model$log_file$err_msg(),

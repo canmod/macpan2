@@ -1,8 +1,19 @@
+<!-- omit from toc -->
 # Contributing to `macpan2`
 
 Thank you for contributing to `macpan2`.  Pull requests and issues are welcome.
 
-Developers can see [here](https://canmod.github.io/macpan2/articles/index.html#developer) for documentation useful those who will contribute code.
+Developers can see [here](https://canmod.github.io/macpan2/articles/index.html#developer-guides) for documentation useful those who will contribute code.
+
+<!-- omit from toc -->
+## Table of Contents
+- [Developer Installation](#developer-installation)
+- [`C++` Development](#c-development)
+- [`C++` Standards](#c-standards)
+- [Adding Engine Functions](#adding-engine-functions)
+- [Developer Installation on Windows](#developer-installation-on-windows)
+- [Test Suite](#test-suite)
+
 
 ## Developer Installation
 
@@ -51,6 +62,10 @@ We `#include` both `Rcpp.h` and `TMB.hpp`, which increases the possibility of na
 ```
 
 When you attempt to use functions from `TMB` when adding an engine function, you should be aware that you might need to do some include-guarding. You will find out via compilation errors.
+
+## `C++` Standards
+
+We are [targeting support](https://github.com/canmod/macpan2/issues/125#issuecomment-1789434800) for both `C++14` and `C++17`. This means, for example, that we cannot use [variants](https://en.cppreference.com/w/cpp/utility/variant) because they were introduced in `C++17`.
 
 ## Adding Engine Functions
 
@@ -158,3 +173,7 @@ To get a list of all objects in the cache.
 ```
 test_cache_list()
 ```
+
+## Log Files
+
+Every simulation generates or overwrites a log file. The default location is described  [here](https://canmod.github.io/macpan2/articles/options.html). The path of the log file is created when the simulator is created. So if the simulator is saved to a file (e.g., stored with `saveRDS`), there is a risk that when it is reloaded the path to the log file will no longer exist. If this happens `macpan2` will try to recreate it, but this might fail. If the log file path is not valid for any of these reasons, the log file will be written to `.macpan2/bail-out/log.txt` in the current working directory. Log files are used internally by `macpan2` when producing error messages that originate within an [engine function](https://canmod.github.io/macpan2/reference/engine_functions.html). This mechanism of getting messages from `C++` to `R` is not ideal, but provides a workaround for the limitation that TMB cannot report back strings (I would welcome being wrong so that we could simplify this part of the code).
