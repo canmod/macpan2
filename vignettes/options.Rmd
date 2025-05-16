@@ -33,6 +33,7 @@ You almost always want to leave these at their default values.
 * `macpan2_time_dep_funcs = c("convolution", "rbind_lag", "rbind_time", "cbind_lag", "cbind_time")` : List of engine functions that cannot be called unless their first argument has a saved simulation history.
 * `macpan2_non_iterable_funcs = c("time_var", "rbinom", "rpois", "rnorm", "rnbinom", "reulermultinom")` : List of functions that cannot be called repeatedly _within_ a single time-step (as would happen for example with RK4 state updates). Randomness and time-variation are the only examples we have now.
 * `macpan2_dll = "macpan2"` : What C++ shared object should be used as the [TMB](https://github.com/kaskr/adcomp) engine. This is useful if you want to compare different versions of the engine. To use this feature you need to produce an alternative to `src/macpan2.cpp`, compile it using `TMB::compile("path/to/alt.cpp")`, load it using `dyn.load(TMB::dynlib("alt"))`, and set the option as `macpan2_dll = "alt"` where `"alt"` is the name of the alternative C++ file without the extension. After this, simulation code will utilize this alternative engine as opposed to the built in `src/macpan2.cpp` engine.
+* `macpan2_saving_conflict_msg_fn = base::message` : Function to use for reporting messages when conflicting information about saving or not saving a particular variable is received. This relates to `must_save` and `must_not_save` arguments in functions like `mp_tmb_model_spec`.
 
 ## Deprecated
 
