@@ -1,4 +1,11 @@
+#' @importFrom tools R_user_dir
 .onLoad <- function(lib, pkg) {
+  
+  default = dirname(bail_out_log_file)
+  if (!dir.exists(default)) {
+    dir.create(default, showWarnings = FALSE, recursive = TRUE)
+  }
+  
   ## document these in vignettes/options.Rmd
   options(
       macpan2_dll = "macpan2"
@@ -13,7 +20,7 @@
     
     # where the log files go (e.g. `{macpan2_log_dir}/{macpan2_session_name}/log.txt`)
     , macpan2_session_name = "default"
-    , macpan2_log_dir = tempdir()
+    , macpan2_log_dir = tools::R_user_dir("macpan2")
     
     # tolerances
     , macpan2_tol_hazard_div = 1e-8
