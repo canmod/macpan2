@@ -640,16 +640,16 @@ print(reparameterized_spec)
 #> ---------------------
 #> 1: N_mix ~ N - H
 #> 2: mp_per_capita_flow(from = "S", to = "V", rate = "((a * S)/(b + S))/S", 
-#>      abs_rate = "vaccination")
-#> 3: mp_per_capita_flow(from = "V", to = "S", rate = "rho", abs_rate = "vaccine_waning")
+#>      flow_name = "vaccination")
+#> 3: mp_per_capita_flow(from = "V", to = "S", rate = "rho", flow_name = "vaccine_waning")
 #> 4: mp_per_capita_flow(from = "S", to = "E", rate = unvaccinated_infection ~ 
 #>      I * beta/N_mix)
 #> 5: mp_per_capita_flow(from = "V", to = "E", rate = vaccinated_infection ~ 
 #>      I * beta * p/N_mix)
-#> 6: mp_per_capita_flow(from = "E", to = "I", rate = "alpha", abs_rate = "progression")
-#> 7: mp_per_capita_flow(from = "I", to = "R", rate = "gamma_i", abs_rate = "infectious_recovery")
-#> 8: mp_per_capita_flow(from = "I", to = "H", rate = "sigma", abs_rate = "hospitalizations")
-#> 9: mp_per_capita_flow(from = "H", to = "R", rate = "gamma_h", abs_rate = "hospital_recovery")
+#> 6: mp_per_capita_flow(from = "E", to = "I", rate = "alpha", flow_name = "progression")
+#> 7: mp_per_capita_flow(from = "I", to = "R", rate = "gamma_i", flow_name = "infectious_recovery")
+#> 8: mp_per_capita_flow(from = "I", to = "H", rate = "sigma", flow_name = "hospitalizations")
+#> 9: mp_per_capita_flow(from = "H", to = "R", rate = "gamma_h", flow_name = "hospital_recovery")
 ```
 
 Next we calibrate and specify the parameters to estimate. Note that by

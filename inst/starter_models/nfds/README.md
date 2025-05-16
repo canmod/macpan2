@@ -355,14 +355,14 @@ start_time <- Sys.time()
 old_sim = mp_simulator(old_spec,time_steps = 1L,outputs = "Y")
 end_time <- Sys.time()
 end_time - start_time
-#> Time difference of 0.3909481 secs
+#> Time difference of 0.3991828 secs
 
 # new spec
 start_time <- Sys.time()
 new_sim = mp_simulator(new_spec,time_steps = 1L,outputs = "Y")
 end_time <- Sys.time()
 end_time - start_time
-#> Time difference of 0.3216069 secs
+#> Time difference of 0.347908 secs
 ```
 
 Creating a simulator with one time step results in the new model

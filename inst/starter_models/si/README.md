@@ -67,8 +67,6 @@ specs = mp_tmb_library("starter_models"
   , package = "macpan2"
   , alternative_specs = TRUE
 )
-#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
-#> is deprecated; please use 'flow_name' instead
 set.seed(1)
 (specs
   |> lapply(mp_simulator, 50L, "I")

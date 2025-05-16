@@ -56,46 +56,6 @@ spec = mp_tmb_library(
   , "ww"
   , package = "macpan2"
 )
-#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
-#> is deprecated; please use 'flow_name' instead
-#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
-#> is deprecated; please use 'flow_name' instead
-#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
-#> is deprecated; please use 'flow_name' instead
-#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
-#> is deprecated; please use 'flow_name' instead
-#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
-#> is deprecated; please use 'flow_name' instead
-#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
-#> is deprecated; please use 'flow_name' instead
-#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
-#> is deprecated; please use 'flow_name' instead
-#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
-#> is deprecated; please use 'flow_name' instead
-#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
-#> is deprecated; please use 'flow_name' instead
-#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
-#> is deprecated; please use 'flow_name' instead
-#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
-#> is deprecated; please use 'flow_name' instead
-#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
-#> is deprecated; please use 'flow_name' instead
-#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
-#> is deprecated; please use 'flow_name' instead
-#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
-#> is deprecated; please use 'flow_name' instead
-#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
-#> is deprecated; please use 'flow_name' instead
-#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
-#> is deprecated; please use 'flow_name' instead
-#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
-#> is deprecated; please use 'flow_name' instead
-#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
-#> is deprecated; please use 'flow_name' instead
-#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
-#> is deprecated; please use 'flow_name' instead
-#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
-#> is deprecated; please use 'flow_name' instead
 ```
 
 This specification can be used to draw the following flow diagrams using
@@ -292,8 +252,6 @@ focal_model = (
   # log transform W
   |> mp_tmb_insert_trans("W", mp_log)
 )
-#> Warning in handle_rate_args(rate, abs_rate, flow_name): The abs_rate argument
-#> is deprecated; please use 'flow_name' instead
 ```
 
 ## Calibrate to Data
