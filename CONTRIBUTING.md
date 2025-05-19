@@ -174,6 +174,10 @@ To get a list of all objects in the cache.
 test_cache_list()
 ```
 
+## Changelog Management
+
+We use semi-automated construction of `NEWS.md`. This system generates and maintains version metadata and release notes for the package using three scripts located in `misc/build`. It produces `commit-version-map.txt`, `version-bumps.txt`, and `NEWS.md` in the project root. `commit-version-map.txt` records the version number, commit hash, and date for each commit on the main branch. `version-bumps.txt` extracts the most recent commit for each version from that map. `NEWS.md` combines these version bumps with optional developer-written content in `news-narratives.md`, adding GitHub compare links between versions. The scripts update these files incrementally for efficiency. See `misc/build` and the root-level files `commit-version-map.txt`, `version-bumps.txt`, and `NEWS.md`.
+
 ## Log Files
 
 Every simulation generates or overwrites a log file. The default location is described  [here](https://canmod.github.io/macpan2/articles/options.html). The path of the log file is created when the simulator is created. So if the simulator is saved to a file (e.g., stored with `saveRDS`), there is a risk that when it is reloaded the path to the log file will no longer exist. If this happens `macpan2` will try to recreate it, but this might fail. If the log file path is not valid for any of these reasons, the log file will be written to `.macpan2/bail-out/log.txt` in the current working directory. Log files are used internally by `macpan2` when producing error messages that originate within an [engine function](https://canmod.github.io/macpan2/reference/engine_functions.html). This mechanism of getting messages from `C++` to `R` is not ideal, but provides a workaround for the limitation that TMB cannot report back strings (I would welcome being wrong so that we could simplify this part of the code).
