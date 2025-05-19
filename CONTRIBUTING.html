@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -156,6 +156,10 @@ MP2_SUM = 12 // fwrap: sum(...)</code></pre>
 <pre><code><span><span class="fu">test_cache_read</span><span class="op">(</span><span class="st">"TRAJ-sir_5_infection.rds"</span><span class="op">)</span></span></code></pre>
 <p>To get a list of all objects in the cache.</p>
 <pre><code><span><span class="fu">test_cache_list</span><span class="op">(</span><span class="op">)</span></span></code></pre>
+</div>
+<div class="section level2">
+<h2 id="changelog-management">Changelog Management<a class="anchor" aria-label="anchor" href="#changelog-management"></a></h2>
+<p>We use semi-automated construction of <code>NEWS.md</code>. This system generates and maintains version metadata and release notes for the package using three scripts located in <code>misc/build</code>. It produces <code>commit-version-map.txt</code>, <code>version-bumps.txt</code>, and <code>NEWS.md</code> in the project root. <code>commit-version-map.txt</code> records the version number, commit hash, and date for each commit on the main branch. <code>version-bumps.txt</code> extracts the most recent commit for each version from that map. <code>NEWS.md</code> combines these version bumps with optional developer-written content in <code>news-narratives.md</code>, adding GitHub compare links between versions. The scripts update these files incrementally for efficiency. See <code>misc/build</code> and the root-level files <code>commit-version-map.txt</code>, <code>version-bumps.txt</code>, and <code>NEWS.md</code>.</p>
 </div>
 <div class="section level2">
 <h2 id="log-files">Log Files<a class="anchor" aria-label="anchor" href="#log-files"></a></h2>
