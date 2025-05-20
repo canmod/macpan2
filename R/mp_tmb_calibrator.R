@@ -1363,7 +1363,10 @@ TMBTraj.list = function(traj
 TMBTraj.TrajArg = function(traj
       , struc
       , spec
-      , existing_global_names = character()) {
+      , existing_global_names = character()
+  ) {
+  
+  traj$likelihood = assert_distributional_component(traj$likelihood)
     
   self = TMBTraj(names(traj$likelihood), struc, spec, existing_global_names)
   
@@ -1409,20 +1412,53 @@ TMBTraj.TrajArg = function(traj
 
 
 TMBPar = function(par
-      , tv, traj, spec
-      , existing_global_names = character()
-    ) UseMethod("TMBPar")
+  , tv, traj, spec
+  , existing_global_names = character()
+) UseMethod("TMBPar")
+
+
+assert_distributional_component = function(x) {
+  which_formulas = vapply(x, \(x) inherits(x, "formula"), logical(1L))
+  
+  ## try to be user-friendly if people use tildes when 
+  ## they 'should' use equal signs.
+  if (any(which_formulas)) {
+    formula_str = (x[which_formulas]
+      |> vapply(deparse1, character(1L))
+    )
+    nms = vapply(x[which_formulas], lhs_char, character(1L))
+    x[which_formulas] = lapply(x[which_formulas], rhs_eval)
+    names(x)[which_formulas] = nms
+    mp_wrap(
+        "We recommend replacing the tildes with equal signs "
+      , "in the following expressions: "
+      , formula_str
+    ) |> warning()
+  }
+  if (length(x) == 0) x = empty_named_list()
+  if (!valid$named_list$is_true(x)) {
+    stop(
+        "Lists of distributional assumptions should be "
+      , "provided as named lists"
+    )
+  }
+  return(x)
+}
 
 #' @exportS3Method macpan2::TMBPar
 TMBPar.ParArg = function(par
       , tv, traj, spec
       , existing_global_names = character()
     ) {
-  self = TMBPar(names(par$param), tv, traj, spec, existing_global_names)
+  
+  par$params = assert_distributional_component(par$params)
+  par$random = assert_distributional_component(par$random)
+  
+  self = TMBPar(names(par$params), tv, traj, spec, existing_global_names)
   
   self$par_ranef = names(par$random)
   
-  self$distr_params = function() self$arg$param$default()
+  self$distr_params = function() self$arg$params$default()
   self$distr_random = function() self$arg$random$default()
 
   self$random_frame = function() {
@@ -1440,7 +1476,7 @@ TMBPar.ParArg = function(par
     y = character()
     for (i in seq_along(par_nms)) {
       nm = par_nms[i]
-      pp = self$arg$param$distr_list[[nm]]
+      pp = self$arg$params$distr_list[[nm]]
       y = c(y, pp$prior(nm))
     }
     for (i in seq_along(self$par_ranef)) {
@@ -1451,23 +1487,23 @@ TMBPar.ParArg = function(par
     y
   }
   
-  self$distr_params_frame = function() self$arg$param$distr_params_frame()
+  self$distr_params_frame = function() self$arg$params$distr_params_frame()
   self$distr_random_frame = function() self$arg$random$distr_params_frame()
   
   ## adapt (prior) distributional parameters to this parameter object
   self$arg = par
-  self$arg$param = DistrList(self$arg$param, spec)
+  self$arg$params = DistrList(self$arg$params, spec)
   self$arg$random = DistrList(self$arg$random, spec)
-  self$arg$param$update_global_names(self, "distr_params")
+  self$arg$params$update_global_names(self, "distr_params")
   self$arg$random$update_global_names(self, "distr_random")
-  self$arg$param$error_if_not_all_have_location()
+  self$arg$params$error_if_not_all_have_location()
   self$arg$random$error_if_not_all_have_location()
   
   self$check_assumptions = function(orig_spec, data_struc) {
     self$check_assumptions_basic(orig_spec, data_struc)
-    self$arg$param$check_variables(data_struc$matrix_list)
+    self$arg$params$check_variables(data_struc$matrix_list)
     for (p in self$par) {
-      self$arg$param$distr_list[[p]]$check_args(self$arg$param$distr_list[[p]]$distr_param_objs)
+      self$arg$params$distr_list[[p]]$check_args(self$arg$params$distr_list[[p]]$distr_param_objs)
     }
     NULL
   }

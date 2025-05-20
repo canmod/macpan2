@@ -97,7 +97,7 @@ rhs_sum = function(...) {
    |> no_zeros()
    |> paste(collapse = " + ")
    |> blank_to_zero()
-   |> sprintf(fmt = "~%s") 
+   |> sprintf(fmt = "~%s")
    |> as.formula()
   )
 }
@@ -169,6 +169,9 @@ lhs_expr = function(formula) {
   ) |> stop()
 }
 
+lhs_eval = function(formula, ...) eval(lhs_expr(formula), ...)
+rhs_eval = function(formula, ...) eval(rhs_expr(formula), ...)
+
 lhs_char = function(formula) {
   if (is_two_sided(formula)) {
     return(deparse(formula[[2L]], 500))
@@ -185,6 +188,7 @@ rhs_char = function(formula) {
 formula_as_character = function(formula) {
   sprintf("%s ~ %s", lhs_char(formula), rhs_char(formula))
 }
+
 
 # formula parsing in macpan2 works one side at a time. but sometimes
 # it is helpful to parse two-sided formulas. this function does so
