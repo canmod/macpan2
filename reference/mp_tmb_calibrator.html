@@ -104,13 +104,23 @@ produced by <code><a href="mp_trajectory.html">mp_trajectory</a></code>.</p></dd
 
 <dt id="arg-traj">traj<a class="anchor" aria-label="anchor" href="#arg-traj"></a></dt>
 <dd><p>A character vector giving the names of trajectories to fit
-to data, or a named list of likelihood distributions specified with
-<code><a href="distribution.html">distribution</a></code> for each trajectory.</p></dd>
+to data, or a named list of likelihood distributions specified with a
+<code><a href="distribution.html">distribution</a></code> for each trajectory. Transformations of
+trajectories cannot be named implicitly unless they are also transformed
+through the <code>outputs</code> argument and their transformed version appears
+in the <code>data</code>.</p></dd>
 
 
 <dt id="arg-par">par<a class="anchor" aria-label="anchor" href="#arg-par"></a></dt>
-<dd><p>A character vector giving the names of parameters, either
-time-varying or not, to fit using trajectory match.</p></dd>
+<dd><p>A character vector giving the names of parameters (either
+time-varying or not) to fit using trajectory match, or a named list of
+prior distributions specified with a <code><a href="distribution.html">distribution</a></code> for each
+parameter. Parameters can be implicitly fitted on a transformed scale by
+prefixing the name of the parameter with the name of the transformation
+(e.g., <code>log_beta</code> will fit <code>beta</code> on the log-transformed scale, and
+<code><a href="mp_tmb_coef.html">mp_tmb_coef</a></code> will report estimates on the original scale by
+default. The <code><a href="mp_tmb_insert_backtrans.html">mp_tmb_implicit_backtrans</a></code> function is used
+internally. See that help page for available transformations.</p></dd>
 
 
 <dt id="arg-tv">tv<a class="anchor" aria-label="anchor" href="#arg-tv"></a></dt>
@@ -123,7 +133,13 @@ function specified with <code><a href="mp_rbf.html">mp_rbf</a></code>.</p></dd>
 <dd><p>A character vector of outputs that will be generated
 when <code><a href="mp_trajectory.html">mp_trajectory</a></code>, <code><a href="mp_trajectory.html">mp_trajectory_sd</a></code>, or
 <code><a href="mp_trajectory.html">mp_trajectory_ensemble</a></code> are called on the optimized
-calibrator. By default it is just the trajectories listed in <code>traj</code>.</p></dd>
+calibrator. By default it is just the trajectories listed in <code>traj</code>.
+Outputs can be implicitly transformed by prefixing the name of the output
+with the name of the transformation (e.g., <code>log_infection</code> will output
+<code>log(infection)</code>, but <code><a href="mp_trajectory.html">mp_trajectory_sd</a></code> will report
+<code>infection</code> and its confidence interval on the original scale). The
+<code><a href="mp_tmb_insert_trans.html">mp_tmb_implicit_trans</a></code> function is used internally. See that
+help page for available transformations.</p></dd>
 
 
 <dt id="arg-default">default<a class="anchor" aria-label="anchor" href="#arg-default"></a></dt>
