@@ -1272,7 +1272,7 @@ TMBTraj.character = function(
   self$local_names = function() {
     l = make_names_list(self, c("obs", "obs_times", "distr_params"))
     l$sim = sprintf("%s_%s", "sim", self$outputs())
-    l$rand = sprintf("%s_%s", "rand", self$outputs())
+    #l$rand = sprintf("%s_%s", "rand", self$outputs())
     l
   }
   
