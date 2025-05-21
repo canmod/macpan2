@@ -3582,7 +3582,6 @@ Type objective_function<Type>::operator()()
     DATA_INTEGER(time_steps)
 
     // Expressions and parse table
-    // DATA_IVECTOR(expr_output_id);
     DATA_IVECTOR(a_table_x);
     DATA_IVECTOR(a_table_n);
     DATA_IVECTOR(a_table_i);

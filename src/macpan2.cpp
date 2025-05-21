@@ -2588,7 +2588,7 @@ public:
                 // https://github.com/canmod/macpan2/issues/93
                 for (int i = 0; i < rows; i++) {
                     for (int j = 0; j < cols; j++) {
-                        m.coeffRef(i, j) = (limit + (
+                        m.coeffRef(i, j) = limit + (
                             (
                                 X.coeff(i, j) - limit + 
                                 sqrt(
@@ -2597,7 +2597,7 @@ public:
                                     pow(limit, 2.0)
                                 )
                             ) / 2.0
-                        ));
+                        );
                     }
                 }
                 return m;
@@ -3583,7 +3583,6 @@ Type objective_function<Type>::operator()()
     DATA_INTEGER(time_steps)
 
     // Expressions and parse table
-    // DATA_IVECTOR(expr_output_id);
     DATA_IVECTOR(a_table_x);
     DATA_IVECTOR(a_table_n);
     DATA_IVECTOR(a_table_i);
