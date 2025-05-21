@@ -45,12 +45,23 @@
 
 
 <div class="section level2">
-<h2 id="id_200">2.0.0<a class="anchor" aria-label="anchor" href="#id_200"></a></h2>
+<h2 id="id_1170">1.17.0<a class="anchor" aria-label="anchor" href="#id_1170"></a></h2>
+<div class="section level3">
+<h3 id="new-features">New Features<a class="anchor" aria-label="anchor" href="#new-features"></a></h3>
+<ul><li>More robust handling of C++ log files, even if simulators are loaded from disk to a file system that does not have (or no longer has) the expected path to the log file.</li>
+</ul></div>
+</div>
+<div class="section level2">
+<h2 id="id_11611">1.16.11<a class="anchor" aria-label="anchor" href="#id_11611"></a></h2>
+<div class="section level3">
+<h3 id="new-features-1">New Features<a class="anchor" aria-label="anchor" href="#new-features-1"></a></h3>
+<ul><li>Transform parameters when making a calibration by prefixing parameter names with the name of the transformation (e.g., <code>log_beta</code> instead of <code>beta</code>).</li>
+</ul></div>
 </div>
 <div class="section level2">
 <h2 id="id_150">1.5.0<a class="anchor" aria-label="anchor" href="#id_150"></a></h2>
 <div class="section level3">
-<h3 id="new-features">New Features<a class="anchor" aria-label="anchor" href="#new-features"></a></h3>
+<h3 id="new-features-2">New Features<a class="anchor" aria-label="anchor" href="#new-features-2"></a></h3>
 <ul><li>Delete elements from model specifications with <code>mp_tmb_delete</code>.</li>
 </ul></div>
 </div>
@@ -73,7 +84,7 @@
 <ul><li>Removing in-place modifications to model specification objects in <code>mp_tmb_insert</code> and <code>mp_tmb_update</code>.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="new-features-1">New Features<a class="anchor" aria-label="anchor" href="#new-features-1"></a></h3>
+<h3 id="new-features-3">New Features<a class="anchor" aria-label="anchor" href="#new-features-3"></a></h3>
 <ul><li>Define explicit state variable updates, with the choice of applying <code>mp_euler</code>, <code>mp_rk4</code>, or <code>mp_euler_multinomial</code> update methods, the latter generating process error.</li>
 <li>New stochasticity engine functions <code>rbinom</code> and <code>reulermultinom</code>.</li>
 <li>
@@ -115,7 +126,7 @@
 <code>rbind_lag</code> now throws an error when <code>lag &gt; 1</code> because there are conceptual errors with this case. We will get back to this when we can to allow these important cases by adding an argument with initial conditions associated with negative time steps.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="new-features-2">New Features<a class="anchor" aria-label="anchor" href="#new-features-2"></a></h3>
+<h3 id="new-features-4">New Features<a class="anchor" aria-label="anchor" href="#new-features-4"></a></h3>
 <ul><li>Streamlined installation via <code>r-universe</code>.</li>
 <li>
 <code>mp_tmb_calibrator</code> and <code>mp_tmb_optimize</code> functions for calibration using a simple and restrictive trajectory matching model. Future releases will allow more functionality.</li>
@@ -166,7 +177,7 @@
 <li>Sort simulation output by time step.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="new-features-3">New Features<a class="anchor" aria-label="anchor" href="#new-features-3"></a></h3>
+<h3 id="new-features-5">New Features<a class="anchor" aria-label="anchor" href="#new-features-5"></a></h3>
 <ul><li>Constant integer vectors can now be passed to <code>C++</code>.</li>
 <li>Integer vectors can be used to subset assignment matrices (i.e. integer subsetting on the left-hand-side).</li>
 <li>
