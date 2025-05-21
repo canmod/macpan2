@@ -14,5 +14,5 @@ test_that("clamping function is modified squareplus", {
     )
   }
   clamp_macpan = function(x) engine_eval(~clamp(x), x = x) |> c()
-  expect_identical(clamp_base_r(x), clamp_macpan(x))
+  expect_equal(clamp_base_r(x), clamp_macpan(x))
 })

@@ -76,6 +76,7 @@ reference:
   - mp_change_frame
   - mp_vars
   - mp_state_dependence_frame
+  - mp_version
 
 - title: Simulators
 
@@ -99,6 +100,7 @@ reference:
   contents:
   - mp_default
   - mp_tmb
+  - mp_version
 
 - title: Calibrators
 
@@ -154,6 +156,7 @@ reference:
   contents:
   - mp_tmb
   - mp_parameterization
+  - mp_version
 
 - title: Utilities
 

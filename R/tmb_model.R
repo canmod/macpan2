@@ -152,6 +152,7 @@ mp_simulator.TMBParameterizedModelSpec = function(model
 #'
 #' @useDynLib macpan2
 #' @importFrom TMB MakeADFun
+#' @importFrom utils packageVersion
 #' @noRd
 TMBModel = function(
       init_mats = MatsList()
