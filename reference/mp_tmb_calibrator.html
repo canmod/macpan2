@@ -216,7 +216,9 @@ argument of <code><a href="mp_forecaster.html">mp_forecaster</a></code>.</p></dd
 <span class="r-out co"><span class="r-pr">#&gt;</span> $message</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "relative convergence (4)"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-in"><span><span class="fu"><a href="mp_tmb_coef.html">mp_tmb_coef</a></span><span class="op">(</span><span class="va">cal</span><span class="op">)</span>  <span class="co">## requires broom.mixed package</span></span></span>
+<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="va"><a href="https://github.com/bbolker/broom.mixed" class="external-link">broom.mixed</a></span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="engine_functions.html">print</a></span><span class="op">(</span><span class="fu"><a href="mp_tmb_coef.html">mp_tmb_coef</a></span><span class="op">(</span><span class="va">cal</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  8.4447e-09 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  11.74622 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  12.05664 </span>

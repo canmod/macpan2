@@ -112,7 +112,7 @@ transformation specified using <code><a href="transform_distr_param.html">mp_log
 <span class="r-in"><span><span class="va">cal</span><span class="op">$</span><span class="va">simulator</span><span class="op">$</span><span class="va">tmb_model</span><span class="op">$</span><span class="va">obj_fn</span><span class="op">$</span><span class="va">obj_fn_expr</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ~-sum(dpois(obs_infection, clamp(sim_infection))) - sum(dnorm(beta, </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     0.35, exp(distr_params_log_sd_beta)))</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x561e165f4220&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55baf073e0f8&gt;</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Next we optimize and view the fitted parameters. We can see the </span></span></span>
 <span class="r-in"><span><span class="co"># distributional parameter in the coefficient table with a default value </span></span></span>
@@ -144,7 +144,9 @@ transformation specified using <code><a href="transform_distr_param.html">mp_log
 <span class="r-out co"><span class="r-pr">#&gt;</span> $message</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "relative convergence (4)"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-in"><span><span class="fu"><a href="mp_tmb_coef.html">mp_tmb_coef</a></span><span class="op">(</span><span class="va">cal</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="va"><a href="https://github.com/bbolker/broom.mixed" class="external-link">broom.mixed</a></span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="engine_functions.html">print</a></span><span class="op">(</span><span class="fu"><a href="mp_tmb_coef.html">mp_tmb_coef</a></span><span class="op">(</span><span class="va">cal</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  8.986787e-09 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  11.62005 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  11.92421 </span>
@@ -175,7 +177,7 @@ transformation specified using <code><a href="transform_distr_param.html">mp_log
 <span class="r-in"><span><span class="va">cal</span><span class="op">$</span><span class="va">simulator</span><span class="op">$</span><span class="va">tmb_model</span><span class="op">$</span><span class="va">obj_fn</span><span class="op">$</span><span class="va">obj_fn_expr</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ~-sum(dpois(obs_infection, clamp(sim_infection))) - sum(dnorm(beta, </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     0.35, exp(sd_var)))</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x561e150a70c0&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55baef24dd70&gt;</span>
 <span class="r-in"><span><span class="fu"><a href="mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">cal</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  389.7016 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  258.9379 </span>
@@ -204,7 +206,9 @@ transformation specified using <code><a href="transform_distr_param.html">mp_log
 <span class="r-out co"><span class="r-pr">#&gt;</span> $message</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "relative convergence (4)"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-in"><span><span class="fu"><a href="mp_tmb_coef.html">mp_tmb_coef</a></span><span class="op">(</span><span class="va">cal</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="va"><a href="https://github.com/bbolker/broom.mixed" class="external-link">broom.mixed</a></span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="engine_functions.html">print</a></span><span class="op">(</span><span class="fu"><a href="mp_tmb_coef.html">mp_tmb_coef</a></span><span class="op">(</span><span class="va">cal</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  3.974682e-12 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  11.62005 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  11.92421 </span>
