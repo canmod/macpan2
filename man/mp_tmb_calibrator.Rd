@@ -28,11 +28,21 @@ time-varying parameters. The data must be of the same format as that
 produced by \code{\link{mp_trajectory}}.}
 
 \item{traj}{A character vector giving the names of trajectories to fit
-to data, or a named list of likelihood distributions specified with
-\code{\link{distribution}} for each trajectory.}
+to data, or a named list of likelihood distributions specified with a
+\code{\link{distribution}} for each trajectory. Transformations of
+trajectories cannot be named implicitly unless they are also transformed
+through the \code{outputs} argument and their transformed version appears
+in the \code{data}.}
 
-\item{par}{A character vector giving the names of parameters, either
-time-varying or not, to fit using trajectory match.}
+\item{par}{A character vector giving the names of parameters (either
+time-varying or not) to fit using trajectory match, or a named list of
+prior distributions specified with a \code{\link{distribution}} for each
+parameter. Parameters can be implicitly fitted on a transformed scale by
+prefixing the name of the parameter with the name of the transformation
+(e.g., \code{log_beta} will fit \code{beta} on the log-transformed scale, and
+\code{\link{mp_tmb_coef}} will report estimates on the original scale by
+default. The \code{\link{mp_tmb_implicit_backtrans}} function is used
+internally. See that help page for available transformations.}
 
 \item{tv}{A character vector giving the names of parameters to make
 time-varying according to the values in \code{data}, or a radial basis
@@ -41,7 +51,13 @@ function specified with \code{\link{mp_rbf}}.}
 \item{outputs}{A character vector of outputs that will be generated
 when \code{\link{mp_trajectory}}, \code{\link{mp_trajectory_sd}}, or
 \code{\link{mp_trajectory_ensemble}} are called on the optimized
-calibrator. By default it is just the trajectories listed in \code{traj}.}
+calibrator. By default it is just the trajectories listed in \code{traj}.
+Outputs can be implicitly transformed by prefixing the name of the output
+with the name of the transformation (e.g., \code{log_infection} will output
+\code{log(infection)}, but \code{\link{mp_trajectory_sd}} will report
+\code{infection} and its confidence interval on the original scale). The
+\code{\link{mp_tmb_implicit_trans}} function is used internally. See that
+help page for available transformations.}
 
 \item{default}{A list of default values to use to update the defaults
 in the \code{spec}. By default nothing is updated. Alternatively one could

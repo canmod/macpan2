@@ -17,17 +17,33 @@
 #' time-varying parameters. The data must be of the same format as that 
 #' produced by \code{\link{mp_trajectory}}.
 #' @param traj A character vector giving the names of trajectories to fit
-#' to data, or a named list of likelihood distributions specified with
-#' \code{\link{distribution}} for each trajectory.
+#' to data, or a named list of likelihood distributions specified with a
+#' \code{\link{distribution}} for each trajectory. Transformations of 
+#' trajectories cannot be named implicitly unless they are also transformed
+#' through the `outputs` argument and their transformed version appears
+#' in the `data`. 
 #' @param tv A character vector giving the names of parameters to make
 #' time-varying according to the values in \code{data}, or a radial basis 
 #' function specified with \code{\link{mp_rbf}}.
-#' @param par A character vector giving the names of parameters, either
-#' time-varying or not, to fit using trajectory match.
+#' @param par A character vector giving the names of parameters (either
+#' time-varying or not) to fit using trajectory match, or a named list of 
+#' prior distributions specified with a \code{\link{distribution}} for each
+#' parameter. Parameters can be implicitly fitted on a transformed scale by 
+#' prefixing the name of the parameter with the name of the transformation 
+#' (e.g., `log_beta` will fit `beta` on the log-transformed scale, and
+#' \code{\link{mp_tmb_coef}} will report estimates on the original scale by 
+#' default. The \code{\link{mp_tmb_implicit_backtrans}} function is used 
+#' internally. See that help page for available transformations.
 #' @param outputs A character vector of outputs that will be generated
 #' when \code{\link{mp_trajectory}}, \code{\link{mp_trajectory_sd}}, or 
 #' \code{\link{mp_trajectory_ensemble}} are called on the optimized 
 #' calibrator. By default it is just the trajectories listed in `traj`.
+#' Outputs can be implicitly transformed by prefixing the name of the output
+#' with the name of the transformation (e.g., `log_infection` will output
+#' `log(infection)`, but \code{\link{mp_trajectory_sd}} will report 
+#' `infection` and its confidence interval on the original scale). The
+#' \code{\link{mp_tmb_implicit_trans}} function is used internally. See that 
+#' help page for available transformations.
 #' @param default A list of default values to use to update the defaults
 #' in the `spec`. By default nothing is updated. Alternatively one could
 #' use \code{\link{mp_tmb_update}} to update the spec outside of the 
@@ -125,6 +141,14 @@ mp_tmb_calibrator = function(spec
     , must_not_save = names(globalize(traj, "obs"))
     , must_save = traj$outputs()
   )
+  # TODO: prepare for simulating observation error
+  # cal_spec = mp_tmb_insert(cal_spec
+  #   , phase = "after"
+  #   , at = Inf
+  #   , expressions = traj$rand_collect_exprs()
+  #   , sim_exprs = "simulated_observation_error"
+  #   , must_save = traj$global_names()$rand
+  # )
   
   cal_spec = mp_tmb_insert(cal_spec
     , default = globalize(traj, "distr_params")
@@ -135,7 +159,7 @@ mp_tmb_calibrator = function(spec
     , default = globalize(par, "distr_params")
   )
   
-  ## TODO: handle likelihood trajectories
+  ## TODO: track individual contributions of each time step to the likelihood.
   
   ## add time-varying parameters
   cal_spec = mp_tmb_update(cal_spec
@@ -708,12 +732,6 @@ mp_optimized_spec = function(model
 }
 
 #' @export
-mp_optimized_spec.TMBSimulator = function(model
-    , spec_structure = c("original", "modified")
-  ) {
-}
-
-#' @export
 mp_optimized_spec.TMBCalibrator = function(model
     , spec_structure = c("original", "modified")
   ) {
@@ -1254,6 +1272,7 @@ TMBTraj.character = function(
   self$local_names = function() {
     l = make_names_list(self, c("obs", "obs_times", "distr_params"))
     l$sim = sprintf("%s_%s", "sim", self$outputs())
+    l$rand = sprintf("%s_%s", "rand", self$outputs())
     l
   }
   
@@ -1387,6 +1406,22 @@ TMBTraj.TrajArg = function(traj
     }
     y
   }
+  
+  # preparing for simulating observation error
+  # self$rand_collect_exprs = function() {
+  #   nms = self$global_names()
+  #   traj_nms = self$outputs()
+  #   lhs = nms$rand
+  #   rhs = character()
+  #   for (i in seq_along(traj_nms)) {
+  #     nm = traj_nms[i]
+  #     ll = self$arg$likelihood$distr_list[[nm]]
+  #     rhs = c(rhs, ll$noise(nms$sim[i]))
+  #   }
+  #   output = mapply(two_sided, lhs, rhs, SIMPLIFY = FALSE)
+  #   names(output) = rep("simulated_observation_error", length(output))
+  #   return(output)
+  # }
   
   ## data frames describing the fixed and random effects corresponding
   ## to distributional parameters

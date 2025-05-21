@@ -493,20 +493,29 @@ get_parameter_names = function(obj) {
   if (is.list(obj)) return(names(obj))
   stop("Not a recognized object for representing parameters")
 }
+## TODO: function not used currently -- if used we would also need to 
+## transform the data, and that is for the future.
+get_trajectory_names = function(obj) {
+  if (is.character(obj)) return(obj)
+  if (inherits(obj, "TrajArg")) return(c(names(obj$likelihood), names(obj$condensation)))
+  if (is.list(obj)) return(names(obj))
+  stop("Not a recognized object for representing parameters")
+}
 mp_cal_implicit_trans = function(spec, cal) {
+  out_nms = cal$cal_args$outputs
+  par_nms = get_parameter_names(cal$cal_args$par)
   (spec
     |> mp_tmb_update(default = cal$cal_args$default)
-    |> mp_tmb_implicit_trans(cal$cal_args$outputs)
-    |> mp_tmb_implicit_backtrans(get_parameter_names(cal$cal_args$par))
+    |> mp_tmb_implicit_trans(out_nms)
+    |> mp_tmb_implicit_backtrans(par_nms)
   )
 }
-
 
 get_vars_to_trans = function(variables, all_variables) {
   
   simple_variables = intersect(variables, all_variables)
   complex_variables = setdiff(variables, all_variables)
-  trans_variables = grep("^(log|logit|sqrt)_", complex_variables, value = TRUE)
+  trans_variables = grep("^(log|logit|sqrt|log1p)_", complex_variables, value = TRUE)
   
   good_variables = c(simple_variables, trans_variables)
   bad_variables = setdiff(variables, good_variables)
@@ -521,6 +530,7 @@ get_vars_to_trans = function(variables, all_variables) {
       log = sub("^log_", "", complex_variables) |> intersect(all_variables)
     , logit = sub("^logit_", "", complex_variables) |> intersect(all_variables)
     , sqrt = sub("^sqrt_", "", complex_variables) |> intersect(all_variables)
+    , log1p = sub("^log1p_", "", complex_variables) |> intersect(all_variables)
   )
 }
 
