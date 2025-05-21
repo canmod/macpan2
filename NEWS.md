@@ -2,7 +2,7 @@
 
 In-Progress
 
-[change list](https://github.com/canmod/macpan2/compare/a372c7a909de89c8e87f2b0ac5935ccb4a198bb3..333ce239cc854e27d8359abd3dd5230015ece00a)
+[change list](https://github.com/canmod/macpan2/compare/a372c7a909de89c8e87f2b0ac5935ccb4a198bb3..fc0afe962ba1ba71c290a995df3df43c4b8501d9)
 
 ## Changes in 2.0.0
 
@@ -10,12 +10,16 @@ Released: 2025-05-16
 
 [change list](https://github.com/canmod/macpan2/compare/a99e1b9b6759ac46214c3ecc2bee694113aab88a..a372c7a909de89c8e87f2b0ac5935ccb4a198bb3)
 
-
 ## Changes in 1.17.0
 
 Released: 2025-05-15
 
 [change list](https://github.com/canmod/macpan2/compare/5893d38344b298119bb89a4047ee459193afe2f8..a99e1b9b6759ac46214c3ecc2bee694113aab88a)
+
+### New Features
+
+* More robust handling of C++ log files, even if simulators are loaded from disk to a file system that does not have (or no longer has) the expected path to the log file.
+
 
 ## Changes in 1.16.13
 
@@ -34,6 +38,11 @@ Released: 2025-04-17
 Released: 2025-04-09
 
 [change list](https://github.com/canmod/macpan2/compare/feec317106233839d49c8ad3a19780c6a08abeef..4a8bf67abd996cce47d1a33dbc7d771f004dd2d2)
+
+### New Features
+
+* Transform parameters when making a calibration by prefixing parameter names with the name of the transformation (e.g., `log_beta` instead of `beta`).
+
 
 ## Changes in 1.16.10
 

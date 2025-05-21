@@ -1,4 +1,14 @@
-## 2.0.0
+## 1.17.0
+
+### New Features
+
+* More robust handling of C++ log files, even if simulators are loaded from disk to a file system that does not have (or no longer has) the expected path to the log file.
+
+## 1.16.11
+
+### New Features
+
+* Transform parameters when making a calibration by prefixing parameter names with the name of the transformation (e.g., `log_beta` instead of `beta`).
 
 ## 1.5.0
 
