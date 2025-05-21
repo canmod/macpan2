@@ -107,6 +107,8 @@ cal = mp_tmb_calibrator(
   , default = list(beta = 0.25)
 )
 mp_optimize(cal)
-mp_tmb_coef(cal)  ## requires broom.mixed package
+if (suppressPackageStartupMessages(require(broom.mixed))) {
+  print(mp_tmb_coef(cal))
+}
 }
 \concept{create-model-calibrator}

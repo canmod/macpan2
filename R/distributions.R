@@ -854,7 +854,9 @@ mp_neg_bin = function(location = mp_distr_param_null("location")
 #' # distributional parameter in the coefficient table with a default value 
 #' # equal to the numeric value we provided to `mp_fit` above.
 #' mp_optimize(cal)
-#' mp_tmb_coef(cal)
+#' if (suppressPackageStartupMessages(require(broom.mixed))) {
+#'   print(mp_tmb_coef(cal))
+#' }
 #' 
 #' # If instead we want control over the name of the new fitted distributional
 #' # parameter, we can add a new variable to our model specification with the 
@@ -875,7 +877,9 @@ mp_neg_bin = function(location = mp_distr_param_null("location")
 #' # function and the fitted parameter table.
 #' cal$simulator$tmb_model$obj_fn$obj_fn_expr
 #' mp_optimize(cal)
-#' mp_tmb_coef(cal)
+#' if (suppressPackageStartupMessages(require(broom.mixed))) {
+#'   print(mp_tmb_coef(cal))
+#' }
 #' @name fit_distr_params
 #' @concept distributional-assumptions
 #' @export
