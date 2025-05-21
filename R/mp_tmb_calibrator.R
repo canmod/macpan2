@@ -233,7 +233,7 @@ mp_tmb_calibrator = function(spec
 TMBCalibrator = function(orig_spec, new_spec, cal_spec, simulator, cal_args = NULL, time_steps_obj = NULL) {
   self = Base()
   self$orig_spec = orig_spec  ## original spec for references
-  self$cal_spec = cal_spec  ## contaminated with stuff required for calibration
+  self$cal_spec = cal_spec  ## includes stuff required for calibration
   self$simulator = simulator  ## model simulator object keeping track of optimization attempts
   self$cal_args = cal_args
   self$time_steps_obj = time_steps_obj
