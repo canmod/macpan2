@@ -29,5 +29,6 @@ drat/
 .*/html/.*
 ^vignettes/[a-zA-Z0-9]+\.Rmd$
 .*.cff
+^.macpan$
 ^CONTRIBUTING\.md$
 ^news-narratives\.md$
