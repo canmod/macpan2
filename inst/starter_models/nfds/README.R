@@ -106,7 +106,7 @@ binary_matrix_notation <- function(M){
   # get row indices
   row_index = as.integer(rep(1:nrow(M), times=rowSums(M))-1)
   
-  return(macpan2:::nlist(col_index,row_index))
+  return(nlist(col_index,row_index))
 }
 
 # get non-zero indices of G transpose (loci-genotype matrix)

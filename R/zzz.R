@@ -1,4 +1,11 @@
+#' @importFrom tools R_user_dir
 .onLoad <- function(lib, pkg) {
+  
+  default = dirname(bail_out_log_file)
+  if (!dir.exists(default)) {
+    dir.create(default, showWarnings = FALSE, recursive = TRUE)
+  }
+  
   ## document these in vignettes/options.Rmd
   options(
       macpan2_dll = "macpan2"
@@ -6,12 +13,14 @@
     , macpan2_default_loss = c("clamped_poisson", "poisson", "sum_of_squares", "neg_bin")
     , macpan2_tmb_type = NULL
     , macpan2_tmb_check = TRUE
+    , macpan2_saving_conflict_msg_fn = base::message
       
     ## FIXME: macpan2_vec_by is old and not relevant i think
     , macpan2_vec_by = c("state", "flow_rates", "trans_rates") |> self_named_vector()
     
-    # where the log files go (e.g. `.macpan2/default`)
+    # where the log files go (e.g. `{macpan2_log_dir}/{macpan2_session_name}/log.txt`)
     , macpan2_session_name = "default"
+    , macpan2_log_dir = tools::R_user_dir("macpan2")
     
     # tolerances
     , macpan2_tol_hazard_div = 1e-8

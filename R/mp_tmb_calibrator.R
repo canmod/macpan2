@@ -17,23 +17,43 @@
 #' time-varying parameters. The data must be of the same format as that 
 #' produced by \code{\link{mp_trajectory}}.
 #' @param traj A character vector giving the names of trajectories to fit
-#' to data, or a named list of likelihood distributions specified with
-#' \code{\link{distribution}} for each trajectory.
+#' to data, or a named list of likelihood distributions specified with a
+#' \code{\link{distribution}} for each trajectory. Transformations of 
+#' trajectories cannot be named implicitly unless they are also transformed
+#' through the `outputs` argument and their transformed version appears
+#' in the `data`. 
 #' @param tv A character vector giving the names of parameters to make
 #' time-varying according to the values in \code{data}, or a radial basis 
 #' function specified with \code{\link{mp_rbf}}.
-#' @param par A character vector giving the names of parameters, either
-#' time-varying or not, to fit using trajectory match.
+#' @param par A character vector giving the names of parameters (either
+#' time-varying or not) to fit using trajectory match, or a named list of 
+#' prior distributions specified with a \code{\link{distribution}} for each
+#' parameter. Parameters can be implicitly fitted on a transformed scale by 
+#' prefixing the name of the parameter with the name of the transformation 
+#' (e.g., `log_beta` will fit `beta` on the log-transformed scale, and
+#' \code{\link{mp_tmb_coef}} will report estimates on the original scale by 
+#' default. The \code{\link{mp_tmb_implicit_backtrans}} function is used 
+#' internally. See that help page for available transformations.
 #' @param outputs A character vector of outputs that will be generated
 #' when \code{\link{mp_trajectory}}, \code{\link{mp_trajectory_sd}}, or 
 #' \code{\link{mp_trajectory_ensemble}} are called on the optimized 
 #' calibrator. By default it is just the trajectories listed in `traj`.
+#' Outputs can be implicitly transformed by prefixing the name of the output
+#' with the name of the transformation (e.g., `log_infection` will output
+#' `log(infection)`, but \code{\link{mp_trajectory_sd}} will report 
+#' `infection` and its confidence interval on the original scale). The
+#' \code{\link{mp_tmb_implicit_trans}} function is used internally. See that 
+#' help page for available transformations.
 #' @param default A list of default values to use to update the defaults
 #' in the `spec`. By default nothing is updated. Alternatively one could
 #' use \code{\link{mp_tmb_update}} to update the spec outside of the 
 #' function. Indeed such an approach is necessary if new expressions, 
 #' in addition to default updates, need to be added to the spec 
 #' (e.g. seasonally varying transmission).
+#' @param inits An optional list of initial values for the state variables.
+#' These initial values can be added to the `default` list with identical 
+#' results, but adding them to `inits` is better practice because it makes it 
+#' clear that they are initial values that will change as the state updates.
 #' @param time Specify the start and end time of the simulated trajectories,
 #' and the time period associated with each time step. The default is `NULL`, 
 #' which takes simulation bounds from the `data`. You can use 
@@ -59,7 +79,9 @@
 #'   , default = list(beta = 0.25)
 #' )
 #' mp_optimize(cal)
-#' mp_tmb_coef(cal)  ## requires broom.mixed package
+#' if (suppressPackageStartupMessages(require(broom.mixed))) {
+#'   print(mp_tmb_coef(cal))
+#' }
 #' @concept create-model-calibrator
 #' @export
 mp_tmb_calibrator = function(spec
@@ -69,6 +91,7 @@ mp_tmb_calibrator = function(spec
     , tv = character()
     , outputs = traj
     , default = list()
+    , inits = list()
     , time = NULL
     , save_data = TRUE
   ) {
@@ -91,23 +114,22 @@ mp_tmb_calibrator = function(spec
     )
   }
   
-  ## gather defaults before they are updated
-  force(outputs)
   
   ## copy the spec, reducing to apply state update methods
   ## (e.g. euler, rk4, euler_multinomial), and update defaults
-  cal_spec = mp_expand(spec)
-  check_default_updates(cal_spec, default)
-  cal_spec = mp_tmb_update(cal_spec, default = default)
   
+  check_default_updates(spec, default)
+  trans_spec = mp_cal_implicit_trans(spec, nlist(cal_args))
+  
+  cal_spec = mp_expand(trans_spec)
   struc = TMBCalDataStruc(data, time)
   traj = TMBTraj(traj, struc, cal_spec, cal_spec$all_formula_vars())
   tv = TMBTV(tv, struc, cal_spec, traj$global_names_vector())
   par = TMBPar(par, tv, traj, cal_spec, tv$global_names_vector())
   
-  traj$check_assumptions(spec, struc)
-  tv$check_assumptions(spec, struc)
-  par$check_assumptions(spec, struc)
+  traj$check_assumptions(trans_spec, struc)
+  tv$check_assumptions(trans_spec, struc)
+  par$check_assumptions(trans_spec, struc)
   
   
   ## add observed trajectories 
@@ -121,6 +143,14 @@ mp_tmb_calibrator = function(spec
     , must_not_save = names(globalize(traj, "obs"))
     , must_save = traj$outputs()
   )
+  # TODO: prepare for simulating observation error
+  # cal_spec = mp_tmb_insert(cal_spec
+  #   , phase = "after"
+  #   , at = Inf
+  #   , expressions = traj$rand_collect_exprs()
+  #   , sim_exprs = "simulated_observation_error"
+  #   , must_save = traj$global_names()$rand
+  # )
   
   cal_spec = mp_tmb_insert(cal_spec
     , default = globalize(traj, "distr_params")
@@ -131,7 +161,7 @@ mp_tmb_calibrator = function(spec
     , default = globalize(par, "distr_params")
   )
   
-  ## TODO: handle likelihood trajectories
+  ## TODO: track individual contributions of each time step to the likelihood.
   
   ## add time-varying parameters
   cal_spec = mp_tmb_update(cal_spec
@@ -203,7 +233,7 @@ mp_tmb_calibrator = function(spec
 TMBCalibrator = function(orig_spec, new_spec, cal_spec, simulator, cal_args = NULL, time_steps_obj = NULL) {
   self = Base()
   self$orig_spec = orig_spec  ## original spec for references
-  self$cal_spec = cal_spec  ## contaminated with stuff required for calibration
+  self$cal_spec = cal_spec  ## includes stuff required for calibration
   self$simulator = simulator  ## model simulator object keeping track of optimization attempts
   self$cal_args = cal_args
   self$time_steps_obj = time_steps_obj
@@ -373,7 +403,7 @@ print.TMBCalibrator = function(x, ...) {
 #' @export
 mp_optimize = function(model, optimizer, ...) UseMethod("mp_optimize")
 
-
+#' @importFrom utils capture.output
 #' @export
 mp_optimize.TMBSimulator = function(model
     , optimizer = c("nlminb", "optim", "DEoptim", "optimize", "optimise")
@@ -424,18 +454,6 @@ mp_optimize.TMBCalibrator = function(model
   ) {
   optimizer_results = mp_optimize(model$simulator, optimizer, ...)
   return(optimizer_results)
-  
-  ## TODO: remove this commented-out code once it is confirmed that
-  ## mp_optimized_spec can be used to replace new_spec (which was never
-  ## working very well anyways).
-  ## 
-  # old_defaults = mp_default(model$new_spec) |> frame_to_mat_list()
-  # new_defaults = (model$simulator
-  #   |> mp_default()
-  #   |> filter(matrix %in% names(old_defaults))
-  #   |> frame_to_mat_list()
-  # )
-  # model$new_spec = mp_tmb_update(model$new_spec, default = new_defaults)
 }
 
 TMBCalDataStruc = function(data, time) {
@@ -716,12 +734,6 @@ mp_optimized_spec = function(model
 }
 
 #' @export
-mp_optimized_spec.TMBSimulator = function(model
-    , spec_structure = c("original", "modified")
-  ) {
-}
-
-#' @export
 mp_optimized_spec.TMBCalibrator = function(model
     , spec_structure = c("original", "modified")
   ) {
@@ -738,6 +750,8 @@ mp_optimized_spec.TMBCalibrator = function(model
       , modified = "cal_spec"
   )
   spec = model[[spec_field]]
+  
+  if (spec_field == "orig_spec") spec = mp_cal_implicit_trans(spec, model)
   
   ## function that knows about attempted optimizations, and therefore
   ## how to update lists of defaults to their optimized values.
@@ -1260,6 +1274,7 @@ TMBTraj.character = function(
   self$local_names = function() {
     l = make_names_list(self, c("obs", "obs_times", "distr_params"))
     l$sim = sprintf("%s_%s", "sim", self$outputs())
+    #l$rand = sprintf("%s_%s", "rand", self$outputs())
     l
   }
   
@@ -1369,7 +1384,10 @@ TMBTraj.list = function(traj
 TMBTraj.TrajArg = function(traj
       , struc
       , spec
-      , existing_global_names = character()) {
+      , existing_global_names = character()
+  ) {
+  
+  traj$likelihood = assert_distributional_component(traj$likelihood)
     
   self = TMBTraj(names(traj$likelihood), struc, spec, existing_global_names)
   
@@ -1390,6 +1408,22 @@ TMBTraj.TrajArg = function(traj
     }
     y
   }
+  
+  # preparing for simulating observation error
+  # self$rand_collect_exprs = function() {
+  #   nms = self$global_names()
+  #   traj_nms = self$outputs()
+  #   lhs = nms$rand
+  #   rhs = character()
+  #   for (i in seq_along(traj_nms)) {
+  #     nm = traj_nms[i]
+  #     ll = self$arg$likelihood$distr_list[[nm]]
+  #     rhs = c(rhs, ll$noise(nms$sim[i]))
+  #   }
+  #   output = mapply(two_sided, lhs, rhs, SIMPLIFY = FALSE)
+  #   names(output) = rep("simulated_observation_error", length(output))
+  #   return(output)
+  # }
   
   ## data frames describing the fixed and random effects corresponding
   ## to distributional parameters
@@ -1415,20 +1449,53 @@ TMBTraj.TrajArg = function(traj
 
 
 TMBPar = function(par
-      , tv, traj, spec
-      , existing_global_names = character()
-    ) UseMethod("TMBPar")
+  , tv, traj, spec
+  , existing_global_names = character()
+) UseMethod("TMBPar")
+
+
+assert_distributional_component = function(x) {
+  which_formulas = vapply(x, \(x) inherits(x, "formula"), logical(1L))
+  
+  ## try to be user-friendly if people use tildes when 
+  ## they 'should' use equal signs.
+  if (any(which_formulas)) {
+    formula_str = (x[which_formulas]
+      |> vapply(deparse1, character(1L))
+    )
+    nms = vapply(x[which_formulas], lhs_char, character(1L))
+    x[which_formulas] = lapply(x[which_formulas], rhs_eval)
+    names(x)[which_formulas] = nms
+    mp_wrap(
+        "We recommend replacing the tildes with equal signs "
+      , "in the following expressions: "
+      , formula_str
+    ) |> warning()
+  }
+  if (length(x) == 0) x = empty_named_list()
+  if (!valid$named_list$is_true(x)) {
+    stop(
+        "Lists of distributional assumptions should be "
+      , "provided as named lists"
+    )
+  }
+  return(x)
+}
 
 #' @exportS3Method macpan2::TMBPar
 TMBPar.ParArg = function(par
       , tv, traj, spec
       , existing_global_names = character()
     ) {
-  self = TMBPar(names(par$param), tv, traj, spec, existing_global_names)
+  
+  par$params = assert_distributional_component(par$params)
+  par$random = assert_distributional_component(par$random)
+  
+  self = TMBPar(names(par$params), tv, traj, spec, existing_global_names)
   
   self$par_ranef = names(par$random)
   
-  self$distr_params = function() self$arg$param$default()
+  self$distr_params = function() self$arg$params$default()
   self$distr_random = function() self$arg$random$default()
 
   self$random_frame = function() {
@@ -1446,7 +1513,7 @@ TMBPar.ParArg = function(par
     y = character()
     for (i in seq_along(par_nms)) {
       nm = par_nms[i]
-      pp = self$arg$param$distr_list[[nm]]
+      pp = self$arg$params$distr_list[[nm]]
       y = c(y, pp$prior(nm))
     }
     for (i in seq_along(self$par_ranef)) {
@@ -1457,23 +1524,23 @@ TMBPar.ParArg = function(par
     y
   }
   
-  self$distr_params_frame = function() self$arg$param$distr_params_frame()
+  self$distr_params_frame = function() self$arg$params$distr_params_frame()
   self$distr_random_frame = function() self$arg$random$distr_params_frame()
   
   ## adapt (prior) distributional parameters to this parameter object
   self$arg = par
-  self$arg$param = DistrList(self$arg$param, spec)
+  self$arg$params = DistrList(self$arg$params, spec)
   self$arg$random = DistrList(self$arg$random, spec)
-  self$arg$param$update_global_names(self, "distr_params")
+  self$arg$params$update_global_names(self, "distr_params")
   self$arg$random$update_global_names(self, "distr_random")
-  self$arg$param$error_if_not_all_have_location()
+  self$arg$params$error_if_not_all_have_location()
   self$arg$random$error_if_not_all_have_location()
   
   self$check_assumptions = function(orig_spec, data_struc) {
     self$check_assumptions_basic(orig_spec, data_struc)
-    self$arg$param$check_variables(data_struc$matrix_list)
+    self$arg$params$check_variables(data_struc$matrix_list)
     for (p in self$par) {
-      self$arg$param$distr_list[[p]]$check_args(self$arg$param$distr_list[[p]]$distr_param_objs)
+      self$arg$params$distr_list[[p]]$check_args(self$arg$params$distr_list[[p]]$distr_param_objs)
     }
     NULL
   }

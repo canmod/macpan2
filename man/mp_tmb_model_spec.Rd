@@ -9,6 +9,7 @@ mp_tmb_model_spec(
   during = list(),
   after = list(),
   default = list(),
+  inits = list(),
   integers = list(),
   must_save = character(),
   must_not_save = character(),
@@ -34,7 +35,15 @@ rules for these formulas.}
 
 \item{default}{Named list of objects, each of which can be coerced into
 a \code{\link{numeric}} \code{\link{matrix}}. The names refer to
-variables that appear in \code{before}, \code{during}, and \code{after}.}
+quantities that appear in \code{before}, \code{during}, and \code{after}.
+Each quantity that is used in \code{before}, \code{during}, or \code{after}
+before it is defined must be given a numerical value in this \code{default}
+list.}
+
+\item{inits}{Named list of initial values of state variables.  These
+initial values can be added to the \code{default} list with identical results,
+but adding them to \code{inits} is better practice because it makes it clear
+that they are initial values that will change as the state updates.}
 
 \item{integers}{Named list of vectors that can be coerced to integer
 vectors. These integer vectors can be used by name in model formulas to

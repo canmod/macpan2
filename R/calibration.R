@@ -176,10 +176,6 @@ TMBCurrentParams = function(simulator) { ## TMBSimulator
     return(matrix_list)
   }
   
-  self$update_params_vector = function(matrix_list) {
-    
-  }
-  
   return_object(self, "OptimizedParams")
 }
 

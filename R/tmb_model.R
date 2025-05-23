@@ -10,6 +10,10 @@
 #' @param default Named list of numerical objects that will update the default
 #' values defined in the model specification object. Any number of objects
 #' can be updated or not.
+#' @param inits An optional list of initial values for the state variables.
+#' These initial values can be added to the `default` list with identical 
+#' results, but adding them to `inits` is better practice because it makes it 
+#' clear that they are initial values that will change as the state updates.
 #' 
 #' @concept create-model-simulator
 #' @export
@@ -17,6 +21,7 @@ mp_simulator = function(model
     , time_steps
     , outputs
     , default = list()
+    , inits = list()
   ) {
   UseMethod("mp_simulator")
 }
@@ -26,6 +31,7 @@ mp_simulator.default = function(model
     , time_steps
     , outputs
     , default = list()
+    , inits = list()
   ) {
   stop("You can only create a simulator from a model specification or a calibrator. But a ", class(model)[1L], " was passed instead.")
 }
@@ -35,7 +41,9 @@ mp_simulator.TMBModelSpec = function(model
     , time_steps
     , outputs
     , default = list()
+    , inits = list()
   ) {
+  default = c(default, inits)
   model$simulator_fresh(time_steps, outputs, default)
 }
 
@@ -44,6 +52,7 @@ mp_simulator.TMBSimulator = function(model
     , time_steps
     , outputs
     , default = list()
+    , inits = list()
   ) {
   stop("under construction")
   if (!missing(time_steps)) {
@@ -59,13 +68,15 @@ mp_simulator.TMBCalibrator = function(model
     , time_steps
     , outputs
     , default = list()
+    , inits = list()
   ) {
+  default = c(default, inits)
   mp_simulator(model$simulator, time_steps, outputs, default)
 }
 
 #' @export
 mp_simulator.TMBParameterizedModelSpec = function(model
-  , time_steps, outputs, default = list()
+  , time_steps, outputs, default = list(), inits = list()
 ) {
   ## FIXME: doesn't seem to be used anywhere
   simulator = mp_simulator(model$spec, time_steps, outputs, default)
@@ -141,6 +152,7 @@ mp_simulator.TMBParameterizedModelSpec = function(model
 #'
 #' @useDynLib macpan2
 #' @importFrom TMB MakeADFun
+#' @importFrom utils packageVersion
 #' @noRd
 TMBModel = function(
       init_mats = MatsList()
@@ -153,9 +165,10 @@ TMBModel = function(
     , log_file = LogFile()
     , do_pred_sdreport = TRUE
   ) {
-  ## Inheritance
+  
   self = Base()
-
+  self$macpan2_version = packageVersion("macpan2")
+  
   ## Args
   self$expr_list = expr_list
   self$init_mats = init_mats
@@ -905,6 +918,8 @@ labels.LabelsScripts = function(object, ...) {
 
 TMBSimulationUtils = function() {
   self = Base()
+  self$macpan2_version = packageVersion("macpan2")
+  
   self$.simulation_formatter = function(r, .phases) {
     ## get raw simulation output from TMB and supply 
     ## column names (which don't exist on the TMB side)
@@ -978,6 +993,7 @@ TMBSimulationUtils = function() {
         , Cols = r$arg_cols
         , Types = c("double", "integer")[r$arg_type_ints + 1L]
       )) |> frame_formatter()
+      
       stop(
         "\nThe following error was thrown by the TMB engine:\n  ",
         self$tmb_model$log_file$err_msg(),

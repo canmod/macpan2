@@ -3,6 +3,7 @@ ENUM_RE = [ ]*MP2_[A-Z_]*[ ]*=[ ]*[0-9][0-9]*
 SED_RE = \(\,\)*[ ]*\/\/[ ]*\(.*\)
 ALIAS_RE = [ ]*MP2_\(.*\)\: \(.*\)(\(.*\))
 ROXY_RE = ^.*\(\#'.*\)$
+LOG_RE = std\:\:string[ ]*bail_out_log_file
 VERSION := $(shell sed -n '/^Version: /s///p' DESCRIPTION)
 TEST := testthat::test_package(\"macpan2\", reporter = \"progress\")
 
@@ -121,6 +122,7 @@ R/enum.R: misc/dev/dev.cpp misc/build/enum_tail.R
 	echo "valid_func_sigs = c(" >> $@
 	grep "$(COMMA_RE)$(ENUM_RE)" misc/dev/dev.cpp | sed 's/$(COMMA_RE)$(ENUM_RE)$(SED_RE)/  \1\"\3\"\2/' >> $@
 	echo ")" >> $@
+	grep "$(LOG_RE)" misc/dev/dev.cpp | sed 's|$(LOG_RE)|bail_out_log_file|' | sed 's|;||' >> $@
 	cat misc/build/enum_tail.R >> $@
 	echo "valid_funcs = setNames(as.list(valid_funcs), valid_funcs)" >> $@
 
@@ -190,3 +192,8 @@ pkgdown-reference-index:
 	make quick-doc-install
 	Rscript -e "pkgdown::build_reference_index()"
 	Rscript -e "pkgdown::preview_site()"
+
+NEWS.md : news-narratives.md misc/build/update-news.sh misc/build/update-commit-version-map.sh misc/build/update-version-bumps.sh DESCRIPTION R/*.R vignettes/*.Rmd man/*.Rd Makefile
+	./misc/build/update-commit-version-map.sh
+	./misc/build/update-version-bumps.sh
+	./misc/build/update-news.sh

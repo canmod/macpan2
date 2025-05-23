@@ -1,29 +1,352 @@
-# macpan2 1.5.0 (news for this version is in-progress)
+## Changes in 2.1.0
 
-## New Features
+In-Progress
+
+[change list](https://github.com/canmod/macpan2/compare/c48fb449c8530240fba3bdddfa44af22cb50529d..01f4a32917b09eac4a9aa15754f3928630f892e4)
+
+## Changes in 2.0.1
+
+Released: 2025-05-21
+
+[change list](https://github.com/canmod/macpan2/compare/a372c7a909de89c8e87f2b0ac5935ccb4a198bb3..c48fb449c8530240fba3bdddfa44af22cb50529d)
+
+## Changes in 2.0.0
+
+Released: 2025-05-16
+
+[change list](https://github.com/canmod/macpan2/compare/a99e1b9b6759ac46214c3ecc2bee694113aab88a..a372c7a909de89c8e87f2b0ac5935ccb4a198bb3)
+
+## Changes in 1.17.0
+
+Released: 2025-05-15
+
+[change list](https://github.com/canmod/macpan2/compare/5893d38344b298119bb89a4047ee459193afe2f8..a99e1b9b6759ac46214c3ecc2bee694113aab88a)
+
+### New Features
+
+* More robust handling of C++ log files, even if simulators are loaded from disk to a file system that does not have (or no longer has) the expected path to the log file.
+
+
+## Changes in 1.16.13
+
+Released: 2025-05-15
+
+[change list](https://github.com/canmod/macpan2/compare/6eaf25f0c9a8a8c4167ac5974ba8675cb021478c..5893d38344b298119bb89a4047ee459193afe2f8)
+
+## Changes in 1.16.12
+
+Released: 2025-04-17
+
+[change list](https://github.com/canmod/macpan2/compare/4a8bf67abd996cce47d1a33dbc7d771f004dd2d2..6eaf25f0c9a8a8c4167ac5974ba8675cb021478c)
+
+## Changes in 1.16.11
+
+Released: 2025-04-09
+
+[change list](https://github.com/canmod/macpan2/compare/feec317106233839d49c8ad3a19780c6a08abeef..4a8bf67abd996cce47d1a33dbc7d771f004dd2d2)
+
+### New Features
+
+* Transform parameters when making a calibration by prefixing parameter names with the name of the transformation (e.g., `log_beta` instead of `beta`).
+
+
+## Changes in 1.16.10
+
+Released: 2025-04-06
+
+[change list](https://github.com/canmod/macpan2/compare/c371c8c7cb8c5d371beb693fb9ac0f86a6cd215d..feec317106233839d49c8ad3a19780c6a08abeef)
+
+## Changes in 1.16.9
+
+Released: 2025-04-04
+
+[change list](https://github.com/canmod/macpan2/compare/93061ef0203d500b9764dcda1bffdf940837127a..c371c8c7cb8c5d371beb693fb9ac0f86a6cd215d)
+
+## Changes in 1.16.8
+
+Released: 2025-04-04
+
+[change list](https://github.com/canmod/macpan2/compare/527bdd35ec719f77cfa2b3c7e01b8e0c28d2929e..93061ef0203d500b9764dcda1bffdf940837127a)
+
+## Changes in 1.16.7
+
+Released: 2025-03-31
+
+[change list](https://github.com/canmod/macpan2/compare/208fdfdf3b0bd6c6cbf6e6f645aa7a3aa7b38a38..527bdd35ec719f77cfa2b3c7e01b8e0c28d2929e)
+
+## Changes in 1.16.6
+
+Released: 2025-03-23
+
+[change list](https://github.com/canmod/macpan2/compare/f5431fc10ae04d7100affa99f55177e3c45e55f8..208fdfdf3b0bd6c6cbf6e6f645aa7a3aa7b38a38)
+
+## Changes in 1.16.5
+
+Released: 2025-03-23
+
+[change list](https://github.com/canmod/macpan2/compare/f97745fe1e12d539f3c1beb851c376828aa274ec..f5431fc10ae04d7100affa99f55177e3c45e55f8)
+
+## Changes in 1.16.4
+
+Released: 2025-03-21
+
+[change list](https://github.com/canmod/macpan2/compare/17b8774434abc24bd39a4459f2c6fa6775565232..f97745fe1e12d539f3c1beb851c376828aa274ec)
+
+## Changes in 1.16.3
+
+Released: 2025-03-20
+
+[change list](https://github.com/canmod/macpan2/compare/79fa9543dc4ce70ae9a996cd3784249f8c35c19b..17b8774434abc24bd39a4459f2c6fa6775565232)
+
+## Changes in 1.16.2
+
+Released: 2025-03-20
+
+[change list](https://github.com/canmod/macpan2/compare/597b08ae9eea3aa3c40b28d14857c48cc507af1d..79fa9543dc4ce70ae9a996cd3784249f8c35c19b)
+
+## Changes in 1.16.1
+
+Released: 2025-03-20
+
+[change list](https://github.com/canmod/macpan2/compare/0ffc3b2cdbc907991cef4953b96156f9fa9a95b7..597b08ae9eea3aa3c40b28d14857c48cc507af1d)
+
+## Changes in 1.15.3
+
+Released: 2025-03-20
+
+[change list](https://github.com/canmod/macpan2/compare/d41b2b103a1886b4f970a29a4510c84ce5e49952..0ffc3b2cdbc907991cef4953b96156f9fa9a95b7)
+
+## Changes in 1.16.0
+
+Released: 2025-03-19
+
+[change list](https://github.com/canmod/macpan2/compare/ace5fd2b3ede943385a7c7e50d295aaafe3fb325..d41b2b103a1886b4f970a29a4510c84ce5e49952)
+
+## Changes in 1.15.2
+
+Released: 2025-03-11
+
+[change list](https://github.com/canmod/macpan2/compare/a4ce7f19f5eef38d815bafac8b9d8aa70d2e405b..ace5fd2b3ede943385a7c7e50d295aaafe3fb325)
+
+## Changes in 1.15.1
+
+Released: 2025-03-11
+
+[change list](https://github.com/canmod/macpan2/compare/52cc2768cea6a17c782a6f24fd88febe222c43c2..a4ce7f19f5eef38d815bafac8b9d8aa70d2e405b)
+
+## Changes in 1.15.0
+
+Released: 2025-03-03
+
+[change list](https://github.com/canmod/macpan2/compare/0f0e4eb4683386718f09c7bef79570aeaa310442..52cc2768cea6a17c782a6f24fd88febe222c43c2)
+
+## Changes in 1.14.4
+
+Released: 2025-03-02
+
+[change list](https://github.com/canmod/macpan2/compare/0ef07facd2fae06c9a3b1873d0e646e69bc7ba62..0f0e4eb4683386718f09c7bef79570aeaa310442)
+
+## Changes in 1.14.3
+
+Released: 2025-02-20
+
+[change list](https://github.com/canmod/macpan2/compare/34c2502d68624fc6db31c45f4a2aef467c02da53..0ef07facd2fae06c9a3b1873d0e646e69bc7ba62)
+
+## Changes in 1.14.2
+
+Released: 2025-02-19
+
+[change list](https://github.com/canmod/macpan2/compare/ac36c86981dea5b5e598aa768cb9dbe3c334bfd0..34c2502d68624fc6db31c45f4a2aef467c02da53)
+
+## Changes in 1.14.1
+
+Released: 2025-01-29
+
+[change list](https://github.com/canmod/macpan2/compare/7bae269ac33375355a469adbb72bca5631ddeaa0..ac36c86981dea5b5e598aa768cb9dbe3c334bfd0)
+
+## Changes in 1.14.0
+
+Released: 2025-01-29
+
+[change list](https://github.com/canmod/macpan2/compare/a0b9f30aedde8b8b0ef744643a68777e803f2862..7bae269ac33375355a469adbb72bca5631ddeaa0)
+
+## Changes in 1.13.0
+
+Released: 2025-01-13
+
+[change list](https://github.com/canmod/macpan2/compare/9d793207d18fa3fb66383542717db5ac182ae3a9..a0b9f30aedde8b8b0ef744643a68777e803f2862)
+
+## Changes in 1.12.0
+
+Released: 2024-12-30
+
+[change list](https://github.com/canmod/macpan2/compare/bff5dbf5a463f6819437b2b1cc68f1865e5be4c1..9d793207d18fa3fb66383542717db5ac182ae3a9)
+
+## Changes in 1.11.1
+
+Released: 2024-11-27
+
+[change list](https://github.com/canmod/macpan2/compare/19dd287d9c33415fa3a5861b2eef34502b2aa606..bff5dbf5a463f6819437b2b1cc68f1865e5be4c1)
+
+## Changes in 1.11.0
+
+Released: 2024-11-15
+
+[change list](https://github.com/canmod/macpan2/compare/59c5cf8a5acc5689b9e2ff590f937bfffc5582a5..19dd287d9c33415fa3a5861b2eef34502b2aa606)
+
+## Changes in 1.10.0
+
+Released: 2024-11-06
+
+[change list](https://github.com/canmod/macpan2/compare/a865e9ea2ea6669e58d14c6d7a069e93a1fb6a15..59c5cf8a5acc5689b9e2ff590f937bfffc5582a5)
+
+## Changes in 1.9.1
+
+Released: 2024-10-11
+
+[change list](https://github.com/canmod/macpan2/compare/090ae073179fffaef743e73bc9668112f00895a4..a865e9ea2ea6669e58d14c6d7a069e93a1fb6a15)
+
+## Changes in 1.9.0
+
+Released: 2024-10-08
+
+[change list](https://github.com/canmod/macpan2/compare/19ac6084925a6b84c79d3588ba48e8d3ef933822..090ae073179fffaef743e73bc9668112f00895a4)
+
+## Changes in 1.8.1
+
+Released: 2024-10-05
+
+[change list](https://github.com/canmod/macpan2/compare/3b420e6c08ea2980d7b6279c9c1b5fb96a5db1a9..19ac6084925a6b84c79d3588ba48e8d3ef933822)
+
+## Changes in 1.8.0
+
+Released: 2024-09-27
+
+[change list](https://github.com/canmod/macpan2/compare/25f60907411bdd9c3c8afb8551f34746ab4e55fc..3b420e6c08ea2980d7b6279c9c1b5fb96a5db1a9)
+
+## Changes in 1.7.2
+
+Released: 2024-09-25
+
+[change list](https://github.com/canmod/macpan2/compare/e057fc11f6ded4d0fb827c69e3eeb6bd7a933f75..25f60907411bdd9c3c8afb8551f34746ab4e55fc)
+
+## Changes in 1.7.1
+
+Released: 2024-09-10
+
+[change list](https://github.com/canmod/macpan2/compare/f56593bb3628fe75310cd4199ee33e227ddc3ec7..e057fc11f6ded4d0fb827c69e3eeb6bd7a933f75)
+
+## Changes in 1.7.0
+
+Released: 2024-08-29
+
+[change list](https://github.com/canmod/macpan2/compare/544eada2c8b2b19b06f53c5798e39dd24e756363..f56593bb3628fe75310cd4199ee33e227ddc3ec7)
+
+## Changes in 1.6.1
+
+Released: 2024-08-28
+
+[change list](https://github.com/canmod/macpan2/compare/0adeebc4ac152b81ef876ee31636fc0993eb871c..544eada2c8b2b19b06f53c5798e39dd24e756363)
+
+## Changes in 1.6.0
+
+Released: 2024-08-27
+
+[change list](https://github.com/canmod/macpan2/compare/c738f45cde4fd6f9a48e569c65f046cfd0decc01..0adeebc4ac152b81ef876ee31636fc0993eb871c)
+
+## Changes in 1.5.6
+
+Released: 2024-08-20
+
+[change list](https://github.com/canmod/macpan2/compare/97b81cb41fbd8032f3aeb91b1cd125ed38fe0686..c738f45cde4fd6f9a48e569c65f046cfd0decc01)
+
+## Changes in 1.5.5
+
+Released: 2024-06-23
+
+[change list](https://github.com/canmod/macpan2/compare/7db44311892e35b4bef5ca6b4bf9e78f979c01fe..97b81cb41fbd8032f3aeb91b1cd125ed38fe0686)
+
+## Changes in 1.5.4
+
+Released: 2024-06-19
+
+[change list](https://github.com/canmod/macpan2/compare/f944bbfbf528a50e48a300180d858663156d049b..7db44311892e35b4bef5ca6b4bf9e78f979c01fe)
+
+## Changes in 1.5.3
+
+Released: 2024-06-17
+
+[change list](https://github.com/canmod/macpan2/compare/8b7e63eda6a7250b6d88018f172756817614b291..f944bbfbf528a50e48a300180d858663156d049b)
+
+## Changes in 1.5.1
+
+Released: 2024-06-12
+
+[change list](https://github.com/canmod/macpan2/compare/5518ef01c5d9460378a99beefcbfcb4029d97bec..8b7e63eda6a7250b6d88018f172756817614b291)
+
+## Changes in 1.5.2
+
+Released: 2024-06-10
+
+[change list](https://github.com/canmod/macpan2/compare/10bb06f4ac7673f2cb7e509ac2cff40793662917..5518ef01c5d9460378a99beefcbfcb4029d97bec)
+
+## Changes in 1.5.0
+
+Released: 2024-05-30
+
+[change list](https://github.com/canmod/macpan2/compare/77cacc01f53409a729243236320c0271b34081ed..10bb06f4ac7673f2cb7e509ac2cff40793662917)
+
+### New Features
 
 * Delete elements from model specifications with `mp_tmb_delete`.
 
-# macpan2 1.4.0 (news for this version is in-progress)
 
-## Breaking Changes
+## Changes in 1.4.1
+
+Released: 2024-05-16
+
+[change list](https://github.com/canmod/macpan2/compare/544e1d4f1fc4c7efe3d92842b2018f531398e435..77cacc01f53409a729243236320c0271b34081ed)
+
+## Changes in 1.4.0
+
+Released: 2024-04-25
+
+[change list](https://github.com/canmod/macpan2/compare/a45472a350520f00a18b248622c17a766130dbad..544e1d4f1fc4c7efe3d92842b2018f531398e435)
+
+### Breaking Changes
 
 * Repeated calls of an optimizer now start from the previous best parameter
 vector
 * No longer fit full covariance matrix in `sdreport`s
 
-## Bug Fixes
+### Bug Fixes
 
 * Row vectors with names no longer break spec print methods
 
-# macpan2 1.3.0
 
-## Breaking Changes
+## Changes in 1.3.3
 
-* No longer exporting `nlist`.
+Released: 2024-04-18
+
+[change list](https://github.com/canmod/macpan2/compare/7cead91444f2525a17db769fc979be2313c4bc09..a45472a350520f00a18b248622c17a766130dbad)
+
+## Changes in 1.3.2
+
+Released: 2024-04-08
+
+[change list](https://github.com/canmod/macpan2/compare/24cee41f0a87f1bc25f86e979f2b8184d6c891a5..7cead91444f2525a17db769fc979be2313c4bc09)
+
+## Changes in 1.3.1
+
+Released: 2024-03-12
+
+[change list](https://github.com/canmod/macpan2/compare/ee9b0025d3792ea27a55d441c17e7ca57af8653a..24cee41f0a87f1bc25f86e979f2b8184d6c891a5)
+
+### Breaking Changes
+
 * Removing in-place modifications to model specification objects in `mp_tmb_insert` and `mp_tmb_update`.
 
-## New Features
+### New Features
 
 * Define explicit state variable updates, with the choice of applying `mp_euler`,
 `mp_rk4`, or `mp_euler_multinomial` update methods, the latter generating 
@@ -35,11 +358,11 @@ process error.
 * `to_name_pairs` function for returning all pairwise dot-concatenations of the elements of a character vector without dots.
 * `to_values` function for extracting the column from a data frame with only a single numerical column and turning numeric matrices and arrays with dimnames into a flattened numeric vector with labels produced by appropriately dot-concatenating the dimnames.
 
-## Bug Fixes
+### Bug Fixes
 
-* Several bugs related to input handling in `mp_tmb_calibrator` (#176)
+* Several bugs related to input handling in `mp_tmb_calibrator` (#176).
 
-## Doc Fixes and Updates
+### Doc Fixes and Updates
 
 * New installation instructions for installing from `r-universe`.
 * New vignette: `real_data`.
@@ -49,16 +372,57 @@ process error.
 * Help file examples for `mp_tmb_insert` and `mp_tmb_update`.
 * Readme/vignette examples better expose calls to `library` for the user.
 
-# macpan2 1.1.0
 
-## Breaking Changes
+## Changes in 1.3.0
+
+Released: 2024-03-11
+
+[change list](https://github.com/canmod/macpan2/compare/3820ab36795d435613b91b4032cbeb7fabda1ad3..ee9b0025d3792ea27a55d441c17e7ca57af8653a)
+
+## Changes in 1.2.0
+
+Released: 2024-03-11
+
+[change list](https://github.com/canmod/macpan2/compare/a1d4e89a2a47abff98bde068bf514a5ee0ed834d..3820ab36795d435613b91b4032cbeb7fabda1ad3)
+
+## Changes in 1.2.1
+
+Released: 2024-03-05
+
+[change list](https://github.com/canmod/macpan2/compare/291064c37c2ab64f42fe206284d350c5e50d8968..a1d4e89a2a47abff98bde068bf514a5ee0ed834d)
+
+## Changes in 1.1.3
+
+Released: 2024-03-01
+
+[change list](https://github.com/canmod/macpan2/compare/e89b834c92eab5efb5332aa29d7e47ae4a3794a5..291064c37c2ab64f42fe206284d350c5e50d8968)
+
+## Changes in 1.1.2
+
+Released: 2024-02-26
+
+[change list](https://github.com/canmod/macpan2/compare/4c9e6a207d13e752937fc69c1c2a136f509b02fc..e89b834c92eab5efb5332aa29d7e47ae4a3794a5)
+
+## Changes in 1.1.1
+
+Released: 2024-02-25
+
+[change list](https://github.com/canmod/macpan2/compare/b2b8256520ffee4a458cd5b4f61763ec9bb56245..4c9e6a207d13e752937fc69c1c2a136f509b02fc)
+
+## Changes in 1.1.0
+
+Released: 2024-02-23
+
+[change list](https://github.com/canmod/macpan2/compare/c8168efa30b4893a831730854009a7a4dbfe3c61..b2b8256520ffee4a458cd5b4f61763ec9bb56245)
+
+### Breaking Changes
 
 * `simple_sims` no longer returns outputs for the zeroth time-step.
 * Using `last.par.best` to finalize the TMB objective function following optimization.
 * `group_sums` now checks for bad group indexes.
 * `rbind_lag` now throws an error when `lag > 1` because there are conceptual errors with this case. We will get back to this when we can to allow these important cases by adding an argument with initial conditions associated with negative time steps.
 
-## New Features
+### New Features
 
 * Streamlined installation via `r-universe`.
 * `mp_tmb_calibrator` and `mp_tmb_optimize` functions for calibration using a simple and restrictive trajectory matching model.  Future releases will allow more functionality.
@@ -73,19 +437,36 @@ process error.
 * `rbind_time` allows integer vectors for subsetting times
 * `options(macpan2_verbose = FALSE)` will turn off the flood of information provided by `TMB`. Note that this only takes effect if set before creating a TMB simulator.
 
-## Bug Fixes
+### Bug Fixes
 
 * Segfaults for out-of-range assignment.
 
-## Doc Fixes and Updates
+### Doc Fixes and Updates
 
 * (in progress) [Calibration vignette](https://github.com/canmod/macpan2/blob/HEAD/vignettes/calibration.Rmd) is updated to be a simpler quick-start, and previous advanced material is moved to an advanced vignette.
 * `mp_tmb_model_spec` documentation is filled out.
 * `group_sums` TMB engine function third argument updated from old pre-1.0.0 behaviour.
 
-# macpan2 1.0.0
 
-## Breaking Changes
+## Changes in 1.0.2
+
+Released: 2024-02-20
+
+[change list](https://github.com/canmod/macpan2/compare/77de45a92c8861fed54c4016056c03f42db86953..c8168efa30b4893a831730854009a7a4dbfe3c61)
+
+## Changes in 1.0.1
+
+Released: 2024-02-20
+
+[change list](https://github.com/canmod/macpan2/compare/4756a64a26fefb26fa21c41ee23628e51d4eda65..77de45a92c8861fed54c4016056c03f42db86953)
+
+## Changes in 1.0.0
+
+Released: 2024-02-18
+
+[change list](https://github.com/canmod/macpan2/compare/9bf7fc757ea54be599b42cd08ddd9ec2a124f491..4756a64a26fefb26fa21c41ee23628e51d4eda65)
+
+### Breaking Changes
 
 * No more `flows.csv`, `derivations.json` files in the library, and instead `tmb.R` files.
 * No more `Compartmental` function, and instead `mp_tmb_model_spec` and `mp_tmb_library`.
@@ -94,7 +475,7 @@ process error.
 * `TMBModel` and associated classes (`ExprList`) are no longer exported, in favour of `mp_...` functions for doing similar things.
 * Sort simulation output by time step.
 
-## New Features
+### New Features
 
 * Constant integer vectors can now be passed to `C++`.
 * Integer vectors can be used to subset assignment matrices (i.e. integer subsetting on the left-hand-side).
@@ -102,12 +483,23 @@ process error.
 * New `print` function in the TMB engine.
 * No need to declare empty matrices when creating TMB model objects, and matrices that are derived are automatically detected.
 
-## Experimental Features
+### Experimental Features
 
 * Model structure grammar (`mp_index()`, `mp_join()`, etc.)
 * Log files
 
-# macpan2 0.0.3
+
+## Changes in 0.0.4
+
+Released: 2024-01-18
+
+[change list](https://github.com/canmod/macpan2/compare/bdc323d423563d7ac7432a81e1516831cd966960..9bf7fc757ea54be599b42cd08ddd9ec2a124f491)
+
+## Changes in 0.0.3
+
+Released: 2023-10-25
+
+[change list](https://github.com/canmod/macpan2/compare/b47bc9371d4025f9d0bd712e3628bf4d846cb7f0..bdc323d423563d7ac7432a81e1516831cd966960)
 
 * Optimize C++ simulation history storage by avoiding unnecessary allocations
 * Use state and flow names in expression inserters
@@ -122,7 +514,12 @@ process error.
 * Package reference organization cleanup (thanks @bbolker )
 * Time-varying parameters vignette
 
-# macpan2 0.0.2
+
+## Changes in 0.0.2
+
+Released: 2023-06-06
+
+[change list](https://github.com/canmod/macpan2/compare/9d81208ae329d772f68687ba8d0a2ac228947dff..b47bc9371d4025f9d0bd712e3628bf4d846cb7f0)
 
 * Interface for optimization of TMB simulation objects
 * TMB simulation model updating with caching
@@ -135,6 +532,12 @@ process error.
 * Fix bugs in symbolic R-side manipulation of expressions
 * Fix previously broken argument_dots option in model definition files (thank you @Flynn-Primrose )
 
-# macpan2 0.0.1
+
+## Changes in 0.0.1
+
+Released: 2023-05-26
+
+[change list](https://github.com/canmod/macpan2/compare/ded98a20184b9e382521472a8de90951a6cc3359..9d81208ae329d772f68687ba8d0a2ac228947dff)
 
 * Initial release.
+

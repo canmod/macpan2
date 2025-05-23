@@ -35,6 +35,10 @@
 #' variables that appear in \code{before}, \code{during}, and \code{after}.
 #' For `mp_tmb_delete`, a character vector of such objects to delete from
 #' the model.
+#' @param inits An optional list of initial values for the state variables.
+#' These initial values can be added to the `default` list with identical 
+#' results, but adding them to `inits` is better practice because it makes it 
+#' clear that they are initial values that will change as the state updates.
 #' @param integers Named list of vectors that can be coerced to integer
 #' vectors. These integer vectors can be used by name in model formulas to
 #' provide indexing of matrices and as grouping factors in 
@@ -78,11 +82,13 @@ mp_tmb_insert = function(model
     , at = 1L
     , expressions = list()
     , default = list()
+    , inits = list()
     , integers = list()
     , must_save = character()
     , must_not_save = character()
     , sim_exprs = character()
   ) {
+  default = c(default, inits)
   model = assert_cls(model, "TMBModelSpec", match.call(), "?mp_tmb_model_spec")
   valid$char1$check(phase)
   at = valid$num1$assert(at)
@@ -118,11 +124,13 @@ mp_tmb_update = function(model
     , at = 1L
     , expressions = list()
     , default = list()
+    , inits = list()
     , integers = list()
     , must_save = character()
     , must_not_save = character()
     , sim_exprs = character()
   ) {
+  default = c(default, inits)
   model = assert_cls(model, "TMBModelSpec", match.call(), "?mp_tmb_model_spec")
   valid$char1$check(phase)
   at = valid$num1$assert(at)
@@ -289,8 +297,8 @@ mp_tmb_insert_log_linear = function(model
     #, change_points ## list of change-point integer vectors
     #, offset_references ## list of character vectors
     , baseline_functions = c(
-          list(macpan2:::TimeVarBaselineParameter())
-        , rep(list(macpan2:::TimeVarBaselineNumeric(0)), length(design_matrices) - 1)
+          list(TimeVarBaselineParameter())
+        , rep(list(TimeVarBaselineNumeric(0)), length(design_matrices) - 1)
       )
     , link_functions = rep(list(mp_identity), length(design_matrices)) ## list of DistrParamTrans objects
     , full_series_name = sprintf("time_var_output_%s", parameter_name)
@@ -303,7 +311,7 @@ mp_tmb_insert_log_linear = function(model
     , time_index_name = sprintf("time_index_%s", parameter_name)
     , sparsity_tolerance = 0
   ) {
-  sparse_matrices = lapply(design_matrices, macpan2:::sparse_matrix_notation, tol = sparsity_tolerance)
+  sparse_matrices = lapply(design_matrices, sparse_matrix_notation, tol = sparsity_tolerance)
   
   matrix_coefs = lapply(sparse_matrices, getElement, "values") |> setNames(matrix_coef_names)
   matrix_row = lapply(sparse_matrices, getElement, "row_index") |> setNames(matrix_row_names)
@@ -422,9 +430,12 @@ mp_tmb_insert_backtrans = function(model
     , variables = character()
     , transformation = mp_log
 ) {
-  default = (model$default[variables] 
+  
+  trans_variables = transformation$nm(variables)
+  i = !trans_variables %in% names(model$default)
+  default = (model$default[variables[i]] 
     |> lapply(transformation$val) 
-    |> setNames(transformation$nm(variables))
+    |> setNames(trans_variables[i])
   )
   expr_list = sprintf("%s ~ %s"
     , variables
@@ -440,6 +451,7 @@ mp_tmb_insert_backtrans = function(model
 #' (e.g., `"case_reports"`) is.
 #' @export
 mp_tmb_implicit_trans = function(model, variables = character()) {
+  if (is.null(variables)) return(model)
   vars_to_trans = get_vars_to_trans(variables, model$all_formula_vars())
   for (trans_nm in names(vars_to_trans)) {
     vars = vars_to_trans[[trans_nm]]
@@ -474,12 +486,36 @@ mp_tmb_implicit_backtrans = function(model, variables = character()) {
   return(model)
 }
 
+get_parameter_names = function(obj) {
+  ## take that S3 dispatch
+  if (is.character(obj)) return(obj)
+  if (inherits(obj, "ParArg")) return(c(names(obj$params), names(obj$random)))
+  if (is.list(obj)) return(names(obj))
+  stop("Not a recognized object for representing parameters")
+}
+## TODO: function not used currently -- if used we would also need to 
+## transform the data, and that is for the future.
+get_trajectory_names = function(obj) {
+  if (is.character(obj)) return(obj)
+  if (inherits(obj, "TrajArg")) return(c(names(obj$likelihood), names(obj$condensation)))
+  if (is.list(obj)) return(names(obj))
+  stop("Not a recognized object for representing parameters")
+}
+mp_cal_implicit_trans = function(spec, cal) {
+  out_nms = cal$cal_args$outputs
+  par_nms = get_parameter_names(cal$cal_args$par)
+  (spec
+    |> mp_tmb_update(default = cal$cal_args$default)
+    |> mp_tmb_implicit_trans(out_nms)
+    |> mp_tmb_implicit_backtrans(par_nms)
+  )
+}
 
 get_vars_to_trans = function(variables, all_variables) {
   
   simple_variables = intersect(variables, all_variables)
   complex_variables = setdiff(variables, all_variables)
-  trans_variables = grep("^(log|logit|sqrt)_", complex_variables, value = TRUE)
+  trans_variables = grep("^(log|logit|sqrt|log1p)_", complex_variables, value = TRUE)
   
   good_variables = c(simple_variables, trans_variables)
   bad_variables = setdiff(variables, good_variables)
@@ -494,6 +530,7 @@ get_vars_to_trans = function(variables, all_variables) {
       log = sub("^log_", "", complex_variables) |> intersect(all_variables)
     , logit = sub("^logit_", "", complex_variables) |> intersect(all_variables)
     , sqrt = sub("^sqrt_", "", complex_variables) |> intersect(all_variables)
+    , log1p = sub("^log1p_", "", complex_variables) |> intersect(all_variables)
   )
 }
 

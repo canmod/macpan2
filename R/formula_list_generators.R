@@ -1,6 +1,19 @@
 
 
-handle_abs_rate_args = function(rate, rate_name = NULL) {
+handle_abs_rate_args = function(rate, rate_name = NULL, flow_name = NULL) {
+  if (!is.null(rate_name)) {
+    warning(
+        "The rate_name argument is deprecated; "
+      , "please use 'flow_name' instead"
+    )
+    if (!is.null(flow_name)) {
+      stop(
+          "You used both the 'rate_name' and 'flow_name' arguments. "
+        , "Please only use 'flow_name', as 'rate_name' is deprecated."
+      )
+    }
+    flow_name = rate_name
+  }
   if (!is_two_sided(rate)) {
     if (is_one_sided(rate)) {
       rate = rhs_char(rate)
@@ -8,7 +21,11 @@ handle_abs_rate_args = function(rate, rate_name = NULL) {
         if (is_char_symbol(rate)) {
           rate_name = rate
         } else {
-          stop("rate_name must be specified when rate is a one_sided formula and rate gives an expression involving functions or operations.")
+          stop(
+              "rate_name must be specified when rate is a "
+            , "one_sided formula and rate gives an expression "
+            , "involving functions or operations."
+          )
         }
       }
     }
@@ -16,14 +33,33 @@ handle_abs_rate_args = function(rate, rate_name = NULL) {
   }
   rate
 }
-handle_rate_args = function(rate, abs_rate = NULL) {
+handle_rate_args = function(rate, abs_rate, flow_name) {
+  if (!is.null(abs_rate)) {
+    warning(
+        "The abs_rate argument is deprecated; "
+      , "please use 'flow_name' instead"
+    )
+    if (!is.null(flow_name)) {
+      stop(
+          "You used both the 'abs_rate' and 'flow_name' arguments. "
+        , "Please only use 'flow_name', as 'abs_rate' is deprecated."
+      )
+    }
+    flow_name = abs_rate
+  }
   if (!is_two_sided(rate)) {
     if (is_one_sided(rate)) rate = rhs_char(rate)
-    if (is.null(abs_rate)) stop("abs_rate must be specified when rate is a one_sided formula or character string.")
-    rate = two_sided(abs_rate, rate)
+    if (is.null(flow_name)) {
+      stop(
+          "flow_name must be specified when rate is a one_sided formula "
+        , "or character string."
+      )
+    }
+    rate = two_sided(flow_name, rate)
   }
   return(rate)
 }
+
 
 ##' filter out expressions from expr_list that are not 'iterable'
 ##' 
@@ -845,14 +881,16 @@ HazardUpdateMethod = function(change_model) {
 #' a two-sided formula with the left-hand-side giving the name of the absolute 
 #' flow rate per time-step and the right-hand-side giving an expression for 
 #' the per-capita rate of flow from `from` to `to`.
-#' @param abs_rate String giving the name for the absolute flow rate per
+#' @param flow_name String giving the name for the absolute flow rate per
 #' time-step. By default, during simulations, the absolute flow rate will be 
 #' computed as `from * rate`. This default behaviour will simulate the 
 #' compartmental model as discrete difference equations, but this can 
 #' be changed to use other approaches such as ordinary differential equations
 #' or stochastic models (see \code{\link{state_updates}}). If a formula is 
 #' passed to `rate` (not recommended for better readability), then this 
-#' `abs_rate` argument will be ignored.
+#' `flow_rate` argument will be ignored. 
+#' @param abs_rate Deprecated synonym for `flow_name`. Please use `flow_name`
+#' in all future work.
 #' 
 #' @seealso [mp_absolute_flow()]
 #' 
@@ -889,9 +927,9 @@ HazardUpdateMethod = function(change_model) {
 #' # mp_absolute_inflow("I", "delta", "importation")
 #' 
 #' @export
-mp_per_capita_flow = function(from, to, rate, abs_rate = NULL) {
+mp_per_capita_flow = function(from, to, rate, flow_name = NULL, abs_rate = NULL) {
   call_string = deparse(match.call())
-  rate = handle_rate_args(rate, abs_rate)
+  rate = handle_rate_args(rate, abs_rate, flow_name)
   PerCapitaFlow(from, to, rate, call_string)
 }
 
@@ -902,9 +940,9 @@ mp_per_capita_flow = function(from, to, rate, abs_rate = NULL) {
 #' for adding a birth process, which involves the total population size, `N`,
 #' rather than a single compartment.
 #' @export
-mp_per_capita_inflow = function(from, to, rate, abs_rate = NULL) {
+mp_per_capita_inflow = function(from, to, rate, flow_name = NULL, abs_rate = NULL) {
   call_string = deparse(match.call())
-  rate = handle_rate_args(rate, abs_rate)
+  rate = handle_rate_args(rate, abs_rate, flow_name)
   PerCapitaInflow(from, to, rate, call_string)
 }
 
@@ -933,11 +971,13 @@ mp_outflow = function(from, rate, abs_rate = NULL) {
 #' one can use `mp_per_capita_flow` and set `to` to be a compartment for
 #' these individuals (e.g., `to = "D"`).
 #' @export
-mp_per_capita_outflow = function(from, rate, abs_rate = NULL) {
+mp_per_capita_outflow = function(from, rate, flow_name = NULL, abs_rate = NULL) {
   call_string = deparse(match.call())
-  rate = handle_rate_args(rate, abs_rate)
+  rate = handle_rate_args(rate, abs_rate, flow_name)
   PerCapitaOutflow(from, rate, call_string)
 }
+
+
 
 
 #' Specify Absolute Flow Between Compartments (Experimental)
@@ -952,15 +992,17 @@ mp_per_capita_outflow = function(from, rate, abs_rate = NULL) {
 #' going.
 #' @param rate String giving the expression for the absolute
 #' flow rate per time-step.
-#' @param rate_name String giving the name for the variable that 
+#' @param flow_name String giving the name for the variable that 
 #' will store the `rate`.
+#' @param rate_name Deprecated synonym for `flow_name`. Please use `flow_name`
+#' in all future work.
 #' 
 #' @seealso [mp_per_capita_flow()]
 #' 
 #' @export
-mp_absolute_flow = function(from, to, rate, rate_name = NULL) {
+mp_absolute_flow = function(from, to, rate, flow_name = NULL, rate_name = NULL) {
   call_string = deparse(match.call())
-  rate = handle_abs_rate_args(rate, rate_name)
+  rate = handle_abs_rate_args(rate, rate_name, flow_name)
   AbsoluteFlow(from, to, rate, call_string)
 }
 

@@ -3,6 +3,7 @@ suppressPackageStartupMessages(library(testthat))
 suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(tidyr))
 suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(broom.mixed))
 options(macpan2_verbose = FALSE)
 system.file("utils", "test-cache.R", package = "macpan2") |> source()
 test_cache = test_cache_wipe()
@@ -40,19 +41,15 @@ cals = list(
       , par = "beta"
       , default = list(beta = 0.25)
     )
-  ## TODO: turn this back on when we merge into a brach with
-  ## implicit transformations on calibrations
-  # , sir_50_log_beta_infection = mp_tmb_calibrator(
-  #       all_specs$sir
-  #     , data = mp_trajectory(sims$sir_50_infection)
-  #     , traj = "infection"
-  #     , par = "log_beta"
-  #     , default = list(beta = 0.25)
-  #   )
+  , sir_50_log_beta_infection = mp_tmb_calibrator(
+        all_specs$sir
+      , data = mp_trajectory(sims$sir_50_infection)
+      , traj = "infection"
+      , par = "log_beta"
+      , default = list(beta = 0.25)
+    )
 )
 
 for (obj in names(cals)) {
   test_cache_write(cals[[obj]], sprintf("CAL-%s.rds", obj))
 }
-
-

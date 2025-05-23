@@ -249,8 +249,7 @@ DistrSpec = function(distr_param_objs = list(), trans_distr_param = list()) {
   self$likelihood = \(obs, sim) character()
   
   # for the future (e.g. beta ~ rnorm(0, 1))
-  self$noisy_parameter = \() character()
-  self$noisy_trajectory = \(sim) character()
+  self$noise = \() character()
   
   
   # Part C: Assumption Checking
@@ -495,6 +494,16 @@ DistrParamLog = function() {
   return_object(self, "DistrParamLog")
 }
 
+DistrParamLog1p = function() {
+  self = DistrParamTrans()
+  self$ref = function(x) sprintf("log(%s + 1)", x)
+  self$ref_inv = function(x) sprintf("exp(%s) - 1", x)
+  self$nm  = function(x) sprintf("log1p_%s", x)
+  self$val = function(x) log(x + 1)
+  self$val_inv = function(x) exp(x) - 1
+  return_object(self, "DistrParamLog1p")
+}
+
 #' @importFrom stats qlogis plogis
 DistrParamLogit = function() {
   self = DistrParamTrans()
@@ -532,6 +541,13 @@ mp_identity = DistrParamIdentity()
 #' @rdname transform_distr_param
 #' @export
 mp_log = DistrParamLog()
+
+#' @description * `mp_log1p` - Log1p transformation (i.e., `log(1 + x)`)
+#' @format NULL
+#' @rdname transform_distr_param
+#' @export
+mp_log1p = DistrParamLog1p()
+
 
 #' @description * `mp_logit` - Logit transformation 
 #' @format NULL
@@ -615,7 +631,6 @@ mp_uniform = function(trans_distr_param = list()) {
   }
   self$likelihood = \(obs, sim) { 
     stop("You cannot specify uniform likelihoods")
-    
   }
   return_object(self, "DistrSpecUniform")
 }
@@ -644,6 +659,12 @@ mp_normal = function(location = mp_distr_param_null("location")
     sprintf("-sum(dnorm(%s, %s, %s))"
       , obs
       , sim
+      , self$distr_param_objs$sd$expr_ref()
+    )
+  }
+  self$noise = \(loc) {
+    sprintf("rnorm(%s, %s)"
+      , loc
       , self$distr_param_objs$sd$expr_ref()
     )
   }
@@ -751,6 +772,9 @@ mp_poisson = function(location = mp_distr_param_null("location")
             , sim
     )
   }
+  self$noise = \(loc) {
+    sprintf("rpois(%s)", loc)
+  }
   return_object(self, "DistrSpecPoisson")
 }
 #' @description * Negative Binomial Distribution - `mp_neg_bin` 
@@ -775,6 +799,12 @@ mp_neg_bin = function(location = mp_distr_param_null("location")
             , obs
             , sim
             , self$distr_param_objs$disp$expr_ref()
+    )
+  }
+  self$noise = \(loc) {
+    sprintf("rnbinom(%s, %s)"
+      , loc
+      , self$distr_param_objs$disp$expr_ref()
     )
   }
   return_object(self, "DistrSpecNegBin")
@@ -824,7 +854,9 @@ mp_neg_bin = function(location = mp_distr_param_null("location")
 #' # distributional parameter in the coefficient table with a default value 
 #' # equal to the numeric value we provided to `mp_fit` above.
 #' mp_optimize(cal)
-#' mp_tmb_coef(cal)
+#' if (suppressPackageStartupMessages(require(broom.mixed))) {
+#'   print(mp_tmb_coef(cal))
+#' }
 #' 
 #' # If instead we want control over the name of the new fitted distributional
 #' # parameter, we can add a new variable to our model specification with the 
@@ -845,7 +877,9 @@ mp_neg_bin = function(location = mp_distr_param_null("location")
 #' # function and the fitted parameter table.
 #' cal$simulator$tmb_model$obj_fn$obj_fn_expr
 #' mp_optimize(cal)
-#' mp_tmb_coef(cal)
+#' if (suppressPackageStartupMessages(require(broom.mixed))) {
+#'   print(mp_tmb_coef(cal))
+#' }
 #' @name fit_distr_params
 #' @concept distributional-assumptions
 #' @export

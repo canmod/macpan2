@@ -33,13 +33,13 @@ spec = mp_tmb_model_spec(
     mp_per_capita_flow(
       from = "S", to = "I",
       rate = "lambda",
-      abs_rate = "infection"
+      flow_name = "infection"
     ),
     # recovery
     mp_per_capita_flow(
       from = "I", to = "R",
       rate = "gamma",
-      abs_rate = "recovery"
+      flow_name = "recovery"
     )
   ),
   default = list(

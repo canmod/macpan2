@@ -21,8 +21,10 @@ LogFile = function(directory = NULL) {
   self$data_arg = function() list(log_file = self$.file_path("log"))
   self$copy = function(...) file.copy(self$.file_path("log"), file.path(...))
   self$err_msg = function() {
+    default = dirname(bail_out_log_file)
+    log = if (self$exists("log")) self$log() else LogFile(default)$log()
     re = "^Error message = "
-    m = grep(re, self$log(), value = TRUE)
+    m = grep(re, log, value = TRUE)
     sub(re, "", m)
   }
   return_object(self, "LogFile")
@@ -30,8 +32,9 @@ LogFile = function(directory = NULL) {
 
 mp_session_dir = function() {
   session_name = getOption("macpan2_session_name")
-  wd = getwd()
-  ld = file.path(wd, ".macpan", session_name)
+  pdir = getOption("macpan2_log_dir")
+  if (nchar(pdir) == 0L) pdir = getwd()
+  ld = file.path(pdir, ".macpan2", session_name)
   if (!dir.exists(ld)) dir.create(ld, recursive = TRUE)
   return(ld)
 }

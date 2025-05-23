@@ -431,10 +431,6 @@ trajectories look mostly as expected. The sharp initial increase in $E$
 and decrease in $I$ might be attributed to setting $E(0)=1$
 
 ``` r
-
-# state variables
-states = c("S","H","I","V","E","R")
-
 # set up calibrator
 shiver_calibrator = mp_tmb_calibrator(
     spec = spec
@@ -443,10 +439,10 @@ shiver_calibrator = mp_tmb_calibrator(
   # parameters we want to estimate (transmission rates)
   # we also want to estimate initial E
   , par = c("beta_v","beta_s","E", "sigma", "gamma_h") 
-  , outputs = states
+  , outputs = mp_state_vars(spec)
 )
 # print to check
-shiver_calibrator
+print(shiver_calibrator)
 #> ---------------------
 #> Before the simulation loop (t = 0):
 #> ---------------------
@@ -514,8 +510,9 @@ nrow(shiver_calibrator
 # before optimizing, do the dynamics look reasonable? 
 (shiver_calibrator 
     |> mp_trajectory()
+    |> mutate(state = factor(matrix, levels = mp_state_vars(spec)))
     |> ggplot(aes(time, value))
-    + facet_wrap(vars(matrix), scales = 'free')
+    + facet_wrap(vars(state), scales = 'free')
     + geom_line()
     + theme_bw()
 )
@@ -528,8 +525,8 @@ nrow(shiver_calibrator
 We are now ready for the optimization step.
 
 ``` r
-# optimize to estimate parameters
-# this converges!
+# optimize to estimate parameters.
+# optimizer converged (note convergence = 0)
 mp_optimize(shiver_calibrator)
 #> $par
 #>       params       params       params       params       params 
@@ -542,11 +539,11 @@ mp_optimize(shiver_calibrator)
 #> [1] 0
 #> 
 #> $iterations
-#> [1] 47
+#> [1] 51
 #> 
 #> $evaluations
 #> function gradient 
-#>      126       48 
+#>      111       52 
 #> 
 #> $message
 #> [1] "relative convergence (4)"
@@ -557,7 +554,7 @@ est_coef
 #>       mat row default  estimate std.error  conf.low conf.high
 #> 1  beta_v   0    0.05    6.5859    1.9745    2.7159   10.4559
 #> 2  beta_s   0    0.20    0.0641    0.0102    0.0442    0.0840
-#> 3       E   0    0.00 2381.3062  357.0389 1681.5228 3081.0895
+#> 3       E   0    0.00 2381.3062  357.0389 1681.5228 3081.0896
 #> 4   sigma   0    0.10    0.0064    0.0003    0.0058    0.0069
 #> 5 gamma_h   0    0.07    0.0404    0.0083    0.0241    0.0567
 ```
@@ -594,88 +591,71 @@ the default values for all three parameters to be small values (0.01)
 because they all have a lower bound of 0.
 
 ``` r
-# Create a new model specification with these changes:
-#
-# - update the before step to transform "new" parameters
-reparameterized_spec = mp_tmb_insert(spec
-     , phase = "before"
-     , at=1L
-     , expressions = list(
-         E ~ exp(log_E_I_ratio) * I
-       , beta ~ exp(log_beta)
-       , p ~ 1/(1+exp(-logit_p))
-     )
-     , default = list(
-         logit_p = qlogis(1e-2)
-       , log_beta = log(1e-2)
-       , log_E_I_ratio = log(1e-2) 
-     )
-)
-
-# - overwrite existing exposure terms with new ones
-reparameterized_spec = mp_tmb_update(reparameterized_spec
-    , phase = "during"
-     # exposure expressions start at step 4 in the during phase
-    , at=4L
+reparameterized_spec = (spec
+  |> mp_tmb_insert(phase = "before"
+    , expressions = list(E ~ E_I_ratio * I)
+    , default = list(E_I_ratio = 1e-2)
+  )
+  |> mp_tmb_update(phase = "during", at = 4L
     , expressions = list(
         mp_per_capita_flow("S", "E", unvaccinated_infection ~ I * beta/N_mix)
       , mp_per_capita_flow("V", "E", vaccinated_infection ~  I * beta * p/N_mix)
     )
+    , default = list(beta = 1e-2, p = 1e-2)
+  )
 )
-
-
-# all changes have been made
 print(reparameterized_spec)
 #> ---------------------
 #> Default values:
-#>       quantity         value
-#>              a  1.684889e+04
-#>              b  1.684889e+04
-#>            rho  5.555556e-03
-#>         beta_s  2.000000e-01
-#>         beta_v  5.000000e-02
-#>          alpha  3.030303e-01
-#>        gamma_i  1.000000e-01
-#>        gamma_h  7.000000e-02
-#>          sigma  1.000000e-01
-#>              N  1.480000e+08
-#>              I  2.718571e+03
-#>              V  1.015657e+04
-#>              E  0.000000e+00
-#>              H  6.300000e+01
-#>              R  0.000000e+00
-#>        logit_p -4.595120e+00
-#>       log_beta -4.605170e+00
-#>  log_E_I_ratio -4.605170e+00
+#>   quantity        value
+#>          a 1.684889e+04
+#>          b 1.684889e+04
+#>        rho 5.555556e-03
+#>     beta_s 2.000000e-01
+#>     beta_v 5.000000e-02
+#>      alpha 3.030303e-01
+#>    gamma_i 1.000000e-01
+#>    gamma_h 7.000000e-02
+#>      sigma 1.000000e-01
+#>          N 1.480000e+08
+#>          I 2.718571e+03
+#>          V 1.015657e+04
+#>          E 0.000000e+00
+#>          H 6.300000e+01
+#>          R 0.000000e+00
+#>  E_I_ratio 1.000000e-02
+#>       beta 1.000000e-02
+#>          p 1.000000e-02
 #> ---------------------
 #> 
 #> ---------------------
 #> Before the simulation loop (t = 0):
 #> ---------------------
-#> 1: E ~ exp(log_E_I_ratio) * I
-#> 2: beta ~ exp(log_beta)
-#> 3: p ~ 1/(1 + exp(-logit_p))
-#> 4: S ~ N - V - E - I - H - R
-#> 5: N ~ sum(S, V, E, I, H, R)
+#> 1: E ~ E_I_ratio * I
+#> 2: S ~ N - V - E - I - H - R
+#> 3: N ~ sum(S, V, E, I, H, R)
 #> 
 #> ---------------------
 #> At every iteration of the simulation loop (t = 1 to T):
 #> ---------------------
 #> 1: N_mix ~ N - H
 #> 2: mp_per_capita_flow(from = "S", to = "V", rate = "((a * S)/(b + S))/S", 
-#>      abs_rate = "vaccination")
-#> 3: mp_per_capita_flow(from = "V", to = "S", rate = "rho", abs_rate = "vaccine_waning")
+#>      flow_name = "vaccination")
+#> 3: mp_per_capita_flow(from = "V", to = "S", rate = "rho", flow_name = "vaccine_waning")
 #> 4: mp_per_capita_flow(from = "S", to = "E", rate = unvaccinated_infection ~ 
 #>      I * beta/N_mix)
 #> 5: mp_per_capita_flow(from = "V", to = "E", rate = vaccinated_infection ~ 
 #>      I * beta * p/N_mix)
-#> 6: mp_per_capita_flow(from = "E", to = "I", rate = "alpha", abs_rate = "progression")
-#> 7: mp_per_capita_flow(from = "I", to = "R", rate = "gamma_i", abs_rate = "infectious_recovery")
-#> 8: mp_per_capita_flow(from = "I", to = "H", rate = "sigma", abs_rate = "hospitalizations")
-#> 9: mp_per_capita_flow(from = "H", to = "R", rate = "gamma_h", abs_rate = "hospital_recovery")
+#> 6: mp_per_capita_flow(from = "E", to = "I", rate = "alpha", flow_name = "progression")
+#> 7: mp_per_capita_flow(from = "I", to = "R", rate = "gamma_i", flow_name = "infectious_recovery")
+#> 8: mp_per_capita_flow(from = "I", to = "H", rate = "sigma", flow_name = "hospitalizations")
+#> 9: mp_per_capita_flow(from = "H", to = "R", rate = "gamma_h", flow_name = "hospital_recovery")
 ```
 
-Next we calibrate and specify the parameters to estimate.
+Next we calibrate and specify the parameters to estimate. Note that by
+prepending `log_` or `logit_` in front of parameter names we are
+asserting that we should put priors and optimize on these transformed
+scales.
 
 ``` r
 prior_distributions = list(
@@ -690,7 +670,6 @@ shiver_calibrator = mp_tmb_calibrator(
   , data = reported_hospitalizations
   , traj = "H"
   , par = prior_distributions
-  , outputs = c(states, "infection")
 )
 
 # optimize to estimate transmission parameters
@@ -698,7 +677,7 @@ shiver_calibrator = mp_tmb_calibrator(
 mp_optimize(shiver_calibrator)
 #> $par
 #>       params       params       params       params       params 
-#> -4.157752739 -0.207593565 -8.769173070  0.005611944  0.006871819 
+#> -4.157752739 -0.207593565 -8.769173073  0.005611944  0.006871819 
 #> 
 #> $objective
 #> [1] 383.1069
@@ -734,15 +713,15 @@ coefficient table.
 
 This re-parameterization is beginning to help make a more reasonable
 model. Our prior vaccine transmission reduction parameter, `p`, is
-restricted to `0-1` and this ensures that vaccination with reduce
+restricted to `0-1` and this ensures that vaccination will reduce
 transmission. On the other hand, although a reduction in transmission by
-0 percent could be plausible but the confidence interval is effectively
-all possible values for `p`. The ratio of initial exposed to initial
-number of infected is 0.81. Given we specified the initial $I$ as 2719,
-the estimated initial number of exposed is approximately 2209. The
-biggest issue with these estimates though is that the transmission rate,
-`beta`, for unvaccinated people is much too low (we expect something
-more like `0.2`).
+0.02 percent could be plausible but the confidence interval is
+effectively all possible values for `p`. The ratio of initial exposed to
+initial number of infected is 0.81. Given we specified the initial $I$
+as 2719, the estimated initial number of exposed is approximately 2209.
+The biggest issue with these estimates though is that the transmission
+rate, `beta`, for unvaccinated people is much too low (we expect
+something more like `0.2`).
 
 The fit is very similar to the model without a reparameterization, but
 with different inferences for the variables that are not fitted. In
@@ -752,6 +731,7 @@ goes to zero, which is not at all realistic.
 
 ``` r
 (shiver_calibrator 
+  |> mp_forecaster(0, outputs = mp_state_vars(spec))
   |> mp_trajectory_sd(conf.int = TRUE)
   |> ggplot(aes(time, value))
   + facet_wrap(~matrix, scales = "free")
@@ -781,7 +761,7 @@ shiver_calibrator_rk4 = mp_tmb_calibrator(
   , data = reported_hospitalizations
   , traj = "H"
   , par = prior_distributions
-  , outputs = c(states, "infection")
+  , outputs = mp_state_vars(spec)
 )
 
 # optimize
@@ -837,45 +817,27 @@ We need to expand our model to accommodate more data.
 
 ``` r
 multi_traj_spec = (reparameterized_spec
-  |> mp_tmb_insert(
-      phase = "during"
-    , at = Inf
+  |> mp_tmb_insert(phase = "during", at = Inf
     , expressions = list(incidence ~ unvaccinated_infection + vaccinated_infection)
   ) 
   
   ## with case report data, we need to account for reporting delays and 
   ## under-reporting.
-  |> mp_tmb_insert_reports("incidence", report_prob = 0.1, mean_delay = 11, cv_delay = 0.25)
-  
-  ## we again want to fit many parameters on log or logit scales.
-  |> mp_tmb_insert(phase = "before", at = 1L
-    , expressions = list(
-          incidence_report_prob ~ 1/(1 + exp(-logit_report_prob))
-        , I ~ exp(log_I)
-        , H ~ exp(log_H)
-        , R ~ exp(log_R)
-        , sigma ~ exp(log_sigma)
-        , gamma_h ~ exp(log_gamma_h)
-      )
-    , default = list(
-          logit_report_prob = 0
-        , rbf_beta = 1
-        , V = V0
-        , log_I = log(I0)
-        , log_H = log(H0)
-        , log_R = 0
-        , log_sigma = -3
-        , log_gamma_h = -3
-        , N = N
-      )
+  |> mp_tmb_insert_reports("incidence"
+    , report_prob = 0.1, mean_delay = 11, cv_delay = 0.25
+    , report_prob_name = "report_prob"
   )
   
   ## we also need to prepare for a more flexible fit to the transmission
   ## rate that varies over time, as the report data provide sufficiently more
   ## information for this purposes.
-  |> mp_tmb_insert(phase = "during"
-    , at = 1L
+  |> mp_tmb_insert(phase = "during", at = 1L
     , expressions = list(beta ~ beta * rbf_beta)
+    , default = list(
+          rbf_beta = 1
+        , V = V0
+        , N = N
+      )
   )
 )
 ```
@@ -893,7 +855,6 @@ prior_distributions = list(
   , log_E_I_ratio = mp_normal(0, sd_par)
   , log_I = mp_normal(log(I0), sd_state)
   , log_H = mp_normal(log(H0), sd_state)
-  , log_R = mp_normal(log(1), sd_state)
 )
 
 ## put the data together
@@ -901,66 +862,63 @@ dd = rbind(reported_hospitalizations, reported_cases)
 
 # calibrate
 shiver_calibrator = mp_tmb_calibrator(
-    spec = (multi_traj_spec 
-      |> mp_hazard()
-    )
+    spec = mp_hazard(multi_traj_spec)
     # row bind both observed data
   , data = dd
     # fit both trajectories with log-normal distributions
     # (changed from negative binomial because apparently it is easier
     # to fit standard deviations than dispersion parameters)
-  , traj = list(H = mp_log_normal(sd = mp_fit(1))
-    , reported_incidence = mp_log_normal(sd = mp_fit(1))
+  , traj = list(
+      H = mp_normal(sd = mp_fit(1))
+    , reported_incidence = mp_normal(sd = mp_fit(1))
   )
   , par = prior_distributions
     # fit the transmission rate using five radial basis functions for
     # a flexible model of time variation.
   , tv = mp_rbf("rbf_beta", 5, sparse_tol = 1e-8)
-  , outputs = c(states, "reported_incidence", "beta")
+  , outputs = c(mp_state_vars(spec), "reported_incidence", "beta")
 )
 ```
 
 Next we optimize, and look at our estimates.
 
-    #>                                   mat row   default  estimate std.error
-    #> 1                   time_var_rbf_beta   1    0.0000   -0.0236    0.0262
-    #> 2                   time_var_rbf_beta   2    0.0000    0.0292    0.0250
-    #> 3                   time_var_rbf_beta   3    0.0000   -0.0283    0.0249
-    #> 4                   time_var_rbf_beta   4    0.0000    0.0286    0.0247
-    #> 5                   prior_sd_rbf_beta   0    1.0000    0.5297    0.0177
-    #> 6                   distr_params_sd_H   0    1.0000    0.0757    0.0089
-    #> 7  distr_params_sd_reported_incidence   0    1.0000    0.2221    0.0185
-    #> 8                   time_var_rbf_beta   0    0.0000   -0.0305    0.0257
-    #> 9                                beta   0    0.0100    0.3136    0.0362
-    #> 10                              sigma   0    0.0498    0.0341    0.0104
-    #> 11                            gamma_h   0    0.0498    0.9937    0.1872
-    #> 12                          E_I_ratio   0    0.0100    0.0880    0.1034
-    #> 13                                  I   0 2718.5714 2948.4429  839.7054
-    #> 14                                  H   0   63.0000    0.1378    2.8151
-    #> 15                                  R   0    1.0000    1.0000   54.5980
-    #> 16                        report_prob   0    0.5000    0.8340    0.1891
-    #> 17                                  p   0    0.0100    0.2354    9.6937
-    #>     conf.low    conf.high
-    #> 1    -0.0750 2.780000e-02
-    #> 2    -0.0197 7.810000e-02
-    #> 3    -0.0771 2.060000e-02
-    #> 4    -0.0198 7.710000e-02
-    #> 5     0.4951 5.643000e-01
-    #> 6     0.0582 9.330000e-02
-    #> 7     0.1859 2.584000e-01
-    #> 8    -0.0808 1.980000e-02
-    #> 9     0.2500 3.933000e-01
-    #> 10    0.0188 6.200000e-02
-    #> 11    0.6870 1.437400e+00
-    #> 12    0.0088 8.801000e-01
-    #> 13 1687.2279 5.152425e+03
-    #> 14    0.0000 3.347001e+16
-    #> 15    0.0000 2.978521e+46
-    #> 16    0.2568 9.865000e-01
-    #> 17    0.0000 1.000000e+00
+    #>                                   mat row  default  estimate std.error
+    #> 1                   time_var_rbf_beta   2    0.000    0.0146    0.0056
+    #> 2                   time_var_rbf_beta   3    0.000   -0.0099    0.0111
+    #> 3                   time_var_rbf_beta   4    0.000    0.0083    0.0167
+    #> 4                   prior_sd_rbf_beta   0    1.000    0.5297    0.0177
+    #> 5                   time_var_rbf_beta   0    0.000   -0.0340    0.0113
+    #> 6                   time_var_rbf_beta   1    0.000   -0.0131    0.0045
+    #> 7                                beta   0    0.010    0.3413    0.0409
+    #> 8                               sigma   0    0.100    0.0556    0.0106
+    #> 9                   distr_params_sd_H   0    1.000   19.3088    1.4226
+    #> 10 distr_params_sd_reported_incidence   0    1.000  118.0994    9.6996
+    #> 11                            gamma_h   0    0.070    2.0571    0.9748
+    #> 12                          E_I_ratio   0    0.010    0.4030    0.3142
+    #> 13                                  I   0 2718.571 2117.1826  398.6989
+    #> 14                                  H   0   63.000    0.3122    6.7863
+    #> 15                        report_prob   0    0.100    0.8800    0.1170
+    #> 16                                  p   0    0.010    0.2422    9.8084
+    #>     conf.low     conf.high
+    #> 1     0.0036  2.570000e-02
+    #> 2    -0.0315  1.180000e-02
+    #> 3    -0.0244  4.090000e-02
+    #> 4     0.4951  5.643000e-01
+    #> 5    -0.0561 -1.190000e-02
+    #> 6    -0.0221 -4.200000e-03
+    #> 7     0.2699  4.316000e-01
+    #> 8     0.0383  8.070000e-02
+    #> 9    16.7126  2.230840e+01
+    #> 10  100.5397  1.387259e+02
+    #> 11    0.8127  5.207300e+00
+    #> 12    0.0874  1.857400e+00
+    #> 13 1463.7390  3.062337e+03
+    #> 14    0.0000  9.921351e+17
+    #> 15    0.4555  9.847000e-01
+    #> 16    0.0000  1.000000e+00
 
 Our prior for `sigma` is similar to the posterior, but `gamma_h` seems
-to have been pushed up by the data from about `0.05` to about 0.99. We
+to have been pushed up by the data from about `0.05` to about 2.06. We
 still do not have confidence in our estimate of `p`. We now have five
 other parameters controlling transmission, and so to interpret them we
 really need a plot of how transmission varies over time in the model. We
@@ -999,7 +957,7 @@ true_beta = 0.3
 simulated_data = (reparameterized_spec
   |> mp_simulator(
       time_steps = expected_daily_reports
-    , outputs=states
+    , outputs=mp_state_vars(spec)
     , default=list(
         logit_p=qlogis(true_p)
       , log_beta=log(true_beta)
@@ -1016,50 +974,18 @@ simulated_data = (reparameterized_spec
 fixed_beta = mp_tmb_calibrator(
     spec = reparameterized_spec |> mp_rk4()
   , data = simulated_data
-  , traj = states
+  , traj = mp_state_vars(spec)
   , par = c("logit_p")
-  , outputs=states
+  , outputs = mp_state_vars(spec)
 )
 # converges, but not getting estimate for `p`
 mp_optimize(fixed_beta)
 #> $par
-#>  params 
-#> 53.5867 
-#> 
-#> $objective
-#> [1] 156031309
-#> 
-#> $convergence
-#> [1] 0
-#> 
-#> $iterations
-#> [1] 2
-#> 
-#> $evaluations
-#> function gradient 
-#>        6        2 
-#> 
-#> $message
-#> [1] "relative convergence (4)"
-mp_tmb_coef(fixed_beta, conf.int = TRUE) |> round_coef_tab()
-#>   mat row default estimate std.error conf.low conf.high
-#> 1   p   0    0.01        1         0        0         1
-## fix p estimate beta
-fixed_a = mp_tmb_calibrator(
-  spec = reparameterized_spec |> mp_rk4()
-  , data = simulated_data
-  , traj = states
-  , par = c("log_beta")
-  , outputs=states
-)
-# converges and recovering true beta
-mp_optimize(fixed_a)
-#> $par
 #>    params 
-#> -1.214201 
+#> -13.95881 
 #> 
 #> $objective
-#> [1] 7464.532
+#> [1] 3073.839
 #> 
 #> $convergence
 #> [1] 0
@@ -1069,13 +995,45 @@ mp_optimize(fixed_a)
 #> 
 #> $evaluations
 #> function gradient 
-#>       17       10 
+#>       11       11 
+#> 
+#> $message
+#> [1] "relative convergence (4)"
+mp_tmb_coef(fixed_beta, conf.int = TRUE) |> round_coef_tab()
+#>   mat row default estimate std.error conf.low conf.high
+#> 1   p   0    0.01        0     0.002        0         1
+## fix p estimate beta
+fixed_a = mp_tmb_calibrator(
+  spec = reparameterized_spec |> mp_rk4()
+  , data = simulated_data
+  , traj = mp_state_vars(spec)
+  , par = c("log_beta")
+  , outputs = mp_state_vars(spec)
+)
+# converges and recovering true beta
+mp_optimize(fixed_a)
+#> $par
+#>    params 
+#> -4.765994 
+#> 
+#> $objective
+#> [1] 3060.276
+#> 
+#> $convergence
+#> [1] 0
+#> 
+#> $iterations
+#> [1] 5
+#> 
+#> $evaluations
+#> function gradient 
+#>        6        5 
 #> 
 #> $message
 #> [1] "both X-convergence and relative convergence (5)"
 mp_tmb_coef(fixed_a, conf.int = TRUE) |> round_coef_tab()
 #>    mat row default estimate std.error conf.low conf.high
-#> 1 beta   0    0.01   0.2969         0   0.2969     0.297
+#> 1 beta   0    0.01   0.0085     3e-04    0.008    0.0091
 ```
 
 We are able to recover the transmission rate `beta` but not the

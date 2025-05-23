@@ -1,8 +1,19 @@
+<!-- omit from toc -->
 # Contributing to `macpan2`
 
 Thank you for contributing to `macpan2`.  Pull requests and issues are welcome.
 
-Developers can see [here](https://canmod.github.io/macpan2/articles/index.html#developer) for documentation useful those who will contribute code.
+Developers can see [here](https://canmod.github.io/macpan2/articles/index.html#developer-guides) for documentation useful those who will contribute code.
+
+<!-- omit from toc -->
+## Table of Contents
+- [Developer Installation](#developer-installation)
+- [`C++` Development](#c-development)
+- [`C++` Standards](#c-standards)
+- [Adding Engine Functions](#adding-engine-functions)
+- [Developer Installation on Windows](#developer-installation-on-windows)
+- [Test Suite](#test-suite)
+
 
 ## Developer Installation
 
@@ -38,7 +49,78 @@ mp_simulator(sir, time_steps = 100, outputs = "I")
 
 To update `src/macpan2` to the state of `misc/dev/dev.cpp` one may run `make src-update`.
 
-Running with `misc/dev/dev.cpp` will print out debugging information in a verbose manner, whereas `src/macpan2.cpp` will not. The `src-update` make rule removes the `#define MP_VERBOSE` flag at the top of the file. 
+Running with `misc/dev/dev.cpp` will print out debugging information in a verbose manner, whereas `src/macpan2.cpp` will not. The `src-update` make rule removes the `#define MP_VERBOSE` flag at the top of the file.
+
+We `#include` both `Rcpp.h` and `TMB.hpp`, which increases the possibility of namespace clashes. Our approach to addressing this is with [include-guarding](https://en.wikipedia.org/wiki/Include_guard). We assume that `TMB` takes precedence and so we include `Rcpp` first and then un-define any names in `Rcpp` that we want to use from `TMB` instead.  Here is the example of the `dnorm` function.
+
+```
+#include <Rcpp.h>
+#ifdef dnorm
+#undef dnorm
+#endif
+#include <TMB.hpp>
+```
+
+When you attempt to use functions from `TMB` when adding an engine function, you should be aware that you might need to do some include-guarding. You will find out via compilation errors.
+
+## `C++` Standards
+
+We are [targeting support](https://github.com/canmod/macpan2/issues/125#issuecomment-1789434800) for both `C++14` and `C++17`. This means, for example, that we cannot use [variants](https://en.cppreference.com/w/cpp/utility/variant) because they were introduced in `C++17`.
+
+## Adding Engine Functions
+
+If you need a function for defining model simulations that is not [currently supported by the C++ TMB engine](https://canmod.github.io/macpan2/reference/engine_functions), here is how you can add one.
+
+This is a reasonably advanced topic in that in involves using the [TMB](https://github.com/kaskr/adcomp) `C++` framework. However, you just might find that for simple functions you can just work by analogy with existing functions.
+
+Declare a new function by adding it to the [macpan2_func](https://github.com/canmod/macpan2/blob/main/misc/dev/dev.cpp#L76) `enum` in [dev.cpp](https://github.com/canmod/macpan2/blob/main/misc/dev/dev.cpp). These declarations must be of the following form:
+
+```
+MP2_{UPPERCASE-FUNCTION-LABEL} = {UNIQUE-INTEGER} // {FUNCTION-TYPE}: {R-SIDE-FUNCTION-NAME}({ARG-1, ARG-2, ...})
+```
+
+Here are some examples:
+
+```
+MP2_MULTIPLY = 3 // binop: `*`(x, y)
+MP2_LOG = 7 // fwrap: log(x)
+MP2_ROUND_BRACKET = 8 // paren: `(`(...)
+MP2_SUM = 12 // fwrap: sum(...)
+```
+
+These examples illustrate the three `FUNCTION-TYPE`s:
+
+* `binop` : Functions that will be used as binary operators
+* `fwrap` : Function with arguments wrapped in round brackets
+* `paren` : Functions that will be used as parentheses
+
+Check to see if your function should be added to one or more of several lists of functions that get treated in similar ways:
+
+* `mp_math` : Add if your function can only take numerical matrices as arguments, and cannot take integer vectors.
+* `mp_elementwise_binop` : Add if your function is an [elementwise binary operator](https://canmod.github.io/macpan2/articles/elementwise_binary_operators).
+* `mp_history` : Add if your function depends on having a first argument being a matrix with saved history (e.g., a lag function).
+
+Add the function body as an item in the following switch structure:
+
+```
+switch (table_x[row] + 1) {...}
+```
+
+Here is a very simple example of a function that extracts and returns the diagonal of the argument.
+```
+case MP2_FROM_DIAG: // from_diag
+  m = args[0].diagonal();
+  return m;
+```
+
+The arguments to your function are contained in the `args` object. The first argument is `args[0]`, the second is `args[1]`, etc. The number of arguments that are passed is given by `n`. Each of these arguments, if it is a matrix (or integer vector), has an index giving its position within the complete list, `valid_vars` (or `valid_int_vecs`), of matrices (or integer vectors) in the model. The `index2mats` vector gives you these indexes, with `index2mats[0]` giving the position for the first matrix, etc. The `index2what` vector gives you information about the type of argument. Argument `i` is a matrix if `index2what[i] = 0`, an integer vector if `index2what[i] = 1`, or invalid if `index2what[i] = -1`. Sometimes you will want to assert that an argument is a matrix or an integer vector, depending on the context. The method `args.get_as_mat(i)` will return the `i`th argument if it is a matrix, and throw an error otherwise. The `args.get_as_int(i)` will return the `i`th argument as an integer vector, converting to an integer vector if necessary. Checkout the `ArgList` class for other methods that might be useful.
+
+Names for intermediate matrices and integer vectors are defined way above in the section marked `Available Local Variables`. There you will find names like `m` and `m1` for matrices, `v` and `v1` for integer vectors, and more including other types like `bool`, `int`, and `Type`.  The [`Type` type](https://kaskr.github.io/adcomp/_book/Tutorial.html) is particularly important for making the automatic differentiation provided by TMB work properly. Variable names must be defined in this `Available Local Variables` section, and not inside the `case` statement for each particular function.
+
+Your function can also make use of the current time index, `t`, which increments as the simulation loop iterates.
+
+Every function must return a matrix. Integer vectors are not allowed to be returned (although they can be modified, but that is another story). If your function is called for its side effect (e.g., `MP2_PRINT`), you should return an empty matrix.
+
 
 ## Developer Installation on Windows
 
@@ -91,3 +173,11 @@ To get a list of all objects in the cache.
 ```
 test_cache_list()
 ```
+
+## Changelog Management
+
+We use semi-automated construction of `NEWS.md`. This system generates and maintains version metadata and release notes for the package using three scripts located in `misc/build`. It produces `commit-version-map.txt`, `version-bumps.txt`, and `NEWS.md` in the project root. `commit-version-map.txt` records the version number, commit hash, and date for each commit on the main branch. `version-bumps.txt` extracts the most recent commit for each version from that map. `NEWS.md` combines these version bumps with optional developer-written content in `news-narratives.md`, adding GitHub compare links between versions. The scripts update these files incrementally for efficiency. See `misc/build` and the root-level files `commit-version-map.txt`, `version-bumps.txt`, and `NEWS.md`.
+
+## Log Files
+
+Every simulation generates or overwrites a log file. The default location is described  [here](https://canmod.github.io/macpan2/articles/options.html). The path of the log file is created when the simulator is created. So if the simulator is saved to a file (e.g., stored with `saveRDS`), there is a risk that when it is reloaded the path to the log file will no longer exist. If this happens `macpan2` will try to recreate it, but this might fail. If the log file path is not valid for any of these reasons, the log file will be written to `.macpan2/bail-out/log.txt` in the current working directory. Log files are used internally by `macpan2` when producing error messages that originate within an [engine function](https://canmod.github.io/macpan2/reference/engine_functions.html). This mechanism of getting messages from `C++` to `R` is not ideal, but provides a workaround for the limitation that TMB cannot report back strings (I would welcome being wrong so that we could simplify this part of the code).
