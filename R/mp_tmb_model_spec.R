@@ -16,6 +16,7 @@ TMBModelSpec = function(
         , "rk4_old"
         , "euler_multinomial"
       )
+    , delta_t = 1
   ) {
   default = c(default, inits)
   must_not_save = handle_saving_conflicts(must_save, must_not_save)
@@ -24,10 +25,11 @@ TMBModelSpec = function(
   before = force_expr_list(before)
   during = force_expr_list(during)
   after = force_expr_list(after)
-  self$change_model = get_change_model(before, during, after)
+  self$change_model = get_change_model(before, during, after, delta_t)
   self$state_update = get_state_update_type(match.arg(state_update), self$change_model)
   self$update_method = get_state_update_method(self$state_update, self$change_model)
   self$change_components = function() self$change_model$change_list
+  self$delta_t = delta_t
   self$before = before
   self$during = during
   self$after = after
@@ -119,10 +121,15 @@ TMBModelSpec = function(
       , must_save = self$must_save, must_not_save = self$must_not_save
       , sim_exprs = self$sim_exprs
       , state_update = self$state_update
+      , delta_t = self$delta_t
     )
   }
   self$change_update_method = function(
-      state_update = c("euler", "rk4", "discrete_stoch", "hazard", "rk4_old", "euler_multinomial")
+      state_update = c(
+          "euler", "rk4", "discrete_stoch", "hazard"
+        , "rk4_old", "euler_multinomial"
+      ),
+      delta_t = 1
     ) {
     
     if (self$state_update == "no") {
@@ -137,7 +144,9 @@ TMBModelSpec = function(
         before = self$before, during = self$during, after = self$after
       , default = self$default, integers = self$integers
       , must_save = self$must_save, must_not_save = self$must_not_save
-      , sim_exprs = self$sim_exprs, state_update = state_update
+      , sim_exprs = self$sim_exprs
+      , state_update = state_update
+      , delta_t = delta_t
     )
   }
   self$expand = function() {
@@ -151,6 +160,7 @@ TMBModelSpec = function(
       , must_not_save = self$must_not_save
       , sim_exprs = self$sim_exprs
       , state_update = self$state_update
+      , delta_t = self$delta_t
     )
   }
   self$name_map = function(local_names) {

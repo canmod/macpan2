@@ -111,6 +111,8 @@ only_iterable = function(expr_list, states, is_first = FALSE) {
 ChangeModel = function() {
   self = Base()
   
+  self$delta_t = 1
+  
   # lists of formula expressions to be added to a `before` list
   self$before_loop = function() list()
   
@@ -238,8 +240,8 @@ ChangeComponent = function() {
 ##' si$during()
 ##' 
 ##' @noRd
-SimpleChangeModel = function(before = list(), during = list(), after = list()) {
-  self = ChangeModelDefaults()
+SimpleChangeModel = function(before = list(), during = list(), after = list(), delta_t) {
+  self = ChangeModelDefaults(delta_t)
   
   self$before = before
   self$during = during
@@ -384,6 +386,8 @@ MockChangeModel = function() {
 ##' 
 ##' @param model Object with quantities that have been explicitly 
 ##' marked as state variables.
+##' @param delta_t Number giving the amount of time that passes during a
+##' single time-step.
 ##' 
 ##' @examples
 ##' sir = mp_tmb_library("starter_models", "sir", package = "macpan2")
@@ -401,7 +405,7 @@ NULL
 ##' \code{\link{mp_tmb_model_spec}}, but this default can be changed using
 ##' the functions described below.
 ##' @export
-mp_euler = function(model) UseMethod("mp_euler")
+mp_euler = function(model, delta_t) UseMethod("mp_euler")
 
 ##' @describeIn state_updates ODE solver using Runge-Kutta 4. Any formulas that
 ##' appear before model flows in the `during` list will only be updated
@@ -424,19 +428,19 @@ mp_euler = function(model) UseMethod("mp_euler")
 ##' be confused. We therefore require that all state variable updates are set
 ##' explicitly (e.g., with \code{\link{mp_per_capita_flow}}).
 ##' @export
-mp_rk4 = function(model) UseMethod("mp_rk4")
+mp_rk4 = function(model, delta_t) UseMethod("mp_rk4")
 
 ##' @describeIn state_updates Old version of `mp_rk4` that doesn't keep track
 ##' of absolute flows through each time-step. As a result this version is
 ##' more efficient but makes it more difficult to compute things like 
 ##' incidence over a time scale.
 ##' @export
-mp_rk4_old = function(model) UseMethod("mp_rk4_old")
+mp_rk4_old = function(model, delta_t) UseMethod("mp_rk4_old")
 
 ##' @describeIn state_updates Original and deprecated name for 
 ##' `mp_discrete_stoch`. In all new projects please use `mp_discrete_stoch`.
 ##' @export
-mp_euler_multinomial = function(model) UseMethod("mp_euler_multinomial")
+mp_euler_multinomial = function(model, delta_t) UseMethod("mp_euler_multinomial")
 
 ##' @describeIn state_updates Update state such that the probability of moving
 ##' from box `i` to box `j` in one time step is given by
@@ -447,33 +451,31 @@ mp_euler_multinomial = function(model) UseMethod("mp_euler_multinomial")
 ##' distribution that determines how many individuals go to each `j` box and 
 ##' how many stay in  `i`.
 ##' @export
-mp_discrete_stoch = function(model) UseMethod("mp_discrete_stoch")
+mp_discrete_stoch = function(model, delta_t) UseMethod("mp_discrete_stoch")
 
 ##' @describeIn state_updates Update state with hazard steps, which is equivalent
 ##' to taking the step given by the expected value of the Euler-multinomial
 ##' distribution.
 ##' @export
-mp_hazard = function(model) UseMethod("mp_hazard")
+mp_hazard = function(model, delta_t) UseMethod("mp_hazard")
 
 ##' @export
-mp_euler.TMBModelSpec = function(model) model$change_update_method("euler")
+mp_euler.TMBModelSpec = function(model, delta_t) model$change_update_method("euler", delta_t)
 
 ##' @export
-mp_rk4.TMBModelSpec = function(model) model$change_update_method("rk4")
+mp_rk4.TMBModelSpec = function(model, delta_t) model$change_update_method("rk4", delta_t)
 
 ##' @export
-mp_rk4_old.TMBModelSpec = function(model) model$change_update_method("rk4_old")
-
-
-##' @export
-mp_euler_multinomial.TMBModelSpec = function(model) model$change_update_method("euler_multinomial")
+mp_rk4_old.TMBModelSpec = function(model, delta_t) model$change_update_method("rk4_old", delta_t)
 
 ##' @export
-mp_discrete_stoch.TMBModelSpec = function(model) model$change_update_method("discrete_stoch")
-
+mp_euler_multinomial.TMBModelSpec = function(model, delta_t) model$change_update_method("euler_multinomial", delta_t)
 
 ##' @export
-mp_hazard.TMBModelSpec = function(model) model$change_update_method("hazard")
+mp_discrete_stoch.TMBModelSpec = function(model, delta_t) model$change_update_method("discrete_stoch", delta_t)
+
+##' @export
+mp_hazard.TMBModelSpec = function(model, delta_t) model$change_update_method("hazard", delta_t)
 
 
 #' Expand Model
@@ -505,8 +507,10 @@ to_exogenous_inputs = function(flow_frame) {
   frame = flow_frame[flow_frame$size == "", , drop = FALSE]
   sprintf("%s ~ %s", frame$change, frame$abs_rate) |> lapply(as.formula)
 }
-flow_frame_to_absolute_flows = function(flow_frame) {
-  char_vec = with(flow_frame, sprintf("%s ~ %s", change, abs_rate))
+flow_frame_to_absolute_flows = function(flow_frame, delta_t = 1) {
+  delta_t_str = ""
+  if (delta_t != 1) delta_t_str = sprintf("%s * ", delta_t)
+  char_vec = with(flow_frame, sprintf("%s ~ %s%s", change, delta_t_str, abs_rate))
   lapply(char_vec, as.formula)
 }
 to_absolute_flows = function(per_capita_flows) {
@@ -534,13 +538,13 @@ get_state_update_method = function(state_update, change_model) {
   if (state_update == "rk4_old") cls_nm = "RK4OldUpdateMethod"
   get(cls_nm)(change_model)
 }
-get_change_model = function(before, during, after) {
+get_change_model = function(before, during, after, delta_t = 1) {
   valid_before = all(vapply(before, is_two_sided, logical(1L)))
   if (!valid_before) stop("The before argument must be all two-sided formulas.")
   valid_after = all(vapply(after, is_two_sided, logical(1L)))
   if (!valid_after) stop("The after argument must be all two-sided formulas.")
   any_change_components = any(vapply(during, inherits, logical(1L), "ChangeComponent"))
-  if (any_change_components) return(SimpleChangeModel(before, during, after))
+  if (any_change_components) return(SimpleChangeModel(before, during, after, delta_t))
   AllFormulaChangeModel(before, during, after)
 }
 force_expr_list = function(x) {
@@ -589,7 +593,10 @@ EulerUpdateMethod = function(change_model, existing_global_names = character()) 
   self$before = function() self$change_model$before_loop()
   self$during = function() {
     before_components = self$change_model$before_flows()
-    components = flow_frame_to_absolute_flows(self$change_model$flow_frame())
+    components = flow_frame_to_absolute_flows(
+        self$change_model$flow_frame()
+      , self$change_model$delta_t
+    )
     before_update = self$change_model$before_state()
     update = self$change_model$update_state()
     

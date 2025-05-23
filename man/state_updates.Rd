@@ -10,21 +10,24 @@
 \alias{mp_hazard}
 \title{Change How State Variables are Updated}
 \usage{
-mp_euler(model)
+mp_euler(model, delta_t)
 
-mp_rk4(model)
+mp_rk4(model, delta_t)
 
-mp_rk4_old(model)
+mp_rk4_old(model, delta_t)
 
-mp_euler_multinomial(model)
+mp_euler_multinomial(model, delta_t)
 
-mp_discrete_stoch(model)
+mp_discrete_stoch(model, delta_t)
 
-mp_hazard(model)
+mp_hazard(model, delta_t)
 }
 \arguments{
 \item{model}{Object with quantities that have been explicitly
 marked as state variables.}
+
+\item{delta_t}{Number giving the amount of time that passes during a
+single time-step.}
 }
 \description{
 These functions return a modified version of a model specification, such
