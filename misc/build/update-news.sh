@@ -9,7 +9,6 @@ BUMP_FILE="version-bumps.txt"
 NEWS_FILE="NEWS.md"
 TMP_FILE=$(mktemp)
 
-# Read version bumps into an array (latest last), then reverse it
 awk '{ print NR, $0 }' "$BUMP_FILE" | sort -rn | cut -d' ' -f2- | while read -r version hash date; do
   if [ "$version" != "0.0.0.9000" ]; then
 
