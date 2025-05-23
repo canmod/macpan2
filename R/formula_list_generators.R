@@ -310,7 +310,7 @@ SimpleChangeModel = function(before = list(), during = list(), after = list(), d
 }
 
 AllFormulaChangeModel = function(before = list(), during = list(), after = list()) {
-  self = ChangeModelDefaults()
+  self = ChangeModelDefaults(delta_t = 1)
   self$before = before
   self$during = during
   self$after = after
@@ -405,7 +405,7 @@ NULL
 ##' \code{\link{mp_tmb_model_spec}}, but this default can be changed using
 ##' the functions described below.
 ##' @export
-mp_euler = function(model, delta_t) UseMethod("mp_euler")
+mp_euler = function(model, delta_t = 1) UseMethod("mp_euler")
 
 ##' @describeIn state_updates ODE solver using Runge-Kutta 4. Any formulas that
 ##' appear before model flows in the `during` list will only be updated
@@ -428,19 +428,19 @@ mp_euler = function(model, delta_t) UseMethod("mp_euler")
 ##' be confused. We therefore require that all state variable updates are set
 ##' explicitly (e.g., with \code{\link{mp_per_capita_flow}}).
 ##' @export
-mp_rk4 = function(model, delta_t) UseMethod("mp_rk4")
+mp_rk4 = function(model, delta_t = 1) UseMethod("mp_rk4")
 
 ##' @describeIn state_updates Old version of `mp_rk4` that doesn't keep track
 ##' of absolute flows through each time-step. As a result this version is
 ##' more efficient but makes it more difficult to compute things like 
 ##' incidence over a time scale.
 ##' @export
-mp_rk4_old = function(model, delta_t) UseMethod("mp_rk4_old")
+mp_rk4_old = function(model, delta_t = 1) UseMethod("mp_rk4_old")
 
 ##' @describeIn state_updates Original and deprecated name for 
 ##' `mp_discrete_stoch`. In all new projects please use `mp_discrete_stoch`.
 ##' @export
-mp_euler_multinomial = function(model, delta_t) UseMethod("mp_euler_multinomial")
+mp_euler_multinomial = function(model, delta_t = 1) UseMethod("mp_euler_multinomial")
 
 ##' @describeIn state_updates Update state such that the probability of moving
 ##' from box `i` to box `j` in one time step is given by
@@ -451,31 +451,31 @@ mp_euler_multinomial = function(model, delta_t) UseMethod("mp_euler_multinomial"
 ##' distribution that determines how many individuals go to each `j` box and 
 ##' how many stay in  `i`.
 ##' @export
-mp_discrete_stoch = function(model, delta_t) UseMethod("mp_discrete_stoch")
+mp_discrete_stoch = function(model, delta_t = 1) UseMethod("mp_discrete_stoch")
 
 ##' @describeIn state_updates Update state with hazard steps, which is equivalent
 ##' to taking the step given by the expected value of the Euler-multinomial
 ##' distribution.
 ##' @export
-mp_hazard = function(model, delta_t) UseMethod("mp_hazard")
+mp_hazard = function(model, delta_t = 1) UseMethod("mp_hazard")
 
 ##' @export
-mp_euler.TMBModelSpec = function(model, delta_t) model$change_update_method("euler", delta_t)
+mp_euler.TMBModelSpec = function(model, delta_t = 1) model$change_update_method("euler", delta_t)
 
 ##' @export
-mp_rk4.TMBModelSpec = function(model, delta_t) model$change_update_method("rk4", delta_t)
+mp_rk4.TMBModelSpec = function(model, delta_t = 1) model$change_update_method("rk4", delta_t)
 
 ##' @export
-mp_rk4_old.TMBModelSpec = function(model, delta_t) model$change_update_method("rk4_old", delta_t)
+mp_rk4_old.TMBModelSpec = function(model, delta_t = 1) model$change_update_method("rk4_old", delta_t)
 
 ##' @export
-mp_euler_multinomial.TMBModelSpec = function(model, delta_t) model$change_update_method("euler_multinomial", delta_t)
+mp_euler_multinomial.TMBModelSpec = function(model, delta_t = 1) model$change_update_method("euler_multinomial", delta_t)
 
 ##' @export
-mp_discrete_stoch.TMBModelSpec = function(model, delta_t) model$change_update_method("discrete_stoch", delta_t)
+mp_discrete_stoch.TMBModelSpec = function(model, delta_t = 1) model$change_update_method("discrete_stoch", delta_t)
 
 ##' @export
-mp_hazard.TMBModelSpec = function(model, delta_t) model$change_update_method("hazard", delta_t)
+mp_hazard.TMBModelSpec = function(model, delta_t = 1) model$change_update_method("hazard", delta_t)
 
 
 #' Expand Model

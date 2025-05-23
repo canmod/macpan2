@@ -10,17 +10,17 @@
 \alias{mp_hazard}
 \title{Change How State Variables are Updated}
 \usage{
-mp_euler(model, delta_t)
+mp_euler(model, delta_t = 1)
 
-mp_rk4(model, delta_t)
+mp_rk4(model, delta_t = 1)
 
-mp_rk4_old(model, delta_t)
+mp_rk4_old(model, delta_t = 1)
 
-mp_euler_multinomial(model, delta_t)
+mp_euler_multinomial(model, delta_t = 1)
 
-mp_discrete_stoch(model, delta_t)
+mp_discrete_stoch(model, delta_t = 1)
 
-mp_hazard(model, delta_t)
+mp_hazard(model, delta_t = 1)
 }
 \arguments{
 \item{model}{Object with quantities that have been explicitly
