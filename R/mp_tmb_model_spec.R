@@ -336,6 +336,8 @@ must_save_time_args = function(formulas) {
 #' @param state_update Optional character vector for how to update the state 
 #' variables when it is relevant. Options include `"euler"` (the default), 
 #' `"rk4"`, and `"discrete_stoch"`.
+#' @param delta_t Number giving the amount of time that passes during a
+#' single time-step.
 #' 
 #' @details
 #' Expressions in the `before`, `during`, and `after` lists can be standard 
