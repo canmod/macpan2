@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -54,6 +54,10 @@
 <span></span>
 <span><span class="fu">mp_per_capita_inflow</span><span class="op">(</span><span class="va">from</span>, <span class="va">to</span>, <span class="va">rate</span>, flow_name <span class="op">=</span> <span class="cn">NULL</span>, abs_rate <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
 <span></span>
+<span><span class="fu">mp_inflow</span><span class="op">(</span><span class="va">to</span>, <span class="va">rate</span>, rate_name <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">mp_outflow</span><span class="op">(</span><span class="va">from</span>, <span class="va">rate</span>, abs_rate <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
+<span></span>
 <span><span class="fu">mp_per_capita_outflow</span><span class="op">(</span><span class="va">from</span>, <span class="va">rate</span>, flow_name <span class="op">=</span> <span class="cn">NULL</span>, abs_rate <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -94,6 +98,10 @@ passed to <code>rate</code> (not recommended for better readability), then this
 <dd><p>Deprecated synonym for <code>flow_name</code>. Please use <code>flow_name</code>
 in all future work.</p></dd>
 
+
+<dt id="arg-rate-name">rate_name<a class="anchor" aria-label="anchor" href="#arg-rate-name"></a></dt>
+<dd><p>String giving the name of the rate</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -113,6 +121,10 @@ be a function of a set of compartments, because it will not be updated. A
 common construction is <code>mp_per_capita_inflow("N", "S", "birth_rate", "birth")</code>
 for adding a birth process, which involves the total population size, <code>N</code>,
 rather than a single compartment.</p></li>
+<li><p><code>mp_inflow()</code>: Only flow into the <code>to</code> compartment
+For adding a birth or immigration process</p></li>
+<li><p><code>mp_outflow()</code>: Only flow into the <code>to</code> compartment
+For adding an absolute removal process that goes to 'nowhere': dangerous!</p></li>
 <li><p><code>mp_per_capita_outflow()</code>: Only flow out of the <code>from</code> compartment,
 without going anywhere. This is useful for removing individuals from the
 system (e.g., death). To keep track of the total number of dead individuals
@@ -201,7 +213,7 @@ these individuals (e.g., <code>to = "D"</code>).</p></li>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer></div>
