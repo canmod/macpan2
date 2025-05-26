@@ -688,6 +688,7 @@ RK4UpdateMethod = function(change_model) {
     unlst = function(x) unlist(x, recursive = FALSE, use.names = FALSE)
     as_forms = function(x) lapply(x, as.formula)
     dt = self$change_model$delta_t
+    if (dt == 1) dt = ""
     
     before_components = self$change_model$before_flows()
     flow_frame = self$change_model$flow_frame()
@@ -737,7 +738,7 @@ RK4UpdateMethod = function(change_model) {
     k1_new_update = update_formulas(rate_formulas, flow_replacements)
     
     ## rk4 step 2
-    state_replacements = sprintf("%s ~ (%s + (%s * %s / 2))"
+    state_replacements = sprintf("%s ~ (%s + (%s%s / 2))"
       , states, states, dt, state_step_names$k1
     ) |> as_forms()
     flow_replacements = sprintf("%s ~ %s"
@@ -749,7 +750,7 @@ RK4UpdateMethod = function(change_model) {
     ) |> as_forms() |> update_formulas(flow_replacements)
     
     ## rk4 step 3
-    state_replacements = sprintf("%s ~ (%s + (%s * %s / 2))"
+    state_replacements = sprintf("%s ~ (%s + (%s%s / 2))"
       , states, states, dt, state_step_names$k2
     ) |> as_forms()
     flow_replacements = sprintf("%s ~ %s"
@@ -761,7 +762,7 @@ RK4UpdateMethod = function(change_model) {
     ) |> as_forms() |> update_formulas(flow_replacements)
     
     ## rk4 step 4
-    state_replacements = sprintf("%s ~ (%s + %s * %s)"
+    state_replacements = sprintf("%s ~ (%s + %s%s)"
       , states, states, dt, state_step_names$k3
     ) |> as_forms()
     flow_replacements = sprintf("%s ~ %s"
@@ -773,7 +774,7 @@ RK4UpdateMethod = function(change_model) {
     ) |> as_forms() |> update_formulas(flow_replacements)
     
     ## final update step
-    final_flow_update = sprintf("%s ~ (%s + 2 * %s + 2 * %s + %s) * %s/6"
+    final_flow_update = sprintf("%s ~ (%s + 2 * %s + 2 * %s + %s)%s/6"
       , flows
       , flow_step_names$k1, flow_step_names$k2
       , flow_step_names$k3, flow_step_names$k4, dt
@@ -803,11 +804,14 @@ DiscreteStochUpdateMethod = function(change_model) {
 EulerMultinomialUpdateMethod = function(change_model) {
   self = Base()
   self$change_model = change_model
+  dt = self$change_model$delta_t
   
   self$vec = function(expr_list, char_fun) {
     vec = vapply(expr_list, char_fun, character(1L))
-    # simple expressions are any non-formula strings (names of variables or state flows)
-    # expressions that are not simple contain math symbols (ex. +,-,*,/, etc.)
+    # - simple expressions are any non-formula strings 
+    #   (names of variables or state flows)
+    # - expressions that are not simple contain math symbols 
+    #   (e.g., +,-,*,/, etc.)
     simple_expr = all(grepl("^[a-zA-Z0-9._]+$", vec))
     scalar_expr = length(vec) == 1L
     
@@ -823,6 +827,11 @@ EulerMultinomialUpdateMethod = function(change_model) {
   
   self$before = function() self$change_model$before_loop()
   self$during = function() {
+    if (dt == 1) {
+      dt = ""
+    } else {
+      dt = sprintf(", %s", self$change_model$delta_t)
+    }
     before_components = c(
         self$change_model$before_flows()
       , to_exogenous_inputs(self$change_model$flow_frame())
@@ -830,10 +839,11 @@ EulerMultinomialUpdateMethod = function(change_model) {
     flow_list = self$change_model$update_flows()
     components = list()
     for (size_var in names(flow_list)) {
-      components[[size_var]] = sprintf("%s ~ reulermultinom(%s, %s)"
+      components[[size_var]] = sprintf("%s ~ reulermultinom(%s, %s%s)"
         , self$vec(flow_list[[size_var]], lhs_char)
         , size_var
         , self$vec(flow_list[[size_var]], rhs_char)
+        , dt
       )
     }
     new_flow = lapply(components, as.formula)
@@ -860,13 +870,20 @@ HazardUpdateMethod = function(change_model) {
       , to_exogenous_inputs(self$change_model$flow_frame())
     )
     before_state = self$change_model$before_state()
+    if (dt == 1) {
+      dt = ""
+    } else {
+      dt = sprintf("%s * ", self$change_model$delta_t)
+    }
 
     flow_list = self$change_model$update_flows()
     components = list()
     for (size_var in names(flow_list)) {
-      components[[size_var]] = sprintf("%s ~ %s * (1 - exp(-sum(%s))) * proportions(%s, 0, %s)"
+      components[[size_var]] = sprintf(
+          "%s ~ %s * (1 - exp(-%ssum(%s))) * proportions(%s, 0, %s)"
         , self$vec(flow_list[[size_var]], lhs_char)
         , size_var
+        , dt
         , self$vec(flow_list[[size_var]], rhs_char)
         , self$vec(flow_list[[size_var]], rhs_char)
         , getOption("macpan2_tol_hazard_div")
