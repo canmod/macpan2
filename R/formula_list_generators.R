@@ -196,7 +196,7 @@ ChangeComponent = function() {
   ## state variables) that gives the size of the population being drawn
   ## from in a flow (e.g. S is the size of an infection flow).
   ## column - change: unsigned absolute flow rate name.
-  ## column - rate: per-capita flow rates (variables or expresions that 
+  ## column - rate: per-capita flow rates (variables or expressions that 
   ## sometimes involve state variables).
   ## column - abs_rate: absolute flow rate expression
   ## example:
@@ -208,8 +208,8 @@ ChangeComponent = function() {
   ## one may wonder, as i have, why we need to separate the change column
   ## and the abs_rate column. because we sometimes need a symbol name that 
   ## can appear on the lhs of an expression for the absolute rate, and we
-  ## sometimes directly specify the absolute rate through an expression (
-  ## although this is not the most comment case, it does come up with things
+  ## sometimes directly specify the absolute rate through an expression 
+  ## (although this is not the most comment case, it does come up with things
   ## like specifying absolute numbers of vaccines).
   self$flow_frame = function() empty_frame("size", "change", "rate", "abs_rate")
   
@@ -296,7 +296,7 @@ SimpleChangeModel = function(before = list(), during = list(), after = list(), d
     flow_list = list()
     formulas = sprintf("%s ~ %s", frame$change, frame$rate) |> lapply(as.formula)
     for (var in size_vars) flow_list[[var]] = formulas[frame$size == var]
-    flow_list
+    return(flow_list)
   }
   self$update_state = function() {
     frame = self$change_frame()
@@ -695,7 +695,7 @@ RK4UpdateMethod = function(change_model) {
     components = flow_frame_to_absolute_flows(flow_frame)
     before_state = self$change_model$before_state()
     update_state = self$change_model$update_state()
-    update_flows = self$change_model$update_flows() |> unlst()
+    update_flows = self$change_model$update_flows() |> unlst()  ## line can be removed?
     
     new_update = list()
     new_before = list()
@@ -808,10 +808,16 @@ EulerMultinomialUpdateMethod = function(change_model) {
   
   self$vec = function(expr_list, char_fun) {
     vec = vapply(expr_list, char_fun, character(1L))
+
     # - simple expressions are any non-formula strings 
     #   (names of variables or state flows)
     # - expressions that are not simple contain math symbols 
     #   (e.g., +,-,*,/, etc.)
+
+    ## simple expressions are any non-formula strings (names of variables or state flows)
+    ## expressions that are not simple contain math symbols (ex. +,-,*,/, etc.)
+    ## BMB: allow non-ASCII alpha? "^[[:alpha:]0-9._]+$"
+
     simple_expr = all(grepl("^[a-zA-Z0-9._]+$", vec))
     scalar_expr = length(vec) == 1L
     
@@ -844,6 +850,7 @@ EulerMultinomialUpdateMethod = function(change_model) {
         , dt
       )
     }
+    ## BMB: add absolute flows here
     new_flow = lapply(components, as.formula)
     
     update = self$change_model$update_state()
@@ -987,6 +994,25 @@ mp_per_capita_inflow = function(from, to, rate, flow_name = NULL, abs_rate = NUL
   PerCapitaInflow(from, to, rate, call_string)
 }
 
+#' @describeIn mp_per_capita_flow Only flow into the `to` compartment
+#' For adding a birth or immigration process
+#' @param rate_name String giving the name of the rate
+#' @export
+mp_inflow = function(to, rate, rate_name  = NULL) {
+  call_string = deparse(match.call())
+  rate = handle_abs_rate_args(rate, rate_name)
+  AbsoluteInflow(to, rate, call_string)
+}
+
+#' @describeIn mp_per_capita_flow Only flow into the `to` compartment
+#' For adding an absolute removal process that goes to 'nowhere': dangerous!
+#' @export
+mp_outflow = function(from, rate, abs_rate = NULL) {
+  call_string = deparse(match.call())
+  rate = handle_rate_args(rate, abs_rate)
+  AbsoluteOutflow(from, rate, call_string)
+}
+
 #' @describeIn mp_per_capita_flow Only flow out of the `from` compartment,
 #' without going anywhere. This is useful for removing individuals from the 
 #' system (e.g., death). To keep track of the total number of dead individuals
@@ -1058,14 +1084,6 @@ AbsoluteInflow = function(to, rate, call_string) {
       , change = sprintf("+%s", lhs_char(self$rate))
     )
   }
-  self$flow_frame = function() {
-    data.frame(
-        size = ""
-      , change = lhs_char(self$rate)
-      , rate = ""
-      , abs_rate = rhs_char(self$rate)
-    )
-  }
   return_object(self, "AbsoluteInflow")
 }
 
@@ -1094,7 +1112,8 @@ AbsoluteFlow = function(from, to, rate, call_string) {
   self$flow_frame = function() {
     abs_rate = rhs_char(self$rate)
     data.frame(
-        size = self$from
+        ## BMB: not sure if this is right? there is no 'size'
+        size = self$from %||% NA_character_
       , change = lhs_char(self$rate)
       
       ## this is the main problem with absolute flows, because it has a 
@@ -1102,12 +1121,16 @@ AbsoluteFlow = function(from, to, rate, call_string) {
       ## this issue should only arise for update methods that are more 
       ## naturally expressed for per-capita flows (e.g., Euler-multinomial
       ## and hazard)
-      , rate = sprintf("(%s) / %s", abs_rate, self$from)
-      
+      ## BMB: why does there need to be a 'from' involved here at all?
+      ##  is this only an issue because we need a Poisson-type stochastic
+      ##  flow to go with the Euler-multinomial?
+      , rate = sprintf("%s", abs_rate)
       , abs_rate = abs_rate
     )
   }
+  return_object(self, "AbsoluteFlow")
 }
+
 PerCapitaFlow = function(from, to, rate, call_string) {
   self = ChangeComponent()
   self$from = from
