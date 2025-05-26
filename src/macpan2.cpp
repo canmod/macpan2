@@ -3580,7 +3580,7 @@ Type objective_function<Type>::operator()()
     DATA_IVECTOR(r_col_id);
 
     // Trajectory simulation
-    DATA_INTEGER(time_steps)
+    DATA_INTEGER(time_steps);
 
     // Expressions and parse table
     DATA_IVECTOR(a_table_x);
