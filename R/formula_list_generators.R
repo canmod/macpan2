@@ -827,11 +827,9 @@ EulerMultinomialUpdateMethod = function(change_model) {
   
   self$before = function() self$change_model$before_loop()
   self$during = function() {
-    if (dt == 1) {
-      dt = ""
-    } else {
-      dt = sprintf(", %s", self$change_model$delta_t)
-    }
+    dt = self$change_model$delta_t
+    dt = if (dt == 1) "" else sprintf(", %s", dt)
+    
     before_components = c(
         self$change_model$before_flows()
       , to_exogenous_inputs(self$change_model$flow_frame())
@@ -870,11 +868,8 @@ HazardUpdateMethod = function(change_model) {
       , to_exogenous_inputs(self$change_model$flow_frame())
     )
     before_state = self$change_model$before_state()
-    if (dt == 1) {
-      dt = ""
-    } else {
-      dt = sprintf("%s * ", self$change_model$delta_t)
-    }
+    dt = self$change_model$delta_t
+    dt = if (dt == 1) "" else sprintf("%s * ", dt)
 
     flow_list = self$change_model$update_flows()
     components = list()
