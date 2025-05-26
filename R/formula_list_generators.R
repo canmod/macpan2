@@ -685,9 +685,9 @@ RK4UpdateMethod = function(change_model) {
   
   self$before = function() self$change_model$before_loop()
   self$during = function() {
-    ## abbr func nms
     unlst = function(x) unlist(x, recursive = FALSE, use.names = FALSE)
     as_forms = function(x) lapply(x, as.formula)
+    dt = self$change_model$delta_t
     
     before_components = self$change_model$before_flows()
     flow_frame = self$change_model$flow_frame()
@@ -730,33 +730,57 @@ RK4UpdateMethod = function(change_model) {
     }
     
     ## rk4 step 1
-    flow_replacements = sprintf("%s ~ %s", flows, flow_step_names$k1) |> as_forms()
+    flow_replacements = sprintf("%s ~ %s"
+      , flows, flow_step_names$k1
+    ) |> as_forms()
     k1_new_before = make_before("k1")
     k1_new_update = update_formulas(rate_formulas, flow_replacements)
     
     ## rk4 step 2
-    state_replacements = sprintf("%s ~ (%s + (%s / 2))", states, states, state_step_names$k1) |> as_forms()
-    flow_replacements = sprintf("%s ~ %s", flows, flow_step_names$k2) |> as_forms()
+    state_replacements = sprintf("%s ~ (%s + (%s * %s / 2))"
+      , states, states, dt, state_step_names$k1
+    ) |> as_forms()
+    flow_replacements = sprintf("%s ~ %s"
+      , flows, flow_step_names$k2
+    ) |> as_forms()
     k2_new_before = update_formulas(make_before("k2"), state_replacements)
-    k2_new_update = sprintf("%s ~ %s", state_step_names$k2, rates) |> as_forms() |> update_formulas(flow_replacements)
+    k2_new_update = sprintf("%s ~ %s"
+      , state_step_names$k2, rates
+    ) |> as_forms() |> update_formulas(flow_replacements)
     
     ## rk4 step 3
-    state_replacements = sprintf("%s ~ (%s + (%s / 2))", states, states, state_step_names$k2) |> as_forms()
-    flow_replacements = sprintf("%s ~ %s", flows, flow_step_names$k3) |> as_forms()
+    state_replacements = sprintf("%s ~ (%s + (%s * %s / 2))"
+      , states, states, dt, state_step_names$k2
+    ) |> as_forms()
+    flow_replacements = sprintf("%s ~ %s"
+      , flows, flow_step_names$k3
+    ) |> as_forms()
     k3_new_before = update_formulas(make_before("k3"), state_replacements)
-    k3_new_update = sprintf("%s ~ %s", state_step_names$k3, rates) |> as_forms() |> update_formulas(flow_replacements)
+    k3_new_update = sprintf("%s ~ %s"
+      , state_step_names$k3, rates
+    ) |> as_forms() |> update_formulas(flow_replacements)
     
     ## rk4 step 4
-    state_replacements = sprintf("%s ~ (%s + %s)", states, states, state_step_names$k3) |> as_forms()
-    flow_replacements = sprintf("%s ~ %s", flows, flow_step_names$k4) |> as_forms()
+    state_replacements = sprintf("%s ~ (%s + %s * %s)"
+      , states, states, dt, state_step_names$k3
+    ) |> as_forms()
+    flow_replacements = sprintf("%s ~ %s"
+      , flows, flow_step_names$k4
+    ) |> as_forms()
     k4_new_before = update_formulas(make_before("k4"), state_replacements)
-    k4_new_update = sprintf("%s ~ %s", state_step_names$k4, rates) |> as_forms() |> update_formulas(flow_replacements)
+    k4_new_update = sprintf("%s ~ %s"
+      , state_step_names$k4, rates
+    ) |> as_forms() |> update_formulas(flow_replacements)
     
     ## final update step
-    final_flow_update = sprintf("%s ~ (%s + 2 * %s + 2 * %s + %s)/6"
-      , flows, flow_step_names$k1, flow_step_names$k2, flow_step_names$k3, flow_step_names$k4
+    final_flow_update = sprintf("%s ~ (%s + 2 * %s + 2 * %s + %s) * %s/6"
+      , flows
+      , flow_step_names$k1, flow_step_names$k2
+      , flow_step_names$k3, flow_step_names$k4, dt
     ) |> as_forms()
-    final_state_update = sprintf("%s ~ %s %s", states, states, rates) |> as_forms() |> setNames(states)
+    final_state_update = sprintf("%s ~ %s %s"
+      , states, states, rates
+    ) |> as_forms() |> setNames(states)
     after_components = self$change_model$after_state()
     c(
         k1_new_before, k1_new_update
