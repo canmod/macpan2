@@ -77,6 +77,8 @@ reference:
   - mp_vars
   - mp_state_dependence_frame
   - mp_version
+  - dot_layout
+  - find_all_paths
 
 - title: Simulators
 
@@ -195,15 +197,14 @@ reference:
 
 - title: Not Ready
 
-- subtitle: Box Diagram Layouts (Not Ready)
+- subtitle: Box Diagrams
   desc: >
     Functions for semi-automatically laying out compartments in model
     specifications as boxes on a plot.
   contents:
+  - find_all_paths
   - mp_layout_grid
   - mp_layout_paths
-  - find_all_paths
-  - dot_layout
 
 - subtitle: Structured Populations (Not Ready)
   desc: > 

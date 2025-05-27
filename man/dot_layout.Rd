@@ -2,7 +2,7 @@
 % Please edit documentation in R/layout-plot-utils.R
 \name{dot_layout}
 \alias{dot_layout}
-\title{Create a graph from a model specification}
+\title{Create a Graph from a Model Specification}
 \usage{
 dot_layout(spec, include_inout = FALSE)
 }

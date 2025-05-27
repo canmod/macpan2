@@ -976,7 +976,7 @@ compute_adjacency_matrix <- function(df) {
   return(adj_matrix)
 }
 
-##' Create a graph from a model specification
+##' Create a Graph from a Model Specification
 ##' 
 ##' Convert a model specification into a graph (using the `graph` package) that
 ##' can be plotted with `Rgraphviz`: see `?Rgraphviz::plot.graphNEL` and
