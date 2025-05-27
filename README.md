@@ -33,9 +33,13 @@ Agency of Canada](https://www.canada.ca/en/public-health.html) uses
 
 ## Documentation
 
--   [Package reference](https://canmod.github.io/macpan2/)
+-   [Package website](https://canmod.github.io/macpan2/)
+-   [Package reference and function
+    documentation](https://canmod.github.io/macpan2/reference)
 -   [Quick-start
     guide](https://canmod.github.io/macpan2/articles/quickstart)
+-   [Articles describing the
+    package](https://canmod.github.io/macpan2/articles)
 -   [`TMB` engine](https://canmod.github.io/macpan2/articles/cpp_side)
     \[specification document\]
 -   [Project history and trajectory](https://canmod.net/misc/pyRC)
