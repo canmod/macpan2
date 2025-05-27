@@ -66,8 +66,8 @@ reference:
 
 - subtitle: Unpack Model Specifications
   desc: > 
-    Functions that extract or print information contained within 
-    model specifications.
+    Functions that extract, print, and/or plot information 
+    contained within model specifications.
   contents:
   - mp_print_spec
   - mp_initial
