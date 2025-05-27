@@ -121,7 +121,7 @@ This function returns an object of class <code>CSVReader</code>.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_flows_reader</span> <span class="op">=</span> <span class="fu"><a href="../reference/Reader.html">CSVReader</a></span><span class="op">(</span><span class="va">sir_path</span>, <span class="st">"flows.csv"</span><span class="op">)</span></span>
 <span><span class="va">sir_flows_reader</span></span>
-<span><span class="co">#&gt; Classes 'CSVReader', 'Reader', 'Base' &lt;environment: 0x557f692b6128&gt; </span></span>
+<span><span class="co">#&gt; Classes 'CSVReader', 'Reader', 'Base' &lt;environment: 0x5631d65845a8&gt; </span></span>
 <span><span class="co">#&gt; read : function ()  </span></span>
 <span><span class="co">#&gt; read_base : function ()</span></span></code></pre></div>
 <p>We get a print out of the <code>S3</code> class of the object, which
@@ -240,7 +240,7 @@ class.</p>
 <span><span class="op">}</span></span>
 <span><span class="va">does_nothing</span> <span class="op">=</span> <span class="fu">DoesNothing</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">does_nothing</span></span>
-<span><span class="co">#&gt; Classes 'DoesNothing', 'Base' &lt;environment: 0x557f6a0769e8&gt;</span></span></code></pre></div>
+<span><span class="co">#&gt; Classes 'DoesNothing', 'Base' &lt;environment: 0x5631d7344e68&gt;</span></span></code></pre></div>
 <p>The first line in this constructor uses the <code>Base</code>
 function to create an <code>environment</code> called <code>self</code>.
 The second line sets <code>self</code>s S3 <code>class</code> to
@@ -255,7 +255,7 @@ field.</p>
 <span><span class="op">}</span></span>
 <span><span class="va">does_nothing</span> <span class="op">=</span> <span class="fu">DoesNothing</span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span>
 <span><span class="va">does_nothing</span></span>
-<span><span class="co">#&gt; Classes 'DoesNothing', 'Base' &lt;environment: 0x557f6a3088d8&gt;</span></span></code></pre></div>
+<span><span class="co">#&gt; Classes 'DoesNothing', 'Base' &lt;environment: 0x5631d75d6d58&gt;</span></span></code></pre></div>
 <p>This looks identical to the first version, but now we have stored a
 value for <code>n</code>.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
