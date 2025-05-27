@@ -453,3 +453,28 @@ mp_print_after = function(model) {
     , c(0L, 0L, length(model$after))
   )
 }
+
+#' Version Update
+#' 
+#' Update the `macpan2` version associated with a model specification.
+#' 
+#' @param spec Object produced by \code{\link{mp_tmb_model_spec}} or another 
+#' function that produces the same type of object.
+#' 
+#' @export
+mp_version_update = function(spec) {
+  mp_tmb_model_spec(
+      before = spec$before, during = spec$during, after = spec$after
+    , default = spec$default, integers = spec$integers
+    , must_save = spec$must_save, must_not_save = spec$must_not_save
+    , sim_exprs = spec$sim_exprs
+    , state_update = spec$state_update
+  )
+}
+
+#' Read Serialized Model Specification
+#' 
+#' @param filename Path to a saved model specification object.
+#' 
+#' @export
+mp_read_rds = function(filename) filename |> readRDS() |> mp_version_update()
