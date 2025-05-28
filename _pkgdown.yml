@@ -50,6 +50,7 @@ reference:
   - mp_show_models
   - mp_model_starter
   - mp_model_docs
+  - mp_read_rds
 
 - subtitle: Transform Model Specifications
   desc: > 
@@ -63,6 +64,7 @@ reference:
   - mp_tmb_insert_backtrans
   - mp_euler
   - mp_expand
+  - mp_version_update
 
 - subtitle: Unpack Model Specifications
   desc: > 
