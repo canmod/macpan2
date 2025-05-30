@@ -37,7 +37,12 @@ dev_choose_cpp = function(suffix = "", ext = "cpp") {
 
 dev_compile = function(suffix = "", ext = "cpp") {
   ff = dev_file(suffix = suffix, ext = ext)
-  TMB::compile(ff)
+  Rcpp_flags = paste(
+        "-I", system.file("include", package = "TMB")
+      , "-I", system.file("include", package = "Rcpp")
+      , Rcpp:::RcppLdFlags()
+  )
+  TMB::compile(ff, flags = Rcpp_flags)
   dyn.load(TMB::dynlib(dev_obj(suffix = suffix, ext = ext)))
 }
 
