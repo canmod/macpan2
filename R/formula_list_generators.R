@@ -111,6 +111,8 @@ only_iterable = function(expr_list, states, is_first = FALSE) {
 ChangeModel = function() {
   self = Base()
   
+  self$delta_t = 1
+  
   # lists of formula expressions to be added to a `before` list
   self$before_loop = function() list()
   
@@ -238,8 +240,8 @@ ChangeComponent = function() {
 ##' si$during()
 ##' 
 ##' @noRd
-SimpleChangeModel = function(before = list(), during = list(), after = list()) {
-  self = ChangeModelDefaults()
+SimpleChangeModel = function(before = list(), during = list(), after = list(), delta_t) {
+  self = ChangeModelDefaults(delta_t)
   
   self$before = before
   self$during = during
@@ -308,7 +310,7 @@ SimpleChangeModel = function(before = list(), during = list(), after = list()) {
 }
 
 AllFormulaChangeModel = function(before = list(), during = list(), after = list()) {
-  self = ChangeModelDefaults()
+  self = ChangeModelDefaults(delta_t = 1)
   self$before = before
   self$during = during
   self$after = after
@@ -384,6 +386,8 @@ MockChangeModel = function() {
 ##' 
 ##' @param model Object with quantities that have been explicitly 
 ##' marked as state variables.
+##' @param delta_t Number giving the amount of time that passes during a
+##' single time-step.
 ##' 
 ##' @examples
 ##' sir = mp_tmb_library("starter_models", "sir", package = "macpan2")
@@ -401,7 +405,7 @@ NULL
 ##' \code{\link{mp_tmb_model_spec}}, but this default can be changed using
 ##' the functions described below.
 ##' @export
-mp_euler = function(model) UseMethod("mp_euler")
+mp_euler = function(model, delta_t = 1) UseMethod("mp_euler")
 
 ##' @describeIn state_updates ODE solver using Runge-Kutta 4. Any formulas that
 ##' appear before model flows in the `during` list will only be updated
@@ -424,19 +428,19 @@ mp_euler = function(model) UseMethod("mp_euler")
 ##' be confused. We therefore require that all state variable updates are set
 ##' explicitly (e.g., with \code{\link{mp_per_capita_flow}}).
 ##' @export
-mp_rk4 = function(model) UseMethod("mp_rk4")
+mp_rk4 = function(model, delta_t = 1) UseMethod("mp_rk4")
 
 ##' @describeIn state_updates Old version of `mp_rk4` that doesn't keep track
 ##' of absolute flows through each time-step. As a result this version is
 ##' more efficient but makes it more difficult to compute things like 
 ##' incidence over a time scale.
 ##' @export
-mp_rk4_old = function(model) UseMethod("mp_rk4_old")
+mp_rk4_old = function(model, delta_t = 1) UseMethod("mp_rk4_old")
 
 ##' @describeIn state_updates Original and deprecated name for 
 ##' `mp_discrete_stoch`. In all new projects please use `mp_discrete_stoch`.
 ##' @export
-mp_euler_multinomial = function(model) UseMethod("mp_euler_multinomial")
+mp_euler_multinomial = function(model, delta_t = 1) UseMethod("mp_euler_multinomial")
 
 ##' @describeIn state_updates Update state such that the probability of moving
 ##' from box `i` to box `j` in one time step is given by
@@ -447,33 +451,31 @@ mp_euler_multinomial = function(model) UseMethod("mp_euler_multinomial")
 ##' distribution that determines how many individuals go to each `j` box and 
 ##' how many stay in  `i`.
 ##' @export
-mp_discrete_stoch = function(model) UseMethod("mp_discrete_stoch")
+mp_discrete_stoch = function(model, delta_t = 1) UseMethod("mp_discrete_stoch")
 
 ##' @describeIn state_updates Update state with hazard steps, which is equivalent
 ##' to taking the step given by the expected value of the Euler-multinomial
 ##' distribution.
 ##' @export
-mp_hazard = function(model) UseMethod("mp_hazard")
+mp_hazard = function(model, delta_t = 1) UseMethod("mp_hazard")
 
 ##' @export
-mp_euler.TMBModelSpec = function(model) model$change_update_method("euler")
+mp_euler.TMBModelSpec = function(model, delta_t = 1) model$change_update_method("euler", delta_t)
 
 ##' @export
-mp_rk4.TMBModelSpec = function(model) model$change_update_method("rk4")
+mp_rk4.TMBModelSpec = function(model, delta_t = 1) model$change_update_method("rk4", delta_t)
 
 ##' @export
-mp_rk4_old.TMBModelSpec = function(model) model$change_update_method("rk4_old")
-
-
-##' @export
-mp_euler_multinomial.TMBModelSpec = function(model) model$change_update_method("euler_multinomial")
+mp_rk4_old.TMBModelSpec = function(model, delta_t = 1) model$change_update_method("rk4_old", delta_t)
 
 ##' @export
-mp_discrete_stoch.TMBModelSpec = function(model) model$change_update_method("discrete_stoch")
-
+mp_euler_multinomial.TMBModelSpec = function(model, delta_t = 1) model$change_update_method("euler_multinomial", delta_t)
 
 ##' @export
-mp_hazard.TMBModelSpec = function(model) model$change_update_method("hazard")
+mp_discrete_stoch.TMBModelSpec = function(model, delta_t = 1) model$change_update_method("discrete_stoch", delta_t)
+
+##' @export
+mp_hazard.TMBModelSpec = function(model, delta_t = 1) model$change_update_method("hazard", delta_t)
 
 
 #' Expand Model
@@ -505,8 +507,10 @@ to_exogenous_inputs = function(flow_frame) {
   frame = flow_frame[flow_frame$size == "", , drop = FALSE]
   sprintf("%s ~ %s", frame$change, frame$abs_rate) |> lapply(as.formula)
 }
-flow_frame_to_absolute_flows = function(flow_frame) {
-  char_vec = with(flow_frame, sprintf("%s ~ %s", change, abs_rate))
+flow_frame_to_absolute_flows = function(flow_frame, delta_t = 1) {
+  delta_t_str = ""
+  if (delta_t != 1) delta_t_str = sprintf("%s * ", delta_t)
+  char_vec = with(flow_frame, sprintf("%s ~ %s%s", change, delta_t_str, abs_rate))
   lapply(char_vec, as.formula)
 }
 to_absolute_flows = function(per_capita_flows) {
@@ -534,13 +538,13 @@ get_state_update_method = function(state_update, change_model) {
   if (state_update == "rk4_old") cls_nm = "RK4OldUpdateMethod"
   get(cls_nm)(change_model)
 }
-get_change_model = function(before, during, after) {
+get_change_model = function(before, during, after, delta_t = 1) {
   valid_before = all(vapply(before, is_two_sided, logical(1L)))
   if (!valid_before) stop("The before argument must be all two-sided formulas.")
   valid_after = all(vapply(after, is_two_sided, logical(1L)))
   if (!valid_after) stop("The after argument must be all two-sided formulas.")
   any_change_components = any(vapply(during, inherits, logical(1L), "ChangeComponent"))
-  if (any_change_components) return(SimpleChangeModel(before, during, after))
+  if (any_change_components) return(SimpleChangeModel(before, during, after, delta_t))
   AllFormulaChangeModel(before, during, after)
 }
 force_expr_list = function(x) {
@@ -589,7 +593,10 @@ EulerUpdateMethod = function(change_model, existing_global_names = character()) 
   self$before = function() self$change_model$before_loop()
   self$during = function() {
     before_components = self$change_model$before_flows()
-    components = flow_frame_to_absolute_flows(self$change_model$flow_frame())
+    components = flow_frame_to_absolute_flows(
+        self$change_model$flow_frame()
+      , self$change_model$delta_t
+    )
     before_update = self$change_model$before_state()
     update = self$change_model$update_state()
     
@@ -678,9 +685,10 @@ RK4UpdateMethod = function(change_model) {
   
   self$before = function() self$change_model$before_loop()
   self$during = function() {
-    ## abbr func nms
     unlst = function(x) unlist(x, recursive = FALSE, use.names = FALSE)
     as_forms = function(x) lapply(x, as.formula)
+    dt = self$change_model$delta_t
+    if (dt == 1) dt = ""
     
     before_components = self$change_model$before_flows()
     flow_frame = self$change_model$flow_frame()
@@ -723,33 +731,57 @@ RK4UpdateMethod = function(change_model) {
     }
     
     ## rk4 step 1
-    flow_replacements = sprintf("%s ~ %s", flows, flow_step_names$k1) |> as_forms()
+    flow_replacements = sprintf("%s ~ %s"
+      , flows, flow_step_names$k1
+    ) |> as_forms()
     k1_new_before = make_before("k1")
     k1_new_update = update_formulas(rate_formulas, flow_replacements)
     
     ## rk4 step 2
-    state_replacements = sprintf("%s ~ (%s + (%s / 2))", states, states, state_step_names$k1) |> as_forms()
-    flow_replacements = sprintf("%s ~ %s", flows, flow_step_names$k2) |> as_forms()
+    state_replacements = sprintf("%s ~ (%s + (%s%s / 2))"
+      , states, states, dt, state_step_names$k1
+    ) |> as_forms()
+    flow_replacements = sprintf("%s ~ %s"
+      , flows, flow_step_names$k2
+    ) |> as_forms()
     k2_new_before = update_formulas(make_before("k2"), state_replacements)
-    k2_new_update = sprintf("%s ~ %s", state_step_names$k2, rates) |> as_forms() |> update_formulas(flow_replacements)
+    k2_new_update = sprintf("%s ~ %s"
+      , state_step_names$k2, rates
+    ) |> as_forms() |> update_formulas(flow_replacements)
     
     ## rk4 step 3
-    state_replacements = sprintf("%s ~ (%s + (%s / 2))", states, states, state_step_names$k2) |> as_forms()
-    flow_replacements = sprintf("%s ~ %s", flows, flow_step_names$k3) |> as_forms()
+    state_replacements = sprintf("%s ~ (%s + (%s%s / 2))"
+      , states, states, dt, state_step_names$k2
+    ) |> as_forms()
+    flow_replacements = sprintf("%s ~ %s"
+      , flows, flow_step_names$k3
+    ) |> as_forms()
     k3_new_before = update_formulas(make_before("k3"), state_replacements)
-    k3_new_update = sprintf("%s ~ %s", state_step_names$k3, rates) |> as_forms() |> update_formulas(flow_replacements)
+    k3_new_update = sprintf("%s ~ %s"
+      , state_step_names$k3, rates
+    ) |> as_forms() |> update_formulas(flow_replacements)
     
     ## rk4 step 4
-    state_replacements = sprintf("%s ~ (%s + %s)", states, states, state_step_names$k3) |> as_forms()
-    flow_replacements = sprintf("%s ~ %s", flows, flow_step_names$k4) |> as_forms()
+    state_replacements = sprintf("%s ~ (%s + %s%s)"
+      , states, states, dt, state_step_names$k3
+    ) |> as_forms()
+    flow_replacements = sprintf("%s ~ %s"
+      , flows, flow_step_names$k4
+    ) |> as_forms()
     k4_new_before = update_formulas(make_before("k4"), state_replacements)
-    k4_new_update = sprintf("%s ~ %s", state_step_names$k4, rates) |> as_forms() |> update_formulas(flow_replacements)
+    k4_new_update = sprintf("%s ~ %s"
+      , state_step_names$k4, rates
+    ) |> as_forms() |> update_formulas(flow_replacements)
     
     ## final update step
-    final_flow_update = sprintf("%s ~ (%s + 2 * %s + 2 * %s + %s)/6"
-      , flows, flow_step_names$k1, flow_step_names$k2, flow_step_names$k3, flow_step_names$k4
+    final_flow_update = sprintf("%s ~ (%s + 2 * %s + 2 * %s + %s)%s/6"
+      , flows
+      , flow_step_names$k1, flow_step_names$k2
+      , flow_step_names$k3, flow_step_names$k4, dt
     ) |> as_forms()
-    final_state_update = sprintf("%s ~ %s %s", states, states, rates) |> as_forms() |> setNames(states)
+    final_state_update = sprintf("%s ~ %s %s"
+      , states, states, rates
+    ) |> as_forms() |> setNames(states)
     after_components = self$change_model$after_state()
     c(
         k1_new_before, k1_new_update
@@ -772,12 +804,20 @@ DiscreteStochUpdateMethod = function(change_model) {
 EulerMultinomialUpdateMethod = function(change_model) {
   self = Base()
   self$change_model = change_model
+  dt = self$change_model$delta_t
   
   self$vec = function(expr_list, char_fun) {
     vec = vapply(expr_list, char_fun, character(1L))
+
+    # - simple expressions are any non-formula strings 
+    #   (names of variables or state flows)
+    # - expressions that are not simple contain math symbols 
+    #   (e.g., +,-,*,/, etc.)
+
     ## simple expressions are any non-formula strings (names of variables or state flows)
     ## expressions that are not simple contain math symbols (ex. +,-,*,/, etc.)
     ## BMB: allow non-ASCII alpha? "^[[:alpha:]0-9._]+$"
+
     simple_expr = all(grepl("^[a-zA-Z0-9._]+$", vec))
     scalar_expr = length(vec) == 1L
     
@@ -793,6 +833,9 @@ EulerMultinomialUpdateMethod = function(change_model) {
   
   self$before = function() self$change_model$before_loop()
   self$during = function() {
+    dt = self$change_model$delta_t
+    dt = if (dt == 1) "" else sprintf(", %s", dt)
+    
     before_components = c(
         self$change_model$before_flows()
       , to_exogenous_inputs(self$change_model$flow_frame())
@@ -800,10 +843,11 @@ EulerMultinomialUpdateMethod = function(change_model) {
     flow_list = self$change_model$update_flows()
     components = list()
     for (size_var in names(flow_list)) {
-      components[[size_var]] = sprintf("%s ~ reulermultinom(%s, %s)"
+      components[[size_var]] = sprintf("%s ~ reulermultinom(%s, %s%s)"
         , self$vec(flow_list[[size_var]], lhs_char)
         , size_var
         , self$vec(flow_list[[size_var]], rhs_char)
+        , dt
       )
     }
     ## BMB: add absolute flows here
@@ -831,13 +875,17 @@ HazardUpdateMethod = function(change_model) {
       , to_exogenous_inputs(self$change_model$flow_frame())
     )
     before_state = self$change_model$before_state()
+    dt = self$change_model$delta_t
+    dt = if (dt == 1) "" else sprintf("%s * ", dt)
 
     flow_list = self$change_model$update_flows()
     components = list()
     for (size_var in names(flow_list)) {
-      components[[size_var]] = sprintf("%s ~ %s * (1 - exp(-sum(%s))) * proportions(%s, 0, %s)"
+      components[[size_var]] = sprintf(
+          "%s ~ %s * (1 - exp(-%ssum(%s))) * proportions(%s, 0, %s)"
         , self$vec(flow_list[[size_var]], lhs_char)
         , size_var
+        , dt
         , self$vec(flow_list[[size_var]], rhs_char)
         , self$vec(flow_list[[size_var]], rhs_char)
         , getOption("macpan2_tol_hazard_div")
