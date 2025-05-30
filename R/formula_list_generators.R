@@ -1135,7 +1135,7 @@ PerCapitaFlow = function(from, to, rate, call_string) {
   self = ChangeComponent()
   self$from = from
   self$to = to
-  self$rate = rate
+  self$rate = rate ## formula with flow_name ~ per_capita_rate
   self$call_string = call_string
   self$change_frame = function() {
     data.frame(

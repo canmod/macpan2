@@ -336,7 +336,6 @@ struct ListOfMatrices
             }
             else
             {
-                // Handle out-of-range index or negative index as needed
                 Rf_error("Index out of range");
             }
         }
