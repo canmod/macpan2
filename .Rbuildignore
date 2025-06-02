@@ -27,8 +27,9 @@ misc/
 drat/
 .*\.vscode
 .*/html/.*
-^vignettes/[a-zA-Z0-9]+\.Rmd$
+^vignettes/[a-zA-Z0-9_]+\.R$
 .*.cff
 ^.macpan$
+^.macpan2$
 ^CONTRIBUTING\.md$
 ^news-narratives\.md$
