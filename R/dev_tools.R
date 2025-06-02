@@ -35,17 +35,20 @@ dev_choose_cpp = function(suffix = "", ext = "cpp") {
   dev_obj(suffix = suffix, ext = ext)
 }
 
+#' @importFrom Rcpp RcppLdFlags
+#' @importFrom TMB compile
 dev_compile = function(suffix = "", ext = "cpp") {
   ff = dev_file(suffix = suffix, ext = ext)
   Rcpp_flags = paste(
         "-I", system.file("include", package = "TMB")
       , "-I", system.file("include", package = "Rcpp")
-      , Rcpp:::RcppLdFlags()
+      , Rcpp::RcppLdFlags()
   )
   TMB::compile(ff, flags = Rcpp_flags)
   dyn.load(TMB::dynlib(dev_obj(suffix = suffix, ext = ext)))
 }
 
+#' @importFrom rmarkdown render
 render_model_readme = function(file) {
   rmarkdown::render(input = file, output_format = "md_document", intermediates_dir = NULL)
   f = basename(file) |> tools::file_path_sans_ext()
