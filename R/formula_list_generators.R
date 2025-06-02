@@ -959,9 +959,9 @@ mp_inflow = function(to, rate, rate_name  = NULL) {
 #' @describeIn mp_per_capita_flow Only flow into the `to` compartment
 #' For adding an absolute removal process that goes to 'nowhere': dangerous!
 #' @export
-mp_outflow = function(from, rate, abs_rate = NULL) {
+mp_outflow = function(from, rate, rate_name = NULL) {
   call_string = deparse(match.call())
-  rate = handle_rate_args(rate, abs_rate)
+  rate = handle_abs_rate_args(rate, rate_name)
   AbsoluteOutflow(from, rate, call_string)
 }
 

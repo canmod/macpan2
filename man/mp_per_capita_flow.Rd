@@ -12,9 +12,9 @@ mp_per_capita_flow(from, to, rate, flow_name = NULL, abs_rate = NULL)
 
 mp_per_capita_inflow(from, to, rate, flow_name = NULL, abs_rate = NULL)
 
-mp_inflow(to, rate, flow_name = NULL, abs_rate = NULL)
+mp_inflow(to, rate, rate_name = NULL)
 
-mp_outflow(from, rate, flow_name = NULL, abs_rate = NULL)
+mp_outflow(from, rate, rate_name = NULL)
 
 mp_per_capita_outflow(from, rate, flow_name = NULL, abs_rate = NULL)
 }
