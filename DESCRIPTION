@@ -45,7 +45,8 @@ Suggests:
     macpan2helpers,
     iidda.api,
     graph,
-    Rgraphviz
+    Rgraphviz,
+    Rcpp
 LinkingTo:
     TMB,
     RcppEigen,
