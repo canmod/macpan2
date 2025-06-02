@@ -288,7 +288,7 @@ SimpleChangeModel = function(before = list(), during = list(), after = list()) {
   ## other update methods should work directly with the $flow_frame()
   self$update_flows = function() {
     frame = self$flow_frame()
-    size_vars = unique(frame$size)
+    size_vars = setdiff(unique(frame$size), "")
     frame = frame[size_vars != "", , drop = FALSE]
     #if (any(size_vars == "")) stop("model includes flows coming from outside the system and so they cannot be used with update methods that cannot be expressed as a per-capita flow from somewhere in the system. please either use mp_euler or mp_rk4, or move absolute inflows to an ordinary formula component in the spec.")
     flow_list = list()
@@ -501,10 +501,17 @@ mp_expand.TMBModelSpec = function(model) model$expand()
 
 
 ## Utilities
-to_exogenous_inputs = function(flow_frame) {
+to_exogenous = function(flow_frame, rand_fn = NULL) {
   frame = flow_frame[flow_frame$size == "", , drop = FALSE]
-  sprintf("%s ~ %s", frame$change, frame$abs_rate) |> lapply(as.formula)
+  if (is.null(rand_fn)) {
+    template = "%s ~ %s"
+  } else {
+    template = sprintf("%%s ~ %s(%%s)", rand_fn)
+  }
+   
+  sprintf(template, frame$change, frame$abs_rate) |> lapply(as.formula)
 }
+to_exogenous_inputs = to_exogenous ## back-compat
 flow_frame_to_absolute_flows = function(flow_frame) {
   char_vec = with(flow_frame, sprintf("%s ~ %s", change, abs_rate))
   lapply(char_vec, as.formula)
@@ -795,7 +802,7 @@ EulerMultinomialUpdateMethod = function(change_model) {
   self$during = function() {
     before_components = c(
         self$change_model$before_flows()
-      , to_exogenous_inputs(self$change_model$flow_frame())
+      , to_exogenous(self$change_model$flow_frame(), rand_fn = "rpois")
     )
     flow_list = self$change_model$update_flows()
     components = list()
@@ -828,7 +835,7 @@ HazardUpdateMethod = function(change_model) {
   self$during = function() {
     before_components = c(
         self$change_model$before_flows()
-      , to_exogenous_inputs(self$change_model$flow_frame())
+      , to_exogenous(self$change_model$flow_frame())
     )
     before_state = self$change_model$before_state()
 
@@ -861,9 +868,9 @@ HazardUpdateMethod = function(change_model) {
 
 # Change Components
 
-#' Specify Flow Between Compartments
+#' Specify Flow Into, Out Of, and Between Compartments
 #' 
-#' Specify different kinds of flows between compartments.
+#' Specify different kinds of flows into, out of, and between compartments.
 #' 
 #' The examples below can be mixed and matched in `mp_tmb_model_spec()`
 #' to produce compartmental models. The symbols used below must
@@ -923,8 +930,8 @@ HazardUpdateMethod = function(change_model) {
 #' # https://github.com/canmod/macpan2/blob/main/inst/starter_models/shiver
 #' mp_per_capita_flow("S", "V", "((a * S)/(b + S))/S",  "vaccination")
 #' 
-#' # importation (experimental)
-#' # mp_absolute_inflow("I", "delta", "importation")
+#' # importation
+#' # mp_inflow("I", "delta", "importation")
 #' 
 #' @export
 mp_per_capita_flow = function(from, to, rate, flow_name = NULL, abs_rate = NULL) {
@@ -946,25 +953,6 @@ mp_per_capita_inflow = function(from, to, rate, flow_name = NULL, abs_rate = NUL
   PerCapitaInflow(from, to, rate, call_string)
 }
 
-#' @describeIn mp_per_capita_flow Only flow into the `to` compartment
-#' For adding a birth or immigration process
-#' @param rate_name String giving the name of the rate
-#' @export
-mp_inflow = function(to, rate, rate_name  = NULL) {
-  call_string = deparse(match.call())
-  rate = handle_abs_rate_args(rate, rate_name)
-  AbsoluteInflow(to, rate, call_string)
-}
-
-#' @describeIn mp_per_capita_flow Only flow into the `to` compartment
-#' For adding an absolute removal process that goes to 'nowhere': dangerous!
-#' @export
-mp_outflow = function(from, rate, rate_name = NULL) {
-  call_string = deparse(match.call())
-  rate = handle_abs_rate_args(rate, rate_name)
-  AbsoluteOutflow(from, rate, call_string)
-}
-
 #' @describeIn mp_per_capita_flow Only flow out of the `from` compartment,
 #' without going anywhere. This is useful for removing individuals from the 
 #' system (e.g., death). To keep track of the total number of dead individuals
@@ -975,6 +963,31 @@ mp_per_capita_outflow = function(from, rate, flow_name = NULL, abs_rate = NULL) 
   call_string = deparse(match.call())
   rate = handle_rate_args(rate, abs_rate, flow_name)
   PerCapitaOutflow(from, rate, call_string)
+}
+
+#' @describeIn mp_per_capita_flow Only flow into the `to` compartment.
+#' For adding a birth or immigration process.
+#' @param flow_name String giving the name of the flow
+#' @export
+mp_inflow = function(to, rate, flow_name  = NULL, abs_rate = NULL) {
+  call_string = deparse(match.call())
+  rate = handle_rate_args(rate, abs_rate, flow_name)
+  AbsoluteInflow(to, rate, call_string)
+}
+
+#' @describeIn mp_per_capita_flow Only flow out of the `from` compartment.
+#' For adding an absolute removal process that goes to 'nowhere': dangerous!
+#' The reason it is dangerous is that this flow can easily lead to negative 
+#' values of state variables when the `rate` is high relative to the
+#' size of the `from` compartment. Often `mp_per_capita_outflow` will be
+#' a better choice, given that the size of the outflow will be scaled to
+#' the size of the `from` compartment by measuring rates on a per-capita
+#' basis.
+#' @export
+mp_outflow = function(from, rate, flow_name = NULL, abs_rate = NULL) {
+  call_string = deparse(match.call())
+  rate = handle_rate_args(rate, abs_rate, flow_name)
+  AbsoluteOutflow(from, rate, call_string)
 }
 
 
@@ -1036,6 +1049,7 @@ AbsoluteInflow = function(to, rate, call_string) {
       , change = sprintf("+%s", lhs_char(self$rate))
     )
   }
+  self$string = function() self$call_string
   return_object(self, "AbsoluteInflow")
 }
 
@@ -1047,6 +1061,8 @@ AbsoluteOutflow = function(from, rate, call_string) {
       , change = sprintf("-%s", lhs_char(self$rate))
     )
   }
+  self$string = function() self$call_string
+  return_object(self, "AbsoluteOutflow")
 }
 
 AbsoluteFlow = function(from, to, rate, call_string) {
@@ -1065,7 +1081,7 @@ AbsoluteFlow = function(from, to, rate, call_string) {
     abs_rate = rhs_char(self$rate)
     data.frame(
         ## BMB: not sure if this is right? there is no 'size'
-        size = self$from %||% NA_character_
+        size = "" ## self$from %||% ""
       , change = lhs_char(self$rate)
       
       ## this is the main problem with absolute flows, because it has a 

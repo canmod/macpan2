@@ -90,7 +90,7 @@ function that combines the tables into a single index table:
 age = mp_index(Age = c("young", "old"))
 prod = mp_cartesian(sir, age)
 prod
-#> Classes 'Index', 'Base' <environment: 0x7fabf6e95ae8> 
+#> Classes 'Index', 'Base' <environment: 0x7fc37c86ec50> 
 #> labels : function ()  
 #> partial_labels : function (...)  
 #> positions : function (zero_based = FALSE)  
