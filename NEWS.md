@@ -1,8 +1,44 @@
-## Changes in 2.1.0
+## Changes in 2.3.1
 
 In-Progress
 
-[change list](https://github.com/canmod/macpan2/compare/c48fb449c8530240fba3bdddfa44af22cb50529d..01f4a32917b09eac4a9aa15754f3928630f892e4)
+[change list](https://github.com/canmod/macpan2/compare/2b448729a223b1b4bd3d5937215019cbf4618bb2..5e182d3b2f6c121360be572e52117ba4b17e5de7)
+
+## Changes in 2.3.0
+
+Released: 2025-06-02
+
+[change list](https://github.com/canmod/macpan2/compare/419ab564ffac9697795f7b72ad270a3410b8b68c..2b448729a223b1b4bd3d5937215019cbf4618bb2)
+
+## Changes in 2.2.3
+
+Released: 2025-06-02
+
+[change list](https://github.com/canmod/macpan2/compare/a25df4d0785c3ccf760350895889e4a4ba0f93c1..419ab564ffac9697795f7b72ad270a3410b8b68c)
+
+## Changes in 2.2.2
+
+Released: 2025-06-02
+
+[change list](https://github.com/canmod/macpan2/compare/654535678ccc17957ce2cb1d6dc791cec248ff4b..a25df4d0785c3ccf760350895889e4a4ba0f93c1)
+
+## Changes in 2.2.1
+
+Released: 2025-06-02
+
+[change list](https://github.com/canmod/macpan2/compare/75f23ab2e8716d45ae4e343771b3a6196216fd54..654535678ccc17957ce2cb1d6dc791cec248ff4b)
+
+## Changes in 2.2.0
+
+Released: 2025-05-27
+
+[change list](https://github.com/canmod/macpan2/compare/d6b0e9901e39fbc22d1b1dd4ec24b6ad542cebb8..75f23ab2e8716d45ae4e343771b3a6196216fd54)
+
+## Changes in 2.1.0
+
+Released: 2025-05-23
+
+[change list](https://github.com/canmod/macpan2/compare/c48fb449c8530240fba3bdddfa44af22cb50529d..d6b0e9901e39fbc22d1b1dd4ec24b6ad542cebb8)
 
 ## Changes in 2.0.1
 
@@ -37,13 +73,25 @@ Released: 2025-05-15
 
 Released: 2025-04-17
 
-[change list](https://github.com/canmod/macpan2/compare/4a8bf67abd996cce47d1a33dbc7d771f004dd2d2..6eaf25f0c9a8a8c4167ac5974ba8675cb021478c)
+[change list](https://github.com/canmod/macpan2/compare/a5d0870b0e06a0a1192db82194b8711dfddcafa5..6eaf25f0c9a8a8c4167ac5974ba8675cb021478c)
+
+## Changes in 1.16.9
+
+Released: 2025-04-04
+
+[change list](https://github.com/canmod/macpan2/compare/93061ef0203d500b9764dcda1bffdf940837127a..a5d0870b0e06a0a1192db82194b8711dfddcafa5)
+
+## Changes in 1.16.8
+
+Released: 2025-04-04
+
+[change list](https://github.com/canmod/macpan2/compare/723b1647840c811da9682dcb28306b79b4aeeeff..93061ef0203d500b9764dcda1bffdf940837127a)
 
 ## Changes in 1.16.11
 
-Released: 2025-04-09
+Released: 2025-04-04
 
-[change list](https://github.com/canmod/macpan2/compare/feec317106233839d49c8ad3a19780c6a08abeef..4a8bf67abd996cce47d1a33dbc7d771f004dd2d2)
+[change list](https://github.com/canmod/macpan2/compare/1d2468ddf09f07888aa80488b3e869a7a8e971d6..723b1647840c811da9682dcb28306b79b4aeeeff)
 
 ### New Features
 
@@ -52,39 +100,27 @@ Released: 2025-04-09
 
 ## Changes in 1.16.10
 
-Released: 2025-04-06
-
-[change list](https://github.com/canmod/macpan2/compare/c371c8c7cb8c5d371beb693fb9ac0f86a6cd215d..feec317106233839d49c8ad3a19780c6a08abeef)
-
-## Changes in 1.16.9
-
 Released: 2025-04-04
 
-[change list](https://github.com/canmod/macpan2/compare/93061ef0203d500b9764dcda1bffdf940837127a..c371c8c7cb8c5d371beb693fb9ac0f86a6cd215d)
-
-## Changes in 1.16.8
-
-Released: 2025-04-04
-
-[change list](https://github.com/canmod/macpan2/compare/527bdd35ec719f77cfa2b3c7e01b8e0c28d2929e..93061ef0203d500b9764dcda1bffdf940837127a)
+[change list](https://github.com/canmod/macpan2/compare/739093e0630e2b6ea993af9a5a05ce428496823a..1d2468ddf09f07888aa80488b3e869a7a8e971d6)
 
 ## Changes in 1.16.7
 
 Released: 2025-03-31
 
-[change list](https://github.com/canmod/macpan2/compare/208fdfdf3b0bd6c6cbf6e6f645aa7a3aa7b38a38..527bdd35ec719f77cfa2b3c7e01b8e0c28d2929e)
+[change list](https://github.com/canmod/macpan2/compare/6415a062de47f291973b891e9ee990d6bebf3707..739093e0630e2b6ea993af9a5a05ce428496823a)
 
 ## Changes in 1.16.6
 
-Released: 2025-03-23
+Released: 2025-03-24
 
-[change list](https://github.com/canmod/macpan2/compare/f5431fc10ae04d7100affa99f55177e3c45e55f8..208fdfdf3b0bd6c6cbf6e6f645aa7a3aa7b38a38)
+[change list](https://github.com/canmod/macpan2/compare/958c18f10bd0844f7a43052a8378d5531a09fee9..6415a062de47f291973b891e9ee990d6bebf3707)
 
 ## Changes in 1.16.5
 
 Released: 2025-03-23
 
-[change list](https://github.com/canmod/macpan2/compare/f97745fe1e12d539f3c1beb851c376828aa274ec..f5431fc10ae04d7100affa99f55177e3c45e55f8)
+[change list](https://github.com/canmod/macpan2/compare/f97745fe1e12d539f3c1beb851c376828aa274ec..958c18f10bd0844f7a43052a8378d5531a09fee9)
 
 ## Changes in 1.16.4
 
@@ -108,31 +144,31 @@ Released: 2025-03-20
 
 Released: 2025-03-20
 
-[change list](https://github.com/canmod/macpan2/compare/0ffc3b2cdbc907991cef4953b96156f9fa9a95b7..597b08ae9eea3aa3c40b28d14857c48cc507af1d)
-
-## Changes in 1.15.3
-
-Released: 2025-03-20
-
-[change list](https://github.com/canmod/macpan2/compare/d41b2b103a1886b4f970a29a4510c84ce5e49952..0ffc3b2cdbc907991cef4953b96156f9fa9a95b7)
+[change list](https://github.com/canmod/macpan2/compare/d41b2b103a1886b4f970a29a4510c84ce5e49952..597b08ae9eea3aa3c40b28d14857c48cc507af1d)
 
 ## Changes in 1.16.0
 
 Released: 2025-03-19
 
-[change list](https://github.com/canmod/macpan2/compare/ace5fd2b3ede943385a7c7e50d295aaafe3fb325..d41b2b103a1886b4f970a29a4510c84ce5e49952)
+[change list](https://github.com/canmod/macpan2/compare/5cc2042c42890807af7487f679c72fe5a305988f..d41b2b103a1886b4f970a29a4510c84ce5e49952)
+
+## Changes in 1.15.3
+
+Released: 2025-03-17
+
+[change list](https://github.com/canmod/macpan2/compare/ace5fd2b3ede943385a7c7e50d295aaafe3fb325..5cc2042c42890807af7487f679c72fe5a305988f)
 
 ## Changes in 1.15.2
 
 Released: 2025-03-11
 
-[change list](https://github.com/canmod/macpan2/compare/a4ce7f19f5eef38d815bafac8b9d8aa70d2e405b..ace5fd2b3ede943385a7c7e50d295aaafe3fb325)
+[change list](https://github.com/canmod/macpan2/compare/5c7a4f3c4df572828d75056fd0c24920ab139c7c..ace5fd2b3ede943385a7c7e50d295aaafe3fb325)
 
 ## Changes in 1.15.1
 
 Released: 2025-03-11
 
-[change list](https://github.com/canmod/macpan2/compare/52cc2768cea6a17c782a6f24fd88febe222c43c2..a4ce7f19f5eef38d815bafac8b9d8aa70d2e405b)
+[change list](https://github.com/canmod/macpan2/compare/52cc2768cea6a17c782a6f24fd88febe222c43c2..5c7a4f3c4df572828d75056fd0c24920ab139c7c)
 
 ## Changes in 1.15.0
 
