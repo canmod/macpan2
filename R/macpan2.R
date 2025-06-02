@@ -5,7 +5,8 @@
 ##' [McMasterPandemic](https://github.com/mac-theobio/mcmasterpandemic)
 ##' package on compartmental epidemic modelling for
 ##' forecasting and analysis of infectious diseases.
-##'
+##' 
+##' @aliases macpan2 macpan2-pkg
 ##' @keywords internal
 "_PACKAGE"
 
