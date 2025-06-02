@@ -35,7 +35,6 @@ dev_choose_cpp = function(suffix = "", ext = "cpp") {
   dev_obj(suffix = suffix, ext = ext)
 }
 
-#' @importFrom Rcpp RcppLdFlags
 #' @importFrom TMB compile
 dev_compile = function(suffix = "", ext = "cpp") {
   ff = dev_file(suffix = suffix, ext = ext)
