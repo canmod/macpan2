@@ -42,7 +42,6 @@ quick-doc-install: R/*.R misc/dev/dev.cpp
 	make doc-update
 	make quick-install
 
-
 forced-quick-doc-install: 
 	touch misc/old-r-source/*.R
 	make doc-update
@@ -148,8 +147,8 @@ R/engine_functions.R: src/macpan2.cpp
 	echo "NULL" >> $@
 
 
-doc-update: R/*.R misc/dev/dev.cpp misc/old-r-source/*.R
-	echo "suppressWarnings(roxygen2::roxygenize(\".\",roclets = c(\"collate\", \"rd\", \"namespace\")))" | R --slave
+doc-update: R/*.R misc/dev/dev.cpp misc/old-r-source/*.R misc/build/roxygenise.R
+	Rscript misc/build/roxygenise.R
 	touch doc-update
 
 
