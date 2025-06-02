@@ -868,9 +868,9 @@ HazardUpdateMethod = function(change_model) {
 
 # Change Components
 
-#' Specify Flow Between Compartments
+#' Specify Flow Into, Out Of, and Between Compartments
 #' 
-#' Specify different kinds of flows between compartments.
+#' Specify different kinds of flows into, out of, and between compartments.
 #' 
 #' The examples below can be mixed and matched in `mp_tmb_model_spec()`
 #' to produce compartmental models. The symbols used below must
@@ -930,8 +930,8 @@ HazardUpdateMethod = function(change_model) {
 #' # https://github.com/canmod/macpan2/blob/main/inst/starter_models/shiver
 #' mp_per_capita_flow("S", "V", "((a * S)/(b + S))/S",  "vaccination")
 #' 
-#' # importation (experimental)
-#' # mp_absolute_inflow("I", "delta", "importation")
+#' # importation
+#' # mp_inflow("I", "delta", "importation")
 #' 
 #' @export
 mp_per_capita_flow = function(from, to, rate, flow_name = NULL, abs_rate = NULL) {
@@ -953,25 +953,6 @@ mp_per_capita_inflow = function(from, to, rate, flow_name = NULL, abs_rate = NUL
   PerCapitaInflow(from, to, rate, call_string)
 }
 
-#' @describeIn mp_per_capita_flow Only flow into the `to` compartment
-#' For adding a birth or immigration process
-#' @param flow_name String giving the name of the flow
-#' @export
-mp_inflow = function(to, rate, flow_name  = NULL, abs_rate = NULL) {
-  call_string = deparse(match.call())
-  rate = handle_rate_args(rate, abs_rate, flow_name)
-  AbsoluteInflow(to, rate, call_string)
-}
-
-#' @describeIn mp_per_capita_flow Only flow into the `to` compartment
-#' For adding an absolute removal process that goes to 'nowhere': dangerous!
-#' @export
-mp_outflow = function(from, rate, flow_name = NULL, abs_rate = NULL) {
-  call_string = deparse(match.call())
-  rate = handle_rate_args(rate, abs_rate, flow_name)
-  AbsoluteOutflow(from, rate, call_string)
-}
-
 #' @describeIn mp_per_capita_flow Only flow out of the `from` compartment,
 #' without going anywhere. This is useful for removing individuals from the 
 #' system (e.g., death). To keep track of the total number of dead individuals
@@ -982,6 +963,31 @@ mp_per_capita_outflow = function(from, rate, flow_name = NULL, abs_rate = NULL) 
   call_string = deparse(match.call())
   rate = handle_rate_args(rate, abs_rate, flow_name)
   PerCapitaOutflow(from, rate, call_string)
+}
+
+#' @describeIn mp_per_capita_flow Only flow into the `to` compartment.
+#' For adding a birth or immigration process.
+#' @param flow_name String giving the name of the flow
+#' @export
+mp_inflow = function(to, rate, flow_name  = NULL, abs_rate = NULL) {
+  call_string = deparse(match.call())
+  rate = handle_rate_args(rate, abs_rate, flow_name)
+  AbsoluteInflow(to, rate, call_string)
+}
+
+#' @describeIn mp_per_capita_flow Only flow out of the `from` compartment.
+#' For adding an absolute removal process that goes to 'nowhere': dangerous!
+#' The reason it is dangerous is that this flow can easily lead to negative 
+#' values of state variables when the `rate` is high relative to the
+#' size of the `from` compartment. Often `mp_per_capita_outflow` will be
+#' a better choice, given that the size of the outflow will be scaled to
+#' the size of the `from` compartment by measuring rates on a per-capita
+#' basis.
+#' @export
+mp_outflow = function(from, rate, flow_name = NULL, abs_rate = NULL) {
+  call_string = deparse(match.call())
+  rate = handle_rate_args(rate, abs_rate, flow_name)
+  AbsoluteOutflow(from, rate, call_string)
 }
 
 
