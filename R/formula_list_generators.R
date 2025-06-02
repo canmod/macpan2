@@ -501,10 +501,17 @@ mp_expand.TMBModelSpec = function(model) model$expand()
 
 
 ## Utilities
-to_exogenous_inputs = function(flow_frame) {
+to_exogenous = function(flow_frame, rand_fn = NULL) {
   frame = flow_frame[flow_frame$size == "", , drop = FALSE]
-  sprintf("%s ~ %s", frame$change, frame$abs_rate) |> lapply(as.formula)
+  if (is.null(rand_fn)) {
+    template = "%s ~ %s"
+  } else {
+    template = sprintf("%%s ~ %s(%%s)", rand_fn)
+  }
+   
+  sprintf(template, frame$change, frame$abs_rate) |> lapply(as.formula)
 }
+to_exogenous_inputs = to_exogenous ## back-compat
 flow_frame_to_absolute_flows = function(flow_frame) {
   char_vec = with(flow_frame, sprintf("%s ~ %s", change, abs_rate))
   lapply(char_vec, as.formula)
@@ -795,7 +802,7 @@ EulerMultinomialUpdateMethod = function(change_model) {
   self$during = function() {
     before_components = c(
         self$change_model$before_flows()
-      , to_exogenous_inputs(self$change_model$flow_frame())
+      , to_exogenous(self$change_model$flow_frame(), rand_fn = "rpois")
     )
     flow_list = self$change_model$update_flows()
     components = list()
@@ -828,7 +835,7 @@ HazardUpdateMethod = function(change_model) {
   self$during = function() {
     before_components = c(
         self$change_model$before_flows()
-      , to_exogenous_inputs(self$change_model$flow_frame())
+      , to_exogenous(self$change_model$flow_frame())
     )
     before_state = self$change_model$before_state()
 
