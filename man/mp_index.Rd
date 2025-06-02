@@ -90,13 +90,15 @@ function that combines the tables into a single index table:
 age = mp_index(Age = c("young", "old"))
 prod = mp_cartesian(sir, age)
 prod
-#>  Epi   Age
-#>    S young
-#>    I young
-#>    R young
-#>    S   old
-#>    I   old
-#>    R   old
+#> Classes 'Index', 'Base' <environment: 0x7fc37c86ec50> 
+#> labels : function ()  
+#> partial_labels : function (...)  
+#> positions : function (zero_based = FALSE)  
+#> reference_index : function ()  
+#> reference_labels : function ()  
+#> reference_positions : function (zero_based = FALSE)  
+#> reset_reference_index : function ()  
+#> set_reference_index : function (index)
 }\if{html}{\out{</div>}}
 
 The \code{\link[=mp_cartesian]{mp_cartesian()}} function will produce a table with entries that are all
