@@ -12,9 +12,9 @@ mp_per_capita_flow(from, to, rate, flow_name = NULL, abs_rate = NULL)
 
 mp_per_capita_inflow(from, to, rate, flow_name = NULL, abs_rate = NULL)
 
-mp_inflow(to, rate, rate_name = NULL)
+mp_inflow(to, rate, flow_name = NULL, abs_rate = NULL)
 
-mp_outflow(from, rate, abs_rate = NULL)
+mp_outflow(from, rate, flow_name = NULL, abs_rate = NULL)
 
 mp_per_capita_outflow(from, rate, flow_name = NULL, abs_rate = NULL)
 }
@@ -31,19 +31,10 @@ a two-sided formula with the left-hand-side giving the name of the absolute
 flow rate per time-step and the right-hand-side giving an expression for
 the per-capita rate of flow from \code{from} to \code{to}.}
 
-\item{flow_name}{String giving the name for the absolute flow rate per
-time-step. By default, during simulations, the absolute flow rate will be
-computed as \code{from * rate}. This default behaviour will simulate the
-compartmental model as discrete difference equations, but this can
-be changed to use other approaches such as ordinary differential equations
-or stochastic models (see \code{\link{state_updates}}). If a formula is
-passed to \code{rate} (not recommended for better readability), then this
-\code{flow_rate} argument will be ignored.}
+\item{flow_name}{String giving the name of the flow}
 
 \item{abs_rate}{Deprecated synonym for \code{flow_name}. Please use \code{flow_name}
 in all future work.}
-
-\item{rate_name}{String giving the name of the rate}
 }
 \description{
 Specify different kinds of flows between compartments.

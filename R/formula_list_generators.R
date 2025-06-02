@@ -288,7 +288,7 @@ SimpleChangeModel = function(before = list(), during = list(), after = list()) {
   ## other update methods should work directly with the $flow_frame()
   self$update_flows = function() {
     frame = self$flow_frame()
-    size_vars = unique(frame$size)
+    size_vars = setdiff(unique(frame$size), "")
     frame = frame[size_vars != "", , drop = FALSE]
     #if (any(size_vars == "")) stop("model includes flows coming from outside the system and so they cannot be used with update methods that cannot be expressed as a per-capita flow from somewhere in the system. please either use mp_euler or mp_rk4, or move absolute inflows to an ordinary formula component in the spec.")
     flow_list = list()
@@ -948,20 +948,20 @@ mp_per_capita_inflow = function(from, to, rate, flow_name = NULL, abs_rate = NUL
 
 #' @describeIn mp_per_capita_flow Only flow into the `to` compartment
 #' For adding a birth or immigration process
-#' @param rate_name String giving the name of the rate
+#' @param flow_name String giving the name of the flow
 #' @export
-mp_inflow = function(to, rate, rate_name  = NULL) {
+mp_inflow = function(to, rate, flow_name  = NULL, abs_rate = NULL) {
   call_string = deparse(match.call())
-  rate = handle_abs_rate_args(rate, rate_name)
+  rate = handle_rate_args(rate, abs_rate, flow_name)
   AbsoluteInflow(to, rate, call_string)
 }
 
 #' @describeIn mp_per_capita_flow Only flow into the `to` compartment
 #' For adding an absolute removal process that goes to 'nowhere': dangerous!
 #' @export
-mp_outflow = function(from, rate, abs_rate = NULL) {
+mp_outflow = function(from, rate, flow_name = NULL, abs_rate = NULL) {
   call_string = deparse(match.call())
-  rate = handle_rate_args(rate, abs_rate)
+  rate = handle_rate_args(rate, abs_rate, flow_name)
   AbsoluteOutflow(from, rate, call_string)
 }
 
@@ -1036,6 +1036,7 @@ AbsoluteInflow = function(to, rate, call_string) {
       , change = sprintf("+%s", lhs_char(self$rate))
     )
   }
+  self$string = function() self$call_string
   return_object(self, "AbsoluteInflow")
 }
 
@@ -1047,6 +1048,8 @@ AbsoluteOutflow = function(from, rate, call_string) {
       , change = sprintf("-%s", lhs_char(self$rate))
     )
   }
+  self$string = function() self$call_string
+  return_object(self, "AbsoluteOutflow")
 }
 
 AbsoluteFlow = function(from, to, rate, call_string) {
@@ -1065,7 +1068,7 @@ AbsoluteFlow = function(from, to, rate, call_string) {
     abs_rate = rhs_char(self$rate)
     data.frame(
         ## BMB: not sure if this is right? there is no 'size'
-        size = self$from %||% NA_character_
+        size = "" ## self$from %||% ""
       , change = lhs_char(self$rate)
       
       ## this is the main problem with absolute flows, because it has a 
