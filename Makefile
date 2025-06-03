@@ -192,7 +192,7 @@ pkgdown-reference-index:
 	Rscript -e "pkgdown::build_reference_index()"
 	Rscript -e "pkgdown::preview_site()"
 
-NEWS.md : news-narratives.md misc/build/update-news.sh misc/build/update-commit-version-map.sh misc/build/update-version-bumps.sh DESCRIPTION R/*.R vignettes/*.Rmd man/*.Rd Makefile
+NEWS.md : news-narratives.md misc/build/update-news.sh misc/build/update-commit-version-map.sh misc/build/update-version-bumps.sh DESCRIPTION R/*.R vignettes/*.Rmd man/*.Rd tests/testthat/*.R Makefile
 	./misc/build/update-commit-version-map.sh
 	./misc/build/update-version-bumps.sh
 	./misc/build/update-news.sh
