@@ -503,14 +503,13 @@ mp_expand.TMBModelSpec = function(model) model$expand()
 
 
 ## Utilities
-to_exogenous = function(flow_frame, rand_fn = NULL) {
+to_exogenous = function(flow_frame, rand_fn = NULL, dt = "") {
   frame = flow_frame[flow_frame$size == "", , drop = FALSE]
   if (is.null(rand_fn)) {
-    template = "%s ~ %s"
+    template = sprintf("%%s ~ %%s%s", dt)
   } else {
-    template = sprintf("%%s ~ %s(%%s)", rand_fn)
+    template = sprintf("%%s ~ %s(%%s%s)", rand_fn, dt)
   }
-   
   sprintf(template, frame$change, frame$abs_rate) |> lapply(as.formula)
 }
 to_exogenous_inputs = to_exogenous ## back-compat
@@ -841,11 +840,12 @@ EulerMultinomialUpdateMethod = function(change_model) {
   self$before = function() self$change_model$before_loop()
   self$during = function() {
     dt = self$change_model$delta_t
-    dt = if (dt == 1) "" else sprintf(", %s", dt)
+    dt_emult = if (dt == 1) "" else sprintf(", %s", dt)
+    dt_pois = if (dt == 1) "" else sprintf(" * %s", dt)
     
     before_components = c(
         self$change_model$before_flows()
-      , to_exogenous(self$change_model$flow_frame(), rand_fn = "rpois")
+      , to_exogenous(self$change_model$flow_frame(), rand_fn = "rpois", dt = dt_pois)
     )
     flow_list = self$change_model$update_flows()
     components = list()
@@ -854,7 +854,7 @@ EulerMultinomialUpdateMethod = function(change_model) {
         , self$vec(flow_list[[size_var]], lhs_char)
         , size_var
         , self$vec(flow_list[[size_var]], rhs_char)
-        , dt
+        , dt_emult
       )
     }
     ## BMB: add absolute flows here
@@ -877,13 +877,14 @@ EulerMultinomialUpdateMethod = function(change_model) {
 HazardUpdateMethod = function(change_model) {
   self = EulerMultinomialUpdateMethod(change_model)
   self$during = function() {
+    dt = self$change_model$delta_t
+    dt_flow = if (dt == 1) "" else sprintf("%s * ", dt)
+    dt_exog = if (dt == 1) "" else sprintf("/%s", dt)
     before_components = c(
         self$change_model$before_flows()
-      , to_exogenous(self$change_model$flow_frame())
+      , to_exogenous(self$change_model$flow_frame(), dt = dt_exog)
     )
     before_state = self$change_model$before_state()
-    dt = self$change_model$delta_t
-    dt = if (dt == 1) "" else sprintf("%s * ", dt)
 
     flow_list = self$change_model$update_flows()
     components = list()
@@ -892,7 +893,7 @@ HazardUpdateMethod = function(change_model) {
           "%s ~ %s * (1 - exp(-%ssum(%s))) * proportions(%s, 0, %s)"
         , self$vec(flow_list[[size_var]], lhs_char)
         , size_var
-        , dt
+        , dt_flow
         , self$vec(flow_list[[size_var]], rhs_char)
         , self$vec(flow_list[[size_var]], rhs_char)
         , getOption("macpan2_tol_hazard_div")

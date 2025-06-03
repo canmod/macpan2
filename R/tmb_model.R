@@ -867,10 +867,11 @@ mp_trajectory_sim.TMBSimulator = function(model, n, probs = c(0.025, 0.25, 0.5, 
   r = r[, names(r) != "value", drop = FALSE]
   rr = (n
     |> replicate(model$simulate_values()) 
-    |> apply(1, quantile, probs, na.rm = TRUE)
+    |> apply(1, quantile, probs, na.rm = TRUE, simplify = FALSE)
+    |> simplify2array(except = 0L)
     |> t()
   )
-  names(rr) = sprintf("value_%s", names(rr))
+  colnames(rr) = sprintf("value_%s", colnames(rr))
   cbind(r, rr)
 }
 
