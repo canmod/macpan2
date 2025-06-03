@@ -33,7 +33,7 @@ ChangeModelDefaults = function() {
     quasi_during_exprs = c(
       unlist(self$flow_frame(), use.names = FALSE, recursive = FALSE), 
       unlist(self$change_frame(), use.names = FALSE, recursive = FALSE)
-    ) |> unique() |> sprintf(fmt = " ~ %s") |> lapply(as.formula)
+    ) |> unique() |> setdiff("") |> sprintf(fmt = " ~ %s") |> lapply(as.formula)
     user_formulas = unlist(self$user_formulas()
       , recursive = FALSE
       , use.names = FALSE
