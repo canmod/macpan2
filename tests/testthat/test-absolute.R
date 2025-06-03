@@ -1,15 +1,9 @@
 test_that("absolute inflow definition and ode trajectory", {
     ## exponential decay
-    s1 <- mp_tmb_model_spec(
-          during = list(
-                mp_inflow("N", "r", "birth")
-              , mp_per_capita_outflow("N", "d", "death")
-          )
-        , default = list(N = 0, r = 0.3, d = 0.2)
-    )
+    s1 = test_cache_read("SPEC-one_box.rds")
     
     expect_equal(mp_state_vars(s1), "N")
-    expect_equal(mp_flow_vars(s1), c("birth", "death"))
+    expect_equal(mp_flow_vars(s1), c("importation", "death"))
     
     steps = 50
     

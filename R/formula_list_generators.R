@@ -695,7 +695,7 @@ RK4UpdateMethod = function(change_model) {
     unlst = function(x) unlist(x, recursive = FALSE, use.names = FALSE)
     as_forms = function(x) lapply(x, as.formula)
     dt = self$change_model$delta_t
-    if (dt == 1) dt = ""
+    dt = if (dt == 1) "" else sprintf(" * %s", dt)
     
     before_components = self$change_model$before_flows()
     flow_frame = self$change_model$flow_frame()
@@ -746,7 +746,7 @@ RK4UpdateMethod = function(change_model) {
     
     ## rk4 step 2
     state_replacements = sprintf("%s ~ (%s + (%s%s / 2))"
-      , states, states, dt, state_step_names$k1
+      , states, states, state_step_names$k1, dt
     ) |> as_forms()
     flow_replacements = sprintf("%s ~ %s"
       , flows, flow_step_names$k2
@@ -758,7 +758,7 @@ RK4UpdateMethod = function(change_model) {
     
     ## rk4 step 3
     state_replacements = sprintf("%s ~ (%s + (%s%s / 2))"
-      , states, states, dt, state_step_names$k2
+      , states, states, state_step_names$k2, dt
     ) |> as_forms()
     flow_replacements = sprintf("%s ~ %s"
       , flows, flow_step_names$k3
@@ -770,7 +770,7 @@ RK4UpdateMethod = function(change_model) {
     
     ## rk4 step 4
     state_replacements = sprintf("%s ~ (%s + %s%s)"
-      , states, states, dt, state_step_names$k3
+      , states, states, state_step_names$k3, dt
     ) |> as_forms()
     flow_replacements = sprintf("%s ~ %s"
       , flows, flow_step_names$k4

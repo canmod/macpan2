@@ -105,7 +105,7 @@ mp_per_capita_outflow("R", "mu", "death_R")
 mp_per_capita_flow("S", "V", "((a * S)/(b + S))/S",  "vaccination")
 
 # importation
-# mp_inflow("I", "delta", "importation")
+mp_inflow("I", "delta", "importation")
 
 }
 \seealso{
