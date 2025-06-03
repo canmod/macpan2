@@ -56,8 +56,8 @@ si_rk4 = (si_explicit
   |> mp_rk4()
   |> mp_simulator(time_steps = 50, outputs = "infection")
 )
-si_euler_multinomial = (si_explicit 
-  |> mp_euler_multinomial()
+si_discrete_stoch = (si_explicit 
+  |> mp_discrete_stoch()
   |> mp_simulator(time_steps = 50, outputs = "infection")
 )
 ```
@@ -68,7 +68,7 @@ library(dplyr)
 trajectory_comparison = list(
     euler = mp_trajectory(si_euler)
   , rk4 = mp_trajectory(si_rk4)
-  , euler_multinomial = mp_trajectory(si_euler_multinomial)
+  , discrete_stoch = mp_trajectory(si_discrete_stoch)
 ) |> bind_rows(.id = "update_method")
 print(head(trajectory_comparison))
 ```
@@ -79,13 +79,14 @@ library(ggplot2)
   |> rename(`Time Step` = time, Incidence = value)
   |> ggplot()
   + geom_line(aes(`Time Step`, Incidence, colour = update_method))
+  + theme_bw()
 )
 ```
 
 The incidence trajectory is different for the three update methods, even though the initial values of the state variables were identical in all three cases.
 ```{r}
 mp_initial(si_euler)
-mp_initial(si_euler_multinomial)
+mp_initial(si_discrete_stoch)
 mp_initial(si_rk4)
 ```
 
@@ -108,11 +109,45 @@ print(siv)
 
 ```{r}
 (siv 
- |> mp_euler_multinomial()
+ |> mp_discrete_stoch()
  |> mp_simulator(50, "infection")
  |> mp_trajectory()
  |> ggplot()
   + geom_line(aes(time, value))
+  + theme_bw()
+)
+```
+
+
+## Time Steps
+
+```{r sir_prevalence, fig.height = 4, fig.width = 7}
+library(tidyr); library(dplyr)
+delta_t = c(0.1, 0.5, 1)
+time = 50
+sir = mp_tmb_library("starter_models", "sir", package = "macpan2")
+sims = list()
+run = function(model) {
+  (model
+    |> mp_simulator(time/dt, "I")
+    |> mp_trajectory()
+    |> mutate(time = time * dt)
+  )
+}
+for (dt in delta_t) {
+  sims[[sprintf("euler_%s" , dt)]] = sir |> mp_euler(dt)  |> run()
+  sims[[sprintf("hazard_%s", dt)]] = sir |> mp_hazard(dt) |> run()
+  sims[[sprintf("rk4_%s"   , dt)]] = sir |> mp_rk4(dt)    |> run()
+}
+(sims
+  |> bind_rows(.id = "dt")
+  |> separate(dt, c("method", "dt"), "_")
+  |> mutate(method = factor(method, levels = c("rk4", "euler", "hazard")))
+  |> mutate(dt = factor(dt, levels = c("1", "0.5", "0.1")))
+  |> rename(prevalence = value)
+  |> ggplot()
+  + geom_line(aes(time, prevalence, colour = dt, linetype = method))
+  + theme_bw()
 )
 ```
 
@@ -120,7 +155,7 @@ print(siv)
 ## Internal Design
 
 ```{r}
-sir = mp_tmb_model_spec(
+spec = mp_tmb_model_spec(
   during = list(
       N ~ S + I + R
     , mp_per_capita_flow("S", "I", "beta * I / N", "infection")
@@ -141,7 +176,7 @@ The simplest way to define these lists is using two-sided R formulas. But in the
 
 The list of change components, which is just the `during` field but ensuring that all elements are valid `ChangeComponent` objects, can be obtained using the `change_components()` method in a model spec object.
 ```{r}
-cc = sir$change_components()
+cc = spec$change_components()
 print(cc)
 ```
 
@@ -220,12 +255,12 @@ The `update_state()` method makes use of this `flow_frame()` to produce the
 
 
 ```{r}
-si = mp_tmb_library("starter_models", "sir", package = "macpan2")
-si$change_model
-si$change_model$flow_frame()
-si$change_model$change_frame()
-si$change_model$update_state()
-si$change_model$update_flows()
+sir = mp_tmb_library("starter_models", "sir", package = "macpan2")
+sir$change_model
+sir$change_model$flow_frame()
+sir$change_model$change_frame()
+sir$change_model$update_state()
+sir$change_model$update_flows()
 ```
 ```{r}
 spec = mp_tmb_model_spec(
