@@ -1,3 +1,5 @@
+# library(macpan2); library(testthat); library(dplyr); library(tidyr); library(ggplot2); library(deSolve)
+# source("tests/testthat/setup.R")
 test_that("rk4 time-steps work with the si model", {
   delta_t = 0.1
   time = 50
@@ -51,11 +53,12 @@ test_that("stochastic absolute importation with a time step is plausible", {
     |> mutate(time = delta_t * time)
     |> filter(time == round(time))
   )
+  row.names(traj) = 1:10 ## seems this is needed for testthat -- not sure why
   answer = structure(list(matrix = c("I", "I", "I", "I", "I", "I", "I", 
   "I", "I", "I"), time = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10), row = c(0, 
   0, 0, 0, 0, 0, 0, 0, 0, 0), col = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 
   0), `value_50%` = c(0, 0, 0, 0, 0, 0, 0, 0, 2, 3)), class = "data.frame", 
-  row.names = c(NA, -10L))
+  row.names = 1:10)
   
   expect_equal(traj, answer)
 })

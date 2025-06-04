@@ -75,5 +75,4 @@ test_that("equivalent absolute and per-capita flows are consistent", {
   }
   expect_equal(sim_fn(sir_pc), sim_fn(sir_ab))
   expect_equal(sim_fn(sir_pc, mp_rk4), sim_fn(sir_ab, mp_rk4))
-  ## expect_equal(sim_fn(sir_pc, mp_hazard), sim_fn(sir_ab2, mp_hazard)) ## -- failing because hazard is behaving like euler with absolute flows
 })
