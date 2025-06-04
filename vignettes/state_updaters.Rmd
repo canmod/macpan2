@@ -1,6 +1,8 @@
 ---
 title: "ODE Solvers, Process Error, and Difference Equations"
-output: rmarkdown::html_vignette
+output: 
+  rmarkdown::html_vignette:
+    toc: true
 vignette: >
   %\VignetteIndexEntry{ODE Solvers, Process Error, and Difference Equations}
   %\VignetteEngine{knitr::rmarkdown}
@@ -16,6 +18,8 @@ set.seed(12L)
 ```
 
 [![status](https://img.shields.io/badge/status-working%20draft-red)](https://canmod.github.io/macpan2/articles/vignette-status#working-draft)
+
+## Introduction
 
 The `McMasterPandemic` project has focused on using discrete time difference equations to solve the dynamical system. Here we describe experimental features that allow one to update the data differently. In particular, it is now possible to use a Runge-Kutta 4 ODE solver (to approximate the solution to the continuous time analogue) as well as the Euler Multinomial distribution to generate process error. These features have in principle been available for most of the life of `macpan2`, but only recently have they been given a more convenient interface.
 
@@ -91,6 +95,7 @@ mp_initial(si_rk4)
 ```
 
 The incidence is different, even during the first time step, because each state update method causes different numbers of susceptible individuals to become infectious at each time step. Further, incidence here is defined for a single time step and so this number of new infectious individuals is exactly the incidence.
+
 
 ## Branching Flows and Process Error
 
@@ -280,14 +285,17 @@ The constructors of these `UpdateMethod` classes often have a field of class `Ch
 
 
 
-## Relationship to Ordinary Differential Equation Solvers
+## Mathematical Description
 
 It is instructive to view these state update methods as approximate solutions to ordinary differential equations (ODEs). We consider ODEs of the following form.
 
 $$
-\frac{dx_i}{dt} = \underbrace{\sum_j x_j r_{ji}}_{\text{inflow}} - \underbrace{\sum_j x_i r_{ij}}_{\text{outflow}}
+\frac{dx_i}{dt} = 
+  \underbrace{\sum_j x_j r_{ji}}_{\text{inflow}} - 
+  \underbrace{\sum_j x_i r_{ij}}_{\text{outflow}} +
+  \underbrace{\sum_j \rho_i}_{\text{exogenous}}
 $$
-Where the per-capita rate of flowing from compartment $i$ to compartment $j$ is $r_{ij}$, and $x_i$ is the number of individuals in the $i$th compartment. We allow each $r_{ij}$ to depend on any number of state variables and time-varying parameters. For example, for an SIR model we have  $x_S, x_I, x_R$ (for readability we use $S, I, R$). In this case $r_{SI} = \beta I / N$, $r_{IR} = \gamma$, and all other values of $r_{ij}$ are zero. Here the force of infection, $r_{SI}$, depends on a state variable $I$.
+Where the per-capita rate of flowing from compartment $i$ to compartment $j$ is $r_{ij}$, the rate of exogeneous change of compartment $i$ is $\rho_i$, and $x_i$ is the number of individuals in the $i$th compartment. We allow each $r_{ij}$ to depend on any number of state variables and time-varying parameters. For example, for an SIR model we have  $x_S, x_I, x_R$ (for readability we use $S, I, R$). In this case $r_{SI} = \beta I / N$, $r_{IR} = \gamma$, and all other values of $r_{ij}$ are zero. Here the force of infection, $r_{SI}$, depends on a state variable $I$.
 
 Although each state-update method presented below can be thought of as an approximate solution to this ODE, they can also be thought of as dynamical models in their own right. For example, the Euler-multinomial model is a useful model of process error.
 
