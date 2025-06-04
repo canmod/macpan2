@@ -50,3 +50,36 @@ test_that("stochastic absolute importation is plausible", {
   1, 1, 1, 1, 1, 1, 1, 3)), row.names = c(NA, -10L), class = "data.frame")
   expect_equal(traj, answer)
 })
+
+test_that("equivalent absolute and per-capita flows are consistent", {
+  sir_pc = mp_tmb_model_spec(
+      during = list(
+          mp_per_capita_flow("S", "I", "beta * I / N", "infection")
+        , mp_per_capita_flow("I", "R", "gamma", "recovery")
+      )
+    , default = list(
+          beta = 0.8, gamma = 0.1
+        , S = 99, I = 1, R = 0, N = 100
+      )
+  )
+  sir_ab = mp_tmb_model_spec(
+      during = list(
+          mp_absolute_flow("S", "I", "S * beta * I / N", "infection")
+        , mp_absolute_flow("I", "R", "I * gamma", "recovery")
+      )
+    , default = list(
+          beta = 0.8, gamma = 0.1
+        , S = 99, I = 1, R = 0, N = 100
+      )
+  )
+  sim_fn = function(model, state_updater = mp_euler) {
+    (model
+     |> state_updater()
+     |> mp_simulator(10, "infection")
+     |> mp_trajectory()
+    )
+  }
+  expect_equal(sim_fn(sir_pc), sim_fn(sir_ab))
+  expect_equal(sim_fn(sir_pc, mp_rk4), sim_fn(sir_ab, mp_rk4))
+  ## expect_equal(sim_fn(sir_pc, mp_hazard), sim_fn(sir_ab2, mp_hazard)) ## -- failing because hazard is behaving like euler with absolute flows
+})

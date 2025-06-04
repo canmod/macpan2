@@ -29,7 +29,7 @@ handle_abs_rate_args = function(rate, rate_name = NULL, flow_name = NULL) {
         }
       }
     }
-    rate = two_sided(rate_name, rate)
+    rate = two_sided(flow_name, rate)
   }
   rate
 }
