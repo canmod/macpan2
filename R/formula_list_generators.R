@@ -111,7 +111,7 @@ only_iterable = function(expr_list, states, is_first = FALSE) {
 ChangeModel = function() {
   self = Base()
   
-  self$delta_t = 1
+  self$delta_t = NULL
   
   # lists of formula expressions to be added to a `before` list
   self$before_loop = function() list()
@@ -198,7 +198,8 @@ ChangeComponent = function() {
   ## column - change: unsigned absolute flow rate name.
   ## column - rate: per-capita flow rates (variables or expressions that 
   ## sometimes involve state variables).
-  ## column - abs_rate: absolute flow rate expression
+  ## column - abs_rate: absolute flow rate expression (per-cqpita flow rate 
+  ## multiplied by the size variable)
   ## example:
   ## size, change,    rate,          abs_rate
   ## S,    infection, beta * I / N,  S * (beta * I / N)
@@ -240,7 +241,7 @@ ChangeComponent = function() {
 ##' si$during()
 ##' 
 ##' @noRd
-SimpleChangeModel = function(before = list(), during = list(), after = list(), delta_t) {
+SimpleChangeModel = function(before = list(), during = list(), after = list(), delta_t = NULL) {
   self = ChangeModelDefaults(delta_t)
   
   self$before = before
@@ -310,7 +311,7 @@ SimpleChangeModel = function(before = list(), during = list(), after = list(), d
 }
 
 AllFormulaChangeModel = function(before = list(), during = list(), after = list()) {
-  self = ChangeModelDefaults(delta_t = 1)
+  self = ChangeModelDefaults(delta_t = NULL)
   self$before = before
   self$during = during
   self$after = after
@@ -385,9 +386,11 @@ MockChangeModel = function() {
 ##' steps.
 ##' 
 ##' @param model Object with quantities that have been explicitly 
-##' marked as state variables.
+##' marked as state variables. Currently the only valid model object
+##' is a model specification (e.g., \code{\link{mp_tmb_model_spec}}).
 ##' @param delta_t Number giving the amount of time that passes during a
-##' single time-step.
+##' single time-step. The default, `NULL`, is equivalent to the value
+##' for `delta_t` that already exists in the `model`.
 ##' 
 ##' @examples
 ##' sir = mp_tmb_library("starter_models", "sir", package = "macpan2")
@@ -405,7 +408,7 @@ NULL
 ##' \code{\link{mp_tmb_model_spec}}, but this default can be changed using
 ##' the functions described below.
 ##' @export
-mp_euler = function(model, delta_t = 1) UseMethod("mp_euler")
+mp_euler = function(model, delta_t = NULL) UseMethod("mp_euler")
 
 ##' @describeIn state_updates ODE solver using Runge-Kutta 4. Any formulas that
 ##' appear before model flows in the `during` list will only be updated
@@ -428,19 +431,19 @@ mp_euler = function(model, delta_t = 1) UseMethod("mp_euler")
 ##' be confused. We therefore require that all state variable updates are set
 ##' explicitly (e.g., with \code{\link{mp_per_capita_flow}}).
 ##' @export
-mp_rk4 = function(model, delta_t = 1) UseMethod("mp_rk4")
+mp_rk4 = function(model, delta_t = NULL) UseMethod("mp_rk4")
 
 ##' @describeIn state_updates Old version of `mp_rk4` that doesn't keep track
 ##' of absolute flows through each time-step. As a result this version is
 ##' more efficient but makes it more difficult to compute things like 
 ##' incidence over a time scale.
 ##' @export
-mp_rk4_old = function(model, delta_t = 1) UseMethod("mp_rk4_old")
+mp_rk4_old = function(model, delta_t = NULL) UseMethod("mp_rk4_old")
 
 ##' @describeIn state_updates Original and deprecated name for 
 ##' `mp_discrete_stoch`. In all new projects please use `mp_discrete_stoch`.
 ##' @export
-mp_euler_multinomial = function(model, delta_t = 1) UseMethod("mp_euler_multinomial")
+mp_euler_multinomial = function(model, delta_t = NULL) UseMethod("mp_euler_multinomial")
 
 ##' @describeIn state_updates Update state such that the probability of moving
 ##' from box `i` to box `j` in one time step is given by
@@ -451,31 +454,31 @@ mp_euler_multinomial = function(model, delta_t = 1) UseMethod("mp_euler_multinom
 ##' distribution that determines how many individuals go to each `j` box and 
 ##' how many stay in  `i`.
 ##' @export
-mp_discrete_stoch = function(model, delta_t = 1) UseMethod("mp_discrete_stoch")
+mp_discrete_stoch = function(model, delta_t = NULL) UseMethod("mp_discrete_stoch")
 
 ##' @describeIn state_updates Update state with hazard steps, which is equivalent
 ##' to taking the step given by the expected value of the Euler-multinomial
 ##' distribution.
 ##' @export
-mp_hazard = function(model, delta_t = 1) UseMethod("mp_hazard")
+mp_hazard = function(model, delta_t =  NULL) UseMethod("mp_hazard")
 
 ##' @export
-mp_euler.TMBModelSpec = function(model, delta_t = 1) model$change_update_method("euler", delta_t)
+mp_euler.TMBModelSpec = function(model, delta_t = NULL) model$change_update_method("euler", delta_t)
 
 ##' @export
-mp_rk4.TMBModelSpec = function(model, delta_t = 1) model$change_update_method("rk4", delta_t)
+mp_rk4.TMBModelSpec = function(model, delta_t = NULL) model$change_update_method("rk4", delta_t)
 
 ##' @export
-mp_rk4_old.TMBModelSpec = function(model, delta_t = 1) model$change_update_method("rk4_old", delta_t)
+mp_rk4_old.TMBModelSpec = function(model, delta_t = NULL) model$change_update_method("rk4_old", delta_t)
 
 ##' @export
-mp_euler_multinomial.TMBModelSpec = function(model, delta_t = 1) model$change_update_method("euler_multinomial", delta_t)
+mp_euler_multinomial.TMBModelSpec = function(model, delta_t = NULL) model$change_update_method("euler_multinomial", delta_t)
 
 ##' @export
-mp_discrete_stoch.TMBModelSpec = function(model, delta_t = 1) model$change_update_method("discrete_stoch", delta_t)
+mp_discrete_stoch.TMBModelSpec = function(model, delta_t = NULL) model$change_update_method("discrete_stoch", delta_t)
 
 ##' @export
-mp_hazard.TMBModelSpec = function(model, delta_t = 1) model$change_update_method("hazard", delta_t)
+mp_hazard.TMBModelSpec = function(model, delta_t = NULL) model$change_update_method("hazard", delta_t)
 
 
 #' Expand Model
@@ -514,6 +517,7 @@ to_exogenous = function(flow_frame, rand_fn = NULL, dt = "") {
 }
 to_exogenous_inputs = to_exogenous ## back-compat
 flow_frame_to_absolute_flows = function(flow_frame, delta_t = 1) {
+  delta_t = handle_delta_t(delta_t)
   delta_t_str = ""
   if (delta_t != 1) delta_t_str = sprintf("%s * ", delta_t)
   char_vec = with(flow_frame, sprintf("%s ~ %s%s", change, delta_t_str, abs_rate))
@@ -544,7 +548,7 @@ get_state_update_method = function(state_update, change_model) {
   if (state_update == "rk4_old") cls_nm = "RK4OldUpdateMethod"
   get(cls_nm)(change_model)
 }
-get_change_model = function(before, during, after, delta_t = 1) {
+get_change_model = function(before, during, after, delta_t = NULL) {
   valid_before = all(vapply(before, is_two_sided, logical(1L)))
   if (!valid_before) stop("The before argument must be all two-sided formulas.")
   valid_after = all(vapply(after, is_two_sided, logical(1L)))
@@ -932,7 +936,7 @@ HazardUpdateMethod = function(change_model) {
 #' originates.
 #' @param to String giving the name of the compartment to which the flow is
 #' going.
-#' @param rate String giving the expression for the per-capita
+#' @param rate String giving the expression for the per-capita or absolute
 #' flow rate. Alternatively, and for back compatibility, 
 #' a two-sided formula with the left-hand-side giving the name of the absolute 
 #' flow rate per time-step and the right-hand-side giving an expression for 
@@ -1014,6 +1018,16 @@ mp_per_capita_outflow = function(from, rate, flow_name = NULL, abs_rate = NULL) 
   PerCapitaOutflow(from, rate, call_string)
 }
 
+#' @describeIn mp_per_capita_flow Alternative to `mp_per_capita_flow` that
+#' allowing specification of flows using absolute rates instead of per-capita
+#' rates.
+#' @export
+mp_absolute_flow = function(from, to, rate, flow_name = NULL, rate_name = NULL) {
+  call_string = deparse(match.call())
+  rate = handle_abs_rate_args(rate, rate_name, flow_name)
+  AbsoluteFlow(from, to, rate, call_string)
+}
+
 #' @describeIn mp_per_capita_flow Only flow into the `to` compartment.
 #' For adding a birth or immigration process.
 #' @param flow_name String giving the name of the flow
@@ -1039,34 +1053,6 @@ mp_outflow = function(from, rate, flow_name = NULL, abs_rate = NULL) {
   AbsoluteOutflow(from, rate, call_string)
 }
 
-
-
-
-#' Specify Absolute Flow Between Compartments (Experimental)
-#' 
-#' An experimental alternative to \code{\link{mp_per_capita_flow}} that 
-#' allows users to specify flows using absolute rates instead of 
-#' per-capita rates.
-#' 
-#' @param from String giving the name of the compartment from which the flow
-#' originates.
-#' @param to String giving the name of the compartment to which the flow is
-#' going.
-#' @param rate String giving the expression for the absolute
-#' flow rate per time-step.
-#' @param flow_name String giving the name for the variable that 
-#' will store the `rate`.
-#' @param rate_name Deprecated synonym for `flow_name`. Please use `flow_name`
-#' in all future work.
-#' 
-#' @seealso [mp_per_capita_flow()]
-#' 
-#' @export
-mp_absolute_flow = function(from, to, rate, flow_name = NULL, rate_name = NULL) {
-  call_string = deparse(match.call())
-  rate = handle_abs_rate_args(rate, rate_name, flow_name)
-  AbsoluteFlow(from, to, rate, call_string)
-}
 
 PerCapitaOutflow = function(from, rate, call_string) {
   self = PerCapitaFlow(from, NULL, rate, call_string)
@@ -1129,18 +1115,8 @@ AbsoluteFlow = function(from, to, rate, call_string) {
   self$flow_frame = function() {
     abs_rate = rhs_char(self$rate)
     data.frame(
-        ## BMB: not sure if this is right? there is no 'size'
-        size = "" ## self$from %||% ""
+        size = "" ## absolute flows are coming from 'nowhere' and so there is no 'size'
       , change = lhs_char(self$rate)
-      
-      ## this is the main problem with absolute flows, because it has a 
-      ## `size` variable (e.g., a `from` variable) in the denominator.
-      ## this issue should only arise for update methods that are more 
-      ## naturally expressed for per-capita flows (e.g., Euler-multinomial
-      ## and hazard)
-      ## BMB: why does there need to be a 'from' involved here at all?
-      ##  is this only an issue because we need a Poisson-type stochastic
-      ##  flow to go with the Euler-multinomial?
       , rate = sprintf("%s", abs_rate)
       , abs_rate = abs_rate
     )

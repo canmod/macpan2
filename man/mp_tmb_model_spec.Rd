@@ -16,7 +16,7 @@ mp_tmb_model_spec(
   sim_exprs = character(),
   state_update = c("euler", "rk4", "discrete_stoch", "hazard", "rk4_old",
     "euler_multinomial"),
-  delta_t = 1
+  delta_t = NULL
 )
 }
 \arguments{

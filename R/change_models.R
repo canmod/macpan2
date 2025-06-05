@@ -1,8 +1,8 @@
 
-ChangeModelDefaults = function(delta_t) {
+ChangeModelDefaults = function(delta_t = NULL) {
   self = ChangeModel()
   
-  self$delta_t = delta_t
+  self$delta_t = handle_delta_t(delta_t)
   
   self$change_list = list()
   

@@ -10,24 +10,26 @@
 \alias{mp_hazard}
 \title{Change How State Variables are Updated}
 \usage{
-mp_euler(model, delta_t = 1)
+mp_euler(model, delta_t = NULL)
 
-mp_rk4(model, delta_t = 1)
+mp_rk4(model, delta_t = NULL)
 
-mp_rk4_old(model, delta_t = 1)
+mp_rk4_old(model, delta_t = NULL)
 
-mp_euler_multinomial(model, delta_t = 1)
+mp_euler_multinomial(model, delta_t = NULL)
 
-mp_discrete_stoch(model, delta_t = 1)
+mp_discrete_stoch(model, delta_t = NULL)
 
-mp_hazard(model, delta_t = 1)
+mp_hazard(model, delta_t = NULL)
 }
 \arguments{
 \item{model}{Object with quantities that have been explicitly
-marked as state variables.}
+marked as state variables. Currently the only valid model object
+is a model specification (e.g., \code{\link{mp_tmb_model_spec}}).}
 
 \item{delta_t}{Number giving the amount of time that passes during a
-single time-step.}
+single time-step. The default, \code{NULL}, is equivalent to the value
+for \code{delta_t} that already exists in the \code{model}.}
 }
 \description{
 These functions return a modified version of a model specification, such

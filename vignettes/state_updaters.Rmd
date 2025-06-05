@@ -21,9 +21,9 @@ set.seed(12L)
 
 ## Introduction
 
-The `McMasterPandemic` project has focused on using discrete time difference equations to solve the dynamical system. Here we describe experimental features that allow one to update the data differently. In particular, it is now possible to use a Runge-Kutta 4 ODE solver (to approximate the solution to the continuous time analogue) as well as the Euler Multinomial distribution to generate process error. These features have in principle been available for most of the life of `macpan2`, but only recently have they been given a more convenient interface.
+The `McMasterPandemic` project has focused on using discrete time difference equations to solve the dynamical system. Here we describe experimental features that allow one to update the data differently. In particular, it is now possible to use a Runge-Kutta 4 Ordinary Differential Equation (ODE) solver (to approximate the solution to the continuous time analogue) as well as the Euler Multinomial distribution to generate process error. These features have in principle been available for most of the life of `macpan2`, but only recently have they been given a more convenient interface.
 
-In order to use this interface, models must be rewritten using explicit declarations of state updates. By explicitly declaring what expressions correspond to state updates, `macpan2` is able to modify the method of updating without further user input. This makes it easier to compare difference equations (i.e. Euler steps), ODEs (i.e. Runge-Kutta), and process error (i.e. Euler Multinomial) runs for the same underlying dynamical model.
+In order to use this interface, models must be rewritten using explicit declarations of state updates. By explicitly declaring what expressions correspond to state updates, `macpan2` is able to modify the method of updating without further user input. This makes it easier to compare runs using difference equations (i.e. Euler steps), ODEs (i.e. Runge-Kutta), and stochastic difference equations for the same underlying dynamical model.
 
 To declare a state update one replaces formulas in the `during` argument of a model spec to include calls to the `mp_per_capita_flow()` function.  As an example we will modify the SI model to include explicit state updates.  The original form of the model looks like this.
 ```{r}
@@ -44,7 +44,7 @@ The modified version looks like this.
 ```{r}
 si_explicit = mp_tmb_model_spec(
     before = list(S ~ N - I)
-  , during = list(mp_per_capita_flow("S", "I", infection ~ beta * I / N))
+  , during = list(mp_per_capita_flow("S", "I", "beta * I / N", "infection"))
   , default = list(I = 1, N = 100, beta = 0.25)
 )
 print(si_explicit)
@@ -157,6 +157,22 @@ for (dt in delta_t) {
 ```
 
 
+$$
+t_n = \delta_t n
+$$
+
+$$
+t_{n + 1} =  t_n \delta_t
+$$
+
+$$
+t_{n + 1} =  \delta_t (n + 1)
+$$
+
+$$
+t_n + \frac{\delta_t}{2} = \delta_t n + \frac{\delta_t}{2} = \delta_t \left(n + \frac{1}{2}\right)
+$$
+
 ## Internal Design
 
 ```{r}
@@ -166,6 +182,7 @@ spec = mp_tmb_model_spec(
     , mp_per_capita_flow("S", "I", "beta * I / N", "infection")
     , mp_per_capita_flow("I", "R", "(1 - p) * gamma", "recovery")
     , mp_per_capita_flow("I", "D", "p * gamma", "death")
+    , mp_inflow("I", "mu", "importation")
   )
 )
 ```
@@ -287,15 +304,32 @@ The constructors of these `UpdateMethod` classes often have a field of class `Ch
 
 ## Mathematical Description
 
+We distinguish four kinds of flows that differ in how they are parameterized and how they affect state variables.
+
+### Per-capita Flow Between Two Compartments
+
+This is the most common kind of flow. It is characterized by two compartments and the per-capita rate of flow from one of them to the other. We use the symbol $r$ to indicate per-capita flow, and subscripts to indicate the source and sink compartments. For example, in the standard SIR model there are two flows and both are per-capita flows. The infection flow is from S to I at per-capita rate $r_{SI} = \frac{\beta I}{N}$ and the recovery flow is from `I` to `R` at per-capita rate $r_{IR} = gamma$.
+
+The per-capita flow between two compartemnts is given by 
+
+How S, I, and R are updated in this SIR model depends on the state update method, but the simplest approach is to use differential equations.
+
+$$
+\begin{align}
+\frac{dS}{dt} = \
+\end{align}
+$$
+
+
 It is instructive to view these state update methods as approximate solutions to ordinary differential equations (ODEs). We consider ODEs of the following form.
 
 $$
 \frac{dx_i}{dt} = 
-  \underbrace{\sum_j x_j r_{ji}}_{\text{inflow}} - 
-  \underbrace{\sum_j x_i r_{ij}}_{\text{outflow}} +
-  \underbrace{\sum_j \rho_i}_{\text{exogenous}}
+  \underbrace{\omega_i}_{\text{exogenous change}} +
+  \underbrace{\sum_j (x_j r_{ji} + \rho_{ji})}_{\text{inflow}} - 
+  \underbrace{\sum_j (x_i r_{ij} + \rho_{ij})}_{\text{outflow}}
 $$
-Where the per-capita rate of flowing from compartment $i$ to compartment $j$ is $r_{ij}$, the rate of exogeneous change of compartment $i$ is $\rho_i$, and $x_i$ is the number of individuals in the $i$th compartment. We allow each $r_{ij}$ to depend on any number of state variables and time-varying parameters. For example, for an SIR model we have  $x_S, x_I, x_R$ (for readability we use $S, I, R$). In this case $r_{SI} = \beta I / N$, $r_{IR} = \gamma$, and all other values of $r_{ij}$ are zero. Here the force of infection, $r_{SI}$, depends on a state variable $I$.
+Where the per-capita rate of flowing from compartment $i$ to compartment $j$ is $r_{ij}$, the associated the rate of exogeneous change of compartment $i$ is $\rho_i$, and $x_i$ is the number of individuals in the $i$th compartment. We allow each $r_{ij}$ to depend on any number of state variables and time-varying parameters. For example, for an SIR model we have  $x_S, x_I, x_R$ (for readability we use $S, I, R$). In this case $r_{SI} = \beta I / N$, $r_{IR} = \gamma$, and all other values of $r_{ij}$ are zero. Here the force of infection, $r_{SI}$, depends on a state variable $I$.
 
 Although each state-update method presented below can be thought of as an approximate solution to this ODE, they can also be thought of as dynamical models in their own right. For example, the Euler-multinomial model is a useful model of process error.
 

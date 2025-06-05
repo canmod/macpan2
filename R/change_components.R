@@ -21,20 +21,20 @@ print_flow_vec = function(vec) {
 #' @export
 print.PerCapitaFlow = function(x, ...) {
   c(
-      From = x$from
+     `Flow name` = lhs_char(x$rate)
+    , From = x$from
     , To = x$to
     , `Per-capita rate expression` = rhs_char(x$rate)
-    , `Absolute rate symbol` = lhs_char(x$rate)
   ) |> print_flow_vec()
 }
 
 #' @export
 print.AbsoluteFlow = function(x, ...) {
   c(
-      From = x$from
+      `Flow name` = lhs_char(x$rate)
+    , From = x$from
     , To = x$to
     , `Absolute rate expression` = rhs_char(x$rate)
-    , `Absolute rate symbol` = lhs_char(x$rate)
   ) |> print_flow_vec()
 }
 
@@ -42,18 +42,18 @@ print.AbsoluteFlow = function(x, ...) {
 #' @export
 print.AbsoluteInFlow = function(x, ...) {
   c(
-      To = x$to
+      `Flow name` = lhs_char(x$rate)
+    , To = x$to
     , `Absolute rate expression` = rhs_char(x$rate)
-    , `Absolute rate symbol` = lhs_char(x$rate)
   ) |> print_flow_vec()
 }
 
 #' @export
 print.AbsoluteOutFlow = function(x, ...) {
   c(
-      From = x$from
+      `Flow name` = lhs_char(x$rate)
+    , From = x$from
     , `Absolute rate expression` = rhs_char(x$rate)
-    , `Absolute rate symbol` = lhs_char(x$rate)
   ) |> print_flow_vec()
 }
 

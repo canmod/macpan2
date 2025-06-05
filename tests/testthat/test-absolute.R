@@ -76,3 +76,17 @@ test_that("equivalent absolute and per-capita flows are consistent", {
   expect_equal(sim_fn(sir_pc), sim_fn(sir_ab))
   expect_equal(sim_fn(sir_pc, mp_rk4), sim_fn(sir_ab, mp_rk4))
 })
+
+sir = mp_tmb_model_spec(
+    during = list(
+        mp_per_capita_flow("S", "I", "beta * I / N", "infection")
+      , mp_inflow("R", "gamma", "recovery")
+      , mp_absolute_flow("I", "R", "2 * gamma", "recovery2")
+    )
+  , default = list(
+        beta = 0.2, gamma = 0.1
+      , S = 99, I = 1, R = 0, N = 100
+    )
+)
+sir |> mp_expand()
+sir |> mp_discrete_stoch() |> mp_expand()
