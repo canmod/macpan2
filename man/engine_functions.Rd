@@ -825,11 +825,13 @@ for more information.
 \item \code{x} : A matrix with elements that should remain positive.
 \item \code{eps} : A small positive number, \eqn{\epsilon_0 = f(0)},
 giving the value of the function when the input is zero.
-The default value is 1e-12
+The default value is 1e-11
 \item \code{limit} : A small positive number,
 \deqn{\epsilon_- = \lim_{x \to  -\infty}f(x)}, giving the
 value of the function as the input goes to negative
-infinity. The default is \code{limit = eps}.
+infinity. The default is \code{limit = 1e-12}. This \code{limit}
+should be chosen to be less than \code{eps} to ensure that
+\code{clamp} is twice differentiable.
 }
 }
 
