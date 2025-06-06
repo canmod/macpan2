@@ -668,11 +668,14 @@
 #' * `x` : A matrix with elements that should remain positive.
 #' * `eps` : A small positive number, \eqn{\epsilon_0 = f(0)},
 #' giving the value of the function when the input is zero.
-#' The default value is 1e-12
+#' The default value is 1e-11
 #' * `limit` : A small positive number, 
 #' \deqn{\epsilon_- = \lim_{x \to  -\infty}f(x)}, giving the
 #' value of the function as the input goes to negative
-#' infinity. The default is `limit = eps`.
+#' infinity. The default is `limit = 1e-12`. This `limit` 
+#' should be chosen to be less than `eps` to ensure that 
+#' `clamp` is twice differentiable.
+#' 
 #' 
 #' ## Probability Densities
 #'
