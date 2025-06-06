@@ -45,46 +45,118 @@
 
 
 <div class="section level2">
-<h2 id="id_1170">1.17.0<a class="anchor" aria-label="anchor" href="#id_1170"></a></h2>
+<h2 id="id_234">2.3.4<a class="anchor" aria-label="anchor" href="#id_234"></a></h2>
+<div class="section level3">
+<h3 id="bug-fixes">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes"></a></h3>
+<ul><li>Default clamping parameters now ensure that the <code>clamp</code> engine function is twice-differentiable.</li>
+</ul></div>
+</div>
+<div class="section level2">
+<h2 id="id_233">2.3.3<a class="anchor" aria-label="anchor" href="#id_233"></a></h2>
+<div class="section level3">
+<h3 id="bug-fixes-1">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-1"></a></h3>
+<ul><li>Fix regression bug causing <code>mp_absolute_flow</code> to fail.</li>
+</ul></div>
+</div>
+<div class="section level2">
+<h2 id="id_232">2.3.2<a class="anchor" aria-label="anchor" href="#id_232"></a></h2>
+<div class="section level3">
+<h3 id="bug-fixes-2">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-2"></a></h3>
+<ul><li>Fix bug in absolute flows and test.</li>
+</ul></div>
+</div>
+<div class="section level2">
+<h2 id="id_230">2.3.0<a class="anchor" aria-label="anchor" href="#id_230"></a></h2>
 <div class="section level3">
 <h3 id="new-features">New Features<a class="anchor" aria-label="anchor" href="#new-features"></a></h3>
+<ul><li>Absolute flows in model specifications are no longer experimental.</li>
+</ul></div>
+</div>
+<div class="section level2">
+<h2 id="id_221">2.2.1<a class="anchor" aria-label="anchor" href="#id_221"></a></h2>
+<div class="section level3">
+<h3 id="new-features-1">New Features<a class="anchor" aria-label="anchor" href="#new-features-1"></a></h3>
+<ul><li><a href="https://canmod.github.io/macpan2/reference/mp_version_update.html">mp_version_update</a></li>
+<li><a href="https://canmod.github.io/macpan2/reference/mp_read_rds.html">mp_read_rds</a></li>
+</ul></div>
+<div class="section level3">
+<h3 id="build-tools">Build Tools<a class="anchor" aria-label="anchor" href="#build-tools"></a></h3>
+<ul><li>Avoid source code compilation during <code>roxygen</code> steps, because these steps use low optimization level and therefore results in slower simulations.</li>
+</ul></div>
+</div>
+<div class="section level2">
+<h2 id="id_210">2.1.0<a class="anchor" aria-label="anchor" href="#id_210"></a></h2>
+<div class="section level3">
+<h3 id="new-features-2">New Features<a class="anchor" aria-label="anchor" href="#new-features-2"></a></h3>
+<ul><li><a href="https://canmod.github.io/macpan2/reference/mp_version.html">mp_version</a></li>
+<li>
+<a href="https://canmod.github.io/macpan2/reference/mp_inflow.html">mp_inflow</a> (experimental)</li>
+<li>
+<a href="https://canmod.github.io/macpan2/reference/mp_outflow.html">mp_outflow</a> (experimental)</li>
+</ul></div>
+<div class="section level3">
+<h3 id="build-tools-1">Build Tools<a class="anchor" aria-label="anchor" href="#build-tools-1"></a></h3>
+<ul><li>Refresh <code>NEWS.md</code> generation tools.</li>
+</ul></div>
+</div>
+<div class="section level2">
+<h2 id="id_201">2.0.1<a class="anchor" aria-label="anchor" href="#id_201"></a></h2>
+<div class="section level3">
+<h3 id="new-features-3">New Features<a class="anchor" aria-label="anchor" href="#new-features-3"></a></h3>
+<ul><li><a href="https://canmod.github.io/macpan2/reference/mp_log1p.html">mp_log1p</a></li>
+</ul></div>
+</div>
+<div class="section level2">
+<h2 id="id_200">2.0.0<a class="anchor" aria-label="anchor" href="#id_200"></a></h2>
+<div class="section level3">
+<h3 id="breaking-changes">Breaking Changes<a class="anchor" aria-label="anchor" href="#breaking-changes"></a></h3>
+<ul><li>#93</li>
+<li>#309</li>
+<li>#310</li>
+<li>#312</li>
+</ul></div>
+</div>
+<div class="section level2">
+<h2 id="id_1170">1.17.0<a class="anchor" aria-label="anchor" href="#id_1170"></a></h2>
+<div class="section level3">
+<h3 id="new-features-4">New Features<a class="anchor" aria-label="anchor" href="#new-features-4"></a></h3>
 <ul><li>More robust handling of C++ log files, even if simulators are loaded from disk to a file system that does not have (or no longer has) the expected path to the log file.</li>
 </ul></div>
 </div>
 <div class="section level2">
 <h2 id="id_11611">1.16.11<a class="anchor" aria-label="anchor" href="#id_11611"></a></h2>
 <div class="section level3">
-<h3 id="new-features-1">New Features<a class="anchor" aria-label="anchor" href="#new-features-1"></a></h3>
+<h3 id="new-features-5">New Features<a class="anchor" aria-label="anchor" href="#new-features-5"></a></h3>
 <ul><li>Transform parameters when making a calibration by prefixing parameter names with the name of the transformation (e.g., <code>log_beta</code> instead of <code>beta</code>).</li>
 </ul></div>
 </div>
 <div class="section level2">
 <h2 id="id_150">1.5.0<a class="anchor" aria-label="anchor" href="#id_150"></a></h2>
 <div class="section level3">
-<h3 id="new-features-2">New Features<a class="anchor" aria-label="anchor" href="#new-features-2"></a></h3>
+<h3 id="new-features-6">New Features<a class="anchor" aria-label="anchor" href="#new-features-6"></a></h3>
 <ul><li>Delete elements from model specifications with <code>mp_tmb_delete</code>.</li>
 </ul></div>
 </div>
 <div class="section level2">
 <h2 id="id_140">1.4.0<a class="anchor" aria-label="anchor" href="#id_140"></a></h2>
 <div class="section level3">
-<h3 id="breaking-changes">Breaking Changes<a class="anchor" aria-label="anchor" href="#breaking-changes"></a></h3>
+<h3 id="breaking-changes-1">Breaking Changes<a class="anchor" aria-label="anchor" href="#breaking-changes-1"></a></h3>
 <ul><li>Repeated calls of an optimizer now start from the previous best parameter vector</li>
 <li>No longer fit full covariance matrix in <code>sdreport</code>s</li>
 </ul></div>
 <div class="section level3">
-<h3 id="bug-fixes">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes"></a></h3>
+<h3 id="bug-fixes-3">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-3"></a></h3>
 <ul><li>Row vectors with names no longer break spec print methods</li>
 </ul></div>
 </div>
 <div class="section level2">
 <h2 id="id_131">1.3.1<a class="anchor" aria-label="anchor" href="#id_131"></a></h2>
 <div class="section level3">
-<h3 id="breaking-changes-1">Breaking Changes<a class="anchor" aria-label="anchor" href="#breaking-changes-1"></a></h3>
+<h3 id="breaking-changes-2">Breaking Changes<a class="anchor" aria-label="anchor" href="#breaking-changes-2"></a></h3>
 <ul><li>Removing in-place modifications to model specification objects in <code>mp_tmb_insert</code> and <code>mp_tmb_update</code>.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="new-features-3">New Features<a class="anchor" aria-label="anchor" href="#new-features-3"></a></h3>
+<h3 id="new-features-7">New Features<a class="anchor" aria-label="anchor" href="#new-features-7"></a></h3>
 <ul><li>Define explicit state variable updates, with the choice of applying <code>mp_euler</code>, <code>mp_rk4</code>, or <code>mp_euler_multinomial</code> update methods, the latter generating process error.</li>
 <li>New stochasticity engine functions <code>rbinom</code> and <code>reulermultinom</code>.</li>
 <li>
@@ -98,7 +170,7 @@
 <code>to_values</code> function for extracting the column from a data frame with only a single numerical column and turning numeric matrices and arrays with dimnames into a flattened numeric vector with labels produced by appropriately dot-concatenating the dimnames.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="bug-fixes-1">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-1"></a></h3>
+<h3 id="bug-fixes-4">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-4"></a></h3>
 <ul><li>Several bugs related to input handling in <code>mp_tmb_calibrator</code> (#176).</li>
 </ul></div>
 <div class="section level3">
@@ -116,7 +188,7 @@
 <div class="section level2">
 <h2 id="id_110">1.1.0<a class="anchor" aria-label="anchor" href="#id_110"></a></h2>
 <div class="section level3">
-<h3 id="breaking-changes-2">Breaking Changes<a class="anchor" aria-label="anchor" href="#breaking-changes-2"></a></h3>
+<h3 id="breaking-changes-3">Breaking Changes<a class="anchor" aria-label="anchor" href="#breaking-changes-3"></a></h3>
 <ul><li>
 <code>simple_sims</code> no longer returns outputs for the zeroth time-step.</li>
 <li>Using <code>last.par.best</code> to finalize the TMB objective function following optimization.</li>
@@ -126,7 +198,7 @@
 <code>rbind_lag</code> now throws an error when <code>lag &gt; 1</code> because there are conceptual errors with this case. We will get back to this when we can to allow these important cases by adding an argument with initial conditions associated with negative time steps.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="new-features-4">New Features<a class="anchor" aria-label="anchor" href="#new-features-4"></a></h3>
+<h3 id="new-features-8">New Features<a class="anchor" aria-label="anchor" href="#new-features-8"></a></h3>
 <ul><li>Streamlined installation via <code>r-universe</code>.</li>
 <li>
 <code>mp_tmb_calibrator</code> and <code>mp_tmb_optimize</code> functions for calibration using a simple and restrictive trajectory matching model. Future releases will allow more functionality.</li>
@@ -151,7 +223,7 @@
 <code>options(macpan2_verbose = FALSE)</code> will turn off the flood of information provided by <code>TMB</code>. Note that this only takes effect if set before creating a TMB simulator.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="bug-fixes-2">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-2"></a></h3>
+<h3 id="bug-fixes-5">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-5"></a></h3>
 <ul><li>Segfaults for out-of-range assignment.</li>
 </ul></div>
 <div class="section level3">
@@ -166,7 +238,7 @@
 <div class="section level2">
 <h2 id="id_100">1.0.0<a class="anchor" aria-label="anchor" href="#id_100"></a></h2>
 <div class="section level3">
-<h3 id="breaking-changes-3">Breaking Changes<a class="anchor" aria-label="anchor" href="#breaking-changes-3"></a></h3>
+<h3 id="breaking-changes-4">Breaking Changes<a class="anchor" aria-label="anchor" href="#breaking-changes-4"></a></h3>
 <ul><li>No more <code>flows.csv</code>, <code>derivations.json</code> files in the library, and instead <code>tmb.R</code> files.</li>
 <li>No more <code>Compartmental</code> function, and instead <code>mp_tmb_model_spec</code> and <code>mp_tmb_library</code>.</li>
 <li>
@@ -177,7 +249,7 @@
 <li>Sort simulation output by time step.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="new-features-5">New Features<a class="anchor" aria-label="anchor" href="#new-features-5"></a></h3>
+<h3 id="new-features-9">New Features<a class="anchor" aria-label="anchor" href="#new-features-9"></a></h3>
 <ul><li>Constant integer vectors can now be passed to <code>C++</code>.</li>
 <li>Integer vectors can be used to subset assignment matrices (i.e. integer subsetting on the left-hand-side).</li>
 <li>

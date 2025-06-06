@@ -853,11 +853,13 @@ for more information.</p><div class="section">
 <ul><li><p><code>x</code> : A matrix with elements that should remain positive.</p></li>
 <li><p><code>eps</code> : A small positive number, \(\epsilon_0 = f(0)\),
 giving the value of the function when the input is zero.
-The default value is 1e-12</p></li>
+The default value is 1e-11</p></li>
 <li><p><code>limit</code> : A small positive number,
 $$\epsilon_- = \lim_{x \to  -\infty}f(x)$$, giving the
 value of the function as the input goes to negative
-infinity. The default is <code>limit = eps</code>.</p></li>
+infinity. The default is <code>limit = 1e-12</code>. This <code>limit</code>
+should be chosen to be less than <code>eps</code> to ensure that
+<code>clamp</code> is twice differentiable.</p></li>
 </ul></div>
 
 
