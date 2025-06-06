@@ -194,11 +194,11 @@ mp_optimize(cal)
 #> [1] 0
 #> 
 #> $iterations
-#> [1] 11
+#> [1] 10
 #> 
 #> $evaluations
 #> function gradient 
-#>       20       12 
+#>       19       11 
 #> 
 #> $message
 #> [1] "relative convergence (4)"

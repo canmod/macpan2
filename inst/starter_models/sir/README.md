@@ -193,11 +193,11 @@ mp_optimize(cal)
 #> [1] 0
 #> 
 #> $iterations
-#> [1] 10
+#> [1] 9
 #> 
 #> $evaluations
 #> function gradient 
-#>       13       10 
+#>       12        9 
 #> 
 #> $message
 #> [1] "both X-convergence and relative convergence (5)"

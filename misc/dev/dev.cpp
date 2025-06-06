@@ -2570,13 +2570,13 @@ public:
             // #' infinity. The default is `limit = eps`.
             // #' 
             case MP2_CLAMP:
-                eps = 1e-12; // default
+                eps = 1e-11; // default
                 if (n > 1)
                     eps = args[1].coeff(0, 0);
                 if (n == 3) {
                     limit = args[2].coeff(0, 0);
                 } else {
-                    limit = eps; // default
+                    limit = 1e-12; // default
                 }
                 X = args[0];
                 rows = X.rows();
