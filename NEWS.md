@@ -2,7 +2,7 @@
 
 In-Progress
 
-[change list](https://github.com/canmod/macpan2/compare/fe2f65a7f73452c90b12a7fc4530bc40afa05517..d6414d4e84abfa1b6be98465bd6a697aabec2884)
+[change list](https://github.com/canmod/macpan2/compare/fe2f65a7f73452c90b12a7fc4530bc40afa05517..e37929f5d7bc7488104806b7a6e44640fdd00a07)
 
 ### Bug Fixes
 
@@ -112,10 +112,10 @@ Released: 2025-05-16
 
 ### Breaking Changes
 
-* #93
-* #309
-* #310
-* #312
+* [#93](https://github.com/canmod/macpan2/issues/93)
+* [#309](https://github.com/canmod/macpan2/issues/309)
+* [#310](https://github.com/canmod/macpan2/issues/310)
+* [#312](https://github.com/canmod/macpan2/issues/312)
 
 
 ## Changes in 1.17.0

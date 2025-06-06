@@ -55,10 +55,10 @@
 
 ### Breaking Changes
 
-* #93
-* #309
-* #310
-* #312
+* [#93](https://github.com/canmod/macpan2/issues/93)
+* [#309](https://github.com/canmod/macpan2/issues/309)
+* [#310](https://github.com/canmod/macpan2/issues/310)
+* [#312](https://github.com/canmod/macpan2/issues/312)
 
 ## 1.17.0
 
