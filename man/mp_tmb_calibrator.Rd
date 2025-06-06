@@ -110,5 +110,10 @@ mp_optimize(cal)
 if (suppressPackageStartupMessages(require(broom.mixed))) {
   print(mp_tmb_coef(cal))
 }
+(cal 
+  |> mp_optimized_spec() 
+  |> mp_default_list() 
+  |> getElement("beta")
+)
 }
 \concept{create-model-calibrator}
