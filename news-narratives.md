@@ -1,3 +1,65 @@
+## 2.3.4
+
+### Bug Fixes
+
+* Default clamping parameters now ensure that the `clamp` engine function is twice-differentiable.
+
+## 2.3.3
+
+### Bug Fixes
+
+* Fix regression bug causing `mp_absolute_flow` to fail.
+
+## 2.3.2
+
+### Bug Fixes
+
+* Fix bug in absolute flows and test.
+
+## 2.3.0
+
+### New Features
+
+* Absolute flows in model specifications are no longer experimental.
+
+## 2.2.1
+
+### New Features
+
+* [mp_version_update](https://canmod.github.io/macpan2/reference/mp_version_update.html)
+* [mp_read_rds](https://canmod.github.io/macpan2/reference/mp_read_rds.html)
+
+### Build Tools
+
+* Avoid source code compilation during `roxygen` steps, because these steps use low optimization level and therefore results in slower simulations.
+
+## 2.1.0
+
+### New Features
+
+* [mp_version](https://canmod.github.io/macpan2/reference/mp_version.html)
+* [mp_inflow](https://canmod.github.io/macpan2/reference/mp_inflow.html) (experimental)
+* [mp_outflow](https://canmod.github.io/macpan2/reference/mp_outflow.html) (experimental)
+
+### Build Tools
+
+* Refresh `NEWS.md` generation tools.
+
+## 2.0.1
+
+### New Features
+
+* [mp_log1p](https://canmod.github.io/macpan2/reference/mp_log1p.html)
+
+## 2.0.0
+
+### Breaking Changes
+
+* [#93](https://github.com/canmod/macpan2/issues/93)
+* [#309](https://github.com/canmod/macpan2/issues/309)
+* [#310](https://github.com/canmod/macpan2/issues/310)
+* [#312](https://github.com/canmod/macpan2/issues/312)
+
 ## 1.17.0
 
 ### New Features

@@ -10,5 +10,9 @@ mp_read_rds(filename)
 \item{filename}{Path to a saved model specification object.}
 }
 \description{
-Read Serialized Model Specification
+Uses \code{\link{readRDS}} to read in a saved model specification
+created using a function like \code{\link{mp_tmb_model_spec}}, and
+updates this specification using \code{\link{mp_version_update}} so that
+it is compatible with the installed version of \code{macpan2}. To save
+a model specification, just use the base \code{R} function \code{\link{saveRDS}}.
 }

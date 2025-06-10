@@ -11,5 +11,6 @@ mp_version_update(spec)
 function that produces the same type of object.}
 }
 \description{
-Update the \code{macpan2} version associated with a model specification.
+Update a model specification so that it is compatible with the
+installed version of \code{macpan2}.
 }

@@ -1,8 +1,35 @@
-## Changes in 2.3.2
+## Changes in 2.3.4
 
 In-Progress
 
-[change list](https://github.com/canmod/macpan2/compare/d14d76e0642063dfa93149b9165cf6e4eebb0848..bb9991a0543b44cf1aacba6d6a80527624cdfd15)
+[change list](https://github.com/canmod/macpan2/compare/fe2f65a7f73452c90b12a7fc4530bc40afa05517..e37929f5d7bc7488104806b7a6e44640fdd00a07)
+
+### Bug Fixes
+
+* Default clamping parameters now ensure that the `clamp` engine function is twice-differentiable.
+
+
+## Changes in 2.3.3
+
+Released: 2025-06-04
+
+[change list](https://github.com/canmod/macpan2/compare/ddbacc1da5d5261f5763571ec527d93e326c7494..fe2f65a7f73452c90b12a7fc4530bc40afa05517)
+
+### Bug Fixes
+
+* Fix regression bug causing `mp_absolute_flow` to fail.
+
+
+## Changes in 2.3.2
+
+Released: 2025-06-03
+
+[change list](https://github.com/canmod/macpan2/compare/d14d76e0642063dfa93149b9165cf6e4eebb0848..ddbacc1da5d5261f5763571ec527d93e326c7494)
+
+### Bug Fixes
+
+* Fix bug in absolute flows and test.
+
 
 ## Changes in 2.3.1
 
@@ -14,13 +41,12 @@ Released: 2025-06-02
 
 Released: 2025-06-02
 
-[change list](https://github.com/canmod/macpan2/compare/419ab564ffac9697795f7b72ad270a3410b8b68c..2b448729a223b1b4bd3d5937215019cbf4618bb2)
+[change list](https://github.com/canmod/macpan2/compare/a25df4d0785c3ccf760350895889e4a4ba0f93c1..2b448729a223b1b4bd3d5937215019cbf4618bb2)
 
-## Changes in 2.2.3
+### New Features
 
-Released: 2025-06-02
+* Absolute flows in model specifications are no longer experimental.
 
-[change list](https://github.com/canmod/macpan2/compare/a25df4d0785c3ccf760350895889e4a4ba0f93c1..419ab564ffac9697795f7b72ad270a3410b8b68c)
 
 ## Changes in 2.2.2
 
@@ -34,6 +60,16 @@ Released: 2025-06-02
 
 [change list](https://github.com/canmod/macpan2/compare/75f23ab2e8716d45ae4e343771b3a6196216fd54..654535678ccc17957ce2cb1d6dc791cec248ff4b)
 
+### New Features
+
+* [mp_version_update](https://canmod.github.io/macpan2/reference/mp_version_update.html)
+* [mp_read_rds](https://canmod.github.io/macpan2/reference/mp_read_rds.html)
+
+### Build Tools
+
+* Avoid source code compilation during `roxygen` steps, because these steps use low optimization level and therefore results in slower simulations.
+
+
 ## Changes in 2.2.0
 
 Released: 2025-05-27
@@ -46,17 +82,41 @@ Released: 2025-05-23
 
 [change list](https://github.com/canmod/macpan2/compare/c48fb449c8530240fba3bdddfa44af22cb50529d..d6b0e9901e39fbc22d1b1dd4ec24b6ad542cebb8)
 
+### New Features
+
+* [mp_version](https://canmod.github.io/macpan2/reference/mp_version.html)
+* [mp_inflow](https://canmod.github.io/macpan2/reference/mp_inflow.html) (experimental)
+* [mp_outflow](https://canmod.github.io/macpan2/reference/mp_outflow.html) (experimental)
+
+### Build Tools
+
+* Refresh `NEWS.md` generation tools.
+
+
 ## Changes in 2.0.1
 
 Released: 2025-05-21
 
 [change list](https://github.com/canmod/macpan2/compare/a372c7a909de89c8e87f2b0ac5935ccb4a198bb3..c48fb449c8530240fba3bdddfa44af22cb50529d)
 
+### New Features
+
+* [mp_log1p](https://canmod.github.io/macpan2/reference/mp_log1p.html)
+
+
 ## Changes in 2.0.0
 
 Released: 2025-05-16
 
 [change list](https://github.com/canmod/macpan2/compare/a99e1b9b6759ac46214c3ecc2bee694113aab88a..a372c7a909de89c8e87f2b0ac5935ccb4a198bb3)
+
+### Breaking Changes
+
+* [#93](https://github.com/canmod/macpan2/issues/93)
+* [#309](https://github.com/canmod/macpan2/issues/309)
+* [#310](https://github.com/canmod/macpan2/issues/310)
+* [#312](https://github.com/canmod/macpan2/issues/312)
+
 
 ## Changes in 1.17.0
 
@@ -79,19 +139,7 @@ Released: 2025-05-15
 
 Released: 2025-04-17
 
-[change list](https://github.com/canmod/macpan2/compare/a5d0870b0e06a0a1192db82194b8711dfddcafa5..6eaf25f0c9a8a8c4167ac5974ba8675cb021478c)
-
-## Changes in 1.16.9
-
-Released: 2025-04-04
-
-[change list](https://github.com/canmod/macpan2/compare/93061ef0203d500b9764dcda1bffdf940837127a..a5d0870b0e06a0a1192db82194b8711dfddcafa5)
-
-## Changes in 1.16.8
-
-Released: 2025-04-04
-
-[change list](https://github.com/canmod/macpan2/compare/723b1647840c811da9682dcb28306b79b4aeeeff..93061ef0203d500b9764dcda1bffdf940837127a)
+[change list](https://github.com/canmod/macpan2/compare/723b1647840c811da9682dcb28306b79b4aeeeff..6eaf25f0c9a8a8c4167ac5974ba8675cb021478c)
 
 ## Changes in 1.16.11
 
@@ -108,7 +156,19 @@ Released: 2025-04-04
 
 Released: 2025-04-04
 
-[change list](https://github.com/canmod/macpan2/compare/739093e0630e2b6ea993af9a5a05ce428496823a..1d2468ddf09f07888aa80488b3e869a7a8e971d6)
+[change list](https://github.com/canmod/macpan2/compare/a5d0870b0e06a0a1192db82194b8711dfddcafa5..1d2468ddf09f07888aa80488b3e869a7a8e971d6)
+
+## Changes in 1.16.9
+
+Released: 2025-04-04
+
+[change list](https://github.com/canmod/macpan2/compare/93061ef0203d500b9764dcda1bffdf940837127a..a5d0870b0e06a0a1192db82194b8711dfddcafa5)
+
+## Changes in 1.16.8
+
+Released: 2025-04-04
+
+[change list](https://github.com/canmod/macpan2/compare/739093e0630e2b6ea993af9a5a05ce428496823a..93061ef0203d500b9764dcda1bffdf940837127a)
 
 ## Changes in 1.16.7
 
@@ -318,19 +378,19 @@ Released: 2024-06-19
 
 Released: 2024-06-17
 
-[change list](https://github.com/canmod/macpan2/compare/8b7e63eda6a7250b6d88018f172756817614b291..f944bbfbf528a50e48a300180d858663156d049b)
-
-## Changes in 1.5.1
-
-Released: 2024-06-12
-
-[change list](https://github.com/canmod/macpan2/compare/5518ef01c5d9460378a99beefcbfcb4029d97bec..8b7e63eda6a7250b6d88018f172756817614b291)
+[change list](https://github.com/canmod/macpan2/compare/5518ef01c5d9460378a99beefcbfcb4029d97bec..f944bbfbf528a50e48a300180d858663156d049b)
 
 ## Changes in 1.5.2
 
 Released: 2024-06-10
 
-[change list](https://github.com/canmod/macpan2/compare/10bb06f4ac7673f2cb7e509ac2cff40793662917..5518ef01c5d9460378a99beefcbfcb4029d97bec)
+[change list](https://github.com/canmod/macpan2/compare/8b7e63eda6a7250b6d88018f172756817614b291..5518ef01c5d9460378a99beefcbfcb4029d97bec)
+
+## Changes in 1.5.1
+
+Released: 2024-06-12
+
+[change list](https://github.com/canmod/macpan2/compare/10bb06f4ac7673f2cb7e509ac2cff40793662917..8b7e63eda6a7250b6d88018f172756817614b291)
 
 ## Changes in 1.5.0
 
@@ -419,19 +479,19 @@ process error.
 
 Released: 2024-03-11
 
-[change list](https://github.com/canmod/macpan2/compare/3820ab36795d435613b91b4032cbeb7fabda1ad3..ee9b0025d3792ea27a55d441c17e7ca57af8653a)
-
-## Changes in 1.2.0
-
-Released: 2024-03-11
-
-[change list](https://github.com/canmod/macpan2/compare/a1d4e89a2a47abff98bde068bf514a5ee0ed834d..3820ab36795d435613b91b4032cbeb7fabda1ad3)
+[change list](https://github.com/canmod/macpan2/compare/a1d4e89a2a47abff98bde068bf514a5ee0ed834d..ee9b0025d3792ea27a55d441c17e7ca57af8653a)
 
 ## Changes in 1.2.1
 
 Released: 2024-03-05
 
-[change list](https://github.com/canmod/macpan2/compare/291064c37c2ab64f42fe206284d350c5e50d8968..a1d4e89a2a47abff98bde068bf514a5ee0ed834d)
+[change list](https://github.com/canmod/macpan2/compare/3820ab36795d435613b91b4032cbeb7fabda1ad3..a1d4e89a2a47abff98bde068bf514a5ee0ed834d)
+
+## Changes in 1.2.0
+
+Released: 2024-03-11
+
+[change list](https://github.com/canmod/macpan2/compare/291064c37c2ab64f42fe206284d350c5e50d8968..3820ab36795d435613b91b4032cbeb7fabda1ad3)
 
 ## Changes in 1.1.3
 
