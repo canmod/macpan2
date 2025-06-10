@@ -33,6 +33,7 @@ The [Public Health Risk Sciences Division](https://github.com/phac-nml-phrsd) at
 * [Package reference and function documentation](https://canmod.github.io/macpan2/reference)
 * [Quick-start guide](https://canmod.github.io/macpan2/articles/quickstart)
 * [Articles describing the package](https://canmod.github.io/macpan2/articles)
+* [Frequently asked questions](https://canmod.github.io/macpan2/articles/FAQs)
 * [`TMB` engine](https://canmod.github.io/macpan2/articles/cpp_side) [specification document]
 * [Project history and trajectory](https://canmod.net/misc/pyRC) [slides]
 * [Instructional videos](https://drive.google.com/drive/folders/1NEQf2sy6QLxMiiWBN5Yn9U7wiPMs1jiS)
