@@ -2,14 +2,17 @@ HIV
 ================
 Steve Walker
 
-- [Packages Used](#packages-used)
-- [Model Specification](#model-specification)
-- [States](#states)
-- [Parameters](#parameters)
-- [Force-of-Infection](#force-of-infection)
-- [Solving the ODEs](#solving-the-odes)
-- [Calibration](#calibration)
-- [References](#references)
+-   <a href="#packages-used" id="toc-packages-used">Packages Used</a>
+-   <a href="#model-specification" id="toc-model-specification">Model
+    Specification</a>
+-   <a href="#states" id="toc-states">States</a>
+-   <a href="#parameters" id="toc-parameters">Parameters</a>
+-   <a href="#force-of-infection"
+    id="toc-force-of-infection">Force-of-Infection</a>
+-   <a href="#solving-the-odes" id="toc-solving-the-odes">Solving the
+    ODEs</a>
+-   <a href="#calibration" id="toc-calibration">Calibration</a>
+-   <a href="#references" id="toc-references">References</a>
 
 This article describes a `macpan2` implementation of the HIV model
 proposed by ([Granich et al. 2009](#ref-granich2009universal)). This
@@ -59,27 +62,27 @@ article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/hiv/REA
 
 # States
 
-| Variable | Description |
-|----|----|
-| S | Number of susceptible individuals. |
-| I1 - I4 | Numbers of infectious individuals who are not treated. The number gives the state of disease progression from 1-4. |
-| A1 - A4 | Numbers of infectious individuals who are treated. The number gives the state of disease progression from 1-4. |
-| D | Number of individuals who have died from the disease. |
+| Variable | Description                                                                                                        |
+|----------|--------------------------------------------------------------------------------------------------------------------|
+| S        | Number of susceptible individuals.                                                                                 |
+| I1 - I4  | Numbers of infectious individuals who are not treated. The number gives the state of disease progression from 1-4. |
+| A1 - A4  | Numbers of infectious individuals who are treated. The number gives the state of disease progression from 1-4.     |
+| D        | Number of individuals who have died from the disease.                                                              |
 
 # Parameters
 
-| Variable | Description |
-|----|----|
-| $\lambda_0$ | Baseline transmission rate. |
-| $\alpha$ | Constant in non-linear transmission rate, accounting for heterogeneity in sexual behaviour. |
-| $n$ | Constant in non-linear transmission rate, accounting for heterogeneity in sexual behaviour. |
-| $\epsilon$ | Constant, in non-linear transmission rate, measuring the relative decrease in transmission caused by treatment. |
-| $\beta$ | Per-capita birth rate. |
-| $\mu$ | Per-capita (background) death rate. |
-| $\rho$ | Per-capita rate of disease progression for non-treated individuals. |
-| $\sigma$ | Per-capita rate of disease progression for treated individuals. |
-| $\tau$ | Per-capita rate at which individuals become protected. |
-| $\phi$ | Per-capita rate at which individuals become unprotected. |
+| Variable    | Description                                                                                                     |
+|-------------|-----------------------------------------------------------------------------------------------------------------|
+| $\lambda_0$ | Baseline transmission rate.                                                                                     |
+| $\alpha$    | Constant in non-linear transmission rate, accounting for heterogeneity in sexual behaviour.                     |
+| $n$         | Constant in non-linear transmission rate, accounting for heterogeneity in sexual behaviour.                     |
+| $\epsilon$  | Constant, in non-linear transmission rate, measuring the relative decrease in transmission caused by treatment. |
+| $\beta$     | Per-capita birth rate.                                                                                          |
+| $\mu$       | Per-capita (background) death rate.                                                                             |
+| $\rho$      | Per-capita rate of disease progression for non-treated individuals.                                             |
+| $\sigma$    | Per-capita rate of disease progression for treated individuals.                                                 |
+| $\tau$      | Per-capita rate at which individuals become protected.                                                          |
+| $\phi$      | Per-capita rate at which individuals become unprotected.                                                        |
 
 # Force-of-Infection
 
@@ -92,19 +95,20 @@ $$
 
 The symbols in this expression are defined as follows.
 
-- $\lambda = \lambda_0 e^{-\alpha P^n}$
-- $P = I/N$
-- $I = \sum_i(I_i + A_i)$
-- $J = \sum_i(I_i + \epsilon A_i)$
-- $N$ is the total number of alive boxes
+-   $\lambda = \lambda_0 e^{-\alpha P^n}$
+-   $P = I/N$
+-   $I = \sum_i(I_i + A_i)$
+-   $J = \sum_i(I_i + \epsilon A_i)$
+-   $N$ is the total number of alive boxes
 
 The remaining transition rates are constant per-capita rates.
 
 # Solving the ODEs
 
 Here is an example trajectory from this model with small
-[updates](?mp_tmb_update()) to the default parameters, using the
-[Runge-Kutta ODE solver](?mp_rk4()).
+[updates](https://canmod.github.io/macpan2/reference/mp_tmb_update) to
+the default parameters, using the [Runge-Kutta ODE
+solver](https://canmod.github.io/macpan2/reference/state_updates).
 
 ``` r
 outputs = c(sprintf("I%s", 1:4), sprintf("A%s", 1:4))
@@ -253,8 +257,7 @@ prediction).
 
 # References
 
-<div id="refs" class="references csl-bib-body hanging-indent"
-entry-spacing="0">
+<div id="refs" class="references csl-bib-body hanging-indent">
 
 <div id="ref-granich2009universal" class="csl-entry">
 

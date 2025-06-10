@@ -111,7 +111,7 @@ The remaining transition rates are constant per-capita rates.
 
 # Solving the ODEs
 
-Here is an example trajectory from this model with small [updates](?mp_tmb_update()) to the default parameters, using the [Runge-Kutta ODE solver](?mp_rk4()).
+Here is an example trajectory from this model with small [updates](https://canmod.github.io/macpan2/reference/mp_tmb_update) to the default parameters, using the [Runge-Kutta ODE solver](https://canmod.github.io/macpan2/reference/state_updates).
 
 ```{r simulations}
 outputs = c(sprintf("I%s", 1:4), sprintf("A%s", 1:4))
