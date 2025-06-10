@@ -125,10 +125,10 @@
 <span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="naming-convensions">Naming Convensions<a class="anchor" aria-label="anchor" href="#naming-convensions"></a>
+<h2 id="naming-conventions">Naming Conventions<a class="anchor" aria-label="anchor" href="#naming-conventions"></a>
 </h2>
 <div class="section level3">
-<h3 id="why-is-the-package-called-macpan2">Why is the package called <code>macpan2</code>?<a class="anchor" aria-label="anchor" href="#why-is-the-package-called-macpan2"></a>
+<h3 id="what-does-macpan2-mean">What does <code>macpan2</code> mean?<a class="anchor" aria-label="anchor" href="#what-does-macpan2-mean"></a>
 </h3>
 <p>This <code>macpan2</code> package grew out of the <a href="https://github.com/mac-theobio/McMasterPandemic" class="external-link">McMasterPandemic</a>
 project. Over the years the people involved in that project started
@@ -138,80 +138,61 @@ no package called <code>macpan</code>.</p>
 <div class="section level3">
 <h3 id="why-do-most-of-the-functions-start-with-mp_">Why do most of the functions start with <code>mp_</code>?<a class="anchor" aria-label="anchor" href="#why-do-most-of-the-functions-start-with-mp_"></a>
 </h3>
-<p>The <code>mp</code> stands for mac-pan. The idea is to make it easy
-to see in scripts what functions come from <code>macpan2</code> and what
-functions come from other packages.</p>
+<p>The <code>mp</code> stands for <strong>M</strong>cMaster
+<strong>P</strong>andemic (i.e., <code>mac-pan</code>). The idea is to
+make it easy to see in scripts what functions come from
+<code>macpan2</code> and what functions come from other packages.</p>
 </div>
 <div class="section level3">
 <h3 id="why-do-some-of-the-functions-start-with-mp_tmb_">Why do some of the functions start with <code>mp_tmb_</code>?<a class="anchor" aria-label="anchor" href="#why-do-some-of-the-functions-start-with-mp_tmb_"></a>
 </h3>
-<p>The <code>tmb</code> part refers to the <a href="https://github.com/kaskr/adcomp" class="external-link">TMB</a> package, on which
+<p>The <code>tmb</code> prefix refers to the <a href="https://github.com/kaskr/adcomp" class="external-link">TMB</a> package, on which
 <code>macpan2</code> is built. We hope to one day use other
 computational engines (e.g., <a href="https://mc-stan.org/" class="external-link">stan</a>),
 at which point users will be able to see what computational engine is
-being used in their scripts. But for now <code>tmb</code> is the only
-computational engine and so the only thing indicated by
-<code>mp_tmb_</code> is that you are using a function that is intended
-to be specific to computations with TMB. Functions that do not start
-with <code>mp_tmb_</code> should be engine-agnostic and able to be used
-with any engine when and if such engines are supported.</p>
-</div>
-</div>
-<div class="section level2">
-<h2 id="coding-style">Coding Style<a class="anchor" aria-label="anchor" href="#coding-style"></a>
-</h2>
-<div class="section level3">
-<h3 id="what-does-mean">What does <code>|&gt;</code> mean?<a class="anchor" aria-label="anchor" href="#what-does-mean"></a>
-</h3>
-<p>We use the <a href="https://www.tidyverse.org/blog/2023/04/base-vs-magrittr-pipe/#pipes" class="external-link">base
-R pipe</a> operator throughout our examples. Please read this link for
-details.</p>
-</div>
-<div class="section level3">
-<h3 id="why-do-i-see-weird-symbols-at-the-start-of-lines">Why do I see weird symbols at the start of lines?<a class="anchor" aria-label="anchor" href="#why-do-i-see-weird-symbols-at-the-start-of-lines"></a>
-</h3>
-<p>In many of our examples we start lines with characters that many
-people put at the end of lines, such as the commas, plus signs and the
-<a href="https://www.tidyverse.org/blog/2023/04/base-vs-magrittr-pipe/#pipes" class="external-link">base
-R pipe</a>. These characters tell R how the code on the rest of the line
-is to combined with previous lines. We prefer to put these characters at
-the start of lines because it makes it slightly easier to comment lines
-out. Note that for this approach to work you need to wrap these
-continued expressions in parentheses. See the <a href="https://canmod.github.io/macpan2/articles/quickstart.html">quickstart</a>
-guide for examples of this style.</p>
+being used in their scripts. For now <code>tmb</code>, is the only
+computational engine supported; the only thing <code>mp_tmb_</code>
+indicates is that you are using a function that is specific to
+computations with TMB. Functions that do not start with
+<code>mp_tmb_</code> should be engine-agnostic and will work with any
+engine (when and if we develop support for other engines).</p>
 </div>
 </div>
 <div class="section level2">
 <h2 id="calibration-details-and-outputs">Calibration Details and Outputs<a class="anchor" aria-label="anchor" href="#calibration-details-and-outputs"></a>
 </h2>
 <div class="section level3">
-<h3 id="what-model-fitting-approach-does-macpan2-use">What model fitting approach does <code>macpan2</code> use?<a class="anchor" aria-label="anchor" href="#what-model-fitting-approach-does-macpan2-use"></a>
+<h3 id="how-does-macpan2-fit-models-to-data">How does <code>macpan2</code> fit models to data?<a class="anchor" aria-label="anchor" href="#how-does-macpan2-fit-models-to-data"></a>
 </h3>
-<p>We fit models by finding the values of parameters at the peak of a
-posterior distribution. This approach is sometimes called <a href="https://en.wikipedia.org/wiki/Maximum_a_posteriori_estimation" class="external-link">maximum
-a posteriori (MAP) estimation</a>. This approach allows us to get
-approximate Bayesian uncertainty estimates by approximating the
-posterior distribution as a multivariate Gaussian centered at the peak
-obtained by MAP. One is able to declare that parameters be considered
-random effects, which means that they are integrated out of the
-posterior distribution using the <a href="https://en.wikipedia.org/wiki/Laplace%27s_approximation" class="external-link">Laplace
-approximation</a>. Using this approach allows us to reduce the
-dimensionality of the posterior distribution used in MAP by only
-optimizing over the fixed effect parameters.</p>
-<p>This approximate posterior distribution can be used to obtain
-confidence / credible intervals for any continuous function of model
-variables. The two main examples of this are as follows.</p>
-<ol style="list-style-type: decimal">
-<li>Confidence intervals on fitted parameters using
-<code>mp_tmb_coef(., conf.int = TRUE)</code>.</li>
-<li>Confidence intervals on fitted trajectories using
-<code><a href="../reference/mp_trajectory.html">mp_trajectory_sd()</a></code>
-</li>
-</ol>
-<p>This approach to computing confidence intervals using Gaussian
-approximations to the posterior is a special case of the <a href="https://en.wikipedia.org/wiki/Delta_method" class="external-link">delta method</a> that
-is implemented in <a href="https://github.com/kaskr/adcomp" class="external-link">TMB</a>,
-which is described <a href="https://kaskr.github.io/adcomp/_book/Appendix.html#theory-underlying-sdreport" class="external-link">here</a>.</p>
+<p>In its standard mode, <code>macpan2</code> works by finding the
+minimum of an <em>objective function</em>: normally, the objective
+function is a negative log-likelihood function, so this minimum
+corresponds to <em>maximum likelihood estimation</em>. More
+specifically, <code>macpan2</code> only takes noise in the observation
+process into account — in calibration (but not simulation) mode, it
+ignores the randomness of the dynamical process itself — so it is using
+a procedure called <em>trajectory matching</em> <span class="citation">[@bolker2008]</span>. <span class="citation">@earnFitting2024</span> give a more careful
+introduction to this approach, although they focus on fitting
+continuous-time (differential equation) models to data, whereas
+<code>macpan2</code> defines discrete-time models by default (unless you
+specify <a href="https://canmod.github.io/macpan2/reference/state_updates.html"><code>mp_rk4</code></a>
+when defining the state updates in your model).</p>
+<p>If you <a href="https://canmod.github.io/macpan2/articles/likelihood_prior_specs.html?q=prior#priors-on-distributional-parameters">specify
+priors</a> for some of the parameters in your model, then by minimizing
+the objective (negative log-posterior) function, you are performing <a href="https://en.wikipedia.org/wiki/Maximum_a_posteriori_estimation" class="external-link">maximum
+a posteriori (MAP) estimation</a>.</p>
+<p>You can also use random-effects parameters to fit smooth
+nonparametric terms, or otherwise allow for latent Gaussian variables in
+your model (this is an advanced topic: see the <a href="https://canmod.github.io/macpan2/articles/time_varying_parameters_advanced.html">advanced
+time-varying parameters vignette</a>; in this case, <code>macpan2</code>
+uses TMB’s built-in <a href="https://en.wikipedia.org/wiki/Laplace%27s_approximation" class="external-link">Laplace
+approximation</a> engine to approximate this otherwise difficult
+term.</p>
+<p>If you want to do truly Bayesian estimation (rather than the MAP
+approximation), you can feed <code>macpan2</code> models into the
+<code>tmbstan</code> package to perform <a href="https://canmod.github.io/macpan2/articles/calibration_advanced.html#hamiltonian-mc">Hamiltonian
+Monte Carlo sampling</a> and get corresponding estimates (and Bayesian
+credible intervals, see below).</p>
 <p>Example calibrations of varying levels of complexity.</p>
 <ul>
 <li><a href="https://canmod.github.io/macpan2/articles/calibration">Intro to
@@ -231,6 +212,30 @@ model using toy data</a></li>
 </ul>
 </div>
 <div class="section level3">
+<h3 id="how-does-macpan2-derive-confidence-intervals">How does <code>macpan2</code> derive confidence intervals?<a class="anchor" aria-label="anchor" href="#how-does-macpan2-derive-confidence-intervals"></a>
+</h3>
+<p>By default, <code>macpan2</code> assumes that the uncertainties of
+all model parameters, coefficients, etc. are approximately
+multivariate-Gaussian distributed; the resulting confidence intervals
+are sometimes called <em>Wald</em> intervals <span class="citation">[@bolker2008]</span>. Since the models fitted by
+<code>macpan2</code> are typically nonlinear, this approach also
+requires use of the <a href="https://en.wikipedia.org/wiki/Delta_method" class="external-link">delta method</a>
+(implemented automatically within <a href="https://github.com/kaskr/adcomp" class="external-link">TMB</a>) to compute the variances
+of derived quantities such as trajectories (see <a href="https://kaskr.github.io/adcomp/_book/Appendix.html#theory-underlying-sdreport" class="external-link">here</a>).
+(If we add priors and further assume that we are doing MAP estimation,
+these intervals might be called credible rather than confidence
+intervals.)</p>
+<p>This approach can be used to obtain confidence / credible intervals
+for any continuous function of model variables, e.g.</p>
+<ol style="list-style-type: decimal">
+<li>Confidence intervals on fitted parameters using
+<code>mp_tmb_coef(., conf.int = TRUE)</code>.</li>
+<li>Confidence intervals on fitted trajectories using
+<code><a href="../reference/mp_trajectory.html">mp_trajectory_sd()</a></code>
+</li>
+</ol>
+</div>
+<div class="section level3">
 <h3 id="what-likelihood-and-prior-distribution-assumptions-does-macpan2-make">What likelihood and prior distribution assumptions does
 <code>macpan2</code> make?<a class="anchor" aria-label="anchor" href="#what-likelihood-and-prior-distribution-assumptions-does-macpan2-make"></a>
 </h3>
@@ -244,11 +249,6 @@ parameters are used to produce a component of the prior distribution
 distributional assumptions and settings are described <a href="https://canmod.github.io/macpan2/articles/likelihood_prior_specs">here</a>,
 but inspecting the examples linked to in the previous FAQ will be more
 useful for figuring out how to use this functionality.</p>
-</div>
-<div class="section level3">
-<h3 id="can-i-hack-macpan2-to-use-mcmc-esimation">Can I hack <code>macpan2</code> to use MCMC esimation?<a class="anchor" aria-label="anchor" href="#can-i-hack-macpan2-to-use-mcmc-esimation"></a>
-</h3>
-<p><a href="https://canmod.github.io/macpan2/articles/calibration_advanced.html#hamiltonian-mc">Yes</a>.</p>
 </div>
 <div class="section level3">
 <h3 id="can-i-get-a-new-model-specification-with-fitted-parameters-as-defaults-from-a-calibrated-calibrator-object">Can I get a new model specification with fitted parameters as
@@ -295,7 +295,7 @@ warnings?<a class="anchor" aria-label="anchor" href="#should-i-worry-about-nanan
 <p>This is usually nothing to worry about, though you should take note
 of it. Typically this warning indicates that the optimizer tried
 parameter values that led the objective function (i.e., the negative log
-posterior density) to be non-numeric. Usually, the opimizer is smart
+posterior density) to be non-numeric. Usually, the optimizer is smart
 enough (if it is possible) to get back on track. The key thing to watch
 out for is whether the optimizer converged, which can be explored using
 the <code><a href="../reference/mp_optimizer_output.html">mp_optimizer_output()</a></code> function that is illustrated in
@@ -313,20 +313,26 @@ the <code><a href="../reference/mp_optimizer_output.html">mp_optimizer_output()<
 <h3 id="how-do-i-increase-the-number-of-iterations-that-the-optimizer-takes">How do I increase the number of iterations that the optimizer
 takes?<a class="anchor" aria-label="anchor" href="#how-do-i-increase-the-number-of-iterations-that-the-optimizer-takes"></a>
 </h3>
-<p>When non-convergence results because the optimizer reaches the
-maximum number of iterations that it was allowed to take, you can
-increase this number (TODO: show example of how). Sometimes however,
-running out of iterations can (but not always) be a sign that there is
-not very much information in the data about the model parameters being
-estimated.</p>
+<p>When non-convergence results because the optimizer reaches its
+specified maximum number of iterations that it was allowed to take, you
+can increase that value by specifying arguments in
+<code><a href="../reference/mp_optimize.html">mp_optimize()</a></code> that get passed through to the optimizer. The
+default optimizer in <code>macpan2</code> is <a href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/nlminb.html" class="external-link">nlminb</a>:
+for example, specifying
+<code>control = list(eval.max = 1000, iter.max = 1000)</code> (the
+defaults for these settings are 200 and 150, respectively) within
+<code><a href="../reference/mp_optimize.html">mp_optimize()</a></code> will allow the optimizer to run longer.
+However, running out of iterations could also be an indication that
+there is something wrong with your model, e.g. that there is not enough
+information present in the data to estimate all of the parameters.</p>
 </div>
 </div>
 <div class="section level2">
 <h2 id="parameter-estimation-and-uncertainty">Parameter Estimation and Uncertainty<a class="anchor" aria-label="anchor" href="#parameter-estimation-and-uncertainty"></a>
 </h2>
 <div class="section level3">
-<h3 id="what-can-i-do-when-my-confidence-intervals-overlap-zero-for-a-parameter-that-should-be-positive">What can I do when my confidence intervals overlap zero for a
-parameter that should be positive?<a class="anchor" aria-label="anchor" href="#what-can-i-do-when-my-confidence-intervals-overlap-zero-for-a-parameter-that-should-be-positive"></a>
+<h3 id="what-can-i-do-when-my-confidence-intervals-include-zero-for-a-parameter-that-should-be-positive">What can I do when my confidence intervals include zero for a
+parameter that should be positive?<a class="anchor" aria-label="anchor" href="#what-can-i-do-when-my-confidence-intervals-include-zero-for-a-parameter-that-should-be-positive"></a>
 </h3>
 <p>You should use <code><a href="../reference/mp_tmb_insert.html">mp_tmb_insert()</a></code> to transform your
 parameters so that they cannot go negative. TODO: link to an
@@ -355,8 +361,8 @@ experience. TODO: link to example.</p>
 <h2 id="initial-conditions">Initial Conditions<a class="anchor" aria-label="anchor" href="#initial-conditions"></a>
 </h2>
 <div class="section level3">
-<h3 id="my-data-start-mid-epidemic-so-how-do-i-know-what-the-initial-number-of-infectious-individuals-is">My data start mid-epidemic so how do I know what the initial number
-of infectious individuals is?<a class="anchor" aria-label="anchor" href="#my-data-start-mid-epidemic-so-how-do-i-know-what-the-initial-number-of-infectious-individuals-is"></a>
+<h3 id="my-data-start-mid-epidemic-how-do-i-know-what-the-initial-number-of-infectious-individuals-is">My data start mid-epidemic: how do I know what the initial number of
+infectious individuals is?<a class="anchor" aria-label="anchor" href="#my-data-start-mid-epidemic-how-do-i-know-what-the-initial-number-of-infectious-individuals-is"></a>
 </h3>
 <p>This is a common situation as data collection often gets better after
 it is clear that there is a problem. But simulating epidemic models
@@ -386,7 +392,7 @@ epidemic started 10 time steps before the data start.</p>
 <span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>limits <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">max_time</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="FAQs_files/figure-html/unnamed-chunk-3-1.png" width="576"></p>
+<p><img src="FAQs_files/figure-html/unnamed-chunk-1-1.png" width="576"></p>
 <p>The blank space on the graph from time <code>1</code> to
 <code>10</code> represents the period of the outbreak without data. The
 exact size of this period is not crucial, only that it is long enough to
@@ -475,8 +481,32 @@ knowing the initial number of infectious individuals 10</p>
 <span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">value</span><span class="op">)</span>, data <span class="op">=</span> <span class="va">fitted_data</span><span class="op">)</span></span>
 <span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="FAQs_files/figure-html/unnamed-chunk-5-1.png" width="576"></p>
+<p><img src="FAQs_files/figure-html/unnamed-chunk-3-1.png" width="576"></p>
 <p>Real data will not be as simple, but these principles will help.</p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="coding-style">Coding Style<a class="anchor" aria-label="anchor" href="#coding-style"></a>
+</h2>
+<div class="section level3">
+<h3 id="what-does-mean">What does <code>|&gt;</code> mean?<a class="anchor" aria-label="anchor" href="#what-does-mean"></a>
+</h3>
+<p>We use the <a href="https://www.tidyverse.org/blog/2023/04/base-vs-magrittr-pipe/#pipes" class="external-link">base
+R pipe</a> operator throughout our examples. Please read this link for
+details.</p>
+</div>
+<div class="section level3">
+<h3 id="why-do-you-put-weird-symbols-at-the-start-of-lines">Why do you put weird symbols at the start of lines?<a class="anchor" aria-label="anchor" href="#why-do-you-put-weird-symbols-at-the-start-of-lines"></a>
+</h3>
+<p>In many of our examples we start lines with characters that many
+people put at the end of lines, such as the commas, plus signs and the
+<a href="https://www.tidyverse.org/blog/2023/04/base-vs-magrittr-pipe/#pipes" class="external-link">base
+R pipe</a>. These characters tell R how the code on the rest of the line
+is to combined with previous lines. We prefer to put these characters at
+the start of lines because it makes it slightly easier to comment lines
+out. Note that for this approach to work you need to wrap these
+continued expressions in parentheses. See the <a href="https://canmod.github.io/macpan2/articles/quickstart.html">quickstart</a>
+guide for examples of this style.</p>
 </div>
 </div>
 <div class="section level2">
@@ -512,15 +542,15 @@ under-reporting in <code>macpan2</code>?<a class="anchor" aria-label="anchor" hr
 compare the simulated incidence values from our model with observed case
 reports, because there is a reporting delay. The following toy example
 shows how the apparent peak in the data follows the simulations.</p>
-<p><img src="FAQs_files/figure-html/unnamed-chunk-7-1.png" width="576"></p>
+<p><img src="FAQs_files/figure-html/unnamed-chunk-5-1.png" width="576"></p>
 <p>So before comparing the simulations with observed data, we use
 convolution to transform the simulated incidence values into a time
 series of reported cases that is expected by the model. Keep reading to
 find out specifically how this is done.</p>
-<p><img src="FAQs_files/figure-html/unnamed-chunk-8-1.png" width="576"></p>
+<p><img src="FAQs_files/figure-html/unnamed-chunk-6-1.png" width="576"></p>
 <p>Now we can now compare the observed and expected reported cases in a
 manner that accounts for reporting delays.</p>
-<p><img src="FAQs_files/figure-html/unnamed-chunk-9-1.png" width="576"></p>
+<p><img src="FAQs_files/figure-html/unnamed-chunk-7-1.png" width="576"></p>
 <p>Now to explain how the expected reported case curve is computed. In
 this method we assume that each new case waits a Gamma-distributed
 random amount of time before it is observed. The mean and coefficient of
@@ -536,11 +566,10 @@ horizontal line. Note how the reported number of cases is roughly near
 (but not identical) to the simulated number of cases at the peak of the
 delay distribution. This makes sense because we would expect most of our
 reports now to come from the highest probability time in the past.</p>
-<p><img src="FAQs_files/figure-html/unnamed-chunk-10-1.png" width="576"></p>
-<p>In <code>macpan2</code> we typically have a model that doesn’t
-account for delayed reporting and we want to update it to do so before
-fitting to data. One can use the <code><a href="../reference/mp_tmb_insert_reports.html">mp_tmb_insert_reports()</a></code>
-function for this purpose.</p>
+<p><img src="FAQs_files/figure-html/plot-expected-case-report-1.png" width="576"></p>
+<p>To account for delays between incidence and case reports (or other
+delays in reporting), you can update an existing model with
+<code><a href="../reference/mp_tmb_insert_reports.html">mp_tmb_insert_reports()</a></code> before fitting the model:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">si_with_delays</span> <span class="op">=</span> <span class="op">(</span><span class="va">si</span></span>
 <span> <span class="op">|&gt;</span> <span class="fu"><a href="../reference/mp_tmb_insert_reports.html">mp_tmb_insert_reports</a></span><span class="op">(</span></span>
@@ -561,10 +590,9 @@ function for this purpose.</p>
 <span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">value</span>, colour <span class="op">=</span> <span class="va">matrix</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="FAQs_files/figure-html/unnamed-chunk-11-1.png" width="576"></p>
-<p>Note how this function allows accounting for under-reporting as well,
-by specifying a <code>report_prob</code> that is less than
-<code>1</code>.</p>
+<p><img src="FAQs_files/figure-html/mp-tmb-insert-reports-1.png" width="576"></p>
+<p>This function can account for under-reporting as well, by specifying
+a <code>report_prob</code> that is less than 1.</p>
 <pre><code><span><span class="fl">16</span><span class="op">:</span> <span class="va">dist</span> <span class="op">~</span> <span class="fu"><a href="../reference/engine_functions.html">pgamma</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">17</span>, <span class="fl">1</span><span class="op">/</span><span class="op">(</span><span class="va">incidence_cv_delay</span><span class="op">)</span>, <span class="va">incidence_mean_delay</span> <span class="op">*</span> <span class="op">(</span><span class="va">incidence_cv_delay</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fl">17</span><span class="op">:</span> <span class="va">delta</span> <span class="op">~</span> <span class="va">dist</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">16</span><span class="op">]</span> <span class="op">-</span> <span class="va">dist</span><span class="op">[</span><span class="fl">0</span><span class="op">:</span><span class="fl">15</span><span class="op">]</span></span>
 <span><span class="fl">18</span><span class="op">:</span> <span class="va">kernel</span> <span class="op">~</span> <span class="va">incidence_report_prob</span> <span class="op">*</span> <span class="va">delta</span><span class="op">/</span><span class="fu"><a href="../reference/engine_functions.html">sum</a></span><span class="op">(</span><span class="va">delta</span><span class="op">)</span></span>
@@ -687,10 +715,12 @@ R = R + \rho_{IR}
 </annotation></semantics></math></p>
 </div>
 <div class="section level3">
-<h3 id="can-macpan2-do-the-gillespie-algorithm">Can <code>macpan2</code> do the Gillespie algorithm<a class="anchor" aria-label="anchor" href="#can-macpan2-do-the-gillespie-algorithm"></a>
+<h3 id="does-macpan2-implement-the-gillespie-algorithm">Does <code>macpan2</code> implement the <a href="https://en.wikipedia.org/wiki/Gillespie_algorithm" class="external-link">Gillespie
+algorithm</a>?<a class="anchor" aria-label="anchor" href="#does-macpan2-implement-the-gillespie-algorithm"></a>
 </h3>
-<p>No. At least not without substantial hacking. The Euler Multinomial
-is used instead</p>
+<p>No. Using <code>state_update = "discrete_stoch"</code> in your <a href="https://canmod.github.io/macpan2/reference/mp_tmb_model_spec.html">model
+specification</a>, and using a small time step, will (inefficiently)
+approximate a continuous-time, discrete-state stochastic model.</p>
 </div>
 <div class="section level3">
 <h3 id="more-process-error-incomplete">More Process Error (incomplete)<a class="anchor" aria-label="anchor" href="#more-process-error-incomplete"></a>
@@ -971,7 +1001,7 @@ is used instead</p>
 <span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">value</span>, colour <span class="op">=</span> <span class="va">matrix</span><span class="op">)</span>, data <span class="op">=</span> <span class="va">fit_infection</span><span class="op">)</span></span>
 <span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="FAQs_files/figure-html/unnamed-chunk-16-1.png" width="576"></p>
+<p><img src="FAQs_files/figure-html/unnamed-chunk-12-1.png" width="576"></p>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
