@@ -252,8 +252,8 @@ articles:
   - example_models
   - calibration
   - real_data
-  - state_updaters
   - options
+  - FAQs
 - title: Specs
   desc: Specification Documents
   contents:
@@ -279,4 +279,4 @@ articles:
   contents:
   - time_varying_parameters
   - likelihood_prior_specs
-  - FAQs
+  - state_updaters

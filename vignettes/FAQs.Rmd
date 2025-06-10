@@ -23,6 +23,10 @@ knitr::opts_chunk$set(
 )
 ```
 
+## Introduction
+
+Incomplete and growing set of answers to Frequently Asked Questions (FAQs).
+
 ## Setup and Example Models and Data
 
 ```{r setup, message = FALSE, warning = FALSE}
