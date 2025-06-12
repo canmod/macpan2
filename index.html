@@ -41,8 +41,8 @@
     <li><a class="dropdown-item" href="articles/example_models.html">Example Models</a></li>
     <li><a class="dropdown-item" href="articles/calibration.html">Calibrating Compartmental Models to Data</a></li>
     <li><a class="dropdown-item" href="articles/real_data.html">Fitting to Real Data</a></li>
-    <li><a class="dropdown-item" href="articles/state_updaters.html">ODE Solvers, Process Error, and Difference Equations</a></li>
     <li><a class="dropdown-item" href="articles/options.html">Options</a></li>
+    <li><a class="dropdown-item" href="articles/FAQs.html">FAQs</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="articles/index.html">More articles...</a></li>
   </ul>
@@ -76,6 +76,7 @@
 <li><a href="https://canmod.github.io/macpan2/reference">Package reference and function documentation</a></li>
 <li><a href="https://canmod.github.io/macpan2/articles/quickstart">Quick-start guide</a></li>
 <li><a href="https://canmod.github.io/macpan2/articles">Articles describing the package</a></li>
+<li><a href="https://canmod.github.io/macpan2/articles/FAQs">Frequently asked questions</a></li>
 <li>
 <a href="https://canmod.github.io/macpan2/articles/cpp_side"><code>TMB</code> engine</a> [specification document]</li>
 <li>
@@ -86,21 +87,29 @@
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>The standard recommended way to install <code>macpan2</code> is with the following command.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>repos <span class="ot">=</span> <span class="fu">c</span>(<span class="st">'https://canmod.r-universe.dev'</span>, <span class="st">'https://cloud.r-project.org'</span>)</span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">'macpan2'</span>, <span class="at">repos =</span> repos)</span></code></pre></div>
-<p>Many workflows with <code>macpan2</code> also make use of four widely used packages, which you can install with the following command.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="fu">c</span>(<span class="st">"dplyr"</span>, <span class="st">"ggplot2"</span>, <span class="st">"tidyr"</span>, <span class="st">"broom.mixed"</span>))</span></code></pre></div>
-<p>To get the latest development version of <code>macpan2</code>, or if the above command fails for some reason, an alternative command to install is the following.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"canmod/macpan2"</span>)</span></code></pre></div>
-<p>This command requires the <code>remotes</code> package and assumes that your <code>R</code> environment is set up to compile <code>C++</code> code contained in packages.</p>
+<p>Here is the recommended way to install <code>macpan2</code> (from within an R session):</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">repos</span> <span class="op">=</span> <span class="fu"><a href="reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">'https://canmod.r-universe.dev'</span>, <span class="st">'https://cloud.r-project.org'</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">'macpan2'</span>, repos <span class="op">=</span> <span class="va">repos</span><span class="op">)</span></span></code></pre></div>
+<p>To get the latest development version of <code>macpan2</code>, or if the incantation above command fails for some reason, try:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"canmod/macpan2"</span><span class="op">)</span></span></code></pre></div>
+<p>This command requires the <code>remotes</code> package and assumes that your R environment is set up to build package that include compiled C++ code (e.g. see details for <a href="https://cran.r-project.org/bin/windows/base/howto-R-devel.html" class="external-link">Windows</a> or <a href="https://mac.r-project.org/tools/" class="external-link">MacOS</a> [you probably only need Xcode from this page]).</p>
+<p>Many <code>macpan2</code> workflows also use these four popular packages:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="fu"><a href="reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"dplyr"</span>, <span class="st">"ggplot2"</span>, <span class="st">"tidyr"</span>, <span class="st">"broom.mixed"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>The <code>Rgraphviz</code> package is useful for plotting flow diagrams of models (see <code><a href="reference/dot_layout.html">?dot_layout</a></code>). To install it:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="st"><a href="https://bioconductor.github.io/BiocManager/" class="external-link">"BiocManager"</a></span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"BiocManager"</span><span class="op">)</span></span>
+<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu">install</span><span class="op">(</span><span class="st">"Rgraphviz"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="reproducibility">Reproducibility<a class="anchor" aria-label="anchor" href="#reproducibility"></a>
 </h2>
 <p>The <a href="https://r-universe.dev" class="external-link">r-universe</a>, which we use to distribute <code>macpan2</code>, suggests two approaches for projects in production that need to keep track of specific versions of <code>macpan2</code>: <a href="https://ropensci.org/blog/2023/05/31/runiverse-snapshots/" class="external-link">snapshots</a> or <a href="https://ropensci.org/blog/2022/01/06/runiverse-renv/" class="external-link"><code>renv</code></a>.</p>
 <p>To take the first approach, snapshots of <code>macpan2</code> (and its dependency <code>oor</code>) can be obtained using the following download link.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>https<span class="sc">:</span><span class="er">//</span>canmod.r<span class="sc">-</span>universe.dev<span class="sc">/</span>api<span class="sc">/</span>snapshot<span class="sc">/</span>zip?packages<span class="ot">=</span>macpan2,macpan2helpers,oor</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>https<span class="sc">:</span><span class="er">//</span>canmod.r<span class="sc">-</span>universe.dev<span class="sc">/</span>api<span class="sc">/</span>snapshot<span class="sc">/</span>zip?packages<span class="ot">=</span>macpan2,macpan2helpers,oor</span></code></pre></div>
 <p>Please see <a href="https://canmod.r-universe.dev/apis" class="external-link">this documentation</a> for instructions on customizing this download link.</p>
 <p>The benefit of the first approach is that it doesn’t require users to be able to compile C++ code, whereas the second does. The benefit of the second approach is that it can be used to manage dependencies on all packages in your workflows. It might be possible to combine the two approaches to get the best of both worlds, but this isn’t tested.</p>
 </div>
@@ -108,7 +117,7 @@
 <h2 id="hello-world">Hello World<a class="anchor" aria-label="anchor" href="#hello-world"></a>
 </h2>
 <p>The following code specifies an <a href="https://github.com/canmod/macpan2/blob/main/inst/starter_models/si/README.md" class="external-link">SI model</a>, which is the simplest model of epidemiological transmission.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://canmod.github.io/macpan2/">macpan2</a></span><span class="op">)</span></span>
 <span><span class="va">si</span> <span class="op">=</span> <span class="fu"><a href="reference/mp_tmb_model_spec.html">mp_tmb_model_spec</a></span><span class="op">(</span></span>
 <span>    before <span class="op">=</span> <span class="va">S</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">-</span> <span class="va">I</span></span>
@@ -121,25 +130,25 @@
 <span>  , default <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>I <span class="op">=</span> <span class="fl">0.01</span>, beta <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/engine_functions.html">print</a></span><span class="op">(</span><span class="va">si</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb6"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="do">## ---------------------</span></span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="do">## Default values:</span></span>
-<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="do">##  quantity value</span></span>
-<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="do">##         I  0.01</span></span>
-<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="do">##      beta  0.20</span></span>
-<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="do">## ---------------------</span></span>
-<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="do">## </span></span>
-<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="do">## ---------------------</span></span>
-<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a><span class="do">## Before the simulation loop (t = 0):</span></span>
-<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="do">## ---------------------</span></span>
-<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="do">## 1: S ~ 1 - I</span></span>
-<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="do">## </span></span>
-<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="do">## ---------------------</span></span>
-<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="do">## At every iteration of the simulation loop (t = 1 to T):</span></span>
-<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a><span class="do">## ---------------------</span></span>
-<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a><span class="do">## 1: mp_per_capita_flow(from = "S", to = "I", rate = "beta * I", flow_name = "infection")</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="do">## ---------------------</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="do">## Default values:</span></span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="do">##  quantity value</span></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="do">##         I  0.01</span></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="do">##      beta  0.20</span></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="do">## ---------------------</span></span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="do">## </span></span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a><span class="do">## ---------------------</span></span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a><span class="do">## Before the simulation loop (t = 0):</span></span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a><span class="do">## ---------------------</span></span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a><span class="do">## 1: S ~ 1 - I</span></span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a><span class="do">## </span></span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a><span class="do">## ---------------------</span></span>
+<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a><span class="do">## At every iteration of the simulation loop (t = 1 to T):</span></span>
+<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a><span class="do">## ---------------------</span></span>
+<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a><span class="do">## 1: mp_per_capita_flow(from = "S", to = "I", rate = "beta * I", flow_name = "infection")</span></span></code></pre></div>
 <p>See <a href="https://canmod.github.io/macpan2/articles/example_models.html">this article</a> for more example models with documentation.</p>
 <p>Simulating from this model requires choosing the number of time-steps to run and the model outputs to generate. Syntax for simulating <code>macpan2</code> models is <a href="https://canmod.github.io/macpan2/articles/quickstart.html#processing-results">designed to combine with standard data prep and plotting tools in R</a>, as we demonstrate with the following code.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
 <span><span class="op">(</span><span class="va">si</span></span>
