@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.3.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -106,6 +106,14 @@ third tolerance argument to <code><a href="../reference/engine_functions.html">p
 </h2>
 <p>You almost always want to leave these at their default values.</p>
 <ul>
+<li>
+<code>macpan2_traj_tmb_macro = "simulate"</code> (valid values are
+<code>"simulate"</code> and <code>"report"</code>) : What TMB macro
+should <code><a href="../reference/mp_trajectory.html">mp_trajectory()</a></code> use to generate simulations. Before
+version <code>2.4.0</code> this was implicitly assumed to be
+<code>"report"</code>, which does not respect the random seed set using
+<code>set.seed</code>. For reproducibility with earlier versions, please
+set <code>options(macpan2_traj_tmb_macro = "report")</code>.</li>
 <li>
 <code>macpan2_time_dep_funcs = c("convolution", "rbind_lag", "rbind_time", "cbind_lag", "cbind_time")</code>
 : List of engine functions that cannot be called unless their first
