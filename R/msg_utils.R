@@ -5,7 +5,7 @@
 mp_wrap = function(...) {
   (c(...) 
     |> strwrap(prefix = "\n", initial = "")
-    |> append("\n\n", after = 1)
+    |> append("\n\n", after = 0)
   )
 }
 
