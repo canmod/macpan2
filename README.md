@@ -59,8 +59,8 @@ repos = c('https://canmod.r-universe.dev', 'https://cloud.r-project.org')
 install.packages('macpan2', repos = repos)
 ```
 
-To get the latest development version of `macpan2`, or if the
-incantation above command fails for some reason, try:
+To get the latest development version of `macpan2`, or if the above
+command fails for some reason, try:
 
 ``` r
 remotes::install_github("canmod/macpan2")
