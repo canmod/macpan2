@@ -1,6 +1,3 @@
-library(macpan2); library(testthat); library(dplyr); library(tidyr); library(ggplot2); library(deSolve)
-source("tests/testthat/setup.R")
-
 test_that("report variable names are unique", {
   spec = test_cache_read("SPEC-si.rds")
   expect_error(
