@@ -91,7 +91,7 @@
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">repos</span> <span class="op">=</span> <span class="fu"><a href="reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">'https://canmod.r-universe.dev'</span>, <span class="st">'https://cloud.r-project.org'</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">'macpan2'</span>, repos <span class="op">=</span> <span class="va">repos</span><span class="op">)</span></span></code></pre></div>
-<p>To get the latest development version of <code>macpan2</code>, or if the incantation above command fails for some reason, try:</p>
+<p>To get the latest development version of <code>macpan2</code>, or if the above command fails for some reason, try:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"canmod/macpan2"</span><span class="op">)</span></span></code></pre></div>
 <p>This command requires the <code>remotes</code> package and assumes that your R environment is set up to build package that include compiled C++ code (e.g. see details for <a href="https://cran.r-project.org/bin/windows/base/howto-R-devel.html" class="external-link">Windows</a> or <a href="https://mac.r-project.org/tools/" class="external-link">MacOS</a> [you probably only need Xcode from this page]).</p>
