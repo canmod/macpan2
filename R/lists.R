@@ -15,6 +15,10 @@ nlist = function(...) {
     }
     setNames(L, nm)
 }
+named_vec = function(...) {
+  lst = nlist(...)
+  unlist(lst, recursive = FALSE, use.names = TRUE)
+}
 
 melt_matrix_int = function(x) {
   dm = dim(x)

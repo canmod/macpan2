@@ -229,6 +229,21 @@ mp_tmb_insert_reports = function(model
   , mean_delay_name = sprintf("%s_mean_delay", incidence_name)
   , cv_delay_name = sprintf("%s_cv_delay", incidence_name)
 ) {
+  all_names = named_vec(
+      incidence_name
+    , reports_name
+    , report_prob_name
+    , mean_delay_name
+    , cv_delay_name
+  )
+  dup_names = duplicated(all_names)
+  if (any(dup_names)) {
+    mp_wrap(
+        "The following names were used for the given quantities. "
+      , "These all need to be unique, but they are not. "
+      , all_names
+    ) |> stop()
+  }
   model = assert_cls(model, "TMBModelSpec", match.call(), "?mp_tmb_model_spec")
   local_names = c(dist = "dist", delta = "delta", kernel = "kernel")
   map = model$name_map(local_names)
