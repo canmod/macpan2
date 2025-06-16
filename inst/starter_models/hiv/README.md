@@ -138,9 +138,6 @@ population of `1e7` people using two variables: the prevalence of
 infectious individuals who are `treated` and `untreated`. We initialize
 with `1000` infectious individuals in each of the four disease stages,
 and zero untreated individuals. We add Poisson noise to these variables.
-We also compute reported incidence using a reporting fraction of `0.1`.
-Although we do not use the resulting `reports` variable in this example,
-we include it to demonstrate how such a variable can be generated.
 
 ``` r
 set.seed(1L)
@@ -157,7 +154,6 @@ spec_for_cal = (spec
   |> mp_tmb_insert(at = Inf, expressions = list(
       treated ~ A1 + A2 + A3 + A4
     , untreated ~ I1 + I2 + I3 + I4
-    , reports ~ 0.1 * infection
   ))
 )
 simulated_data = (spec_for_cal

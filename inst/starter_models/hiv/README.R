@@ -10,6 +10,7 @@ knitr::opts_chunk$set(
 library(macpan2)
 library(ggplot2)
 library(dplyr)
+options(macpan2_verbose = FALSE)
 
 
 ## ----model_lib----------------------------------------------------------------
@@ -54,5 +55,75 @@ sim = (spec
   + facet_wrap(~ matrix, ncol = 2, scales = 'free', dir = "v")
   + scale_y_continuous(limits = c(0, NA), expand = c(0, 0))
   + theme_bw()
+)
+
+
+## ----simulated_data_for_cal, fig.width = 4------------------------------------
+set.seed(1L)
+spec_for_cal = (spec
+  |> mp_tmb_update(
+      default = list(lambda0 = 0.38, n = 0.2)
+    , inits = list(
+          S = 1e7 - 4000
+        , I1 = 1000, I2 = 1000, I3 = 1000, I4 = 1000
+        , A1 = 0   , A2 = 0   , A3 = 0   , A4 = 0
+      )
+  )
+  |> mp_rk4()
+  |> mp_tmb_insert(at = Inf, expressions = list(
+      treated ~ A1 + A2 + A3 + A4
+    , untreated ~ I1 + I2 + I3 + I4
+    , reports ~ 0.1 * infection
+  ))
+)
+simulated_data = (spec_for_cal
+  |> mp_simulator(time_steps = 20L, c("treated", "untreated"))
+  |> mp_trajectory()
+  |> mutate(value = rpois(n(), value))
+)
+(simulated_data
+  |> rename(`Observation Year` = time)
+  |> rename(Value = value)
+  |> ggplot()
+  + geom_line(aes(`Observation Year`, Value))
+  + facet_wrap(~matrix, ncol = 1, scales = "free")
+  + theme_bw()
+)
+
+
+## ----calibration--------------------------------------------------------------
+calibrator = (spec_for_cal
+  |> mp_tmb_update(default = list(lambda0 = 0.2, n = 0.5))
+  |> mp_tmb_calibrator(
+        data = simulated_data
+      , traj = list(
+            treated = mp_poisson()
+          , untreated = mp_poisson()
+      )
+      , par = c("log_lambda0", "logit_n")
+  )
+)
+mp_optimize(calibrator)
+
+
+## ----convergence--------------------------------------------------------------
+mp_optimizer_output(calibrator)$convergence
+
+
+## ----estimates----------------------------------------------------------------
+(mp_tmb_coef(calibrator, conf.int = TRUE)
+ |> select(-term, -row, -col, -type)
+)
+
+
+## ----fit, fig.width = 4-------------------------------------------------------
+(calibrator
+ |> mp_trajectory_sd(conf.int = TRUE)
+ |> ggplot()
+ + geom_line(aes(time, value), colour = "red")
+ + geom_ribbon(aes(time, ymin = conf.low, ymax = conf.high), alpha = 0.2, fill = "red")
+ + geom_line(aes(time, value), data = simulated_data)
+ + facet_wrap(~matrix, ncol = 1, scales = "free")
+ + theme_bw()
 )
 
