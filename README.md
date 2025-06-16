@@ -67,7 +67,7 @@ remotes::install_github("canmod/macpan2")
 ```
 
 This command requires the `remotes` package and assumes that your R
-environment is set up to build package that include compiled C++ code
+environment is set up to build packages that include compiled C++ code
 (e.g. see details for
 [Windows](https://cran.r-project.org/bin/windows/base/howto-R-devel.html)
 or [MacOS](https://mac.r-project.org/tools/) \[you probably only need
