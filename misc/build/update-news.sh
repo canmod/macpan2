@@ -27,12 +27,15 @@ awk '{ print NR, $0 }' "$BUMP_FILE" | sort -rn | cut -d' ' -f2- | while read -r 
     echo "## Changes in $version" >> "$TMP_FILE"
     echo "" >> "$TMP_FILE"
     if [ -n "$next_hash" ]; then
-      echo "Released: $date" >> "$TMP_FILE"
+      echo "Released [$date]" >> "$TMP_FILE"
+      echo "" >> "$TMP_FILE"
+      echo "[source](https://github.com/$REPO_SLUG/tree/$hash)" >> "$TMP_FILE"
     else
       echo "In-Progress" >> "$TMP_FILE"
+      echo "" >> "$TMP_FILE"
+      echo "[source](https://github.com/$REPO_SLUG)" >> "$TMP_FILE"
     fi
-    echo "" >> "$TMP_FILE"
-    echo "[change list](https://github.com/$REPO_SLUG/compare/$prev_hash..$hash)" >> "$TMP_FILE"
+    echo " | [change list](https://github.com/$REPO_SLUG/compare/$prev_hash..$hash)" >> "$TMP_FILE"
   
     awk "/^## $version\$/{flag=1;next}/^## /{flag=0}flag" "$NARRATIVES" >> "$TMP_FILE"
     echo "" >> "$TMP_FILE"
