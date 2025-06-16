@@ -73,7 +73,6 @@ spec_for_cal = (spec
   |> mp_tmb_insert(at = Inf, expressions = list(
       treated ~ A1 + A2 + A3 + A4
     , untreated ~ I1 + I2 + I3 + I4
-    , reports ~ 0.1 * infection
   ))
 )
 simulated_data = (spec_for_cal
