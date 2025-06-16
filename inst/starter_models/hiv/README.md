@@ -68,6 +68,7 @@ article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/hiv/REA
 | I1 - I4  | Numbers of infectious individuals who are not treated. The number gives the state of disease progression from 1-4. |
 | A1 - A4  | Numbers of infectious individuals who are treated. The number gives the state of disease progression from 1-4.     |
 | D        | Number of individuals who have died from the disease.                                                              |
+|          |                                                                                                                    |
 
 # Parameters
 

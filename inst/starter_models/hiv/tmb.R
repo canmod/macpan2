@@ -25,15 +25,15 @@ flows = list(
   , mp_per_capita_flow("A2", "I2", "phi", "unprotection2")
   , mp_per_capita_flow("A3", "I3", "phi", "unprotection3")
   , mp_per_capita_flow("A4", "I4", "phi", "unprotection4")
-  , mp_per_capita_flow("S", "D_bg", "mu", "death_bg_S")
-  , mp_per_capita_flow("I1", "D_bg", "mu", "death_bg_I1")
-  , mp_per_capita_flow("I2", "D_bg", "mu", "death_bg_I2")
-  , mp_per_capita_flow("I3", "D_bg", "mu", "death_bg_I3")
-  , mp_per_capita_flow("I4", "D_bg", "mu", "death_bg_I4")
-  , mp_per_capita_flow("A1", "D_bg", "mu", "death_bg_A1")
-  , mp_per_capita_flow("A2", "D_bg", "mu", "death_bg_A2")
-  , mp_per_capita_flow("A3", "D_bg", "mu", "death_bg_A3")
-  , mp_per_capita_flow("A4", "D_bg", "mu", "death_bg_A4")
+  , mp_per_capita_outflow("S", "mu", "death_bg_S")
+  , mp_per_capita_outflow("I1", "mu", "death_bg_I1")
+  , mp_per_capita_outflow("I2", "mu", "death_bg_I2")
+  , mp_per_capita_outflow("I3", "mu", "death_bg_I3")
+  , mp_per_capita_outflow("I4", "mu", "death_bg_I4")
+  , mp_per_capita_outflow("A1", "mu", "death_bg_A1")
+  , mp_per_capita_outflow("A2", "mu", "death_bg_A2")
+  , mp_per_capita_outflow("A3", "mu", "death_bg_A3")
+  , mp_per_capita_outflow("A4", "mu", "death_bg_A4")
   , mp_per_capita_inflow("N", "S", "beta", "birth")
 )
 
@@ -64,11 +64,10 @@ default = list(
 )  
 ## initial conditions
 inits = list( 
-  , S = 1 ## susceptible
+    S = 1 ## susceptible
   , I1 = 1/400, I2 = 1/400, I3 = 1/400, I4 = 1/400 ## untreated infectious per stage
   , A1 = 0, A2 = 0, A3 = 0, A4 = 0                 ## treated infectious per stage
   , D = 0     ## death due to disease
-  , D_bg = 0  ## background death
 )
 
 spec = mp_tmb_model_spec(

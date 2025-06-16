@@ -74,6 +74,7 @@ layout = mp_layout_grid(spec
 | I1 - I4  | Numbers of infectious individuals who are not treated. The number gives the state of disease progression from 1-4. |
 | A1 - A4  | Numbers of infectious individuals who are treated. The number gives the state of disease progression from 1-4.     |
 | D        | Number of individuals who have died from the disease.                                                              |
+                                                          |
 
 # Parameters
 
