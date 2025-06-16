@@ -1,8 +1,14 @@
-## Changes in 2.3.4
+## Changes in 2.4.0
 
 In-Progress
 
-[change list](https://github.com/canmod/macpan2/compare/fe2f65a7f73452c90b12a7fc4530bc40afa05517..e37929f5d7bc7488104806b7a6e44640fdd00a07)
+[change list](https://github.com/canmod/macpan2/compare/3b2e2c8e184556851f6ea9c7dabab5e21f42b476..1942f4a9c8f0f99d4f368a5ea12ba1afff78e2fd)
+
+## Changes in 2.3.4
+
+Released: 2025-06-12
+
+[change list](https://github.com/canmod/macpan2/compare/fe2f65a7f73452c90b12a7fc4530bc40afa05517..3b2e2c8e184556851f6ea9c7dabab5e21f42b476)
 
 ### Bug Fixes
 
