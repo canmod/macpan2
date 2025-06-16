@@ -2,7 +2,7 @@
 
 In-Progress
 
-[change list](https://github.com/canmod/macpan2/compare/3b2e2c8e184556851f6ea9c7dabab5e21f42b476..1942f4a9c8f0f99d4f368a5ea12ba1afff78e2fd)
+[change list](https://github.com/canmod/macpan2/compare/3b2e2c8e184556851f6ea9c7dabab5e21f42b476..a6f3580f378dd2652157ff581fb1b0f621cf329c)
 
 ## Changes in 2.3.4
 
