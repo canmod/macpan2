@@ -2406,10 +2406,6 @@ public:
                         MP2_ERR(MP2_TIME_VAR, "Negative times are not allowed.", MP2_TIME_VAR);
                         return m;
                     }
-                    // else if (cp > t_max) {
-                    //     MP2_ERR(MP2_TIME_VAR, "Change points greater than the number of time steps are not allowed.", MP2_TIME_VAR);
-                    //     return m;
-                    // }
                 }
                 m = matrix<Type>::Zero(args[0].cols(), 1);
 
