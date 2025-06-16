@@ -7,7 +7,9 @@ test_that("report variable names are unique", {
       , cv_delay = 0.25
       , incidence_name = "infection"
       , reports_name = "infection"
+      , mean_delay_name = "delay"
+      , cv_delay_name = "delay"
     )
-    , regexp = "These all need to be unique"
+    , regexp = "inconsistently used for multiple purposes"
   )
 })

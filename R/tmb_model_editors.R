@@ -238,11 +238,19 @@ mp_tmb_insert_reports = function(model
   )
   dup_names = duplicated(all_names)
   if (any(dup_names)) {
+    all_dups = all_names[all_names %in% all_names[dup_names]]
+    dup_list = tapply(names(all_dups), unname(all_dups), c, simplify = FALSE)
+    usage = vapply(dup_list
+      , paste, character(1L)
+      , collapse = ", "
+      , USE.NAMES = FALSE
+    )
+    frame = data.frame(variable = names(dup_list), usage = usage)
     mp_wrap(
-        "The following names were used for the given quantities. "
-      , "These all need to be unique, but they are not. "
-      , all_names
-    ) |> stop()
+        "The following names were assigned to variables that account for"
+      , "reporting bias via `mp_tmb_insert_reports()`, but they were"
+      , "inconsistently used for multiple purposes."
+    ) |> c("\n\n", frame_formatter(frame)) |> stop()
   }
   model = assert_cls(model, "TMBModelSpec", match.call(), "?mp_tmb_model_spec")
   local_names = c(dist = "dist", delta = "delta", kernel = "kernel")
