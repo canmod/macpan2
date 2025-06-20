@@ -78,7 +78,15 @@ obs_data = (covid_on
 ## ----time_bounds--------------------------------------------------------------
 burn_in_period  = 15 ## number of days before the data start to begin the simulations
 forecast_period = 30 ## number of days after the data end to make forecasts
+<<<<<<< HEAD
+time_bounds = mp_sim_offset(
+    sim_start_offset = 15
+  , sim_end_offset = 30
+  , time_scale = "daily"
+)
+=======
 time_bounds = mp_sim_offset(burn_in_period, forecast_period, "daily")
+>>>>>>> main
 
 
 ## ----cal_spec_update----------------------------------------------------------
@@ -139,8 +147,13 @@ focal_model = (
      , expressions = list(
           beta2 ~ time_var(beta_changes, beta_changepoints)
      )
+<<<<<<< HEAD
+     , default  = list(beta_changes      = c(1))#, 3))
+     , integers = list(beta_changepoints = c(0))#, steps("2021-03-05")))
+=======
      , default  = list(beta_changes      = c(1))
      , integers = list(beta_changepoints = c(0))
+>>>>>>> main
   )
 )
 

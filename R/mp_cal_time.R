@@ -30,30 +30,43 @@ mp_sim_bounds = function(sim_start, sim_end, time_scale = "steps", time_column =
   self$sim_end = sim_end
   self$time_scale = time_scale
   self$time_column = time_column
-  self$extend = function(steps_to_extend) {
-    new_obj = mp_sim_offset(
-        self$sim_start_offset
-      , self$sim_end_offset + steps_to_extend
-      , self$time_scale
-      , self$time_column
-    )
-    return(new_obj)
-  }
+# <<<<<<< HEAD
   self$cal_time_steps = function(data, original_coercer = force) {
     column = data[[self$time_column]]
-    check_valid_time_scales(self$time_scale)
-    constr = get_time_constructor(self$time_scale)
-    if (length(column) == 0L) {
-      dat_start = self$sim_start
-      dat_end = self$sim_end
-    } else {
-      dat_start = min(column)
-      dat_end = max(column)
-    }
+    dat_start = min(column)
+    dat_end = max(column)
+    ## TODO: check type consistency
+    constr = switch(self$time_scale
+      , steps = CalTimeStepsInt
+      , daily = CalTimeStepsDaily
+    )
+# =======
+#   self$extend = function(steps_to_extend) {
+#     new_obj = mp_sim_offset(
+#         self$sim_start_offset
+#       , self$sim_end_offset + steps_to_extend
+#       , self$time_scale
+#       , self$time_column
+#     )
+#     return(new_obj)
+#   }
+#   self$cal_time_steps = function(data, original_coercer = force) {
+#     column = data[[self$time_column]]
+#     check_valid_time_scales(self$time_scale)
+#     constr = get_time_constructor(self$time_scale)
+#     if (length(column) == 0L) {
+#       dat_start = self$sim_start
+#       dat_end = self$sim_end
+#     } else {
+#       dat_start = min(column)
+#       dat_end = max(column)
+#     }
+# >>>>>>> main
     constr(self$sim_start, self$sim_end, dat_start, dat_end, original_coercer)
   }
   return_object(self, "SimBounds")
 }
+
 
 #' Simulation Offsets
 #' 
@@ -102,6 +115,11 @@ mp_sim_offset = function(sim_start_offset, sim_end_offset, time_scale = "steps",
     }
     sim_start = dat_start - self$sim_start_offset
     sim_end = dat_end + self$sim_end_offset
+    ## TODO: check type consistency
+    constr = switch(self$time_scale
+      , steps = CalTimeStepsInt
+      , daily = CalTimeStepsDaily
+    )
     constr(sim_start, sim_end, dat_start, dat_end, original_coercer)
   }
   return_object(self, "SimOffset")

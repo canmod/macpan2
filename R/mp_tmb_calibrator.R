@@ -259,6 +259,7 @@ print.TMBCalibrator = function(x, ...) {
   }
 }
 
+
 #' Optimize Simulation Model
 #' 
 #' Calibrate a model that has been parameterized, typically by using
@@ -484,12 +485,28 @@ TMBCalDataStruc = function(data, time) {
     , col = c("col", "Col", "column", "Column")
     , value = c("value", "Value", "val", "Val", "default", "Default")
   )
-  time_column_test_value = data$time
+# <<<<<<< HEAD
   if (is.character(data$time)) {
     original_coercer = as.character
   } else if (is.integer(data$time)) {
-    if (inherits(data$time, "Date")) {
-      original_coercer = as.Date
+    original_coercer = as.integer
+  } else if (inherits(data$time, "Date")) {
+    original_coercer = as.Date
+  } else {
+    original_coercer = force
+  }
+  if (is.null(time)) {
+    if (infer_time_step(data$time)) {
+      data$time = as.integer(data$time)
+      time = mp_sim_bounds(min(data$time), max(data$time), "steps")
+# =======
+#   time_column_test_value = data$time
+#   if (is.character(data$time)) {
+#     original_coercer = as.character
+#   } else if (is.integer(data$time)) {
+#     if (inherits(data$time, "Date")) {
+#       original_coercer = as.Date
+# >>>>>>> main
     } else {
       original_coercer = as.integer
     }
@@ -512,7 +529,10 @@ TMBCalDataStruc = function(data, time) {
     }
   }
   self$time_steps_obj = time$cal_time_steps(data, original_coercer)
-  self$time_steps_obj$conversion_check(time_column_test_value)
+#<<<<<<< HEAD
+#=======
+#   self$time_steps_obj$conversion_check(time_column_test_value)
+# >>>>>>> main
   data$time_ids = self$time_steps_obj$external_to_internal(data$time)
   ## TODO: Still splitting on matrices, which doesn't allow flexibility
   ## in what counts as an 'output'. In general, an output could be
@@ -773,6 +793,23 @@ NameHandlerAbstract = function() {
       unlist(self$global_names(), recursive = TRUE, use.names = FALSE)
     )
   }
+  self$global_names_subset = function(model_vars) {
+    
+    ## list of character vectors. each element of this list
+    ## corresponds to a method that returns a named vector.
+    ## the names of these vectors have local and global 
+    ## forms. the character vectors in this gnms list 
+    ## are the global forms of these names.
+    gnms = self$global_names()
+    mths = names(gnms)
+    
+    for (mth in mths) {
+      model_vars_mth = names(self[[mth]]())
+      i = model_vars_mth %in% model_vars
+      gnms[[mth]] = setNames(gnms[[mth]][i], model_vars_mth[i])
+    }
+    return(gnms)
+  }
   
   ## check_assumptions has no return value. while running
   ## it is allowed to throw messages, warnings, errors,
@@ -877,6 +914,9 @@ TMBTVAbstract = function() {
   self$tv_params_frame = function(tv_pars) self$empty_params_frame
   self$tv_random_frame = function() self$empty_params_frame
   
+  self$tv_distr_params = function() list()
+  self$tv_distr_random = function() list()
+  
   
   self$local_names = function() {
     make_names_list(self
@@ -930,6 +970,316 @@ TMBParAbstract = function() {
 
 TMBTV = function(tv, struc, spec, existing_global_names = character()) {
   UseMethod("TMBTV")
+}
+
+
+#' @exportS3Method macpan2::TMBTV
+TMBTV.list = function(tv
+      , struc, spec
+      , existing_global_names = character()
+    ) {
+  TMBTV(
+      mp_tv(params = tv, random = list(), known = list(), linear = list())
+    , struc, spec
+    , existing_global_names
+  )
+}
+
+#' @exportS3Method macpan2::TMBTV
+TMBTV.TVArg = function(tv
+      , struc, spec
+      , existing_global_names = character()
+    ) {
+  self = macpan2:::TMBTVAbstract()
+  self$tv = tv
+  self$struc = struc
+  self$spec = spec
+  self$existing_global_names = existing_global_names
+  
+  fix_tv_list = function(tv_list) {
+    for (p in names(tv_list)) {
+      tv_list[[p]] = macpan2:::rename_synonyms(tv_list[[p]]
+        , mat = c("matrix", "Matrix", "mat", "Mat", "variable", "var", "Variable", "Var")
+        , row = c("row", "Row")
+        , col = c("col", "Col", "column", "Column")
+        , default = c("value", "Value", "val", "Val", "default", "Default")
+      )
+      if (isTRUE(!any(tv_list[[p]]$time_ids == 0))) {
+        ## if the data do not define what value to
+        ## give at time-id zero, then look for the
+        ## default value of the parameter that is
+        ## being converted to a time-varying parameter
+        ## at calibration time.
+        baseline = self$spec$default[[p]]
+        if (is.null(baseline)) {
+          stop("Baseline value not specified for time-varying parameter, ", p)
+        }
+        tv_list[[p]] = macpan2:::add_row(tv_list[[p]]
+          , mat = p
+          , row = 0L
+          , col = 0L
+          , time_ids = 0L
+          , default = baseline
+        )
+      }
+    }
+    return(tv_list)
+  }
+  
+  # self$data_time_ids = struc$time_steps_obj$dat_vec()
+  # self$par_name = tv$tv
+  # self$prior_sd_default = tv$prior_sd
+  # self$fit_prior_sd = tv$fit_prior_sd
+  
+  fix_linear_list = function(sm_list) {
+    for (nm in names(sm_list)) {
+      sm_list[[nm]]$tv = nm
+      sm_list[[nm]]$sparse_basis_data = macpan2:::sparse_rbf_notation(
+          struc$time_steps_obj$dat_len()
+        , sm_list[[nm]]$dimension
+        , zero_based = TRUE
+        , tol = sm_list[[nm]]$sparse_tol
+      )
+      sm_list[[nm]]$initial_outputs = c(sm_list[[nm]]$sparse_basis_data$M %*% sm_list[[nm]]$initial_weights)
+    }
+    return(sm_list)
+  }
+  
+  # internal data structure
+  self$pnms = names(self$tv$params)
+  self$rnms = names(self$tv$random)
+  self$knms = names(self$tv$known)
+  self$lnms = names(self$tv$linear)
+  
+  # local name utility: return list of outputs of self$global_names,
+  # organized by the type of time-varying variable
+  self$global_names_by_tv_type = function() {
+    list(
+        params = self$global_names_subset(self$pnms)
+      , random = self$global_names_subset(self$rnms)
+      , known  = self$global_names_subset(self$knms)
+      , linear = self$global_names_subset(self$lnms)
+    )
+  }
+  
+  self$anms = c(self$pnms, self$rnms, self$knms, self$lnms)
+  dups = duplicated(self$anms)
+  if (any(dups)) stop("duplicates: ", unique(self$anms[dups]))
+  
+  self$ptv_list = struc$matrix_list[self$pnms] |> fix_tv_list()
+  self$rtv_list = struc$matrix_list[self$rnms] |> fix_tv_list()
+  self$ktv_list = struc$matrix_list[self$knms] |> fix_tv_list()
+  self$ltv_list = self$tv$linear |> fix_linear_list()
+  
+  self$time_var = function() {
+    l = list()
+    for (nm in self$pnms) l[[nm]] = self$ptv_list[[nm]]$default
+    for (nm in self$rnms) l[[nm]] = self$rtv_list[[nm]]$default
+    for (nm in self$knms) l[[nm]] = self$ktv_list[[nm]]$default
+    for (nm in self$lnms) l[[nm]] = self$ltv_list[[nm]]$initial_weights
+    return(l)
+  }
+  
+  self$change_points = function() {
+    l = list()
+    for (nm in self$pnms) l[[nm]] = self$ptv_list[[nm]]$time_ids
+    for (nm in self$rnms) l[[nm]] = self$rtv_list[[nm]]$time_ids
+    for (nm in self$knms) l[[nm]] = self$ktv_list[[nm]]$time_ids
+    return(l)
+  }
+  
+  self$change_pointer = function() {
+    ## Depended upon to return a list of length-one
+    ## integer vectors with a single zero. Names of 
+    ## the list are the time-varying matrices in the
+    ## spec.
+    nms = names(self$change_points())
+    (nms
+      |> macpan2:::zero_vector()
+      |> as.integer()
+      |> as.list()
+      |> setNames(nms)
+    )
+  }
+  
+  self$values_var = function() {
+    l = list()
+    for (nm in self$lnms) l[[nm]] = self$ltv_list[[nm]]$sparse_basis_data$values
+    return(l)
+  }
+  
+  self$prior_sd = function() {
+    l = list()
+    for (nm in self$lnms) l[[nm]] = self$ltv_list[[nm]]$prior_sd
+    return(l)
+  }
+  
+  self$row_indexes = function() {
+    l = list()
+    for (nm in self$lnms) {
+      l[[nm]] = as.integer(self$ltv_list[[nm]]$sparse_basis_data$row_index)
+    }
+    return(l)
+  }
+  
+  self$col_indexes = function() {
+    l = list()
+    for (nm in self$lnms) {
+      l[[nm]] = as.integer(self$ltv_list[[nm]]$sparse_basis_data$col_index)
+    }
+    return(l)
+  }
+  
+  self$outputs_var = function() {
+    l = list()
+    for (nm in self$lnms) l[[nm]] = self$ltv_list[[nm]]$initial_outputs
+    return(l)
+  }
+  
+  self$data_time_indexes = function() {
+    l = list()
+    for (nm in self$lnms) {
+      l[[nm]] = as.integer(c(0, self$struc$time_steps_obj$dat_vec()))
+    }
+    return(l)
+  }
+  
+  self$var_update_exprs = function() {
+    nms = self$global_names_by_tv_type()
+    s = character()
+    s = c(s, sprintf("%s ~ time_var(%s, %s)"
+      , self$pnms
+      , nms$params$time_var
+      , nms$params$change_points
+    ))
+    s = c(s, sprintf("%s ~ time_var(%s, %s)"
+      , self$rnms
+      , nms$random$time_var
+      , nms$random$change_points
+    ))
+    s = c(s, sprintf("%s ~ time_var(%s, %s)"
+      , self$knms
+      , nms$known$time_var
+      , nms$known$change_points
+    ))
+    s = c(s, sprintf("%s ~ exp(time_var(%s, %s))"
+      , self$lnms
+      , nms$linear$outputs_var
+      , nms$linear$data_time_indexes
+    ))
+    lapply(s, as.formula)
+  }
+  
+  self$prior_expr_chars = function() {
+    nms = self$global_names_by_tv_type()
+    s = character()
+    s = c(s, sprintf(
+        "-sum(dnorm(%s, 0, %s))"
+      , nms$linear$values_var, nms$linear$prior_sd
+    ))
+    for (i in seq_along(self$pnms)) {
+      nm = self$pnms[i]
+      pp = self$tv$params$distr_list[[nm]]
+      s = c(s, pp$prior(nm))
+    }
+    for (i in seq_along(self$rnms)) {
+      nm = self$rnms[i]
+      pp = self$tv$random$distr_list[[nm]]
+      s = c(s, pp$prior(nm))
+    }
+    return(s)
+  }
+  
+  self$.util_params_frame = function(gnms) {
+    
+    ## default values of the variables that are
+    ## time varying, indexed using the 'model
+    ## names' (see below)
+    time_var = self$time_var()
+    
+    ## model names: names of the variables that are
+    ## time varying as they are represented in the model
+    ## (e.g., beta)
+    mnms = names(gnms)
+    
+    l = list()
+    for (nm in mnms) {
+      l[[nm]] = data.frame(
+          mat = gnms[[nm]]
+        , row = seq_along(time_var[[nm]]) - 1L
+        , col = 0L
+        , default = time_var[[nm]]
+      )
+    }
+    
+    if (length(l) == 0L) {
+      cols = c("mat", "row", "col", "default")
+      frame = empty_frame(cols)
+    } else {
+      frame = bind_rows(l)
+    }
+    return(frame)
+  }
+  
+  self$tv_params_frame = function(tv_pars) {
+    ## global names: names of the variables that
+    ## are time varying as they are represented
+    ## as vectors giving how they vary in time
+    ## during calibration
+    ## (e.g., time_var_beta)
+    gnms = self$global_names_by_tv_type()
+    nms = c(gnms$params$time_var, gnms$linear$time_var)
+    d = self$.util_params_frame(nms)
+    linear = self$tv$linear
+    for (nms in names(linear)) {
+      p = linear[[nms]]
+      if (p$fit_prior_sd) {
+        d_prior = data.frame(
+            mat = gnms$linear$prior_sd[[nms]]
+          , row = 0L
+          , col = 0L
+          , default = p$prior_sd
+        )
+        d = rbind(d, d_prior)
+      }
+    }
+    return(d)
+  }
+  
+  self$tv_random_frame = function() {
+    ## global names: names of the variables that
+    ## are time varying as they are represented
+    ## as vectors giving how they vary in time
+    ## during calibration
+    ## (e.g., time_var_beta)
+    gnms = self$global_names_by_tv_type()
+    gnms = c(gnms$random$time_var)
+    self$.util_params_frame(gnms)
+  }
+  
+  self$before_loop = function() {
+    nms = self$global_names_by_tv_type()$linear
+    s = sprintf("%s ~ group_sums(%s * %s[%s], %s, %s)"
+      , nms$outputs_var, nms$values_var, nms$time_var
+      , nms$col_indexes, nms$row_indexes, nms$outputs_var
+    )
+    s2 = sprintf("%s ~ c(%s[0], %s)"
+      , nms$outputs_var, nms$outputs_var, nms$outputs_var
+    )
+    as.list(c(lapply(s, as.formula), lapply(s2, as.formula)))
+  }
+  
+  #self$tv_distr_params = function() self$tv$params$default()
+  #self$tv_distr_random = function() self$tv$random$default()
+  
+  self$tv$params = macpan2:::DistrList(self$tv$params, spec)
+  self$tv$random = macpan2:::DistrList(self$tv$random, spec)
+  self$tv$params$update_global_names(self, "tv_distr_params")
+  self$tv$random$update_global_names(self, "tv_distr_random")
+  self$tv$params$error_if_not_all_have_location()
+  self$tv$random$error_if_not_all_have_location()
+  
+  return_object(self, "TMBTV")
 }
 
 #' @export
@@ -994,7 +1344,7 @@ TMBTV.character = function(
     ## Depended upon to return a list of length-one
     ## integer vectors with a single zero. Names of 
     ## the list are the time-varying matrices in the
-    ## spec. 
+    ## spec.
     nms = names(self$change_points())
     (nms
       |> zero_vector()
@@ -1037,45 +1387,45 @@ TMBTV.character = function(
   return_object(self, "TMBTV")
 }
 
-#' @export
-TMBTV.TVArg = function(
-      tv
-    , struc
-    , spec
-    , existing_global_names = character()
-) {
-  self = TMBTVAbstract()
-  self$existing_global_names = existing_global_names
-  self$spec = spec
-  
-  self$before_loop = function() list()
-  self$after_loop = function() list()
-  
-  ## List with the values of each 
-  ## time varying parameter at the change points. The 
-  ## names of the list are the time-varying matrices
-  ## in the spec.
-  self$time_var = function() list()
-  
-  ## List of the integers 
-  ## giving the time-steps of the changepoints with
-  ## the first time-step always being 0 (the initial)
-  ## The names of the list are the time-varying 
-  ## matrices in the spec.
-  self$change_points = function() list()
-  self$change_pointer = function() list()
-  
-  ## List of expressions that update parameters that
-  ## are time-varying
-  self$var_update_exprs = function() list()
-  
-  ## data frames describing the fixed and random effects corresponding
-  ## to time-varying parameters
-  self$tv_params_frame = function(tv_pars) self$empty_params_frame
-  self$tv_random_frame = function() self$empty_params_frame
-  
-  return_object(self, "TMBTV")
-}
+
+#' TMBTV.TVArg = function(
+#'       tv
+#'     , struc
+#'     , spec
+#'     , existing_global_names = character()
+#' ) {
+#'   self = TMBTVAbstract()
+#'   self$existing_global_names = existing_global_names
+#'   self$spec = spec
+#'   
+#'   self$before_loop = function() list()
+#'   self$after_loop = function() list()
+#'   
+#'   ## List with the values of each 
+#'   ## time varying parameter at the change points. The 
+#'   ## names of the list are the time-varying matrices
+#'   ## in the spec.
+#'   self$time_var = function() list()
+#'   
+#'   ## List of the integers 
+#'   ## giving the time-steps of the changepoints with
+#'   ## the first time-step always being 0 (the initial)
+#'   ## The names of the list are the time-varying 
+#'   ## matrices in the spec.
+#'   self$change_points = function() list()
+#'   self$change_pointer = function() list()
+#'   
+#'   ## List of expressions that update parameters that
+#'   ## are time-varying
+#'   self$var_update_exprs = function() list()
+#'   
+#'   ## data frames describing the fixed and random effects corresponding
+#'   ## to time-varying parameters
+#'   self$tv_params_frame = function(tv_pars) self$empty_params_frame
+#'   self$tv_random_frame = function() self$empty_params_frame
+#'   
+#'   return_object(self, "TMBTV")
+#' }
 
 #' @export
 TMBTV.RBFArg = function(
@@ -1487,43 +1837,113 @@ TMBPar.ParArg = function(par
       , tv, traj, spec
       , existing_global_names = character()
     ) {
+  self = TMBParAbstract()
+  self$existing_global_names = existing_global_names
+  self$par = par
+  self$tv = tv
+  self$traj = traj
+  self$spec = spec
   
   par$params = assert_distributional_component(par$params)
   par$random = assert_distributional_component(par$random)
   
   self = TMBPar(names(par$params), tv, traj, spec, existing_global_names)
   
-  self$par_ranef = names(par$random)
+  # internal data structure
+  self$pnms = names(self$par$params)
+  self$rnms = names(self$par$random)
   
-  self$distr_params = function() self$arg$params$default()
-  self$distr_random = function() self$arg$random$default()
-
-  self$random_frame = function() {
-    pf = (self$spec$default[self$par_ranef]
+#<<<<<<< HEAD
+  self$local_names = function() {
+    macpan2:::make_names_list(self, c("trans_vars", "hyperparams", "distr_params"))
+  }
+  
+  ## make distr
+  self$par$params = macpan2:::DistrList(self$par$params, spec)
+  self$par$random = macpan2:::DistrList(self$par$random, spec)
+  
+  self$prior_expr_chars = function() {
+    y = character()
+    for (i in seq_along(self$pnms)) {
+      nm = self$pnms[i]
+      pp = self$par$params$distr_list[[nm]]
+      y = c(y, pp$prior(nm))
+    }
+    for (i in seq_along(self$rnms)) {
+      nm = self$rnms[i]
+      pp = self$par$random$distr_list[[nm]]
+      y = c(y, pp$prior(nm))
+    }
+    return(y)
+  }
+  
+  self$params_frame = function() {
+    pf = (self$spec$default[self$pnms]
+# =======
+#   self$distr_params = function() self$arg$params$default()
+#   self$distr_random = function() self$arg$random$default()
+# 
+#   self$random_frame = function() {
+#     pf = (self$spec$default[self$par_ranef]
+# >>>>>>> main
       |> melt_default_matrix_list(FALSE)
       |> rename_synonyms(mat = "matrix", default = "value")
     )
-    bind_rows(pf, self$tv$tv_random_frame())
+    if (is.null(pf)) pf = self$empty_params_frame
+    bind_rows(pf
+      , self$traj$distr_params_frame()
+      , self$distr_params_frame()
+      #, self$tv_distr_params_frame()
+    )
+  }
+  self$random_frame = function() {
+    pf = (self$spec$default[self$rnms]
+      |> melt_default_matrix_list(FALSE)
+      |> rename_synonyms(mat = "matrix", default = "value")
+    )
+    if (is.null(pf)) pf = self$empty_params_frame
+    bind_rows(pf
+      ## do we need tv params here?
+    )
   }
   
-  self$prior_expr_chars = function() {
-    # union to get both parameters and
-    # time-varying pars we are estimating
-    par_nms = union(self$par, self$tv_par)
-    y = character()
-    for (i in seq_along(par_nms)) {
-      nm = par_nms[i]
-      pp = self$arg$params$distr_list[[nm]]
-      y = c(y, pp$prior(nm))
-    }
-    for (i in seq_along(self$par_ranef)) {
-      nm = self$par_ranef[i]
-      pp = self$arg$random$distr_list[[nm]]
-      y = c(y, pp$prior(nm))
-    }
-    y
-  }
+#<<<<<<< HEAD
+  self$distr_params = function() self$par$params$default() # self$tv$params$default()
+  self$distr_random = function() self$par$random$default()
+  self$distr_params_frame = function() self$par$params$distr_params_frame()
+  self$distr_random_frame = function() self$par$random$distr_params_frame()
   
+  self$par$params$update_global_names(self, "distr_params")
+  self$par$random$update_global_names(self, "distr_random")
+  self$par$params$error_if_not_all_have_location()
+  self$par$random$error_if_not_all_have_location()
+  
+  self$check_assumptions_basic = function(orig_spec, data_struc) {
+    pnms = c(self$pnms, self$rnms) # union(self$par, self$tv_par)
+    bad_pars = !pnms %in% names(orig_spec$default)
+    if (any(bad_pars)) {
+      spec_mats = names(orig_spec$all_matrices())
+      sprintf("%s (including %s) %s:\n     %s%s%s"
+        , "Requested parameters and/or random effects"
+        , paste0(pnms[bad_pars], collapse = ", ")
+        , "are either not available in the model spec, which includes the following"
+        , paste(spec_mats, collapse = ", ")
+        , "\nor cannot be fit because they are not default model parameters. See "
+        , "mp_default(spec) for all default model parameters."
+      ) |> stop()
+# =======
+#   self$prior_expr_chars = function() {
+#     # union to get both parameters and
+#     # time-varying pars we are estimating
+#     par_nms = union(self$par, self$tv_par)
+#     y = character()
+#     for (i in seq_along(par_nms)) {
+#       nm = par_nms[i]
+#       pp = self$arg$params$distr_list[[nm]]
+#       y = c(y, pp$prior(nm))
+# >>>>>>> main
+    }
+  }
   self$distr_params_frame = function() self$arg$params$distr_params_frame()
   self$distr_random_frame = function() self$arg$random$distr_params_frame()
   
@@ -1535,12 +1955,16 @@ TMBPar.ParArg = function(par
   self$arg$random$update_global_names(self, "distr_random")
   self$arg$params$error_if_not_all_have_location()
   self$arg$random$error_if_not_all_have_location()
-  
+
   self$check_assumptions = function(orig_spec, data_struc) {
     self$check_assumptions_basic(orig_spec, data_struc)
-    self$arg$params$check_variables(data_struc$matrix_list)
-    for (p in self$par) {
-      self$arg$params$distr_list[[p]]$check_args(self$arg$params$distr_list[[p]]$distr_param_objs)
+    self$par$params$check_variables(data_struc$matrix_list)
+    self$par$random$check_variables(data_struc$matrix_list)
+    for (p in self$pnms) {
+      self$par$params$distr_list[[p]]$check_args(self$par$params$distr_list[[p]]$distr_param_objs)
+    }
+    for (p in self$rnms) {
+      self$par$random$distr_list[[p]]$check_args(self$par$random$distr_list[[p]]$distr_param_objs)
     }
     NULL
   }
@@ -1572,8 +1996,8 @@ TMBPar.character = function(par
   
   ## internal data structure
   tv_names = self$tv$time_var() |> names()
-  self$par = setdiff(par, tv_names)
-  self$tv_par = intersect(par, tv_names)
+  self$par = par # setdiff(par, tv_names)
+  self$tv_par = tv_names # intersect(par, tv_names)
   
   self$local_names = function() {
     make_names_list(self, c("trans_vars", "hyperparams", "distr_params"))
@@ -1587,12 +2011,13 @@ TMBPar.character = function(par
       , self$tv$tv_params_frame(self$tv_par)
       , self$traj$distr_params_frame()
       , self$distr_params_frame()
+      ## need a self$tv$distr_params_frame()
     )
   }
   self$random_frame = function() self$tv$tv_random_frame()
   
   self$check_assumptions_basic = function(orig_spec, data_struc) {
-    pnms = union(self$par, self$tv_par)
+    pnms = self$par # union(self$par, self$tv_par)
     bad_pars = !pnms %in% names(orig_spec$default)
     if (any(bad_pars)) {
       spec_mats = names(orig_spec$all_matrices())

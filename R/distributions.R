@@ -335,6 +335,7 @@ DistrList = function(distr_list = list(), model_spec = mp_tmb_model_spec()) {
     nms = names(obj[[mth]]())
     for (i in seq_along(nms)) self$distr_list[[nms[i]]]$update_variable_name(tv_nms[i])
   }
+
   
   # section 2: distributional parameters that need to be added as 
   ## _new_ defaults to model spec to be updated by calibration machinery
@@ -674,9 +675,14 @@ mp_normal = function(location = mp_distr_param_null("location")
 #' @description * Log-Normal Distribution - `mp_log_normal`
 #' @name distribution
 #' @export
-mp_log_normal = function(location = mp_distr_param_null("location")
-                       , sd
-                       , trans_distr_param = list(location = mp_identity, sd = mp_identity)) {
+mp_log_normal = function(
+       location = mp_distr_param_null("location")
+     , sd
+     , trans_distr_param = list(
+          location = mp_identity
+        , sd = mp_identity
+      )
+  ) {
   self = DistrSpec(
       distr_param_objs = nlist(location, sd)
       # identity transformations because distributional parameters are already
@@ -689,6 +695,7 @@ mp_log_normal = function(location = mp_distr_param_null("location")
             , par
             , self$distr_param_objs$location$expr_ref()
             , self$distr_param_objs$sd$expr_ref()
+            #, par
     )
   }
   self$likelihood = \(obs, sim) {
@@ -696,6 +703,7 @@ mp_log_normal = function(location = mp_distr_param_null("location")
             , obs
             , sim
             , self$distr_param_objs$sd$expr_ref()
+            #, obs
     )
   }
   self$check_variable = function(variable) {
@@ -723,17 +731,19 @@ mp_logit_normal = function(location = mp_distr_param_null("location")
   )
 
   self$prior = \(par) {
-    sprintf("-sum(dnorm(log(%s) - log(1 - %s), %s, %s))"
+    sprintf("-sum(dnorm(log(%s) - log(1 - %s), %s, %s) / (%s * (1 - %s)))"
             , par, par
             , self$distr_param_objs$location$expr_ref()
             , self$distr_param_objs$sd$expr_ref()
+            , par, par
     )
   }
   self$likelihood = \(obs, sim) {
-    sprintf("-sum(dnorm(log(%s) - log(1 - %s), log(%s) - log(1 - %s), %s))"
+    sprintf("-sum(dnorm(log(%s) - log(1 - %s), log(%s) - log(1 - %s), %s) / (%s * (1 - %s)))"
             , obs, obs
             , sim, sim
             , self$distr_param_objs$sd$expr_ref()
+            , obs, obs
     )
   }
   self$check_variable = function(variable) {
@@ -930,7 +940,7 @@ to_distr_param.character = function(x) mp_nofit(x)
 #' @noRd
 mp_poisson2 = function(location) {
   self = DistrSpec()
-  self$distr_params = \() list()
+  self$distr_params = \() empty_named_list()
   self$expr_char = \(x, location) sprintf("-sum(dpois(%s, %s))", x, location)
   return_object(self, "Poisson")
 }

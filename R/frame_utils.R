@@ -74,9 +74,6 @@ bind_rows <- function(..., .id = NULL) {
       y
     })
   }
-
-  # some_rows = function(x) isTRUE(nrow(x) != 0L)
-  # lsts <- Filter()
   nms <- unique(unlist(lapply(lsts, names)))
   lsts <- lapply(
     lsts,

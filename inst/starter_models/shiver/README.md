@@ -2,37 +2,25 @@ SHIVER = SEIR + H + V
 ================
 Jennifer Freeman, Steve Walker
 
--   <a href="#packages-used-and-settings"
-    id="toc-packages-used-and-settings">Packages Used and Settings</a>
--   <a href="#model-specification" id="toc-model-specification">Model
-    Specification</a>
--   <a href="#states" id="toc-states">States</a>
--   <a href="#parameters" id="toc-parameters">Parameters</a>
--   <a href="#variable-vaccination-rate"
-    id="toc-variable-vaccination-rate">Variable Vaccination Rate</a>
--   <a href="#dynamics" id="toc-dynamics">Dynamics</a>
--   <a href="#calibration-example" id="toc-calibration-example">Calibration
-    Example</a>
-    -   <a href="#calibration-scenario"
-        id="toc-calibration-scenario">Calibration Scenario</a>
-    -   <a href="#deciding-on-defaults" id="toc-deciding-on-defaults">Deciding
-        on Defaults</a>
-    -   <a href="#simulating-dynamics" id="toc-simulating-dynamics">Simulating
-        Dynamics</a>
-    -   <a href="#estimating-parameters"
-        id="toc-estimating-parameters">Estimating Parameters</a>
-    -   <a href="#re-parameterizing-and-introducing-transformations"
-        id="toc-re-parameterizing-and-introducing-transformations">Re-parameterizing
-        and Introducing Transformations</a>
-    -   <a href="#runge-kutta-4" id="toc-runge-kutta-4">Runge-Kutta 4</a>
-    -   <a href="#fitting-to-multiple-trajectories"
-        id="toc-fitting-to-multiple-trajectories">Fitting to Multiple
-        Trajectories</a>
-    -   <a href="#parameter-identifiability"
-        id="toc-parameter-identifiability">Parameter Identifiability</a>
--   <a href="#model-specification-1" id="toc-model-specification-1">Model
-    Specification</a>
--   <a href="#references" id="toc-references">References</a>
+- [Packages Used and Settings](#packages-used-and-settings)
+- [Model Specification](#model-specification)
+- [States](#states)
+- [Parameters](#parameters)
+- [Variable Vaccination Rate](#variable-vaccination-rate)
+- [Dynamics](#dynamics)
+- [Calibration Example](#calibration-example)
+  - [Calibration Scenario](#calibration-scenario)
+  - [Deciding on Defaults](#deciding-on-defaults)
+  - [Simulating Dynamics](#simulating-dynamics)
+  - [Estimating Parameters](#estimating-parameters)
+  - [Re-parameterizing and Introducing
+    Transformations](#re-parameterizing-and-introducing-transformations)
+  - [Runge-Kutta 4](#runge-kutta-4)
+  - [Fitting to Multiple
+    Trajectories](#fitting-to-multiple-trajectories)
+  - [Parameter Identifiability](#parameter-identifiability)
+- [Model Specification](#model-specification-1)
+- [References](#references)
 
 This model builds on the basic SEIR model, with two additional
 compartments for vaccination and hospitalizations.
@@ -115,22 +103,22 @@ article](https://github.com/canmod/macpan2/blob/main/inst/starter_models/shiver/
 | E        | Number of exposed individuals      |
 | R        | Number of recovered individuals    |
 
-The size of the total population is, $N = S + H + I + V + E + R$, and
+The size of the total population is, $N = S + H + I  + V + E + R$, and
 the disease spreads through homogeneous mixing of the subpopulation
 $N_{\text{mix}}=N -H$.
 
 # Parameters
 
-| variable   | description                                                                                         |
-|------------|-----------------------------------------------------------------------------------------------------|
-| $\phi$     | per capita vaccination rate of susceptibles                                                         |
-| $\rho$     | per capita vaccine waning rate                                                                      |
-| $\beta_S$  | per capita transmission rate for susceptibles (in $N_{\text{mix}}$ population)                      |
-| $\beta_V$  | per capita transmission rate for vaccinated individuals (in $N_{\text{mix}}$ population)            |
-| $\alpha$   | per capita infection rate (average time spent in compartment $E$ is $1/\alpha$)                     |
-| $\gamma_I$ | per capita recovery rate for infected individuals                                                   |
-| $\gamma_H$ | per capita recovery rate for hospitalized individuals                                               |
-| $\sigma$   | per capita rate at which infected individuals develop severe infections and require hospitalization |
+| variable | description |
+|----|----|
+| $\phi$ | per capita vaccination rate of susceptibles |
+| $\rho$ | per capita vaccine waning rate |
+| $\beta_S$ | per capita transmission rate for susceptibles (in $N_{\text{mix}}$ population) |
+| $\beta_V$ | per capita transmission rate for vaccinated individuals (in $N_{\text{mix}}$ population) |
+| $\alpha$ | per capita infection rate (average time spent in compartment $E$ is $1/\alpha$) |
+| $\gamma_I$ | per capita recovery rate for infected individuals |
+| $\gamma_H$ | per capita recovery rate for hospitalized individuals |
+| $\sigma$ | per capita rate at which infected individuals develop severe infections and require hospitalization |
 
 # Variable Vaccination Rate
 
@@ -882,6 +870,47 @@ shiver_calibrator = mp_tmb_calibrator(
 
 Next we optimize, and look at our estimates.
 
+<<<<<<< HEAD
+    #>                                   mat row   default  estimate std.error
+    #> 1                   time_var_rbf_beta   1    0.0000   -0.0236    0.0262
+    #> 2                   time_var_rbf_beta   2    0.0000    0.0292    0.0250
+    #> 3                   time_var_rbf_beta   3    0.0000   -0.0283    0.0249
+    #> 4                   time_var_rbf_beta   4    0.0000    0.0286    0.0247
+    #> 5                   prior_sd_rbf_beta   0    1.0000    0.5297    0.0177
+    #> 6                   distr_params_sd_H   0    1.0000    0.0757    0.0089
+    #> 7  distr_params_sd_reported_incidence   0    1.0000    0.2221    0.0185
+    #> 8                   time_var_rbf_beta   0    0.0000   -0.0305    0.0257
+    #> 9                                beta   0    0.0100    0.3136    0.0362
+    #> 10                              sigma   0    0.0498    0.0341    0.0104
+    #> 11                            gamma_h   0    0.0498    0.9937    0.1872
+    #> 12                          E_I_ratio   0    0.0100    0.0880    0.1034
+    #> 13                                  I   0 2718.5714 2948.4429  839.7054
+    #> 14                                  H   0   63.0000    0.1378    2.8151
+    #> 15                                  R   0    1.0000    1.0000   54.5980
+    #> 16                        report_prob   0    0.5000    0.8340    0.1891
+    #> 17                                  p   0    0.0100    0.2354    9.6937
+    #>     conf.low    conf.high
+    #> 1    -0.0750 2.780000e-02
+    #> 2    -0.0197 7.810000e-02
+    #> 3    -0.0771 2.060000e-02
+    #> 4    -0.0198 7.710000e-02
+    #> 5     0.4951 5.643000e-01
+    #> 6     0.0582 9.330000e-02
+    #> 7     0.1859 2.584000e-01
+    #> 8    -0.0808 1.980000e-02
+    #> 9     0.2500 3.933000e-01
+    #> 10    0.0188 6.200000e-02
+    #> 11    0.6870 1.437400e+00
+    #> 12    0.0088 8.801000e-01
+    #> 13 1687.2279 5.152425e+03
+    #> 14    0.0000 3.347001e+16
+    #> 15    0.0000 2.978521e+46
+    #> 16    0.2568 9.865000e-01
+    #> 17    0.0000 1.000000e+00
+
+Our prior for `sigma` is similar to the posterior, but `gamma_h` seems
+to have been pushed up by the data from about `0.05` to about 0.99. We
+=======
     #>                                   mat row  default  estimate std.error
     #> 1                   time_var_rbf_beta   2    0.000    0.0146    0.0056
     #> 2                   time_var_rbf_beta   3    0.000   -0.0099    0.0111
@@ -919,6 +948,7 @@ Next we optimize, and look at our estimates.
 
 Our prior for `sigma` is similar to the posterior, but `gamma_h` seems
 to have been pushed up by the data from about `0.05` to about 2.06. We
+>>>>>>> main
 still do not have confidence in our estimate of `p`. We now have five
 other parameters controlling transmission, and so to interpret them we
 really need a plot of how transmission varies over time in the model. We
@@ -1050,7 +1080,10 @@ for details).
 
 # References
 
-<div id="refs" class="references csl-bib-body hanging-indent">
+PKG_CPPFLAGS=-DTMBAD_FRAMEWORK
+
+<div id="refs" class="references csl-bib-body hanging-indent"
+entry-spacing="0">
 
 <div id="ref-bolker2008" class="csl-entry">
 

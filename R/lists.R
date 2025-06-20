@@ -157,3 +157,4 @@ simplify_row_col_ids = function(data_frame) {
   if (identical(uc, "0")) data_frame$col = character(nrow(data_frame))
   return(data_frame)
 }
+

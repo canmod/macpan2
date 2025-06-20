@@ -183,6 +183,21 @@ obs_data = (covid_on
 ```
 
 
+<<<<<<< HEAD
+## Time Bounds
+
+```{r time_bounds}
+burn_in_period  = 15 ## number of days before the data start to begin the simulations
+forecast_period = 30 ## number of days after the data end to make forecasts
+time_bounds = mp_sim_offset(
+    sim_start_offset = 15
+  , sim_end_offset = 30
+  , time_scale = "daily"
+)
+```
+
+=======
+>>>>>>> main
 
 ## Calibration Model Specification
 

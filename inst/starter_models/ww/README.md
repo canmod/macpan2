@@ -2,6 +2,20 @@ Wastewater Model
 ================
 Jennifer Freeman, Steve Walker
 
+<<<<<<< HEAD
+- [Packages and Settings Used](#packages-and-settings-used)
+- [Model Specification](#model-specification)
+- [States](#states)
+- [Parameters](#parameters)
+- [Dynamics](#dynamics)
+- [Calibration](#calibration)
+  - [Observed Data Prep](#observed-data-prep)
+  - [Time Bounds](#time-bounds)
+  - [Calibration Model Specification](#calibration-model-specification)
+  - [Calibrate to Data](#calibrate-to-data)
+  - [Explore Fits](#explore-fits)
+- [References](#references)
+=======
 -   <a href="#packages-and-settings-used"
     id="toc-packages-and-settings-used">Packages and Settings Used</a>
 -   <a href="#model-specification" id="toc-model-specification">Model
@@ -19,6 +33,7 @@ Jennifer Freeman, Steve Walker
         Data</a>
     -   <a href="#explore-fits" id="toc-explore-fits">Explore Fits</a>
 -   <a href="#references" id="toc-references">References</a>
+>>>>>>> main
 
 The McMasterPandemic model ([Bolker et al. 2024](#ref-macpan)) modified
 to include a wastewater component.
@@ -75,51 +90,51 @@ virus into wastewater with the following sub-model.
 
 # States
 
-| variable | description                                                         |
-|----------|---------------------------------------------------------------------|
-| $S$      | Number of susceptible individuals                                   |
-| $E$      | Number of exposed individuals                                       |
-| $I_a$    | Number of asymptomatic infectious individuals                       |
-| $I_p$    | Number of pre-symptomatic infectious individuals                    |
-| $I_m$    | Number of mildly infectious individuals                             |
-| $I_s$    | Number of severely infectious individuals                           |
-| $H$      | Number of hospitalized individuals (acute care)                     |
-| $ICU_s$  | Number of individuals admitted to the ICU with a survival prognosis |
-| $ICU_d$  | Number of individuals admitted to the ICU with a death prognosis    |
-| $H_2$    | Number of hospitalized individuals (acute care) after ICU stay      |
-| $D$      | Number of dead individuals                                          |
-| $R$      | Number of recovered individuals                                     |
-| $W$      | Concentration of viral particles in wastewater                      |
-| $A$      | Total accumulated concentration of virus in wastewater over time    |
+| variable | description |
+|----|----|
+| $S$ | Number of susceptible individuals |
+| $E$ | Number of exposed individuals |
+| $I_a$ | Number of asymptomatic infectious individuals |
+| $I_p$ | Number of pre-symptomatic infectious individuals |
+| $I_m$ | Number of mildly infectious individuals |
+| $I_s$ | Number of severely infectious individuals |
+| $H$ | Number of hospitalized individuals (acute care) |
+| $ICU_s$ | Number of individuals admitted to the ICU with a survival prognosis |
+| $ICU_d$ | Number of individuals admitted to the ICU with a death prognosis |
+| $H_2$ | Number of hospitalized individuals (acute care) after ICU stay |
+| $D$ | Number of dead individuals |
+| $R$ | Number of recovered individuals |
+| $W$ | Concentration of viral particles in wastewater |
+| $A$ | Total accumulated concentration of virus in wastewater over time |
 
 The size of the total population is,
-$N = S + E + I_a + I_p + I_m + I_s + H + ICU_s + ICU_d + H_2 + D + R$.
+$N = S + E + I_a + I_p + I_m + I_s + H +  ICU_s + ICU_d + H_2 + D + R$.
 
 # Parameters
 
-| variable      | description                                                                         |
-|---------------|-------------------------------------------------------------------------------------|
-| $\beta_0$     | baseline (non-intervention) transmission across categories                          |
-| $C_a$         | relative asymptomatic transmission (or contact) proportion                          |
-| $C_p$         | relative presymptomatic transmission (or contact) proportion                        |
-| $C_m$         | relative mildly transmission (or contact) proportion                                |
-| $C_s$         | relative severly transmission (or contact) proportion                               |
-| $\alpha$      | fraction of infections that are asymptomatic                                        |
-| $\mu$         | fraction of symptomatic infections that are mild                                    |
-| $\sigma$      | 1/time in exposed class                                                             |
-| $\gamma_a$    | 1/time to recovery for asymptomatic infections                                      |
-| $\gamma_p$    | 1/time in pre-symptomatic state                                                     |
-| $\gamma_m$    | 1/time to recovery for mildly symptomatic infections                                |
-| $\gamma_s$    | 1/time spent in severely symptomatic state before either hospitalization or death   |
-| $\rho$        | 1/time in hospital (initial acute care admission)                                   |
-| $\delta_{nh}$ | probability of mortality without hospitalization                                    |
-| $\phi_1$      | fraction of hospitalized infections that only require acute care (no ICU admission) |
-| $\phi_2$      | fraction of ICU infections that are fatal                                           |
-| $\psi_1$      | 1/time spent in ICU before returning to acute care                                  |
-| $\psi_2$      | 1/time spent in ICU before dying                                                    |
-| $\psi_3$      | 1/time in post-ICU acute care before hospital discharge                             |
-| $\nu$         | viral shedding rate to wastewater                                                   |
-| $\xi$         | rate at which virus is denaturing/removed from wastewater                           |
+| variable | description |
+|----|----|
+| $\beta_0$ | baseline (non-intervention) transmission across categories |
+| $C_a$ | relative asymptomatic transmission (or contact) proportion |
+| $C_p$ | relative presymptomatic transmission (or contact) proportion |
+| $C_m$ | relative mildly transmission (or contact) proportion |
+| $C_s$ | relative severly transmission (or contact) proportion |
+| $\alpha$ | fraction of infections that are asymptomatic |
+| $\mu$ | fraction of symptomatic infections that are mild |
+| $\sigma$ | 1/time in exposed class |
+| $\gamma_a$ | 1/time to recovery for asymptomatic infections |
+| $\gamma_p$ | 1/time in pre-symptomatic state |
+| $\gamma_m$ | 1/time to recovery for mildly symptomatic infections |
+| $\gamma_s$ | 1/time spent in severely symptomatic state before either hospitalization or death |
+| $\rho$ | 1/time in hospital (initial acute care admission) |
+| $\delta_{nh}$ | probability of mortality without hospitalization |
+| $\phi_1$ | fraction of hospitalized infections that only require acute care (no ICU admission) |
+| $\phi_2$ | fraction of ICU infections that are fatal |
+| $\psi_1$ | 1/time spent in ICU before returning to acute care |
+| $\psi_2$ | 1/time spent in ICU before dying |
+| $\psi_3$ | 1/time in post-ICU acute care before hospital discharge |
+| $\nu$ | viral shedding rate to wastewater |
+| $\xi$ | rate at which virus is denaturing/removed from wastewater |
 
 # Dynamics
 
@@ -182,6 +197,21 @@ obs_data = (covid_on
 )
 ```
 
+<<<<<<< HEAD
+## Time Bounds
+
+``` r
+burn_in_period  = 15 ## number of days before the data start to begin the simulations
+forecast_period = 30 ## number of days after the data end to make forecasts
+time_bounds = mp_sim_offset(
+    sim_start_offset = 15
+  , sim_end_offset = 30
+  , time_scale = "daily"
+)
+```
+
+=======
+>>>>>>> main
 ## Calibration Model Specification
 
 Update model specification to include additional components required for
@@ -307,7 +337,11 @@ mp_optimize(focal_calib)
 #> NA/NaN function evaluation
 #> $par
 #>      params      params      params      params      params      params 
+<<<<<<< HEAD
+#>  -8.6647123 -12.6963648   2.3858522   7.2248134   1.3915078   3.4112490 
+=======
 #>  -8.6647123 -12.6963662   2.4174686   7.2248134   1.3915078   3.4112490 
+>>>>>>> main
 #>      params      params      params      params      params 
 #>   2.8777186   3.8903473   2.3726918   4.6262171   0.5130978 
 #> 
@@ -322,7 +356,11 @@ mp_optimize(focal_calib)
 #> 
 #> $evaluations
 #> function gradient 
+<<<<<<< HEAD
+#>       98       50 
+=======
 #>       92       50 
+>>>>>>> main
 #> 
 #> $message
 #> [1] "relative convergence (4)"
@@ -346,12 +384,27 @@ print(fitted_coefs)
 #> 10  params.8 time_var_beta1   5   0    0.00 fixed 2.372692e+00 8.529387e-01
 #> 11  params.9 time_var_beta1   6   0    0.00 fixed 4.626217e+00 2.269486e+00
 #> 1     params          beta0   0   0    0.25 fixed 1.725692e-04 5.055458e-04
+<<<<<<< HEAD
+#> 2   params.1             nu   0   0    0.03 fixed 3.062237e-06 1.915017e-06
+#> 4   params.2             xi   0   0    1.00 fixed 1.086832e+01 2.400334e+03
+=======
 #> 2   params.1             nu   0   0    0.03 fixed 3.062233e-06 1.913507e-06
 #> 4   params.2             xi   0   0    1.00 fixed 1.121743e+01 2.856317e+03
+>>>>>>> main
 #>         conf.low     conf.high
 #> 3   4.974683e-01  5.287272e-01
 #> 5   2.554388e+00  1.189524e+01
 #> 6  -1.179513e-02  2.794811e+00
+<<<<<<< HEAD
+#> 7  -2.935677e-01  7.116066e+00
+#> 8   9.664641e-01  4.788973e+00
+#> 9   2.948800e-01  7.485815e+00
+#> 10  7.009628e-01  4.044421e+00
+#> 11  1.781058e-01  9.074328e+00
+#> 1   5.537921e-07  5.377492e-02
+#> 2   8.989322e-07  1.043159e-05
+#> 4   2.220446e-16 1.069341e+189
+=======
 #> 7  -2.935678e-01  7.116066e+00
 #> 8   9.664640e-01  4.788973e+00
 #> 9   2.948799e-01  7.485815e+00
@@ -360,6 +413,7 @@ print(fitted_coefs)
 #> 1   5.537920e-07  5.377493e-02
 #> 2   8.997984e-07  1.042152e-05
 #> 4   2.220446e-16 6.210788e+217
+>>>>>>> main
 ```
 
 Plot the fitted values.
@@ -399,7 +453,8 @@ plot_fit(obs_data, mutate(macpan2_fit, source = "macpan2_fit"), ncol = 2L)
 
 # References
 
-<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="refs" class="references csl-bib-body hanging-indent"
+entry-spacing="0">
 
 <div id="ref-macpan" class="csl-entry">
 

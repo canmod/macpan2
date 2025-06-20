@@ -466,21 +466,36 @@ dd = rbind(reported_hospitalizations, reported_cases)
 
 # calibrate
 shiver_calibrator = mp_tmb_calibrator(
+<<<<<<< HEAD
+    spec = (multi_traj_spec 
+      |> mp_hazard()
+    )
+=======
     spec = mp_hazard(multi_traj_spec)
+>>>>>>> main
     # row bind both observed data
   , data = dd
     # fit both trajectories with log-normal distributions
     # (changed from negative binomial because apparently it is easier
     # to fit standard deviations than dispersion parameters)
+<<<<<<< HEAD
+  , traj = list(H = mp_log_normal(sd = mp_fit(1))
+    , reported_incidence = mp_log_normal(sd = mp_fit(1))
+=======
   , traj = list(
       H = mp_normal(sd = mp_fit(1))
     , reported_incidence = mp_normal(sd = mp_fit(1))
+>>>>>>> main
   )
   , par = prior_distributions
     # fit the transmission rate using five radial basis functions for
     # a flexible model of time variation.
   , tv = mp_rbf("rbf_beta", 5, sparse_tol = 1e-8)
+<<<<<<< HEAD
+  , outputs = c(states, "reported_incidence", "beta")
+=======
   , outputs = c(mp_state_vars(spec), "reported_incidence", "beta")
+>>>>>>> main
 )
 
 

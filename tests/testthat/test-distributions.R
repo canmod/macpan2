@@ -1,4 +1,13 @@
 library(macpan2); library(testthat); library(dplyr); library(tidyr); library(ggplot2)
+
+norm = mp_normal(location = "texas", sd = "fred")
+norm$likelihood("obs", "exp")
+norm$prior("beta")
+norm$distr_param_objs$location$expr_ref()
+norm$distr_param_objs$sd$expr_ref()
+
+
+
 test_that("distributions give appropriate variable assumption warnings", {
   
   # At this time the only distribution with variable assumptions is the 
@@ -49,14 +58,16 @@ test_that("distributions give appropriate variable assumption warnings", {
   )
   # The variable assumption is violated here. For the log-normal distribution,
   # the variable cannot be zero.
+  # TODO: be careful! it didn't look like this test made sense,
+  # but it was working before so what changed?
   expect_warning(mp_tmb_calibrator(sir_spec
-     , data = bind_rows(sir_prevalence, sir_beta)
-     , traj = "I"
-     , par = list(beta = mp_log_normal(location = 1, sd = 1))
-     , tv = "beta"
-     , default = list(N = 300)
-    )
-    , regexp = "contains zeros at the beginning of the simulation"
+    , data = bind_rows(sir_prevalence, sir_beta)
+    , traj = "I"
+    , par = list(beta = mp_log_normal(location = 1, sd = 1))
+    , tv = "beta"
+    , default = list(N = 300)
+   )
+   , regexp = "contains zeros at the beginning of the simulation"
   )
   
   data = "TRAJ-sir_50_infection.rds" |> test_cache_read()

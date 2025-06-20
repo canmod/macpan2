@@ -11,7 +11,10 @@
 #' effects.
 #' @concept create-model-calibrator-args
 #' @export
-mp_par = function(params, random) {
+mp_par = function(
+      params = empty_named_list()
+    , random = empty_named_list()
+  ) {
   arg = list()
   arg$params = params
   arg$random = random
@@ -22,9 +25,17 @@ mp_par = function(params, random) {
 
 #' @param parameters List of time-variation specifications for parameters.
 #' @noRd
-mp_tv = function(parameters) {
+mp_tv = function(
+      params = empty_named_list()
+    , random = empty_named_list()
+    , known = empty_named_list()
+    , linear = empty_named_list()
+  ) {
   arg = list()
-  arg$parameters = parameters
+  arg$params = params
+  arg$random = random
+  arg$known = known
+  arg$linear = linear
   structure(arg, class = "TVArg")
 }
 
@@ -72,6 +83,16 @@ mp_rbf = function(tv, dimension, initial_weights, seed, prior_sd = 1, fit_prior_
   arg$prior_sd = prior_sd
   arg$fit_prior_sd = fit_prior_sd
   structure(arg, class = "RBFArg")
+}
+
+#' @export
+mp_rbf_exper = function(dimension
+    , initial_weights
+    , seed
+    , prior_sd = 1
+    , fit_prior_sd = TRUE
+    , sparse_tol = 1e-2) {
+  mp_rbf("", dimension, initial_weights, seed, prior_sd, fit_prior_sd, sparse_tol)
 }
 
 

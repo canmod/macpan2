@@ -414,7 +414,7 @@ spec_printer = function(x, include_defaults) {
       "Discover more about model specifications here:\n"
     , "https://canmod.github.io/macpan2/reference#specifications \n"
   )
-  # cat(more_help)
+  cat(more_help)
 }
 
 #' Print Model Specification

@@ -73,4 +73,5 @@ test_that("start-date offsets work", {
   cal_dates = make_cal("daily")
   cc_dates = mp_tmb_coef(cal)
   expect_identical(cc, cc_dates)
+>>>>>>> main
 })
