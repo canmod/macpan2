@@ -18,3 +18,4 @@ Specify a set of trajectories to fit. The output of this function
 is intended to be passed to the \code{traj} argument of
 \code{\link{mp_tmb_calibrator}}.
 }
+\concept{create-model-calibrator-args}

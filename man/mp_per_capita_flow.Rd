@@ -4,16 +4,19 @@
 \alias{mp_per_capita_flow}
 \alias{mp_per_capita_inflow}
 \alias{mp_per_capita_outflow}
-\alias{mp_absolute_flow}
-\title{Flow}
+\alias{mp_inflow}
+\alias{mp_outflow}
+\title{Specify Flow Into, Out Of, and Between Compartments}
 \usage{
-mp_per_capita_flow(from, to, rate, abs_rate = NULL)
+mp_per_capita_flow(from, to, rate, flow_name = NULL, abs_rate = NULL)
 
-mp_per_capita_inflow(from, to, rate, abs_rate = NULL)
+mp_per_capita_inflow(from, to, rate, flow_name = NULL, abs_rate = NULL)
 
-mp_per_capita_outflow(from, rate, abs_rate = NULL)
+mp_per_capita_outflow(from, rate, flow_name = NULL, abs_rate = NULL)
 
-mp_absolute_flow(from, to, rate, rate_name = NULL)
+mp_inflow(to, rate, flow_name = NULL, abs_rate = NULL)
+
+mp_outflow(from, rate, flow_name = NULL, abs_rate = NULL)
 }
 \arguments{
 \item{from}{String giving the name of the compartment from which the flow
@@ -22,24 +25,23 @@ originates.}
 \item{to}{String giving the name of the compartment to which the flow is
 going.}
 
-\item{rate}{String giving the expression for the per-capita or absolute
-flow rate. Alternatively for per-capita flows, and for back compatibility,
+\item{rate}{String giving the expression for the per-capita
+flow rate. Alternatively, and for back compatibility,
 a two-sided formula with the left-hand-side giving the name of the absolute
-flow rate per unit time-stepand the right-hand-side giving an expression for
+flow rate per time-step and the right-hand-side giving an expression for
 the per-capita rate of flow from \code{from} to \code{to}.}
 
-\item{abs_rate}{String giving the name for the absolute flow rate,
-which will be computed as \code{from * rate}. If a formula is passed to
-\code{rate} (not recommended), then this \code{abs_rate} argument will be ignored.}
+\item{flow_name}{String giving the name of the flow}
 
-\item{rate_name}{String giving the name for the absolute flow rate.}
+\item{abs_rate}{Deprecated synonym for \code{flow_name}. Please use \code{flow_name}
+in all future work.}
 }
 \description{
-Specify different kinds of flows between compartments.
+Specify different kinds of flows into, out of, and between compartments.
 }
 \details{
 The examples below can be mixed and matched in \code{mp_tmb_model_spec()}
-to produce compartmental models. Note that the symbols used below must
+to produce compartmental models. The symbols used below must
 be used in an appropriate context (e.g., if \code{N} is used for total population
 size, then there must be an expression like \code{N ~ S + I + R} somewhere in
 the model or for models with constant population size there must be a
@@ -60,7 +62,17 @@ system (e.g., death). To keep track of the total number of dead individuals
 one can use \code{mp_per_capita_flow} and set \code{to} to be a compartment for
 these individuals (e.g., \code{to = "D"}).
 
-\item \code{mp_absolute_flow()}: Experimental
+\item \code{mp_inflow()}: Only flow into the \code{to} compartment.
+For adding a birth or immigration process.
+
+\item \code{mp_outflow()}: Only flow out of the \code{from} compartment.
+For adding an absolute removal process that goes to 'nowhere': dangerous!
+The reason it is dangerous is that this flow can easily lead to negative
+values of state variables when the \code{rate} is high relative to the
+size of the \code{from} compartment. Often \code{mp_per_capita_outflow} will be
+a better choice, given that the size of the outflow will be scaled to
+the size of the \code{from} compartment by measuring rates on a per-capita
+basis.
 
 }}
 \examples{
@@ -92,7 +104,10 @@ mp_per_capita_outflow("R", "mu", "death_R")
 # https://github.com/canmod/macpan2/blob/main/inst/starter_models/shiver
 mp_per_capita_flow("S", "V", "((a * S)/(b + S))/S",  "vaccination")
 
-# importation (experimental)
-# mp_absolute_inflow("I", "delta", "importation")
+# importation
+# mp_inflow("I", "delta", "importation")
 
+}
+\seealso{
+\code{\link[=mp_absolute_flow]{mp_absolute_flow()}}
 }

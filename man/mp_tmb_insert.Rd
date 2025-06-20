@@ -4,7 +4,7 @@
 \alias{mp_tmb_insert}
 \alias{mp_tmb_update}
 \alias{mp_tmb_delete}
-\title{Modify a TMB Model Spec}
+\title{Transform a TMB Model Specification}
 \usage{
 mp_tmb_insert(
   model,
@@ -12,6 +12,7 @@ mp_tmb_insert(
   at = 1L,
   expressions = list(),
   default = list(),
+  inits = list(),
   integers = list(),
   must_save = character(),
   must_not_save = character(),
@@ -24,6 +25,7 @@ mp_tmb_update(
   at = 1L,
   expressions = list(),
   default = list(),
+  inits = list(),
   integers = list(),
   must_save = character(),
   must_not_save = character(),
@@ -66,6 +68,11 @@ variables that appear in \code{before}, \code{during}, and \code{after}.
 For \code{mp_tmb_delete}, a character vector of such objects to delete from
 the model.}
 
+\item{inits}{An optional list of initial values for the state variables.
+These initial values can be added to the \code{default} list with identical
+results, but adding them to \code{inits} is better practice because it makes it
+clear that they are initial values that will change as the state updates.}
+
 \item{integers}{Named list of vectors that can be coerced to integer
 vectors. These integer vectors can be used by name in model formulas to
 provide indexing of matrices and as grouping factors in
@@ -73,16 +80,16 @@ provide indexing of matrices and as grouping factors in
 For \code{mp_tmb_delete}, a character vector of such objects to delete from
 the model.}
 
-\item{must_save}{Character vector of the names of matrices that must have
+\item{must_save}{Character vector of the names of variables that must have
 their values stored at every iteration of the simulation loop. For example,
-a matrix that the user does not want to be returned but that impacts dynamics
-with a time lag must be saved and therefore in this list.}
+a variable that you do not want to be returned, but that impacts
+dynamics with a time lag, must be saved and therefore must be in this list.}
 
-\item{must_not_save}{Character vector of the names of matrices that must
+\item{must_not_save}{Character vector of the names of variables that must
 not have their values stored at every iteration of the simulation loop. For
 example, the user may ask to return a very large matrix that would create
 performance issues if stored at each iteration. The creator of the model
-can mark such matrices making it impossible for the user of the model to
+can mark such variables making it impossible for the user of the model to
 save their full simulation history.}
 
 \item{sim_exprs}{Character vector of the names of \code{before},
@@ -97,8 +104,7 @@ A new model spec object with updated and/or inserted information.
 }
 \description{
 Insert, update, or delete elements of a TMB model spec, produced using
-\code{\link{mp_tmb_library}} or \code{\link{mp_tmb_model_spec}}, or
-\code{\link{mp_tmb_delete}}. The
+\code{\link{mp_tmb_library}} or \code{\link{mp_tmb_model_spec}}. The
 only difference between \code{mp_tmb_insert} and \code{mp_tmb_update} is that
 the former shifts the positions of existing expressions to make room
 for the new expressions, whereas the latter overwrites existing expressions
@@ -141,3 +147,4 @@ mp_tmb_insert(si, phase = "before"
 )
 
 }
+\concept{transform-model-spec}

@@ -183,6 +183,7 @@ obs_data = (covid_on
 ```
 
 
+<<<<<<< HEAD
 ## Time Bounds
 
 ```{r time_bounds}
@@ -195,6 +196,8 @@ time_bounds = mp_sim_offset(
 )
 ```
 
+=======
+>>>>>>> main
 
 ## Calibration Model Specification
 
@@ -246,7 +249,7 @@ focal_model = (
      , report_prob_name = "report_prob"
   )
 
-  # add time-varying transmission
+  # decompose beta for time-varying transmission
   |> mp_tmb_insert(phase = "during"
      , at = 1L
      , expressions = list(beta ~ beta0 * beta1 * beta2)
@@ -257,9 +260,12 @@ focal_model = (
      , expressions = list(
           beta2 ~ time_var(beta_changes, beta_changepoints)
      )
-     , default  = list(beta_changes      = c(1))#, 3))
-     , integers = list(beta_changepoints = c(0))#, steps("2021-03-05")))
+     , default  = list(beta_changes      = c(1))
+     , integers = list(beta_changepoints = c(0))
   )
+  
+  # log transform W
+  |> mp_tmb_insert_trans("W", mp_log)
 )
 ```
 
@@ -301,14 +307,14 @@ focal_calib = mp_tmb_calibrator(
     # return these trajectories so that they can be
     # explored after fitting
   , outputs = c(
-        "reported_incidence", "W", "beta"
-      , "prevalence", "incidence", "S"
+        "reported_incidence", "beta"
+      , "prevalence", "incidence", "S", "log_W"
     )
   
     # update defaults with macpan1.5 wastewater model defaults
   , default = macpan1.5_defaults
   
-  , time = time_bounds
+  , time = mp_sim_offset(15, 0, "daily")
 )
 # converges
 mp_optimize(focal_calib)
@@ -317,7 +323,7 @@ mp_optimize(focal_calib)
 
 ## Explore Fits
 
-Get fitted data and coefficients.
+The fitted model parameters, fitted values, and confidence intervals.
 ```{r get_fits}
 macpan2_fit = mp_trajectory_sd(focal_calib, conf.int = TRUE)
 fitted_coefs = mp_tmb_coef(focal_calib, conf.int = TRUE)
@@ -326,17 +332,6 @@ print(fitted_coefs)
 
 Plot the fitted values.
 ```{r plot_fits}
-macpan1.5_fit = (macpan1.5$sim
-  |> group_by(Date, state)
-  # summarize to ignore vaccination status
-  |> summarise(value = sum(value))
-  |> ungroup()
-  |> rename(time = Date, matrix = state)
-  |> filter(matrix %in% c("conv", "W"))
-  |> filter(!is.na(value))
-  |> mutate(matrix = ifelse(matrix == "conv", "reported_incidence", matrix))
-)
-
 plot_fit = function(obs_data, sim_data, ncol = 1L) {
   (ggplot(obs_data, aes(time, value))
    + geom_point()

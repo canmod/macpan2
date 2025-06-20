@@ -28,7 +28,7 @@ test_that("tmb model specs can vectorize state updates with indices", {
        , to   = mp_positions(flow$to  , state_labels)
     )
   )
-  print(sir)
+  # print(sir)
   # sir$all_default_vars()
   # sir$all_derived_vars()
   # sir$all_formula_vars()

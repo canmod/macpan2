@@ -249,8 +249,7 @@ DistrSpec = function(distr_param_objs = list(), trans_distr_param = list()) {
   self$likelihood = \(obs, sim) character()
   
   # for the future (e.g. beta ~ rnorm(0, 1))
-  self$noisy_parameter = \() character()
-  self$noisy_trajectory = \(sim) character()
+  self$noise = \() character()
   
   
   # Part C: Assumption Checking
@@ -336,7 +335,7 @@ DistrList = function(distr_list = list(), model_spec = mp_tmb_model_spec()) {
     nms = names(obj[[mth]]())
     for (i in seq_along(nms)) self$distr_list[[nms[i]]]$update_variable_name(tv_nms[i])
   }
-  
+
   
   # section 2: distributional parameters that need to be added as 
   ## _new_ defaults to model spec to be updated by calibration machinery
@@ -388,7 +387,7 @@ DistrParamNum = function(generic_name, value, trans = DistrParamTrans()) {
 }
 DistrParamNumNoFit = function(name, value, trans = DistrParamTrans()) {
   self = DistrParamNum(name, value, trans)
-  self$expr_ref = function() self$trans$ref(as.character(self$.value))
+  self$expr_ref = function() self$trans$ref_inv(as.character(self$.value))
   self$update_names = function(name) {
     self$variable_name = name
     self
@@ -403,7 +402,7 @@ DistrParamNumFit = function(name, value, trans = DistrParamTrans()) {
     list(self$trans$val(self$.value)) |> setNames(self$instance_name)
   }
   self$default_objs = function() list(self) |> setNames(self$instance_name)
-  self$expr_ref = function() self$trans$ref(self$global_name)
+  self$expr_ref = function() self$trans$ref_inv(self$global_name)
   self$distr_params_frame = function() {
     if (length(self$global_name) != 1L | length(self$default()) != 1L) {
       return(empty_frame(c("mat", "row", "col", "default")))
@@ -429,7 +428,7 @@ DistrParamChar = function(name, instance_name, trans = DistrParamTrans()) {
     self$variable_name = name
     self
   }
-  self$expr_ref = function() self$trans$ref(self$global_name)
+  self$expr_ref = function() self$trans$ref_inv(self$global_name)
   self$check_in_spec = function() {
     if (!self$global_name %in% names(self$model_spec$default)) {
       stop(self$global_name, " is not in the model spec")
@@ -441,7 +440,7 @@ DistrParamCharFit = function(name, instance_name, trans = DistrParamTrans()) {
   self = DistrParamChar(name, instance_name, trans)
   # Need to update default value with trans(default val)
   # self$default = function() {
-  #   list(self$trans$ref(self$check_in_spec()))  |> setNames(self$instance_name)
+  #   list(self$trans$ref_inv(self$check_in_spec()))  |> setNames(self$instance_name)
   # }
   self$distr_params_frame = function() {
     self$check_in_spec()
@@ -467,8 +466,10 @@ DistrParamCharNoFit = function(name, instance_name, trans = DistrParamTrans()) {
 DistrParamTrans = function() {
   self = Base()
   self$ref = function(x) x
+  self$ref_inv = function(x) x
   self$nm  = function(x) x
   self$val = function(x) x
+  self$val_inv = function(x) x
   self$resolve_default = function(default) self
   return_object(self, "DistrParamTrans")
 }
@@ -486,32 +487,46 @@ DistrParamIdentity = function() {
 
 DistrParamLog = function() {
   self = DistrParamTrans()
-  self$ref = function(x) sprintf("exp(%s)", x)
+  self$ref = function(x) sprintf("log(%s)", x)
+  self$ref_inv = function(x) sprintf("exp(%s)", x)
   self$nm  = function(x) sprintf("log_%s", x)
   self$val = function(x) log(x)
+  self$val_inv = function(x) exp(x)
   return_object(self, "DistrParamLog")
 }
 
-#' @importFrom stats qlogis
+DistrParamLog1p = function() {
+  self = DistrParamTrans()
+  self$ref = function(x) sprintf("log(%s + 1)", x)
+  self$ref_inv = function(x) sprintf("exp(%s) - 1", x)
+  self$nm  = function(x) sprintf("log1p_%s", x)
+  self$val = function(x) log(x + 1)
+  self$val_inv = function(x) exp(x) - 1
+  return_object(self, "DistrParamLog1p")
+}
+
+#' @importFrom stats qlogis plogis
 DistrParamLogit = function() {
   self = DistrParamTrans()
-  self$ref = function(x) sprintf("(1 / (1 + exp(-%s)))", x)
+  self$ref = function(x) sprintf("(log(%s) - log(1-%s))", x, x)
+  self$ref_inv = function(x) sprintf("(1 / (1 + exp(-%s)))", x)
   self$nm  = function(x) sprintf("logit_%s", x)
   self$val = function(x) qlogis(x)
+  self$val_inv = function(x) plogis(x)
   return_object(self, "DistrParamLogit")
 }
 
 DistrParamSqrt = function() {
   self = DistrParamTrans()
-  self$ref = function(x) sprintf("(%s^2)", x)
+  self$ref = function(x) sprintf("(%s^0.5)", x)
+  self$ref_inv = function(x) sprintf("(%s^2)", x)
   self$nm  = function(x) sprintf("sqrt_%s", x)
   self$val = function(x) sqrt(x)
+  self$val_inv = function(x) x^2
   return_object(self, "DistrParamSqrt")
 }
 
-#' Distributional Parameter Transformation
-#' 
-#' Objects used
+#' Link Functions and Transformation 
 #'
 #' @name transform_distr_param
 NULL
@@ -527,6 +542,13 @@ mp_identity = DistrParamIdentity()
 #' @rdname transform_distr_param
 #' @export
 mp_log = DistrParamLog()
+
+#' @description * `mp_log1p` - Log1p transformation (i.e., `log(1 + x)`)
+#' @format NULL
+#' @rdname transform_distr_param
+#' @export
+mp_log1p = DistrParamLog1p()
+
 
 #' @description * `mp_logit` - Logit transformation 
 #' @format NULL
@@ -610,7 +632,6 @@ mp_uniform = function(trans_distr_param = list()) {
   }
   self$likelihood = \(obs, sim) { 
     stop("You cannot specify uniform likelihoods")
-    
   }
   return_object(self, "DistrSpecUniform")
 }
@@ -618,6 +639,7 @@ mp_uniform = function(trans_distr_param = list()) {
 
 #' @description * Normal Distribution - `mp_normal`
 #' @name distribution
+#' @concept distributional-assumptions
 #' @export
 mp_normal = function(location = mp_distr_param_null("location")
      , sd
@@ -638,6 +660,12 @@ mp_normal = function(location = mp_distr_param_null("location")
     sprintf("-sum(dnorm(%s, %s, %s))"
       , obs
       , sim
+      , self$distr_param_objs$sd$expr_ref()
+    )
+  }
+  self$noise = \(loc) {
+    sprintf("rnorm(%s, %s)"
+      , loc
       , self$distr_param_objs$sd$expr_ref()
     )
   }
@@ -754,6 +782,9 @@ mp_poisson = function(location = mp_distr_param_null("location")
             , sim
     )
   }
+  self$noise = \(loc) {
+    sprintf("rpois(%s)", loc)
+  }
   return_object(self, "DistrSpecPoisson")
 }
 #' @description * Negative Binomial Distribution - `mp_neg_bin` 
@@ -778,6 +809,12 @@ mp_neg_bin = function(location = mp_distr_param_null("location")
             , obs
             , sim
             , self$distr_param_objs$disp$expr_ref()
+    )
+  }
+  self$noise = \(loc) {
+    sprintf("rnbinom(%s, %s)"
+      , loc
+      , self$distr_param_objs$disp$expr_ref()
     )
   }
   return_object(self, "DistrSpecNegBin")
@@ -827,7 +864,9 @@ mp_neg_bin = function(location = mp_distr_param_null("location")
 #' # distributional parameter in the coefficient table with a default value 
 #' # equal to the numeric value we provided to `mp_fit` above.
 #' mp_optimize(cal)
-#' mp_tmb_coef(cal)
+#' if (suppressPackageStartupMessages(require(broom.mixed))) {
+#'   print(mp_tmb_coef(cal))
+#' }
 #' 
 #' # If instead we want control over the name of the new fitted distributional
 #' # parameter, we can add a new variable to our model specification with the 
@@ -848,8 +887,11 @@ mp_neg_bin = function(location = mp_distr_param_null("location")
 #' # function and the fitted parameter table.
 #' cal$simulator$tmb_model$obj_fn$obj_fn_expr
 #' mp_optimize(cal)
-#' mp_tmb_coef(cal)
+#' if (suppressPackageStartupMessages(require(broom.mixed))) {
+#'   print(mp_tmb_coef(cal))
+#' }
 #' @name fit_distr_params
+#' @concept distributional-assumptions
 #' @export
 mp_fit = function(x, trans = DistrParamTransDefault()) UseMethod("mp_fit")
 

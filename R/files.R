@@ -107,20 +107,25 @@ Files = function(directory, ..., .cache = CacheList()) {
   self$.pull = function(component_name) {
     access_time = self$.access_times[[component_name]]
     modification_time = file.mtime(self$.readers[[component_name]]$file)
-    if (is.na(modification_time)) {
-      ff = self$.file_path(component_name)
-      if (nchar(ff) == 0L) {
-        stop("Cannot find a file for required component, ", component_name)
-      }
-      if (!file.exists(ff)) {
-        stop(
-          "\nThe file, ", ff, " is not where it was.",
-          "\nYou will need to regenerate this Files object",
-          "\nbecause it is corrupted."
-        )
-      }
-    }
+    if (is.na(modification_time)) self$check(component_name)
     if (modification_time > access_time) self$.fetch(component_name)
+  }
+  self$check = function(component_name) {
+    ff = self$.file_path(component_name)
+    if (nchar(ff) == 0L) {
+      stop("Cannot find a file for required component, ", component_name)
+    }
+    if (!file.exists(ff)) {
+      stop(
+        "\nThe file, ", ff, " is not where it was.",
+        "\nYou will need to regenerate this Files object",
+        "\nbecause it is corrupted."
+      )
+    }
+    return(TRUE)
+  }
+  self$exists = function(component_name) {
+    try(self$check(component_name), silent = TRUE) |> isTRUE()
   }
 
   ## Standard Methods

@@ -366,7 +366,7 @@ LayoutMatrixGrid = function(spec
       if (length(neighbour) == 1L) layout[min(state_rows), min(state_cols) - 1L] = neighbour
     }
     i = layout != ""
-    return(layout[rowSums(i) > 0L, colSums(i) > 0L])
+    return(layout[rowSums(i) > 0L, colSums(i) > 0L, drop = FALSE])
   }
   
   return_object(self, "LayoutMatrixFactors")
@@ -718,7 +718,7 @@ layout = function(states, links, init_row = 1L, init_col = 1L) {
 
 
 neighbour_list = function(flows) {
-  if (any(duplicated(flows$from))) stop("more than one neighbour per state")
+  if (any(duplicated(flows$from))) stop("more than one neighbour per state; try specifying east/north/west/south arguments, or a different layout function such as ", sQuote("dot_layout"))
   setNames(as.list(flows$to), flows$from)
 }
 
@@ -974,4 +974,57 @@ compute_adjacency_matrix <- function(df) {
   }
   
   return(adj_matrix)
+}
+
+##' Create a Graph from a Model Specification
+##' 
+##' Convert a model specification into a graph (using the `graph` package) that
+##' can be plotted with `Rgraphviz`: see `?Rgraphviz::plot.graphNEL` and
+##' https://graphviz.org/doc/info/attrs.html for information on customizing the 
+##' plot.
+##'
+##' In order to plot the graph, you need to have loaded the `Rgraphviz` package 
+##' (`library("Rgraphviz")`). We suppress package startup messages when loading 
+##' `Rgraphviz` in the examples below, because
+##' [bioconductor](https://www.bioconductor.org/) (which is the R ecosystem for 
+##' which `Rgraphviz` is developed) and 
+##' [tidyverse](https://www.tidyverse.org/) (which is an R ecosystem heavily 
+##' used in `macpan2` examples and workflows) use the same names for different
+##' functions. This naming clash gets reported when we load `Rgraphviz`, and
+##' we prefer to suppress these distracting messages. Please be aware of this 
+##' in your workflows that use both `tidyverse` and `dot_layout` 
+##' (and therefore `bioconductor`), and take 
+##' [appropriate action](https://stackoverflow.com/questions/39137110/what-does-the-following-object-is-masked-from-packagexxx-mean).
+##' 
+##' @param spec a model specification
+##' @param include_inout (logical) include nodes defined by \code{\link{mp_per_capita_inflow}} and \code{\link{mp_per_capita_outflow}} ?
+##' @examples
+##' ## Note: See above for an explanation of `suppressPackageStartupMessages`
+##' if (suppressPackageStartupMessages(require(Rgraphviz))) {
+##'   macpan_base = mp_tmb_library("starter_models", "macpan_base", package = "macpan2")
+##'   ## plot with left-to-right layout, rectangles instead of default circles
+##'   dot_layout(macpan_base) |>
+##'     plot(attrs = list(graph = list(rankdir = "LR"),
+##'                       node = list(shape = "rectangle")))
+##' }
+##' @export
+dot_layout <- function(spec, include_inout = FALSE) {
+    if (!requireNamespace("Rgraphviz")) stop("Rgraphviz is needed for this function; please install it from Bioconductor")
+    ff <- mp_flow_frame(spec, topological_sort = FALSE)
+    if (nrow(ff) == 0) {
+        stop("mp_flow_frame() is empty: was spec defined with mp_*flow functions?")
+    }
+    ## na.omit to drop inflows and outflows
+    ff <- as.matrix(na.omit(ff[c("from", "to")]))
+    v <- mp_state_vars(spec)
+    if (!include_inout) {
+        ff <- ff[ff[,"from"] %in% v & ff[,"to"] %in% v, , drop = FALSE]
+    } else {
+        v <- union(ff[,"from"], ff[,"to"])
+    }
+    AM <- matrix(0, nrow = length(v), ncol = length(v), dimnames = list(v, v))
+    AM[ff] <- 1
+    ## Rgraphviz depends on graph pkg, so this should be available
+    g <- graph::graphAM(AM, edgemode = "directed")
+    return(g)
 }

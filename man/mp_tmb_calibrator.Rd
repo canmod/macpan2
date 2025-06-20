@@ -2,17 +2,19 @@
 % Please edit documentation in R/mp_tmb_calibrator.R
 \name{mp_tmb_calibrator}
 \alias{mp_tmb_calibrator}
-\title{Make TMB Calibrator}
+\title{Make a Calibrator}
 \usage{
 mp_tmb_calibrator(
   spec,
-  data,
-  traj,
+  data = empty_trajectory,
+  traj = character(),
   par = character(),
   tv = character(),
   outputs = traj,
   default = list(),
-  time = NULL
+  inits = list(),
+  time = NULL,
+  save_data = TRUE
 )
 }
 \arguments{
@@ -26,11 +28,21 @@ time-varying parameters. The data must be of the same format as that
 produced by \code{\link{mp_trajectory}}.}
 
 \item{traj}{A character vector giving the names of trajectories to fit
-to data, or a named list of likelihood distributions specified with
-\code{\link{distribution}} for each trajectory.}
+to data, or a named list of likelihood distributions specified with a
+\code{\link{distribution}} for each trajectory. Transformations of
+trajectories cannot be named implicitly unless they are also transformed
+through the \code{outputs} argument and their transformed version appears
+in the \code{data}.}
 
-\item{par}{A character vector giving the names of parameters, either
-time-varying or not, to fit using trajectory match.}
+\item{par}{A character vector giving the names of parameters (either
+time-varying or not) to fit using trajectory match, or a named list of
+prior distributions specified with a \code{\link{distribution}} for each
+parameter. Parameters can be implicitly fitted on a transformed scale by
+prefixing the name of the parameter with the name of the transformation
+(e.g., \code{log_beta} will fit \code{beta} on the log-transformed scale, and
+\code{\link{mp_tmb_coef}} will report estimates on the original scale by
+default. The \code{\link{mp_tmb_implicit_backtrans}} function is used
+internally. See that help page for available transformations.}
 
 \item{tv}{A character vector giving the names of parameters to make
 time-varying according to the values in \code{data}, or a radial basis
@@ -39,7 +51,13 @@ function specified with \code{\link{mp_rbf}}.}
 \item{outputs}{A character vector of outputs that will be generated
 when \code{\link{mp_trajectory}}, \code{\link{mp_trajectory_sd}}, or
 \code{\link{mp_trajectory_ensemble}} are called on the optimized
-calibrator. By default it is just the trajectories listed in \code{traj}.}
+calibrator. By default it is just the trajectories listed in \code{traj}.
+Outputs can be implicitly transformed by prefixing the name of the output
+with the name of the transformation (e.g., \code{log_infection} will output
+\code{log(infection)}, but \code{\link{mp_trajectory_sd}} will report
+\code{infection} and its confidence interval on the original scale). The
+\code{\link{mp_tmb_implicit_trans}} function is used internally. See that
+help page for available transformations.}
 
 \item{default}{A list of default values to use to update the defaults
 in the \code{spec}. By default nothing is updated. Alternatively one could
@@ -48,15 +66,34 @@ function. Indeed such an approach is necessary if new expressions,
 in addition to default updates, need to be added to the spec
 (e.g. seasonally varying transmission).}
 
+\item{inits}{An optional list of initial values for the state variables.
+These initial values can be added to the \code{default} list with identical
+results, but adding them to \code{inits} is better practice because it makes it
+clear that they are initial values that will change as the state updates.}
+
 \item{time}{Specify the start and end time of the simulated trajectories,
-and the time period associated with each time step. Currently the only
-valid choice is \code{NULL}, which takes simulation bounds from the \code{data}.}
+and the time period associated with each time step. The default is \code{NULL},
+which takes simulation bounds from the \code{data}. You can use
+\code{\link{mp_sim_bounds}} and \code{\link{mp_sim_offset}} to be more
+specific. See the example on the \code{\link{mp_optimize}} help file for
+an illustration the use of \code{\link{mp_sim_offset}}.}
+
+\item{save_data}{Save a copy of the data in the calibrator object that is
+returned, so that you do not need to pass the data manually to downstream
+functions like \code{\link{mp_forecaster}}. It the resulting calibrator
+object is so large that it causes you problems, consider not saving
+the data in the calibrator object and manually passing it to the data
+argument of \code{\link{mp_forecaster}}.}
 }
 \description{
 Construct an object that can get used to calibrate an object produced by
 \code{\link{mp_tmb_model_spec}} or \code{\link{mp_tmb_library}},
 and possibly modified by \code{\link{mp_tmb_insert}} or
-\code{\link{mp_tmb_update}}.
+\code{\link{mp_tmb_update}}. Note that the output of this function is
+not a model that has been calibrated to data, but rather an object that
+contains a model that can be calibrated. To actually attempt a
+calibration one needs the \code{\link{mp_optimize}} function (see
+examples below).
 }
 \examples{
 spec = mp_tmb_library("starter_models", "sir", package = "macpan2")
@@ -70,5 +107,8 @@ cal = mp_tmb_calibrator(
   , default = list(beta = 0.25)
 )
 mp_optimize(cal)
-mp_tmb_coef(cal)  ## requires broom.mixed package
+if (suppressPackageStartupMessages(require(broom.mixed))) {
+  print(mp_tmb_coef(cal))
 }
+}
+\concept{create-model-calibrator}

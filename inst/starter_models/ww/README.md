@@ -2,6 +2,7 @@ Wastewater Model
 ================
 Jennifer Freeman, Steve Walker
 
+<<<<<<< HEAD
 - [Packages and Settings Used](#packages-and-settings-used)
 - [Model Specification](#model-specification)
 - [States](#states)
@@ -14,6 +15,25 @@ Jennifer Freeman, Steve Walker
   - [Calibrate to Data](#calibrate-to-data)
   - [Explore Fits](#explore-fits)
 - [References](#references)
+=======
+-   <a href="#packages-and-settings-used"
+    id="toc-packages-and-settings-used">Packages and Settings Used</a>
+-   <a href="#model-specification" id="toc-model-specification">Model
+    Specification</a>
+-   <a href="#states" id="toc-states">States</a>
+-   <a href="#parameters" id="toc-parameters">Parameters</a>
+-   <a href="#dynamics" id="toc-dynamics">Dynamics</a>
+-   <a href="#calibration" id="toc-calibration">Calibration</a>
+    -   <a href="#observed-data-prep" id="toc-observed-data-prep">Observed Data
+        Prep</a>
+    -   <a href="#calibration-model-specification"
+        id="toc-calibration-model-specification">Calibration Model
+        Specification</a>
+    -   <a href="#calibrate-to-data" id="toc-calibrate-to-data">Calibrate to
+        Data</a>
+    -   <a href="#explore-fits" id="toc-explore-fits">Explore Fits</a>
+-   <a href="#references" id="toc-references">References</a>
+>>>>>>> main
 
 The McMasterPandemic model ([Bolker et al. 2024](#ref-macpan)) modified
 to include a wastewater component.
@@ -177,6 +197,7 @@ obs_data = (covid_on
 )
 ```
 
+<<<<<<< HEAD
 ## Time Bounds
 
 ``` r
@@ -189,6 +210,8 @@ time_bounds = mp_sim_offset(
 )
 ```
 
+=======
+>>>>>>> main
 ## Calibration Model Specification
 
 Update model specification to include additional components required for
@@ -241,7 +264,7 @@ focal_model = (
      , report_prob_name = "report_prob"
   )
 
-  # add time-varying transmission
+  # decompose beta for time-varying transmission
   |> mp_tmb_insert(phase = "during"
      , at = 1L
      , expressions = list(beta ~ beta0 * beta1 * beta2)
@@ -252,9 +275,12 @@ focal_model = (
      , expressions = list(
           beta2 ~ time_var(beta_changes, beta_changepoints)
      )
-     , default  = list(beta_changes      = c(1))#, 3))
-     , integers = list(beta_changepoints = c(0))#, steps("2021-03-05")))
+     , default  = list(beta_changes      = c(1))
+     , integers = list(beta_changepoints = c(0))
   )
+  
+  # log transform W
+  |> mp_tmb_insert_trans("W", mp_log)
 )
 ```
 
@@ -296,14 +322,14 @@ focal_calib = mp_tmb_calibrator(
     # return these trajectories so that they can be
     # explored after fitting
   , outputs = c(
-        "reported_incidence", "W", "beta"
-      , "prevalence", "incidence", "S"
+        "reported_incidence", "beta"
+      , "prevalence", "incidence", "S", "log_W"
     )
   
     # update defaults with macpan1.5 wastewater model defaults
   , default = macpan1.5_defaults
   
-  , time = time_bounds
+  , time = mp_sim_offset(15, 0, "daily")
 )
 # converges
 mp_optimize(focal_calib)
@@ -311,7 +337,11 @@ mp_optimize(focal_calib)
 #> NA/NaN function evaluation
 #> $par
 #>      params      params      params      params      params      params 
+<<<<<<< HEAD
 #>  -8.6647123 -12.6963648   2.3858522   7.2248134   1.3915078   3.4112490 
+=======
+#>  -8.6647123 -12.6963662   2.4174686   7.2248134   1.3915078   3.4112490 
+>>>>>>> main
 #>      params      params      params      params      params 
 #>   2.8777186   3.8903473   2.3726918   4.6262171   0.5130978 
 #> 
@@ -326,7 +356,11 @@ mp_optimize(focal_calib)
 #> 
 #> $evaluations
 #> function gradient 
+<<<<<<< HEAD
 #>       98       50 
+=======
+#>       92       50 
+>>>>>>> main
 #> 
 #> $message
 #> [1] "relative convergence (4)"
@@ -334,7 +368,7 @@ mp_optimize(focal_calib)
 
 ## Explore Fits
 
-Get fitted data and coefficients.
+The fitted model parameters, fitted values, and confidence intervals.
 
 ``` r
 macpan2_fit = mp_trajectory_sd(focal_calib, conf.int = TRUE)
@@ -350,12 +384,18 @@ print(fitted_coefs)
 #> 10  params.8 time_var_beta1   5   0    0.00 fixed 2.372692e+00 8.529387e-01
 #> 11  params.9 time_var_beta1   6   0    0.00 fixed 4.626217e+00 2.269486e+00
 #> 1     params          beta0   0   0    0.25 fixed 1.725692e-04 5.055458e-04
+<<<<<<< HEAD
 #> 2   params.1             nu   0   0    0.03 fixed 3.062237e-06 1.915017e-06
 #> 4   params.2             xi   0   0    1.00 fixed 1.086832e+01 2.400334e+03
+=======
+#> 2   params.1             nu   0   0    0.03 fixed 3.062233e-06 1.913507e-06
+#> 4   params.2             xi   0   0    1.00 fixed 1.121743e+01 2.856317e+03
+>>>>>>> main
 #>         conf.low     conf.high
 #> 3   4.974683e-01  5.287272e-01
 #> 5   2.554388e+00  1.189524e+01
 #> 6  -1.179513e-02  2.794811e+00
+<<<<<<< HEAD
 #> 7  -2.935677e-01  7.116066e+00
 #> 8   9.664641e-01  4.788973e+00
 #> 9   2.948800e-01  7.485815e+00
@@ -364,24 +404,21 @@ print(fitted_coefs)
 #> 1   5.537921e-07  5.377492e-02
 #> 2   8.989322e-07  1.043159e-05
 #> 4   2.220446e-16 1.069341e+189
+=======
+#> 7  -2.935678e-01  7.116066e+00
+#> 8   9.664640e-01  4.788973e+00
+#> 9   2.948799e-01  7.485815e+00
+#> 10  7.009627e-01  4.044421e+00
+#> 11  1.781057e-01  9.074328e+00
+#> 1   5.537920e-07  5.377493e-02
+#> 2   8.997984e-07  1.042152e-05
+#> 4   2.220446e-16 6.210788e+217
+>>>>>>> main
 ```
 
 Plot the fitted values.
 
 ``` r
-macpan1.5_fit = (macpan1.5$sim
-  |> group_by(Date, state)
-  # summarize to ignore vaccination status
-  |> summarise(value = sum(value))
-  |> ungroup()
-  |> rename(time = Date, matrix = state)
-  |> filter(matrix %in% c("conv", "W"))
-  |> filter(!is.na(value))
-  |> mutate(matrix = ifelse(matrix == "conv", "reported_incidence", matrix))
-)
-#> `summarise()` has grouped output by 'Date'. You can override using the
-#> `.groups` argument.
-
 plot_fit = function(obs_data, sim_data, ncol = 1L) {
   (ggplot(obs_data, aes(time, value))
    + geom_point()

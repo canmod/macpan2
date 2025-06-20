@@ -41,3 +41,4 @@ Pass the output of this function to the \code{tv} argument of
 \code{\link{mp_tmb_calibrator}} to model time variation of
 a parameter with flexible radial basis functions.
 }
+\concept{create-model-calibrator-args}

@@ -2,56 +2,64 @@
 % Please edit documentation in R/mp_tmb_model_spec.R
 \name{mp_tmb_model_spec}
 \alias{mp_tmb_model_spec}
-\title{Specify a TMB Model}
+\title{Create TMB Model Specification}
 \usage{
 mp_tmb_model_spec(
   before = list(),
   during = list(),
   after = list(),
   default = list(),
+  inits = list(),
   integers = list(),
   must_save = character(),
   must_not_save = character(),
   sim_exprs = character(),
-  state_update = c("euler", "rk4", "euler_multinomial", "hazard")
+  state_update = c("euler", "rk4", "discrete_stoch", "hazard", "rk4_old",
+    "euler_multinomial")
 )
 }
 \arguments{
-\item{before}{List of formulas to be evaluated (in the order provided) before
-the simulation loop begins. Each \code{\link{formula}} must have a left hand
-side that gives the name of the matrix being updated, and a right hand side
-giving an expression containing only the names of matrices in the model,
-functions defined in the TMB engine, and numerical literals (e.g.
-\code{3.14}). The available functions in the TMB engine  can be described in
-\code{\link{engine_functions}}. Names can be provided for the components of
-\code{before}, and these names do not have to be unique. These names are
-used by the \code{sim_exprs} argument.}
+\item{before}{List of formulas to be evaluated (in the order provided)
+before the simulation loop begins. These formulas must be standard
+two-sided R \code{\link{formula}} objects. See \code{details} below for the
+rules for these formulas.}
 
-\item{during}{List of formulas to be evaluated at every iteration of the
-simulation loop, with the same rules as \code{before}.}
+\item{during}{List of formulas or calls to flow functions (e.g.,
+\code{\link{mp_per_capita_flow}}) to be evaluated at every iteration of the
+simulation loop.}
 
-\item{after}{List of formulas to be evaluated after the simulation loop,
-with the same rules as \code{before}.}
+\item{after}{List of formulas to be evaluated (in the order provided)
+before the simulation loop begins. These formulas must be standard
+two-sided R \code{\link{formula}} objects. See \code{details} below for the
+rules for these formulas.}
 
 \item{default}{Named list of objects, each of which can be coerced into
 a \code{\link{numeric}} \code{\link{matrix}}. The names refer to
-variables that appear in \code{before}, \code{during}, and \code{after}.}
+quantities that appear in \code{before}, \code{during}, and \code{after}.
+Each quantity that is used in \code{before}, \code{during}, or \code{after}
+before it is defined must be given a numerical value in this \code{default}
+list.}
+
+\item{inits}{Named list of initial values of state variables.  These
+initial values can be added to the \code{default} list with identical results,
+but adding them to \code{inits} is better practice because it makes it clear
+that they are initial values that will change as the state updates.}
 
 \item{integers}{Named list of vectors that can be coerced to integer
 vectors. These integer vectors can be used by name in model formulas to
 provide indexing of matrices and as grouping factors in
 \code{\link{group_sums}}.}
 
-\item{must_save}{Character vector of the names of matrices that must have
+\item{must_save}{Character vector of the names of variables that must have
 their values stored at every iteration of the simulation loop. For example,
-a matrix that the user does not want to be returned but that impacts dynamics
-with a time lag must be saved and therefore in this list.}
+a variable that you do not want to be returned, but that impacts
+dynamics with a time lag, must be saved and therefore must be in this list.}
 
-\item{must_not_save}{Character vector of the names of matrices that must
+\item{must_not_save}{Character vector of the names of variables that must
 not have their values stored at every iteration of the simulation loop. For
 example, the user may ask to return a very large matrix that would create
 performance issues if stored at each iteration. The creator of the model
-can mark such matrices making it impossible for the user of the model to
+can mark such variables making it impossible for the user of the model to
 save their full simulation history.}
 
 \item{sim_exprs}{Character vector of the names of \code{before},
@@ -61,10 +69,67 @@ being evaluated. For example, expressions that generate stochasticity should
 be listed in \code{sim_exprs} because TMB objective functions must be
 continuous.}
 
-\item{state_update}{(experimental) Optional character vector for how to update the
-state variables when it is relevant. Options include \code{"euler"}, \code{"rk4"},
-and \code{"euler_multinomial"}.}
+\item{state_update}{Optional character vector for how to update the state
+variables when it is relevant. Options include \code{"euler"} (the default),
+\code{"rk4"}, and \code{"discrete_stoch"}.}
 }
 \description{
-Specify a model in the TMB engine.
+Specify a simulation model in the TMB engine. A detailed explanation of this
+function is covered in \code{vignette("quickstart")}.
 }
+\details{
+Expressions in the \code{before}, \code{during}, and \code{after} lists can be standard
+R \code{\link{formula}} objects for defining variables in the model. These
+formulas must have a left hand side that gives the name of the (possibly
+matrix-valued) variable being updated, and a right hand side giving an
+expression containing only (1) the names of quantities in the model, (2)
+numerical literals (e.g., \code{3.14}), or (3) functions defined in the TMB
+engine (described in \code{\link{engine_functions}}). For example, the
+expression \code{N ~ S + I + R} updates the value of \code{N} to be the sum of the
+variables \code{S}, \code{I}, and \code{R}.
+
+Names can be provided for the components of the \code{before}, \code{during}, and
+\code{after} lists, and these names do not have to be unique. These names are
+used by the \code{sim_exprs} argument.
+}
+\examples{
+## A simple SI model.
+spec = mp_tmb_model_spec(
+    during = mp_per_capita_flow("S", "I", "beta * I / N", "infection")
+  , default = list(N = 100, S = 99, I = 1, beta = 0.2)
+)
+(spec 
+  |> mp_simulator(time_steps = 5L, output = "infection") 
+  |> mp_trajectory()
+)
+
+## The `~` can be used for flexibly defining dynamical variables.
+spec2 = mp_tmb_model_spec(
+    during = list(
+          force_of_infection ~ beta * I / N
+        , mp_per_capita_flow("S", "I", "force_of_infection", "infection")
+    )
+  , default = list(N = 100, S = 99, I = 1, beta = 0.2)
+)
+(spec2
+  |> mp_simulator(time_steps = 5L, output = "force_of_infection") 
+  |> mp_trajectory()
+)
+
+## The `before` argument can be used to pre-compute quantities before
+## the simulation loop begins. Here we compute `S` from `N` and `I`,
+## instead of specifying `S` in the `default` list. The potential
+## benefit here is that one could make `I` a parameter to be fitted,
+## while ensuring consistent values for `S`.
+spec3 = mp_tmb_model_spec(
+    before = S ~ N - I
+  , during = mp_per_capita_flow("S", "I", "beta * I / N", "infection")
+  , default = list(N = 100, I = 1, beta = 0.2)
+)
+(spec3 
+  |> mp_simulator(time_steps = 5L, output = "infection") 
+  |> mp_trajectory()
+)
+
+}
+\concept{create-model-spec}

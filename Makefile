@@ -3,6 +3,7 @@ ENUM_RE = [ ]*MP2_[A-Z_]*[ ]*=[ ]*[0-9][0-9]*
 SED_RE = \(\,\)*[ ]*\/\/[ ]*\(.*\)
 ALIAS_RE = [ ]*MP2_\(.*\)\: \(.*\)(\(.*\))
 ROXY_RE = ^.*\(\#'.*\)$
+LOG_RE = std\:\:string[ ]*bail_out_log_file
 VERSION := $(shell sed -n '/^Version: /s///p' DESCRIPTION)
 TEST := testthat::test_package(\"macpan2\", reporter = \"progress\")
 
@@ -40,7 +41,6 @@ quick-doc-install: R/*.R misc/dev/dev.cpp
 	make engine-doc-update
 	make doc-update
 	make quick-install
-
 
 forced-quick-doc-install: 
 	touch misc/old-r-source/*.R
@@ -99,7 +99,7 @@ png-readme:: misc/readme/*.png
 
 
 readme:: README.md
-README.md: README.Rmd misc/readme/*.svg R/*.R NAMESPACE
+README.md: README.Rmd R/*.R NAMESPACE
 	Rscript -e "rmarkdown::render('README.Rmd')"
 	echo '<!-- Auto-generated - do not edit by hand -->' > temp
 	echo '<!-- Edit README.Rmd instead -->' | cat - $@ >> temp && mv temp $@
@@ -121,6 +121,7 @@ R/enum.R: misc/dev/dev.cpp misc/build/enum_tail.R
 	echo "valid_func_sigs = c(" >> $@
 	grep "$(COMMA_RE)$(ENUM_RE)" misc/dev/dev.cpp | sed 's/$(COMMA_RE)$(ENUM_RE)$(SED_RE)/  \1\"\3\"\2/' >> $@
 	echo ")" >> $@
+	grep "$(LOG_RE)" misc/dev/dev.cpp | sed 's|$(LOG_RE)|bail_out_log_file|' | sed 's|;||' >> $@
 	cat misc/build/enum_tail.R >> $@
 	echo "valid_funcs = setNames(as.list(valid_funcs), valid_funcs)" >> $@
 
@@ -146,8 +147,8 @@ R/engine_functions.R: src/macpan2.cpp
 	echo "NULL" >> $@
 
 
-doc-update: R/*.R misc/dev/dev.cpp misc/old-r-source/*.R
-	echo "suppressWarnings(roxygen2::roxygenize(\".\",roclets = c(\"collate\", \"rd\", \"namespace\")))" | R --slave
+doc-update: R/*.R misc/dev/dev.cpp misc/old-r-source/*.R misc/build/roxygenise.R
+	Rscript misc/build/roxygenise.R
 	touch doc-update
 
 
@@ -170,8 +171,8 @@ compile-dev: misc/dev/dev.cpp
 	cd misc/dev; echo "TMB::compile(\"dev.cpp\")" | R --slave
 
 
-inst/starter_models/%/README.md: inst/starter_models/%/README.Rmd
-	echo "rmarkdown::render(\"$^\")" | R --slave
+inst/starter_models/%/README.md: inst/starter_models/%/README.Rmd DESCRIPTION R/*.R
+	echo "rmarkdown::render(\"$<\")" | R --slave
 
 inst/starter_models/%/README.push: inst/starter_models/%/README.md
 	@echo Pushing directory: $(dir $^)
@@ -180,4 +181,18 @@ inst/starter_models/%/README.push: inst/starter_models/%/README.md
 	git push
 	touch $@
 
-all-starters: inst/starter_models/*/README.push
+all-starters: inst/starter_models/*/README.md
+
+pkgdown: 
+	Rscript -e "pkgdown::build_site()"
+	Rscript -e "pkgdown::preview_site()"
+
+pkgdown-reference-index:
+	make quick-doc-install
+	Rscript -e "pkgdown::build_reference_index()"
+	Rscript -e "pkgdown::preview_site()"
+
+NEWS.md : news-narratives.md misc/build/update-news.sh misc/build/update-commit-version-map.sh misc/build/update-version-bumps.sh DESCRIPTION R/*.R vignettes/*.Rmd man/*.Rd tests/testthat/*.R Makefile inst/starter_models/**/*.R inst/starter_models/**/*.Rmd
+	./misc/build/update-commit-version-map.sh
+	./misc/build/update-version-bumps.sh
+	./misc/build/update-news.sh

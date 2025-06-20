@@ -101,14 +101,14 @@ A simulation is the sequential evaluation of these expressions in a user-specifi
 
 Each mathematical expression can be used by C++ in several ways. Information on how each expression should be used is passed to C++ using a set of vectors. Each of these vectors is the same length, with one element per expression.
 
-* `DATA_IVECTOR(expr_output_id)`
-    * Index into `mats` identifying the matrix produced by the expression
 * `DATA_IVECTOR(expr_sim_block)`
     * Identifies whether or not the expression should be evaluated inside a `SIMULATE` macro within TMB
     * A value of `0` indicates that the expression is to be evaluated without the `SIMULATE` macro (we expect this to be the standard case), whereas a value of `1` indicates evaluation inside a `SIMULATE` macro
     * Note that if an expression is evaluated in a `SIMULATE` macro and is returned to the user through `mats_return == 1`, then it must also be returned within the `SIMULATE` macro
 * `DATA_IVECTOR(expr_num_p_table_rows)`
     * Number of rows associated with each expression in the parse table (see section on [Parse Tables])
+* `DATA_IVECTOR(assign_num_a_table_rows)`
+    * Number of rows associated with each expression in the assignment parse table (see section on [Assignment Parse Tables])
 
 Each expression is evaluated in the order in which it appears in these vectors.
 
@@ -144,6 +144,15 @@ The first three vectors correspond to `n`, `x`, and `i` as discussed in this sec
 
 The `expr_num_p_table_rows` vector (defined above in the section on [Expressions]) is used to relate each expression to a set of rows in this concatenated parse table. The elements of this vector contain the number of parse table rows associated with each expression. The ordering of the elements is consistent with the ordering of the concatenation of the individual parse tables, and so row indices are not necessary.
 
+## Assignment
+
+The resulting matrices produced by evaluating [Expressions] is assigned to another matrix or a subset of another matrix. Assignment is specified as the left-hand-side of an R formula. These assignment specifications can take the form of a single function call. The current list of functions that are available for assignment are described [here](https://canmod.github.io/macpan2/reference/engine_functions.html#assignment). Developers can add to this list in a manner similar to that for adding [Function Definitions]. Each function in this list must have a corresponding function with the same name that can be used on the right hand side.
+
+## Assignment Parse Tables
+
+* `DATA_IVECTOR(a_table_n)`
+* `DATA_IVECTOR(a_table_x)`
+* `DATA_IVECTOR(a_table_i)`
 
 ## Literals
 
@@ -156,15 +165,7 @@ The functions that are used in each [Expression] must be in a valid list of func
 
 Valid functions take one or more matrix-valued arguments and return a single matrix. The number of arguments does not need to be known when the model is defined, but some functions may optionally require a predefined number of arguments.
 
-Extending functionality of the engine will typically involve simply adding function definitions to the list of valid functions. All function definitions have the following objects available to them.
-
-* `r` -- A list of matrices giving the arguments to the function (e.g. `r[0]` returns the first matrix).
-* `index2mats` -- A list of integers giving the indices for identifying the matrices in the `mats` list (e.g. `index2mats[0]` returns the index of the first argument).
-* `t` -- Time step
-* `hist` -- A list of lists of matrices giving the history of the simulation (e.g. `hist[4][0]` returns the value of the first matrix at time step `4`).
-* `n` -- The number of arguments.
-
-Function definitions should be grouped into types if several functions require similar processing. The main example that we have is element-wise binary operators, including `+`, `*`, `-`, `/`, `^`. These functions all require the same pre-processing to make sure that the matrix dimensions of the two operands are compatible and that compatibility is conveniently defined for the user.
+Extending functionality of the engine will typically involve [adding function definitions](https://canmod.github.io/macpan2/CONTRIBUTING.html#adding-engine-functions) to the list of valid functions.
 
 
 ## Objective Function

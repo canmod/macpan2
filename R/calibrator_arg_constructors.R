@@ -9,7 +9,7 @@
 #' fixed effects.
 #' @param random Named list of distributional specifications for the random
 #' effects.
-#' 
+#' @concept create-model-calibrator-args
 #' @export
 mp_par = function(
       params = empty_named_list()
@@ -61,6 +61,7 @@ mp_tv = function(
 #' parameter.
 #' 
 #' @importFrom stats rnorm
+#' @concept create-model-calibrator-args
 #' @export
 mp_rbf = function(tv, dimension, initial_weights, seed, prior_sd = 1, fit_prior_sd = TRUE, sparse_tol = 1e-2) {
   if (missing(initial_weights)) {
@@ -115,6 +116,7 @@ mp_piecewise = function(tv, data) {
 #' identify the trajectory associated with each likelihood component.
 #' @param condensation List of condensation methods. The names of the list
 #' identify the trajectories produced by each condensation method.
+#' @concept create-model-calibrator-args
 #' @export
 mp_traj = function(
       likelihood = empty_named_list()

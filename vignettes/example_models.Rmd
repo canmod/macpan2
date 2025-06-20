@@ -23,12 +23,12 @@ library(macpan2)
 
 ## Finding Example Models
 
-The `macpan2` comes with a set of example model definitions, which can be listed with the `show_models` function.
+The `macpan2` comes with a set of example model definitions, which can be listed with the `mp_show_models()` function.
 ```{r eval = FALSE}
-show_models()
+mp_show_models()
 ```
 ```{r echo = FALSE}
-kableExtra::kable(show_models(for_markdown = TRUE))
+kableExtra::kable(mp_show_models(for_markdown = TRUE))
 ```
 
 There are three things that you can do with the items on this list: read them, use them, and modify them. To read them, just click on the links above to take you to each model. To use them and modify them, please continue reading.

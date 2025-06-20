@@ -149,13 +149,13 @@ expanded specification object.
 print(spec |> mp_expand())
 #> ---------------------
 #> Default values:
+#>  quantity value
+#>      beta   0.2
+#>     gamma   0.1
+#>         N 100.0
+#>         I   1.0
+#>         R   0.0
 #> ---------------------
-#>  matrix row col value
-#>    beta           0.2
-#>   gamma           0.1
-#>       N         100.0
-#>       I           1.0
-#>       R           0.0
 #> 
 #> ---------------------
 #> Before the simulation loop (t = 0):
@@ -165,7 +165,7 @@ print(spec |> mp_expand())
 #> ---------------------
 #> At every iteration of the simulation loop (t = 1 to T):
 #> ---------------------
-#> 1: infection ~ S * (I * beta/N)
+#> 1: infection ~ S * (beta * I/N)
 #> 2: recovery ~ I * (gamma)
 #> 3: S ~ S - infection
 #> 4: I ~ I + infection - recovery
@@ -193,11 +193,11 @@ mp_optimize(cal)
 #> [1] 0
 #> 
 #> $iterations
-#> [1] 8
+#> [1] 9
 #> 
 #> $evaluations
 #> function gradient 
-#>       11        8 
+#>       12        9 
 #> 
 #> $message
 #> [1] "both X-convergence and relative convergence (5)"

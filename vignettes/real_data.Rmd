@@ -122,7 +122,7 @@ sf_sir = mp_tmb_insert(sf_sir
     
     ## at the end (i.e. Infinity) of the expressions evaluated
     ## 'during' each iteration of the simulation loop ...
-  , at = Inf  
+  , at = Inf
   , phase = "during"
   
     ## add a new default value for the reporting probability
@@ -352,7 +352,11 @@ make_rbf_calibrator = function(dimension) {
     , tv = mp_rbf("beta", dimension)
     ## -----------------------------
     
-    , par = c("gamma", "I", "report_prob")
+    , par = list(
+        gamma = mp_uniform()
+      , I = mp_uniform()
+      , report_prob = mp_uniform()
+    )
   )
 }
 ```

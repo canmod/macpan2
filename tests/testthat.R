@@ -8,5 +8,9 @@
 
 library(testthat)
 library(macpan2)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(broom.mixed)
 
 test_check("macpan2")

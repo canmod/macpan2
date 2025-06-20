@@ -9,6 +9,8 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
   chunk_output_type: console
+bibliography: macpan2.bib
+link-citations: TRUE
 ---
 
 [![status](https://img.shields.io/badge/status-working%20draft-red)](https://canmod.github.io/macpan2/articles/vignette-status#working-draft)
@@ -34,6 +36,7 @@ if (packageVersion("macpan2helpers") < mp2hver) {
 library(dplyr)
 library(tidyr)
 library(ggplot2); theme_set(theme_bw())
+options(macpan2_verbose = FALSE)
 ```
 
 In addition to these packages, the `broom.mixed` package and `outbreaks` package will be used below (if installed).
@@ -157,8 +160,7 @@ drop_trans <- function(x) gsub("(log|logit)_", "", x)
 ```
 
 ```{r params_fancy, eval = require("broom.mixed")}
-ff <- sir_simulator$ad_fun()
-class(ff) <- "TMB"
+ff = mp_tmb(sir_simulator)
 (broom.mixed::tidy(ff, conf.int = TRUE)
     |> select(-c(type, std.error))
     |> mutate(term = drop_trans(coefnames(sir_simulator)))
@@ -257,7 +259,7 @@ The fit isn't perfect, but we can think of a number of reasons for that (people 
 
 ### Computing and plotting confidence and prediction intervals
 
-While this code isn't horribly complex, hopefully it will all be somewhat more streamlined/automated in the future. Computing confidence or prediction intervals is a fairly big subject; see Bolker (2008) chapter 7 for an introduction to some of the issues.
+While this code isn't horribly complex, hopefully it will all be somewhat more streamlined/automated in the future. Computing confidence or prediction intervals is a fairly big subject; see [@bolker2008] chapter 7 for an introduction to some of the issues.
 
 ```{r sdreport_plot}
 obs <- data.frame(
@@ -287,7 +289,7 @@ print(gg_ci1)
 
 - These intervals are based on the *delta method*, as such they are approximate (nearly all CIs are approximations, but the delta method assumes both (1) multivariate normality of the sampling distribution and (2) a quadratic approximation to any nonlinearities in the model). You can see that this leads to *negative* values within the CI range at some points ...
 - These are confidence intervals, not prediction intervals (so we don't necessarily expect the points to lie within the envelope);
-prediction intervals for non-Normal errors are a little bit tricky (maybe something about this in Bolker 2008?), not worth doing right now.
+prediction intervals for non-Normal errors are a little bit tricky (maybe something about this in [@bolker2008]?), not worth doing right now.
 
 We can also generate intervals based on multivariate normal sampling, which relaxes the second assumption but not the first. Sometimes calculating the standard deviations of the predictions is memory-hungry, so below we show how to get the covariance matrix of the parameters directly from the fit (it does take some extra computation). 
 
@@ -296,9 +298,9 @@ sdr = sir_simulator$sdreport()
 set.seed(101)
 nsim <- 1000
 par <- fit$par
-H <- numDeriv::jacobian(sir_simulator$ad_fun()$gr, par)
+H <- numDeriv::jacobian(mp_tmb(sir_simulator)$gr, par)
 ## FIXME: why doesn't this match?
-## H0 <- with(sir_simulator$ad_fun(), optimHess(par, fn = fn, gr = gr))
+## H0 <- with(mp_tmb(sir_simulator), optimHess(par, fn = fn, gr = gr))
 Sigma <- solve(H)
 stopifnot(all.equal(Sigma, unname(sdr$cov.fixed), tolerance = 1e-5))
 ## sample from (assumed) multivariate normal distribution of parameters
@@ -376,19 +378,19 @@ Since Markov chain Monte Carlo samples a wider range of the parameter space, it'
 
 ```{r tmbstan1, eval = require("tmbstan"), results = "hide"}
 library(tmbstan)
-stan1 <- tmbstan(sir_simulator$ad_fun(), seed = 101, init  = "last.par.best")
+stan1 <- tmbstan(mp_tmb(sir_simulator), seed = 101, init  = "last.par.best")
 init_fun <- function(jitter = 0.4) {
-    p <- sir_simulator$ad_fun()$env$last.par.best
+    p <- mp_tmb(sir_simulator)$env$last.par.best
     p * runif(length(p), 1-jitter, 1+jitter)
 }
-stan2 <- tmbstan(sir_simulator$ad_fun(), init = init_fun, seed = 101)
+stan2 <- tmbstan(mp_tmb(sir_simulator), init = init_fun, seed = 101)
 ```
 
 ```{r tmbparams, eval = require("broom.mixed")}
 broom.mixed::tidy(stan2, conf.int = TRUE)
 ```
 
-(We should other diagnostics - check for divergent transitions, look at $\hat R$, traceplots, etc etc; see e.g. `bayestestR::diagnostic_posterior()`, `bayeslot::mcmc_rank_overlay()`, `shinyStan` ... brief examples [here](http://bbolker.github.io/bbmisc/bayes/examples.html).)
+(We should other diagnostics - check for divergent transitions, look at $\hat R$, traceplots, etc etc; see e.g. `bayestestR::diagnostic_posterior()`, `bayeslot::mcmc_rank_overlay()`, `shinyStan` ... brief examples [here](http://ber.github.io/bbmisc/bayes/examples.html).)
 
 In this case the MCMC quantile credible intervals (ribbons) are pretty close to the delta-method and MVN ensemble CIs (shown as dotted lines) ...
 ```{r sim_ensemble}
@@ -412,8 +414,7 @@ suppressWarnings(
 As above, we can also get likelihood profile CIs ...
 
 ```{r lprof, eval = FALSE}
-ff <- sir_simulator$ad_fun()
-class(ff) <- "TMB"
+ff <- mp_tmb(sir_simulator)
 (broom.mixed::tidy(ff, conf.int = TRUE, conf.method = "profile")
     |> select(-c(type, std.error))
     |> mutate(term = drop_trans(coefnames(sir_simulator)))
@@ -622,12 +623,12 @@ fit <- sir_simulator$optimize$nlminb()
 
 Here is a reasonably difficult problem -- fit an SIR model to weekly measles incidence data from London UK over about six decades.
 
-<!-- FIXME: store data locally, don't rely on IIDA ... -->
+<!-- FIXME: store data locally, don't rely on IIDDA ... -->
 ```{r sir_plot, fig.width=6}
 measles = read.csv(
   file.path(
-    "https://raw.githubusercontent.com/davidearn/iidda/master/data",
-    "meas_uk__lon_1944-94_wk/source-data/meas_uk__lon_1944-94_wk.csv"
+    "https://raw.githubusercontent.com/canmod/iidda/main/pipelines/classic-iidda/digitizations",
+    "meas_uk__lon_1944-94_wk.csv"
   ),
   comment = "#"
 )
@@ -925,7 +926,7 @@ persp3d(as.numeric(rownames(z2)), as.numeric(colnames(z2)), log10(z2),
 library(DEoptim)
 set.seed(101)
 fit <- DEoptim(simulator$objective, lower = rep(-10, 2), upper = rep(10, 2))
-fitted_incidence = (simulator$ad_fun()$env$last.par.best
+fitted_incidence = (mp_tmb(simulator)$env$last.par.best
     |> simulator$report()
     |> filter(matrix == "infection")
     |> pull(value)
@@ -935,7 +936,9 @@ lines(fitted_incidence, col = 2)
 ```
 
 * **fixme**: also add multi-start example (i.e. less fancy than DEoptim, suitable for surfaces like this one that are multimodal but smooth (ref. Raue et al. "Lessons Learned from Quantitative Dynamical Modeling in Systems Biology" 2013)?)
-* **fixme**: warning that `$current$params_vector()` is mutable/unreliable. Extractor for `$ad_fun()$env$last.par.best` (or equivalently for the optim fit)?
+* **fixme**: warning that `$current$params_vector()` is mutable/unreliable. Extractor for `mp_tmb()$env$last.par.best` (or equivalently for the optim fit)?
 
 
 * **fixme**: add (abbreviated) `sessionInfo` output? (Package versions?)
+
+## References

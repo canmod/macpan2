@@ -3,6 +3,7 @@ topological_sort_engine = function(flows, state_nms, warn_not_dag = TRUE) {
     stopifnot(focal_state %in% state_nms)
     focal_state %in% to_states
   }
+  if (warn_not_dag) warned_once = FALSE
   if (missing(state_nms)) state_nms = unique(c(flows$from, flows$to))
   state_order = c()
   n = length(state_nms)
@@ -24,15 +25,21 @@ topological_sort_engine = function(flows, state_nms, warn_not_dag = TRUE) {
       & length(remaining_inflow) != 0L
     )
     if (is_acyclic) {
-      if (warn_not_dag) {
+      if (warn_not_dag & !warned_once) {
         warning(
-         "\nState network is not acyclic (i think),",
-         "\nand therefore cannot be topologically sorted.",
+         "\nFlow among states contains cycles. This means",
+         "\nthat states can be revisited, and therefore",
+         "\ncannot be unambiguously sorted to respect the",
+         "\ndirection of all flows.",
          "\nDefaulting to original order where necessary."
         )
+        warned_once = TRUE
       }
-      state_order = c(state_order, state_nms) |> unique()
-      state_nms = character(0L)
+      
+      ## assume the next state name is in the right order, but move
+      ## on and try to sort the rest
+      state_order = c(state_order, state_nms[1L]) |> unique()
+      state_nms = state_nms[-1L]
     }
   }
   state_order
@@ -50,12 +57,13 @@ topological_sort = function(spec, warn_not_dag = TRUE) {
 #' states as the `to` compartment, usually to create a DAG so that topological
 #' sort is valid.
 #' @noRd
-topological_sort_general = function(flows, loops = "^$") {
-  all_states = unique(c(flows$from, flows$to))
+topological_sort_general = function(flows, loops = "^$", all_states = NULL) {
+  if (is.null(all_states)) all_states = unique(c(flows$from, flows$to))
   flows = flows[flows$type == "flow", , drop = FALSE]
   flows = flows[!grepl(loops, flows$name), , drop = FALSE]
   states = unique(c(flows$from, flows$to))
   missing_states = setdiff(all_states, states)
+  states = setdiff(all_states, missing_states)
   sorted_states = topological_sort_engine(flows, states, warn_not_dag = TRUE)
   c(sorted_states, missing_states)
 }
@@ -67,9 +75,9 @@ is_cyclic = function(flows, states) {
   to <= from
 }
 
-#' Flow Frame (experimental)
+#' Data Frame Describing Compartmental Model Flows
 #' 
-#' Get a data frame representing the flows in a model specification.
+#' Get a data frame where each row represents a flow in a model specification.
 #' 
 #' @param spec A \code{\link{mp_tmb_model_spec}}.
 #' @param topological_sort Should the states be topologically sorted to
@@ -98,9 +106,10 @@ mp_flow_frame = function(spec, topological_sort = TRUE, loops = "^$") {
   )[, c("state.from", "state.to", "change", "rate"), drop = FALSE]
   inflows = merge(to_only, ff, by = "change")[, c("size", "state", "change", "rate"), drop = FALSE]
   outflows = merge(from_only, ff, by = "change")[, c("size", "state", "change", "rate"), drop = FALSE]
-  names(flows) = c("from", "to", "name", "rate")
-  names(inflows) = c("from", "to", "name", "rate")
-  names(outflows) = c("from", "to", "name", "rate")
+  fn = c("from", "to", "name", "rate")
+  names(flows) = fn
+  names(inflows) = fn
+  names(outflows) = fn
   if (nrow(flows) > 0L) {
     flows$type = "flow"
     flows$from_name = flows$from
@@ -118,7 +127,7 @@ mp_flow_frame = function(spec, topological_sort = TRUE, loops = "^$") {
     outflows$from_name = outflows$from
   }
   if (topological_sort) {
-    topo = topological_sort_general(flows, loops)
+    topo = topological_sort_general(flows, loops, states)
     flows = flows[order(factor(flows$from, levels = topo)), , drop = FALSE]
   }
   flows = rbind(flows, inflows, outflows)
@@ -127,7 +136,7 @@ mp_flow_frame = function(spec, topological_sort = TRUE, loops = "^$") {
   return(flows)
 }
 
-#' State Dependence Frame
+#' Data Frame Describing State Dependent Per-Capita Flow Rates
 #' 
 #' Data frame giving states that per-capita flow rates directly depend on.
 #' This is intended for plotting diagrams and not for mathematical analysis,
@@ -150,33 +159,108 @@ mp_state_dependence_frame = function(spec) {
   )
 }
 
-#' State Variables
+#' State and Flow Variable Names
 #' 
-#' Get the state variables in a model specification.
+#' Get the state and/or flow variables in a model specification.
+#' 
+#' @param spec Model specification (\code{\link{mp_tmb_model_spec}}).
+#' @param topological_sort Should the states and flows be 
+#' [topologically sorted](https://en.wikipedia.org/wiki/Topological_sorting) to
+#' respect the main direction of flow? The default is no topological sorting,
+#' which differs from \code{\link{mp_flow_frame}}.
+#' @param loops Pattern for matching the names of flows that make 
+#' the flow model not a DAG, which is a critical assumption when topologically 
+#' sorting the order of states and flows in the output. This is only relevant if 
+#' `topological_sort` is used.
+#' @param trans Add a prefix to the names for indicating if a transformed
+#' version of the variables is preferred.
+#' 
+#' @return Character vector of names of all state and/or flow variables that 
+#' have been explicitly represented in the model using functions like
+#' \code{\link{mp_per_capita_flow}}.
+#' 
+#' @examples
+#' si = mp_tmb_library("starter_models", "si", package = "macpan2")
+#' (si
+#'   |> mp_simulator(time_steps = 5L, mp_state_vars(si))
+#'   |> mp_trajectory()
+#' )
+#' 
+#' @name mp_vars
+NULL
+
+#' @describeIn mp_vars Return character vector of all state variables.
+#' @export
+mp_state_vars = function(spec, topological_sort = FALSE, loops = "^$", trans = "") {
+  states = vapply(spec$change_model$update_state(), lhs_char, character(1L))
+  flows = mp_flow_frame(spec, topological_sort = FALSE)
+  if (topological_sort) states = topological_sort_general(flows, loops, states)
+  if (nchar(trans) > 0) states = sprintf("%s_%s", trans, states)
+  return(states)
+}
+
+#' @describeIn mp_vars Return the names of all variables that contain
+#' the absolute flow between compartments.
+#' The absolute flow is the magnitude of a flow per time step.
+#' @export
+mp_flow_vars = function(spec, topological_sort = FALSE, loops = "^$", trans = "") {
+  if (topological_sort) {
+    flows = mp_flow_frame(spec, topological_sort, loops)
+    flow_vars = flows$name
+  } else {
+    flow_vars = spec$change_model$flow_frame()$change
+  }
+  if (nchar(trans) > 0) flow_vars = sprintf("%s_%s", trans, flow_vars)
+  return(flow_vars)
+}
+
+#' @describeIn mp_vars Union of `mp_state_vars()` and `mp_flow_vars()`.
+#' @export
+mp_state_flow_vars = function(spec, topological_sort = FALSE, loops = "^$", trans = "") {
+  c(
+      mp_state_vars(spec, topological_sort, loops, trans)
+    , mp_flow_vars(spec, topological_sort, loops, trans)
+  )
+}
+
+#' Data Frame Describing Each Change to Each State Variable
+#' 
+#' Get a data frame with one row for each change made to each state variable 
+#' at each time step.
 #' 
 #' @param spec Model specification (\code{\link{mp_tmb_model_spec}}).
 #' 
-#' @return Character vector of names of all state variables that have been
-#' explicitly represented in the model using functions like
-#' \code{\link{mp_per_capita_flow}}.
+#' @return Data frame with two columns: `state` and `change`. Each row
+#' describes one change.
+#' 
+#' @examples
+#' ("starter_models"
+#'   |> mp_tmb_library("sir", package = "macpan2") 
+#'   |> mp_change_frame()
+#' )
 #' 
 #' @export
-mp_state_vars = function(spec) {
-  vapply(spec$change_model$update_state(), lhs_char, character(1L))
-}
+mp_change_frame = function(spec) spec$change_model$change_frame()
 
 
-#' Find all Paths
+
+#' Find all Paths Through Compartments
 #' 
 #' Find all paths through a compartmental model.
 #' 
-#' @param edges_df A data frame with a `from` and a `to` column.
+#' @param edges_df A data frame with a `from` and a `to` column, which can
+#' be extracted from a model specification object using the 
+#' \code{\link{mp_flow_frame}}.
 #' @param start_node_guesses Optional guesses for nodes that start
 #' paths. This is useful for models that are not directed acyclic 
 #' graphs (DAGs).
 #' 
 #' @return List of character vectors of state variable names, each
 #' vector describing a path through the model.
+#' 
+#' @examples
+#' spec = mp_tmb_library("starter_models", "macpan_base", package = "macpan2")
+#' spec |> mp_flow_frame() |> find_all_paths()
 #' 
 #' @export
 find_all_paths <- function(edges_df, start_node_guesses = character(0L)) {

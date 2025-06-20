@@ -1,7 +1,7 @@
 ---
 title: "Quickstart"
 output: 
-  html_document:
+  rmarkdown::html_vignette:
     toc: true
     keep_md: yes
 vignette: >
@@ -25,10 +25,10 @@ library(macpan2)
 si = mp_tmb_model_spec(
     before = S ~ N - I
   , during = mp_per_capita_flow(
-        from     = "S"            # compartment from which individuals flow
-      , to       = "I"            # compartment to which individuals flow
-      , rate     = "beta * I / N" # expression giving per-capita flow rate
-      , abs_rate = "infection"    # name of absolute flow rate = beta * I * S/N
+        from      = "S"            # compartment from which individuals flow
+      , to        = "I"            # compartment to which individuals flow
+      , rate      = "beta * I / N" # expression giving per-capita flow rate
+      , flow_name = "infection"    # name of absolute flow rate = beta * I * S/N
     )
   , default = list(N = 100, I = 1, beta = 0.25)
 )
@@ -73,7 +73,7 @@ The first step is to produce a simulator object, which can be used to generate s
 
 - `model` : A model specification object, such as `si`.
 - `time_steps`: How many time steps should the epidemic simulator run for? 
-- `outputs` : The model variables to return in simulation output.
+- `outputs` : The model variables to return in simulation output. Functions `mp_state_vars()` and `mp_flow_vars()` can be used to programmatically output all state or flow variables respectively.
 - `default` (optional) : Allows one to update the default parameter values and initial conditions provided in the model specification (see the argument `default` above in the `mp_tmb_model_spec` function). Any variables that are not specified in `default` will be left at the values in the specification.
 
 ```{r tmb-si-simulator}

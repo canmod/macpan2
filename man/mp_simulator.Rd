@@ -2,9 +2,9 @@
 % Please edit documentation in R/tmb_model.R
 \name{mp_simulator}
 \alias{mp_simulator}
-\title{Simulator}
+\title{Create a Simulator}
 \usage{
-mp_simulator(model, time_steps, outputs, default = list())
+mp_simulator(model, time_steps, outputs, default = list(), inits = list())
 }
 \arguments{
 \item{model}{A model specification object.}
@@ -18,7 +18,13 @@ outputted when simulations are requested.}
 \item{default}{Named list of numerical objects that will update the default
 values defined in the model specification object. Any number of objects
 can be updated or not.}
+
+\item{inits}{An optional list of initial values for the state variables.
+These initial values can be added to the \code{default} list with identical
+results, but adding them to \code{inits} is better practice because it makes it
+clear that they are initial values that will change as the state updates.}
 }
 \description{
 Construct a simulator from a model specification object.
 }
+\concept{create-model-simulator}

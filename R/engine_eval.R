@@ -44,8 +44,9 @@ engine_eval = function(.expr, ..., .matrix_to_return, .tmb_cpp = getOption("macp
   ## force two-sided formula for compliance with TMBSimulator
   ## that is used below
   if (length(e) == 2L) {
+    right_hand_side = rhs_char(e)
     left_hand_side = paste0(c("output", names(dot_mats)), collapse = "_")
-    e = as.formula(paste0(c(left_hand_side, as.character(e)), collapse = " "))
+    e = two_sided(left_hand_side, right_hand_side)
   } else {
     msg(
       "The expression must be given as the",

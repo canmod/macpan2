@@ -9,7 +9,6 @@ hoard
 *.so
 *.DS_Store
 *.Rproj
-*.sh
 *.log
 *.html
 docs
@@ -18,6 +17,7 @@ visnet_files
 covr_trace_*
 lib
 macpan2*
+.macpan
 !macpan2.bib
 *~
 /doc/
@@ -38,9 +38,11 @@ macpan2*
 doc-update
 pkg-build
 pkg-check
-
+.codegpt
+*.patch
+misc/local-archive/**
+misc/dev/*.png
+tests/testthat/_snaps/**
 
 inst/starter_models/awareness/pub.R
-inst/starter_models/lockdowns/
-inst/starter_models/si_partnerships_sti/
 README.push

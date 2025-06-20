@@ -2,15 +2,20 @@
 ChangeModelDefaults = function() {
   self = ChangeModel()
   
+  self$change_list = list()
+  
   self$flow_frame = function() {
-    ## TODO: check for change_list
-    (self$change_list
+    cl = self$change_list
+    if (length(cl) == 0L) return(self$empty_flow_frame)
+    (cl
       |> method_apply("flow_frame")
       |> bind_rows()
     )
   }
   self$change_frame = function() {
-    (self$change_list
+    cl = self$change_list
+    if (length(cl) == 0L) return(self$empty_change_frame)
+    (cl
       |> method_apply("change_frame")
       |> bind_rows()
     )
@@ -28,7 +33,7 @@ ChangeModelDefaults = function() {
     quasi_during_exprs = c(
       unlist(self$flow_frame(), use.names = FALSE, recursive = FALSE), 
       unlist(self$change_frame(), use.names = FALSE, recursive = FALSE)
-    ) |> unique() |> sprintf(fmt = " ~ %s") |> lapply(as.formula)
+    ) |> unique() |> setdiff("") |> sprintf(fmt = " ~ %s") |> lapply(as.formula)
     user_formulas = unlist(self$user_formulas()
       , recursive = FALSE
       , use.names = FALSE
@@ -45,6 +50,21 @@ ChangeModelDefaults = function() {
       |> unlist(use.names = FALSE, recursive = FALSE)
       |> unique()
     )
+  }
+  self$duplicated_change_names = function() {
+    frame = self$flow_frame()
+    dups = frame$change[duplicated(frame$change)]
+    return(dups)
+  }
+  self$check = function() {
+    dups = self$duplicated_change_names()
+    if (length(dups) > 0L) {
+      stop(
+          "The following names are duplicates:\n   "
+        , paste(dups, collapse = "   \n")
+      )
+    }
+    NULL
   }
   return_object(self, "ChangeModelDefaults")
 }

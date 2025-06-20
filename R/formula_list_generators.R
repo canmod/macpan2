@@ -1,6 +1,19 @@
 
 
-handle_abs_rate_args = function(rate, rate_name = NULL) {
+handle_abs_rate_args = function(rate, rate_name = NULL, flow_name = NULL) {
+  if (!is.null(rate_name)) {
+    warning(
+        "The rate_name argument is deprecated; "
+      , "please use 'flow_name' instead"
+    )
+    if (!is.null(flow_name)) {
+      stop(
+          "You used both the 'rate_name' and 'flow_name' arguments. "
+        , "Please only use 'flow_name', as 'rate_name' is deprecated."
+      )
+    }
+    flow_name = rate_name
+  }
   if (!is_two_sided(rate)) {
     if (is_one_sided(rate)) {
       rate = rhs_char(rate)
@@ -8,24 +21,56 @@ handle_abs_rate_args = function(rate, rate_name = NULL) {
         if (is_char_symbol(rate)) {
           rate_name = rate
         } else {
-          stop("rate_name must be specified when rate is a one_sided formula and rate gives an expression involving functions or operations.")
+          stop(
+              "rate_name must be specified when rate is a "
+            , "one_sided formula and rate gives an expression "
+            , "involving functions or operations."
+          )
         }
       }
     }
-    rate = two_sided(rate_name, rate)
+    rate = two_sided(flow_name, rate)
   }
   rate
 }
-handle_rate_args = function(rate, abs_rate = NULL) {
+handle_rate_args = function(rate, abs_rate, flow_name) {
+  if (!is.null(abs_rate)) {
+    warning(
+        "The abs_rate argument is deprecated; "
+      , "please use 'flow_name' instead"
+    )
+    if (!is.null(flow_name)) {
+      stop(
+          "You used both the 'abs_rate' and 'flow_name' arguments. "
+        , "Please only use 'flow_name', as 'abs_rate' is deprecated."
+      )
+    }
+    flow_name = abs_rate
+  }
   if (!is_two_sided(rate)) {
     if (is_one_sided(rate)) rate = rhs_char(rate)
-    if (is.null(abs_rate)) stop("abs_rate must be specified when rate is a one_sided formula or character string.")
-    rate = two_sided(abs_rate, rate)
+    if (is.null(flow_name)) {
+      stop(
+          "flow_name must be specified when rate is a one_sided formula "
+        , "or character string."
+      )
+    }
+    rate = two_sided(flow_name, rate)
   }
   return(rate)
 }
 
-only_iterable = function(expr_list, states) {
+
+##' filter out expressions from expr_list that are not 'iterable'
+##' 
+##' @param expr_list list of expressions that will be checked for non-iterable
+##' functions or expressions with state variables
+##' @param states list of state variables associated with the expr_list
+##' @param is_first is this the first iteration, and therefore ok to retain
+##' non-iterables in the output expr_list
+##' @noRd
+only_iterable = function(expr_list, states, is_first = FALSE) {
+  if (is_first) return(expr_list)
   non_iterable_funcs = getOption("macpan2_non_iterable_funcs")
   parse_expr = make_expr_parser(finalizer = finalizer_char)
   no_iterable_funcs = (expr_list
@@ -81,17 +126,20 @@ ChangeModel = function() {
   # list of formula expressions to be added to an `after` list
   self$after_loop = function() list()
   
+  self$empty_flow_frame = empty_frame("size", "change", "rate", "abs_rate")
+  self$empty_change_frame = empty_frame("state", "change")
+  
   # one row per flow
   #  size : aka name of the from compartment
   #  change : absolute flow rate name
   #  rate : string with expression for the per-capita flow rate
   #  abs_rate : string with expression for the absolute flow rate
-  self$flow_frame = function() empty_frame("size", "change", "rate", "abs_rate")
+  self$flow_frame = function() self$empty_flow_frame
   
   # one row per term in a state update expression
   #  state : name of the state being updated
   #  change : string with the term in the expression that updates that state
-  self$change_frame = function() empty_frame("state", "change")
+  self$change_frame = function() self$empty_change_frame
   
   # character vector of ChangeComponent class names used in the model
   self$change_classes = function() character()
@@ -146,7 +194,7 @@ ChangeComponent = function() {
   ## state variables) that gives the size of the population being drawn
   ## from in a flow (e.g. S is the size of an infection flow).
   ## column - change: unsigned absolute flow rate name.
-  ## column - rate: per-capita flow rates (variables or expresions that 
+  ## column - rate: per-capita flow rates (variables or expressions that 
   ## sometimes involve state variables).
   ## column - abs_rate: absolute flow rate expression
   ## example:
@@ -158,8 +206,8 @@ ChangeComponent = function() {
   ## one may wonder, as i have, why we need to separate the change column
   ## and the abs_rate column. because we sometimes need a symbol name that 
   ## can appear on the lhs of an expression for the absolute rate, and we
-  ## sometimes directly specify the absolute rate through an expression (
-  ## although this is not the most comment case, it does come up with things
+  ## sometimes directly specify the absolute rate through an expression 
+  ## (although this is not the most comment case, it does come up with things
   ## like specifying absolute numbers of vaccines).
   self$flow_frame = function() empty_frame("size", "change", "rate", "abs_rate")
   
@@ -240,13 +288,13 @@ SimpleChangeModel = function(before = list(), during = list(), after = list()) {
   ## other update methods should work directly with the $flow_frame()
   self$update_flows = function() {
     frame = self$flow_frame()
-    size_vars = unique(frame$size)
+    size_vars = setdiff(unique(frame$size), "")
     frame = frame[size_vars != "", , drop = FALSE]
     #if (any(size_vars == "")) stop("model includes flows coming from outside the system and so they cannot be used with update methods that cannot be expressed as a per-capita flow from somewhere in the system. please either use mp_euler or mp_rk4, or move absolute inflows to an ordinary formula component in the spec.")
     flow_list = list()
     formulas = sprintf("%s ~ %s", frame$change, frame$rate) |> lapply(as.formula)
     for (var in size_vars) flow_list[[var]] = formulas[frame$size == var]
-    flow_list
+    return(flow_list)
   }
   self$update_state = function() {
     frame = self$change_frame()
@@ -255,7 +303,7 @@ SimpleChangeModel = function(before = list(), during = list(), after = list()) {
   }
   self$before_loop = function() self$before
   self$after_loop = function() self$after
-  
+  self$check()
   return_object(self, "SimpleChangeModel")
 }
 
@@ -269,6 +317,7 @@ AllFormulaChangeModel = function(before = list(), during = list(), after = list(
   self$before_flows = function() self$during
   self$after_loop = function() self$after
   
+  self$check()
   return_object(self, "AllFormulaChangeModel")
 }
 
@@ -315,10 +364,17 @@ MockChangeModel = function() {
 }
 
 
-##' State Updates
+##' Change How State Variables are Updated
 ##' 
-##' Use these functions to update a model spec so that the state variables
-##' are updated according to different numerical methods.
+##' These functions return a modified version of a model specification, such 
+##' that the state variables are updated each time step according to different 
+##' numerical methods.
+##' 
+##' By choosing one of these functions, one is able to convert 
+##' 
+##' To see the computations that update the state variables under these 
+##' modified specifications, one may use the
+##' \code{\link{mp_expand}} function (see examples).
 ##' 
 ##' The default update method for model specifications produced using
 ##' \code{\link{mp_tmb_model_spec}} is `mp_euler`. This update method
@@ -326,25 +382,28 @@ MockChangeModel = function() {
 ##' per time-step using the absolute flow rate as the difference between
 ##' steps.
 ##' 
-##' These state update functions are used to modify a model specification to
-##' use a particular kind of state update. To see these modified models for
-##' a particular example one may use the \code{\link{mp_expand}} function
-##' (see examples).
-##' 
 ##' @param model Object with quantities that have been explicitly 
 ##' marked as state variables.
 ##' 
 ##' @examples
 ##' sir = mp_tmb_library("starter_models", "sir", package = "macpan2")
 ##' sir
-##' sir |> mp_euler()             |> mp_expand()
-##' sir |> mp_rk4()               |> mp_expand()
-##' sir |> mp_euler_multinomial() |> mp_expand()
+##' sir |> mp_euler() |> mp_expand()
+##' sir |> mp_rk4() |> mp_expand()
+##' sir |> mp_discrete_stoch() |> mp_expand()
 ##' 
+##' @name state_updates
+NULL
+
+##' @describeIn state_updates ODE solver using the Euler method, which is
+##' equivalent to treating the model as a set of discrete-time difference 
+##' equations. This is the default method used by 
+##' \code{\link{mp_tmb_model_spec}}, but this default can be changed using
+##' the functions described below.
 ##' @export
 mp_euler = function(model) UseMethod("mp_euler")
 
-##' @describeIn mp_euler ODE solver using Runge-Kutta 4. Any formulas that
+##' @describeIn state_updates ODE solver using Runge-Kutta 4. Any formulas that
 ##' appear before model flows in the `during` list will only be updated
 ##' with RK4 if they do contain functions in 
 ##' `getOption("macpan2_non_iterable_funcs")` and if they do not make any
@@ -362,17 +421,35 @@ mp_euler = function(model) UseMethod("mp_euler")
 ##' will only be called once per time-step, and so it should never be removed
 ##' from the list of non-iterable functions. Although in principle it could
 ##' make sense to update state variables manually, it currently causes us to
-##' be confused. We therefore require that all state variables updates are set
-##' explicitly (e.g., with \code{\link{mp_per_capita_flow}}) if any are explicit.
+##' be confused. We therefore require that all state variable updates are set
+##' explicitly (e.g., with \code{\link{mp_per_capita_flow}}).
 ##' @export
 mp_rk4 = function(model) UseMethod("mp_rk4")
 
-##' @describeIn mp_euler Update state with process error given by the 
-##' Euler-multinomial distribution. 
+##' @describeIn state_updates Old version of `mp_rk4` that doesn't keep track
+##' of absolute flows through each time-step. As a result this version is
+##' more efficient but makes it more difficult to compute things like 
+##' incidence over a time scale.
+##' @export
+mp_rk4_old = function(model) UseMethod("mp_rk4_old")
+
+##' @describeIn state_updates Original and deprecated name for 
+##' `mp_discrete_stoch`. In all new projects please use `mp_discrete_stoch`.
 ##' @export
 mp_euler_multinomial = function(model) UseMethod("mp_euler_multinomial")
 
-##' @describeIn mp_euler Update state with hazard steps, which is equivalent
+##' @describeIn state_updates Update state such that the probability of moving
+##' from box `i` to box `j` in one time step is given by
+##' `(1 - exp(-sum(r_i))) * (r_ij / r_i)`,
+##' where `r_ij` is the per-capita rate of flow from box `i` to box `j`, and
+##' `r_i` is the sum of all `r_ij` for a particular `i`.
+##' These probabilities from box `i` are used together in a multinomial 
+##' distribution that determines how many individuals go to each `j` box and 
+##' how many stay in  `i`.
+##' @export
+mp_discrete_stoch = function(model) UseMethod("mp_discrete_stoch")
+
+##' @describeIn state_updates Update state with hazard steps, which is equivalent
 ##' to taking the step given by the expected value of the Euler-multinomial
 ##' distribution.
 ##' @export
@@ -385,7 +462,15 @@ mp_euler.TMBModelSpec = function(model) model$change_update_method("euler")
 mp_rk4.TMBModelSpec = function(model) model$change_update_method("rk4")
 
 ##' @export
+mp_rk4_old.TMBModelSpec = function(model) model$change_update_method("rk4_old")
+
+
+##' @export
 mp_euler_multinomial.TMBModelSpec = function(model) model$change_update_method("euler_multinomial")
+
+##' @export
+mp_discrete_stoch.TMBModelSpec = function(model) model$change_update_method("discrete_stoch")
+
 
 ##' @export
 mp_hazard.TMBModelSpec = function(model) model$change_update_method("hazard")
@@ -416,10 +501,17 @@ mp_expand.TMBModelSpec = function(model) model$expand()
 
 
 ## Utilities
-to_exogenous_inputs = function(flow_frame) {
+to_exogenous = function(flow_frame, rand_fn = NULL) {
   frame = flow_frame[flow_frame$size == "", , drop = FALSE]
-  sprintf("%s ~ %s", frame$change, frame$abs_rate) |> lapply(as.formula)
+  if (is.null(rand_fn)) {
+    template = "%s ~ %s"
+  } else {
+    template = sprintf("%%s ~ %s(%%s)", rand_fn)
+  }
+   
+  sprintf(template, frame$change, frame$abs_rate) |> lapply(as.formula)
 }
+to_exogenous_inputs = to_exogenous ## back-compat
 flow_frame_to_absolute_flows = function(flow_frame) {
   char_vec = with(flow_frame, sprintf("%s ~ %s", change, abs_rate))
   lapply(char_vec, as.formula)
@@ -446,6 +538,7 @@ get_state_update_method = function(state_update, change_model) {
   }
   cls_nm = sprintf("%sUpdateMethod", var_case_to_cls_case(state_update))
   if (state_update == "rk4") cls_nm = "RK4UpdateMethod"
+  if (state_update == "rk4_old") cls_nm = "RK4OldUpdateMethod"
   get(cls_nm)(change_model)
 }
 get_change_model = function(before, during, after) {
@@ -458,13 +551,21 @@ get_change_model = function(before, during, after) {
   AllFormulaChangeModel(before, during, after)
 }
 force_expr_list = function(x) {
+  is_change_component = function(x) inherits(x, "ChangeComponent")
+  is_valid = function(x) isTRUE(is_two_sided(x) | is_change_component(x))
   if (is_two_sided(x)) return(list(x))
-  if (inherits(x, "ChangeComponent")) return(list(x))
+  if (is_change_component(x)) return(list(x))
   if (!is.list(x)) {
-    ## TODO: should make more sense!
+    ## TODO: msg should make more sense to humans
     stop("Argument must be a formula, change component, or a list of such objects.")
   }
-  ## TODO: check that we have a list of valid components
+  invalid = !vapply(x, is_valid, logical(1L))
+  if (any(invalid)) {
+    stop(
+        "The expressions at the following positions are invalid: "
+      , paste(which(invalid), collapse = ", ")
+    )
+  }
   return(x)
 }
 
@@ -490,9 +591,7 @@ EulerUpdateMethod = function(change_model, existing_global_names = character()) 
   self = UpdateMethod()
   self$change_model = change_model
   
-  ## nb: euler method requires no additional names from the spec
-  #self$existing_global_names = existing_global_names
-  
+  ## euler method requires no additional names from the spec
   
   self$before = function() self$change_model$before_loop()
   self$during = function() {
@@ -517,7 +616,7 @@ EulerUpdateMethod = function(change_model, existing_global_names = character()) 
 }
 
 
-RK4UpdateMethod = function(change_model) {
+RK4OldUpdateMethod = function(change_model) {
   self = UpdateMethod()
   self$change_model = change_model
   
@@ -580,6 +679,102 @@ RK4UpdateMethod = function(change_model) {
   return_object(self, "EulerUpdateMethod")
 }
 
+RK4UpdateMethod = function(change_model) {
+  self = UpdateMethod()
+  self$change_model = change_model
+  
+  self$before = function() self$change_model$before_loop()
+  self$during = function() {
+    ## abbr func nms
+    unlst = function(x) unlist(x, recursive = FALSE, use.names = FALSE)
+    as_forms = function(x) lapply(x, as.formula)
+    
+    before_components = self$change_model$before_flows()
+    flow_frame = self$change_model$flow_frame()
+    components = flow_frame_to_absolute_flows(flow_frame)
+    before_state = self$change_model$before_state()
+    update_state = self$change_model$update_state()
+    update_flows = self$change_model$update_flows() |> unlst()  ## line can be removed?
+    
+    new_update = list()
+    new_before = list()
+    
+    states = vapply(update_state, lhs_char, character(1L))
+    rates = vapply(update_state, rhs_char, character(1L))
+    flows = flow_frame$change
+    
+    existing_names = self$change_model$all_user_aware_names()
+    local_state_step_names = list(
+        k1 = sprintf("k1_%s", states)
+      , k2 = sprintf("k2_%s", states)
+      , k3 = sprintf("k3_%s", states)
+      , k4 = sprintf("k4_%s", states)
+    )
+    local_flow_step_names = list(
+        k1 = sprintf("k1_%s", flows)
+      , k2 = sprintf("k2_%s", flows)
+      , k3 = sprintf("k3_%s", flows)
+      , k4 = sprintf("k4_%s", flows)
+    )
+    state_step_names = map_names(existing_names, local_state_step_names)
+    flow_step_names = map_names(existing_names, local_flow_step_names)
+    
+    rate_formulas = sprintf("%s ~ %s", state_step_names$k1, rates) |> as_forms()
+    
+    make_before = function(stage) {
+      stage_flow_frame = within(flow_frame, change <- flow_step_names[[stage]])
+      stage_components = flow_frame_to_absolute_flows(stage_flow_frame)
+      is_k1 = stage == "k1"
+      stage_before_components = only_iterable(before_components, states, is_k1)
+      c(stage_before_components, stage_components)
+    }
+    
+    ## rk4 step 1
+    flow_replacements = sprintf("%s ~ %s", flows, flow_step_names$k1) |> as_forms()
+    k1_new_before = make_before("k1")
+    k1_new_update = update_formulas(rate_formulas, flow_replacements)
+    
+    ## rk4 step 2
+    state_replacements = sprintf("%s ~ (%s + (%s / 2))", states, states, state_step_names$k1) |> as_forms()
+    flow_replacements = sprintf("%s ~ %s", flows, flow_step_names$k2) |> as_forms()
+    k2_new_before = update_formulas(make_before("k2"), state_replacements)
+    k2_new_update = sprintf("%s ~ %s", state_step_names$k2, rates) |> as_forms() |> update_formulas(flow_replacements)
+    
+    ## rk4 step 3
+    state_replacements = sprintf("%s ~ (%s + (%s / 2))", states, states, state_step_names$k2) |> as_forms()
+    flow_replacements = sprintf("%s ~ %s", flows, flow_step_names$k3) |> as_forms()
+    k3_new_before = update_formulas(make_before("k3"), state_replacements)
+    k3_new_update = sprintf("%s ~ %s", state_step_names$k3, rates) |> as_forms() |> update_formulas(flow_replacements)
+    
+    ## rk4 step 4
+    state_replacements = sprintf("%s ~ (%s + %s)", states, states, state_step_names$k3) |> as_forms()
+    flow_replacements = sprintf("%s ~ %s", flows, flow_step_names$k4) |> as_forms()
+    k4_new_before = update_formulas(make_before("k4"), state_replacements)
+    k4_new_update = sprintf("%s ~ %s", state_step_names$k4, rates) |> as_forms() |> update_formulas(flow_replacements)
+    
+    ## final update step
+    final_flow_update = sprintf("%s ~ (%s + 2 * %s + 2 * %s + %s)/6"
+      , flows, flow_step_names$k1, flow_step_names$k2, flow_step_names$k3, flow_step_names$k4
+    ) |> as_forms()
+    final_state_update = sprintf("%s ~ %s %s", states, states, rates) |> as_forms() |> setNames(states)
+    after_components = self$change_model$after_state()
+    c(
+        k1_new_before, k1_new_update
+      , k2_new_before, k2_new_update
+      , k3_new_before, k3_new_update
+      , k4_new_before, k4_new_update
+      , final_flow_update, final_state_update
+      , after_components
+    )
+  }
+  self$after = function() self$change_model$after_loop()
+  return_object(self, "EulerUpdateMethod")
+}
+
+DiscreteStochUpdateMethod = function(change_model) {
+  self = EulerMultinomialUpdateMethod(change_model)
+  return_object(self, "DiscreteStochUpdateMethod")
+}
 
 EulerMultinomialUpdateMethod = function(change_model) {
   self = Base()
@@ -587,8 +782,9 @@ EulerMultinomialUpdateMethod = function(change_model) {
   
   self$vec = function(expr_list, char_fun) {
     vec = vapply(expr_list, char_fun, character(1L))
-    # simple expressions are any non-formula strings (names of variables or state flows)
-    # expressions that are not simple contain math symbols (ex. +,-,*,/, etc.)
+    ## simple expressions are any non-formula strings (names of variables or state flows)
+    ## expressions that are not simple contain math symbols (ex. +,-,*,/, etc.)
+    ## BMB: allow non-ASCII alpha? "^[[:alpha:]0-9._]+$"
     simple_expr = all(grepl("^[a-zA-Z0-9._]+$", vec))
     scalar_expr = length(vec) == 1L
     
@@ -606,7 +802,7 @@ EulerMultinomialUpdateMethod = function(change_model) {
   self$during = function() {
     before_components = c(
         self$change_model$before_flows()
-      , to_exogenous_inputs(self$change_model$flow_frame())
+      , to_exogenous(self$change_model$flow_frame(), rand_fn = "rpois")
     )
     flow_list = self$change_model$update_flows()
     components = list()
@@ -617,6 +813,7 @@ EulerMultinomialUpdateMethod = function(change_model) {
         , self$vec(flow_list[[size_var]], rhs_char)
       )
     }
+    ## BMB: add absolute flows here
     new_flow = lapply(components, as.formula)
     
     update = self$change_model$update_state()
@@ -638,7 +835,7 @@ HazardUpdateMethod = function(change_model) {
   self$during = function() {
     before_components = c(
         self$change_model$before_flows()
-      , to_exogenous_inputs(self$change_model$flow_frame())
+      , to_exogenous(self$change_model$flow_frame())
     )
     before_state = self$change_model$before_state()
 
@@ -671,12 +868,12 @@ HazardUpdateMethod = function(change_model) {
 
 # Change Components
 
-#' Flow
+#' Specify Flow Into, Out Of, and Between Compartments
 #' 
-#' Specify different kinds of flows between compartments.
+#' Specify different kinds of flows into, out of, and between compartments.
 #' 
 #' The examples below can be mixed and matched in `mp_tmb_model_spec()`
-#' to produce compartmental models. Note that the symbols used below must
+#' to produce compartmental models. The symbols used below must
 #' be used in an appropriate context (e.g., if `N` is used for total population
 #' size, then there must be an expression like `N ~ S + I + R` somewhere in
 #' the model or for models with constant population size there must be a 
@@ -686,15 +883,23 @@ HazardUpdateMethod = function(change_model) {
 #' originates.
 #' @param to String giving the name of the compartment to which the flow is
 #' going.
-#' @param rate String giving the expression for the per-capita or absolute
-#' flow rate. Alternatively for per-capita flows, and for back compatibility, 
+#' @param rate String giving the expression for the per-capita
+#' flow rate. Alternatively, and for back compatibility, 
 #' a two-sided formula with the left-hand-side giving the name of the absolute 
-#' flow rate per unit time-stepand the right-hand-side giving an expression for 
+#' flow rate per time-step and the right-hand-side giving an expression for 
 #' the per-capita rate of flow from `from` to `to`.
-#' @param abs_rate String giving the name for the absolute flow rate,
-#' which will be computed as `from * rate`. If a formula is passed to
-#' `rate` (not recommended), then this `abs_rate` argument will be ignored.
-#' @param rate_name String giving the name for the absolute flow rate.
+#' @param flow_name String giving the name for the absolute flow rate per
+#' time-step. By default, during simulations, the absolute flow rate will be 
+#' computed as `from * rate`. This default behaviour will simulate the 
+#' compartmental model as discrete difference equations, but this can 
+#' be changed to use other approaches such as ordinary differential equations
+#' or stochastic models (see \code{\link{state_updates}}). If a formula is 
+#' passed to `rate` (not recommended for better readability), then this 
+#' `flow_rate` argument will be ignored. 
+#' @param abs_rate Deprecated synonym for `flow_name`. Please use `flow_name`
+#' in all future work.
+#' 
+#' @seealso [mp_absolute_flow()]
 #' 
 #' @examples
 #' 
@@ -725,13 +930,13 @@ HazardUpdateMethod = function(change_model) {
 #' # https://github.com/canmod/macpan2/blob/main/inst/starter_models/shiver
 #' mp_per_capita_flow("S", "V", "((a * S)/(b + S))/S",  "vaccination")
 #' 
-#' # importation (experimental)
-#' # mp_absolute_inflow("I", "delta", "importation")
+#' # importation
+#' # mp_inflow("I", "delta", "importation")
 #' 
 #' @export
-mp_per_capita_flow = function(from, to, rate, abs_rate = NULL) {
+mp_per_capita_flow = function(from, to, rate, flow_name = NULL, abs_rate = NULL) {
   call_string = deparse(match.call())
-  rate = handle_rate_args(rate, abs_rate)
+  rate = handle_rate_args(rate, abs_rate, flow_name)
   PerCapitaFlow(from, to, rate, call_string)
 }
 
@@ -742,9 +947,9 @@ mp_per_capita_flow = function(from, to, rate, abs_rate = NULL) {
 #' for adding a birth process, which involves the total population size, `N`,
 #' rather than a single compartment.
 #' @export
-mp_per_capita_inflow = function(from, to, rate, abs_rate = NULL) {
+mp_per_capita_inflow = function(from, to, rate, flow_name = NULL, abs_rate = NULL) {
   call_string = deparse(match.call())
-  rate = handle_rate_args(rate, abs_rate)
+  rate = handle_rate_args(rate, abs_rate, flow_name)
   PerCapitaInflow(from, to, rate, call_string)
 }
 
@@ -754,21 +959,65 @@ mp_per_capita_inflow = function(from, to, rate, abs_rate = NULL) {
 #' one can use `mp_per_capita_flow` and set `to` to be a compartment for
 #' these individuals (e.g., `to = "D"`).
 #' @export
-mp_per_capita_outflow = function(from, rate, abs_rate = NULL) {
+mp_per_capita_outflow = function(from, rate, flow_name = NULL, abs_rate = NULL) {
   call_string = deparse(match.call())
-  rate = handle_rate_args(rate, abs_rate)
+  rate = handle_rate_args(rate, abs_rate, flow_name)
   PerCapitaOutflow(from, rate, call_string)
 }
 
-#' @describeIn mp_per_capita_flow Experimental
+#' @describeIn mp_per_capita_flow Only flow into the `to` compartment.
+#' For adding a birth or immigration process.
+#' @param flow_name String giving the name of the flow
 #' @export
-mp_absolute_flow = function(from, to, rate, rate_name = NULL) {
+mp_inflow = function(to, rate, flow_name  = NULL, abs_rate = NULL) {
   call_string = deparse(match.call())
-  rate = handle_abs_rate_args(rate, rate_name)
-  AbsoluteFlow(from, to, rate, call_string)
+  rate = handle_rate_args(rate, abs_rate, flow_name)
+  AbsoluteInflow(to, rate, call_string)
+}
+
+#' @describeIn mp_per_capita_flow Only flow out of the `from` compartment.
+#' For adding an absolute removal process that goes to 'nowhere': dangerous!
+#' The reason it is dangerous is that this flow can easily lead to negative 
+#' values of state variables when the `rate` is high relative to the
+#' size of the `from` compartment. Often `mp_per_capita_outflow` will be
+#' a better choice, given that the size of the outflow will be scaled to
+#' the size of the `from` compartment by measuring rates on a per-capita
+#' basis.
+#' @export
+mp_outflow = function(from, rate, flow_name = NULL, abs_rate = NULL) {
+  call_string = deparse(match.call())
+  rate = handle_rate_args(rate, abs_rate, flow_name)
+  AbsoluteOutflow(from, rate, call_string)
 }
 
 
+
+
+#' Specify Absolute Flow Between Compartments (Experimental)
+#' 
+#' An experimental alternative to \code{\link{mp_per_capita_flow}} that 
+#' allows users to specify flows using absolute rates instead of 
+#' per-capita rates.
+#' 
+#' @param from String giving the name of the compartment from which the flow
+#' originates.
+#' @param to String giving the name of the compartment to which the flow is
+#' going.
+#' @param rate String giving the expression for the absolute
+#' flow rate per time-step.
+#' @param flow_name String giving the name for the variable that 
+#' will store the `rate`.
+#' @param rate_name Deprecated synonym for `flow_name`. Please use `flow_name`
+#' in all future work.
+#' 
+#' @seealso [mp_per_capita_flow()]
+#' 
+#' @export
+mp_absolute_flow = function(from, to, rate, flow_name = NULL, rate_name = NULL) {
+  call_string = deparse(match.call())
+  rate = handle_abs_rate_args(rate, rate_name, flow_name)
+  AbsoluteFlow(from, to, rate, call_string)
+}
 
 PerCapitaOutflow = function(from, rate, call_string) {
   self = PerCapitaFlow(from, NULL, rate, call_string)
@@ -800,14 +1049,7 @@ AbsoluteInflow = function(to, rate, call_string) {
       , change = sprintf("+%s", lhs_char(self$rate))
     )
   }
-  self$flow_frame = function() {
-    data.frame(
-        size = ""
-      , change = lhs_char(self$rate)
-      , rate = ""
-      , abs_rate = rhs_char(self$rate)
-    )
-  }
+  self$string = function() self$call_string
   return_object(self, "AbsoluteInflow")
 }
 
@@ -819,6 +1061,8 @@ AbsoluteOutflow = function(from, rate, call_string) {
       , change = sprintf("-%s", lhs_char(self$rate))
     )
   }
+  self$string = function() self$call_string
+  return_object(self, "AbsoluteOutflow")
 }
 
 AbsoluteFlow = function(from, to, rate, call_string) {
@@ -836,7 +1080,8 @@ AbsoluteFlow = function(from, to, rate, call_string) {
   self$flow_frame = function() {
     abs_rate = rhs_char(self$rate)
     data.frame(
-        size = self$from
+        ## BMB: not sure if this is right? there is no 'size'
+        size = "" ## self$from %||% ""
       , change = lhs_char(self$rate)
       
       ## this is the main problem with absolute flows, because it has a 
@@ -844,17 +1089,21 @@ AbsoluteFlow = function(from, to, rate, call_string) {
       ## this issue should only arise for update methods that are more 
       ## naturally expressed for per-capita flows (e.g., Euler-multinomial
       ## and hazard)
-      , rate = sprintf("(%s) / %s", abs_rate, self$from)
-      
+      ## BMB: why does there need to be a 'from' involved here at all?
+      ##  is this only an issue because we need a Poisson-type stochastic
+      ##  flow to go with the Euler-multinomial?
+      , rate = sprintf("%s", abs_rate)
       , abs_rate = abs_rate
     )
   }
+  return_object(self, "AbsoluteFlow")
 }
+
 PerCapitaFlow = function(from, to, rate, call_string) {
   self = ChangeComponent()
   self$from = from
   self$to = to
-  self$rate = rate
+  self$rate = rate ## formula with flow_name ~ per_capita_rate
   self$call_string = call_string
   self$change_frame = function() {
     data.frame(
@@ -901,14 +1150,9 @@ to_change_component.ChangeComponent = function(x) x
 to_change_component.formula = function(x) Formula(x)
 
 
-#' Reduce Model
-#' 
-#' Reduce a model by removing any model structure 
-#' (e.g. \code{\link{mp_per_capita_flow}}), so that expression lists
-#' are plain R formulas.
-#' 
-#' @param model A model object.
-#'
+#' @describeIn mp_expand Confusingly, `mp_reduce` and `mp_expand` are synonyms.
+#' Please use `mp_expand` in new projects, as `mp_reduce` is available for 
+#' back-compatibility only.
 #' @export
 mp_reduce = function(model) UseMethod("mp_reduce")
 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/tmb_model_editors.R
 \name{mp_tmb_insert_reports}
 \alias{mp_tmb_insert_reports}
-\title{Insert Reports}
+\title{Transform a TMB Model Specification to Account for Reporting Bias}
 \usage{
 mp_tmb_insert_reports(
   model,
@@ -45,3 +45,4 @@ a convolution of the simulation history of an incidence variable with
 a kernel that is proportional to a Gamma distribution of reporting
 delay times.
 }
+\concept{transform-model-spec}

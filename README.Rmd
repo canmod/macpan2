@@ -25,41 +25,60 @@ theme_bw = function() ggplot2::theme_bw(base_size = 18)
 
 [McMasterPandemic](https://github.com/mac-theobio/McMasterPandemic) was developed to provide forecasts and insights to Canadian public health agencies throughout the COVID-19 pandemic. [Much was learned](https://canmod.github.io/macpan-book/index.html#vision-and-direction) about developing general purpose compartmental modelling software during this experience, but the pressure to deliver regular forecasts made it difficult to focus on the software itself. The goal of this `macpan2` project is to re-imagine `McMasterPandemic`, building it from the ground up with architectural and technological decisions that address the many lessons that we learned from COVID-19 about software.
 
-Impactful applied public health modelling requires many interdisciplinary steps along the path from epidemiological research teams to operational decision makers. Researchers must quickly tailor a model to an emerging public-health concern, validate and calibrate it to data, work with decision makers to define model outputs useful for stakeholders, configure models to generate those outputs, and package up those insights in an appropriate format for stakeholders. Unlike traditional modelling approaches, `macpan2` tackles this challenge from a software-engineering perspective, which allows us to systematically address bottlenecks along this path to impact in ways that will make future solutions easier to achieve. The goal is to enable researchers to focus on their core strengths and fill knowledge gaps efficiently and effectively.
-
-Although `macpan2` is designed as a compartmental modelling tool that is agnostic about the underlying computational engine, it currently uses [template model builder](https://github.com/kaskr/adcomp) as the sole engine. Template model builder (TMB) is an `R` modelling package based on a `C++` framework incorporating mature [automatic differentiation](https://cppad.readthedocs.io/en/latest/user_guide.html) and [matrix algebra](http://eigen.tuxfamily.org/index.php?title=Main_Page) libraries.
-
 The [Public Health Risk Sciences Division](https://github.com/phac-nml-phrsd) at the [Public Health Agency of Canada](https://www.canada.ca/en/public-health.html) uses `macpan2` (for example, [here](https://phac-nml-phrsd.github.io/EPACmodel/)).
 
 ## Documentation
 
-* [Package reference](https://canmod.github.io/macpan2/)
+* [Package website](https://canmod.github.io/macpan2/)
+* [Package reference and function documentation](https://canmod.github.io/macpan2/reference)
 * [Quick-start guide](https://canmod.github.io/macpan2/articles/quickstart)
+* [Articles describing the package](https://canmod.github.io/macpan2/articles)
+* [Frequently asked questions](https://canmod.github.io/macpan2/articles/FAQs)
 * [`TMB` engine](https://canmod.github.io/macpan2/articles/cpp_side) [specification document]
 * [Project history and trajectory](https://canmod.net/misc/pyRC) [slides]
-
+* [Instructional videos](https://drive.google.com/drive/folders/1NEQf2sy6QLxMiiWBN5Yn9U7wiPMs1jiS)
 
 ## Installation
 
-The standard recommended way to install `macpan2` is with the following command.
-```
+Here is the recommended way to install `macpan2` (from within an R session):
+
+```r
 repos = c('https://canmod.r-universe.dev', 'https://cloud.r-project.org')
 install.packages('macpan2', repos = repos)
 ```
 
-This command will install the current version of `macpan2`. For projects in production that need to keep track of specific versions of `macpan2`, snapshots and other reproducibility information can be obtained [here](https://canmod.r-universe.dev/api). Please see [this article](https://ropensci.org/blog/2022/01/06/runiverse-renv/) for an explanation of how to manage reproducibility using `r-universe`.
-
-To get the latest development version of `macpan2`, or if the above command fails for some reason, an alternative command to install is the following.
-```
+To get the latest development version of `macpan2`, or if the above command fails for some reason, try:
+```r
 remotes::install_github("canmod/macpan2")
 ```
 
-This command requires the `remotes` package and assumes that your `R` environment is set up to compile `C++` code contained in packages.
+This command requires the `remotes` package and assumes that your R environment is set up to build packages that include compiled C++ code (e.g. see details for [Windows](https://cran.r-project.org/bin/windows/base/howto-R-devel.html) or [MacOS](https://mac.r-project.org/tools/) [you probably only need Xcode from this page]).
 
-Many workflows with `macpan2` also make use of the following packages.
-```
+Many `macpan2` workflows also use these four popular packages:
+```r
 install.packages(c("dplyr", "ggplot2", "tidyr", "broom.mixed"))
 ```
+
+The `Rgraphviz` package is useful for plotting flow diagrams of models (see `?dot_layout`). To install it:
+
+```r
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("Rgraphviz")
+```
+
+## Reproducibility
+
+The [r-universe](https://r-universe.dev), which we use to distribute `macpan2`, suggests two approaches for projects in production that need to keep track of specific versions of `macpan2`: [snapshots](https://ropensci.org/blog/2023/05/31/runiverse-snapshots/) or [`renv`](https://ropensci.org/blog/2022/01/06/runiverse-renv/).
+
+To take the first approach, snapshots of `macpan2` (and its dependency `oor`) can be obtained using the following download link.
+```
+https://canmod.r-universe.dev/api/snapshot/zip?packages=macpan2,macpan2helpers,oor
+```
+
+Please see [this documentation](https://canmod.r-universe.dev/apis) for instructions on customizing this download link.
+
+The benefit of the first approach is that it doesn't require users to be able to compile C++ code, whereas the second does. The benefit of the second approach is that it can be used to manage dependencies on all packages in your workflows. It might be possible to combine the two approaches to get the best of both worlds, but this isn't tested.
 
 ## Hello World
 
@@ -69,10 +88,10 @@ library(macpan2)
 si = mp_tmb_model_spec(
     before = S ~ 1 - I
   , during = mp_per_capita_flow(
-        from     = "S"         ## compartment from which individuals flow
-      , to       = "I"         ## compartment to which individuals flow
-      , rate     = "beta * I"  ## expression giving _per-capita_ flow rate
-      , abs_rate = "infection" ## name for _absolute_ flow rate = beta * I * S
+        from      = "S"         ## compartment from which individuals flow
+      , to        = "I"         ## compartment to which individuals flow
+      , rate      = "beta * I"  ## expression giving _per-capita_ flow rate
+      , flow_name = "infection" ## name for _absolute_ flow rate = beta * I * S
     )
   , default = list(I = 0.01, beta = 0.2)
 )
@@ -82,7 +101,7 @@ print(si)
 See [this article](https://canmod.github.io/macpan2/articles/example_models.html) for more example models with documentation.
 
 Simulating from this model requires choosing the number of time-steps to run and the model outputs to generate. Syntax for simulating `macpan2` models is [designed to combine with standard data prep and plotting tools in R](https://canmod.github.io/macpan2/articles/quickstart.html#processing-results), as we demonstrate with the following code.
-```{r plot-tmb-si}
+```{r plot-tmb-si, fig.height=3}
 library(ggplot2)
 library(dplyr)
 (si

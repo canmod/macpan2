@@ -3,14 +3,24 @@ TMBModelSpec = function(
     , during = list()
     , after = list()
     , default = list()
+    , inits = list()
     , integers = list()
     , must_save = character()
     , must_not_save = character()
     , sim_exprs = character()
-    , state_update = c("euler", "rk4", "euler_multinomial", "hazard")
+    , state_update = c(
+          "euler"
+        , "rk4"
+        , "discrete_stoch"
+        , "hazard"
+        , "rk4_old"
+        , "euler_multinomial"
+      )
   ) {
+  default = c(default, inits)
   must_not_save = handle_saving_conflicts(must_save, must_not_save)
   self = Base()
+  self$macpan2_version = packageVersion("macpan2")
   before = force_expr_list(before)
   during = force_expr_list(during)
   after = force_expr_list(after)
@@ -34,13 +44,6 @@ TMBModelSpec = function(
       , self$update_method$after()
     )
   }
-  self$unrendered_expr_list = function() {
-    ExprList(
-        self$before
-      , self$during
-      , self$after
-    )
-  }
   
   self$all_derived_vars = function() {
     self$expr_list()$all_derived_vars()
@@ -50,6 +53,20 @@ TMBModelSpec = function(
   }
   self$all_formula_vars = function() {
     self$expr_list()$all_formula_vars()
+  }
+  self$all_default_mats = function() {
+    setdiff(
+        self$all_default_vars()
+      , names(self$integers)
+    )
+  }
+  ## matrices in self$default that are not used by any expressions.
+  ## note that unused expressions are not always useless. for example
+  ## observed data might be added to a spec, and these data will not
+  ## be used by the simulations but could be used to compute the
+  ## objective function in a calibrator.
+  self$all_unused_defaults = function() {
+    setdiff(names(self$default), self$all_default_mats())
   }
   
   ## check for name ambiguity
@@ -97,34 +114,43 @@ TMBModelSpec = function(
   
   self$copy = function() {
     mp_tmb_model_spec(
-        self$before, self$during, self$after
-      , self$default, self$integers
-      , self$must_save, self$must_not_save, self$sim_exprs
-      , self$state_update
+        before = self$before, during = self$during, after = self$after
+      , default = self$default, integers = self$integers
+      , must_save = self$must_save, must_not_save = self$must_not_save
+      , sim_exprs = self$sim_exprs
+      , state_update = self$state_update
     )
   }
   self$change_update_method = function(
-      state_update = c("euler", "rk4", "euler_multinomial", "hazard")
+      state_update = c("euler", "rk4", "discrete_stoch", "hazard", "rk4_old", "euler_multinomial")
     ) {
     
     if (self$state_update == "no") {
-      warning("This model has not formalized the notion of a state variable, and so changing how the state variables are updated has no effect. Models with formalized state variables are specified with state flows using functions such as mp_per_capita_flow.")
+      msg_space(
+          "This model has not formalized the notion of a state variable,"
+        , "and so changing how the state variables are updated has no effect."
+        , "Models with formalized state variables are specified with state"
+        , "flows using functions such as mp_per_capita_flow."
+      ) |> warning()
     }
     mp_tmb_model_spec(
-        self$before, self$during, self$after
-      , self$default, self$integers
-      , self$must_save, self$must_not_save, self$sim_exprs
-      , state_update
+        before = self$before, during = self$during, after = self$after
+      , default = self$default, integers = self$integers
+      , must_save = self$must_save, must_not_save = self$must_not_save
+      , sim_exprs = self$sim_exprs, state_update = state_update
     )
   }
   self$expand = function() {
     mp_tmb_model_spec(
-        self$update_method$before()
-      , self$update_method$during()
-      , self$update_method$after()
-      , self$default, self$integers
-      , self$must_save, self$must_not_save, self$sim_exprs
-      , self$state_update
+        before = self$update_method$before()
+      , during = self$update_method$during()
+      , after = self$update_method$after()
+      , default = self$default
+      , integers = self$integers
+      , must_save = self$must_save
+      , must_not_save = self$must_not_save
+      , sim_exprs = self$sim_exprs
+      , state_update = self$state_update
     )
   }
   self$name_map = function(local_names) {
@@ -151,7 +177,7 @@ TMBModelSpec = function(
     mat_args = c(mats, mat_options$from_spec(
         mats
       , outputs
-      , c(self$must_save,time_args)
+      , c(self$must_save, time_args)
       , self$must_not_save
     ))
     TMBModel(
@@ -180,10 +206,11 @@ handle_saving_conflicts = function(must_save, must_not_save) {
   ## must_save takes precedence over must_not_save
   problems = intersect(must_save, must_not_save)
   if (length(problems) != 0L) {
-    sprintf(
+    msg = sprintf(
         "The following matrices were removed from the must_not_save list\nbecause they are also on the must_save list, which takes precedence:\n      %s\n"
       , paste0(problems, collapse = ", ")
-    ) |> message()
+    )
+    getOption("macpan2_saving_conflict_msg_fn")(msg)
     must_not_save = setdiff(must_not_save, problems)
   }
   return(must_not_save)
@@ -249,39 +276,46 @@ must_save_time_args = function(formulas) {
   )
   return(time_args)
 }
-#' Specify a TMB Model
+
+#' Create TMB Model Specification
 #' 
-#' Specify a model in the TMB engine.
+#' Specify a simulation model in the TMB engine. A detailed explanation of this
+#' function is covered in `vignette("quickstart")`.
 #' 
-#' @param before List of formulas to be evaluated (in the order provided) before
-#' the simulation loop begins. Each \code{\link{formula}} must have a left hand
-#' side that gives the name of the matrix being updated, and a right hand side
-#' giving an expression containing only the names of matrices in the model,
-#' functions defined in the TMB engine, and numerical literals (e.g.
-#' \code{3.14}). The available functions in the TMB engine  can be described in
-#' \code{\link{engine_functions}}. Names can be provided for the components of
-#' \code{before}, and these names do not have to be unique. These names are
-#' used by the \code{sim_exprs} argument.
-#' @param during List of formulas to be evaluated at every iteration of the
-#' simulation loop, with the same rules as \code{before}.
-#' @param after List of formulas to be evaluated after the simulation loop,
-#' with the same rules as \code{before}.
+#' @param before List of formulas to be evaluated (in the order provided)
+#' before the simulation loop begins. These formulas must be standard 
+#' two-sided R \code{\link{formula}} objects. See `details` below for the 
+#' rules for these formulas.
+#' @param during List of formulas or calls to flow functions (e.g., 
+#' \code{\link{mp_per_capita_flow}}) to be evaluated at every iteration of the
+#' simulation loop.
+#' @param after List of formulas to be evaluated (in the order provided)
+#' before the simulation loop begins. These formulas must be standard 
+#' two-sided R \code{\link{formula}} objects. See `details` below for the 
+#' rules for these formulas.
 #' @param default Named list of objects, each of which can be coerced into 
 #' a \code{\link{numeric}} \code{\link{matrix}}. The names refer to 
-#' variables that appear in \code{before}, \code{during}, and \code{after}.
+#' quantities that appear in \code{before}, \code{during}, and \code{after}.
+#' Each quantity that is used in \code{before}, \code{during}, or \code{after}
+#' before it is defined must be given a numerical value in this \code{default}
+#' list.
+#' @param inits Named list of initial values of state variables.  These 
+#' initial values can be added to the `default` list with identical results,
+#' but adding them to `inits` is better practice because it makes it clear
+#' that they are initial values that will change as the state updates.
 #' @param integers Named list of vectors that can be coerced to integer
 #' vectors. These integer vectors can be used by name in model formulas to
 #' provide indexing of matrices and as grouping factors in 
 #' \code{\link{group_sums}}.
-#' @param must_save Character vector of the names of matrices that must have 
+#' @param must_save Character vector of the names of variables that must have 
 #' their values stored at every iteration of the simulation loop. For example,
-#' a matrix that the user does not want to be returned but that impacts dynamics
-#' with a time lag must be saved and therefore in this list.
-#' @param must_not_save Character vector of the names of matrices that must
+#' a variable that you do not want to be returned, but that impacts 
+#' dynamics with a time lag, must be saved and therefore must be in this list.
+#' @param must_not_save Character vector of the names of variables that must
 #' not have their values stored at every iteration of the simulation loop. For
 #' example, the user may ask to return a very large matrix that would create
 #' performance issues if stored at each iteration. The creator of the model
-#' can mark such matrices making it impossible for the user of the model to
+#' can mark such variables making it impossible for the user of the model to
 #' save their full simulation history.
 #' @param sim_exprs Character vector of the names of \code{before}, 
 #' \code{during}, and \code{after} expressions that must only be evaluated 
@@ -289,29 +323,174 @@ must_save_time_args = function(formulas) {
 #' being evaluated. For example, expressions that generate stochasticity should
 #' be listed in \code{sim_exprs} because TMB objective functions must be
 #' continuous.
-#' @param state_update (experimental) Optional character vector for how to update the
-#' state variables when it is relevant. Options include `"euler"`, `"rk4"`, 
-#' and `"euler_multinomial"`.
+#' @param state_update Optional character vector for how to update the state 
+#' variables when it is relevant. Options include `"euler"` (the default), 
+#' `"rk4"`, and `"discrete_stoch"`.
+#' 
+#' @details
+#' Expressions in the `before`, `during`, and `after` lists can be standard 
+#' R \code{\link{formula}} objects for defining variables in the model. These
+#' formulas must have a left hand side that gives the name of the (possibly 
+#' matrix-valued) variable being updated, and a right hand side giving an 
+#' expression containing only (1) the names of quantities in the model, (2) 
+#' numerical literals (e.g., \code{3.14}), or (3) functions defined in the TMB 
+#' engine (described in \code{\link{engine_functions}}). For example, the
+#' expression `N ~ S + I + R` updates the value of `N` to be the sum of the
+#' variables `S`, `I`, and `R`.
+#' 
+#' Names can be provided for the components of the `before`, `during`, and
+#' `after` lists, and these names do not have to be unique. These names are 
+#' used by the \code{sim_exprs} argument.
+#' 
+#' @examples
+#' ## A simple SI model.
+#' spec = mp_tmb_model_spec(
+#'     during = mp_per_capita_flow("S", "I", "beta * I / N", "infection")
+#'   , default = list(N = 100, S = 99, I = 1, beta = 0.2)
+#' )
+#' (spec 
+#'   |> mp_simulator(time_steps = 5L, output = "infection") 
+#'   |> mp_trajectory()
+#' )
+#' 
+#' ## The `~` can be used for flexibly defining dynamical variables.
+#' spec2 = mp_tmb_model_spec(
+#'     during = list(
+#'           force_of_infection ~ beta * I / N
+#'         , mp_per_capita_flow("S", "I", "force_of_infection", "infection")
+#'     )
+#'   , default = list(N = 100, S = 99, I = 1, beta = 0.2)
+#' )
+#' (spec2
+#'   |> mp_simulator(time_steps = 5L, output = "force_of_infection") 
+#'   |> mp_trajectory()
+#' )
+#' 
+#' ## The `before` argument can be used to pre-compute quantities before
+#' ## the simulation loop begins. Here we compute `S` from `N` and `I`,
+#' ## instead of specifying `S` in the `default` list. The potential
+#' ## benefit here is that one could make `I` a parameter to be fitted,
+#' ## while ensuring consistent values for `S`.
+#' spec3 = mp_tmb_model_spec(
+#'     before = S ~ N - I
+#'   , during = mp_per_capita_flow("S", "I", "beta * I / N", "infection")
+#'   , default = list(N = 100, I = 1, beta = 0.2)
+#' )
+#' (spec3 
+#'   |> mp_simulator(time_steps = 5L, output = "infection") 
+#'   |> mp_trajectory()
+#' )
+#' 
+#' @concept create-model-spec
 #' @export
 mp_tmb_model_spec = TMBModelSpec
 
 #' @export
-print.TMBModelSpec = function(x, ...) {
-  spec_printer(x, include_defaults = TRUE)
+print.TMBModelSpec = function(x, ...) mp_print_spec(x)
+
+defaults_printer = function(x) {
+  if (length(x$default) > 0L) {
+    cat("---------------------\n")
+    msg("Default values:\n") |> cat()
+    print(
+        melt_default_matrix_list(x$default, simplify_as_scalars = TRUE)
+      , row.names = FALSE
+    )
+    cat("---------------------\n")
+    cat("\n")
+  } else {
+    cat("---------------------\n")
+    msg("No default values\n") |> cat()
+    cat("---------------------\n")
+  }
 }
 
 spec_printer = function(x, include_defaults) {
-  #e = ExprList(x$before, x$during, x$after)
-  #e = x$expr_list()
-  has_defaults = length(x$default) > 0L
-  if (include_defaults & has_defaults) {
-    cat("---------------------\n")
-    msg("Default values:\n") |> cat()
-    cat("---------------------\n")
-    print(melt_default_matrix_list(x$default), row.names = FALSE)
-    cat("\n")
-  }
+  if (include_defaults) defaults_printer(x)
   exprs = c(x$before, x$during, x$after)
   schedule = c(length(x$before), length(x$during), length(x$after))
   model_steps_printer(exprs, schedule)
+  more_help = c(
+      "Discover more about model specifications here:\n"
+    , "https://canmod.github.io/macpan2/reference#specifications \n"
+  )
+  cat(more_help)
+}
+
+#' Print Model Specification
+#' 
+#' @param model A model produced by \code{\link{mp_tmb_model_spec}}.
+#' 
+#' @export
+mp_print_spec = function(model) spec_printer(model, include_defaults = TRUE)
+
+#' @describeIn mp_print_spec Print just the expressions executed before the
+#' simulation loop.
+#' @export
+mp_print_before = function(model) {
+  model_steps_printer(
+      model$before
+    , c(length(model$before), 0L, 0L)
+  )
+}
+
+#' @describeIn mp_print_spec Print just the expressions executed during each
+#' iteration of the simulation loop.
+#' @export
+mp_print_during = function(model) {
+  model_steps_printer(
+      model$during
+    , c(0L, length(model$during), 0L)
+  )
+}
+
+#' @describeIn mp_print_spec Print just the expressions executed after the
+#' simulation loop.
+#' @export
+mp_print_after = function(model) {
+  model_steps_printer(
+      model$after
+    , c(0L, 0L, length(model$after))
+  )
+}
+
+#' Version Update
+#' 
+#' Update a model specification so that it is compatible with the 
+#' installed version of `macpan2`.
+#' 
+#' @param spec Object produced by \code{\link{mp_tmb_model_spec}} or another 
+#' function that produces the same type of object.
+#' 
+#' @export
+mp_version_update = function(spec) {
+  if (!inherits(spec, "TMBModelSpec")) {
+    stop("The spec argument must be a `macpan2` model specification.")
+  }
+  mp_tmb_model_spec(
+      before = spec$before, during = spec$during, after = spec$after
+    , default = spec$default, integers = spec$integers
+    , must_save = spec$must_save, must_not_save = spec$must_not_save
+    , sim_exprs = spec$sim_exprs
+    , state_update = spec$state_update
+  )
+}
+
+#' Read Serialized Model Specification
+#' 
+#' Uses \code{\link{readRDS}} to read in a saved model specification
+#' created using a function like \code{\link{mp_tmb_model_spec}}, and
+#' updates this specification using \code{\link{mp_version_update}} so that
+#' it is compatible with the installed version of `macpan2`. To save
+#' a model specification, just use the base `R` function \code{\link{saveRDS}}.
+#' 
+#' @param filename Path to a saved model specification object.
+#' 
+#' @export
+mp_read_rds = function(filename) {
+  obj = filename |> readRDS()
+  if (!inherits(obj, "TMBModelSpec")) {
+    stop("Found an object that is not a `macpan2` model specification.")
+  }
+  mp_version_update(obj)
 }

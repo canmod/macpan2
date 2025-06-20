@@ -1,9 +1,13 @@
-#' Make TMB Calibrator
+#' Make a Calibrator
 #' 
 #' Construct an object that can get used to calibrate an object produced by 
 #' \code{\link{mp_tmb_model_spec}} or \code{\link{mp_tmb_library}},
 #' and possibly modified by \code{\link{mp_tmb_insert}} or 
-#' \code{\link{mp_tmb_update}}.
+#' \code{\link{mp_tmb_update}}. Note that the output of this function is
+#' not a model that has been calibrated to data, but rather an object that
+#' contains a model that can be calibrated. To actually attempt a 
+#' calibration one needs the \code{\link{mp_optimize}} function (see 
+#' examples below).
 #' 
 #' @param spec An TMB model spec to fit to data. Such specs can be produced by 
 #' \code{\link{mp_tmb_model_spec}} or \code{\link{mp_tmb_library}},
@@ -13,26 +17,55 @@
 #' time-varying parameters. The data must be of the same format as that 
 #' produced by \code{\link{mp_trajectory}}.
 #' @param traj A character vector giving the names of trajectories to fit
-#' to data, or a named list of likelihood distributions specified with
-#' \code{\link{distribution}} for each trajectory.
+#' to data, or a named list of likelihood distributions specified with a
+#' \code{\link{distribution}} for each trajectory. Transformations of 
+#' trajectories cannot be named implicitly unless they are also transformed
+#' through the `outputs` argument and their transformed version appears
+#' in the `data`. 
 #' @param tv A character vector giving the names of parameters to make
 #' time-varying according to the values in \code{data}, or a radial basis 
 #' function specified with \code{\link{mp_rbf}}.
-#' @param par A character vector giving the names of parameters, either
-#' time-varying or not, to fit using trajectory match.
+#' @param par A character vector giving the names of parameters (either
+#' time-varying or not) to fit using trajectory match, or a named list of 
+#' prior distributions specified with a \code{\link{distribution}} for each
+#' parameter. Parameters can be implicitly fitted on a transformed scale by 
+#' prefixing the name of the parameter with the name of the transformation 
+#' (e.g., `log_beta` will fit `beta` on the log-transformed scale, and
+#' \code{\link{mp_tmb_coef}} will report estimates on the original scale by 
+#' default. The \code{\link{mp_tmb_implicit_backtrans}} function is used 
+#' internally. See that help page for available transformations.
 #' @param outputs A character vector of outputs that will be generated
 #' when \code{\link{mp_trajectory}}, \code{\link{mp_trajectory_sd}}, or 
 #' \code{\link{mp_trajectory_ensemble}} are called on the optimized 
 #' calibrator. By default it is just the trajectories listed in `traj`.
+#' Outputs can be implicitly transformed by prefixing the name of the output
+#' with the name of the transformation (e.g., `log_infection` will output
+#' `log(infection)`, but \code{\link{mp_trajectory_sd}} will report 
+#' `infection` and its confidence interval on the original scale). The
+#' \code{\link{mp_tmb_implicit_trans}} function is used internally. See that 
+#' help page for available transformations.
 #' @param default A list of default values to use to update the defaults
 #' in the `spec`. By default nothing is updated. Alternatively one could
 #' use \code{\link{mp_tmb_update}} to update the spec outside of the 
 #' function. Indeed such an approach is necessary if new expressions, 
 #' in addition to default updates, need to be added to the spec 
 #' (e.g. seasonally varying transmission).
+#' @param inits An optional list of initial values for the state variables.
+#' These initial values can be added to the `default` list with identical 
+#' results, but adding them to `inits` is better practice because it makes it 
+#' clear that they are initial values that will change as the state updates.
 #' @param time Specify the start and end time of the simulated trajectories,
-#' and the time period associated with each time step. Currently the only
-#' valid choice is `NULL`, which takes simulation bounds from the `data`.
+#' and the time period associated with each time step. The default is `NULL`, 
+#' which takes simulation bounds from the `data`. You can use 
+#' \code{\link{mp_sim_bounds}} and \code{\link{mp_sim_offset}} to be more
+#' specific. See the example on the \code{\link{mp_optimize}} help file for
+#' an illustration the use of \code{\link{mp_sim_offset}}.
+#' @param save_data Save a copy of the data in the calibrator object that is
+#' returned, so that you do not need to pass the data manually to downstream 
+#' functions like \code{\link{mp_forecaster}}. It the resulting calibrator
+#' object is so large that it causes you problems, consider not saving
+#' the data in the calibrator object and manually passing it to the data
+#' argument of \code{\link{mp_forecaster}}.
 #'
 #' @examples
 #' spec = mp_tmb_library("starter_models", "sir", package = "macpan2")
@@ -46,17 +79,24 @@
 #'   , default = list(beta = 0.25)
 #' )
 #' mp_optimize(cal)
-#' mp_tmb_coef(cal)  ## requires broom.mixed package
+#' if (suppressPackageStartupMessages(require(broom.mixed))) {
+#'   print(mp_tmb_coef(cal))
+#' }
+#' @concept create-model-calibrator
 #' @export
-mp_tmb_calibrator = function(spec, data
-    , traj
+mp_tmb_calibrator = function(spec
+    , data = empty_trajectory
+    , traj = character()
     , par = character()
     , tv = character()
     , outputs = traj
     , default = list()
+    , inits = list()
     , time = NULL
+    , save_data = TRUE
   ) {
   cal_args = nlist(traj, par, tv, outputs, default, time)
+  if (save_data) cal_args$data = data
   if (inherits(spec, "TMBSimulator")) {
     stop(
         "This function creates simulators (capable of being calibrated to "
@@ -74,23 +114,22 @@ mp_tmb_calibrator = function(spec, data
     )
   }
   
-  ## gather defaults before they are updated
-  force(outputs)
   
   ## copy the spec, reducing to apply state update methods
   ## (e.g. euler, rk4, euler_multinomial), and update defaults
-  cal_spec = mp_expand(spec)
-  check_default_updates(cal_spec, default)
-  cal_spec = mp_tmb_update(cal_spec, default = default)
   
+  check_default_updates(spec, default)
+  trans_spec = mp_cal_implicit_trans(spec, nlist(cal_args))
+  
+  cal_spec = mp_expand(trans_spec)
   struc = TMBCalDataStruc(data, time)
   traj = TMBTraj(traj, struc, cal_spec, cal_spec$all_formula_vars())
   tv = TMBTV(tv, struc, cal_spec, traj$global_names_vector())
   par = TMBPar(par, tv, traj, cal_spec, tv$global_names_vector())
   
-  traj$check_assumptions(spec, struc)
-  tv$check_assumptions(spec, struc)
-  par$check_assumptions(spec, struc)
+  traj$check_assumptions(trans_spec, struc)
+  tv$check_assumptions(trans_spec, struc)
+  par$check_assumptions(trans_spec, struc)
   
   
   ## add observed trajectories 
@@ -104,6 +143,14 @@ mp_tmb_calibrator = function(spec, data
     , must_not_save = names(globalize(traj, "obs"))
     , must_save = traj$outputs()
   )
+  # TODO: prepare for simulating observation error
+  # cal_spec = mp_tmb_insert(cal_spec
+  #   , phase = "after"
+  #   , at = Inf
+  #   , expressions = traj$rand_collect_exprs()
+  #   , sim_exprs = "simulated_observation_error"
+  #   , must_save = traj$global_names()$rand
+  # )
   
   cal_spec = mp_tmb_insert(cal_spec
     , default = globalize(traj, "distr_params")
@@ -114,7 +161,7 @@ mp_tmb_calibrator = function(spec, data
     , default = globalize(par, "distr_params")
   )
   
-  ## TODO: handle likelihood trajectories
+  ## TODO: track individual contributions of each time step to the likelihood.
   
   ## add time-varying parameters
   cal_spec = mp_tmb_update(cal_spec
@@ -185,9 +232,8 @@ mp_tmb_calibrator = function(spec, data
 
 TMBCalibrator = function(orig_spec, new_spec, cal_spec, simulator, cal_args = NULL, time_steps_obj = NULL) {
   self = Base()
-  self$orig_spec = orig_spec  ## original spec for reference
-  self$new_spec = new_spec  ## gets updated as optimization proceeds
-  self$cal_spec = cal_spec  ## contaminated with stuff required for calibration
+  self$orig_spec = orig_spec  ## original spec for references
+  self$cal_spec = cal_spec  ## includes stuff required for calibration
   self$simulator = simulator  ## model simulator object keeping track of optimization attempts
   self$cal_args = cal_args
   self$time_steps_obj = time_steps_obj
@@ -214,45 +260,200 @@ print.TMBCalibrator = function(x, ...) {
 }
 
 
-
-#' Optimize
-#'
-#' @param model A model object capable of being optimized. See below
-#' for model types that are supported.
-#' @param optimizer Name of an implemented optimizer. See below for options
-#' for each type of \code{model}.
+#' Optimize Simulation Model
+#' 
+#' Calibrate a model that has been parameterized, typically by using
+#' \code{\link{mp_tmb_calibrator}} to produce such a model. 
+#' 
+#' The \code{\link{mp_tmb_calibrator}} models that get passed to
+#' `mp_optimize` will remember both their original default parameters 
+#' set at the time the model was created, and their currently best 
+#' parameters that get the updated when `mp_optimize` is run. The
+#' optimization is started from the currently best parameter set.
+#' Therefore, if you find yourself in a local minimum you might need
+#' to either recreate the model using \code{\link{mp_tmb_calibrator}}
+#' or use `optimizer = "DEoptim"`, which is more robust to objective
+#' functions with multiple optima.
+#' 
+#' @param model A model object capable of being optimized. Typically
+#' this object will be produced using \code{\link{mp_tmb_calibrator}}.
+#' @param optimizer Name of an implemented optimizer. See below for the 
+#' options and details on using each option.
 #' @param ... Arguments to pass to the `optimizer`.
+#' 
+#' @details
+#' 
+#' 
+#' # Details on Using Each Type of Optimizer
+#' 
+#' ## `nlminb`
+#' 
+#' The default optimizer is \code{\link{nlminb}}. This optimizer uses
+#' gradients computed by the 
+#' [Template Model Builder](https://kaskr.github.io/adcomp/_book/Introduction.html)
+#' engine of `macpan2`. This optimizer is efficient at local optimization
+#' by exploiting the gradient information computed by automatic differentiation.
+#' However, like many nonlinear optimizers, it can struggle if the objective function has multiple optima.
+#' 
+#' To set control parameters (e.g., maximum number of iterations), you
+#' can use the `control` argument:
+#' ```
+#' mp_optimize(model, "nlminb", control = list(iter.max = 800))
+#' ```
+#' See the \code{\link{nlminb}} help page for the complete list of 
+#' control parameters and what the output means.
+#' 
+#' ## `optim`
+#' 
+#' The \code{\link{optim}} optimizer lets you choose from a variety
+#' of optimization algorithms. The default, `method = "Nelder-Mead"`,
+#' does not use second derivatives
+#' (compare with the description of \code{\link{nlminb}}), and so
+#' could be less efficient at taking each step. However, we
+#' find that it can be somewhat better at getting out of local optima,
+#' although the `"DEoptim"` optimizer is designed for objective functions
+#' with multiple optima (see description below).
+#' 
+#' To set control parameters (e.g., maximum number of iterations), one 
+#' may use the following.
+#' ```
+#' mp_optimize(model, "nlminb", control = list(maxit = 800))
+#' ```
+#' See the \code{\link{optim}} help page for the complete list of 
+#' control parameters and what the output means.
+#' 
+#' If your model is parameterized by only a single parameter,
+#' you'll get a warning asking you to use 'method = "Brent"' or optimizer = 'optimize()'.
+#' You can ignore this warning if you are happy with your
+#' answer, or can do either of the suggested options as follows.
+#' ```
+#' mp_optimize(model, "optim", method = "Brent", lower = 0, upper = 1.2)
+#' mp_optimize(model, "optimize", interval = c(0, 1.2))
+#' ```
+#' In this case you have to specify lower and upper bounds for the optimization.
+#' 
+#' ## `DEoptim`
+#' 
+#' The `DEoptim` optimizer comes from the `DEoptim` package;
+#' you'll need to have that package installed to use this option.
+#' It is designed for objective functions with multiple optima. Use
+#' this method if you do not believe the fit you get by other methods.
+#' The downsides of this method are that it doesn't use gradient
+#' information and evaluates the objective function at many different
+#' points, so is likely to be much slower than gradient-based optimizers
+#' such as the default `nlminb` optimizer, or `optim` with `method = "BFGS"`.
+#' 
+#' Because this optimizer starts from multiple points in the parameter
+#' space, you need to specify lower and upper bounds for each parameter
+#' in the parameter vector.
+#' 
+#' ```
+#' mp_optimize(model, "DEoptim", lower = c(0, 0), upper = c(1.2, 1.2))
+#' ```
+#' In this example we have two parameters, and therefore need
+#' to specify two values each for `lower` and `upper`
+#' 
+#' ## `optimize` and `optimise`
+#' 
+#' This optimizer can only be used for models parameterized with a single
+#' parameter. You need to specify lower and upper bounds, e.g.
+#' ```
+#' mp_optimize(model, "optimize", c(0, 1.2))
+#' ```
 #' 
 #' @returns The output of the `optimizer`. The `model` object is modified
 #' and saves the history of optimization outputs. These outputs can be 
 #' obtained using \code{\link{mp_optimizer_output}}.
 #' 
+#' @examples
+#' spec = ("starter_models"
+#'   |> mp_tmb_library("seir", package = "macpan2")
+#'   |> mp_tmb_update(default = list(beta = 0.6))
+#' )
+#' sim = mp_simulator(spec, 50, "infection")
+#' 
+#' ## simulate data to fit to, but remove the start of the
+#' ## simulated epidemic in order to make it more difficult
+#' ## to fit.
+#' data = mp_trajectory(sim)
+#' data = data[data$time > 24, ]
+#' data$time = data$time - 24
+#' 
+#' ## time scale object that accounts for the true starting time
+#' ## of the epidemic (in this example we are not trying to estimate
+#' ## the initial number infected, so the starting time strongly
+#' ## affects the fitting procedure)
+#' time = mp_sim_offset(24, 0, "steps")
+#' 
+#' ## model calibrator, estimating only the transmission parameter
+#' cal = mp_tmb_calibrator(spec
+#'   , data = data
+#'   , traj = "infection"
+#'   , par = "beta"
+#'   , default = list(beta = 1)
+#'   , time = time
+#' )
+#' 
+#' ## From the starting point at beta = 1 this takes us into a
+#' ## local optimum at beta = 0.13, far from the true value of beta = 0.6.
+#' mp_optimize(cal)
+#' 
+#' ## In this case, one-dimensional optimization finds the true value.
+#' mp_optimize(cal, "optimize", c(0, 1.2))
+#'
 #' @export
 mp_optimize = function(model, optimizer, ...) UseMethod("mp_optimize")
 
-
+#' @importFrom utils capture.output
 #' @export
 mp_optimize.TMBSimulator = function(model
-    , optimizer = c("nlminb", "optim")
+    , optimizer = c("nlminb", "optim", "DEoptim", "optimize", "optimise")
     , ...
   ) {
-  optimizer = match.arg(optimizer)
-  optimizer_results = model$optimize[[optimizer]](...)
-  return(optimizer_results)
-} 
+  optimizer = match.arg(optimizer, several.ok = FALSE)
+  if (optimizer %in% "DEoptim") assert_dependencies("DEoptim")
+  if (optimizer %in% c("optimize", "optimise")) {
+    pp = mp_parameterization(model)
+    if (nrow(pp) != 1L) {
+      mp_wrap(
+        msg_space(
+            "The optimize and optimise optimizers cannot be used" 
+          , "with more than one parameter. But this model has the"
+          , "following parameters (one parameter per row):"
+        ),
+        capture.output(pp)
+      ) |> stop()
+    }
+  }
+  if (!exists(optimizer, model$optimize)) {
+    mp_wrap(
+      msg_paste(
+          "The optimizer, ", optimizer, ", did not get initialized. "
+        , "Perhaps you just installed the package containing ", optimizer
+        , "? If so you should try optimizing again after recreating the "
+        , "calibrator that you are trying to optimize."
+      )
+    ) |> stop()
+  }
+  opt_args = list(...)
+  opt_method = model$optimize[[optimizer]]
+  
+  opt_results = do.call(opt_method, opt_args)
+  
+  ## run once more to try to keep optimizers from
+  ## mangling the inside of the ADFun object.
+  model$optimize$reset_best(opt_results, optimizer)
+  
+  return(opt_results)
+}
 
 #' @describeIn mp_optimize Optimize a TMB calibrator.
 #' @export
-mp_optimize.TMBCalibrator = function(model, optimizer = c("nlminb", "optim"), ...) {
+mp_optimize.TMBCalibrator = function(model
+    , optimizer = c("nlminb", "optim", "DEoptim", "optimize", "optimise")
+    , ...
+  ) {
   optimizer_results = mp_optimize(model$simulator, optimizer, ...)
-  
-  old_defaults = mp_default(model$new_spec) |> frame_to_mat_list()
-  new_defaults = (model$simulator
-    |> mp_default()
-    |> filter(matrix %in% names(old_defaults))
-    |> frame_to_mat_list()
-  )
-  model$new_spec = mp_tmb_update(model$new_spec, default = new_defaults)
   return(optimizer_results)
 }
 
@@ -272,10 +473,6 @@ TMBCalDataStruc = function(data, time) {
     FALSE
   }
   
-  # self$time_steps = time$bound_steps()[2L]
-  # data$time_ids = time$time_ids(data$time)
-  # self$data_time_ids = data$time_ids
-  # self$data_time_steps = max(data$time_ids)
   data = rename_synonyms(data
     , time = c(
         "time", "Time", "ID", "time_id", "id", "date", "Date"
@@ -288,6 +485,7 @@ TMBCalDataStruc = function(data, time) {
     , col = c("col", "Col", "column", "Column")
     , value = c("value", "Value", "val", "Val", "default", "Default")
   )
+# <<<<<<< HEAD
   if (is.character(data$time)) {
     original_coercer = as.character
   } else if (is.integer(data$time)) {
@@ -301,16 +499,52 @@ TMBCalDataStruc = function(data, time) {
     if (infer_time_step(data$time)) {
       data$time = as.integer(data$time)
       time = mp_sim_bounds(min(data$time), max(data$time), "steps")
+# =======
+#   time_column_test_value = data$time
+#   if (is.character(data$time)) {
+#     original_coercer = as.character
+#   } else if (is.integer(data$time)) {
+#     if (inherits(data$time, "Date")) {
+#       original_coercer = as.Date
+# >>>>>>> main
     } else {
-      data$time = as.Date(data$time)
-      time = mp_sim_bounds(min(data$time), max(data$time), "daily")
+      original_coercer = as.integer
+    }
+  } else {
+    original_coercer = force
+  }
+  if (nrow(data) == 0L) {
+    if (is.null(time)) {
+      time = mp_sim_bounds(1L, 1L, "steps")
+    }
+  } else {
+    if (is.null(time)) {
+      if (infer_time_step(data$time)) {
+        data$time = as.integer(data$time)
+        time = mp_sim_bounds(min(data$time), max(data$time), "steps")
+      } else {
+        data$time = as.Date(data$time)
+        time = mp_sim_bounds(min(data$time), max(data$time), "daily")
+      }
     }
   }
   self$time_steps_obj = time$cal_time_steps(data, original_coercer)
+#<<<<<<< HEAD
+#=======
+#   self$time_steps_obj$conversion_check(time_column_test_value)
+# >>>>>>> main
   data$time_ids = self$time_steps_obj$external_to_internal(data$time)
   ## TODO: Still splitting on matrices, which doesn't allow flexibility
   ## in what counts as an 'output'. In general, an output could be
   ## a matrix, row, or column.
+  if (!"matrix" %in% colnames(data)) {
+    stop(
+      "Supplied data did not contain a column called 'matrix' ",
+      "(or its synonym 'variable' or short forms of 'matrix' ",
+      "or 'variable' such as 'mat' or 'var'). Such a column is ",
+      "required to relate simulated and observed matrices (i.e., variables)."
+    )
+  }
   self$matrix_list = split(data, data$matrix)
   
   self$check_matrices = function(matrices) {
@@ -343,8 +577,30 @@ CalTimeStepsAbstract = function() {
   self$dat_1st = function() integer(1L)
   self$sim_vec = function() integer(0L)
   self$dat_vec = function() integer(0L)
+  
+  ## convert between representations of time. internal measures time as 
+  ## time-steps inside model simulator and external measures time as they are
+  ## represented inside the time column of the data being calibrated to.
   self$internal_to_external = function(internal) internal
   self$external_to_internal = function(external) external
+  self$conversion_check = function(time_column) {
+    ## test value -- could check the whole thing i guess but could take time?
+    value = time_column[!is.na(time_column)]
+    if (length(value) > 0L) {
+      value = value[1L]
+      processed = value |> self$external_to_internal() |> self$internal_to_external()
+      if (!isTRUE(all.equal(value, processed))) {
+        mp_wrap(
+          msg_space(
+              "Cannot perfectly convert between how time is represented in the"
+            , "data and how time is represented in the model, so be careful."
+          )
+          , "The data have values that print like this:", capture.output(value)
+          , "But the model will print it like this:", capture.output(processed)
+        ) |> warning()
+      }
+    }
+  }
   self$consistency = function() {
     if (self$ext_sim_1st > self$ext_dat_1st) warning("Simulation starts after data begin.")
     if (self$ext_dat_end > self$ext_sim_end) warning("Data end after simulation ends.")
@@ -369,6 +625,9 @@ CalTimeStepsInt = function(ext_sim_1st, ext_sim_end, ext_dat_1st, ext_dat_end, o
     self$original_coercer(external)
   }
   self$external_to_internal = function(external) external - self$ext_sim_1st + self$sim_1st()
+  self$extended_time_arg = function(extension) {
+    mp_sim_offset(0, as.integer(extension), "steps")
+  }
   return_object(self, "CalTimeStepsInt")
 }
 if (FALSE) {
@@ -409,6 +668,9 @@ CalTimeStepsDaily = function(ext_sim_1st, ext_sim_end, ext_dat_1st, ext_dat_end,
   self$external_to_internal = function(external) {
     d = difftime(as.Date(external), self$ext_sim_1st, units = "days")
     as.integer(d) + 1L
+  }
+  self$extended_time_arg = function(extension) {
+    mp_sim_offset(0, as.integer(extension), "daily")
   }
   return_object(self, "CalTimeStepsLegacy")
 }
@@ -452,6 +714,71 @@ mp_optimizer_output.TMBCalibrator = function(model, what = c("latest", "all")) {
   )
 }
 
+
+#' Optimized Model Specification
+#' 
+#' Create a new model specification using parameter values that have been
+#' optimized.
+#' 
+#' @param model A model object that can be optimized/calibrated. Currently,
+#' only models produced by \code{\link{mp_tmb_calibrator}} are valid.
+#' @param spec_structure A character string identifying the structure of the
+#' returned model specification. Use `"original"` for the specification
+#' originally passed to the \code{\link{mp_tmb_calibrator}} function, and
+#' `"modified"` for the one that was used to fit to data. See the details
+#' below for more information on these modifications.
+#' 
+#' @details
+#' The following is a list of additional model specification structure that was 
+#' or could have been added to the `"modified"` specification by 
+#' \code{\link{mp_tmb_calibrator}} for the purposes of fitting to data.
+#' * Observed data in a format that can be compared with simulated data.
+#' * Expressions preparing simulated data so that they can be compared with the 
+#' observed data.
+#' * Distributional parameters for likelihood and prior components of the 
+#' objective function (e.g., a dispersion parameter for a negatively binomial 
+#' likelihood component, or a prior standard deviation for a transmission rate 
+#' parameter).
+#' * Data, parameters, and expressions for modelling time-variation of 
+#' parameters (e.g., basis functions and weights for a spline determining the 
+#' time-variation of transmission rate).
+#'
+#' @returns A copy of the model specification used to produce the calibrator
+#' model, with calibrated default values.
+#' 
+#' @export
+mp_optimized_spec = function(model
+    , spec_structure = c("original", "modified")
+  ) {
+  UseMethod("mp_optimized_spec")
+}
+
+#' @export
+mp_optimized_spec.TMBCalibrator = function(model
+    , spec_structure = c("original", "modified")
+  ) {
+  if (!model$simulator$optimization_history$opt_attempted()) {
+    warning(
+        "\nNo optimization of this calibrator has been attempted."
+      , "\nUsing initial parameter values to produce a new specification object."
+      , "\nUse mp_optimize to attempt an optimization."
+    )
+  }
+  simulator = model$simulator
+  spec_field = switch(match.arg(spec_structure)
+      , original = "orig_spec"
+      , modified = "cal_spec"
+  )
+  spec = model[[spec_field]]
+  
+  if (spec_field == "orig_spec") spec = mp_cal_implicit_trans(spec, model)
+  
+  ## function that knows about attempted optimizations, and therefore
+  ## how to update lists of defaults to their optimized values.
+  update = simulator$current$update_matrix_list
+  
+  mp_tmb_update(spec, default = update(spec$default))
+}
 
 NameHandlerAbstract = function() {
   self = Base()
@@ -1297,6 +1624,7 @@ TMBTraj.character = function(
   self$local_names = function() {
     l = make_names_list(self, c("obs", "obs_times", "distr_params"))
     l$sim = sprintf("%s_%s", "sim", self$outputs())
+    #l$rand = sprintf("%s_%s", "rand", self$outputs())
     l
   }
   
@@ -1406,7 +1734,10 @@ TMBTraj.list = function(traj
 TMBTraj.TrajArg = function(traj
       , struc
       , spec
-      , existing_global_names = character()) {
+      , existing_global_names = character()
+  ) {
+  
+  traj$likelihood = assert_distributional_component(traj$likelihood)
     
   self = TMBTraj(names(traj$likelihood), struc, spec, existing_global_names)
   
@@ -1427,6 +1758,22 @@ TMBTraj.TrajArg = function(traj
     }
     y
   }
+  
+  # preparing for simulating observation error
+  # self$rand_collect_exprs = function() {
+  #   nms = self$global_names()
+  #   traj_nms = self$outputs()
+  #   lhs = nms$rand
+  #   rhs = character()
+  #   for (i in seq_along(traj_nms)) {
+  #     nm = traj_nms[i]
+  #     ll = self$arg$likelihood$distr_list[[nm]]
+  #     rhs = c(rhs, ll$noise(nms$sim[i]))
+  #   }
+  #   output = mapply(two_sided, lhs, rhs, SIMPLIFY = FALSE)
+  #   names(output) = rep("simulated_observation_error", length(output))
+  #   return(output)
+  # }
   
   ## data frames describing the fixed and random effects corresponding
   ## to distributional parameters
@@ -1452,9 +1799,38 @@ TMBTraj.TrajArg = function(traj
 
 
 TMBPar = function(par
-      , tv, traj, spec
-      , existing_global_names = character()
-    ) UseMethod("TMBPar")
+  , tv, traj, spec
+  , existing_global_names = character()
+) UseMethod("TMBPar")
+
+
+assert_distributional_component = function(x) {
+  which_formulas = vapply(x, \(x) inherits(x, "formula"), logical(1L))
+  
+  ## try to be user-friendly if people use tildes when 
+  ## they 'should' use equal signs.
+  if (any(which_formulas)) {
+    formula_str = (x[which_formulas]
+      |> vapply(deparse1, character(1L))
+    )
+    nms = vapply(x[which_formulas], lhs_char, character(1L))
+    x[which_formulas] = lapply(x[which_formulas], rhs_eval)
+    names(x)[which_formulas] = nms
+    mp_wrap(
+        "We recommend replacing the tildes with equal signs "
+      , "in the following expressions: "
+      , formula_str
+    ) |> warning()
+  }
+  if (length(x) == 0) x = empty_named_list()
+  if (!valid$named_list$is_true(x)) {
+    stop(
+        "Lists of distributional assumptions should be "
+      , "provided as named lists"
+    )
+  }
+  return(x)
+}
 
 #' @exportS3Method macpan2::TMBPar
 TMBPar.ParArg = function(par
@@ -1468,10 +1844,16 @@ TMBPar.ParArg = function(par
   self$traj = traj
   self$spec = spec
   
+  par$params = assert_distributional_component(par$params)
+  par$random = assert_distributional_component(par$random)
+  
+  self = TMBPar(names(par$params), tv, traj, spec, existing_global_names)
+  
   # internal data structure
   self$pnms = names(self$par$params)
   self$rnms = names(self$par$random)
   
+#<<<<<<< HEAD
   self$local_names = function() {
     macpan2:::make_names_list(self, c("trans_vars", "hyperparams", "distr_params"))
   }
@@ -1497,6 +1879,13 @@ TMBPar.ParArg = function(par
   
   self$params_frame = function() {
     pf = (self$spec$default[self$pnms]
+# =======
+#   self$distr_params = function() self$arg$params$default()
+#   self$distr_random = function() self$arg$random$default()
+# 
+#   self$random_frame = function() {
+#     pf = (self$spec$default[self$par_ranef]
+# >>>>>>> main
       |> melt_default_matrix_list(FALSE)
       |> rename_synonyms(mat = "matrix", default = "value")
     )
@@ -1518,6 +1907,7 @@ TMBPar.ParArg = function(par
     )
   }
   
+#<<<<<<< HEAD
   self$distr_params = function() self$par$params$default() # self$tv$params$default()
   self$distr_random = function() self$par$random$default()
   self$distr_params_frame = function() self$par$params$distr_params_frame()
@@ -1541,8 +1931,31 @@ TMBPar.ParArg = function(par
         , "\nor cannot be fit because they are not default model parameters. See "
         , "mp_default(spec) for all default model parameters."
       ) |> stop()
+# =======
+#   self$prior_expr_chars = function() {
+#     # union to get both parameters and
+#     # time-varying pars we are estimating
+#     par_nms = union(self$par, self$tv_par)
+#     y = character()
+#     for (i in seq_along(par_nms)) {
+#       nm = par_nms[i]
+#       pp = self$arg$params$distr_list[[nm]]
+#       y = c(y, pp$prior(nm))
+# >>>>>>> main
     }
   }
+  self$distr_params_frame = function() self$arg$params$distr_params_frame()
+  self$distr_random_frame = function() self$arg$random$distr_params_frame()
+  
+  ## adapt (prior) distributional parameters to this parameter object
+  self$arg = par
+  self$arg$params = DistrList(self$arg$params, spec)
+  self$arg$random = DistrList(self$arg$random, spec)
+  self$arg$params$update_global_names(self, "distr_params")
+  self$arg$random$update_global_names(self, "distr_random")
+  self$arg$params$error_if_not_all_have_location()
+  self$arg$random$error_if_not_all_have_location()
+
   self$check_assumptions = function(orig_spec, data_struc) {
     self$check_assumptions_basic(orig_spec, data_struc)
     self$par$params$check_variables(data_struc$matrix_list)
@@ -1689,3 +2102,5 @@ mp_tmb.TMBSimulator = function(model) {
 
 #' @export
 mp_tmb.TMBCalibrator = function(model) mp_tmb(model$simulator)
+
+

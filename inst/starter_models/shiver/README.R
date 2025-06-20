@@ -234,10 +234,6 @@ spec = mp_tmb_update(spec
 
 
 ## ----simulating_dynamics------------------------------------------------------
-
-# state variables
-states = c("S","H","I","V","E","R")
-
 # set up calibrator
 shiver_calibrator = mp_tmb_calibrator(
     spec = spec
@@ -246,10 +242,10 @@ shiver_calibrator = mp_tmb_calibrator(
   # parameters we want to estimate (transmission rates)
   # we also want to estimate initial E
   , par = c("beta_v","beta_s","E", "sigma", "gamma_h") 
-  , outputs = states
+  , outputs = mp_state_vars(spec)
 )
 # print to check
-shiver_calibrator
+print(shiver_calibrator)
 
 # trajectory has 90 time steps (which is what we expect)
 nrow(shiver_calibrator 
@@ -271,16 +267,17 @@ nrow(shiver_calibrator
 # before optimizing, do the dynamics look reasonable? 
 (shiver_calibrator 
     |> mp_trajectory()
+    |> mutate(state = factor(matrix, levels = mp_state_vars(spec)))
     |> ggplot(aes(time, value))
-    + facet_wrap(vars(matrix), scales = 'free')
+    + facet_wrap(vars(state), scales = 'free')
     + geom_line()
     + theme_bw()
 )
 
 
 ## ----estimates----------------------------------------------------------------
-# optimize to estimate parameters
-# this converges!
+# optimize to estimate parameters.
+# optimizer converged (note convergence = 0)
 mp_optimize(shiver_calibrator)
 
 # look at estimates with CI
@@ -303,37 +300,19 @@ est_coef
 
 
 ## ----reparameterization-------------------------------------------------------
-# Create a new model specification with these changes:
-#
-# - update the before step to transform "new" parameters
-reparameterized_spec = mp_tmb_insert(spec
-     , phase = "before"
-     , at=1L
-     , expressions = list(
-         E ~ exp(log_E_I_ratio) * I
-       , beta ~ exp(log_beta)
-       , p ~ 1/(1+exp(-logit_p))
-     )
-     , default = list(
-         logit_p = qlogis(1e-2)
-       , log_beta = log(1e-2)
-       , log_E_I_ratio = log(1e-2) 
-     )
-)
-
-# - overwrite existing exposure terms with new ones
-reparameterized_spec = mp_tmb_update(reparameterized_spec
-    , phase = "during"
-     # exposure expressions start at step 4 in the during phase
-    , at=4L
+reparameterized_spec = (spec
+  |> mp_tmb_insert(phase = "before"
+    , expressions = list(E ~ E_I_ratio * I)
+    , default = list(E_I_ratio = 1e-2)
+  )
+  |> mp_tmb_update(phase = "during", at = 4L
     , expressions = list(
         mp_per_capita_flow("S", "E", unvaccinated_infection ~ I * beta/N_mix)
       , mp_per_capita_flow("V", "E", vaccinated_infection ~  I * beta * p/N_mix)
     )
+    , default = list(beta = 1e-2, p = 1e-2)
+  )
 )
-
-
-# all changes have been made
 print(reparameterized_spec)
 
 
@@ -350,7 +329,6 @@ shiver_calibrator = mp_tmb_calibrator(
   , data = reported_hospitalizations
   , traj = "H"
   , par = prior_distributions
-  , outputs = c(states, "infection")
 )
 
 # optimize to estimate transmission parameters
@@ -367,6 +345,7 @@ print(cc)
 
 ## ----repar_fit----------------------------------------------------------------
 (shiver_calibrator 
+  |> mp_forecaster(0, outputs = mp_state_vars(spec))
   |> mp_trajectory_sd(conf.int = TRUE)
   |> ggplot(aes(time, value))
   + facet_wrap(~matrix, scales = "free")
@@ -385,7 +364,7 @@ shiver_calibrator_rk4 = mp_tmb_calibrator(
   , data = reported_hospitalizations
   , traj = "H"
   , par = prior_distributions
-  , outputs = c(states, "infection")
+  , outputs = mp_state_vars(spec)
 )
 
 # optimize
@@ -442,45 +421,27 @@ mp_default(reparameterized_spec)
 
 ## ----incidence_in_model-------------------------------------------------------
 multi_traj_spec = (reparameterized_spec
-  |> mp_tmb_insert(
-      phase = "during"
-    , at = Inf
+  |> mp_tmb_insert(phase = "during", at = Inf
     , expressions = list(incidence ~ unvaccinated_infection + vaccinated_infection)
   ) 
   
   ## with case report data, we need to account for reporting delays and 
   ## under-reporting.
-  |> mp_tmb_insert_reports("incidence", report_prob = 0.1, mean_delay = 11, cv_delay = 0.25)
-  
-  ## we again want to fit many parameters on log or logit scales.
-  |> mp_tmb_insert(phase = "before", at = 1L
-    , expressions = list(
-          incidence_report_prob ~ 1/(1 + exp(-logit_report_prob))
-        , I ~ exp(log_I)
-        , H ~ exp(log_H)
-        , R ~ exp(log_R)
-        , sigma ~ exp(log_sigma)
-        , gamma_h ~ exp(log_gamma_h)
-      )
-    , default = list(
-          logit_report_prob = 0
-        , rbf_beta = 1
-        , V = V0
-        , log_I = log(I0)
-        , log_H = log(H0)
-        , log_R = 0
-        , log_sigma = -3
-        , log_gamma_h = -3
-        , N = N
-      )
+  |> mp_tmb_insert_reports("incidence"
+    , report_prob = 0.1, mean_delay = 11, cv_delay = 0.25
+    , report_prob_name = "report_prob"
   )
   
   ## we also need to prepare for a more flexible fit to the transmission
   ## rate that varies over time, as the report data provide sufficiently more
   ## information for this purposes.
-  |> mp_tmb_insert(phase = "during"
-    , at = 1L
+  |> mp_tmb_insert(phase = "during", at = 1L
     , expressions = list(beta ~ beta * rbf_beta)
+    , default = list(
+          rbf_beta = 1
+        , V = V0
+        , N = N
+      )
   )
 )
 
@@ -498,7 +459,6 @@ prior_distributions = list(
   , log_E_I_ratio = mp_normal(0, sd_par)
   , log_I = mp_normal(log(I0), sd_state)
   , log_H = mp_normal(log(H0), sd_state)
-  , log_R = mp_normal(log(1), sd_state)
 )
 
 ## put the data together
@@ -506,22 +466,36 @@ dd = rbind(reported_hospitalizations, reported_cases)
 
 # calibrate
 shiver_calibrator = mp_tmb_calibrator(
+<<<<<<< HEAD
     spec = (multi_traj_spec 
       |> mp_hazard()
     )
+=======
+    spec = mp_hazard(multi_traj_spec)
+>>>>>>> main
     # row bind both observed data
   , data = dd
     # fit both trajectories with log-normal distributions
     # (changed from negative binomial because apparently it is easier
     # to fit standard deviations than dispersion parameters)
+<<<<<<< HEAD
   , traj = list(H = mp_log_normal(sd = mp_fit(1))
     , reported_incidence = mp_log_normal(sd = mp_fit(1))
+=======
+  , traj = list(
+      H = mp_normal(sd = mp_fit(1))
+    , reported_incidence = mp_normal(sd = mp_fit(1))
+>>>>>>> main
   )
   , par = prior_distributions
     # fit the transmission rate using five radial basis functions for
     # a flexible model of time variation.
   , tv = mp_rbf("rbf_beta", 5, sparse_tol = 1e-8)
+<<<<<<< HEAD
   , outputs = c(states, "reported_incidence", "beta")
+=======
+  , outputs = c(mp_state_vars(spec), "reported_incidence", "beta")
+>>>>>>> main
 )
 
 
@@ -564,7 +538,7 @@ true_beta = 0.3
 simulated_data = (reparameterized_spec
   |> mp_simulator(
       time_steps = expected_daily_reports
-    , outputs=states
+    , outputs=mp_state_vars(spec)
     , default=list(
         logit_p=qlogis(true_p)
       , log_beta=log(true_beta)
@@ -581,9 +555,9 @@ simulated_data = (reparameterized_spec
 fixed_beta = mp_tmb_calibrator(
     spec = reparameterized_spec |> mp_rk4()
   , data = simulated_data
-  , traj = states
+  , traj = mp_state_vars(spec)
   , par = c("logit_p")
-  , outputs=states
+  , outputs = mp_state_vars(spec)
 )
 # converges, but not getting estimate for `p`
 mp_optimize(fixed_beta)
@@ -592,9 +566,9 @@ mp_tmb_coef(fixed_beta, conf.int = TRUE) |> round_coef_tab()
 fixed_a = mp_tmb_calibrator(
   spec = reparameterized_spec |> mp_rk4()
   , data = simulated_data
-  , traj = states
+  , traj = mp_state_vars(spec)
   , par = c("log_beta")
-  , outputs=states
+  , outputs = mp_state_vars(spec)
 )
 # converges and recovering true beta
 mp_optimize(fixed_a)

@@ -62,16 +62,16 @@ spec = mp_tmb_library(
 print(spec)
 #> ---------------------
 #> Default values:
+#>  quantity   value
+#>        rx 5.0e-01
+#>        ry 5.0e-01
+#>       axx 5.0e-03
+#>       ayy 2.0e-02
+#>       axy 1.6e-02
+#>       ayx 7.5e-03
+#>         X 1.0e+02
+#>         Y 1.0e+02
 #> ---------------------
-#>  matrix row col   value
-#>      rx         5.0e-01
-#>      ry         5.0e-01
-#>     axx         5.0e-03
-#>     ayy         2.0e-02
-#>     axy         1.6e-02
-#>     ayx         7.5e-03
-#>       X         1.0e+02
-#>       Y         1.0e+02
 #> 
 #> ---------------------
 #> At every iteration of the simulation loop (t = 1 to T):
@@ -194,11 +194,11 @@ mp_optimize(cal)
 #> [1] 0
 #> 
 #> $iterations
-#> [1] 11
+#> [1] 10
 #> 
 #> $evaluations
 #> function gradient 
-#>       20       12 
+#>       19       11 
 #> 
 #> $message
 #> [1] "relative convergence (4)"

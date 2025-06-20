@@ -2,9 +2,9 @@
 % Please edit documentation in R/mp_cal_time.R
 \name{mp_sim_bounds}
 \alias{mp_sim_bounds}
-\title{Simulation Bounds (Experimental)}
+\title{Simulation Bounds}
 \usage{
-mp_sim_bounds(sim_start, sim_end, time_scale, time_column = "time")
+mp_sim_bounds(sim_start, sim_end, time_scale = "steps", time_column = "time")
 }
 \arguments{
 \item{sim_start}{Start time of each simulation.}
@@ -12,22 +12,28 @@ mp_sim_bounds(sim_start, sim_end, time_scale, time_column = "time")
 \item{sim_end}{End time of each simulation.}
 
 \item{time_scale}{Qualitative description of the size of a time step.
-currently only \code{"steps"}, \code{"daily"}, and \code{"weekly"} are allowed,
-and but \code{"steps"} is the only recommended version as the other two
-are poorly tested and will throw a warning. The recommended \code{"steps"}
-option assumes that positive integers are used to indicate a particular
-point in the simulation.}
+The only valid values are 'steps' and 'daily'. If you would like each time
+step in the model to represent one day, then you should consider using
+'daily'. Note that using 'daily' will require that your data represent
+time using a (1) \code{\link{Date}} vector, (2) \code{\link{character}}
+vector in YYYY-MM-DD format, or (3) \code{\link{integer}} vector that
+counts the number of days since some reference. Otherwise please choose
+'steps', the default, and convert your time column into integer values that
+represent the time step that you would like in the model.}
+
+\item{time_column}{Name of the column that will identify the time at which
+particular values were observed.}
+}
+\value{
+An object to be passed to the \code{time} argument of
+\code{\link{mp_tmb_calibrator}}.
 }
 \description{
 Set the simulation bounds (start time and end time) for a
 calibration. This is used to override the default simulation
 bounds taken from the observed data passed to
-\code{\link{mp_tmb_calibrator}}. the first date is when the first
-simulated time step (chosen to be before the first data point
-so that infectious individuals can be built up) and
-the second date is the last simulated time step (chosen
-to be after the last data point so that there can be
-a forecast period). the last argument gives the
-scale of a single time step (in this case it should
-always be daily).
+\code{\link{mp_tmb_calibrator}}.
+}
+\seealso{
+\code{\link[=mp_sim_offset]{mp_sim_offset()}}
 }

@@ -1,6 +1,6 @@
 ## Auto-generated - do not edit by hand
 
-#' Engine Functions
+#' Functions Available in the Simulation Engine
 #'
 #' Functions currently supported by the C++ TMB engine
 #' for constructing expressions for defining model
@@ -18,8 +18,9 @@
 #' )
 #' ```
 #'
-#' To produce a simulation using these engine functions, one may
-#' use \code{\link{simple_sims}}.
+#' To produce a dynamical simulation that iteratively evaluates
+#' expression involving these functions, use 
+#' \code{\link{simple_sims}}.
 #'
 #' ```
 #' simple_sims(
@@ -29,6 +30,16 @@
 #' )
 #' ```
 #'
+#' Here, `x - 0.9 * x` is assigned to `x` at each of five 
+#' iterations of a simulation loop.
+#' 
+#' If these expressions involve matrices with more than one 
+#' element, You can control which elements in the evaluation 
+#' of the right hand side go to which elements on the left 
+#' hand side. This technique involves using either square
+#' brackets or the `c` function on the left hand side. For 
+#' more information on assignment, please see the section
+#' on Assignment below.
 #'
 #' ## Elementwise Binary Operators
 #'
@@ -60,8 +71,8 @@
 #'
 #' ### Arguments
 #'
-#' * `x` -- Any matrix with dimensions compatible with `y`.
-#' * `y` -- Any matrix with dimensions compatible with `x`.
+#' * `x` : Any matrix with dimensions compatible with `y`.
+#' * `y` : Any matrix with dimensions compatible with `x`.
 #'
 #' ### Return
 #'
@@ -76,25 +87,27 @@
 #' engine_eval(~ 1 / (1 - y), y = 1/4)
 #' ```
 #'
-#' ## Unary Elementwise Math
+#' ## Elementwise Math
 #'
 #' ### Functions
 #'
-#' * `log(x)` -- Natural logarithm
-#' * `exp(x)` -- Exponential function
-#' * `cos(x)` -- Cosine function
-#' * `proportions(x, limit, eps)` -- matrix of `x / sum(x)` or `rep(limit, length(x))` if `sum(x) < eps`
+#' * `log(x)` : Natural logarithm.
+#' * `exp(x)` : Exponential function.
+#' * `cos(x)` : Cosine function.
+#' * `sin(x)` : Sine function.
+#' * `sqrt(x)` : Squareroot function.
+#' * `invlogit(x)` : Inverse logit function, 
+#' `1/(1 + exp(-x))`.
+#' * `logit(x)` : Logit function, `log(x/(1-x))`.
 #'
 #' ### Arguments
 #'
-#' * `x` -- Any matrix
-#' * `limit` -- numeric value to return elementwise from `proportions` if `sum(x) < eps`
-#' * `eps` -- numeric tolerance for `sum(x)`
+#' * `x` : Any numeric matrix.
 #'
 #' ### Return
 #'
-#' * A matrix with the same dimensions as `x`, with the
-#' unary function applied elementwise.
+#' * A matrix with the same dimensions as `x`, containing
+#' the results of applying the function to each element of `x`.
 #'
 #' ### Examples
 #'
@@ -102,24 +115,47 @@
 #' engine_eval(~ log(y), y = c(2, 0.5))
 #' ```
 #'
+#' ## Proportions
+#'
+#' ### Functions
+#'
+#' * `proportions(x, limit, eps)`
+#'
+#' ### Arguments
+#'
+#' * `x` : Any matrix
+#' * `limit` : numeric value to return elementwise from `proportions` if `sum(x) < eps`
+#' * `eps` : numeric tolerance for `sum(x)`
+#'
+#' ### Return
+#'
+#' * matrix of `x / sum(x)` or `rep(limit, length(x))` if 
+#' `sum(x) < eps`.
+#'
+#' ### Examples
+#'
+#' ```
+#' engine_eval(~ proportions(y, 0.5, 1e-8), y = c(2, 0.5))
+#' ```
+#' 
 #' ## Integer Sequences
 #'
 #' ### Functions
 #'
-#' * `from:to` -- Inclusive and ordered sequence of
+#' * `from:to` : Inclusive and ordered sequence of
 #' integers between two bounds.
-#' * `seq(from, length, by)` -- Ordered sequence of
+#' * `seq(from, length, by)` : Ordered sequence of
 #' integers with equal spacing between adjacent
 #' values.
 #'
 #' ### Arguments
 #'
-#' * `from` -- Scalar integer giving the first integer
+#' * `from` : Scalar integer giving the first integer
 #' in the sequence.
-#' * `to` -- Scalar integer giving the last integer in
+#' * `to` : Scalar integer giving the last integer in
 #' the sequence.
-#' * `length` -- Number of integers in the sequence.
-#' * `by` -- Scalar giving the difference
+#' * `length` : Number of integers in the sequence.
+#' * `by` : Scalar giving the difference
 #' between adjacent values in the sequence.
 #'
 #' ### Return
@@ -151,17 +187,19 @@
 #'
 #' ### Functions
 #'
-#' * `rep(x, times)` -- Replicate a column vector a
+#' * `rep(x, times)` : Replicate a column vector a
 #' number of times, by repeatedly stacking it on top of
 #' itself.
-#' * `rep_each` -- Not yet developed.
-#' * `rep_length` -- Not yet developed.
+#' * `recycle(x, rows, cols)` : Recycle rows and columns of
+#' `x` to produce a matrix with `rows` rows and `cols` columns.
 #'
 #' ### Arguments
 #'
-#' * `x` -- A scalar-valued variable to repeat.
-#' * `times` -- A scalar-valued integer variable giving
+#' * `x` : A scalar-valued variable to repeat.
+#' * `times` : A scalar-valued integer variable giving
 #' the number of times to repeat `x`.
+#' * `rows` : Number of rows in the output of `recycle`.
+#' * `cols` : Number of columns in the output of `recycle`.
 #'
 #' ### Return
 #'
@@ -172,20 +210,22 @@
 #'
 #' ```
 #' engine_eval(~ rep(1, 10))
+#' engine_eval(~ recycle(  1:3,  3, 4))
+#' engine_eval(~ recycle(t(1:4), 3, 4))
 #' ```
 #'
 #' ## Matrix Multiplication
 #'
 #' ### Functions
 #'
-#' * `x %*% y` -- Standard matrix multiplication.
-#' * `x %x% y` -- Kronecker product
+#' * `x %*% y` : Standard matrix multiplication.
+#' * `x %x% y` : Kronecker product
 #'
 #' ### Arguments
 #'
-#' * `x` -- A matrix. For the standard product, `x`
+#' * `x` : A matrix. For the standard product, `x`
 #' must have as many columns as `y` has rows.
-#' * `y` -- A matrix. For standard product, `y`
+#' * `y` : A matrix. For standard product, `y`
 #' must have as many rows as `x` has columns.
 #'
 #' ### Return
@@ -208,29 +248,29 @@
 #'
 #' ### Functions
 #'
-#' * `c(...)` -- Stack columns of arguments into a
+#' * `c(...)` : Stack columns of arguments into a
 #' single column vector.
-#' * `cbind(...)` -- Create a matrix containing all of
+#' * `cbind(...)` : Create a matrix containing all of
 #' the columns of a group of matrices with the same
 #' number of rows.
-#' * `rbind(...)` -- Create a matrix containing all of
+#' * `rbind(...)` : Create a matrix containing all of
 #' the rows of a group of matrices with the same number
 #' of columns.
-#' * `matrix(x, rows, cols)` -- Reshape a matrix to have
+#' * `matrix(x, rows, cols)` : Reshape a matrix to have
 #' `rows` rows and `cols` columns. The input `x` must
 #' have `rows * cols` elements.
-#' * `t(x)` -- Standard matrix transpose.
+#' * `t(x)` : Standard matrix transpose.
 #'
 #' ### Arguments
 #'
-#' * `...` -- Any number of dimensionally consistent
+#' * `...` : Any number of dimensionally consistent
 #' matrices. The definition of dimensionally consistent
 #' depends on the function.
-#' * `x` -- Can be any matrix for `t`, but for `matrix`
+#' * `x` : Can be any matrix for `t`, but for `matrix`
 #' it must have `rows * cols` elements.
-#' * `rows` -- Scalar integer giving the number of
+#' * `rows` : Scalar integer giving the number of
 #' rows in the output.
-#' * `cols` -- Scalar integer giving the number of
+#' * `cols` : Scalar integer giving the number of
 #' columns in the output.
 #'
 #' ### Return
@@ -272,24 +312,24 @@
 #'
 #' ### Functions
 #'
-#' * `to_diag(x)` -- Create a diagonal matrix by setting
+#' * `to_diag(x)` : Create a diagonal matrix by setting
 #' the diagonal to a column vector, `x`.
-#' * `from_diag(x)` -- Extract the diagonal from a
+#' * `from_diag(x)` : Extract the diagonal from a
 #' matrix, `x`, and return the diagonal as a column
 #' vector.
 #'
 #' ### Arguments
 #'
-#' * `x` -- Any matrix (for `from_diag`) or a
+#' * `x` : Any matrix (for `from_diag`) or a
 #' column vector (for `to_diag`). It is common to assume
 #' that `x` is square for `from_diag` but this is
 #' not required.
 #'
 #' ### Return
 #'
-#' * `to_diag(x)` -- Diagonal matrix with `x` on the
+#' * `to_diag(x)` : Diagonal matrix with `x` on the
 #' diagonal.
-#' * `from_diag(x)` -- Column vector containing the
+#' * `from_diag(x)` : Column vector containing the
 #' diagonal of `x`. A value is considered to be on
 #' the diagonal if it has a row index equal to
 #' the column index.
@@ -314,28 +354,32 @@
 #'
 #' ### Functions
 #'
-#' * `sum(...)` -- Sum all of the elements of all of the
+#' * `sum(...)` : Sum all of the elements of all of the
 #' matrices passed to `...`.
-#' * `col_sums(x)` -- Row vector containing the sums
+#' * `col_sums(x)` : Row vector containing the sums
 #' of each column.
-#' * `row_sums(x)` -- Column vector containing the sums
+#' * `row_sums(x)` : Column vector containing the sums
 #' of each row.
-#' * `group_sums(x, f, n)` -- Column vector containing the
+#' * `group_sums(x, f, n)` : Column vector containing the
 #' sums of groups of elements in `x`. The groups are
 #' determined by the integers in `f` and the order of
 #' the sums in the output is determined by these
 #' integers.
+#' * `mean(x)` : Arthmetic average of all elements in matrix
+#' `x`.
+#' * `sd(x)` : Sample standard deviation of all elements in
+#' matrix `x`.
 #'
 #' ### Arguments
 #'
-#' * `...` -- Any number of matrices of any shape.
-#' * `x` -- A matrix of any dimensions, except for
+#' * `...` : Any number of matrices of any shape.
+#' * `x` : A matrix of any dimensions, except for
 #' `group_sums` that expects `x` to be a column vector.
-#' * `f` -- A column vector the same length as `x`
+#' * `f` : A column vector the same length as `x`
 #' containing integers between `0` and `m-1`, given `m`
 #' unique groups. Elements of `f` refer to the indices
 #' of `x` that will be grouped and summed.
-#' * `n` -- A column vector of length `m`. If `f` does
+#' * `n` : A column vector of length `m`. If `f` does
 #' not contain group `k` in `[0, m-1]`, `group_sums` skips
 #' this group and the output at index `k+1` is `n[k+1]`.
 #'
@@ -370,25 +414,30 @@
 #'
 #' ### Functions
 #'
-#' * `x[i,j]` -- Matrix containing a subset
+#' * `x[i,j]` : Matrix containing a subset
 #' of the rows and columns of `x`.
-#' * `block(x,i,j,n,m)` -- Matrix containing a
+#' * `block(x,i,j,n,m)` : Matrix containing a
 #' contiguous subset of rows and columns of `x`
-#' \url{https://eigen.tuxfamily.org/dox/group__TutorialBlockOperations.html}
+#' \url{https://eigen.tuxfamily.org/dox/group__TutorialBlockOperations.html}.
+#' * `last(x)` : The last element of a matrix (i.e., the
+#' lower-right element).
 #'
 #' ### Arguments
 #'
-#' * `x` -- Any matrix.
-#' * `i` -- An integer column vector (for `[`) or
+#' * `x` : Any matrix.
+#' * `i` : An integer column vector (for `[`) or
 #' integer scalar (for `block`) containing the indices
 #' of the rows to extract (for `[`) or the index of the
 #' first row to extract (for `block`).
-#' * `j` -- An integer column vector (for `[`) or
+#' * `j` : An integer column vector (for `[`) or
 #' integer scalar (for `block`) containing the indices
 #' of the columns to extract (for `[`) or the index of
-#' the first column to extract (for `block`). 
-#' * `n` -- Number of rows in the block to return.
-#' * `m` -- Number of columns in the block to return.
+#' the first column to extract (for `block`). If `j` is missing
+#' in a call to `[`, it is assumed to be `j = 0` although
+#' we might change this default to be the vector of all column
+#' indices.
+#' * `n` : Number of rows in the block to return.
+#' * `m` : Number of columns in the block to return.
 #'
 #' ### Return
 #'
@@ -398,13 +447,16 @@
 #' ### Details
 #'
 #' Note that zero-based indexing is used
-#' so the first row/column gets index, `0`, etc.
+#' so the first row/column gets index, `0`, etc. The `block`
+#' function is expected to be more efficient than `[` when
+#' the elements to be extracted are contiguous.
 #'
 #' ### Examples
 #'
 #' ```
 #' engine_eval(~ A[c(3, 1, 2), 2], A = matrix(1:12, 4, 3))
 #' engine_eval(~ block(x,i,j,n,m), x = matrix(1:12, 4, 3), i=1, j=1, n=2, m=2)
+#' engine_eval(~ last(A), A = matrix(1:12, 4, 3))
 #' ```
 #'
 #' ## Accessing Past Values in the Simulation History
@@ -415,34 +467,34 @@
 #'
 #' ### Functions
 #'
-#' * `rbind_lag(x, lag, t_min)` -- Bind the rows of versions of
+#' * `rbind_lag(x, lag, t_min)` : Bind the rows of versions of
 #' `x` that were recorded at the end of all
 #' simulation iterations corresponding to time lags given
 #' by integers in `lag`.
-#' * `rbind_time(x, t, t_min)` -- Bind the rows of versions of
+#' * `rbind_time(x, t, t_min)` : Bind the rows of versions of
 #' `x` that were recorded at the end of all
 #' simulation iterations corresponding to integers in
 #' `t`.
-#' * `cbind_lag(x, lag, t_min)` -- Bind the columns of versions of
+#' * `cbind_lag(x, lag, t_min)` : Bind the columns of versions of
 #' `x` that were recorded at the end of all
 #' simulation iterations corresponding to time lags given
 #' by integers in `lag`. (TODO -- cbind_lag is not developed yet)
-#' * `cbind_time(x, t, t_min)` -- Bind the columns of versions of
+#' * `cbind_time(x, t, t_min)` : Bind the columns of versions of
 #' `x` that were recorded at the end of all
 #' simulation iterations corresponding to integers in
 #' `t`. (TODO -- cbind_lag is not developed yet)
 #'
 #' ### Arguments
 #'
-#' * `x` -- Any matrix with saved history such that the
+#' * `x` : Any matrix with saved history such that the
 #' number of columns (for `rbind_*`) or rows (for
 #' `cbind_*`) does not change throughout the simulation.
-#' * `lag` -- Integer vector giving numbers
+#' * `lag` : Integer vector giving numbers
 #' of time steps before the current step to obtain
 #' past values of `x`.
-#' * `t` -- Integer vector giving time steps
+#' * `t` : Integer vector giving time steps
 #' at which to obtain past values of `x`.
-#' * `t_min` -- Integer giving the minimum time step
+#' * `t_min` : Integer giving the minimum time step
 #' that is allowed to be accessed. All time-steps in `t`
 #' or implied by `lag` that are before `t_min` are ignored.
 #'
@@ -527,9 +579,8 @@
 #'
 #' ## Convolution
 #'
-#' One may take the convolution of each element in a
+#' You can take the convolution of each element in a
 #' matrix, x, over simulation time using a kernel, k.
-#' There are two arguments of this function.
 #'
 #' ### Functions
 #'
@@ -537,51 +588,95 @@
 #'
 #' ### Arguments
 #'
-#' * `x` -- The matrix containing elements to be
+#' * `x` : The matrix containing elements to be
 #' convolved.
-#' * `k` -- A column vector giving the convolution kernel.
+#' * `k` : A column vector giving the convolution kernel.
 #'
 #' ### Return
 #'
 #' A matrix the same size as `x` but with the
 #' convolutions, \eqn{y_{ij}}, of each element,
-#' \eqn{x_{ij}}, given by the following.
+#' \eqn{x_{ij}}. The value of \eqn{y_{ij}} at time 
+#' \eqn{t = 1, ..., T} is given by the following.
 #'
-#' \deqn{y_{ij} = \sum_{\tau = 0} x_{ij}(t-\tau) k(\tau)}
-#'
-#' unless \eqn{t < \tau}, in which case,
-#'
-#' \deqn{y_{ij} = }
-#'
-#' where \eqn{y_{ij}} is the convolution,
-#' \eqn{x_{ij}(t)} is the value of \eqn{x_{ij}} at time step, \eqn{t},
-#' \eqn{k(\tau)} is the value of the kernel at lag, \eqn{\tau},
-#' and \eqn{\lambda} is the length of the kernel.
+#' \deqn{y_{ij}(t) = \sum_{\tau = 0}^{min(t,m)-1} x_{ij}(t-\tau) k_\tau}
+#' 
+#' Where:
+#' 
+#' * \eqn{x_{ij}(t)} : value of \eqn{x_{ij}} at time step \eqn{t}.
+#' * \eqn{y_{ij}(t)} : value of \eqn{y_{ij}} at time step \eqn{t}.
+#' * \eqn{t = 1, ..., T} : the time step.
+#' * \eqn{\tau = 0, ..., m - 1} : index of the 
+#' time lag for a kernel of length \eqn{m}.
+#' * \eqn{k_\tau} : value of the kernel associated with lag
+#' \eqn{\tau}.
 #'
 #' ### Details
 #'
 #' If any empty matrices are encountered when looking
 #' back in time, they are treated as matrices with all
-#' zeros. Similarly, any matrices encounte
-#' of `x`
+#' zeros. The convolution of a matrix of all positive
+#' values will be biased low for all time steps less than
+#' the length of the kernel (i.e., for all time steps 
+#' such that \eqn{t < m}), and therefore one should only
+#' compare observed data with a convolution (e.g., when
+#' calibrating) for time steps less than \eqn{m}.
 #'
+#' ### Examples
+#' 
+#' ```
+#' simple_sims(
+#'   list(
+#'     x ~ 3 * x * (1 - x),
+#'     y ~ convolution(x, rep(1/10, 10))
+#'   ),
+#'   time_steps = 50,
+#'   mats = list(x = 0.5, y = empty_matrix)
+#' )
+#' ```
+#' 
 #' ## Clamp
 #'
 #' Smoothly clamp the elements of a matrix so that they
 #' do not get closer to 0 than a tolerance, `eps`, with
-#' a default of 1e-12. The output of the `clamp`
-#' function is as follows.
+#' a default of 1e-12. This `clamp` function is the following 
+#' modification of the 
+#' [squareplus function](https://arxiv.org/abs/2112.11687).
+#'
+#' \deqn{f(x) = \epsilon_- + \frac{(x - \epsilon_-) + \sqrt{(x - \epsilon_-)^2 + (2\epsilon_0 - \epsilon_-)^2 - \epsilon_-^2}}{2}}
+#' 
+#' Where the two parameters are defined as follows.
+#'
+#' \deqn{\epsilon_0 = f(0)}
+#' 
+#' \deqn{\epsilon_- = \lim_{x \to  -\infty}f(x)}
+#' 
+#' This function is differentiable everywhere, monotonically
+#' increasing, and \eqn{f(x) \approx x} if \eqn{x} is positive
+#' and not too close to zero. By modifying the parameters, you 
+#' can control the distance between \eqn{f(x)} and the
+#' horizontal axis at two 'places' -- \eqn{0} and \eqn{-\infty}.
+#' [See issue #93](https://github.com/canmod/macpan2/issues/93).
+#' for more information.
 #'
 #' ### Functions
 #'
-#' * `clamp(x, eps)`
+#' * `clamp(x, eps, limit)`
 #'
 #' ### Arguments
 #'
 #' * `x` : A matrix with elements that should remain positive.
-#' * `eps` : A small positive number giving the
-#' theoretical minimum of the elements in the returned
-#' matrix.
+#' * `eps` : A small positive number, \eqn{\epsilon_0 = f(0)},
+#' giving the value of the function when the input is zero.
+#' The default value is 1e-11
+#' * `limit` : A small positive number, 
+#' \deqn{\epsilon_- = \lim_{x \to  -\infty}f(x)}, giving the
+#' value of the function as the input goes to negative
+#' infinity. The default is `limit = 1e-12`. This `limit` 
+#' should be chosen to be less than `eps` to ensure that 
+#' `clamp` is twice differentiable.
+#' 
+#' 
 #' ## Probability Densities
 #'
 #' All probability densities have the same first two
@@ -609,28 +704,33 @@
 #'
 #' ### Functions
 #'
-#' * `dpois(observed, simulated)` -- Log of the Poisson density
+#' * `dpois(observed, simulated)` : Log of the Poisson density
 #' based on this [dpois](https://kaskr.github.io/adcomp/group__R__style__distribution.html#gaa1ed15503e1441a381102a8c4c9baaf1)
 #' TMB function.
-#' * `dnbinom(observed, simulated, over_dispersion)` --
+#' * `dnbinom(observed, simulated, over_dispersion)` :
 #' Log of the negative binomial density based on this [dnbinom](https://kaskr.github.io/adcomp/group__R__style__distribution.html#ga76266c19046e04b651fce93aa0810351)
 #' TMB function. To get the variance that this function
 #' requires we use this expression, \code{simulated + simulated^2/over_dispersion},
 #' following p.165 in this [book](https://ms.mcmaster.ca/~bolker/emdbook/book.pdf)
-#' * `dnorm(observed, simulated, standard_deviation)` --
+#' * `dnorm(observed, simulated, standard_deviation)` :
 #' Log of the normal density based on this [dnorm](https://kaskr.github.io/adcomp/dnorm_8hpp.html)
+#' TMB function.
+#' * `dbinom(observed, size, probability)` :
+#' Log of the binomial density based on the [dbinom](https://kaskr.github.io/adcomp/group__R__style__distribution.html#gaee11f805f02bc1febc6d7bf0487671be)
 #' TMB function.
 #'
 #' ### Arguments
 #'
-#' * `observed` -- Matrix of observed values
+#' * `observed` : Matrix of observed values
 #' at which the density is being evaluated.
-#' * `simulated` -- Matrix of distributional means,
+#' * `simulated` : Matrix of distributional means,
 #' with singleton rows and columns recycled to match
 #' the numbers of rows and columns in `observed`.
-#' * `over_dispersion` -- Over-dispersion parameter
+#' * `over_dispersion` : Over-dispersion parameter
 #' given by \code{(simulated/standard_deviation)^2 - simulated)}.
-#' * `standard_deviation` -- Standard deviation parameter.
+#' * `standard_deviation` : Standard deviation parameter.
+#' * `size` : Number of Bernoulli trials.
+#' * `probability` : Probability of a successful Bernoulli trial.
 #'
 #' ## Pseudo-Random Number Generators
 #'
@@ -646,22 +746,120 @@
 #'
 #' ### Functions
 #'
-#' * `rpois(mean)` -- Pseudo-random Poisson distributed
+#' * `rpois(mean)` : Pseudo-random Poisson distributed
 #' values.
-#' * `rnbinom(mean, over_dispersion)` -- Pseudo-random
+#' * `rnbinom(mean, over_dispersion)` : Pseudo-random
 #' negative binomially distributed values.
-#' * `rnorm(mean, standard_deviation)` -- Pseudo-random
+#' * `rnorm(mean, standard_deviation)` : Pseudo-random
 #' normal values.
+#' * `rbinom(size, prob)` : Pseudo-random binomial values.
+#' * `reulermultinom(size, rate, dt)` : Pseudo-random
+#' [Euler-multinomial](https://kingaa.github.io/manuals/pomp/html/eulermultinom.html)
+#' values.
 #'
 #' ### Arguments
 #'
-#' * `mean` -- Matrix of means about which to simulate
+#' * `mean` : Matrix of means about which to simulate
 #' pseudo-random variation.
-#' * `over_dispersion` -- Matrix of over-dispersion parameters
+#' * `over_dispersion` : Matrix of over-dispersion parameters
 #' given by \code{(simulated/standard_deviation)^2 - simulated)}.
-#' * `standard_deviation` -- Matrix of standard deviation parameters.
+#' * `standard_deviation` : Matrix of standard deviation
+#' parameters.
+#' * `size` : Matrix of numbers of trials.
+#' * `prob` : Matrix of probabilities of success.
+#' * `rate` : Matrix of rates, used to compute the probabilities
+#' in a multinomial distribution. The probability associated with
+#' the `i`th rate, `r_i`, is (1 - exp(-sum(r * dt))) * (r_i / r),
+#' where `r` is the sum of the rates. This is not a typical
+#' multinomial distribution in that if you sum these
+#' probabilities up you do not get `1` but rather 
+#' `(1 - exp(-sum(r * dt)))`. See details below for more
+#' on the Euler-multinomial distribution
+#' * `dt` : Optional parameter specifying the length of the time
+#' step. See details below for more on the Euler-multinomial
+#' distribution.
 #'
-#' ## Assign
+#' ### Details
+#' 
+#' The Euler-multinomial distribution is used to model how
+#' many individuals move from one compartment to a set of other
+#' compartments in a single time step of length `dt`. The rate of 
+#' moving to each of these compartments is characterized by the 
+#' associated element in the `rate` matrix. The reason why the
+#' probabilities do not sum to `1`, is that not all individuals
+#' have to change compartments in a time step.
+#' 
+#' ## Cumulative Distribution Functions
+#'
+#' Lower-tail cumulative distribution functions.
+#' 
+#' ### Functions
+#'
+#' * `pgamma(q, shape, scale)` : Cumulative distribution function
+#' of the Gamma distribution. This is a lite wrapper for the
+#' [pgamma function in TMB](https://kaskr.github.io/adcomp/group__R__style__distribution.html#ga3bd06a324f89b21694aac26bfe1aef45).
+#' * `pnorm(q, mean, sd)` : Cumulative distribution function of
+#' the normal distribution. This is a lite wrapper for the 
+#' [pnorm function in TMB](https://kaskr.github.io/adcomp/group__R__style__distribution.html#ga2a3cc5a06500670aeaf6eb911a1094d9).
+#' 
+#' ### Arguments
+#'
+#' * `q` : Matrix of Quantiles.
+#' * `shape` : Matrix of shape parameters of the Gamma distribution.
+#' * `scale` : Matrix of scale parameters of the Gamma distribution.
+#' * `mean` : Matrix of mean parameters of the normal distribution.
+#' * `sd` : Matrix of standard deviation parameters of the normal distribution.
+#'
+#' ## Rounding
+#' 
+#' ### Functions
+#' 
+#' round(x) : Round elements of a matrix to the nearest integer.
+#' 
+#' ### Arguments
+#' 
+#' * `x` : Matrix to be rounded.
+#'
+#' ### Details
+#'
+#' Be careful if you are using rounding in a model to be calibrated.
+#' Rounding will break differentiability of the objective function
+#' if `x` depends, either directly or indirectly, on parameters 
+#' being calibrated. This will lead to incorrect gradients
+#' potentially being passed to an optimizer. To be safe, do
+#' not round in models being calibrated.
+#' 
+#' ## Debugging Instrumentation
+#' 
+#' Functions to use when you are trying to figure stuff out.
+#' 
+#' ### Functions
+#'
+#' * `print(x)` : Print out the value of a matrix.
+#' * `check_finite(x)` : Stop the simulations and return an
+#' error if `x` has any non-finite values.
+#'
+#' ### Arguments
+#'
+#' * `x` : Name of a matrix in the model.
+#'
+#' ### Return
+#'
+#' An \code{\link{empty_matrix}}.
+#'
+#' ### Examples
+#'
+#' ```
+#' simple_sims(
+#'      list(dummy ~ print(x), x ~ x / 2)
+#'    , time_steps = 10
+#'    , mats = list(x = 2)
+#' )
+#' engine_eval(~ 1/0) ## returns Inf
+#' engine_eval(~ check_finite(1/0)) ## returns nothing and throws an error
+#' ```
+#' 
+#' ## Assign (deprecated)
 #'
 #' Assign values to a subset of the elements in a matrix.
 #'
@@ -671,23 +869,23 @@
 #'
 #' ### Arguments
 #'
-#' * `x` -- Matrix with elements that are to be updated
+#' * `x` : Matrix with elements that are to be updated
 #' by the values in `v`.
-#' * `i` -- Column vector of row indices pointing to
+#' * `i` : Column vector of row indices pointing to
 #' the elements of `x` to be updated. These indices are
 #' paired with those in `v`. If the length of
 #' `i` does not equal that of `v`, then it must have a
 #' single index that gets paired with every element of
 #' `v`. Indices are zero-based, `i=0` corresponds to 
 #' the first row.
-#' * `j` -- Column vector of column indices pointing to
+#' * `j` : Column vector of column indices pointing to
 #' the elements of `x` to be updated. These indices are
 #' paired with those in `v`. If the length of
 #' `j` does not equal that of `v`, then it must have a
 #' single index that gets paired with every element of
 #' `v`. Indices are zero-based, `j=0` corresponds to
 #' the first column.
-#' * `v` -- Column vector of values to replace elements
+#' * `v` : Column vector of values to replace elements
 #' of `x` at locations given by `i` and `j`.
 #'
 #' ### Return
@@ -712,7 +910,7 @@
 #'
 #' ```
 #'
-#' ## Unpack
+#' ## Unpack (deprecated)
 #'
 #' Unpack elements of a matrix into smaller matrices.
 #'
@@ -722,9 +920,9 @@
 #'
 #' ### Arguments
 #'
-#' * `x` -- Matrix with elements to be distributed to
+#' * `x` : Matrix with elements to be distributed to
 #' the matrices passed through `...`.
-#' * `...` -- Matrices with elements to be replaced by
+#' * `...` : Matrices with elements to be replaced by
 #' the values of elements in `x` in column-major order.
 #' These matrices must be named matrices and not
 #' computed on the fly using expressions. Note that even
@@ -755,31 +953,33 @@
 #' )
 #' ```
 #'
-#' ## Print Matrix
-#' 
-#' Print out the value of a matrix.
+#' ## Assignment
+#'
+#' The left-hand-side of formulas sent to the simulation engine
+#' determine assignment works.
 #' 
 #' ### Functions
 #'
-#' * `print(x)`
-#'
+#' * `y ~ x` : Assign `x` to `y`.
+#' * `y[i] ~ x` : Assign the first column of `x` to those rows
+#' in the first column of `y` that are indexed by `i`.
+#' * `y[i, j] ~ x` : Assign each element, `x[k, l]`, in `x`,
+#' to element, `y[i[k], j[l]]`, in `y`.
+#' * `c(...) ~ x` : Assign the elements of the columns of `x`
+#' (stacked on top of each other) to the matrices in `...` in the 
+#' order in which they appear. If the number of columns is `x` 
+#' equals the number of matrices in `...`, and if these matrices
+#' are vectors (i.e., have only a single column or a single row),
+#' then the columns of `x` become assigned to the vectors in `...`.
+#' 
 #' ### Arguments
-#'
-#' * `x` -- Name of a matrix in the model.
-#'
-#' ### Return
-#'
-#' An \code{\link{empty_matrix}}.
-#'
-#' ### Examples
-#'
-#' ```
-#' simple_sims(
-#'      list(dummy ~ print(x), x ~ x / 2)
-#'    , time_steps = 10
-#'    , mats = list(x = 2)
-#' )
-#' ```
+#' 
+#' * `x` : Matrix containing the result of the expression on the
+#' right-hand-side.
+#' * `y` : Matrix with elements that will be assigned the elements
+#' of `x`.
+#' * `i` : Integer vector giving zero-based row indexes describing
+#' the rows in `x` that get the 
 #' 
 #' @name engine_functions
 #' @aliases `+`
@@ -811,8 +1011,6 @@
 #' @aliases cbind
 #' @aliases rbind
 #' @aliases time_step
-#' @aliases assign
-#' @aliases unpack
 #' @aliases recycle
 #' @aliases clamp
 #' @aliases dpois
@@ -835,4 +1033,14 @@
 #' @aliases mean
 #' @aliases sd
 #' @aliases proportions
+#' @aliases last
+#' @aliases check_finite
+#' @aliases dbinom
+#' @aliases sin
+#' @aliases sqrt
+#' @aliases pnorm
+#' @aliases invlogit
+#' @aliases logit
+#' @aliases assign
+#' @aliases unpack
 NULL

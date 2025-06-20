@@ -3,7 +3,7 @@ mp_library = function(...) {
   stop("under construction")
 }
 
-#' TMB Library
+#' Read Item from a Model Library
 #' 
 #' Get a TMB model specification from a model library.
 #' 
@@ -19,7 +19,7 @@ mp_library = function(...) {
 #' specification objects. For models without alternatives this will cause
 #' the return value to be a list with one element containing a spec object.
 #' 
-#' @seealso [show_models()]
+#' @seealso [mp_show_models()]
 #' 
 #' @examples
 #' mp_tmb_library(
@@ -28,6 +28,7 @@ mp_library = function(...) {
 #'   , package = "macpan2"
 #' )
 #' 
+#' @concept create-model-spec
 #' @export
 mp_tmb_library = function(..., package = NULL, alternative_specs = FALSE) {
   if (is.null(package)) {
@@ -61,7 +62,21 @@ mp_tmb_library = function(..., package = NULL, alternative_specs = FALSE) {
   stop("Malformed model library entry.")
 }
 
-#' Model Starter
+#' @describeIn mp_tmb_library List of one model specification for each model
+#' in the library.
+#' @export
+mp_tmb_entire_library = function() {
+  sapply(
+      mp_show_models()$Directory
+    , \(model_dir) {
+        mp_tmb_library("starter_models", model_dir, package = "macpan2")
+    }
+    , simplify = FALSE
+    , USE.NAMES = TRUE
+  )
+}
+
+#' Copy Existing Model as a Starting Point
 #'
 #' Create a directory with a template model definition.
 #'
@@ -69,6 +84,7 @@ mp_tmb_library = function(..., package = NULL, alternative_specs = FALSE) {
 #' @param dir String giving the path to a directory for copying the
 #' template model definition.
 #'
+#' @concept create-model-spec
 #' @export
 mp_model_starter = function(starter_name, dir) {
   starter_dir = system.file("starter_models"

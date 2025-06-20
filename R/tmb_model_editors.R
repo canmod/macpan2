@@ -1,8 +1,7 @@
-#' Modify a TMB Model Spec
+#' Transform a TMB Model Specification
 #' 
 #' Insert, update, or delete elements of a TMB model spec, produced using
-#' \code{\link{mp_tmb_library}} or \code{\link{mp_tmb_model_spec}}, or
-#' \code{\link{mp_tmb_delete}}. The
+#' \code{\link{mp_tmb_library}} or \code{\link{mp_tmb_model_spec}}. The
 #' only difference between `mp_tmb_insert` and `mp_tmb_update` is that
 #' the former shifts the positions of existing expressions to make room
 #' for the new expressions, whereas the latter overwrites existing expressions
@@ -36,6 +35,10 @@
 #' variables that appear in \code{before}, \code{during}, and \code{after}.
 #' For `mp_tmb_delete`, a character vector of such objects to delete from
 #' the model.
+#' @param inits An optional list of initial values for the state variables.
+#' These initial values can be added to the `default` list with identical 
+#' results, but adding them to `inits` is better practice because it makes it 
+#' clear that they are initial values that will change as the state updates.
 #' @param integers Named list of vectors that can be coerced to integer
 #' vectors. These integer vectors can be used by name in model formulas to
 #' provide indexing of matrices and as grouping factors in 
@@ -72,20 +75,24 @@
 #'   , default = list(log_beta = log(0.5))
 #' )
 #' 
+#' @concept transform-model-spec
 #' @export
 mp_tmb_insert = function(model
     , phase = "during"
     , at = 1L
     , expressions = list()
     , default = list()
+    , inits = list()
     , integers = list()
     , must_save = character()
     , must_not_save = character()
     , sim_exprs = character()
   ) {
+  default = c(default, inits)
   model = assert_cls(model, "TMBModelSpec", match.call(), "?mp_tmb_model_spec")
   valid$char1$check(phase)
   at = valid$num1$assert(at)
+  expressions = force_expr_list(expressions)
   
   model = model$copy()
   model[[phase]] = append(model[[phase]], expressions, after = at - 1L)
@@ -109,6 +116,7 @@ mp_tmb_insert = function(model
 }
 
 
+#' @concept transform-model-spec
 #' @rdname mp_tmb_insert
 #' @export
 mp_tmb_update = function(model
@@ -116,14 +124,17 @@ mp_tmb_update = function(model
     , at = 1L
     , expressions = list()
     , default = list()
+    , inits = list()
     , integers = list()
     , must_save = character()
     , must_not_save = character()
     , sim_exprs = character()
   ) {
+  default = c(default, inits)
   model = assert_cls(model, "TMBModelSpec", match.call(), "?mp_tmb_model_spec")
   valid$char1$check(phase)
   at = valid$num1$assert(at)
+  expressions = force_expr_list(expressions)
   
   model = model$copy()
   where = at - 1L + seq_along(expressions)
@@ -147,6 +158,7 @@ mp_tmb_update = function(model
   )
 }
 
+#' @concept transform-model-spec
 #' @rdname mp_tmb_insert
 #' @export
 mp_tmb_delete = function(model
@@ -184,7 +196,7 @@ mp_tmb_delete = function(model
   )
 }
 
-#' Insert Reports
+#' Transform a TMB Model Specification to Account for Reporting Bias
 #' 
 #' A version of \code{\link{mp_tmb_insert}} making it more convenient to
 #' transform an incidence variable into a reports variable, which accounts 
@@ -204,6 +216,8 @@ mp_tmb_delete = function(model
 #' @param report_prob_name Name of the variable containing `report_prob`.
 #' @param mean_delay_name Name of the variable containing `mean_delay`.
 #' @param cv_delay_name Name of the variable containing `cv_delay`.
+#' 
+#' @concept transform-model-spec
 #' @export
 mp_tmb_insert_reports = function(model
   , incidence_name
@@ -215,6 +229,29 @@ mp_tmb_insert_reports = function(model
   , mean_delay_name = sprintf("%s_mean_delay", incidence_name)
   , cv_delay_name = sprintf("%s_cv_delay", incidence_name)
 ) {
+  all_names = named_vec(
+      incidence_name
+    , reports_name
+    , report_prob_name
+    , mean_delay_name
+    , cv_delay_name
+  )
+  dup_names = duplicated(all_names)
+  if (any(dup_names)) {
+    all_dups = all_names[all_names %in% all_names[dup_names]]
+    dup_list = tapply(names(all_dups), unname(all_dups), c, simplify = FALSE)
+    usage = vapply(dup_list
+      , paste, character(1L)
+      , collapse = ", "
+      , USE.NAMES = FALSE
+    )
+    frame = data.frame(variable = names(dup_list), usage = usage)
+    mp_wrap(
+        "The following names were assigned to variables that account for"
+      , "reporting bias via `mp_tmb_insert_reports()`, but they were"
+      , "inconsistently used for multiple purposes."
+    ) |> c("\n\n", frame_formatter(frame)) |> stop()
+  }
   model = assert_cls(model, "TMBModelSpec", match.call(), "?mp_tmb_model_spec")
   local_names = c(dist = "dist", delta = "delta", kernel = "kernel")
   map = model$name_map(local_names)
@@ -245,6 +282,280 @@ mp_tmb_insert_reports = function(model
   )
 }
 
+#' Insert Log Linear Model of Time Variation (Experimental)
+#' 
+#' @param model A model specification (see \code{\link{mp_tmb_model_spec}}).
+#' @param parameter_name Character string giving the name of the parameter
+#' to make time-varying.
+#' @param design_matrices List of matrices, one for each time window, describing
+#' the model of time variation.
+#' @param time_var_parameters Named list of parameter vectors for each window,
+#' with names giving the window names.
+#' @param window_names Names for each window.
+#' @param baseline_functions It is complicated -- this is a joke -- I'm tired.
+#' @param link_functions List of objects representing link functions.
+#' @param full_series_name Name of variable storing the full time series.
+#' @param baseline_names Names of variables containing the baseline in 
+#' each window.
+#' @param matrix_coef_names Names of vectors containing values of the non-zero 
+#' elements of the design matrices.
+#' @param matrix_row_names Names of the vectors containing row indices of
+#' the non-zero elements of the design matrices.
+#' @param matrix_col_names Names of the vectors containing column indices of
+#' the non-zero elements of the design matrices.
+#' @param linear_pred_names Names of the vectors containing the linear 
+#' predictors in each window.
+#' @param time_var_names Names of the time-varying parameter in each window.
+#' @param time_index_name Name of the index at which the time varying
+#' parameter changes.
+#' @param sparsity_tolerance Make design matrix coefficients exactly zero
+#' when they are below this tolerance.
+#' 
+#' @export
+mp_tmb_insert_log_linear = function(model
+    , parameter_name
+    , design_matrices ## list of matrices -- one for each window
+    , time_var_parameters ## named list of parameter vectors for each window (names give window names)
+    , window_names = names(time_var_parameters)
+    #, change_points ## list of change-point integer vectors
+    #, offset_references ## list of character vectors
+    , baseline_functions = c(
+          list(TimeVarBaselineParameter())
+        , rep(list(TimeVarBaselineNumeric(0)), length(design_matrices) - 1)
+      )
+    , link_functions = rep(list(mp_identity), length(design_matrices)) ## list of DistrParamTrans objects
+    , full_series_name = sprintf("time_var_output_%s", parameter_name)
+    , baseline_names = sprintf("baseline_%s", window_names)
+    , matrix_coef_names = sprintf("matrix_coef_%s", window_names)
+    , matrix_row_names = sprintf("matrix_row_%s", window_names)
+    , matrix_col_names = sprintf("matrix_col_%s", window_names)
+    , linear_pred_names = sprintf("linear_pred_%s", window_names)
+    , time_var_names = sprintf("time_var_%s", window_names)
+    , time_index_name = sprintf("time_index_%s", parameter_name)
+    , sparsity_tolerance = 0
+  ) {
+  sparse_matrices = lapply(design_matrices, sparse_matrix_notation, tol = sparsity_tolerance)
+  
+  matrix_coefs = lapply(sparse_matrices, getElement, "values") |> setNames(matrix_coef_names)
+  matrix_row = lapply(sparse_matrices, getElement, "row_index") |> setNames(matrix_row_names)
+  matrix_col = lapply(sparse_matrices, getElement, "col_index") |> setNames(matrix_col_names)
+  linear_pred = lapply(design_matrices, \(x) numeric(nrow(x))) |> setNames(linear_pred_names)
+  
+  inv_links = character()
+  before = character()
+  if (baseline_functions[[1]]$not_for_first_window()) stop("Invalid baseline specification.")
+  eta = ""
+  for (i in seq_along(design_matrices)) {
+    if (i > 1L) eta = linear_pred_names[i - 1L]
+    before = append(before, baseline_functions[[i]]$calc(
+        baseline_names[i]
+      , eta
+      , link_functions[[i]]
+      , parameter_name
+    ))
+    before = append(before, sprintf("%s ~ %s + group_sums(%s * %s[%s], %s, %s)"
+      , linear_pred_names[i], baseline_names[i]
+      , matrix_coef_names[i], time_var_names[i]
+      , matrix_col_names[i], matrix_row_names[i], linear_pred_names[i]
+    ))
+    inv_links = append(inv_links, link_functions[[i]]$ref_inv(linear_pred_names[i]))
+  }
+  series = paste(inv_links, collapse = ", ")
+  before = append(before
+    , sprintf("%s ~ c(%s)", full_series_name, series)
+  ) |> lapply(as.formula)
+  
+  during = sprintf("%s ~ time_var(%s, %s)"
+    , parameter_name
+    , full_series_name
+    , time_index_name
+  ) |> lapply(as.formula)
+  
+  
+  time_index = list(seq_len(length(unlist(linear_pred)))) |> setNames(time_index_name)
+  time_var = time_var_parameters |> setNames(time_var_names)
+  
+  
+  model = mp_tmb_insert(model
+    , phase = "before"
+    , at = 1L
+    , expressions = before
+    , default = c(matrix_coefs, linear_pred, time_var)
+    , integers = c(matrix_row, matrix_col, time_index)
+  )
+  model = mp_tmb_insert(model
+    , phase = "during"
+    , at = 1L
+    , expressions = during
+  )
+  return(model)
+}
+
+#' Insert Basic Transformations of Model Variables
+#' 
+#' @inheritParams mp_tmb_insert
+#' @param variables Character vector of variables to transform.
+#' @param transformation A transformation object such as \code{\link{mp_log}},
+#' which is the default. See the help page for \code{\link{mp_log}} for 
+#' available options.
+#' 
+#' @return A new model specification object with expressions for the transformed 
+#' variables at the end of the simulation loop. The transformed variables
+#' are identified with a prefixed name (e.g., `log_incidence` if `incidence`
+#' is log transformed).
+#' 
+#' @seealso [mp_tmb_insert_backtrans()]
+#' 
+#' @examples
+#' ("starter_models"
+#'   |> mp_tmb_library("si", package = "macpan2")
+#'   |> mp_tmb_insert_trans("infection", mp_log)
+#'   |> mp_simulator(time_steps = 5L, outputs = "log_infection")
+#'   |> mp_trajectory()
+#' )
+#' 
+#' @export
+mp_tmb_insert_trans = function(model
+    , variables = character()
+    , transformation = mp_log
+) {
+  expr_list = sprintf("%s ~ %s"
+    , transformation$nm(variables)
+    , transformation$ref(variables)
+  ) |> lapply(as.formula)
+  mp_tmb_insert(model, "during", Inf, expr_list)
+}
+
+#' Insert Back Transformations of Model Parameters
+#' 
+#' @inheritParams mp_tmb_insert_trans
+#' @param variables Character vector of parameters to back transform.
+#' 
+#' @return A new model specification object with expressions for the 
+#' untransformed (or back transformed) parameters at the beginning of the
+#' `before` phase. The transformed version of the parameter is also
+#' added to the defaults and are identified with a prefixed name (e.g., 
+#' `log_beta` if `beta` is log transformed).
+#' 
+#' @seealso [mp_tmb_insert_trans()]
+#' 
+#' @examples
+#' init_si = ("starter_models"
+#'   |> mp_tmb_library("si", package = "macpan2")
+#'   |> mp_tmb_insert_backtrans("beta", mp_log)
+#'   |> mp_initial_list()
+#' )
+#' print(init_si$log_beta)
+#' print(log(init_si$beta))
+#' 
+#' @export
+mp_tmb_insert_backtrans = function(model
+    , variables = character()
+    , transformation = mp_log
+) {
+  
+  trans_variables = transformation$nm(variables)
+  i = !trans_variables %in% names(model$default)
+  default = (model$default[variables[i]] 
+    |> lapply(transformation$val) 
+    |> setNames(trans_variables[i])
+  )
+  expr_list = sprintf("%s ~ %s"
+    , variables
+    , transformation$ref_inv(transformation$nm(variables))
+  ) |> lapply(as.formula)
+  mp_tmb_insert(model, "before", 1L, expr_list, default)
+}
+
+#' @describeIn mp_tmb_insert_trans Insert variable transformations implicitly
+#' by pre-pending the name of the transformations in front of the names of the
+#' `variables` that you ask for (e.g., `"log_case_reports"`) even if this
+#' variable is not in the model as long as the base name
+#' (e.g., `"case_reports"`) is.
+#' @export
+mp_tmb_implicit_trans = function(model, variables = character()) {
+  if (is.null(variables)) return(model)
+  vars_to_trans = get_vars_to_trans(variables, model$all_formula_vars())
+  for (trans_nm in names(vars_to_trans)) {
+    vars = vars_to_trans[[trans_nm]]
+    trans_obj = get(sprintf("mp_%s", trans_nm))
+    if (length(vars) > 0L) {
+      model = mp_tmb_insert_trans(model, vars, trans_obj)
+    }
+  }
+  return(model)
+}
+
+#' @describeIn mp_tmb_insert_backtrans Insert parameter transformations 
+#' implicitly by pre-pending the name of the transformations in front of the 
+#' names of the `variables` that you ask for (e.g., `"log_case_reports"`) even 
+#' if this variable is not in the model as long as the base name (e.g., 
+#' `"case_reports"`) is.
+#' @export
+mp_tmb_implicit_backtrans = function(model, variables = character()) {
+  
+  ## list with names of variables to transform for
+  ## each type of transformation
+  vars_to_trans = get_vars_to_trans(variables, model$all_formula_vars())
+  
+  ## loop over types of transformations (log, logit, sqrt)
+  for (trans_nm in names(vars_to_trans)) {
+    vars = vars_to_trans[[trans_nm]]
+    trans_obj = get(sprintf("mp_%s", trans_nm))
+    if (length(vars) > 0L) {
+      model = mp_tmb_insert_backtrans(model, vars, trans_obj)
+    }
+  }
+  return(model)
+}
+
+get_parameter_names = function(obj) {
+  ## take that S3 dispatch
+  if (is.character(obj)) return(obj)
+  if (inherits(obj, "ParArg")) return(c(names(obj$params), names(obj$random)))
+  if (is.list(obj)) return(names(obj))
+  stop("Not a recognized object for representing parameters")
+}
+## TODO: function not used currently -- if used we would also need to 
+## transform the data, and that is for the future.
+get_trajectory_names = function(obj) {
+  if (is.character(obj)) return(obj)
+  if (inherits(obj, "TrajArg")) return(c(names(obj$likelihood), names(obj$condensation)))
+  if (is.list(obj)) return(names(obj))
+  stop("Not a recognized object for representing parameters")
+}
+mp_cal_implicit_trans = function(spec, cal) {
+  out_nms = cal$cal_args$outputs
+  par_nms = get_parameter_names(cal$cal_args$par)
+  (spec
+    |> mp_tmb_update(default = cal$cal_args$default)
+    |> mp_tmb_implicit_trans(out_nms)
+    |> mp_tmb_implicit_backtrans(par_nms)
+  )
+}
+
+get_vars_to_trans = function(variables, all_variables) {
+  
+  simple_variables = intersect(variables, all_variables)
+  complex_variables = setdiff(variables, all_variables)
+  trans_variables = grep("^(log|logit|sqrt|log1p)_", complex_variables, value = TRUE)
+  
+  good_variables = c(simple_variables, trans_variables)
+  bad_variables = setdiff(variables, good_variables)
+  if (length(bad_variables) > 0L) {
+    mp_wrap(
+      "The following variables were required but not available in the model"
+    , bad_variables
+    )
+  }
+  
+  list(
+      log = sub("^log_", "", complex_variables) |> intersect(all_variables)
+    , logit = sub("^logit_", "", complex_variables) |> intersect(all_variables)
+    , sqrt = sub("^sqrt_", "", complex_variables) |> intersect(all_variables)
+    , log1p = sub("^log1p_", "", complex_variables) |> intersect(all_variables)
+  )
+}
 
 ## model is a spec
 ## new_defaults is a list of raw defaults, each type of which has a `names` S3 method
@@ -501,6 +812,11 @@ TMBSimulatorReplacer = function(simulator) {
     self$simulator$cache$invalidate()
     invisible(self$simulator)
   }
+  self$do_prep_sdreport = function(do_pred_sdreport) {
+    self$model$do_pred_sdreport = do_pred_sdreport
+    self$simulator$cache$invalidate()
+    invisible(self$simulator)
+  }
   return_object(self, "TMBReplacer")
 }
 
@@ -594,9 +910,6 @@ TMBSimulatorUpdater = function(simulator) {
     for (v in names(.vec_by)) {
       if (.vec_by[v] == "") .vec_by[v] = "...RAW...INDICES..."
     }
-    # if (.vec_by_states == "") .vec_by_states = "...RAW...INDICES..."
-    # if (.vec_by_flows == "") .vec_by_flows = "...RAW...INDICES..."
-    #component_vec_by = c(state = .vec_by_states, flow = .vec_by_flows)
     if (inherits(self$model$init_mats$.structure_labels, "NullLabels")) {
       args = list(...)
     } else {

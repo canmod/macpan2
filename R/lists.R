@@ -15,6 +15,10 @@ nlist = function(...) {
     }
     setNames(L, nm)
 }
+named_vec = function(...) {
+  lst = nlist(...)
+  unlist(lst, recursive = FALSE, use.names = TRUE)
+}
 
 melt_matrix_int = function(x) {
   dm = dim(x)
@@ -51,12 +55,12 @@ melt_matrix = function(x, zeros_are_blank = TRUE) {
     if ((dm[1] == 1L) & zeros_are_blank) {
       row = ""
     } else {
-      row = as.character(rep(seq_len(dm[1]), each = dm[2]) - 1)
+      row = as.character(rep(seq_len(dm[1]), times = dm[2]) - 1)
     }
     if ((dm[2] == 1L) & zeros_are_blank) {
       col = ""
     } else {
-      col = as.character(rep(seq_len(dm[2]), times = dm[1]) - 1)
+      col = as.character(rep(seq_len(dm[2]), each = dm[1]) - 1)
     }
   } else { 
     rn = rownames(x)
@@ -65,7 +69,7 @@ melt_matrix = function(x, zeros_are_blank = TRUE) {
       if ((dm[1] == 1L) & zeros_are_blank) {
         row = ""
       } else {
-        row = as.character(rep(seq_len(dm[1]), each = dm[2]) - 1)
+        row = as.character(rep(seq_len(dm[1]), times = dm[2]) - 1)
       }
     } else {
       row = rep(rownames(x), times = dm[2])
@@ -74,7 +78,7 @@ melt_matrix = function(x, zeros_are_blank = TRUE) {
       if ((dm[2] == 1L) & zeros_are_blank) {
         col = ""
       } else {
-        col = as.character(rep(seq_len(dm[2]), times = dm[1]) - 1)
+        col = as.character(rep(seq_len(dm[2]), each = dm[1]) - 1)
       }
     } else {
       col = rep(colnames(x), each = dm[1])
@@ -83,12 +87,24 @@ melt_matrix = function(x, zeros_are_blank = TRUE) {
   data.frame(row = row, col = col, value = as.vector(x))
 }
 
-melt_default_matrix_list = function(x, zeros_are_blank = TRUE) {
-  if (length(x) == 0L) return(NULL)
+melt_default_matrix_list = function(x, zeros_are_blank = TRUE, simplify_as_scalars = FALSE) {
+  if (length(x) == 0L) return(empty_frame("matrix", "row", "col", "value"))
   f = (x
-   |> lapply(melt_matrix, zeros_are_blank)
-   |> bind_rows(.id = "matrix")
+    |> lapply(melt_matrix, zeros_are_blank)
+    |> bind_rows(.id = "matrix")
   )
+  if (simplify_as_scalars) {
+    rm_rs = all(f$row == "")
+    rm_cs = all(f$col == "")
+    if (rm_rs) f$row = NULL
+    if (rm_cs) f$col = NULL
+    if (rm_rs & rm_cs) {
+      nms = colnames(f)
+      mat_col = nms == "matrix"
+      if (any(mat_col)) names(f)[mat_col] = "quantity"
+    }
+  }
+  
   rownames(f) = NULL
   f
 }
@@ -133,3 +149,12 @@ assert_named_list = function(l) {
 }
 
 self_named_vector = function(...) c(...) |> setNames(c(...))
+
+simplify_row_col_ids = function(data_frame) {
+  ur = unique(as.character(data_frame$row))
+  uc = unique(as.character(data_frame$col))
+  if (identical(ur, "0")) data_frame$row = character(nrow(data_frame))
+  if (identical(uc, "0")) data_frame$col = character(nrow(data_frame))
+  return(data_frame)
+}
+

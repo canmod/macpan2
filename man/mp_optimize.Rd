@@ -3,18 +3,22 @@
 \name{mp_optimize}
 \alias{mp_optimize}
 \alias{mp_optimize.TMBCalibrator}
-\title{Optimize}
+\title{Optimize Simulation Model}
 \usage{
 mp_optimize(model, optimizer, ...)
 
-\method{mp_optimize}{TMBCalibrator}(model, optimizer = c("nlminb", "optim"), ...)
+\method{mp_optimize}{TMBCalibrator}(
+  model,
+  optimizer = c("nlminb", "optim", "DEoptim", "optimize", "optimise"),
+  ...
+)
 }
 \arguments{
-\item{model}{A model object capable of being optimized. See below
-for model types that are supported.}
+\item{model}{A model object capable of being optimized. Typically
+this object will be produced using \code{\link{mp_tmb_calibrator}}.}
 
-\item{optimizer}{Name of an implemented optimizer. See below for options
-for each type of \code{model}.}
+\item{optimizer}{Name of an implemented optimizer. See below for the
+options and details on using each option.}
 
 \item{...}{Arguments to pass to the \code{optimizer}.}
 }
@@ -24,10 +28,143 @@ and saves the history of optimization outputs. These outputs can be
 obtained using \code{\link{mp_optimizer_output}}.
 }
 \description{
-Optimize
+Calibrate a model that has been parameterized, typically by using
+\code{\link{mp_tmb_calibrator}} to produce such a model.
+}
+\details{
+The \code{\link{mp_tmb_calibrator}} models that get passed to
+\code{mp_optimize} will remember both their original default parameters
+set at the time the model was created, and their currently best
+parameters that get the updated when \code{mp_optimize} is run. The
+optimization is started from the currently best parameter set.
+Therefore, if you find yourself in a local minimum you might need
+to either recreate the model using \code{\link{mp_tmb_calibrator}}
+or use \code{optimizer = "DEoptim"}, which is more robust to objective
+functions with multiple optima.
 }
 \section{Methods (by class)}{
 \itemize{
 \item \code{mp_optimize(TMBCalibrator)}: Optimize a TMB calibrator.
 
 }}
+\section{Details on Using Each Type of Optimizer}{
+\subsection{\code{nlminb}}{
+
+The default optimizer is \code{\link{nlminb}}. This optimizer uses
+gradients computed by the
+\href{https://kaskr.github.io/adcomp/_book/Introduction.html}{Template Model Builder}
+engine of \code{macpan2}. This optimizer is efficient at local optimization
+by exploiting the gradient information computed by automatic differentiation.
+However, like many nonlinear optimizers, it can struggle if the objective function has multiple optima.
+
+To set control parameters (e.g., maximum number of iterations), you
+can use the \code{control} argument:
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{mp_optimize(model, "nlminb", control = list(iter.max = 800))
+}\if{html}{\out{</div>}}
+
+See the \code{\link{nlminb}} help page for the complete list of
+control parameters and what the output means.
+}
+
+\subsection{\code{optim}}{
+
+The \code{\link{optim}} optimizer lets you choose from a variety
+of optimization algorithms. The default, \code{method = "Nelder-Mead"},
+does not use second derivatives
+(compare with the description of \code{\link{nlminb}}), and so
+could be less efficient at taking each step. However, we
+find that it can be somewhat better at getting out of local optima,
+although the \code{"DEoptim"} optimizer is designed for objective functions
+with multiple optima (see description below).
+
+To set control parameters (e.g., maximum number of iterations), one
+may use the following.
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{mp_optimize(model, "nlminb", control = list(maxit = 800))
+}\if{html}{\out{</div>}}
+
+See the \code{\link{optim}} help page for the complete list of
+control parameters and what the output means.
+
+If your model is parameterized by only a single parameter,
+you'll get a warning asking you to use 'method = "Brent"' or optimizer = 'optimize()'.
+You can ignore this warning if you are happy with your
+answer, or can do either of the suggested options as follows.
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{mp_optimize(model, "optim", method = "Brent", lower = 0, upper = 1.2)
+mp_optimize(model, "optimize", interval = c(0, 1.2))
+}\if{html}{\out{</div>}}
+
+In this case you have to specify lower and upper bounds for the optimization.
+}
+
+\subsection{\code{DEoptim}}{
+
+The \code{DEoptim} optimizer comes from the \code{DEoptim} package;
+you'll need to have that package installed to use this option.
+It is designed for objective functions with multiple optima. Use
+this method if you do not believe the fit you get by other methods.
+The downsides of this method are that it doesn't use gradient
+information and evaluates the objective function at many different
+points, so is likely to be much slower than gradient-based optimizers
+such as the default \code{nlminb} optimizer, or \code{optim} with \code{method = "BFGS"}.
+
+Because this optimizer starts from multiple points in the parameter
+space, you need to specify lower and upper bounds for each parameter
+in the parameter vector.
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{mp_optimize(model, "DEoptim", lower = c(0, 0), upper = c(1.2, 1.2))
+}\if{html}{\out{</div>}}
+
+In this example we have two parameters, and therefore need
+to specify two values each for \code{lower} and \code{upper}
+}
+
+\subsection{\code{optimize} and \code{optimise}}{
+
+This optimizer can only be used for models parameterized with a single
+parameter. You need to specify lower and upper bounds, e.g.
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{mp_optimize(model, "optimize", c(0, 1.2))
+}\if{html}{\out{</div>}}
+}
+}
+
+\examples{
+spec = ("starter_models"
+  |> mp_tmb_library("seir", package = "macpan2")
+  |> mp_tmb_update(default = list(beta = 0.6))
+)
+sim = mp_simulator(spec, 50, "infection")
+
+## simulate data to fit to, but remove the start of the
+## simulated epidemic in order to make it more difficult
+## to fit.
+data = mp_trajectory(sim)
+data = data[data$time > 24, ]
+data$time = data$time - 24
+
+## time scale object that accounts for the true starting time
+## of the epidemic (in this example we are not trying to estimate
+## the initial number infected, so the starting time strongly
+## affects the fitting procedure)
+time = mp_sim_offset(24, 0, "steps")
+
+## model calibrator, estimating only the transmission parameter
+cal = mp_tmb_calibrator(spec
+  , data = data
+  , traj = "infection"
+  , par = "beta"
+  , default = list(beta = 1)
+  , time = time
+)
+
+## From the starting point at beta = 1 this takes us into a
+## local optimum at beta = 0.13, far from the true value of beta = 0.6.
+mp_optimize(cal)
+
+## In this case, one-dimensional optimization finds the true value.
+mp_optimize(cal, "optimize", c(0, 1.2))
+
+}

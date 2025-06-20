@@ -1,6 +1,6 @@
 Package: macpan2
 Title: Fast and Flexible Compartmental Modelling
-Version: 1.12.0
+Version: 2.4.1
 Authors@R: c(
   person("Steve Walker", email="swalk@mcmaster.ca", role=c("cre", "aut")),
   person("Weiguang Guan", role="aut"),
@@ -8,22 +8,21 @@ Authors@R: c(
   person("Ben Bolker", role="aut"),
   person("Darren Flynn-Primrose", role="aut"),
   person("Irena Papst", role="ctb"),
-  person("Michael Li", role="ctb")
-  )
+  person("Michael Li", role="ctb"),
+  person("Kevin Zhao", role="ctb"))
 Description: Fast and flexible compartmental modelling with Template Model Builder.
 License: GPL-3
 Depends:
     R (>= 4.1.0)
 Imports: 
     TMB (>= 1.9.0),
-    Matrix,
     oor,
-    jsonlite,
     MASS,
     memoise,
     stats,
     utils
 Suggests: 
+    jsonlite,
     covr,
     knitr,
     rmarkdown,
@@ -32,25 +31,37 @@ Suggests:
     ggplot2,
     cowplot,
     lubridate,
+    stringr,
     testthat (>= 3.0.0),
     htmltools,
     visNetwork,
-    macpan2helpers,
     kableExtra,
     broom.mixed,
+    DEoptim,
     outbreaks,
     tmbstan,
     numDeriv,
     parallel,
-    iidda.api
+    macpan2helpers,
+    iidda.api,
+    graph,
+    Rgraphviz,
+    Rcpp,
+    deSolve
 LinkingTo:
     TMB,
-    RcppEigen
+    RcppEigen,
+    Rcpp
 VignetteBuilder: 
     knitr
 BugReports: https://github.com/canmod/macpan2/issues
 Additional_repositories: https://canmod.r-universe.dev
+Remotes:
+    canmod/oor,
+    canmod/macpan2helpers,
+    iidda.api=canmod/iidda-tools/R/iidda.api
 Config/testthat/edition: 3
+Config/Needs/website: canmod/macpan2
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)

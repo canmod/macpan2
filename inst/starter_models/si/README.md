@@ -2,12 +2,13 @@ Basic SI
 ================
 Jennifer Freeman
 
-- [States](#states)
-- [Parameters](#parameters)
-- [Dynamics](#dynamics)
-- [Model Specification](#model-specification)
-- [Simulation](#simulation)
-- [References](#references)
+-   <a href="#states" id="toc-states">States</a>
+-   <a href="#parameters" id="toc-parameters">Parameters</a>
+-   <a href="#dynamics" id="toc-dynamics">Dynamics</a>
+-   <a href="#model-specification" id="toc-model-specification">Model
+    Specification</a>
+-   <a href="#simulation" id="toc-simulation">Simulation</a>
+-   <a href="#references" id="toc-references">References</a>
 
 This is the simplest possible epidemic model ([Earn
 2008](#ref-earn2008light)).
@@ -66,13 +67,14 @@ specs = mp_tmb_library("starter_models"
   , package = "macpan2"
   , alternative_specs = TRUE
 )
+set.seed(1)
 (specs
   |> lapply(mp_simulator, 50L, "I")
   |> lapply(mp_trajectory)
   |> bind_rows(.id = "integrator")
-  |> rename(prevalance = value)
+  |> rename(prevalence = value)
   |> ggplot()
-  + geom_line(aes(time, prevalance, colour = integrator))
+  + geom_line(aes(time, prevalence, colour = integrator))
   + theme_bw()
 )
 ```

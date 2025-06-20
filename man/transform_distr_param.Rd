@@ -5,27 +5,32 @@
 \alias{transform_distr_param}
 \alias{mp_identity}
 \alias{mp_log}
+\alias{mp_log1p}
 \alias{mp_logit}
 \alias{mp_sqrt}
-\title{Distributional Parameter Transformation}
+\title{Link Functions and Transformation}
 \usage{
 mp_identity
 
 mp_log
+
+mp_log1p
 
 mp_logit
 
 mp_sqrt
 }
 \description{
-Objects used
-
 \itemize{
 \item \code{mp_identity} - Identity transformation
 }
 
 \itemize{
 \item \code{mp_log} - Log transformation
+}
+
+\itemize{
+\item \code{mp_log1p} - Log1p transformation (i.e., \code{log(1 + x)})
 }
 
 \itemize{

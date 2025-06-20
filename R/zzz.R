@@ -1,16 +1,27 @@
+#' @importFrom tools R_user_dir
 .onLoad <- function(lib, pkg) {
+  
+  default = dirname(bail_out_log_file)
+  if (!dir.exists(default)) {
+    dir.create(default, showWarnings = FALSE, recursive = TRUE)
+  }
+  
+  ## document these in vignettes/options.Rmd
   options(
       macpan2_dll = "macpan2"
     , macpan2_verbose = TRUE
     , macpan2_default_loss = c("clamped_poisson", "poisson", "sum_of_squares", "neg_bin")
-    , macpan2_tmb_type = "ADFun"
+    , macpan2_tmb_type = NULL
     , macpan2_tmb_check = TRUE
-      ## FIXME: macpan2_vec_by is old and not relevant i think
+    , macpan2_saving_conflict_msg_fn = base::message
+    , macpan2_traj_tmb_macro = c("simulate", "report")
+      
+    ## FIXME: macpan2_vec_by is old and not relevant i think
     , macpan2_vec_by = c("state", "flow_rates", "trans_rates") |> self_named_vector()
-    #, macpan2_memoise = TRUE
     
-    # where the log files go (e.g. `.macpan2/default`)
+    # where the log files go (e.g. `{macpan2_log_dir}/{macpan2_session_name}/log.txt`)
     , macpan2_session_name = "default"
+    , macpan2_log_dir = tools::R_user_dir("macpan2")
     
     # tolerances
     , macpan2_tol_hazard_div = 1e-8
@@ -27,7 +38,9 @@
     
     # functions that cannot be called repeatedly 
     # _within_ a single time-step (as would
-    # happen for example with RK4 state updates)
+    # happen for example with RK4 state updates).
+    # randomness and time-variation are the only
+    # examples we have now.
     , macpan2_non_iterable_funcs = c(
           "time_var"
         , "rbinom"
