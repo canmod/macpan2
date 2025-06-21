@@ -21,7 +21,7 @@ get_param_id_util = function(model, param) {
 
 #' TMB Likelihood Profiling
 #' 
-#' Use \code{\link{TMB::tmbprofile}} to compute the profile likelihood
+#' Use \code{TMB::tmbprofile} to compute the profile likelihood
 #' of a calibrator produced using \code{\link{mp_tmb_calibrator}}.
 #' 
 #' @param model A TMB model probably produced using
@@ -31,7 +31,7 @@ get_param_id_util = function(model, param) {
 #' `model`.
 #' @param ... Arguments to pass to \code{TMB::tmbprofile}.
 #' 
-#' @return The output of \code{\link{TMB::tmbprofile}}.
+#' @return The output of \code{TMB::tmbprofile}.
 #' @export
 mp_tmb_profile = function(model, param, ...) UseMethod("mp_tmb_profile")
 

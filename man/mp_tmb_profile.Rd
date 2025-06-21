@@ -17,9 +17,9 @@ argument of the call to \code{\link{mp_tmb_calibrator}} used to create
 \item{...}{Arguments to pass to \code{TMB::tmbprofile}.}
 }
 \value{
-The output of \code{\link{TMB::tmbprofile}}.
+The output of \code{TMB::tmbprofile}.
 }
 \description{
-Use \code{\link{TMB::tmbprofile}} to compute the profile likelihood
+Use \code{TMB::tmbprofile} to compute the profile likelihood
 of a calibrator produced using \code{\link{mp_tmb_calibrator}}.
 }
