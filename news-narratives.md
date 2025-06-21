@@ -1,8 +1,23 @@
+## 2.4.1
+
+### Bug Fixes
+
+* [#326](https://github.com/canmod/macpan2/issues/326)
+
+## 2.4.0
+
+### Bug Fixes
+
+* [#263](https://github.com/canmod/macpan2/issues/263)
+* [#332](https://github.com/canmod/macpan2/issues/332)
+* [#333](https://github.com/canmod/macpan2/issues/333)
+
 ## 2.3.4
 
 ### Bug Fixes
 
 * Default clamping parameters now ensure that the `clamp` engine function is twice-differentiable.
+* Minor enhancements to the docs and handling of [mp_version_update](https://canmod.github.io/macpan2/reference/mp_version_update.html) and [mp_read_rds](https://canmod.github.io/macpan2/reference/mp_read_rds.html).
 
 ## 2.3.3
 

@@ -564,7 +564,10 @@ resolve_phases = function(include_initial) {
 #' @export
 mp_trajectory.TMBSimulator = function(model, include_initial = FALSE) {
   phases = resolve_phases(include_initial)
-  model$report(.phases = phases) |> reset_rownames()
+  macro = getOption("macpan2_traj_tmb_macro") |> as.character()
+  if (length(macro) > 1L) macro = macro[[1L]]
+  if (length(macro) < 1L) macro = "simulate"
+  model[[macro]](.phases = phases) |> reset_rownames()
 }
 
 #' @export

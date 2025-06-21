@@ -40,6 +40,8 @@ Agency of Canada](https://www.canada.ca/en/public-health.html) uses
     guide](https://canmod.github.io/macpan2/articles/quickstart)
 -   [Articles describing the
     package](https://canmod.github.io/macpan2/articles)
+-   [Frequently asked
+    questions](https://canmod.github.io/macpan2/articles/FAQs)
 -   [`TMB` engine](https://canmod.github.io/macpan2/articles/cpp_side)
     \[specification document\]
 -   [Project history and trajectory](https://canmod.net/misc/pyRC)
@@ -49,25 +51,42 @@ Agency of Canada](https://www.canada.ca/en/public-health.html) uses
 
 ## Installation
 
-The standard recommended way to install `macpan2` is with the following
-command.
+Here is the recommended way to install `macpan2` (from within an R
+session):
 
-    repos = c('https://canmod.r-universe.dev', 'https://cloud.r-project.org')
-    install.packages('macpan2', repos = repos)
-
-Many workflows with `macpan2` also make use of four widely used
-packages, which you can install with the following command.
-
-    install.packages(c("dplyr", "ggplot2", "tidyr", "broom.mixed"))
+``` r
+repos = c('https://canmod.r-universe.dev', 'https://cloud.r-project.org')
+install.packages('macpan2', repos = repos)
+```
 
 To get the latest development version of `macpan2`, or if the above
-command fails for some reason, an alternative command to install is the
-following.
+command fails for some reason, try:
 
-    remotes::install_github("canmod/macpan2")
+``` r
+remotes::install_github("canmod/macpan2")
+```
 
-This command requires the `remotes` package and assumes that your `R`
-environment is set up to compile `C++` code contained in packages.
+This command requires the `remotes` package and assumes that your R
+environment is set up to build packages that include compiled C++ code
+(e.g. see details for
+[Windows](https://cran.r-project.org/bin/windows/base/howto-R-devel.html)
+or [MacOS](https://mac.r-project.org/tools/) \[you probably only need
+Xcode from this page\]).
+
+Many `macpan2` workflows also use these four popular packages:
+
+``` r
+install.packages(c("dplyr", "ggplot2", "tidyr", "broom.mixed"))
+```
+
+The `Rgraphviz` package is useful for plotting flow diagrams of models
+(see `?dot_layout`). To install it:
+
+``` r
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("Rgraphviz")
+```
 
 ## Reproducibility
 

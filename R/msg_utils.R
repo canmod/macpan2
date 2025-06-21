@@ -2,7 +2,12 @@
 # replaced. the usage is mp_wrap("this is a message") |> error().
 # the error() can be replaced with warning() or message().
 # https://stackoverflow.com/questions/45693010/how-do-you-format-multiline-r-package-messages
-mp_wrap = function(...) c(...)  |> strwrap(prefix = "\n", initial = "")
+mp_wrap = function(...) {
+  (c(...) 
+    |> strwrap(prefix = "\n", initial = "")
+    |> append("\n\n", after = 0)
+  )
+}
 
 msg <- function(..., .sep = "", .max_char_limit = getOption("width")) {
   input_string = (list(...)

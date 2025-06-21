@@ -1,6 +1,7 @@
 test_that("matrices used in functions that need matrix simulation history are automatically saved at model specification step", {
   
   set.seed(1L)
+  options(macpan2_traj_tmb_macro = "report")
   during = list(A ~ alpha * rpois(time_step(0)), B ~ convolution(A,kernel))
   after = list(C ~ rbind_time(B,t))
   default = list(kernel = c(0.5,0.3,0.2), alpha = 0.2)
