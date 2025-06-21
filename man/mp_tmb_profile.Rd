@@ -14,7 +14,7 @@ mp_tmb_profile(model, param, ...)
 argument of the call to \code{\link{mp_tmb_calibrator}} used to create
 \code{model}.}
 
-\item{...}{Arguments to pass to \code{\link{TMB::tmbprofile}}.}
+\item{...}{Arguments to pass to \code{TMB::tmbprofile}.}
 }
 \value{
 The output of \code{\link{TMB::tmbprofile}}.
