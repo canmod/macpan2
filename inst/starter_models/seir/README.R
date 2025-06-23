@@ -28,7 +28,7 @@ spec = mp_tmb_library(
 )
 
 
-## ----diagram, echo = FALSE, fig.height = 1.5, fig.width = 7-------------------
+## ----diagram, echo = FALSE, fig.height = 1, fig.width = 7---------------------
 system.file("utils", "box-drawing.R", package = "macpan2") |> source()
 layout = mp_layout_paths(spec)
 p = plot_flow_diagram(layout, show_flow_rates = TRUE)

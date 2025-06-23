@@ -75,12 +75,6 @@ obs_data = (covid_on
 )
 
 
-## ----time_bounds--------------------------------------------------------------
-burn_in_period  = 15 ## number of days before the data start to begin the simulations
-forecast_period = 30 ## number of days after the data end to make forecasts
-time_bounds = mp_sim_offset(burn_in_period, forecast_period, "daily")
-
-
 ## ----cal_spec_update----------------------------------------------------------
 focal_model = (
   # waste water model with hazard correction
@@ -128,7 +122,7 @@ focal_model = (
      , report_prob_name = "report_prob"
   )
 
-  # add time-varying transmission
+  # decompose beta for time-varying transmission
   |> mp_tmb_insert(phase = "during"
      , at = 1L
      , expressions = list(beta ~ beta0 * beta1 * beta2)
@@ -142,6 +136,9 @@ focal_model = (
      , default  = list(beta_changes      = c(1))
      , integers = list(beta_changepoints = c(0))
   )
+  
+  # log transform W
+  |> mp_tmb_insert_trans("W", mp_log)
 )
 
 
@@ -181,14 +178,14 @@ focal_calib = mp_tmb_calibrator(
     # return these trajectories so that they can be
     # explored after fitting
   , outputs = c(
-        "reported_incidence", "W", "beta"
-      , "prevalence", "incidence", "S"
+        "reported_incidence", "beta"
+      , "prevalence", "incidence", "S", "log_W"
     )
   
     # update defaults with macpan1.5 wastewater model defaults
   , default = macpan1.5_defaults
   
-  , time = time_bounds
+  , time = mp_sim_offset(15, 0, "daily")
 )
 # converges
 mp_optimize(focal_calib)
@@ -201,17 +198,6 @@ print(fitted_coefs)
 
 
 ## ----plot_fits----------------------------------------------------------------
-macpan1.5_fit = (macpan1.5$sim
-  |> group_by(Date, state)
-  # summarize to ignore vaccination status
-  |> summarise(value = sum(value))
-  |> ungroup()
-  |> rename(time = Date, matrix = state)
-  |> filter(matrix %in% c("conv", "W"))
-  |> filter(!is.na(value))
-  |> mutate(matrix = ifelse(matrix == "conv", "reported_incidence", matrix))
-)
-
 plot_fit = function(obs_data, sim_data, ncol = 1L) {
   (ggplot(obs_data, aes(time, value))
    + geom_point()

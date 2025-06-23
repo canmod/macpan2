@@ -282,6 +282,95 @@ mp_tmb_insert_reports = function(model
   )
 }
 
+#' Insert GLM Time Variation
+#' 
+#' @param model A model specification (see \code{\link{mp_tmb_model_spec}}).
+#' @param parameter_name Character string giving the name of the parameter
+#' to make time-varying.
+#' @param design_matrix Matrix of time variation.
+#' @param timevar_coef Initial coefficient vector.
+#' @param link_function Link function given by functions like
+#' \code{\link{mp_log}}.
+#' @param matrix_coef_name Name of the vector containing values of the non-zero 
+#' elements of the design matrix.
+#' @param matrix_row_name Name of the vector containing row indices of
+#' the non-zero elements of the design matrix.
+#' @param matrix_col_name Name of the vector containing column indices of
+#' the non-zero elements of the design matrix.
+#' @param linear_pred_name Name of the vector containing the linear 
+#' predictor.
+#' @param timeseries_name Name of the vector containing the time-series
+#' of the varying parameter.
+#' @param timevar_coef_name Name of the vector containing the time-varying
+#' parameter coefficients.
+#' @param time_index_name Name of the index at which the time varying
+#' parameter changes.
+#' @param sparsity_tolerance Make design matrix coefficients exactly zero
+#' when they are below this tolerance.
+#' 
+#' @export
+mp_tmb_insert_glm_timevar = function(model
+    , parameter_name
+    , design_matrix
+    , timevar_coef
+    , link_function = mp_log
+    , matrix_coef_name = sprintf("matrix_coef_%s", parameter_name)
+    , matrix_row_name = sprintf("matrix_row_%s", parameter_name)
+    , matrix_col_name = sprintf("matrix_col_%s", parameter_name)
+    , linear_pred_name = sprintf("linear_pred_%s", parameter_name)
+    , timeseries_name = sprintf("timeseries_%s", parameter_name)
+    , timevar_coef_name = sprintf("time_var_%s", parameter_name)
+    , time_index_name = sprintf("time_index_%s", parameter_name)
+    , sparsity_tolerance = 0
+) {
+  sparse_matrix = sparse_matrix_notation(design_matrix, tol = sparsity_tolerance)
+  
+  matrix_coefs = sparse_matrix$values
+  matrix_row = sparse_matrix$row_index
+  matrix_col = sparse_matrix$col_index
+  linear_pred = timeseries = numeric(nrow(design_matrix))
+  
+  time_var = list(timevar_coef) |> setNames(timevar_coef_name)
+  time_index = seq_along(linear_pred)
+  
+  default = setNames(
+      list(matrix_coefs, linear_pred, timevar_coef, timeseries)
+    , c(matrix_coef_name, linear_pred_name, timevar_coef_name, timeseries_name)
+  )
+  integers = setNames(
+      list(matrix_row, matrix_col, time_index)
+    , c(matrix_row_name, matrix_col_name, time_index_name)
+  )
+  
+  matmult = sprintf("%s ~ %s + group_sums(%s * %s[%s], %s, %s)"
+    , linear_pred_name, link_function$ref(parameter_name)
+    , matrix_coef_name, timevar_coef_name
+    , matrix_col_name, matrix_row_name, linear_pred_name
+  ) |> as.formula()
+  linkfn = sprintf("%s ~ %s"
+    , timeseries_name
+    , link_function$ref_inv(linear_pred_name)
+  ) |> as.formula()
+  getpar = sprintf("%s ~ time_var(%s, %s)"
+    , parameter_name
+    , timeseries_name
+    , time_index_name
+  ) |> as.formula()
+  
+  
+  model = mp_tmb_insert(model
+    , phase = "before", at = Inf
+    , expressions = list(matmult, linkfn)
+    , default = default
+    , integers = integers
+  )
+  model = mp_tmb_insert(model
+    , phase = "during", at = 1L
+    , expressions = list(getpar)
+  )
+  return(model)
+}
+
 #' Insert Log Linear Model of Time Variation (Experimental)
 #' 
 #' @param model A model specification (see \code{\link{mp_tmb_model_spec}}).
