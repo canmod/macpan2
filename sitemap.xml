@@ -102,12 +102,14 @@
 <url><loc>https://canmod.github.io/macpan2/reference/mp_tmb_fixef_cov.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_tmb_insert.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_tmb_insert_backtrans.html</loc></url>
+<url><loc>https://canmod.github.io/macpan2/reference/mp_tmb_insert_glm_timevar.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_tmb_insert_log_linear.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_tmb_insert_reports.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_tmb_insert_trans.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_tmb_library.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_tmb_model_spec.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_tmb_objective.html</loc></url>
+<url><loc>https://canmod.github.io/macpan2/reference/mp_tmb_profile.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_tmbstan_coef.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_traj.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_trajectory.html</loc></url>
