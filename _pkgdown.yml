@@ -150,6 +150,7 @@ reference:
   - mp_effects_descr
   - mp_tmb_fixef_cov
   - mp_tmbstan_coef
+  - mp_tmb_profile
   - mp_forecaster
 
 - subtitle: Generate Fitted Parameter Tables
