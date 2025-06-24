@@ -188,10 +188,10 @@ basis.</p></li>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># vaccination </span></span></span>
 <span class="r-in"><span><span class="co"># https://github.com/canmod/macpan2/blob/main/inst/starter_models/shiver</span></span></span>
-<span class="r-in"><span><span class="fu">mp_per_capita_flow</span><span class="op">(</span><span class="st">"S"</span>, <span class="st">"V"</span>, <span class="st">"((a * S)/(b + S))/S"</span>,  <span class="st">"vaccination"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">mp_per_capita_flow</span><span class="op">(</span><span class="st">"S"</span>, <span class="st">"V"</span>, <span class="st">"(vrate * S/(vrate + S))/S"</span>, <span class="st">"vaccination"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> From: S</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> To: V</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Per-capita rate expression: ((a * S)/(b + S))/S</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Per-capita rate expression: (vrate * S/(vrate + S))/S</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Absolute rate symbol: vaccination</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># importation</span></span></span>
