@@ -3,7 +3,7 @@
 In-Progress
 
 [source](https://github.com/canmod/macpan2)
- | [change list](https://github.com/canmod/macpan2/compare/f39d85eeefe539c9d971b9d28bd028411bb9957e..3ee5a634dca07c96a2b1526c32de887a3a3b3a8b)
+ | [change list](https://github.com/canmod/macpan2/compare/f39d85eeefe539c9d971b9d28bd028411bb9957e..0dc142a1ae258569581e23fb2064f08b16bb8cba)
 
 ## Changes in 2.4.1
 
