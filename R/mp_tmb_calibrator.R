@@ -459,8 +459,8 @@ mp_optimize.TMBCalibrator = function(model
 TMBCalDataStruc = function(data, time) {
   self = Base()
 
-  # ## infer if the time field in the data
-  # ## is measured in time-steps
+  ## infer if the time field in the data
+  ## is measured in time-steps
   infer_time_step = function(x) {
     y = is.numeric(x)
     if (y) return(TRUE)
@@ -500,15 +500,13 @@ TMBCalDataStruc = function(data, time) {
     if (is.null(time)) {
       time = mp_sim_bounds(1L, 1L, "steps")
     }
-  } else {
-    if (is.null(time)) {
-      if (infer_time_step(data$time)) {
-        data$time = as.integer(data$time)
-        time = mp_sim_bounds(min(data$time), max(data$time), "steps")
-      } else {
-        data$time = as.Date(data$time)
-        time = mp_sim_bounds(min(data$time), max(data$time), "daily")
-      }
+  } else if (is.null(time)) {
+    if (infer_time_step(data$time)) {
+      data$time = as.integer(data$time)
+      time = mp_sim_bounds(min(data$time), max(data$time), "steps")
+    } else {
+      data$time = as.Date(data$time)
+      time = mp_sim_bounds(min(data$time), max(data$time), "daily")
     }
   }
   self$time_steps_obj = time$cal_time_steps(data, original_coercer)
