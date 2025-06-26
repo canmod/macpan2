@@ -42,6 +42,7 @@ TMBModelSpec = function(
         self$update_method$before()
       , self$update_method$during()
       , self$update_method$after()
+      , .simulate_exprs = self$sim_exprs
     )
   }
   
