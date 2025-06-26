@@ -3,7 +3,7 @@
 In-Progress
 
 [source](https://github.com/canmod/macpan2)
- | [change list](https://github.com/canmod/macpan2/compare/f39d85eeefe539c9d971b9d28bd028411bb9957e..0dc142a1ae258569581e23fb2064f08b16bb8cba)
+ | [change list](https://github.com/canmod/macpan2/compare/f39d85eeefe539c9d971b9d28bd028411bb9957e..2d87847b3eb52982b0b643df3425af813b802551)
 
 ## Changes in 2.4.1
 
@@ -92,14 +92,9 @@ Released [2025-06-02]
 Released [2025-06-02]
 
 [source](https://github.com/canmod/macpan2/tree/a25df4d0785c3ccf760350895889e4a4ba0f93c1)
- | [change list](https://github.com/canmod/macpan2/compare/654535678ccc17957ce2cb1d6dc791cec248ff4b..a25df4d0785c3ccf760350895889e4a4ba0f93c1)
+ | [change list](https://github.com/canmod/macpan2/compare/75f23ab2e8716d45ae4e343771b3a6196216fd54..a25df4d0785c3ccf760350895889e4a4ba0f93c1)
 
-## Changes in 2.2.1
-
-Released [2025-06-02]
-
-[source](https://github.com/canmod/macpan2/tree/654535678ccc17957ce2cb1d6dc791cec248ff4b)
- | [change list](https://github.com/canmod/macpan2/compare/75f23ab2e8716d45ae4e343771b3a6196216fd54..654535678ccc17957ce2cb1d6dc791cec248ff4b)
+This version patched `2.2.1`, which was released in a broken state.
 
 ### New Features
 

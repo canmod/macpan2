@@ -37,7 +37,9 @@
 
 * Absolute flows in model specifications are no longer experimental.
 
-## 2.2.1
+## 2.2.2
+
+This version patched `2.2.1`, which was released in a broken state.
 
 ### New Features
 
