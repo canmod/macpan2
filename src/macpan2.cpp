@@ -3131,12 +3131,7 @@ public:
                 for (int i = 0; i < rows; i++) {
                     for (int j = 0; j < cols; j++) {
                         if (m.coeff(i, j) < m1.coeff(i, j)) {
-                            //Rcpp::Rcout << "TIME: " << t << std::endl;
-                            //is_finite_mat = GetEarlyStop();
-                            //Rcpp::Rcout << "Early Stop BEFORE SET: " << is_finite_mat << std::endl;
                             SetEarlyStop();
-                            //is_finite_mat = GetEarlyStop();
-                            //Rcpp::Rcout << "Early Stop AFTER SET: " << is_finite_mat << std::endl;
                             return m2; // empty matrix
                         }
                     }
@@ -3830,7 +3825,6 @@ Type objective_function<Type>::operator()()
             Rcpp::Rcout << "Eval expression --- " << i << std::endl;
             Rcpp::Rcout << "expr_num_p_table_rows[i] " << expr_num_p_table_rows[expr_index + i] << std::endl;
 #endif
-            //Rcpp::Rcout << "GetEarlyStop(): " << exprEvaluator.GetEarlyStop() << std::endl;
             if (!exprEvaluator.GetEarlyStop()) {
                 matrix<Type> result;
                 if (expr_sim_block[i] == 1) {
