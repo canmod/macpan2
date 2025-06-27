@@ -1,9 +1,16 @@
-## Changes in 2.5.0
+## Changes in 2.5.1
 
 In-Progress
 
 [source](https://github.com/canmod/macpan2)
- | [change list](https://github.com/canmod/macpan2/compare/f39d85eeefe539c9d971b9d28bd028411bb9957e..2d87847b3eb52982b0b643df3425af813b802551)
+ | [change list](https://github.com/canmod/macpan2/compare/64a2012dd8a22396f2f823fc8b2927960c282231..2a1bfc26f7de719eeeda25fcc4684fdc1dcd70e4)
+
+## Changes in 2.5.0
+
+Released [2025-06-27]
+
+[source](https://github.com/canmod/macpan2/tree/64a2012dd8a22396f2f823fc8b2927960c282231)
+ | [change list](https://github.com/canmod/macpan2/compare/f39d85eeefe539c9d971b9d28bd028411bb9957e..64a2012dd8a22396f2f823fc8b2927960c282231)
 
 ## Changes in 2.4.1
 
