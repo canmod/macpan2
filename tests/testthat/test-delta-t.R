@@ -1,5 +1,7 @@
-# library(macpan2); library(testthat); library(dplyr); library(tidyr); library(ggplot2); library(deSolve)
-# source("tests/testthat/setup.R")
+if (interactive()) {
+  library(macpan2); library(testthat); library(deSolve)
+  source("tests/testthat/setup.R")
+}
 test_that("rk4 time-steps work with the si model", {
   delta_t = 0.1
   time = 50
