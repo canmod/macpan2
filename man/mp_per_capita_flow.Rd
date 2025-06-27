@@ -38,6 +38,9 @@ the per-capita rate of flow from \code{from} to \code{to}.}
 
 \item{abs_rate}{Deprecated synonym for \code{flow_name}. Please use \code{flow_name}
 in all future work.}
+
+\item{rate_name}{Deprecated synonym for \code{flow_name} when using
+\code{mp_absolute_flow}. Please use \code{flow_name} in all future work.}
 }
 \description{
 Specify different kinds of flows into, out of, and between compartments.

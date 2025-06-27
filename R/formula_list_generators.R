@@ -1021,6 +1021,8 @@ mp_per_capita_outflow = function(from, rate, flow_name = NULL, abs_rate = NULL) 
 #' @describeIn mp_per_capita_flow Alternative to `mp_per_capita_flow` that
 #' allowing specification of flows using absolute rates instead of per-capita
 #' rates.
+#' @param rate_name Deprecated synonym for `flow_name` when using 
+#' `mp_absolute_flow`. Please use `flow_name` in all future work.
 #' @export
 mp_absolute_flow = function(from, to, rate, flow_name = NULL, rate_name = NULL) {
   call_string = deparse(match.call())
