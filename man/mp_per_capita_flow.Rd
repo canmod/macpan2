@@ -109,7 +109,7 @@ mp_per_capita_outflow("R", "mu", "death_R")
 
 # vaccination 
 # https://github.com/canmod/macpan2/blob/main/inst/starter_models/shiver
-mp_per_capita_flow("S", "V", "((a * S)/(b + S))/S",  "vaccination")
+mp_per_capita_flow("S", "V", "(vrate * S/(vrate + S))/S", "vaccination")
 
 # importation
 mp_inflow("I", "delta", "importation")

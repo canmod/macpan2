@@ -60,6 +60,7 @@ reference:
   - mp_tmb_insert
   - mp_tmb_insert_reports
   - mp_tmb_insert_log_linear
+  - mp_tmb_insert_glm_timevar
   - mp_tmb_insert_trans
   - mp_tmb_insert_backtrans
   - mp_euler
@@ -149,6 +150,7 @@ reference:
   - mp_effects_descr
   - mp_tmb_fixef_cov
   - mp_tmbstan_coef
+  - mp_tmb_profile
   - mp_forecaster
 
 - subtitle: Generate Fitted Parameter Tables

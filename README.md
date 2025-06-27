@@ -14,6 +14,15 @@ coverage](https://byob.yarr.is/canmod/macpan2/coverage)](https://github.com/canm
 activity](https://img.shields.io/github/commit-activity/m/canmod/macpan2)](https://github.com/canmod/macpan2/commits)
 [![contributors](https://img.shields.io/github/contributors/canmod/macpan2)](https://github.com/canmod/macpan2/graphs/contributors)
 
+`macpan2` is a software platform for building and calibrating
+compartmental models of infectious disease. It supports flexible model
+specification and fast parameter calibration, making it easier for
+modellers to respond to emerging public health threats. Developed
+through collaboration with the [Public Health Agency of
+Canada](https://www.canada.ca/en/public-health.html), `macpan2` is being
+used to support responses to diseases such as mpox, measles, and
+COVID-19, and to assist with pandemic preparedness.
+
 [McMasterPandemic](https://github.com/mac-theobio/McMasterPandemic) was
 developed to provide forecasts and insights to Canadian public health
 agencies throughout the COVID-19 pandemic. [Much was
