@@ -13,6 +13,8 @@ Developers can see [here](https://canmod.github.io/macpan2/articles/index.html#d
 - [Adding Engine Functions](#adding-engine-functions)
 - [Developer Installation on Windows](#developer-installation-on-windows)
 - [Test Suite](#test-suite)
+- [Changelog Management](#changelog-management)
+- [Log Files](#log-files)
 
 
 ## Developer Installation
