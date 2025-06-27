@@ -481,7 +481,9 @@ TMBCalDataStruc = function(data, time) {
                col = c("col", "Col", "column", "Column"),
                value = c("value", "Value", "val", "Val", "default", "Default"))
   data = do.call(rename_synonyms, c(list(data), syns))
-  for (m in names(syns)) {
+
+  ## check presence (row/col not required?)
+  for (m in setdiff(names(syns), c("row", "col"))) {
     if (is.null(data[[m]])) {
       stop(
         "Supplied data did not contain a column called '", m, "' ",
