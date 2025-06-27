@@ -476,14 +476,11 @@ TMBCalDataStruc = function(data, time) {
                         "date", "Date",
                         "time_step", "timeStep", "TimeStep"),
                matrix = c("matrix", "Matrix", "mat", "Mat",
-                          "variable", "var", "Variable", "Var"))
-  data = rename_synonyms(data
-    , time = syns$time
-    , matrix = syns$matrix
-    , row = c("row", "Row")
-    , col = c("col", "Col", "column", "Column")
-    , value = c("value", "Value", "val", "Val", "default", "Default")
-  )
+                          "variable", "var", "Variable", "Var"),
+               row = c("row", "Row"),
+               col = c("col", "Col", "column", "Column"),
+               value = c("value", "Value", "val", "Val", "default", "Default"))
+  data = do.call(rename_synonyms, c(list(data), syns))
   for (m in names(syns)) {
     if (is.null(data[[m]])) {
       stop(
