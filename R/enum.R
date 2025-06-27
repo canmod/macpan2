@@ -59,6 +59,7 @@ valid_func_sigs = c(
       , "fwrap: pnorm(q, mean, sd)"
       , "fwrap: invlogit(x)"
       , "fwrap: logit(x)"
+      , "fwrap: stop_if_lt(x, y)"
       , "fwrap: assign(x, i, j, v)"
       , "fwrap: unpack(x, ...)"
 )
