@@ -1261,9 +1261,23 @@ TMBTraj.character = function(
   ## Depended upon to create a character vector of output variables to fit to
   self$outputs = function() names(self$list)
   
+  # ff = function(dat) {
+  #   xx = split(dat, dat$row)
+  #   time_ids = lapply(xx, getElement, "time_ids")
+  #   row = lapply(xx, getElement, "row") |> lapply(unique)
+  #   if (!all(vapply(row, length, integer(1L)) == 1L)) {
+  #     stop("Ca")
+  #   }
+  #   if (any())
+  #   list(time_ids, row)
+  # }
+  
   ## implemented methods
   self$obs = function() lapply(self$list, getElement, "value")
-  self$obs_times = function() lapply(self$list, getElement, "time_ids")
+  self$obs_times = function() {
+    #split(traj$list$infection, traj$list$infection$row)
+    lapply(self$list, getElement, "time_ids")
+  }
   self$distr_params = function() {
     switch(
         getOption("macpan2_default_loss")[1L]
