@@ -152,7 +152,6 @@ mp_simulator.TMBParameterizedModelSpec = function(model
 #'
 #' @useDynLib macpan2
 #' @importFrom TMB MakeADFun
-#' @importFrom utils packageVersion
 #' @noRd
 TMBModel = function(
       init_mats = MatsList()
@@ -167,7 +166,7 @@ TMBModel = function(
   ) {
   
   self = Base()
-  self$macpan2_version = packageVersion("macpan2")
+  self$macpan2_version = get_pkg_ver("macpan2")
   
   ## Args
   self$expr_list = expr_list
@@ -921,7 +920,7 @@ labels.LabelsScripts = function(object, ...) {
 
 TMBSimulationUtils = function() {
   self = Base()
-  self$macpan2_version = packageVersion("macpan2")
+  self$macpan2_version = get_pkg_ver("macpan2")
   
   self$.simulation_formatter = function(r, .phases) {
     ## get raw simulation output from TMB and supply 
