@@ -135,8 +135,9 @@ enum macpan2_func
     , MP2_PNORM = 57 // fwrap: pnorm(q, mean, sd)
     , MP2_INVLOGIT = 58 // fwrap: invlogit(x)
     , MP2_LOGIT = 59 // fwrap: logit(x)
-    , MP2_ASSIGN = 60 // fwrap: assign(x, i, j, v)
-    , MP2_UNPACK = 61 // fwrap: unpack(x, ...)
+    , MP2_CUMSUM = 60 // fwrap: cumsum(x)
+    , MP2_ASSIGN = 61 // fwrap: assign(x, i, j, v)
+    , MP2_UNPACK = 62 // fwrap: unpack(x, ...)
 };
 
 enum macpan2_meth
@@ -1959,13 +1960,41 @@ public:
             // #' ```
             // #'
 
+            // #' ## Sweeping Matrix Elements
+            // #'
+            // #' ### Functions
+            // #'
+            // #' * `cumsum(x)` : Return a matrix with columns containing the
+            // #' cumulative sum of the columns in `x`.
+            // #'
+            // #' ### Arguments
+            // #'
+            // #' * `x` : A matrix.
+            // #'
+            // #' ### Return
+            // #' 
+            // #' A matrix the same size as `x` but with columns containing the
+            // #' cumulative sum of the columns in `x`.
+            case MP2_CUMSUM:
+                rows = args.rows(0);
+                cols = args.cols(0);
+                m = matrix<Type>::Zero(rows, cols);
+                m1 = args[0];
+                for (int j = 0; j < cols; j++) {
+                    m.coeffRef(0, j) = m1.coeff(0, j);
+                    for (int i = 1; i < rows; i++) {
+                        m.coeffRef(i, j) = m.coeff(i - 1, j) + m1.coeff(i, j);
+                    }
+                }
+                return m;
+            
             // #' ## Extracting Matrix Elements
             // #'
             // #' ### Functions
             // #'
-            // #' * `x[i,j]` : Matrix containing a subset
+            // #' * `x[i,j]` : Return a matrix containing a subset
             // #' of the rows and columns of `x`.
-            // #' * `block(x,i,j,n,m)` : Matrix containing a
+            // #' * `block(x,i,j,n,m)` : Return a matrix containing a
             // #' contiguous subset of rows and columns of `x`
             // #' \url{https://eigen.tuxfamily.org/dox/group__TutorialBlockOperations.html}.
             // #' * `last(x)` : The last element of a matrix (i.e., the
