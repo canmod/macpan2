@@ -777,10 +777,10 @@ mp_poisson = function(location = mp_distr_param_null("location")
   }
   return_object(self, "DistrSpecPoisson")
 }
-#' @description * Negative Binomial Distribution - `mp_neg_bin` 
+#' @description * Negative Binomial Distribution - `mp_nbinom` 
 #' @name distribution
 #' @export
-mp_neg_bin = function(location = mp_distr_param_null("location")
+mp_nbinom = function(location = mp_distr_param_null("location")
                     , disp
                     , trans_distr_param = list(location = mp_identity, disp = mp_log)) {
   self = DistrSpec(
@@ -808,6 +808,16 @@ mp_neg_bin = function(location = mp_distr_param_null("location")
     )
   }
   return_object(self, "DistrSpecNegBin")
+}
+
+#' @name distribution
+#' @export
+mp_neg_bin <- function(...) {
+  warning(
+      "'mp_neg_bin()' is deprecated. Please use 'mp_nbinom()' instead."
+    , call. = FALSE
+  )
+  eval.parent(substitute(mp_nbinom(...)))
 }
 
 #' Fitting Distributional Parameters
