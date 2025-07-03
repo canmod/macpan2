@@ -403,7 +403,6 @@ mp_initial.TMBCalibrator = function(model) mp_initial(model$simulator)
 mp_initial_list.TMBCalibrator = function(model) mp_initial_list(model$simulator)
 
 spec_initial_util = function(model, simplify_ids = TRUE) {
-  # warning("under construction")
   ## Should this just be whatever the report returns in the before phase?
   ## And in this way be analogous to mp_final?  I think so.
   all_derived_mats_in_before_step = setdiff(
@@ -622,17 +621,30 @@ trajectory_rep_util = function(n, simulator
     , include_initial = FALSE, include_final = FALSE
   ) {
   phases = trajectory_phases_util(include_initial, include_final)
-  vector = trajectory_vec_util(simulator, parameter_updates, value_column_name)
-  replicates = replicate(n
-    , simulator$simulate(vector, .phases = phases)
-    , simplify = FALSE
-  )
+  if (mp_uncertainty_estimated(simulator)) {
+    replicates = (n
+      |> simulator$par_sample()
+      |> apply(1L
+        , simulator$simulate
+        , simplify = FALSE
+      )
+    )
+  } else {
+    vector = trajectory_vec_util(simulator, parameter_updates, value_column_name)
+    replicates = replicate(n
+      , simulator$simulate(vector, .phases = phases)
+      , simplify = FALSE
+    )
+  }
   return(replicates)
 }
 
 # take a simulator and return the parameter vector that can be
 # passed to TMB report and simulate
-trajectory_vec_util = function(simulator, parameter_updates, value_column_name) {
+trajectory_vec_util = function(simulator
+    , parameter_updates
+    , value_column_name
+  ) {
   sc = simulator$current
   frame = bind_rows(sc$params_frame(), sc$random_frame())
   vector = updated_param_vector(parameter_updates
@@ -671,16 +683,6 @@ value_column_calibrator_util = function(baseline, simulator) {
     , default = "default"
     , optimized = "current"
   )
-  # opt_attempted = simulator$optimization_history$opt_attempted()
-  # if ((value_column_name == "current") & !opt_attempted) {
-  #   mp_wrap(
-  #       "The model object has not been optimized, and so the default"
-  #     , "(non-optimized) parameter set will be used as the baseline."
-  #     , "Please either explicitly choose"
-  #     , "to use the default set of parameters as the baseline, or optimize"
-  #     , "the model object using mp_optimize(model, ...)."
-  #   ) |> warning()
-  # }
   return(value_column_name)
 }
 
@@ -828,8 +830,12 @@ mp_trajectory_replicate = function(model, n
     , include_initial = FALSE, include_final = FALSE
     , baseline = c("recommended", "default", "optimized")
   ) {
-  if (!mp_generates_randomness(model)) {
-    warning("Model does not include functions that generate randomness, and so replicate trajectories are not informative.")
+  if (!(mp_generates_randomness(model) | mp_uncertainty_estimated(model))) {
+    warning(
+        "Model neither includes functions that generate randomness "
+      , "nor contains information about parameter uncertainty, "
+      , "and so replicate trajectories are not informative."
+    )
   }
   UseMethod("mp_trajectory_replicate")
 }
@@ -1113,16 +1119,26 @@ TMBSimulator = function(tmb_model
     self$simulate(..., .phases = .phases)$value
   }
   self$par_sample = function(n) {
-    ff = self$par.fixed()
-    cc = self$cov.fixed()
-    if (isFALSE(!any(is.nan(cc)))) {
+    mu = self$par.fixed()
+    Sigma = self$cov.fixed()
+    if (isFALSE(!any(is.nan(Sigma)))) {
       stop(
           "The covariance matrix of the fixed effects has NaNs. "
         , "Perhaps this model has not yet been calibrated or even "
         , "parameterized? Or perhaps the fit is singular?"
       )
     }
-    MASS::mvrnorm(n, ff, cc)
+    sample = MASS::mvrnorm(n = n
+      , mu = mu
+      , Sigma = Sigma
+      , tol = getOption("macpan2_tol_singular_cov")
+    )
+    if (!is.matrix(sample)) {
+      nms = names(sample)
+      sample = matrix(sample, nrow = 1L)
+      colnames(sample) = nms
+    }
+    return(sample)
   }
   self$report_ensemble = function(...
       , .phases = "during"
