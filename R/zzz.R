@@ -25,6 +25,7 @@
     
     # tolerances
     , macpan2_tol_hazard_div = 1e-8
+    , macpan2_tol_singular_cov = 1e-6
     
     # functions that cannot be called unless their 
     # first argument has a saved simulation history

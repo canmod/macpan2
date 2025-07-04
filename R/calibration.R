@@ -200,6 +200,51 @@ TMBOptimizationHistory = function(simulator) {
   return_object(self, "TMBOptimizationHistory")
 }
 
+#' Optimization Attempted
+#' 
+#' Has an attempt been made to calibrate model parameters through optimization
+#' of a likelihood function or posterior density, probably by using 
+#' \code{\link{mp_optimize}}?
+#' 
+#' @param model A model that can be calibrated, probably produced using
+#' \code{\link{mp_tmb_calibrator}}.
+#' 
+#' @return Either `TRUE` or `FALSE`.
+#' @export
+mp_opt_attempted = function(model) UseMethod("mp_opt_attempted")
+
+#' @export
+mp_opt_attempted.TMBSimulator = function(model) {
+  model$optimization_history$opt_attempted()
+}
+
+#' @export
+mp_opt_attempted.TMBCalibrator = function(model) {
+  mp_opt_attempted(model$simulator)
+}
+
+
+#' Uncertainty Estimated
+#' 
+#' Does a model contain estimates of parameter uncertainty, probably
+#' through a covariance matrix estimated using \code{\link{mp_optimize}}?
+#' 
+#' @inheritParams mp_opt_attempted
+#' @return Either `TRUE` or `FALSE`.
+#' @export
+mp_uncertainty_estimated = function(model) {
+  output = FALSE
+  not_singular = Negate(singular)
+  if (mp_opt_attempted(model)) {
+    output = (model
+      |> mp_tmb_fixef_cov() 
+      |> not_singular(tol = getOption("macpan2_tol_singular_cov"))
+    )
+  }
+  return(output)
+}
+
+
 
 # TMBCoef = function(simulator) {
 #   self = Base()

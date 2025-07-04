@@ -7,6 +7,7 @@
 \alias{mp_log_normal}
 \alias{mp_logit_normal}
 \alias{mp_poisson}
+\alias{mp_nbinom}
 \alias{mp_neg_bin}
 \title{Distributions}
 \usage{
@@ -33,6 +34,12 @@ mp_logit_normal(
 mp_poisson(
   location = mp_distr_param_null("location"),
   trans_distr_param = list(location = mp_identity)
+)
+
+mp_nbinom(
+  location = mp_distr_param_null("location"),
+  disp,
+  trans_distr_param = list(location = mp_identity, disp = mp_log)
 )
 
 mp_neg_bin(
@@ -82,7 +89,7 @@ components - \code{mp_uniform}
 }
 
 \itemize{
-\item Negative Binomial Distribution - \code{mp_neg_bin}
+\item Negative Binomial Distribution - \code{mp_nbinom}
 }
 }
 \details{
