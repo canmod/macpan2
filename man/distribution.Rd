@@ -42,7 +42,11 @@ mp_nbinom(
   trans_distr_param = list(location = mp_identity, disp = mp_log)
 )
 
-mp_neg_bin(...)
+mp_neg_bin(
+  location = mp_distr_param_null("location"),
+  disp,
+  trans_distr_param = list(location = mp_identity, disp = mp_log)
+)
 }
 \arguments{
 \item{trans_distr_param}{Named list of transformations for each

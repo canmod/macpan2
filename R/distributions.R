@@ -812,13 +812,18 @@ mp_nbinom = function(location = mp_distr_param_null("location")
 
 #' @name distribution
 #' @export
-mp_neg_bin <- function(...) {
+mp_neg_bin <- function(
+        location = mp_distr_param_null("location")
+      , disp
+      , trans_distr_param = list(location = mp_identity, disp = mp_log
+  )) {
   warning(
       "'mp_neg_bin()' is deprecated. Please use 'mp_nbinom()' instead."
     , call. = FALSE
   )
-  eval.parent(substitute(mp_nbinom(...)))
+  eval.parent(mp_nbinom(location, disp, trans_distr_param))
 }
+
 
 #' Fitting Distributional Parameters
 #' 
