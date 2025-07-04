@@ -1112,18 +1112,25 @@ TMBSimulator = function(tmb_model
   self$simulate_values = function(..., .phases = "during") {
     self$simulate(..., .phases = .phases)$value
   }
+  self$par_sample = function(n) {
+    ff = self$par.fixed()
+    cc = self$cov.fixed()
+    if (isFALSE(!any(is.nan(cc)))) {
+      stop(
+          "The covariance matrix of the fixed effects has NaNs. "
+        , "Perhaps this model has not yet been calibrated or even "
+        , "parameterized? Or perhaps the fit is singular?"
+      )
+    }
+    MASS::mvrnorm(n, ff, cc)
+  }
   self$report_ensemble = function(...
       , .phases = "during"
       , .n = 100
       , .probs = c(0.025, 0.5, 0.975)
     ) {
     r = self$report(..., .phases = .phases)
-    ff = self$par.fixed()
-    cc = self$cov.fixed()
-    if (isFALSE(!any(is.nan(cc)))) {
-      stop("The covariance matrix of the fixed effects has NaNs. Perhaps this model has not yet been calibrated or even parameterized? Or perhaps the fit is singular?")
-    }
-    rr = (MASS::mvrnorm(.n, ff, cc)
+    rr = (self$par_sample(.n)
       |> apply(1, self$report_values, .phases = .phases)
       |> apply(1, quantile, probs = .probs)
       |> t()
