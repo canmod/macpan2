@@ -1,5 +1,3 @@
-library(macpan2); library(testthat); library(dplyr); library(tidyr); library(ggplot2)
-source("tests/testthat/setup.R")
 test_that("distributions give appropriate variable assumption warnings", {
   
   # At this time the only distribution with variable assumptions is the 
