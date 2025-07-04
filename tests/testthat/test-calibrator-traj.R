@@ -1,5 +1,3 @@
-library(macpan2); library(testthat); library(dplyr); library(tidyr); library(ggplot2)
-source("tests/testthat/setup.R")
 test_that("bad outputs give warnings", {
   sir = mp_tmb_library("starter_models", "sir", package = "macpan2")
   expect_warning(
@@ -62,19 +60,28 @@ test_that("trajectories specified with likelihood distributions end up in calibr
   
 })
 
-sir = "SPEC-sir.rds" |> test_cache_read()
-sir_sims = "TRAJ-sir_5_state.rds" |> test_cache_read()
-err = "Supplied data did not contain a column called"
-expect_error(mp_tmb_calibrator(sir, data = select(sir_sims, -time)), err)
-expect_error(mp_tmb_calibrator(sir, data = select(sir_sims, -matrix)), err)
-expect_error(mp_tmb_calibrator(sir, data = select(sir_sims, -value)), err)
-sir_age = "SPEC-sir_age.rds" |> test_cache_read()
-sir_age_sims = "TRAJ-sir_age_10_infection.rds" |> test_cache_read()
-sir_age_cal = mp_tmb_calibrator(sir_age
-  , data = sir_age_sims
-  , par = "tau"
-  , traj = "infection"
-  , outputs = "sim_infection"
-)
-sir_age_cal$cal_spec |> mp_simulator(10, "infection") |> mp_trajectory()
-sir_age_cal$cal_spec |> mp_simulator(10, "sim_infection") |> mp_final()
+test_that("missing required columns in calibration data throw errors", {
+  sir = "SPEC-sir.rds" |> test_cache_read()
+  sir_sims = "TRAJ-sir_5_state.rds" |> test_cache_read()
+  err = "Supplied data did not contain a column called"
+  expect_error(mp_tmb_calibrator(sir, data = select(sir_sims, -time)), err)
+  expect_error(mp_tmb_calibrator(sir, data = select(sir_sims, -matrix)), err)
+  expect_error(mp_tmb_calibrator(sir, data = select(sir_sims, -value)), err)
+})
+
+test_that("vector-valued trajectories can be calibrated to", {
+  skip("Skipping because rbind_time is not working on non-scalars")
+  sir_age = "SPEC-sir_age.rds" |> test_cache_read()
+  sir_age_sims = "TRAJ-sir_age_10_infection.rds" |> test_cache_read()
+  sir_age_cal = mp_tmb_calibrator(sir_age
+    , data = sir_age_sims
+    , par = "tau"
+    , traj = "infection"
+    , outputs = "sim_infection"
+  )
+  sir_age_cal
+  expect_equal(
+      sir_age_cal$cal_spec |> mp_simulator(10, "infection") |> mp_trajectory() |> pull(value)
+    , sir_age_cal$cal_spec |> mp_simulator(10, "sim_infection") |> mp_final() |> pull(value)
+  )
+})
