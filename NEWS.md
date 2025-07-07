@@ -3,7 +3,7 @@
 In-Progress
 
 [source](https://github.com/canmod/macpan2)
- | [change list](https://github.com/canmod/macpan2/compare/2bdcd18ebefc9d6e969376d8181e28de69634321..90a796055ef013a8c2919202523293dfe342f76f)
+ | [change list](https://github.com/canmod/macpan2/compare/64a2012dd8a22396f2f823fc8b2927960c282231..161deaae416c7228aa6c48ef34eeda956d30f595)
 
 ### New Features
 
@@ -11,12 +11,12 @@ In-Progress
 * Warning message when checking for `macpan2` version mismatch when `macpan2` is loaded but not installed.
 
 
-## Changes in 2.5.1
+## Changes in 2.5.0
 
-Released [2025-07-02]
+Released [2025-06-27]
 
-[source](https://github.com/canmod/macpan2/tree/2bdcd18ebefc9d6e969376d8181e28de69634321)
- | [change list](https://github.com/canmod/macpan2/compare/f39d85eeefe539c9d971b9d28bd028411bb9957e..2bdcd18ebefc9d6e969376d8181e28de69634321)
+[source](https://github.com/canmod/macpan2/tree/64a2012dd8a22396f2f823fc8b2927960c282231)
+ | [change list](https://github.com/canmod/macpan2/compare/f39d85eeefe539c9d971b9d28bd028411bb9957e..64a2012dd8a22396f2f823fc8b2927960c282231)
 
 ## Changes in 2.4.1
 
