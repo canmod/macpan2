@@ -1,3 +1,10 @@
+## 2.6.0
+
+### New Features
+
+* Engine function `cumsum`.
+* Warning message when checking for `macpan2` version mismatch when `macpan2` is loaded but not installed.
+
 ## 2.4.1
 
 ### Bug Fixes

@@ -3,21 +3,20 @@
 In-Progress
 
 [source](https://github.com/canmod/macpan2)
- | [change list](https://github.com/canmod/macpan2/compare/2bdcd18ebefc9d6e969376d8181e28de69634321..6a1d353294c3ab32bab661a6f40f9c381449b1d3)
+ | [change list](https://github.com/canmod/macpan2/compare/2bdcd18ebefc9d6e969376d8181e28de69634321..90a796055ef013a8c2919202523293dfe342f76f)
+
+### New Features
+
+* Engine function `cumsum`.
+* Warning message when checking for `macpan2` version mismatch when `macpan2` is loaded but not installed.
+
 
 ## Changes in 2.5.1
 
 Released [2025-07-02]
 
 [source](https://github.com/canmod/macpan2/tree/2bdcd18ebefc9d6e969376d8181e28de69634321)
- | [change list](https://github.com/canmod/macpan2/compare/64a2012dd8a22396f2f823fc8b2927960c282231..2bdcd18ebefc9d6e969376d8181e28de69634321)
-
-## Changes in 2.5.0
-
-Released [2025-06-27]
-
-[source](https://github.com/canmod/macpan2/tree/64a2012dd8a22396f2f823fc8b2927960c282231)
- | [change list](https://github.com/canmod/macpan2/compare/f39d85eeefe539c9d971b9d28bd028411bb9957e..64a2012dd8a22396f2f823fc8b2927960c282231)
+ | [change list](https://github.com/canmod/macpan2/compare/f39d85eeefe539c9d971b9d28bd028411bb9957e..2bdcd18ebefc9d6e969376d8181e28de69634321)
 
 ## Changes in 2.4.1
 
