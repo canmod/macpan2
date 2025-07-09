@@ -21,7 +21,7 @@ examples below)."><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/kate
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.6.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -81,7 +81,8 @@ examples below).</p>
 <span>  default <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  inits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  time <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  save_data <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  save_data <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  optimize <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -174,6 +175,12 @@ functions like <code><a href="mp_forecaster.html">mp_forecaster</a></code>. It t
 object is so large that it causes you problems, consider not saving
 the data in the calibrator object and manually passing it to the data
 argument of <code><a href="mp_forecaster.html">mp_forecaster</a></code>.</p></dd>
+
+
+<dt id="arg-optimize">optimize<a class="anchor" aria-label="anchor" href="#arg-optimize"></a></dt>
+<dd><p>Call <code><a href="mp_optimize.html">mp_optimize</a></code> on the resulting calibrator
+object, before returning it. The default is <code>FALSE</code> so that you can control
+when you would like to spend time optimizing.</p></dd>
 
 </dl></div>
 

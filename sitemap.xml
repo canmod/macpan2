@@ -38,12 +38,10 @@
 <url><loc>https://canmod.github.io/macpan2/reference/empty_trajectory.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/engine_eval.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/engine_functions.html</loc></url>
-<url><loc>https://canmod.github.io/macpan2/reference/finalizer.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/find_all_paths.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/fit_distr_params.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/index.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/initial_valid_vars.html</loc></url>
-<url><loc>https://canmod.github.io/macpan2/reference/make_expr_parser.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_absolute_flow.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_aggregate.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_binary_operator.html</loc></url>
@@ -122,6 +120,7 @@
 <url><loc>https://canmod.github.io/macpan2/reference/names_and_labels.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/nlist.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/rbf.html</loc></url>
+<url><loc>https://canmod.github.io/macpan2/reference/si_example.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/simple_sims.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/state_updates.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/to_positions.html</loc></url>
