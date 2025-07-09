@@ -572,8 +572,8 @@ sim_infection = (sim
 ```
 ```{r}
 fixef = list(
-    beta = mp_log_normal(location = 0.2, sd = 1)
-  , gamma = mp_log_normal(location = 0.2, sd = 1)
+    beta = mp_lnorm(location = 0.2, sd = 1)
+  , gamma = mp_lnorm(location = 0.2, sd = 1)
 )
 ranef = list()
   #proc_err = mp_norm(location = 0, sd = 0.1)

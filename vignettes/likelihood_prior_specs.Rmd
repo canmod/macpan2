@@ -106,7 +106,7 @@ cal = mp_tmb_calibrator(
     ## (would it ever make sense to use mp_fit for `sd` here?)
   , par = list(beta = mp_norm(location = 0.35, sd = mp_nofit("my_var"))
       ## 3. setting a log-normal prior on 'my_var'
-    , my_var = mp_log_normal(1,1) 
+    , my_var = mp_lnorm(1,1) 
   )
   , default = list(beta = 0.25)
 )
