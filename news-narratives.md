@@ -9,7 +9,7 @@
 
 ### New Features
 
-* [Code of conduct](https://github.com/canmod/macpan2/blob/main/CODE_OF_CONDUCT).
+* [Code of conduct](https://github.com/canmod/macpan2?tab=coc-ov-file).
 
 ## 2.4.1
 
