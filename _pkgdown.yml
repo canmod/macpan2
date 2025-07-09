@@ -126,7 +126,7 @@ reference:
     Functions for specifying distributional assumptions for priors 
     and likelihoods.
   contents:
-  - mp_uniform
+  - mp_unif
   - mp_fit
 
 - subtitle: Optimize Calibrator Model
