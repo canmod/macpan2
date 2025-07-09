@@ -353,9 +353,9 @@ make_rbf_calibrator = function(dimension) {
     ## -----------------------------
     
     , par = list(
-        gamma = mp_uniform()
-      , I = mp_uniform()
-      , report_prob = mp_uniform()
+        gamma = mp_unif()
+      , I = mp_unif()
+      , report_prob = mp_unif()
     )
   )
 }

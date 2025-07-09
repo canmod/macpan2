@@ -18,6 +18,18 @@
 #' @export
 mp_version = function(model) UseMethod("mp_version")
 
+#' @export
+mp_version.TMBModelSpec = function(model) get_mod_ver(model)
+
+#' @export
+mp_version.TMBSimulator = function(model) get_mod_ver(model)
+
+#' @export
+mp_version.TMBModel = function(model) get_mod_ver(model)
+
+#' @export
+mp_version.TMBCalibrator = function(model) mp_version(model$simulator)
+
 get_mod_ver = function(model) {
   if (!"macpan2_version" %in% names(model)) return(NA_character_)
   return(model$macpan2_version)
@@ -37,15 +49,3 @@ get_pkg_ver = function(pkg = "macpan2") {
   }
   return(ver)
 }
-
-#' @export
-mp_version.TMBModelSpec = function(model) get_mod_ver(model)
-
-#' @export
-mp_version.TMBModelSimulator = function(model) get_mod_ver(model)
-
-#' @export
-mp_version.TMBModel = function(model) get_mod_ver(model)
-
-#' @export
-mp_version.TMBCalibrator = function(model) mp_version(model$simulator)

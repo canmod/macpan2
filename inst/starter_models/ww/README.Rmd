@@ -275,8 +275,8 @@ focal_calib = mp_tmb_calibrator(
   , data = obs_data
   , traj = list(
       # set likelihoods for trajectories we are fitting to
-      reported_incidence = mp_neg_bin(disp = 0.1)
-    , W = mp_normal(sd = 1)
+      reported_incidence = mp_nbinom(disp = 0.1)
+    , W = mp_norm(sd = 1)
   )
   , par = c(
         # parameters to fit

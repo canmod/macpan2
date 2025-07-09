@@ -47,14 +47,14 @@ To specify a likelihood and/or prior for a variable in our model we can select a
 
 <!-- is this the only way to specify priors ? -->
 Specifying priors is usually done through the `par` argument of `mp_tmb_calibrator`. [Here](https://github.com/canmod/macpan2/tree/main/inst/starter_models/shiver#re-parameterizing-and-introducing-transformations) is an example of prior specification in the SHIVER model. 
-The parameter `logit_p`, the logit transformed proportion `p`, is given a normal prior using the distribution function `macpan2::mp_normal` and two numeric inputs for the `location` and standard deviation, `sd`. The remaining parameters are given an improper uniform prior using `macpan2::mp_uniform`.
+The parameter `logit_p`, the logit transformed proportion `p`, is given a normal prior using the distribution function `macpan2::mp_norm` and two numeric inputs for the `location` and standard deviation, `sd`. The remaining parameters are given an improper uniform prior using `macpan2::mp_unif`.
 <!-- No example of the SHIVER prior specification output to see the change in the objective function -->
 
 ## Likelihoods on model parameters
 
 A likelihood can be specified for the trajectory variables in our calibration set-up, those identified in the `traj` argument of `mp_tmb_calibrator`.
 
-Further into the SHIVER [example](https://github.com/canmod/macpan2/tree/main/inst/starter_models/shiver#fitting-to-multiple-trajectories), the variables hospitalizations(`H`) and `reported_incidence` are both specified with a negative binomial likelihood using the `macpan2::mp_neg_bin` function. For likelihoods the location parameter is not set because the calibration machinery will use the simulated value for this trajectory as the location. The dispersion parameter for `mp_neg_bin` is required.
+Further into the SHIVER [example](https://github.com/canmod/macpan2/tree/main/inst/starter_models/shiver#fitting-to-multiple-trajectories), the variables hospitalizations(`H`) and `reported_incidence` are both specified with a negative binomial likelihood using the `macpan2::mp_nbinom` function. For likelihoods the location parameter is not set because the calibration machinery will use the simulated value for this trajectory as the location. The dispersion parameter for `mp_nbinom` is required.
 
 
 ## Fixed distributional parameters
@@ -62,7 +62,7 @@ Further into the SHIVER [example](https://github.com/canmod/macpan2/tree/main/in
 Distributional parameters are those parameters that characterize the distribution. Often these are the location and standard deviation. By default, these parameters are assumed fixed and not fit. This was the case in the previous [Prior Specification] example where the distributional parameters for `location` and `sd` were specified as numeric constants. 
 
 Distributional parameters are also assumed fixed when set to the name of an existing variable in the model.
-Ex. `mp_normal(sd = "sd_var")`
+Ex. `mp_norm(sd = "sd_var")`
 <!-- no existing example of this -->
 
 ## Fitting Distributional Parameters
@@ -104,9 +104,9 @@ cal = mp_tmb_calibrator(
   , traj = "infection"
     ## 2. We set a Normal prior on beta, and set the `sd` argument to 'my_var'
     ## (would it ever make sense to use mp_fit for `sd` here?)
-  , par = list(beta = mp_normal(location = 0.35, sd = mp_nofit("my_var"))
+  , par = list(beta = mp_norm(location = 0.35, sd = mp_nofit("my_var"))
       ## 3. setting a log-normal prior on 'my_var'
-    , my_var = mp_log_normal(1,1) 
+    , my_var = mp_lnorm(1,1) 
   )
   , default = list(beta = 0.25)
 )

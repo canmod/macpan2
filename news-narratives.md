@@ -1,3 +1,20 @@
+## 3.0.0
+
+### Breaking Changes
+
+* [mp_trajectory_replicate](https://canmod.github.io/macpan2/reference/mp_trajectory_replicate) now uses parameter uncertainty.
+
+### New Features
+
+* Two new functions answering yes/no questions of calibrators.
+  * [mp_opt_attempted](https://canmod.github.io/macpan2/reference/mp_opt_attempted)
+  * [mp_uncertainty_estimated](https://canmod.github.io/macpan2/reference/mp_uncertainty_estimated)
+* Check if covariance matrix is singular before simulating and give a more informative error message.
+
+### Bug Fixes
+
+* `mp_version` wasn't dispatching on simulators.
+
 ## 2.6.0
 
 ### New Features

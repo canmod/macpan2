@@ -152,7 +152,7 @@ Models with vector-valued state variables cannot be simulated with the
 [mp_euler_multinomial](https://canmod.github.io/macpan2/reference/state_updates)
 state update method. If you try you will get the following error.
 
-    #> Error in self$.runner(..., .phases = .phases, .method = "report") : 
+    #> Error in self$.runner(..., .phases = .phases, .method = "simulate") : 
     #> The following error was thrown by the TMB engine:
     #>   The first 'size' argument must be scalar.
     #> This error occurred at the following expression:
