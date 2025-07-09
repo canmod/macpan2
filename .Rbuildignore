@@ -32,4 +32,5 @@ drat/
 ^.macpan$
 ^.macpan2$
 ^CONTRIBUTING\.md$
+^CODE_OF_CONDUCT\.md$
 ^news-narratives\.md$
