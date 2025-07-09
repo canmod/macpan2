@@ -8,3 +8,14 @@ test_that("summation works correctly", {
     matrix(c(1, 5, 15, 34))
   )
 })
+
+test_that("cumulative summation works correctly", {
+  expect_equal(
+      engine_eval(~cumsum(1:5)) |> c()
+    , cumsum(1:5)
+  )
+  expect_equal(
+      engine_eval(~cumsum(matrix(1:20, 5, 4)))
+    , apply(matrix(1:20, 5, 4), 2, cumsum)
+  )
+})

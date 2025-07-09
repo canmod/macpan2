@@ -62,6 +62,7 @@
 \alias{invlogit}
 \alias{logit}
 \alias{stop_if_lt}
+\alias{cumsum}
 \alias{assign}
 \alias{unpack}
 \title{Functions Available in the Simulation Engine}
@@ -538,12 +539,34 @@ engine_eval(~ group_sums(x, f, n), x = 1:10, f = rep(0:3, 1:4), n = c(1:4))
 
 }
 
+\subsection{Sweeping Matrix Elements}{
+\subsection{Functions}{
+\itemize{
+\item \code{cumsum(x)} : Return a matrix with columns containing the
+cumulative sum of the columns in \code{x}.
+}
+}
+
+\subsection{Arguments}{
+\itemize{
+\item \code{x} : A matrix.
+}
+}
+
+\subsection{Return}{
+
+A matrix the same size as \code{x} but with columns containing the
+cumulative sum of the columns in \code{x}.
+}
+
+}
+
 \subsection{Extracting Matrix Elements}{
 \subsection{Functions}{
 \itemize{
-\item \code{x[i,j]} : Matrix containing a subset
+\item \code{x[i,j]} : Return a matrix containing a subset
 of the rows and columns of \code{x}.
-\item \code{block(x,i,j,n,m)} : Matrix containing a
+\item \code{block(x,i,j,n,m)} : Return a matrix containing a
 contiguous subset of rows and columns of \code{x}
 \url{https://eigen.tuxfamily.org/dox/group__TutorialBlockOperations.html}.
 \item \code{last(x)} : The last element of a matrix (i.e., the

@@ -1,3 +1,16 @@
+## 2.6.0
+
+### New Features
+
+* Engine function `cumsum`.
+* Warning message when checking for `macpan2` version mismatch when `macpan2` is loaded but not installed.
+
+## 2.5.0
+
+### New Features
+
+* [Code of conduct](https://github.com/canmod/macpan2/blob/main/CODE_OF_CONDUCT).
+
 ## 2.4.1
 
 ### Bug Fixes
@@ -70,7 +83,7 @@ This version patched `2.2.1`, which was released in a broken state.
 
 ## 2.0.0
 
-### Breaking Changes
+### Behaviour Changes
 
 * [#93](https://github.com/canmod/macpan2/issues/93)
 * [#309](https://github.com/canmod/macpan2/issues/309)
@@ -97,7 +110,7 @@ This version patched `2.2.1`, which was released in a broken state.
 
 ## 1.4.0
 
-### Breaking Changes
+### Behaviour Changes
 
 * Repeated calls of an optimizer now start from the previous best parameter
 vector
@@ -109,7 +122,7 @@ vector
 
 ## 1.3.1
 
-### Breaking Changes
+### Behaviour Changes
 
 * Removing in-place modifications to model specification objects in `mp_tmb_insert` and `mp_tmb_update`.
 
@@ -141,7 +154,7 @@ process error.
 
 ## 1.1.0
 
-### Breaking Changes
+### Behaviour Changes
 
 * `simple_sims` no longer returns outputs for the zeroth time-step.
 * Using `last.par.best` to finalize the TMB objective function following optimization.
@@ -175,7 +188,7 @@ process error.
 
 ## 1.0.0
 
-### Breaking Changes
+### Behaviour Changes
 
 * No more `flows.csv`, `derivations.json` files in the library, and instead `tmb.R` files.
 * No more `Compartmental` function, and instead `mp_tmb_model_spec` and `mp_tmb_library`.

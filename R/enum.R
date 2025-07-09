@@ -60,6 +60,7 @@ valid_func_sigs = c(
       , "fwrap: invlogit(x)"
       , "fwrap: logit(x)"
       , "fwrap: stop_if_lt(x, y)"
+      , "fwrap: cumsum(x)"
       , "fwrap: assign(x, i, j, v)"
       , "fwrap: unpack(x, ...)"
 )

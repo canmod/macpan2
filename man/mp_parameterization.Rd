@@ -17,3 +17,7 @@ for random-effect-type.}
 \description{
 Description of Model Parameterization
 }
+\examples{
+cal = si_example_object("optimized_calibrator")
+mp_parameterization(cal)
+}

@@ -410,13 +410,28 @@
 #' engine_eval(~ group_sums(x, f, n), x = 1:10, f = rep(0:3, 1:4), n = c(1:4))
 #' ```
 #'
+#' ## Sweeping Matrix Elements
+#'
+#' ### Functions
+#'
+#' * `cumsum(x)` : Return a matrix with columns containing the
+#' cumulative sum of the columns in `x`.
+#'
+#' ### Arguments
+#'
+#' * `x` : A matrix.
+#'
+#' ### Return
+#' 
+#' A matrix the same size as `x` but with columns containing the
+#' cumulative sum of the columns in `x`.
 #' ## Extracting Matrix Elements
 #'
 #' ### Functions
 #'
-#' * `x[i,j]` : Matrix containing a subset
+#' * `x[i,j]` : Return a matrix containing a subset
 #' of the rows and columns of `x`.
-#' * `block(x,i,j,n,m)` : Matrix containing a
+#' * `block(x,i,j,n,m)` : Return a matrix containing a
 #' contiguous subset of rows and columns of `x`
 #' \url{https://eigen.tuxfamily.org/dox/group__TutorialBlockOperations.html}.
 #' * `last(x)` : The last element of a matrix (i.e., the
@@ -1064,6 +1079,7 @@
 #' @aliases invlogit
 #' @aliases logit
 #' @aliases stop_if_lt
+#' @aliases cumsum
 #' @aliases assign
 #' @aliases unpack
 NULL
