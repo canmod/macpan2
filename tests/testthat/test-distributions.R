@@ -1,3 +1,5 @@
+library(macpan2); library(testthat); library(dplyr); library(tidyr); library(ggplot2); library(deSolve)
+source("tests/testthat/setup.R")
 test_that("distributions give appropriate variable assumption warnings", {
   
   # At this time the only distribution with variable assumptions is the 
@@ -320,4 +322,75 @@ test_that("mp_nbinom replaces mp_neg_bin", {
   opt_neg_bin = mp_optimize(cal_neg_bin)
   opt_nbinom = mp_optimize(cal_nbinom)
   expect_identical(opt_neg_bin, opt_neg_bin)
+})
+
+
+test_that("mp_pois replaces mp_poisson", {
+  spec = test_cache_read("SPEC-sir.rds")
+  data = test_cache_read("TRAJ-sir_50_infection.rds")
+  expect_warning(poisson <- mp_poisson(), regexp = "is deprecated")
+  cal_poisson = mp_tmb_calibrator(
+      spec = spec
+    , data = data
+    , traj = list(infection = poisson)
+    , par = "beta"
+    , default = list(beta = 0.25)
+  )
+  cal_pois = mp_tmb_calibrator(
+      spec = spec
+    , data = data
+    , traj = list(infection = mp_pois())
+    , par = "beta"
+    , default = list(beta = 0.25)
+  )
+  opt_poisson = mp_optimize(cal_poisson)
+  opt_pois = mp_optimize(cal_pois)
+  expect_identical(opt_poisson, opt_pois)
+})
+
+
+test_that("mp_norm replaces mp_normal", {
+  spec = test_cache_read("SPEC-sir.rds")
+  data = test_cache_read("TRAJ-sir_50_infection.rds")
+  expect_warning(normal <- mp_normal(0.25, 0.1), regexp = "is deprecated")
+  cal_normal = mp_tmb_calibrator(
+      spec = spec
+    , data = data
+    , traj = "infection"
+    , par = list(beta = normal)
+    , default = list(beta = 0.25)
+  )
+  cal_norm = mp_tmb_calibrator(
+      spec = spec
+    , data = data
+    , traj = "infection"
+    , par = list(beta = mp_norm(0.25, 0.1))
+    , default = list(beta = 0.25)
+  )
+  opt_normal = mp_optimize(cal_normal)
+  opt_norm = mp_optimize(cal_norm)
+  expect_identical(opt_normal, opt_norm)
+})
+
+test_that("mp_unif replaces mp_uniform", {
+  spec = test_cache_read("SPEC-sir.rds")
+  data = test_cache_read("TRAJ-sir_50_infection.rds")
+  expect_warning(uniform <- mp_uniform(), regexp = "is deprecated")
+  cal_uniform = mp_tmb_calibrator(
+      spec = spec
+    , data = data
+    , traj = "infection"
+    , par = list(beta = uniform)
+    , default = list(beta = 0.25)
+  )
+  cal_unif = mp_tmb_calibrator(
+      spec = spec
+    , data = data
+    , traj = "infection"
+    , par = list(beta = mp_unif())
+    , default = list(beta = 0.25)
+  )
+  opt_uniform = mp_optimize(cal_uniform)
+  opt_unif = mp_optimize(cal_unif)
+  expect_identical(opt_uniform, opt_unif)
 })

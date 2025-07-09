@@ -617,11 +617,22 @@ TESTDISTR = function(location, sd) {
 #' @name distribution
 NULL
 
+## deprecate old distribution names
+deprecate = function(new, old) {
+  blank_body = as.list(body(function() {}))
+  args = paste(names(formals(new)), collapse = ", ")
+  new_call = sprintf("%s(%s)", new, args) |> str2lang()
+  warn_msg = sprintf("'%s()' is deprecated. Please use '%s()', instead", old, new)
+  warn_call = sprintf('warning("%s", call. = FALSE)', warn_msg) |> str2lang()
+  new_body = append(blank_body, list(warn_call, new_call)) |> as.call()
+  return(new_body)
+}
+
 #' @description * Uniform Distribution (Improper), only appropriate for prior 
-#' components - `mp_uniform`
+#' components - `mp_unif`
 #' @name distribution
 #' @export
-mp_uniform = function(trans_distr_param = list()) { 
+mp_unif = function(trans_distr_param = list()) { 
   self = DistrSpec(
     distr_param_objs = empty_named_list()
     , trans_distr_param = trans_distr_param
@@ -632,13 +643,16 @@ mp_uniform = function(trans_distr_param = list()) {
   }
   return_object(self, "DistrSpecUniform")
 }
+#' @name distribution
+#' @export
+mp_uniform = mp_unif
+body(mp_uniform) = deprecate("mp_unif", "mp_uniform")
 
-
-#' @description * Normal Distribution - `mp_normal`
+#' @description * Normal Distribution - `mp_norm`
 #' @name distribution
 #' @concept distributional-assumptions
 #' @export
-mp_normal = function(location = mp_distr_param_null("location")
+mp_norm = function(location = mp_distr_param_null("location")
      , sd
      , trans_distr_param = list(location = mp_identity, sd = mp_log)
   ) {
@@ -668,11 +682,15 @@ mp_normal = function(location = mp_distr_param_null("location")
   }
   return_object(self, "DistrSpecNormal")
 }
-
-#' @description * Log-Normal Distribution - `mp_log_normal`
 #' @name distribution
 #' @export
-mp_log_normal = function(location = mp_distr_param_null("location")
+mp_normal = mp_norm
+body(mp_normal) = deprecate("mp_norm", "mp_normal")
+
+#' @description * Log-Normal Distribution - `mp_log_norm`
+#' @name distribution
+#' @export
+mp_lnorm = function(location = mp_distr_param_null("location")
                        , sd
                        , trans_distr_param = list(location = mp_identity, sd = mp_identity)) {
   self = DistrSpec(
@@ -705,11 +723,16 @@ mp_log_normal = function(location = mp_distr_param_null("location")
   return_object(self, "DistrSpecLogNormal")
 }
 
-
-#' @description * Logit-Normal Distribution - `mp_logit_normal`
 #' @name distribution
 #' @export
-mp_logit_normal = function(location = mp_distr_param_null("location")
+mp_log_normal = mp_lnorm
+body(mp_log_normal) = deprecate("mp_lnorm", "mp_log_normal")
+
+
+#' @description * Logit-Normal Distribution - `mp_logitnorm`
+#' @name distribution
+#' @export
+mp_logitnorm = function(location = mp_distr_param_null("location")
      , sd
      , trans_distr_param = list(location = mp_identity, sd = mp_identity)
   ) {
@@ -746,13 +769,17 @@ mp_logit_normal = function(location = mp_distr_param_null("location")
   }
   return_object(self, "DistrSpecLogNormal")
 }
+#' @name distribution
+#' @export
+mp_logit_normal = mp_logitnorm
+body(mp_logit_normal) = deprecate("mp_logitnorm", "mp_logit_normal")
 
 
 
 #' @description * Poisson Distribution - `mp_poisson`
 #' @name distribution
 #' @export
-mp_poisson = function(location = mp_distr_param_null("location")
+mp_pois = function(location = mp_distr_param_null("location")
                     , trans_distr_param = list(location = mp_identity)) { 
   self = DistrSpec(
       distr_param_objs = nlist(location)# should this be named lambda
@@ -775,6 +802,14 @@ mp_poisson = function(location = mp_distr_param_null("location")
   }
   return_object(self, "DistrSpecPoisson")
 }
+
+
+
+#' @name distribution
+#' @export
+mp_poisson = mp_pois
+body(mp_poisson) = deprecate("mp_pois", "mp_poisson")
+
 #' @description * Negative Binomial Distribution - `mp_nbinom` 
 #' @name distribution
 #' @export
@@ -810,18 +845,8 @@ mp_nbinom = function(location = mp_distr_param_null("location")
 
 #' @name distribution
 #' @export
-mp_neg_bin <- function(
-        location = mp_distr_param_null("location")
-      , disp
-      , trans_distr_param = list(location = mp_identity, disp = mp_log
-  )) {
-  warning(
-      "'mp_neg_bin()' is deprecated. Please use 'mp_nbinom()' instead."
-    , call. = FALSE
-  )
-  eval.parent(mp_nbinom(location, disp, trans_distr_param))
-}
-
+mp_neg_bin = mp_nbinom
+body(mp_neg_bin) = deprecate("mp_nbinom", "mp_neg_bin")
 
 #' Fitting Distributional Parameters
 #' 
