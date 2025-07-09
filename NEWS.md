@@ -3,7 +3,7 @@
 In-Progress
 
 [source](https://github.com/canmod/macpan2)
- | [change list](https://github.com/canmod/macpan2/compare/74e55c668cbb406c99ecb7dd984a2d0b3b1ac2c9..1399f918d9891ea241da80963d2d223262c4f1f7)
+ | [change list](https://github.com/canmod/macpan2/compare/74e55c668cbb406c99ecb7dd984a2d0b3b1ac2c9..ccd3ef3259302dfb1171f202aa0cdfcf7b569492)
 
 ## Changes in 2.6.0
 
@@ -27,7 +27,7 @@ Released [2025-06-27]
 
 ### New Features
 
-* [Code of conduct](https://github.com/canmod/macpan2?tab=coc-ov-file).
+* [Code of conduct](* [Code of conduct](https://github.com/canmod/macpan2?tab=coc-ov-file#readme).
 
 
 ## Changes in 2.4.1
