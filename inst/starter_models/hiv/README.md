@@ -185,8 +185,8 @@ calibrator = (spec_for_cal
   |> mp_tmb_calibrator(
         data = simulated_data
       , traj = list(
-            treated = mp_poisson()
-          , untreated = mp_poisson()
+            treated = mp_pois()
+          , untreated = mp_pois()
       )
       , par = c("log_lambda0", "logit_n")
   )

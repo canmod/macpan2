@@ -1,5 +1,4 @@
 library(macpan2); library(testthat); library(dplyr); library(tidyr); library(ggplot2); library(deSolve)
-source("tests/testthat/setup.R")
 test_that("distributions give appropriate variable assumption warnings", {
   
   # At this time the only distribution with variable assumptions is the 
@@ -66,7 +65,7 @@ test_that("distributions give appropriate variable assumption warnings", {
         sir_spec
       , data
       , traj = "infection"
-      , par = list(beta = mp_normal(sd = mp_fit(0.1)))
+      , par = list(beta = mp_norm(sd = mp_fit(0.1)))
       , default = list(beta = 0.25)
     )
     , regexp = "The following distributions do not have location parameters"
@@ -84,7 +83,7 @@ test_that("you can specify uniform priors but not uniform likelihoods", {
   # uniform likelihood
   expect_error(mp_tmb_calibrator(sir_spec
     , data = sir_sim
-    , traj = list(I = mp_uniform())
+    , traj = list(I = mp_unif())
     , par = c("beta")
     )
     , regexp = "You cannot specify uniform likelihoods"
@@ -94,7 +93,7 @@ test_that("you can specify uniform priors but not uniform likelihoods", {
   specified_prior = mp_tmb_calibrator(sir_spec
     , data = sir_sim
     , traj = list(I = mp_nbinom(disp = mp_fit(2)))
-    , par = list(beta = mp_uniform())
+    , par = list(beta = mp_unif())
   )  
   default_prior = mp_tmb_calibrator(sir_spec
     , data = sir_sim
@@ -117,7 +116,7 @@ test_that("distributional parameters cannot be vectors (for now)", {
   expect_error(mp_tmb_calibrator(spec
     , data = sir_data
     , traj = "I"
-    , par = list(beta_values = mp_normal(location = c(0.3,0.2), sd = 1))
+    , par = list(beta_values = mp_norm(location = c(0.3,0.2), sd = 1))
     , default = list(N = 300)
     ), regexp = "has more than one element"
   )
@@ -146,28 +145,28 @@ test_that("default distributional parameter transformation is consistent", {
   # fit sd distributional parameter as existing variable in the model
   fit_char = mp_tmb_calibrator(spec
    , data = sir_data
-   , traj = list(I = mp_normal(sd = mp_fit("sd")))
+   , traj = list(I = mp_norm(sd = mp_fit("sd")))
    , par = "beta"
   )
   
   # don't fit sd, but use existing variable in the model
   nofit_char = mp_tmb_calibrator(spec
    , data = sir_data
-   , traj = list(I = mp_normal(sd = mp_nofit("sd")))
+   , traj = list(I = mp_norm(sd = mp_nofit("sd")))
    , par = "beta"
   )
   
   # fit sd with a starting value of 1.2
   fit_num = mp_tmb_calibrator(spec
    , data = sir_data
-   , traj = list(I = mp_normal(sd = mp_fit(1.2)))
+   , traj = list(I = mp_norm(sd = mp_fit(1.2)))
    , par = "beta"
   )
   
   # don't fit sd, use 1.2 as default
   nofit_num = mp_tmb_calibrator(spec
    , data = sir_data
-   , traj = list(I = mp_normal(sd = mp_nofit(1.2)))
+   , traj = list(I = mp_norm(sd = mp_nofit(1.2)))
    , par = "beta"
   )
   
@@ -216,7 +215,7 @@ test_that("misspecification of distributional parameters results in the appropri
   # character misspecification in mp_fit, variable doesn't exist in model
   expect_error(mp_tmb_calibrator(spec_emptydefault
      , data = sir_data
-     , traj = list(I = mp_normal(sd = mp_fit("Sd")))
+     , traj = list(I = mp_norm(sd = mp_fit("Sd")))
      , par = "beta"
     )
     , regexp = "Sd is not in the model spec"
@@ -225,7 +224,7 @@ test_that("misspecification of distributional parameters results in the appropri
   # correct specification in mp_fit, but variable default is `empty_matrix`
   expect_error(mp_tmb_calibrator(spec_emptydefault
      , data = sir_data
-     , traj = list(I = mp_normal(sd = mp_fit("sd")))
+     , traj = list(I = mp_norm(sd = mp_fit("sd")))
      , par = "beta"
     )
   )
@@ -233,7 +232,7 @@ test_that("misspecification of distributional parameters results in the appropri
   # correct specification in mp_fit, but variable has no default
   expect_error(mp_tmb_calibrator(spec_nodefault
      , data = sir_data
-     , traj = list(I = mp_normal(sd = mp_fit("sd")))
+     , traj = list(I = mp_norm(sd = mp_fit("sd")))
      , par = "beta"
     )
   , regexp = "sd is not in the model spec"
@@ -254,7 +253,7 @@ test_that("default transformations for distributional parameters can be updated"
   trans_update = mp_tmb_calibrator(spec
     , data = sir_data
     , traj = "I"
-    , par = list(beta = mp_normal(mp_nofit(12,mp_log),mp_nofit(34,mp_identity)))
+    , par = list(beta = mp_norm(mp_nofit(12,mp_log),mp_nofit(34,mp_identity)))
    )
 
   expect_true(
@@ -276,13 +275,13 @@ test_that("not fitting a distributional parameter is the same as mp_nofit",{
   nofit_cal = mp_tmb_calibrator(spec
     , data = sir_data
     , traj = "I"
-    , par = list(beta = mp_normal(12,"sd"))
+    , par = list(beta = mp_norm(12,"sd"))
   )
   
   mp_nofit_cal = mp_tmb_calibrator(spec
     , data = sir_data
     , traj = "I"
-    , par = list(beta = mp_normal(mp_nofit(12),mp_nofit("sd")))
+    , par = list(beta = mp_norm(mp_nofit(12),mp_nofit("sd")))
   )
   
   # verify the objective function is identical
