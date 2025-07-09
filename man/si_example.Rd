@@ -28,15 +28,16 @@ The functions used to produce each of these objects, respectively, are
 \description{
 The \code{si_example_object} function efficiently generates objects
 associated with the
-\href{https://github.com/canmod/macpan2/tree/main/inst/starter_models/si}{example SI model}.
+\href{https://github.com/canmod/macpan2/blob/main/inst/starter_models/si/README.md}{example SI model}.
 It either creates these objects or extracts them from a pre-computed cache if
 they have already been created in the current session. This function is
 predominantly used to simplify examples in the package documentation -- it
 allows package developers to efficiently get these basic example objects to
 illustrate many different concepts, without having to spend time computing
-them over and over again. The \code{si_example_code} function displays code
-that could be used to generate these objects, and is present to clarify for
-users what these functions actually do.
+them over and over again when generating the documentation. The
+\code{si_example_code} function displays code
+that could be used to generate these objects, and clarifies what these
+functions do.
 }
 \section{Functions}{
 \itemize{
