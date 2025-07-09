@@ -1,9 +1,16 @@
-## Changes in 2.6.0
+## Changes in 2.6.1
 
 In-Progress
 
 [source](https://github.com/canmod/macpan2)
- | [change list](https://github.com/canmod/macpan2/compare/64a2012dd8a22396f2f823fc8b2927960c282231..161deaae416c7228aa6c48ef34eeda956d30f595)
+ | [change list](https://github.com/canmod/macpan2/compare/74e55c668cbb406c99ecb7dd984a2d0b3b1ac2c9..48aeed254c1a5f56d10375dcac7e4115ad0f45d5)
+
+## Changes in 2.6.0
+
+Released [2025-07-07]
+
+[source](https://github.com/canmod/macpan2/tree/74e55c668cbb406c99ecb7dd984a2d0b3b1ac2c9)
+ | [change list](https://github.com/canmod/macpan2/compare/64a2012dd8a22396f2f823fc8b2927960c282231..74e55c668cbb406c99ecb7dd984a2d0b3b1ac2c9)
 
 ### New Features
 
@@ -17,6 +24,11 @@ Released [2025-06-27]
 
 [source](https://github.com/canmod/macpan2/tree/64a2012dd8a22396f2f823fc8b2927960c282231)
  | [change list](https://github.com/canmod/macpan2/compare/f39d85eeefe539c9d971b9d28bd028411bb9957e..64a2012dd8a22396f2f823fc8b2927960c282231)
+
+### New Features
+
+* [Code of conduct](https://github.com/canmod/macpan2/blob/main/CODE_OF_CONDUCT).
+
 
 ## Changes in 2.4.1
 
