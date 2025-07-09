@@ -1,4 +1,5 @@
-library(macpan2); library(testthat); library(dplyr); library(tidyr); library(ggplot2)
+library(macpan2); library(testthat); library(dplyr); library(tidyr); library(ggplot2); library(deSolve)
+source("tests/testthat/setup.R")
 test_that("distributions give appropriate variable assumption warnings", {
   
   # At this time the only distribution with variable assumptions is the 
@@ -92,12 +93,12 @@ test_that("you can specify uniform priors but not uniform likelihoods", {
   # uniform prior
   specified_prior = mp_tmb_calibrator(sir_spec
     , data = sir_sim
-    , traj = list(I = mp_neg_bin(disp = mp_fit(2)))
+    , traj = list(I = mp_nbinom(disp = mp_fit(2)))
     , par = list(beta = mp_uniform())
   )  
   default_prior = mp_tmb_calibrator(sir_spec
     , data = sir_sim
-    , traj = list(I = mp_neg_bin(disp = mp_fit(2)))
+    , traj = list(I = mp_nbinom(disp = mp_fit(2)))
     , par = c("beta")
    )
   expect_equal(specified_prior$cal_spec$all_matrices(), default_prior$cal_spec$all_matrices())
@@ -123,7 +124,7 @@ test_that("distributional parameters cannot be vectors (for now)", {
   
   expect_error(mp_tmb_calibrator(spec
     , data = sir_data
-    , traj = list(I = mp_neg_bin(disp = c(1,5)))
+    , traj = list(I = mp_nbinom(disp = c(1,5)))
     , par = "beta"
     , default = list(N = 300)
     ), regexp = "has more than one element"
@@ -298,4 +299,98 @@ test_that("not fitting a distributional parameter is the same as mp_nofit",{
       mp_tmb_coef(nofit_cal)
     , mp_tmb_coef(mp_nofit_cal)
   )
+})
+
+test_that("mp_nbinom replaces mp_neg_bin", {
+  spec = test_cache_read("SPEC-sir.rds")
+  data = test_cache_read("TRAJ-sir_50_infection.rds")
+  expect_warning(neg_bin <- mp_neg_bin(disp = 1), regexp = "is deprecated")
+  cal_neg_bin = mp_tmb_calibrator(
+      spec = spec
+    , data = data
+    , traj = list(infection = neg_bin)
+    , par = "beta"
+    , default = list(beta = 0.25)
+  )
+  cal_nbinom = mp_tmb_calibrator(
+      spec = spec
+    , data = data
+    , traj = list(infection = mp_nbinom(disp = 1))
+    , par = "beta"
+    , default = list(beta = 0.25)
+  )
+  opt_neg_bin = mp_optimize(cal_neg_bin)
+  opt_nbinom = mp_optimize(cal_nbinom)
+  expect_identical(opt_neg_bin, opt_neg_bin)
+})
+
+
+test_that("mp_pois replaces mp_poisson", {
+  spec = test_cache_read("SPEC-sir.rds")
+  data = test_cache_read("TRAJ-sir_50_infection.rds")
+  expect_warning(poisson <- mp_poisson(), regexp = "is deprecated")
+  cal_poisson = mp_tmb_calibrator(
+      spec = spec
+    , data = data
+    , traj = list(infection = poisson)
+    , par = "beta"
+    , default = list(beta = 0.25)
+  )
+  cal_pois = mp_tmb_calibrator(
+      spec = spec
+    , data = data
+    , traj = list(infection = mp_pois())
+    , par = "beta"
+    , default = list(beta = 0.25)
+  )
+  opt_poisson = mp_optimize(cal_poisson)
+  opt_pois = mp_optimize(cal_pois)
+  expect_identical(opt_poisson, opt_pois)
+})
+
+
+test_that("mp_norm replaces mp_normal", {
+  spec = test_cache_read("SPEC-sir.rds")
+  data = test_cache_read("TRAJ-sir_50_infection.rds")
+  expect_warning(normal <- mp_normal(0.25, 0.1), regexp = "is deprecated")
+  cal_normal = mp_tmb_calibrator(
+      spec = spec
+    , data = data
+    , traj = "infection"
+    , par = list(beta = normal)
+    , default = list(beta = 0.25)
+  )
+  cal_norm = mp_tmb_calibrator(
+      spec = spec
+    , data = data
+    , traj = "infection"
+    , par = list(beta = mp_norm(0.25, 0.1))
+    , default = list(beta = 0.25)
+  )
+  opt_normal = mp_optimize(cal_normal)
+  opt_norm = mp_optimize(cal_norm)
+  expect_identical(opt_normal, opt_norm)
+})
+
+test_that("mp_unif replaces mp_uniform", {
+  spec = test_cache_read("SPEC-sir.rds")
+  data = test_cache_read("TRAJ-sir_50_infection.rds")
+  expect_warning(uniform <- mp_uniform(), regexp = "is deprecated")
+  cal_uniform = mp_tmb_calibrator(
+      spec = spec
+    , data = data
+    , traj = "infection"
+    , par = list(beta = uniform)
+    , default = list(beta = 0.25)
+  )
+  cal_unif = mp_tmb_calibrator(
+      spec = spec
+    , data = data
+    , traj = "infection"
+    , par = list(beta = mp_unif())
+    , default = list(beta = 0.25)
+  )
+  opt_uniform = mp_optimize(cal_uniform)
+  opt_unif = mp_optimize(cal_unif)
+  expect_identical(opt_uniform, opt_unif)
 })
