@@ -61,6 +61,7 @@
 \alias{pnorm}
 \alias{invlogit}
 \alias{logit}
+\alias{stop_if_lt}
 \alias{cumsum}
 \alias{assign}
 \alias{unpack}
@@ -1066,6 +1067,34 @@ An \code{\link{empty_matrix}}.
 engine_eval(~ 1/0) ## returns Inf
 engine_eval(~ check_finite(1/0)) ## returns nothing and throws an error
 }\if{html}{\out{</div>}}
+}
+
+}
+
+\subsection{Control Flow}{
+
+Functions for controlling the flow of simulations.
+\subsection{Functions}{
+\itemize{
+\item \code{stop_if_lt(x, y)} : Stop the simulation loop and return
+simulations if any element of \code{x} is less than the
+corresponding element in \code{y}. The elements of \code{y} are
+recycled to match those in \code{x} if necessary and if possible.
+}
+}
+
+\subsection{Arguments}{
+\itemize{
+\item \code{x} : Matrix to compare with \code{y}.
+\item \code{y} : Matrix to compare with \code{x}, with a default value of
+\code{0}.
+}
+}
+
+\subsection{Return}{
+
+An empty matrix. This function is returned for its effect of
+breaking out of the simulation loop.
 }
 
 }
