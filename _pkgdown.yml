@@ -192,7 +192,6 @@ reference:
   contents:
   - si_example_object
   - si_example_code
-  - initial_valid_vars
   - mp_tmb_expr_list
   - mp_functions_used
   - Reader
@@ -205,7 +204,6 @@ reference:
     Functions for semi-automatically laying out compartments in model
     specifications as boxes on a plot.
   contents:
-  - find_all_paths
   - mp_layout_grid
   - mp_layout_paths
 

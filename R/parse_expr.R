@@ -335,7 +335,7 @@ get_indices = function(x, vec, vec_type, expr_as_string, zero_based = FALSE) {
 #'
 #' @param valid_var_names Character vector of variable names.
 #'
-#' @export
+#' @noRd
 initial_valid_vars = function(valid_var_names) {
   setNames(
     rep(list(matrix(0)), length(valid_var_names)),

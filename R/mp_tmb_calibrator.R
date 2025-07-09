@@ -147,7 +147,8 @@ mp_tmb_calibrator = function(spec
     , must_not_save = names(globalize(traj, "obs"))
     , must_save = traj$outputs()
   )
-  # TODO: prepare for simulating observation error
+  # TODO: prepare for simulating observation error. or maybe we just
+  # do this by simulating using parameter uncertainty?
   # cal_spec = mp_tmb_insert(cal_spec
   #   , phase = "after"
   #   , at = Inf
@@ -1669,6 +1670,8 @@ sum_obj_terms = function(...) {
   }
   one_sided(str)
 }
+
+
 
 
 #' Get Underlying TMB Object
