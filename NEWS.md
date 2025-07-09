@@ -1,9 +1,33 @@
-## Changes in 2.6.1
+## Changes in 3.0.0
 
 In-Progress
 
 [source](https://github.com/canmod/macpan2)
- | [change list](https://github.com/canmod/macpan2/compare/74e55c668cbb406c99ecb7dd984a2d0b3b1ac2c9..26f7cb64d26b25c9919dc42a43b4a5b0dcefe510)
+ | [change list](https://github.com/canmod/macpan2/compare/322b99bf077ef71994ac198e5fe5c2a35660b24c..23d15f2b21ca1b16e995ad88a9d2fec6d861f7e7)
+
+### Behaviour Changes
+
+* Names of distribution functions should now be more familiar to R users ([#342](https://github.com/canmod/macpan2/issues/342)).
+* [mp_trajectory_replicate](https://canmod.github.io/macpan2/reference/mp_trajectory_replicate) now uses parameter uncertainty.
+
+### New Features
+
+* Two new functions answering yes/no questions of calibrators.
+  * [mp_opt_attempted](https://canmod.github.io/macpan2/reference/mp_opt_attempted)
+  * [mp_uncertainty_estimated](https://canmod.github.io/macpan2/reference/mp_uncertainty_estimated)
+* Check if covariance matrix is singular before simulating and give a more informative error message -- uses the check in `MASS::rmvnorm`.
+
+### Bug Fixes
+
+* `mp_version` wasn't dispatching on simulators.
+
+
+## Changes in 2.6.1
+
+Released [2025-07-09]
+
+[source](https://github.com/canmod/macpan2/tree/322b99bf077ef71994ac198e5fe5c2a35660b24c)
+ | [change list](https://github.com/canmod/macpan2/compare/74e55c668cbb406c99ecb7dd984a2d0b3b1ac2c9..322b99bf077ef71994ac198e5fe5c2a35660b24c)
 
 ## Changes in 2.6.0
 

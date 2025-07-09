@@ -1,7 +1,8 @@
 ## 3.0.0
 
-### Breaking Changes
+### Behaviour Changes
 
+* Names of distribution functions should now be more familiar to R users ([#342](https://github.com/canmod/macpan2/issues/342)).
 * [mp_trajectory_replicate](https://canmod.github.io/macpan2/reference/mp_trajectory_replicate) now uses parameter uncertainty.
 
 ### New Features
@@ -9,7 +10,7 @@
 * Two new functions answering yes/no questions of calibrators.
   * [mp_opt_attempted](https://canmod.github.io/macpan2/reference/mp_opt_attempted)
   * [mp_uncertainty_estimated](https://canmod.github.io/macpan2/reference/mp_uncertainty_estimated)
-* Check if covariance matrix is singular before simulating and give a more informative error message.
+* Check if covariance matrix is singular before simulating and give a more informative error message -- uses the check in `MASS::rmvnorm`.
 
 ### Bug Fixes
 
