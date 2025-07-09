@@ -3,7 +3,7 @@
 In-Progress
 
 [source](https://github.com/canmod/macpan2)
- | [change list](https://github.com/canmod/macpan2/compare/74e55c668cbb406c99ecb7dd984a2d0b3b1ac2c9..48aeed254c1a5f56d10375dcac7e4115ad0f45d5)
+ | [change list](https://github.com/canmod/macpan2/compare/74e55c668cbb406c99ecb7dd984a2d0b3b1ac2c9..bb7773bab8bbf131ef8f02da7f01ddb2de596bdf)
 
 ## Changes in 2.6.0
 
@@ -175,7 +175,7 @@ Released [2025-05-16]
 [source](https://github.com/canmod/macpan2/tree/a372c7a909de89c8e87f2b0ac5935ccb4a198bb3)
  | [change list](https://github.com/canmod/macpan2/compare/a99e1b9b6759ac46214c3ecc2bee694113aab88a..a372c7a909de89c8e87f2b0ac5935ccb4a198bb3)
 
-### Breaking Changes
+### Behaviour Changes
 
 * [#93](https://github.com/canmod/macpan2/issues/93)
 * [#309](https://github.com/canmod/macpan2/issues/309)
@@ -527,7 +527,7 @@ Released [2024-04-25]
 [source](https://github.com/canmod/macpan2/tree/544e1d4f1fc4c7efe3d92842b2018f531398e435)
  | [change list](https://github.com/canmod/macpan2/compare/a45472a350520f00a18b248622c17a766130dbad..544e1d4f1fc4c7efe3d92842b2018f531398e435)
 
-### Breaking Changes
+### Behaviour Changes
 
 * Repeated calls of an optimizer now start from the previous best parameter
 vector
@@ -559,7 +559,7 @@ Released [2024-03-12]
 [source](https://github.com/canmod/macpan2/tree/24cee41f0a87f1bc25f86e979f2b8184d6c891a5)
  | [change list](https://github.com/canmod/macpan2/compare/ee9b0025d3792ea27a55d441c17e7ca57af8653a..24cee41f0a87f1bc25f86e979f2b8184d6c891a5)
 
-### Breaking Changes
+### Behaviour Changes
 
 * Removing in-place modifications to model specification objects in `mp_tmb_insert` and `mp_tmb_update`.
 
@@ -639,7 +639,7 @@ Released [2024-02-23]
 [source](https://github.com/canmod/macpan2/tree/b2b8256520ffee4a458cd5b4f61763ec9bb56245)
  | [change list](https://github.com/canmod/macpan2/compare/c8168efa30b4893a831730854009a7a4dbfe3c61..b2b8256520ffee4a458cd5b4f61763ec9bb56245)
 
-### Breaking Changes
+### Behaviour Changes
 
 * `simple_sims` no longer returns outputs for the zeroth time-step.
 * Using `last.par.best` to finalize the TMB objective function following optimization.
@@ -693,7 +693,7 @@ Released [2024-02-18]
 [source](https://github.com/canmod/macpan2/tree/4756a64a26fefb26fa21c41ee23628e51d4eda65)
  | [change list](https://github.com/canmod/macpan2/compare/9bf7fc757ea54be599b42cd08ddd9ec2a124f491..4756a64a26fefb26fa21c41ee23628e51d4eda65)
 
-### Breaking Changes
+### Behaviour Changes
 
 * No more `flows.csv`, `derivations.json` files in the library, and instead `tmb.R` files.
 * No more `Compartmental` function, and instead `mp_tmb_model_spec` and `mp_tmb_library`.
