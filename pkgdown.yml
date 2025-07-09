@@ -22,7 +22,7 @@ articles:
   time_varying_parameters_advanced: time_varying_parameters_advanced.html
   time_varying_parameters: time_varying_parameters.html
   vignette_status: vignette_status.html
-last_built: 2025-07-09T16:48Z
+last_built: 2025-07-09T19:37Z
 urls:
   reference: https://canmod.github.io/macpan2/reference
   article: https://canmod.github.io/macpan2/articles
