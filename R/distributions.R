@@ -626,9 +626,7 @@ mp_uniform = function(trans_distr_param = list()) {
     distr_param_objs = empty_named_list()
     , trans_distr_param = trans_distr_param
   )
-  self$prior = \(par) {
-    "-0"
-  }
+  self$prior = \(par) ""
   self$likelihood = \(obs, sim) { 
     stop("You cannot specify uniform likelihoods")
   }

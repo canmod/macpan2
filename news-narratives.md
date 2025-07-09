@@ -15,6 +15,19 @@
 
 * `mp_version` wasn't dispatching on simulators.
 
+## 2.6.0
+
+### New Features
+
+* Engine function `cumsum`.
+* Warning message when checking for `macpan2` version mismatch when `macpan2` is loaded but not installed.
+
+## 2.5.0
+
+### New Features
+
+* [Code of conduct](https://github.com/canmod/macpan2/blob/main/CODE_OF_CONDUCT).
+
 ## 2.4.1
 
 ### Bug Fixes
