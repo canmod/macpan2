@@ -191,6 +191,8 @@ reference:
     Utilities for `macpan2` developers. TODO: Justify why these are exposed
     to users or do not expose.
   contents:
+  - si_example_object
+  - si_example_code
   - finalizer_char
   - initial_valid_vars
   - make_expr_parser
