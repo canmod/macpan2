@@ -66,6 +66,9 @@
 #' object is so large that it causes you problems, consider not saving
 #' the data in the calibrator object and manually passing it to the data
 #' argument of \code{\link{mp_forecaster}}.
+#' @param optimize Call \code{\link{mp_optimize}} on the resulting calibrator
+#' object, before returning it. The default is `FALSE` so that you can control
+#' when you would like to spend time optimizing.
 #'
 #' @examples
 #' spec = mp_tmb_library("starter_models", "sir", package = "macpan2")
@@ -94,6 +97,7 @@ mp_tmb_calibrator = function(spec
     , inits = list()
     , time = NULL
     , save_data = TRUE
+    , optimize = FALSE
   ) {
   cal_args = nlist(traj, par, tv, outputs, default, time)
   if (save_data) cal_args$data = data
@@ -227,7 +231,15 @@ mp_tmb_calibrator = function(spec
   cal_sim$replace$params_frame(par$params_frame())
   cal_sim$replace$random_frame(par$random_frame())
   
-  TMBCalibrator(spec, spec$copy(), cal_spec, cal_sim, cal_args, struc$time_steps_obj)
+  output = TMBCalibrator(spec
+    , spec$copy()
+    , cal_spec
+    , cal_sim
+    , cal_args
+    , struc$time_steps_obj
+  )
+  if (optimize) mp_optimize(output)
+  return(output)
 }
 
 TMBCalibrator = function(orig_spec, new_spec, cal_spec, simulator, cal_args = NULL, time_steps_obj = NULL) {

@@ -12,7 +12,8 @@ mp_tmb_profile(model, param, ...)
 
 \item{param}{The name of a fixed effect parameter set through the \code{par}
 argument of the call to \code{\link{mp_tmb_calibrator}} used to create
-\code{model}.}
+\code{model}. You can find the names of these parameters after the model is
+created using the \code{\link{mp_parameterization}} function.}
 
 \item{...}{Arguments to pass to \code{TMB::tmbprofile}.}
 }
