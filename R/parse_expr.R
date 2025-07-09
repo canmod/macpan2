@@ -52,7 +52,7 @@ is_na = function(x) {
 #' valid_vars = list(beta = 0.1, I = 30)
 #' parser(foi)
 #'
-#' @export
+#' @noRd
 make_expr_parser = function(
     parser_name = NULL,
     finalizer = force  # the identity finalizer is the default
@@ -154,18 +154,19 @@ make_expr_parser = function(
 #' Finalizers
 #' @param x Raw parsed expression.
 #' @name finalizer
+#' @noRd
 NULL
 
 #' @describeIn finalizer Finalize parsed expression so that the parse table is
 #' a little more human readable.
-#' @export
+#' @noRd
 finalizer_char = function(x) {
   data.frame(x = unlist(lapply(x$x, as.character)), n = x$n, i = x$i)
 }
 
 #' @describeIn finalizer Finalize parsed expression so that the parse table can
 #' be passed to the C++ engine.
-#' @export
+#' @noRd
 finalizer_index = function(x) {
   valid_funcs = x$valid_funcs
   valid_vars = x$valid_vars

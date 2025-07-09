@@ -186,16 +186,13 @@ reference:
   - rbf
   - mp_binary_operator
 
-- subtitle: Developer Utilities
+- subtitle: Developer and Power-User Utilities
   desc: >
-    Utilities for `macpan2` developers. TODO: Justify why these are exposed
-    to users or do not expose.
+    Utilities for `macpan2` developers and power-users.
   contents:
   - si_example_object
   - si_example_code
-  - finalizer_char
   - initial_valid_vars
-  - make_expr_parser
   - mp_tmb_expr_list
   - mp_functions_used
   - Reader
