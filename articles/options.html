@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -99,6 +99,10 @@ model is created, you should set <code>macpan2_log_dir = ""</code>.</li>
 <code><a href="../reference/state_updates.html">mp_hazard()</a></code> function to generate an expression that calls
 the <code><a href="../reference/engine_functions.html">proportions()</a></code> engine function. This option becomes the
 third tolerance argument to <code><a href="../reference/engine_functions.html">proportions()</a></code>.</li>
+<li>
+<code>macpan2_tol_singular_cov =</code>1e-6` : Used to determine if
+estimated covariance matrices can be used to generate multivariate
+normal samples of parameter vectors.</li>
 </ul>
 </div>
 <div class="section level2">

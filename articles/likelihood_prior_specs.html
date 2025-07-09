@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -117,10 +117,10 @@ argument of <code>mp_tmb_calibrator</code>. <a href="https://github.com/canmod/m
 is an example of prior specification in the SHIVER model. The parameter
 <code>logit_p</code>, the logit transformed proportion <code>p</code>,
 is given a normal prior using the distribution function
-<code><a href="../reference/distribution.html">macpan2::mp_normal</a></code> and two numeric inputs for the
+<code><a href="../reference/distribution.html">macpan2::mp_norm</a></code> and two numeric inputs for the
 <code>location</code> and standard deviation, <code>sd</code>. The
 remaining parameters are given an improper uniform prior using
-<code><a href="../reference/distribution.html">macpan2::mp_uniform</a></code>.
+<code><a href="../reference/distribution.html">macpan2::mp_unif</a></code>.
 <!-- No example of the SHIVER prior specification output to see the change in the objective function --></p>
 </div>
 <div class="section level3">
@@ -132,10 +132,10 @@ of <code>mp_tmb_calibrator</code>.</p>
 <p>Further into the SHIVER <a href="https://github.com/canmod/macpan2/tree/main/inst/starter_models/shiver#fitting-to-multiple-trajectories" class="external-link">example</a>,
 the variables hospitalizations(<code>H</code>) and
 <code>reported_incidence</code> are both specified with a negative
-binomial likelihood using the <code><a href="../reference/distribution.html">macpan2::mp_neg_bin</a></code> function.
+binomial likelihood using the <code><a href="../reference/distribution.html">macpan2::mp_nbinom</a></code> function.
 For likelihoods the location parameter is not set because the
 calibration machinery will use the simulated value for this trajectory
-as the location. The dispersion parameter for <code>mp_neg_bin</code> is
+as the location. The dispersion parameter for <code>mp_nbinom</code> is
 required.</p>
 </div>
 <div class="section level3">
@@ -149,7 +149,7 @@ distributional parameters for <code>location</code> and <code>sd</code>
 were specified as numeric constants.</p>
 <p>Distributional parameters are also assumed fixed when set to the name
 of an existing variable in the model. Ex.
-<code>mp_normal(sd = "sd_var")</code>
+<code>mp_norm(sd = "sd_var")</code>
 <!-- no existing example of this --></p>
 </div>
 <div class="section level3">
@@ -217,9 +217,9 @@ the usual way</li>
 <span>  , traj <span class="op">=</span> <span class="st">"infection"</span></span>
 <span>    <span class="co">## 2. We set a Normal prior on beta, and set the `sd` argument to 'my_var'</span></span>
 <span>    <span class="co">## (would it ever make sense to use mp_fit for `sd` here?)</span></span>
-<span>  , par <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>beta <span class="op">=</span> <span class="fu"><a href="../reference/distribution.html">mp_normal</a></span><span class="op">(</span>location <span class="op">=</span> <span class="fl">0.35</span>, sd <span class="op">=</span> <span class="fu"><a href="../reference/fit_distr_params.html">mp_nofit</a></span><span class="op">(</span><span class="st">"my_var"</span><span class="op">)</span><span class="op">)</span></span>
+<span>  , par <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>beta <span class="op">=</span> <span class="fu"><a href="../reference/distribution.html">mp_norm</a></span><span class="op">(</span>location <span class="op">=</span> <span class="fl">0.35</span>, sd <span class="op">=</span> <span class="fu"><a href="../reference/fit_distr_params.html">mp_nofit</a></span><span class="op">(</span><span class="st">"my_var"</span><span class="op">)</span><span class="op">)</span></span>
 <span>      <span class="co">## 3. setting a log-normal prior on 'my_var'</span></span>
-<span>    , my_var <span class="op">=</span> <span class="fu"><a href="../reference/distribution.html">mp_log_normal</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span> </span>
+<span>    , my_var <span class="op">=</span> <span class="fu"><a href="../reference/distribution.html">mp_lnorm</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span> </span>
 <span>  <span class="op">)</span></span>
 <span>  , default <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>beta <span class="op">=</span> <span class="fl">0.25</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
@@ -229,7 +229,7 @@ the usual way</li>
 <span><span class="va">cal</span><span class="op">$</span><span class="va">simulator</span><span class="op">$</span><span class="va">tmb_model</span><span class="op">$</span><span class="va">obj_fn</span><span class="op">$</span><span class="va">obj_fn_expr</span></span>
 <span><span class="co">#&gt; ~-sum(dpois(obs_infection, clamp(sim_infection))) - sum(dnorm(beta, </span></span>
 <span><span class="co">#&gt;     0.35, exp(my_var))) - sum(dnorm(log(my_var), 1, 1))</span></span>
-<span><span class="co">#&gt; &lt;environment: 0x556b8d72d1d0&gt;</span></span>
+<span><span class="co">#&gt; &lt;environment: 0x56267177f1f8&gt;</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">cal</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $par</span></span>

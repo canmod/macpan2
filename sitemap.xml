@@ -70,6 +70,7 @@
 <url><loc>https://canmod.github.io/macpan2/reference/mp_lookup.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_model_docs.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_model_starter.html</loc></url>
+<url><loc>https://canmod.github.io/macpan2/reference/mp_opt_attempted.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_optimize.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_optimized_spec.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_optimizer_output.html</loc></url>
@@ -112,6 +113,7 @@
 <url><loc>https://canmod.github.io/macpan2/reference/mp_traj.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_trajectory.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_triangle.html</loc></url>
+<url><loc>https://canmod.github.io/macpan2/reference/mp_uncertainty_estimated.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_union.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_vars.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_version.html</loc></url>
