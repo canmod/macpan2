@@ -56,6 +56,9 @@
 <li><a href="#adding-engine-functions">Adding Engine Functions</a></li>
 <li><a href="#developer-installation-on-windows">Developer Installation on Windows</a></li>
 <li><a href="#test-suite">Test Suite</a></li>
+<li><a href="#changelog-management">Changelog Management</a></li>
+<li><a href="#testing-installability-of-specific-commits">Testing Installability of Specific Commits</a></li>
+<li><a href="#log-files">Log Files</a></li>
 </ul></div>
 <div class="section level2">
 <h2 id="developer-installation">Developer Installation<a class="anchor" aria-label="anchor" href="#developer-installation"></a></h2>
@@ -159,7 +162,27 @@ MP2_SUM = 12 // fwrap: sum(...)</code></pre>
 </div>
 <div class="section level2">
 <h2 id="changelog-management">Changelog Management<a class="anchor" aria-label="anchor" href="#changelog-management"></a></h2>
-<p>We use semi-automated construction of <code>NEWS.md</code>. This system generates and maintains version metadata and release notes for the package using three scripts located in <code>misc/build</code>. It produces <code>commit-version-map.txt</code>, <code>version-bumps.txt</code>, and <code>NEWS.md</code> in the project root. <code>commit-version-map.txt</code> records the version number, commit hash, and date for each commit on the main branch. <code>version-bumps.txt</code> extracts the most recent commit for each version from that map. <code>NEWS.md</code> combines these version bumps with optional developer-written content in <code>news-narratives.md</code>, adding GitHub compare links between versions. The scripts update these files incrementally for efficiency. See <code>misc/build</code> and the root-level files <code>commit-version-map.txt</code>, <code>version-bumps.txt</code>, and <code>NEWS.md</code>.</p>
+<p>We use semi-automated construction of <code>NEWS.md</code>, which is updated using the following command.</p>
+<pre><code>make NEWS.md</code></pre>
+<p>This system generates and maintains version metadata and release notes for the package using three scripts located in <code>misc/build</code>. It produces <code>commit-version-map.txt</code>, <code>version-bumps.txt</code>, and <code>NEWS.md</code> in the project root. <code>commit-version-map.txt</code> records the version number, commit hash, and date for each commit on the main branch. <code>version-bumps.txt</code> extracts the most recent commit for each version from that map. <code>NEWS.md</code> combines these version bumps with optional developer-written content in <code>news-narratives.md</code>, adding GitHub compare links between versions. The scripts update these files incrementally for efficiency. See <code>misc/build</code> and the root-level files <code>commit-version-map.txt</code>, <code>version-bumps.txt</code>, and <code>NEWS.md</code>.</p>
+<p>Please do not check in any of these generated <code>txt</code> files.</p>
+</div>
+<div class="section level2">
+<h2 id="testing-installability-of-specific-commits">Testing Installability of Specific Commits<a class="anchor" aria-label="anchor" href="#testing-installability-of-specific-commits"></a></h2>
+<p>To test whether a specific commit installs cleanly, use:</p>
+<pre><code>misc/build/test-install.sh &lt;commit-hash&gt;</code></pre>
+<p>For example, to test a version listed in <code>version-bumps.txt</code>:</p>
+<pre><code>misc/build/test-install.sh ded98a20184b9e382521472a8de90951a6cc3359</code></pre>
+<p>This script will:</p>
+<ul><li>Abort if you have any uncommitted changes (staged or unstaged).</li>
+<li>Check out the given commit in detached head mode.</li>
+<li>Run <code>make quick-doc-install</code>.</li>
+<li>Restore any files that were modified during installation (e.g., roxygen2 tends to automatically update the <code>DESCRIPTION</code> file).</li>
+<li>Return to your previous branch or commit.</li>
+<li>Append (or update) the result (<code>OK</code>, <code>FAIL</code>, or <code>CHECKOUT-FAIL</code>) in <code>install-tests.txt</code>.</li>
+</ul><p>The <code>install-tests.txt</code> file contains one line per tested commit:</p>
+<pre><code>&lt;commit-hash&gt; &lt;OK|FAIL|CHECKOUT-FAIL&gt;</code></pre>
+<p>Please do not check in this generated <code>install-tests.txt</code> file.</p>
 </div>
 <div class="section level2">
 <h2 id="log-files">Log Files<a class="anchor" aria-label="anchor" href="#log-files"></a></h2>
