@@ -3,7 +3,7 @@
 In-Progress
 
 [source](https://github.com/canmod/macpan2)
- | [change list](https://github.com/canmod/macpan2/compare/322b99bf077ef71994ac198e5fe5c2a35660b24c..23d15f2b21ca1b16e995ad88a9d2fec6d861f7e7)
+ | [change list](https://github.com/canmod/macpan2/compare/322b99bf077ef71994ac198e5fe5c2a35660b24c..16db0f55579037d8d14de50c0b41147cce810957)
 
 ### Behaviour Changes
 
@@ -28,6 +28,17 @@ Released [2025-07-09]
 
 [source](https://github.com/canmod/macpan2/tree/322b99bf077ef71994ac198e5fe5c2a35660b24c)
  | [change list](https://github.com/canmod/macpan2/compare/74e55c668cbb406c99ecb7dd984a2d0b3b1ac2c9..322b99bf077ef71994ac198e5fe5c2a35660b24c)
+
+### Behaviour Changes
+
+* Stop exporting some developer utilities: `make_expr_parser`, `finalizer_char`, `finalizer_index`, `initial_valid_vars`.
+
+### New Features
+
+* Option in [mp_tmb_calibrator](https://canmod.github.io/macpan2/reference/mp_tmb_calibrator) to return optimized version of a calibrator, rather than needing to use [mp_optimize](https://canmod.github.io/macpan2/reference/mp_optimize).
+* New [si_example_object](https://canmod.github.io/macpan2/reference/is_example_object) function that efficiently generates objects associated with the example SI model, and associated [si_example_code](https://canmod.github.io/macpan2/reference/si_example_code) function that displays code that could be used to generate these objects.
+* Uniform priors no longer add `-0` terms to the objective function.
+
 
 ## Changes in 2.6.0
 

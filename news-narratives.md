@@ -16,6 +16,18 @@
 
 * `mp_version` wasn't dispatching on simulators.
 
+## 2.6.1
+
+### Behaviour Changes
+
+* Stop exporting some developer utilities: `make_expr_parser`, `finalizer_char`, `finalizer_index`, `initial_valid_vars`.
+
+### New Features
+
+* Option in [mp_tmb_calibrator](https://canmod.github.io/macpan2/reference/mp_tmb_calibrator) to return optimized version of a calibrator, rather than needing to use [mp_optimize](https://canmod.github.io/macpan2/reference/mp_optimize).
+* New [si_example_object](https://canmod.github.io/macpan2/reference/is_example_object) function that efficiently generates objects associated with the example SI model, and associated [si_example_code](https://canmod.github.io/macpan2/reference/si_example_code) function that displays code that could be used to generate these objects.
+* Uniform priors no longer add `-0` terms to the objective function.
+
 ## 2.6.0
 
 ### New Features
