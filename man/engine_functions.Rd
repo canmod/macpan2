@@ -62,6 +62,7 @@
 \alias{invlogit}
 \alias{logit}
 \alias{cumsum}
+\alias{sparse_mat_mult}
 \alias{assign}
 \alias{unpack}
 \title{Functions Available in the Simulation Engine}
@@ -315,15 +316,24 @@ engine_eval(~ recycle(t(1:4), 3, 4))
 \itemize{
 \item \code{x \%*\% y} : Standard matrix multiplication.
 \item \code{x \%x\% y} : Kronecker product
+\item \code{sparse_mat_mult(x, i, j, y, z)} : Matrix multiplication
+when the left matrix is represented as a column vector, \code{x},
+of non-zero elements and integer vectors of row, \code{i}, and
+column, \code{j}, indices. The right matrix and the resulting
+matrix are not represented as sparse matrices.
 }
 }
 
 \subsection{Arguments}{
 \itemize{
-\item \code{x} : A matrix. For the standard product, \code{x}
-must have as many columns as \code{y} has rows.
-\item \code{y} : A matrix. For standard product, \code{y}
-must have as many rows as \code{x} has columns.
+\item \code{x} : A matrix.
+\item \code{y} : A matrix.
+\item \code{i} : Integer vector the same length as \code{x} giving
+zero-based row indices for sparse matrix representation.
+\item \code{j} : Integer vector the same length as \code{x} giving
+zero-based column indices for sparse matrix representation.
+\item \code{z} : A matrix with dimensions equal to the result of
+the sparse matrix multiplication (see details).
 }
 }
 
@@ -338,6 +348,20 @@ must have as many rows as \code{x} has columns.
 \if{html}{\out{<div class="sourceCode">}}\preformatted{engine_eval(~ (1:10) \%*\% t(1:10))
 engine_eval(~ (1:10) \%x\% t(1:10))
 }\if{html}{\out{</div>}}
+}
+
+\subsection{Details}{
+
+For standard matrix multiplication, \code{x \%*\% y}, the number of
+columns of \code{x} equals the number of rows of \code{y}.
+
+Think about \code{sparse_mat_mult(x, i, j, y, z)} as similar to
+\code{z ~ x \%*\% y}, where \code{x} is represented differently. In
+particular, the argument \code{x} is a column vector containing the
+non-zero elements of the left matrix, \code{i} contains the
+zero-based row indices associated with each element in \code{x},
+and \code{j} contains the zero-based column indices associated with
+each element in \code{x}.
 }
 
 }
