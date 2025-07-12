@@ -20,10 +20,10 @@ test_that("formula validity is enforced", {
   )
 })
 
-test_that("proper error message comes when output matrices are not initialized", {
+test_that("proper error message when output matrices are not initialized", {
   m = macpan2:::TMBModel(
     init_mats = macpan2:::MatsList(a = 1),
-    expr_list =mp_tmb_expr_list(before = list(b ~ a))
+    expr_list = mp_tmb_expr_list(before = list(b ~ a))
   )
   expect_error(
     m$data_arg(),

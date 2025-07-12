@@ -8,6 +8,21 @@ is_na = function(x) {
   return(i)
 }
 
+## TODO: Allow for no-op functions?
+arg_placeholders = function(x) {
+  rep_0 = rep(0L, length(x) - 1L)
+  has_no_args = length(rep_0) == 0
+  is_not_tilde = as.character(x[[1]]) != "~"
+  is_call = is.call(x)
+  if (has_no_args & is_call & is_not_tilde) {
+    stop(
+        "The following function was called without arguments:\n  "
+      , as.character(x[[1L]])
+    )
+  }
+  return(rep_0)
+}
+
 #' Generate an Arithmetic Expression Parser
 #'
 #' @param parser_name Name of the parsing function as a character
@@ -101,14 +116,16 @@ make_expr_parser = function(
       # the list of expressions
       x$x = append(x$x, as.list(x$x[[expr_id]])[-1L])
 
+      
       # add placeholders for the i and n that are associated
       # with these new arguments -- these placeholders
       # will get updated at the next recursion if it is
       # discovered that they are also functions
-      rep_0 = rep(0L, length(x$x[[expr_id]]) - 1L)
+      rep_0 = arg_placeholders(x$x[[expr_id]])
       x$n = append(x$n, rep_0)
       x$i = append(x$i, rep_0)
-
+      
+      
       # update the current expression to reflect how it has
       # been reduced
       x$n[[expr_id]] = length(x$x[[expr_id]]) - 1L

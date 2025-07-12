@@ -220,13 +220,22 @@
 #'
 #' * `x %*% y` : Standard matrix multiplication.
 #' * `x %x% y` : Kronecker product
+#' * `sparse_mat_mult(x, i, j, y, z)` : Matrix multiplication
+#' when the left matrix is represented as a column vector, `x`, 
+#' of non-zero elements and integer vectors of row, `i`, and 
+#' column, `j`, indices. The right matrix and the resulting
+#' matrix are not represented as sparse matrices.
 #'
 #' ### Arguments
 #'
-#' * `x` : A matrix. For the standard product, `x`
-#' must have as many columns as `y` has rows.
-#' * `y` : A matrix. For standard product, `y`
-#' must have as many rows as `x` has columns.
+#' * `x` : A matrix.
+#' * `y` : A matrix.
+#' * `i` : Integer vector the same length as `x` giving 
+#' zero-based row indices for sparse matrix representation.
+#' * `j` : Integer vector the same length as `x` giving 
+#' zero-based column indices for sparse matrix representation.
+#' * `z` : A matrix with dimensions equal to the result of
+#' the sparse matrix multiplication (see details).
 #'
 #' ### Return
 #'
@@ -239,6 +248,20 @@
 #' engine_eval(~ (1:10) %x% t(1:10))
 #' ```
 #'
+#' ### Details
+#'
+#' For standard matrix multiplication, `x %*% y`, the number of
+#' columns of `x` equals the number of rows of `y`.
+#' 
+#' 
+#' Think about `sparse_mat_mult(x, i, j, y, z)` as similar to
+#' `z ~ x %*% y`, where `x` is represented differently. In
+#' particular, the argument `x` is a column vector containing the 
+#' non-zero elements of the left matrix, `i` contains the 
+#' zero-based row indices associated with each element in `x`,
+#' and `j` contains the zero-based column indices associated with
+#' each element in `x`.
+#'  
 #' ## Parenthesis
 #'
 #' The order of operations can be enforced in the usual
@@ -1057,6 +1080,7 @@
 #' @aliases invlogit
 #' @aliases logit
 #' @aliases cumsum
+#' @aliases sparse_mat_mult
 #' @aliases assign
 #' @aliases unpack
 NULL
