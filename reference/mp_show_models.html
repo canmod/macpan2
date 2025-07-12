@@ -103,36 +103,38 @@ names, instead of a data frame with more information about each model.</p></li>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">mp_show_models</span><span class="op">(</span>show_missing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                       Directory                           Title</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1                     awareness                Awareness Models</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2                           hiv                             HIV</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3    lotka_volterra_competition                  Lotka-Volterra</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4  lotka_volterra_predator_prey                  Lotka-Volterra</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5                   macpan_base                     Macpan Base</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6                          nfds         NFDS and Vaccine Design</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7                          seir                      Basic SEIR</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8                        shiver           SHIVER = SEIR + H + V</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 9                            si                        Basic SI</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10                          sir                       Basic SIR</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 11                      sir_age              Age-stratified SIR</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 12                    sir_demog             SIR with Demography</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 13                 sir_mosquito            Mosquito-Vector  SIR</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 14                   sir_waning SIR with Waning Immunity (SIRS)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 15                           ww                Wastewater Model</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2                     fibonacci               Fibonacci Numbers</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3                           hiv                             HIV</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4    lotka_volterra_competition                  Lotka-Volterra</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5  lotka_volterra_predator_prey                  Lotka-Volterra</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6                   macpan_base                     Macpan Base</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7                          nfds         NFDS and Vaccine Design</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8                          seir                      Basic SEIR</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9                        shiver           SHIVER = SEIR + H + V</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10                           si                        Basic SI</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11                          sir                       Basic SIR</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12                      sir_age              Age-stratified SIR</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13                    sir_demog             SIR with Demography</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14                 sir_mosquito            Mosquito-Vector  SIR</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15                   sir_waning SIR with Waning Immunity (SIRS)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16                           ww                Wastewater Model</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                                                                                                        Description</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1                                                                     Behaviour modifications in response to death</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2                                                                                               A simple HIV model</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3                                                                             Simple two-species competition model</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4                                                                                       Simple predator-prey model</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5                                                         Re-implementation of the McMaster group's COVID-19 model</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6  An ecological model using population genomics to design optimal vaccines as implemented in Colijn et al. (2020)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7                                                                      Simple epidemic model with an exposed class</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8                                                       A modified SEIR model with Hospitalization and Vaccination</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 9                                                                                     A very simple epidemic model</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2                                                     Matrix population model for generating the Fibonacci numbers</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3                                                                                               A simple HIV model</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4                                                                             Simple two-species competition model</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5                                                                                       Simple predator-prey model</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6                                                         Re-implementation of the McMaster group's COVID-19 model</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7  An ecological model using population genomics to design optimal vaccines as implemented in Colijn et al. (2020)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8                                                                      Simple epidemic model with an exposed class</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9                                                       A modified SEIR model with Hospitalization and Vaccination</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 10                                                                                    A very simple epidemic model</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 11                                                                                     An age-stratified SIR model</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 12                                                                               An SIR model with birth and death</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 13                                                                                  SIR model for mosquito vectors</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 14                                                                  A basic SIR model with a flow from R back to S</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 15                                                             Macpan base with an additional wastewater component</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11                                                                                    A very simple epidemic model</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12                                                                                     An age-stratified SIR model</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13                                                                               An SIR model with birth and death</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14                                                                                  SIR model for mosquito vectors</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15                                                                  A basic SIR model with a flow from R back to S</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16                                                             Macpan base with an additional wastewater component</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
