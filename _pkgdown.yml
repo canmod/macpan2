@@ -184,6 +184,7 @@ reference:
   - empty_trajectory
   - mp_zero_vector
   - rbf
+  - sparse_matrix_notation
   - mp_binary_operator
 
 - subtitle: Developer and Power-User Utilities
@@ -252,6 +253,7 @@ articles:
   - calibration
   - real_data
   - options
+  - matrix_multiplication
   - FAQs
 - title: Specs
   desc: Specification Documents

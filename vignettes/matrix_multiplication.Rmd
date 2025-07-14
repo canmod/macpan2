@@ -1,0 +1,206 @@
+---
+title: "Multiplying a Sparse Matrix with a Dense Matrix"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{Multiplying a Sparse Matrix with a Dense Matrix}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+[![status](https://img.shields.io/badge/status-mature%20draft-yellow)](https://canmod.github.io/macpan2/articles/vignette-status#mature-draft)
+
+```{r settings, echo = FALSE, eval = TRUE, message=FALSE, warning=FALSE, error=FALSE}
+library(macpan2)
+library(splines)
+library(dplyr)
+library(ggplot2)
+theme_bw = function() ggplot2::theme_bw(base_size = 18)
+```
+
+## Overview
+
+When working with models in `macpan2`, it is often necessary to perform matrix multiplications where the left-hand matrix is sparse—meaning most of its entries are zero. Passing large sparse matrices as dense matrices with zeros into `macpan2` models can lead to unnecessary memory use and performance slowdowns.
+
+To address this, `macpan2` provides the engine function `sparse_mat_mult()`, which multiplies a sparse matrix (given in compressed form) by a dense matrix. Instead of passing the full sparse matrix, you pass:
+
+- `x` — the non-zero values of the sparse matrix, as a numeric vector
+- `i` — the zero-based row indices of each value in `x`
+- `j` — the zero-based column indices of each value in `x`
+- `y` — the dense matrix on the right-hand side of the multiplication
+- `z` — a matrix with the correct dimensions, which is passed both as an input and as the destination for the result
+
+This operation is equivalent to:
+```r
+z ~ LeftSparseMatrix %*% y
+```
+but avoids ever constructing `LeftSparseMatrix` explicitly.  You pass `z` as a pre-allocated matrix of the correct size, and `sparse_mat_mult()` fills it with the result of the multiplication.
+
+This method is particularly useful in `macpan2` for:
+
+- Reducing memory footprint when working with sparse structures
+- Avoiding unnecessary computation with zero entries
+- Embedding efficient matrix multiplications in a model specification
+
+We also plan to allow passing sparse matrices from the `Matrix` package directly into `macpan2` models, in the same way integer vectors can be passed today. The `Matrix` package works naturally with `TMB`, so this will allow us to leverage native sparse matrix support inside the `macpan2` engine.  
+Even with our current simple integer-vector-based approach, we have observed practically useful performance gains for large problems, especially when the left-hand matrix is highly sparse.
+
+## Extracting Sparse Representation
+
+To simplify the creation of sparse representations, `macpan2` provides the helper function `sparse_matrix_notation()`.  
+This function takes a dense matrix and returns:
+
+- `values` — the non-zero entries of the matrix
+- `row_index` — the zero-based row indices of those entries
+- `col_index` — the zero-based column indices of those entries
+- `M` — the original matrix
+- `Msparse` — a version of `M` with near-zero entries replaced by exact zeros  
+
+By default, `sparse_matrix_notation()` applies a numerical tolerance to treat small values as zero and converts indices to zero-based, matching the requirements of `sparse_mat_mult()`.
+
+Example usage:
+```{r}
+library(macpan2)
+
+# Define matrix to convert
+M <- matrix(c(5, 0, 0,
+              0, 0, 3,
+              0, 2, 0), nrow = 3, byrow = TRUE)
+
+# Extract sparse representation
+sparse <- macpan2:::sparse_matrix_notation(M, zero_based = TRUE)
+print(sparse)
+
+# Calculate sparsity percentage
+total_entries <- length(M)
+non_zero_entries <- length(sparse$values)
+sparsity <- 100 * (1 - non_zero_entries / total_entries)
+cat(sprintf("Matrix sparsity: %.1f%%\n", sparsity))
+```
+
+With this simple example, the matrix is 66.7% sparse.  
+The performance benefit of using sparse matrix multiplication grows with both matrix size and sparsity percentage.
+
+## Example: Small Sparse Matrix Multiplication
+
+```{r}
+library(macpan2)
+
+# Full matrix for validation
+A <- matrix(c(5, 0, 0,
+              0, 0, 3,
+              0, 2, 0), nrow = 3, byrow = TRUE)
+
+# Extract sparse representation
+sparse <- macpan2:::sparse_matrix_notation(A, zero_based = TRUE)
+
+# Dense matrix to multiply (3×2)
+y <- matrix(c(1, 4,
+              2, 5,
+              3, 6), nrow = 3, byrow = TRUE)
+
+# Pre-allocate output matrix (3×2)
+z <- matrix(0, nrow = 3, ncol = 2)
+
+# Model specification with sparse_mat_mult in before block
+spec <- mp_tmb_model_spec(
+  before = z ~ sparse_mat_mult(x, i, j, y, z),
+  default = nlist(x = sparse$values, y, z),
+  integers = list(i = sparse$row_index, j = sparse$col_index)
+)
+
+# Run simulation for zero time steps to execute 'before' block
+result <- spec |>
+  mp_simulator(time_steps = 0, outputs = "z") |>
+  mp_final_list()
+
+# Result from macpan2
+result$z
+
+# Direct multiplication for validation
+A %*% y
+```
+
+- `sparse_mat_mult()` multiplies a sparse matrix (given as values and indices) by a dense matrix without constructing the full sparse matrix.
+- The helper `sparse_matrix_notation()` extracts the required sparse representation from any matrix, applying zero-based indexing and a numerical tolerance.
+- The function writes the result into `z`, which must be allocated beforehand.
+- You can use `mp_tmb_model_spec()` with `time_steps = 0` to evaluate this operation as part of a `macpan2` model workflow.
+
+## Example: Time-Varying Transmission in an SI Model
+
+We implement an SI model where the transmission rate $\beta(t)$ varies over time, modeled as a spline basis expansion:
+$$
+\log \beta(t) = B(t) \cdot \theta
+$$
+We use `sparse_matrix_notation()` to encode the spline basis sparsely and compute $\log \beta(t)$ using `sparse_mat_mult()` in the `before` block. In this case, the spline basis contains no exact zeros, but many near-zero values that contribute little to the result. The tolerance ensures these negligible entries are dropped, improving sparsity without meaningfully affecting the result. For basis matrices like these, choosing a reasonable tolerance (e.g., `1e-4`) helps strike a balance between computational efficiency and model fidelity.
+
+```{r, fig.height = 8, fig.width=4}
+library(macpan2)
+library(splines)
+library(dplyr)
+library(ggplot2)
+
+# Time points for simulation (100 steps)
+n_steps <- 100
+time_points <- seq(0, 1, length.out = n_steps)
+
+# Create a cubic B-spline basis with 8 degrees of freedom
+B_dense <- bs(time_points, df = 8, degree = 3, intercept = TRUE)
+
+# Convert basis to sparse form with small tolerance
+B_sparse <- macpan2:::sparse_matrix_notation(B_dense, zero_based = TRUE, tol = 1e-4)
+
+# Print basis sparsity
+total_entries <- length(B_dense)
+non_zero_entries <- length(B_sparse$values)
+sparsity <- 100 * (1 - non_zero_entries / total_entries)
+cat(sprintf("Spline basis matrix sparsity (tol = 1e-4): %.1f%%\n", sparsity))
+
+# Example spline coefficients for log(beta)
+set.seed(12)
+theta <- rnorm(8, -2, 1)
+
+# Pre-allocate beta_log[t] for 100 time steps
+beta_log <- matrix(0, nrow = n_steps, ncol = 1)
+
+# Define SI model with time-varying beta
+spec <- mp_tmb_model_spec(
+  before = beta_log ~ sparse_mat_mult(x, i, j, theta, beta_log),
+  during = list(
+      beta ~ exp(beta_log[time_step(1)]),
+      mp_per_capita_flow(
+        from      = "S",
+        to        = "I",
+        rate      = "beta * I / N",
+        flow_name = "infection"
+      )
+  ),
+  default = nlist(N = 100, S = 99, I = 1, x = B_sparse$values, theta, beta_log),
+  integers = nlist(i = B_sparse$row_index, j = B_sparse$col_index)
+)
+
+# Simulate for 100 time steps
+outputs = c("S", "I", "beta", "infection")
+result <- spec |>
+  mp_simulator(time_steps = n_steps, outputs = outputs) |>
+  mp_trajectory() |> 
+  mutate(variable = factor(matrix, levels = outputs))
+
+# Plot the results
+(result
+  |> ggplot()
+  + aes(time, value)
+  + geom_line()
+  + facet_wrap(~variable, scales = "free_y", ncol = 1)
+  + theme_bw()
+)
+```
+
+- Transmission rate $\beta(t)$ is computed dynamically using `sparse_mat_mult()`.
+- The spline basis is passed in sparse form, allowing efficient calculation of $\beta(t)$ at each time step.
+- The SI model uses `mp_per_capita_flow()` for infection, with time-varying transmission.
+- For this example, the spline basis (with tolerance $10^{-4}$) has approximately `r sprintf("%.1f%% sparsity", sparsity)`.
+  Larger models with higher sparsity will benefit even more from this approach.
