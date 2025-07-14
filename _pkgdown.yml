@@ -253,7 +253,6 @@ articles:
   - calibration
   - real_data
   - options
-  - matrix_multiplication
   - FAQs
 - title: Specs
   desc: Specification Documents
@@ -263,8 +262,9 @@ articles:
 - title: Superuser Guides
   desc: Articles aimed at advanced users
   contents:
-  - calibration_advanced
+  - matrix_multiplication
   - time_varying_parameters_advanced
+  - calibration_advanced
   - engine_agnostic_grammar
 - title: Developer Guides
   desc: Articles aimed at package developers

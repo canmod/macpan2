@@ -34,7 +34,7 @@ full-install:
 # haven't updated macpan.cpp (but have perhaps modified dev.cpp)
 # and (3) do not require a roxygen update.
 quick-install: enum-update enum-meth-update
-	R CMD INSTALL --no-multiarch --install-tests --configure-args="CFLAGS=-g CXXFLAGS=-g" .
+	R CMD INSTALL --no-multiarch --install-tests --configure-args="CFLAGS=-g -O0 CXXFLAGS=-g -O0" .
 
 
 quick-doc-install: R/*.R misc/dev/dev.cpp

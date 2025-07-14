@@ -26,3 +26,5 @@ test_that("time_var grabs entire matrix rows each time step", {
   answer = A[rep(1:3, 1:3), ] |> t() |> as.vector()
   expect_equal(result, answer)
 })
+
+

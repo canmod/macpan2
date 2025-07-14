@@ -17,7 +17,8 @@ mp_tmb_insert_glm_timevar(
   timeseries_name = sprintf("timeseries_\%s", parameter_name),
   timevar_coef_name = sprintf("time_var_\%s", parameter_name),
   time_index_name = sprintf("time_index_\%s", parameter_name),
-  sparsity_tolerance = 0
+  sparsity_tolerance = 0,
+  engine_function = c("sparse_mat_mult", "group_sums")
 )
 }
 \arguments{
@@ -28,7 +29,8 @@ to make time-varying.}
 
 \item{design_matrix}{Matrix of time variation.}
 
-\item{timevar_coef}{Initial coefficient vector.}
+\item{timevar_coef}{Initial coefficient matrix with the same number of rows
+as there are columns of the \code{design_matrix}.}
 
 \item{link_function}{Link function given by functions like
 \code{\link{mp_log}}.}
