@@ -2457,7 +2457,7 @@ public:
                 // zero-based and because of the following minor
                 // back-compatibility argument.
                 // 
-                // the most common case was to set offset = 0,
+                // the most common case was to set initial offset = 0,
                 // meaning we start to increment right away at the
                 // first time step. so for back-compatibility we 
                 // allow this to mean the same thing as it did before. 
