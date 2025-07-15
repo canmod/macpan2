@@ -70,10 +70,6 @@ When you attempt to use functions from `TMB` when adding an engine function, you
 
 We are [targeting support](https://github.com/canmod/macpan2/issues/125#issuecomment-1789434800) for both `C++14` and `C++17`. This means, for example, that we cannot use [variants](https://en.cppreference.com/w/cpp/utility/variant) because they were introduced in `C++17`.
 
-## `C++` Compiler Optimization Level
-
-The compiler optimization level, as well as other compiler flags, can be set in the `src/Makevars` file. We should keep it at level two (i.e., `-O2`) because it generally leads to much better run-time performance, although sometimes you might want to reduce compilation times during development by turning off optimization (i.e., `-O0`).
-
 ## Adding Engine Functions
 
 If you need a function for defining model simulations that is not [currently supported by the C++ TMB engine](https://canmod.github.io/macpan2/reference/engine_functions), here is how you can add one.
