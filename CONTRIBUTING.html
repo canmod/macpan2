@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -100,6 +100,11 @@ make pkg-check         # R package checks</code></pre>
 <h2 id="c-standards">
 <code>C++</code> Standards<a class="anchor" aria-label="anchor" href="#c-standards"></a></h2>
 <p>We are <a href="https://github.com/canmod/macpan2/issues/125#issuecomment-1789434800" class="external-link">targeting support</a> for both <code>C++14</code> and <code>C++17</code>. This means, for example, that we cannot use <a href="https://en.cppreference.com/w/cpp/utility/variant" class="external-link">variants</a> because they were introduced in <code>C++17</code>.</p>
+</div>
+<div class="section level2">
+<h2 id="c-compiler-optimization-level">
+<code>C++</code> Compiler Optimization Level<a class="anchor" aria-label="anchor" href="#c-compiler-optimization-level"></a></h2>
+<p>The compiler optimization level, as well as other compiler flags, can be set in the <code>src/Makevars</code> file. We should keep it at level two (i.e., <code>-O2</code>) because it generally leads to much better run-time performance, although sometimes you might want to reduce compilation times during development by turning off optimization (i.e., <code>-O0</code>).</p>
 </div>
 <div class="section level2">
 <h2 id="adding-engine-functions">Adding Engine Functions<a class="anchor" aria-label="anchor" href="#adding-engine-functions"></a></h2>

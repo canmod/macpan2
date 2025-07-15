@@ -15,7 +15,7 @@ allowed, but missing values (NAs) are not."><link rel="stylesheet" href="https:/
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -68,13 +68,7 @@ allowed, but missing values (<code>NA</code>s) are not.</p>
 <span><span class="fu"><a href="engine_functions.html">print</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'Index'</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># S3 method for class 'Index'</span></span>
-<span><span class="fu">labelling_column_names</span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># S3 method for class 'Index'</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/labels.html" class="external-link">labels</a></span><span class="op">(</span><span class="va">object</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -101,10 +95,6 @@ the first column, that are required to uniquely identify each row.</p></dd>
 <dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
 <dd><p>An index.</p></dd>
 
-
-<dt id="arg-object">object<a class="anchor" aria-label="anchor" href="#arg-object"></a></dt>
-<dd><p>An index.</p></dd>
-
 </dl></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -122,12 +112,6 @@ names and indices.</p>
 
 <ul><li><p><code>print(Index)</code>: Print an index.</p></li>
 <li><p><code>names(Index)</code>: Get the names of the columns of an index.</p></li>
-<li><p><code>labelling_column_names(Index)</code>: Retrieve the <code>labelling_column_names</code> of
-an index. These are the names of the columns that are used to label
-the model components.</p></li>
-<li><p><code>labels(Index)</code>: Convert an index into
-a character vector giving labels associated with each model component
-(i.e. row) being described.</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
