@@ -1,9 +1,44 @@
-## Changes in 2.6.1
+## Changes in 3.0.0
 
 In-Progress
 
 [source](https://github.com/canmod/macpan2)
- | [change list](https://github.com/canmod/macpan2/compare/74e55c668cbb406c99ecb7dd984a2d0b3b1ac2c9..bb7773bab8bbf131ef8f02da7f01ddb2de596bdf)
+ | [change list](https://github.com/canmod/macpan2/compare/322b99bf077ef71994ac198e5fe5c2a35660b24c..516ba9aeaa2f8913460c82bde77100311b815f30)
+
+### Behaviour Changes
+
+* Names of distribution functions should now be more familiar to R users ([#342](https://github.com/canmod/macpan2/issues/342)).
+* [mp_trajectory_replicate](https://canmod.github.io/macpan2/reference/mp_trajectory_replicate) now uses parameter uncertainty.
+
+### New Features
+
+* Two new functions answering yes/no questions of calibrators.
+  * [mp_opt_attempted](https://canmod.github.io/macpan2/reference/mp_opt_attempted)
+  * [mp_uncertainty_estimated](https://canmod.github.io/macpan2/reference/mp_uncertainty_estimated)
+* Check if covariance matrix is singular before simulating and give a more informative error message -- uses the check in `MASS::rmvnorm`.
+
+### Bug Fixes
+
+* `mp_version` wasn't dispatching on simulators.
+
+
+## Changes in 2.6.1
+
+Released [2025-07-09]
+
+[source](https://github.com/canmod/macpan2/tree/322b99bf077ef71994ac198e5fe5c2a35660b24c)
+ | [change list](https://github.com/canmod/macpan2/compare/74e55c668cbb406c99ecb7dd984a2d0b3b1ac2c9..322b99bf077ef71994ac198e5fe5c2a35660b24c)
+
+### Behaviour Changes
+
+* Stop exporting some developer utilities: `make_expr_parser`, `finalizer_char`, `finalizer_index`, `initial_valid_vars`.
+
+### New Features
+
+* Option in [mp_tmb_calibrator](https://canmod.github.io/macpan2/reference/mp_tmb_calibrator) to return optimized version of a calibrator, rather than needing to use [mp_optimize](https://canmod.github.io/macpan2/reference/mp_optimize).
+* New [si_example_object](https://canmod.github.io/macpan2/reference/is_example_object) function that efficiently generates objects associated with the example SI model, and associated [si_example_code](https://canmod.github.io/macpan2/reference/si_example_code) function that displays code that could be used to generate these objects.
+* Uniform priors no longer add `-0` terms to the objective function.
+
 
 ## Changes in 2.6.0
 
@@ -27,7 +62,7 @@ Released [2025-06-27]
 
 ### New Features
 
-* [Code of conduct](https://github.com/canmod/macpan2/blob/main/CODE_OF_CONDUCT).
+* [Code of conduct](https://github.com/canmod/macpan2?tab=coc-ov-file#readme).
 
 
 ## Changes in 2.4.1
@@ -207,14 +242,14 @@ Released [2025-05-15]
 Released [2025-04-17]
 
 [source](https://github.com/canmod/macpan2/tree/6eaf25f0c9a8a8c4167ac5974ba8675cb021478c)
- | [change list](https://github.com/canmod/macpan2/compare/723b1647840c811da9682dcb28306b79b4aeeeff..6eaf25f0c9a8a8c4167ac5974ba8675cb021478c)
+ | [change list](https://github.com/canmod/macpan2/compare/4a8bf67abd996cce47d1a33dbc7d771f004dd2d2..6eaf25f0c9a8a8c4167ac5974ba8675cb021478c)
 
 ## Changes in 1.16.11
 
-Released [2025-04-04]
+Released [2025-04-09]
 
-[source](https://github.com/canmod/macpan2/tree/723b1647840c811da9682dcb28306b79b4aeeeff)
- | [change list](https://github.com/canmod/macpan2/compare/1d2468ddf09f07888aa80488b3e869a7a8e971d6..723b1647840c811da9682dcb28306b79b4aeeeff)
+[source](https://github.com/canmod/macpan2/tree/4a8bf67abd996cce47d1a33dbc7d771f004dd2d2)
+ | [change list](https://github.com/canmod/macpan2/compare/feec317106233839d49c8ad3a19780c6a08abeef..4a8bf67abd996cce47d1a33dbc7d771f004dd2d2)
 
 ### New Features
 
@@ -223,45 +258,45 @@ Released [2025-04-04]
 
 ## Changes in 1.16.10
 
-Released [2025-04-04]
+Released [2025-04-06]
 
-[source](https://github.com/canmod/macpan2/tree/1d2468ddf09f07888aa80488b3e869a7a8e971d6)
- | [change list](https://github.com/canmod/macpan2/compare/a5d0870b0e06a0a1192db82194b8711dfddcafa5..1d2468ddf09f07888aa80488b3e869a7a8e971d6)
+[source](https://github.com/canmod/macpan2/tree/feec317106233839d49c8ad3a19780c6a08abeef)
+ | [change list](https://github.com/canmod/macpan2/compare/c371c8c7cb8c5d371beb693fb9ac0f86a6cd215d..feec317106233839d49c8ad3a19780c6a08abeef)
 
 ## Changes in 1.16.9
 
 Released [2025-04-04]
 
-[source](https://github.com/canmod/macpan2/tree/a5d0870b0e06a0a1192db82194b8711dfddcafa5)
- | [change list](https://github.com/canmod/macpan2/compare/93061ef0203d500b9764dcda1bffdf940837127a..a5d0870b0e06a0a1192db82194b8711dfddcafa5)
+[source](https://github.com/canmod/macpan2/tree/c371c8c7cb8c5d371beb693fb9ac0f86a6cd215d)
+ | [change list](https://github.com/canmod/macpan2/compare/93061ef0203d500b9764dcda1bffdf940837127a..c371c8c7cb8c5d371beb693fb9ac0f86a6cd215d)
 
 ## Changes in 1.16.8
 
 Released [2025-04-04]
 
 [source](https://github.com/canmod/macpan2/tree/93061ef0203d500b9764dcda1bffdf940837127a)
- | [change list](https://github.com/canmod/macpan2/compare/739093e0630e2b6ea993af9a5a05ce428496823a..93061ef0203d500b9764dcda1bffdf940837127a)
+ | [change list](https://github.com/canmod/macpan2/compare/527bdd35ec719f77cfa2b3c7e01b8e0c28d2929e..93061ef0203d500b9764dcda1bffdf940837127a)
 
 ## Changes in 1.16.7
 
 Released [2025-03-31]
 
-[source](https://github.com/canmod/macpan2/tree/739093e0630e2b6ea993af9a5a05ce428496823a)
- | [change list](https://github.com/canmod/macpan2/compare/6415a062de47f291973b891e9ee990d6bebf3707..739093e0630e2b6ea993af9a5a05ce428496823a)
+[source](https://github.com/canmod/macpan2/tree/527bdd35ec719f77cfa2b3c7e01b8e0c28d2929e)
+ | [change list](https://github.com/canmod/macpan2/compare/6415a062de47f291973b891e9ee990d6bebf3707..527bdd35ec719f77cfa2b3c7e01b8e0c28d2929e)
 
 ## Changes in 1.16.6
 
 Released [2025-03-24]
 
 [source](https://github.com/canmod/macpan2/tree/6415a062de47f291973b891e9ee990d6bebf3707)
- | [change list](https://github.com/canmod/macpan2/compare/958c18f10bd0844f7a43052a8378d5531a09fee9..6415a062de47f291973b891e9ee990d6bebf3707)
+ | [change list](https://github.com/canmod/macpan2/compare/f5431fc10ae04d7100affa99f55177e3c45e55f8..6415a062de47f291973b891e9ee990d6bebf3707)
 
 ## Changes in 1.16.5
 
 Released [2025-03-23]
 
-[source](https://github.com/canmod/macpan2/tree/958c18f10bd0844f7a43052a8378d5531a09fee9)
- | [change list](https://github.com/canmod/macpan2/compare/f97745fe1e12d539f3c1beb851c376828aa274ec..958c18f10bd0844f7a43052a8378d5531a09fee9)
+[source](https://github.com/canmod/macpan2/tree/f5431fc10ae04d7100affa99f55177e3c45e55f8)
+ | [change list](https://github.com/canmod/macpan2/compare/f97745fe1e12d539f3c1beb851c376828aa274ec..f5431fc10ae04d7100affa99f55177e3c45e55f8)
 
 ## Changes in 1.16.4
 
@@ -296,14 +331,14 @@ Released [2025-03-20]
 Released [2025-03-19]
 
 [source](https://github.com/canmod/macpan2/tree/d41b2b103a1886b4f970a29a4510c84ce5e49952)
- | [change list](https://github.com/canmod/macpan2/compare/5cc2042c42890807af7487f679c72fe5a305988f..d41b2b103a1886b4f970a29a4510c84ce5e49952)
+ | [change list](https://github.com/canmod/macpan2/compare/0ffc3b2cdbc907991cef4953b96156f9fa9a95b7..d41b2b103a1886b4f970a29a4510c84ce5e49952)
 
 ## Changes in 1.15.3
 
-Released [2025-03-17]
+Released [2025-03-20]
 
-[source](https://github.com/canmod/macpan2/tree/5cc2042c42890807af7487f679c72fe5a305988f)
- | [change list](https://github.com/canmod/macpan2/compare/ace5fd2b3ede943385a7c7e50d295aaafe3fb325..5cc2042c42890807af7487f679c72fe5a305988f)
+[source](https://github.com/canmod/macpan2/tree/0ffc3b2cdbc907991cef4953b96156f9fa9a95b7)
+ | [change list](https://github.com/canmod/macpan2/compare/ace5fd2b3ede943385a7c7e50d295aaafe3fb325..0ffc3b2cdbc907991cef4953b96156f9fa9a95b7)
 
 ## Changes in 1.15.2
 

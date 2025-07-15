@@ -2407,6 +2407,33 @@ public:
                     MP2_ERR(MP2_TIME_VAR, "The first element of the second argument must be less than the number of elements in the first.", MP2_TIME_VAR);
                     return m;
                 }
+                
+                // off is the 'initial offset', which lets the user
+                // tells us when (i.e., what time-step) we should start
+                // increment.
+                // 
+                // we have switched this initial offset in the user 
+                // interface from zero-based to one-based, which makes
+                // much more sense given that time steps are one-based 
+                // in macpan2. however we are keeping offsets
+                // zero-based in the code, because indexing is
+                // zero-based and because of the following minor
+                // back-compatibility argument.
+                // 
+                // the most common case was to set initial offset = 0,
+                // meaning we start to increment right away at the
+                // first time step. so for back-compatibility we 
+                // allow this to mean the same thing as it did before. 
+                // in the much less common case of offset > 0
+                // (don't think anyone really did this because
+                // it wasn't documented) we break back-compatability
+                // by shifting user-supplied initial offsets down 
+                // by one, which will not matter much for simulations
+                // with a 'reasonable' number of simulation steps.
+                if (t == 1) {
+                  off = off - 1;
+                  if (off < 0) off = 0; 
+                }
 
                 // first argument can have its rows indexed
                 // by the second (curly braces wrap ints in
@@ -2416,11 +2443,9 @@ public:
                 // used in this way require c++11 i believe.)
                 if (off < v.size() - 1) { // might need to increment
                     cp = v[off + 1];
-                    if (cp == t) {                  // yes we need to increment
+                    if (cp == t) { // yes we need to increment
                         off = off + 1; // so we increment
                         matIndex = index2mats[1];
-                        // FIXME: should really have a function that
-                        // sets matrix or int_vec as appropriate
                         if (index2what[1] == 1) { // int-vec-valued pointer
                             // store the new offset in the zeroth position
                             valid_int_vecs.setNthIntVec(matIndex, off, 0);

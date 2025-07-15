@@ -213,14 +213,15 @@ labelling_column_names = function(x) UseMethod("labelling_column_names")
 #' @describeIn mp_index Retrieve the \code{labelling_column_names} of
 #' an index. These are the names of the columns that are used to label
 #' the model components.
-#' @export
+#' @noRd
 labelling_column_names.Index = function(x) x$labelling_column_names
 
 
-#' @param object An index.
-#' @describeIn mp_index Convert an index into
-#' a character vector giving labels associated with each model component
-#' (i.e. row) being described.
+# @param object An index.
+# @describeIn mp_index Convert an index into
+# a character vector giving labels associated with each model component
+# (i.e. row) being described.
+
 #' @export
 labels.Index = function(object, ...) object$labels()
 

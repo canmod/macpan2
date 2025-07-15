@@ -48,7 +48,7 @@ test_that("trajectories specified with likelihood distributions end up in calibr
     , traj = list(
         S = mp_nbinom(disp = 0.5),
         I = mp_nbinom(disp = 0.5),
-        R = mp_log_normal(sd = 1)
+        R = mp_lnorm(sd = 1)
     )
     , par = "beta"
     # outputs left to default

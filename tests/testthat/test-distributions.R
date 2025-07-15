@@ -19,7 +19,7 @@ test_that("distributions give appropriate variable assumption warnings", {
   expect_no_warning(mp_tmb_calibrator(sir_spec
     , data = sir_prevalence
     , traj = list(
-        I = mp_log_normal(location = mp_fit(80), sd = mp_fit(1))
+        I = mp_lnorm(location = mp_fit(80), sd = mp_fit(1))
       )
     , par = c("beta")
     , default = list(N = 300)
@@ -33,7 +33,7 @@ test_that("distributions give appropriate variable assumption warnings", {
   expect_warning(mp_tmb_calibrator(sir_spec
       , data = sir_prevalence
       , traj = list(
-          I = mp_log_normal(location = mp_fit(80), sd = mp_fit(1)) 
+          I = mp_lnorm(location = mp_fit(80), sd = mp_fit(1)) 
         )
       , par = c("beta")
       , default = list(N = 300)
@@ -52,7 +52,7 @@ test_that("distributions give appropriate variable assumption warnings", {
   expect_warning(mp_tmb_calibrator(sir_spec
      , data = bind_rows(sir_prevalence, sir_beta)
      , traj = "I"
-     , par = list(beta = mp_log_normal(location = 1, sd = 1))
+     , par = list(beta = mp_lnorm(location = 1, sd = 1))
      , tv = "beta"
      , default = list(N = 300)
     )

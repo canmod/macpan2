@@ -158,8 +158,8 @@ information provided by the \code{sdreport} function in \code{TMB} with default
 settings.
 
 \item \code{mp_trajectory_ensemble()}: Simulate a trajectory that includes uncertainty
-information provided by repeatedly sampling from a normal approximation to the
-distribution of the fitted parameters, and generating one trajectory for
+information provided by repeatedly sampling from a normal approximation to
+the distribution of the fitted parameters, and generating one trajectory for
 each of these samples. The quantiles of the empirical distribution of these
 trajectories can be used to produce a confidence interval for the
 fitted trajectory.

@@ -414,7 +414,12 @@ print.TMBCalibrator = function(x, ...) {
 #' mp_optimize(cal, "optimize", c(0, 1.2))
 #'
 #' @export
-mp_optimize = function(model, optimizer, ...) UseMethod("mp_optimize")
+mp_optimize = function(model
+    , optimizer = c("nlminb", "optim", "DEoptim", "optimize", "optimise")
+    , ...
+  ) {
+  UseMethod("mp_optimize")
+}
 
 #' @importFrom utils capture.output
 #' @export
@@ -459,7 +464,6 @@ mp_optimize.TMBSimulator = function(model
   return(opt_results)
 }
 
-#' @describeIn mp_optimize Optimize a TMB calibrator.
 #' @export
 mp_optimize.TMBCalibrator = function(model
     , optimizer = c("nlminb", "optim", "DEoptim", "optimize", "optimise")
