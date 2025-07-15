@@ -1,3 +1,33 @@
+## 3.0.0
+
+### Behaviour Changes
+
+* Names of distribution functions should now be more familiar to R users ([#342](https://github.com/canmod/macpan2/issues/342)).
+* [mp_trajectory_replicate](https://canmod.github.io/macpan2/reference/mp_trajectory_replicate) now uses parameter uncertainty.
+
+### New Features
+
+* Two new functions answering yes/no questions of calibrators.
+  * [mp_opt_attempted](https://canmod.github.io/macpan2/reference/mp_opt_attempted)
+  * [mp_uncertainty_estimated](https://canmod.github.io/macpan2/reference/mp_uncertainty_estimated)
+* Check if covariance matrix is singular before simulating and give a more informative error message -- uses the check in `MASS::rmvnorm`.
+
+### Bug Fixes
+
+* `mp_version` wasn't dispatching on simulators.
+
+## 2.6.1
+
+### Behaviour Changes
+
+* Stop exporting some developer utilities: `make_expr_parser`, `finalizer_char`, `finalizer_index`, `initial_valid_vars`.
+
+### New Features
+
+* Option in [mp_tmb_calibrator](https://canmod.github.io/macpan2/reference/mp_tmb_calibrator) to return optimized version of a calibrator, rather than needing to use [mp_optimize](https://canmod.github.io/macpan2/reference/mp_optimize).
+* New [si_example_object](https://canmod.github.io/macpan2/reference/is_example_object) function that efficiently generates objects associated with the example SI model, and associated [si_example_code](https://canmod.github.io/macpan2/reference/si_example_code) function that displays code that could be used to generate these objects.
+* Uniform priors no longer add `-0` terms to the objective function.
+
 ## 2.6.0
 
 ### New Features

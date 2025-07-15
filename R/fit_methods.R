@@ -168,6 +168,13 @@ mp_tmb_fixef_cov = function(model) UseMethod("mp_tmb_fixef_cov")
 
 #' @export
 mp_tmb_fixef_cov.TMBSimulator = function(model) {
+  if (!model$optimization_history$opt_attempted()) {
+    warning(
+        "\nNo optimization of this model has been attempted."
+      , "\nUsing initial parameter values to produce a covariance matrix."
+      , "\nUse mp_optimize to attempt an optimization."
+    )
+  }
   nms = mp_effects_descr(model)$mat
   cov_mat = model$cov.fixed()
   dimnames(cov_mat) = list(nms, nms)
@@ -175,5 +182,7 @@ mp_tmb_fixef_cov.TMBSimulator = function(model) {
 }
 
 #' @export
-mp_tmb_fixef_cov.TMBCalibrator = function(model) mp_tmb_fixef_cov(model$simulator)
+mp_tmb_fixef_cov.TMBCalibrator = function(model) {
+  mp_tmb_fixef_cov(model$simulator)
+}
   

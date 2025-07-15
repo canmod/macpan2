@@ -13,6 +13,9 @@ Developers can see [here](https://canmod.github.io/macpan2/articles/index.html#d
 - [Adding Engine Functions](#adding-engine-functions)
 - [Developer Installation on Windows](#developer-installation-on-windows)
 - [Test Suite](#test-suite)
+- [Changelog Management](#changelog-management)
+- [Testing Installability of Specific Commits](#testing-installability-of-specific-commits)
+- [Log Files](#log-files)
 
 
 ## Developer Installation
@@ -66,6 +69,10 @@ When you attempt to use functions from `TMB` when adding an engine function, you
 ## `C++` Standards
 
 We are [targeting support](https://github.com/canmod/macpan2/issues/125#issuecomment-1789434800) for both `C++14` and `C++17`. This means, for example, that we cannot use [variants](https://en.cppreference.com/w/cpp/utility/variant) because they were introduced in `C++17`.
+
+## `C++` Compiler Optimization Level
+
+The compiler optimization level, as well as other compiler flags, can be set in the `src/Makevars` file. We should keep it at level two (i.e., `-O2`) because it generally leads to much better run-time performance, although sometimes you might want to reduce compilation times during development by turning off optimization (i.e., `-O0`).
 
 ## Adding Engine Functions
 
@@ -176,7 +183,47 @@ test_cache_list()
 
 ## Changelog Management
 
-We use semi-automated construction of `NEWS.md`. This system generates and maintains version metadata and release notes for the package using three scripts located in `misc/build`. It produces `commit-version-map.txt`, `version-bumps.txt`, and `NEWS.md` in the project root. `commit-version-map.txt` records the version number, commit hash, and date for each commit on the main branch. `version-bumps.txt` extracts the most recent commit for each version from that map. `NEWS.md` combines these version bumps with optional developer-written content in `news-narratives.md`, adding GitHub compare links between versions. The scripts update these files incrementally for efficiency. See `misc/build` and the root-level files `commit-version-map.txt`, `version-bumps.txt`, and `NEWS.md`.
+We use semi-automated construction of `NEWS.md`, which is updated using the following command.
+
+```
+make NEWS.md
+```
+
+This system generates and maintains version metadata and release notes for the package using three scripts located in `misc/build`. It produces `commit-version-map.txt`, `version-bumps.txt`, and `NEWS.md` in the project root. `commit-version-map.txt` records the version number, commit hash, and date for each commit on the main branch. `version-bumps.txt` extracts the most recent commit for each version from that map. `NEWS.md` combines these version bumps with optional developer-written content in `news-narratives.md`, adding GitHub compare links between versions. The scripts update these files incrementally for efficiency. See `misc/build` and the root-level files `commit-version-map.txt`, `version-bumps.txt`, and `NEWS.md`.
+
+Please do not check in any of these generated `txt` files.
+
+## Testing Installability of Specific Commits
+
+To test whether a specific commit installs cleanly, use:
+
+```
+misc/build/test-install.sh <commit-hash>
+```
+
+For example, to test a version listed in `version-bumps.txt`:
+
+```
+misc/build/test-install.sh ded98a20184b9e382521472a8de90951a6cc3359
+```
+
+This script will:
+
+- Abort if you have any uncommitted changes (staged or unstaged).
+- Check out the given commit in detached head mode.
+- Run `make quick-doc-install`.
+- Restore any files that were modified during installation (e.g., roxygen2 tends to automatically update the `DESCRIPTION` file).
+- Return to your previous branch or commit.
+- Append (or update) the result (`OK`, `FAIL`, or `CHECKOUT-FAIL`) in `install-tests.txt`.
+
+The `install-tests.txt` file contains one line per tested commit:
+
+```
+<commit-hash> <OK|FAIL|CHECKOUT-FAIL>
+```
+
+Please do not check in this generated `install-tests.txt` file.
+
 
 ## Log Files
 

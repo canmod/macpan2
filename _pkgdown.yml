@@ -126,7 +126,7 @@ reference:
     Functions for specifying distributional assumptions for priors 
     and likelihoods.
   contents:
-  - mp_uniform
+  - mp_unif
   - mp_fit
 
 - subtitle: Optimize Calibrator Model
@@ -153,8 +153,6 @@ reference:
   - mp_tmb_profile
   - mp_forecaster
 
-- subtitle: Generate Fitted Parameter Tables
-
 - subtitle: Unpack Model Calibrators and Calibrations
   desc: > 
     Functions that extract or print information contained within 
@@ -163,6 +161,8 @@ reference:
   - mp_tmb
   - mp_parameterization
   - mp_version
+  - mp_opt_attempted
+  - mp_uncertainty_estimated
 
 - title: Utilities
 

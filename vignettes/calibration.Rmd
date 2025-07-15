@@ -88,7 +88,7 @@ The next step is to produce an object that can be calibrated through optimizatio
 ```{r calibrator}
 sir_calibrator = mp_tmb_calibrator(sir_spec
   , data = sir_prevalence
-  , traj = list(I = mp_poisson()),
+  , traj = list(I = mp_pois()),
   , par = c("beta", "R")
   , default = list(N = 300)
 )
