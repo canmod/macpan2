@@ -32,11 +32,14 @@ full-install:
 	make pkg-build
 	make pkg-install
 
-# Use this rule if (1) you are in a development cycle, (2) you
+# Use this rule directly if (1) you are in a development cycle, (2) you
 # haven't updated macpan.cpp (but have perhaps modified dev.cpp)
 # and (3) do not require a roxygen update.
 quick-install: enum-update enum-meth-update
-	echo $(R_MAKEVARS_USER)
+	@echo "========"
+	@echo "Contents of $(R_MAKEVARS_USER):"
+	@cat $(R_MAKEVARS_USER)
+	@echo "========"
 	R CMD INSTALL --no-multiarch --install-tests .
 
 
@@ -104,8 +107,8 @@ png-readme:: misc/readme/*.png
 readme:: README.md
 README.md: README.Rmd R/*.R NAMESPACE
 	Rscript -e "rmarkdown::render('README.Rmd')"
-	echo '<!-- Auto-generated - do not edit by hand -->' > temp
-	echo '<!-- Edit README.Rmd instead -->' | cat - $@ >> temp && mv temp $@
+	@echo '<!-- Auto-generated - do not edit by hand -->' > temp
+	@echo '<!-- Edit README.Rmd instead -->' | cat - $@ >> temp && mv temp $@
 
 
 push-readme:
@@ -120,13 +123,13 @@ push-readme:
 
 enum-update:: R/enum.R
 R/enum.R: misc/dev/dev.cpp misc/build/enum_tail.R
-	echo "## Auto-generated - do not edit by hand" > $@
-	echo "valid_func_sigs = c(" >> $@
-	grep "$(COMMA_RE)$(ENUM_RE)" misc/dev/dev.cpp | sed 's/$(COMMA_RE)$(ENUM_RE)$(SED_RE)/  \1\"\3\"\2/' >> $@
-	echo ")" >> $@
-	grep "$(LOG_RE)" misc/dev/dev.cpp | sed 's|$(LOG_RE)|bail_out_log_file|' | sed 's|;||' >> $@
-	cat misc/build/enum_tail.R >> $@
-	echo "valid_funcs = setNames(as.list(valid_funcs), valid_funcs)" >> $@
+	@echo "## Auto-generated - do not edit by hand" > $@
+	@echo "valid_func_sigs = c(" >> $@
+	@grep "$(COMMA_RE)$(ENUM_RE)" misc/dev/dev.cpp | sed 's/$(COMMA_RE)$(ENUM_RE)$(SED_RE)/  \1\"\3\"\2/' >> $@
+	@echo ")" >> $@
+	@grep "$(LOG_RE)" misc/dev/dev.cpp | sed 's|$(LOG_RE)|bail_out_log_file|' | sed 's|;||' >> $@
+	@cat misc/build/enum_tail.R >> $@
+	@echo "valid_funcs = setNames(as.list(valid_funcs), valid_funcs)" >> $@
 
 
 enum-meth-update:: R/enum_methods.R
@@ -136,18 +139,18 @@ R/enum_methods.R: misc/dev/dev.cpp misc/build/method_head.R misc/build/build_fro
 
 src-update:: src/macpan2.cpp
 src/macpan2.cpp: misc/dev/dev.cpp src/Makevars
-	echo "// Auto-generated - do not edit by hand" > $@
-	sed "s/#define MP_VERBOSE//" misc/dev/dev.cpp >> $@
+	@echo "// Auto-generated - do not edit by hand" > $@
+	@sed "s/#define MP_VERBOSE//" misc/dev/dev.cpp >> $@
 
 
 engine-doc-update:: R/engine_functions.R
 R/engine_functions.R: src/macpan2.cpp
-	echo "## Auto-generated - do not edit by hand" > $@
-	echo "" >> $@
-	grep "$(ROXY_RE)" $^ | sed "s/$(ROXY_RE)/\1/" >> $@
-	echo "#' @name engine_functions" >> $@
-	grep "$(COMMA_RE)$(ENUM_RE)" $^ | sed "s/$(COMMA_RE)$(ALIAS_RE)/#' @aliases \3/" >> $@
-	echo "NULL" >> $@
+	@echo "## Auto-generated - do not edit by hand" > $@
+	@echo "" >> $@
+	@grep "$(ROXY_RE)" $^ | sed "s/$(ROXY_RE)/\1/" >> $@
+	@echo "#' @name engine_functions" >> $@
+	@grep "$(COMMA_RE)$(ENUM_RE)" $^ | sed "s/$(COMMA_RE)$(ALIAS_RE)/#' @aliases \3/" >> $@
+	@echo "NULL" >> $@
 
 
 doc-update: R/*.R misc/dev/dev.cpp misc/old-r-source/*.R misc/build/roxygenise.R
@@ -175,7 +178,7 @@ compile-dev: misc/dev/dev.cpp
 
 
 inst/starter_models/%/README.md: inst/starter_models/%/README.Rmd DESCRIPTION R/*.R
-	echo "rmarkdown::render(\"$<\")" | R --slave
+	@echo "rmarkdown::render(\"$<\")" | R --slave
 
 inst/starter_models/%/README.push: inst/starter_models/%/README.md
 	@echo Pushing directory: $(dir $^)
