@@ -2,12 +2,9 @@
 % Please edit documentation in R/mp_tmb_calibrator.R
 \name{mp_optimize}
 \alias{mp_optimize}
-\alias{mp_optimize.TMBCalibrator}
 \title{Optimize Simulation Model}
 \usage{
-mp_optimize(model, optimizer, ...)
-
-\method{mp_optimize}{TMBCalibrator}(
+mp_optimize(
   model,
   optimizer = c("nlminb", "optim", "DEoptim", "optimize", "optimise"),
   ...
@@ -42,11 +39,6 @@ to either recreate the model using \code{\link{mp_tmb_calibrator}}
 or use \code{optimizer = "DEoptim"}, which is more robust to objective
 functions with multiple optima.
 }
-\section{Methods (by class)}{
-\itemize{
-\item \code{mp_optimize(TMBCalibrator)}: Optimize a TMB calibrator.
-
-}}
 \section{Details on Using Each Type of Optimizer}{
 \subsection{\code{nlminb}}{
 
