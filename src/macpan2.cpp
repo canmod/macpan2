@@ -136,9 +136,10 @@ enum macpan2_func
     , MP2_PNORM = 57 // fwrap: pnorm(q, mean, sd)
     , MP2_INVLOGIT = 58 // fwrap: invlogit(x)
     , MP2_LOGIT = 59 // fwrap: logit(x)
-    , MP2_CUMSUM = 60 // fwrap: cumsum(x)
-    , MP2_ASSIGN = 61 // fwrap: assign(x, i, j, v)
-    , MP2_UNPACK = 62 // fwrap: unpack(x, ...)
+    , MP2_STOP_IF_LT = 60 // fwrap: stop_if_lt(x, y)
+    , MP2_CUMSUM = 61 // fwrap: cumsum(x)
+    , MP2_ASSIGN = 62 // fwrap: assign(x, i, j, v)
+    , MP2_UNPACK = 63 // fwrap: unpack(x, ...)
 };
 
 enum macpan2_meth
@@ -826,7 +827,6 @@ public:
                     // Rcpp::Rcout << "step f" << std::endl;
                     // Rcpp::Rcout << "bad column vector" << std::endl;
                     error_code = 501;
-                    // break; // Exit the loop on error
                 }
             }
             else if (mat.cols() == cols) {
@@ -840,7 +840,6 @@ public:
                 {
                     // Rcpp::Rcout << "bad row vector" << std::endl;
                     error_code = 501;
-                    // break; // Exit the loop on error
                 }
             }
             else
@@ -848,7 +847,6 @@ public:
                 // Rcpp::Rcout << "really bad" << std::endl;
                 // Rcpp::Rcout << "step g" << std::endl;
                 error_code = 501;
-                // break; // Exit the loop on error
             }
 
             if (error_code != 0)
@@ -902,11 +900,6 @@ private:
     int size_;
     int error_code_ = 0; // Initialize the error code to 0 (no error) by default
 };
-// private:
-//     std::vector<ItemType> items_;
-//     int size_;
-//     int error_code_ = 0; // Initialize the error code to 0 (no error) by default
-// };
 
 template <class Type>
 class ExprEvaluator
@@ -921,6 +914,7 @@ private:
     ListOfIntVecs meth_int_vecs;
     ListOfIntVecs valid_int_vecs;
     vector<Type> valid_literals;
+    bool early_stop;
 
 public:
     // constructor
@@ -952,6 +946,10 @@ public:
         meth_int_vecs = meth_int_vecs_;
         valid_int_vecs = valid_int_vecs_;
         valid_literals = valid_literals_;
+        // Rcpp::Rcout << "setting early_stop to false" << std::endl;
+        early_stop = false;
+        // Rcpp::Rcout << "early_stop now equals: " << early_stop << std::endl;
+        // Rcpp::Rcout << "but GetEarlyStop() now returns: " << GetEarlyStop() << std::endl;
 
         strcpy(error_message, "OK");
     };
@@ -965,6 +963,7 @@ public:
     std::vector<int> GetArgRows() { return arg_rows; };
     std::vector<int> GetArgCols() { return arg_cols; };
     std::vector<int> GetArgTypeInts() { return arg_type_ints; };
+    bool GetEarlyStop() { return early_stop; };
 
     // setters
     void SetError(unsigned char code, const char *message, int e_row, int f_int, std::vector<int> a_rows, std::vector<int> a_cols, std::vector<int> a_type_ints, int t_int) {
@@ -977,13 +976,17 @@ public:
         arg_type_ints = a_type_ints;
         strcpy(error_message, message);
     };
+    void SetEarlyStop() {
+        early_stop = true;
+    };
 
     // evaluator
     matrix<Type> EvalExpr(
         const vector<ListOfMatrices<Type>> &hist, // current simulation history
         int t,                                    // current time step
         ListOfMatrices<Type> &valid_vars,         // current list of values of each matrix
-        int row = 0                               // current expression parse table row being evaluated
+        int row = 0,                              // current expression parse table row being evaluated
+        bool simulate_block = false               // evaluated within simulate block?
     ) {
 
         // total number of time steps in the simulation loop
@@ -1125,7 +1128,7 @@ public:
                 {
                     // otherwise, recursively descend into the parse tree
                     // to pick out the arguments
-                    args.set(i, EvalExpr(hist, t, valid_vars, table_i[row] + i));
+                    args.set(i, EvalExpr(hist, t, valid_vars, table_i[row] + i, simulate_block));
                 }
 
                 // Check here if index2mats actually points at
@@ -3145,6 +3148,50 @@ public:
                 }
                 return m;
             
+            
+            // #' ## Control Flow
+            // #' 
+            // #' Functions for controlling the flow of simulations.
+            // #' 
+            // #' ### Functions
+            // #' 
+            // #' * `stop_if_lt(x, y)` : Stop the simulation loop and return
+            // #' simulations if any element of `x` is less than the
+            // #' corresponding element in `y`. The elements of `y` are
+            // #' recycled to match those in `x` if necessary and if possible.
+            // #' 
+            // #' ### Arguments
+            // #' 
+            // #' * `x` : Matrix to compare with `y`.
+            // #' * `y` : Matrix to compare with `x`, with a default value of
+            // #' `0`.
+            // #'
+            // #' ### Return 
+            // #'
+            // #' An empty matrix. This function is returned for its effect of
+            // #' breaking out of the simulation loop.
+            // #'
+            case MP2_STOP_IF_LT:
+                m = args.get_as_mat(0);
+                rows = m.rows();
+                cols = m.cols();
+                if (n == 1) {
+                    m1 = matrix<Type>::Zero(rows, cols);
+                } else {
+                    v1.push_back(1);
+                    args = args.recycle_to_shape(v1, rows, cols);
+                    m1 = args.get_as_mat(1);
+                }
+                for (int i = 0; i < rows; i++) {
+                    for (int j = 0; j < cols; j++) {
+                        if (m.coeff(i, j) < m1.coeff(i, j)) {
+                            SetEarlyStop();
+                            return m2; // empty matrix
+                        }
+                    }
+                }
+                return m2; // empty matrix
+            
             // #' ## Assign (deprecated)
             // #'
             // #' Assign values to a subset of the elements in a matrix.
@@ -3251,7 +3298,7 @@ public:
                     valid_vars.m_matrices[matIndex].coeffRef(rowIndex, colIndex) = args[3].coeff(k, 0);
                 }
                 return m2; // empty matrix
-
+            
             // #' ## Unpack (deprecated)
             // #'
             // #' Unpack elements of a matrix into smaller matrices.
@@ -3530,6 +3577,7 @@ public:
         int func_int = exprEvaluator.GetFuncInt();               \
         int time_int = exprEvaluator.GetTimeInt();               \
         const char *err_msg = exprEvaluator.GetErrorMessage();   \
+        bool early_stop = exprEvaluator.GetEarlyStop();          \
         REPORT(error);                                           \
         REPORT(expr_row);                                        \
         REPORT(func_int);                                        \
@@ -3544,6 +3592,7 @@ public:
         logfile << "Expression row = " << expr_row << std::endl; \
         logfile << "Function code = " << func_int << std::endl;  \
         logfile << "Time step = " << time_int << std::endl;      \
+        logfile << "Early stop = " << early_stop << std::endl;   \
         logfile.close();                                         \
     }
 
@@ -3720,6 +3769,14 @@ Type objective_function<Type>::operator()()
     for (int i = 0; i < n; i++)
         mats.m_matrices[r_mat_id[i]].coeffRef(r_row_id[i], r_col_id[i]) = random[r_par_id[i]];
 
+    // in case you need to stop early you can use this to fill the remaining 
+    // iterations of the simulation history
+    ListOfMatrices<Type> empty_mats_list(mats);
+    matrix<Type> empty_matrix;
+    for (int i = 0; i < empty_mats_list.m_matrices.size(); i++) {
+        empty_mats_list.m_matrices[i] = empty_matrix;
+    }
+    
     // Simulation history
     /// each element of this history 'vector' is a list of the matrices
     /// in the model at a particular point in history
@@ -3774,7 +3831,7 @@ Type objective_function<Type>::operator()()
         if (expr_sim_block[i] == 1) {
             SIMULATE {
                 result = exprEvaluator.EvalExpr(
-                    simulation_history, 0, mats, p_table_row);
+                    simulation_history, 0, mats, p_table_row, true);
             }
         }
         else
@@ -3822,23 +3879,34 @@ Type objective_function<Type>::operator()()
             Rcpp::Rcout << "Eval expression --- " << i << std::endl;
             Rcpp::Rcout << "expr_num_p_table_rows[i] " << expr_num_p_table_rows[expr_index + i] << std::endl;
 #endif
-            matrix<Type> result;
-            if (expr_sim_block[i] == 1) {
-                SIMULATE {
-                    result = exprEvaluator.EvalExpr(
-                        simulation_history, k + 1, mats, p_table_row2);
+            if (!exprEvaluator.GetEarlyStop()) {
+                matrix<Type> result;
+                if (expr_sim_block[i] == 1) {
+                    SIMULATE {
+                        result = exprEvaluator.EvalExpr(
+                              simulation_history
+                            , k + 1
+                            , mats
+                            , p_table_row2
+                            , true
+                        );
+                    }
                 }
+                else
+                    result = exprEvaluator.EvalExpr(
+                          simulation_history
+                        , k + 1
+                        , mats
+                        , p_table_row2
+                        , false
+                    );
+    
+                if (exprEvaluator.GetErrorCode()) {
+                    REPORT_ERROR
+                    return 0.0;
+                }
+                matAssigner.matAssign(result, mats, a_table_row2);
             }
-            else
-                result = exprEvaluator.EvalExpr(
-                    simulation_history, k + 1, mats, p_table_row2);
-
-            if (exprEvaluator.GetErrorCode()) {
-                REPORT_ERROR
-                return 0.0;
-            }
-            // mats.m_matrices[expr_output_id[expr_index+i]] = result;
-            matAssigner.matAssign(result, mats, a_table_row2);
 
             p_table_row2 += expr_num_p_table_rows[expr_index + i];
             a_table_row2 += assign_num_a_table_rows[expr_index + i];
@@ -3849,13 +3917,24 @@ Type objective_function<Type>::operator()()
                 Rcpp::Rcout << "mats = " << mats.m_matrices[ii] << std::endl;
 #endif
         }
-        // simulation_history[k+1] = mats;
-        UpdateSimulationHistory(
-            simulation_history,
-            k + 1,
-            mats,
-            mats_save_hist,
-            hist_shape_template);
+        if (exprEvaluator.GetEarlyStop()) {
+            UpdateSimulationHistory(
+                simulation_history,
+                k + 1,
+                empty_mats_list,
+                mats_save_hist,
+                hist_shape_template
+            );
+        } else {
+            // simulation_history[k+1] = mats;
+            UpdateSimulationHistory(
+                simulation_history,
+                k + 1,
+                mats,
+                mats_save_hist,
+                hist_shape_template
+            );
+        }
     }
     p_table_row = p_table_row2;
     a_table_row = a_table_row2;
@@ -3872,7 +3951,7 @@ Type objective_function<Type>::operator()()
         if (expr_sim_block[i] == 1) {
             SIMULATE {
                 result = exprEvaluator.EvalExpr(
-                    simulation_history, time_steps + 1, mats, p_table_row);
+                    simulation_history, time_steps + 1, mats, p_table_row, true);
             }
         }
         else {
@@ -3899,6 +3978,7 @@ Type objective_function<Type>::operator()()
         mats,
         mats_save_hist,
         hist_shape_template);
+    
 
 #ifdef MP_VERBOSE
     Rcpp::Rcout << "Simulation history ..." << std::endl;
@@ -3970,6 +4050,7 @@ Type objective_function<Type>::operator()()
         matrix<Type> value_column = values.block(0, 4, values.rows(), 1);
         ADREPORT(value_column)
     }
+    
 
     // 7 Calc the return of the objective function
     matrix<Type> ret;
@@ -3986,5 +4067,6 @@ Type objective_function<Type>::operator()()
 #ifdef MP_VERBOSE
     Rcpp::Rcout << "======== end of objective function ========" << std::endl;
 #endif
+    
     return ret.coeff(0, 0);
 }

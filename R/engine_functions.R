@@ -874,6 +874,28 @@
 #' engine_eval(~ check_finite(1/0)) ## returns nothing and throws an error
 #' ```
 #' 
+#' ## Control Flow
+#' 
+#' Functions for controlling the flow of simulations.
+#' 
+#' ### Functions
+#' 
+#' * `stop_if_lt(x, y)` : Stop the simulation loop and return
+#' simulations if any element of `x` is less than the
+#' corresponding element in `y`. The elements of `y` are
+#' recycled to match those in `x` if necessary and if possible.
+#' 
+#' ### Arguments
+#' 
+#' * `x` : Matrix to compare with `y`.
+#' * `y` : Matrix to compare with `x`, with a default value of
+#' `0`.
+#'
+#' ### Return 
+#'
+#' An empty matrix. This function is returned for its effect of
+#' breaking out of the simulation loop.
+#'
 #' ## Assign (deprecated)
 #'
 #' Assign values to a subset of the elements in a matrix.
@@ -1056,6 +1078,7 @@
 #' @aliases pnorm
 #' @aliases invlogit
 #' @aliases logit
+#' @aliases stop_if_lt
 #' @aliases cumsum
 #' @aliases assign
 #' @aliases unpack
