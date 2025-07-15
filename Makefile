@@ -1,3 +1,6 @@
+export R_MAKEVARS_USER := $(PWD)/src/Makevars
+
+
 COMMA_RE = ^\([, ]*\)
 ENUM_RE = [ ]*MP2_[A-Z_]*[ ]*=[ ]*[0-9][0-9]*
 SED_RE = \(\,\)*[ ]*\/\/[ ]*\(.*\)
@@ -29,12 +32,13 @@ full-install:
 	make pkg-build
 	make pkg-install
 
-
 # Use this rule if (1) you are in a development cycle, (2) you
 # haven't updated macpan.cpp (but have perhaps modified dev.cpp)
 # and (3) do not require a roxygen update.
 quick-install: enum-update enum-meth-update
-	R CMD INSTALL --no-multiarch --install-tests --configure-args="CFLAGS=-g -O0 CXXFLAGS=-g -O0" .
+	@echo "Using the following Makevars file:"
+	@echo $(R_MAKEVARS_USER)
+	R CMD INSTALL --no-multiarch --install-tests .
 
 
 quick-doc-install: R/*.R misc/dev/dev.cpp

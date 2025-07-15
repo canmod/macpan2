@@ -1,7 +1,3 @@
-# test_that("ExprList returns valid expression lists for TMB", {
-#
-# })
-
 test_that("expressions are inserted and printed", {
   l =mp_tmb_expr_list(during = list(a ~ 1, b ~ 2, c ~ 3))
   l = l$insert(X ~ 500, Y ~ 600, .phase = "before")
