@@ -48,7 +48,7 @@ test_that("parse_tables ...", {
   )
 })
 
-test_that("argument names cannot be part of macpan2 expressions",{
+test_that("argument names cannot be part of macpan2 expressions", {
   expect_error(engine_eval(~ matrix(1:6,2,3,byrow = TRUE))
                ,"Argument names cannot be used in engine expressions.")
   
@@ -57,4 +57,11 @@ test_that("argument names cannot be part of macpan2 expressions",{
   
   expect_equal(matrix(1:6,2,3,byrow = TRUE), engine_eval(~ x, x = matrix(1:6,2,3,byrow = TRUE)))
   
+})
+
+test_that("no-op functions are not allowed", {
+  expect_error(
+      engine_eval(~ 1 + sin() + A, A = 1)
+    , regexp = "The following function was called without arguments"
+  )
 })
