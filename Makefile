@@ -1,6 +1,3 @@
-export R_MAKEVARS_USER := $(PWD)/src/Makevars
-
-
 COMMA_RE = ^\([, ]*\)
 ENUM_RE = [ ]*MP2_[A-Z_]*[ ]*=[ ]*[0-9][0-9]*
 SED_RE = \(\,\)*[ ]*\/\/[ ]*\(.*\)
@@ -36,10 +33,6 @@ full-install:
 # haven't updated macpan.cpp (but have perhaps modified dev.cpp)
 # and (3) do not require a roxygen update.
 quick-install: enum-update enum-meth-update
-	@echo "========"
-	@echo "Contents of $(R_MAKEVARS_USER):"
-	@cat $(R_MAKEVARS_USER)
-	@echo "========"
 	R CMD INSTALL --no-multiarch --install-tests .
 
 
