@@ -308,6 +308,11 @@ mp_tmb_insert_reports = function(model
 #' parameter changes.
 #' @param sparsity_tolerance Make design matrix coefficients exactly zero
 #' when they are below this tolerance.
+#' @param engine_function Which of two \code{\link{engine_functions}},
+#' \code{\link{sparse_mat_mult}} or \code{\link{group_sums}}, should be
+#' used to compute the matrix multiplication. The only reason to use
+#' anything other than the default is for back-compatibility with an
+#' existing script.
 #' 
 #' @export
 mp_tmb_insert_glm_timevar = function(model
