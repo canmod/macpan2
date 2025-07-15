@@ -4,8 +4,6 @@
 \alias{mp_index}
 \alias{print.Index}
 \alias{names.Index}
-\alias{labelling_column_names.Index}
-\alias{labels.Index}
 \title{Model Quantity Index Table}
 \usage{
 mp_index(..., labelling_column_names)
@@ -13,10 +11,6 @@ mp_index(..., labelling_column_names)
 \method{print}{Index}(x, ...)
 
 \method{names}{Index}(x)
-
-\method{labelling_column_names}{Index}(x)
-
-\method{labels}{Index}(object, ...)
 }
 \arguments{
 \item{...}{Character vectors to combine to produce an index. Alternatively,
@@ -33,8 +27,6 @@ The default \code{NULL} gives the set of columns, in order starting with
 the first column, that are required to uniquely identify each row.}
 
 \item{x}{An index.}
-
-\item{object}{An index.}
 }
 \description{
 Make an index table to enumerate model quantity labels by category. These
@@ -59,14 +51,6 @@ names and indices.
 \item \code{print(Index)}: Print an index.
 
 \item \code{names(Index)}: Get the names of the columns of an index.
-
-\item \code{labelling_column_names(Index)}: Retrieve the \code{labelling_column_names} of
-an index. These are the names of the columns that are used to label
-the model components.
-
-\item \code{labels(Index)}: Convert an index into
-a character vector giving labels associated with each model component
-(i.e. row) being described.
 
 }}
 \examples{

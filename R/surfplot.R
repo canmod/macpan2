@@ -28,7 +28,8 @@ get_param_id_util = function(model, param) {
 #' \code{\link{mp_tmb_calibrator}}.
 #' @param param The name of a fixed effect parameter set through the `par`
 #' argument of the call to \code{\link{mp_tmb_calibrator}} used to create
-#' `model`.
+#' `model`. You can find the names of these parameters after the model is
+#' created using the \code{\link{mp_parameterization}} function.
 #' @param ... Arguments to pass to \code{TMB::tmbprofile}.
 #' 
 #' @return The output of \code{TMB::tmbprofile}.

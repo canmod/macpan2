@@ -33,7 +33,12 @@ mp_simulator.default = function(model
     , default = list()
     , inits = list()
   ) {
-  stop("You can only create a simulator from a model specification or a calibrator. But a ", class(model)[1L], " was passed instead.")
+  mp_wrap(
+      "You can only create a simulator from a model "
+    , "specification or a calibrator. But a "
+    , class(model)[1L]
+    , " was passed instead."
+  ) |> stop()
 }
 
 #' @export
@@ -47,21 +52,20 @@ mp_simulator.TMBModelSpec = function(model
   model$simulator_fresh(time_steps, outputs, default)
 }
 
-#' @export
-mp_simulator.TMBSimulator = function(model
-    , time_steps
-    , outputs
-    , default = list()
-    , inits = list()
-  ) {
-  stop("under construction")
-  if (!missing(time_steps)) {
-    model$simulator$replace$time_steps(time_steps)
-  }
-  ## TODO: 
-  ## set the params vector as the last best params vector
-  ## update the outputs
-}
+# mp_simulator.TMBSimulator = function(model
+#     , time_steps
+#     , outputs
+#     , default = list()
+#     , inits = list()
+#   ) {
+#   stop("under construction")
+#   if (!missing(time_steps)) {
+#     model$simulator$replace$time_steps(time_steps)
+#   }
+#   ## TODO: 
+#   ## set the params vector as the last best params vector
+#   ## update the outputs
+# }
 
 #' @export
 mp_simulator.TMBCalibrator = function(model
@@ -74,15 +78,6 @@ mp_simulator.TMBCalibrator = function(model
   mp_simulator(model$simulator, time_steps, outputs, default)
 }
 
-#' @export
-mp_simulator.TMBParameterizedModelSpec = function(model
-  , time_steps, outputs, default = list(), inits = list()
-) {
-  ## FIXME: doesn't seem to be used anywhere
-  simulator = mp_simulator(model$spec, time_steps, outputs, default)
-}
-
-
 #' TMB Model
 #'
 #' Define a compartmental model in TMB. This model uses the spec
@@ -94,7 +89,9 @@ mp_simulator.TMBParameterizedModelSpec = function(model
 #' @param random An object of class \code{\link{OptParamsList}}.
 #' @param obj_fn An object of class \code{\link{ObjectiveFunction}}.
 #' @param time_steps An object of class \code{\link{Time}}.
-#' @param do_pred_sdreport A logical flag (\code{FALSE}/\code{TRUE}, or any value evaluating to 1 for \code{TRUE}) indicating whether predicted values should be accessible via \code{TMB::sdreport()}
+#' @param do_pred_sdreport A logical flag (\code{FALSE}/\code{TRUE}, or any 
+#' value evaluating to 1 for \code{TRUE}) indicating whether predicted values 
+#' should be accessible via \code{TMB::sdreport()}.
 #' @param engine_methods An object of class \code{\link{EngineMethods}}.
 #' @param log_file An object of class \code{\link{LogFile}}.
 #'
@@ -152,7 +149,6 @@ mp_simulator.TMBParameterizedModelSpec = function(model
 #'
 #' @useDynLib macpan2
 #' @importFrom TMB MakeADFun
-#' @importFrom utils packageVersion
 #' @noRd
 TMBModel = function(
       init_mats = MatsList()
@@ -167,7 +163,7 @@ TMBModel = function(
   ) {
   
   self = Base()
-  self$macpan2_version = packageVersion("macpan2")
+  self$macpan2_version = get_pkg_ver("macpan2")
   
   ## Args
   self$expr_list = expr_list
@@ -301,7 +297,9 @@ mp_default = function(model, include_all = FALSE) UseMethod("mp_default")
 
 #' @describeIn mp_default List of the default variables as matrices.
 #' @export
-mp_default_list = function(model, include_all = FALSE) UseMethod("mp_default_list")
+mp_default_list = function(model, include_all = FALSE) {
+  UseMethod("mp_default_list")
+}
 
 #' @export
 mp_default.TMBModelSpec = function(model, include_all = FALSE) {
@@ -379,7 +377,7 @@ mp_initial.TMBModelSpec = function(model) {
 #' @export
 mp_initial_list.TMBModelSpec = function(model) {
   (model
-    |> spec_initial_util(simplify_ids = FALSE) ## the casting does the simplification
+    |> spec_initial_util(simplify_ids = FALSE) 
     |> cast_default_matrix_list()
   )
 }
@@ -404,7 +402,6 @@ mp_initial.TMBCalibrator = function(model) mp_initial(model$simulator)
 mp_initial_list.TMBCalibrator = function(model) mp_initial_list(model$simulator)
 
 spec_initial_util = function(model, simplify_ids = TRUE) {
-  # warning("under construction")
   ## Should this just be whatever the report returns in the before phase?
   ## And in this way be analogous to mp_final?  I think so.
   all_derived_mats_in_before_step = setdiff(
@@ -623,17 +620,33 @@ trajectory_rep_util = function(n, simulator
     , include_initial = FALSE, include_final = FALSE
   ) {
   phases = trajectory_phases_util(include_initial, include_final)
-  vector = trajectory_vec_util(simulator, parameter_updates, value_column_name)
-  replicates = replicate(n
-    , simulator$simulate(vector, .phases = phases)
-    , simplify = FALSE
-  )
+  if (mp_uncertainty_estimated(simulator)) {
+    replicates = (n
+      |> simulator$par_sample()
+      |> apply(1L
+        , simulator$simulate
+        , simplify = FALSE
+      )
+    )
+  } else {
+    vector = trajectory_vec_util(simulator
+        , parameter_updates
+        , value_column_name
+    )
+    replicates = replicate(n
+      , simulator$simulate(vector, .phases = phases)
+      , simplify = FALSE
+    )
+  }
   return(replicates)
 }
 
 # take a simulator and return the parameter vector that can be
 # passed to TMB report and simulate
-trajectory_vec_util = function(simulator, parameter_updates, value_column_name) {
+trajectory_vec_util = function(simulator
+    , parameter_updates
+    , value_column_name
+  ) {
   sc = simulator$current
   frame = bind_rows(sc$params_frame(), sc$random_frame())
   vector = updated_param_vector(parameter_updates
@@ -643,7 +656,9 @@ trajectory_vec_util = function(simulator, parameter_updates, value_column_name) 
   return(vector)
 }
 
-trajectory_phases_util = function(include_initial = FALSE, include_final = FALSE) {
+trajectory_phases_util = function(include_initial = FALSE
+      , include_final = FALSE
+  ) {
   phases = "during"
   if (include_initial) phases = c("before", phases)
   if (include_final) phases = c(phases, "after")
@@ -672,16 +687,6 @@ value_column_calibrator_util = function(baseline, simulator) {
     , default = "default"
     , optimized = "current"
   )
-  # opt_attempted = simulator$optimization_history$opt_attempted()
-  # if ((value_column_name == "current") & !opt_attempted) {
-  #   mp_wrap(
-  #       "The model object has not been optimized, and so the default"
-  #     , "(non-optimized) parameter set will be used as the baseline."
-  #     , "Please either explicitly choose"
-  #     , "to use the default set of parameters as the baseline, or optimize"
-  #     , "the model object using mp_optimize(model, ...)."
-  #   ) |> warning()
-  # }
   return(value_column_name)
 }
 
@@ -744,8 +749,8 @@ mp_trajectory_sd = function(model
 #' @param n Number of samples used in `mp_trajectory_ensemble`.
 #' @param probs What quantiles should be returned by `mp_trajectory_ensemble`.
 #' @describeIn mp_trajectory Simulate a trajectory that includes uncertainty
-#' information provided by repeatedly sampling from a normal approximation to the 
-#' distribution of the fitted parameters, and generating one trajectory for
+#' information provided by repeatedly sampling from a normal approximation to 
+#' the distribution of the fitted parameters, and generating one trajectory for
 #' each of these samples. The quantiles of the empirical distribution of these
 #' trajectories can be used to produce a confidence interval for the 
 #' fitted trajectory.
@@ -784,20 +789,30 @@ mp_trajectory_sd.TMBCalibrator = function(model
     , include_initial = FALSE
     , back_transform = TRUE
   ) {
-  traj = mp_trajectory_sd(model$simulator, conf.int, conf.level, include_initial, back_transform)
+  traj = mp_trajectory_sd(model$simulator
+    , conf.int, conf.level
+    , include_initial
+    , back_transform
+  )
   traj$time = model$time_steps_obj$internal_to_external(traj$time)
   return(traj)
 }
 
 #' @export
-mp_trajectory_ensemble.TMBSimulator = function(model, n, probs = c(0.025, 0.975)) {
+mp_trajectory_ensemble.TMBSimulator = function(model
+    , n
+    , probs = c(0.025, 0.975)
+  ) {
   best_pars = get_last_best_par(model$ad_fun())
   traj = model$report_ensemble(best_pars, .n = n, .probs = probs)
   return(traj)
 }
 
 #' @export
-mp_trajectory_ensemble.TMBCalibrator = function(model, n, probs = c(0.025, 0.975)) {
+mp_trajectory_ensemble.TMBCalibrator = function(model
+    , n
+    , probs = c(0.025, 0.975)
+  ) {
   traj = mp_trajectory_ensemble(model$simulator, n, probs)
   traj$time = model$time_steps_obj$internal_to_external(traj$time)
   return(traj)
@@ -818,7 +833,10 @@ mp_trajectory_ensemble.TMBCalibrator = function(model, n, probs = c(0.025, 0.975
 ##' the trajectory. Instead of a `value` column in the output data frame, there
 ##' is one column for each of the quantiles defined in `probs`.
 ##' @export
-mp_trajectory_sim = function(model, n, probs = c(0.025, 0.25, 0.5, 0.75, 0.975)) {
+mp_trajectory_sim = function(model
+    , n
+    , probs = c(0.025, 0.25, 0.5, 0.75, 0.975)
+  ) {
   UseMethod("mp_trajectory_sim")
 }
 
@@ -829,8 +847,12 @@ mp_trajectory_replicate = function(model, n
     , include_initial = FALSE, include_final = FALSE
     , baseline = c("recommended", "default", "optimized")
   ) {
-  if (!mp_generates_randomness(model)) {
-    warning("Model does not include functions that generate randomness, and so replicate trajectories are not informative.")
+  if (!(mp_generates_randomness(model) | mp_uncertainty_estimated(model))) {
+    warning(
+        "Model neither includes functions that generate randomness "
+      , "nor contains information about parameter uncertainty, "
+      , "and so replicate trajectories are not informative."
+    )
   }
   UseMethod("mp_trajectory_replicate")
 }
@@ -865,7 +887,10 @@ mp_trajectory_replicate.TMBCalibrator = function(model, n
 }
 
 ##' @export
-mp_trajectory_sim.TMBSimulator = function(model, n, probs = c(0.025, 0.25, 0.5, 0.75, 0.975)) {
+mp_trajectory_sim.TMBSimulator = function(model
+    , n
+    , probs = c(0.025, 0.25, 0.5, 0.75, 0.975)
+  ) {
   r = model$simulate()
   r = r[, names(r) != "value", drop = FALSE]
   rr = (n
@@ -879,7 +904,10 @@ mp_trajectory_sim.TMBSimulator = function(model, n, probs = c(0.025, 0.25, 0.5, 
 }
 
 ##' @export
-mp_trajectory_sim.TMBCalibrator = function(model, n, probs = c(0.025, 0.25, 0.5, 0.75, 0.975)) {
+mp_trajectory_sim.TMBCalibrator = function(model
+    , n
+    , probs = c(0.025, 0.25, 0.5, 0.75, 0.975)
+  ) {
   stop("Under construction")
 }
 
@@ -922,7 +950,7 @@ labels.LabelsScripts = function(object, ...) {
 
 TMBSimulationUtils = function() {
   self = Base()
-  self$macpan2_version = packageVersion("macpan2")
+  self$macpan2_version = get_pkg_ver("macpan2")
   
   self$.simulation_formatter = function(r, .phases) {
     ## get raw simulation output from TMB and supply 
@@ -930,8 +958,13 @@ TMBSimulationUtils = function() {
     col_names = c("matrix", "time", "row", "col", "value")
     if (ncol(r$values) == 6L) col_names = append(col_names, "sd")
     r = setNames(as.data.frame(r$values), col_names)
-    r$matrix = self$matrix_names()[r$matrix + 1L]  ## replace matrix indices with matrix names
-    dn = self$tmb_model$init_mats$dimnames()  ## get the row and column names of matrices with such names
+    
+    ## replace matrix indices with matrix names
+    r$matrix = self$matrix_names()[r$matrix + 1L]  
+    
+    ## get the row and column names of matrices with such names
+    dn = self$tmb_model$init_mats$dimnames()
+    
     for (mat in names(dn)) {
       i = r$matrix == mat
 
@@ -1014,7 +1047,8 @@ TMBSimulationUtils = function() {
     if (.values_only) return(r$values)
     s = self$.simulation_formatter(r, .phases)
     if (.sort) {
-      s = s[order(s$time), , drop = FALSE] ## TODO: move sorting by time to the c++ side
+      ## TODO: move sorting by time to the c++ side?
+      s = s[order(s$time), , drop = FALSE] 
     }
     reset_rownames(s)
   }
@@ -1099,7 +1133,9 @@ TMBSimulator = function(tmb_model
     self$ad_fun()$he(fixed_params)
   }
   self$error_code = function(...) self$ad_fun()$report(...)$error
-  self$sdreport = function() TMB::sdreport(self$ad_fun(), getReportCovariance = FALSE)
+  self$sdreport = function() TMB::sdreport(self$ad_fun()
+    , getReportCovariance = FALSE
+  )
   self$cov.fixed = function() self$sdreport()$cov.fixed
   self$par.fixed = function() self$sdreport()$par.fixed
   self$report = function(..., .phases = "during") {
@@ -1114,18 +1150,35 @@ TMBSimulator = function(tmb_model
   self$simulate_values = function(..., .phases = "during") {
     self$simulate(..., .phases = .phases)$value
   }
+  self$par_sample = function(n) {
+    mu = self$par.fixed()
+    Sigma = self$cov.fixed()
+    if (isFALSE(!any(is.nan(Sigma)))) {
+      stop(
+          "The covariance matrix of the fixed effects has NaNs. "
+        , "Perhaps this model has not yet been calibrated or even "
+        , "parameterized? Or perhaps the fit is singular?"
+      )
+    }
+    sample = MASS::mvrnorm(n = n
+      , mu = mu
+      , Sigma = Sigma
+      , tol = getOption("macpan2_tol_singular_cov")
+    )
+    if (!is.matrix(sample)) {
+      nms = names(sample)
+      sample = matrix(sample, nrow = 1L)
+      colnames(sample) = nms
+    }
+    return(sample)
+  }
   self$report_ensemble = function(...
       , .phases = "during"
       , .n = 100
       , .probs = c(0.025, 0.5, 0.975)
     ) {
     r = self$report(..., .phases = .phases)
-    ff = self$par.fixed()
-    cc = self$cov.fixed()
-    if (isFALSE(!any(is.nan(cc)))) {
-      stop("The covariance matrix of the fixed effects has NaNs. Perhaps this model has not yet been calibrated or even parameterized? Or perhaps the fit is singular?")
-    }
-    rr = (MASS::mvrnorm(.n, ff, cc)
+    rr = (self$par_sample(.n)
       |> apply(1, self$report_values, .phases = .phases)
       |> apply(1, quantile, probs = .probs)
       |> t()
@@ -1137,7 +1190,8 @@ TMBSimulator = function(tmb_model
   }
   self$matrix = function(..., matrix_name, time_step, .phases = "during") {
     r = self$report(..., .phases = .phases)
-    i = (r$matrix == as.character(matrix_name)) & (r$time == as.integer(time_step))
+    i = (r$matrix == as.character(matrix_name))
+    i = i & (r$time == as.integer(time_step))
     rr = r[i, c("row", "col", "value")]
     if (!any(is.na(as.integer(rr$row)))) {
       return(matrix(rr$value, max(as.integer(rr$row)) + 1L))

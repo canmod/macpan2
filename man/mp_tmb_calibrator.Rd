@@ -14,7 +14,8 @@ mp_tmb_calibrator(
   default = list(),
   inits = list(),
   time = NULL,
-  save_data = TRUE
+  save_data = TRUE,
+  optimize = FALSE
 )
 }
 \arguments{
@@ -84,6 +85,10 @@ functions like \code{\link{mp_forecaster}}. It the resulting calibrator
 object is so large that it causes you problems, consider not saving
 the data in the calibrator object and manually passing it to the data
 argument of \code{\link{mp_forecaster}}.}
+
+\item{optimize}{Call \code{\link{mp_optimize}} on the resulting calibrator
+object, before returning it. The default is \code{FALSE} so that you can control
+when you would like to spend time optimizing.}
 }
 \description{
 Construct an object that can get used to calibrate an object produced by

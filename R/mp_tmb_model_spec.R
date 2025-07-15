@@ -21,7 +21,7 @@ TMBModelSpec = function(
   default = c(default, inits)
   must_not_save = handle_saving_conflicts(must_save, must_not_save)
   self = Base()
-  self$macpan2_version = packageVersion("macpan2")
+  self$macpan2_version = get_pkg_ver("macpan2")
   before = force_expr_list(before)
   during = force_expr_list(during)
   after = force_expr_list(after)
@@ -175,6 +175,9 @@ TMBModelSpec = function(
       , default = list()
       , initialize_ad_fun = TRUE
   ) {
+    time_steps = as.integer(round(time_steps))
+    if ((length(time_steps) != 1L)) stop("The time_steps argument must be a non-negative integer.")
+    if (time_steps < 0L) stop("The time_steps argument must be a non-negative integer.")
     self$check_names()
     time_args = must_save_time_args(
       c(
@@ -196,7 +199,7 @@ TMBModelSpec = function(
       , engine_methods = EngineMethods(
           int_vecs = do.call(IntVecs, self$all_integers())
         )
-      , time_steps = Time(as.integer(time_steps))
+      , time_steps = Time(time_steps)
     )
   }
   self$simulator_fresh = function(

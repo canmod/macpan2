@@ -66,6 +66,9 @@
 #' object is so large that it causes you problems, consider not saving
 #' the data in the calibrator object and manually passing it to the data
 #' argument of \code{\link{mp_forecaster}}.
+#' @param optimize Call \code{\link{mp_optimize}} on the resulting calibrator
+#' object, before returning it. The default is `FALSE` so that you can control
+#' when you would like to spend time optimizing.
 #'
 #' @examples
 #' spec = mp_tmb_library("starter_models", "sir", package = "macpan2")
@@ -99,6 +102,7 @@ mp_tmb_calibrator = function(spec
     , inits = list()
     , time = NULL
     , save_data = TRUE
+    , optimize = FALSE
   ) {
   cal_args = nlist(traj, par, tv, outputs, default, time)
   if (save_data) cal_args$data = data
@@ -148,7 +152,8 @@ mp_tmb_calibrator = function(spec
     , must_not_save = names(globalize(traj, "obs"))
     , must_save = traj$outputs()
   )
-  # TODO: prepare for simulating observation error
+  # TODO: prepare for simulating observation error. or maybe we just
+  # do this by simulating using parameter uncertainty?
   # cal_spec = mp_tmb_insert(cal_spec
   #   , phase = "after"
   #   , at = Inf
@@ -232,7 +237,15 @@ mp_tmb_calibrator = function(spec
   cal_sim$replace$params_frame(par$params_frame())
   cal_sim$replace$random_frame(par$random_frame())
   
-  TMBCalibrator(spec, spec$copy(), cal_spec, cal_sim, cal_args, struc$time_steps_obj)
+  output = TMBCalibrator(spec
+    , spec$copy()
+    , cal_spec
+    , cal_sim
+    , cal_args
+    , struc$time_steps_obj
+  )
+  if (optimize) mp_optimize(output)
+  return(output)
 }
 
 TMBCalibrator = function(orig_spec, new_spec, cal_spec, simulator, cal_args = NULL, time_steps_obj = NULL) {
@@ -406,7 +419,12 @@ print.TMBCalibrator = function(x, ...) {
 #' mp_optimize(cal, "optimize", c(0, 1.2))
 #'
 #' @export
-mp_optimize = function(model, optimizer, ...) UseMethod("mp_optimize")
+mp_optimize = function(model
+    , optimizer = c("nlminb", "optim", "DEoptim", "optimize", "optimise")
+    , ...
+  ) {
+  UseMethod("mp_optimize")
+}
 
 #' @importFrom utils capture.output
 #' @export
@@ -451,7 +469,6 @@ mp_optimize.TMBSimulator = function(model
   return(opt_results)
 }
 
-#' @describeIn mp_optimize Optimize a TMB calibrator.
 #' @export
 mp_optimize.TMBCalibrator = function(model
     , optimizer = c("nlminb", "optim", "DEoptim", "optimize", "optimise")
@@ -1663,6 +1680,8 @@ sum_obj_terms = function(...) {
   }
   one_sided(str)
 }
+
+
 
 
 #' Get Underlying TMB Object

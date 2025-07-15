@@ -215,10 +215,10 @@ calibrator = ("starter_models"
   )
  |> mp_tmb_calibrator(
       data = in_progress_epidemic
-    , traj = list(infection = mp_neg_bin(disp = 1))
+    , traj = list(infection = mp_nbinom(disp = 1))
     , par = list(
-        beta = mp_normal(location = 0.4, sd = 1)
-      , logit_prop_I = mp_normal(location = 0, sd = 1)
+        beta = mp_norm(location = 0.4, sd = 1)
+      , logit_prop_I = mp_norm(location = 0, sd = 1)
     )
     , time = mp_sim_bounds(1, max_time, "steps")
  )
@@ -572,16 +572,16 @@ sim_infection = (sim
 ```
 ```{r}
 fixef = list(
-    beta = mp_log_normal(location = 0.2, sd = 1)
-  , gamma = mp_log_normal(location = 0.2, sd = 1)
+    beta = mp_lnorm(location = 0.2, sd = 1)
+  , gamma = mp_lnorm(location = 0.2, sd = 1)
 )
 ranef = list()
-  #proc_err = mp_normal(location = 0, sd = 0.1)
+  #proc_err = mp_norm(location = 0, sd = 0.1)
 #)
 cal = mp_tmb_calibrator(
     spec = mp_tmb_update(spec, default = list(beta = 0.2, proc_err = rep(0, 50)))
   , data = sim_infection
-  , traj = list(infection = mp_neg_bin(disp = 1))
+  , traj = list(infection = mp_nbinom(disp = 1))
   , par = fixef # mp_par(param = fixef, random = ranef)
   , outputs = "mean_infection"
 )

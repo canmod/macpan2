@@ -2,15 +2,29 @@
 % Please edit documentation in R/distributions.R
 \name{distribution}
 \alias{distribution}
+\alias{mp_unif}
 \alias{mp_uniform}
+\alias{mp_norm}
 \alias{mp_normal}
+\alias{mp_lnorm}
 \alias{mp_log_normal}
+\alias{mp_logitnorm}
 \alias{mp_logit_normal}
+\alias{mp_pois}
 \alias{mp_poisson}
+\alias{mp_nbinom}
 \alias{mp_neg_bin}
 \title{Distributions}
 \usage{
+mp_unif(trans_distr_param = list())
+
 mp_uniform(trans_distr_param = list())
+
+mp_norm(
+  location = mp_distr_param_null("location"),
+  sd,
+  trans_distr_param = list(location = mp_identity, sd = mp_log)
+)
 
 mp_normal(
   location = mp_distr_param_null("location"),
@@ -18,7 +32,19 @@ mp_normal(
   trans_distr_param = list(location = mp_identity, sd = mp_log)
 )
 
+mp_lnorm(
+  location = mp_distr_param_null("location"),
+  sd,
+  trans_distr_param = list(location = mp_identity, sd = mp_identity)
+)
+
 mp_log_normal(
+  location = mp_distr_param_null("location"),
+  sd,
+  trans_distr_param = list(location = mp_identity, sd = mp_identity)
+)
+
+mp_logitnorm(
   location = mp_distr_param_null("location"),
   sd,
   trans_distr_param = list(location = mp_identity, sd = mp_identity)
@@ -30,9 +56,20 @@ mp_logit_normal(
   trans_distr_param = list(location = mp_identity, sd = mp_identity)
 )
 
+mp_pois(
+  location = mp_distr_param_null("location"),
+  trans_distr_param = list(location = mp_identity)
+)
+
 mp_poisson(
   location = mp_distr_param_null("location"),
   trans_distr_param = list(location = mp_identity)
+)
+
+mp_nbinom(
+  location = mp_distr_param_null("location"),
+  disp,
+  trans_distr_param = list(location = mp_identity, disp = mp_log)
 )
 
 mp_neg_bin(
@@ -62,19 +99,19 @@ model calibration.
 
 \itemize{
 \item Uniform Distribution (Improper), only appropriate for prior
-components - \code{mp_uniform}
+components - \code{mp_unif}
 }
 
 \itemize{
-\item Normal Distribution - \code{mp_normal}
+\item Normal Distribution - \code{mp_norm}
 }
 
 \itemize{
-\item Log-Normal Distribution - \code{mp_log_normal}
+\item Log-Normal Distribution - \code{mp_log_norm}
 }
 
 \itemize{
-\item Logit-Normal Distribution - \code{mp_logit_normal}
+\item Logit-Normal Distribution - \code{mp_logitnorm}
 }
 
 \itemize{
@@ -82,7 +119,7 @@ components - \code{mp_uniform}
 }
 
 \itemize{
-\item Negative Binomial Distribution - \code{mp_neg_bin}
+\item Negative Binomial Distribution - \code{mp_nbinom}
 }
 }
 \details{

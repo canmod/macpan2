@@ -126,7 +126,7 @@ reference:
     Functions for specifying distributional assumptions for priors 
     and likelihoods.
   contents:
-  - mp_uniform
+  - mp_unif
   - mp_fit
 
 - subtitle: Optimize Calibrator Model
@@ -153,8 +153,6 @@ reference:
   - mp_tmb_profile
   - mp_forecaster
 
-- subtitle: Generate Fitted Parameter Tables
-
 - subtitle: Unpack Model Calibrators and Calibrations
   desc: > 
     Functions that extract or print information contained within 
@@ -163,6 +161,8 @@ reference:
   - mp_tmb
   - mp_parameterization
   - mp_version
+  - mp_opt_attempted
+  - mp_uncertainty_estimated
 
 - title: Utilities
 
@@ -186,14 +186,12 @@ reference:
   - rbf
   - mp_binary_operator
 
-- subtitle: Developer Utilities
+- subtitle: Developer and Power-User Utilities
   desc: >
-    Utilities for `macpan2` developers. TODO: Justify why these are exposed
-    to users or do not expose.
+    Utilities for `macpan2` developers and power-users.
   contents:
-  - finalizer_char
-  - initial_valid_vars
-  - make_expr_parser
+  - si_example_object
+  - si_example_code
   - mp_tmb_expr_list
   - mp_functions_used
   - Reader
@@ -206,7 +204,6 @@ reference:
     Functions for semi-automatically laying out compartments in model
     specifications as boxes on a plot.
   contents:
-  - find_all_paths
   - mp_layout_grid
   - mp_layout_paths
 
