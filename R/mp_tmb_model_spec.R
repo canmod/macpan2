@@ -54,6 +54,12 @@ TMBModelSpec = function(
   self$all_formula_vars = function() {
     self$expr_list()$all_formula_vars()
   }
+  self$all_lhs_vars = function() {
+    self$expr_list()$all_formula_vars("left")
+  }
+  self$all_rhs_vars = function() {
+    self$expr_list()$all_formula_vars("right")
+  }
   self$all_default_mats = function() {
     setdiff(
         self$all_default_vars()
