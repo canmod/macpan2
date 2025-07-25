@@ -61,8 +61,8 @@ lessons that we learned from COVID-19 about software.
     \[slides\]
 -   [Instructional
     videos](https://drive.google.com/drive/folders/1NEQf2sy6QLxMiiWBN5Yn9U7wiPMs1jiS)
--   [Publications and Reports using `macpan2` and
-    `McMasterPandemic`](#publications-and-reports)
+-   [Publications and reports](#publications-and-reports) \[using
+    `macpan2` and `McMasterPandemic`\]
 -   [Visual `macpan2` model
     builder](https://canmod.github.io/macpan2-model-builder/) \[proof of
     concept\]
