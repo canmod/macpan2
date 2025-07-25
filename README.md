@@ -8,6 +8,7 @@ macpan2
 [![macpan2 status
 badge](https://canmod.r-universe.dev/badges/macpan2)](https://canmod.r-universe.dev/macpan2)
 [![R-CMD-check](https://github.com/canmod/macpan2/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/canmod/macpan2/actions/workflows/R-CMD-check.yaml)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14895172.svg)](https://doi.org/10.5281/zenodo.14895172)
 [![test
 coverage](https://byob.yarr.is/canmod/macpan2/coverage)](https://github.com/canmod/macpan2/actions/workflows/test-coverage.yaml)
 [![commit
@@ -21,15 +22,12 @@ modellers to respond to emerging public health threats. Developed
 through collaboration with the [Public Health Agency of Canada
 (PHAC)](https://www.canada.ca/en/public-health.html), `macpan2` is being
 used to support responses to diseases such as mpox ([Milwid et al.
-2023](#ref-milwid2023mpox)), measles ([PHAC
-2024](#ref-phac2024measles)), and COVID-19 ([Simmons et al.
-2025](#ref-simmons2025cost); [Miranda et al.
-2025](#ref-miranda2024strategies)), and generally to assist with
-internal work on [pandemic
-preparedness](https://phac-nml-phrsd.github.io/EPACmodel/). PHAC
-published an [interactive measles
-model](https://wzmli.shinyapps.io/two_pop_measles_shiny/) using
-`macpan2`.
+2023](#ref-milwid2023mpox)), measles ([PHAC 2024](#ref-phac2024measles),
+[interactive measles
+model](https://wzmli.shinyapps.io/two_pop_measles_shiny/)), and COVID-19
+([Simmons et al. 2025](#ref-simmons2025cost); [Miranda et al.
+2025](#ref-miranda2024strategies)), and internal work on [pandemic
+preparedness](https://phac-nml-phrsd.github.io/EPACmodel/).
 
 The precursor to `macpan2` was
 [McMasterPandemic](https://github.com/mac-theobio/McMasterPandemic),
@@ -63,8 +61,8 @@ lessons that we learned from COVID-19 about software.
     \[slides\]
 -   [Instructional
     videos](https://drive.google.com/drive/folders/1NEQf2sy6QLxMiiWBN5Yn9U7wiPMs1jiS)
--   [Publications and Reports using `macpan2` and
-    `McMasterPandemic`](#publications-and-reports)
+-   [Publications and reports](#publications-and-reports) \[using
+    `macpan2` and `McMasterPandemic`\]
 -   [Visual `macpan2` model
     builder](https://canmod.github.io/macpan2-model-builder/) \[proof of
     concept\]
