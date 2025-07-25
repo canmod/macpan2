@@ -18,27 +18,34 @@ activity](https://img.shields.io/github/commit-activity/m/canmod/macpan2)](https
 compartmental models of infectious disease. It supports flexible model
 specification and fast parameter calibration, making it easier for
 modellers to respond to emerging public health threats. Developed
-through collaboration with the [Public Health Agency of
-Canada](https://www.canada.ca/en/public-health.html), `macpan2` is being
-used to support responses to diseases such as mpox, measles, and
-COVID-19, and to assist with pandemic preparedness.
+through collaboration with the [Science and Policy Integration
+Branch](https://github.com/phac-nml-phrsd) at the [Public Health Agency
+of Canada](https://www.canada.ca/en/public-health.html), `macpan2` is
+being used to support responses to diseases such as mpox ([Milwid et al.
+2023](#ref-milwid2023mpox)), measles ([Public Health Agency of Canada
+2024](#ref-phac2024measles)), and COVID-19 ([Simmons et al.
+2025](#ref-simmons2025cost); [Miranda et al.
+2025](#ref-miranda2024strategies)), and generally to assist with
+internal work on [pandemic
+preparedness](https://phac-nml-phrsd.github.io/EPACmodel/). PHAC
+published an [interactive measles
+model](https://wzmli.shinyapps.io/two_pop_measles_shiny/) using
+`macpan2`.
 
-[McMasterPandemic](https://github.com/mac-theobio/McMasterPandemic) was
-developed to provide forecasts and insights to Canadian public health
-agencies throughout the COVID-19 pandemic. [Much was
-learned](https://canmod.github.io/macpan-book/index.html#vision-and-direction)
+The precursor to `macpan2` was
+[McMasterPandemic](https://github.com/mac-theobio/McMasterPandemic),
+which was developed to provide
+[forecasts](https://mac-theobio.github.io/covid-19) and insights to
+Canadian public health agencies throughout the COVID-19 pandemic
+([Public Health Agency of Canada Modelling Group
+2020--2022](#ref-phac_modelling_group)). Much was
+[learned](https://canmod.github.io/macpan-book/index.html#vision-and-direction)
 about developing general purpose compartmental modelling software during
 this experience, but the pressure to deliver regular forecasts made it
 difficult to focus on the software itself. The goal of this `macpan2`
 project is to re-imagine `McMasterPandemic`, building it from the ground
 up with architectural and technological decisions that address the many
 lessons that we learned from COVID-19 about software.
-
-The [Public Health Risk Sciences
-Division](https://github.com/phac-nml-phrsd) at the [Public Health
-Agency of Canada](https://www.canada.ca/en/public-health.html) uses
-`macpan2` (for example,
-[here](https://phac-nml-phrsd.github.io/EPACmodel/)).
 
 ## Documentation
 
@@ -57,6 +64,7 @@ Agency of Canada](https://www.canada.ca/en/public-health.html) uses
     \[slides\]
 -   [Instructional
     videos](https://drive.google.com/drive/folders/1NEQf2sy6QLxMiiWBN5Yn9U7wiPMs1jiS)
+-   [Publications using `macpan2`](#references)
 
 ## Installation
 
@@ -191,3 +199,54 @@ library(dplyr)
 
 The [project board](https://github.com/orgs/canmod/projects/2/views/6)
 tracks the details of bugs, tasks, and feature development.
+
+## Publications and Reports using `macpan2` and `McMasterPandemic`
+
+<div id="refs" class="references csl-bib-body hanging-indent">
+
+<div id="ref-milwid2023mpox" class="csl-entry">
+
+Milwid, R. M., M. Li, A. Fazil, M. Maheu-Giroux, C. M. Doyle, Y. Xia, J.
+Cox, et al. 2023. “Exploring the Dynamics of the 2022 Mpox Outbreak in
+Canada.” *Journal of Medical Virology* 95: e29256.
+<https://doi.org/10.1002/jmv.29256>.
+
+</div>
+
+<div id="ref-miranda2024strategies" class="csl-entry">
+
+Miranda, Rafael N, Alison E Simmons, Michael WZ Li, Gebremedhin B
+Gebretekle, Min Xi, Marina I Salvadori, Bryna Warshawsky, et al. 2025.
+“Cost-Utility Analysis of COVID-19 Vaccination Strategies for Endemic
+SARS-CoV-2.” *JAMA Network Open* 8 (6): e2515534–34.
+<https://doi.org/10.1001/jamanetworkopen.2025.15534>.
+
+</div>
+
+<div id="ref-phac2024measles" class="csl-entry">
+
+Public Health Agency of Canada. 2024. “Rapid Risk Assessment: Measles in
+Canada, Public Health Implications in 2024.” Public Health Agency of
+Canada.
+<https://www.canada.ca/en/public-health/services/emergency-preparedness-response/rapid-risk-assessments-public-health-professionals/rapid-risk-assessment-measles-public-health-implications-2024.html>.
+
+</div>
+
+<div id="ref-phac_modelling_group" class="csl-entry">
+
+Public Health Agency of Canada Modelling Group. 2020--2022. “PHAC
+Modelling Group Reports.”
+<https://nccid.ca/covid-19-phac-modelling-group/>.
+
+</div>
+
+<div id="ref-simmons2025cost" class="csl-entry">
+
+Simmons, A. E., R. N. Miranda, M. W. Z. Li, G. B. Gebretekle, M. Xi, M.
+I. Salvadori, B. Warshawsky, et al. 2025. “Cost-Utility Analysis of
+Current COVID-19 Vaccination Program Recommendations in Canada.”
+*Vaccine X* 24: 100660. <https://doi.org/10.1016/j.jvacx.2025.100660>.
+
+</div>
+
+</div>
