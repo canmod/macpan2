@@ -18,8 +18,8 @@ activity](https://img.shields.io/github/commit-activity/m/canmod/macpan2)](https
 compartmental models of infectious disease. It supports flexible model
 specification and fast parameter calibration, making it easier for
 modellers to respond to emerging public health threats. Developed
-through collaboration with the [Public Health Agency of
-Canada](https://www.canada.ca/en/public-health.html), `macpan2` is being
+through collaboration with the [Public Health Agency of Canada
+(PHAC)](https://www.canada.ca/en/public-health.html), `macpan2` is being
 used to support responses to diseases such as mpox ([Milwid et al.
 2023](#ref-milwid2023mpox)), measles ([PHAC
 2024](#ref-phac2024measles)), and COVID-19 ([Simmons et al.
@@ -65,6 +65,9 @@ lessons that we learned from COVID-19 about software.
     videos](https://drive.google.com/drive/folders/1NEQf2sy6QLxMiiWBN5Yn9U7wiPMs1jiS)
 -   [Publications and Reports using `macpan2` and
     `McMasterPandemic`](#publications-and-reports)
+-   [Visual `macpan2` model
+    builder](https://canmod.github.io/macpan2-model-builder/) \[proof of
+    concept\]
 
 ## Installation
 
