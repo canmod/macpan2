@@ -21,7 +21,7 @@ modellers to respond to emerging public health threats. Developed
 through collaboration with the [Public Health Agency of
 Canada](https://www.canada.ca/en/public-health.html), `macpan2` is being
 used to support responses to diseases such as mpox ([Milwid et al.
-2023](#ref-milwid2023mpox)), measles ([Public Health Agency of Canada
+2023](#ref-milwid2023mpox)), measles ([PHAC
 2024](#ref-phac2024measles)), and COVID-19 ([Simmons et al.
 2025](#ref-simmons2025cost); [Miranda et al.
 2025](#ref-miranda2024strategies)), and generally to assist with
@@ -63,7 +63,8 @@ lessons that we learned from COVID-19 about software.
     \[slides\]
 -   [Instructional
     videos](https://drive.google.com/drive/folders/1NEQf2sy6QLxMiiWBN5Yn9U7wiPMs1jiS)
--   [Publications using `macpan2`](#references)
+-   [Publications and Reports using `macpan2` and
+    `McMasterPandemic`](#publications-and-reports)
 
 ## Installation
 
@@ -199,7 +200,7 @@ library(dplyr)
 The [project board](https://github.com/orgs/canmod/projects/2/views/6)
 tracks the details of bugs, tasks, and feature development.
 
-## Publications and Reports using `macpan2` and `McMasterPandemic`
+## Publications and Reports
 
 <div id="refs" class="references csl-bib-body hanging-indent">
 
@@ -224,9 +225,8 @@ SARS-CoV-2.” *JAMA Network Open* 8 (6): e2515534–34.
 
 <div id="ref-phac2024measles" class="csl-entry">
 
-Public Health Agency of Canada. 2024. “Rapid Risk Assessment: Measles in
-Canada, Public Health Implications in 2024.” Public Health Agency of
-Canada.
+PHAC. 2024. “Rapid Risk Assessment: Measles in Canada, Public Health
+Implications in 2024.” Public Health Agency of Canada.
 <https://www.canada.ca/en/public-health/services/emergency-preparedness-response/rapid-risk-assessments-public-health-professionals/rapid-risk-assessment-measles-public-health-implications-2024.html>.
 
 </div>
