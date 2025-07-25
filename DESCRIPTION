@@ -65,5 +65,5 @@ Config/Needs/website: canmod/macpan2
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2.9000
+RoxygenNote: 7.3.2
 URL: https://canmod.github.io/macpan2/, https://github.com/canmod/macpan2

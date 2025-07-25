@@ -1,10 +1,10 @@
 ---
-title: "Multiplying a Sparse Matrix with a Dense Matrix"
+title: "Matrix Operations in macpan2 Models"
 output: 
   rmarkdown::html_vignette:
     toc: true
 vignette: >
-  %\VignetteIndexEntry{Multiplying a Sparse Matrix with a Dense Matrix}
+  %\VignetteIndexEntry{Matrix Operations in macpan2 Models}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -13,82 +13,257 @@ editor_options:
 
 [![status](https://img.shields.io/badge/status-mature%20draft-yellow)](https://canmod.github.io/macpan2/articles/vignette-status#mature-draft)
 
-```{r settings, echo = FALSE, eval = TRUE, message=FALSE, warning=FALSE, error=FALSE}
+```{r settings, echo = FALSE, message=FALSE, warning=FALSE, error=FALSE}
 library(macpan2)
-library(splines)
 library(dplyr)
 library(ggplot2)
+library(splines)
 theme_bw = function() ggplot2::theme_bw(base_size = 18)
 ```
 
 ## Overview
 
-When working with models in `macpan2`, it is often necessary to perform matrix multiplications where the left-hand matrix is sparse—meaning most of its entries are zero. Passing large sparse matrices as dense matrices with zeros into `macpan2` models can lead to unnecessary memory use and performance slowdowns.
+Matrix operations are central to `macpan2` models. The engine supports four ways to multiply two matrices together:
+
+- Standard matrix multiplication (`%*%`)
+- Kronecker products (`%x%`)
+- Elementwise multiplication with recycling (`*`)
+- Left sparse matrix multiplication (`sparse_mat_mult()`)
+
+This vignette introduces each operation and illustrates typical use cases.
+
+## Standard Matrix Multiplication (`%*%`)
+
+Dense matrix multiplication works in `macpan2` exactly as in base R.
+
+```{r}
+A <- matrix(1:6, 3, 2)
+B <- matrix(1:4, 2, 2)
+A %*% B
+macpan2::engine_eval(~A %*% B, A = A, B = B)
+```
+
+## Kronecker Product (`%x%`)
+
+The Kronecker product builds structured block matrices, exactly as in base R.
+
+```{r}
+A <- matrix(c(1, 2), nrow = 1)
+B <- matrix(c(0, 1, 1, 0), nrow = 2)
+A %x% B
+macpan2::engine_eval(~A %x% B, A = A, B = B)
+```
+
+Kronecker products are useful when replicating structure across groups or compartments, as the follow section illustrates.
+
+### Example -- Structured SI Model with Kronecker products
+
+We describe an SI model structured by age group, vaccination status, and symptom status, entirely in terms of matrices and vectors so that Kronecker products can be used to consistently replicate structure across these groups.
+
+#### Step 1 — Stratifying State Variables
+
+We divide a population into:
+
+- \( n_{\text{age}} \) age groups (indexed by \( a = 1, \dots, n_{\text{age}} \))  
+- \( n_{\text{vax}} \) vaccination categories (indexed by \( v = 1, \dots, n_{\text{vax}} \))  
+- \( n_{\text{symp}} \) symptom categories (indexed by \( s = 1, \dots, n_{\text{symp}} \))  
+
+All population quantities are represented as column vectors, stacked in this order:
+
+- Age group (leading index) — varies slowest  
+- Vaccination status — varies next  
+- Symptom status — varies fastest (only for infectious individuals)  
+
+This convention ensures that aggregation and mixing operations defined by Kronecker products naturally correspond to the structure of the population.
+
+Susceptible vector \( S \) with \( n_{\text{age}} = 2 \), \( n_{\text{vax}} = 2 \):
+\[
+S = \begin{bmatrix}
+S_{1,1} \\
+S_{1,2} \\
+S_{2,1} \\
+S_{2,2}
+\end{bmatrix}
+\]
+
+Infectious vector \( I \) with \( n_{\text{age}} = 2 \), \( n_{\text{vax}} = 2 \), \( n_{\text{symp}} = 3 \):
+\[
+I = \begin{bmatrix}
+I_{1,1,1} \\
+I_{1,1,2} \\
+I_{1,1,3} \\
+I_{1,2,1} \\
+I_{1,2,2} \\
+I_{1,2,3} \\
+I_{2,1,1} \\
+I_{2,1,2} \\
+I_{2,1,3} \\
+I_{2,2,1} \\
+I_{2,2,2} \\
+I_{2,2,3}
+\end{bmatrix}
+\]
+
+#### Step 2 — Total Population by Age Group
+
+We construct summation matrices to aggregate the population counts into totals by age group. Each state variable requires its own summation matrix because they are structured differently:
+
+- **\( S \)** is structured by age and vaccination status.
+- **\( I \)** is structured by age, vaccination status, and symptom status.
+
+To define the summation matrices (and expansion matrices below), we use:
+
+- \( \mathbb{I}_n \) — the \( n \times n \) identity matrix (ones on the diagonal, zeros elsewhere).
+- \( \mathbf{1}_{1 \times n} \) — a \( 1 \times n \) row vector of ones.
+- \( \mathbf{1}_{n \times 1} \) — an \( n \times 1 \) column vector of ones.
+
+
+These matrices are combined using Kronecker products, ensuring summation within the correct strata.
+
+- For **susceptibles** \( S \), we sum over vaccination status while preserving age:
+\[
+M_S = \mathbb{I}_{n_{\text{age}}} \otimes \mathbf{1}_{1 \times n_{\text{vax}}}
+\]
+
+- For **infectious individuals** \( I \), we sum over both vaccination status and symptom status while preserving age:
+\[
+M_I = \mathbb{I}_{n_{\text{age}}} \otimes \mathbf{1}_{1 \times (n_{\text{vax}} \cdot n_{\text{symp}})}
+\]
+
+We then compute the total population per age group by applying the summation matrices:
+\[
+N_{\text{age}} = M_S \cdot S + M_I \cdot I
+\]
+
+This yields a column vector of length \( n_{\text{age}} \), giving the total population in each age group.
+
+#### Step 3 — Expanded Total Population Vector
+
+We compute a population vector \( N \) with the same structure and length as the infectious vector \( I \),  so that it can be used directly in the force of infection expression below.
+
+We obtain \( N \) by expanding the vector of total population by age group, \( N_{\text{age}} \), using the Kronecker product with a vector of ones over the vaccination and symptom strata:
+\[
+N = N_{\text{age}} \otimes \mathbf{1}_{n_{\text{vax}} \cdot n_{\text{symp}} \times 1}
+\]
+
+Each entry of \( N \) gives the total population of the corresponding age group, repeated across all vaccination and symptom categories.
+
+#### Step 4 — WAIFW Matrix Construction
+
+The above notation allows us to very nicely partition the effects of each stratum on the *Who Acquires Infection From Whom* (WAIFW) matrix for our structured SI model, using Kronecker products of component WAIFW matrices:
+
+\[
+W = C_{\text{age}} \otimes C_{\text{vax}} \otimes C_{\text{symp}}
+\]
+
+This representation reflects the structure of our state variables: susceptible individuals are stratified by age and vaccination status, whereas infectious individuals are stratified by age, vaccination status, and symptom status. The dimensions and interpretations of each component matrix follow from this:
+
+- \( C_{\text{age}} \in \mathbb{R}^{n_{\text{age}} \times n_{\text{age}}} \):  
+  A square matrix representing transmission potential between susceptible individuals in each age group (rows) and infectious individuals in each age group (columns). This is typically a contact matrix, where entry \((i, j)\) encodes the probability that an individual in age group \(j\) will contact an individual in age group \(i\).
+
+- \( C_{\text{vax}} \in \mathbb{R}^{n_{\text{vax}} \times n_{\text{vax}}} \):  
+  This matrix modulates the impact of vaccination status on transmission. Each entry \((i, j)\) quantifies the transmission potential from an infectious individual with vaccination status \(j\) to a susceptible individual with status \(i\). Often, this captures relative reductions in susceptibility or infectiousness due to vaccination.
+
+- \( C_{\text{symp}} \in \mathbb{R}^{1 \times n_{\text{symp}}} \):  
+  Unlike age and vaccination status, susceptibles do not have a symptom status—one might say their symptom status is implicitly "none". Consequently, \( C_{\text{symp}} \) is a 1-by-\(n_{\text{symp}}\) row vector, where each entry adjusts the infectiousness of individuals depending on their symptom status (e.g., asymptomatic, presymptomatic, mildly symptomatic). This can encode, for example, that asymptomatic individuals are half as infectious as symptomatic ones.
+
+The full WAIFW matrix \( W \) has dimension \((n_{\text{age}} n_{\text{vax}}) \times (n_{\text{age}} n_{\text{vax}} n_{\text{symp}})\) and defines how each susceptible subgroup (by age and vaccination) acquires infection from each infectious subgroup (by age, vaccination, and symptoms), assuming homogeneous mixing within each cell of this stratified structure.
+
+#### Step 5 — Force of Infection Vector
+
+We can now write the force of infection vector, with elements corresponding to the elements of the $S$ vector.
+
+\[
+\Lambda = \beta \cdot W \cdot I \cdot \text{diag}^{-1}(N)
+\]
+
+#### Step 6 — Inflows and Outflows with Allocation Matrices
+
+In the structured SI model, the force of infection determines the rate at which individuals leave the susceptible compartment. However, because the infectious compartment \( I \) includes an additional stratification (symptom status), the force of infection does not specify how new infections are distributed among the strata of \( I \). We introduce allocation matrices to define this distribution explicitly and ensure consistent tracking of flows.
+
+We define:
+
+- \( \text{Out}_{S} \) — the outflow vector from the susceptible compartment, with the same structure as \( S \).
+- \( \text{In}_{I} \) — the inflow vector into the infectious compartment, with the same structure as \( I \).
+
+The outflow from \( S \) due to infection is computed elementwise:
+\[
+\text{Out}_{S} = \Lambda \circ S
+\]
+where \( \circ \) denotes elementwise multiplication.
+
+To compute the inflow vector we introduce the allocation matrix \( A_{S \to I} \), a \( (n_{\text{age}} \cdot n_{\text{vax}} \cdot n_{\text{symp}}) \times (n_{\text{age}} \cdot n_{\text{vax}}) \) matrix such that:
+
+- All elements of $A_{S \to I}$ are $\geq 0$.
+- All columns sum to one.
+
+The inflow to \( I \) is then given by:
+\[
+\text{In}_{I} = A_{S \to I} \cdot \text{Out}_{S}
+\]
+
+The required properties of \( A_{S \to I} \) ensure that the outflow from each susceptible stratum is completely allocated among the infectious strata. Rows may sum to any non-negative value, including zero, which means that some infectious strata may receive no inflow directly from \( S \).
+
+#### Structured SI Model Specification
+
+```{r}
+
+```
+
+## Elementwise Multiplication with Recycling (`*`)
+
+Elementwise multiplication applies entrywise and supports matrix recycling.
+
+Given $z = x * y$, the entries of $z$ are defined by:
+
+$$
+z_{i,j} = \begin{cases}
+  x_{i,j} \times y_{i,j} & \text{if } \dim(x) = \dim(y) \\
+  x_{i,j} \times y_{i,1} & \text{if } n_{\text{row}}(x) = n_{\text{row}}(y),\ n_{\text{col}}(y) = 1 \\
+  x_{i,j} \times y_{1,j} & \text{if } n_{\text{col}}(x) = n_{\text{col}}(y),\ n_{\text{row}}(y) = 1 \\
+  x_{i,1} \times y_{i,j} & \text{if } n_{\text{row}}(x) = n_{\text{row}}(y),\ n_{\text{col}}(x) = 1 \\
+  x_{1,j} \times y_{i,j} & \text{if } n_{\text{col}}(x) = n_{\text{col}}(y),\ n_{\text{row}}(x) = 1 \\
+  x_{1,1} \times y_{i,j} & \text{if } x \text{ is } 1 \times 1 \\
+  x_{i,j} \times y_{1,1} & \text{if } y \text{ is } 1 \times 1 \\
+\end{cases}
+$$
+
+See [this article](https://canmod.github.io/macpan2/articles/elementwise_binary_operators) for a general treatment of elementwise binary operators with examples.
+
+## Multiplying a Sparse Matrix with a Dense Matrix
+
+It is often necessary to perform matrix multiplications where the left-hand matrix is sparse—meaning most of its entries are zero. Passing large sparse matrices as dense matrices with zeros into `macpan2` models can lead to unnecessary memory use and performance slowdowns.
 
 To address this, `macpan2` provides the engine function `sparse_mat_mult()`, which multiplies a sparse matrix (given in compressed form) by a dense matrix. Instead of passing the full sparse matrix, you pass:
 
-- `x` — the non-zero values of the sparse matrix, as a numeric vector
-- `i` — the zero-based row indices of each value in `x`
-- `j` — the zero-based column indices of each value in `x`
-- `y` — the dense matrix on the right-hand side of the multiplication
-- `z` — a matrix with the correct dimensions, which is passed both as an input and as the destination for the result
+- `x` — non-zero values
+- `i` — zero-based row indices
+- `j` — zero-based column indices
+- `y` — dense right-hand matrix
+- `z` — pre-allocated output matrix
 
-This operation is equivalent to:
-```r
-z ~ LeftSparseMatrix %*% y
-```
-but avoids ever constructing `LeftSparseMatrix` explicitly.  You pass `z` as a pre-allocated matrix of the correct size, and `sparse_mat_mult()` fills it with the result of the multiplication.
+### Extracting Sparse Representation
 
-This method is particularly useful in `macpan2` for:
+To simplify the creation of sparse representations, `macpan2` provides the helper function `sparse_matrix_notation()`. This function takes a dense matrix and returns:
 
-- Reducing memory footprint when working with sparse structures
-- Avoiding unnecessary computation with zero entries
-- Embedding efficient matrix multiplications in a model specification
-
-We also plan to allow passing sparse matrices from the `Matrix` package directly into `macpan2` models, in the same way integer vectors can be passed today. The `Matrix` package works naturally with `TMB`, so this will allow us to leverage native sparse matrix support inside the `macpan2` engine.  
-Even with our current simple integer-vector-based approach, we have observed practically useful performance gains for large problems, especially when the left-hand matrix is highly sparse.
-
-## Extracting Sparse Representation
-
-To simplify the creation of sparse representations, `macpan2` provides the helper function `sparse_matrix_notation()`.  
-This function takes a dense matrix and returns:
-
-- `values` — the non-zero entries of the matrix
-- `row_index` — the zero-based row indices of those entries
-- `col_index` — the zero-based column indices of those entries
-- `M` — the original matrix
-- `Msparse` — a version of `M` with near-zero entries replaced by exact zeros  
-
-By default, `sparse_matrix_notation()` applies a numerical tolerance to treat small values as zero and converts indices to zero-based, matching the requirements of `sparse_mat_mult()`.
-
-Example usage:
 ```{r}
-library(macpan2)
-
-# Define matrix to convert
 M <- matrix(c(5, 0, 0,
               0, 0, 3,
               0, 2, 0), nrow = 3, byrow = TRUE)
 
-# Extract sparse representation
 sparse <- macpan2:::sparse_matrix_notation(M, zero_based = TRUE)
 print(sparse)
 
-# Calculate sparsity percentage
 total_entries <- length(M)
 non_zero_entries <- length(sparse$values)
 sparsity <- 100 * (1 - non_zero_entries / total_entries)
 cat(sprintf("Matrix sparsity: %.1f%%\n", sparsity))
 ```
 
-With this simple example, the matrix is 66.7% sparse.  
-The performance benefit of using sparse matrix multiplication grows with both matrix size and sparsity percentage.
+### Small Example of Sparse Matrix Multiplication
 
-## Example: Small Sparse Matrix Multiplication
 
 ```{r}
-library(macpan2)
-
 # Full matrix for validation
 A <- matrix(c(5, 0, 0,
               0, 0, 3,
@@ -113,12 +288,13 @@ spec <- mp_tmb_model_spec(
 )
 
 # Run simulation for zero time steps to execute 'before' block
-result <- spec |>
-  mp_simulator(time_steps = 0, outputs = "z") |>
-  mp_final_list()
+result <- (spec
+  |> mp_simulator(time_steps = 0, outputs = "z")
+  |> mp_final_list()
+)
 
 # Result from macpan2
-result$z
+print(result$z)
 
 # Direct multiplication for validation
 A %*% y
@@ -129,20 +305,17 @@ A %*% y
 - The function writes the result into `z`, which must be allocated beforehand.
 - You can use `mp_tmb_model_spec()` with `time_steps = 0` to evaluate this operation as part of a `macpan2` model workflow.
 
-## Example: Time-Varying Transmission in an SI Model
-
+### Example of Sparse Matrix Multiplication to Model Time-Varying Transmission Rate
+ 
 We implement an SI model where the transmission rate $\beta(t)$ varies over time, modeled as a spline basis expansion:
 $$
 \log \beta(t) = B(t) \cdot \theta
 $$
 We use `sparse_matrix_notation()` to encode the spline basis sparsely and compute $\log \beta(t)$ using `sparse_mat_mult()` in the `before` block. In this case, the spline basis contains no exact zeros, but many near-zero values that contribute little to the result. The tolerance ensures these negligible entries are dropped, improving sparsity without meaningfully affecting the result. For basis matrices like these, choosing a reasonable tolerance (e.g., `1e-4`) helps strike a balance between computational efficiency and model fidelity.
 
-```{r, fig.height = 8, fig.width=4}
-library(macpan2)
-library(splines)
-library(dplyr)
-library(ggplot2)
+We compute $\log \beta(t)$ from a sparse spline basis.
 
+```{r, fig.height = 8, fig.width = 4}
 # Time points for simulation (100 steps)
 n_steps <- 100
 time_points <- seq(0, 1, length.out = n_steps)
@@ -170,37 +343,50 @@ beta_log <- matrix(0, nrow = n_steps, ncol = 1)
 spec <- mp_tmb_model_spec(
   before = beta_log ~ sparse_mat_mult(x, i, j, theta, beta_log),
   during = list(
-      beta ~ exp(beta_log[time_step(1)]),
-      mp_per_capita_flow(
-        from      = "S",
-        to        = "I",
-        rate      = "beta * I / N",
-        flow_name = "infection"
-      )
+    beta ~ exp(beta_log[time_step(1)]),
+    mp_per_capita_flow(
+      from = "S",
+      to = "I",
+      rate = "beta * I / N",
+      flow_name = "infection"
+    )
   ),
   default = nlist(N = 100, S = 99, I = 1, x = B_sparse$values, theta, beta_log),
   integers = nlist(i = B_sparse$row_index, j = B_sparse$col_index)
 )
 
 # Simulate for 100 time steps
-outputs = c("S", "I", "beta", "infection")
-result <- spec |>
-  mp_simulator(time_steps = n_steps, outputs = outputs) |>
-  mp_trajectory() |> 
-  mutate(variable = factor(matrix, levels = outputs))
+result <- (spec
+  |> mp_simulator(time_steps = n_steps, outputs = c("S", "I", "beta", "infection"))
+  |> mp_trajectory()
+  |> mutate(variable = factor(matrix, levels = c("S", "I", "beta", "infection")))
+)
 
 # Plot the results
-(result
-  |> ggplot()
-  + aes(time, value)
-  + geom_line()
-  + facet_wrap(~variable, scales = "free_y", ncol = 1)
-  + theme_bw()
-)
+ggplot(result, aes(time, value)) +
+  geom_line() +
+  facet_wrap(~variable, scales = "free_y", ncol = 1) +
+  theme_bw()
 ```
 
 - Transmission rate $\beta(t)$ is computed dynamically using `sparse_mat_mult()`.
 - The spline basis is passed in sparse form, allowing efficient calculation of $\beta(t)$ at each time step.
 - The SI model uses `mp_per_capita_flow()` for infection, with time-varying transmission.
 - For this example, the spline basis (with tolerance $10^{-4}$) has approximately `r sprintf("%.1f%% sparsity", sparsity)`.
-  Larger models with higher sparsity will benefit even more from this approach.
+- Larger models with higher sparsity will benefit more from this approach.
+
+## Summary of Matrix Operations
+
+| Operation | Description | macpan2 Support |
+|-----------|-------------|------------------|
+| `%*%` | Dense matrix multiplication | Direct |
+| `%x%` | Kronecker product | Direct |
+| `*` | Elementwise multiplication with recycling | Direct |
+| `sparse_mat_mult()` | Sparse × Dense multiplication | Direct |
+
+## When to Use Each
+
+- **Dense × Dense (`%*%`)**: Use for small/moderate dense matrices.
+- **Kronecker (`%x%`)**: Use for structured expansions (e.g., age).
+- **Elementwise (`*`)**: Use for scaling rates in structured models (e.g., susceptibility in force of infection).
+- **Sparse × Dense (`sparse_mat_mult()`)**: Use for large, sparse left-hand matrices.

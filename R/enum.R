@@ -50,7 +50,7 @@ valid_func_sigs = c(
       , "fwrap: pgamma(q, shape, scale)"
       , "fwrap: mean(x)"
       , "fwrap: sd(x)"
-      , "fwrap: proportions(x)"
+      , "fwrap: proportions(x, limit, eps)"
       , "fwrap: last(x)"
       , "fwrap: check_finite(x)"
       , "fwrap: dbinom(observed, size, probability)"
@@ -61,6 +61,7 @@ valid_func_sigs = c(
       , "fwrap: logit(x)"
       , "fwrap: cumsum(x)"
       , "fwrap: sparse_mat_mult(x, i, j, y, z)"
+      , "fwrap: divide_safe(x, eps, limit)"
       , "fwrap: assign(x, i, j, v)"
       , "fwrap: unpack(x, ...)"
 )

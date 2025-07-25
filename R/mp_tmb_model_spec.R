@@ -98,11 +98,22 @@ TMBModelSpec = function(
   ## an 'implied' integer vector for subsetting vectors in before, during,
   ## and after expressions by position name
   self$all_integers = function() {
-    ## TODO: make smarter so that only used integer vectors
-    ## are produced and maybe even check if an integer vector
+    ## TODO: maybe make smarter by checking if an integer vector
     ## is being used in the wrong numeric vector
     implied_integers = implied_position_vectors(self$default)
-    c(implied_integers, self$integers)
+    integers_we_need = intersect(
+        self$all_formula_vars()
+      , names(implied_integers)
+    )
+    filtered_implied_integers = list()
+    nms = names(integers_we_need)
+    for (nm in unique(nms)) {
+      integers_nm = integers_we_need[nms == nm]
+      # if (sum(!duplicated(integers_nm)) != 1L) {
+      # }
+      filtered_implied_integers[[nm]] = integers_nm[[1L]]
+    }
+    c(filtered_implied_integers, self$integers)
   }
   
   self$empty_matrices = function() {

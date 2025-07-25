@@ -20,11 +20,198 @@ knitr::opts_chunk$set(
 )
 ```
 
+
+Choose one susceptible and one infectious candidate from the population.
+
+* S-candidate is susceptible, $S_S$
+* S-candidate is in age group, $S_{A_i}$
+* S-candidate is in immunity status, $S_{V_j}$
+* I-candidate is infectious, $I_I$
+* I-candidate is in age group, $I_{A_i}$
+* I-candidate is in immunity status, $I_{V_j}$
+
+We only consider $\text{pr}(S_S) = 1$.
+
+We let $q_{jk} = \text{Pr}(I_{V_j} | S_{V_k})$
+
+
+
+In most compartmental models, flow rates depend not only on the compartments directly involved in the flow but also on other compartments. A typical example is infection: the rate at which individuals move from a susceptible compartment to an exposed compartment depends on the number of infectious individuals. We frame this setup generically, with \( S \) representing the source (“from”) compartments, \( E \) the destination (“to”) compartments, and \( I \) a set of other compartments whose states influence the flow. While infection is the motivating example, this structure also captures processes like vaccination, where uptake rates depend on vaccine supply, or treatment initiation, where rates depend on healthcare capacity.  
+
+We define
+$$
+S = (S_1, \ldots, S_n)^\top, \quad E = (E_1, \ldots, E_q)^\top, \quad I = (I_1, \ldots, I_m)^\top,
+$$
+where each element represents the number of individuals in a specific stratum (e.g., by age, location, symptom status, or immunity level). The stratifications of \( S \), \( E \), and \( I \) may differ. For example, \( S \) and \( E \) might be stratified by age alone, while \( I \) is stratified jointly by age and symptom severity. As a result, \( n \), \( q \), and \( m \) are generally distinct. In special cases—such as omitting a latent period—one may simplify by setting \( E = I \).
+
+---
+
+### Force of Infection and Flow Allocation  
+
+The **force of infection** is given by
+$$
+\Lambda = \beta I,
+$$
+where \( \beta \) is an \( n \times m \) transmission matrix with entries \( \beta_{ij} \) representing the per-capita contribution of infectious individuals in stratum \( j \) to the infection risk of susceptibles in stratum \( i \).  
+
+The vector of outflows from \( S \), denoted \( F^{\text{out}} \), is
+$$
+F^{\text{out}} = \Lambda \circ S,
+$$
+where \( \circ \) denotes elementwise multiplication. The vector \( F^{\text{out}} \) has length \( n \), matching \( S \).  
+
+To account for different stratifications of \( S \) and \( E \), we define an **allocation matrix** \( M \) of size \( q \times n \), where \( M_{ki} \) is the proportion of individuals leaving \( S_i \) who enter \( E_k \). The inflow into \( E \), denoted \( F^{\text{in}} \), is given by
+$$
+F^{\text{in}} = M F^{\text{out}}.
+$$
+Here, \( F^{\text{in}} \) is a length-\( q \) vector matching \( E \). This is standard matrix multiplication: each entry of \( F^{\text{in}} \) is a weighted sum of the outflows from \( S \), with weights given by \( M \). By construction, the total flow is conserved:
+$$
+\sum_{k=1}^q F^{\text{in}}_k = \sum_{i=1}^n F^{\text{out}}_i.
+$$
+
+---
+
+### Stratified Transmission and Multiplicative Decomposition  
+
+When compartments are stratified, heterogeneity in susceptibility, contact patterns, and infectivity can be captured by factorizing the transmission matrix \( \beta \). We write:
+$$
+\beta = \operatorname{diag}(\sigma) \, P \, \operatorname{diag}(\tau),
+$$
+where:  
+- \( \sigma \) is a length‑\( n \) vector of *susceptibilities* for each \( S \) stratum,  
+- \( P \) is an \( n \times m \) *contact matrix* describing contact rates between \( S \) and \( I \) strata,  
+- \( \tau \) is a length‑\( m \) vector of *infectivities* for each \( I \) stratum.  
+
+The **force of infection** is then
+$$
+\Lambda = \beta I,
+$$
+and the absolute outflow from each \( S \) compartment is
+$$
+F^{\text{out}} = \Lambda \circ S.
+$$
+
+This decomposition emphasizes how susceptibility, contact rates, and infectivity combine multiplicatively to determine transmission dynamics across strata.
+
+---
+
+### Relation to the Standard SI Model  
+
+In a standard unstratified SI model, there is a single susceptible compartment \( S \) and a single infectious compartment \( I \), with total population \( N = S + I \). The force of infection is typically written as
+$$
+\Lambda = \beta \frac{I}{N},
+$$
+so the rate at which susceptibles become infected is \( \Lambda \cdot S = \beta \frac{I}{N} \cdot S \).  
+
+In terms of our general framework:
+- \( n = q = m = 1 \),  
+- \( \sigma = 1 \),  
+- \( P = 1 \),  
+- \( \tau = \beta / N \),  
+
+so that
+$$
+\beta = \sigma \cdot P \cdot \tau = 1 \cdot 1 \cdot \frac{\beta}{N} = \frac{\beta}{N}.
+$$
+
+The outflow from \( S \) is
+$$
+F^{\text{out}} = \Lambda \cdot S = \frac{\beta}{N} \cdot I \cdot S,
+$$
+matching the standard mass-action incidence.  
+
+Thus, the classical SI model corresponds to the special case where there is no stratification, susceptibility is homogeneous, contact is uniform, and infectious individuals transmit at a per-contact rate scaled by \( 1/N \).
+
+### Product Models for Modular Stratification  
+
+The framework above allows for arbitrary stratifications of the \( S \), \( E \), and \( I \) compartments. In practice, complex stratifications are often built by combining simpler ones — for example, stratifying by age, location, and symptom status simultaneously.  
+
+We formalize this using **product models**, where the full stratification is represented as the Cartesian product of simpler factors (e.g., age groups \( \times \) locations \( \times \) symptom statuses). Each compartment corresponds to a unique combination of levels across these factors.  
+
+For example, suppose we stratify by age (child, adult) and location (urban, rural). The susceptible vector \( S \) then has four entries:
+$$
+S = \begin{pmatrix} S_{\text{child, urban}} \\ S_{\text{child, rural}} \\ S_{\text{adult, urban}} \\ S_{\text{adult, rural}} \end{pmatrix}.
+$$
+Parameters like susceptibility or contact rates can vary by age alone, location alone, or both, depending on model design.  
+
+Product models allow us to:  
+- Define parameters that vary along specific dimensions,  
+- Build large, structured transmission models from simpler components,  
+- Control complexity by selectively including or collapsing stratification dimensions.  
+
+The force of infection and flow allocation machinery developed above applies directly to these multi-dimensional strata.
+
+
+### Example: Building a Transmission Matrix with Kronecker Products  
+
+When stratifications are defined by a product of factors, transmission matrices can often be constructed as Kronecker products of simpler matrices associated with each factor.  
+
+For example, suppose:  
+- Contact patterns differ by **age** (with a \( 2 \times 2 \) contact matrix \( P_{\text{age}} \)),  
+- Individuals interact equally across **locations** (represented by a \( 2 \times 2 \) matrix of ones, \( 1_{2 \times 2} \)).  
+
+The full contact matrix \( P \) for the combined age-location stratification (with 4 age-location groups) is given by the Kronecker product:
+$$
+P = P_{\text{age}} \otimes 1_{2 \times 2}.
+$$
+This expands \( P_{\text{age}} \) uniformly across locations, assuming location has no effect on contact rates.  
+
+If location-specific effects were also important, we could replace \( 1_{2 \times 2} \) with a location contact matrix \( P_{\text{loc}} \), giving
+$$
+P = P_{\text{age}} \otimes P_{\text{loc}}.
+$$
+
+This approach lets us modularly build structured transmission matrices by combining simple factors — mirroring the way stratifications are built in the product model.
+
+-----
+
+#### Product Expansion  
+
+The full susceptibility vector \( \sigma \), contact matrix \( P \), and infectivity vector \( \tau \) are given by **Kronecker products** of their factor-specific components:
+$$
+\sigma = \sigma^{(1)} \otimes \sigma^{(2)} \otimes \cdots \otimes \sigma^{(d)},
+$$
+$$
+P = P^{(1)} \otimes P^{(2)} \otimes \cdots \otimes P^{(d)},
+$$
+$$
+\tau = \tau^{(1)} \otimes \tau^{(2)} \otimes \cdots \otimes \tau^{(d)}.
+$$
+
+#### Transmission Matrix Construction  
+
+The overall transmission matrix \( \beta \) is then constructed exactly as before:
+$$
+\beta = \operatorname{diag}(\sigma) \, P \, \operatorname{diag}(\tau).
+$$
+
+This formulation means that:
+- Susceptibility effects,  
+- Contact patterns, and  
+- Infectivity effects  
+
+are each **structured by Kronecker products reflecting the model’s stratification factors** — and then combined multiplicatively through this decomposition.  
+
+---
+
+This triple-Kronecker structure allows the transmission process to respect the modular stratification of the product model while retaining the familiar separation of susceptibility, contact, and infectivity.
+
+
+
+------------
+
 ## Decomposition of State-Dependent Rates
 
-The vast majority of compartmental models contain flows that depend on the states of compartments that are not directly involved in those flows. For example, the magnitude of the flow from compartment A to compartment B could depend on another compartment, C. The most important example of these dependencies is infection, and so we use the terminology from infection processes. However, our model will subsume a very large number of flows as special cases.
+The vast majority of compartmental models contain flows that depend on the states of compartments that are not directly involved in those flows (i.e., the magnitude of the flow from compartment A to compartment B depends on another compartment, C). The most important example of these dependencies is infection, and so we use the terminology from infection processes. However, our model will subsume a very large number of flows as special cases.
 
-Let $s$ and $x$ be subsets of the state vector. The length-$n$ vector $s$ contains the from-compartments -- typically the compartments that are susceptible to infection -- for a set of flows. The length-$m$ vector $x$ contains compartments -- typically the infectious compartments -- that affect these flows. The components of $x$ do not need to affect all components of $y$ but they do need to affect some of them. Note that we do not keep track of the to-compartments in these flows because they do not matter (I think).
+Let \( S = (S_1, \ldots, S_n)^\top \), \( E = (E_1, \ldots, E_q)^\top \), and \( I = (I_1, \ldots, I_m)^\top \) denote the vectors of numbers of susceptible, exposed, and infectious individuals, respectively. Each element of these vectors corresponds to a specific stratum—such as an age group, location, symptom status, or immunity level—and the stratifications may differ between \( S \), \( E \), and \( I \). Consequently, \( n \), \( q \), and \( m \) may be different.
+
+The force of infection vector, $\Lambda$, is $\beta I$, where beta is the transmission matrix (show the elements $\beta_ij$ out please).
+
+The absolute rate of flow out of each of the $S$ states is $\Lambda \circ S$ (ethat's elementwise mult).  
+
+Because $n$ and $q$ are not necessarily the same, the absolute rate of flow out of
+
 
 We define the $n$-by-$m$ transmission matrix as the following decomposition.
 

@@ -115,11 +115,15 @@
 #' engine_eval(~ log(y), y = c(2, 0.5))
 #' ```
 #'
-#' ## Proportions
+#' ## Limiting Values
 #'
+#' 
+#' 
 #' ### Functions
 #'
 #' * `proportions(x, limit, eps)`
+#' * `limit(x, limit, eps)`
+#' * `clamp(x, eps, limit)`
 #'
 #' ### Arguments
 #'
@@ -131,12 +135,63 @@
 #'
 #' * matrix of `x / sum(x)` or `rep(limit, length(x))` if 
 #' `sum(x) < eps`.
-#'
+#' 
 #' ### Examples
 #'
 #' ```
 #' engine_eval(~ proportions(y, 0.5, 1e-8), y = c(2, 0.5))
 #' ```
+#' 
+#' ### Details
+#' 
+#' The return value depends on the function.
+#' * `proportions` : matrix of `x / sum(x)` or `rep(limit, length(x))` if 
+#' `sum(x) < eps`.
+#' * `limit` : 
+#' * `clamp` : 
+#' ### Details
+#'
+#' The divide_safe() function conducts elementwise division
+#' of the first two arguments, and then allows two other
+#' arguments:
+#' * `limit` : Value to return if the `sqrt(denominator^2)` is 
+#' ### Details
+#'
+#' The `clamp` function smoothly clamps the elements of a
+#' matrix so that they
+#' do not get closer to 0 than a tolerance, `eps`, with
+#' a default of 1e-12. This `clamp` function is the following 
+#' modification of the 
+#' [squareplus function](https://arxiv.org/abs/2112.11687).
+#'
+#' \deqn{f(x) = \epsilon_- + \frac{(x - \epsilon_-) + \sqrt{(x - \epsilon_-)^2 + (2\epsilon_0 - \epsilon_-)^2 - \epsilon_-^2}}{2}}
+#' 
+#' Where the two parameters are defined as follows.
+#'
+#' \deqn{\epsilon_0 = f(0)}
+#' 
+#' \deqn{\epsilon_- = \lim_{x \to  -\infty}f(x)}
+#' 
+#' This function is differentiable everywhere, monotonically
+#' increasing, and \eqn{f(x) \approx x} if \eqn{x} is positive
+#' and not too close to zero. By modifying the parameters, you 
+#' can control the distance between \eqn{f(x)} and the
+#' horizontal axis at two 'places' -- \eqn{0} and \eqn{-\infty}.
+#' [See issue #93](https://github.com/canmod/macpan2/issues/93).
+#' for more information.
+#'
+#' For `clamp` the arguments specifically mean.
+#' * `x` : A matrix with elements that should remain positive.
+#' * `eps` : A small positive number, \eqn{\epsilon_0 = f(0)},
+#' giving the value of the function when the input is zero.
+#' The default value is 1e-11
+#' * `limit` : A small positive number, 
+#' \deqn{\epsilon_- = \lim_{x \to  -\infty}f(x)}, giving the
+#' value of the function as the input goes to negative
+#' infinity. The default is `limit = 1e-12`. This `limit` 
+#' should be chosen to be less than `eps` to ensure that 
+#' `clamp` is twice differentiable.
+#' 
 #' 
 #' ## Integer Sequences
 #'
@@ -673,48 +728,6 @@
 #' )
 #' ```
 #' 
-#' ## Clamp
-#'
-#' Smoothly clamp the elements of a matrix so that they
-#' do not get closer to 0 than a tolerance, `eps`, with
-#' a default of 1e-12. This `clamp` function is the following 
-#' modification of the 
-#' [squareplus function](https://arxiv.org/abs/2112.11687).
-#'
-#' \deqn{f(x) = \epsilon_- + \frac{(x - \epsilon_-) + \sqrt{(x - \epsilon_-)^2 + (2\epsilon_0 - \epsilon_-)^2 - \epsilon_-^2}}{2}}
-#' 
-#' Where the two parameters are defined as follows.
-#'
-#' \deqn{\epsilon_0 = f(0)}
-#' 
-#' \deqn{\epsilon_- = \lim_{x \to  -\infty}f(x)}
-#' 
-#' This function is differentiable everywhere, monotonically
-#' increasing, and \eqn{f(x) \approx x} if \eqn{x} is positive
-#' and not too close to zero. By modifying the parameters, you 
-#' can control the distance between \eqn{f(x)} and the
-#' horizontal axis at two 'places' -- \eqn{0} and \eqn{-\infty}.
-#' [See issue #93](https://github.com/canmod/macpan2/issues/93).
-#' for more information.
-#'
-#' ### Functions
-#'
-#' * `clamp(x, eps, limit)`
-#'
-#' ### Arguments
-#'
-#' * `x` : A matrix with elements that should remain positive.
-#' * `eps` : A small positive number, \eqn{\epsilon_0 = f(0)},
-#' giving the value of the function when the input is zero.
-#' The default value is 1e-11
-#' * `limit` : A small positive number, 
-#' \deqn{\epsilon_- = \lim_{x \to  -\infty}f(x)}, giving the
-#' value of the function as the input goes to negative
-#' infinity. The default is `limit = 1e-12`. This `limit` 
-#' should be chosen to be less than `eps` to ensure that 
-#' `clamp` is twice differentiable.
-#' 
-#' 
 #' ## Probability Densities
 #'
 #' All probability densities have the same first two
@@ -1081,6 +1094,7 @@
 #' @aliases logit
 #' @aliases cumsum
 #' @aliases sparse_mat_mult
+#' @aliases divide_safe
 #' @aliases assign
 #' @aliases unpack
 NULL

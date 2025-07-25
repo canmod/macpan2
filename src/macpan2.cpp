@@ -127,7 +127,7 @@ enum macpan2_func
     , MP2_PGAMMA = 48 // fwrap: pgamma(q, shape, scale)
     , MP2_MEAN = 49 // fwrap: mean(x)
     , MP2_SD = 50 // fwrap: sd(x)
-    , MP2_PROPORTIONS = 51 // fwrap: proportions(x)
+    , MP2_PROPORTIONS = 51 // fwrap: proportions(x, limit, eps)
     , MP2_LAST = 52 // fwrap: last(x)
     , MP2_CHECK_FINITE = 53 // fwrap: check_finite(x)
     , MP2_BINOM_DENSITY = 54 // fwrap: dbinom(observed, size, probability)
@@ -138,8 +138,9 @@ enum macpan2_func
     , MP2_LOGIT = 59 // fwrap: logit(x)
     , MP2_CUMSUM = 60 // fwrap: cumsum(x)
     , MP2_SPARSE_MAT_MULT = 61 // fwrap: sparse_mat_mult(x, i, j, y, z)
-    , MP2_ASSIGN = 62 // fwrap: assign(x, i, j, v)
-    , MP2_UNPACK = 63 // fwrap: unpack(x, ...)
+    , MP2_DIVIDE_SAFE = 62 // fwrap: divide_safe(x, eps, limit)
+    , MP2_ASSIGN = 63 // fwrap: assign(x, i, j, v)
+    , MP2_UNPACK = 64 // fwrap: unpack(x, ...)
 };
 
 enum macpan2_meth
@@ -1013,10 +1014,14 @@ public:
         bool is_finite_mat;
         vector<int> u; // FIXME: why not std::vector<int> here??
         matrix<Type> Y, X, A;
-        std::vector<int> timeIndex; // for rbind_time and rbind_lag
+        std::vector<int> timeIndex; // rbind_time and rbind_lag
         int doing_lag = 0;
-        Type sum, eps, limit, var, by, left_over, remaining_prop, p0; // intermediate scalars
-        Type delta_t; // for reulermultinom
+        Type zero = 0;
+        Type var; // variance
+        Type by; // seq
+        Type sum, eps, limit; // proportions, divide_safe, clamp
+        Type den, abs_den; // divide_safe
+        Type p0, remaining_prop, left_over, delta_t; // reulermultinom
         int rows, cols, lag, rowIndex, colIndex, matIndex, cp, off, size, times;
         unsigned int grpIndex;
         int size_in, size_out;
@@ -1386,11 +1391,15 @@ public:
             case MP2_LOGIT:
                 return (-(1 / args[0].array() - 1).log()).matrix();
                   
-            // #' ## Proportions
+            // #' ## Limiting Values
             // #'
+            // #' 
+            // #' 
             // #' ### Functions
             // #'
             // #' * `proportions(x, limit, eps)`
+            // #' * `limit(x, limit, eps)`
+            // #' * `clamp(x, eps, limit)`
             // #'
             // #' ### Arguments
             // #'
@@ -1402,13 +1411,20 @@ public:
             // #'
             // #' * matrix of `x / sum(x)` or `rep(limit, length(x))` if 
             // #' `sum(x) < eps`.
-            // #'
+            // #' 
             // #' ### Examples
             // #'
             // #' ```
             // #' engine_eval(~ proportions(y, 0.5, 1e-8), y = c(2, 0.5))
             // #' ```
             // #' 
+            // #' ### Details
+            // #' 
+            // #' The return value depends on the function.
+            // #' * `proportions` : matrix of `x / sum(x)` or `rep(limit, length(x))` if 
+            // #' `sum(x) < eps`.
+            // #' * `limit` : 
+            // #' * `clamp` : 
             case MP2_PROPORTIONS:
                 m = args.get_as_mat(0);
                 m1 = matrix<Type>::Zero(1, 1);
@@ -1424,7 +1440,104 @@ public:
                     }
                 }
                 return m2;
-              
+            
+            // #' ### Details
+            // #'
+            // #' The divide_safe() function conducts elementwise division
+            // #' of the first two arguments, and then allows two other
+            // #' arguments:
+            // #' * `limit` : Value to return if the `sqrt(denominator^2)` is 
+            //
+            
+            case MP2_DIVIDE_SAFE:
+                args = args.recycle_for_bin_op();
+                m = args.get_as_mat(0);
+                m1 = args.get_as_mat(1);
+                m2 = m.cwiseQuotient(m1);
+                limit = args.get_as_mat(2).coeff(0, 0);
+                eps = args.get_as_mat(3).coeff(0, 0);
+                for (int i = 0; i < m.rows(); i++) {
+                    for (int j = 0; j < m.cols(); j++) {
+                        den = m1.coeff(i, j);
+                        abs_den = CppAD::CondExpGt(den, zero, den, -den);
+                        m2.coeffRef(i, j) = CppAD::CondExpLt(
+                            abs_den
+                          , eps
+                          , limit
+                          , m2.coeffRef(i, j)
+                        );
+                    }
+                }
+                return m2;
+                
+            // #' ### Details
+            // #'
+            // #' The `clamp` function smoothly clamps the elements of a
+            // #' matrix so that they
+            // #' do not get closer to 0 than a tolerance, `eps`, with
+            // #' a default of 1e-12. This `clamp` function is the following 
+            // #' modification of the 
+            // #' [squareplus function](https://arxiv.org/abs/2112.11687).
+            // #'
+            // #' \deqn{f(x) = \epsilon_- + \frac{(x - \epsilon_-) + \sqrt{(x - \epsilon_-)^2 + (2\epsilon_0 - \epsilon_-)^2 - \epsilon_-^2}}{2}}
+            // #' 
+            // #' Where the two parameters are defined as follows.
+            // #'
+            // #' \deqn{\epsilon_0 = f(0)}
+            // #' 
+            // #' \deqn{\epsilon_- = \lim_{x \to  -\infty}f(x)}
+            // #' 
+            // #' This function is differentiable everywhere, monotonically
+            // #' increasing, and \eqn{f(x) \approx x} if \eqn{x} is positive
+            // #' and not too close to zero. By modifying the parameters, you 
+            // #' can control the distance between \eqn{f(x)} and the
+            // #' horizontal axis at two 'places' -- \eqn{0} and \eqn{-\infty}.
+            // #' [See issue #93](https://github.com/canmod/macpan2/issues/93).
+            // #' for more information.
+            // #'
+            // #' For `clamp` the arguments specifically mean.
+            // #' * `x` : A matrix with elements that should remain positive.
+            // #' * `eps` : A small positive number, \eqn{\epsilon_0 = f(0)},
+            // #' giving the value of the function when the input is zero.
+            // #' The default value is 1e-11
+            // #' * `limit` : A small positive number, 
+            // #' \deqn{\epsilon_- = \lim_{x \to  -\infty}f(x)}, giving the
+            // #' value of the function as the input goes to negative
+            // #' infinity. The default is `limit = 1e-12`. This `limit` 
+            // #' should be chosen to be less than `eps` to ensure that 
+            // #' `clamp` is twice differentiable.
+            // #' 
+            // #' 
+            case MP2_CLAMP:
+                eps = 1e-11; // default
+                if (n > 1)
+                    eps = args[1].coeff(0, 0);
+                if (n == 3) {
+                    limit = args[2].coeff(0, 0);
+                } else {
+                    limit = 1e-12; // default
+                }
+                X = args[0];
+                rows = X.rows();
+                cols = X.cols();
+                m = matrix<Type>::Zero(rows, cols);
+                
+                // https://github.com/canmod/macpan2/issues/93
+                for (int i = 0; i < rows; i++) {
+                    for (int j = 0; j < cols; j++) {
+                        m.coeffRef(i, j) = limit + (
+                            (
+                                X.coeff(i, j) - limit + 
+                                sqrt(
+                                    pow(X.coeff(i, j) - limit, 2.0) + 
+                                    pow(2.0 * eps - limit, 2.0) - 
+                                    pow(limit, 2.0)
+                                )
+                            ) / 2.0
+                        );
+                    }
+                }
+                return m;
 
 
             // #' ## Integer Sequences
@@ -2612,79 +2725,6 @@ public:
                 else {
                     MP2_ERR(MP2_CONVOLUTION, "Either empty or non-column vector used as kernel in convolution", MP2_CONVOLUTION);
                 }
-
-            // #' ## Clamp
-            // #'
-            // #' Smoothly clamp the elements of a matrix so that they
-            // #' do not get closer to 0 than a tolerance, `eps`, with
-            // #' a default of 1e-12. This `clamp` function is the following 
-            // #' modification of the 
-            // #' [squareplus function](https://arxiv.org/abs/2112.11687).
-            // #'
-            // #' \deqn{f(x) = \epsilon_- + \frac{(x - \epsilon_-) + \sqrt{(x - \epsilon_-)^2 + (2\epsilon_0 - \epsilon_-)^2 - \epsilon_-^2}}{2}}
-            // #' 
-            // #' Where the two parameters are defined as follows.
-            // #'
-            // #' \deqn{\epsilon_0 = f(0)}
-            // #' 
-            // #' \deqn{\epsilon_- = \lim_{x \to  -\infty}f(x)}
-            // #' 
-            // #' This function is differentiable everywhere, monotonically
-            // #' increasing, and \eqn{f(x) \approx x} if \eqn{x} is positive
-            // #' and not too close to zero. By modifying the parameters, you 
-            // #' can control the distance between \eqn{f(x)} and the
-            // #' horizontal axis at two 'places' -- \eqn{0} and \eqn{-\infty}.
-            // #' [See issue #93](https://github.com/canmod/macpan2/issues/93).
-            // #' for more information.
-            // #'
-            // #' ### Functions
-            // #'
-            // #' * `clamp(x, eps, limit)`
-            // #'
-            // #' ### Arguments
-            // #'
-            // #' * `x` : A matrix with elements that should remain positive.
-            // #' * `eps` : A small positive number, \eqn{\epsilon_0 = f(0)},
-            // #' giving the value of the function when the input is zero.
-            // #' The default value is 1e-11
-            // #' * `limit` : A small positive number, 
-            // #' \deqn{\epsilon_- = \lim_{x \to  -\infty}f(x)}, giving the
-            // #' value of the function as the input goes to negative
-            // #' infinity. The default is `limit = 1e-12`. This `limit` 
-            // #' should be chosen to be less than `eps` to ensure that 
-            // #' `clamp` is twice differentiable.
-            // #' 
-            // #' 
-            case MP2_CLAMP:
-                eps = 1e-11; // default
-                if (n > 1)
-                    eps = args[1].coeff(0, 0);
-                if (n == 3) {
-                    limit = args[2].coeff(0, 0);
-                } else {
-                    limit = 1e-12; // default
-                }
-                X = args[0];
-                rows = X.rows();
-                cols = X.cols();
-                m = matrix<Type>::Zero(rows, cols);
-                
-                // https://github.com/canmod/macpan2/issues/93
-                for (int i = 0; i < rows; i++) {
-                    for (int j = 0; j < cols; j++) {
-                        m.coeffRef(i, j) = limit + (
-                            (
-                                X.coeff(i, j) - limit + 
-                                sqrt(
-                                    pow(X.coeff(i, j) - limit, 2.0) + 
-                                    pow(2.0 * eps - limit, 2.0) - 
-                                    pow(limit, 2.0)
-                                )
-                            ) / 2.0
-                        );
-                    }
-                }
-                return m;
 
             // #' ## Probability Densities
             // #'
