@@ -22,15 +22,12 @@ modellers to respond to emerging public health threats. Developed
 through collaboration with the [Public Health Agency of Canada
 (PHAC)](https://www.canada.ca/en/public-health.html), `macpan2` is being
 used to support responses to diseases such as mpox ([Milwid et al.
-2023](#ref-milwid2023mpox)), measles ([PHAC
-2024](#ref-phac2024measles)), and COVID-19 ([Simmons et al.
-2025](#ref-simmons2025cost); [Miranda et al.
-2025](#ref-miranda2024strategies)), and generally to assist with
-internal work on [pandemic
-preparedness](https://phac-nml-phrsd.github.io/EPACmodel/). PHAC
-published an [interactive measles
-model](https://wzmli.shinyapps.io/two_pop_measles_shiny/) using
-`macpan2`.
+2023](#ref-milwid2023mpox)), measles ([PHAC 2024](#ref-phac2024measles),
+[interactive measles
+model](https://wzmli.shinyapps.io/two_pop_measles_shiny/)), and COVID-19
+([Simmons et al. 2025](#ref-simmons2025cost); [Miranda et al.
+2025](#ref-miranda2024strategies)), and internal work on [pandemic
+preparedness](https://phac-nml-phrsd.github.io/EPACmodel/).
 
 The precursor to `macpan2` was
 [McMasterPandemic](https://github.com/mac-theobio/McMasterPandemic),
