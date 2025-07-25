@@ -10,7 +10,8 @@ mp_forecaster(
   outputs = NULL,
   data = NULL,
   tv = NULL,
-  default = list()
+  default = list(),
+  inits = list()
 )
 }
 \arguments{
@@ -39,6 +40,11 @@ of the data.}
 
 \item{default}{An optional list of default model variables (e.g., parameters
 initial values of state variables) to override calibrated values.}
+
+\item{inits}{An optional list of initial values for the state variables.
+These initial values can be added to the \code{default} list with identical
+results, but adding them to \code{inits} is better practice because it makes it
+clear that they are initial values that will change as the state updates.}
 }
 \description{
 A forecaster is an object that can make forecasts. It is constructed from

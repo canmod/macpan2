@@ -9,7 +9,6 @@ hoard
 *.so
 *.DS_Store
 *.Rproj
-*.sh
 *.log
 *.html
 docs

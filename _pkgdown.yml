@@ -21,7 +21,7 @@ home:
   - text: Maintainer
     href: https://github.com/stevencarlislewalker
   - text: Roadmap
-    href: https://github.com/orgs/canmod/projects/2
+    href: https://github.com/orgs/canmod/projects/2/views/6
   - text: Presentation slides
     href: https://canmod.net/misc/pyRC
 reference:
@@ -50,6 +50,7 @@ reference:
   - mp_show_models
   - mp_model_starter
   - mp_model_docs
+  - mp_read_rds
 
 - subtitle: Transform Model Specifications
   desc: > 
@@ -59,15 +60,17 @@ reference:
   - mp_tmb_insert
   - mp_tmb_insert_reports
   - mp_tmb_insert_log_linear
+  - mp_tmb_insert_glm_timevar
   - mp_tmb_insert_trans
   - mp_tmb_insert_backtrans
   - mp_euler
   - mp_expand
+  - mp_version_update
 
 - subtitle: Unpack Model Specifications
   desc: > 
-    Functions that extract or print information contained within 
-    model specifications.
+    Functions that extract, print, and/or plot information 
+    contained within model specifications.
   contents:
   - mp_print_spec
   - mp_initial
@@ -76,6 +79,9 @@ reference:
   - mp_change_frame
   - mp_vars
   - mp_state_dependence_frame
+  - mp_version
+  - dot_layout
+  - find_all_paths
 
 - title: Simulators
 
@@ -99,6 +105,7 @@ reference:
   contents:
   - mp_default
   - mp_tmb
+  - mp_version
 
 - title: Calibrators
 
@@ -119,7 +126,7 @@ reference:
     Functions for specifying distributional assumptions for priors 
     and likelihoods.
   contents:
-  - mp_uniform
+  - mp_unif
   - mp_fit
 
 - subtitle: Optimize Calibrator Model
@@ -143,9 +150,8 @@ reference:
   - mp_effects_descr
   - mp_tmb_fixef_cov
   - mp_tmbstan_coef
+  - mp_tmb_profile
   - mp_forecaster
-
-- subtitle: Generate Fitted Parameter Tables
 
 - subtitle: Unpack Model Calibrators and Calibrations
   desc: > 
@@ -154,6 +160,9 @@ reference:
   contents:
   - mp_tmb
   - mp_parameterization
+  - mp_version
+  - mp_opt_attempted
+  - mp_uncertainty_estimated
 
 - title: Utilities
 
@@ -177,14 +186,12 @@ reference:
   - rbf
   - mp_binary_operator
 
-- subtitle: Developer Utilities
+- subtitle: Developer and Power-User Utilities
   desc: >
-    Utilities for `macpan2` developers. TODO: Justify why these are exposed
-    to users or do not expose.
+    Utilities for `macpan2` developers and power-users.
   contents:
-  - finalizer_char
-  - initial_valid_vars
-  - make_expr_parser
+  - si_example_object
+  - si_example_code
   - mp_tmb_expr_list
   - mp_functions_used
   - Reader
@@ -192,15 +199,13 @@ reference:
 
 - title: Not Ready
 
-- subtitle: Box Diagram Layouts (Not Ready)
+- subtitle: Box Diagrams
   desc: >
     Functions for semi-automatically laying out compartments in model
     specifications as boxes on a plot.
   contents:
   - mp_layout_grid
   - mp_layout_paths
-  - find_all_paths
-  - dot_layout
 
 - subtitle: Structured Populations (Not Ready)
   desc: > 
@@ -246,8 +251,8 @@ articles:
   - example_models
   - calibration
   - real_data
-  - state_updaters
   - options
+  - FAQs
 - title: Specs
   desc: Specification Documents
   contents:
@@ -273,4 +278,4 @@ articles:
   contents:
   - time_varying_parameters
   - likelihood_prior_specs
-  - FAQs
+  - state_updaters

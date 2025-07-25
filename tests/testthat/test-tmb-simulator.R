@@ -8,3 +8,15 @@ test_that("informative messages are given when non-existant functions or variabl
     regexp = "but no variables were declared in the model"
   )
 })
+
+test_that("empty simulators generate empty trajectories", {
+  empty_sim = mp_simulator(
+      model = mp_tmb_model_spec()
+    , time_steps = 0
+    , outputs = character()
+  )
+  expect_equal(
+      mp_trajectory(empty_sim)
+    , empty_trajectory
+  )
+})

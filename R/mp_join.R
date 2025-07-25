@@ -13,11 +13,24 @@
 #' joins ensures that the order of tables does not affect the set of rows in
 #' the final table (SW states without proof!).
 #'
-#' When two index tables are passed to `...`, the `by` argument is just a
-#' character vector of column names on which to join (as in standard R functions
-#' for joining data frames), or the dot-concatenation of these column names.
-#' For example,
-#' ```{r join, echo = TRUE, eval = TRUE}
+#'
+#' @param ... Named arguments giving indexes created by
+#' \code{\link{mp_index}} or another function that manipulates indexes.
+#' Each argument will become a position vector used to subset
+#' or expand numeric vectors in archetype formulas.
+#' @param by What columns to use to join the indexes. See below on
+#' how to specify this argument.
+#'
+#' @family ledgers
+#' @concept population-structure
+#' @export
+#' 
+#' @examples
+#' 
+#' # When two index tables are passed to `...`, the `by` argument is just a
+#' # character vector of column names on which to join (as in standard R functions
+#' # for joining data frames), or the dot-concatenation of these column names.
+#' # For example,
 #' state = mp_index(
 #'   Epi = c("S", "I", "S", "I"),
 #'   Age = c("young", "young", "old", "old")
@@ -27,12 +40,10 @@
 #'   to = mp_subset(state, Epi = "I"),
 #'   by = "Age"
 #' )
-#' ```
-#' If there are more than two tables then the `by` argument must be a named
-#' list of character vectors, each describing how to join the columns of
-#' a pair of tables in `...`. The names of this list are dot-concatenations
-#' of the names of pairs of tables in `...`. For example,
-#' ```{r rates, echo = TRUE, eval = TRUE}
+#' # If there are more than two tables then the `by` argument must be a named
+#' # list of character vectors, each describing how to join the columns of
+#' # a pair of tables in `...`. The names of this list are dot-concatenations
+#' # of the names of pairs of tables in `...`. For example,
 #' rates = mp_index(
 #'   Epi = c("lambda", "lambda"),
 #'   Age = c("young", "old")
@@ -46,13 +57,11 @@
 #'     from.rate = "Age"
 #'   )
 #' )
-#' ```
-#' If the `by` columns have different names in two tables, then you can
-#' specify these using formula notation where the left-hand-side
-#' is a dot-concatenation of columns in the first table and the
-#' right-hand-side is a dot-concatenation of the columns in the second
-#' table. For example,
-#' ```{r contact_join}
+#' # If the `by` columns have different names in two tables, then you can
+#' # specify these using formula notation where the left-hand-side
+#' # is a dot-concatenation of columns in the first table and the
+#' # right-hand-side is a dot-concatenation of the columns in the second
+#' # table. For example,
 #' contact = mp_index(
 #'   AgeSusceptible = c("young", "young", "old", "old"),
 #'   AgeInfectious = c("young", "old", "young", "old")
@@ -66,18 +75,6 @@
 #'     inf.con = "Age" ~ "AgeInfectious"
 #'   )
 #' )
-#' ```
-#'
-#' @param ... Named arguments giving indexes created by
-#' \code{\link{mp_index}} or another function that manipulates indexes.
-#' Each argument will become a position vector used to subset
-#' or expand numeric vectors in archetype formulas.
-#' @param by What columns to use to join the indexes. See below on
-#' how to specify this argument.
-#'
-#' @family ledgers
-#' @concept population-structure
-#' @export
 mp_join = function(..., by = empty_named_list()) {
   possible_nms = (deparse1(substitute(list(...)))
     |> sub(pattern = "^list\\(", replacement = "")
@@ -193,8 +190,10 @@ mp_join = function(..., by = empty_named_list()) {
 #' A ledger is a table with rows that identify specific instances of a
 #' functional form used to define a \code{\link{mp_dynamic_model}}. Ledgers
 #' are most commonly created using the \code{\link{mp_join}} function as in the 
-#' following example.
-#' ```{r ledger_join}
+#' examples.
+#' @concept population-structure
+#' @name LedgerDefinition
+#' @examples
 #' age = mp_index(Age = c("young", "old"))
 #' state = mp_cartesian(
 #'   mp_index(Epi = c("S", "I", "R")),
@@ -205,9 +204,6 @@ mp_join = function(..., by = empty_named_list()) {
 #'   to = mp_subset(state, Epi = "I"),
 #'   by = list(from.to = "Age")
 #' )
-#' ```
-#' @concept population-structure
-#' @name LedgerDefinition
 NULL
 
 

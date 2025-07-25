@@ -410,13 +410,28 @@
 #' engine_eval(~ group_sums(x, f, n), x = 1:10, f = rep(0:3, 1:4), n = c(1:4))
 #' ```
 #'
+#' ## Sweeping Matrix Elements
+#'
+#' ### Functions
+#'
+#' * `cumsum(x)` : Return a matrix with columns containing the
+#' cumulative sum of the columns in `x`.
+#'
+#' ### Arguments
+#'
+#' * `x` : A matrix.
+#'
+#' ### Return
+#' 
+#' A matrix the same size as `x` but with columns containing the
+#' cumulative sum of the columns in `x`.
 #' ## Extracting Matrix Elements
 #'
 #' ### Functions
 #'
-#' * `x[i,j]` : Matrix containing a subset
+#' * `x[i,j]` : Return a matrix containing a subset
 #' of the rows and columns of `x`.
-#' * `block(x,i,j,n,m)` : Matrix containing a
+#' * `block(x,i,j,n,m)` : Return a matrix containing a
 #' contiguous subset of rows and columns of `x`
 #' \url{https://eigen.tuxfamily.org/dox/group__TutorialBlockOperations.html}.
 #' * `last(x)` : The last element of a matrix (i.e., the
@@ -639,24 +654,43 @@
 #'
 #' Smoothly clamp the elements of a matrix so that they
 #' do not get closer to 0 than a tolerance, `eps`, with
-#' a default of 1e-12. The output of the `clamp`
-#' function is as follows.
+#' a default of 1e-12. This `clamp` function is the following 
+#' modification of the 
+#' [squareplus function](https://arxiv.org/abs/2112.11687).
+#'
+#' \deqn{f(x) = \epsilon_- + \frac{(x - \epsilon_-) + \sqrt{(x - \epsilon_-)^2 + (2\epsilon_0 - \epsilon_-)^2 - \epsilon_-^2}}{2}}
 #' 
-#' This function works fine as long as `x` does not go 
-#' negative. We will improve this behaviour when we 
-#' release a new major version
-#' [see issue #93](https://github.com/canmod/macpan2/issues/93).
+#' Where the two parameters are defined as follows.
+#'
+#' \deqn{\epsilon_0 = f(0)}
+#' 
+#' \deqn{\epsilon_- = \lim_{x \to  -\infty}f(x)}
+#' 
+#' This function is differentiable everywhere, monotonically
+#' increasing, and \eqn{f(x) \approx x} if \eqn{x} is positive
+#' and not too close to zero. By modifying the parameters, you 
+#' can control the distance between \eqn{f(x)} and the
+#' horizontal axis at two 'places' -- \eqn{0} and \eqn{-\infty}.
+#' [See issue #93](https://github.com/canmod/macpan2/issues/93).
+#' for more information.
 #'
 #' ### Functions
 #'
-#' * `clamp(x, eps)`
+#' * `clamp(x, eps, limit)`
 #'
 #' ### Arguments
 #'
 #' * `x` : A matrix with elements that should remain positive.
-#' * `eps` : A small positive number giving the
-#' theoretical minimum of the elements in the returned
-#' matrix.
+#' * `eps` : A small positive number, \eqn{\epsilon_0 = f(0)},
+#' giving the value of the function when the input is zero.
+#' The default value is 1e-11
+#' * `limit` : A small positive number, 
+#' \deqn{\epsilon_- = \lim_{x \to  -\infty}f(x)}, giving the
+#' value of the function as the input goes to negative
+#' infinity. The default is `limit = 1e-12`. This `limit` 
+#' should be chosen to be less than `eps` to ensure that 
+#' `clamp` is twice differentiable.
+#' 
 #' 
 #' ## Probability Densities
 #'
@@ -1022,6 +1056,7 @@
 #' @aliases pnorm
 #' @aliases invlogit
 #' @aliases logit
+#' @aliases cumsum
 #' @aliases assign
 #' @aliases unpack
 NULL

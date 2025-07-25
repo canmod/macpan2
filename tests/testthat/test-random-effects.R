@@ -8,8 +8,8 @@ test_that("laplace approximation does something", {
     , data
     , traj = "infection"
     , par = mp_par(
-          params = list(beta = mp_normal(0.25, 1))
-        , random = list(gamma = mp_normal(0.25, 1))
+          params = list(beta = mp_norm(0.25, 1))
+        , random = list(gamma = mp_norm(0.25, 1))
       )
     , default = list(beta = 0.25, gamma = 0.17)
   )

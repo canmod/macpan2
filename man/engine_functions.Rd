@@ -61,6 +61,7 @@
 \alias{pnorm}
 \alias{invlogit}
 \alias{logit}
+\alias{cumsum}
 \alias{assign}
 \alias{unpack}
 \title{Functions Available in the Simulation Engine}
@@ -537,12 +538,34 @@ engine_eval(~ group_sums(x, f, n), x = 1:10, f = rep(0:3, 1:4), n = c(1:4))
 
 }
 
+\subsection{Sweeping Matrix Elements}{
+\subsection{Functions}{
+\itemize{
+\item \code{cumsum(x)} : Return a matrix with columns containing the
+cumulative sum of the columns in \code{x}.
+}
+}
+
+\subsection{Arguments}{
+\itemize{
+\item \code{x} : A matrix.
+}
+}
+
+\subsection{Return}{
+
+A matrix the same size as \code{x} but with columns containing the
+cumulative sum of the columns in \code{x}.
+}
+
+}
+
 \subsection{Extracting Matrix Elements}{
 \subsection{Functions}{
 \itemize{
-\item \code{x[i,j]} : Matrix containing a subset
+\item \code{x[i,j]} : Return a matrix containing a subset
 of the rows and columns of \code{x}.
-\item \code{block(x,i,j,n,m)} : Matrix containing a
+\item \code{block(x,i,j,n,m)} : Return a matrix containing a
 contiguous subset of rows and columns of \code{x}
 \url{https://eigen.tuxfamily.org/dox/group__TutorialBlockOperations.html}.
 \item \code{last(x)} : The last element of a matrix (i.e., the
@@ -795,25 +818,43 @@ calibrating) for time steps less than \eqn{m}.
 
 Smoothly clamp the elements of a matrix so that they
 do not get closer to 0 than a tolerance, \code{eps}, with
-a default of 1e-12. The output of the \code{clamp}
-function is as follows.
+a default of 1e-12. This \code{clamp} function is the following
+modification of the
+\href{https://arxiv.org/abs/2112.11687}{squareplus function}.
 
-This function works fine as long as \code{x} does not go
-negative. We will improve this behaviour when we
-release a new major version
-\href{https://github.com/canmod/macpan2/issues/93}{see issue #93}.
+\deqn{f(x) = \epsilon_- + \frac{(x - \epsilon_-) + \sqrt{(x - \epsilon_-)^2 + (2\epsilon_0 - \epsilon_-)^2 - \epsilon_-^2}}{2}}
+
+Where the two parameters are defined as follows.
+
+\deqn{\epsilon_0 = f(0)}
+
+\deqn{\epsilon_- = \lim_{x \to  -\infty}f(x)}
+
+This function is differentiable everywhere, monotonically
+increasing, and \eqn{f(x) \approx x} if \eqn{x} is positive
+and not too close to zero. By modifying the parameters, you
+can control the distance between \eqn{f(x)} and the
+horizontal axis at two 'places' -- \eqn{0} and \eqn{-\infty}.
+\href{https://github.com/canmod/macpan2/issues/93}{See issue #93}.
+for more information.
 \subsection{Functions}{
 \itemize{
-\item \code{clamp(x, eps)}
+\item \code{clamp(x, eps, limit)}
 }
 }
 
 \subsection{Arguments}{
 \itemize{
 \item \code{x} : A matrix with elements that should remain positive.
-\item \code{eps} : A small positive number giving the
-theoretical minimum of the elements in the returned
-matrix.
+\item \code{eps} : A small positive number, \eqn{\epsilon_0 = f(0)},
+giving the value of the function when the input is zero.
+The default value is 1e-11
+\item \code{limit} : A small positive number,
+\deqn{\epsilon_- = \lim_{x \to  -\infty}f(x)}, giving the
+value of the function as the input goes to negative
+infinity. The default is \code{limit = 1e-12}. This \code{limit}
+should be chosen to be less than \code{eps} to ensure that
+\code{clamp} is twice differentiable.
 }
 }
 

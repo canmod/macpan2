@@ -396,7 +396,7 @@ mp_tmb_coef(focal_calib, conf.int = TRUE) |> round_coef_tab()
 #> 4 mobility_coefficients   1  1.0000 3.871000e-01 4.840000e-02      0.3030
 #> 5 mobility_coefficients   2  1.0000 1.114000e-01 1.520000e-02      0.0852
 #> 6 mobility_coefficients   3  1.0000 5.299000e-01 8.700000e-03      0.5130
-#> 7 mobility_coefficients   4  1.0000 1.702478e+07 4.289088e+07 122076.6139
+#> 7 mobility_coefficients   4  1.0000 1.702478e+07 4.289088e+07 122076.6134
 #> 8                     E   0  5.0000 7.646170e+01 2.506630e+01     40.2157
 #> 9          nonhosp_mort   0  0.3775 2.104000e-01 5.300000e-03      0.2002
 #>      conf.high

@@ -3,6 +3,7 @@ TMBModelSpec = function(
     , during = list()
     , after = list()
     , default = list()
+    , inits = list()
     , integers = list()
     , must_save = character()
     , must_not_save = character()
@@ -16,8 +17,10 @@ TMBModelSpec = function(
         , "euler_multinomial"
       )
   ) {
+  default = c(default, inits)
   must_not_save = handle_saving_conflicts(must_save, must_not_save)
   self = Base()
+  self$macpan2_version = get_pkg_ver("macpan2")
   before = force_expr_list(before)
   during = force_expr_list(during)
   after = force_expr_list(after)
@@ -111,10 +114,11 @@ TMBModelSpec = function(
   
   self$copy = function() {
     mp_tmb_model_spec(
-        self$before, self$during, self$after
-      , self$default, self$integers
-      , self$must_save, self$must_not_save, self$sim_exprs
-      , self$state_update
+        before = self$before, during = self$during, after = self$after
+      , default = self$default, integers = self$integers
+      , must_save = self$must_save, must_not_save = self$must_not_save
+      , sim_exprs = self$sim_exprs
+      , state_update = self$state_update
     )
   }
   self$change_update_method = function(
@@ -124,26 +128,29 @@ TMBModelSpec = function(
     if (self$state_update == "no") {
       msg_space(
           "This model has not formalized the notion of a state variable,"
-        , "and so changing how the state variables are updated has no effect.",
+        , "and so changing how the state variables are updated has no effect."
         , "Models with formalized state variables are specified with state"
         , "flows using functions such as mp_per_capita_flow."
       ) |> warning()
     }
     mp_tmb_model_spec(
-        self$before, self$during, self$after
-      , self$default, self$integers
-      , self$must_save, self$must_not_save, self$sim_exprs
-      , state_update
+        before = self$before, during = self$during, after = self$after
+      , default = self$default, integers = self$integers
+      , must_save = self$must_save, must_not_save = self$must_not_save
+      , sim_exprs = self$sim_exprs, state_update = state_update
     )
   }
   self$expand = function() {
     mp_tmb_model_spec(
-        self$update_method$before()
-      , self$update_method$during()
-      , self$update_method$after()
-      , self$default, self$integers
-      , self$must_save, self$must_not_save, self$sim_exprs
-      , self$state_update
+        before = self$update_method$before()
+      , during = self$update_method$during()
+      , after = self$update_method$after()
+      , default = self$default
+      , integers = self$integers
+      , must_save = self$must_save
+      , must_not_save = self$must_not_save
+      , sim_exprs = self$sim_exprs
+      , state_update = self$state_update
     )
   }
   self$name_map = function(local_names) {
@@ -158,6 +165,9 @@ TMBModelSpec = function(
       , default = list()
       , initialize_ad_fun = TRUE
   ) {
+    time_steps = as.integer(round(time_steps))
+    if ((length(time_steps) != 1L)) stop("The time_steps argument must be a non-negative integer.")
+    if (time_steps < 0L) stop("The time_steps argument must be a non-negative integer.")
     self$check_names()
     time_args = must_save_time_args(
       c(
@@ -179,7 +189,7 @@ TMBModelSpec = function(
       , engine_methods = EngineMethods(
           int_vecs = do.call(IntVecs, self$all_integers())
         )
-      , time_steps = Time(as.integer(time_steps))
+      , time_steps = Time(time_steps)
     )
   }
   self$simulator_fresh = function(
@@ -199,10 +209,11 @@ handle_saving_conflicts = function(must_save, must_not_save) {
   ## must_save takes precedence over must_not_save
   problems = intersect(must_save, must_not_save)
   if (length(problems) != 0L) {
-    sprintf(
+    msg = sprintf(
         "The following matrices were removed from the must_not_save list\nbecause they are also on the must_save list, which takes precedence:\n      %s\n"
       , paste0(problems, collapse = ", ")
-    ) |> message()
+    )
+    getOption("macpan2_saving_conflict_msg_fn")(msg)
     must_not_save = setdiff(must_not_save, problems)
   }
   return(must_not_save)
@@ -287,7 +298,14 @@ must_save_time_args = function(formulas) {
 #' rules for these formulas.
 #' @param default Named list of objects, each of which can be coerced into 
 #' a \code{\link{numeric}} \code{\link{matrix}}. The names refer to 
-#' variables that appear in \code{before}, \code{during}, and \code{after}.
+#' quantities that appear in \code{before}, \code{during}, and \code{after}.
+#' Each quantity that is used in \code{before}, \code{during}, or \code{after}
+#' before it is defined must be given a numerical value in this \code{default}
+#' list.
+#' @param inits Named list of initial values of state variables.  These 
+#' initial values can be added to the `default` list with identical results,
+#' but adding them to `inits` is better practice because it makes it clear
+#' that they are initial values that will change as the state updates.
 #' @param integers Named list of vectors that can be coerced to integer
 #' vectors. These integer vectors can be used by name in model formulas to
 #' provide indexing of matrices and as grouping factors in 
@@ -437,4 +455,45 @@ mp_print_after = function(model) {
       model$after
     , c(0L, 0L, length(model$after))
   )
+}
+
+#' Version Update
+#' 
+#' Update a model specification so that it is compatible with the 
+#' installed version of `macpan2`.
+#' 
+#' @param spec Object produced by \code{\link{mp_tmb_model_spec}} or another 
+#' function that produces the same type of object.
+#' 
+#' @export
+mp_version_update = function(spec) {
+  if (!inherits(spec, "TMBModelSpec")) {
+    stop("The spec argument must be a `macpan2` model specification.")
+  }
+  mp_tmb_model_spec(
+      before = spec$before, during = spec$during, after = spec$after
+    , default = spec$default, integers = spec$integers
+    , must_save = spec$must_save, must_not_save = spec$must_not_save
+    , sim_exprs = spec$sim_exprs
+    , state_update = spec$state_update
+  )
+}
+
+#' Read Serialized Model Specification
+#' 
+#' Uses \code{\link{readRDS}} to read in a saved model specification
+#' created using a function like \code{\link{mp_tmb_model_spec}}, and
+#' updates this specification using \code{\link{mp_version_update}} so that
+#' it is compatible with the installed version of `macpan2`. To save
+#' a model specification, just use the base `R` function \code{\link{saveRDS}}.
+#' 
+#' @param filename Path to a saved model specification object.
+#' 
+#' @export
+mp_read_rds = function(filename) {
+  obj = filename |> readRDS()
+  if (!inherits(obj, "TMBModelSpec")) {
+    stop("Found an object that is not a `macpan2` model specification.")
+  }
+  mp_version_update(obj)
 }

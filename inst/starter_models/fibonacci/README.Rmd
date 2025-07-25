@@ -1,0 +1,105 @@
+---
+title: "Fibonacci Numbers"
+index_entry: "Matrix population model for generating the Fibonacci numbers"
+bibliography: ../../references.bib
+link-citations: TRUE
+author: Steve Walker
+output: 
+  github_document:
+    toc: true
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  comment = "#>",
+  fig.path = "./figures/"
+)
+```
+
+This example demonstrates that `macpan2` can simulate any discrete-time dynamical model—not just compartmental models. Use the `~` operator in the `during` list to define how model variables are updated at each time step. For example in this article, we generate the [Fibonacci sequence](https://en.wikipedia.org/wiki/Fibonacci_sequence) using its [matrix-based dynamical form](https://en.wikipedia.org/wiki/Fibonacci_sequence#Matrix_form).
+
+# Packages Used and Settings
+
+The code in this article uses the following packages.
+
+```{r packages, message=FALSE, warning=FALSE}
+library(dplyr)
+library(macpan2)
+```
+
+
+# Model Specification
+
+This model has been specified in the `fibonacci` directory [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/fibonacci/tmb.R) and is accessible from the `macpan2` model library (see [Example Models](https://canmod.github.io/macpan2/articles/example_models.html) for details). We can read in the model specification using the `mp_tmb_library` command.
+```{r model_spec}
+spec = mp_tmb_library(
+    "starter_models"
+  , "fibonacci"
+  , package = "macpan2"
+)
+```
+
+This model contains two variables -- a matrix `A` and vector `x`.
+```{r default_vars}
+mp_default_list(spec)
+```
+
+At every iteration of the simulation we multiply `A` by `x` to get a new value of `x`. Then we pick out the next Fibonacci number as the second (zero-based) element of `x`.
+```{r during}
+mp_print_during(spec)
+```
+
+By the end of the simulation loop, if we run enough iterations, we compute a very good approximation to the golden ratio.
+```{r after}
+mp_print_after(spec)
+```
+
+# Dynamics 
+
+Here is the mathematical description of this model.
+
+$$
+\begin{pmatrix} 
+x_0(t+1) \\ 
+x_1(t+1) 
+\end{pmatrix}
+= \begin{pmatrix} 
+1 & 1 \\ 
+1 & 0 
+\end{pmatrix}
+\begin{pmatrix} 
+x_0(t) \\ 
+x_1(t) 
+\end{pmatrix}
+$$
+
+# Simulation
+
+The Fibonacci numbers are given by the following simulation.
+```{r fib_sims}
+(spec 
+  |> mp_simulator(
+      time_steps = 10
+    , output = "fibonacci"
+  ) 
+  |> mp_trajectory()
+  |> pull(value)
+)
+```
+
+And by running the simulation for longer we can get a very good approximation to the golden ratio.
+```{r golden_sims}
+(spec 
+  |> mp_simulator(
+      time_steps = 100
+    , output = "golden_ratio"
+  ) 
+  |> mp_final()
+  |> pull(value)
+)
+```

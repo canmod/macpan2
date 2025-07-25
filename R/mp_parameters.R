@@ -5,8 +5,11 @@
 #' @param types Vector indicating what kinds of parameters should be
 #' included, `"fixed"` for fixed-effect-type parameters and `"random"`
 #' for random-effect-type.
-#' 
 #' @export
+#' 
+#' @examples
+#' cal = si_example_object("optimized_calibrator")
+#' mp_parameterization(cal)
 mp_parameterization = function(model, types = c("fixed", "random")) {
   UseMethod("mp_parameterization")
 }

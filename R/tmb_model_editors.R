@@ -35,6 +35,10 @@
 #' variables that appear in \code{before}, \code{during}, and \code{after}.
 #' For `mp_tmb_delete`, a character vector of such objects to delete from
 #' the model.
+#' @param inits An optional list of initial values for the state variables.
+#' These initial values can be added to the `default` list with identical 
+#' results, but adding them to `inits` is better practice because it makes it 
+#' clear that they are initial values that will change as the state updates.
 #' @param integers Named list of vectors that can be coerced to integer
 #' vectors. These integer vectors can be used by name in model formulas to
 #' provide indexing of matrices and as grouping factors in 
@@ -78,11 +82,13 @@ mp_tmb_insert = function(model
     , at = 1L
     , expressions = list()
     , default = list()
+    , inits = list()
     , integers = list()
     , must_save = character()
     , must_not_save = character()
     , sim_exprs = character()
   ) {
+  default = c(default, inits)
   model = assert_cls(model, "TMBModelSpec", match.call(), "?mp_tmb_model_spec")
   valid$char1$check(phase)
   at = valid$num1$assert(at)
@@ -118,11 +124,13 @@ mp_tmb_update = function(model
     , at = 1L
     , expressions = list()
     , default = list()
+    , inits = list()
     , integers = list()
     , must_save = character()
     , must_not_save = character()
     , sim_exprs = character()
   ) {
+  default = c(default, inits)
   model = assert_cls(model, "TMBModelSpec", match.call(), "?mp_tmb_model_spec")
   valid$char1$check(phase)
   at = valid$num1$assert(at)
@@ -221,6 +229,29 @@ mp_tmb_insert_reports = function(model
   , mean_delay_name = sprintf("%s_mean_delay", incidence_name)
   , cv_delay_name = sprintf("%s_cv_delay", incidence_name)
 ) {
+  all_names = named_vec(
+      incidence_name
+    , reports_name
+    , report_prob_name
+    , mean_delay_name
+    , cv_delay_name
+  )
+  dup_names = duplicated(all_names)
+  if (any(dup_names)) {
+    all_dups = all_names[all_names %in% all_names[dup_names]]
+    dup_list = tapply(names(all_dups), unname(all_dups), c, simplify = FALSE)
+    usage = vapply(dup_list
+      , paste, character(1L)
+      , collapse = ", "
+      , USE.NAMES = FALSE
+    )
+    frame = data.frame(variable = names(dup_list), usage = usage)
+    mp_wrap(
+        "The following names were assigned to variables that account for"
+      , "reporting bias via `mp_tmb_insert_reports()`, but they were"
+      , "inconsistently used for multiple purposes."
+    ) |> c("\n\n", frame_formatter(frame)) |> stop()
+  }
   model = assert_cls(model, "TMBModelSpec", match.call(), "?mp_tmb_model_spec")
   local_names = c(dist = "dist", delta = "delta", kernel = "kernel")
   map = model$name_map(local_names)
@@ -249,6 +280,95 @@ mp_tmb_insert_reports = function(model
     , must_save = reports_name
     , must_not_save = unlist(map, use.names = FALSE)
   )
+}
+
+#' Insert GLM Time Variation
+#' 
+#' @param model A model specification (see \code{\link{mp_tmb_model_spec}}).
+#' @param parameter_name Character string giving the name of the parameter
+#' to make time-varying.
+#' @param design_matrix Matrix of time variation.
+#' @param timevar_coef Initial coefficient vector.
+#' @param link_function Link function given by functions like
+#' \code{\link{mp_log}}.
+#' @param matrix_coef_name Name of the vector containing values of the non-zero 
+#' elements of the design matrix.
+#' @param matrix_row_name Name of the vector containing row indices of
+#' the non-zero elements of the design matrix.
+#' @param matrix_col_name Name of the vector containing column indices of
+#' the non-zero elements of the design matrix.
+#' @param linear_pred_name Name of the vector containing the linear 
+#' predictor.
+#' @param timeseries_name Name of the vector containing the time-series
+#' of the varying parameter.
+#' @param timevar_coef_name Name of the vector containing the time-varying
+#' parameter coefficients.
+#' @param time_index_name Name of the index at which the time varying
+#' parameter changes.
+#' @param sparsity_tolerance Make design matrix coefficients exactly zero
+#' when they are below this tolerance.
+#' 
+#' @export
+mp_tmb_insert_glm_timevar = function(model
+    , parameter_name
+    , design_matrix
+    , timevar_coef
+    , link_function = mp_log
+    , matrix_coef_name = sprintf("matrix_coef_%s", parameter_name)
+    , matrix_row_name = sprintf("matrix_row_%s", parameter_name)
+    , matrix_col_name = sprintf("matrix_col_%s", parameter_name)
+    , linear_pred_name = sprintf("linear_pred_%s", parameter_name)
+    , timeseries_name = sprintf("timeseries_%s", parameter_name)
+    , timevar_coef_name = sprintf("time_var_%s", parameter_name)
+    , time_index_name = sprintf("time_index_%s", parameter_name)
+    , sparsity_tolerance = 0
+) {
+  sparse_matrix = sparse_matrix_notation(design_matrix, tol = sparsity_tolerance)
+  
+  matrix_coefs = sparse_matrix$values
+  matrix_row = sparse_matrix$row_index
+  matrix_col = sparse_matrix$col_index
+  linear_pred = timeseries = numeric(nrow(design_matrix))
+  
+  time_var = list(timevar_coef) |> setNames(timevar_coef_name)
+  time_index = seq_along(linear_pred)
+  
+  default = setNames(
+      list(matrix_coefs, linear_pred, timevar_coef, timeseries)
+    , c(matrix_coef_name, linear_pred_name, timevar_coef_name, timeseries_name)
+  )
+  integers = setNames(
+      list(matrix_row, matrix_col, time_index)
+    , c(matrix_row_name, matrix_col_name, time_index_name)
+  )
+  
+  matmult = sprintf("%s ~ %s + group_sums(%s * %s[%s], %s, %s)"
+    , linear_pred_name, link_function$ref(parameter_name)
+    , matrix_coef_name, timevar_coef_name
+    , matrix_col_name, matrix_row_name, linear_pred_name
+  ) |> as.formula()
+  linkfn = sprintf("%s ~ %s"
+    , timeseries_name
+    , link_function$ref_inv(linear_pred_name)
+  ) |> as.formula()
+  getpar = sprintf("%s ~ time_var(%s, %s)"
+    , parameter_name
+    , timeseries_name
+    , time_index_name
+  ) |> as.formula()
+  
+  
+  model = mp_tmb_insert(model
+    , phase = "before", at = Inf
+    , expressions = list(matmult, linkfn)
+    , default = default
+    , integers = integers
+  )
+  model = mp_tmb_insert(model
+    , phase = "during", at = 1L
+    , expressions = list(getpar)
+  )
+  return(model)
 }
 
 #' Insert Log Linear Model of Time Variation (Experimental)
@@ -485,20 +605,29 @@ get_parameter_names = function(obj) {
   if (is.list(obj)) return(names(obj))
   stop("Not a recognized object for representing parameters")
 }
+## TODO: function not used currently -- if used we would also need to 
+## transform the data, and that is for the future.
+get_trajectory_names = function(obj) {
+  if (is.character(obj)) return(obj)
+  if (inherits(obj, "TrajArg")) return(c(names(obj$likelihood), names(obj$condensation)))
+  if (is.list(obj)) return(names(obj))
+  stop("Not a recognized object for representing parameters")
+}
 mp_cal_implicit_trans = function(spec, cal) {
+  out_nms = cal$cal_args$outputs
+  par_nms = get_parameter_names(cal$cal_args$par)
   (spec
     |> mp_tmb_update(default = cal$cal_args$default)
-    |> mp_tmb_implicit_trans(cal$cal_args$outputs)
-    |> mp_tmb_implicit_backtrans(get_parameter_names(cal$cal_args$par))
+    |> mp_tmb_implicit_trans(out_nms)
+    |> mp_tmb_implicit_backtrans(par_nms)
   )
 }
-
 
 get_vars_to_trans = function(variables, all_variables) {
   
   simple_variables = intersect(variables, all_variables)
   complex_variables = setdiff(variables, all_variables)
-  trans_variables = grep("^(log|logit|sqrt)_", complex_variables, value = TRUE)
+  trans_variables = grep("^(log|logit|sqrt|log1p)_", complex_variables, value = TRUE)
   
   good_variables = c(simple_variables, trans_variables)
   bad_variables = setdiff(variables, good_variables)
@@ -513,6 +642,7 @@ get_vars_to_trans = function(variables, all_variables) {
       log = sub("^log_", "", complex_variables) |> intersect(all_variables)
     , logit = sub("^logit_", "", complex_variables) |> intersect(all_variables)
     , sqrt = sub("^sqrt_", "", complex_variables) |> intersect(all_variables)
+    , log1p = sub("^log1p_", "", complex_variables) |> intersect(all_variables)
   )
 }
 

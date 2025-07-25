@@ -5,6 +5,7 @@
 \alias{transform_distr_param}
 \alias{mp_identity}
 \alias{mp_log}
+\alias{mp_log1p}
 \alias{mp_logit}
 \alias{mp_sqrt}
 \title{Link Functions and Transformation}
@@ -12,6 +13,8 @@
 mp_identity
 
 mp_log
+
+mp_log1p
 
 mp_logit
 
@@ -24,6 +27,10 @@ mp_sqrt
 
 \itemize{
 \item \code{mp_log} - Log transformation
+}
+
+\itemize{
+\item \code{mp_log1p} - Log1p transformation (i.e., \code{log(1 + x)})
 }
 
 \itemize{

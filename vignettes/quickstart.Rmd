@@ -1,7 +1,7 @@
 ---
 title: "Quickstart"
 output: 
-  html_document:
+  rmarkdown::html_vignette:
     toc: true
     keep_md: yes
 vignette: >
@@ -25,10 +25,10 @@ library(macpan2)
 si = mp_tmb_model_spec(
     before = S ~ N - I
   , during = mp_per_capita_flow(
-        from     = "S"            # compartment from which individuals flow
-      , to       = "I"            # compartment to which individuals flow
-      , rate     = "beta * I / N" # expression giving per-capita flow rate
-      , abs_rate = "infection"    # name of absolute flow rate = beta * I * S/N
+        from      = "S"            # compartment from which individuals flow
+      , to        = "I"            # compartment to which individuals flow
+      , rate      = "beta * I / N" # expression giving per-capita flow rate
+      , flow_name = "infection"    # name of absolute flow rate = beta * I * S/N
     )
   , default = list(N = 100, I = 1, beta = 0.25)
 )

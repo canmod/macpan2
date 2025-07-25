@@ -1,7 +1,7 @@
 ---
 title: "FAQs"
 output: 
-  html_document:
+  rmarkdown::html_vignette:
     toc: true
     keep_md: yes
 vignette: >
@@ -23,6 +23,10 @@ knitr::opts_chunk$set(
 )
 ```
 
+## Introduction
+
+Incomplete and growing set of answers to Frequently Asked Questions (FAQs).
+
 ## Setup and Example Models and Data
 
 ```{r setup, message = FALSE, warning = FALSE}
@@ -33,15 +37,15 @@ library(broom.mixed)
 options(macpan2_verbose =  FALSE)
 ```
 
-```{r}
+```{r setup-macpan2}
 library(macpan2)
 si = mp_tmb_model_spec(
     before = S ~ 1 - I
   , during = mp_per_capita_flow(
-        from     = "S"         ## compartment from which individuals flow
-      , to       = "I"         ## compartment to which individuals flow
-      , rate     = "beta * I"  ## expression giving _per-capita_ flow rate
-      , abs_rate = "infection" ## name for _absolute_ flow rate = beta * I * S
+        from      = "S"         ## compartment from which individuals flow
+      , to        = "I"         ## compartment to which individuals flow
+      , rate      = "beta * I"  ## expression giving _per-capita_ flow rate
+      , flow_name = "infection" ## name for _absolute_ flow rate = beta * I * S
     )
   , default = list(I = 0.01, beta = 0.2)
 )
@@ -58,42 +62,31 @@ incidence_example = (example_data
 )
 ```
 
-## Naming Convensions
+## Naming Conventions
 
-### Why is the package called `macpan2`?
+### What does `macpan2` mean?
 
 This `macpan2` package grew out of the [McMasterPandemic](https://github.com/mac-theobio/McMasterPandemic) project. Over the years the people involved in that project started calling it macpan, and `macpan2` is the successor. There is no package called `macpan`.
 
 ### Why do most of the functions start with `mp_`?
 
-The `mp` stands for mac-pan. The idea is to make it easy to see in scripts what functions come from `macpan2` and what functions come from other packages.
+The `mp` stands for **M**cMaster **P**andemic (i.e., `mac-pan`). The idea is to make it easy to see in scripts what functions come from `macpan2` and what functions come from other packages.
 
 ### Why do some of the functions start with `mp_tmb_`?
 
-The `tmb` part refers to the [TMB](https://github.com/kaskr/adcomp) package, on which `macpan2` is built. We hope to one day use other computational engines (e.g., [stan](https://mc-stan.org/)), at which point users will be able to see what computational engine is being used in their scripts. But for now `tmb` is the only computational engine and so the only thing indicated by `mp_tmb_` is that you are using a function that is intended to be specific to computations with TMB. Functions that do not start with `mp_tmb_` should be engine-agnostic and able to be used with any engine when and if such engines are supported.
-
-## Coding Style
-
-### What does `|>` mean?
-
-We use the [base R pipe](https://www.tidyverse.org/blog/2023/04/base-vs-magrittr-pipe/#pipes) operator throughout our examples. Please read this link for details.
-
-### Why do I see weird symbols at the start of lines?
-
-In many of our examples we start lines with characters that many people put at the end of lines, such as the commas, plus signs and the [base R pipe](https://www.tidyverse.org/blog/2023/04/base-vs-magrittr-pipe/#pipes). These characters tell R how the code on the rest of the line is to combined with previous lines.  We prefer to put these characters at the start of lines because it makes it slightly easier to comment lines out.  Note that for this approach to work you need to wrap these continued expressions in parentheses. See the [quickstart](https://canmod.github.io/macpan2/articles/quickstart.html) guide for examples of this style.
+The `tmb` prefix refers to the [TMB](https://github.com/kaskr/adcomp) package, on which `macpan2` is built. We hope to one day use other computational engines (e.g., [stan](https://mc-stan.org/)), at which point users will be able to see what computational engine is being used in their scripts. For now `tmb`, is the only computational engine supported; the only thing `mp_tmb_` indicates is that you are using a function that is specific to computations with TMB. Functions that do not start with `mp_tmb_` should be engine-agnostic and will work with any engine (when and if we develop support for other engines).
 
 ## Calibration Details and Outputs
 
-### What model fitting approach does `macpan2` use?
+### How does `macpan2` fit models to data?
 
-We fit models by finding the values of parameters at the peak of a posterior distribution. This approach is sometimes called [maximum a posteriori (MAP) estimation](https://en.wikipedia.org/wiki/Maximum_a_posteriori_estimation). This approach allows us to get approximate Bayesian uncertainty estimates by approximating the posterior distribution as a multivariate Gaussian centered at the peak obtained by MAP.  One is able to declare that parameters be considered random effects, which means that they are integrated out of the posterior distribution using the [Laplace approximation](https://en.wikipedia.org/wiki/Laplace%27s_approximation). Using this approach allows us to reduce the dimensionality of the posterior distribution used in MAP by only optimizing over the fixed effect parameters.
+In its standard mode, `macpan2` works by finding the minimum of an *objective function*: normally, the objective function is a negative log-likelihood function, so this minimum corresponds to *maximum likelihood estimation*. More specifically, `macpan2` only takes noise in the observation process into account --- in calibration (but not simulation) mode, it ignores the randomness of the dynamical process itself --- so it is using a procedure called *trajectory matching* [@bolker2008]. @earnFitting2024 give a more careful introduction to this approach, although they focus on fitting continuous-time (differential equation) models to data, whereas `macpan2` defines discrete-time models by default (unless you specify [`mp_rk4`](https://canmod.github.io/macpan2/reference/state_updates.html) when defining the state updates in your model).
 
-This approximate posterior distribution can be used to obtain confidence / credible intervals for any continuous function of model variables. The two main examples of this are as follows.
+If you [specify priors](https://canmod.github.io/macpan2/articles/likelihood_prior_specs.html?q=prior#priors-on-distributional-parameters) for some of the parameters in your model, then by minimizing the objective (negative log-posterior) function, you are performing [maximum a posteriori (MAP) estimation](https://en.wikipedia.org/wiki/Maximum_a_posteriori_estimation). 
 
-1. Confidence intervals on fitted parameters using `mp_tmb_coef(., conf.int = TRUE)`.
-2. Confidence intervals on fitted trajectories using `mp_trajectory_sd()`
+You can also use random-effects parameters to fit smooth nonparametric terms, or otherwise allow for latent Gaussian variables in your model (this is an advanced topic: see the [advanced time-varying parameters vignette](https://canmod.github.io/macpan2/articles/time_varying_parameters_advanced.html); in this case, `macpan2` uses TMB's built-in [Laplace approximation](https://en.wikipedia.org/wiki/Laplace%27s_approximation) engine to approximate this otherwise difficult term.
 
-This approach to computing confidence intervals using Gaussian approximations to the posterior is a special case of the [delta method](https://en.wikipedia.org/wiki/Delta_method) that is implemented in [TMB](https://github.com/kaskr/adcomp), which is described [here](https://kaskr.github.io/adcomp/_book/Appendix.html#theory-underlying-sdreport).
+If you want to do truly Bayesian estimation (rather than the MAP approximation), you can feed `macpan2` models into the `tmbstan` package to perform [Hamiltonian Monte Carlo sampling](https://canmod.github.io/macpan2/articles/calibration_advanced.html#hamiltonian-mc) and get corresponding estimates (and Bayesian credible intervals, see below).
 
 Example calibrations of varying levels of complexity.
 
@@ -105,13 +98,18 @@ Example calibrations of varying levels of complexity.
 * [SHIVER model to COVID](https://github.com/canmod/macpan2/tree/main/inst/starter_models/shiver#calibration-example)
 * [SEIR model using toy data](https://github.com/canmod/macpan2/tree/main/inst/starter_models/seir#calibration)
 
+### How does `macpan2` derive confidence intervals?
+
+By default, `macpan2` assumes that the uncertainties of all model parameters, coefficients, etc. are approximately multivariate-Gaussian distributed; the resulting confidence intervals are sometimes called *Wald* intervals [@bolker2008]. Since the models fitted by `macpan2` are typically nonlinear, this approach also requires use of the [delta method](https://en.wikipedia.org/wiki/Delta_method) (implemented automatically within [TMB](https://github.com/kaskr/adcomp)) to compute the variances of derived quantities such as trajectories (see [here](https://kaskr.github.io/adcomp/_book/Appendix.html#theory-underlying-sdreport)). (If we add priors and further assume that we are doing MAP estimation, these intervals might be called credible rather than confidence intervals.)
+
+This approach can be used to obtain confidence / credible intervals for any continuous function of model variables, e.g.
+
+1. Confidence intervals on fitted parameters using `mp_tmb_coef(., conf.int = TRUE)`.
+2. Confidence intervals on fitted trajectories using `mp_trajectory_sd()`
+
 ### What likelihood and prior distribution assumptions does `macpan2` make?
 
 You are free to declare any value in the model to be a trajectory or parameter. Trajectories are compared with observed data to produce a likelihood component (e.g., case reports are distributed with a negative binomial distribution with dispersion parameter `1`) and parameters are used to produce a component of the prior distribution (e.g., the transmission rate is log normally distributed with mean `0.2` and standard deviation `1`). Available distributional assumptions and settings are described [here](https://canmod.github.io/macpan2/articles/likelihood_prior_specs), but inspecting the examples linked to in the previous FAQ will be more useful for figuring out how to use this functionality.
-
-### Can I hack `macpan2` to use MCMC esimation?
-
-[Yes](https://canmod.github.io/macpan2/articles/calibration_advanced.html#hamiltonian-mc).
 
 ### Can I get a new model specification with fitted parameters as defaults, from a calibrated calibrator object?
 
@@ -127,7 +125,7 @@ This question is answered in the [quickstart guide](https://canmod.github.io/mac
 
 This is my favourite way to do it.
 
-```{r, eval = FALSE}
+```{r plot-cal-obs, eval = FALSE}
 fitted_data = mp_trajectory(model_calibrator)
 (observed_data
   |> ggplot()
@@ -135,9 +133,7 @@ fitted_data = mp_trajectory(model_calibrator)
   + geom_line(aes(time, value), data = fitted_data)
   + theme_bw()
 )
-
 ```
-
 
 ## Calibration Troubleshooting
 
@@ -151,7 +147,7 @@ Warning messages:
   NA/NaN function evaluation
 ```
 
-This is usually nothing to worry about, though you should take note of it. Typically this warning indicates that the optimizer tried parameter values that led the objective function (i.e., the negative log posterior density) to be non-numeric. Usually, the opimizer is smart enough (if it is possible) to get back on track. The key thing to watch out for is whether the optimizer converged, which can be explored using the `mp_optimizer_output()` function that is illustrated in [this article](https://canmod.github.io/macpan2/articles/calibration).
+This is usually nothing to worry about, though you should take note of it. Typically this warning indicates that the optimizer tried parameter values that led the objective function (i.e., the negative log posterior density) to be non-numeric. Usually, the optimizer is smart enough (if it is possible) to get back on track. The key thing to watch out for is whether the optimizer converged, which can be explored using the `mp_optimizer_output()` function that is illustrated in [this article](https://canmod.github.io/macpan2/articles/calibration).
 
 ### What should I do if I do not converge?
 
@@ -159,11 +155,11 @@ It depends on the reason for non-convergence. The optimizer tries to give you in
 
 ### How do I increase the number of iterations that the optimizer takes?
 
-When non-convergence results because the optimizer reaches the maximum number of iterations that it was allowed to take, you can increase this number (TODO: show example of how). Sometimes however, running out of iterations can (but not always) be a sign that there is not very much information in the data about the model parameters being estimated.
+When non-convergence results because the optimizer reaches its specified maximum number of iterations that it was allowed to take, you can increase that value by specifying arguments in `mp_optimize()` that get passed through to the optimizer. The default optimizer in `macpan2` is [nlminb](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/nlminb.html): for example, specifying `control = list(eval.max = 1000, iter.max = 1000)` (the defaults for these settings are 200 and 150, respectively) within `mp_optimize()` will allow the optimizer to run longer. However, running out of iterations could also be an indication that there is something wrong with your model, e.g. that there is not enough information present in the data to estimate all of the parameters.
 
 ## Parameter Estimation and Uncertainty
 
-### What can I do when my confidence intervals overlap zero for a parameter that should be positive?
+### What can I do when my confidence intervals include zero for a parameter that should be positive?
 
 You should use `mp_tmb_insert()` to transform your parameters so that they cannot go negative. TODO: link to an example.
 
@@ -179,7 +175,7 @@ The hazard correction (`mp_hazard()`) works best in my experience. TODO: link to
 
 ## Initial Conditions
 
-### My data start mid-epidemic so how do I know what the initial number of infectious individuals is?
+### My data start mid-epidemic: how do I know what the initial number of infectious individuals is?
 
 This is a common situation as data collection often gets better after it is clear that there is a problem. But simulating epidemic models requires specifying the initial conditions of all of the state variables, and we do not have data on that. The basic idea for solving this problem is to fit the initial numbers of some of the state variables. But there are issues.
 
@@ -219,10 +215,10 @@ calibrator = ("starter_models"
   )
  |> mp_tmb_calibrator(
       data = in_progress_epidemic
-    , traj = list(infection = mp_neg_bin(disp = 1))
+    , traj = list(infection = mp_nbinom(disp = 1))
     , par = list(
-        beta = mp_normal(location = 0.4, sd = 1)
-      , logit_prop_I = mp_normal(location = 0, sd = 1)
+        beta = mp_norm(location = 0.4, sd = 1)
+      , logit_prop_I = mp_norm(location = 0, sd = 1)
     )
     , time = mp_sim_bounds(1, max_time, "steps")
  )
@@ -244,6 +240,16 @@ fitted_data = mp_trajectory(calibrator)
 ```
 
 Real data will not be as simple, but these principles will help.
+
+## Coding Style
+
+### What does `|>` mean?
+
+We use the [base R pipe](https://www.tidyverse.org/blog/2023/04/base-vs-magrittr-pipe/#pipes) operator throughout our examples. Please read this link for details.
+
+### Why do you put weird symbols at the start of lines?
+
+In many of our examples we start lines with characters that many people put at the end of lines, such as the commas, plus signs and the [base R pipe](https://www.tidyverse.org/blog/2023/04/base-vs-magrittr-pipe/#pipes). These characters tell R how the code on the rest of the line is to combined with previous lines.  We prefer to put these characters at the start of lines because it makes it slightly easier to comment lines out.  Note that for this approach to work you need to wrap these continued expressions in parentheses. See the [quickstart](https://canmod.github.io/macpan2/articles/quickstart.html) guide for examples of this style.
 
 ## Time Variation of Parameters
 
@@ -340,7 +346,7 @@ Now to explain how the expected reported case curve is computed. In this method 
 
 The following figure illustrates how a single expected case report is computed, in this case at time 26. The Gamma distribution of delay times is represented as bars giving the probability that a new case at a particular time is reported at time 26, which is given as the dashed horizontal line. Note how the reported number of cases is roughly near (but not identical) to the simulated number of cases at the peak of the delay distribution. This makes sense because we would expect most of our reports now to come from the highest probability time in the past.
 
-```{r, echo = FALSE}
+```{r plot-expected-case-report, echo = FALSE}
 d = data.frame(time_step = 10 + seq_along(kappa), kernel = kappa, incidence = incidence_example[10 + seq_along(kappa)])
 br = 1:5
 breaks = data.frame(
@@ -367,8 +373,9 @@ plot <- ggplot(d, aes(x = time_step)) +
 print(plot)
 ```
 
-In `macpan2` we typically have a model that doesn't account for delayed reporting and we want to update it to do so before fitting to data. One can use the `mp_tmb_insert_reports()` function for this purpose.
-```{r}
+To account for delays between incidence and case reports (or other delays in reporting), you can update an existing model with `mp_tmb_insert_reports()` before fitting the model:
+
+```{r mp-tmb-insert-reports}
 si_with_delays = (si
  |> mp_tmb_insert_reports(
       incidence_name = "infection"
@@ -390,7 +397,7 @@ si_with_delays = (si
 )
 ```
 
-Note how this function allows accounting for under-reporting as well, by specifying a `report_prob` that is less than `1`.
+This function can account for under-reporting as well, by specifying a `report_prob` that is less than 1.
 
 ```
 16: dist ~ pgamma(1:17, 1/(incidence_cv_delay), incidence_mean_delay * (incidence_cv_delay^2))
@@ -462,9 +469,9 @@ R = R + \rho_{IR}
 $$
 
 
-### Can `macpan2` do the Gillespie algorithm
+### Does `macpan2` implement the [Gillespie algorithm](https://en.wikipedia.org/wiki/Gillespie_algorithm)?
 
-No. At least not without substantial hacking.  The Euler Multinomial is used instead
+No. Using `state_update = "discrete_stoch"` in your [model specification](https://canmod.github.io/macpan2/reference/mp_tmb_model_spec.html), and using a small time step, will (inefficiently) approximate a continuous-time, discrete-state stochastic model.
 
 
 ### More Process Error (incomplete)
@@ -565,16 +572,16 @@ sim_infection = (sim
 ```
 ```{r}
 fixef = list(
-    beta = mp_log_normal(location = 0.2, sd = 1)
-  , gamma = mp_log_normal(location = 0.2, sd = 1)
+    beta = mp_lnorm(location = 0.2, sd = 1)
+  , gamma = mp_lnorm(location = 0.2, sd = 1)
 )
 ranef = list()
-  #proc_err = mp_normal(location = 0, sd = 0.1)
+  #proc_err = mp_norm(location = 0, sd = 0.1)
 #)
 cal = mp_tmb_calibrator(
     spec = mp_tmb_update(spec, default = list(beta = 0.2, proc_err = rep(0, 50)))
   , data = sim_infection
-  , traj = list(infection = mp_neg_bin(disp = 1))
+  , traj = list(infection = mp_nbinom(disp = 1))
   , par = fixef # mp_par(param = fixef, random = ranef)
   , outputs = "mean_infection"
 )

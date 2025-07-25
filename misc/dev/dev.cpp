@@ -9,6 +9,7 @@
 #include <map>
 #include <math.h> // isnan() is defined
 #include <sys/time.h>
+#include <sys/stat.h>
 // https://github.com/kaskr/adcomp/wiki/Development#distributing-code
 
 #include <Rcpp.h>
@@ -134,8 +135,9 @@ enum macpan2_func
     , MP2_PNORM = 57 // fwrap: pnorm(q, mean, sd)
     , MP2_INVLOGIT = 58 // fwrap: invlogit(x)
     , MP2_LOGIT = 59 // fwrap: logit(x)
-    , MP2_ASSIGN = 60 // fwrap: assign(x, i, j, v)
-    , MP2_UNPACK = 61 // fwrap: unpack(x, ...)
+    , MP2_CUMSUM = 60 // fwrap: cumsum(x)
+    , MP2_ASSIGN = 61 // fwrap: assign(x, i, j, v)
+    , MP2_UNPACK = 62 // fwrap: unpack(x, ...)
 };
 
 enum macpan2_meth
@@ -164,6 +166,9 @@ std::vector<int> mp_math = {
     , MP2_ROUND, MP2_PGAMMA, MP2_PNORM
     , MP2_MEAN, MP2_SD, MP2_INVLOGIT, MP2_LOGIT
 };
+
+std::string bail_out_log_file = ".macpan2/bail-out/log.txt";
+
 
 // functions that are elementwise binary operators
 std::vector<int> mp_elementwise_binop = {
@@ -289,6 +294,11 @@ Type mp2_rbinom(const Type size, const Type prob) {
 
 // UTILITY FUNCTIONS ---------------------------
 
+bool fileExists(const std::string& filename) {
+    struct stat buf;
+    return stat(filename.c_str(), &buf) != -1;
+}
+
 void printIntVector(const std::vector<int> &intVector) {
     for (int element : intVector)
     {
@@ -360,7 +370,6 @@ struct ListOfMatrices
             }
             else
             {
-                // Handle out-of-range index or negative index as needed
                 Rf_error("Index out of range");
             }
         }
@@ -1185,13 +1194,13 @@ public: // ExprEvaluator
                 err_code = args.get_error_code();
                 switch (err_code) {
                 case 201:
-                    MP2_ERR(err_code, "The two operands do not have the same number of columns", table_x[row] + 1);
+                    MP2_ERR(201, "The two operands do not have the same number of columns", table_x[row] + 1);
                     return m;
                 case 202:
-                    MP2_ERR(err_code, "The two operands do not have the same number of rows", table_x[row] + 1);
+                    MP2_ERR(202, "The two operands do not have the same number of rows", table_x[row] + 1);
                     return m;
                 case 203:
-                    MP2_ERR(err_code, "The two operands do not have the same number of columns or rows", table_x[row] + 1);
+                    MP2_ERR(203, "The two operands do not have the same number of columns or rows", table_x[row] + 1);
                     return m;
                 }
             }
@@ -1968,13 +1977,41 @@ public: // ExprEvaluator
             // #' ```
             // #'
 
+            // #' ## Sweeping Matrix Elements
+            // #'
+            // #' ### Functions
+            // #'
+            // #' * `cumsum(x)` : Return a matrix with columns containing the
+            // #' cumulative sum of the columns in `x`.
+            // #'
+            // #' ### Arguments
+            // #'
+            // #' * `x` : A matrix.
+            // #'
+            // #' ### Return
+            // #' 
+            // #' A matrix the same size as `x` but with columns containing the
+            // #' cumulative sum of the columns in `x`.
+            case MP2_CUMSUM:
+                rows = args.rows(0);
+                cols = args.cols(0);
+                m = matrix<Type>::Zero(rows, cols);
+                m1 = args[0];
+                for (int j = 0; j < cols; j++) {
+                    m.coeffRef(0, j) = m1.coeff(0, j);
+                    for (int i = 1; i < rows; i++) {
+                        m.coeffRef(i, j) = m.coeff(i - 1, j) + m1.coeff(i, j);
+                    }
+                }
+                return m;
+            
             // #' ## Extracting Matrix Elements
             // #'
             // #' ### Functions
             // #'
-            // #' * `x[i,j]` : Matrix containing a subset
+            // #' * `x[i,j]` : Return a matrix containing a subset
             // #' of the rows and columns of `x`.
-            // #' * `block(x,i,j,n,m)` : Matrix containing a
+            // #' * `block(x,i,j,n,m)` : Return a matrix containing a
             // #' contiguous subset of rows and columns of `x`
             // #' \url{https://eigen.tuxfamily.org/dox/group__TutorialBlockOperations.html}.
             // #' * `last(x)` : The last element of a matrix (i.e., the
@@ -2387,6 +2424,33 @@ public: // ExprEvaluator
                     MP2_ERR(MP2_TIME_VAR, "The first element of the second argument must be less than the number of elements in the first.", MP2_TIME_VAR);
                     return m;
                 }
+                
+                // off is the 'initial offset', which lets the user
+                // tells us when (i.e., what time-step) we should start
+                // increment.
+                // 
+                // we have switched this initial offset in the user 
+                // interface from zero-based to one-based, which makes
+                // much more sense given that time steps are one-based 
+                // in macpan2. however we are keeping offsets
+                // zero-based in the code, because indexing is
+                // zero-based and because of the following minor
+                // back-compatibility argument.
+                // 
+                // the most common case was to set initial offset = 0,
+                // meaning we start to increment right away at the
+                // first time step. so for back-compatibility we 
+                // allow this to mean the same thing as it did before. 
+                // in the much less common case of offset > 0
+                // (don't think anyone really did this because
+                // it wasn't documented) we break back-compatability
+                // by shifting user-supplied initial offsets down 
+                // by one, which will not matter much for simulations
+                // with a 'reasonable' number of simulation steps.
+                if (t == 1) {
+                  off = off - 1;
+                  if (off < 0) off = 0; 
+                }
 
                 // first argument can have its rows indexed
                 // by the second (curly braces wrap ints in
@@ -2396,11 +2460,9 @@ public: // ExprEvaluator
                 // used in this way require c++11 i believe.)
                 if (off < v.size() - 1) { // might need to increment
                     cp = v[off + 1];
-                    if (cp == t) {                  // yes we need to increment
+                    if (cp == t) { // yes we need to increment
                         off = off + 1; // so we increment
                         matIndex = index2mats[1];
-                        // FIXME: should really have a function that
-                        // sets matrix or int_vec as appropriate
                         if (index2what[1] == 1) { // int-vec-valued pointer
                             // store the new offset in the zeroth position
                             valid_int_vecs.setNthIntVec(matIndex, off, 0);
@@ -2412,10 +2474,6 @@ public: // ExprEvaluator
                     }
                     else if (cp < 0) {
                         MP2_ERR(MP2_TIME_VAR, "Negative times are not allowed.", MP2_TIME_VAR);
-                        return m;
-                    }
-                    else if (cp > t_max) {
-                        MP2_ERR(MP2_TIME_VAR, "Times greater than the number of time steps are not allowed.", MP2_TIME_VAR);
                         return m;
                     }
                 }
@@ -2543,53 +2601,70 @@ public: // ExprEvaluator
             // #'
             // #' Smoothly clamp the elements of a matrix so that they
             // #' do not get closer to 0 than a tolerance, `eps`, with
-            // #' a default of 1e-12. The output of the `clamp`
-            // #' function is as follows.
+            // #' a default of 1e-12. This `clamp` function is the following 
+            // #' modification of the 
+            // #' [squareplus function](https://arxiv.org/abs/2112.11687).
+            // #'
+            // #' \deqn{f(x) = \epsilon_- + \frac{(x - \epsilon_-) + \sqrt{(x - \epsilon_-)^2 + (2\epsilon_0 - \epsilon_-)^2 - \epsilon_-^2}}{2}}
             // #' 
-            // #' This function works fine as long as `x` does not go 
-            // #' negative. We will improve this behaviour when we 
-            // #' release a new major version
-            // #' [see issue #93](https://github.com/canmod/macpan2/issues/93).
+            // #' Where the two parameters are defined as follows.
+            // #'
+            // #' \deqn{\epsilon_0 = f(0)}
+            // #' 
+            // #' \deqn{\epsilon_- = \lim_{x \to  -\infty}f(x)}
+            // #' 
+            // #' This function is differentiable everywhere, monotonically
+            // #' increasing, and \eqn{f(x) \approx x} if \eqn{x} is positive
+            // #' and not too close to zero. By modifying the parameters, you 
+            // #' can control the distance between \eqn{f(x)} and the
+            // #' horizontal axis at two 'places' -- \eqn{0} and \eqn{-\infty}.
+            // #' [See issue #93](https://github.com/canmod/macpan2/issues/93).
+            // #' for more information.
             // #'
             // #' ### Functions
             // #'
-            // #' * `clamp(x, eps)`
+            // #' * `clamp(x, eps, limit)`
             // #'
             // #' ### Arguments
             // #'
             // #' * `x` : A matrix with elements that should remain positive.
-            // #' * `eps` : A small positive number giving the
-            // #' theoretical minimum of the elements in the returned
-            // #' matrix.
+            // #' * `eps` : A small positive number, \eqn{\epsilon_0 = f(0)},
+            // #' giving the value of the function when the input is zero.
+            // #' The default value is 1e-11
+            // #' * `limit` : A small positive number, 
+            // #' \deqn{\epsilon_- = \lim_{x \to  -\infty}f(x)}, giving the
+            // #' value of the function as the input goes to negative
+            // #' infinity. The default is `limit = 1e-12`. This `limit` 
+            // #' should be chosen to be less than `eps` to ensure that 
+            // #' `clamp` is twice differentiable.
+            // #' 
             // #' 
             case MP2_CLAMP:
-                eps = 1e-12; // default
-                if (n == 2)
+                eps = 1e-11; // default
+                if (n > 1)
                     eps = args[1].coeff(0, 0);
-                rows = args[0].rows();
-                cols = args[0].cols();
+                if (n == 3) {
+                    limit = args[2].coeff(0, 0);
+                } else {
+                    limit = 1e-12; // default
+                }
+                X = args[0];
+                rows = X.rows();
+                cols = X.cols();
                 m = matrix<Type>::Zero(rows, cols);
-                // might this be better?
-                // https://github.com/kaskr/adcomp/wiki/Code--snippets
-                // template<class Type>
-                // Type posfun(Type x, Type eps, Type &pen){
-                //   pen += CppAD::CondExpLt(x, eps, Type(0.01) * pow(x-eps,2), Type(0));
-                //   return CppAD::CondExpGe(x, eps, x, eps/(Type(2)-x/eps));
-                // }
-                // 
-                // needs to be fixed for negative x 
+                
                 // https://github.com/canmod/macpan2/issues/93
                 for (int i = 0; i < rows; i++) {
                     for (int j = 0; j < cols; j++) {
-                        // y = x + eps * (1 / (1 - (x - eps) / eps + ((x - eps)^2)/(eps^2)))
-                        m.coeffRef(i, j) = args[0].coeff(i, j) + eps * (
-                            1.0 / (
-                                1.0 - (args[0].coeff(i, j) - eps) / 
-                                eps + (
-                                    (args[0].coeff(i, j) - eps) * 
-                                    (args[0].coeff(i, j) - eps)
-                                ) / (eps * eps)
-                            )
+                        m.coeffRef(i, j) = limit + (
+                            (
+                                X.coeff(i, j) - limit + 
+                                sqrt(
+                                    pow(X.coeff(i, j) - limit, 2.0) + 
+                                    pow(2.0 * eps - limit, 2.0) - 
+                                    pow(limit, 2.0)
+                                )
+                            ) / 2.0
                         );
                     }
                 }
@@ -3563,7 +3638,6 @@ void UpdateSimulationHistory(
     hist[t] = hist_shape_template;
 }
 
-// const char LOG_FILE_NAME[] = "macpan2.log";
 
 // "main" function
 template <class Type>
@@ -3575,12 +3649,12 @@ Type objective_function<Type>::operator()()
 
     // Log file path
     DATA_STRING(log_file);
-
+    if (!fileExists(log_file)) log_file = bail_out_log_file;
     std::ofstream logfile;
     logfile.open(log_file);
-    // logfile.open (LOG_FILE_NAME);
     logfile << "======== macpan2 log file ========\n";
     logfile.close();
+    
 
     std::setprecision(9); // Set the precision of Rcpp::Rcout
 
@@ -3612,7 +3686,7 @@ Type objective_function<Type>::operator()()
     DATA_IVECTOR(r_col_id);
 
     // Trajectory simulation
-    DATA_INTEGER(time_steps)
+    DATA_INTEGER(time_steps);
 
     // Expressions and parse table
     DATA_IVECTOR(a_table_x);
