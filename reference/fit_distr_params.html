@@ -5,7 +5,7 @@ likelihoods are not fit. Use mp_nofit to exclude distributional parameters
 from being fit and mp_fit to fit them."><meta property="og:description" content="Distributional parameters can be added to the list of parameters that are fit
 during calibration. By default, distributional parameters in priors and
 likelihoods are not fit. Use mp_nofit to exclude distributional parameters
-from being fit and mp_fit to fit them."><meta property="og:image" content="https://canmod.github.io/macpan2/logo.png"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous"><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script></head><body>
+from being fit and mp_fit to fit them."><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous"><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -44,7 +44,8 @@ from being fit and mp_fit to fit them."><meta property="og:image" content="https
 </nav><div class="container template-reference-topic">
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="../logo.png" class="logo" alt=""><h1>Fitting Distributional Parameters</h1>
+
+      <h1>Fitting Distributional Parameters</h1>
       <small class="dont-index">Source: <a href="https://github.com/canmod/macpan2/blob/main/R/distributions.R" class="external-link"><code>R/distributions.R</code></a></small>
       <div class="d-none name"><code>fit_distr_params.Rd</code></div>
     </div>
@@ -112,7 +113,7 @@ transformation specified using <code><a href="transform_distr_param.html">mp_log
 <span class="r-in"><span><span class="va">cal</span><span class="op">$</span><span class="va">simulator</span><span class="op">$</span><span class="va">tmb_model</span><span class="op">$</span><span class="va">obj_fn</span><span class="op">$</span><span class="va">obj_fn_expr</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ~-sum(dpois(obs_infection, clamp(sim_infection))) - sum(dnorm(beta, </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     0.35, exp(distr_params_log_sd_beta)))</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x559eeb4155e8&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55a08a63a8e0&gt;</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Next we optimize and view the fitted parameters. We can see the </span></span></span>
 <span class="r-in"><span><span class="co"># distributional parameter in the coefficient table with a default value </span></span></span>
@@ -178,7 +179,7 @@ transformation specified using <code><a href="transform_distr_param.html">mp_log
 <span class="r-in"><span><span class="va">cal</span><span class="op">$</span><span class="va">simulator</span><span class="op">$</span><span class="va">tmb_model</span><span class="op">$</span><span class="va">obj_fn</span><span class="op">$</span><span class="va">obj_fn_expr</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ~-sum(dpois(obs_infection, clamp(sim_infection))) - sum(dnorm(beta, </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     0.35, exp(sd_var)))</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x559ee69336d8&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55a0856b29b8&gt;</span>
 <span class="r-in"><span><span class="fu"><a href="mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">cal</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  389.7016 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  258.9379 </span>

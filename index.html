@@ -13,7 +13,6 @@
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Fast and Flexible Compartmental Modelling">
 <meta name="description" content="Fast and flexible compartmental modelling with Template Model Builder.">
 <meta property="og:description" content="Fast and flexible compartmental modelling with Template Model Builder.">
-<meta property="og:image" content="https://canmod.github.io/macpan2/logo.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script>
 </head>
@@ -62,16 +61,11 @@
   </div>
 </nav><div class="container template-home">
 <div class="row">
-  <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header">
-<img src="logo.png" class="logo" alt=""><h1 id="macpan2">macpan2<a class="anchor" aria-label="anchor" href="#macpan2"></a>
-</h1>
+  <main id="main" class="col-md-9"><div class="float">
+<img src="reference/figures/mp.png" alt="logo"><div class="figcaption">logo</div>
 </div>
 <!-- badges: start -->
 
-<div class="float">
-<img src="reference/figures/logo.png" alt="logo"><div class="figcaption">logo</div>
-</div>
 <p><code>macpan2</code> is a software platform for building and calibrating compartmental models of infectious disease. It supports flexible model specification and fast parameter calibration, making it easier for modellers to respond to emerging public health threats. Developed through collaboration with the <a href="https://www.canada.ca/en/public-health.html" class="external-link">Public Health Agency of Canada (PHAC)</a>, <code>macpan2</code> is being used to support responses to diseases such as mpox (<a href="#ref-milwid2023mpox">Milwid et al. 2023</a>), measles (<a href="#ref-phac2024measles">PHAC 2024</a>, <a href="https://wzmli.shinyapps.io/two_pop_measles_shiny/" class="external-link">interactive measles model</a>), and COVID-19 (<a href="#ref-simmons2025cost">Simmons et al. 2025</a>; <a href="#ref-miranda2024strategies">Miranda et al. 2025</a>), and internal work on <a href="https://phac-nml-phrsd.github.io/EPACmodel/" class="external-link">pandemic preparedness</a>.</p>
 <p>The precursor to <code>macpan2</code> was <a href="https://github.com/mac-theobio/McMasterPandemic" class="external-link">McMasterPandemic</a>, which was developed to provide <a href="https://mac-theobio.github.io/covid-19" class="external-link">forecasts</a> and insights to Canadian public health agencies throughout the COVID-19 pandemic (<a href="#ref-phac_modelling_group">Public Health Agency of Canada Modelling Group 2020–2022</a>). Much was <a href="https://canmod.github.io/macpan-book/index.html#vision-and-direction" class="external-link">learned</a> about developing general purpose compartmental modelling software during this experience, but the pressure to deliver regular forecasts made it difficult to focus on the software itself. The goal of this <code>macpan2</code> project is to re-imagine <code>McMasterPandemic</code>, building it from the ground up with architectural and technological decisions that address the many lessons that we learned from COVID-19 about software.</p>
 <div class="section level2">
@@ -201,7 +195,7 @@ Simmons, A. E., R. N. Miranda, M. W. Z. Li, G. B. Gebretekle, M. Xi, M. I. Salva
 </div>
 </div>
 </div>
-</div>
+
   </main><aside class="col-md-3"><div class="table-of-contents">
 <h2 data-toc-skip>Table of contents</h2>
 <ul class="list-unstyled">
