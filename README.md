@@ -1,7 +1,8 @@
 <!-- Auto-generated - do not edit by hand -->
 <!-- Edit README.Rmd instead -->
-macpan2
-================
+
+
+![logo](man/figures/mp.png)
 
 <!-- badges: start -->
 
@@ -15,7 +16,6 @@ coverage](https://byob.yarr.is/canmod/macpan2/coverage)](https://github.com/canm
 activity](https://img.shields.io/github/commit-activity/m/canmod/macpan2)](https://github.com/canmod/macpan2/commits)
 [![contributors](https://img.shields.io/github/contributors/canmod/macpan2)](https://github.com/canmod/macpan2/graphs/contributors)
 
-![logo](man/figures/logo.png)
 
 `macpan2` is a software platform for building and calibrating
 compartmental models of infectious disease. It supports flexible model
