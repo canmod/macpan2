@@ -35,7 +35,38 @@ binary_matrix_notation <- function(M){
 }
 
 
-
+#' Extract Sparse Matrix Notation from a Dense Matrix
+#'
+#' Converts a dense matrix to a sparse representation by extracting its non-zero 
+#' entries and their indices. Entries with absolute value less than or equal to 
+#' `tol` are treated as zeros.
+#'
+#' @param M A numeric matrix or object coercible to a matrix.
+#' @param zero_based Logical; if `TRUE` (default), the returned row and column
+#' indices are zero-based (starting at 0). If `FALSE`, indices are one-based 
+#' (as in standard R matrices).
+#' @param tol Numeric tolerance (default `1e-4`). Entries with absolute value 
+#' less than or equal to `tol` are treated as zero.
+#'
+#' @return A named list with components:
+#' \describe{
+#'   \item{`row_index`}{Integer vector of row indices for non-zero entries 
+#'   (adjusted by `zero_based`).}
+#'   \item{`col_index`}{Integer vector of column indices for non-zero entries 
+#'   (adjusted by `zero_based`).}
+#'   \item{`values`}{Numeric vector of the non-zero entries.}
+#'   \item{`M`}{The original input matrix, coerced to a dense matrix.}
+#'   \item{`Msparse`}{A copy of `M` with near-zero entries (as determined by 
+#'   `tol`) replaced by exact zeros.}
+#' }
+#'
+#' @examples
+#' M <- matrix(c(5, 0, 0,
+#'               0, 0, 3,
+#'               0, 2, 0), nrow = 3, byrow = TRUE)
+#' sparse_matrix_notation(M)
+#'
+#' @export
 sparse_matrix_notation = function(M, zero_based = TRUE, tol = 1e-4) {
   M = as.matrix(M)
   non_zero_loc = abs(M) > tol

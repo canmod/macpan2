@@ -59,6 +59,42 @@ BinaryOperator = function(operator) {
   }
 }
 
+KroneckerOperator = function(operator) {
+  function(x, y) {
+    z = kronecker(as.matrix(x), as.matrix(y), FUN = operator, make.dimnames = TRUE)
+    
+    clean = function(dn) {
+    if (!is.null(dn)) {
+        if (identical(as.character(dn[[2L]]), ":")) dn[2L] = list(NULL)
+        if (identical(as.character(dn[[1L]]), ":")) dn[1L] = list(NULL)
+      }
+      return(dn)
+    }
+    ## handle difference of opinion about dimnames
+    
+    dimnames(z) = clean(dimnames(z))
+    rownames(z) = gsub(":", ".", rownames(z))
+    colnames(z) = gsub(":", ".", colnames(z))
+    rownames(z) = sub("^\\.", "", rownames(z))
+    rownames(z) = sub("\\.$", "", rownames(z))
+    colnames(z) = sub("^\\.", "", colnames(z))
+    colnames(z) = sub("\\.$", "", colnames(z))
+    
+    if (ncol(z) == 1L) z = setNames(c(z), rownames(z))
+    return(z)
+  }
+}
+
+SquareOperator = function(operator) {
+  function(x) {
+    if (is.matrix(x)) stop("can only produce a square diagonal matrix for a vector")
+    if (length(x) == 1) return(x)
+    nms = names(x)
+    x = operator(x)
+    dimnames(x) = list(nms, nms)
+    return(x)
+  }
+}
 
 #' Binary Operator
 #'
@@ -85,4 +121,27 @@ BinaryOperator = function(operator) {
 #' @export
 mp_binary_operator = BinaryOperator
 
+#' Kronecker Operator
+#' 
+#' Convert a function that represents a scalar binary
+#' operator into one that computes the \code{\link{kronecker}}
+#' version, but with dimensions named in a way that is more 
+#' convenient for use with `macpan2`.
+#'
+#' @param operator A scalar binary operator.
+#' @return A Kronecker operator convenient for use with `macpan2`.
+#' 
+#' @export
+mp_kronecker_operator = KroneckerOperator
 
+#' Square Matrix Operator
+#'
+#' Convert a unary operator that takes a vector, into one with
+#' dimensions named in a way that is more convenient for use with
+#' `macpan2`.
+#'
+#' @param operator A unary operator of a vector.
+#' @return An operator.
+#' 
+#' @export
+mp_square_operator = SquareOperator

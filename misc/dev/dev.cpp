@@ -126,7 +126,7 @@ enum macpan2_func
     , MP2_PGAMMA = 48 // fwrap: pgamma(q, shape, scale)
     , MP2_MEAN = 49 // fwrap: mean(x)
     , MP2_SD = 50 // fwrap: sd(x)
-    , MP2_PROPORTIONS = 51 // fwrap: proportions(x)
+    , MP2_PROPORTIONS = 51 // fwrap: proportions(x, limit, eps)
     , MP2_LAST = 52 // fwrap: last(x)
     , MP2_CHECK_FINITE = 53 // fwrap: check_finite(x)
     , MP2_BINOM_DENSITY = 54 // fwrap: dbinom(observed, size, probability)
@@ -136,8 +136,10 @@ enum macpan2_func
     , MP2_INVLOGIT = 58 // fwrap: invlogit(x)
     , MP2_LOGIT = 59 // fwrap: logit(x)
     , MP2_CUMSUM = 60 // fwrap: cumsum(x)
-    , MP2_ASSIGN = 61 // fwrap: assign(x, i, j, v)
-    , MP2_UNPACK = 62 // fwrap: unpack(x, ...)
+    , MP2_SPARSE_MAT_MULT = 61 // fwrap: sparse_mat_mult(x, i, j, y, z)
+    , MP2_DIVIDE_SAFE = 62 // fwrap: divide_safe(x, eps, limit)
+    , MP2_ASSIGN = 63 // fwrap: assign(x, i, j, v)
+    , MP2_UNPACK = 64 // fwrap: unpack(x, ...)
 };
 
 enum macpan2_meth
@@ -216,7 +218,17 @@ Type FUN(const Type x, const int &index) {                     \
 }                                                              \
 
 
-#define MP2_ERR(CODE, MSG, FUN) SetError(CODE, MSG, row, FUN, args.all_rows(), args.all_cols(), args.all_type_ints(), t); \
+#define MP2_ERR(CODE, MSG, FUN)                                \
+SetError(CODE                                                  \
+  , MSG                                                        \
+  , row                                                        \
+  , FUN                                                        \
+  , args.all_rows()                                            \
+  , args.all_cols()                                            \
+  , args.all_type_ints()                                       \
+  , t                                                          \
+);                                                             \
+return empty_matrix_for_errors;                                \
 
 
 // ENGINE FUNCTIONS USED BY OTHER ENGINE FUNCTIONS
@@ -530,23 +542,18 @@ int getNthMatIndex(
 }
 
 template <class Type>
-int CheckIndices(matrix<Type> x, const std::vector<int> &row_indices, const std::vector<int> &col_indices)
-{
+int CheckIndices(matrix<Type> x, const std::vector<int> &row_indices, const std::vector<int> &col_indices) {
     int rows = x.rows();
     int cols = x.cols();
 
-    for (int row_index : row_indices)
-    {
-        if (row_index < 0 || row_index >= rows)
-        {
+    for (int row_index : row_indices) {
+        if (row_index < 0 || row_index >= rows) {
             return 1; // Indices are not valid
         }
     }
 
-    for (int col_index : col_indices)
-    {
-        if (col_index < 0 || col_index >= cols)
-        {
+    for (int col_index : col_indices) {
+        if (col_index < 0 || col_index >= cols) {
             return 1; // Indices are not valid
         }
     }
@@ -876,6 +883,12 @@ public:
 
         return return_val;
     }
+    
+    int check_n_args(int lower, int upper) const {
+        if (items_.size() < lower) return 1;
+        if (items_.size() > upper) return 2;
+        return 0;
+    }
 
     // Method to set an error code
     void set_error_code(int error)
@@ -996,13 +1009,18 @@ public:
         // in either the c++ or r sense.
         matrix<Type> m, m1, m2, m3, m4, m5;     // return values
         std::vector<int> v, v1, v2, v3, v4, v5; // integer vectors
+        matrix<Type> empty_matrix_for_errors;
         bool is_finite_mat;
         vector<int> u; // FIXME: why not std::vector<int> here??
         matrix<Type> Y, X, A;
-        std::vector<int> timeIndex; // for rbind_time and rbind_lag
+        std::vector<int> timeIndex; // rbind_time and rbind_lag
         int doing_lag = 0;
-        Type sum, eps, limit, var, by, left_over, remaining_prop, p0; // intermediate scalars
-        Type delta_t; // for reulermultinom
+        Type zero = 0;
+        Type var; // variance
+        Type by; // seq
+        Type sum, eps, limit; // proportions, divide_safe, clamp
+        Type den, abs_den; // divide_safe
+        Type p0, remaining_prop, left_over, delta_t; // reulermultinom
         int rows, cols, lag, rowIndex, colIndex, matIndex, cp, off, size, times;
         unsigned int grpIndex;
         int size_in, size_out;
@@ -1158,13 +1176,11 @@ public:
             if (is_int_in(table_x[row] + 1, mp_math)) {
                 if (args.all_matrices() == 0) {
                     MP2_ERR(205, "All arguments to math functions must be numeric matrices, but at least one is an integer", table_x[row] + 1);
-                    return m;
                 }
             }
             if (is_int_in(table_x[row] + 1, mp_history)) {
                 if (!mats_save_hist[index2mats[0]]) {
                     MP2_ERR(205, "All arguments to functions that act on the simulation history must have a first argument that is a non-empty matrix with saved history", table_x[row] + 1);
-                    return m;
                 }
             }
             
@@ -1178,19 +1194,15 @@ public:
                 switch (err_code) {
                 case 201:
                     MP2_ERR(201, "The two operands do not have the same number of columns", table_x[row] + 1);
-                    return m;
                 case 202:
                     MP2_ERR(202, "The two operands do not have the same number of rows", table_x[row] + 1);
-                    return m;
                 case 203:
                     MP2_ERR(203, "The two operands do not have the same number of columns or rows", table_x[row] + 1);
-                    return m;
                 }
             }
             else if (table_x[row] + 1 == MP2_MATRIX_MULTIPLY) { // %*% matrix multiplication
                 if (args[0].cols() != args[1].rows()) {
                     MP2_ERR(204, "The two operands are not compatible to do matrix multiplication", table_x[row] + 1);
-                    return m;
                 }
             }
 
@@ -1378,11 +1390,15 @@ public:
             case MP2_LOGIT:
                 return (-(1 / args[0].array() - 1).log()).matrix();
                   
-            // #' ## Proportions
+            // #' ## Limiting Values
             // #'
+            // #' 
+            // #' 
             // #' ### Functions
             // #'
             // #' * `proportions(x, limit, eps)`
+            // #' * `limit(x, limit, eps)`
+            // #' * `clamp(x, eps, limit)`
             // #'
             // #' ### Arguments
             // #'
@@ -1394,13 +1410,20 @@ public:
             // #'
             // #' * matrix of `x / sum(x)` or `rep(limit, length(x))` if 
             // #' `sum(x) < eps`.
-            // #'
+            // #' 
             // #' ### Examples
             // #'
             // #' ```
             // #' engine_eval(~ proportions(y, 0.5, 1e-8), y = c(2, 0.5))
             // #' ```
             // #' 
+            // #' ### Details
+            // #' 
+            // #' The return value depends on the function.
+            // #' * `proportions` : matrix of `x / sum(x)` or `rep(limit, length(x))` if 
+            // #' `sum(x) < eps`.
+            // #' * `limit` : 
+            // #' * `clamp` : 
             case MP2_PROPORTIONS:
                 m = args.get_as_mat(0);
                 m1 = matrix<Type>::Zero(1, 1);
@@ -1416,7 +1439,104 @@ public:
                     }
                 }
                 return m2;
-              
+            
+            // #' ### Details
+            // #'
+            // #' The divide_safe() function conducts elementwise division
+            // #' of the first two arguments, and then allows two other
+            // #' arguments:
+            // #' * `limit` : Value to return if the `sqrt(denominator^2)` is 
+            //
+            
+            case MP2_DIVIDE_SAFE:
+                args = args.recycle_for_bin_op();
+                m = args.get_as_mat(0);
+                m1 = args.get_as_mat(1);
+                m2 = m.cwiseQuotient(m1);
+                limit = args.get_as_mat(2).coeff(0, 0);
+                eps = args.get_as_mat(3).coeff(0, 0);
+                for (int i = 0; i < m.rows(); i++) {
+                    for (int j = 0; j < m.cols(); j++) {
+                        den = m1.coeff(i, j);
+                        abs_den = CppAD::CondExpGt(den, zero, den, -den);
+                        m2.coeffRef(i, j) = CppAD::CondExpLt(
+                            abs_den
+                          , eps
+                          , limit
+                          , m2.coeffRef(i, j)
+                        );
+                    }
+                }
+                return m2;
+                
+            // #' ### Details
+            // #'
+            // #' The `clamp` function smoothly clamps the elements of a
+            // #' matrix so that they
+            // #' do not get closer to 0 than a tolerance, `eps`, with
+            // #' a default of 1e-12. This `clamp` function is the following 
+            // #' modification of the 
+            // #' [squareplus function](https://arxiv.org/abs/2112.11687).
+            // #'
+            // #' \deqn{f(x) = \epsilon_- + \frac{(x - \epsilon_-) + \sqrt{(x - \epsilon_-)^2 + (2\epsilon_0 - \epsilon_-)^2 - \epsilon_-^2}}{2}}
+            // #' 
+            // #' Where the two parameters are defined as follows.
+            // #'
+            // #' \deqn{\epsilon_0 = f(0)}
+            // #' 
+            // #' \deqn{\epsilon_- = \lim_{x \to  -\infty}f(x)}
+            // #' 
+            // #' This function is differentiable everywhere, monotonically
+            // #' increasing, and \eqn{f(x) \approx x} if \eqn{x} is positive
+            // #' and not too close to zero. By modifying the parameters, you 
+            // #' can control the distance between \eqn{f(x)} and the
+            // #' horizontal axis at two 'places' -- \eqn{0} and \eqn{-\infty}.
+            // #' [See issue #93](https://github.com/canmod/macpan2/issues/93).
+            // #' for more information.
+            // #'
+            // #' For `clamp` the arguments specifically mean.
+            // #' * `x` : A matrix with elements that should remain positive.
+            // #' * `eps` : A small positive number, \eqn{\epsilon_0 = f(0)},
+            // #' giving the value of the function when the input is zero.
+            // #' The default value is 1e-11
+            // #' * `limit` : A small positive number, 
+            // #' \deqn{\epsilon_- = \lim_{x \to  -\infty}f(x)}, giving the
+            // #' value of the function as the input goes to negative
+            // #' infinity. The default is `limit = 1e-12`. This `limit` 
+            // #' should be chosen to be less than `eps` to ensure that 
+            // #' `clamp` is twice differentiable.
+            // #' 
+            // #' 
+            case MP2_CLAMP:
+                eps = 1e-11; // default
+                if (n > 1)
+                    eps = args[1].coeff(0, 0);
+                if (n == 3) {
+                    limit = args[2].coeff(0, 0);
+                } else {
+                    limit = 1e-12; // default
+                }
+                X = args[0];
+                rows = X.rows();
+                cols = X.cols();
+                m = matrix<Type>::Zero(rows, cols);
+                
+                // https://github.com/canmod/macpan2/issues/93
+                for (int i = 0; i < rows; i++) {
+                    for (int j = 0; j < cols; j++) {
+                        m.coeffRef(i, j) = limit + (
+                            (
+                                X.coeff(i, j) - limit + 
+                                sqrt(
+                                    pow(X.coeff(i, j) - limit, 2.0) + 
+                                    pow(2.0 * eps - limit, 2.0) - 
+                                    pow(limit, 2.0)
+                                )
+                            ) / 2.0
+                        );
+                    }
+                }
+                return m;
 
 
             // #' ## Integer Sequences
@@ -1457,7 +1577,6 @@ public:
                 to = args.get_as_int(1);
                 if (from > to) {
                     MP2_ERR(MP2_COLON, "Lower bound greater than upper bound in : operation", MP2_COLON);
-                    return m;
                 }
                 m = matrix<Type>::Zero(to - from + 1, 1);
                 for (int i = from; i <= to; i++)
@@ -1483,7 +1602,6 @@ public:
                 by = args[2].coeff(0, 0);
                 if (length <= 0) {
                     MP2_ERR(MP2_SEQUENCE, "Sequence length is less than or equal to zero in seq operation", MP2_SEQUENCE);
-                    return m;
                 }
                 m = matrix<Type>::Zero(length, 1);
                 for (int i = 0; i < length; i++)
@@ -1550,7 +1668,6 @@ public:
                 m = args[0];
                 if (err_code != 0) {
                     MP2_ERR(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", MP2_RECYCLE);
-                    return m;
                 }
                 return m;
 
@@ -1560,13 +1677,22 @@ public:
             // #'
             // #' * `x %*% y` : Standard matrix multiplication.
             // #' * `x %x% y` : Kronecker product
+            // #' * `sparse_mat_mult(x, i, j, y, z)` : Matrix multiplication
+            // #' when the left matrix is represented as a column vector, `x`, 
+            // #' of non-zero elements and integer vectors of row, `i`, and 
+            // #' column, `j`, indices. The right matrix and the resulting
+            // #' matrix are not represented as sparse matrices.
             // #'
             // #' ### Arguments
             // #'
-            // #' * `x` : A matrix. For the standard product, `x`
-            // #' must have as many columns as `y` has rows.
-            // #' * `y` : A matrix. For standard product, `y`
-            // #' must have as many rows as `x` has columns.
+            // #' * `x` : A matrix.
+            // #' * `y` : A matrix.
+            // #' * `i` : Integer vector the same length as `x` giving 
+            // #' zero-based row indices for sparse matrix representation.
+            // #' * `j` : Integer vector the same length as `x` giving 
+            // #' zero-based column indices for sparse matrix representation.
+            // #' * `z` : A matrix with dimensions equal to the result of
+            // #' the sparse matrix multiplication (see details).
             // #'
             // #' ### Return
             // #'
@@ -1579,6 +1705,11 @@ public:
             // #' engine_eval(~ (1:10) %x% t(1:10))
             // #' ```
             // #'
+            // #' ### Details
+            // #'
+            // #' For standard matrix multiplication, `x %*% y`, the number of
+            // #' columns of `x` equals the number of rows of `y`.
+            // #' 
             case MP2_MATRIX_MULTIPLY: // %*%
                 return args[0] * args[1];
 
@@ -1593,6 +1724,52 @@ public:
                 }
                 return m;
 
+            // #' 
+            // #' Think about `sparse_mat_mult(x, i, j, y, z)` as similar to
+            // #' `z ~ x %*% y`, where `x` is represented differently. In
+            // #' particular, the argument `x` is a column vector containing the 
+            // #' non-zero elements of the left matrix, `i` contains the 
+            // #' zero-based row indices associated with each element in `x`,
+            // #' and `j` contains the zero-based column indices associated with
+            // #' each element in `x`.
+            // #'  
+            case MP2_SPARSE_MAT_MULT: // sparse_mat_mult(x, i, j, y, z)
+                err_code = args.check_n_args(5, 5);
+                if (err_code == 1) {
+                    MP2_ERR(MP2_SPARSE_MAT_MULT, "Require exactly 5 arguments, but got fewer.", MP2_SPARSE_MAT_MULT);
+                }
+                if (err_code == 2) {
+                    MP2_ERR(MP2_SPARSE_MAT_MULT, "Require exactly 5 arguments, but got more.", MP2_SPARSE_MAT_MULT);
+                }
+                m = args[0]; // x
+                if (m.cols() != 1) {
+                    MP2_ERR(MP2_SPARSE_MAT_MULT, "First matrix must be represented as a vector with associated row and column indices.", MP2_SPARSE_MAT_MULT);
+                }
+                v1 = args.get_as_int_vec(1); // i
+                v2 = args.get_as_int_vec(2); // j
+                m1 = args[3]; // B
+                rows = args.rows(4); // nrow(Y)
+                cols = args.cols(4); // ncol(Y)
+                m2 = matrix<Type>::Zero(rows, cols); // Y
+                
+                v.push_back(m1.cols() - 1);
+                err_code = CheckIndices(m2, v1, v);
+                if (err_code) {
+                    MP2_ERR(MP2_SPARSE_MAT_MULT, "Number of rows in the output matrix must be greater than all of the row indices in the sparse matrix representation.", MP2_SPARSE_MAT_MULT);
+                }
+                err_code = CheckIndices(m1, v2, v);
+                if (err_code) {
+                    MP2_ERR(MP2_SPARSE_MAT_MULT, "Number of rows in the second (dense) matrix must be greater than all of the column indices in the sparse matrix representation.", MP2_SPARSE_MAT_MULT);
+                }
+                
+                for (int l = 0; l < m.rows(); l++) {
+                    for (int j = 0; j < m1.cols(); j++) {
+                        m2.coeffRef(v1[l], j) += m.coeff(l, 0) * m1.coeff(v2[l], j);
+                    }
+                }
+                return m2;
+    
+            
             // #' ## Parenthesis
             // #'
             // #' The order of operations can be enforced in the usual
@@ -1697,7 +1874,6 @@ public:
                     }
                     else {
                         MP2_ERR(MP2_CBIND, "Inconsistent size in cbind function", MP2_CBIND);
-                        return m;
                     }
                 }
                 return m;
@@ -1711,26 +1887,20 @@ public:
                 int totrows, rowmarker;
                 totrows = 0;
                 rowmarker = 0;
-                for (int j = 0; j < n; j++)
-                {
+                for (int j = 0; j < n; j++) {
                     totrows += args[j].rows();
                 }
                 m = matrix<Type>::Zero(totrows, cols);
-                for (int i = 0; i < n; i++)
-                {
-                    if (args[i].cols() == cols)
-                    {
+                for (int i = 0; i < n; i++) {
+                    if (args[i].cols() == cols) {
                         rows_per_arg = args[i].rows();
-                        for (int k = 0; k < rows_per_arg; k++)
-                        {
+                        for (int k = 0; k < rows_per_arg; k++) {
                             m.row(rowmarker + k) = args[i].row(k);
                         }
                         rowmarker += rows_per_arg;
                     }
-                    else
-                    {
+                    else {
                         MP2_ERR(MP2_RBIND, "Inconsistent size in rbind function", MP2_RBIND);
-                        return m;
                     }
                 }
                 return m;
@@ -1759,7 +1929,6 @@ public:
                 } else if (size_in < size_out) {
                     if (size_out % size_in) {
                         MP2_ERR(MP2_MATRIX, "The size of the input matrix is not compatible with the requested shape of the output matrix.", MP2_MATRIX);
-                        return m1;
                     }
                     m = mp2_rep(m, size_out / size_in);
                     m.resize(rows, cols);
@@ -1903,12 +2072,11 @@ public:
                 m = args[0].colwise().sum().matrix();
                 return m;
 
-            case MP2_GROUPSUMS: // group_sums(x)
+            case MP2_GROUPSUMS: // group_sums(x, f, n)
                 v1 = args.get_as_int_vec(1);
                 err_code = args.check_indices(2, v1, {0});
                 if (err_code) {
                     MP2_ERR(MP2_GROUPSUMS, "Group indexes are out of range.", MP2_GROUPSUMS);
-                    return m;
                 }
                 m = args[0];
                 if (m.cols() != 1) {
@@ -1918,7 +2086,6 @@ public:
                 m1 = matrix<Type>::Zero(rows, 1);
                 if (v1.size() != m.rows()) {
                     MP2_ERR(MP2_GROUPSUMS, "Number of rows in x must equal the number of indices in f in group_sums(x, f, n).", MP2_GROUPSUMS);
-                    return m;
                 }
                 for (int i = 0; i < m.rows(); i++) {
                     m1.coeffRef(v1[i], 0) += m.coeff(i, 0);
@@ -1928,7 +2095,6 @@ public:
             case MP2_MEAN: // mean(x)
                 if (n != 1) {
                     MP2_ERR(MP2_MEAN, "The mean function can only take a single matrix.", MP2_MEAN);
-                    return m;
                 }
                 m = matrix<Type>::Zero(1, 1);
                 sum = args.get_as_mat(0).mean();
@@ -1938,7 +2104,6 @@ public:
             case MP2_SD: // sd(x)
                 if (n != 1) {
                     MP2_ERR(MP2_SD, "The sd function can only take a single matrix.", MP2_SD);
-                    return m;
                 }
                 m = args.get_as_mat(0);
                 m1 = matrix<Type>::Zero(1, 1);
@@ -2058,7 +2223,6 @@ public:
                 err_code = args.check_indices(0, v1, v2);
                 if (err_code) {
                     MP2_ERR(MP2_SQUARE_BRACKET, "Illegal index to square bracket", MP2_SQUARE_BRACKET);
-                    return m;
                 }
                 m = args[0];
                 m1 = matrix<Type>::Zero(nrow, ncol);
@@ -2082,12 +2246,10 @@ public:
                 err_code = args.check_indices(0, v1, v2);
                 if (err_code){
                     MP2_ERR(MP2_BLOCK, "Illegal starting index to block", MP2_BLOCK);
-                    return m;
                 }
                 err_code = args.check_indices(0, v3, v4);
                 if (err_code){
                     MP2_ERR(MP2_BLOCK, "Illegal index to block, requesting more elements than available in input", MP2_BLOCK);
-                    return m;
                 }
                 return args[0].block(rowIndex, colIndex, rows, cols);
             
@@ -2151,14 +2313,12 @@ public:
                     return m; // have not built up any previous iterations yet, so returning empty matrix
                 if (t == 0) {
                     MP2_ERR(154, "The simulation loop has not yet begun and so rbind_time (or rbind_lag) cannot be used", int_func);
-                    return m;
                 }
                 matIndex = index2mats[0]; // m
 
                 if ((matIndex < 0) | (index2what[0] != 0)) {
                     MP2_ERR(MP2_RBIND_TIME, "Can only rbind_time (or rbind_lag) named matrices not expressions of matrices and not integer vectors", int_func);
                     // Rcpp::Rcout << "return 2 " << std::endl;
-                    return m;
                 }
 
                 if ((n == 1) & (!doing_lag)) {
@@ -2184,7 +2344,6 @@ public:
                                 // (usually a column vector) of initial values that take
                                 // us back into negative time steps. need to do the same
                                 // for convolution and anything else that looks backwards.
-                                return m;
                             }
                         }
                         // timeIndex = -timeIndex;
@@ -2198,11 +2357,9 @@ public:
                     lowerTimeBound = args.get_as_int(2);
                     if (lowerTimeBound < 0) {
                         MP2_ERR(MP2_RBIND_TIME, "Lower time bound (third argument) is less than zero", int_func);
-                        return m;
                     }
                     if (lowerTimeBound > t_max) {
                         MP2_ERR(MP2_RBIND_TIME, "Lower time bound (third argument) is greater than the number of time steps", int_func);
-                        return m;
                     }
                 }
                 else if (doing_lag) {
@@ -2249,7 +2406,6 @@ public:
                         { // Shall we allow inconsistent rows?
                             MP2_ERR(MP2_RBIND_TIME, "Inconsistent rows or columns in rbind_time (or rbind_lag)", int_func);
                             // Rcpp::Rcout << "return 5 " << std::endl;
-                            return args[0];
                         }
                     }
 
@@ -2365,7 +2521,6 @@ public:
                 if (lag < 0)
                 {
                     MP2_ERR(MP2_TIME_STEP, "Time lag needs to be non-negative", MP2_TIME_STEP);
-                    return m;
                 }
                 if (t > lag)
                 {
@@ -2376,7 +2531,6 @@ public:
             case MP2_TIME_GROUP: // time_group(i, change_points)
                 if (index2what[0] != 0) {
                     MP2_ERR(MP2_TIME_GROUP, "First argument needs to be a matrix.", MP2_TIME_GROUP);
-                    return m;
                 }
                 m = args[0];
                 off = args.get_as_int(0);
@@ -2390,22 +2544,18 @@ public:
             case MP2_TIME_VAR: // time_var(x, change_points)
                 if (t == 0) {
                     MP2_ERR(MP2_TIME_VAR, "Time variation is not allowed before the simulation loop begins.", MP2_TIME_VAR);
-                    return m;
                 }
                 if (t > t_max) {
                     MP2_ERR(MP2_TIME_VAR, "Time variation is not allowed after the simulation loop ends.", MP2_TIME_VAR);
-                    return m;
                 }
 
                 v = args.get_as_int_vec(1);
                 off = args.get_as_int(1);
                 if (off < 0) {
                     MP2_ERR(MP2_TIME_VAR, "The first element of the second argument must not be less than zero.", MP2_TIME_VAR);
-                    return m;
                 }
                 if (off >= v.size()) {
                     MP2_ERR(MP2_TIME_VAR, "The first element of the second argument must be less than the number of elements in the first.", MP2_TIME_VAR);
-                    return m;
                 }
                 
                 // off is the 'initial offset', which lets the user
@@ -2452,12 +2602,10 @@ public:
                         }
                         else {
                             MP2_ERR(MP2_TIME_VAR, "Time variation pointers need to be length-1 integer vectors.", MP2_TIME_VAR);
-                            return m;
                         }
                     }
                     else if (cp < 0) {
                         MP2_ERR(MP2_TIME_VAR, "Negative times are not allowed.", MP2_TIME_VAR);
-                        return m;
                     }
                 }
                 m = matrix<Type>::Zero(args[0].cols(), 1);
@@ -2531,7 +2679,6 @@ public:
                 matIndex = index2mats[0]; // m
                 if (matIndex == -1) {
                     MP2_ERR(MP2_CONVOLUTION, "Can only convolve named matrices not expressions of matrices", MP2_CONVOLUTION);
-                    return args[0];
                 }
 
                 #ifdef MP_VERBOSE
@@ -2574,84 +2721,9 @@ public:
 
                     return m;
                 }
-                else
-                {
+                else {
                     MP2_ERR(MP2_CONVOLUTION, "Either empty or non-column vector used as kernel in convolution", MP2_CONVOLUTION);
-                    return m;
                 }
-
-            // #' ## Clamp
-            // #'
-            // #' Smoothly clamp the elements of a matrix so that they
-            // #' do not get closer to 0 than a tolerance, `eps`, with
-            // #' a default of 1e-12. This `clamp` function is the following 
-            // #' modification of the 
-            // #' [squareplus function](https://arxiv.org/abs/2112.11687).
-            // #'
-            // #' \deqn{f(x) = \epsilon_- + \frac{(x - \epsilon_-) + \sqrt{(x - \epsilon_-)^2 + (2\epsilon_0 - \epsilon_-)^2 - \epsilon_-^2}}{2}}
-            // #' 
-            // #' Where the two parameters are defined as follows.
-            // #'
-            // #' \deqn{\epsilon_0 = f(0)}
-            // #' 
-            // #' \deqn{\epsilon_- = \lim_{x \to  -\infty}f(x)}
-            // #' 
-            // #' This function is differentiable everywhere, monotonically
-            // #' increasing, and \eqn{f(x) \approx x} if \eqn{x} is positive
-            // #' and not too close to zero. By modifying the parameters, you 
-            // #' can control the distance between \eqn{f(x)} and the
-            // #' horizontal axis at two 'places' -- \eqn{0} and \eqn{-\infty}.
-            // #' [See issue #93](https://github.com/canmod/macpan2/issues/93).
-            // #' for more information.
-            // #'
-            // #' ### Functions
-            // #'
-            // #' * `clamp(x, eps, limit)`
-            // #'
-            // #' ### Arguments
-            // #'
-            // #' * `x` : A matrix with elements that should remain positive.
-            // #' * `eps` : A small positive number, \eqn{\epsilon_0 = f(0)},
-            // #' giving the value of the function when the input is zero.
-            // #' The default value is 1e-11
-            // #' * `limit` : A small positive number, 
-            // #' \deqn{\epsilon_- = \lim_{x \to  -\infty}f(x)}, giving the
-            // #' value of the function as the input goes to negative
-            // #' infinity. The default is `limit = 1e-12`. This `limit` 
-            // #' should be chosen to be less than `eps` to ensure that 
-            // #' `clamp` is twice differentiable.
-            // #' 
-            // #' 
-            case MP2_CLAMP:
-                eps = 1e-11; // default
-                if (n > 1)
-                    eps = args[1].coeff(0, 0);
-                if (n == 3) {
-                    limit = args[2].coeff(0, 0);
-                } else {
-                    limit = 1e-12; // default
-                }
-                X = args[0];
-                rows = X.rows();
-                cols = X.cols();
-                m = matrix<Type>::Zero(rows, cols);
-                
-                // https://github.com/canmod/macpan2/issues/93
-                for (int i = 0; i < rows; i++) {
-                    for (int j = 0; j < cols; j++) {
-                        m.coeffRef(i, j) = limit + (
-                            (
-                                X.coeff(i, j) - limit + 
-                                sqrt(
-                                    pow(X.coeff(i, j) - limit, 2.0) + 
-                                    pow(2.0 * eps - limit, 2.0) - 
-                                    pow(limit, 2.0)
-                                )
-                            ) / 2.0
-                        );
-                    }
-                }
-                return m;
 
             // #' ## Probability Densities
             // #'
@@ -2711,7 +2783,6 @@ public:
             case MP2_POISSON_DENSITY:
                 if (n < 2) {
                     MP2_ERR(MP2_POISSON_DENSITY, "dpois needs two arguments: matrices with observed and expected values", MP2_POISSON_DENSITY);
-                    return m;
                 }
                 rows = args[0].rows();
                 cols = args[0].cols();
@@ -2720,7 +2791,6 @@ public:
                 err_code = args.get_error_code();
                 if (err_code != 0) {
                     MP2_ERR(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", MP2_POISSON_DENSITY);
-                    return m;
                 }
                 m = matrix<Type>::Zero(rows, cols);
                 for (int i = 0; i < rows; i++) {
@@ -2733,7 +2803,6 @@ public:
             case MP2_NEGBIN_DENSITY:
                 if (n < 3) {
                     MP2_ERR(MP2_NEGBIN_DENSITY, "dnbinom needs three arguments: matrices with observed values, expected values, and dispersion parameters", MP2_NEGBIN_DENSITY);
-                    return m;
                 }
                 rows = args[0].rows();
                 cols = args[0].cols();
@@ -2743,7 +2812,6 @@ public:
                 err_code = args.get_error_code();
                 if (err_code != 0) {
                     MP2_ERR(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", MP2_NEGBIN_DENSITY);
-                    return m;
                 }
                 //   var ~ variance
                 //   mu ~ mean
@@ -2764,7 +2832,6 @@ public:
             case MP2_NORMAL_DENSITY:
                 if (n < 3) {
                     MP2_ERR(MP2_NORMAL_DENSITY, "dnorm needs three arguments: matrices with observed values, expected values, and standard deviation parameters", MP2_NORMAL_DENSITY);
-                    return m;
                 }
                 rows = args[0].rows();
                 cols = args[0].cols();
@@ -2774,7 +2841,6 @@ public:
                 err_code = args.get_error_code();
                 if (err_code != 0) {
                     MP2_ERR(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", MP2_NORMAL_DENSITY);
-                    return m;
                 }
                 m = matrix<Type>::Zero(rows, cols);
                 for (int i = 0; i < rows; i++) {
@@ -2787,7 +2853,6 @@ public:
       	    case MP2_BINOM_DENSITY:
         	      if (n < 3) {
             		    MP2_ERR(MP2_BINOM_DENSITY, "dbinom needs three arguments: matrices with observed values, numbers of trials, and probabilities", MP2_BINOM_DENSITY);
-            		    return m;
                 }
           	    rows = args[0].rows();
           	    cols = args[0].cols();
@@ -2797,7 +2862,6 @@ public:
           	    err_code = args.get_error_code();
           	    if (err_code != 0) {
           		      MP2_ERR(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", MP2_BINOM_DENSITY);
-          		      return m;
                 }
           	    m = matrix<Type>::Zero(rows, cols);
           	    for (int i = 0; i < rows; i++) {
@@ -2880,10 +2944,8 @@ public:
                 return m;
 
             case MP2_NEGBIN_SIM:
-                if (n < 2)
-                {
+                if (n < 2) {
                     MP2_ERR(MP2_NEGBIN_SIM, "rnbinom needs two arguments: matrices with means and dispersion parameters", MP2_NEGBIN_SIM);
-                    return m;
                 }
                 eps = 1e-8;
                 rows = args[0].rows();
@@ -2891,10 +2953,8 @@ public:
                 v1.push_back(1);
                 args = args.recycle_to_shape(v1, rows, cols);
                 err_code = args.get_error_code();
-                if (err_code != 0)
-                {
+                if (err_code != 0) {
                     MP2_ERR(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", MP2_NEGBIN_SIM);
-                    return m;
                 }
                 m = matrix<Type>::Zero(rows, cols);
                 for (int i = 0; i < rows; i++)
@@ -2913,10 +2973,8 @@ public:
                 return m;
 
             case MP2_NORMAL_SIM:
-                if (n < 2)
-                {
+                if (n < 2) {
                     MP2_ERR(MP2_NORMAL_SIM, "rnorm needs two arguments: matrices with means and standard deviations", MP2_NORMAL_SIM);
-                    return m;
                 }
                 rows = args[0].rows();
                 cols = args[0].cols();
@@ -2924,10 +2982,8 @@ public:
                 args = args.recycle_to_shape(v1, rows, cols);
                 err_code = args.get_error_code();
                 // err_code = RecycleInPlace(args[1], rows, cols);
-                if (err_code != 0)
-                {
+                if (err_code != 0) {
                     MP2_ERR(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", MP2_NORMAL_SIM);
-                    return m;
                 }
                 m = matrix<Type>::Zero(rows, cols);
                 for (int i = 0; i < rows; i++)
@@ -2943,7 +2999,6 @@ public:
                 // rbinom(size, prob)
                 if (n != 2) {
                     MP2_ERR(MP2_BINOM_SIM, "rbinom needs two arguments: matrices with size and probability", MP2_BINOM_SIM);
-                    return m;
                 }
                 rows = args[0].rows();
                 cols = args[0].cols();
@@ -2952,7 +3007,6 @@ public:
                 err_code = args.get_error_code();
                 if (err_code != 0) {
                     MP2_ERR(MP2_BINOM_SIM, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", MP2_BINOM_SIM);
-                    return m;
                 }
                 m = matrix<Type>::Zero(rows, cols);
                 for (int i = 0; i < rows; i++) {
@@ -2973,7 +3027,6 @@ public:
                     //Rcpp::Rcout << "++++++" << std::endl;
                     //Rcpp::Rcout << args[0] << std::endl;
                     MP2_ERR(MP2_EULER_MULTINOM_SIM, "The first 'size' argument must be scalar.", MP2_EULER_MULTINOM_SIM);
-                    return m;
                 }
                 if (args[1].cols() != 1) {
                     //Rcpp::Rcout << "------" << std::endl;
@@ -3043,7 +3096,6 @@ public:
                 err_code = args.get_error_code();
                 if (err_code != 0) {
                     MP2_ERR(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", MP2_PGAMMA);
-                    return m;
                 }
                 m1 = args.get_as_mat(0); // q
                 m2 = args.get_as_mat(1); // shape
@@ -3065,7 +3117,6 @@ public:
                 err_code = args.get_error_code();
                 if (err_code != 0) {
                     MP2_ERR(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", MP2_PGAMMA);
-                    return m;
                 }
                 m1 = args.get_as_mat(0); // q
                 m2 = args.get_as_mat(1); // mean
@@ -3198,22 +3249,16 @@ public:
             case MP2_ASSIGN:
 
                 cols = args[1].cols();
-                if (cols != 1)
-                {
+                if (cols != 1) {
                     MP2_ERR(255, "Assignment index matrices must have a single column", MP2_ASSIGN);
-                    return m;
                 }
                 cols = args[2].cols();
-                if (cols != 1)
-                {
+                if (cols != 1) {
                     MP2_ERR(255, "Assignment index matrices must have a single column", MP2_ASSIGN);
-                    return m;
                 }
                 cols = args[3].cols();
-                if (cols != 1)
-                {
+                if (cols != 1) {
                     MP2_ERR(255, "Assignment value matrices must have a single column", MP2_ASSIGN);
-                    return m;
                 }
 
                 // apparently we still need this check
@@ -3223,10 +3268,8 @@ public:
                 // printIntVector(v2);
                 err_code = args.check_indices(0, v1, v2); // CheckIndices(args[0], args[1], m1);
                 // err_code = CheckIndices(args[0], args[1], args[2]);
-                if (err_code)
-                {
+                if (err_code) {
                     MP2_ERR(MP2_ASSIGN, "Illegal index used in assign", MP2_ASSIGN);
-                    return m;
                 }
 
                 rows = args[3].rows();
@@ -3236,7 +3279,6 @@ public:
                 err_code = args.get_error_code();
                 if (err_code != 0) {
                     MP2_ERR(err_code, "cannot recycle rows and/or columns because the input is inconsistent with the recycling request", MP2_ASSIGN);
-                    return m;
                 }
 
                 for (int k = 0; k < rows; k++) {
@@ -3245,7 +3287,6 @@ public:
                     matIndex = index2mats[0];
                     if (matIndex == -1) {
                         MP2_ERR(MP2_ASSIGN, "Can only assign to named matrices not expressions of matrices", MP2_ASSIGN);
-                        return args[0];
                     }
                     valid_vars.m_matrices[matIndex].coeffRef(rowIndex, colIndex) = args[3].coeff(k, 0);
                 }
@@ -3304,19 +3345,15 @@ public:
                 m.resize(size, 1);
 
                 start = 0;
-                for (int i = 1; i < n; i++)
-                {
+                for (int i = 1; i < n; i++) {
                     sz = args[i].rows() * args[i].cols();
-                    if (size >= sz)
-                    {
+                    if (size >= sz) {
                         m1 = m.block(start, 0, sz, 1);
                         m1.resize(args[i].rows(), args[i].cols());
                         // Rcpp::Rcout << "MATRIX " << valid_vars.m_matrices[index2mats[i]] << std::endl << std::endl;
                         matIndex = index2mats[i];
-                        if (matIndex == -1)
-                        {
+                        if (matIndex == -1) {
                             MP2_ERR(MP2_ASSIGN, "Can only unpack into named matrices not expressions of matrices", MP2_UNPACK);
-                            return args[0];
                         }
                         valid_vars.m_matrices[matIndex] = m1;
                         // args[i] = m1;
@@ -3330,7 +3367,6 @@ public:
             
             default:
                 MP2_ERR(255, "invalid operator in arithmetic expression", -99);
-                return m;
             }
         } // switch (table_n[row])
     };

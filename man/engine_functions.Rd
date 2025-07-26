@@ -62,6 +62,8 @@
 \alias{invlogit}
 \alias{logit}
 \alias{cumsum}
+\alias{sparse_mat_mult}
+\alias{divide_safe}
 \alias{assign}
 \alias{unpack}
 \title{Functions Available in the Simulation Engine}
@@ -190,10 +192,12 @@ the results of applying the function to each element of \code{x}.
 
 }
 
-\subsection{Proportions}{
+\subsection{Limiting Values}{
 \subsection{Functions}{
 \itemize{
 \item \code{proportions(x, limit, eps)}
+\item \code{limit(x, limit, eps)}
+\item \code{clamp(x, eps, limit)}
 }
 }
 
@@ -216,6 +220,67 @@ the results of applying the function to each element of \code{x}.
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{engine_eval(~ proportions(y, 0.5, 1e-8), y = c(2, 0.5))
 }\if{html}{\out{</div>}}
+}
+
+\subsection{Details}{
+
+The return value depends on the function.
+\itemize{
+\item \code{proportions} : matrix of \code{x / sum(x)} or \code{rep(limit, length(x))} if
+\code{sum(x) < eps}.
+\item \code{limit} :
+\item \code{clamp} :
+}
+}
+
+\subsection{Details}{
+
+The divide_safe() function conducts elementwise division
+of the first two arguments, and then allows two other
+arguments:
+\itemize{
+\item \code{limit} : Value to return if the \code{sqrt(denominator^2)} is
+}
+}
+
+\subsection{Details}{
+
+The \code{clamp} function smoothly clamps the elements of a
+matrix so that they
+do not get closer to 0 than a tolerance, \code{eps}, with
+a default of 1e-12. This \code{clamp} function is the following
+modification of the
+\href{https://arxiv.org/abs/2112.11687}{squareplus function}.
+
+\deqn{f(x) = \epsilon_- + \frac{(x - \epsilon_-) + \sqrt{(x - \epsilon_-)^2 + (2\epsilon_0 - \epsilon_-)^2 - \epsilon_-^2}}{2}}
+
+Where the two parameters are defined as follows.
+
+\deqn{\epsilon_0 = f(0)}
+
+\deqn{\epsilon_- = \lim_{x \to  -\infty}f(x)}
+
+This function is differentiable everywhere, monotonically
+increasing, and \eqn{f(x) \approx x} if \eqn{x} is positive
+and not too close to zero. By modifying the parameters, you
+can control the distance between \eqn{f(x)} and the
+horizontal axis at two 'places' -- \eqn{0} and \eqn{-\infty}.
+\href{https://github.com/canmod/macpan2/issues/93}{See issue #93}.
+for more information.
+
+For \code{clamp} the arguments specifically mean.
+\itemize{
+\item \code{x} : A matrix with elements that should remain positive.
+\item \code{eps} : A small positive number, \eqn{\epsilon_0 = f(0)},
+giving the value of the function when the input is zero.
+The default value is 1e-11
+\item \code{limit} : A small positive number,
+\deqn{\epsilon_- = \lim_{x \to  -\infty}f(x)}, giving the
+value of the function as the input goes to negative
+infinity. The default is \code{limit = 1e-12}. This \code{limit}
+should be chosen to be less than \code{eps} to ensure that
+\code{clamp} is twice differentiable.
+}
 }
 
 }
@@ -315,15 +380,24 @@ engine_eval(~ recycle(t(1:4), 3, 4))
 \itemize{
 \item \code{x \%*\% y} : Standard matrix multiplication.
 \item \code{x \%x\% y} : Kronecker product
+\item \code{sparse_mat_mult(x, i, j, y, z)} : Matrix multiplication
+when the left matrix is represented as a column vector, \code{x},
+of non-zero elements and integer vectors of row, \code{i}, and
+column, \code{j}, indices. The right matrix and the resulting
+matrix are not represented as sparse matrices.
 }
 }
 
 \subsection{Arguments}{
 \itemize{
-\item \code{x} : A matrix. For the standard product, \code{x}
-must have as many columns as \code{y} has rows.
-\item \code{y} : A matrix. For standard product, \code{y}
-must have as many rows as \code{x} has columns.
+\item \code{x} : A matrix.
+\item \code{y} : A matrix.
+\item \code{i} : Integer vector the same length as \code{x} giving
+zero-based row indices for sparse matrix representation.
+\item \code{j} : Integer vector the same length as \code{x} giving
+zero-based column indices for sparse matrix representation.
+\item \code{z} : A matrix with dimensions equal to the result of
+the sparse matrix multiplication (see details).
 }
 }
 
@@ -338,6 +412,20 @@ must have as many rows as \code{x} has columns.
 \if{html}{\out{<div class="sourceCode">}}\preformatted{engine_eval(~ (1:10) \%*\% t(1:10))
 engine_eval(~ (1:10) \%x\% t(1:10))
 }\if{html}{\out{</div>}}
+}
+
+\subsection{Details}{
+
+For standard matrix multiplication, \code{x \%*\% y}, the number of
+columns of \code{x} equals the number of rows of \code{y}.
+
+Think about \code{sparse_mat_mult(x, i, j, y, z)} as similar to
+\code{z ~ x \%*\% y}, where \code{x} is represented differently. In
+particular, the argument \code{x} is a column vector containing the
+non-zero elements of the left matrix, \code{i} contains the
+zero-based row indices associated with each element in \code{x},
+and \code{j} contains the zero-based column indices associated with
+each element in \code{x}.
 }
 
 }
@@ -810,52 +898,6 @@ calibrating) for time steps less than \eqn{m}.
   mats = list(x = 0.5, y = empty_matrix)
 )
 }\if{html}{\out{</div>}}
-}
-
-}
-
-\subsection{Clamp}{
-
-Smoothly clamp the elements of a matrix so that they
-do not get closer to 0 than a tolerance, \code{eps}, with
-a default of 1e-12. This \code{clamp} function is the following
-modification of the
-\href{https://arxiv.org/abs/2112.11687}{squareplus function}.
-
-\deqn{f(x) = \epsilon_- + \frac{(x - \epsilon_-) + \sqrt{(x - \epsilon_-)^2 + (2\epsilon_0 - \epsilon_-)^2 - \epsilon_-^2}}{2}}
-
-Where the two parameters are defined as follows.
-
-\deqn{\epsilon_0 = f(0)}
-
-\deqn{\epsilon_- = \lim_{x \to  -\infty}f(x)}
-
-This function is differentiable everywhere, monotonically
-increasing, and \eqn{f(x) \approx x} if \eqn{x} is positive
-and not too close to zero. By modifying the parameters, you
-can control the distance between \eqn{f(x)} and the
-horizontal axis at two 'places' -- \eqn{0} and \eqn{-\infty}.
-\href{https://github.com/canmod/macpan2/issues/93}{See issue #93}.
-for more information.
-\subsection{Functions}{
-\itemize{
-\item \code{clamp(x, eps, limit)}
-}
-}
-
-\subsection{Arguments}{
-\itemize{
-\item \code{x} : A matrix with elements that should remain positive.
-\item \code{eps} : A small positive number, \eqn{\epsilon_0 = f(0)},
-giving the value of the function when the input is zero.
-The default value is 1e-11
-\item \code{limit} : A small positive number,
-\deqn{\epsilon_- = \lim_{x \to  -\infty}f(x)}, giving the
-value of the function as the input goes to negative
-infinity. The default is \code{limit = 1e-12}. This \code{limit}
-should be chosen to be less than \code{eps} to ensure that
-\code{clamp} is twice differentiable.
-}
 }
 
 }

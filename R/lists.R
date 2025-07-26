@@ -119,8 +119,8 @@ melt_list_of_char_vecs = function(x) {
 
 clean_dimnames = function(dn) {
   if (!is.null(dn)) {
-    if (identical(as.character(dn[[2L]]), "0")) dn[[2L]] = NULL
-    if (identical(as.character(dn[[1L]]), "0")) dn[[1L]] = NULL
+    if (identical(as.character(dn[[2L]]), "0")) dn[2L] = list(NULL)
+    if (identical(as.character(dn[[1L]]), "0")) dn[1L] = list(NULL)
   }
   return(dn)
 }
@@ -133,7 +133,7 @@ cast_default_matrix_list = function(x) {
   ncol = vapply(col_list, length, integer(1L))
   mapply(matrix, val_list, nrow, ncol, dimnames = dimnames, SIMPLIFY = FALSE, USE.NAMES = TRUE)
 }
-cast_default_matrix_list = memoise(cast_default_matrix_list)
+#cast_default_matrix_list = memoise(cast_default_matrix_list)
 
 empty_named_list = function() list() |> setNames(character(0L))
 

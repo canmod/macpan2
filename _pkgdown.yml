@@ -184,6 +184,7 @@ reference:
   - empty_trajectory
   - mp_zero_vector
   - rbf
+  - sparse_matrix_notation
   - mp_binary_operator
 
 - subtitle: Developer and Power-User Utilities
@@ -261,8 +262,9 @@ articles:
 - title: Superuser Guides
   desc: Articles aimed at advanced users
   contents:
-  - calibration_advanced
+  - matrix_multiplication
   - time_varying_parameters_advanced
+  - calibration_advanced
   - engine_agnostic_grammar
 - title: Developer Guides
   desc: Articles aimed at package developers
