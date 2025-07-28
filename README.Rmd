@@ -109,7 +109,7 @@ print(si)
 See [this article](https://canmod.github.io/macpan2/articles/example_models.html) for more example models with documentation.
 
 Simulating from this model requires choosing the number of time-steps to run and the model outputs to generate. Syntax for simulating `macpan2` models is [designed to combine with standard data prep and plotting tools in R](https://canmod.github.io/macpan2/articles/quickstart.html#processing-results), as we demonstrate with the following code.
-```{r plot-tmb-si, fig.height=3}
+```{r plot-tmb-si, fig.height=3, dpi=600}
 library(ggplot2)
 library(dplyr)
 (si
