@@ -95,11 +95,18 @@ The `ones_col()`, `ones_row()`, and `identity()` functions make it easier to bui
 
 ## Initial State Vectors
 
-We now initialize the state vectors `S` (susceptible) and `I` (infectious) over the stratification dimensions.
+We now use Kronecker products to initialize the state vectors `S` (susceptible) and `I` (infectious) over the stratification dimensions.
 
 ```{r initial-states}
-S = c(young = 75, old = 25) %x% c(unvax = 1, vax = 0)
-I = c(young = 1, old = 0) %x% c(unvax = 1, vax = 0) %x% c(mild = 1, severe = 0)
+S = (
+      c(young = 75, old = 25) 
+  %x% c(unvax = 1, vax = 0)
+)
+I = (
+      c(young = 1, old = 0) 
+  %x% c(unvax = 1, vax = 0) 
+  %x% c(mild = 1, severe = 0)
+)
 print(S)
 print(I)
 ```
@@ -157,7 +164,11 @@ Note that `N` repeats the total population size within each age group to match t
 We construct the full per-capita transmission matrix by combining component matrices using Kronecker products.
 
 ```{r per-capita-transmission-matrix}
-B_age = beta * contact_matrix * (susceptibility_age %x% infectivity_age)
+B_age = (
+    beta 
+  * contact_matrix 
+  * (susceptibility_age %x% infectivity_age)
+)
 B_vax = (1 - VE) %x% infectivity_vax
 B_symp = infectivity_symp
 B = B_age %x% B_vax %x% B_symp
@@ -229,7 +240,11 @@ We formalize the model specification with `mp_tmb_model_spec`, defining the deri
 ```{r model-spec}
 spec = mp_tmb_model_spec(
   before = list(
-      B_age ~ beta * contact_matrix * (susceptibility_age %x% infectivity_age)
+      B_age ~ (
+          beta 
+        * contact_matrix 
+        * (susceptibility_age %x% infectivity_age)
+      )
     , B_vax ~ (1 - VE) %x% infectivity_vax
     , B_symp ~ infectivity_symp
     , B ~ B_age %x% B_vax %x% B_symp
