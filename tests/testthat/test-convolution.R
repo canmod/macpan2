@@ -1,5 +1,4 @@
 ## not done by any stretch
-library(macpan2)
 
 r = simple_sims(
   list(

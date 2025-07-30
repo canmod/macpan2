@@ -1,5 +1,4 @@
 test_that("dates can be turned into time-steps", {
-  library(lubridate)
   base_date = as.Date("2024-01-25")
   expect_error(
       macpan2:::Weekly(start = base_date - days(30), end = base_date)

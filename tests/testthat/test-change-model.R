@@ -1,4 +1,3 @@
-library(macpan2); library(testthat); library(dplyr); library(tidyr)
 spec = mp_tmb_model_spec(
   during = list(
       k1_S ~ 1 ## rk4 coefficient name to test for name conflict avoidance

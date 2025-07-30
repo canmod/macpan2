@@ -18,12 +18,14 @@ test_that("inserted expressions are able to refer to single states/flows", {
       , to = c(1, 2)
     )
   )
-  s = mp_simulator(spec
-    , time_steps = 50
-    , outputs = c("S", "I")
+  s = (spec
+    |> mp_tmb_insert(at = Inf
+      , expressions = list(test_ratio ~ state[I] / state[S])
+    )
+    |> mp_simulator(time_steps = 50
+      , outputs = c("S", "I", "test_ratio")
+    )
   )
-  s$add$matrices(test_ratio = empty_matrix, .mats_to_save = "test_ratio", .mats_to_return = "test_ratio")
-  s$insert$expressions(test_ratio ~ state[I] / state[S], .at = Inf, .phase = "during")
   v = mp_trajectory(s)
   expect_equal(
     v[v$row == "I", "value"] / v[v$row == "S", "value"],

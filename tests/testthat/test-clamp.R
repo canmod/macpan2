@@ -1,4 +1,3 @@
-library(macpan2); library(testthat); library(dplyr); library(tidyr); library(ggplot2)
 test_that("clamping function is modified squareplus", {
   x = seq(-1e-11, 1e-11, by = 1e-14)
   clamp_base_r = function(x, eps = 1e-12, limit = eps) {

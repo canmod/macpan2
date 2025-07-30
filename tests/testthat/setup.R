@@ -6,6 +6,8 @@ suppressPackageStartupMessages({
   library(ggplot2)
   library(broom.mixed)
   library(deSolve)
+  library(lubridate)
+  library(oor)
 })
 options(macpan2_verbose = FALSE)
 system.file("utils", "test-cache.R", package = "macpan2") |> source()

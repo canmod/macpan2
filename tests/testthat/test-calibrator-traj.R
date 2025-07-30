@@ -1,4 +1,3 @@
-library(macpan2); library(testthat); library(dplyr); library(tidyr); library(ggplot2)
 test_that("bad outputs give warnings", {
   sir = mp_tmb_library("starter_models", "sir", package = "macpan2")
   expect_warning(

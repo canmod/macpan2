@@ -100,20 +100,12 @@ TMBModelSpec = function(
   self$all_integers = function() {
     ## TODO: maybe make smarter by checking if an integer vector
     ## is being used in the wrong numeric vector
-    implied_integers = implied_position_vectors(self$default)
-    integers_we_need = intersect(
+    implied_integers = implied_position_vectors(self$default) ## named list of integers
+    integers_we_need = intersect( ## character vector of names of integers to add
         self$all_formula_vars()
       , names(implied_integers)
-    )
-    filtered_implied_integers = list()
-    nms = names(integers_we_need)
-    for (nm in unique(nms)) {
-      integers_nm = integers_we_need[nms == nm]
-      # if (sum(!duplicated(integers_nm)) != 1L) {
-      # }
-      filtered_implied_integers[[nm]] = integers_nm[[1L]]
-    }
-    c(filtered_implied_integers, self$integers)
+    ) |> unique()
+    c(implied_integers[integers_we_need], self$integers)
   }
   
   self$empty_matrices = function() {

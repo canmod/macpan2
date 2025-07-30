@@ -1,4 +1,3 @@
-library(macpan2); library(testthat); library(dplyr); library(tidyr); library(ggplot2)
 test_that("a selection of the iterations in the simulation history of a matrix that doesn't change shape can be rbinded at the end", {
   steps = 10
   x = matrix(1:12, 4, 3)
