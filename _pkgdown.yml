@@ -185,6 +185,7 @@ reference:
   - mp_zero_vector
   - rbf
   - mp_binary_operator
+  - mp_square_operator
 
 - subtitle: Developer and Power-User Utilities
   desc: >
