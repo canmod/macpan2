@@ -264,6 +264,7 @@ articles:
   desc: Articles aimed at advanced users
   contents:
   - matrix_multiplication
+  - kronecker
   - time_varying_parameters_advanced
   - calibration_advanced
   - engine_agnostic_grammar
