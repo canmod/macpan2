@@ -1,7 +1,5 @@
 <!-- Auto-generated - do not edit by hand -->
 <!-- Edit README.Rmd instead -->
-macpan2
-================
 
 <!-- badges: start -->
 
@@ -15,7 +13,7 @@ coverage](https://byob.yarr.is/canmod/macpan2/coverage)](https://github.com/canm
 activity](https://img.shields.io/github/commit-activity/m/canmod/macpan2)](https://github.com/canmod/macpan2/commits)
 [![contributors](https://img.shields.io/github/contributors/canmod/macpan2)](https://github.com/canmod/macpan2/graphs/contributors)
 
-![logo](man/figures/logo.png)
+![](man/figures/mp.png)
 
 `macpan2` is a software platform for building and calibrating
 compartmental models of infectious disease. It supports flexible model
@@ -63,6 +61,7 @@ lessons that we learned from COVID-19 about software.
     \[slides\]
 -   [Instructional
     videos](https://drive.google.com/drive/folders/1NEQf2sy6QLxMiiWBN5Yn9U7wiPMs1jiS)
+-   [Workshop notes](https://canmod.github.io/macpan-workshop)
 -   [Publications and reports](#publications-and-reports) \[using
     `macpan2` and `McMasterPandemic`\]
 -   [Visual `macpan2` model
@@ -197,6 +196,19 @@ library(dplyr)
 ```
 
 ![](man/figures/plot-tmb-si-1.png)<!-- -->
+
+## Workshops
+
+We have delivered several `macpan2` workshops. Here are the [current
+workshop notes](https://canmod.github.io/macpan-workshop/).
+
+| Organization                                                | Date                                                                           |
+|:------------------------------------------------------------|:-------------------------------------------------------------------------------|
+| Public Health Agency of Canada                              | [2025-03-20](https://canmod.github.io/macpan-workshop)                         |
+| Memorial University                                         | 2024-11-07                                                                     |
+| Simon Fraser University                                     | 2024-13-05                                                                     |
+| Vancouver Machine Learning Group (VanML)                    | [2024-02-22](https://elliottlab.ca/technique.html)                             |
+| Canadian Network for Modelling Infectious Diseases (CANMOD) | [2023-11-14](https://www.birs.ca/events/2023/5-day-workshops/23w5151/schedule) |
 
 ## Product Management
 
