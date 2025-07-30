@@ -4,9 +4,6 @@
 ## from the engine_agnostic_grammar vignette.
 
 ## ----setup, echo = FALSE, message = FALSE, warning = FALSE--------------------
-library(macpan2)
-library(ggplot2)
-library(dplyr)
 
 
 ## ----SIR-starter, echo = FALSE------------------------------------------------

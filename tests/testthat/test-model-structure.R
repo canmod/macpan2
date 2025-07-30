@@ -1,5 +1,3 @@
-library(macpan2)
-
 Epi = mp_index(Epi = c("S", "I", "R"))
 Age = mp_index(Age = c("young", "old"))
 

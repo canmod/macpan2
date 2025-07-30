@@ -1,6 +1,5 @@
 test_that("the order of state variables and flow variables is defined by settings not code", {
   skip("test depends on old 'Compartmental' model approach")
-  library(macpan2)
   sir = Compartmental(system.file("starter_models", "sir", package = "macpan2"))
   N = 100
   state = c(S = N - 1, I = 1, R = 0)
@@ -25,8 +24,6 @@ test_that("the order of state variables and flow variables is defined by setting
 
 test_that("the order of state variables and flow variables in settings does not impact simulations", {
   skip("test depends on old 'Compartmental' model approach")
-  library(macpan2)
-  library(dplyr)
   sir = Compartmental(system.file("starter_models", "sir", package = "macpan2"))
   sir_mixup = Compartmental(system.file("testing_models", "sir", package = "macpan2"))
   N = 100

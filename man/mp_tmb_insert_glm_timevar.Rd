@@ -17,7 +17,8 @@ mp_tmb_insert_glm_timevar(
   timeseries_name = sprintf("timeseries_\%s", parameter_name),
   timevar_coef_name = sprintf("time_var_\%s", parameter_name),
   time_index_name = sprintf("time_index_\%s", parameter_name),
-  sparsity_tolerance = 0
+  sparsity_tolerance = 0,
+  engine_function = c("sparse_mat_mult", "group_sums")
 )
 }
 \arguments{
@@ -28,7 +29,8 @@ to make time-varying.}
 
 \item{design_matrix}{Matrix of time variation.}
 
-\item{timevar_coef}{Initial coefficient vector.}
+\item{timevar_coef}{Initial coefficient matrix with the same number of rows
+as there are columns of the \code{design_matrix}.}
 
 \item{link_function}{Link function given by functions like
 \code{\link{mp_log}}.}
@@ -56,6 +58,12 @@ parameter changes.}
 
 \item{sparsity_tolerance}{Make design matrix coefficients exactly zero
 when they are below this tolerance.}
+
+\item{engine_function}{Which of two \code{\link{engine_functions}},
+\code{\link{sparse_mat_mult}} or \code{\link{group_sums}}, should be
+used to compute the matrix multiplication. The only reason to use
+anything other than the default is for back-compatibility with an
+existing script.}
 }
 \description{
 Insert GLM Time Variation

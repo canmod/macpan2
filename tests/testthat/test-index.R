@@ -1,4 +1,3 @@
-library(macpan2); library(testthat); library(dplyr); library(tidyr); library(ggplot2)
 test_that("functions that act on index objects behave", {
   # SEIR epi compartments with vaccination status
   epi_states = c("S","E","I","R")

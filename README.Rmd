@@ -17,6 +17,7 @@ library(dplyr)
 theme_bw = function() ggplot2::theme_bw(base_size = 18)
 ```
 
+
 <!-- badges: start -->
 [![macpan2 status badge](https://canmod.r-universe.dev/badges/macpan2)](https://canmod.r-universe.dev/macpan2)
 [![R-CMD-check](https://github.com/canmod/macpan2/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/canmod/macpan2/actions/workflows/R-CMD-check.yaml)

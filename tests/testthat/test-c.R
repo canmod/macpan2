@@ -22,7 +22,6 @@ test_that("concatenation works with many different shapes of input", {
 })
 
 test_that("String objects can be concatenated", {
-  library(testthat); library(macpan2)
   x = macpan2:::StringUndottedVector("S", "E", "I", "R")
   y = macpan2:::StringUndottedVector("D")
   z = macpan2:::StringUndottedVector("S", "E", "I", "R", "D")

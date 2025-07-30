@@ -1,4 +1,3 @@
-library(macpan2); library(testthat); library(dplyr); library(tidyr); library(ggplot2)
 test_that("rbf basis dimension is the same size as initial weights", {
   spec = (
     mp_tmb_library("starter_models", "sir", package = "macpan2") 
