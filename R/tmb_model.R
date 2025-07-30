@@ -52,21 +52,6 @@ mp_simulator.TMBModelSpec = function(model
   model$simulator_fresh(time_steps, outputs, default)
 }
 
-# mp_simulator.TMBSimulator = function(model
-#     , time_steps
-#     , outputs
-#     , default = list()
-#     , inits = list()
-#   ) {
-#   stop("under construction")
-#   if (!missing(time_steps)) {
-#     model$simulator$replace$time_steps(time_steps)
-#   }
-#   ## TODO: 
-#   ## set the params vector as the last best params vector
-#   ## update the outputs
-# }
-
 #' @export
 mp_simulator.TMBCalibrator = function(model
     , time_steps

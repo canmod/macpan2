@@ -1,4 +1,3 @@
-library(macpan2); library(testthat); library(dplyr); library(tidyr); library(ggplot2)
 test_that("mp_rk4() does not repeat preceding random computations to flows", {
   
   seir = mp_tmb_library("starter_models","seir",package = "macpan2")

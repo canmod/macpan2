@@ -1,4 +1,3 @@
-library(macpan2); library(testthat); library(dplyr); library(tidyr); library(ggplot2)
 si = mp_tmb_model_spec(
     before = list(
         I ~ 1

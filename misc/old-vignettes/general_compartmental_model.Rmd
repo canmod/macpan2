@@ -304,7 +304,7 @@ magnitude of the flow. The user may choose from a number of flow types for each 
 We present an example model that is just complex enough to illustrate the
 general model.
 
-![](../misc/diagrams/model_matrices.png)
+![](../diagrams/model_matrices.png)
 
 The state vector is given as follows.
 

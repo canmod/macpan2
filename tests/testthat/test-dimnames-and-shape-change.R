@@ -1,6 +1,3 @@
-library(macpan2)
-library(testthat)
-
 test_that("matrices with dimnames can change size", {
   m = macpan2:::TMBModel(
       init_mats = macpan2:::MatsList(x = c(a = 0), .mats_to_save = "x", .mats_to_return = "x"),

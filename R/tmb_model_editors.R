@@ -288,7 +288,8 @@ mp_tmb_insert_reports = function(model
 #' @param parameter_name Character string giving the name of the parameter
 #' to make time-varying.
 #' @param design_matrix Matrix of time variation.
-#' @param timevar_coef Initial coefficient vector.
+#' @param timevar_coef Initial coefficient matrix with the same number of rows
+#' as there are columns of the `design_matrix`.
 #' @param link_function Link function given by functions like
 #' \code{\link{mp_log}}.
 #' @param matrix_coef_name Name of the vector containing values of the non-zero 
@@ -307,6 +308,11 @@ mp_tmb_insert_reports = function(model
 #' parameter changes.
 #' @param sparsity_tolerance Make design matrix coefficients exactly zero
 #' when they are below this tolerance.
+#' @param engine_function Which of two \code{\link{engine_functions}},
+#' \code{\link{sparse_mat_mult}} or \code{\link{group_sums}}, should be
+#' used to compute the matrix multiplication. The only reason to use
+#' anything other than the default is for back-compatibility with an
+#' existing script.
 #' 
 #' @export
 mp_tmb_insert_glm_timevar = function(model
@@ -322,13 +328,30 @@ mp_tmb_insert_glm_timevar = function(model
     , timevar_coef_name = sprintf("time_var_%s", parameter_name)
     , time_index_name = sprintf("time_index_%s", parameter_name)
     , sparsity_tolerance = 0
+    , engine_function = c("sparse_mat_mult", "group_sums")
 ) {
+  if (!parameter_name %in% names(model$default)) {
+    sprintf(
+        "Parameter '%s' not found in model$default. You must define it before adding time variation."
+      , parameter_name
+    ) |> stop()
+  }
+
+  design_matrix = as.matrix(design_matrix)
+  if (nrow(design_matrix) < 1L) stop("The design matrix must have at least one row.")
+  if (ncol(design_matrix) != nrow(timevar_coef)) {
+    stop("The design_matrix and timevar_coef matrix are not compatible. The number of columns in the former must equal the number of rows in the latter.")
+  }
+    
+  
   sparse_matrix = sparse_matrix_notation(design_matrix, tol = sparsity_tolerance)
+  
+  engine_function = match.arg(engine_function)
   
   matrix_coefs = sparse_matrix$values
   matrix_row = sparse_matrix$row_index
   matrix_col = sparse_matrix$col_index
-  linear_pred = timeseries = numeric(nrow(design_matrix))
+  linear_pred = timeseries = matrix(0, nrow(design_matrix), ncol(timevar_coef))
   
   time_var = list(timevar_coef) |> setNames(timevar_coef_name)
   time_index = seq_along(linear_pred)
@@ -342,11 +365,22 @@ mp_tmb_insert_glm_timevar = function(model
     , c(matrix_row_name, matrix_col_name, time_index_name)
   )
   
-  matmult = sprintf("%s ~ %s + group_sums(%s * %s[%s], %s, %s)"
-    , linear_pred_name, link_function$ref(parameter_name)
-    , matrix_coef_name, timevar_coef_name
-    , matrix_col_name, matrix_row_name, linear_pred_name
-  ) |> as.formula()
+  if (engine_function == "group_sums") {
+    matmult = sprintf("%s ~ %s + group_sums(%s * %s[%s], %s, %s)"
+      , linear_pred_name, link_function$ref(parameter_name)
+      , matrix_coef_name, timevar_coef_name
+      , matrix_col_name, matrix_row_name, linear_pred_name
+    ) |> as.formula()
+  } else if(engine_function == "sparse_mat_mult") {
+    matmult = sprintf("%s ~ %s + sparse_mat_mult(%s, %s, %s, %s, %s)"
+      , linear_pred_name
+      , link_function$ref(parameter_name)
+      , matrix_coef_name, matrix_row_name, matrix_col_name
+      , timevar_coef_name
+      , linear_pred_name
+    ) |> as.formula()
+  }
+  
   linkfn = sprintf("%s ~ %s"
     , timeseries_name
     , link_function$ref_inv(linear_pred_name)
