@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -63,7 +63,8 @@
 <span>  timeseries_name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"timeseries_%s"</span>, <span class="va">parameter_name</span><span class="op">)</span>,</span>
 <span>  timevar_coef_name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"time_var_%s"</span>, <span class="va">parameter_name</span><span class="op">)</span>,</span>
 <span>  time_index_name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"time_index_%s"</span>, <span class="va">parameter_name</span><span class="op">)</span>,</span>
-<span>  sparsity_tolerance <span class="op">=</span> <span class="fl">0</span></span>
+<span>  sparsity_tolerance <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  engine_function <span class="op">=</span> <span class="fu"><a href="engine_functions.html">c</a></span><span class="op">(</span><span class="st">"sparse_mat_mult"</span>, <span class="st">"group_sums"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -85,7 +86,8 @@ to make time-varying.</p></dd>
 
 
 <dt id="arg-timevar-coef">timevar_coef<a class="anchor" aria-label="anchor" href="#arg-timevar-coef"></a></dt>
-<dd><p>Initial coefficient vector.</p></dd>
+<dd><p>Initial coefficient matrix with the same number of rows
+as there are columns of the <code>design_matrix</code>.</p></dd>
 
 
 <dt id="arg-link-function">link_function<a class="anchor" aria-label="anchor" href="#arg-link-function"></a></dt>
@@ -131,6 +133,14 @@ parameter changes.</p></dd>
 <dt id="arg-sparsity-tolerance">sparsity_tolerance<a class="anchor" aria-label="anchor" href="#arg-sparsity-tolerance"></a></dt>
 <dd><p>Make design matrix coefficients exactly zero
 when they are below this tolerance.</p></dd>
+
+
+<dt id="arg-engine-function">engine_function<a class="anchor" aria-label="anchor" href="#arg-engine-function"></a></dt>
+<dd><p>Which of two <code><a href="engine_functions.html">engine_functions</a></code>,
+<code><a href="engine_functions.html">sparse_mat_mult</a></code> or <code><a href="engine_functions.html">group_sums</a></code>, should be
+used to compute the matrix multiplication. The only reason to use
+anything other than the default is for back-compatibility with an
+existing script.</p></dd>
 
 </dl></div>
 

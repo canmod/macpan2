@@ -13,7 +13,9 @@ articles:
   engine_agnostic_grammar: engine_agnostic_grammar.html
   example_models: example_models.html
   FAQs: FAQs.html
+  kronecker: kronecker.html
   likelihood_prior_specs: likelihood_prior_specs.html
+  matrix_multiplication: matrix_multiplication.html
   options: options.html
   quickstart: quickstart.html
   real_data: real_data.html
@@ -22,7 +24,7 @@ articles:
   time_varying_parameters_advanced: time_varying_parameters_advanced.html
   time_varying_parameters: time_varying_parameters.html
   vignette_status: vignette_status.html
-last_built: 2025-07-29T19:52Z
+last_built: 2025-07-30T20:56Z
 urls:
   reference: https://canmod.github.io/macpan2/reference
   article: https://canmod.github.io/macpan2/articles

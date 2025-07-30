@@ -15,7 +15,9 @@
 <url><loc>https://canmod.github.io/macpan2/articles/engine_agnostic_grammar.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/articles/example_models.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/articles/index.html</loc></url>
+<url><loc>https://canmod.github.io/macpan2/articles/kronecker.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/articles/likelihood_prior_specs.html</loc></url>
+<url><loc>https://canmod.github.io/macpan2/articles/matrix_multiplication.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/articles/options.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/articles/quickstart.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/articles/real_data.html</loc></url>
@@ -62,6 +64,7 @@
 <url><loc>https://canmod.github.io/macpan2/reference/mp_index.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_initial.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_join.html</loc></url>
+<url><loc>https://canmod.github.io/macpan2/reference/mp_kronecker_operator.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_labels.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_layout_grid.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_layout_paths.html</loc></url>
@@ -89,6 +92,7 @@
 <url><loc>https://canmod.github.io/macpan2/reference/mp_simulator.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_slices.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_square.html</loc></url>
+<url><loc>https://canmod.github.io/macpan2/reference/mp_square_operator.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_state_dependence_frame.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_structured_vector.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/mp_subset.html</loc></url>
@@ -124,6 +128,7 @@
 <url><loc>https://canmod.github.io/macpan2/reference/rbf.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/si_example.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/simple_sims.html</loc></url>
+<url><loc>https://canmod.github.io/macpan2/reference/sparse_matrix_notation.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/state_updates.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/to_positions.html</loc></url>
 <url><loc>https://canmod.github.io/macpan2/reference/to_string.html</loc></url>

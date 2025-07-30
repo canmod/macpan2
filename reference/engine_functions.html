@@ -11,7 +11,7 @@ simulations."><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -176,12 +176,14 @@ the results of applying the function to each element of <code>x</code>.</p></li>
 </div>
 
 <div class="section">
-<h3 id="proportions">Proportions<a class="anchor" aria-label="anchor" href="#proportions"></a></h3>
+<h3 id="limiting-values">Limiting Values<a class="anchor" aria-label="anchor" href="#limiting-values"></a></h3>
 
 <div class="section">
 <h4 id="functions-2">Functions<a class="anchor" aria-label="anchor" href="#functions-2"></a></h4>
 
 <ul><li><p><code>proportions(x, limit, eps)</code></p></li>
+<li><p><code>limit(x, limit, eps)</code></p></li>
+<li><p><code>clamp(x, eps, limit)</code></p></li>
 </ul></div>
 
 <div class="section">
@@ -205,6 +207,58 @@ the results of applying the function to each element of <code>x</code>.</p></li>
 
 <p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span> <span class="fu">proportions</span>(y, <span class="fl">0.5</span>, <span class="fl">1e-8</span>), <span class="at">y =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="fl">0.5</span>))</span></code></pre><p></p></div>
 </div>
+
+<div class="section">
+<h4 id="details-1">Details<a class="anchor" aria-label="anchor" href="#details-1"></a></h4>
+
+
+<p>The return value depends on the function.</p><ul><li><p><code>proportions</code> : matrix of <code>x / sum(x)</code> or <code>rep(limit, length(x))</code> if
+<code>sum(x) &lt; eps</code>.</p></li>
+<li><p><code>limit</code> :</p></li>
+<li><p><code>clamp</code> :</p></li>
+</ul></div>
+
+<div class="section">
+<h4 id="details-2">Details<a class="anchor" aria-label="anchor" href="#details-2"></a></h4>
+
+
+<p>The divide_safe() function conducts elementwise division
+of the first two arguments, and then allows two other
+arguments:</p><ul><li><p><code>limit</code> : Value to return if the <code>sqrt(denominator^2)</code> is</p></li>
+</ul></div>
+
+<div class="section">
+<h4 id="details-3">Details<a class="anchor" aria-label="anchor" href="#details-3"></a></h4>
+
+
+<p>The <code>clamp</code> function smoothly clamps the elements of a
+matrix so that they
+do not get closer to 0 than a tolerance, <code>eps</code>, with
+a default of 1e-12. This <code>clamp</code> function is the following
+modification of the
+<a href="https://arxiv.org/abs/2112.11687" class="external-link">squareplus function</a>.</p>
+<p>$$f(x) = \epsilon_- + \frac{(x - \epsilon_-) + \sqrt{(x - \epsilon_-)^2 + (2\epsilon_0 - \epsilon_-)^2 - \epsilon_-^2}}{2}$$</p>
+<p>Where the two parameters are defined as follows.</p>
+<p>$$\epsilon_0 = f(0)$$</p>
+<p>$$\epsilon_- = \lim_{x \to  -\infty}f(x)$$</p>
+<p>This function is differentiable everywhere, monotonically
+increasing, and \(f(x) \approx x\) if \(x\) is positive
+and not too close to zero. By modifying the parameters, you
+can control the distance between \(f(x)\) and the
+horizontal axis at two 'places' – \(0\) and \(-\infty\).
+<a href="https://github.com/canmod/macpan2/issues/93" class="external-link">See issue #93</a>.
+for more information.</p>
+<p>For <code>clamp</code> the arguments specifically mean.</p><ul><li><p><code>x</code> : A matrix with elements that should remain positive.</p></li>
+<li><p><code>eps</code> : A small positive number, \(\epsilon_0 = f(0)\),
+giving the value of the function when the input is zero.
+The default value is 1e-11</p></li>
+<li><p><code>limit</code> : A small positive number,
+$$\epsilon_- = \lim_{x \to  -\infty}f(x)$$, giving the
+value of the function as the input goes to negative
+infinity. The default is <code>limit = 1e-12</code>. This <code>limit</code>
+should be chosen to be less than <code>eps</code> to ensure that
+<code>clamp</code> is twice differentiable.</p></li>
+</ul></div>
 
 
 </div>
@@ -241,7 +295,7 @@ between adjacent values in the sequence.</p></li>
 </ul></div>
 
 <div class="section">
-<h4 id="details-1">Details<a class="anchor" aria-label="anchor" href="#details-1"></a></h4>
+<h4 id="details-4">Details<a class="anchor" aria-label="anchor" href="#details-4"></a></h4>
 
 
 <p>The colon operator works much like the base R version
@@ -312,15 +366,24 @@ on top of each other.</p></li>
 
 <ul><li><p><code>x %*% y</code> : Standard matrix multiplication.</p></li>
 <li><p><code>x %x% y</code> : Kronecker product</p></li>
+<li><p><code>sparse_mat_mult(x, i, j, y, z)</code> : Matrix multiplication
+when the left matrix is represented as a column vector, <code>x</code>,
+of non-zero elements and integer vectors of row, <code>i</code>, and
+column, <code>j</code>, indices. The right matrix and the resulting
+matrix are not represented as sparse matrices.</p></li>
 </ul></div>
 
 <div class="section">
 <h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
 
-<ul><li><p><code>x</code> : A matrix. For the standard product, <code>x</code>
-must have as many columns as <code>y</code> has rows.</p></li>
-<li><p><code>y</code> : A matrix. For standard product, <code>y</code>
-must have as many rows as <code>x</code> has columns.</p></li>
+<ul><li><p><code>x</code> : A matrix.</p></li>
+<li><p><code>y</code> : A matrix.</p></li>
+<li><p><code>i</code> : Integer vector the same length as <code>x</code> giving
+zero-based row indices for sparse matrix representation.</p></li>
+<li><p><code>j</code> : Integer vector the same length as <code>x</code> giving
+zero-based column indices for sparse matrix representation.</p></li>
+<li><p><code>z</code> : A matrix with dimensions equal to the result of
+the sparse matrix multiplication (see details).</p></li>
 </ul></div>
 
 <div class="section">
@@ -335,6 +398,21 @@ must have as many rows as <code>x</code> has columns.</p></li>
 
 <p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span> (<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>) <span class="sc">%*%</span> <span class="fu">t</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>))</span>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">engine_eval</span>(<span class="sc">~</span> (<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>) <span class="sc">%x%</span> <span class="fu">t</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>))</span></code></pre><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="details-5">Details<a class="anchor" aria-label="anchor" href="#details-5"></a></h4>
+
+
+<p>For standard matrix multiplication, <code>x %*% y</code>, the number of
+columns of <code>x</code> equals the number of rows of <code>y</code>.</p>
+<p>Think about <code>sparse_mat_mult(x, i, j, y, z)</code> as similar to
+<code>z ~ x %*% y</code>, where <code>x</code> is represented differently. In
+particular, the argument <code>x</code> is a column vector containing the
+non-zero elements of the left matrix, <code>i</code> contains the
+zero-based row indices associated with each element in <code>x</code>,
+and <code>j</code> contains the zero-based column indices associated with
+each element in <code>x</code>.</p>
 </div>
 
 
@@ -389,7 +467,7 @@ columns in the output.</p></li>
 </ul></div>
 
 <div class="section">
-<h4 id="details-2">Details<a class="anchor" aria-label="anchor" href="#details-2"></a></h4>
+<h4 id="details-6">Details<a class="anchor" aria-label="anchor" href="#details-6"></a></h4>
 
 
 <p>Any number of column vectors can be combined into a
@@ -457,7 +535,7 @@ the column index.</p></li>
 </ul></div>
 
 <div class="section">
-<h4 id="details-3">Details<a class="anchor" aria-label="anchor" href="#details-3"></a></h4>
+<h4 id="details-7">Details<a class="anchor" aria-label="anchor" href="#details-7"></a></h4>
 
 
 <p>The <code>to_diag</code> function can be used to produce a
@@ -524,7 +602,7 @@ this group and the output at index <code>k+1</code> is <code>n[k+1]</code>.</p><
 </ul></div>
 
 <div class="section">
-<h4 id="details-4">Details<a class="anchor" aria-label="anchor" href="#details-4"></a></h4>
+<h4 id="details-8">Details<a class="anchor" aria-label="anchor" href="#details-8"></a></h4>
 
 
 <p>The <code>row_sums</code> and <code>col_sums</code> are similar to the base R
@@ -622,7 +700,7 @@ in <code>x</code>.</p></li>
 </ul></div>
 
 <div class="section">
-<h4 id="details-5">Details<a class="anchor" aria-label="anchor" href="#details-5"></a></h4>
+<h4 id="details-9">Details<a class="anchor" aria-label="anchor" href="#details-9"></a></h4>
 
 
 <p>Note that zero-based indexing is used
@@ -819,7 +897,7 @@ time lag for a kernel of length \(m\).</p></li>
 </ul></div>
 
 <div class="section">
-<h4 id="details-6">Details<a class="anchor" aria-label="anchor" href="#details-6"></a></h4>
+<h4 id="details-10">Details<a class="anchor" aria-label="anchor" href="#details-10"></a></h4>
 
 
 <p>If any empty matrices are encountered when looking
@@ -850,49 +928,6 @@ calibrating) for time steps less than \(m\).</p>
 </div>
 
 <div class="section">
-<h3 id="clamp">Clamp<a class="anchor" aria-label="anchor" href="#clamp"></a></h3>
-
-
-<p>Smoothly clamp the elements of a matrix so that they
-do not get closer to 0 than a tolerance, <code>eps</code>, with
-a default of 1e-12. This <code>clamp</code> function is the following
-modification of the
-<a href="https://arxiv.org/abs/2112.11687" class="external-link">squareplus function</a>.</p>
-<p>$$f(x) = \epsilon_- + \frac{(x - \epsilon_-) + \sqrt{(x - \epsilon_-)^2 + (2\epsilon_0 - \epsilon_-)^2 - \epsilon_-^2}}{2}$$</p>
-<p>Where the two parameters are defined as follows.</p>
-<p>$$\epsilon_0 = f(0)$$</p>
-<p>$$\epsilon_- = \lim_{x \to  -\infty}f(x)$$</p>
-<p>This function is differentiable everywhere, monotonically
-increasing, and \(f(x) \approx x\) if \(x\) is positive
-and not too close to zero. By modifying the parameters, you
-can control the distance between \(f(x)\) and the
-horizontal axis at two 'places' – \(0\) and \(-\infty\).
-<a href="https://github.com/canmod/macpan2/issues/93" class="external-link">See issue #93</a>.
-for more information.</p><div class="section">
-<h4 id="functions-14">Functions<a class="anchor" aria-label="anchor" href="#functions-14"></a></h4>
-
-<ul><li><p><code>clamp(x, eps, limit)</code></p></li>
-</ul></div>
-
-<div class="section">
-<h4 id="arguments-14">Arguments<a class="anchor" aria-label="anchor" href="#arguments-14"></a></h4>
-
-<ul><li><p><code>x</code> : A matrix with elements that should remain positive.</p></li>
-<li><p><code>eps</code> : A small positive number, \(\epsilon_0 = f(0)\),
-giving the value of the function when the input is zero.
-The default value is 1e-11</p></li>
-<li><p><code>limit</code> : A small positive number,
-$$\epsilon_- = \lim_{x \to  -\infty}f(x)$$, giving the
-value of the function as the input goes to negative
-infinity. The default is <code>limit = 1e-12</code>. This <code>limit</code>
-should be chosen to be less than <code>eps</code> to ensure that
-<code>clamp</code> is twice differentiable.</p></li>
-</ul></div>
-
-
-</div>
-
-<div class="section">
 <h3 id="probability-densities">Probability Densities<a class="anchor" aria-label="anchor" href="#probability-densities"></a></h3>
 
 
@@ -914,7 +949,7 @@ repeated to match the number of rows and columns in
 the <code>observed</code> matrix. This feature allows one
 to do things like specify a single common mean for
 several values.</p><div class="section">
-<h4 id="functions-15">Functions<a class="anchor" aria-label="anchor" href="#functions-15"></a></h4>
+<h4 id="functions-14">Functions<a class="anchor" aria-label="anchor" href="#functions-14"></a></h4>
 
 <ul><li><p><code>dpois(observed, simulated)</code> : Log of the Poisson density
 based on this <a href="https://kaskr.github.io/adcomp/group__R__style__distribution.html#gaa1ed15503e1441a381102a8c4c9baaf1" class="external-link">dpois</a>
@@ -933,7 +968,7 @@ TMB function.</p></li>
 </ul></div>
 
 <div class="section">
-<h4 id="arguments-15">Arguments<a class="anchor" aria-label="anchor" href="#arguments-15"></a></h4>
+<h4 id="arguments-14">Arguments<a class="anchor" aria-label="anchor" href="#arguments-14"></a></h4>
 
 <ul><li><p><code>observed</code> : Matrix of observed values
 at which the density is being evaluated.</p></li>
@@ -963,7 +998,7 @@ so that all arguments have the same number of rows
 and columns. All functions return a matrix the same
 shape as <code>mean</code> but with pseudo-random numbers
 deviating from each mean in the <code>mean</code> matrix.</p><div class="section">
-<h4 id="functions-16">Functions<a class="anchor" aria-label="anchor" href="#functions-16"></a></h4>
+<h4 id="functions-15">Functions<a class="anchor" aria-label="anchor" href="#functions-15"></a></h4>
 
 <ul><li><p><code>rpois(mean)</code> : Pseudo-random Poisson distributed
 values.</p></li>
@@ -978,7 +1013,7 @@ values.</p></li>
 </ul></div>
 
 <div class="section">
-<h4 id="arguments-16">Arguments<a class="anchor" aria-label="anchor" href="#arguments-16"></a></h4>
+<h4 id="arguments-15">Arguments<a class="anchor" aria-label="anchor" href="#arguments-15"></a></h4>
 
 <ul><li><p><code>mean</code> : Matrix of means about which to simulate
 pseudo-random variation.</p></li>
@@ -1002,7 +1037,7 @@ distribution.</p></li>
 </ul></div>
 
 <div class="section">
-<h4 id="details-7">Details<a class="anchor" aria-label="anchor" href="#details-7"></a></h4>
+<h4 id="details-11">Details<a class="anchor" aria-label="anchor" href="#details-11"></a></h4>
 
 
 <p>The Euler-multinomial distribution is used to model how
@@ -1022,7 +1057,7 @@ have to change compartments in a time step.</p>
 
 
 <p>Lower-tail cumulative distribution functions.</p><div class="section">
-<h4 id="functions-17">Functions<a class="anchor" aria-label="anchor" href="#functions-17"></a></h4>
+<h4 id="functions-16">Functions<a class="anchor" aria-label="anchor" href="#functions-16"></a></h4>
 
 <ul><li><p><code>pgamma(q, shape, scale)</code> : Cumulative distribution function
 of the Gamma distribution. This is a lite wrapper for the
@@ -1033,7 +1068,7 @@ the normal distribution. This is a lite wrapper for the
 </ul></div>
 
 <div class="section">
-<h4 id="arguments-17">Arguments<a class="anchor" aria-label="anchor" href="#arguments-17"></a></h4>
+<h4 id="arguments-16">Arguments<a class="anchor" aria-label="anchor" href="#arguments-16"></a></h4>
 
 <ul><li><p><code>q</code> : Matrix of Quantiles.</p></li>
 <li><p><code>shape</code> : Matrix of shape parameters of the Gamma distribution.</p></li>
@@ -1049,20 +1084,20 @@ the normal distribution. This is a lite wrapper for the
 <h3 id="rounding">Rounding<a class="anchor" aria-label="anchor" href="#rounding"></a></h3>
 
 <div class="section">
-<h4 id="functions-18">Functions<a class="anchor" aria-label="anchor" href="#functions-18"></a></h4>
+<h4 id="functions-17">Functions<a class="anchor" aria-label="anchor" href="#functions-17"></a></h4>
 
 
 <p>round(x) : Round elements of a matrix to the nearest integer.</p>
 </div>
 
 <div class="section">
-<h4 id="arguments-18">Arguments<a class="anchor" aria-label="anchor" href="#arguments-18"></a></h4>
+<h4 id="arguments-17">Arguments<a class="anchor" aria-label="anchor" href="#arguments-17"></a></h4>
 
 <ul><li><p><code>x</code> : Matrix to be rounded.</p></li>
 </ul></div>
 
 <div class="section">
-<h4 id="details-8">Details<a class="anchor" aria-label="anchor" href="#details-8"></a></h4>
+<h4 id="details-12">Details<a class="anchor" aria-label="anchor" href="#details-12"></a></h4>
 
 
 <p>Be careful if you are using rounding in a model to be calibrated.
@@ -1081,7 +1116,7 @@ not round in models being calibrated.</p>
 
 
 <p>Functions to use when you are trying to figure stuff out.</p><div class="section">
-<h4 id="functions-19">Functions<a class="anchor" aria-label="anchor" href="#functions-19"></a></h4>
+<h4 id="functions-18">Functions<a class="anchor" aria-label="anchor" href="#functions-18"></a></h4>
 
 <ul><li><p><code>print(x)</code> : Print out the value of a matrix.</p></li>
 <li><p><code>check_finite(x)</code> : Stop the simulations and return an
@@ -1089,7 +1124,7 @@ error if <code>x</code> has any non-finite values.</p></li>
 </ul></div>
 
 <div class="section">
-<h4 id="arguments-19">Arguments<a class="anchor" aria-label="anchor" href="#arguments-19"></a></h4>
+<h4 id="arguments-18">Arguments<a class="anchor" aria-label="anchor" href="#arguments-18"></a></h4>
 
 <ul><li><p><code>x</code> : Name of a matrix in the model.</p></li>
 </ul></div>
@@ -1122,13 +1157,13 @@ error if <code>x</code> has any non-finite values.</p></li>
 
 
 <p>Assign values to a subset of the elements in a matrix.</p><div class="section">
-<h4 id="functions-20">Functions<a class="anchor" aria-label="anchor" href="#functions-20"></a></h4>
+<h4 id="functions-19">Functions<a class="anchor" aria-label="anchor" href="#functions-19"></a></h4>
 
 <ul><li><p><code>assign(x, i, j, v)</code></p></li>
 </ul></div>
 
 <div class="section">
-<h4 id="arguments-20">Arguments<a class="anchor" aria-label="anchor" href="#arguments-20"></a></h4>
+<h4 id="arguments-19">Arguments<a class="anchor" aria-label="anchor" href="#arguments-19"></a></h4>
 
 <ul><li><p><code>x</code> : Matrix with elements that are to be updated
 by the values in <code>v</code>.</p></li>
@@ -1184,13 +1219,13 @@ components with those in <code>v</code>.</p>
 
 
 <p>Unpack elements of a matrix into smaller matrices.</p><div class="section">
-<h4 id="functions-21">Functions<a class="anchor" aria-label="anchor" href="#functions-21"></a></h4>
+<h4 id="functions-20">Functions<a class="anchor" aria-label="anchor" href="#functions-20"></a></h4>
 
 <ul><li><p><code>unpack(x, ...)</code></p></li>
 </ul></div>
 
 <div class="section">
-<h4 id="arguments-21">Arguments<a class="anchor" aria-label="anchor" href="#arguments-21"></a></h4>
+<h4 id="arguments-20">Arguments<a class="anchor" aria-label="anchor" href="#arguments-20"></a></h4>
 
 <ul><li><p><code>x</code> : Matrix with elements to be distributed to
 the matrices passed through <code>...</code>.</p></li>
@@ -1239,7 +1274,7 @@ used up by <code>x</code>.</p>
 
 <p>The left-hand-side of formulas sent to the simulation engine
 determine assignment works.</p><div class="section">
-<h4 id="functions-22">Functions<a class="anchor" aria-label="anchor" href="#functions-22"></a></h4>
+<h4 id="functions-21">Functions<a class="anchor" aria-label="anchor" href="#functions-21"></a></h4>
 
 <ul><li><p><code>y ~ x</code> : Assign <code>x</code> to <code>y</code>.</p></li>
 <li><p><code>y[i] ~ x</code> : Assign the first column of <code>x</code> to those rows
@@ -1255,7 +1290,7 @@ then the columns of <code>x</code> become assigned to the vectors in <code>...</
 </ul></div>
 
 <div class="section">
-<h4 id="arguments-22">Arguments<a class="anchor" aria-label="anchor" href="#arguments-22"></a></h4>
+<h4 id="arguments-21">Arguments<a class="anchor" aria-label="anchor" href="#arguments-21"></a></h4>
 
 <ul><li><p><code>x</code> : Matrix containing the result of the expression on the
 right-hand-side.</p></li>
