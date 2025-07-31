@@ -5,12 +5,12 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Matrix Operations in macpan2 Models • macpan2</title>
+<title>Multiplying Matrices in macpan2 Models • macpan2</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Matrix Operations in macpan2 Models">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Multiplying Matrices in macpan2 Models">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script>
 </head>
@@ -65,7 +65,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>Matrix Operations in macpan2 Models</h1>
+      <h1>Multiplying Matrices in macpan2 Models</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/canmod/macpan2/blob/main/vignettes/matrix_multiplication.Rmd" class="external-link"><code>vignettes/matrix_multiplication.Rmd</code></a></small>
@@ -156,6 +156,112 @@ z_{i,j} = \begin{cases}
 <a href="https://canmod.github.io/macpan2/articles/elementwise_binary_operators">this
 article</a> for a general overview and examples of how
 <code>macpan2</code> handles elementwise binary operators.</p>
+<div class="section level3">
+<h3 id="example-of-age-structured-transmission-with-elementwise-matrix-multiplication">Example of Age-Structured Transmission with Elementwise Matrix
+Multiplication<a class="anchor" aria-label="anchor" href="#example-of-age-structured-transmission-with-elementwise-matrix-multiplication"></a>
+</h3>
+<p>We illustrate how a structured force of infection can be built inside
+a <code>macpan2</code> model using elementwise matrix
+multiplication.</p>
+<p>We define the matrices used to construct the force of infection: a
+2×1 susceptibility matrix, a 2×2 contact matrix with rows summing to 1,
+and a 1×2 infectivity matrix.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">susceptibility</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/engine_functions.html">matrix</a></span><span class="op">(</span><span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="fl">0.8</span>, <span class="fl">1.2</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  dimnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sus <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"young"</span>, <span class="st">"old"</span><span class="op">)</span>, <span class="cn">NULL</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">contact</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/engine_functions.html">matrix</a></span><span class="op">(</span><span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="fl">0.6</span>, <span class="fl">0.4</span>,</span>
+<span>                    <span class="fl">0.3</span>, <span class="fl">0.7</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fl">2</span>, byrow <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  dimnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sus <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"young"</span>, <span class="st">"old"</span><span class="op">)</span>,</span>
+<span>                  inf <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"young"</span>, <span class="st">"old"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">infectivity</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/engine_functions.html">matrix</a></span><span class="op">(</span><span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="fl">1.0</span>, <span class="fl">0.5</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  dimnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="cn">NULL</span>, inf <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"young"</span>, <span class="st">"old"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/engine_functions.html">print</a></span><span class="op">(</span><span class="va">susceptibility</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##        </span></span>
+<span><span class="co">## sus     [,1]</span></span>
+<span><span class="co">##   young  0.8</span></span>
+<span><span class="co">##   old    1.2</span></span></code></pre>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/engine_functions.html">print</a></span><span class="op">(</span><span class="va">contact</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##        inf</span></span>
+<span><span class="co">## sus     young old</span></span>
+<span><span class="co">##   young   0.6 0.4</span></span>
+<span><span class="co">##   old     0.3 0.7</span></span></code></pre>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/engine_functions.html">print</a></span><span class="op">(</span><span class="va">infectivity</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##       inf</span></span>
+<span><span class="co">##        young old</span></span>
+<span><span class="co">##   [1,]     1 0.5</span></span></code></pre>
+<p>We next define the model specification. The <code>before</code> block
+uses elementwise matrix multiplication to construct a transmission
+matrix <code>B</code> from <code>susceptibility</code>,
+<code>contact</code>, and <code>infectivity</code>. This is multiplied
+by normalized prevalence to produce the force of infection
+<code>lambda</code>.</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/mp_tmb_model_spec.html">mp_tmb_model_spec</a></span><span class="op">(</span></span>
+<span>  before <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>        <span class="va">N</span> <span class="op">~</span> <span class="va">S</span> <span class="op">+</span> <span class="va">I</span></span>
+<span>      , <span class="va">B</span> <span class="op">~</span> <span class="va">beta</span> <span class="op">*</span> <span class="va">susceptibility</span> <span class="op">*</span> <span class="va">contact</span> <span class="op">*</span> <span class="va">infectivity</span></span>
+<span>      , <span class="va">lambda</span> <span class="op">~</span> <span class="va">B</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="op">(</span><span class="va">I</span> <span class="op">/</span> <span class="va">N</span><span class="op">)</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  during <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="../reference/mp_per_capita_flow.html">mp_per_capita_flow</a></span><span class="op">(</span></span>
+<span>      from <span class="op">=</span> <span class="st">"S"</span>, to <span class="op">=</span> <span class="st">"I"</span>, rate <span class="op">=</span> <span class="st">"lambda"</span>,</span>
+<span>      flow_name <span class="op">=</span> <span class="st">"infection"</span></span>
+<span>    <span class="op">)</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  default <span class="op">=</span> <span class="fu"><a href="../reference/nlist.html">nlist</a></span><span class="op">(</span></span>
+<span>        beta <span class="op">=</span> <span class="fl">0.8</span></span>
+<span>      , S <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>young <span class="op">=</span> <span class="fl">90</span>, old <span class="op">=</span> <span class="fl">90</span><span class="op">)</span></span>
+<span>      , I <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>young <span class="op">=</span> <span class="fl">10</span>, old <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
+<span>      , N <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>young <span class="op">=</span> <span class="fl">100</span>, old <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
+<span>      , <span class="va">susceptibility</span>, <span class="va">contact</span>, <span class="va">infectivity</span></span>
+<span>      , infection <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>young <span class="op">=</span> <span class="cn">NA_real_</span>, old <span class="op">=</span> <span class="cn">NA_real_</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>Note the specification of the <code>infection</code> vector in the
+<code>default</code> list so that the names <code>young</code> and
+<code>old</code> can be provided in the simulated outputs.</p>
+<p>We next run the simulation for 50 time steps and plot the
+trajectories of susceptibles, infecteds, and new infections, stratified
+by age group.</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">result</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">spec</span></span>
+<span>  <span class="op">|&gt;</span> <span class="fu"><a href="../reference/mp_simulator.html">mp_simulator</a></span><span class="op">(</span></span>
+<span>       time_steps <span class="op">=</span> <span class="fl">50</span>,</span>
+<span>       outputs <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"S"</span>, <span class="st">"I"</span>, <span class="st">"infection"</span><span class="op">)</span></span>
+<span>     <span class="op">)</span></span>
+<span>  <span class="op">|&gt;</span> <span class="fu"><a href="../reference/mp_trajectory.html">mp_trajectory</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
+<span>       variable <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">matrix</span>, levels <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"S"</span>, <span class="st">"I"</span>, <span class="st">"infection"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>       age <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">row</span>, levels <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"young"</span>, <span class="st">"old"</span><span class="op">)</span><span class="op">)</span></span>
+<span>     <span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="op">(</span><span class="va">result</span></span>
+<span>  <span class="op">|&gt;</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">value</span><span class="op">)</span></span>
+<span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_grid.html" class="external-link">facet_grid</a></span><span class="op">(</span><span class="va">variable</span> <span class="op">~</span> <span class="va">age</span>, scales <span class="op">=</span> <span class="st">"free"</span><span class="op">)</span></span>
+<span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p><img src="matrix_multiplication_files/figure-html/simulate-and-plot-1.png" width="480"></p>
+<p>Note that elementwise matrix multiplication with row and column
+vectors is equivalent to standard matrix multiplication with diagonal
+matrices. That is, in <code>macpan2</code>
+<code>susceptibility * contact * infectivity</code> behaves like
+<code>diag(susceptibility) %*% contact %*% diag(infectivity)</code>, but
+with fewer zeros.</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="multiplying-a-sparse-matrix-with-a-dense-matrix">Multiplying a Sparse Matrix with a Dense Matrix<a class="anchor" aria-label="anchor" href="#multiplying-a-sparse-matrix-with-a-dense-matrix"></a>
@@ -188,7 +294,7 @@ sparse matrix, you pass:</p>
 <code>macpan2</code> provides the helper function
 <code><a href="../reference/sparse_matrix_notation.html">sparse_matrix_notation()</a></code>. This function takes a dense
 matrix and returns:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">A</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/engine_functions.html">matrix</a></span><span class="op">(</span><span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">0</span>, <span class="fl">0</span>,</span>
 <span>              <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">3</span>,</span>
 <span>              <span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">0</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fl">3</span>, byrow <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -215,7 +321,7 @@ matrix and returns:</p>
 <span><span class="co">## [1,]    5    0    0</span></span>
 <span><span class="co">## [2,]    0    0    3</span></span>
 <span><span class="co">## [3,]    0    2    0</span></span></code></pre>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">total_entries</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">A</span><span class="op">)</span></span>
 <span><span class="va">non_zero_entries</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">A_sparse</span><span class="op">$</span><span class="va">values</span><span class="op">)</span></span>
 <span><span class="va">sparsity</span> <span class="op">&lt;-</span> <span class="fl">100</span> <span class="op">*</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">non_zero_entries</span> <span class="op">/</span> <span class="va">total_entries</span><span class="op">)</span></span>
@@ -229,7 +335,7 @@ matrix and returns:</p>
 where matrix <code>A</code> is represented by the sparse object
 <code>A_sparse</code>, and multiplying <code>A</code> by a dense matrix
 <code>y</code>.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/engine_functions.html">matrix</a></span><span class="op">(</span><span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">4</span>,</span>
 <span>              <span class="fl">2</span>, <span class="fl">5</span>,</span>
 <span>              <span class="fl">3</span>, <span class="fl">6</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fl">3</span>, byrow <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -257,7 +363,7 @@ where matrix <code>A</code> is represented by the sparse object
 <span><span class="co">## 0 5 20</span></span>
 <span><span class="co">## 1 9 18</span></span>
 <span><span class="co">## 2 4 10</span></span></code></pre>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Direct multiplication for validation</span></span>
 <span><span class="va">A</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">y</span></span></code></pre></div>
 <pre><code><span><span class="co">##      [,1] [,2]</span></span>
@@ -300,7 +406,7 @@ balance between computational efficiency and model fidelity.</p>
 <p>We compute
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>log</mo><mi>β</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\log \beta(t)</annotation></semantics></math>
 from a sparse spline basis.</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Time points for simulation (100 steps)</span></span>
 <span><span class="va">n_steps</span> <span class="op">&lt;-</span> <span class="fl">100</span></span>
 <span><span class="va">time_points</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/engine_functions.html">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, length.out <span class="op">=</span> <span class="va">n_steps</span><span class="op">)</span></span>
@@ -320,7 +426,7 @@ from a sparse spline basis.</p>
 <span><span class="va">sparsity</span> <span class="op">&lt;-</span> <span class="fl">100</span> <span class="op">*</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">non_zero_entries</span> <span class="op">/</span> <span class="va">total_entries</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Spline basis matrix sparsity (tol = 1e-4): %.1f%%\n"</span>, <span class="va">sparsity</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Spline basis matrix sparsity (tol = 1e-4): 52.5%</span></span></code></pre>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Example spline coefficients for log(beta)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">12</span><span class="op">)</span></span>
 <span><span class="va">theta</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/engine_functions.html">rnorm</a></span><span class="op">(</span><span class="fl">8</span>, <span class="op">-</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span></span>
@@ -415,12 +521,11 @@ approach.</li>
 <ul>
 <li>Dense × Dense (<code>%*%</code>) : Use for small/moderate dense
 matrices.</li>
-<li>Kronecker (<code>%x%</code>) : Use for structured expansions (e.g.,
-age).</li>
+<li>Kronecker (<code>%x%</code>) : Use for structured expansions (<a href="https://canmod.github.io/macpan2/articles/kronecker.html">example</a>).</li>
 <li>Elementwise (<code>*</code>) : Use for scaling rates in structured
-models (e.g., susceptibility in force of infection).</li>
+models (<a href="#example-of-age-structured-transmission-with-elementwise-matrix-multiplication">example</a>).</li>
 <li>Sparse × Dense (<code><a href="../reference/engine_functions.html">sparse_mat_mult()</a></code>) : Use for large,
-sparse left-hand matrices.</li>
+sparse left-hand matrices (<a href="#example-of-sparse-matrix-multiplication-to-model-time-varying-transmission-rate">example</a>).</li>
 </ul>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
