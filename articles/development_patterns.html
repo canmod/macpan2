@@ -6,6 +6,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Development Principles and Patterns • macpan2</title>
+<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
+<link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+<link rel="icon" sizes="any" href="../favicon.ico">
+<link rel="manifest" href="../site.webmanifest">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
@@ -120,7 +125,7 @@ This function returns an object of class <code>CSVReader</code>.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_flows_reader</span> <span class="op">=</span> <span class="fu"><a href="../reference/Reader.html">CSVReader</a></span><span class="op">(</span><span class="va">sir_path</span>, <span class="st">"flows.csv"</span><span class="op">)</span></span>
 <span><span class="va">sir_flows_reader</span></span>
-<span><span class="co">#&gt; Classes 'CSVReader', 'Reader', 'Base' &lt;environment: 0x5567910c1e08&gt; </span></span>
+<span><span class="co">#&gt; Classes 'CSVReader', 'Reader', 'Base' &lt;environment: 0x55a5a09c5428&gt; </span></span>
 <span><span class="co">#&gt; read : function ()  </span></span>
 <span><span class="co">#&gt; read_base : function ()</span></span></code></pre></div>
 <p>We get a print out of the <code>S3</code> class of the object, which
@@ -239,7 +244,7 @@ class.</p>
 <span><span class="op">}</span></span>
 <span><span class="va">does_nothing</span> <span class="op">=</span> <span class="fu">DoesNothing</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">does_nothing</span></span>
-<span><span class="co">#&gt; Classes 'DoesNothing', 'Base' &lt;environment: 0x556791e984d8&gt;</span></span></code></pre></div>
+<span><span class="co">#&gt; Classes 'DoesNothing', 'Base' &lt;environment: 0x55a5a179baf8&gt;</span></span></code></pre></div>
 <p>The first line in this constructor uses the <code>Base</code>
 function to create an <code>environment</code> called <code>self</code>.
 The second line sets <code>self</code>s S3 <code>class</code> to
@@ -254,7 +259,7 @@ field.</p>
 <span><span class="op">}</span></span>
 <span><span class="va">does_nothing</span> <span class="op">=</span> <span class="fu">DoesNothing</span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span>
 <span><span class="va">does_nothing</span></span>
-<span><span class="co">#&gt; Classes 'DoesNothing', 'Base' &lt;environment: 0x556792150380&gt;</span></span></code></pre></div>
+<span><span class="co">#&gt; Classes 'DoesNothing', 'Base' &lt;environment: 0x55a5a1a539a0&gt;</span></span></code></pre></div>
 <p>This looks identical to the first version, but now we have stored a
 value for <code>n</code>.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
