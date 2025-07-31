@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.2.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -75,393 +75,37 @@
     
     
 <p><a href="https://canmod.github.io/macpan2/articles/vignette-status#working-draft"><img src="https://img.shields.io/badge/status-working%20draft-red" alt="status"></a></p>
-<p>Choose one susceptible and one infectious candidate from the
-population.</p>
-<ul>
-<li>S-candidate is susceptible,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>S</mi><mi>S</mi></msub><annotation encoding="application/x-tex">S_S</annotation></semantics></math>
-</li>
-<li>S-candidate is in age group,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>S</mi><msub><mi>A</mi><mi>i</mi></msub></msub><annotation encoding="application/x-tex">S_{A_i}</annotation></semantics></math>
-</li>
-<li>S-candidate is in immunity status,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>S</mi><msub><mi>V</mi><mi>j</mi></msub></msub><annotation encoding="application/x-tex">S_{V_j}</annotation></semantics></math>
-</li>
-<li>I-candidate is infectious,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>I</mi><mi>I</mi></msub><annotation encoding="application/x-tex">I_I</annotation></semantics></math>
-</li>
-<li>I-candidate is in age group,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>I</mi><msub><mi>A</mi><mi>i</mi></msub></msub><annotation encoding="application/x-tex">I_{A_i}</annotation></semantics></math>
-</li>
-<li>I-candidate is in immunity status,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>I</mi><msub><mi>V</mi><mi>j</mi></msub></msub><annotation encoding="application/x-tex">I_{V_j}</annotation></semantics></math>
-</li>
-</ul>
-<p>We only consider
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">pr</mtext><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>S</mi><mi>S</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\text{pr}(S_S) = 1</annotation></semantics></math>.</p>
-<p>We let
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>q</mi><mrow><mi>j</mi><mi>k</mi></mrow></msub><mo>=</mo><mtext mathvariant="normal">Pr</mtext><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><msub><mi>V</mi><mi>j</mi></msub></msub><mo stretchy="false" form="prefix">|</mo><msub><mi>S</mi><msub><mi>V</mi><mi>k</mi></msub></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">q_{jk} = \text{Pr}(I_{V_j} | S_{V_k})</annotation></semantics></math></p>
-<p>In most compartmental models, flow rates depend not only on the
-compartments directly involved in the flow but also on other
-compartments. A typical example is infection: the rate at which
-individuals move from a susceptible compartment to an exposed
-compartment depends on the number of infectious individuals. We frame
-this setup generically, with
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>
-representing the source (“from”) compartments,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>E</mi><annotation encoding="application/x-tex">E</annotation></semantics></math>
-the destination (“to”) compartments, and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math>
-a set of other compartments whose states influence the flow. While
-infection is the motivating example, this structure also captures
-processes like vaccination, where uptake rates depend on vaccine supply,
-or treatment initiation, where rates depend on healthcare capacity.</p>
-<p>We define
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>S</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>S</mi><mi>n</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>⊤</mi></msup><mo>,</mo><mspace width="1.0em"></mspace><mi>E</mi><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>E</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>E</mi><mi>q</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>⊤</mi></msup><mo>,</mo><mspace width="1.0em"></mspace><mi>I</mi><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>I</mi><mi>m</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>⊤</mi></msup><mo>,</mo></mrow><annotation encoding="application/x-tex">
-S = (S_1, \ldots, S_n)^\top, \quad E = (E_1, \ldots, E_q)^\top, \quad I = (I_1, \ldots, I_m)^\top,
-</annotation></semantics></math> where each element represents the
-number of individuals in a specific stratum (e.g., by age, location,
-symptom status, or immunity level). The stratifications of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>E</mi><annotation encoding="application/x-tex">E</annotation></semantics></math>,
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math>
-may differ. For example,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>E</mi><annotation encoding="application/x-tex">E</annotation></semantics></math>
-might be stratified by age alone, while
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math>
-is stratified jointly by age and symptom severity. As a result,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>q</mi><annotation encoding="application/x-tex">q</annotation></semantics></math>,
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>
-are generally distinct. In special cases—such as omitting a latent
-period—one may simplify by setting
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>E</mi><mo>=</mo><mi>I</mi></mrow><annotation encoding="application/x-tex">E = I</annotation></semantics></math>.</p>
-<hr>
-<div class="section level3">
-<h3 id="force-of-infection-and-flow-allocation">Force of Infection and Flow Allocation<a class="anchor" aria-label="anchor" href="#force-of-infection-and-flow-allocation"></a>
-</h3>
-<p>The <strong>force of infection</strong> is given by
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Λ</mi><mo>=</mo><mi>β</mi><mi>I</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
-\Lambda = \beta I,
-</annotation></semantics></math> where
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>
-is an
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>×</mo><mi>m</mi></mrow><annotation encoding="application/x-tex">n \times m</annotation></semantics></math>
-transmission matrix with entries
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>β</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">\beta_{ij}</annotation></semantics></math>
-representing the per-capita contribution of infectious individuals in
-stratum
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>
-to the infection risk of susceptibles in stratum
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>.</p>
-<p>The vector of outflows from
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>,
-denoted
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>F</mi><mtext mathvariant="normal">out</mtext></msup><annotation encoding="application/x-tex">F^{\text{out}}</annotation></semantics></math>,
-is
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>F</mi><mtext mathvariant="normal">out</mtext></msup><mo>=</mo><mi>Λ</mi><mo>∘</mo><mi>S</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
-F^{\text{out}} = \Lambda \circ S,
-</annotation></semantics></math> where
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>∘</mo><annotation encoding="application/x-tex">\circ</annotation></semantics></math>
-denotes elementwise multiplication. The vector
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>F</mi><mtext mathvariant="normal">out</mtext></msup><annotation encoding="application/x-tex">F^{\text{out}}</annotation></semantics></math>
-has length
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>,
-matching
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>.</p>
-<p>To account for different stratifications of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>E</mi><annotation encoding="application/x-tex">E</annotation></semantics></math>,
-we define an <strong>allocation matrix</strong>
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>
-of size
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>q</mi><mo>×</mo><mi>n</mi></mrow><annotation encoding="application/x-tex">q \times n</annotation></semantics></math>,
-where
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>M</mi><mrow><mi>k</mi><mi>i</mi></mrow></msub><annotation encoding="application/x-tex">M_{ki}</annotation></semantics></math>
-is the proportion of individuals leaving
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>S</mi><mi>i</mi></msub><annotation encoding="application/x-tex">S_i</annotation></semantics></math>
-who enter
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>E</mi><mi>k</mi></msub><annotation encoding="application/x-tex">E_k</annotation></semantics></math>.
-The inflow into
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>E</mi><annotation encoding="application/x-tex">E</annotation></semantics></math>,
-denoted
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>F</mi><mtext mathvariant="normal">in</mtext></msup><annotation encoding="application/x-tex">F^{\text{in}}</annotation></semantics></math>,
-is given by
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>F</mi><mtext mathvariant="normal">in</mtext></msup><mo>=</mo><mi>M</mi><msup><mi>F</mi><mtext mathvariant="normal">out</mtext></msup><mi>.</mi></mrow><annotation encoding="application/x-tex">
-F^{\text{in}} = M F^{\text{out}}.
-</annotation></semantics></math> Here,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>F</mi><mtext mathvariant="normal">in</mtext></msup><annotation encoding="application/x-tex">F^{\text{in}}</annotation></semantics></math>
-is a
-length-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>q</mi><annotation encoding="application/x-tex">q</annotation></semantics></math>
-vector matching
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>E</mi><annotation encoding="application/x-tex">E</annotation></semantics></math>.
-This is standard matrix multiplication: each entry of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>F</mi><mtext mathvariant="normal">in</mtext></msup><annotation encoding="application/x-tex">F^{\text{in}}</annotation></semantics></math>
-is a weighted sum of the outflows from
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>,
-with weights given by
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>.
-By construction, the total flow is conserved:
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mi>q</mi></munderover><msubsup><mi>F</mi><mi>k</mi><mtext mathvariant="normal">in</mtext></msubsup><mo>=</mo><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><msubsup><mi>F</mi><mi>i</mi><mtext mathvariant="normal">out</mtext></msubsup><mi>.</mi></mrow><annotation encoding="application/x-tex">
-\sum_{k=1}^q F^{\text{in}}_k = \sum_{i=1}^n F^{\text{out}}_i.
-</annotation></semantics></math></p>
-<hr>
-</div>
-<div class="section level3">
-<h3 id="stratified-transmission-and-multiplicative-decomposition">Stratified Transmission and Multiplicative Decomposition<a class="anchor" aria-label="anchor" href="#stratified-transmission-and-multiplicative-decomposition"></a>
-</h3>
-<p>When compartments are stratified, heterogeneity in susceptibility,
-contact patterns, and infectivity can be captured by factorizing the
-transmission matrix
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>.
-We write:
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi><mo>=</mo><mo>diag</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>σ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mspace width="0.167em"></mspace><mi>P</mi><mspace width="0.167em"></mspace><mo>diag</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>τ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
-\beta = \operatorname{diag}(\sigma) \, P \, \operatorname{diag}(\tau),
-</annotation></semantics></math> where:<br>
--
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>σ</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math>
-is a
-length‑<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
-vector of <em>susceptibilities</em> for each
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>
-stratum,<br>
--
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>P</mi><annotation encoding="application/x-tex">P</annotation></semantics></math>
-is an
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>×</mo><mi>m</mi></mrow><annotation encoding="application/x-tex">n \times m</annotation></semantics></math><em>contact matrix</em> describing contact rates between
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math>
-strata,<br>
--
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>
-is a
-length‑<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>
-vector of <em>infectivities</em> for each
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math>
-stratum.</p>
-<p>The <strong>force of infection</strong> is then
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Λ</mi><mo>=</mo><mi>β</mi><mi>I</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
-\Lambda = \beta I,
-</annotation></semantics></math> and the absolute outflow from each
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>
-compartment is
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>F</mi><mtext mathvariant="normal">out</mtext></msup><mo>=</mo><mi>Λ</mi><mo>∘</mo><mi>S</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">
-F^{\text{out}} = \Lambda \circ S.
-</annotation></semantics></math></p>
-<p>This decomposition emphasizes how susceptibility, contact rates, and
-infectivity combine multiplicatively to determine transmission dynamics
-across strata.</p>
-<hr>
-</div>
-<div class="section level3">
-<h3 id="relation-to-the-standard-si-model">Relation to the Standard SI Model<a class="anchor" aria-label="anchor" href="#relation-to-the-standard-si-model"></a>
-</h3>
-<p>In a standard unstratified SI model, there is a single susceptible
-compartment
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>
-and a single infectious compartment
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math>,
-with total population
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>=</mo><mi>S</mi><mo>+</mo><mi>I</mi></mrow><annotation encoding="application/x-tex">N = S + I</annotation></semantics></math>.
-The force of infection is typically written as
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Λ</mi><mo>=</mo><mi>β</mi><mfrac><mi>I</mi><mi>N</mi></mfrac><mo>,</mo></mrow><annotation encoding="application/x-tex">
-\Lambda = \beta \frac{I}{N},
-</annotation></semantics></math> so the rate at which susceptibles
-become infected is
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Λ</mi><mo>⋅</mo><mi>S</mi><mo>=</mo><mi>β</mi><mfrac><mi>I</mi><mi>N</mi></mfrac><mo>⋅</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">\Lambda \cdot S = \beta \frac{I}{N} \cdot S</annotation></semantics></math>.</p>
-<p>In terms of our general framework: -
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>=</mo><mi>q</mi><mo>=</mo><mi>m</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">n = q = m = 1</annotation></semantics></math>,<br>
--
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\sigma = 1</annotation></semantics></math>,<br>
--
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">P = 1</annotation></semantics></math>,<br>
--
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>τ</mi><mo>=</mo><mi>β</mi><mi>/</mi><mi>N</mi></mrow><annotation encoding="application/x-tex">\tau = \beta / N</annotation></semantics></math>,</p>
-<p>so that
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi><mo>=</mo><mi>σ</mi><mo>⋅</mo><mi>P</mi><mo>⋅</mo><mi>τ</mi><mo>=</mo><mn>1</mn><mo>⋅</mo><mn>1</mn><mo>⋅</mo><mfrac><mi>β</mi><mi>N</mi></mfrac><mo>=</mo><mfrac><mi>β</mi><mi>N</mi></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">
-\beta = \sigma \cdot P \cdot \tau = 1 \cdot 1 \cdot \frac{\beta}{N} = \frac{\beta}{N}.
-</annotation></semantics></math></p>
-<p>The outflow from
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>
-is
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>F</mi><mtext mathvariant="normal">out</mtext></msup><mo>=</mo><mi>Λ</mi><mo>⋅</mo><mi>S</mi><mo>=</mo><mfrac><mi>β</mi><mi>N</mi></mfrac><mo>⋅</mo><mi>I</mi><mo>⋅</mo><mi>S</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
-F^{\text{out}} = \Lambda \cdot S = \frac{\beta}{N} \cdot I \cdot S,
-</annotation></semantics></math> matching the standard mass-action
-incidence.</p>
-<p>Thus, the classical SI model corresponds to the special case where
-there is no stratification, susceptibility is homogeneous, contact is
-uniform, and infectious individuals transmit at a per-contact rate
-scaled by
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi>/</mi><mi>N</mi></mrow><annotation encoding="application/x-tex">1/N</annotation></semantics></math>.</p>
-</div>
-<div class="section level3">
-<h3 id="product-models-for-modular-stratification">Product Models for Modular Stratification<a class="anchor" aria-label="anchor" href="#product-models-for-modular-stratification"></a>
-</h3>
-<p>The framework above allows for arbitrary stratifications of the
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>E</mi><annotation encoding="application/x-tex">E</annotation></semantics></math>,
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math>
-compartments. In practice, complex stratifications are often built by
-combining simpler ones — for example, stratifying by age, location, and
-symptom status simultaneously.</p>
-<p>We formalize this using <strong>product models</strong>, where the
-full stratification is represented as the Cartesian product of simpler
-factors (e.g., age groups
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>×</mo><annotation encoding="application/x-tex">\times</annotation></semantics></math>
-locations
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>×</mo><annotation encoding="application/x-tex">\times</annotation></semantics></math>
-symptom statuses). Each compartment corresponds to a unique combination
-of levels across these factors.</p>
-<p>For example, suppose we stratify by age (child, adult) and location
-(urban, rural). The susceptible vector
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>
-then has four entries:
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>S</mi><mtext mathvariant="normal">child, urban</mtext></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>S</mi><mtext mathvariant="normal">child, rural</mtext></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>S</mi><mtext mathvariant="normal">adult, urban</mtext></msub></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>S</mi><mtext mathvariant="normal">adult, rural</mtext></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
-S = \begin{pmatrix} S_{\text{child, urban}} \\ S_{\text{child, rural}} \\ S_{\text{adult, urban}} \\ S_{\text{adult, rural}} \end{pmatrix}.
-</annotation></semantics></math> Parameters like susceptibility or
-contact rates can vary by age alone, location alone, or both, depending
-on model design.</p>
-<p>Product models allow us to:<br>
-- Define parameters that vary along specific dimensions,<br>
-- Build large, structured transmission models from simpler
-components,<br>
-- Control complexity by selectively including or collapsing
-stratification dimensions.</p>
-<p>The force of infection and flow allocation machinery developed above
-applies directly to these multi-dimensional strata.</p>
-</div>
-<div class="section level3">
-<h3 id="example-building-a-transmission-matrix-with-kronecker-products">Example: Building a Transmission Matrix with Kronecker Products<a class="anchor" aria-label="anchor" href="#example-building-a-transmission-matrix-with-kronecker-products"></a>
-</h3>
-<p>When stratifications are defined by a product of factors,
-transmission matrices can often be constructed as Kronecker products of
-simpler matrices associated with each factor.</p>
-<p>For example, suppose:<br>
-- Contact patterns differ by <strong>age</strong> (with a
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mo>×</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">2 \times 2</annotation></semantics></math>
-contact matrix
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>P</mi><mtext mathvariant="normal">age</mtext></msub><annotation encoding="application/x-tex">P_{\text{age}}</annotation></semantics></math>),<br>
-- Individuals interact equally across <strong>locations</strong>
-(represented by a
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mo>×</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">2 \times 2</annotation></semantics></math>
-matrix of ones,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mn>1</mn><mrow><mn>2</mn><mo>×</mo><mn>2</mn></mrow></msub><annotation encoding="application/x-tex">1_{2 \times 2}</annotation></semantics></math>).</p>
-<p>The full contact matrix
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>P</mi><annotation encoding="application/x-tex">P</annotation></semantics></math>
-for the combined age-location stratification (with 4 age-location
-groups) is given by the Kronecker product:
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo>=</mo><msub><mi>P</mi><mtext mathvariant="normal">age</mtext></msub><mo>⊗</mo><msub><mn>1</mn><mrow><mn>2</mn><mo>×</mo><mn>2</mn></mrow></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
-P = P_{\text{age}} \otimes 1_{2 \times 2}.
-</annotation></semantics></math> This expands
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>P</mi><mtext mathvariant="normal">age</mtext></msub><annotation encoding="application/x-tex">P_{\text{age}}</annotation></semantics></math>
-uniformly across locations, assuming location has no effect on contact
-rates.</p>
-<p>If location-specific effects were also important, we could replace
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mn>1</mn><mrow><mn>2</mn><mo>×</mo><mn>2</mn></mrow></msub><annotation encoding="application/x-tex">1_{2 \times 2}</annotation></semantics></math>
-with a location contact matrix
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>P</mi><mtext mathvariant="normal">loc</mtext></msub><annotation encoding="application/x-tex">P_{\text{loc}}</annotation></semantics></math>,
-giving
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo>=</mo><msub><mi>P</mi><mtext mathvariant="normal">age</mtext></msub><mo>⊗</mo><msub><mi>P</mi><mtext mathvariant="normal">loc</mtext></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
-P = P_{\text{age}} \otimes P_{\text{loc}}.
-</annotation></semantics></math></p>
-<p>This approach lets us modularly build structured transmission
-matrices by combining simple factors — mirroring the way stratifications
-are built in the product model.</p>
-<hr>
-<div class="section level4">
-<h4 id="product-expansion">Product Expansion<a class="anchor" aria-label="anchor" href="#product-expansion"></a>
-</h4>
-<p>The full susceptibility vector
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>σ</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math>,
-contact matrix
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>P</mi><annotation encoding="application/x-tex">P</annotation></semantics></math>,
-and infectivity vector
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>
-are given by <strong>Kronecker products</strong> of their
-factor-specific components:
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi><mo>=</mo><msup><mi>σ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>⊗</mo><msup><mi>σ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>2</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>⊗</mo><mi>⋯</mi><mo>⊗</mo><msup><mi>σ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>d</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>,</mo></mrow><annotation encoding="application/x-tex">
-\sigma = \sigma^{(1)} \otimes \sigma^{(2)} \otimes \cdots \otimes \sigma^{(d)},
-</annotation></semantics></math><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo>=</mo><msup><mi>P</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>⊗</mo><msup><mi>P</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>2</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>⊗</mo><mi>⋯</mi><mo>⊗</mo><msup><mi>P</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>d</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>,</mo></mrow><annotation encoding="application/x-tex">
-P = P^{(1)} \otimes P^{(2)} \otimes \cdots \otimes P^{(d)},
-</annotation></semantics></math><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>τ</mi><mo>=</mo><msup><mi>τ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>⊗</mo><msup><mi>τ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>2</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>⊗</mo><mi>⋯</mi><mo>⊗</mo><msup><mi>τ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>d</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><mi>.</mi></mrow><annotation encoding="application/x-tex">
-\tau = \tau^{(1)} \otimes \tau^{(2)} \otimes \cdots \otimes \tau^{(d)}.
-</annotation></semantics></math></p>
-</div>
-<div class="section level4">
-<h4 id="transmission-matrix-construction">Transmission Matrix Construction<a class="anchor" aria-label="anchor" href="#transmission-matrix-construction"></a>
-</h4>
-<p>The overall transmission matrix
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>
-is then constructed exactly as before:
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi><mo>=</mo><mo>diag</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>σ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mspace width="0.167em"></mspace><mi>P</mi><mspace width="0.167em"></mspace><mo>diag</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>τ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">
-\beta = \operatorname{diag}(\sigma) \, P \, \operatorname{diag}(\tau).
-</annotation></semantics></math></p>
-<p>This formulation means that: - Susceptibility effects,<br>
-- Contact patterns, and<br>
-- Infectivity effects</p>
-<p>are each <strong>structured by Kronecker products reflecting the
-model’s stratification factors</strong> — and then combined
-multiplicatively through this decomposition.</p>
-<hr>
-<p>This triple-Kronecker structure allows the transmission process to
-respect the modular stratification of the product model while retaining
-the familiar separation of susceptibility, contact, and infectivity.</p>
-<hr>
-</div>
-</div>
 <div class="section level2">
 <h2 id="decomposition-of-state-dependent-rates">Decomposition of State-Dependent Rates<a class="anchor" aria-label="anchor" href="#decomposition-of-state-dependent-rates"></a>
 </h2>
 <p>The vast majority of compartmental models contain flows that depend
 on the states of compartments that are not directly involved in those
-flows (i.e., the magnitude of the flow from compartment A to compartment
-B depends on another compartment, C). The most important example of
-these dependencies is infection, and so we use the terminology from
-infection processes. However, our model will subsume a very large number
-of flows as special cases.</p>
+flows. For example, the magnitude of the flow from compartment A to
+compartment B could depend on another compartment, C. The most important
+example of these dependencies is infection, and so we use the
+terminology from infection processes. However, our model will subsume a
+very large number of flows as special cases.</p>
 <p>Let
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>S</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>S</mi><mi>n</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">S = (S_1, \ldots, S_n)^\top</annotation></semantics></math>,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>E</mi><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>E</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>E</mi><mi>q</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">E = (E_1, \ldots, E_q)^\top</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
 and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>I</mi><mi>m</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">I = (I_1, \ldots, I_m)^\top</annotation></semantics></math>
-denote the vectors of numbers of susceptible, exposed, and infectious
-individuals, respectively. Each element of these vectors corresponds to
-a specific stratum—such as an age group, location, symptom status, or
-immunity level—and the stratifications may differ between
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>E</mi><annotation encoding="application/x-tex">E</annotation></semantics></math>,
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math>.
-Consequently,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>q</mi><annotation encoding="application/x-tex">q</annotation></semantics></math>,
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>
-may be different.</p>
-<p>The force of infection vector,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Λ</mi><annotation encoding="application/x-tex">\Lambda</annotation></semantics></math>,
-is
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi><mi>I</mi></mrow><annotation encoding="application/x-tex">\beta I</annotation></semantics></math>,
-where beta is the transmission matrix (show the elements
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>β</mi><mi>i</mi></msub><mi>j</mi></mrow><annotation encoding="application/x-tex">\beta_ij</annotation></semantics></math>
-out please).</p>
-<p>The absolute rate of flow out of each of the
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>
-states is
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Λ</mi><mo>∘</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">\Lambda \circ S</annotation></semantics></math>
-(ethat’s elementwise mult).</p>
-<p>Because
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>q</mi><annotation encoding="application/x-tex">q</annotation></semantics></math>
-are not necessarily the same, the absolute rate of flow out of</p>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+be subsets of the state vector. The
+length-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
+vector
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
+contains the from-compartments – typically the compartments that are
+susceptible to infection – for a set of flows. The
+length-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>
+vector
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+contains compartments – typically the infectious compartments – that
+affect these flows. The components of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+do not need to affect all components of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>
+but they do need to affect some of them. Note that we do not keep track
+of the to-compartments in these flows because they do not matter (I
+think).</p>
 <p>We define the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>-by-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>
 transmission matrix as the following decomposition.</p>

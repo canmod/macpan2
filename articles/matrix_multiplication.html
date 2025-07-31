@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.2.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -127,8 +127,9 @@ base R.</p>
 <pre><code><span><span class="co">##      [,1] [,2] [,3] [,4]</span></span>
 <span><span class="co">## [1,]    0    1    0    2</span></span>
 <span><span class="co">## [2,]    1    0    2    0</span></span></code></pre>
-<p>Kronecker products are useful when replicating structure across
-groups or compartments.</p>
+<p>Kronecker products are useful for replicating structure across groups
+or compartments, as described in <a href="https://canmod.github.io/macpan2/articles/kronecker.html">this
+article</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="elementwise-multiplication-with-recycling">Elementwise Multiplication with Recycling (<code>*</code>)<a class="anchor" aria-label="anchor" href="#elementwise-multiplication-with-recycling"></a>
@@ -151,9 +152,10 @@ z_{i,j} = \begin{cases}
   x_{i,j} \times y_{1,1} &amp; \text{if } y \text{ is } 1 \times 1 \\
 \end{cases}
 </annotation></semantics></math></p>
-<p>See <a href="https://canmod.github.io/macpan2/articles/elementwise_binary_operators">this
-article</a> for a general treatment of elementwise binary operators with
-examples.</p>
+<p>These recycling rules differ from those in base <code>R</code>. See
+<a href="https://canmod.github.io/macpan2/articles/elementwise_binary_operators">this
+article</a> for a general overview and examples of how
+<code>macpan2</code> handles elementwise binary operators.</p>
 </div>
 <div class="section level2">
 <h2 id="multiplying-a-sparse-matrix-with-a-dense-matrix">Multiplying a Sparse Matrix with a Dense Matrix<a class="anchor" aria-label="anchor" href="#multiplying-a-sparse-matrix-with-a-dense-matrix"></a>
@@ -187,12 +189,12 @@ sparse matrix, you pass:</p>
 <code><a href="../reference/sparse_matrix_notation.html">sparse_matrix_notation()</a></code>. This function takes a dense
 matrix and returns:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">M</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/engine_functions.html">matrix</a></span><span class="op">(</span><span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">0</span>, <span class="fl">0</span>,</span>
+<code class="sourceCode R"><span><span class="va">A</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/engine_functions.html">matrix</a></span><span class="op">(</span><span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">0</span>, <span class="fl">0</span>,</span>
 <span>              <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">3</span>,</span>
 <span>              <span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">0</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fl">3</span>, byrow <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">sparse</span> <span class="op">&lt;-</span> <span class="fu">macpan2</span><span class="fu">:::</span><span class="fu"><a href="../reference/sparse_matrix_notation.html">sparse_matrix_notation</a></span><span class="op">(</span><span class="va">M</span>, zero_based <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/engine_functions.html">print</a></span><span class="op">(</span><span class="va">sparse</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">A_sparse</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sparse_matrix_notation.html">sparse_matrix_notation</a></span><span class="op">(</span><span class="va">A</span>, zero_based <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/engine_functions.html">print</a></span><span class="op">(</span><span class="va">A_sparse</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## $row_index</span></span>
 <span><span class="co">## [1] 0 1 2</span></span>
 <span><span class="co">## </span></span>
@@ -214,8 +216,8 @@ matrix and returns:</p>
 <span><span class="co">## [2,]    0    0    3</span></span>
 <span><span class="co">## [3,]    0    2    0</span></span></code></pre>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">total_entries</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">M</span><span class="op">)</span></span>
-<span><span class="va">non_zero_entries</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">sparse</span><span class="op">$</span><span class="va">values</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">total_entries</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">A</span><span class="op">)</span></span>
+<span><span class="va">non_zero_entries</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">A_sparse</span><span class="op">$</span><span class="va">values</span><span class="op">)</span></span>
 <span><span class="va">sparsity</span> <span class="op">&lt;-</span> <span class="fl">100</span> <span class="op">*</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">non_zero_entries</span> <span class="op">/</span> <span class="va">total_entries</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Matrix sparsity: %.1f%%\n"</span>, <span class="va">sparsity</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Matrix sparsity: 66.7%</span></span></code></pre>
@@ -223,31 +225,27 @@ matrix and returns:</p>
 <div class="section level3">
 <h3 id="small-example-of-sparse-matrix-multiplication">Small Example of Sparse Matrix Multiplication<a class="anchor" aria-label="anchor" href="#small-example-of-sparse-matrix-multiplication"></a>
 </h3>
+<p>We illustrate sparse matrix multiplication by continuing the example
+where matrix <code>A</code> is represented by the sparse object
+<code>A_sparse</code>, and multiplying <code>A</code> by a dense matrix
+<code>y</code>.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Full matrix for validation</span></span>
-<span><span class="va">A</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/engine_functions.html">matrix</a></span><span class="op">(</span><span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">0</span>, <span class="fl">0</span>,</span>
-<span>              <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">3</span>,</span>
-<span>              <span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">0</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fl">3</span>, byrow <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Extract sparse representation</span></span>
-<span><span class="va">sparse</span> <span class="op">&lt;-</span> <span class="fu">macpan2</span><span class="fu">:::</span><span class="fu"><a href="../reference/sparse_matrix_notation.html">sparse_matrix_notation</a></span><span class="op">(</span><span class="va">A</span>, zero_based <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Dense matrix to multiply (3×2)</span></span>
-<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/engine_functions.html">matrix</a></span><span class="op">(</span><span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">4</span>,</span>
+<code class="sourceCode R"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/engine_functions.html">matrix</a></span><span class="op">(</span><span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">4</span>,</span>
 <span>              <span class="fl">2</span>, <span class="fl">5</span>,</span>
 <span>              <span class="fl">3</span>, <span class="fl">6</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fl">3</span>, byrow <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Pre-allocate output matrix (3×2)</span></span>
 <span><span class="va">z</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/engine_functions.html">matrix</a></span><span class="op">(</span><span class="fl">0</span>, nrow <span class="op">=</span> <span class="fl">3</span>, ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Model specification with sparse_mat_mult in before block</span></span>
+<span><span class="co"># Model specification with sparse_mat_mult</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/mp_tmb_model_spec.html">mp_tmb_model_spec</a></span><span class="op">(</span></span>
 <span>  before <span class="op">=</span> <span class="va">z</span> <span class="op">~</span> <span class="fu"><a href="../reference/engine_functions.html">sparse_mat_mult</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">i</span>, <span class="va">j</span>, <span class="va">y</span>, <span class="va">z</span><span class="op">)</span>,</span>
-<span>  default <span class="op">=</span> <span class="fu"><a href="../reference/nlist.html">nlist</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">sparse</span><span class="op">$</span><span class="va">values</span>, <span class="va">y</span>, <span class="va">z</span><span class="op">)</span>,</span>
-<span>  integers <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>i <span class="op">=</span> <span class="va">sparse</span><span class="op">$</span><span class="va">row_index</span>, j <span class="op">=</span> <span class="va">sparse</span><span class="op">$</span><span class="va">col_index</span><span class="op">)</span></span>
+<span>  default <span class="op">=</span> <span class="fu"><a href="../reference/nlist.html">nlist</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">A_sparse</span><span class="op">$</span><span class="va">values</span>, <span class="va">y</span>, <span class="va">z</span><span class="op">)</span>,</span>
+<span>  integers <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>i <span class="op">=</span> <span class="va">A_sparse</span><span class="op">$</span><span class="va">row_index</span>, j <span class="op">=</span> <span class="va">A_sparse</span><span class="op">$</span><span class="va">col_index</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Run simulation for zero time steps to execute 'before' block</span></span>
+<span><span class="co"># Run simulation for zero time steps to</span></span>
+<span><span class="co"># execute 'before' block only</span></span>
 <span><span class="va">result</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">spec</span></span>
 <span>  <span class="op">|&gt;</span> <span class="fu"><a href="../reference/mp_simulator.html">mp_simulator</a></span><span class="op">(</span>time_steps <span class="op">=</span> <span class="fl">0</span>, outputs <span class="op">=</span> <span class="st">"z"</span><span class="op">)</span></span>
 <span>  <span class="op">|&gt;</span> <span class="fu"><a href="../reference/mp_final.html">mp_final_list</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -273,12 +271,10 @@ values and indices) by a dense matrix without constructing the full
 sparse matrix.</li>
 <li>The helper <code><a href="../reference/sparse_matrix_notation.html">sparse_matrix_notation()</a></code> extracts the
 required sparse representation from any matrix, applying zero-based
-indexing and a numerical tolerance.</li>
+indexing and a numerical tolerance for treating near-zero elements as
+exactly zero.</li>
 <li>The function writes the result into <code>z</code>, which must be
 allocated beforehand.</li>
-<li>You can use <code><a href="../reference/mp_tmb_model_spec.html">mp_tmb_model_spec()</a></code> with
-<code>time_steps = 0</code> to evaluate this operation as part of a
-<code>macpan2</code> model workflow.</li>
 </ul>
 </div>
 <div class="section level3">
@@ -287,7 +283,7 @@ Transmission Rate<a class="anchor" aria-label="anchor" href="#example-of-sparse-
 </h3>
 <p>We implement an SI model where the transmission rate
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\beta(t)</annotation></semantics></math>
-varies over time, modeled as a spline basis expansion:
+varies over time, modelled as a spline basis expansion:
 <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>log</mo><mi>β</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>B</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>⋅</mo><mi>θ</mi></mrow><annotation encoding="application/x-tex">
 \log \beta(t) = B(t) \cdot \theta
 </annotation></semantics></math> We use
@@ -313,7 +309,10 @@ from a sparse spline basis.</p>
 <span><span class="va">B_dense</span> <span class="op">&lt;-</span> <span class="fu">bs</span><span class="op">(</span><span class="va">time_points</span>, df <span class="op">=</span> <span class="fl">8</span>, degree <span class="op">=</span> <span class="fl">3</span>, intercept <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Convert basis to sparse form with small tolerance</span></span>
-<span><span class="va">B_sparse</span> <span class="op">&lt;-</span> <span class="fu">macpan2</span><span class="fu">:::</span><span class="fu"><a href="../reference/sparse_matrix_notation.html">sparse_matrix_notation</a></span><span class="op">(</span><span class="va">B_dense</span>, zero_based <span class="op">=</span> <span class="cn">TRUE</span>, tol <span class="op">=</span> <span class="fl">1e-4</span><span class="op">)</span></span>
+<span><span class="va">B_sparse</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sparse_matrix_notation.html">sparse_matrix_notation</a></span><span class="op">(</span><span class="va">B_dense</span></span>
+<span>  , zero_based <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  , tol <span class="op">=</span> <span class="fl">1e-4</span></span>
+<span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Print basis sparsity</span></span>
 <span><span class="va">total_entries</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">B_dense</span><span class="op">)</span></span>
@@ -347,9 +346,15 @@ from a sparse spline basis.</p>
 <span></span>
 <span><span class="co"># Simulate for 100 time steps</span></span>
 <span><span class="va">result</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">spec</span></span>
-<span>  <span class="op">|&gt;</span> <span class="fu"><a href="../reference/mp_simulator.html">mp_simulator</a></span><span class="op">(</span>time_steps <span class="op">=</span> <span class="va">n_steps</span>, outputs <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"S"</span>, <span class="st">"I"</span>, <span class="st">"beta"</span>, <span class="st">"infection"</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">|&gt;</span> <span class="fu"><a href="../reference/mp_simulator.html">mp_simulator</a></span><span class="op">(</span></span>
+<span>      time_steps <span class="op">=</span> <span class="va">n_steps</span></span>
+<span>    , outputs <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"S"</span>, <span class="st">"I"</span>, <span class="st">"beta"</span>, <span class="st">"infection"</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
 <span>  <span class="op">|&gt;</span> <span class="fu"><a href="../reference/mp_trajectory.html">mp_trajectory</a></span><span class="op">(</span><span class="op">)</span></span>
-<span>  <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>variable <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">matrix</span>, levels <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"S"</span>, <span class="st">"I"</span>, <span class="st">"beta"</span>, <span class="st">"infection"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>variable <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span></span>
+<span>      <span class="va">matrix</span></span>
+<span>    , levels <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="st">"S"</span>, <span class="st">"I"</span>, <span class="st">"beta"</span>, <span class="st">"infection"</span><span class="op">)</span></span>
+<span>  <span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Plot the results</span></span>
@@ -383,28 +388,23 @@ approach.</li>
 <thead><tr class="header">
 <th>Operation</th>
 <th>Description</th>
-<th>macpan2 Support</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td><code>%*%</code></td>
 <td>Dense matrix multiplication</td>
-<td>Direct</td>
 </tr>
 <tr class="even">
 <td><code>%x%</code></td>
 <td>Kronecker product</td>
-<td>Direct</td>
 </tr>
 <tr class="odd">
 <td><code>*</code></td>
 <td>Elementwise multiplication with recycling</td>
-<td>Direct</td>
 </tr>
 <tr class="even">
 <td><code><a href="../reference/engine_functions.html">sparse_mat_mult()</a></code></td>
 <td>Sparse × Dense multiplication</td>
-<td>Direct</td>
 </tr>
 </tbody>
 </table>
@@ -413,18 +413,14 @@ approach.</li>
 <h2 id="when-to-use-each">When to Use Each<a class="anchor" aria-label="anchor" href="#when-to-use-each"></a>
 </h2>
 <ul>
-<li>
-<strong>Dense × Dense (<code>%*%</code>)</strong>: Use for
-small/moderate dense matrices.</li>
-<li>
-<strong>Kronecker (<code>%x%</code>)</strong>: Use for structured
-expansions (e.g., age).</li>
-<li>
-<strong>Elementwise (<code>*</code>)</strong>: Use for scaling rates
-in structured models (e.g., susceptibility in force of infection).</li>
-<li>
-<strong>Sparse × Dense (<code><a href="../reference/engine_functions.html">sparse_mat_mult()</a></code>)</strong>:
-Use for large, sparse left-hand matrices.</li>
+<li>Dense × Dense (<code>%*%</code>) : Use for small/moderate dense
+matrices.</li>
+<li>Kronecker (<code>%x%</code>) : Use for structured expansions (e.g.,
+age).</li>
+<li>Elementwise (<code>*</code>) : Use for scaling rates in structured
+models (e.g., susceptibility in force of infection).</li>
+<li>Sparse × Dense (<code><a href="../reference/engine_functions.html">sparse_mat_mult()</a></code>) : Use for large,
+sparse left-hand matrices.</li>
 </ul>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

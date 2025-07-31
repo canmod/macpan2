@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.2.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -96,11 +96,16 @@ group, vaccination status, and symptom severity.</p>
 simplify the construction of named vectors and matrices over these
 stratification dimensions.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://canmod.github.io/macpan2/">macpan2</a></span><span class="op">)</span>; <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span>; <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyr.tidyverse.org" class="external-link">tidyr</a></span><span class="op">)</span>; <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span>; <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://stringr.tidyverse.org" class="external-link">stringr</a></span><span class="op">)</span></span></code></pre></div>
-<p>We overwrite the base-R Kronecker product operator, <code>%x%</code>,
-so that it preserves row and column names in a consistent manner. We
-will use this operator many times when defining model structure
-below.</p>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://canmod.github.io/macpan2/">macpan2</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyr.tidyverse.org" class="external-link">tidyr</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://stringr.tidyverse.org" class="external-link">stringr</a></span><span class="op">)</span></span></code></pre></div>
+<p>We overwrite the base <code>R</code> Kronecker product operator,
+<code>%x%</code>, to consistently preserve row and column names. This
+operator will be used often when defining model structure. It returns
+the same numerical results as base <code>R</code>, but with consistently
+named rows and columns.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">`%x%`</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/mp_kronecker_operator.html">mp_kronecker_operator</a></span><span class="op">(</span><span class="va">`*`</span><span class="op">)</span></span></code></pre></div>
 <p>The <code>ones_vec()</code> utility creates a named vector of ones
@@ -175,15 +180,8 @@ blocks.</p>
 <code>S</code> (susceptible) and <code>I</code> (infectious) over the
 stratification dimensions.</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">S</span> <span class="op">=</span> <span class="op">(</span></span>
-<span>      <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>young <span class="op">=</span> <span class="fl">75</span>, old <span class="op">=</span> <span class="fl">25</span><span class="op">)</span> </span>
-<span>  <span class="op"><a href="https://rdrr.io/r/base/kronecker.html" class="external-link">%x%</a></span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>unvax <span class="op">=</span> <span class="fl">1</span>, vax <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span><span class="va">I</span> <span class="op">=</span> <span class="op">(</span></span>
-<span>      <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>young <span class="op">=</span> <span class="fl">1</span>, old <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> </span>
-<span>  <span class="op"><a href="https://rdrr.io/r/base/kronecker.html" class="external-link">%x%</a></span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>unvax <span class="op">=</span> <span class="fl">1</span>, vax <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> </span>
-<span>  <span class="op"><a href="https://rdrr.io/r/base/kronecker.html" class="external-link">%x%</a></span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>mild <span class="op">=</span> <span class="fl">1</span>, severe <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">S</span> <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>young <span class="op">=</span> <span class="fl">75</span>, old <span class="op">=</span> <span class="fl">25</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/kronecker.html" class="external-link">%x%</a></span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>unvax <span class="op">=</span> <span class="fl">1</span>, vax <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
+<span><span class="va">I</span> <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>young <span class="op">=</span> <span class="fl">1</span>, old <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/kronecker.html" class="external-link">%x%</a></span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>unvax <span class="op">=</span> <span class="fl">1</span>, vax <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/kronecker.html" class="external-link">%x%</a></span> <span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span>mild <span class="op">=</span> <span class="fl">1</span>, severe <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/engine_functions.html">print</a></span><span class="op">(</span><span class="va">S</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## young.unvax   young.vax   old.unvax     old.vax </span></span>
 <span><span class="co">##          75           0          25           0</span></span></code></pre>
@@ -265,7 +263,8 @@ which are the only ones eligible for vaccination flows.</p>
 <h2 id="per-capita-transmission-matrix">Per-Capita Transmission Matrix<a class="anchor" aria-label="anchor" href="#per-capita-transmission-matrix"></a>
 </h2>
 <p>We construct the full per-capita transmission matrix by combining
-component matrices using Kronecker products.</p>
+component matrices using Kronecker products and elementwise
+multiplication.</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">B_age</span> <span class="op">=</span> <span class="op">(</span></span>
 <span>    <span class="va">beta</span> </span>
