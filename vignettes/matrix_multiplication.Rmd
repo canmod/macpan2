@@ -1,10 +1,10 @@
 ---
-title: "Matrix Operations in macpan2 Models"
+title: "Multiplying Matrices in macpan2 Models"
 output: 
   rmarkdown::html_vignette:
     toc: true
 vignette: >
-  %\VignetteIndexEntry{Matrix Operations in macpan2 Models}
+  %\VignetteIndexEntry{Multiplying Matrices in macpan2 Models}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -76,6 +76,89 @@ z_{i,j} = \begin{cases}
 $$
 
 These recycling rules differ from those in base `R`. See [this article](https://canmod.github.io/macpan2/articles/elementwise_binary_operators) for a general overview and examples of how `macpan2` handles elementwise binary operators.
+
+### Example of Age-Structured Transmission with Elementwise Matrix Multiplication
+
+We illustrate how a structured force of infection can be built inside a `macpan2` model using elementwise matrix multiplication. 
+
+We define the matrices used to construct the force of infection: a 2×1 susceptibility matrix, a 2×2 contact matrix with rows summing to 1, and a 1×2 infectivity matrix.
+
+```{r force-of-infection-components}
+susceptibility <- matrix(c(0.8, 1.2), ncol = 1,
+  dimnames = list(sus = c("young", "old"), NULL)
+)
+
+contact <- matrix(c(0.6, 0.4,
+                    0.3, 0.7), nrow = 2, byrow = TRUE,
+  dimnames = list(sus = c("young", "old"),
+                  inf = c("young", "old"))
+)
+
+infectivity <- matrix(c(1.0, 0.5), nrow = 1,
+  dimnames = list(NULL, inf = c("young", "old"))
+)
+
+print(susceptibility)
+print(contact)
+print(infectivity)
+```
+
+We next define the model specification. The `before` block uses elementwise matrix multiplication to construct a transmission matrix `B` from `susceptibility`, `contact`, and `infectivity`. This is multiplied by normalized prevalence to produce the force of infection `lambda`.
+
+```{r model-definition}
+spec <- mp_tmb_model_spec(
+  before = list(
+        N ~ S + I
+      , B ~ beta * susceptibility * contact * infectivity
+      , lambda ~ B %*% (I / N)
+  ),
+  during = list(
+    mp_per_capita_flow(
+      from = "S", to = "I", rate = "lambda",
+      flow_name = "infection"
+    )
+  ),
+  default = nlist(
+        beta = 0.8
+      , S = c(young = 90, old = 90)
+      , I = c(young = 10, old = 10)
+      , N = c(young = 100, old = 100)
+      , susceptibility, contact, infectivity
+      , infection = c(young = NA_real_, old = NA_real_)
+  )
+)
+```
+
+Note the specification of the `infection` vector in the `default` list so that the names `young` and `old` can be provided in the simulated outputs.
+
+We next run the simulation for 50 time steps and plot the trajectories of susceptibles, infecteds, and new infections, stratified by age group.
+
+```{r simulate-and-plot, fig.width=5, fig.height=6}
+library(dplyr)
+library(ggplot2)
+
+result <- (spec
+  |> mp_simulator(
+       time_steps = 50,
+       outputs = c("S", "I", "infection")
+     )
+  |> mp_trajectory()
+  |> mutate(
+       variable = factor(matrix, levels = c("S", "I", "infection")),
+       age = factor(row, levels = c("young", "old"))
+     )
+)
+
+(result
+  |> ggplot()
+  + aes(time, value)
+  + geom_line()
+  + facet_grid(variable ~ age, scales = "free")
+  + theme_bw()
+)
+```
+
+Note that elementwise matrix multiplication with row and column vectors is equivalent to standard matrix multiplication with diagonal matrices. That is, in `macpan2` `susceptibility * contact * infectivity` behaves like `diag(susceptibility) %*% contact %*% diag(infectivity)`, but with fewer zeros.
 
 ## Multiplying a Sparse Matrix with a Dense Matrix
 
@@ -234,6 +317,6 @@ ggplot(result, aes(time, value)) +
 ## When to Use Each
 
 - Dense × Dense (`%*%`) : Use for small/moderate dense matrices.
-- Kronecker (`%x%`) : Use for structured expansions (e.g., age).
-- Elementwise (`*`) : Use for scaling rates in structured models (e.g., susceptibility in force of infection).
-- Sparse × Dense (`sparse_mat_mult()`) : Use for large, sparse left-hand matrices.
+- Kronecker (`%x%`) : Use for structured expansions ([example](https://canmod.github.io/macpan2/articles/kronecker.html)).
+- Elementwise (`*`) : Use for scaling rates in structured models ([example](#example-of-age-structured-transmission-with-elementwise-matrix-multiplication)).
+- Sparse × Dense (`sparse_mat_mult()`) : Use for large, sparse left-hand matrices ([example](#example-of-sparse-matrix-multiplication-to-model-time-varying-transmission-rate)).
