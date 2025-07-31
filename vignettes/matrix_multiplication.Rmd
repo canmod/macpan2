@@ -54,7 +54,7 @@ A %x% B
 macpan2::engine_eval(~A %x% B, A = A, B = B)
 ```
 
-Kronecker products are useful when replicating structure across groups or compartments.
+Kronecker products are useful for replicating structure across groups or compartments, as described in [this article](https://canmod.github.io/macpan2/articles/kronecker.html).
 
 
 ## Elementwise Multiplication with Recycling (`*`)
@@ -75,7 +75,7 @@ z_{i,j} = \begin{cases}
 \end{cases}
 $$
 
-See [this article](https://canmod.github.io/macpan2/articles/elementwise_binary_operators) for a general treatment of elementwise binary operators with examples.
+These recycling rules differ from those in base `R`. See [this article](https://canmod.github.io/macpan2/articles/elementwise_binary_operators) for a general overview and examples of how `macpan2` handles elementwise binary operators.
 
 ## Multiplying a Sparse Matrix with a Dense Matrix
 
@@ -94,32 +94,23 @@ To address this, `macpan2` provides the engine function `sparse_mat_mult()`, whi
 To simplify the creation of sparse representations, `macpan2` provides the helper function `sparse_matrix_notation()`. This function takes a dense matrix and returns:
 
 ```{r}
-M <- matrix(c(5, 0, 0,
+A <- matrix(c(5, 0, 0,
               0, 0, 3,
               0, 2, 0), nrow = 3, byrow = TRUE)
 
-sparse <- macpan2:::sparse_matrix_notation(M, zero_based = TRUE)
-print(sparse)
+A_sparse <- sparse_matrix_notation(A, zero_based = TRUE)
+print(A_sparse)
 
-total_entries <- length(M)
-non_zero_entries <- length(sparse$values)
+total_entries <- length(A)
+non_zero_entries <- length(A_sparse$values)
 sparsity <- 100 * (1 - non_zero_entries / total_entries)
 cat(sprintf("Matrix sparsity: %.1f%%\n", sparsity))
 ```
 
 ### Small Example of Sparse Matrix Multiplication
 
-
+We illustrate sparse matrix multiplication by continuing the example where matrix `A` is represented by the sparse object `A_sparse`, and multiplying `A` by a dense matrix `y`.
 ```{r}
-# Full matrix for validation
-A <- matrix(c(5, 0, 0,
-              0, 0, 3,
-              0, 2, 0), nrow = 3, byrow = TRUE)
-
-# Extract sparse representation
-sparse <- macpan2:::sparse_matrix_notation(A, zero_based = TRUE)
-
-# Dense matrix to multiply (3×2)
 y <- matrix(c(1, 4,
               2, 5,
               3, 6), nrow = 3, byrow = TRUE)
@@ -127,14 +118,15 @@ y <- matrix(c(1, 4,
 # Pre-allocate output matrix (3×2)
 z <- matrix(0, nrow = 3, ncol = 2)
 
-# Model specification with sparse_mat_mult in before block
+# Model specification with sparse_mat_mult
 spec <- mp_tmb_model_spec(
   before = z ~ sparse_mat_mult(x, i, j, y, z),
-  default = nlist(x = sparse$values, y, z),
-  integers = list(i = sparse$row_index, j = sparse$col_index)
+  default = nlist(x = A_sparse$values, y, z),
+  integers = list(i = A_sparse$row_index, j = A_sparse$col_index)
 )
 
-# Run simulation for zero time steps to execute 'before' block
+# Run simulation for zero time steps to
+# execute 'before' block only
 result <- (spec
   |> mp_simulator(time_steps = 0, outputs = "z")
   |> mp_final_list()
@@ -148,13 +140,12 @@ A %*% y
 ```
 
 - `sparse_mat_mult()` multiplies a sparse matrix (given as values and indices) by a dense matrix without constructing the full sparse matrix.
-- The helper `sparse_matrix_notation()` extracts the required sparse representation from any matrix, applying zero-based indexing and a numerical tolerance.
+- The helper `sparse_matrix_notation()` extracts the required sparse representation from any matrix, applying zero-based indexing and a numerical tolerance for treating near-zero elements as exactly zero.
 - The function writes the result into `z`, which must be allocated beforehand.
-- You can use `mp_tmb_model_spec()` with `time_steps = 0` to evaluate this operation as part of a `macpan2` model workflow.
 
 ### Example of Sparse Matrix Multiplication to Model Time-Varying Transmission Rate
  
-We implement an SI model where the transmission rate $\beta(t)$ varies over time, modeled as a spline basis expansion:
+We implement an SI model where the transmission rate $\beta(t)$ varies over time, modelled as a spline basis expansion:
 $$
 \log \beta(t) = B(t) \cdot \theta
 $$
@@ -171,7 +162,10 @@ time_points <- seq(0, 1, length.out = n_steps)
 B_dense <- bs(time_points, df = 8, degree = 3, intercept = TRUE)
 
 # Convert basis to sparse form with small tolerance
-B_sparse <- macpan2:::sparse_matrix_notation(B_dense, zero_based = TRUE, tol = 1e-4)
+B_sparse <- sparse_matrix_notation(B_dense
+  , zero_based = TRUE
+  , tol = 1e-4
+)
 
 # Print basis sparsity
 total_entries <- length(B_dense)
@@ -204,9 +198,15 @@ spec <- mp_tmb_model_spec(
 
 # Simulate for 100 time steps
 result <- (spec
-  |> mp_simulator(time_steps = n_steps, outputs = c("S", "I", "beta", "infection"))
+  |> mp_simulator(
+      time_steps = n_steps
+    , outputs = c("S", "I", "beta", "infection")
+  )
   |> mp_trajectory()
-  |> mutate(variable = factor(matrix, levels = c("S", "I", "beta", "infection")))
+  |> mutate(variable = factor(
+      matrix
+    , levels = c("S", "I", "beta", "infection")
+  ))
 )
 
 # Plot the results
@@ -224,16 +224,16 @@ ggplot(result, aes(time, value)) +
 
 ## Summary of Matrix Operations
 
-| Operation | Description | macpan2 Support |
-|-----------|-------------|------------------|
-| `%*%` | Dense matrix multiplication | Direct |
-| `%x%` | Kronecker product | Direct |
-| `*` | Elementwise multiplication with recycling | Direct |
-| `sparse_mat_mult()` | Sparse × Dense multiplication | Direct |
+| Operation           | Description                               |
+| ------------------- | ----------------------------------------- |
+| `%*%`               | Dense matrix multiplication               |
+| `%x%`               | Kronecker product                         |
+| `*`                 | Elementwise multiplication with recycling |
+| `sparse_mat_mult()` | Sparse × Dense multiplication             |
 
 ## When to Use Each
 
-- **Dense × Dense (`%*%`)**: Use for small/moderate dense matrices.
-- **Kronecker (`%x%`)**: Use for structured expansions (e.g., age).
-- **Elementwise (`*`)**: Use for scaling rates in structured models (e.g., susceptibility in force of infection).
-- **Sparse × Dense (`sparse_mat_mult()`)**: Use for large, sparse left-hand matrices.
+- Dense × Dense (`%*%`) : Use for small/moderate dense matrices.
+- Kronecker (`%x%`) : Use for structured expansions (e.g., age).
+- Elementwise (`*`) : Use for scaling rates in structured models (e.g., susceptibility in force of infection).
+- Sparse × Dense (`sparse_mat_mult()`) : Use for large, sparse left-hand matrices.

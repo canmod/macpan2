@@ -13,8 +13,9 @@ mp_kronecker_operator(operator)
 A Kronecker operator convenient for use with \code{macpan2}.
 }
 \description{
-Convert a function that represents a scalar binary
-operator into one that computes the \code{\link{kronecker}}
-version, but with dimensions named in a way that is more
-convenient for use with \code{macpan2}.
+Convert a scalar binary operator into one that performs a
+Kronecker product with more convenient row and column names
+for use with \code{macpan2}. The result is numerically identical
+to base \code{R}'s \code{\%x\%} and \code{kronecker()}, but with cleaner naming
+of rows and columns.
 }

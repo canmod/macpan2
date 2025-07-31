@@ -85,17 +85,6 @@ KroneckerOperator = function(operator) {
   }
 }
 
-SquareOperator = function(operator) {
-  function(x) {
-    if (is.matrix(x)) stop("can only produce a square diagonal matrix for a vector")
-    if (length(x) == 1) return(x)
-    nms = names(x)
-    x = operator(x)
-    dimnames(x) = list(nms, nms)
-    return(x)
-  }
-}
-
 #' Binary Operator
 #'
 #' Convert a function that represents an elementwise binary
@@ -123,10 +112,11 @@ mp_binary_operator = BinaryOperator
 
 #' Kronecker Operator
 #' 
-#' Convert a function that represents a scalar binary
-#' operator into one that computes the \code{\link{kronecker}}
-#' version, but with dimensions named in a way that is more 
-#' convenient for use with `macpan2`.
+#' Convert a scalar binary operator into one that performs a 
+#' Kronecker product with more convenient row and column names 
+#' for use with `macpan2`. The result is numerically identical 
+#' to base `R`'s `%x%` and `kronecker()`, but with cleaner naming
+#' of rows and columns.
 #'
 #' @param operator A scalar binary operator.
 #' @return A Kronecker operator convenient for use with `macpan2`.
@@ -134,14 +124,3 @@ mp_binary_operator = BinaryOperator
 #' @export
 mp_kronecker_operator = KroneckerOperator
 
-#' Square Matrix Operator
-#'
-#' Convert a unary operator that takes a vector, into one with
-#' dimensions named in a way that is more convenient for use with
-#' `macpan2`.
-#'
-#' @param operator A unary operator of a vector.
-#' @return An operator.
-#' 
-#' @export
-mp_square_operator = SquareOperator

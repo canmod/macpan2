@@ -186,7 +186,6 @@ reference:
   - rbf
   - sparse_matrix_notation
   - mp_binary_operator
-  - mp_square_operator
   - mp_kronecker_operator
 
 - subtitle: Developer and Power-User Utilities

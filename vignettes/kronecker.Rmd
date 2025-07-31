@@ -15,7 +15,11 @@ editor_options:
 
 ```{r settings, echo = FALSE, message=FALSE, warning=FALSE, error=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-library(macpan2); library(ggplot2); library(tidyr); library(dplyr); library(stringr)
+library(macpan2)
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+library(stringr)
 theme_bw = function() ggplot2::theme_bw(base_size = 14)
 ```
 
@@ -35,10 +39,14 @@ symp = c("mild", "severe")
 We load the necessary packages and define some utility functions that simplify the construction of named vectors and matrices over these stratification dimensions.
 
 ```{r packages}
-library(macpan2); library(ggplot2); library(tidyr); library(dplyr); library(stringr)
+library(macpan2)
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+library(stringr)
 ```
 
-We overwrite the base-R Kronecker product operator, `%x%`, so that it preserves row and column names in a consistent manner. We will use this operator many times when defining model structure below.
+We overwrite the base `R` Kronecker product operator, `%x%`, to consistently preserve row and column names. This operator will be used often when defining model structure. It returns the same numerical results as base `R`, but with consistently named rows and columns.
 
 ```{r operator-kron}
 `%x%` <- mp_kronecker_operator(`*`)
@@ -98,15 +106,8 @@ The `ones_col()`, `ones_row()`, and `identity()` functions make it easier to bui
 We now use Kronecker products to initialize the state vectors `S` (susceptible) and `I` (infectious) over the stratification dimensions.
 
 ```{r initial-states}
-S = (
-      c(young = 75, old = 25) 
-  %x% c(unvax = 1, vax = 0)
-)
-I = (
-      c(young = 1, old = 0) 
-  %x% c(unvax = 1, vax = 0) 
-  %x% c(mild = 1, severe = 0)
-)
+S = c(young = 75, old = 25) %x% c(unvax = 1, vax = 0)
+I = c(young = 1, old = 0) %x% c(unvax = 1, vax = 0) %x% c(mild = 1, severe = 0)
 print(S)
 print(I)
 ```
@@ -161,7 +162,7 @@ Note that `N` repeats the total population size within each age group to match t
 
 ## Per-Capita Transmission Matrix
 
-We construct the full per-capita transmission matrix by combining component matrices using Kronecker products.
+We construct the full per-capita transmission matrix by combining component matrices using Kronecker products and elementwise multiplication.
 
 ```{r per-capita-transmission-matrix}
 B_age = (
