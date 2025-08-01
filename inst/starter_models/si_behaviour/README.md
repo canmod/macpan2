@@ -51,14 +51,14 @@ provides another example of a behavioural response.
 # Dynamics
 
 $$
-\begin{align*}
+\begin{align}
 \sigma(I) &= \frac{1}{1 + \exp\left( -k \cdot (I - I^*) \right)} \\
 \alpha(t) &= \alpha_{\text{max}} \cdot \sigma(I(t)) \\
 \\
 \frac{dS}{dt} &= - \beta \cdot \frac{I}{N} \cdot S - \alpha(t) \cdot S \\
 \frac{dI}{dt} &= \beta \cdot \frac{I}{N} \cdot S \\
 \frac{dP}{dt} &= \alpha(t) \cdot S
-\end{align*}
+\end{align}
 $$
 
 # Model Specification
