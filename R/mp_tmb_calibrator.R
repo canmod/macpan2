@@ -488,19 +488,27 @@ TMBCalDataStruc = function(data, time) {
     }
     FALSE
   }
-  
-  data = rename_synonyms(data
-    , time = c(
-        "time", "Time", "ID", "time_id", "id", "date", "Date"
-      , "time_step", "timeStep", "TimeStep"
-    )
-    , matrix = c(
-        "matrix", "Matrix", "mat", "Mat", "variable", "var", "Variable", "Var"
-    )
-    , row = c("row", "Row")
-    , col = c("col", "Col", "column", "Column")
-    , value = c("value", "Value", "val", "Val", "default", "Default")
-  )
+
+  syns <- list(time = c("time", "Time", "ID", "time_id", "id",
+                        "date", "Date",
+                        "time_step", "timeStep", "TimeStep"),
+               matrix = c("matrix", "Matrix", "mat", "Mat",
+                          "variable", "var", "Variable", "Var"),
+               row = c("row", "Row"),
+               col = c("col", "Col", "column", "Column"),
+               value = c("value", "Value", "val", "Val", "default", "Default"))
+  data = do.call(rename_synonyms, c(list(data), syns))
+
+  ## check presence (row/col not required?)
+  for (m in setdiff(names(syns), c("row", "col"))) {
+    if (is.null(data[[m]])) {
+      stop(
+        "Supplied data did not contain a column called '", m, "' ",
+        "(or its synonyms: ",
+        paste(sprintf("'%s'", syns[[m]]), collapse = ", "), ")"
+      )
+    }
+  }
   time_column_test_value = data$time
   if (is.character(data$time)) {
     original_coercer = as.character
@@ -1270,9 +1278,23 @@ TMBTraj.character = function(
   ## Depended upon to create a character vector of output variables to fit to
   self$outputs = function() names(self$list)
   
+  # ff = function(dat) {
+  #   xx = split(dat, dat$row)
+  #   time_ids = lapply(xx, getElement, "time_ids")
+  #   row = lapply(xx, getElement, "row") |> lapply(unique)
+  #   if (!all(vapply(row, length, integer(1L)) == 1L)) {
+  #     stop("Ca")
+  #   }
+  #   if (any())
+  #   list(time_ids, row)
+  # }
+  
   ## implemented methods
   self$obs = function() lapply(self$list, getElement, "value")
-  self$obs_times = function() lapply(self$list, getElement, "time_ids")
+  self$obs_times = function() {
+    #split(traj$list$infection, traj$list$infection$row)
+    lapply(self$list, getElement, "time_ids")
+  }
   self$distr_params = function() {
     switch(
         getOption("macpan2_default_loss")[1L]

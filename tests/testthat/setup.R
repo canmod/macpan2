@@ -26,6 +26,7 @@ sims = list(
   , sir_10_I = mp_simulator(all_specs$sir, 10L, "I")
   , sir_50_infection = mp_simulator(all_specs$sir, 50L, "infection")
   , sir_50_I = mp_simulator(all_specs$sir, 50L, "I")
+  , sir_age_10_infection = mp_simulator(all_specs$sir_age, 10L, "infection")
 )
 
 for (obj in names(sims)) {
