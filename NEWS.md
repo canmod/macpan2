@@ -1,9 +1,30 @@
-## Changes in 3.0.0
+## Changes in 3.2.1
 
 In-Progress
 
 [source](https://github.com/canmod/macpan2)
- | [change list](https://github.com/canmod/macpan2/compare/322b99bf077ef71994ac198e5fe5c2a35660b24c..516ba9aeaa2f8913460c82bde77100311b815f30)
+ | [change list](https://github.com/canmod/macpan2/compare/28680f73ecff7e3b537e212dac6c96c043bf32a5..60621c541b003ec1f9013433c50cd33d8fc638f6)
+
+## Changes in 3.2.0
+
+Released [2025-07-30]
+
+[source](https://github.com/canmod/macpan2/tree/28680f73ecff7e3b537e212dac6c96c043bf32a5)
+ | [change list](https://github.com/canmod/macpan2/compare/0ab40d4468e6ff78c25c9b493b31d3c36b0db1fd..28680f73ecff7e3b537e212dac6c96c043bf32a5)
+
+## Changes in 3.1.0
+
+Released [2025-07-30]
+
+[source](https://github.com/canmod/macpan2/tree/0ab40d4468e6ff78c25c9b493b31d3c36b0db1fd)
+ | [change list](https://github.com/canmod/macpan2/compare/548c451b079c0058b8dddfbe32e2eab610a0c00a..0ab40d4468e6ff78c25c9b493b31d3c36b0db1fd)
+
+## Changes in 3.0.0
+
+Released [2025-07-15]
+
+[source](https://github.com/canmod/macpan2/tree/548c451b079c0058b8dddfbe32e2eab610a0c00a)
+ | [change list](https://github.com/canmod/macpan2/compare/322b99bf077ef71994ac198e5fe5c2a35660b24c..548c451b079c0058b8dddfbe32e2eab610a0c00a)
 
 ### Behaviour Changes
 
