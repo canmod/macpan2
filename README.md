@@ -53,6 +53,8 @@ lessons that we learned from COVID-19 about software.
     guide](https://canmod.github.io/macpan2/articles/quickstart)
 -   [Articles describing the
     package](https://canmod.github.io/macpan2/articles)
+-   [Example starter
+    models](https://canmod.github.io/macpan2/articles/example_models.html)
 -   [Frequently asked
     questions](https://canmod.github.io/macpan2/articles/FAQs)
 -   [`TMB` engine](https://canmod.github.io/macpan2/articles/cpp_side)
