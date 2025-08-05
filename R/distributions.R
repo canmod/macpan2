@@ -776,7 +776,7 @@ body(mp_logit_normal) = deprecate("mp_logitnorm", "mp_logit_normal")
 
 
 
-#' @description * Poisson Distribution - `mp_poisson`
+#' @description * Poisson Distribution - `mp_pois`
 #' @name distribution
 #' @export
 mp_pois = function(location = mp_distr_param_null("location")

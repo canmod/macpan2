@@ -115,7 +115,7 @@ components - \code{mp_unif}
 }
 
 \itemize{
-\item Poisson Distribution - \code{mp_poisson}
+\item Poisson Distribution - \code{mp_pois}
 }
 
 \itemize{
