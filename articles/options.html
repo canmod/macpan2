@@ -27,7 +27,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.2.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -88,6 +88,16 @@
 by <code>macpan2</code> be verbose or not (default). In particular, the
 <code>silent</code> argument of <code><a href="https://rdrr.io/pkg/TMB/man/MakeADFun.html" class="external-link">TMB::MakeADFun</a></code> gets
 <code>!getOption("macpan2_verbose")</code>.</li>
+<li>
+<code>macpan2_collapse_traj = FALSE</code> : Should <code>row</code>
+and <code>col</code> columns in data frames returned by
+<code>mp_trajectory_*()</code> functions be removed if they provide no
+information (e.g., if all variables in the trajectory are scalars).</li>
+<li>
+<code>macpan2_collapse_coef = FALSE</code> : Should <code>row</code>
+and <code>col</code> columns in data frames returned by
+<code>mp_*_coef()</code> functions be removed if they provide no
+information (e.g., if all variables in the trajectory are scalars).</li>
 <li>
 <code>macpan2_session_name = "default"</code> and
 <code>macpan2_log_dir = tools::R_user_dir("macpan2")</code> : Where to

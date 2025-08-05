@@ -27,7 +27,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.2.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -104,10 +104,10 @@ short article</a> on how to find other example models).</p>
 <span><span class="fu"><a href="../reference/engine_functions.html">print</a></span><span class="op">(</span><span class="va">si</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## ---------------------</span></span>
 <span><span class="co">## Default values:</span></span>
-<span><span class="co">##  quantity  value</span></span>
-<span><span class="co">##         N 100.00</span></span>
-<span><span class="co">##         I   1.00</span></span>
-<span><span class="co">##      beta   0.25</span></span>
+<span><span class="co">##  matrix row col  value</span></span>
+<span><span class="co">##       N         100.00</span></span>
+<span><span class="co">##       I           1.00</span></span>
+<span><span class="co">##    beta           0.25</span></span>
 <span><span class="co">## ---------------------</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## ---------------------</span></span>
@@ -270,6 +270,10 @@ geographic locations are tracked separately).</li>
 <code>value</code>: The simulated value for a particular state and
 time step.</li>
 </ul>
+<p>(Note that the <code>row</code> and <code>col</code> placeholders can
+be completely omitted by using
+<code>option(macpan2_collapse_traj = TRUE)</code> near the start of your
+script that calls <code><a href="../reference/mp_trajectory.html">mp_trajectory()</a></code>)</p>
 </div>
 <div class="section level2">
 <h2 id="processing-results">Processing Results<a class="anchor" aria-label="anchor" href="#processing-results"></a>
