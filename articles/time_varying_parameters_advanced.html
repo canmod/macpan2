@@ -27,7 +27,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.2.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -242,33 +242,6 @@ declare them as parameters.</p>
 <p>Finally we fit the model back to the simulation data.</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">simulator</span><span class="op">$</span><span class="va">optimize</span><span class="op">$</span><span class="fu">nlminb</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; outer mgc:  736.1414 </span></span>
-<span><span class="co">#&gt; outer mgc:  112.6655 </span></span>
-<span><span class="co">#&gt; outer mgc:  71.38648 </span></span>
-<span><span class="co">#&gt; outer mgc:  13.6616 </span></span>
-<span><span class="co">#&gt; outer mgc:  12.58091 </span></span>
-<span><span class="co">#&gt; outer mgc:  3.638083 </span></span>
-<span><span class="co">#&gt; outer mgc:  1.399513 </span></span>
-<span><span class="co">#&gt; outer mgc:  1.609453 </span></span>
-<span><span class="co">#&gt; outer mgc:  1.140347 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.5870909 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.2527136 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.09938628 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.03753935 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.01394885 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.005150654 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.001897432 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.0006983805 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.0002569678 </span></span>
-<span><span class="co">#&gt; outer mgc:  9.453969e-05 </span></span>
-<span><span class="co">#&gt; outer mgc:  3.478009e-05 </span></span>
-<span><span class="co">#&gt; outer mgc:  1.2795e-05 </span></span>
-<span><span class="co">#&gt; outer mgc:  4.707033e-06 </span></span>
-<span><span class="co">#&gt; outer mgc:  1.731622e-06 </span></span>
-<span><span class="co">#&gt; outer mgc:  6.370289e-07 </span></span>
-<span><span class="co">#&gt; outer mgc:  2.343497e-07 </span></span>
-<span><span class="co">#&gt; outer mgc:  8.62125e-08 </span></span>
-<span><span class="co">#&gt; outer mgc:  3.171603e-08</span></span>
 <span><span class="co">#&gt; $par</span></span>
 <span><span class="co">#&gt;      params      params      params </span></span>
 <span><span class="co">#&gt;  -0.1710158 -22.8268369  -0.8291142 </span></span>
@@ -605,17 +578,7 @@ approximation to these parameters …</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/packageDescription.html" class="external-link">packageVersion</a></span><span class="op">(</span><span class="st">"Matrix"</span><span class="op">)</span> <span class="op">&gt;=</span> <span class="va">matrix_version</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">res</span> <span class="op">&lt;-</span> <span class="va">simulator</span><span class="op">$</span><span class="fu">ad_fun</span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="fu">fn</span><span class="op">(</span><span class="fu"><a href="../reference/engine_functions.html">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="op">}</span></span>
-<span><span class="co">#&gt; iter: 1  value: 6229501 mgc: 1888031614 ustep: 1 </span></span>
-<span><span class="co">#&gt; iter: 2  value: 1365197 mgc: 1339804917 ustep: 1 </span></span>
-<span><span class="co">#&gt; iter: 3  value: 539621.5 mgc: 362935028 ustep: 1 </span></span>
-<span><span class="co">#&gt; iter: 4  value: 461332.2 mgc: 74349124 ustep: 1 </span></span>
-<span><span class="co">#&gt; iter: 5  value: 458013.1 mgc: 9025953 ustep: 1 </span></span>
-<span><span class="co">#&gt; iter: 6  value: 457979.2 mgc: 538485.7 ustep: 1 </span></span>
-<span><span class="co">#&gt; iter: 7  value: 457979.2 mgc: 6568.272 ustep: 1 </span></span>
-<span><span class="co">#&gt; iter: 8  value: 457979.2 mgc: 2.072881 ustep: 1 </span></span>
-<span><span class="co">#&gt; iter: 9  value: 457979.2 mgc: 2.467357e-06 ustep: 1 </span></span>
-<span><span class="co">#&gt; mgc: 2.405369e-06</span></span></code></pre></div>
+<span><span class="op">}</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt; [1] 458150.5</span></span>
 <span><span class="co">#&gt; attr(,"logarithm")</span></span>
 <span><span class="co">#&gt; [1] TRUE</span></span></code></pre>

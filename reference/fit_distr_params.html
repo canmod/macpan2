@@ -13,7 +13,7 @@ from being fit and mp_fit to fit them."><meta property="og:image" content="https
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.2.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -112,18 +112,12 @@ transformation specified using <code><a href="transform_distr_param.html">mp_log
 <span class="r-in"><span><span class="va">cal</span><span class="op">$</span><span class="va">simulator</span><span class="op">$</span><span class="va">tmb_model</span><span class="op">$</span><span class="va">obj_fn</span><span class="op">$</span><span class="va">obj_fn_expr</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ~-sum(dpois(obs_infection, clamp(sim_infection))) - sum(dnorm(beta, </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     0.35, exp(distr_params_log_sd_beta)))</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x5622a07d3740&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x5559d03ec5e8&gt;</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Next we optimize and view the fitted parameters. We can see the </span></span></span>
 <span class="r-in"><span><span class="co"># distributional parameter in the coefficient table with a default value </span></span></span>
 <span class="r-in"><span><span class="co"># equal to the numeric value we provided to `mp_fit` above.</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">cal</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  379.7835 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  253.0639 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  40.08291 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  1.60249 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.002833777 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  8.986787e-09 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $par</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     params     params </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  0.2005665 -1.9009040 </span>
@@ -147,12 +141,6 @@ transformation specified using <code><a href="transform_distr_param.html">mp_log
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="va"><a href="https://github.com/bbolker/broom.mixed" class="external-link">broom.mixed</a></span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="engine_functions.html">print</a></span><span class="op">(</span><span class="fu"><a href="mp_tmb_coef.html">mp_tmb_coef</a></span><span class="op">(</span><span class="va">cal</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  8.986787e-09 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  11.62005 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  11.92421 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.0133705 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.01339728 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  31.09242 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       term                  mat row col default  type  estimate   std.error</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1   params                 beta   0   0    0.25 fixed 0.2005665 0.009251899</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2 params.1 distr_params_sd_beta   0   0    0.10 fixed 0.1494335 0.106069656</span>
@@ -178,15 +166,8 @@ transformation specified using <code><a href="transform_distr_param.html">mp_log
 <span class="r-in"><span><span class="va">cal</span><span class="op">$</span><span class="va">simulator</span><span class="op">$</span><span class="va">tmb_model</span><span class="op">$</span><span class="va">obj_fn</span><span class="op">$</span><span class="va">obj_fn_expr</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ~-sum(dpois(obs_infection, clamp(sim_infection))) - sum(dnorm(beta, </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     0.35, exp(sd_var)))</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x5622a239a1f0&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x5559d1fdcf58&gt;</span>
 <span class="r-in"><span><span class="fu"><a href="mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">cal</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  389.7016 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  258.9379 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  42.94112 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  2.418362 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.01416442 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  7.421077e-06 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  3.974682e-12 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $par</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     params     params </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  0.2005665 -1.9009040 </span>
@@ -210,12 +191,6 @@ transformation specified using <code><a href="transform_distr_param.html">mp_log
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="va"><a href="https://github.com/bbolker/broom.mixed" class="external-link">broom.mixed</a></span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="engine_functions.html">print</a></span><span class="op">(</span><span class="fu"><a href="mp_tmb_coef.html">mp_tmb_coef</a></span><span class="op">(</span><span class="va">cal</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  3.974682e-12 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  11.62005 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  11.92421 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.01337051 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.01339727 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  31.09242 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       term    mat row col default  type   estimate   std.error</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1   params   beta   0   0    0.25 fixed  0.2005665 0.009251899</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2 params.1 sd_var   0   0    0.10 fixed -1.9009040 0.709811879</span>

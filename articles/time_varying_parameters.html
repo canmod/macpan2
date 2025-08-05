@@ -27,7 +27,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.2.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -326,19 +326,8 @@ estimate the vector of time varying transmission rates,
 <span></span>
 <span><span class="co"># optimization step</span></span>
 <span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">piecewise_calib</span><span class="op">)</span></span>
-<span><span class="co">#&gt; outer mgc:  486.7233</span></span>
 <span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
 <span><span class="co">#&gt; NA/NaN function evaluation</span></span>
-<span><span class="co">#&gt; outer mgc:  699.5397 </span></span>
-<span><span class="co">#&gt; outer mgc:  148.8469 </span></span>
-<span><span class="co">#&gt; outer mgc:  190.1806 </span></span>
-<span><span class="co">#&gt; outer mgc:  118.6255 </span></span>
-<span><span class="co">#&gt; outer mgc:  48.17214 </span></span>
-<span><span class="co">#&gt; outer mgc:  3.120084 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.5353311 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.01025667 </span></span>
-<span><span class="co">#&gt; outer mgc:  1.863369e-05 </span></span>
-<span><span class="co">#&gt; outer mgc:  4.02139e-11</span></span>
 <span><span class="co">#&gt; $par</span></span>
 <span><span class="co">#&gt;     params     params     params </span></span>
 <span><span class="co">#&gt; -0.2144229 -2.8405257 -0.8566479 </span></span>
@@ -565,26 +554,6 @@ calibration.</p>
 <span>  </span>
 <span><span class="op">)</span>   </span>
 <span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">calib_rbf</span><span class="op">)</span></span>
-<span><span class="co">#&gt; outer mgc:  260596.6 </span></span>
-<span><span class="co">#&gt; outer mgc:  509342.4 </span></span>
-<span><span class="co">#&gt; outer mgc:  578848 </span></span>
-<span><span class="co">#&gt; outer mgc:  663180.2 </span></span>
-<span><span class="co">#&gt; outer mgc:  614077.5 </span></span>
-<span><span class="co">#&gt; outer mgc:  511328.5 </span></span>
-<span><span class="co">#&gt; outer mgc:  573848.5 </span></span>
-<span><span class="co">#&gt; outer mgc:  2417755 </span></span>
-<span><span class="co">#&gt; outer mgc:  1923772 </span></span>
-<span><span class="co">#&gt; outer mgc:  789923.3 </span></span>
-<span><span class="co">#&gt; outer mgc:  752391.5 </span></span>
-<span><span class="co">#&gt; outer mgc:  216393.2 </span></span>
-<span><span class="co">#&gt; outer mgc:  76273.92 </span></span>
-<span><span class="co">#&gt; outer mgc:  30886.59 </span></span>
-<span><span class="co">#&gt; outer mgc:  6792.563 </span></span>
-<span><span class="co">#&gt; outer mgc:  4793.576 </span></span>
-<span><span class="co">#&gt; outer mgc:  716.2951 </span></span>
-<span><span class="co">#&gt; outer mgc:  23.69418 </span></span>
-<span><span class="co">#&gt; outer mgc:  0.02823869 </span></span>
-<span><span class="co">#&gt; outer mgc:  4.054792e-08</span></span>
 <span><span class="co">#&gt; $par</span></span>
 <span><span class="co">#&gt;      params      params      params      params      params      params </span></span>
 <span><span class="co">#&gt; -1.27687503 -0.23926636 -0.88986019 -0.48220813 -0.71756985 -0.54565853 </span></span>
@@ -612,50 +581,6 @@ calibration.</p>
 <span><span class="co">#&gt; [1] "relative convergence (4)"</span></span>
 <span><span class="co">## check estimates</span></span>
 <span><span class="fu"><a href="../reference/mp_tmb_coef.html">mp_tmb_coef</a></span><span class="op">(</span><span class="va">calib_rbf</span>,conf.int <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; outer mgc:  4.054792e-08 </span></span>
-<span><span class="co">#&gt; outer mgc:  10124.18 </span></span>
-<span><span class="co">#&gt; outer mgc:  10262.56 </span></span>
-<span><span class="co">#&gt; outer mgc:  18069.81 </span></span>
-<span><span class="co">#&gt; outer mgc:  18407.15 </span></span>
-<span><span class="co">#&gt; outer mgc:  17710.05 </span></span>
-<span><span class="co">#&gt; outer mgc:  18101.65 </span></span>
-<span><span class="co">#&gt; outer mgc:  17116.92 </span></span>
-<span><span class="co">#&gt; outer mgc:  17502.05 </span></span>
-<span><span class="co">#&gt; outer mgc:  12372.23 </span></span>
-<span><span class="co">#&gt; outer mgc:  12629.87 </span></span>
-<span><span class="co">#&gt; outer mgc:  9537.889 </span></span>
-<span><span class="co">#&gt; outer mgc:  9715.899 </span></span>
-<span><span class="co">#&gt; outer mgc:  8913.925 </span></span>
-<span><span class="co">#&gt; outer mgc:  9079.333 </span></span>
-<span><span class="co">#&gt; outer mgc:  7457.393 </span></span>
-<span><span class="co">#&gt; outer mgc:  7588.793 </span></span>
-<span><span class="co">#&gt; outer mgc:  4692.088 </span></span>
-<span><span class="co">#&gt; outer mgc:  4754.798 </span></span>
-<span><span class="co">#&gt; outer mgc:  2789.395 </span></span>
-<span><span class="co">#&gt; outer mgc:  2816.277 </span></span>
-<span><span class="co">#&gt; outer mgc:  1586.518 </span></span>
-<span><span class="co">#&gt; outer mgc:  1598.087 </span></span>
-<span><span class="co">#&gt; outer mgc:  687.2502 </span></span>
-<span><span class="co">#&gt; outer mgc:  690.2546 </span></span>
-<span><span class="co">#&gt; outer mgc:  448.1791 </span></span>
-<span><span class="co">#&gt; outer mgc:  449.8311 </span></span>
-<span><span class="co">#&gt; outer mgc:  1104.03 </span></span>
-<span><span class="co">#&gt; outer mgc:  1110.864 </span></span>
-<span><span class="co">#&gt; outer mgc:  2457.46 </span></span>
-<span><span class="co">#&gt; outer mgc:  2482.901 </span></span>
-<span><span class="co">#&gt; outer mgc:  2894.164 </span></span>
-<span><span class="co">#&gt; outer mgc:  2924.717 </span></span>
-<span><span class="co">#&gt; outer mgc:  2589.767 </span></span>
-<span><span class="co">#&gt; outer mgc:  2614.362 </span></span>
-<span><span class="co">#&gt; outer mgc:  1744.517 </span></span>
-<span><span class="co">#&gt; outer mgc:  1757.813 </span></span>
-<span><span class="co">#&gt; outer mgc:  866.9731 </span></span>
-<span><span class="co">#&gt; outer mgc:  872.0986 </span></span>
-<span><span class="co">#&gt; outer mgc:  304.0746 </span></span>
-<span><span class="co">#&gt; outer mgc:  304.963 </span></span>
-<span><span class="co">#&gt; outer mgc:  89.27029 </span></span>
-<span><span class="co">#&gt; outer mgc:  90.08174 </span></span>
-<span><span class="co">#&gt; outer mgc:  7428.137</span></span>
 <span><span class="co">#&gt;         term           mat row col       default  type    estimate   std.error</span></span>
 <span><span class="co">#&gt; 1     params time_var_beta   0   0 -0.0062645381 fixed -1.27687503 0.001469568</span></span>
 <span><span class="co">#&gt; 2   params.1 time_var_beta   1   0  0.0018364332 fixed -0.23926636 0.001987359</span></span>
