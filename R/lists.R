@@ -93,20 +93,53 @@ melt_default_matrix_list = function(x, zeros_are_blank = TRUE, simplify_as_scala
     |> lapply(melt_matrix, zeros_are_blank)
     |> bind_rows(.id = "matrix")
   )
-  if (simplify_as_scalars) {
-    rm_rs = all(f$row == "")
-    rm_cs = all(f$col == "")
-    if (rm_rs) f$row = NULL
-    if (rm_cs) f$col = NULL
-    if (rm_rs & rm_cs) {
-      nms = colnames(f)
-      mat_col = nms == "matrix"
-      if (any(mat_col)) names(f)[mat_col] = "quantity"
-    }
-  }
+  if (simplify_as_scalars) f = rm_no_info_traj_cols(f)
   
   rownames(f) = NULL
   f
+}
+
+rm_no_info_traj_cols = function(x
+    , matrix_col_name = "quantity"
+    , collapse_traj = getOption("macpan2_collapse_traj")
+  ) {
+  
+  if (!collapse_traj) return(x)
+  
+  ## check if time is zero-info too? harder to know what
+  ## the implied value should be. argument for developers
+  ## to control context dependence of this implied value?
+  
+  urs = unique(x$row)
+  ucs = unique(x$col)
+  rm_rs = identical(urs, "") | identical(as.integer(urs), 0L)
+  rm_cs = identical(ucs, "") | identical(as.integer(ucs), 0L)
+  if (rm_rs) x$row = NULL
+  if (rm_cs) x$col = NULL
+  if (rm_rs & rm_cs) {
+    nms = colnames(x)
+    mat_col = nms == "matrix"
+    if (any(mat_col)) names(x)[mat_col] = matrix_col_name
+  }
+  return(x)
+}
+
+rm_no_info_coef_cols = function(x
+    , matrix_col_name = "par"
+    , collapse_coef = getOption("macpan2_collapse_coef")
+  ) {
+  if (!collapse_coef) return(x)
+  x = rm_no_info_traj_cols(x)
+  x$term = NULL
+  if (nrow(x) == 1L) {
+    if (x$type == "fixed") x$type = NULL
+    return(x)
+  }
+  cols_to_keep = vapply(x
+    , \(col) is.numeric(col) | (length(unique(col)) > 1L)
+    , logical(1L)
+  )
+  return(x[ , cols_to_keep, drop = FALSE])
 }
 
 melt_list_of_char_vecs = function(x) {

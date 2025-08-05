@@ -111,6 +111,8 @@ The simulation results are output as a data frame with the following columns:
 - `row`, `col`: Placeholders for variable components in more complicated structured models (not covered in this article, but useful for example when S and I in different age groups or geographic locations are tracked separately).
 - `value`: The simulated value for a particular state and time step.
 
+(Note that the `row` and `col` placeholders can be completely omitted by using `option(macpan2_collapse_traj = TRUE)` near the start of your script that calls `mp_trajectory()`)
+
 ## Processing Results
 
 `macpan2` does not provide any data manipulation or plotting tools (although there are a few in `macpan2helpers`). The philosophy is to focus on the engine and modelling interface, but to provide outputs in formats that are easy to use with other data processing packages, like `ggplot2`, `dplyr`, and `tidyr`, all of which readily make use of data in long format.

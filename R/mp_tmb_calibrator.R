@@ -495,7 +495,9 @@ TMBCalDataStruc = function(data, time) {
       , "time_step", "timeStep", "TimeStep"
     )
     , matrix = c(
-        "matrix", "Matrix", "mat", "Mat", "variable", "var", "Variable", "Var"
+          "matrix", "Matrix", "mat", "Mat"
+        , "variable", "var", "Variable", "Var"
+        , "quantity", "Quantity"
     )
     , row = c("row", "Row")
     , col = c("col", "Col", "column", "Column")

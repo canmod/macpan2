@@ -1157,4 +1157,8 @@ to_change_component.formula = function(x) Formula(x)
 mp_reduce = function(model) UseMethod("mp_reduce")
 
 #' @export
-mp_reduce.TMBModelSpec = function(model) model$expand()
+mp_reduce.TMBModelSpec = function(model) {
+  msg = 
+  warning("mp_reduce() is deprecated. Please use mp_expand() instead.")
+  model$expand()
+}

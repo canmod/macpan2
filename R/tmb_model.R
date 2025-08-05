@@ -549,7 +549,8 @@ mp_trajectory.TMBSimulator = function(model, include_initial = FALSE) {
   macro = getOption("macpan2_traj_tmb_macro") |> as.character()
   if (length(macro) > 1L) macro = macro[[1L]]
   if (length(macro) < 1L) macro = "simulate"
-  model[[macro]](.phases = phases) |> reset_rownames()
+  traj = model[[macro]](.phases = phases) |> reset_rownames()
+  rm_no_info_traj_cols(traj, "matrix")
 }
 
 #' @export
@@ -597,7 +598,8 @@ trajectory_par_util = function(simulator
   ) {
   phases = trajectory_phases_util(include_initial, include_final)
   vector = trajectory_vec_util(simulator, parameter_updates, value_column_name)
-  simulator$simulate(vector, .phases = phases)
+  traj = simulator$simulate(vector, .phases = phases)
+  rm_no_info_traj_cols(traj, "matrix")
 }
 
 trajectory_rep_util = function(n, simulator
@@ -764,7 +766,7 @@ mp_trajectory_sd.TMBSimulator = function(model
     vars = intersect(c("value", "conf.low", "conf.high"), names(r))
     r = backtrans(r, vars, "matrix", "sd", "value")
   }
-  r
+  rm_no_info_traj_cols(r, "matrix")
 } 
 
 #' @export
@@ -780,7 +782,7 @@ mp_trajectory_sd.TMBCalibrator = function(model
     , back_transform
   )
   traj$time = model$time_steps_obj$internal_to_external(traj$time)
-  return(traj)
+  rm_no_info_traj_cols(traj, "matrix")
 }
 
 #' @export
@@ -790,7 +792,7 @@ mp_trajectory_ensemble.TMBSimulator = function(model
   ) {
   best_pars = get_last_best_par(model$ad_fun())
   traj = model$report_ensemble(best_pars, .n = n, .probs = probs)
-  return(traj)
+  rm_no_info_traj_cols(traj, "matrix")
 }
 
 #' @export
@@ -876,7 +878,7 @@ mp_trajectory_sim.TMBSimulator = function(model
     , n
     , probs = c(0.025, 0.25, 0.5, 0.75, 0.975)
   ) {
-  r = model$simulate()
+  r = model$simulate() |> rm_no_info_traj_cols("matrix")
   r = r[, names(r) != "value", drop = FALSE]
   rr = (n
     |> replicate(model$simulate_values()) 

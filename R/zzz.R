@@ -10,6 +10,8 @@
   options(
       macpan2_dll = "macpan2"
     , macpan2_verbose = FALSE
+    , macpan2_collapse_traj = FALSE
+    , macpan2_collapse_coef = FALSE
     , macpan2_default_loss = c("clamped_poisson", "poisson", "sum_of_squares", "neg_bin")
     , macpan2_tmb_type = NULL
     , macpan2_tmb_check = TRUE

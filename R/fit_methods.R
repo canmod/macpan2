@@ -113,7 +113,7 @@ mp_tmb_coef.TMBSimulator = function(model, back_transform = TRUE, ...) {
     }
     tab = bind_rows(tab)
   }
-  tab
+  rm_no_info_coef_cols(tab)
 }
 
 #' @export
