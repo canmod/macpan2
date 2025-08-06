@@ -405,7 +405,7 @@ defaults_printer = function(x) {
     cat("---------------------\n")
     msg("Default values:\n") |> cat()
     print(
-        melt_default_matrix_list(x$default, simplify_as_scalars = TRUE)
+        melt_default_matrix_list(x$default, force_collapse_for_scalars = TRUE)
       , row.names = FALSE
     )
     cat("---------------------\n")

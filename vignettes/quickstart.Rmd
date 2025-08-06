@@ -111,7 +111,7 @@ The simulation results are output as a data frame with the following columns:
 - `row`, `col`: Placeholders for variable components in more complicated structured models (not covered in this article, but useful for example when S and I in different age groups or geographic locations are tracked separately).
 - `value`: The simulated value for a particular state and time step.
 
-(Note that the `row` and `col` placeholders can be completely omitted by using `option(macpan2_collapse_traj = TRUE)` near the start of your script that calls `mp_trajectory()`)
+(Note that the `row` and `col` placeholders can be completely omitted by using `options(macpan2_collapse_traj = TRUE)` near the top of your script that calls `mp_trajectory()`)
 
 ## Processing Results
 

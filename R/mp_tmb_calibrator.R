@@ -261,8 +261,7 @@ print.TMBCalibrator = function(x, ...) {
   cat("---------------------\n")
   msg("Objective function:\n") |> cat()
   cat("---------------------\n")
-  cat(deparse1(x$simulator$tmb_model$obj_fn$formula_list()[[1L]], width.cutoff = 500L))
-  cat("\n")
+  mp_print_obj_fn(x)
   hist = x$simulator$optimization_history
   if (hist$opt_attempted()) {
     cat("\n---------------------\n")
@@ -1517,7 +1516,10 @@ TMBPar.ParArg = function(par
 
   self$random_frame = function() {
     pf = (self$spec$default[self$par_ranef]
-      |> melt_default_matrix_list(FALSE)
+      |> melt_default_matrix_list(
+          zeros_are_blank = FALSE
+        , suppress_collapse_for_scalars = TRUE
+      )
       |> rename_synonyms(mat = "matrix", default = "value")
     )
     bind_rows(pf, self$tv$tv_random_frame())
@@ -1597,7 +1599,10 @@ TMBPar.character = function(par
   }
   self$params_frame = function() {
     pf = (self$spec$default[self$par]
-      |> melt_default_matrix_list(FALSE)
+      |> melt_default_matrix_list(
+          zeros_are_blank = FALSE
+        , suppress_collapse_for_scalars = TRUE
+      )
       |> rename_synonyms(mat = "matrix", default = "value")
     )
     bind_rows(pf

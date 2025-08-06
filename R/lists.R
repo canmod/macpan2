@@ -87,20 +87,36 @@ melt_matrix = function(x, zeros_are_blank = TRUE) {
   data.frame(row = row, col = col, value = as.vector(x))
 }
 
-melt_default_matrix_list = function(x, zeros_are_blank = TRUE, simplify_as_scalars = FALSE) {
+melt_default_matrix_list = function(x
+    , zeros_are_blank = TRUE
+    , suppress_collapse_for_scalars = FALSE
+    , force_collapse_for_scalars = FALSE
+  ) {
+  if (suppress_collapse_for_scalars & force_collapse_for_scalars) stop("Developer error")
   if (length(x) == 0L) return(empty_frame("matrix", "row", "col", "value"))
   f = (x
     |> lapply(melt_matrix, zeros_are_blank)
     |> bind_rows(.id = "matrix")
   )
-  if (simplify_as_scalars) f = rm_no_info_traj_cols(f)
+  
+  ## sorry ---
+  if (force_collapse_for_scalars) f = rm_no_info_default_cols(f, collapse_default = TRUE)
+  if (!suppress_collapse_for_scalars) f = rm_no_info_default_cols(f)
   
   rownames(f) = NULL
   f
 }
 
-rm_no_info_traj_cols = function(x
+
+rm_no_info_default_cols = function(x
     , matrix_col_name = "quantity"
+    , collapse_default = getOption("macpan2_collapse_default")
+  ) {
+  rm_no_info_traj_cols(x, matrix_col_name, collapse_default)
+}
+
+rm_no_info_traj_cols = function(x
+    , matrix_col_name = "variable"
     , collapse_traj = getOption("macpan2_collapse_traj")
   ) {
   

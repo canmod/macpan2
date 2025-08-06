@@ -288,7 +288,8 @@ mp_default_list = function(model, include_all = FALSE) {
 
 #' @export
 mp_default.TMBModelSpec = function(model, include_all = FALSE) {
-  melt_default_matrix_list(mp_default_list(model, include_all))
+  lst = mp_default_list(model, include_all)
+  melt_default_matrix_list(lst)
 }
 
 #' @export
@@ -303,7 +304,8 @@ mp_default_list.TMBModelSpec = function(model, include_all = FALSE) {
 
 #' @export
 mp_default.TMBSimulator = function(model, include_all = FALSE) {
-  melt_default_matrix_list(mp_default_list(model, include_all))
+  lst = mp_default_list(model, include_all)
+  melt_default_matrix_list(lst)
 }
 
 #' @export
@@ -458,6 +460,33 @@ mp_final_list.TMBSimulator = function(model) {
   mp_final(model) |> cast_default_matrix_list()
 }
 
+
+#' Print Objective Function
+#' 
+#' @param model Model object with an objective function, probably a
+#' calibrator produced using \code{\link{mp_tmb_calibrator}}.
+#' 
+#' @return Called to print the objective function for humans to read.
+#' Invisibly returns the underlying objective function object that is
+#' of limited utility.
+#' 
+#' @export
+mp_print_obj_fn = function(model) UseMethod("mp_print_obj_fn")
+
+#' @export
+mp_print_obj_fn.TMBSimulator = function(model) {
+  obj_fn = model$tmb_model$obj_fn
+  obj_formula = obj_fn$formula_list()[[1L]]
+  obj_str = deparse1(obj_formula, width.cutoff = 500L)
+  cat(obj_str)
+  cat("\n")
+  invisible(obj_fn)
+}
+
+#' @export
+mp_print_obj_fn.TMBCalibrator = function(model) mp_print_obj_fn(model$simulator)
+
+
 #' Simulate Dynamical Model Trajectories
 #' 
 #' Return simulations of the trajectory of the output
@@ -550,7 +579,7 @@ mp_trajectory.TMBSimulator = function(model, include_initial = FALSE) {
   if (length(macro) > 1L) macro = macro[[1L]]
   if (length(macro) < 1L) macro = "simulate"
   traj = model[[macro]](.phases = phases) |> reset_rownames()
-  rm_no_info_traj_cols(traj, "matrix")
+  rm_no_info_traj_cols(traj)
 }
 
 #' @export
@@ -599,7 +628,7 @@ trajectory_par_util = function(simulator
   phases = trajectory_phases_util(include_initial, include_final)
   vector = trajectory_vec_util(simulator, parameter_updates, value_column_name)
   traj = simulator$simulate(vector, .phases = phases)
-  rm_no_info_traj_cols(traj, "matrix")
+  rm_no_info_traj_cols(traj)
 }
 
 trajectory_rep_util = function(n, simulator
@@ -766,7 +795,7 @@ mp_trajectory_sd.TMBSimulator = function(model
     vars = intersect(c("value", "conf.low", "conf.high"), names(r))
     r = backtrans(r, vars, "matrix", "sd", "value")
   }
-  rm_no_info_traj_cols(r, "matrix")
+  rm_no_info_traj_cols(r)
 } 
 
 #' @export
@@ -782,7 +811,7 @@ mp_trajectory_sd.TMBCalibrator = function(model
     , back_transform
   )
   traj$time = model$time_steps_obj$internal_to_external(traj$time)
-  rm_no_info_traj_cols(traj, "matrix")
+  rm_no_info_traj_cols(traj)
 }
 
 #' @export
@@ -792,7 +821,7 @@ mp_trajectory_ensemble.TMBSimulator = function(model
   ) {
   best_pars = get_last_best_par(model$ad_fun())
   traj = model$report_ensemble(best_pars, .n = n, .probs = probs)
-  rm_no_info_traj_cols(traj, "matrix")
+  rm_no_info_traj_cols(traj)
 }
 
 #' @export
@@ -878,7 +907,7 @@ mp_trajectory_sim.TMBSimulator = function(model
     , n
     , probs = c(0.025, 0.25, 0.5, 0.75, 0.975)
   ) {
-  r = model$simulate() |> rm_no_info_traj_cols("matrix")
+  r = model$simulate() |> rm_no_info_traj_cols()
   r = r[, names(r) != "value", drop = FALSE]
   rr = (n
     |> replicate(model$simulate_values()) 

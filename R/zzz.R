@@ -1,3 +1,11 @@
+mp_future = function() {
+  options(
+      macpan2_collapse_traj = TRUE
+    , macpan2_collapse_coef = TRUE
+    , macpan2_collapse_default = TRUE
+  )
+}
+
 #' @importFrom tools R_user_dir
 .onLoad <- function(lib, pkg) {
   
@@ -12,6 +20,7 @@
     , macpan2_verbose = FALSE
     , macpan2_collapse_traj = FALSE
     , macpan2_collapse_coef = FALSE
+    , macpan2_collapse_default = FALSE
     , macpan2_default_loss = c("clamped_poisson", "poisson", "sum_of_squares", "neg_bin")
     , macpan2_tmb_type = NULL
     , macpan2_tmb_check = TRUE
