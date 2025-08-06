@@ -115,8 +115,8 @@ Here is an example trajectory from this model with small [updates](https://canmo
 
 ```{r simulations}
 outputs = c(sprintf("I%s", 1:4), sprintf("A%s", 1:4))
+spec = mp_tmb_update(spec, default = list(lambda0 = 0.36, alpha = 0.2, n = 0.5))
 sim = (spec
-  |> mp_tmb_update(default = list(lambda0 = 0.36, n = 0.2))
   |> mp_rk4()
   |> mp_simulator(time_steps = 50L, outputs)
 )
@@ -140,8 +140,7 @@ To illustrate calibration, we simulate 20 years of data from a population of `1e
 set.seed(1L)
 spec_for_cal = (spec
   |> mp_tmb_update(
-      default = list(lambda0 = 0.38, n = 0.2)
-    , inits = list(
+      inits = list(
           S = 1e7 - 4000
         , I1 = 1000, I2 = 1000, I3 = 1000, I4 = 1000
         , A1 = 0   , A2 = 0   , A3 = 0   , A4 = 0
@@ -154,6 +153,7 @@ spec_for_cal = (spec
   ))
 )
 simulated_data = (spec_for_cal
+  |> mp_rk4()
   |> mp_simulator(time_steps = 20L, c("treated", "untreated"))
   |> mp_trajectory()
   |> mutate(value = rpois(n(), value))
@@ -169,17 +169,17 @@ simulated_data = (spec_for_cal
 ```
 
 
-We calibrate this model data simulated from it, but start away from the true parameter values by specifying that the default `lambda0 = 0.2` and `n = 0.5`. We assume a Poisson likelihood to match the Poisson noise that we used to produce the simulated data. For numerical stability, we optimize `lambda0` and `n` on the log and logit scales respectively.
+We calibrate this model data simulated from it, but start away from the true parameter values by specifying that the default `lambda0 = 0.2` and `alpha = 0.5`. We assume a Poisson likelihood to match the Poisson noise that we used to produce the simulated data. For numerical stability, we optimize `lambda0` and `alpha` on log scales.
 ```{r calibration}
 calibrator = (spec_for_cal
-  |> mp_tmb_update(default = list(lambda0 = 0.2, n = 0.5))
+  |> mp_tmb_update(default = list(lambda0 = 0.2, alpha = 0.5))
   |> mp_tmb_calibrator(
         data = simulated_data
       , traj = list(
             treated = mp_pois()
           , untreated = mp_pois()
       )
-      , par = c("log_lambda0", "logit_n")
+      , par = c("log_lambda0", "log_alpha")
   )
 )
 mp_optimize(calibrator)
@@ -190,12 +190,29 @@ The convergence code is `0`, which is good.
 mp_optimizer_output(calibrator)$convergence
 ```
 
-The true parameters, `lambda0 = 0.38` and `n = 0.2`, are in the confidence intervals, although the confidence interval for `n` is quite wide.
-```{r estimates}
-(mp_tmb_coef(calibrator, conf.int = TRUE)
- |> select(-term, -row, -col, -type)
-)
+But the covariance matrix of the parameter estimates indicate that `lambda0` and `alpha` are highly correlated, indicating that there is little information in the data allowing us to disintangle baseline transmission, `lambda0`, from heterogeneity and mixing, `alpha`.
+```{r correlation}
+covmat = mp_tmb_fixef_cov(calibrator)
+print(covmat)
+cov2cor(covmat)
 ```
+
+Nevertheless, the true parameters, `lambda0 = 0.36` and `alpha = 0.2`, are in the confidence intervals, although the confidence interval for `alpha` is quite wide.
+```{r estimates}
+true_coefs = (spec_for_cal 
+  |> mp_default() 
+  |> filter(matrix %in% c("alpha", "lambda0"))
+  |> select(-row, -col)
+  |> rename(mat = matrix, true = value)
+)
+estimated_coefs = (calibrator
+  |> mp_tmb_coef(, conf.int = TRUE)
+  |> select(-term, -row, -col, -type)
+)
+left_join(estimated_coefs, true_coefs)
+```
+
+(note that `default` gives the starting values for the optimizer, `estimate` the estimated value, and `true` the value used in simulation.)
 
 The simulated data (black) that we fit to matches the predictions of the fitted model (red) with 95% confidence intervals for the point prediction).
 ```{r fit, fig.width = 4}

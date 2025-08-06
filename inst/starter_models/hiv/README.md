@@ -112,8 +112,8 @@ solver](https://canmod.github.io/macpan2/reference/state_updates).
 
 ``` r
 outputs = c(sprintf("I%s", 1:4), sprintf("A%s", 1:4))
+spec = mp_tmb_update(spec, default = list(lambda0 = 0.36, alpha = 0.2, n = 0.5))
 sim = (spec
-  |> mp_tmb_update(default = list(lambda0 = 0.36, n = 0.2))
   |> mp_rk4()
   |> mp_simulator(time_steps = 50L, outputs)
 )
@@ -143,8 +143,7 @@ and zero untreated individuals. We add Poisson noise to these variables.
 set.seed(1L)
 spec_for_cal = (spec
   |> mp_tmb_update(
-      default = list(lambda0 = 0.38, n = 0.2)
-    , inits = list(
+      inits = list(
           S = 1e7 - 4000
         , I1 = 1000, I2 = 1000, I3 = 1000, I4 = 1000
         , A1 = 0   , A2 = 0   , A3 = 0   , A4 = 0
@@ -157,6 +156,7 @@ spec_for_cal = (spec
   ))
 )
 simulated_data = (spec_for_cal
+  |> mp_rk4()
   |> mp_simulator(time_steps = 20L, c("treated", "untreated"))
   |> mp_trajectory()
   |> mutate(value = rpois(n(), value))
@@ -175,39 +175,39 @@ simulated_data = (spec_for_cal
 
 We calibrate this model data simulated from it, but start away from the
 true parameter values by specifying that the default `lambda0 = 0.2` and
-`n = 0.5`. We assume a Poisson likelihood to match the Poisson noise
+`alpha = 0.5`. We assume a Poisson likelihood to match the Poisson noise
 that we used to produce the simulated data. For numerical stability, we
-optimize `lambda0` and `n` on the log and logit scales respectively.
+optimize `lambda0` and `alpha` on log scales.
 
 ``` r
 calibrator = (spec_for_cal
-  |> mp_tmb_update(default = list(lambda0 = 0.2, n = 0.5))
+  |> mp_tmb_update(default = list(lambda0 = 0.2, alpha = 0.5))
   |> mp_tmb_calibrator(
         data = simulated_data
       , traj = list(
             treated = mp_pois()
           , untreated = mp_pois()
       )
-      , par = c("log_lambda0", "logit_n")
+      , par = c("log_lambda0", "log_alpha")
   )
 )
 mp_optimize(calibrator)
 #> $par
 #>     params     params 
-#> -0.9526784 -1.8874755 
+#> -0.9303394  1.5411393 
 #> 
 #> $objective
-#> [1] 194.0068
+#> [1] 190.3486
 #> 
 #> $convergence
 #> [1] 0
 #> 
 #> $iterations
-#> [1] 44
+#> [1] 101
 #> 
 #> $evaluations
 #> function gradient 
-#>       51       45 
+#>      119      102 
 #> 
 #> $message
 #> [1] "relative convergence (4)"
@@ -220,18 +220,48 @@ mp_optimizer_output(calibrator)$convergence
 #> [1] 0
 ```
 
-The true parameters, `lambda0 = 0.38` and `n = 0.2`, are in the
-confidence intervals, although the confidence interval for `n` is quite
-wide.
+But the covariance matrix of the parameter estimates indicate that
+`lambda0` and `alpha` are highly correlated, indicating that there is
+little information in the data allowing us to disintangle baseline
+transmission, `lambda0`, from heterogeneity and mixing, `alpha`.
 
 ``` r
-(mp_tmb_coef(calibrator, conf.int = TRUE)
- |> select(-term, -row, -col, -type)
-)
-#>       mat default  estimate  std.error    conf.low conf.high
-#> 1 lambda0     0.2 0.3857066 0.02514815 0.339436497 0.4382839
-#> 2       n     0.5 0.1315326 0.23314560 0.002765574 0.8921398
+covmat = mp_tmb_fixef_cov(calibrator)
+print(covmat)
+#>             log_lambda0 log_alpha
+#> log_lambda0  0.03654861 0.3828976
+#> log_alpha    0.38289764 4.0114311
+cov2cor(covmat)
+#>             log_lambda0 log_alpha
+#> log_lambda0   1.0000000 0.9999944
+#> log_alpha     0.9999944 1.0000000
 ```
+
+Nevertheless, the true parameters, `lambda0 = 0.36` and `alpha = 0.2`,
+are in the confidence intervals, although the confidence interval for
+`alpha` is quite wide.
+
+``` r
+true_coefs = (spec_for_cal 
+  |> mp_default() 
+  |> filter(matrix %in% c("alpha", "lambda0"))
+  |> select(-row, -col)
+  |> rename(mat = matrix, true = value)
+)
+estimated_coefs = (calibrator
+  |> mp_tmb_coef(, conf.int = TRUE)
+  |> select(-term, -row, -col, -type)
+)
+left_join(estimated_coefs, true_coefs)
+#> Joining with `by = join_by(mat)`
+#>       mat default  estimate  std.error   conf.low   conf.high true
+#> 1 lambda0     0.2 0.3944198 0.07540396 0.27116189   0.5737052 0.36
+#> 2   alpha     0.5 4.6699078 9.35315167 0.09214556 236.6694535 0.20
+```
+
+(note that `default` gives the starting values for the optimizer,
+`estimate` the estimated value, and `true` the value used in
+simulation.)
 
 The simulated data (black) that we fit to matches the predictions of the
 fitted model (red) with 95% confidence intervals for the point
