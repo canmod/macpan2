@@ -27,7 +27,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.3.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -79,108 +79,239 @@
     
     
 <p><a href="https://canmod.github.io/macpan2/articles/vignette-status#working-draft"><img src="https://img.shields.io/badge/status-working%20draft-red" alt="status"></a></p>
+<p>You can control the behavior of <code>macpan2</code> using standard R
+options. To do this, use the <code><a href="https://rdrr.io/r/base/options.html" class="external-link">options()</a></code> function near the
+top of your script or session. Here are a couple of examples.</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>macpan2_verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>macpan2_log_dir <span class="op">=</span> <span class="st">""</span><span class="op">)</span>  <span class="co"># log to working directory</span></span></code></pre></div>
+<p>This page lists all <code>macpan2</code> options, organized by topic.
+Defaults and allowed values for each option are provided. You can copy
+and paste (and perhaps modify) the examples to change package
+behavior.</p>
 <div class="section level2">
 <h2 id="potentially-useful">Potentially Useful<a class="anchor" aria-label="anchor" href="#potentially-useful"></a>
 </h2>
+<div class="section level3">
+<h3 id="logging-and-verbosity">Logging and Verbosity<a class="anchor" aria-label="anchor" href="#logging-and-verbosity"></a>
+</h3>
+<p>By default, <code>macpan2</code> writes logs to the following path,
+which will be different on each machine.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://canmod.github.io/macpan2/">macpan2</a></span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"macpan2_log_dir"</span><span class="op">)</span></span>
+<span>  , <span class="st">".macpan2"</span></span>
+<span>  , <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"macpan2_session_name"</span><span class="op">)</span></span>
+<span>  , <span class="st">"log.txt"</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "/home/runner/.local/share/R/macpan2/.macpan2/default/log.txt"</span></span></code></pre></div>
+<p>To log to the working directory, use
+<code>options(macpan2_log_dir = "")</code>. You can also get console
+output from the TMB engine using
+<code>options(macpan2_verbose = TRUE)</code>.</p>
 <ul>
 <li>
-<code>macpan2_verbose = FALSE</code> : Should the <a href="https://github.com/kaskr/adcomp" class="external-link">TMB</a> computational engine used
-by <code>macpan2</code> be verbose or not (default). In particular, the
-<code>silent</code> argument of <code><a href="https://rdrr.io/pkg/TMB/man/MakeADFun.html" class="external-link">TMB::MakeADFun</a></code> gets
-<code>!getOption("macpan2_verbose")</code>.</li>
+<strong>macpan2_session_name</strong><br>
+Default: <code>"default"</code>
+</li>
 <li>
-<code>macpan2_collapse_traj = FALSE</code> : Should <code>row</code>
-and <code>col</code> columns in data frames returned by
-<code>mp_trajectory_*()</code> functions be removed if they provide no
-information (e.g., if all variables in the trajectory are scalars).</li>
+<strong>macpan2_log_dir</strong><br>
+Default: <code>tools::R_user_dir("macpan2")</code>
+</li>
 <li>
-<code>macpan2_collapse_coef = FALSE</code> : Should <code>row</code>
-and <code>col</code> columns in data frames returned by
-<code>mp_*_coef()</code> functions be removed if they provide no
-information (e.g., if all variables in the trajectory are scalars).</li>
-<li>
-<code>macpan2_session_name = "default"</code> and
-<code>macpan2_log_dir = tools::R_user_dir("macpan2")</code> : Where to
-put log files generated by the engine. By default, the path to log files
-will be
-<code>{macpan2_log_dir}/.macpan2/{macpan2_session_name}/log.txt</code>.
-If you want to get access to the log file you should set the value of
-<code>macpan2_log_dir</code>. If you want to set
-<code>macpan2_log_dir</code> to the working directory at the time the
-model is created, you should set <code>macpan2_log_dir = ""</code>.</li>
-<li>
-<code>macpan2_tol_hazard_div = 1e-8</code> : Used by the
-<code><a href="../reference/state_updates.html">mp_hazard()</a></code> function to generate an expression that calls
-the <code><a href="../reference/engine_functions.html">proportions()</a></code> engine function. This option becomes the
-third tolerance argument to <code><a href="../reference/engine_functions.html">proportions()</a></code>.</li>
-<li>
-<code>macpan2_tol_singular_cov =</code>1e-6` : Used to determine if
-estimated covariance matrices can be used to generate multivariate
-normal samples of parameter vectors.</li>
+<strong>macpan2_verbose</strong><br>
+Default: <code>FALSE</code><br>
+Controls whether the <a href="https://github.com/kaskr/adcomp" class="external-link">TMB</a>
+engine is verbose.<br>
+Passed as <code>!getOption("macpan2_verbose")</code> to
+<code><a href="https://rdrr.io/pkg/TMB/man/MakeADFun.html" class="external-link">TMB::MakeADFun()</a></code>.</li>
 </ul>
+<p>Here are some examples of controlling logging and verbosity.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>macpan2_session_name <span class="op">=</span> <span class="st">"demo"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>macpan2_log_dir <span class="op">=</span> <span class="st">""</span><span class="op">)</span>  <span class="co"># logs go under the working directory</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>macpan2_verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="output-data-formatting-for-scalar-only-models">Output Data Formatting (for Scalar-Only Models)<a class="anchor" aria-label="anchor" href="#output-data-formatting-for-scalar-only-models"></a>
+</h3>
+<p>When a model contains only scalar variables, the default output
+structure—which includes <code>row</code>, <code>col</code>, and a
+generic <code>matrix</code> column—can be unnecessarily complex. The
+following options simplify the output in these cases by:</p>
+<ol style="list-style-type: decimal">
+<li>Dropping the <code>row</code> and <code>col</code> columns when they
+provide no information.</li>
+<li>Renaming the <code>matrix</code> column to something more
+meaningful.</li>
+</ol>
+<table class="table">
+<colgroup>
+<col width="32%">
+<col width="10%">
+<col width="21%">
+<col width="35%">
+</colgroup>
+<thead><tr class="header">
+<th>Option</th>
+<th>Default</th>
+<th>Affects</th>
+<th>Renamed Column (if collapsed)</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><strong>macpan2_collapse_traj</strong></td>
+<td><code>FALSE</code></td>
+<td><code><a href="../reference/mp_trajectory.html">mp_trajectory()</a></code></td>
+<td><code>variable</code></td>
+</tr>
+<tr class="even">
+<td><strong>macpan2_collapse_coef</strong></td>
+<td><code>FALSE</code></td>
+<td><code><a href="../reference/mp_tmb_coef.html">mp_tmb_coef()</a></code></td>
+<td><code>par</code></td>
+</tr>
+<tr class="odd">
+<td><strong>macpan2_collapse_default</strong></td>
+<td><code>FALSE</code></td>
+<td><code><a href="../reference/mp_default.html">mp_default()</a></code></td>
+<td><code>quantity</code></td>
+</tr>
+</tbody>
+</table>
+<p>Note that <code>macpan2_collapse_traj</code> also applies to all
+<code>mp_trajectory_*()</code> functions that return a data frame, such
+as <code><a href="../reference/mp_trajectory.html">mp_trajectory_sd()</a></code> and
+<code><a href="../reference/mp_trajectory.html">mp_trajectory_par()</a></code>.</p>
+<p>These options are often worth enabling in scalar-only models to
+simplify results. The only reason they are not defaults is to preserve
+backward compatibility with earlier versions of
+<code>macpan2</code>.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span></span>
+<span>    macpan2_collapse_traj <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  , macpan2_collapse_coef <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  , macpan2_collapse_default <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>Thanks to <a href="https://github.com/canmod/macpan2/issues/350" class="external-link">Jonathan Dushoff</a>
+for the ideas here.</p>
+</div>
+<div class="section level3">
+<h3 id="numerical-tolerances">Numerical Tolerances<a class="anchor" aria-label="anchor" href="#numerical-tolerances"></a>
+</h3>
+<ul>
+<li>
+<strong>macpan2_tol_hazard_div</strong><br>
+Default: <code>1e-8</code><br>
+Tolerance passed to <code><a href="../reference/engine_functions.html">proportions()</a></code> via
+<code><a href="../reference/state_updates.html">mp_hazard()</a></code> to avoid division by zero.</li>
+<li>
+<strong>macpan2_tol_singular_cov</strong><br>
+Default: <code>1e-6</code><br>
+Used to check whether a covariance matrix is suitable for simulating
+multivariate normal parameter samples.</li>
+</ul>
+<p>Here is an example.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>macpan2_tol_singular_cov <span class="op">=</span> <span class="fl">1e-4</span><span class="op">)</span></span></code></pre></div>
+</div>
 </div>
 <div class="section level2">
 <h2 id="advanced">Advanced<a class="anchor" aria-label="anchor" href="#advanced"></a>
 </h2>
-<p>You almost always want to leave these at their default values.</p>
+<p>These options are mostly for developers or advanced users.</p>
+<div class="section level3">
+<h3 id="simulation-and-reproducibility">Simulation and Reproducibility<a class="anchor" aria-label="anchor" href="#simulation-and-reproducibility"></a>
+</h3>
 <ul>
 <li>
-<code>macpan2_traj_tmb_macro = "simulate"</code> (valid values are
-<code>"simulate"</code> and <code>"report"</code>) : What TMB macro
-should <code><a href="../reference/mp_trajectory.html">mp_trajectory()</a></code> use to generate simulations. Before
-version <code>2.4.0</code> this was implicitly assumed to be
-<code>"report"</code>, which does not respect the random seed set using
-<code>set.seed</code>. For reproducibility with earlier versions, please
-set <code>options(macpan2_traj_tmb_macro = "report")</code>.</li>
-<li>
-<code>macpan2_time_dep_funcs = c("convolution", "rbind_lag", "rbind_time", "cbind_lag", "cbind_time")</code>
-: List of engine functions that cannot be called unless their first
-argument has a saved simulation history.</li>
-<li>
-<code>macpan2_non_iterable_funcs = c("time_var", "rbinom", "rpois", "rnorm", "rnbinom", "reulermultinom")</code>
-: List of functions that cannot be called repeatedly <em>within</em> a
-single time-step (as would happen for example with RK4 state updates).
-Randomness and time-variation are the only examples we have now.</li>
-<li>
-<code>macpan2_dll = "macpan2"</code> : What C++ shared object should
-be used as the <a href="https://github.com/kaskr/adcomp" class="external-link">TMB</a> engine.
-This is useful if you want to compare different versions of the engine.
-To use this feature you need to produce an alternative to
-<code>src/macpan2.cpp</code>, compile it using
-<code>TMB::compile("path/to/alt.cpp")</code>, load it using
-<code>dyn.load(TMB::dynlib("alt"))</code>, and set the option as
-<code>macpan2_dll = "alt"</code> where <code>"alt"</code> is the name of
-the alternative C++ file without the extension. After this, simulation
-code will utilize this alternative engine as opposed to the built in
-<code>src/macpan2.cpp</code> engine.</li>
-<li>
-<code>macpan2_saving_conflict_msg_fn = base::message</code> :
-Function to use for reporting messages when conflicting information
-about saving or not saving a particular variable is received. This
-relates to <code>must_save</code> and <code>must_not_save</code>
-arguments in functions like <code>mp_tmb_model_spec</code>.</li>
+<strong>macpan2_traj_tmb_macro</strong><br>
+Default: <code>"simulate"</code><br>
+Allowed: <code>"simulate"</code>, <code>"report"</code><br><code>"simulate"</code> respects <code><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed()</a></code>;
+<code>"report"</code> (pre-2.4.0 behavior) does not.</li>
 </ul>
+</div>
+<div class="section level3">
+<h3 id="time-restricted-functions">Time-Restricted Functions<a class="anchor" aria-label="anchor" href="#time-restricted-functions"></a>
+</h3>
+<p>Some engine functions have constraints based on their use in time
+steps or access to history.</p>
+<ul>
+<li>
+<strong>macpan2_time_dep_funcs</strong><br>
+Default:
+<code>c("convolution", "rbind_lag", "rbind_time", "cbind_lag", "cbind_time")</code><br>
+These functions <em>require</em> their first argument to have saved
+simulation history.</li>
+<li>
+<strong>macpan2_non_iterable_funcs</strong><br>
+Default:
+<code>c("time_var", "rbinom", "rpois", "rnorm", "rnbinom", "reulermultinom")</code><br>
+These functions cannot be called multiple times within a single time
+step (e.g., RK4). Includes all stochastic and time-varying calls.</li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="engine-control">Engine Control<a class="anchor" aria-label="anchor" href="#engine-control"></a>
+</h3>
+<ul>
+<li>
+<strong>macpan2_dll</strong><br>
+Default: <code>"macpan2"</code><br>
+Name of the C++ shared object to use.</li>
+</ul>
+<p>You can use a custom engine that is an alternative version of
+<code>src/macpan2.cpp</code>, called
+<code>project-directory/alt.cpp</code> for example, by running the
+following code:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">TMB</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/TMB/man/compile.html" class="external-link">compile</a></span><span class="op">(</span><span class="st">"project-directory/alt.cpp"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/dynload.html" class="external-link">dyn.load</a></span><span class="op">(</span><span class="fu">TMB</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/TMB/man/dynlib.html" class="external-link">dynlib</a></span><span class="op">(</span><span class="st">"alt"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>macpan2_dll <span class="op">=</span> <span class="st">"alt"</span><span class="op">)</span></span></code></pre></div>
+<ul>
+<li>
+<strong>macpan2_saving_conflict_msg_fn</strong><br>
+Default: <code><a href="https://rdrr.io/r/base/message.html" class="external-link">base::message()</a></code><br>
+Function to use when both <code>must_save</code> and
+<code>must_not_save</code> are specified. Applies to
+<code><a href="../reference/mp_tmb_model_spec.html">mp_tmb_model_spec()</a></code> and related functions with those
+arguments.</li>
+</ul>
+</div>
 </div>
 <div class="section level2">
 <h2 id="deprecated">Deprecated<a class="anchor" aria-label="anchor" href="#deprecated"></a>
 </h2>
-<p>These options should not be used unless an old and deprecated
-approach is used. They are present for back-compatibility only.</p>
+<p>These options are preserved for backward compatibility only.</p>
 <ul>
 <li>
-<code>macpan2_default_loss = c("clamped_poisson", "poisson", "sum_of_squares", "neg_bin")</code>
-: ## FIXME: macpan2_vec_by is old and not relevant i think</li>
+<strong>macpan2_default_loss</strong><br>
+Default: <code>"clamped_poisson"</code><br>
+Allowed: <code>"clamped_poisson"</code>, <code>"poisson"</code>,
+<code>"sum_of_squares"</code>, <code>"neg_bin"</code> Please specify
+loss functions for trajectory matching directly as in <a href="https://canmod.github.io/macpan2/articles/calibration.html#step-1-add-calibration-information">this
+vignette section</a>.</li>
 <li>
-<code>macpan2_vec_by</code> = c(“state”, “flow_rates”,
-“trans_rates”) |&gt; self_named_vector()</li>
+<strong>macpan2_vec_by</strong><br>
+Default:
+<code>c("state", "flow_rates", "trans_rates") |&gt; self_named_vector()</code><br>
+Likely obsolete.</li>
 </ul>
 </div>
 <div class="section level2">
 <h2 id="no-longer-or-not-yet-used">No Longer or Not Yet Used<a class="anchor" aria-label="anchor" href="#no-longer-or-not-yet-used"></a>
 </h2>
+<p>These options exist in the code but are not currently used.</p>
 <ul>
-<li><code>macpan2_tmb_type = "ADFun"</code></li>
-<li><code>macpan2_tmb_check = TRUE</code></li>
+<li>
+<strong>macpan2_tmb_type</strong><br>
+Default: <code>"ADFun"</code>
+</li>
+<li>
+<strong>macpan2_tmb_check</strong><br>
+Default: <code>TRUE</code>
+</li>
 </ul>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
