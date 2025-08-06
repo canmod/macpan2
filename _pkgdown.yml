@@ -163,6 +163,7 @@ reference:
   - mp_version
   - mp_opt_attempted
   - mp_uncertainty_estimated
+  - mp_print_obj_fn
 
 - title: Utilities
 
