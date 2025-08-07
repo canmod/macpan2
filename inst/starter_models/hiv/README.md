@@ -237,6 +237,10 @@ cov2cor(covmat)
 #> log_alpha     0.9999944 1.0000000
 ```
 
+This positive correlation makes some sense given that the [force of
+infection](#force-of-infection) is an increasing function of `lambda0`
+and a decreasing function of `alpha`.
+
 Nevertheless, the true parameters, `lambda0 = 0.36` and `alpha = 0.2`,
 are in the confidence intervals, although the confidence interval for
 `alpha` is quite wide.
