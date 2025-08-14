@@ -212,6 +212,14 @@ workshop notes](https://canmod.github.io/macpan-workshop/).
 | Vancouver Machine Learning Group (VanML)                    | [2024-02-22](https://elliottlab.ca/technique.html)                             |
 | Canadian Network for Modelling Infectious Diseases (CANMOD) | [2023-11-14](https://www.birs.ca/events/2023/5-day-workshops/23w5151/schedule) |
 
+On June 16-27, 2025, the [International Clinics on Infectious Disease
+Dynamics and Data (ICI3D) Program](https://www.ici3d.org/) included labs
+using `macpan2` to [specify simple compartmental models and simulate
+from
+them](https://github.com/ICI3D/RTutorials/blob/master/mpLabCompartmental.R)
+and [specify an HIV model and fit it to
+data](https://github.com/ICI3D/RTutorials/blob/master/mpLabFitting.R).
+
 ## Product Management
 
 The [project board](https://github.com/orgs/canmod/projects/2/views/6)
