@@ -338,6 +338,7 @@ mp_tmb_insert_glm_timevar = function(model
   }
 
   design_matrix = as.matrix(design_matrix)
+  timevar_coef = as.matrix(timevar_coef)
   if (nrow(design_matrix) < 1L) stop("The design matrix must have at least one row.")
   if (ncol(design_matrix) != nrow(timevar_coef)) {
     stop("The design_matrix and timevar_coef matrix are not compatible. The number of columns in the former must equal the number of rows in the latter.")

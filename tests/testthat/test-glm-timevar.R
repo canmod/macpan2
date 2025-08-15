@@ -127,6 +127,28 @@ test_that("Time-varying beta affects SI model dynamics as expected", {
     |> mp_trajectory()
   )
   
+  # Insert time-varying beta (log link)
+  model_tv_gs <- mp_tmb_insert_glm_timevar(mp_hazard(model)
+    , parameter_name = "beta"
+    , design_matrix = X
+    , timevar_coef = coef_mat
+    , link_function = mp_log
+    , engine_function = "group_sums"
+  )
+  
+  # Run simulation
+  sims_gs <- (model_tv_gs
+    |> mp_simulator(
+        time_steps = max(t_steps)
+      , outputs = c("beta", "infection")
+    )
+    |> mp_trajectory()
+  )
+  
+  # Check that old group_sums engine is consistent
+  # with newer sparse_mat_mult engine
+  expect_equal(sims, sims_gs)
+  
   actual_beta = sims |> filter(matrix == "beta") |> pull(value)
   
   # Check that beta increases over time as per the design matrix
