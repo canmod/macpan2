@@ -47,6 +47,7 @@ reference:
     article describes how these functions are used in context.
   contents:
   - mp_tmb_library
+  - mp_official_library
   - mp_show_models
   - mp_model_starter
   - mp_model_docs
@@ -80,7 +81,8 @@ reference:
   - mp_vars
   - mp_state_dependence_frame
   - mp_version
-  - dot_layout
+  - mp_dot_layout
+  - mp_adjacency
   - find_all_paths
 
 - title: Simulators
