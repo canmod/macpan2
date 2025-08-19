@@ -2,42 +2,72 @@
 % Please edit documentation in R/layout-plot-utils.R
 \name{dot_layout}
 \alias{dot_layout}
+\alias{mp_dot_layout}
 \title{Create a Graph from a Model Specification}
 \usage{
+mp_dot_layout(
+  spec,
+  include_inout = FALSE,
+  action = c("render", "layout", "define"),
+  define_args = list(edgemode = "directed"),
+  layout_args = list(attrs = list(graph = list(rankdir = "LR"), node = list(shape =
+    "rectangle"))),
+  render_args = list(edgemode = "directed")
+)
+
 dot_layout(spec, include_inout = FALSE)
 }
 \arguments{
-\item{spec}{a model specification}
+\item{spec}{A model specification object (for example, created using
+\code{mp_tmb_model_spec()}).}
 
-\item{include_inout}{(logical) include nodes defined by \code{\link{mp_per_capita_inflow}} and \code{\link{mp_per_capita_outflow}} ?}
+\item{include_inout}{(logical) include nodes defined by
+\code{\link{mp_per_capita_inflow}} and \code{\link{mp_per_capita_outflow}}?}
+
+\item{action}{What actions should be taken? The default, \code{"render"},
+will define, layout, and render the graph of the model \code{spec}. Rendering
+means that the graph will be rendered in the current graphics device and
+that the returned object will contain both layout and rendering information
+(see \code{?Rgraphviz::layoutGraph} \code{?Rgraphviz::renderGraph}). If
+\code{action} is \code{"layout"}, then the graph will not be rendered, but the
+returned object will contain layout information and can therefore be
+rendered later using the \code{?Rgraphviz::renderGraph} function. If \code{action} is
+\code{"define"}, then the returned object will contain the definition of the
+graph but not any layout or rendering information.}
+
+\item{define_args}{List of additional arguments to pass to the
+\code{?graph::graphAM} constructor function.}
+
+\item{layout_args}{List of additional arguments to pass to the
+\code{?Rgraphviz::layoutGraph} function (only applied if \code{action} is either
+\code{"layout"} or \code{"render"}).}
+
+\item{render_args}{List of additional arguments to pass to the
+\code{?Rgraphviz::renderGraph} function (only applied if \code{action} is \code{"render"}).}
+}
+\value{
+A \linkS4class{graphAM} object.
 }
 \description{
-Convert a model specification into a graph (using the \code{graph} package) that
-can be plotted with \code{Rgraphviz}: see \code{?Rgraphviz::plot.graphNEL} and
-https://graphviz.org/doc/info/attrs.html for information on customizing the
-plot.
+Convert a compartmental model specification into a graph (using the \code{graph}
+package) of the box diagram for the model.
 }
 \details{
-In order to plot the graph, you need to have loaded the \code{Rgraphviz} package
-(\code{library("Rgraphviz")}). We suppress package startup messages when loading
-\code{Rgraphviz} in the examples below, because
-\href{https://www.bioconductor.org/}{bioconductor} (which is the R ecosystem for
-which \code{Rgraphviz} is developed) and
-\href{https://www.tidyverse.org/}{tidyverse} (which is an R ecosystem heavily
-used in \code{macpan2} examples and workflows) use the same names for different
-functions. This naming clash gets reported when we load \code{Rgraphviz}, and
-we prefer to suppress these distracting messages. Please be aware of this
-in your workflows that use both \code{tidyverse} and \code{dot_layout}
-(and therefore \code{bioconductor}), and take
-\href{https://stackoverflow.com/questions/39137110/what-does-the-following-object-is-masked-from-packagexxx-mean}{appropriate action}.
+In order to create these graph objects you need to install the \code{graph}
+package, and to plot them on the current graphics device you need to
+install the \code{Rgraphviz} package.
 }
+\section{Functions}{
+\itemize{
+\item \code{dot_layout()}: Deprecated in favour of \code{mp_dot_layout}, which both
+plots and returns the \linkS4class{graphAM} object.
+
+}}
 \examples{
-## Note: See above for an explanation of `suppressPackageStartupMessages`
-if (suppressPackageStartupMessages(require(Rgraphviz))) {
-  macpan_base = mp_tmb_library("starter_models", "macpan_base", package = "macpan2")
-  ## plot with left-to-right layout, rectangles instead of default circles
-  dot_layout(macpan_base) |>
-    plot(attrs = list(graph = list(rankdir = "LR"),
-                      node = list(shape = "rectangle")))
-}
+macpan_base = mp_tmb_library("starter_models"
+  , "macpan_base"
+  , package = "macpan2"
+)
+mp_dot_layout(macpan_base)
+
 }
