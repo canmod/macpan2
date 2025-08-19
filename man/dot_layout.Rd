@@ -46,7 +46,7 @@ graph but not any layout or rendering information.}
 \code{?Rgraphviz::renderGraph} function (only applied if \code{action} is \code{"render"}).}
 }
 \value{
-A \linkS4class{graph::graphAM} object.
+A \linkS4class[graph]{graph::graphAM} object.
 }
 \description{
 Convert a compartmental model specification into a graph (using the \code{graph}
@@ -60,7 +60,7 @@ install the \code{Rgraphviz} package.
 \section{Functions}{
 \itemize{
 \item \code{dot_layout()}: Deprecated in favour of \code{mp_dot_layout}, which both
-plots and returns the \linkS4class{graph::graphAM} object.
+plots and returns the \linkS4class[graph]{graph::graphAM} object.
 
 }}
 \examples{
