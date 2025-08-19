@@ -656,65 +656,6 @@ layout = function(states, links, init_row = 1L, init_col = 1L) {
   layout_matrix[rowSums(i) > 0L, colSums(i) > 0L]
 }
 
-# @param i Index representing one state.
-# @param layout List with two vectors, `x` and `y`, giving coordinates of
-# each state.
-# @param links List with `N`, `S`, `E`, `W` components, each element of which
-# gives states to the north, south, east, and west of a focal state.
-# @param visited Vector containing indices of states that have been visited,
-# with this vector growing as the recursion traverses the graph
-# @param all_states character vector in topological order.
-# product_layout = function(i, layout, links, all_states = character(), visited = integer()) {
-#   err = "This is not a model that can be laid out on a grid"
-#   if (i %in% visited) return(layout)
-#   visited = append(visited, i)
-#   layout$x_min[1] = layout$y_min[1] = layout$x_max[1] = layout$y_max[1] = 1
-#   
-#   focal_state = links$N[[all_states[i]]]
-#   if (length(focal_state) == 1L) {
-#     j = match(focal_state, all_states)
-#     if (!j %in% visited) {
-#       layout$x[j] = layout$x[i]
-#       layout$y[j] = layout$y[i] + 1L
-#       layout = Recall(j, layout, links, all_states, visited)
-#     }
-#   } else if (length(focal_state) != 0L) stop(err)
-#   
-#   focal_state = links$S[[all_states[i]]]
-#   if (length(focal_state) == 1L) {
-#     j = match(focal_state, all_states)
-#     if (!j %in% visited) {
-#       layout$x[j] = layout$x[i]
-#       layout$y[j] = layout$y[i] - 1L
-#       layout = Recall(j, layout, links, all_states, visited)
-#     }
-#   } else if (length(focal_state) != 0L) stop(err)
-#   
-#   focal_state = links$E[[all_states[i]]]
-#   if (length(focal_state) == 1L) {
-#     j = match(focal_state, all_states)
-#     if (!j %in% visited) {
-#       layout$x[j] = layout$x[i] + 1L
-#       layout$y[j] = layout$y[i]
-#       layout = Recall(j, layout, links, all_states, visited)
-#     }
-#   } else if (length(focal_state) != 0L) stop(err)
-#   
-#   focal_state = links$W[[all_states[i]]]
-#   if (length(focal_state) == 1L) {
-#     j = match(focal_state, all_states)
-#     if (!j %in% visited) {
-#       layout$x[j] = layout$x[i] - 1L
-#       layout$y[j] = layout$y[i]
-#       layout = Recall(j, layout, links, all_states, visited)
-#     }
-#   } else if (length(focal_state) != 0L) stop(err)
-#   
-#   return(layout)
-# }
-
-
-
 
 
 neighbour_list = function(flows) {
@@ -978,44 +919,118 @@ compute_adjacency_matrix <- function(df) {
 
 ##' Create a Graph from a Model Specification
 ##' 
-##' Convert a model specification into a graph (using the `graph` package) that
-##' can be plotted with `Rgraphviz`: see `?Rgraphviz::plot.graphNEL` and
-##' https://graphviz.org/doc/info/attrs.html for information on customizing the 
-##' plot.
+##' Convert a compartmental model specification into a graph (using the `graph` 
+##' package) of the box diagram for the model.
 ##'
-##' In order to plot the graph, you need to have loaded the `Rgraphviz` package 
-##' (`library("Rgraphviz")`). We suppress package startup messages when loading 
-##' `Rgraphviz` in the examples below, because
-##' [bioconductor](https://www.bioconductor.org/) (which is the R ecosystem for 
-##' which `Rgraphviz` is developed) and 
-##' [tidyverse](https://www.tidyverse.org/) (which is an R ecosystem heavily 
-##' used in `macpan2` examples and workflows) use the same names for different
-##' functions. This naming clash gets reported when we load `Rgraphviz`, and
-##' we prefer to suppress these distracting messages. Please be aware of this 
-##' in your workflows that use both `tidyverse` and `dot_layout` 
-##' (and therefore `bioconductor`), and take 
-##' [appropriate action](https://stackoverflow.com/questions/39137110/what-does-the-following-object-is-masked-from-packagexxx-mean).
+##' In order to create these graph objects you need to install the `graph`
+##' package, and to plot them on the current graphics device you need to
+##' install the `Rgraphviz` package.
 ##' 
-##' @param spec a model specification
-##' @param include_inout (logical) include nodes defined by \code{\link{mp_per_capita_inflow}} and \code{\link{mp_per_capita_outflow}} ?
+##' @inheritParams mp_adjacency
+##' @param action What actions should be taken? The default, `"render"`,
+##' will define, layout, and render the graph of the model `spec`. Rendering
+##' means that the graph will be rendered in the current graphics device and 
+##' that the returned object will contain both layout and rendering information
+##' (see `?Rgraphviz::layoutGraph` `?Rgraphviz::renderGraph`). If 
+##' `action` is `"layout"`, then the graph will not be rendered, but the
+##' returned object will contain layout information and can therefore be
+##' rendered later using the `?Rgraphviz::renderGraph` function. If `action` is 
+##' `"define"`, then the returned object will contain the definition of the
+##' graph but not any layout or rendering information.
+##' @param define_args List of additional arguments to pass to the 
+##' `?graph::graphAM` constructor function.
+##' @param layout_args List of additional arguments to pass to the 
+##' `?Rgraphviz::layoutGraph` function (only applied if `action` is either
+##' `"layout"` or `"render"`).
+##' @param render_args List of additional arguments to pass to the 
+##' `?Rgraphviz::renderGraph` function (only applied if `action` is `"render"`).
+##' @return A \linkS4class{graphAM} object.
 ##' @examples
-##' ## Note: See above for an explanation of `suppressPackageStartupMessages`
-##' if (suppressPackageStartupMessages(require(Rgraphviz))) {
-##'   macpan_base = mp_tmb_library("starter_models", "macpan_base", package = "macpan2")
-##'   ## plot with left-to-right layout, rectangles instead of default circles
-##'   dot_layout(macpan_base) |>
-##'     plot(attrs = list(graph = list(rankdir = "LR"),
-##'                       node = list(shape = "rectangle")))
-##' }
+##' macpan_base = mp_tmb_library("starter_models"
+##'   , "macpan_base"
+##'   , package = "macpan2"
+##' )
+##' mp_dot_layout(macpan_base)
+##' 
+##' @name dot_layout
 ##' @export
+mp_dot_layout = function(spec
+    , include_inout = FALSE
+    , action = c("render", "layout", "define")
+    , define_args = list(edgemode = 'directed')
+    , layout_args = list(attrs = list(
+          graph = list(rankdir = "LR")
+        , node = list(shape = "rectangle")
+      ))
+    , render_args = list(edgemode = "directed")
+  ) {
+  assert_dependencies3("Rgraphviz", "graph")
+  action = match.arg(action)
+  
+  adjacency = mp_adjacency(spec, include_inout = include_inout)
+  
+  ## define graph
+  graph = do.call(
+      graph::graphAM
+    , c(list(adjacency), define_args)
+  )
+  
+  ## layout graph
+  if (action != "define") {
+    graph = do.call(
+        Rgraphviz::layoutGraph
+      , c(list(graph), layout_args)
+    )
+  }
+  
+  ## render graph
+  if (action == "render") {
+    graph = do.call(
+        Rgraphviz::renderGraph
+      , c(list(graph), render_args)
+    )
+  }
+  
+  return(invisible(graph))
+}
+
+
+##' @export
+##' @describeIn dot_layout Deprecated in favour of `mp_dot_layout`, which both
+##' plots and returns the \linkS4class{graphAM} object.
 dot_layout <- function(spec, include_inout = FALSE) {
-    if (!requireNamespace("Rgraphviz")) stop("Rgraphviz is needed for this function; please install it from Bioconductor")
+  paste(
+      "This function is deprecated in favour of mp_dot_layout,"
+    , "which both plots the graph and invisibly returns the underlying"
+    , "graphAM object."
+    , collapse = " "
+  ) |> warning()
+  graph = mp_dot_layout(spec, include_inout = include_inout, action = "define")
+  return(graph)
+}
+
+#' Adjacency Matrix
+#' 
+#' Get the [adjacency matrix](https://en.wikipedia.org/wiki/Adjacency_matrix)
+#' associated with a model specification.
+#' 
+#' @param spec A model specification object (for example, created using 
+#' `mp_tmb_model_spec()`).
+#' @param include_inout (logical) include nodes defined by 
+#' \code{\link{mp_per_capita_inflow}} and \code{\link{mp_per_capita_outflow}}?
+#' 
+#' @return An adjacency \code{\link{matrix}}.
+#' 
+#' @export
+mp_adjacency = function(spec, include_inout = FALSE) {
+    
     ff <- mp_flow_frame(spec, topological_sort = FALSE)
     if (nrow(ff) == 0) {
-        stop("mp_flow_frame() is empty: was spec defined with mp_*flow functions?")
+      stop(
+          "mp_flow_frame() is empty: was spec defined "
+        , "with functions like mp_per_capita_flow()?"
+      )
     }
-    ## na.omit to drop inflows and outflows
-    ff <- as.matrix(na.omit(ff[c("from", "to")]))
     v <- mp_state_vars(spec)
     if (!include_inout) {
         ff <- ff[ff[,"from"] %in% v & ff[,"to"] %in% v, , drop = FALSE]
@@ -1024,7 +1039,5 @@ dot_layout <- function(spec, include_inout = FALSE) {
     }
     AM <- matrix(0, nrow = length(v), ncol = length(v), dimnames = list(v, v))
     AM[ff] <- 1
-    ## Rgraphviz depends on graph pkg, so this should be available
-    g <- graph::graphAM(AM, edgemode = "directed")
-    return(g)
+    return(AM)
 }
