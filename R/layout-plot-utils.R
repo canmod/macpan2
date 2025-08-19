@@ -1025,6 +1025,7 @@ dot_layout <- function(spec, include_inout = FALSE) {
 mp_adjacency = function(spec, include_inout = FALSE) {
     
     ff <- mp_flow_frame(spec, topological_sort = FALSE)
+    ff = ff[ , c("from", "to"), drop = FALSE] |> as.matrix()
     if (nrow(ff) == 0) {
       stop(
           "mp_flow_frame() is empty: was spec defined "
