@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.3.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -51,7 +51,9 @@
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">mp_tmb_library</span><span class="op">(</span><span class="va">...</span>, package <span class="op">=</span> <span class="cn">NULL</span>, alternative_specs <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">mp_tmb_entire_library</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">mp_tmb_entire_library</span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">mp_official_library</span><span class="op">(</span><span class="va">model_name</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -77,12 +79,31 @@ components.</p></dd>
 specification objects. For models without alternatives this will cause
 the return value to be a list with one element containing a spec object.</p></dd>
 
+
+<dt id="arg-model-name">model_name<a class="anchor" aria-label="anchor" href="#arg-model-name"></a></dt>
+<dd><p>Character string giving the name of a single model in the
+official <code>starter_models</code>
+<a href="https://github.com/canmod/macpan2/tree/main/inst/starter_models" class="external-link">library</a>.</p></dd>
+
 </dl></div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>This function executes the <code>R</code> code in the <code>tmb.R</code> file of a directory
+in a model library. To be a valid model, this file should produce
+an object called <code>spec</code> (containing a model specification produced by
+the <code><a href="mp_tmb_model_spec.html">mp_tmb_model_spec()</a></code> function)  or <code>specs</code> (containing a list of
+such specifications). This <code>mp_tmb_library()</code> function returns this
+<code>spec</code> or <code>specs</code> object (see the <code>alternative_specs</code> argument),
+but does not expose any other object produced by <code>tmb.R</code>.</p>
+    </div>
     <div class="section level2">
     <h2 id="functions">Functions<a class="anchor" aria-label="anchor" href="#functions"></a></h2>
 
-<ul><li><p><code>mp_tmb_entire_library()</code>: List of one model specification for each model
+<ul><li><p><code>mp_tmb_entire_library()</code>: List of model specifications; one for each model
 in the library.</p></li>
+<li><p><code>mp_official_library()</code>: Get a model specification from the official
+<code>macpan2</code> <code>starter_models</code>
+<a href="https://github.com/canmod/macpan2/tree/main/inst/starter_models" class="external-link">library</a>.</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
