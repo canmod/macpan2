@@ -41,8 +41,8 @@ layout = mp_layout_grid(spec
 
 ## ----simulations--------------------------------------------------------------
 outputs = c(sprintf("I%s", 1:4), sprintf("A%s", 1:4))
+spec = mp_tmb_update(spec, default = list(lambda0 = 0.36, alpha = 0.2, n = 0.5))
 sim = (spec
-  |> mp_tmb_update(default = list(lambda0 = 0.36, n = 0.2))
   |> mp_rk4()
   |> mp_simulator(time_steps = 50L, outputs)
 )
@@ -62,8 +62,7 @@ sim = (spec
 set.seed(1L)
 spec_for_cal = (spec
   |> mp_tmb_update(
-      default = list(lambda0 = 0.38, n = 0.2)
-    , inits = list(
+      inits = list(
           S = 1e7 - 4000
         , I1 = 1000, I2 = 1000, I3 = 1000, I4 = 1000
         , A1 = 0   , A2 = 0   , A3 = 0   , A4 = 0
@@ -76,6 +75,7 @@ spec_for_cal = (spec
   ))
 )
 simulated_data = (spec_for_cal
+  |> mp_rk4()
   |> mp_simulator(time_steps = 20L, c("treated", "untreated"))
   |> mp_trajectory()
   |> mutate(value = rpois(n(), value))
@@ -92,14 +92,14 @@ simulated_data = (spec_for_cal
 
 ## ----calibration--------------------------------------------------------------
 calibrator = (spec_for_cal
-  |> mp_tmb_update(default = list(lambda0 = 0.2, n = 0.5))
+  |> mp_tmb_update(default = list(lambda0 = 0.2, alpha = 0.5))
   |> mp_tmb_calibrator(
         data = simulated_data
       , traj = list(
             treated = mp_pois()
           , untreated = mp_pois()
       )
-      , par = c("log_lambda0", "logit_n")
+      , par = c("log_lambda0", "log_alpha")
   )
 )
 mp_optimize(calibrator)
@@ -109,10 +109,24 @@ mp_optimize(calibrator)
 mp_optimizer_output(calibrator)$convergence
 
 
+## ----correlation--------------------------------------------------------------
+covmat = mp_tmb_fixef_cov(calibrator)
+print(covmat)
+cov2cor(covmat)
+
+
 ## ----estimates----------------------------------------------------------------
-(mp_tmb_coef(calibrator, conf.int = TRUE)
- |> select(-term, -row, -col, -type)
+true_coefs = (spec_for_cal 
+  |> mp_default() 
+  |> filter(matrix %in% c("alpha", "lambda0"))
+  |> select(-row, -col)
+  |> rename(mat = matrix, true = value)
 )
+estimated_coefs = (calibrator
+  |> mp_tmb_coef(, conf.int = TRUE)
+  |> select(-term, -row, -col, -type)
+)
+left_join(estimated_coefs, true_coefs)
 
 
 ## ----fit, fig.width = 4-------------------------------------------------------
