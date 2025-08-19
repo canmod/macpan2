@@ -1,45 +1,4 @@
 library(macpan2)
-library(dplyr)
-
-## -------------------------
-## local function 
-## -------------------------
-
-#' Binary Matrix Notation
-#'
-#' Get the indices of a binary matrix that have a value of 1,
-#' to simplify matrix multiplication.
-#' 
-#' Given a column vector \code{x}, and binary Matrix \code{M}. We can 
-#' perform matrix multiplication by writing,
-#' \code{M %*% x}
-#' To simplify this computation, we can extract the indices of \code{M}
-#' that have a value of 1, reducing the dimension of the problem.
-#' These indices can then be used to identify entries in \code{x} that 
-#' should be grouped and summed over to compute \eqn{Mx}.
-#' 
-#'
-#' @param M matrix containing integers in \{0,1\}
-#' 
-#' @return named list of two integer vectors. 
-#' * \code{col_index} vector of column indices of M that have a value of 1,
-#' ordered by row. Indices start at 0, for C++ implementation.
-#' * \code{row_index} vector of row indices of M that have a value of 1,
-#' ordered by row. Indices start at 0, for C++ implementation.
-#' 
-#' This function was initially created to return integer vectors that can be
-#' used as inputs to `macpan2::group_sums(x[col_index],row_index,n)`
-#' 
-binary_matrix_notation <- function(M){
-  
-  col_index = c(t(col(M)*M))
-  col_index = as.integer(col_index[col_index!=0]-1) 
-  
-  row_index = as.integer(rep(1:nrow(M), times=rowSums(M))-1)
-  
-  return(nlist(col_index,row_index))
-}
-
 
 ## -------------------------
 ## read in model spec inputs
@@ -67,7 +26,7 @@ source_fields <- c(
 ## create one list object with named elements
 mass_data <- lapply(seq_along(source_fields), function(i){
   x <- (read.csv(file.path(source_folder,paste0(source_fields[i],".csv")), header=FALSE)
-        %>% as.matrix() 
+        |> as.matrix() 
   )
   attr(x,'dimnames')<- NULL
   x
@@ -97,7 +56,7 @@ n_serotypes <- nrow(mass_data$seronames)
 
 ## if we wanted to optimize all serotypes that are not in included_serotypes and excluded_serotypes
 ## we could write
-#varying_serotypes <- mass_data$seronames[1:n_serotypes,] %>% setdiff(union(included_serotypes, excluded_serotypes))
+#varying_serotypes <- mass_data$seronames[1:n_serotypes,] |> setdiff(union(included_serotypes, excluded_serotypes))
 
 ## form vaccine vector of serotypes (1 = in vaccine, 0 = not in vaccine)
 vax_serotypes = mp_zero_vector(mass_data$seronames) 
@@ -113,11 +72,11 @@ vax_serotypes[match(varying_serotypes,mass_data$seronames[,1])] = 1
 ## get binary matrix indices
 ## -------------------------
 
-Gt <- binary_matrix_notation(t(mass_data$G))
+Gt <- macpan2:::binary_matrix_notation(t(mass_data$G))
 
-G <- binary_matrix_notation(mass_data$G)
+G <- macpan2:::binary_matrix_notation(mass_data$G)
 
-sero_mapping <- binary_matrix_notation(mass_data$SerotypeToStrain[,1:n_serotypes])
+sero_mapping <- macpan2:::binary_matrix_notation(mass_data$SerotypeToStrain[,1:n_serotypes])
 
 ## -------------------------
 ## expression lists
