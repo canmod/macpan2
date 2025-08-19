@@ -944,7 +944,7 @@ compute_adjacency_matrix <- function(df) {
 ##' `"layout"` or `"render"`).
 ##' @param render_args List of additional arguments to pass to the 
 ##' `?Rgraphviz::renderGraph` function (only applied if `action` is `"render"`).
-##' @return A \linkS4class{graphAM} object.
+##' @return A \linkS4class{graph::graphAM} object.
 ##' @examples
 ##' macpan_base = mp_tmb_library("starter_models"
 ##'   , "macpan_base"
@@ -997,7 +997,7 @@ mp_dot_layout = function(spec
 
 ##' @export
 ##' @describeIn dot_layout Deprecated in favour of `mp_dot_layout`, which both
-##' plots and returns the \linkS4class{graphAM} object.
+##' plots and returns the \linkS4class{graph::graphAM} object.
 dot_layout <- function(spec, include_inout = FALSE) {
   paste(
       "This function is deprecated in favour of mp_dot_layout,"
