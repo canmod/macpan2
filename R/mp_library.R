@@ -7,6 +7,14 @@ mp_library = function(...) {
 #' 
 #' Get a TMB model specification from a model library.
 #' 
+#' This function executes the `R` code in the `tmb.R` file of a directory
+#' in a model library. To be a valid model, this file should produce
+#' an object called `spec` (containing a model specification produced by
+#' the `mp_tmb_model_spec()` function)  or `specs` (containing a list of
+#' such specifications). This `mp_tmb_library()` function returns this
+#' `spec` or `specs` object (see the `alternative_specs` argument),
+#' but does not expose any other object produced by `tmb.R`.
+#' 
 #' @param ... File path components pointing to a directory that
 #' contains an R script that creates an object called `spec`, which
 #' is produced by \code{\link{mp_tmb_model_spec}}.
@@ -62,7 +70,7 @@ mp_tmb_library = function(..., package = NULL, alternative_specs = FALSE) {
   stop("Malformed model library entry.")
 }
 
-#' @describeIn mp_tmb_library List of one model specification for each model
+#' @describeIn mp_tmb_library List of model specifications; one for each model
 #' in the library.
 #' @export
 mp_tmb_entire_library = function() {
@@ -74,6 +82,22 @@ mp_tmb_entire_library = function() {
     , simplify = FALSE
     , USE.NAMES = TRUE
   )
+}
+
+#' @param model_name Character string giving the name of a single model in the 
+#' official `starter_models` 
+#' [library](https://github.com/canmod/macpan2/tree/main/inst/starter_models).
+#' @describeIn mp_tmb_library Get a model specification from the official 
+#' `macpan2` `starter_models` 
+#' [library](https://github.com/canmod/macpan2/tree/main/inst/starter_models).
+#' @export
+mp_official_library = function(model_name) {
+  model_name = as.character(model_name)
+  if (length(model_name) != 1L) {
+    stop("The model_name argument must be a single string giving a model name.")
+  }
+  spec = mp_tmb_library("starter_models", model_name, package = "macpan2")
+  return(spec)
 }
 
 #' Copy Existing Model as a Starting Point

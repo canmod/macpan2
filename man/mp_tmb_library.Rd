@@ -3,11 +3,14 @@
 \name{mp_tmb_library}
 \alias{mp_tmb_library}
 \alias{mp_tmb_entire_library}
+\alias{mp_official_library}
 \title{Read Item from a Model Library}
 \usage{
 mp_tmb_library(..., package = NULL, alternative_specs = FALSE)
 
 mp_tmb_entire_library()
+
+mp_official_library(model_name)
 }
 \arguments{
 \item{...}{File path components pointing to a directory that
@@ -23,14 +26,31 @@ components.}
 \item{alternative_specs}{If \code{TRUE}, return a list of alternative
 specification objects. For models without alternatives this will cause
 the return value to be a list with one element containing a spec object.}
+
+\item{model_name}{Character string giving the name of a single model in the
+official \code{starter_models}
+\href{https://github.com/canmod/macpan2/tree/main/inst/starter_models}{library}.}
 }
 \description{
 Get a TMB model specification from a model library.
 }
+\details{
+This function executes the \code{R} code in the \code{tmb.R} file of a directory
+in a model library. To be a valid model, this file should produce
+an object called \code{spec} (containing a model specification produced by
+the \code{mp_tmb_model_spec()} function)  or \code{specs} (containing a list of
+such specifications). This \code{mp_tmb_library()} function returns this
+\code{spec} or \code{specs} object (see the \code{alternative_specs} argument),
+but does not expose any other object produced by \code{tmb.R}.
+}
 \section{Functions}{
 \itemize{
-\item \code{mp_tmb_entire_library()}: List of one model specification for each model
+\item \code{mp_tmb_entire_library()}: List of model specifications; one for each model
 in the library.
+
+\item \code{mp_official_library()}: Get a model specification from the official
+\code{macpan2} \code{starter_models}
+\href{https://github.com/canmod/macpan2/tree/main/inst/starter_models}{library}.
 
 }}
 \examples{
