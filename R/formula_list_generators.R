@@ -38,11 +38,14 @@ handle_rate_args = function(rate, abs_rate, flow_name) {
     warning(
         "The abs_rate argument is deprecated; "
       , "please use 'flow_name' instead"
+      , sprintf("\nThis warning concerns the following rate:\n%s", rate)
     )
     if (!is.null(flow_name)) {
+      ## I do not think it is possible to get here
       stop(
           "You used both the 'abs_rate' and 'flow_name' arguments. "
         , "Please only use 'flow_name', as 'abs_rate' is deprecated."
+        , sprintf("\nThis error concerns the following rate:\n%s", rate)
       )
     }
     flow_name = abs_rate
@@ -53,6 +56,7 @@ handle_rate_args = function(rate, abs_rate, flow_name) {
       stop(
           "flow_name must be specified when rate is a one_sided formula "
         , "or character string."
+        , sprintf("\nThis error concerns following rate:\n%s", rate)
       )
     }
     rate = two_sided(flow_name, rate)
