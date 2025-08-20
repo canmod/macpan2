@@ -28,25 +28,25 @@ dot_layout(spec, include_inout = FALSE)
 will define, layout, and render the graph of the model \code{spec}. Rendering
 means that the graph will be rendered in the current graphics device and
 that the returned object will contain both layout and rendering information
-(see \code{?Rgraphviz::layoutGraph} \code{?Rgraphviz::renderGraph}). If
+(see \code{\link[Rgraphviz]{layoutGraph}} \code{\link[Rgraphviz]{renderGraph}}). If
 \code{action} is \code{"layout"}, then the graph will not be rendered, but the
 returned object will contain layout information and can therefore be
-rendered later using the \code{?Rgraphviz::renderGraph} function. If \code{action} is
+rendered later using the \code{\link[Rgraphviz]{renderGraph}} function. If \code{action} is
 \code{"define"}, then the returned object will contain the definition of the
 graph but not any layout or rendering information.}
 
 \item{define_args}{List of additional arguments to pass to the
-\code{?graph::graphAM} constructor function.}
+\code{\link[graph]{graphAM}} constructor function.}
 
 \item{layout_args}{List of additional arguments to pass to the
-\code{?Rgraphviz::layoutGraph} function (only applied if \code{action} is either
+\code{\link[Rgraphviz]{layoutGraph}} function (only applied if \code{action} is either
 \code{"layout"} or \code{"render"}).}
 
 \item{render_args}{List of additional arguments to pass to the
-\code{?Rgraphviz::renderGraph} function (only applied if \code{action} is \code{"render"}).}
+\code{\link[Rgraphviz]{renderGraph}} function (only applied if \code{action} is \code{"render"}).}
 }
 \value{
-A \linkS4class[graph]{graph::graphAM} object.
+A \code{\link[graph]{graphAM}} object.
 }
 \description{
 Convert a compartmental model specification into a graph (using the \code{graph}
@@ -60,14 +60,13 @@ install the \code{Rgraphviz} package.
 \section{Functions}{
 \itemize{
 \item \code{dot_layout()}: Deprecated in favour of \code{mp_dot_layout}, which both
-plots and returns the \linkS4class[graph]{graph::graphAM} object.
+plots and returns the \code{\link[graph]{graphAM}} object.
 
 }}
 \examples{
-macpan_base = mp_tmb_library("starter_models"
-  , "macpan_base"
-  , package = "macpan2"
-)
-mp_dot_layout(macpan_base)
+("macpan_base"
+  |> mp_official_library()
+  |> mp_dot_layout()
+)  
 
 }
