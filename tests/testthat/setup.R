@@ -8,6 +8,7 @@ suppressPackageStartupMessages({
   library(deSolve)
   library(lubridate)
   library(oor)
+  library(Rgraphviz)
 })
 options(macpan2_verbose = FALSE)
 system.file("utils", "test-cache.R", package = "macpan2") |> source()
