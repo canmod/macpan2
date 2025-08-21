@@ -44,6 +44,7 @@ TMBModelSpec = function(
       , self$update_method$after()
     )
   }
+  self$expr_list_during = function() ExprList(self$update_method$during())
   
   self$all_derived_vars = function() {
     self$expr_list()$all_derived_vars()
@@ -59,6 +60,9 @@ TMBModelSpec = function(
   }
   self$all_rhs_vars = function() {
     self$expr_list()$all_formula_vars("right")
+  }
+  self$all_dynamic_vars = function() {
+    self$expr_list_during()$all_formula_vars("left")
   }
   self$all_default_mats = function() {
     setdiff(

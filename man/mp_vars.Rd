@@ -5,13 +5,19 @@
 \alias{mp_state_vars}
 \alias{mp_flow_vars}
 \alias{mp_state_flow_vars}
-\title{State and Flow Variable Names}
+\alias{mp_dynamic_vars}
+\alias{mp_other_dynamic_vars}
+\title{Dynamic Variable Names}
 \usage{
 mp_state_vars(spec, topological_sort = FALSE, loops = "^$", trans = "")
 
 mp_flow_vars(spec, topological_sort = FALSE, loops = "^$", trans = "")
 
 mp_state_flow_vars(spec, topological_sort = FALSE, loops = "^$", trans = "")
+
+mp_dynamic_vars(spec)
+
+mp_other_dynamic_vars(spec)
 }
 \arguments{
 \item{spec}{Model specification (\code{\link{mp_tmb_model_spec}}).}
@@ -30,12 +36,23 @@ sorting the order of states and flows in the output. This is only relevant if
 version of the variables is preferred.}
 }
 \value{
-Character vector of names of all state and/or flow variables that
-have been explicitly represented in the model using functions like
-\code{\link{mp_per_capita_flow}}.
+Character vector of names of all requested variables.
 }
 \description{
-Get the state and/or flow variables in a model specification.
+Get the state, flow, and other dynamic variables in a model specification.
+Dynamic variables are any variable that is updated every time step.
+State and flow variables are special dynamic variables involved in
+compartmental models that have been explicitly represented using functions
+like \code{\link{mp_per_capita_flow}} that define flows among compartments
+(i.e., states).
+}
+\details{
+State and flow variables will be identical regardless of the state update
+method (e.g., \code{\link{mp_rk4}}), but other dynamic variables might
+appear for one particular state update method that does not appear for
+another. For example, the first Runge Kutta step for a state in a model
+with an \code{\link{mp_rk4}} updater, will not appear with an
+\code{\link{mp_euler}} updater.
 }
 \section{Functions}{
 \itemize{
@@ -46,6 +63,11 @@ the absolute flow between compartments.
 The absolute flow is the magnitude of a flow per time step.
 
 \item \code{mp_state_flow_vars()}: Union of \code{mp_state_vars()} and \code{mp_flow_vars()}.
+
+\item \code{mp_dynamic_vars()}: All variables that are updated once per time-step.
+
+\item \code{mp_other_dynamic_vars()}: All variables that are updated once per time-step,
+excluding those that are state and flow variables.
 
 }}
 \examples{

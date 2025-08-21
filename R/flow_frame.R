@@ -159,9 +159,21 @@ mp_state_dependence_frame = function(spec) {
   )
 }
 
-#' State and Flow Variable Names
+#' Dynamic Variable Names
 #' 
-#' Get the state and/or flow variables in a model specification.
+#' Get the state, flow, and other dynamic variables in a model specification.
+#' Dynamic variables are any variable that is updated every time step. 
+#' State and flow variables are special dynamic variables involved in 
+#' compartmental models that have been explicitly represented using functions 
+#' like \code{\link{mp_per_capita_flow}} that define flows among compartments
+#' (i.e., states).
+#' 
+#' State and flow variables will be identical regardless of the state update 
+#' method (e.g., \code{\link{mp_rk4}}), but other dynamic variables might
+#' appear for one particular state update method that does not appear for 
+#' another. For example, the first Runge Kutta step for a state in a model 
+#' with an \code{\link{mp_rk4}} updater, will not appear with an
+#' \code{\link{mp_euler}} updater.
 #' 
 #' @param spec Model specification (\code{\link{mp_tmb_model_spec}}).
 #' @param topological_sort Should the states and flows be 
@@ -175,9 +187,7 @@ mp_state_dependence_frame = function(spec) {
 #' @param trans Add a prefix to the names for indicating if a transformed
 #' version of the variables is preferred.
 #' 
-#' @return Character vector of names of all state and/or flow variables that 
-#' have been explicitly represented in the model using functions like
-#' \code{\link{mp_per_capita_flow}}.
+#' @return Character vector of names of all requested variables.
 #' 
 #' @examples
 #' si = mp_tmb_library("starter_models", "si", package = "macpan2")
@@ -220,6 +230,20 @@ mp_state_flow_vars = function(spec, topological_sort = FALSE, loops = "^$", tran
   c(
       mp_state_vars(spec, topological_sort, loops, trans)
     , mp_flow_vars(spec, topological_sort, loops, trans)
+  )
+}
+
+#' @describeIn mp_vars All variables that are updated once per time-step.
+#' @export
+mp_dynamic_vars = function(spec) spec$all_dynamic_vars()
+
+#' @describeIn mp_vars All variables that are updated once per time-step,
+#' excluding those that are state and flow variables.
+#' @export
+mp_other_dynamic_vars = function(spec) {
+  setdiff(
+      mp_dynamic_vars(spec)
+    , mp_state_flow_vars(spec)
   )
 }
 
