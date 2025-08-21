@@ -2,7 +2,7 @@ Package: macpan2
 Title: Fast and Flexible Compartmental Modelling
 Version: 3.5.0
 Authors@R: c(
-  person("Steve Walker", email="swalk@mcmaster.ca", role=c("cre", "aut")),
+  person("Steve Walker", email="stevencarlislewalker@gmail.com", role=c("cre", "aut")),
   person("Weiguang Guan", role="aut"),
   person("Jen Freeman", role="aut"),
   person("Ben Bolker", role="aut"),
