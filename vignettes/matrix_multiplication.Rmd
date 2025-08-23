@@ -30,7 +30,14 @@ Matrix operations are central to `macpan2` models. The engine supports four ways
 - Elementwise multiplication with recycling (`*`)
 - Left sparse matrix multiplication (`sparse_mat_mult()`)
 
-This vignette introduces each operation and illustrates typical use cases.
+This vignette introduces each operation and illustrates typical use cases. It depends on the following packages.
+
+```{r pkg}
+library(macpan2)
+library(dplyr)
+library(ggplot2)
+library(splines)
+```
 
 ## Standard Matrix Multiplication (`%*%`)
 
@@ -242,7 +249,7 @@ n_steps <- 100
 time_points <- seq(0, 1, length.out = n_steps)
 
 # Create a cubic B-spline basis with 8 degrees of freedom
-B_dense <- bs(time_points, df = 8, degree = 3, intercept = TRUE)
+B_dense <- splines::bs(time_points, df = 8, degree = 3, intercept = TRUE)
 
 # Convert basis to sparse form with small tolerance
 B_sparse <- sparse_matrix_notation(B_dense
