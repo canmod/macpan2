@@ -1,16 +1,16 @@
-## Changes in 3.4.0
+## Changes in 3.5.0
 
 In-Progress
 
 [source](https://github.com/canmod/macpan2)
- | [change list](https://github.com/canmod/macpan2/compare/9919109da889415a1d7c26f949fce16e78ae44a0..251fe0c38aa192307ad404e0feb6f8506bfc07a7)
+ | [change list](https://github.com/canmod/macpan2/compare/3df6fcdb1c49a67de3b06fc0981c62d4fca49d3a..c275e3c6e1d2e9d7dea23cc39bc49aed3a631aa0)
 
-## Changes in 3.3.2
+## Changes in 3.4.0
 
-Released [2025-08-19]
+Released [2025-08-20]
 
-[source](https://github.com/canmod/macpan2/tree/9919109da889415a1d7c26f949fce16e78ae44a0)
- | [change list](https://github.com/canmod/macpan2/compare/803a14f6515b7810ac54f0aad50b3eff91e11a8d..9919109da889415a1d7c26f949fce16e78ae44a0)
+[source](https://github.com/canmod/macpan2/tree/3df6fcdb1c49a67de3b06fc0981c62d4fca49d3a)
+ | [change list](https://github.com/canmod/macpan2/compare/803a14f6515b7810ac54f0aad50b3eff91e11a8d..3df6fcdb1c49a67de3b06fc0981c62d4fca49d3a)
 
 ## Changes in 3.3.1
 
