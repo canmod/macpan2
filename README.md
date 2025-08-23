@@ -76,8 +76,12 @@ Here is the recommended way to install `macpan2` (from within an R
 session):
 
 ``` r
-repos = c('https://canmod.r-universe.dev', 'https://cloud.r-project.org')
-install.packages('macpan2', repos = repos)
+install.packages('macpan2'
+  , repos = c(
+      'https://canmod.r-universe.dev'
+    , 'https://cloud.r-project.org'
+  )
+)
 ```
 
 To get the latest development version of `macpan2`, or if the above
