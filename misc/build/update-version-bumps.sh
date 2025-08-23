@@ -7,7 +7,7 @@ MAP_FILE=commit-version-map.txt
 BUMP_FILE=version-bumps.txt
 
 # space-separated list of versions to exclude
-EXCLUDE_VERSIONS="2.2.1 2.2.3 2.5.1"
+EXCLUDE_VERSIONS="2.2.1 2.2.3 2.5.1 3.3.2"
 
 awk -v exclude="$EXCLUDE_VERSIONS" '
 BEGIN {
