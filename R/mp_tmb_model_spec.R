@@ -16,6 +16,7 @@ TMBModelSpec = function(
         , "rk4_old"
         , "euler_multinomial"
       )
+    , delta_t = NULL
   ) {
   default = c(default, inits)
   must_not_save = handle_saving_conflicts(must_save, must_not_save)
@@ -24,7 +25,8 @@ TMBModelSpec = function(
   before = force_expr_list(before)
   during = force_expr_list(during)
   after = force_expr_list(after)
-  self$change_model = get_change_model(before, during, after)
+  self$delta_t = handle_delta_t(delta_t)
+  self$change_model = get_change_model(before, during, after, self$delta_t)
   self$state_update = get_state_update_type(match.arg(state_update), self$change_model)
   self$update_method = get_state_update_method(self$state_update, self$change_model)
   self$change_components = function() self$change_model$change_list
@@ -132,10 +134,15 @@ TMBModelSpec = function(
       , must_save = self$must_save, must_not_save = self$must_not_save
       , sim_exprs = self$sim_exprs
       , state_update = self$state_update
+      , delta_t = self$delta_t
     )
   }
   self$change_update_method = function(
-      state_update = c("euler", "rk4", "discrete_stoch", "hazard", "rk4_old", "euler_multinomial")
+      state_update = c(
+          "euler", "rk4", "discrete_stoch", "hazard"
+        , "rk4_old", "euler_multinomial"
+      ),
+      delta_t = NULL
     ) {
     
     if (self$state_update == "no") {
@@ -150,7 +157,9 @@ TMBModelSpec = function(
         before = self$before, during = self$during, after = self$after
       , default = self$default, integers = self$integers
       , must_save = self$must_save, must_not_save = self$must_not_save
-      , sim_exprs = self$sim_exprs, state_update = state_update
+      , sim_exprs = self$sim_exprs
+      , state_update = state_update
+      , delta_t = handle_delta_t(delta_t, self$delta_t)
     )
   }
   self$expand = function() {
@@ -164,6 +173,7 @@ TMBModelSpec = function(
       , must_not_save = self$must_not_save
       , sim_exprs = self$sim_exprs
       , state_update = self$state_update
+      , delta_t = self$delta_t
     )
   }
   self$name_map = function(local_names) {
@@ -216,6 +226,12 @@ TMBModelSpec = function(
   }
   self$simulator_cached = memoise(self$simulator_fresh)
   return_object(self, "TMBModelSpec")
+}
+
+handle_delta_t = function(delta_t_new = NULL, delta_t_old = NULL) {
+  if (!is.null(delta_t_new)) return(delta_t_new)
+  if (!is.null(delta_t_old)) return(delta_t_old)
+  return(1)
 }
 
 handle_saving_conflicts = function(must_save, must_not_save) {
@@ -342,6 +358,8 @@ must_save_time_args = function(formulas) {
 #' @param state_update Optional character vector for how to update the state 
 #' variables when it is relevant. Options include `"euler"` (the default), 
 #' `"rk4"`, and `"discrete_stoch"`.
+#' @param delta_t Number giving the amount of time that passes during a
+#' single time-step.
 #' 
 #' @details
 #' Expressions in the `before`, `during`, and `after` lists can be standard 
@@ -448,6 +466,7 @@ mp_print_before = function(model) {
       model$before
     , c(length(model$before), 0L, 0L)
   )
+  invisible(model$before)
 }
 
 #' @describeIn mp_print_spec Print just the expressions executed during each
@@ -458,6 +477,7 @@ mp_print_during = function(model) {
       model$during
     , c(0L, length(model$during), 0L)
   )
+  invisible(model$during)
 }
 
 #' @describeIn mp_print_spec Print just the expressions executed after the
@@ -468,6 +488,7 @@ mp_print_after = function(model) {
       model$after
     , c(0L, 0L, length(model$after))
   )
+  invisible(model$after)
 }
 
 #' Version Update

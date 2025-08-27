@@ -85,6 +85,11 @@
 #' if (suppressPackageStartupMessages(require(broom.mixed))) {
 #'   print(mp_tmb_coef(cal))
 #' }
+#' (cal 
+#'   |> mp_optimized_spec() 
+#'   |> mp_default_list() 
+#'   |> getElement("beta")
+#' )
 #' @concept create-model-calibrator
 #' @export
 mp_tmb_calibrator = function(spec
@@ -714,7 +719,8 @@ mp_optimizer_output.TMBCalibrator = function(model, what = c("latest", "all")) {
 #' Optimized Model Specification
 #' 
 #' Create a new model specification using parameter values that have been
-#' optimized.
+#' optimized. See the examples in the help page for 
+#' \code{\link{mp_tmb_calibrator}}.
 #' 
 #' @param model A model object that can be optimized/calibrated. Currently,
 #' only models produced by \code{\link{mp_tmb_calibrator}} are valid.

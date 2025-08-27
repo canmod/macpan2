@@ -1,15 +1,9 @@
 test_that("absolute inflow definition and ode trajectory", {
     ## exponential decay
-    s1 <- mp_tmb_model_spec(
-          during = list(
-                mp_inflow("N", "r", "birth")
-              , mp_per_capita_outflow("N", "d", "death")
-          )
-        , default = list(N = 0, r = 0.3, d = 0.2)
-    )
+    s1 = test_cache_read("SPEC-one_box.rds")
     
     expect_equal(mp_state_vars(s1), "N")
-    expect_equal(mp_flow_vars(s1), c("birth", "death"))
+    expect_equal(mp_flow_vars(s1), c("importation", "death"))
     
     steps = 50
     
@@ -81,5 +75,18 @@ test_that("equivalent absolute and per-capita flows are consistent", {
   }
   expect_equal(sim_fn(sir_pc), sim_fn(sir_ab))
   expect_equal(sim_fn(sir_pc, mp_rk4), sim_fn(sir_ab, mp_rk4))
-  ## expect_equal(sim_fn(sir_pc, mp_hazard), sim_fn(sir_ab2, mp_hazard)) ## -- failing because hazard is behaving like euler with absolute flows
 })
+
+sir = mp_tmb_model_spec(
+    during = list(
+        mp_per_capita_flow("S", "I", "beta * I / N", "infection")
+      , mp_inflow("R", "gamma", "recovery")
+      , mp_absolute_flow("I", "R", "2 * gamma", "recovery2")
+    )
+  , default = list(
+        beta = 0.2, gamma = 0.1
+      , S = 99, I = 1, R = 0, N = 100
+    )
+)
+sir |> mp_expand()
+sir |> mp_discrete_stoch() |> mp_expand()

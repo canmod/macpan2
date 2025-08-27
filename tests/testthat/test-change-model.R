@@ -69,5 +69,3 @@ em = (macpan_base
   |> mp_trajectory()
 )
 el = mp_simulator(macpan_base, 20L, "S.E") |> mp_trajectory()
-
-

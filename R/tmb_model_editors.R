@@ -112,6 +112,7 @@ mp_tmb_insert = function(model
     , must_not_save = model$must_not_save
     , sim_exprs = model$sim_exprs
     , state_update = model$state_update
+    , delta_t = model$delta_t
   )
 }
 
@@ -155,6 +156,7 @@ mp_tmb_update = function(model
     , must_not_save = model$must_not_save
     , sim_exprs = model$sim_exprs
     , state_update = model$state_update
+    , delta_t = model$delta_t
   )
 }
 
@@ -193,6 +195,7 @@ mp_tmb_delete = function(model
     , must_not_save = model$must_not_save
     , sim_exprs = model$sim_exprs
     , state_update = model$state_update
+    , delta_t = model$delta_t
   )
 }
 

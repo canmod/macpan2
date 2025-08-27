@@ -15,7 +15,8 @@ mp_tmb_model_spec(
   must_not_save = character(),
   sim_exprs = character(),
   state_update = c("euler", "rk4", "discrete_stoch", "hazard", "rk4_old",
-    "euler_multinomial")
+    "euler_multinomial"),
+  delta_t = NULL
 )
 }
 \arguments{
@@ -72,6 +73,9 @@ continuous.}
 \item{state_update}{Optional character vector for how to update the state
 variables when it is relevant. Options include \code{"euler"} (the default),
 \code{"rk4"}, and \code{"discrete_stoch"}.}
+
+\item{delta_t}{Number giving the amount of time that passes during a
+single time-step.}
 }
 \description{
 Specify a simulation model in the TMB engine. A detailed explanation of this

@@ -1,0 +1,83 @@
+---
+title: "One Box"
+index_entry: "A compartmental model with a single compartment"
+bibliography: ../../references.bib
+link-citations: TRUE
+author: Steve Walker
+output: 
+  github_document:
+    toc: true
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "./figures/"
+)
+```
+
+This is a very simple model of importation with exponential decay due to mortality.
+
+The code in this article uses the following packages.
+
+```{r packages, message=FALSE, warning=FALSE}
+library(macpan2)
+library(ggplot2)
+library(dplyr)
+```
+
+# States
+
+| variable | description           |
+| -------- | --------------------- |
+| N        | Number of individuals |
+
+# Parameters
+
+| variable | description                  |
+| -------- | ---------------------------- |
+| $r$      | absolute rate of importation |
+| $d$      | per capita death rate        |
+
+# Dynamics 
+
+If we interpret this model as an ODE, we have the following dynamics.
+
+$$
+\frac{dN}{dt} = r - (d \times N)  \\
+$$
+
+
+# Model Specification
+
+This model has been specified in the `one_box` directory [here](https://github.com/canmod/macpan2/blob/main/inst/starter_models/one_box/tmb.R) and is accessible from the `macpan2` model library (see [Example Models](https://canmod.github.io/macpan2/articles/example_models.html) for details). 
+
+# Simulation
+
+Simulation of this and other models depends on the kind of [state update](https://canmod.github.io/macpan2/reference/mp_euler) that you use. Here use the discrete-stochastic method.
+
+```{r simulation}
+spec = mp_tmb_library("starter_models"
+  , "one_box"
+  , package = "macpan2"
+)
+set.seed(1)
+(spec
+  |> mp_rk4(delta_t = 0.1)
+  |> mp_simulator(50 / 0.1, "N")
+  |> mp_trajectory(include_initial = TRUE)
+  |> rename(prevalence = value)
+  |> ggplot()
+  + geom_line(aes(time, prevalence))
+  
+  ## asymptotic equilibrium population size
+  + geom_hline(yintercept = with(spec$default, r / d)
+      , colour = "red"
+      , linetype = "dashed"
+    )
+  + theme_bw()
+)
+```
