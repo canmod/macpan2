@@ -27,7 +27,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.5.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -350,6 +350,11 @@ estimate the vector of time varying transmission rates,
 <p>After optimizing, we can make a coefficient plot with the estimated
 values and their confidence intervals, to compare with the true
 values.</p>
+<pre><code><span><span class="co">#&gt; Warning: `geom_errobarh()` was deprecated in ggplot2 4.0.0.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Please use the `orientation` argument of `geom_errorbar()` instead.</span></span>
+<span><span class="co">#&gt; <span style="color: #555555;">This warning is displayed once every 8 hours.</span></span></span>
+<span><span class="co">#&gt; <span style="color: #555555;">Call `lifecycle::last_lifecycle_warnings()` to see where this warning was</span></span></span>
+<span><span class="co">#&gt; <span style="color: #555555;">generated.</span></span></span></code></pre>
 <p><img src="time_varying_parameters_files/figure-html/piecewise_est-1.png" width="576"></p>
 <p>In general, the transmission rate estimates follow the expected
 pattern changing from high, to low, to moderate. The most precise
@@ -371,7 +376,7 @@ rate.</p>
 <p>Before we can add the fancy radial basis for the transmission rate,
 we need a base model. We use an SIR model that has been modified to
 include waning.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_waning</span> <span class="op">=</span> <span class="fu"><a href="../reference/mp_tmb_library.html">mp_tmb_library</a></span><span class="op">(</span><span class="st">"starter_models"</span></span>
 <span>  , <span class="st">"sir_waning"</span></span>
 <span>  , package <span class="op">=</span> <span class="st">"macpan2"</span></span>
@@ -389,7 +394,7 @@ with a shape that can be modified by changing the weights vector.</p>
 y = Xb
 </annotation></semantics></math></p>
 <p>The following code illustrates this approach.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1L</span><span class="op">)</span></span>
 <span><span class="va">d</span> <span class="op">=</span> <span class="fl">20</span></span>
 <span><span class="va">n</span> <span class="op">=</span> <span class="fl">2500</span></span>
@@ -472,7 +477,7 @@ people who are already familiar with epidemic models (it confused me
 initially).</p>
 <p>Here is a simulation model with a radial basis for exogenous
 transmission rate dynamics.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1L</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">spec_waning</span> <span class="op">=</span> <span class="op">(</span><span class="va">sir_waning</span></span>
@@ -518,7 +523,7 @@ transmission rate dynamics.</p>
 <span><span class="co">#&gt; 5: S ~ S - infection + waning_immunity</span></span>
 <span><span class="co">#&gt; 6: I ~ I + infection - recovery</span></span>
 <span><span class="co">#&gt; 7: R ~ R + recovery - waning_immunity</span></span></code></pre></div>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="op">(</span><span class="va">simulator_waning</span></span>
 <span> <span class="op">|&gt;</span> <span class="fu"><a href="../reference/mp_trajectory.html">mp_trajectory</a></span><span class="op">(</span><span class="op">)</span></span>
 <span> <span class="op">|&gt;</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -534,14 +539,14 @@ with a radial basis, by using the function
 <code><a href="../reference/mp_rbf.html">macpan2::mp_rbf()</a></code>. We follow the ususal steps in
 calibration.</p>
 <p>1. Simulate from the model and add some poisson noise:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">obs_rbf</span> <span class="op">=</span> <span class="op">(</span><span class="va">simulator_waning</span></span>
 <span> <span class="op">|&gt;</span> <span class="fu"><a href="../reference/mp_trajectory.html">mp_trajectory</a></span><span class="op">(</span><span class="op">)</span></span>
 <span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">matrix</span><span class="op">==</span><span class="st">"I"</span><span class="op">)</span></span>
 <span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/across.html" class="external-link">across</a></span><span class="op">(</span><span class="va">value</span>, <span class="op">~</span> <span class="fu"><a href="../reference/engine_functions.html">rpois</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html" class="external-link">n</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">.</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>2. Add calibration information.</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">calib_rbf</span> <span class="op">=</span> <span class="fu"><a href="../reference/mp_tmb_calibrator.html">mp_tmb_calibrator</a></span><span class="op">(</span><span class="va">sir_waning</span></span>
 <span>   , data <span class="op">=</span> <span class="va">obs_rbf</span></span>
 <span>   , traj <span class="op">=</span> <span class="st">"I"</span></span>

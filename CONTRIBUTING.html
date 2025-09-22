@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="index.html">macpan2</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.5.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -58,6 +58,7 @@
 <li><a href="#changelog-management">Changelog Management</a></li>
 <li><a href="#testing-installability-of-specific-commits">Testing Installability of Specific Commits</a></li>
 <li><a href="#log-files">Log Files</a></li>
+<li><a href="#version-release">Version Release</a></li>
 </ul></div>
 <div class="section level2">
 <h2 id="developer-installation">Developer Installation<a class="anchor" aria-label="anchor" href="#developer-installation"></a></h2>
@@ -186,6 +187,9 @@ MP2_SUM = 12 // fwrap: sum(...)</code></pre>
 <div class="section level2">
 <h2 id="log-files">Log Files<a class="anchor" aria-label="anchor" href="#log-files"></a></h2>
 <p>Every simulation generates or overwrites a log file. The default location is described <a href="https://canmod.github.io/macpan2/articles/options.html">here</a>. The path of the log file is created when the simulator is created. So if the simulator is saved to a file (e.g., stored with <code>saveRDS</code>), there is a risk that when it is reloaded the path to the log file will no longer exist. If this happens <code>macpan2</code> will try to recreate it, but this might fail. If the log file path is not valid for any of these reasons, the log file will be written to <code>.macpan2/bail-out/log.txt</code> in the current working directory. Log files are used internally by <code>macpan2</code> when producing error messages that originate within an <a href="https://canmod.github.io/macpan2/reference/engine_functions.html">engine function</a>. This mechanism of getting messages from <code>C++</code> to <code>R</code> is not ideal, but provides a workaround for the limitation that TMB cannot report back strings (I would welcome being wrong so that we could simplify this part of the code).</p>
+</div>
+<div class="section level2">
+<h2 id="version-release">Version Release<a class="anchor" aria-label="anchor" href="#version-release"></a></h2>
 </div>
 </div>
 
