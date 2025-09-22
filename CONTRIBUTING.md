@@ -229,4 +229,4 @@ Every simulation generates or overwrites a log file. The default location is des
 
 ## Version Release
 
-
+Make a GitHub release using `v{version-number}` format for the release tag.  This should trigger a [zenodo release](https://doi.org/10.5281/zenodo.14796217) as well.
