@@ -9,7 +9,7 @@ Authors@R: c(
   person("Darren Flynn-Primrose", role="aut"),
   person("David J.D. Earn", rol="ctb", comment = c(ORCID = "0000-0002-7562-1341")),
   person("Jonathan Dushoff", rol="ctb", comment = c(ORCID = "0000-0003-0506-4794")),
-  person("Irena Papst", role="ctb", comment = c(ORCID = "0000-0001-5901-7585"),
+  person("Irena Papst", role="ctb", comment = c(ORCID = "0000-0001-5901-7585")),
   person("Michael Li", role="ctb"),
   person("Kevin Zhao", role="ctb"))
 Description: Tools for building and calibrating compartmental models of infectious disease.
