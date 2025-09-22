@@ -18,6 +18,12 @@ authors:
   - family-names: "Flynn-Primrose"
     given-names: "Darren"
     roles: ["author"]
+  - family-names: "Earn"
+    given-names: "David J.D."
+    roles: ["contributor"]
+  - family-names: "Dushoff"
+    given-names: "Jonathan"
+    roles: ["contributor"]
   - family-names: "Zhao"
     given-names: "Kevin"
     roles: ["contributor"]
@@ -34,7 +40,7 @@ keywords:
   - epidemiological modeling
   - infectious disease dynamics
   - compartmental models
-description: "Fast and flexible compartmental modelling with Template Model Builder."
+description: "Fast and flexible Compartmental Modelling."
 references:
   - type: "software"
     title: "macpan2: Fast and Flexible Compartmental Modelling"
@@ -55,6 +61,12 @@ references:
       - family-names: "Flynn-Primrose"
         given-names: "Darren"
         roles: ["author"]
+      - family-names: "Earn"
+        given-names: "David J.D."
+        roles: ["contributor"]
+      - family-names: "Dushoff"
+        given-names: "Jonathan"
+        roles: ["contributor"]
       - family-names: "Zhao"
         given-names: "Kevin"
         roles: ["contributor"]
