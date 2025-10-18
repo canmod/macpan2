@@ -27,7 +27,9 @@ used to support responses to diseases such as mpox ([Milwid et al.
 model](https://wzmli.shinyapps.io/two_pop_measles_shiny/)), and COVID-19
 ([Simmons et al. 2025](#ref-simmons2025cost); [Miranda et al.
 2025](#ref-miranda2024strategies)), and internal work on [pandemic
-preparedness](https://phac-nml-phrsd.github.io/EPACmodel/).
+preparedness](https://phac-nml-phrsd.github.io/EPACmodel/). It has been
+used for a retrospective analysis of COVID-19 in Newfoundland ([Anokye
+et al. 2025](#ref-Anokye2025.09.26.25336738)).
 
 The precursor to `macpan2` was
 [McMasterPandemic](https://github.com/mac-theobio/McMasterPandemic),
@@ -232,6 +234,15 @@ tracks the details of bugs, tasks, and feature development.
 ## Publications and Reports
 
 <div id="refs" class="references csl-bib-body hanging-indent">
+
+<div id="ref-Anokye2025.09.26.25336738" class="csl-entry">
+
+Anokye, Francis, Michael WZ Li, Steve Walker, and Amy Hurford. 2025.
+“Quantifying SARS-CoV-2 Omicron Variant Spread and the Impact of
+Non-Pharmaceutical Interventions in Newfoundland and Labrador, Canada.”
+*medRxiv*. <https://doi.org/10.1101/2025.09.26.25336738>.
+
+</div>
 
 <div id="ref-milwid2023mpox" class="csl-entry">
 
