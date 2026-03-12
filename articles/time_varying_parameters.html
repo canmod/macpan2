@@ -93,7 +93,7 @@ for convenience and specify a simulation time of 50 time steps.</p>
 <span><span class="va">gamma</span> <span class="op">=</span> <span class="fl">0.2</span> <span class="co"># per-capita recovery rate</span></span></code></pre></div>
 <p>Using a fixed transmission rate of 0.8 we visualize the baseline SIR
 dynamics.
-<img src="time_varying_parameters_files/figure-html/baseline_sir-1.png" width="576"></p>
+<img src="time_varying_parameters_files/figure-html/baseline_sir-1.png" class="r-plt" alt="" width="576"></p>
 </div>
 <div class="section level2">
 <h2 id="piecewise-time-variation">Piecewise Time Variation<a class="anchor" aria-label="anchor" href="#piecewise-time-variation"></a>
@@ -231,7 +231,7 @@ transmission rate.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p>Now we plot the updated simulations using these change-points, which
 we highlight with vertical lines.
-<img src="time_varying_parameters_files/figure-html/time_varying_graph-1.png" width="576"></p>
+<img src="time_varying_parameters_files/figure-html/time_varying_graph-1.png" class="r-plt" alt="" width="576"></p>
 <p>The clear changes in dynamics at times 10 and 15 are due to the drop
 and then lift of the transmission rate at these time steps.</p>
 </div>
@@ -248,7 +248,7 @@ the time-varying parameters.</p>
 <span>              <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>value <span class="op">=</span> <span class="fu"><a href="../reference/engine_functions.html">rpois</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html" class="external-link">n</a></span><span class="op">(</span><span class="op">)</span>,<span class="va">value</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">I_observed</span><span class="op">$</span><span class="va">time</span>, <span class="va">I_observed</span><span class="op">$</span><span class="va">value</span><span class="op">)</span></span></code></pre></div>
-<p><img src="time_varying_parameters_files/figure-html/obs_data-1.png" width="576"></p>
+<p><img src="time_varying_parameters_files/figure-html/obs_data-1.png" class="r-plt" alt="" width="576"></p>
 <p>We often want to include parameter constraints in our models, and one
 way to do this implicitly is to transform the parameters <span class="citation">(<a href="#ref-bolker2008">Bolker 2008</a>)</span>.
 Further, transformations can sometimes help when estimating parameters
@@ -350,12 +350,12 @@ estimate the vector of time varying transmission rates,
 <p>After optimizing, we can make a coefficient plot with the estimated
 values and their confidence intervals, to compare with the true
 values.</p>
-<pre><code><span><span class="co">#&gt; Warning: `geom_errobarh()` was deprecated in ggplot2 4.0.0.</span></span>
+<pre><code><span><span class="co">#&gt; Warning: `geom_errorbarh()` was deprecated in ggplot2 4.0.0.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Please use the `orientation` argument of `geom_errorbar()` instead.</span></span>
-<span><span class="co">#&gt; <span style="color: #555555;">This warning is displayed once every 8 hours.</span></span></span>
+<span><span class="co">#&gt; <span style="color: #555555;">This warning is displayed once per session.</span></span></span>
 <span><span class="co">#&gt; <span style="color: #555555;">Call `lifecycle::last_lifecycle_warnings()` to see where this warning was</span></span></span>
 <span><span class="co">#&gt; <span style="color: #555555;">generated.</span></span></span></code></pre>
-<p><img src="time_varying_parameters_files/figure-html/piecewise_est-1.png" width="576"></p>
+<p><img src="time_varying_parameters_files/figure-html/piecewise_est-1.png" class="r-plt" alt="" width="576"></p>
 <p>In general, the transmission rate estimates follow the expected
 pattern changing from high, to low, to moderate. The most precise
 estimate, for the true value of 0.8, results because the observed
@@ -420,7 +420,7 @@ y = Xb
 <span>  , xlab <span class="op">=</span> <span class="st">"time"</span></span>
 <span>  , ylab <span class="op">=</span> <span class="st">"output"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="time_varying_parameters_files/figure-html/unnamed-chunk-1-1.png" width="576"></p>
+<p><img src="time_varying_parameters_files/figure-html/unnamed-chunk-1-1.png" class="r-plt" alt="" width="576"></p>
 <p>Here <code>d</code> is the dimension of the basis, or number of
 functions, and <code>n</code> is the number of time steps. By
 multiplying the uniform basis matrix (top panel) by a set of weights
@@ -530,7 +530,7 @@ transmission rate dynamics.</p>
 <span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span> <span class="va">matrix</span>, ncol <span class="op">=</span> <span class="fl">1</span>, scales <span class="op">=</span> <span class="st">'free'</span><span class="op">)</span></span>
 <span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">value</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="time_varying_parameters_files/figure-html/plot_rbf-1.png" width="576"></p>
+<p><img src="time_varying_parameters_files/figure-html/plot_rbf-1.png" class="r-plt" alt="" width="576"></p>
 <div class="section level3">
 <h3 id="calibration">Calibration<a class="anchor" aria-label="anchor" href="#calibration"></a>
 </h3>
@@ -633,7 +633,7 @@ calibration.</p>
 <p>3. Review results.</p>
 <p>The fit to the observed data looks reasonable, however there are some
 obvious wiggly deviations.</p>
-<p><img src="time_varying_parameters_files/figure-html/rbf_fit_plot-1.png" width="576"></p>
+<p><img src="time_varying_parameters_files/figure-html/rbf_fit_plot-1.png" class="r-plt" alt="" width="576"></p>
 </div>
 </div>
 <div class="section level2 unnumbered">
@@ -657,7 +657,7 @@ Bolker, Benjamin M. 2008. <em>Ecological Models and Data in
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

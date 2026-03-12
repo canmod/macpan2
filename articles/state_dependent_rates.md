@@ -1,0 +1,354 @@
+# State-Dependent Rates
+
+[![status](https://img.shields.io/badge/status-working%20draft-red)](https://canmod.github.io/macpan2/articles/vignette-status#working-draft)
+
+## Decomposition of State-Dependent Rates
+
+The vast majority of compartmental models contain flows that depend on
+the states of compartments that are not directly involved in those
+flows. For example, the magnitude of the flow from compartment A to
+compartment B could depend on another compartment, C. The most important
+example of these dependencies is infection, and so we use the
+terminology from infection processes. However, our model will subsume a
+very large number of flows as special cases.
+
+Let $s$ and $x$ be subsets of the state vector. The length-$n$ vector
+$s$ contains the from-compartments – typically the compartments that are
+susceptible to infection – for a set of flows. The length-$m$ vector $x$
+contains compartments – typically the infectious compartments – that
+affect these flows. The components of $x$ do not need to affect all
+components of $y$ but they do need to affect some of them. Note that we
+do not keep track of the to-compartments in these flows because they do
+not matter (I think).
+
+We define the $n$-by-$m$ transmission matrix as the following
+decomposition.
+
+$$T = \operatorname{diag}(p)B\operatorname{diag}(c)$$
+
+This decomposition involves the following terms.
+
+- $p$ – length-$n$ vector of *susceptibilities* for each $s$ state
+- $B$ – $n$-by-$m$ matrix of *contacts* between each $x$ and $s$ state
+- $c$ – length-$m$ vector of *infectivities* for each $x$ state
+
+An alternative way to write the transmission matrix decomposition – that
+I prefer because it is a more accurate representation of the actual
+computations – is using [element-wise
+operations](https://canmod.github.io/macpan2/articles/elementwise_binary_operators.html).
+If $\circ$ is the element-wise product then we have the following.
+
+$$T = p \circ B \circ c^{\top}$$
+
+In this expression the column vector $p$ is element-wise multiplied by
+each column in $B$, and each row in this product is element-wise
+multiplied by the row vector $c^{\top}$, where $\top$ is the matrix
+transpose operator.
+
+The vector containing the per-capita flow rates out of each of the $s$
+states is the following.
+
+$$\lambda = Tx$$
+
+This $\lambda$ vector is often called the force of infection.
+
+And finally the absolute flow rates out of each of the $s$ states is the
+following.
+
+$$r = \lambda \circ s$$
+
+## Example – SIR
+
+The $s$ vector contains a single state, `S`, and $x$ contains only `I`.
+In this case both $n$ and $m$ are 1, and so all components are 1-by-1 as
+follows.
+
+- $p = 1$ – susceptibility
+- $B = 1$ – contact matrix
+- $c = \frac{\sigma}{N}$ – infectivity
+
+Therefore we have the following transmission matrix, per-capita flow
+rate vector, and absolute flow rate vector.
+
+- $T = \frac{\sigma}{N}$
+- $\lambda = \frac{\sigma}{N}I$
+- $r = \frac{\sigma}{N}IS$
+
+In this overly simple but hopefully clarifying example we could have
+decided to put $\sigma$ and $\frac{1}{N}$ in any of the components, $p$,
+$B$, or $c$. The point is that we have a somewhat mechanistic and
+somewhat general decomposition of transmission, so that when we start
+working with more complex models by combining model modules
+(e.g. combining SEIR with age and spatial structure) we have a way to
+conveniently combine these modules so that the resulting transmission
+rates make mechanistic sense.
+
+## Product Models
+
+Now we consider two models, each with the following triples representing
+the transmission decomposition.
+
+$$\left( p_{1},B_{1},c_{1} \right)$$
+
+$$\left( p_{2},B_{2},c_{2} \right)$$
+
+Note that these subscripts represent the model, not the components of
+these vectors and matrices. The dimensions of the two models is
+$n_{1},m_{1}$ and $n_{2},m_{2}$.
+
+Taking the product of these two models results in the following triple.
+
+$$(p,B,c) = \left( p_{1} \otimes p_{2},B_{1} \otimes B_{2},c_{1} \otimes c_{2} \right)$$
+
+Where $\otimes$ is the Kronecker product. This leads to an
+$n_{1}n_{2}$-by-1 column vector, $p$, $n_{1}n_{2}$-by-$m_{1}m_{2}$
+matrix, $B$, and $m_{1}m_{2}$-by-1 column vector $c$.
+
+We also have $x_{1},x_{2}$ and $s_{1},s_{2}$ to combine into $x$ and
+$s$. Before doing this we need to make a distinction between factor
+models with transmission and those without. For example, the SIR model
+clearly has transmission, but a factor model with just age groups does
+not. Because a pure age model does not distinguish between infectious
+and susceptible people, the only process that it considers is aging.
+Nevertheless when the age model becomes combined with a model that does
+have transmission, we want it to be ready for being combined.
+
+To make an age model – or any other factor model without transmission –
+ready to be combined with a model that includes transmission we need to
+do two things. First we need to account for the fact that some or all
+states may appear in both $x$ and $s$ (e.g. young people can be both
+infectious and susceptible). Second we need to include parameters that
+are not used in the factor model’s processes but that will be used when
+it is combined with a model that includes transmission (e.g. an age
+model needs to have a contact matrix even though contact processes do
+not affect aging, which is the only process in the age model). The next
+example illustrates these ideas.
+
+## Example – SIR times age
+
+We take the product of the SIR model above with a two-age-group factor
+model. The components of the transmission decomposition for this
+particular age-group factor model is as follows.
+
+- susceptibility: $p = \begin{bmatrix}
+  1 \\
+  1
+  \end{bmatrix}$
+- contact matrix: $B = \begin{bmatrix}
+  q & (1 - q) \\
+  (1 - q) & q
+  \end{bmatrix}$
+- infectivity: $c = \begin{bmatrix}
+  \sigma_{\text{young}} \\
+  \sigma_{\text{young}}
+  \end{bmatrix}$
+
+Here $q$ is the probability that any given contact is between
+individuals of the same age. This is a symmetric contact matrix, but we
+didn’t need to do that. We have also decided to not have susceptibility
+depend on age, but we absolutely could have by parameterizing that
+vector.
+
+It is a little odd to refer to this as a decomposition of transmission,
+because the age-only model contains only aging processes and does not
+include transmission. However, including the transmission decomposition
+is necessary to prepare this model for combination with a model with
+transmission.
+
+Taking the product of this age model with the SIR model above we have
+the following transmission decomposition.
+
+- susceptibility: $p = \begin{bmatrix}
+  1 \\
+  1
+  \end{bmatrix}$
+- contact matrix: $B = \begin{bmatrix}
+  q & (1 - q) \\
+  (1 - q) & q
+  \end{bmatrix}$
+- infectivity: $c = \frac{\sigma}{N}\begin{bmatrix}
+  \sigma_{\text{young}} \\
+  \sigma_{\text{old}}
+  \end{bmatrix}$
+
+In this product model $x$ contains `I.young` and `I.old` and $s$
+contains `S.young` and `S.old`.
+
+The transmission matrix can be obtained by multiplying the three
+components of the decomposition as follows.
+
+$$T = \begin{bmatrix}
+1 \\
+1
+\end{bmatrix} \circ \begin{bmatrix}
+q & (1 - q) \\
+(1 - q) & q
+\end{bmatrix} \circ \frac{\sigma}{N}\begin{bmatrix}
+\sigma_{\text{young}} & \sigma_{\text{old}}
+\end{bmatrix} = \frac{\sigma}{N}\begin{bmatrix}
+{q\sigma_{\text{young}}} & {(1 - q)\sigma_{\text{old}}} \\
+{(1 - q)\sigma_{\text{young}}} & {q\sigma_{\text{old}}}
+\end{bmatrix}$$
+
+The force of infection vector is then the product of $T$ and
+$x = \begin{bmatrix}
+I_{\text{young}} \\
+I_{\text{old}}
+\end{bmatrix}$
+
+$$\lambda = \frac{\sigma}{N}\begin{bmatrix}
+{q\sigma_{\text{young}}I_{\text{young}} + (1 - q)\sigma_{\text{old}}I_{\text{old}}} \\
+{(1 - q)\sigma_{\text{young}}I_{\text{young}} + q\sigma_{\text{old}}I_{\text{old}}}
+\end{bmatrix}$$
+
+## Example – SIR with multiple I-boxes times age
+
+This example SIR model has $n = 1$ susceptible class and $m = 2$
+infectious classes – mild and severe – with the following transmission
+decomposition.
+
+- susceptibility: $p = 1$
+- contact matrix: $B = \begin{bmatrix}
+  1 & 1
+  \end{bmatrix}$
+- infectivity: $c = \frac{1}{N}\begin{bmatrix}
+  \sigma_{\text{mild}} \\
+  \sigma_{\text{severe}}
+  \end{bmatrix}$
+
+Multiplying this decomposition by the age model above (in that order)
+gives the following model with $n = 2$ susceptible compartments and
+$m = 4$ infectious compartments.
+
+- susceptibility: $p = \begin{bmatrix}
+  1 \\
+  1
+  \end{bmatrix}$
+- contact matrix: $B = \begin{bmatrix}
+  q & (1 - q) & q & (1 - q) \\
+  (1 - q) & q & (1 - q) & q
+  \end{bmatrix}$
+- infectivity: $c = \frac{1}{N}\begin{bmatrix}
+  {\sigma_{\text{mild}}\sigma_{\text{young}}} \\
+  {\sigma_{\text{mild}}\sigma_{\text{old}}} \\
+  {\sigma_{\text{severe}}\sigma_{\text{young}}} \\
+  {\sigma_{\text{severe}}\sigma_{\text{old}}}
+  \end{bmatrix}$
+
+The non-square contact matrix might seem weird, but it is fine because
+it is modelling contacts between the two susceptible classes with the
+four infectious classes.
+
+One could write out the $2$-by-$4$ transmission matrix, but I don’t
+think it would be too informative. What would be more informative would
+be to write out a component of the force of infection vector, say for
+young people.
+
+$$\begin{array}{rrrrr}
+{\lambda_{\text{young}} = \frac{1}{N}} & ( & & {q\sigma_{\text{mild}}\sigma_{\text{young}}I_{\text{mild},\text{young}}} & \\
+ & & + & {(1 - q)\sigma_{\text{mild}}\sigma_{\text{old}}I_{\text{mild},\text{old}}} & \\
+ & & + & {q\sigma_{\text{severe}}\sigma_{\text{young}}I_{\text{severe},\text{young}}} & \\
+ & & + & {(1 - q)\sigma_{\text{severe}}\sigma_{\text{old}}I_{\text{severe},\text{old}}} & ) \\
+ & & & & 
+\end{array}$$
+
+The first term, for example, gives the contribution to the force of
+infection due to contacts between young susceptible individuals and
+mildly infected young individuals.
+
+## Example – SIR with multiple I-boxes and partial immunity times age
+
+We are starting to approach ‘real’ models now. This SIR model has an R
+box that can now flow back into I, because the immunity gained through
+infection and recovery is imperfect. This model feature means that the
+$s$ vector has two states, `S` and `R`, and so $n = 2$. The $x$ vector
+contains `I_mild` and `I_severe`, and so $m = 2$ as well. The
+transmission decomposition looks like this.
+
+- susceptibility: $p = \begin{bmatrix}
+  1 \\
+  {1 - \pi}
+  \end{bmatrix}$
+- contact matrix: $B = \begin{bmatrix}
+  1 & 1 \\
+  1 & 1
+  \end{bmatrix}$
+- infectivity: $c = \frac{1}{N}\begin{bmatrix}
+  \sigma_{\text{mild}} \\
+  \sigma_{\text{severe}}
+  \end{bmatrix}$
+
+Here $\pi$ is the efficacy of immunity against reinfection.
+
+The product of this model with age looks like this.
+
+- susceptibility: $p = \begin{bmatrix}
+  1 \\
+  1 \\
+  {1 - \pi} \\
+  {1 - \pi}
+  \end{bmatrix}$
+- contact matrix: $B = \begin{bmatrix}
+  q & (1 - q) & q & (1 - q) \\
+  (1 - q) & q & (1 - q) & q \\
+  q & (1 - q) & q & (1 - q) \\
+  (1 - q) & q & (1 - q) & q
+  \end{bmatrix}$
+- infectivity: $c = \frac{1}{N}\begin{bmatrix}
+  {\sigma_{\text{mild}}\sigma_{\text{young}}} \\
+  {\sigma_{\text{mild}}\sigma_{\text{old}}} \\
+  {\sigma_{\text{severe}}\sigma_{\text{young}}} \\
+  {\sigma_{\text{severe}}\sigma_{\text{old}}}
+  \end{bmatrix}$
+
+The force of infection for young individuals in the R box, for example,
+is given by the following expression
+
+$$\begin{array}{rrrrr}
+{\lambda_{\text{R,young}} = \frac{1 - \pi}{N}} & ( & & {q\sigma_{\text{mild}}\sigma_{\text{young}}I_{\text{mild},\text{young}}} & \\
+ & & + & {(1 - q)\sigma_{\text{mild}}\sigma_{\text{old}}I_{\text{mild},\text{old}}} & \\
+ & & + & {q\sigma_{\text{severe}}\sigma_{\text{young}}I_{\text{severe},\text{young}}} & \\
+ & & + & {(1 - q)\sigma_{\text{severe}}\sigma_{\text{old}}I_{\text{severe},\text{old}}} & ) \\
+ & & & & 
+\end{array}$$
+
+Note that this is almost identical to the expression for
+$\lambda_{\text{young}}$ above, but with a factor, $1 - \pi$, giving the
+reduction in transmission conferred by immunity.
+
+$$\lambda_{\text{R,young}} = (1 - \pi)\lambda_{\text{young}}$$
+
+## Example
+
+Assume we have an SI model times a young-old model.
+
+`Variables.csv`
+
+    Epi,        Age
+    S,          young
+    I,          young
+    S,          old
+    I,          old
+    susceptibility,  
+    contact
+
+## Bookkeeping (in progress)
+
+Index each element of $s$ with $i$ and each element of $x$ with $j$.
+
+We can define the per-capita rate at which individuals flow out of the
+$s_{i}$ compartment with the following decomposition.
+
+$$r_{i} = p_{i}\lambda_{i}$$
+
+The components of the decomposition are as follows.
+
+- $p_{i}$: susceptibility (e.g. complement of vaccine efficacy)
+- $\lambda_{i}$: force of infection
+
+With this definition, the absolute rate of flow out of $s_{i}$ is given
+by $r_{i}s_{i}$.
+
+The force of infection is.
+
+$$\lambda_{i} = \sum\limits_{j}B_{ij}c_{j}x_{j}$$

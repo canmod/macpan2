@@ -1,0 +1,285 @@
+# The C++ Side
+
+[![status](https://img.shields.io/badge/status-stable-green)](https://canmod.github.io/macpan2/articles/vignette-status#stable)
+
+## Prerequisites
+
+This document assumes a solid understanding of [template model
+builder](https://kaskr.github.io/adcomp/_book/Introduction.html).
+
+## Matrices
+
+A list of numerical scalars, vectors, and matrices are passed as input
+variables from R to C++. Scalars are passed as 1-by-1 matrices and
+vectors as n-by-1, so that all of these numerical variables are actually
+matrices.
+
+Treating all numerical objects as matrices might seem strange, but it is
+similar to how R treats all numerical objects as vectors. In this way, R
+matrices are vectors with dimensions. We are just extending this logic
+and requiring that all vectors have dimensions. We are more restrictive
+than R however by not allowing multidimensional arrays.
+
+Missing values are not allowed in any matrix. On the R side these
+variables are all associated with a unique name, and on the C++ side
+each of these names is associated with a 0-based index. All indices in
+this spec are 0-based.
+
+All matrices must have zero or more rows and columns. Any matrix with
+either zero rows or zero columns is an empty matrix. Empty matrices
+allow for placeholders for matrices that will be defined during
+simulations.
+
+These matrices are passed in using the `DATA_STRUCT(mats)` TMB macro,
+with an associated C++ `struct` for extracting the component matrices by
+index.
+
+## Parameters
+
+Two vectors of parameters are passed to C++.
+
+- `PARAMETER_VECTOR(params)` – this vector becomes the argument of the
+  objective function, and can therefore be optimized using a non-linear
+  optimizer or simulated using MCMC
+- `PARAMETER_VECTOR(random)` – this vector becomes the random effects
+  that will be integrated out of the objective function using a Laplace
+  approximation
+
+The values in these parameter vectors are used to update certain
+elements in the matrix-valued variables within `mats`. The elements to
+be updated are described on the R side by two data frames with one row
+for every matrix element to be replaced. These data frames are
+constructed in R and passed to C++. The columns for the data frame
+associated with `params` are the following.
+
+- `DATA_IVECTOR(p_par_id)` – indices into the `params` vector giving the
+  parameter to use when updating each element in `mats` that is to be
+  updated
+- `DATA_IVECTOR(p_mat_id)` – indices into `mats` giving the matrices
+  with elements to be replaced by parameters
+- `DATA_IVECTOR(p_row_id)` – indices of the rows within each matrix
+  associated with an element to be replaced by parameters
+- `DATA_IVECTOR(p_col_id)` – indices of the columns within each matrix
+  associated with an element to be replaced by parameters
+
+After these vectors are read into C++, a loop is executed over the rows
+of this table that replaces the associated `mats` elements with `params`
+elements.
+
+The `random` vector is treated similarly to `params` in that it is
+associated with a data frame describing what elements in `mats` should
+be replaced. The names of the columns of this table are:
+
+- `DATA_IVECTOR(r_par_id)`
+- `DATA_IVECTOR(r_mat_id)`
+- `DATA_IVECTOR(r_row_id)`
+- `DATA_IVECTOR(r_col_id)`
+
+Our implied convention is that `p` stands for ‘fixed Parameters’ and `r`
+for ‘Random parameters’.
+
+## Trajectory Simulation
+
+After the input matrices in `mats` are updated using `params` and
+`random`, these matrices can be modified. We refer to this process of
+modification as trajectory simulation. There are three phases to the
+trajectory simulation process.
+
+1.  Before the simulation loop
+2.  During the simulation loop
+3.  After the simulation loop
+
+Simulation time is measured in dimensionless iterations, and is indexed
+by an integer, `t`, such that `0 <= t <= T+1`, where `T` is the number
+of iterations of the loop. The value of each matrix at `t = 0` is the
+value of that matrix just before the first iteration of the simulation
+loop begins. The value of each matrix at `0 < t < T+1` is the value of
+the matrix at the very end of the `t`th iteration of the simulation
+loop. The value of each matrix at `t = T+1` is the value of the matrix
+at the end of the simulation.
+
+This time-indexing system is used for two purposes.
+
+1.  To optionally return the simulation history to the user
+2.  For matrix modifications that depend on past values
+
+The user can opt in and out of these uses on a per-matrix basis, by
+specifying two vectors that have one element per matrix.
+
+- `DATA_IVECTOR(mats_save_hist)`
+  - Equals `0` if the matrix is overwritten at each simulation
+    iteration, `t`
+  - Equals `1` if all computed values of the matrix are saved
+- `DATA_IVECTOR(mats_return)`
+  - Equals `0` if the matrix is not returned to the R side at the end of
+    the simulation
+  - Equals `1` otherwise
+
+The number of iterations, `T`, is passed to TMB as
+`DATA_INTEGER(time_steps)`.
+
+## Expressions
+
+The mathematical details of how matrices are modified during the
+simulation process is controlled on the R side by supplying expressions.
+Each expression is the right-hand-side of an R formula involving the
+following three types of objects.
+
+- Names of matrices in `mats`
+- Names of functions that are currently allowed by the engine
+- Numeric literals (e.g. `3.14`)
+
+A simulation is the sequential evaluation of these expressions in a
+user-specified order. Each expression may be evaluated during one of the
+three simulation phases – before, during, and after the simulation loop.
+Expressions evaluated before and after the simulation loop are evaluated
+only once, whereas those evaluated during the loop are evaluated at
+every iteration. The phase of each expression is controlled by the
+`DATA_IVECTOR(eval_schedule)` vector described at the end of this
+section.
+
+Each mathematical expression can be used by C++ in several ways.
+Information on how each expression should be used is passed to C++ using
+a set of vectors. Each of these vectors is the same length, with one
+element per expression.
+
+- `DATA_IVECTOR(expr_sim_block)`
+  - Identifies whether or not the expression should be evaluated inside
+    a `SIMULATE` macro within TMB
+  - A value of `0` indicates that the expression is to be evaluated
+    without the `SIMULATE` macro (we expect this to be the standard
+    case), whereas a value of `1` indicates evaluation inside a
+    `SIMULATE` macro
+  - Note that if an expression is evaluated in a `SIMULATE` macro and is
+    returned to the user through `mats_return == 1`, then it must also
+    be returned within the `SIMULATE` macro
+- `DATA_IVECTOR(expr_num_p_table_rows)`
+  - Number of rows associated with each expression in the parse table
+    (see section on [Parse Tables](#parse-tables))
+- `DATA_IVECTOR(assign_num_a_table_rows)`
+  - Number of rows associated with each expression in the assignment
+    parse table (see section on [Assignment Parse
+    Tables](#assignment-parse-tables))
+
+Each expression is evaluated in the order in which it appears in these
+vectors.
+
+The `DATA_IVECTOR(eval_schedule)` vector gives the phase in which each
+of these expressions should be evaluated. This vector has three elements
+giving the number of expressions to evaluate before, during, and after
+the simulation loop. In particular the first `eval_schedule[0]`
+expressions are evaluated before the simulation loop, the next
+`eval_schedule[1]` expressions are evaluated at every iteration of the
+simulation loop, and the next `eval_schedule[2]` expressions are
+evaluated after the simulation loop.
+
+Inputs are invalid if the sum of the elements of `eval_schedule` does
+not equal the number of elements in each of `expr_output_id`,
+`expr_sim_block`, and `expr_num_p_table_rows`.
+
+## Parse Tables
+
+Each expression is parsed into a table of numbers that represents the
+expression and can be passed to C++. Each row in this table corresponds
+to a step in the process of evaluating the expression. These steps
+correspond to one of three types of things, identified by column `n`:
+
+1.  A function – if `n > 0` – see section on [Function
+    Definitions](#function-definitions)
+2.  A matrix – if `n == 0` – see section on [Matrices](#matrices)
+3.  A literal – if `n == -1` – see section on [Literals](#literals)
+
+If the row does correspond to a function, then column `n` gives the
+number of arguments in that function.
+
+The column, `x`, gives an index for looking up the specific instance of
+each of these three types of entities. For example, if `n == 0` then the
+`x` column gives the index into the `mats` list for getting the
+appropriate matrix If `n == -1` then `x` gives an index into `literals`
+and if `n > 0` `x` gives an index into a list of valid functions. The
+`i` column is only relevant for functions, and indicates the row of the
+table representing the first argument to that function.
+
+This table is processed on the C++ side with a recursive function that
+either:
+
+- for rows associated with functions: looks up a valid function from a
+  list of function definitions, and recursively calls itself
+- for rows associated with matrices: looks up and returns a matrix in
+  the `mats` list
+- for rows associated with literals: looks up and returns a literal from
+  a list of valid literals
+
+The parse tables for all expressions are concatenated row-wise and
+passed to C++ as a set of three vectors of equal length.
+
+- `DATA_IVECTOR(p_table_n)`
+- `DATA_IVECTOR(p_table_x)`
+- `DATA_IVECTOR(p_table_i)`
+
+The first three vectors correspond to `n`, `x`, and `i` as discussed in
+this section.
+
+The `expr_num_p_table_rows` vector (defined above in the section on
+[Expressions](#expressions)) is used to relate each expression to a set
+of rows in this concatenated parse table. The elements of this vector
+contain the number of parse table rows associated with each expression.
+The ordering of the elements is consistent with the ordering of the
+concatenation of the individual parse tables, and so row indices are not
+necessary.
+
+## Assignment
+
+The resulting matrices produced by evaluating
+[Expressions](#expressions) is assigned to another matrix or a subset of
+another matrix. Assignment is specified as the left-hand-side of an R
+formula. These assignment specifications can take the form of a single
+function call. The current list of functions that are available for
+assignment are described
+[here](https://canmod.github.io/macpan2/reference/engine_functions.html#assignment).
+Developers can add to this list in a manner similar to that for adding
+[Function Definitions](#function-definitions). Each function in this
+list must have a corresponding function with the same name that can be
+used on the right hand side.
+
+## Assignment Parse Tables
+
+- `DATA_IVECTOR(a_table_n)`
+- `DATA_IVECTOR(a_table_x)`
+- `DATA_IVECTOR(a_table_i)`
+
+## Literals
+
+A global list of valid literals for all expressions is passed to C++ as
+a numeric vector, `DATA_VECTOR(literals)`.
+
+## Function Definitions
+
+The functions that are used in each \[Expression\] must be in a valid
+list of functions defined on the C++ side. Most of these functions will
+have analogues on the R side to make it as easy as possible for R users
+to reason about their expressions.
+
+Valid functions take one or more matrix-valued arguments and return a
+single matrix. The number of arguments does not need to be known when
+the model is defined, but some functions may optionally require a
+predefined number of arguments.
+
+Extending functionality of the engine will typically involve [adding
+function
+definitions](https://canmod.github.io/macpan2/CONTRIBUTING.html#adding-engine-functions)
+to the list of valid functions.
+
+## Objective Function
+
+The return value of the objective function is an expression that could
+depend on the values of all the matrices at the end of the simulation
+and the entire saved simulation history. This expression is passed as a
+parse table.
+
+- `DATA_IVECTOR(o_table_n)`
+- `DATA_IVECTOR(o_table_x)`
+- `DATA_IVECTOR(o_table_i)`
+
+The implied convention here is that `o` is for ‘Objective function parse
+table’ and `p` is for ‘matrix Parse table’.

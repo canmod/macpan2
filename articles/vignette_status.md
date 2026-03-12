@@ -1,0 +1,26 @@
+# Article Status
+
+We use a status system in `macpan2` to communicate the maturity of each
+article to users.
+
+## Stable
+
+![](https://img.shields.io/badge/status-stable-green) – Please read!
+Although mistakes are always possible, so please open an issue if you
+find any.
+
+## Mature Draft
+
+![](https://img.shields.io/badge/status-mature%20draft-yellow) – Should
+be consistent and accurate, but not yet widely utilized and/or checked
+for correctness.
+
+## Working Draft
+
+![](https://img.shields.io/badge/status-working%20draft-red) – Makes
+some sense, but could very well be inconsistent or confusing.
+
+## Stub
+
+![](https://img.shields.io/badge/status-stub-red) – Do not even bother
+reading.

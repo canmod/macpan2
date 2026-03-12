@@ -157,7 +157,7 @@ in Ontario that ended in 1930.</p>
 <span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Scarlet Fever Incidence in Ontario, Canada"</span><span class="op">)</span></span>
 <span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="real_data_files/figure-html/scarlet_fever_ontario_plot-1.png" width="672"></p>
+<p><img src="real_data_files/figure-html/scarlet_fever_ontario_plot-1.png" class="r-plt" alt="" width="672"></p>
 </div>
 <div class="section level2">
 <h2 id="sir-model">SIR Model<a class="anchor" aria-label="anchor" href="#sir-model"></a>
@@ -374,23 +374,23 @@ they might get us thinking.</p>
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/engine_functions.html">print</a></span><span class="op">(</span><span class="va">sir_opt</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $par</span></span>
 <span><span class="co">#&gt;     params     params     params     params </span></span>
-<span><span class="co">#&gt; 35.6519094 35.5361402  1.9567217  0.3568965 </span></span>
+<span><span class="co">#&gt; 38.6470435 38.5312885  1.6654262  0.3868803 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $objective</span></span>
-<span><span class="co">#&gt; [1] 428.1962</span></span>
+<span><span class="co">#&gt; [1] 428.1935</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $convergence</span></span>
 <span><span class="co">#&gt; [1] 1</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $iterations</span></span>
-<span><span class="co">#&gt; [1] 145</span></span>
+<span><span class="co">#&gt; [1] 150</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $evaluations</span></span>
 <span><span class="co">#&gt; function gradient </span></span>
-<span><span class="co">#&gt;      200      146 </span></span>
+<span><span class="co">#&gt;      175      151 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $message</span></span>
-<span><span class="co">#&gt; [1] "function evaluation limit reached without convergence (9)"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "iteration limit reached without convergence (10)"</span></span></code></pre></div>
 <p>OK, things are not great. The <code>convergence</code> code is
 <code>1</code>, indicating that the model did <em>not</em> converge
 (<code>convergence == 0</code> is good). Examining the parameter
@@ -399,15 +399,15 @@ get worse.</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/mp_tmb_coef.html">mp_tmb_coef</a></span><span class="op">(</span><span class="va">sir_cal</span>, conf.int <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt;       term         mat row col     default  type   estimate  std.error</span></span>
-<span><span class="co">#&gt; 1   params        beta   0   0 0.200000000 fixed 35.6519094 26.8422325</span></span>
-<span><span class="co">#&gt; 2 params.1       gamma   0   0 0.100000000 fixed 35.5361402 26.8423831</span></span>
-<span><span class="co">#&gt; 3 params.2           I   0   0 1.000000000 fixed  1.9567217  2.9440423</span></span>
-<span><span class="co">#&gt; 4 params.3 report_prob   0   0 0.003333333 fixed  0.3568965  0.2688191</span></span>
+<span><span class="co">#&gt; 1   params        beta   0   0 0.200000000 fixed 38.6470435 37.7100764</span></span>
+<span><span class="co">#&gt; 2 params.1       gamma   0   0 0.100000000 fixed 38.5312885 37.7102509</span></span>
+<span><span class="co">#&gt; 3 params.2           I   0   0 1.000000000 fixed  1.6654262  3.2477065</span></span>
+<span><span class="co">#&gt; 4 params.3 report_prob   0   0 0.003333333 fixed  0.3868803  0.3775919</span></span>
 <span><span class="co">#&gt;      conf.low  conf.high</span></span>
-<span><span class="co">#&gt; 1 -16.9578995 88.2617183</span></span>
-<span><span class="co">#&gt; 2 -17.0739640 88.1462444</span></span>
-<span><span class="co">#&gt; 3  -3.8134952  7.7269385</span></span>
-<span><span class="co">#&gt; 4  -0.1699793  0.8837722</span></span></code></pre></div>
+<span><span class="co">#&gt; 1 -35.2633481 112.557435</span></span>
+<span><span class="co">#&gt; 2 -35.3794450 112.442022</span></span>
+<span><span class="co">#&gt; 3  -4.6999616   8.030814</span></span>
+<span><span class="co">#&gt; 4  -0.3531862   1.126947</span></span></code></pre></div>
 <p>That doesn’t look right! Those are very high <code>beta</code> and
 <code>gamma</code> values, and the confidence intervals are enormous and
 overlap zero.</p>
@@ -428,7 +428,7 @@ overlap zero.</p>
 <span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span>
 <span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">matrix</span>, ncol <span class="op">=</span> <span class="fl">1</span>, scales <span class="op">=</span> <span class="st">"free"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="real_data_files/figure-html/unnamed-chunk-13-1.png" width="672"></p>
+<p><img src="real_data_files/figure-html/unnamed-chunk-13-1.png" class="r-plt" alt="" width="672"></p>
 <p>What is going on? Can we modify this model and/or fitting procedure
 to get both reasonable parameter estimates and a reasonable
 trajectory?</p>
@@ -456,10 +456,10 @@ magnitude.</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/mp_tmb_fixef_cov.html">mp_tmb_fixef_cov</a></span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cov2cor</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                   beta      gamma          I report_prob</span></span>
-<span><span class="co">#&gt; beta         1.0000000  1.0000000 -0.9998612   0.9996967</span></span>
-<span><span class="co">#&gt; gamma        1.0000000  1.0000000 -0.9998604   0.9996980</span></span>
-<span><span class="co">#&gt; I           -0.9998612 -0.9998604  1.0000000  -0.9993254</span></span>
-<span><span class="co">#&gt; report_prob  0.9996967  0.9996980 -0.9993254   1.0000000</span></span></code></pre></div>
+<span><span class="co">#&gt; beta         1.0000000  1.0000000 -0.9999174   0.9998194</span></span>
+<span><span class="co">#&gt; gamma        1.0000000  1.0000000 -0.9999170   0.9998201</span></span>
+<span><span class="co">#&gt; I           -0.9999174 -0.9999170  1.0000000  -0.9995983</span></span>
+<span><span class="co">#&gt; report_prob  0.9998194  0.9998201 -0.9995983   1.0000000</span></span></code></pre></div>
 <p>This diagnosis suggests that the data are not sufficiently
 informative to identify values for both <code>beta</code> and
 <code>gamma</code>. Resolving such identifiability issues is often best
@@ -540,7 +540,7 @@ consistent with our diagnosis of non-identifiability.</p>
 <span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span>
 <span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">matrix</span>, ncol <span class="op">=</span> <span class="fl">1</span>, scales <span class="op">=</span> <span class="st">"free"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="real_data_files/figure-html/unnamed-chunk-18-1.png" width="672"></p>
+<p><img src="real_data_files/figure-html/unnamed-chunk-18-1.png" class="r-plt" alt="" width="672"></p>
 <p>Caution: Here we use prior information to assume a reasonable value
 of <code>gamma = 1</code>, but ignore prior uncertainty. This can cause
 underestimates of uncertainty in other parameters that are fitted (see
@@ -570,7 +570,7 @@ distribution</a>.</p>
 <span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Scarlet Fever Incidence in Ontario, Canada"</span><span class="op">)</span></span>
 <span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="real_data_files/figure-html/unnamed-chunk-19-1.png" width="672"></p>
+<p><img src="real_data_files/figure-html/unnamed-chunk-19-1.png" class="r-plt" alt="" width="672"></p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">observed_data</span> <span class="op">=</span> <span class="op">(</span><span class="va">scarlet_fever_ontario</span></span>
 <span>  <span class="co">## select the variables to be modelled -- a time-series of case reports.</span></span>
@@ -643,7 +643,7 @@ results</p>
 <span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $par</span></span>
 <span><span class="co">#&gt;       params       params       params       params       params </span></span>
-<span><span class="co">#&gt;   1.06263996 436.37780942   0.18345472   0.08100246   0.86580386 </span></span>
+<span><span class="co">#&gt;   1.06264694 436.33391327   0.18347249   0.08100868   0.86580386 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $objective</span></span>
 <span><span class="co">#&gt; [1] 2896.6</span></span>
@@ -661,7 +661,7 @@ results</p>
 <span><span class="co">#&gt; $message</span></span>
 <span><span class="co">#&gt; [1] "iteration limit reached without convergence (10)"</span></span>
 <span><span class="fu">plot_fit</span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span></code></pre></div>
-<p><img src="real_data_files/figure-html/unnamed-chunk-22-1.png" width="672"></p>
+<p><img src="real_data_files/figure-html/unnamed-chunk-22-1.png" class="r-plt" alt="" width="672"></p>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_cal</span> <span class="op">=</span> <span class="fu">make_rbf_calibrator</span><span class="op">(</span>dimension <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span>
@@ -669,25 +669,25 @@ results</p>
 <span><span class="co">#&gt; NA/NaN function evaluation</span></span>
 <span><span class="co">#&gt; $par</span></span>
 <span><span class="co">#&gt;     params     params     params     params     params     params </span></span>
-<span><span class="co">#&gt;  0.4658727 14.6766010  9.1431125 -0.5636248 -0.7005872  0.6673706 </span></span>
+<span><span class="co">#&gt;  0.4433526 15.1322613  9.1639060 -0.6003322 -0.7456381  0.6673706 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $objective</span></span>
-<span><span class="co">#&gt; [1] 2977.812</span></span>
+<span><span class="co">#&gt; [1] 2978.346</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $convergence</span></span>
 <span><span class="co">#&gt; [1] 1</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $iterations</span></span>
-<span><span class="co">#&gt; [1] 150</span></span>
+<span><span class="co">#&gt; [1] 147</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $evaluations</span></span>
 <span><span class="co">#&gt; function gradient </span></span>
-<span><span class="co">#&gt;      198      151 </span></span>
+<span><span class="co">#&gt;      200      147 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $message</span></span>
-<span><span class="co">#&gt; [1] "iteration limit reached without convergence (10)"</span></span>
+<span><span class="co">#&gt; [1] "function evaluation limit reached without convergence (9)"</span></span>
 <span><span class="fu">plot_fit</span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span></code></pre></div>
-<p><img src="real_data_files/figure-html/unnamed-chunk-23-1.png" width="672"></p>
+<p><img src="real_data_files/figure-html/unnamed-chunk-23-1.png" class="r-plt" alt="" width="672"></p>
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_cal</span> <span class="op">=</span> <span class="fu">make_rbf_calibrator</span><span class="op">(</span>dimension <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span>
@@ -717,7 +717,7 @@ results</p>
 <span><span class="co">#&gt; $message</span></span>
 <span><span class="co">#&gt; [1] "relative convergence (4)"</span></span>
 <span><span class="fu">plot_fit</span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span></code></pre></div>
-<p><img src="real_data_files/figure-html/unnamed-chunk-24-1.png" width="672"></p>
+<p><img src="real_data_files/figure-html/unnamed-chunk-24-1.png" class="r-plt" alt="" width="672"></p>
 <div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_cal</span> <span class="op">=</span> <span class="fu">make_rbf_calibrator</span><span class="op">(</span>dimension <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span>
@@ -725,70 +725,43 @@ results</p>
 <span><span class="co">#&gt; NA/NaN function evaluation</span></span>
 <span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
 <span><span class="co">#&gt; NA/NaN function evaluation</span></span>
-<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
-<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
 <span><span class="co">#&gt; $par</span></span>
-<span><span class="co">#&gt;      params      params      params      params      params      params </span></span>
-<span><span class="co">#&gt;  1.24623626 64.31809388  0.15367381  0.40557742 -0.11457659  0.33951668 </span></span>
-<span><span class="co">#&gt;      params      params </span></span>
-<span><span class="co">#&gt; -0.07351877  0.61040344 </span></span>
+<span><span class="co">#&gt;     params     params     params     params     params     params     params </span></span>
+<span><span class="co">#&gt;  1.2466063 61.9900614  0.1595416  0.4059529 -0.1147400  0.3394152 -0.0741463 </span></span>
+<span><span class="co">#&gt;     params </span></span>
+<span><span class="co">#&gt;  0.6104034 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $objective</span></span>
-<span><span class="co">#&gt; [1] 1601.412</span></span>
+<span><span class="co">#&gt; [1] 1601.521</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $convergence</span></span>
 <span><span class="co">#&gt; [1] 1</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $iterations</span></span>
-<span><span class="co">#&gt; [1] 126</span></span>
+<span><span class="co">#&gt; [1] 128</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $evaluations</span></span>
 <span><span class="co">#&gt; function gradient </span></span>
-<span><span class="co">#&gt;      200      127 </span></span>
+<span><span class="co">#&gt;      200      129 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $message</span></span>
 <span><span class="co">#&gt; [1] "function evaluation limit reached without convergence (9)"</span></span>
-<span><span class="fu">plot_fit</span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span></code></pre></div>
-<p><img src="real_data_files/figure-html/unnamed-chunk-25-1.png" width="672"></p>
+<span><span class="fu">plot_fit</span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning in sqrt(as.numeric(unlist(tmp))): NaNs produced</span></span>
+<span><span class="co">#&gt; Warning: Removed 8 rows containing missing values or values outside the scale range</span></span>
+<span><span class="co">#&gt; (`geom_ribbon()`).</span></span></code></pre></div>
+<p><img src="real_data_files/figure-html/unnamed-chunk-25-1.png" class="r-plt" alt="" width="672"></p>
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_cal</span> <span class="op">=</span> <span class="fu">make_rbf_calibrator</span><span class="op">(</span>dimension <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $par</span></span>
 <span><span class="co">#&gt;       params       params       params       params       params       params </span></span>
-<span><span class="co">#&gt; -0.002793313 53.950823492 31.929825049 -4.573148593  1.944378326 -6.203399859 </span></span>
+<span><span class="co">#&gt; -0.003092847 50.417568440 33.763662823 -4.564431830  1.942307684 -6.206699276 </span></span>
 <span><span class="co">#&gt;       params       params       params </span></span>
-<span><span class="co">#&gt;  1.785263470 -7.024005158  0.596297469 </span></span>
+<span><span class="co">#&gt;  1.780538691 -7.036314207  0.596297469 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $objective</span></span>
-<span><span class="co">#&gt; [1] 1433.839</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $convergence</span></span>
-<span><span class="co">#&gt; [1] 1</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $iterations</span></span>
-<span><span class="co">#&gt; [1] 126</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $evaluations</span></span>
-<span><span class="co">#&gt; function gradient </span></span>
-<span><span class="co">#&gt;      200      127 </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $message</span></span>
-<span><span class="co">#&gt; [1] "function evaluation limit reached without convergence (9)"</span></span>
-<span><span class="fu">plot_fit</span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span></code></pre></div>
-<p><img src="real_data_files/figure-html/unnamed-chunk-26-1.png" width="672"></p>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sir_cal</span> <span class="op">=</span> <span class="fu">make_rbf_calibrator</span><span class="op">(</span>dimension <span class="op">=</span> <span class="fl">6</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
-<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
-<span><span class="co">#&gt; $par</span></span>
-<span><span class="co">#&gt;     params     params     params     params     params     params     params </span></span>
-<span><span class="co">#&gt;  0.7601931  8.1384172  5.0613008 -0.2998314  0.2581251 -0.6205325  0.3072368 </span></span>
-<span><span class="co">#&gt;     params     params     params </span></span>
-<span><span class="co">#&gt; -0.3905223 -0.1563821  0.5863554 </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $objective</span></span>
-<span><span class="co">#&gt; [1] 1441.671</span></span>
+<span><span class="co">#&gt; [1] 1433.844</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $convergence</span></span>
 <span><span class="co">#&gt; [1] 1</span></span>
@@ -803,15 +776,43 @@ results</p>
 <span><span class="co">#&gt; $message</span></span>
 <span><span class="co">#&gt; [1] "function evaluation limit reached without convergence (9)"</span></span>
 <span><span class="fu">plot_fit</span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span></code></pre></div>
-<p><img src="real_data_files/figure-html/unnamed-chunk-27-1.png" width="672"></p>
+<p><img src="real_data_files/figure-html/unnamed-chunk-26-1.png" class="r-plt" alt="" width="672"></p>
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sir_cal</span> <span class="op">=</span> <span class="fu">make_rbf_calibrator</span><span class="op">(</span>dimension <span class="op">=</span> <span class="fl">6</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning in (function (start, objective, gradient = NULL, hessian = NULL, :</span></span>
+<span><span class="co">#&gt; NA/NaN function evaluation</span></span>
+<span><span class="co">#&gt; $par</span></span>
+<span><span class="co">#&gt;     params     params     params     params     params     params     params </span></span>
+<span><span class="co">#&gt;  0.7868422  7.8545145  5.0384023 -0.2687894  0.2564067 -0.5855425  0.3094323 </span></span>
+<span><span class="co">#&gt;     params     params     params </span></span>
+<span><span class="co">#&gt; -0.3683463 -0.1327255  0.5863554 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $objective</span></span>
+<span><span class="co">#&gt; [1] 1441.326</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $convergence</span></span>
+<span><span class="co">#&gt; [1] 1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $iterations</span></span>
+<span><span class="co">#&gt; [1] 127</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $evaluations</span></span>
+<span><span class="co">#&gt; function gradient </span></span>
+<span><span class="co">#&gt;      200      127 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $message</span></span>
+<span><span class="co">#&gt; [1] "function evaluation limit reached without convergence (9)"</span></span>
+<span><span class="fu">plot_fit</span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span></code></pre></div>
+<p><img src="real_data_files/figure-html/unnamed-chunk-27-1.png" class="r-plt" alt="" width="672"></p>
 <div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sir_cal</span> <span class="op">=</span> <span class="fu">make_rbf_calibrator</span><span class="op">(</span>dimension <span class="op">=</span> <span class="fl">7</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $par</span></span>
 <span><span class="co">#&gt;      params      params      params      params      params      params </span></span>
-<span><span class="co">#&gt;  0.02862237 13.98682503  6.43589129 -0.64364609 -1.38502755 -0.17206581 </span></span>
+<span><span class="co">#&gt;  0.02862237 13.99612692  6.43161701 -0.64364670 -1.38502721 -0.17206594 </span></span>
 <span><span class="co">#&gt;      params      params      params      params      params </span></span>
-<span><span class="co">#&gt; -3.83455147 -0.06295877 -1.56407248 -3.70587627  0.58017538 </span></span>
+<span><span class="co">#&gt; -3.83455120 -0.06295877 -1.56407222 -3.70587604  0.58017538 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $objective</span></span>
 <span><span class="co">#&gt; [1] 1471.266</span></span>
@@ -829,22 +830,22 @@ results</p>
 <span><span class="co">#&gt; $message</span></span>
 <span><span class="co">#&gt; [1] "function evaluation limit reached without convergence (9)"</span></span>
 <span><span class="fu">plot_fit</span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span></code></pre></div>
-<p><img src="real_data_files/figure-html/unnamed-chunk-28-1.png" width="672"></p>
+<p><img src="real_data_files/figure-html/unnamed-chunk-28-1.png" class="r-plt" alt="" width="672"></p>
 <p>Interestingly we have now managed to fit <code>gamma</code></p>
 <div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/mp_tmb_coef.html">mp_tmb_coef</a></span><span class="op">(</span><span class="va">sir_cal</span><span class="op">)</span></span>
 <span><span class="co">#&gt;         term           mat row col     default  type    estimate    std.error</span></span>
-<span><span class="co">#&gt; 1     params         gamma   0   0 0.100000000 fixed  0.02862237  0.006524905</span></span>
-<span><span class="co">#&gt; 2   params.1             I   0   0 1.000000000 fixed 13.98682503 18.333741358</span></span>
+<span><span class="co">#&gt; 1     params         gamma   0   0 0.100000000 fixed  0.02862237  0.006525211</span></span>
+<span><span class="co">#&gt; 2   params.1             I   0   0 1.000000000 fixed 13.99612692 18.179726520</span></span>
 <span><span class="co">#&gt; 3  params.10 prior_sd_beta   0   0 1.000000000 fixed  0.58017538  0.018255583</span></span>
-<span><span class="co">#&gt; 4   params.2   report_prob   0   0 0.003333333 fixed  6.43589129  8.439943861</span></span>
-<span><span class="co">#&gt; 5   params.3 time_var_beta   0   0 0.000000000 fixed -0.64364609  0.183442769</span></span>
-<span><span class="co">#&gt; 6   params.4 time_var_beta   1   0 0.000000000 fixed -1.38502755  0.149596026</span></span>
-<span><span class="co">#&gt; 7   params.5 time_var_beta   2   0 0.000000000 fixed -0.17206581  0.118303816</span></span>
-<span><span class="co">#&gt; 8   params.6 time_var_beta   3   0 0.000000000 fixed -3.83455147  0.138041586</span></span>
-<span><span class="co">#&gt; 9   params.7 time_var_beta   4   0 0.000000000 fixed -0.06295877  0.166110832</span></span>
-<span><span class="co">#&gt; 10  params.8 time_var_beta   5   0 0.000000000 fixed -1.56407248  0.105245714</span></span>
-<span><span class="co">#&gt; 11  params.9 time_var_beta   6   0 0.000000000 fixed -3.70587627  0.244865141</span></span></code></pre></div>
+<span><span class="co">#&gt; 4   params.2   report_prob   0   0 0.003333333 fixed  6.43161701  8.357926297</span></span>
+<span><span class="co">#&gt; 5   params.3 time_var_beta   0   0 0.000000000 fixed -0.64364670  0.183439360</span></span>
+<span><span class="co">#&gt; 6   params.4 time_var_beta   1   0 0.000000000 fixed -1.38502721  0.149594802</span></span>
+<span><span class="co">#&gt; 7   params.5 time_var_beta   2   0 0.000000000 fixed -0.17206594  0.118303083</span></span>
+<span><span class="co">#&gt; 8   params.6 time_var_beta   3   0 0.000000000 fixed -3.83455120  0.138042922</span></span>
+<span><span class="co">#&gt; 9   params.7 time_var_beta   4   0 0.000000000 fixed -0.06295877  0.166116176</span></span>
+<span><span class="co">#&gt; 10  params.8 time_var_beta   5   0 0.000000000 fixed -1.56407222  0.105245865</span></span>
+<span><span class="co">#&gt; 11  params.9 time_var_beta   6   0 0.000000000 fixed -3.70587604  0.244875312</span></span></code></pre></div>
 <p>This is a much slower recovery rate. Expected time in the R box is
 about one year! Not believeable, but the point is to make it easier to
 fit models so you can try more things.</p>
@@ -908,7 +909,7 @@ of the National Academy of Sciences</em> 103 (42): 15693–97. <a href="https://
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

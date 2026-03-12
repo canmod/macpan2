@@ -1,0 +1,193 @@
+# Options
+
+[![status](https://img.shields.io/badge/status-working%20draft-red)](https://canmod.github.io/macpan2/articles/vignette-status#working-draft)
+
+You can control the behavior of `macpan2` using standard R options. To
+do this, use the [`options()`](https://rdrr.io/r/base/options.html)
+function near the top of your script or session. Here are a couple of
+examples.
+
+``` r
+options(macpan2_verbose = TRUE)
+options(macpan2_log_dir = "")  # log to working directory
+```
+
+This page lists all `macpan2` options, organized by topic. Defaults and
+allowed values for each option are provided. You can copy and paste (and
+perhaps modify) the examples to change package behavior.
+
+## Potentially Useful
+
+### Logging and Verbosity
+
+By default, `macpan2` writes logs to the following path, which will be
+different on each machine.
+
+``` r
+library(macpan2)
+file.path(
+    getOption("macpan2_log_dir")
+  , ".macpan2"
+  , getOption("macpan2_session_name")
+  , "log.txt"
+)
+#> [1] "/home/runner/.local/share/R/macpan2/.macpan2/default/log.txt"
+```
+
+To log to the working directory, use `options(macpan2_log_dir = "")`.
+You can also get console output from the TMB engine using
+`options(macpan2_verbose = TRUE)`.
+
+- **macpan2_session_name**  
+  Default: `"default"`
+- **macpan2_log_dir**  
+  Default: `tools::R_user_dir("macpan2")`
+- **macpan2_verbose**  
+  Default: `FALSE`  
+  Controls whether the [TMB](https://github.com/kaskr/adcomp) engine is
+  verbose.  
+  Passed as `!getOption("macpan2_verbose")` to
+  [`TMB::MakeADFun()`](https://rdrr.io/pkg/TMB/man/MakeADFun.html).
+
+Here are some examples of controlling logging and verbosity.
+
+``` r
+options(macpan2_session_name = "demo")
+options(macpan2_log_dir = "")  # logs go under the working directory
+options(macpan2_verbose = TRUE)
+```
+
+### Output Data Formatting (for Scalar-Only Models)
+
+When a model contains only scalar variables, the default output
+structure—which includes `row`, `col`, and a generic `matrix` column—can
+be unnecessarily complex. The following options simplify the output in
+these cases by:
+
+1.  Dropping the `row` and `col` columns when they provide no
+    information.
+2.  Renaming the `matrix` column to something more meaningful.
+
+| Option                       | Default | Affects                                                                          | Renamed Column (if collapsed) |
+|------------------------------|---------|----------------------------------------------------------------------------------|-------------------------------|
+| **macpan2_collapse_traj**    | `FALSE` | [`mp_trajectory()`](https://canmod.github.io/macpan2/reference/mp_trajectory.md) | `variable`                    |
+| **macpan2_collapse_coef**    | `FALSE` | [`mp_tmb_coef()`](https://canmod.github.io/macpan2/reference/mp_tmb_coef.md)     | `par`                         |
+| **macpan2_collapse_default** | `FALSE` | [`mp_default()`](https://canmod.github.io/macpan2/reference/mp_default.md)       | `quantity`                    |
+
+Note that `macpan2_collapse_traj` also applies to all
+`mp_trajectory_*()` functions that return a data frame, such as
+[`mp_trajectory_sd()`](https://canmod.github.io/macpan2/reference/mp_trajectory.md)
+and
+[`mp_trajectory_par()`](https://canmod.github.io/macpan2/reference/mp_trajectory.md).
+
+These options are often worth enabling in scalar-only models to simplify
+results. The only reason they are not defaults is to preserve backward
+compatibility with earlier versions of `macpan2`.
+
+``` r
+options(
+    macpan2_collapse_traj = TRUE
+  , macpan2_collapse_coef = TRUE
+  , macpan2_collapse_default = TRUE
+)
+```
+
+Thanks to [Jonathan
+Dushoff](https://github.com/canmod/macpan2/issues/350) for the ideas
+here.
+
+### Numerical Tolerances
+
+- **macpan2_tol_hazard_div**  
+  Default: `1e-8`  
+  Tolerance passed to
+  [`proportions()`](https://canmod.github.io/macpan2/reference/engine_functions.md)
+  via
+  [`mp_hazard()`](https://canmod.github.io/macpan2/reference/state_updates.md)
+  to avoid division by zero.
+- **macpan2_tol_singular_cov**  
+  Default: `1e-6`  
+  Used to check whether a covariance matrix is suitable for simulating
+  multivariate normal parameter samples.
+
+Here is an example.
+
+``` r
+options(macpan2_tol_singular_cov = 1e-4)
+```
+
+## Advanced
+
+These options are mostly for developers or advanced users.
+
+### Simulation and Reproducibility
+
+- **macpan2_traj_tmb_macro**  
+  Default: `"simulate"`  
+  Allowed: `"simulate"`, `"report"`  
+  `"simulate"` respects
+  [`set.seed()`](https://rdrr.io/r/base/Random.html); `"report"`
+  (pre-2.4.0 behavior) does not.
+
+### Time-Restricted Functions
+
+Some engine functions have constraints based on their use in time steps
+or access to history.
+
+- **macpan2_time_dep_funcs**  
+  Default:
+  `c("convolution", "rbind_lag", "rbind_time", "cbind_lag", "cbind_time")`  
+  These functions *require* their first argument to have saved
+  simulation history.
+- **macpan2_non_iterable_funcs**  
+  Default:
+  `c("time_var", "rbinom", "rpois", "rnorm", "rnbinom", "reulermultinom")`  
+  These functions cannot be called multiple times within a single time
+  step (e.g., RK4). Includes all stochastic and time-varying calls.
+
+### Engine Control
+
+- **macpan2_dll**  
+  Default: `"macpan2"`  
+  Name of the C++ shared object to use.
+
+You can use a custom engine that is an alternative version of
+`src/macpan2.cpp`, called `project-directory/alt.cpp` for example, by
+running the following code:
+
+``` r
+TMB::compile("project-directory/alt.cpp")
+dyn.load(TMB::dynlib("alt"))
+options(macpan2_dll = "alt")
+```
+
+- **macpan2_saving_conflict_msg_fn**  
+  Default: [`base::message()`](https://rdrr.io/r/base/message.html)  
+  Function to use when both `must_save` and `must_not_save` are
+  specified. Applies to
+  [`mp_tmb_model_spec()`](https://canmod.github.io/macpan2/reference/mp_tmb_model_spec.md)
+  and related functions with those arguments.
+
+## Deprecated
+
+These options are preserved for backward compatibility only.
+
+- **macpan2_default_loss**  
+  Default: `"clamped_poisson"`  
+  Allowed: `"clamped_poisson"`, `"poisson"`, `"sum_of_squares"`,
+  `"neg_bin"` Please specify loss functions for trajectory matching
+  directly as in [this vignette
+  section](https://canmod.github.io/macpan2/articles/calibration.html#step-1-add-calibration-information).
+- **macpan2_vec_by**  
+  Default:
+  `c("state", "flow_rates", "trans_rates") |> self_named_vector()`  
+  Likely obsolete.
+
+## No Longer or Not Yet Used
+
+These options exist in the code but are not currently used.
+
+- **macpan2_tmb_type**  
+  Default: `"ADFun"`
+- **macpan2_tmb_check**  
+  Default: `TRUE`

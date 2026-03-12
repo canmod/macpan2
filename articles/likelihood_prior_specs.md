@@ -1,0 +1,181 @@
+# Specifying Likelihood and Prior Components
+
+[![status](https://img.shields.io/badge/status-stub-red)](https://canmod.github.io/macpan2/articles/vignette-status#status-stub-red)
+
+``` r
+library(macpan2)
+library(ggplot2)
+library(dplyr)
+library(broom.mixed)
+options(macpan2_verbose =  FALSE)
+```
+
+## Calibration Defaults
+
+The calibration interface allows for the direct specification of
+likelihood and prior components. The objective function in calibration
+is the summation of negative log likelihoods and negative log prior
+densities.
+
+By default, the interface assumes **poisson likelihoods** and **uniform
+priors**. This is demonstrated in the objective function in this
+[calibration
+example](https://canmod.github.io/macpan2/articles/calibration.html#step-1-add-calibration-information).
+The calibration output shows a poisson likelihood is used for the
+trajectory variable `I` and no additional objective function terms
+indicate the parameters `beta` and `R` have an improper uniform prior
+density. Indicating we have no prior information about these parameters.
+
+## Customizing the Objective Function
+
+To specify a likelihood and/or prior for a variable in our model we can
+select a distribution from the list of available
+distributions,[`?macpan2::distribution`](https://canmod.github.io/macpan2/reference/distribution.md).
+
+## Use Cases
+
+### Priors on model parameters
+
+Specifying priors is usually done through the `par` argument of
+`mp_tmb_calibrator`.
+[Here](https://github.com/canmod/macpan2/tree/main/inst/starter_models/shiver#re-parameterizing-and-introducing-transformations)
+is an example of prior specification in the SHIVER model. The parameter
+`logit_p`, the logit transformed proportion `p`, is given a normal prior
+using the distribution function
+[`macpan2::mp_norm`](https://canmod.github.io/macpan2/reference/distribution.md)
+and two numeric inputs for the `location` and standard deviation, `sd`.
+The remaining parameters are given an improper uniform prior using
+[`macpan2::mp_unif`](https://canmod.github.io/macpan2/reference/distribution.md).
+
+### Likelihoods on model parameters
+
+A likelihood can be specified for the trajectory variables in our
+calibration set-up, those identified in the `traj` argument of
+`mp_tmb_calibrator`.
+
+Further into the SHIVER
+[example](https://github.com/canmod/macpan2/tree/main/inst/starter_models/shiver#fitting-to-multiple-trajectories),
+the variables hospitalizations(`H`) and `reported_incidence` are both
+specified with a negative binomial likelihood using the
+[`macpan2::mp_nbinom`](https://canmod.github.io/macpan2/reference/distribution.md)
+function. For likelihoods the location parameter is not set because the
+calibration machinery will use the simulated value for this trajectory
+as the location. The dispersion parameter for `mp_nbinom` is required.
+
+### Fixed distributional parameters
+
+Distributional parameters are those parameters that characterize the
+distribution. Often these are the location and standard deviation. By
+default, these parameters are assumed fixed and not fit. This was the
+case in the previous \[Prior Specification\] example where the
+distributional parameters for `location` and `sd` were specified as
+numeric constants.
+
+Distributional parameters are also assumed fixed when set to the name of
+an existing variable in the model. Ex. `mp_norm(sd = "sd_var")`
+
+### Fitting Distributional Parameters
+
+Distributional parameters however, can be fit in the calibration
+framework in addition to other parameters using
+[`macpan2::mp_fit`](https://canmod.github.io/macpan2/reference/fit_distr_params.md).
+See
+[`?macpan2::fit_distr_params`](https://canmod.github.io/macpan2/reference/fit_distr_params.md)
+for details. The previous example in \[Likelihood Specification\] shows
+the negative binomial dispersion parameter being fit with `mp_fit`. The
+numeric value provided for dispersion is the starting value for the
+optimization routine. After optimization, we can see the fitted
+dispersion distributional parameters in the coefficient table. By
+default, they are named with a leading `distr_params_` followed by their
+distributional parameter name and corresponding model variable name.
+
+#### Distributional Parameter Transformations
+
+Distributional parameters have default parameter transformations
+inherited from their respective distribution. See the `default_trans`
+argument for each distribution
+([`?macpan2::distribution`](https://canmod.github.io/macpan2/reference/distribution.md)).
+For example, standard deviations by definition are a strictly positive
+number, so the log transformation is convenient to use to ensure this
+condition is met.
+
+Defaults can be changed by either passing a distributional parameter
+transformation function
+[`?macpan2::transform_distr_param`](https://canmod.github.io/macpan2/reference/transform_distr_param.md)
+to the `trans_distr_param` argument in
+[`?macpan2::fit_distr_params`](https://canmod.github.io/macpan2/reference/fit_distr_params.md)
+functions to change a single transformation. To update all
+transformations, a named list of transformations from
+[`?macpan2::transform_distr_param`](https://canmod.github.io/macpan2/reference/transform_distr_param.md)
+for each distributional parameter can be given to the `default_trans`
+argument of the distribution.
+
+### Priors on distributional parameters
+
+We can specify priors on distributional parameters by:
+
+1.  creating a variable in the model for this distributional parameter
+2.  referring to the distributional parameter name when specifying the
+    prior on the focal parameter
+3.  using the distributional parameter name to specify its own prior in
+    the usual way
+
+``` r
+spec = (
+  mp_tmb_library("starter_models", "sir", package = "macpan2")
+  
+  ## 1. update the spec to include a new variable named 'my_var' to serve as
+  ## the standard deviation parameter for the Normal prior on 'beta'.
+  ## A numeric value of 0.1 is specified as the default for 'my_var', the 
+  ## starting value in optimization.
+  |> mp_tmb_insert(default = list(my_var = 0.1))
+)
+## generate data for calibration
+data = mp_simulator(spec, 50, "infection") |> mp_trajectory()
+
+## set-up calibrator
+cal = mp_tmb_calibrator(
+    spec
+  , data
+  , traj = "infection"
+    ## 2. We set a Normal prior on beta, and set the `sd` argument to 'my_var'
+    ## (would it ever make sense to use mp_fit for `sd` here?)
+  , par = list(beta = mp_norm(location = 0.35, sd = mp_nofit("my_var"))
+      ## 3. setting a log-normal prior on 'my_var'
+    , my_var = mp_lnorm(1,1) 
+  )
+  , default = list(beta = 0.25)
+)
+
+## we can see the prior density for both 'beta' and 'my_var' in the calibration
+## objective function
+cal$simulator$tmb_model$obj_fn$obj_fn_expr
+#> ~-sum(dpois(obs_infection, clamp(sim_infection))) - sum(dnorm(beta, 
+#>     0.35, exp(my_var))) - sum(dnorm(log(my_var), 1, 1))
+#> <environment: 0x55d45407c378>
+
+mp_optimize(cal)
+#> $par
+#>    params    params 
+#> 0.2000017 1.0015207 
+#> 
+#> $objective
+#> [1] 53.08736
+#> 
+#> $convergence
+#> [1] 0
+#> 
+#> $iterations
+#> [1] 9
+#> 
+#> $evaluations
+#> function gradient 
+#>       10       10 
+#> 
+#> $message
+#> [1] "relative convergence (4)"
+mp_tmb_coef(cal)
+#>       term    mat row col default  type  estimate   std.error
+#> 1   params   beta   0   0    0.25 fixed 0.2000017 0.009166585
+#> 2 params.1 my_var   0   0    0.10 fixed 1.0015207 0.707373865
+```

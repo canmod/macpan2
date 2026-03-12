@@ -143,7 +143,7 @@ recover the parameters that we use when simulating.</p>
 <span>  <span class="op">|&gt;</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">value</span>, colour <span class="op">=</span> <span class="va">matrix</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="calibration_files/figure-html/sir_setup-1.png" width="576"></p>
+<p><img src="calibration_files/figure-html/sir_setup-1.png" class="r-plt" alt="" width="576"></p>
 <p>Note that we changed the default values so that we can try to recover
 them using optimization below.</p>
 <p>To make things a little more challenging we add some Poisson noise to
@@ -160,7 +160,7 @@ the prevalence (<code>I</code>) value:</p>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">value</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">true_value</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/engine_functions.html">print</a></span><span class="op">(</span><span class="va">plot_truth</span><span class="op">)</span></span></code></pre></div>
-<p><img src="calibration_files/figure-html/sir_noise-1.png" width="576"></p>
+<p><img src="calibration_files/figure-html/sir_noise-1.png" class="r-plt" alt="" width="576"></p>
 </div>
 <div class="section level3">
 <h3 id="step-1-add-calibration-information">Step 1: add calibration information<a class="anchor" aria-label="anchor" href="#step-1-add-calibration-information"></a>
@@ -215,7 +215,7 @@ default values give a reasonable-looking trajectory.</p>
 <span> <span class="op">|&gt;</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">value</span><span class="op">)</span><span class="op">)</span> </span>
 <span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="calibration_files/figure-html/plot1-1.png" width="576"></p>
+<p><img src="calibration_files/figure-html/plot1-1.png" class="r-plt" alt="" width="576"></p>
 </div>
 <div class="section level3">
 <h3 id="step-2-do-the-fit">Step 2: do the fit<a class="anchor" aria-label="anchor" href="#step-2-do-the-fit"></a>
@@ -240,7 +240,7 @@ not 0, then something may have gone wrong …).</p>
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/mp_optimizer_output.html">mp_optimizer_output</a></span><span class="op">(</span><span class="va">sir_calibrator</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $par</span></span>
 <span><span class="co">#&gt;     params     params </span></span>
-<span><span class="co">#&gt;  0.2345619 86.7030872 </span></span>
+<span><span class="co">#&gt;  0.2345619 86.7030875 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $objective</span></span>
 <span><span class="co">#&gt; [1] 248.5816</span></span>
@@ -249,18 +249,18 @@ not 0, then something may have gone wrong …).</p>
 <span><span class="co">#&gt; [1] 0</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $iterations</span></span>
-<span><span class="co">#&gt; [1] 12</span></span>
+<span><span class="co">#&gt; [1] 15</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $evaluations</span></span>
 <span><span class="co">#&gt; function gradient </span></span>
-<span><span class="co">#&gt;       22       12 </span></span>
+<span><span class="co">#&gt;       25       15 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $message</span></span>
 <span><span class="co">#&gt; [1] "both X-convergence and relative convergence (5)"</span></span>
 <span><span class="fu"><a href="../reference/mp_optimize.html">mp_optimize</a></span><span class="op">(</span><span class="va">sir_calibrator</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $par</span></span>
 <span><span class="co">#&gt;     params     params </span></span>
-<span><span class="co">#&gt;  0.2345619 86.7030872 </span></span>
+<span><span class="co">#&gt;  0.2345619 86.7030875 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $objective</span></span>
 <span><span class="co">#&gt; [1] 248.5816</span></span>
@@ -281,7 +281,7 @@ not 0, then something may have gone wrong …).</p>
 <span><span class="co">#&gt; [[1]]</span></span>
 <span><span class="co">#&gt; [[1]]$par</span></span>
 <span><span class="co">#&gt;     params     params </span></span>
-<span><span class="co">#&gt;  0.2345619 86.7030872 </span></span>
+<span><span class="co">#&gt;  0.2345619 86.7030875 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; [[1]]$objective</span></span>
 <span><span class="co">#&gt; [1] 248.5816</span></span>
@@ -290,11 +290,11 @@ not 0, then something may have gone wrong …).</p>
 <span><span class="co">#&gt; [1] 0</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; [[1]]$iterations</span></span>
-<span><span class="co">#&gt; [1] 12</span></span>
+<span><span class="co">#&gt; [1] 15</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; [[1]]$evaluations</span></span>
 <span><span class="co">#&gt; function gradient </span></span>
-<span><span class="co">#&gt;       22       12 </span></span>
+<span><span class="co">#&gt;       25       15 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; [[1]]$message</span></span>
 <span><span class="co">#&gt; [1] "both X-convergence and relative convergence (5)"</span></span>
@@ -303,7 +303,7 @@ not 0, then something may have gone wrong …).</p>
 <span><span class="co">#&gt; [[2]]</span></span>
 <span><span class="co">#&gt; [[2]]$par</span></span>
 <span><span class="co">#&gt;     params     params </span></span>
-<span><span class="co">#&gt;  0.2345619 86.7030872 </span></span>
+<span><span class="co">#&gt;  0.2345619 86.7030875 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; [[2]]$objective</span></span>
 <span><span class="co">#&gt; [1] 248.5816</span></span>
@@ -356,7 +356,7 @@ does in fact fall within the 95% confidence region (red ribbon).</p>
 <span>    , alpha <span class="op">=</span> <span class="fl">0.2</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="calibration_files/figure-html/plot_results-1.png" width="576"></p>
+<p><img src="calibration_files/figure-html/plot_results-1.png" class="r-plt" alt="" width="576"></p>
 </div>
 </div>
 <div class="section level2">
@@ -416,7 +416,7 @@ exposed to users.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>
