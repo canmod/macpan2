@@ -1,2 +1,33 @@
 Julia Gog, Viggo Andreasen
-https://www.overleaf.com/login
+https://link.springer.com/article/10.1007/s00285-015-0873-4
+
+Looking more at odin-monty.  
+
+This design philosophy is different from the one I have in mind for macpan2 :  https://mrc-ide.github.io/odin-monty/slides/fitting.html#/design-philosophy 
+
+
+
+This roadmap is focused on things I don’t understand and things I do understand that are about computational efficiency  https://mrc-ide.github.io/odin-monty/slides/fitting.html#/roadmap 
+
+* Update on the Plague project
+* Dev work
+  * Quiet pkg check
+  * Document adding of engine functions in CONTRIBUTING.md, with some simplification
+  * New engine functions: `invlogit`, `logit`, `sin`, `sqrt`
+  * pkgdown (nicer formatting on pkgdown topic titles, Fix rendering of math equations)
+  * Complete engine function documentation
+  * Using `mp_state_vars`/`mp_flow_vars` more consistently
+  * Documented how assignment works (i.e., functions on the left hand side)
+* GUI fun
+* Differences between us and odin2: 
+  * state space model and MCMC is the generic approach
+  * design philosophy is provide modular pieces with 'minimal handholding'
+* Summer workshop
+* Roadmap
+  * Vector valued FOI
+  * Log linear model of time variation
+  * Distribution specification documentation and hierarchical and binomial
+  * 
+
+
+https://github.com/canmod/macpan2/compare/7ef2c8053fa475d00b14cd2c87b2392d7f5df297..main
