@@ -22,7 +22,8 @@ model, with calibrated default values.
 }
 \description{
 Create a new model specification using parameter values that have been
-optimized.
+optimized. See the examples in the help page for
+\code{\link{mp_tmb_calibrator}}.
 }
 \details{
 The following is a list of additional model specification structure that was

@@ -4,6 +4,7 @@
 \alias{mp_per_capita_flow}
 \alias{mp_per_capita_inflow}
 \alias{mp_per_capita_outflow}
+\alias{mp_absolute_flow}
 \alias{mp_inflow}
 \alias{mp_outflow}
 \title{Specify Flow Into, Out Of, and Between Compartments}
@@ -13,6 +14,8 @@ mp_per_capita_flow(from, to, rate, flow_name = NULL, abs_rate = NULL)
 mp_per_capita_inflow(from, to, rate, flow_name = NULL, abs_rate = NULL)
 
 mp_per_capita_outflow(from, rate, flow_name = NULL, abs_rate = NULL)
+
+mp_absolute_flow(from, to, rate, flow_name = NULL, rate_name = NULL)
 
 mp_inflow(to, rate, flow_name = NULL, abs_rate = NULL)
 
@@ -25,7 +28,7 @@ originates.}
 \item{to}{String giving the name of the compartment to which the flow is
 going.}
 
-\item{rate}{String giving the expression for the per-capita
+\item{rate}{String giving the expression for the per-capita or absolute
 flow rate. Alternatively, and for back compatibility,
 a two-sided formula with the left-hand-side giving the name of the absolute
 flow rate per time-step and the right-hand-side giving an expression for
@@ -35,6 +38,9 @@ the per-capita rate of flow from \code{from} to \code{to}.}
 
 \item{abs_rate}{Deprecated synonym for \code{flow_name}. Please use \code{flow_name}
 in all future work.}
+
+\item{rate_name}{Deprecated synonym for \code{flow_name} when using
+\code{mp_absolute_flow}. Please use \code{flow_name} in all future work.}
 }
 \description{
 Specify different kinds of flows into, out of, and between compartments.
@@ -61,6 +67,10 @@ without going anywhere. This is useful for removing individuals from the
 system (e.g., death). To keep track of the total number of dead individuals
 one can use \code{mp_per_capita_flow} and set \code{to} to be a compartment for
 these individuals (e.g., \code{to = "D"}).
+
+\item \code{mp_absolute_flow()}: Alternative to \code{mp_per_capita_flow} that
+allowing specification of flows using absolute rates instead of per-capita
+rates.
 
 \item \code{mp_inflow()}: Only flow into the \code{to} compartment.
 For adding a birth or immigration process.
@@ -105,7 +115,7 @@ mp_per_capita_outflow("R", "mu", "death_R")
 mp_per_capita_flow("S", "V", "(vrate * S/(vrate + S))/S", "vaccination")
 
 # importation
-# mp_inflow("I", "delta", "importation")
+mp_inflow("I", "delta", "importation")
 
 }
 \seealso{

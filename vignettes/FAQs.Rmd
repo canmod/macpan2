@@ -113,7 +113,7 @@ You are free to declare any value in the model to be a trajectory or parameter. 
 
 ### Can I get a new model specification with fitted parameters as defaults, from a calibrated calibrator object?
 
-Coming soon!
+[Yes](https://canmod.github.io/macpan2/reference/mp_optimized_spec).  [Here](https://canmod.github.io/macpan2/reference/mp_tmb_calibrator.html#ref-examples) is a simple example.
 
 ## Plotting Simulated Trajectories
 
